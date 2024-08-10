@@ -140,13 +140,13 @@ void GBASockServer::Disconnect()
   m_booted = false;
 }
 
-void GBASockServer::ClockSync(Core::System& system)
+void GBASockServer::ClockSync(const Core::System& system)
 {
   if (!m_clock_sync)
     if (!(m_clock_sync = GetNextClock()))
       return;
 
-  auto& core_timing = system.GetCoreTiming();
+  const auto& core_timing = system.GetCoreTiming();
 
   u32 time_slice = 0;
 
@@ -154,14 +154,14 @@ void GBASockServer::ClockSync(Core::System& system)
   {
     s_num_connected++;
     m_last_time_slice = core_timing.GetTicks();
-    time_slice = (u32)(system.GetSystemTimers().GetTicksPerSecond() / 60);
+    time_slice = system.GetSystemTimers().GetTicksPerSecond() / 60;
   }
   else
   {
-    time_slice = (u32)(core_timing.GetTicks() - m_last_time_slice);
+    time_slice = static_cast<u32>(core_timing.GetTicks() - m_last_time_slice);
   }
 
-  time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
+  time_slice = static_cast<u32>((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
   char bytes[4] = {0, 0, 0, 0};
   bytes[0] = (time_slice >> 24) & 0xff;
@@ -169,7 +169,7 @@ void GBASockServer::ClockSync(Core::System& system)
   bytes[2] = (time_slice >> 8) & 0xff;
   bytes[3] = time_slice & 0xff;
 
-  sf::Socket::Status status = m_clock_sync->send(bytes, 4);
+  const sf::Socket::Status status = m_clock_sync->send(bytes, 4);
   if (status == sf::Socket::Disconnected)
   {
     m_clock_sync->disconnect();
@@ -188,7 +188,7 @@ bool GBASockServer::Connect()
   return IsConnected();
 }
 
-bool GBASockServer::IsConnected()
+bool GBASockServer::IsConnected() const
 {
   return static_cast<bool>(m_client);
 }
@@ -214,7 +214,7 @@ void GBASockServer::Send(const u8* si_buffer)
     Disconnect();
 }
 
-int GBASockServer::Receive(u8* si_buffer, u8 bytes)
+int GBASockServer::Receive(u8* si_buffer, const u8 bytes)
 {
   if (!m_client)
     return 0;
@@ -228,7 +228,7 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
-  sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
+  const sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
@@ -247,7 +247,7 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   return static_cast<int>(std::min(num_received, recv_data.size()));
 }
 
-void GBASockServer::Flush()
+void GBASockServer::Flush() const
 {
   if (!m_client)
     return;
@@ -256,13 +256,13 @@ void GBASockServer::Flush()
   u8 byte;
   while (num_received)
   {
-    sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
+    const sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
     if (recv_stat != sf::Socket::Done)
       break;
   }
 }
 
-CSIDevice_GBA::CSIDevice_GBA(Core::System& system, SIDevices device, int device_number)
+CSIDevice_GBA::CSIDevice_GBA(Core::System& system, const SIDevices device, const int device_number)
     : ISIDevice(system, device, device_number)
 {
 }
@@ -296,7 +296,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
+    const int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd) > elapsed_time)
       return 0;
@@ -319,7 +319,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     default:
       break;
     }
-    int num_data_received = m_sock_server.Receive(buffer, bytes);
+    const int num_data_received = m_sock_server.Receive(buffer, bytes);
 
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)

@@ -38,7 +38,7 @@ namespace
 
 #pragma pack(push, 1)
 
-const uint32_t DDS_MAGIC = 0x20534444;  // "DDS "
+constexpr uint32_t DDS_MAGIC = 0x20534444;  // "DDS "
 
 struct DDS_PIXELFORMAT
 {
@@ -165,12 +165,12 @@ struct DDSLoadInfo
   std::function<void(VideoCommon::CustomTextureData::ArraySlice::Level*)> conversion_function;
 };
 
-static constexpr u32 GetBlockCount(u32 extent, u32 block_size)
+static constexpr u32 GetBlockCount(const u32 extent, const u32 block_size)
 {
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-static u32 CalculateMipCount(u32 width, u32 height)
+static u32 CalculateMipCount(const u32 width, const u32 height)
 {
   u32 mip_width = width;
   u32 mip_height = height;
@@ -299,7 +299,7 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   }
 
   // Handle fourcc formats vs uncompressed formats.
-  bool has_fourcc = (header.ddspf.dwFlags & DDS_FOURCC) != 0;
+  const bool has_fourcc = (header.ddspf.dwFlags & DDS_FOURCC) != 0;
   bool needs_s3tc = false;
   if (has_fourcc)
   {
@@ -422,8 +422,8 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     return false;
 
   // Mip levels smaller than the block size are padded to multiples of the block size.
-  u32 blocks_wide = GetBlockCount(info->width, info->block_size);
-  u32 blocks_high = GetBlockCount(info->height, info->block_size);
+  const u32 blocks_wide = GetBlockCount(info->width, info->block_size);
+  const u32 blocks_high = GetBlockCount(info->height, info->block_size);
 
   // Pitch can be specified in the header, otherwise we can derive it from the dimensions. For
   // compressed formats, both DDS_HEADER_FLAGS_LINEARSIZE and DDS_HEADER_FLAGS_PITCH should be
@@ -458,9 +458,9 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 }
 
 static bool ReadMipLevel(VideoCommon::CustomTextureData::ArraySlice::Level* level,
-                         File::IOFile& file, const std::string& filename, u32 mip_level,
-                         const DDSLoadInfo& info, u32 width, u32 height, u32 row_length,
-                         size_t size)
+                         File::IOFile& file, const std::string& filename, const u32 mip_level,
+                         const DDSLoadInfo& info, const u32 width, const u32 height, const u32 row_length,
+                         const size_t size)
 {
   // D3D11 cannot handle block compressed textures where the first mip level is
   // not a multiple of the block size.
@@ -510,7 +510,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
 
   for (u32 arr_i = 0; arr_i < info.array_size; arr_i++)
   {
-    auto& slice = texture->m_slices.emplace_back();
+    auto& [m_levels] = texture->m_slices.emplace_back();
     // Read first mip level, as it may have a custom pitch.
     CustomTextureData::ArraySlice::Level first_level;
     if (!ReadMipLevel(&first_level, file, filename, 0, info, info.width, info.height,
@@ -519,7 +519,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
       return false;
     }
 
-    slice.m_levels.push_back(std::move(first_level));
+    m_levels.push_back(std::move(first_level));
 
     // Read in any remaining mip levels in the file.
     // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
@@ -531,16 +531,16 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
       mip_height = std::max(mip_height / 2, 1u);
 
       // Pitch can't be specified with each mip level, so we have to calculate it ourselves.
-      u32 blocks_wide = GetBlockCount(mip_width, info.block_size);
-      u32 blocks_high = GetBlockCount(mip_height, info.block_size);
-      u32 mip_row_length = blocks_wide * info.block_size;
-      size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
+      const u32 blocks_wide = GetBlockCount(mip_width, info.block_size);
+      const u32 blocks_high = GetBlockCount(mip_height, info.block_size);
+      const u32 mip_row_length = blocks_wide * info.block_size;
+      const size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
       CustomTextureData::ArraySlice::Level level;
       if (!ReadMipLevel(&level, file, filename, i, info, mip_width, mip_height, mip_row_length,
                         mip_size))
         break;
 
-      slice.m_levels.push_back(std::move(level));
+      m_levels.push_back(std::move(level));
     }
   }
 
@@ -548,7 +548,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
 }
 
 bool LoadDDSTexture(CustomTextureData::ArraySlice::Level* level, const std::string& filename,
-                    u32 mip_level)
+                    const u32 mip_level)
 {
   // Only loading a single mip level.
   File::IOFile file;

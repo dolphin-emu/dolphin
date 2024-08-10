@@ -42,7 +42,7 @@ template <typename T, bool Detectable>
 class GenericInput : public Core::Device::Input
 {
 public:
-  GenericInput(const T* value, std::string name, ControlState extent)
+  GenericInput(const T* value, std::string name, const ControlState extent)
       : m_value(*value), m_name(std::move(name)), m_extent(extent)
   {
   }
@@ -51,7 +51,7 @@ public:
 
   std::string GetName() const override { return m_name; }
 
-  ControlState GetState() const final override { return ControlState(m_value) / m_extent; }
+  ControlState GetState() const final override { return static_cast<ControlState>(m_value) / m_extent; }
 
 protected:
   const T& m_value;
@@ -85,7 +85,7 @@ public:
 
   std::string GetName() const override { return "Motor"; }
 
-  void SetState(ControlState state) override { m_value = state; }
+  void SetState(const ControlState state) override { m_value = state; }
 
 private:
   std::atomic<ControlState>& m_value;
@@ -121,7 +121,7 @@ void AddDevice(std::unique_ptr<WiimoteReal::Wiimote> wiimote)
   g_controller_interface.AddDevice(std::make_shared<Device>(std::move(wiimote)));
 }
 
-void ReleaseDevices(std::optional<u32> count)
+void ReleaseDevices(const std::optional<u32> count)
 {
   u32 removed_devices = 0;
 
@@ -152,8 +152,8 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
       {EmuWiimote::BUTTON_HOME, "HOME"},
   };
 
-  for (auto& button : button_masks)
-    AddInput(new Button<u16>(&m_core_data.hex, button.first, button.second));
+  for (const auto& [fst, snd] : button_masks)
+    AddInput(new Button(&m_core_data.hex, fst, snd));
 
   static constexpr u16 dpad_masks[] = {
       EmuWiimote::PAD_UP,
@@ -173,7 +173,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
 
   // Raw accelerometer.
   for (std::size_t i = 0; i != std::size(dpad_masks); ++i)
-    AddInput(new Button<u16>(&m_core_data.hex, dpad_masks[i], named_directions[i]));
+    AddInput(new Button(&m_core_data.hex, dpad_masks[i], named_directions[i]));
 
   static constexpr std::array<std::array<const char*, 2>, 3> accel_names = {{
       {"Accel Left", "Accel Right"},
@@ -183,8 +183,8 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
 
   for (std::size_t i = 0; i != m_accel_data.data.size(); ++i)
   {
-    AddInput(new UndetectableAnalogInput<float>(&m_accel_data.data[i], accel_names[i][0], 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_accel_data.data[i], accel_names[i][1], -1));
+    AddInput(new UndetectableAnalogInput(&m_accel_data.data[i], accel_names[i][0], 1));
+    AddInput(new UndetectableAnalogInput(&m_accel_data.data[i], accel_names[i][1], -1));
   }
 
   // IR data.
@@ -197,18 +197,18 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
         new UndetectableSignedAnalogInput(&m_ir_state.center_position.data[i], ir_names[i], 1.f));
   }
 
-  AddInput(new UndetectableAnalogInput<bool>(&m_ir_state.is_hidden, "IR Hidden", 1));
+  AddInput(new UndetectableAnalogInput(&m_ir_state.is_hidden, "IR Hidden", 1));
 
-  AddInput(new UndetectableAnalogInput<float>(&m_ir_state.distance, "IR Distance", 1));
+  AddInput(new UndetectableAnalogInput(&m_ir_state.distance, "IR Distance", 1));
 
   // Raw IR Objects.
   for (std::size_t i = 0; i < 4; ++i)
   {
-    AddInput(new UndetectableAnalogInput<float>(&m_ir_state.raw_ir_object_position[i].x,
+    AddInput(new UndetectableAnalogInput(&m_ir_state.raw_ir_object_position[i].x,
                                                 fmt::format("IR Object {} X", i + 1), 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_ir_state.raw_ir_object_position[i].y,
+    AddInput(new UndetectableAnalogInput(&m_ir_state.raw_ir_object_position[i].y,
                                                 fmt::format("IR Object {} Y", i + 1), 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_ir_state.raw_ir_object_size[i],
+    AddInput(new UndetectableAnalogInput(&m_ir_state.raw_ir_object_size[i],
                                                 fmt::format("IR Object {} Size", i + 1), 1));
   }
 
@@ -222,17 +222,17 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   for (std::size_t i = 0; i != m_accel_data.data.size(); ++i)
   {
     AddInput(
-        new UndetectableAnalogInput<float>(&m_mplus_state.gyro_data.data[i], gyro_names[i][0], 1));
+        new UndetectableAnalogInput(&m_mplus_state.gyro_data.data[i], gyro_names[i][0], 1));
     AddInput(
-        new UndetectableAnalogInput<float>(&m_mplus_state.gyro_data.data[i], gyro_names[i][1], -1));
+        new UndetectableAnalogInput(&m_mplus_state.gyro_data.data[i], gyro_names[i][1], -1));
   }
 
   using WiimoteEmu::Nunchuk;
   const std::string nunchuk_prefix = "Nunchuk ";
 
   // Buttons.
-  AddInput(new Button<u8>(&m_nunchuk_state.buttons, Nunchuk::BUTTON_C, nunchuk_prefix + "C"));
-  AddInput(new Button<u8>(&m_nunchuk_state.buttons, Nunchuk::BUTTON_Z, nunchuk_prefix + "Z"));
+  AddInput(new Button(&m_nunchuk_state.buttons, Nunchuk::BUTTON_C, nunchuk_prefix + "C"));
+  AddInput(new Button(&m_nunchuk_state.buttons, Nunchuk::BUTTON_Z, nunchuk_prefix + "Z"));
 
   // Stick.
   static constexpr const char* const nunchuk_stick_names[] = {"X", "Y"};
@@ -247,9 +247,9 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   // Raw accelerometer.
   for (std::size_t i = 0; i != m_accel_data.data.size(); ++i)
   {
-    AddInput(new UndetectableAnalogInput<float>(&m_nunchuk_state.accel.data[i],
+    AddInput(new UndetectableAnalogInput(&m_nunchuk_state.accel.data[i],
                                                 nunchuk_prefix + accel_names[i][0], 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_nunchuk_state.accel.data[i],
+    AddInput(new UndetectableAnalogInput(&m_nunchuk_state.accel.data[i],
                                                 nunchuk_prefix + accel_names[i][1], -1));
   }
 
@@ -265,7 +265,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   };
 
   for (std::size_t i = 0; i != std::size(classic_dpad_masks); ++i)
-    AddInput(new Button<u16>(&m_classic_state.buttons, classic_dpad_masks[i],
+    AddInput(new Button(&m_classic_state.buttons, classic_dpad_masks[i],
                              classic_prefix + named_directions[i]));
 
   static constexpr u16 classic_button_masks[] = {
@@ -279,7 +279,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   };
 
   for (std::size_t i = 0; i != std::size(classic_button_masks); ++i)
-    AddInput(new Button<u16>(&m_classic_state.buttons, classic_button_masks[i],
+    AddInput(new Button(&m_classic_state.buttons, classic_button_masks[i],
                              classic_prefix + classic_button_names[i]));
 
   // Sticks.
@@ -298,14 +298,14 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   }
 
   // Triggers.
-  AddInput(new AnalogInput<float>(&m_classic_state.triggers[0], classic_prefix + "L-Analog", 1.f));
-  AddInput(new AnalogInput<float>(&m_classic_state.triggers[1], classic_prefix + "R-Analog", 1.f));
+  AddInput(new AnalogInput(&m_classic_state.triggers[0], classic_prefix + "L-Analog", 1.f));
+  AddInput(new AnalogInput(&m_classic_state.triggers[1], classic_prefix + "R-Analog", 1.f));
 
   // Specialty inputs:
-  AddInput(new UndetectableAnalogInput<float>(&m_battery, "Battery", 1.f));
-  AddInput(new UndetectableAnalogInput<WiimoteEmu::ExtensionNumber>(
-      &m_extension_number_input, "Attached Extension", WiimoteEmu::ExtensionNumber(1)));
-  AddInput(new UndetectableAnalogInput<bool>(&m_mplus_attached_input, "Attached MotionPlus", 1));
+  AddInput(new UndetectableAnalogInput(&m_battery, "Battery", 1.f));
+  AddInput(new UndetectableAnalogInput(
+      &m_extension_number_input, "Attached Extension", static_cast<WiimoteEmu::ExtensionNumber>(1)));
+  AddInput(new UndetectableAnalogInput(&m_mplus_attached_input, "Attached MotionPlus", 1));
 
   AddOutput(new Motor(&m_rumble_level));
 }
@@ -318,7 +318,7 @@ Device::~Device()
   m_wiimote->EmuStop();
 
   INFO_LOG_FMT(WIIMOTE, "WiiRemote: Returning remote to pool.");
-  WiimoteReal::AddWiimoteToPool(std::move(m_wiimote));
+  AddWiimoteToPool(std::move(m_wiimote));
 }
 
 std::string Device::GetName() const
@@ -347,7 +347,7 @@ void Device::RunTasks()
   {
     QueueReport(OutputReportRequestStatus());
 
-    AddReportHandler(std::function<void(const InputReportStatus& status)>(
+    AddReportHandler(std::function(
         [this](const InputReportStatus& status) {
           DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Received requested status.");
           ProcessStatusReport(status);
@@ -363,7 +363,7 @@ void Device::RunTasks()
     OutputReportLeds rpt = {};
     rpt.ack = 1;
     rpt.leds = desired_leds;
-    QueueReport(rpt, [this, desired_leds](ErrorCode result) {
+    QueueReport(rpt, [this, desired_leds](const ErrorCode result) {
       if (result != ErrorCode::Success)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to set LEDs.");
@@ -385,7 +385,7 @@ void Device::RunTasks()
     OutputReportMode mode = {};
     mode.ack = 1;
     mode.mode = desired_reporting_mode;
-    QueueReport(mode, [this](ErrorCode error) {
+    QueueReport(mode, [this](const ErrorCode error) {
       if (error != ErrorCode::Success)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to set reporting mode.");
@@ -460,7 +460,7 @@ void Device::RunTasks()
 
     // First disable encryption. Note this is a no-op when performed on the M+.
     WriteData(AddressSpace::I2CBus, WiimoteEmu::ExtensionPort::REPORT_I2C_SLAVE, ENCRYPTION_ADDR,
-              {ENCRYPTION_VALUE}, [this](ErrorCode error) {
+              {ENCRYPTION_VALUE}, [this](const ErrorCode error) {
                 if (error != ErrorCode::Success)
                   return;
 
@@ -480,7 +480,7 @@ void Device::RunTasks()
     // Note that this signal also DE-activates a M+.
     WriteData(AddressSpace::I2CBus, WiimoteEmu::ExtensionPort::REPORT_I2C_SLAVE, INIT_ADDR,
               {INIT_VALUE}, [this](ErrorCode result) {
-                DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Initialized extension: {}.", int(result));
+                DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Initialized extension: {}.", static_cast<int>(result));
                 m_extension_id = std::nullopt;
               });
 
@@ -515,7 +515,7 @@ void Device::RunTasks()
 
                WriteData(AddressSpace::I2CBus, WiimoteEmu::MotionPlus::INACTIVE_DEVICE_ADDR,
                          INIT_ADDR, {INIT_VALUE}, [this](ErrorCode result) {
-                           DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ initialization: {}.", int(result));
+                           DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ initialization: {}.", static_cast<int>(result));
                            if (result != ErrorCode::Success)
                            {
                              HandleMotionPlusNonResponse();
@@ -555,7 +555,7 @@ void Device::RunTasks()
                if (m_mplus_state.passthrough_port != true)
                  return;
 
-               auto& identifier = *response;
+               const auto& identifier = *response;
 
                ProcessExtensionID(identifier[2], identifier[0], identifier[3]);
              });
@@ -629,7 +629,7 @@ void Device::RunTasks()
 
           WiimoteEmu::UpdateCalibrationDataChecksum(calibration_data, 2);
 
-          Checksum checksum = Checksum::Good;
+          auto checksum = Checksum::Good;
 
           if (read_checksum != std::pair(calibration_data[CALIBRATION_SIZE - 2],
                                          calibration_data[CALIBRATION_SIZE - 1]))
@@ -706,7 +706,7 @@ void Device::UpdateExtensionNumberInput()
   }
 }
 
-void Device::ProcessExtensionEvent(bool connected)
+void Device::ProcessExtensionEvent(const bool connected)
 {
   // Reset extension state.
   m_nunchuk_state = {};
@@ -719,7 +719,7 @@ void Device::ProcessExtensionEvent(bool connected)
     m_mplus_desired_mode = std::nullopt;
 }
 
-void Device::ProcessExtensionID(u8 id_0, u8 id_4, u8 id_5)
+void Device::ProcessExtensionID(const u8 id_0, const u8 id_4, const u8 id_5)
 {
   if (id_4 == 0x00 && id_5 == 0x00)
   {
@@ -765,7 +765,7 @@ Device::NunchukState::Calibration::Calibration() : accel{}, stick{}
 }
 
 void Device::NunchukState::SetCalibrationData(const WiimoteEmu::Nunchuk::CalibrationData& data,
-                                              Checksum checksum)
+                                              const Checksum checksum)
 {
   DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Set Nunchuk calibration.");
 
@@ -814,7 +814,7 @@ Device::ClassicState::Calibration::Calibration()
 }
 
 void Device::ClassicState::SetCalibrationData(const WiimoteEmu::Classic::CalibrationData& data,
-                                              Checksum checksum)
+                                              const Checksum checksum)
 {
   DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Set Classic Controller calibration.");
 
@@ -863,11 +863,11 @@ void Device::ReadActiveExtensionID()
              // Check for M+ ID.
              if (identifier[5] == 0x05)
              {
-               const auto passthrough_mode = MotionPlusState::PassthroughMode(identifier[4]);
+               const auto passthrough_mode = static_cast<MotionPlusState::PassthroughMode>(identifier[4]);
 
                m_mplus_state.current_mode = passthrough_mode;
 
-               INFO_LOG_FMT(WIIMOTE, "WiiRemote: M+ is active in mode: {}.", int(passthrough_mode));
+               INFO_LOG_FMT(WIIMOTE, "WiiRemote: M+ is active in mode: {}.", static_cast<int>(passthrough_mode));
              }
              else
              {
@@ -886,7 +886,7 @@ bool Device::IRState::IsFullyConfigured() const
 u32 Device::IRState::GetDesiredIRSensitivity()
 {
   // Wii stores values from 1 to 5. (subtract 1)
-  const u32 configured_level = Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY) - 1;
+  const u32 configured_level = Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY) - 1;
 
   if (configured_level < IR_SENSITIVITY_LEVEL_COUNT)
     return configured_level;
@@ -921,7 +921,7 @@ void Device::SetIRSensitivity(u32 level)
   const auto& sensitivity_config = sensitivity_configs[level];
 
   WriteData(AddressSpace::I2CBus, WiimoteEmu::CameraLogic::I2C_ADDR, BLOCK1_ADDR,
-            sensitivity_config.block1, [&sensitivity_config, level, this](ErrorCode block_result) {
+            sensitivity_config.block1, [&sensitivity_config, level, this](const ErrorCode block_result) {
               if (block_result != ErrorCode::Success)
               {
                 WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to write IR block 1.");
@@ -929,7 +929,7 @@ void Device::SetIRSensitivity(u32 level)
               }
 
               WriteData(AddressSpace::I2CBus, WiimoteEmu::CameraLogic::I2C_ADDR, BLOCK2_ADDR,
-                        sensitivity_config.block2, [&, level, this](ErrorCode block2_result) {
+                        sensitivity_config.block2, [&, level, this](const ErrorCode block2_result) {
                           if (block2_result != ErrorCode::Success)
                           {
                             WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to write IR block 2.");
@@ -950,7 +950,7 @@ void Device::ConfigureIRCamera()
     OutputReportIRLogicEnable2 ir_logic2 = {};
     ir_logic2.ack = 1;
     ir_logic2.enable = 1;
-    QueueReport(ir_logic2, [this](ErrorCode result) {
+    QueueReport(ir_logic2, [this](const ErrorCode result) {
       if (result != ErrorCode::Success)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to enable IR.");
@@ -960,7 +960,7 @@ void Device::ConfigureIRCamera()
       OutputReportIRLogicEnable ir_logic = {};
       ir_logic.ack = 1;
       ir_logic.enable = 1;
-      QueueReport(ir_logic, [this](ErrorCode ir_result) {
+      QueueReport(ir_logic, [this](const ErrorCode ir_result) {
         if (ir_result != ErrorCode::Success)
         {
           WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to enable IR.");
@@ -990,7 +990,7 @@ void Device::ConfigureIRCamera()
 
     // We only support "Basic" mode (it's all that fits in ReportCoreAccelIR10Ext6).
     WriteData(AddressSpace::I2CBus, WiimoteEmu::CameraLogic::I2C_ADDR, MODE_ADDR,
-              {WiimoteEmu::CameraLogic::IR_MODE_BASIC}, [this](ErrorCode mode_result) {
+              {WiimoteEmu::CameraLogic::IR_MODE_BASIC}, [this](const ErrorCode mode_result) {
                 if (mode_result != ErrorCode::Success)
                 {
                   WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to set IR mode.");
@@ -1002,7 +1002,7 @@ void Device::ConfigureIRCamera()
                 static constexpr u8 ENABLE_VALUE = 0x08;
 
                 WriteData(AddressSpace::I2CBus, WiimoteEmu::CameraLogic::I2C_ADDR, ENABLE_ADDR,
-                          {ENABLE_VALUE}, [this](ErrorCode result) {
+                          {ENABLE_VALUE}, [this](const ErrorCode result) {
                             if (result != ErrorCode::Success)
                             {
                               WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to enable object tracking.");
@@ -1022,7 +1022,7 @@ void Device::ConfigureSpeaker()
   OutputReportSpeakerMute mute = {};
   mute.enable = 1;
   mute.ack = 1;
-  QueueReport(mute, [this](ErrorCode mute_result) {
+  QueueReport(mute, [this](const ErrorCode mute_result) {
     if (mute_result != ErrorCode::Success)
     {
       WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to mute speaker.");
@@ -1032,7 +1032,7 @@ void Device::ConfigureSpeaker()
     OutputReportSpeakerEnable spkr = {};
     spkr.enable = 0;
     spkr.ack = 1;
-    QueueReport(spkr, [this](ErrorCode enable_result) {
+    QueueReport(spkr, [this](const ErrorCode enable_result) {
       if (enable_result != ErrorCode::Success)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Failed to disable speaker.");
@@ -1051,14 +1051,14 @@ void Device::TriggerMotionPlusModeChange()
   if (!m_mplus_desired_mode.has_value())
     return;
 
-  const u8 passthrough_mode = u8(*m_mplus_desired_mode);
+  const u8 passthrough_mode = static_cast<u8>(*m_mplus_desired_mode);
 
   const u8 device_addr = IsMotionPlusActive() ? WiimoteEmu::MotionPlus::ACTIVE_DEVICE_ADDR :
                                                 WiimoteEmu::MotionPlus::INACTIVE_DEVICE_ADDR;
 
   WriteData(AddressSpace::I2CBus, device_addr, WiimoteEmu::MotionPlus::PASSTHROUGH_MODE_OFFSET,
             {passthrough_mode}, [this](ErrorCode activation_result) {
-              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ activation: {}.", int(activation_result));
+              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ activation: {}.", static_cast<int>(activation_result));
 
               WaitForMotionPlus();
 
@@ -1079,7 +1079,7 @@ void Device::TriggerMotionPlusCalibration()
   // It seems we're better off just manually determining "zero".
   WriteData(AddressSpace::I2CBus, WiimoteEmu::MotionPlus::ACTIVE_DEVICE_ADDR,
             CALIBRATION_TRIGGER_ADDR, {CALIBRATION_TRIGGER_VALUE}, [](ErrorCode result) {
-              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ calibration trigger done: {}.", int(result));
+              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ calibration trigger done: {}.", static_cast<int>(result));
             });
 }
 
@@ -1107,7 +1107,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     return;
   }
 
-  auto report_id = InputReportID(report[WiimoteReal::REPORT_HID_HEADER_SIZE]);
+  auto report_id = static_cast<InputReportID>(report[WiimoteReal::REPORT_HID_HEADER_SIZE]);
 
   for (auto it = m_report_handlers.begin(); true;)
   {
@@ -1128,7 +1128,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
       else if (report_id < InputReportID::ReportCore)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Unhandled input report: {}.",
-                     ArrayToString(report.data(), u32(report.size())));
+                     ArrayToString(report.data(), static_cast<u32>(report.size())));
       }
 
       break;
@@ -1160,10 +1160,10 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
   {
     // We can assume the last received input report is the current reporting mode.
     // FYI: This logic fails to properly handle the (never used) "interleaved" reports.
-    m_reporting_mode = InputReportID(report_id);
+    m_reporting_mode = report_id;
   }
 
-  auto manipulator = MakeDataReportManipulator(
+  const auto manipulator = MakeDataReportManipulator(
       report_id, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + sizeof(InputReportID));
 
   if (manipulator->GetDataSize() + WiimoteReal::REPORT_HID_HEADER_SIZE > report.size())
@@ -1183,7 +1183,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     manipulator->GetAccelData(&accel_data);
 
     m_accel_data =
-        accel_data.GetNormalizedValue(*m_accel_calibration) * float(MathUtil::GRAVITY_ACCELERATION);
+        accel_data.GetNormalizedValue(*m_accel_calibration) * static_cast<float>(MathUtil::GRAVITY_ACCELERATION);
   }
 
   // Process IR data.
@@ -1240,7 +1240,7 @@ void Device::UpdateOrientation()
         Common::Vec3(m_ir_state.center_position.y * WiimoteEmu::CameraLogic::CAMERA_FOV_Y, 0,
                      m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X) /
         2;
-    const auto ir_normal = Common::Vec3(0, 1, 0);
+    constexpr auto ir_normal = Common::Vec3(0, 1, 0);
     const auto ir_vector = WiimoteEmu::GetRotationFromGyroscope(-ir_rotation) * ir_normal;
 
     // Pitch correction will be slightly wrong based on sensorbar height.
@@ -1258,7 +1258,7 @@ void Device::UpdateOrientation()
   m_rotation_inputs =
       Common::Vec3{WiimoteEmu::GetPitch(m_orientation), WiimoteEmu::GetRoll(m_orientation),
                    WiimoteEmu::GetYaw(m_orientation)} /
-      float(MathUtil::PI);
+      static_cast<float>(MathUtil::PI);
 }
 
 void Device::IRState::ProcessData(const DataReportManipulator& manipulator)
@@ -1270,10 +1270,10 @@ void Device::IRState::ProcessData(const DataReportManipulator& manipulator)
 
   MathUtil::RunningVariance<Common::Vec2> points;
 
-  const auto camera_max = IRObject(WiimoteEmu::CameraLogic::CAMERA_RES_X - 1,
-                                   WiimoteEmu::CameraLogic::CAMERA_RES_Y - 1);
+  constexpr auto camera_max = IRObject(WiimoteEmu::CameraLogic::CAMERA_RES_X - 1,
+                                       WiimoteEmu::CameraLogic::CAMERA_RES_Y - 1);
 
-  const auto add_point = [&](IRObject point, u8 size, size_t idx) {
+  const auto add_point = [&](const IRObject point, const u8 size, const size_t idx) {
     // Non-visible points are 0xFF-filled.
     if (point.y > camera_max.y)
     {
@@ -1349,7 +1349,7 @@ void Device::IRState::ProcessData(const DataReportManipulator& manipulator)
   }
 }
 
-void Device::ProcessMotionPlusExtensionData(const u8* ext_data, u32 ext_size)
+void Device::ProcessMotionPlusExtensionData(const u8* ext_data, const u32 ext_size)
 {
   if (ext_size < sizeof(WiimoteEmu::MotionPlus::DataFormat))
     return;
@@ -1391,10 +1391,10 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, u32 ext_size)
   // Undo bit-hacks of M+ passthrough.
   WiimoteEmu::MotionPlus::ReversePassthroughModifications(*m_mplus_state.current_mode, data.data());
 
-  ProcessNormalExtensionData(data.data(), u32(data.size()));
+  ProcessNormalExtensionData(data.data(), data.size());
 }
 
-void Device::ProcessNormalExtensionData(const u8* ext_data, u32 ext_size)
+void Device::ProcessNormalExtensionData(const u8* ext_data, const u32 ext_size)
 {
   if (m_extension_id == ExtensionID::Nunchuk)
   {
@@ -1489,7 +1489,7 @@ void Device::NunchukState::ProcessData(const WiimoteEmu::Nunchuk::DataFormat& da
 
   stick = data.GetStick().GetNormalizedValue(calibration->stick);
   accel = data.GetAccel().GetNormalizedValue(calibration->accel) *
-          float(MathUtil::GRAVITY_ACCELERATION);
+          static_cast<float>(MathUtil::GRAVITY_ACCELERATION);
 }
 
 void Device::ClassicState::ProcessData(const WiimoteEmu::Classic::DataFormat& data)
@@ -1506,16 +1506,16 @@ void Device::ClassicState::ProcessData(const WiimoteEmu::Classic::DataFormat& da
   triggers[1] = data.GetRightTrigger().GetNormalizedValue(calibration->right_trigger);
 }
 
-void Device::ReadData(AddressSpace space, u8 slave, u16 address, u16 size,
+void Device::ReadData(AddressSpace space, const u8 slave, const u16 address, const u16 size,
                       std::function<void(ReadResponse)> callback)
 {
   OutputReportReadData read_data{};
-  read_data.space = u8(space);
+  read_data.space = static_cast<u8>(space);
   read_data.slave_address = slave;
-  read_data.address[0] = u8(address >> 8);
-  read_data.address[1] = u8(address);
-  read_data.size[0] = u8(size >> 8);
-  read_data.size[1] = u8(size);
+  read_data.address[0] = static_cast<u8>(address >> 8);
+  read_data.address[1] = static_cast<u8>(address);
+  read_data.size[0] = static_cast<u8>(size >> 8);
+  read_data.size[1] = static_cast<u8>(size);
   QueueReport(read_data);
 
   AddReadDataReplyHandler(space, slave, address, size, {}, std::move(callback));
@@ -1527,7 +1527,7 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
 {
   // Data read may return a busy ack.
   auto ack_handler = MakeAckHandler(OutputReportID::ReadData, [callback](ErrorCode result) {
-    DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read ack error: {}.", int(result));
+    DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read ack error: {}.", static_cast<int>(result));
     callback(ReadResponse{});
   });
 
@@ -1538,9 +1538,9 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
     if (Common::swap16(reply.address) != address)
       return ReportHandler::HandlerResult::NotHandled;
 
-    if (reply.error != u8(ErrorCode::Success))
+    if (reply.error != static_cast<u8>(ErrorCode::Success))
     {
-      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", int(reply.error));
+      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", static_cast<int>(reply.error));
       callback(ReadResponse{});
 
       return ReportHandler::HandlerResult::Handled;
@@ -1566,7 +1566,7 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
   };
 
   AddReportHandler(
-      std::function<ReportHandler::HandlerResult(const InputReportReadDataReply& reply)>(
+      std::function(
           std::move(read_handler)),
       std::move(ack_handler));
 }
@@ -1575,13 +1575,13 @@ template <typename T, typename C>
 void Device::WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& callback)
 {
   OutputReportWriteData write_data = {};
-  write_data.space = u8(space);
+  write_data.space = static_cast<u8>(space);
   write_data.slave_address = slave;
-  write_data.address[0] = u8(address >> 8);
-  write_data.address[1] = u8(address);
+  write_data.address[0] = static_cast<u8>(address >> 8);
+  write_data.address[1] = static_cast<u8>(address);
 
   static constexpr auto MAX_DATA_SIZE = std::size(write_data.data);
-  write_data.size = u8(std::min(std::size(data), MAX_DATA_SIZE));
+  write_data.size = static_cast<u8>(std::min(std::size(data), MAX_DATA_SIZE));
 
   std::copy_n(std::begin(data), write_data.size, write_data.data);
 
@@ -1606,7 +1606,7 @@ void Device::WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& 
   }
 }
 
-Device::ReportHandler::ReportHandler(Clock::time_point expired_time) : m_expired_time(expired_time)
+Device::ReportHandler::ReportHandler(const Clock::time_point expired_time) : m_expired_time(expired_time)
 {
 }
 
@@ -1621,8 +1621,8 @@ template <typename R, typename T>
 void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
 {
   m_callbacks.emplace_back([handler = std::move(handler)](const WiimoteReal::Report& report) {
-    if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != u8(T::REPORT_ID))
-      return ReportHandler::HandlerResult::NotHandled;
+    if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != static_cast<u8>(T::REPORT_ID))
+      return HandlerResult::NotHandled;
 
     T data;
 
@@ -1630,7 +1630,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
     {
       // Off-brand "NEW 2in1" Wii Remote likes to shorten read data replies.
       WARN_LOG_FMT(WIIMOTE, "WiiRemote: Bad report size ({}) for report {:#x}. Zero-filling.",
-                   report.size(), int(T::REPORT_ID));
+                   report.size(), static_cast<int>(T::REPORT_ID));
 
       data = {};
       std::memcpy(&data, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + 1,
@@ -1644,7 +1644,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
     if constexpr (std::is_same_v<decltype(handler(data)), void>)
     {
       handler(data);
-      return ReportHandler::HandlerResult::Handled;
+      return HandlerResult::Handled;
     }
     else
     {
@@ -1653,7 +1653,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
   });
 }
 
-auto Device::ReportHandler::TryToHandleReport(const WiimoteReal::Report& report) -> HandlerResult
+auto Device::ReportHandler::TryToHandleReport(const WiimoteReal::Report& report) const -> HandlerResult
 {
   for (auto& callback : m_callbacks)
   {
@@ -1670,7 +1670,7 @@ bool Device::ReportHandler::IsExpired() const
 }
 
 auto Device::MakeAckHandler(OutputReportID report_id,
-                            std::function<void(WiimoteCommon::ErrorCode)> callback)
+                            std::function<void(ErrorCode)> callback)
     -> AckReportHandler
 {
   return [report_id, callback = std::move(callback)](const InputReportAck& reply) {

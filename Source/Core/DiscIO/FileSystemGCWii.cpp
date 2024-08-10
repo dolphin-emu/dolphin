@@ -14,7 +14,6 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -29,20 +28,20 @@ namespace DiscIO
 constexpr u32 FST_ENTRY_SIZE = 4 * 3;  // An FST entry consists of three 32-bit integers
 
 // Set everything manually.
-FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos)
+FileInfoGCWii::FileInfoGCWii(const u8* fst, const u8 offset_shift, const u32 index, const u32 total_file_infos)
     : m_fst(fst), m_offset_shift(offset_shift), m_index(index), m_total_file_infos(total_file_infos)
 {
 }
 
 // For the root object only.
 // m_fst and m_index must be correctly set before GetSize() is called!
-FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift)
+FileInfoGCWii::FileInfoGCWii(const u8* fst, const u8 offset_shift)
     : m_fst(fst), m_offset_shift(offset_shift), m_index(0), m_total_file_infos(GetSize())
 {
 }
 
 // Copy data that is common to the whole file system.
-FileInfoGCWii::FileInfoGCWii(const FileInfoGCWii& file_info, u32 index)
+FileInfoGCWii::FileInfoGCWii(const FileInfoGCWii& file_info, const u32 index)
     : FileInfoGCWii(file_info.m_fst, file_info.m_offset_shift, index, file_info.m_total_file_infos)
 {
 }
@@ -124,12 +123,12 @@ std::string FileInfoGCWii::GetName() const
   return SHIFTJISToUTF8(reinterpret_cast<const char*>(m_fst + GetNameOffset()));
 }
 
-bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
+bool FileInfoGCWii::NameCaseInsensitiveEquals(const std::string_view other) const
 {
   // For speed, this function avoids allocating new strings, except when we are comparing
   // non-ASCII characters with non-ASCII characters, which is a rare case.
 
-  const char* this_ptr = reinterpret_cast<const char*>(m_fst + GetNameOffset());
+  auto this_ptr = reinterpret_cast<const char*>(m_fst + GetNameOffset());
   const char* other_ptr = other.data();
 
   for (size_t i = 0; i < other.size(); ++i, ++this_ptr, ++other_ptr)
@@ -140,15 +139,15 @@ bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
       // so if we reach this case, this is shorter than other
       return false;
     }
-    else if (static_cast<unsigned char>(*this_ptr) >= 0x80 &&
-             static_cast<unsigned char>(*other_ptr) >= 0x80)
+    if (static_cast<unsigned char>(*this_ptr) >= 0x80 &&
+        static_cast<unsigned char>(*other_ptr) >= 0x80)
     {
       // other is in UTF-8 and this is in Shift-JIS, so we convert so that we can compare correctly
       const std::string this_utf8 = SHIFTJISToUTF8(this_ptr);
       return std::equal(this_utf8.cbegin(), this_utf8.cend(), other.cbegin() + i, other.cend(),
-                        [](char a, char b) { return Common::ToLower(a) == Common::ToLower(b); });
+                        [](const char a, const char b) { return Common::ToLower(a) == Common::ToLower(b); });
     }
-    else if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
+    if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
     {
       return false;
     }
@@ -165,25 +164,22 @@ std::string FileInfoGCWii::GetPath() const
 
   if (IsDirectory())
   {
-    u32 parent_directory_index = Get(EntryProperty::FILE_OFFSET);
+    const u32 parent_directory_index = Get(EntryProperty::FILE_OFFSET);
     return FileInfoGCWii(*this, parent_directory_index).GetPath() + GetName() + "/";
   }
-  else
+  // The parent directory can be found by searching backwards
+  // for a directory that contains this file. The search cannot fail,
+  // because the root directory at index 0 contains all files.
+  FileInfoGCWii potential_parent(*this, m_index - 1);
+  while (!(potential_parent.IsDirectory() &&
+           potential_parent.Get(EntryProperty::FILE_SIZE) > m_index))
   {
-    // The parent directory can be found by searching backwards
-    // for a directory that contains this file. The search cannot fail,
-    // because the root directory at index 0 contains all files.
-    FileInfoGCWii potential_parent(*this, m_index - 1);
-    while (!(potential_parent.IsDirectory() &&
-             potential_parent.Get(EntryProperty::FILE_SIZE) > m_index))
-    {
-      potential_parent = FileInfoGCWii(*this, potential_parent.m_index - 1);
-    }
-    return potential_parent.GetPath() + GetName();
+    potential_parent = FileInfoGCWii(*this, potential_parent.m_index - 1);
   }
+  return potential_parent.GetPath() + GetName();
 }
 
-bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory) const
+bool FileInfoGCWii::IsValid(const u64 fst_size, const FileInfoGCWii& parent_directory) const
 {
   if (GetNameOffset() >= fst_size)
   {
@@ -247,7 +243,7 @@ FileSystemGCWii::FileSystemGCWii(const VolumeDisc* volume, const Partition& part
 
   // 128 MiB is more than the total amount of RAM in a Wii.
   // No file system should use anywhere near that much.
-  static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
+  static constexpr u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
   if (*fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
   {
     // Without this check, Dolphin can crash by trying to allocate too much
@@ -296,7 +292,7 @@ const FileInfo& FileSystemGCWii::GetRoot() const
   return m_root;
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string_view path) const
 {
   if (!IsValid())
     return nullptr;
@@ -305,7 +301,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path) c
 }
 
 std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
-                                                        const FileInfo& file_info) const
+                                                        const FileInfo& file_info)
 {
   // Given a path like "directory1/directory2/fileA.bin", this function will
   // find directory1 and then call itself to search for "directory2/fileA.bin".
@@ -337,7 +333,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
   return nullptr;
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const u64 disc_offset) const
 {
   if (!IsValid())
     return nullptr;
@@ -345,7 +341,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
   // Build a cache (unless there already is one)
   if (m_offset_file_info_cache.empty())
   {
-    u32 fst_entries = m_root.GetSize();
+    const u32 fst_entries = m_root.GetSize();
     for (u32 i = 0; i < fst_entries; i++)
     {
       FileInfoGCWii file_info(m_root, i);

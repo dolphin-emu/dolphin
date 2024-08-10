@@ -4,13 +4,11 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
@@ -109,7 +107,7 @@ public:
 
 #ifdef WIN32
   // Returns the platform-specific exclusive fullscreen structure.
-  VkSurfaceFullScreenExclusiveWin32InfoEXT
+  static VkSurfaceFullScreenExclusiveWin32InfoEXT
   GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
 #endif
 
@@ -120,7 +118,7 @@ private:
   bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
-  void InitDriverDetails();
+  void InitDriverDetails() const;
   void PopulateShaderSubgroupSupport();
   bool CreateAllocator(u32 vk_api_version);
 

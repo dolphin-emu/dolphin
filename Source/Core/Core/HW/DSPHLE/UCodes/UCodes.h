@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <memory>
 
 #include "Common/CommonTypes.h"
@@ -51,7 +50,7 @@ public:
   virtual void Update() = 0;
 
   virtual void DoState(PointerWrap& p) = 0;
-  static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
+  static u32 GetCRC(const UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
 
 protected:
   void PrepareBootUCode(u32 mail);

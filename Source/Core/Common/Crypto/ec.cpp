@@ -8,7 +8,6 @@
 #include <cstring>
 
 #include "Common/Crypto/bn.h"
-#include "Common/Inline.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 
@@ -24,16 +23,16 @@ struct Elt
 {
   bool IsZero() const
   {
-    return std::all_of(data.begin(), data.end(), [](u8 b) { return b == 0; });
+    return std::ranges::all_of(data, [](const u8 b) { return b == 0; });
   }
 
   void MulX()
   {
-    u8 carry = data[0] & 1;
+    const u8 carry = data[0] & 1;
     u8 x = 0;
     for (std::size_t i = 0; i < data.size() - 1; i++)
     {
-      u8 y = data[i + 1];
+      const u8 y = data[i + 1];
       data[i] = x ^ (y >> 7);
       x = y << 1;
     }
@@ -51,7 +50,7 @@ struct Elt
     }
     for (std::size_t i = 0; i < data.size(); i++)
     {
-      u8 x = wide[i];
+      const u8 x = wide[i];
 
       wide[i + 19] ^= x >> 7;
       wide[i + 20] ^= x << 1;
@@ -60,7 +59,7 @@ struct Elt
       wide[i + 30] ^= x << 7;
     }
 
-    u8 x = wide[30] & ~1;
+    const u8 x = wide[30] & ~1;
     wide[49] ^= x >> 7;
     wide[50] ^= x << 1;
     wide[59] ^= x >> 1;
@@ -230,13 +229,13 @@ Signature Sign(const u8* key, const u8* hash)
   do
   {
     // Generate 240 bits and keep 233.
-    Common::Random::Generate(m, sizeof(m));
+    Random::Generate(m, sizeof(m));
     m[0] &= 1;
   } while (bn_compare(m, ec_N, sizeof(m)) >= 0);
 
-  Elt r = (m * ec_G).X();
-  if (bn_compare(r.data.data(), ec_N, 30) >= 0)
-    bn_sub_modulus(r.data.data(), ec_N, 30);
+  auto [data] = (m * ec_G).X();
+  if (bn_compare(data.data(), ec_N, 30) >= 0)
+    bn_sub_modulus(data.data(), ec_N, 30);
 
   //	S = m**-1*(e + Rk) (mod N)
 
@@ -245,15 +244,15 @@ Signature Sign(const u8* key, const u8* hash)
   if (bn_compare(kk, ec_N, sizeof(kk)) >= 0)
     bn_sub_modulus(kk, ec_N, sizeof(kk));
   Elt s;
-  bn_mul(s.data.data(), r.data.data(), kk, ec_N, 30);
+  bn_mul(s.data.data(), data.data(), kk, ec_N, 30);
   bn_add(kk, s.data.data(), e, ec_N, sizeof(kk));
   u8 minv[30];
   bn_inv(minv, m, ec_N, sizeof(minv));
   bn_mul(s.data.data(), minv, kk, ec_N, 30);
 
   Signature signature;
-  std::copy(r.data.cbegin(), r.data.cend(), signature.begin());
-  std::copy(s.data.cbegin(), s.data.cend(), signature.begin() + 30);
+  std::ranges::copy(std::as_const(data), signature.begin());
+  std::ranges::copy(std::as_const(s.data), signature.begin() + 30);
   return signature;
 }
 

@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cstddef>
-#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -17,8 +16,8 @@ struct WindowsMemoryRegion;
 
 struct WindowsMemoryFunctions
 {
-  Common::DynamicLibrary m_kernel32_handle;
-  Common::DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
+  DynamicLibrary m_kernel32_handle;
+  DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
   void* m_address_UnmapViewOfFileEx = nullptr;
   void* m_address_VirtualAlloc2 = nullptr;
   void* m_address_MapViewOfFile3 = nullptr;
@@ -63,7 +62,7 @@ public:
   ///
   /// @return Pointer to the memory region, or nullptr on failure.
   ///
-  void* CreateView(s64 offset, size_t size);
+  void* CreateView(s64 offset, size_t size) const;
 
   ///
   /// Unmap a memory region previously mapped with CreateView().
@@ -72,7 +71,7 @@ public:
   /// @param view Pointer returned by CreateView().
   /// @param size Size passed to the corresponding CreateView() call.
   ///
-  void ReleaseView(void* view, size_t size);
+  static void ReleaseView(const void* view, size_t size);
 
   ///
   /// Reserve the singular 'virtual' memory region handled by this MemArena. This is used to create
@@ -167,7 +166,7 @@ public:
   ///
   /// @param offset The offset into the memory region that should be made writable if it isn't.
   ///
-  void EnsureMemoryPageWritable(size_t offset)
+  void EnsureMemoryPageWritable(const size_t offset)
   {
 #ifdef _WIN32
     const size_t block_index = offset / BLOCK_SIZE;

@@ -3,18 +3,11 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-
 #include "Common/CommonTypes.h"
-#include "Common/Inline.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "Common/Logging/Log.h"
 
 namespace WiimoteEmu
 {
@@ -86,7 +79,7 @@ bool EncryptedExtension::ReadDeviceDetectPin() const
   return true;
 }
 
-int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int EncryptedExtension::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -115,7 +108,7 @@ int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   return result;
 }
 
-int EncryptedExtension::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int EncryptedExtension::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   if (I2C_ADDR != slave_addr)
     return 0;

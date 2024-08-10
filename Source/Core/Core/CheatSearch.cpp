@@ -23,7 +23,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-Cheats::DataType Cheats::GetDataType(const Cheats::SearchValue& value)
+Cheats::DataType Cheats::GetDataType(const SearchValue& value)
 {
   // sanity checks that our enum matches with our std::variant
   using should_be_u8 = std::remove_cv_t<
@@ -69,30 +69,30 @@ static std::vector<u8> ToByteVector(const T& val)
   return {begin, end};
 }
 
-std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
+std::vector<u8> Cheats::GetValueAsByteVector(const SearchValue& value)
 {
-  DataType type = GetDataType(value);
+  const DataType type = GetDataType(value);
   switch (type)
   {
-  case Cheats::DataType::U8:
+  case DataType::U8:
     return {std::get<u8>(value.m_value)};
-  case Cheats::DataType::U16:
+  case DataType::U16:
     return ToByteVector(Common::swap16(std::get<u16>(value.m_value)));
-  case Cheats::DataType::U32:
+  case DataType::U32:
     return ToByteVector(Common::swap32(std::get<u32>(value.m_value)));
-  case Cheats::DataType::U64:
+  case DataType::U64:
     return ToByteVector(Common::swap64(std::get<u64>(value.m_value)));
-  case Cheats::DataType::S8:
+  case DataType::S8:
     return {std::bit_cast<u8>(std::get<s8>(value.m_value))};
-  case Cheats::DataType::S16:
+  case DataType::S16:
     return ToByteVector(Common::swap16(std::bit_cast<u16>(std::get<s16>(value.m_value))));
-  case Cheats::DataType::S32:
+  case DataType::S32:
     return ToByteVector(Common::swap32(std::bit_cast<u32>(std::get<s32>(value.m_value))));
-  case Cheats::DataType::S64:
+  case DataType::S64:
     return ToByteVector(Common::swap64(std::bit_cast<u64>(std::get<s64>(value.m_value))));
-  case Cheats::DataType::F32:
+  case DataType::F32:
     return ToByteVector(Common::swap32(std::bit_cast<u32>(std::get<float>(value.m_value))));
-  case Cheats::DataType::F64:
+  case DataType::F64:
     return ToByteVector(Common::swap64(std::bit_cast<u64>(std::get<double>(value.m_value))));
   default:
     DEBUG_ASSERT(false);
@@ -109,92 +109,92 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
 
 template <>
 std::optional<PowerPC::ReadResult<u8>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
   return PowerPC::MMU::HostTryReadU8(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<u16>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
   return PowerPC::MMU::HostTryReadU16(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<u32>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
   return PowerPC::MMU::HostTryReadU32(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<u64>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
   return PowerPC::MMU::HostTryReadU64(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<s8>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s8>(tmp->translated, std::bit_cast<s8>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s8>(tmp->value));
 }
 
 template <>
 std::optional<PowerPC::ReadResult<s16>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s16>(tmp->translated, std::bit_cast<s16>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s16>(tmp->value));
 }
 
 template <>
 std::optional<PowerPC::ReadResult<s32>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s32>(tmp->translated, std::bit_cast<s32>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s32>(tmp->value));
 }
 
 template <>
 std::optional<PowerPC::ReadResult<s64>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s64>(tmp->translated, std::bit_cast<s64>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s64>(tmp->value));
 }
 
 template <>
 std::optional<PowerPC::ReadResult<float>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
   return PowerPC::MMU::HostTryReadF32(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<double>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
+                               const PowerPC::RequestedAddressSpace space)
 {
   return PowerPC::MMU::HostTryReadF64(guard, addr, space);
 }
@@ -203,23 +203,27 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
 Cheats::NewSearch(const Core::CPUThreadGuard& guard,
-                  const std::vector<Cheats::MemoryRange>& memory_ranges,
-                  PowerPC::RequestedAddressSpace address_space, bool aligned,
+                  const std::vector<MemoryRange>& memory_ranges,
+                  const PowerPC::RequestedAddressSpace address_space, const bool aligned,
                   const std::function<bool(const T& value)>& validator)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-  auto& system = guard.GetSystem();
-  std::vector<Cheats::SearchResult<T>> results;
-  const Core::State core_state = Core::GetState(system);
+    return SearchErrorCode::DisabledInHardcoreMode;
+  const auto& system = guard.GetSystem();
+  std::vector<SearchResult<T>> results;
+  const Core::State core_state = GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return Cheats::SearchErrorCode::NoEmulationActive;
+    return SearchErrorCode::NoEmulationActive;
 
-  const auto& ppc_state = system.GetPPCState();
-  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
+  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !msr.DR)
+    return SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
-  for (const Cheats::MemoryRange& range : memory_ranges)
+  for (const MemoryRange& range : memory_ranges)
   {
     if (range.m_length < sizeof(T))
       continue;
@@ -244,8 +248,8 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
         auto& r = results.emplace_back();
         r.m_value = current_value->value;
         r.m_value_state = current_value->translated ?
-                              Cheats::SearchResultValueState::ValueFromVirtualMemory :
-                              Cheats::SearchResultValueState::ValueFromPhysicalMemory;
+                              SearchResultValueState::ValueFromVirtualMemory :
+                              SearchResultValueState::ValueFromPhysicalMemory;
         r.m_address = addr;
       }
     }
@@ -256,21 +260,25 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
 Cheats::NextSearch(const Core::CPUThreadGuard& guard,
-                   const std::vector<Cheats::SearchResult<T>>& previous_results,
-                   PowerPC::RequestedAddressSpace address_space,
+                   const std::vector<SearchResult<T>>& previous_results,
+                   const PowerPC::RequestedAddressSpace address_space,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-  auto& system = guard.GetSystem();
-  std::vector<Cheats::SearchResult<T>> results;
-  const Core::State core_state = Core::GetState(system);
+    return SearchErrorCode::DisabledInHardcoreMode;
+  const auto& system = guard.GetSystem();
+  std::vector<SearchResult<T>> results;
+  const Core::State core_state = GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return Cheats::SearchErrorCode::NoEmulationActive;
+    return SearchErrorCode::NoEmulationActive;
 
-  const auto& ppc_state = system.GetPPCState();
-  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
+  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !msr.DR)
+    return SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
   for (const auto& previous_result : previous_results)
   {
@@ -280,7 +288,7 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
     {
       auto& r = results.emplace_back();
       r.m_address = addr;
-      r.m_value_state = Cheats::SearchResultValueState::AddressNotAccessible;
+      r.m_value_state = SearchResultValueState::AddressNotAccessible;
       continue;
     }
 
@@ -291,8 +299,8 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
       auto& r = results.emplace_back();
       r.m_value = current_value->value;
       r.m_value_state = current_value->translated ?
-                            Cheats::SearchResultValueState::ValueFromVirtualMemory :
-                            Cheats::SearchResultValueState::ValueFromPhysicalMemory;
+                            SearchResultValueState::ValueFromVirtualMemory :
+                            SearchResultValueState::ValueFromPhysicalMemory;
       r.m_address = addr;
     }
   }
@@ -303,8 +311,8 @@ Cheats::CheatSearchSessionBase::~CheatSearchSessionBase() = default;
 
 template <typename T>
 Cheats::CheatSearchSession<T>::CheatSearchSession(std::vector<MemoryRange> memory_ranges,
-                                                  PowerPC::RequestedAddressSpace address_space,
-                                                  bool aligned)
+                                                  const PowerPC::RequestedAddressSpace address_space,
+                                                  const bool aligned)
     : m_memory_ranges(std::move(memory_ranges)), m_address_space(address_space), m_aligned(aligned)
 {
 }
@@ -327,19 +335,19 @@ template <typename T>
 Cheats::CheatSearchSession<T>::~CheatSearchSession() = default;
 
 template <typename T>
-void Cheats::CheatSearchSession<T>::SetCompareType(CompareType compare_type)
+void Cheats::CheatSearchSession<T>::SetCompareType(const CompareType compare_type)
 {
   m_compare_type = compare_type;
 }
 
 template <typename T>
-void Cheats::CheatSearchSession<T>::SetFilterType(FilterType filter_type)
+void Cheats::CheatSearchSession<T>::SetFilterType(const FilterType filter_type)
 {
   m_filter_type = filter_type;
 }
 
 template <typename T>
-static std::optional<T> ParseValue(const std::string& str, bool force_parse_as_hex)
+static std::optional<T> ParseValue(const std::string& str, const bool force_parse_as_hex)
 {
   if (str.empty())
     return std::nullopt;
@@ -361,7 +369,7 @@ static std::optional<T> ParseValue(const std::string& str, bool force_parse_as_h
 
 template <typename T>
 bool Cheats::CheatSearchSession<T>::SetValueFromString(const std::string& value_as_string,
-                                                       bool force_parse_as_hex)
+                                                       const bool force_parse_as_hex)
 {
   m_value = ParseValue<T>(value_as_string, force_parse_as_hex);
   return m_value.has_value();
@@ -376,7 +384,7 @@ void Cheats::CheatSearchSession<T>::ResetResults()
 
 template <typename T>
 static std::function<bool(const T& new_value)>
-MakeCompareFunctionForSpecificValue(Cheats::CompareType op, const T& old_value)
+MakeCompareFunctionForSpecificValue(const Cheats::CompareType op, const T& old_value)
 {
   switch (op)
   {
@@ -400,7 +408,7 @@ MakeCompareFunctionForSpecificValue(Cheats::CompareType op, const T& old_value)
 
 template <typename T>
 static std::function<bool(const T& old_value, const T& new_value)>
-MakeCompareFunctionForLastValue(Cheats::CompareType op)
+MakeCompareFunctionForLastValue(const Cheats::CompareType op)
 {
   switch (op)
   {
@@ -426,13 +434,13 @@ template <typename T>
 Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+    return SearchErrorCode::DisabledInHardcoreMode;
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
-      Cheats::SearchErrorCode::InvalidParameters;
+      SearchErrorCode::InvalidParameters;
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)
   {
     if (!m_value)
-      return Cheats::SearchErrorCode::InvalidParameters;
+      return SearchErrorCode::InvalidParameters;
 
     auto func = MakeCompareFunctionForSpecificValue<T>(m_compare_type, *m_value);
     if (m_first_search_done)
@@ -449,7 +457,7 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
   else if (m_filter_type == FilterType::CompareAgainstLastValue)
   {
     if (!m_first_search_done)
-      return Cheats::SearchErrorCode::InvalidParameters;
+      return SearchErrorCode::InvalidParameters;
 
     result = Cheats::NextSearch<T>(guard, m_search_results, m_address_space,
                                    MakeCompareFunctionForLastValue<T>(m_compare_type));
@@ -472,7 +480,7 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
   {
     m_search_results = std::move(*result);
     m_first_search_done = true;
-    return Cheats::SearchErrorCode::Success;
+    return SearchErrorCode::Success;
   }
 
   return result.Error();
@@ -485,7 +493,7 @@ size_t Cheats::CheatSearchSession<T>::GetMemoryRangeCount() const
 }
 
 template <typename T>
-Cheats::MemoryRange Cheats::CheatSearchSession<T>::GetMemoryRange(size_t index) const
+Cheats::MemoryRange Cheats::CheatSearchSession<T>::GetMemoryRange(const size_t index) const
 {
   return m_memory_ranges[index];
 }
@@ -499,7 +507,7 @@ PowerPC::RequestedAddressSpace Cheats::CheatSearchSession<T>::GetAddressSpace() 
 template <typename T>
 Cheats::DataType Cheats::CheatSearchSession<T>::GetDataType() const
 {
-  return Cheats::GetDataType(Cheats::SearchValue{T(0)});
+  return Cheats::GetDataType(SearchValue{T(0)});
 }
 
 template <typename T>
@@ -554,13 +562,13 @@ T Cheats::CheatSearchSession<T>::GetResultValue(size_t index) const
 template <typename T>
 Cheats::SearchValue Cheats::CheatSearchSession<T>::GetResultValueAsSearchValue(size_t index) const
 {
-  return Cheats::SearchValue{m_search_results[index].m_value};
+  return SearchValue{m_search_results[index].m_value};
 }
 
 template <typename T>
-std::string Cheats::CheatSearchSession<T>::GetResultValueAsString(size_t index, bool hex) const
+std::string Cheats::CheatSearchSession<T>::GetResultValueAsString(size_t index, const bool hex) const
 {
-  if (GetResultValueState(index) == Cheats::SearchResultValueState::AddressNotAccessible)
+  if (GetResultValueState(index) == SearchResultValueState::AddressNotAccessible)
     return "(inaccessible)";
 
   if (hex)
@@ -600,7 +608,7 @@ bool Cheats::CheatSearchSession<T>::WasFirstSearchDone() const
 template <typename T>
 std::unique_ptr<Cheats::CheatSearchSessionBase> Cheats::CheatSearchSession<T>::Clone() const
 {
-  return std::make_unique<Cheats::CheatSearchSession<T>>(*this);
+  return std::make_unique<CheatSearchSession<T>>(*this);
 }
 
 template <typename T>
@@ -611,7 +619,7 @@ Cheats::CheatSearchSession<T>::ClonePartial(const size_t begin_index, const size
     return Clone();
 
   auto c =
-      std::make_unique<Cheats::CheatSearchSession<T>>(m_memory_ranges, m_address_space, m_aligned);
+      std::make_unique<CheatSearchSession<T>>(m_memory_ranges, m_address_space, m_aligned);
   c->m_search_results.assign(m_search_results.begin() + begin_index,
                              m_search_results.begin() + end_index);
   c->m_compare_type = this->m_compare_type;
@@ -634,38 +642,38 @@ template class Cheats::CheatSearchSession<double>;
 
 std::unique_ptr<Cheats::CheatSearchSessionBase>
 Cheats::MakeSession(std::vector<MemoryRange> memory_ranges,
-                    PowerPC::RequestedAddressSpace address_space, bool aligned, DataType data_type)
+                    PowerPC::RequestedAddressSpace address_space, bool aligned, const DataType data_type)
 {
   switch (data_type)
   {
-  case Cheats::DataType::U8:
+  case DataType::U8:
     return std::make_unique<CheatSearchSession<u8>>(std::move(memory_ranges), address_space,
                                                     aligned);
-  case Cheats::DataType::U16:
+  case DataType::U16:
     return std::make_unique<CheatSearchSession<u16>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::U32:
+  case DataType::U32:
     return std::make_unique<CheatSearchSession<u32>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::U64:
+  case DataType::U64:
     return std::make_unique<CheatSearchSession<u64>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::S8:
+  case DataType::S8:
     return std::make_unique<CheatSearchSession<s8>>(std::move(memory_ranges), address_space,
                                                     aligned);
-  case Cheats::DataType::S16:
+  case DataType::S16:
     return std::make_unique<CheatSearchSession<s16>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::S32:
+  case DataType::S32:
     return std::make_unique<CheatSearchSession<s32>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::S64:
+  case DataType::S64:
     return std::make_unique<CheatSearchSession<s64>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::F32:
+  case DataType::F32:
     return std::make_unique<CheatSearchSession<float>>(std::move(memory_ranges), address_space,
                                                        aligned);
-  case Cheats::DataType::F64:
+  case DataType::F64:
     return std::make_unique<CheatSearchSession<double>>(std::move(memory_ranges), address_space,
                                                         aligned);
   default:

@@ -8,7 +8,6 @@
 #include <span>
 #include <tuple>
 #include <type_traits>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -79,25 +78,25 @@ struct PairedSingle
   double PS0AsDouble() const;
   double PS1AsDouble() const;
 
-  void SetPS0(u64 value) { ps0 = value; }
+  void SetPS0(const u64 value) { ps0 = value; }
   void SetPS0(double value);
 
-  void SetPS1(u64 value) { ps1 = value; }
+  void SetPS1(const u64 value) { ps1 = value; }
   void SetPS1(double value);
 
-  void SetBoth(u64 lhs, u64 rhs)
+  void SetBoth(const u64 lhs, const u64 rhs)
   {
     SetPS0(lhs);
     SetPS1(rhs);
   }
-  void SetBoth(double lhs, double rhs)
+  void SetBoth(const double lhs, const double rhs)
   {
     SetPS0(lhs);
     SetPS1(rhs);
   }
 
-  void Fill(u64 value) { SetBoth(value, value); }
-  void Fill(double value) { SetBoth(value, value); }
+  void Fill(const u64 value) { SetBoth(value, value); }
+  void Fill(const double value) { SetBoth(value, value); }
 
   u64 ps0 = 0;
   u64 ps1 = 0;
@@ -195,7 +194,7 @@ struct PowerPCState
 
   void SetSR(u32 index, u32 value);
 
-  void SetCarry(u32 ca) { xer_ca = ca; }
+  void SetCarry(const u32 ca) { xer_ca = ca; }
 
   u32 GetCarry() const { return xer_ca; }
 
@@ -208,7 +207,7 @@ struct PowerPCState
     return UReg_XER{xer};
   }
 
-  void SetXER(UReg_XER new_xer)
+  void SetXER(const UReg_XER new_xer)
   {
     xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
     xer_ca = new_xer.CA;
@@ -217,11 +216,11 @@ struct PowerPCState
 
   u32 GetXER_SO() const { return xer_so_ov >> 1; }
 
-  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
+  void SetXER_SO(const bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
 
   u32 GetXER_OV() const { return xer_so_ov & 1; }
 
-  void SetXER_OV(bool value)
+  void SetXER_OV(const bool value)
   {
     xer_so_ov = (xer_so_ov & 0xFE) | static_cast<u32>(value);
     SetXER_SO(value);
@@ -278,14 +277,14 @@ public:
 
   // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
   // It's not threadsafe otherwise.
-  void SingleStep();
+  void SingleStep() const;
   void CheckExceptions();
   void CheckExternalExceptions();
   // Evaluate the breakpoints in order to log. Returns whether it would break.
   bool CheckBreakPoints();
   // Evaluate the breakpoints in order to log and/or break. Returns whether it breaks.
   bool CheckAndHandleBreakPoints();
-  void RunLoop();
+  void RunLoop() const;
 
   u64 ReadFullTimeBaseValue() const;
   void WriteFullTimeBaseValue(u64 value);
@@ -355,7 +354,7 @@ void CheckAndHandleBreakPointsFromJIT(PowerPCManager& power_pc);
 #define TL(ppc_state) (ppc_state).spr[SPR_TL]
 #define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
-void RoundingModeUpdated(PowerPCState& ppc_state);
+void RoundingModeUpdated(const PowerPCState& ppc_state);
 void MSRUpdated(PowerPCState& ppc_state);
 void MMCRUpdated(PowerPCState& ppc_state);
 void RecalculateAllFeatureFlags(PowerPCState& ppc_state);

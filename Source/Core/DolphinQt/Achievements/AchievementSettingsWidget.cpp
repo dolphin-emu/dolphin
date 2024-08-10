@@ -35,11 +35,11 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
           &AchievementSettingsWidget::LoadSettings);
 
   // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (Get(Config::RA_HARDCORE_ENABLED))
     ToggleHardcore();
 }
 
-void AchievementSettingsWidget::UpdateData()
+void AchievementSettingsWidget::UpdateData() const
 {
   LoadSettings();
 }
@@ -153,18 +153,18 @@ void AchievementSettingsWidget::ConnectWidgets()
 
 void AchievementSettingsWidget::OnControllerInterfaceConfigure()
 {
-  ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+  auto window = new ControllerInterfaceWindow(this);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   window->show();
 }
 
-void AchievementSettingsWidget::LoadSettings()
+void AchievementSettingsWidget::LoadSettings() const
 {
-  bool enabled = Config::Get(Config::RA_ENABLED);
-  bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
-  bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
-  std::string username = Config::Get(Config::RA_USERNAME);
+  const bool enabled = Get(Config::RA_ENABLED);
+  const bool hardcore_enabled = Get(Config::RA_HARDCORE_ENABLED);
+  const bool logged_out = Get(Config::RA_API_TOKEN).empty();
+  const std::string username = Get(Config::RA_USERNAME);
 
   SignalBlocking(m_common_integration_enabled_input)->setChecked(enabled);
   SignalBlocking(m_common_username_label)->setEnabled(enabled);
@@ -177,127 +177,127 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_password_input)->setEnabled(enabled);
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
   SignalBlocking(m_common_login_button)
-      ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
+      ->setEnabled(enabled && !IsRunning(Core::System::GetInstance()));
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
-  auto& system = Core::System::GetInstance();
+      ->setChecked(Get(Config::RA_HARDCORE_ENABLED));
+  const auto& system = Core::System::GetInstance();
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setEnabled(enabled &&
-                   (hardcore_enabled || (Core::GetState(system) == Core::State::Uninitialized &&
+                   (hardcore_enabled || (GetState(system) == Core::State::Uninitialized &&
                                          !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_unofficial_enabled_input)
-      ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
+      ->setChecked(Get(Config::RA_UNOFFICIAL_ENABLED));
   SignalBlocking(m_common_unofficial_enabled_input)->setEnabled(enabled);
 
-  SignalBlocking(m_common_encore_enabled_input)->setChecked(Config::Get(Config::RA_ENCORE_ENABLED));
+  SignalBlocking(m_common_encore_enabled_input)->setChecked(Get(Config::RA_ENCORE_ENABLED));
   SignalBlocking(m_common_encore_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_spectator_enabled_input)
-      ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
+      ->setChecked(Get(Config::RA_SPECTATOR_ENABLED));
   SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_discord_presence_enabled_input)
-      ->setChecked(Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED));
+      ->setChecked(Get(Config::RA_DISCORD_PRESENCE_ENABLED));
   SignalBlocking(m_common_discord_presence_enabled_input)
-      ->setEnabled(enabled && Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+      ->setEnabled(enabled && Get(Config::MAIN_USE_DISCORD_PRESENCE));
 
   SignalBlocking(m_common_progress_enabled_input)
-      ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
+      ->setChecked(Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
 }
 
-void AchievementSettingsWidget::SaveSettings()
+void AchievementSettingsWidget::SaveSettings() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBaseOrCurrent(Config::RA_ENABLED, m_common_integration_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
+  SetBaseOrCurrent(Config::RA_ENABLED, m_common_integration_enabled_input->isChecked());
+  SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
                            m_common_hardcore_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
+  SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
                            m_common_unofficial_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
+  SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
+  SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
                            m_common_spectator_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
+  SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
                            m_common_discord_presence_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
+  SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
   Config::Save();
 }
 
-void AchievementSettingsWidget::ToggleRAIntegration()
+void AchievementSettingsWidget::ToggleRAIntegration() const
 {
   SaveSettings();
 
   auto& instance = AchievementManager::GetInstance();
-  if (Config::Get(Config::RA_ENABLED))
+  if (Get(Config::RA_ENABLED))
     instance.Init();
   else
     instance.Shutdown();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (Get(Config::RA_HARDCORE_ENABLED))
   {
-    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+    emit Settings::Instance().EmulationStateChanged(GetState(Core::System::GetInstance()));
     emit Settings::Instance().HardcoreStateChanged();
   }
 }
 
-void AchievementSettingsWidget::Login()
+void AchievementSettingsWidget::Login() const
 {
-  Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
+  SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
   AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());
   SaveSettings();
 }
 
-void AchievementSettingsWidget::Logout()
+void AchievementSettingsWidget::Logout() const
 {
   AchievementManager::GetInstance().Logout();
   SaveSettings();
 }
 
-void AchievementSettingsWidget::ToggleHardcore()
+void AchievementSettingsWidget::ToggleHardcore() const
 {
   SaveSettings();
   AchievementManager::GetInstance().SetHardcoreMode();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (Get(Config::RA_HARDCORE_ENABLED))
   {
-    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
-      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
-    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
-    Settings::Instance().SetDebugModeEnabled(false);
+    if (Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+    SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
+    Settings::Instance().DisableDebugMode();
   }
-  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  emit Settings::Instance().EmulationStateChanged(GetState(Core::System::GetInstance()));
   emit Settings::Instance().HardcoreStateChanged();
 }
 
-void AchievementSettingsWidget::ToggleUnofficial()
+void AchievementSettingsWidget::ToggleUnofficial() const
 {
   SaveSettings();
 }
 
-void AchievementSettingsWidget::ToggleEncore()
+void AchievementSettingsWidget::ToggleEncore() const
 {
   SaveSettings();
 }
 
-void AchievementSettingsWidget::ToggleSpectator()
+void AchievementSettingsWidget::ToggleSpectator() const
 {
   SaveSettings();
   AchievementManager::GetInstance().SetSpectatorMode();
 }
 
-void AchievementSettingsWidget::ToggleDiscordPresence()
+void AchievementSettingsWidget::ToggleDiscordPresence() const
 {
   SaveSettings();
   Discord::UpdateDiscordPresence();
 }
 
-void AchievementSettingsWidget::ToggleProgress()
+void AchievementSettingsWidget::ToggleProgress() const
 {
   SaveSettings();
 }

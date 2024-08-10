@@ -28,8 +28,8 @@ void EmitUniformBufferDeclaration(ShaderCode& code)
   code.Write("UBO_BINDING(std140, 1) uniform PSBlock\n");
 }
 
-void EmitSamplerDeclarations(ShaderCode& code, u32 start = 0, u32 end = 1,
-                             bool multisampled = false)
+void EmitSamplerDeclarations(ShaderCode& code, const u32 start = 0, const u32 end = 1,
+                             const bool multisampled = false)
 {
   switch (GetAPIType())
   {
@@ -85,8 +85,8 @@ void EmitTextureLoad(ShaderCode& code, u32 n, std::string_view coords)
   }
 }
 
-void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_color_inputs,
-                               bool position_input, u32 num_tex_outputs, u32 num_color_outputs,
+void EmitVertexMainDeclaration(ShaderCode& code, const u32 num_tex_inputs, const u32 num_color_inputs,
+                               const bool position_input, const u32 num_tex_outputs, const u32 num_color_outputs,
                                std::string_view extra_inputs = {})
 {
   switch (GetAPIType())
@@ -135,9 +135,9 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
   }
 }
 
-void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_color_inputs,
+void EmitPixelMainDeclaration(ShaderCode& code, const u32 num_tex_inputs, const u32 num_color_inputs,
                               std::string_view output_type = "float4",
-                              std::string_view extra_vars = {}, bool emit_frag_coord = false)
+                              std::string_view extra_vars = {}, const bool emit_frag_coord = false)
 {
   switch (GetAPIType())
   {
@@ -197,7 +197,7 @@ std::string GenerateScreenQuadVertexShader()
   return code.GetBuffer();
 }
 
-std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
+std::string GeneratePassthroughGeometryShader(const u32 num_tex, const u32 num_colors)
 {
   ShaderCode code;
   if (GetAPIType() == APIType::D3D)
@@ -417,7 +417,7 @@ std::string GenerateEFBPokeVertexShader()
   return code.GetBuffer();
 }
 
-std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samples)
+std::string GenerateFormatConversionShader(const EFBReinterpretType convtype, u32 samples)
 {
   ShaderCode code;
   EmitSamplerDeclarations(code, 0, 1, samples > 1);
@@ -491,7 +491,7 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
   return code.GetBuffer();
 }
 
-std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureFormat to_format)
+std::string GenerateTextureReinterpretShader(const TextureFormat from_format, const TextureFormat to_format)
 {
   ShaderCode code;
   EmitSamplerDeclarations(code, 0, 1, false);
@@ -672,7 +672,7 @@ std::string GenerateImGuiVertexShader()
   return code.GetBuffer();
 }
 
-std::string GenerateImGuiPixelShader(bool linear_space_output)
+std::string GenerateImGuiPixelShader(const bool linear_space_output)
 {
   ShaderCode code;
   EmitSamplerDeclarations(code, 0, 1, false);

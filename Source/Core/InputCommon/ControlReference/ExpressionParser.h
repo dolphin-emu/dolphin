@@ -117,8 +117,7 @@ public:
   {
     if (has_device)
       return device_qualifier.ToString() + ":" + control_name;
-    else
-      return control_name;
+    return control_name;
   }
 
   void FromString(const std::string& str)
@@ -154,9 +153,9 @@ public:
   Core::Device::Input* FindInput(const ControlQualifier& qualifier) const;
   Core::Device::Output* FindOutput(const ControlQualifier& qualifier) const;
   // Returns an existing variable by the specified name if already existing. Creates it otherwise.
-  std::shared_ptr<ControlState> GetVariablePtr(const std::string& name);
+  std::shared_ptr<ControlState> GetVariablePtr(const std::string& name) const;
 
-  void CleanUnusedVariables();
+  void CleanUnusedVariables() const;
 
 private:
   VariableContainer& m_variables;

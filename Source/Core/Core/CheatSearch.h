@@ -83,7 +83,7 @@ struct MemoryRange
   u32 m_start;
   u64 m_length;
 
-  MemoryRange(u32 start, u64 length) : m_start(start), m_length(length) {}
+  MemoryRange(const u32 start, const u64 length) : m_start(start), m_length(length) {}
 };
 
 enum class SearchErrorCode

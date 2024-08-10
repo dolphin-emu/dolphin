@@ -34,7 +34,7 @@ struct GXPipelineUid
   // We use memcmp() for comparing pipelines as std::tie generates a large number of instructions,
   // and this map lookup can happen every draw call. However, as using memcmp() will also compare
   // any padding bytes, we have to ensure these are zeroed out.
-  GXPipelineUid() { std::memset(static_cast<void*>(this), 0, sizeof(*this)); }
+  GXPipelineUid() { std::memset(this, 0, sizeof(*this)); }
   bool operator<(const GXPipelineUid& rhs) const
   {
     return std::memcmp(this, &rhs, sizeof(*this)) < 0;
@@ -55,7 +55,7 @@ struct GXUberPipelineUid
   DepthState depth_state;
   BlendingState blending_state;
 
-  GXUberPipelineUid() { std::memset(static_cast<void*>(this), 0, sizeof(*this)); }
+  GXUberPipelineUid() { std::memset(this, 0, sizeof(*this)); }
   bool operator<(const GXUberPipelineUid& rhs) const
   {
     return std::memcmp(this, &rhs, sizeof(*this)) < 0;

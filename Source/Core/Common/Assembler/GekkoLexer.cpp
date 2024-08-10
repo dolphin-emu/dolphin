@@ -13,18 +13,18 @@ namespace Common::GekkoAssembler::detail
 {
 namespace
 {
-constexpr bool IsOctal(char c)
+constexpr bool IsOctal(const char c)
 {
   return c >= '0' && c <= '7';
 }
 
-constexpr bool IsBinary(char c)
+constexpr bool IsBinary(const char c)
 {
   return c == '0' || c == '1';
 }
 
 template <typename T>
-constexpr T ConvertNib(char c)
+constexpr T ConvertNib(const char c)
 {
   if (c >= 'a' && c <= 'f')
   {
@@ -37,7 +37,7 @@ constexpr T ConvertNib(char c)
   return static_cast<T>(c - '0');
 }
 
-constexpr TokenType SingleCharToken(char ch)
+constexpr TokenType SingleCharToken(const char ch)
 {
   switch (ch)
   {
@@ -82,7 +82,7 @@ constexpr TokenType SingleCharToken(char ch)
 
 // Convert a string literal into its raw-data form
 template <typename Cont>
-void ConvertStringLiteral(std::string_view literal, std::back_insert_iterator<Cont> out_it)
+void ConvertStringLiteral(const std::string_view literal, std::back_insert_iterator<Cont> out_it)
 {
   for (size_t i = 1; i < literal.size() - 1;)
   {
@@ -164,12 +164,12 @@ void ConvertStringLiteral(std::string_view literal, std::back_insert_iterator<Co
 }
 
 template <typename T>
-std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
+std::optional<T> EvalIntegral(const TokenType tp, std::string_view val)
 {
-  constexpr auto hex_step = [](T acc, char c) { return acc << 4 | ConvertNib<T>(c); };
-  constexpr auto dec_step = [](T acc, char c) { return acc * 10 + (c - '0'); };
-  constexpr auto oct_step = [](T acc, char c) { return acc << 3 | (c - '0'); };
-  constexpr auto bin_step = [](T acc, char c) { return acc << 1 | (c - '0'); };
+  constexpr auto hex_step = [](T acc, const char c) { return acc << 4 | ConvertNib<T>(c); };
+  constexpr auto dec_step = [](T acc, const char c) { return acc * 10 + (c - '0'); };
+  constexpr auto oct_step = [](T acc, const char c) { return acc << 3 | (c - '0'); };
+  constexpr auto bin_step = [](T acc, const char c) { return acc << 1 | (c - '0'); };
 
   switch (tp)
   {
@@ -207,12 +207,12 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
 }
 }  // namespace
 
-void ConvertStringLiteral(std::string_view literal, std::vector<u8>* out_vec)
+void ConvertStringLiteral(const std::string_view literal, std::vector<u8>* out_vec)
 {
   ConvertStringLiteral(literal, std::back_inserter(*out_vec));
 }
 
-std::string_view TokenTypeToStr(TokenType tp)
+std::string_view TokenTypeToStr(const TokenType tp)
 {
   switch (tp)
   {
@@ -385,13 +385,13 @@ std::string_view Lexer::CurrentLine() const
   return m_lex_string.substr(begin_index, end_index - begin_index);
 }
 
-void Lexer::SetIdentifierMatchRule(IdentifierMatchRule set)
+void Lexer::SetIdentifierMatchRule(const IdentifierMatchRule set)
 {
   FeedbackTokens();
   m_match_rule = set;
 }
 
-const Tagged<CursorPosition, AssemblerToken>& Lexer::LookaheadTagRef(size_t num_fwd) const
+const Tagged<CursorPosition, AssemblerToken>& Lexer::LookaheadTagRef(const size_t num_fwd) const
 {
   while (m_lexed_tokens.size() < num_fwd)
   {
@@ -433,7 +433,7 @@ AssemblerToken Lexer::LookaheadFloat() const
   CursorPosition pos_pre = m_pos;
   ScanStart();
 
-  std::optional<std::string_view> failure_reason = RunDfa(float_dfa);
+  const std::optional<std::string_view> failure_reason = RunDfa(float_dfa);
 
   // Special case: lex at least a single char for no matches for errors to make sense
   if (m_scan_pos.index == pos_pre.index)
@@ -441,7 +441,7 @@ AssemblerToken Lexer::LookaheadFloat() const
     Step();
   }
 
-  std::string_view tok_str = ScanFinishOut();
+  const std::string_view tok_str = ScanFinishOut();
   AssemblerToken tok;
   if (!failure_reason)
   {
@@ -466,7 +466,7 @@ AssemblerToken Lexer::LookaheadFloat() const
   return tok;
 }
 
-void Lexer::Eat()
+void Lexer::Eat() const
 {
   if (m_lexed_tokens.empty())
   {
@@ -496,13 +496,13 @@ std::optional<std::string_view> Lexer::RunDfa(const std::vector<DfaNode>& dfa) c
       break;
     }
 
-    const DfaNode& n = dfa[dfa_index];
-    for (auto&& edge : n.edges)
+    const auto& [edges, _match_failure_reason] = dfa[dfa_index];
+    for (const auto& [fst, snd] : edges)
     {
-      if (edge.first(Peek()))
+      if (fst(Peek()))
       {
         transition_found = true;
-        dfa_index = edge.second;
+        dfa_index = snd;
         break;
       }
     }
@@ -542,7 +542,7 @@ void Lexer::FeedbackTokens() const
   m_lexed_tokens.clear();
 }
 
-bool Lexer::IdentifierHeadExtra(char h) const
+bool Lexer::IdentifierHeadExtra(const char h) const
 {
   switch (m_match_rule)
   {
@@ -555,7 +555,7 @@ bool Lexer::IdentifierHeadExtra(char h) const
   return false;
 }
 
-bool Lexer::IdentifierExtra(char c) const
+bool Lexer::IdentifierExtra(const char c) const
 {
   switch (m_match_rule)
   {
@@ -618,9 +618,9 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
 {
   // The open quote has alread been matched
   const size_t string_start = m_scan_pos.index - 1;
-  TokenType token_type = TokenType::StringLit;
+  auto token_type = TokenType::StringLit;
 
-  std::optional<std::string_view> failure_reason = RunDfa(string_dfa);
+  const std::optional<std::string_view> failure_reason = RunDfa(string_dfa);
 
   if (failure_reason)
   {
@@ -635,12 +635,13 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
 TokenType Lexer::ClassifyAlnum() const
 {
   const std::string_view alnum = m_lex_string.substr(m_pos.index, m_scan_pos.index - m_pos.index);
-  constexpr auto valid_regnum = [](std::string_view rn) {
+  constexpr auto valid_regnum = [](const std::string_view rn) {
     if (rn.length() == 1 && std::isdigit(rn[0]))
     {
       return true;
     }
-    else if (rn.length() == 2 && std::isdigit(rn[0]) && std::isdigit(rn[1]))
+
+    if (rn.length() == 2 && std::isdigit(rn[0]) && std::isdigit(rn[1]))
     {
       if (rn[0] == '1' || rn[0] == '2')
       {
@@ -660,36 +661,36 @@ TokenType Lexer::ClassifyAlnum() const
   {
     return TokenType::GPR;
   }
-  else if ((CaseInsensitiveEquals(alnum, "sp")) || (CaseInsensitiveEquals(alnum, "rtoc")))
+  if ((CaseInsensitiveEquals(alnum, "sp")) || (CaseInsensitiveEquals(alnum, "rtoc")))
   {
     return TokenType::GPR;
   }
-  else if (std::tolower(alnum[0]) == 'f' && valid_regnum(alnum.substr(1)))
+  if (std::tolower(alnum[0]) == 'f' && valid_regnum(alnum.substr(1)))
   {
     return TokenType::FPR;
   }
-  else if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") &&
-           alnum[2] >= '0' && alnum[2] <= '7')
+  if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") && alnum[2] >= '0' &&
+      alnum[2] <= '7')
   {
     return TokenType::CRField;
   }
-  else if (CaseInsensitiveEquals(alnum, "lt"))
+  if (CaseInsensitiveEquals(alnum, "lt"))
   {
     return TokenType::Lt;
   }
-  else if (CaseInsensitiveEquals(alnum, "gt"))
+  if (CaseInsensitiveEquals(alnum, "gt"))
   {
     return TokenType::Gt;
   }
-  else if (CaseInsensitiveEquals(alnum, "eq"))
+  if (CaseInsensitiveEquals(alnum, "eq"))
   {
     return TokenType::Eq;
   }
-  else if (CaseInsensitiveEquals(alnum, "so"))
+  if (CaseInsensitiveEquals(alnum, "so"))
   {
     return TokenType::So;
   }
-  else if (sprg_map.Find(alnum) != nullptr)
+  if (sprg_map.Find(alnum) != nullptr)
   {
     return TokenType::SPR;
   }
@@ -705,7 +706,7 @@ AssemblerToken Lexer::LexSingle() const
 
   TokenType token_type;
   std::string_view invalid_reason = "";
-  Interval invalid_region = Interval{0, 0};
+  auto invalid_region = Interval{0, 0};
 
   Step();
 
@@ -786,7 +787,7 @@ AssemblerToken Lexer::LexSingle() const
     }
   }
 
-  AssemblerToken new_tok = {token_type, ScanFinishOut(), invalid_reason, invalid_region};
+  const AssemblerToken new_tok = {token_type, ScanFinishOut(), invalid_reason, invalid_region};
   SkipWs();
   return new_tok;
 }

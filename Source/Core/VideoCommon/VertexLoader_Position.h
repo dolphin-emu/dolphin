@@ -13,8 +13,8 @@
 class VertexLoader_Position
 {
 public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                                          CoordComponentCount elements)
+  static DOLPHIN_FORCE_INLINE u32 GetSize(const VertexComponentFormat type, const ComponentFormat format,
+                                          const CoordComponentCount elements)
   {
     return s_table_size[type][format][elements];
   }

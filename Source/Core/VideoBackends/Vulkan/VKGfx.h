@@ -5,10 +5,8 @@
 
 #include <array>
 #include <memory>
-#include <string_view>
 
 #include "Common/CommonTypes.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Constants.h"
 
@@ -20,7 +18,7 @@ class VKFramebuffer;
 class VKPipeline;
 class VKTexture;
 
-class VKGfx final : public ::AbstractGfx
+class VKGfx final : public AbstractGfx
 {
 public:
   VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
@@ -83,7 +81,7 @@ public:
 
   // Completes the current render pass, executes the command buffer, and restores state ready for
   // next render. Use when you want to kick the current buffer to make room for new data.
-  void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
+  static void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
 
 private:
   void CheckForSurfaceChange();
@@ -91,7 +89,7 @@ private:
 
   void ResetSamplerStates();
 
-  void OnSwapChainResized();
+  void OnSwapChainResized() const;
   void BindFramebuffer(VKFramebuffer* fb);
 
   std::unique_ptr<SwapChain> m_swap_chain;

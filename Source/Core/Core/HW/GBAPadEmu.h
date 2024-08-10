@@ -35,15 +35,15 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
-  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
-  static constexpr const char* DPAD_GROUP = _trans("D-Pad");
+  static constexpr auto BUTTONS_GROUP = _trans("Buttons");
+  static constexpr auto DPAD_GROUP = _trans("D-Pad");
 
-  static constexpr const char* B_BUTTON = "B";
-  static constexpr const char* A_BUTTON = "A";
-  static constexpr const char* L_BUTTON = "L";
-  static constexpr const char* R_BUTTON = "R";
-  static constexpr const char* SELECT_BUTTON = _trans("SELECT");
-  static constexpr const char* START_BUTTON = _trans("START");
+  static constexpr auto B_BUTTON = "B";
+  static constexpr auto A_BUTTON = "A";
+  static constexpr auto L_BUTTON = "L";
+  static constexpr auto R_BUTTON = "R";
+  static constexpr auto SELECT_BUTTON = _trans("SELECT");
+  static constexpr auto START_BUTTON = _trans("START");
 
 private:
   ControllerEmu::Buttons* m_buttons;

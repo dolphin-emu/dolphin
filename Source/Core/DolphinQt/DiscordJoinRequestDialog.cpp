@@ -30,8 +30,8 @@ DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::s
     const std::string avatar_endpoint =
         fmt::format("https://cdn.discordapp.com/avatars/{}/{}.png", id, avatar);
 
-    Common::HttpRequest request;
-    Common::HttpRequest::Response response = request.Get(avatar_endpoint);
+    const Common::HttpRequest request;
+    const Common::HttpRequest::Response response = request.Get(avatar_endpoint);
 
     if (response.has_value())
       avatar_pixmap.loadFromData(response->data(), static_cast<uint>(response->size()), "png");
@@ -54,13 +54,13 @@ void DiscordJoinRequestDialog::CreateLayout(const std::string& discord_tag, cons
   m_decline_button = new QPushButton(tr("\u2716 Decline"));
   m_ignore_button = new QPushButton(tr("Ignore"));
 
-  QLabel* text =
+  auto text =
       new QLabel(tr("%1\nwants to join your party.").arg(QString::fromStdString(discord_tag)));
   text->setAlignment(Qt::AlignCenter);
 
   if (!avatar.isNull())
   {
-    QLabel* picture = new QLabel();
+    auto picture = new QLabel();
     picture->setPixmap(avatar);
     m_main_layout->addWidget(picture, 1, 0, 1, 3, Qt::AlignHCenter);
   }
@@ -81,7 +81,7 @@ void DiscordJoinRequestDialog::ConnectWidgets()
   connect(this, &QDialog::rejected, [this] { Reply(DISCORD_REPLY_IGNORE); });
 }
 
-void DiscordJoinRequestDialog::Reply(int reply)
+void DiscordJoinRequestDialog::Reply(const int reply)
 {
   Discord_Respond(m_user_id.c_str(), reply);
   close();

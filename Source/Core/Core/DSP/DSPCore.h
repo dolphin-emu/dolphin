@@ -346,7 +346,7 @@ struct SDSP
   u16 ReadMailboxLow(Mailbox mailbox);
 
   // Reads the high part of the value in the specified mailbox.
-  u16 ReadMailboxHigh(Mailbox mailbox);
+  u16 ReadMailboxHigh(Mailbox mailbox) const;
 
   // Writes to the low part of the mailbox.
   void WriteMailboxLow(Mailbox mailbox, u16 value);
@@ -373,10 +373,10 @@ struct SDSP
   void SkipInstruction();
 
   // Sets the given flags in the SR register.
-  void SetSRFlag(u16 flag) { r.sr |= flag; }
+  void SetSRFlag(const u16 flag) { r.sr |= flag; }
 
   // Whether or not the given flag is set in the SR register.
-  bool IsSRFlagSet(u16 flag) const { return (r.sr & flag) != 0; }
+  bool IsSRFlagSet(const u16 flag) const { return (r.sr & flag) != 0; }
 
   // Indicates that a particular exception has occurred
   // and sets a flag in the pending exception register.
@@ -407,7 +407,7 @@ struct SDSP
   void AdvanceStepCounter() { ++m_step_counter; }
 
   // Sets the calculated IRAM CRC for debugging purposes.
-  void SetIRAMCRC(u32 crc) { m_iram_crc = crc; }
+  void SetIRAMCRC(const u32 crc) { m_iram_crc = crc; }
 
   // Saves and loads any necessary state.
   void DoState(PointerWrap& p);
@@ -453,10 +453,10 @@ private:
   void FreeMemoryPages();
 
   void DoDMA();
-  const u8* DDMAIn(u16 dsp_addr, u32 addr, u32 size);
-  const u8* DDMAOut(u16 dsp_addr, u32 addr, u32 size);
-  const u8* IDMAIn(u16 dsp_addr, u32 addr, u32 size);
-  const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
+  const u8* DDMAIn(u16 dsp_addr, u32 addr, u32 size) const;
+  const u8* DDMAOut(u16 dsp_addr, u32 addr, u32 size) const;
+  const u8* IDMAIn(u16 dsp_addr, u32 addr, u32 size) const;
+  static const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
 
   u16 ReadIFXImpl(u16 address);
 
@@ -510,7 +510,7 @@ public:
   void Reset();
 
   // Clears the DSP instruction RAM.
-  void ClearIRAM();
+  void ClearIRAM() const;
 
   // Dictates whether or not the DSP is currently stopped, running or stepping
   // through instructions.
@@ -545,7 +545,7 @@ public:
   u16 ReadMailboxLow(Mailbox mailbox);
 
   // Reads the high part of the specified mailbox register.
-  u16 ReadMailboxHigh(Mailbox mailbox);
+  u16 ReadMailboxHigh(Mailbox mailbox) const;
 
   // Writes to the low part of the mailbox register.
   void WriteMailboxLow(Mailbox mailbox, u16 value);
@@ -554,13 +554,13 @@ public:
   void WriteMailboxHigh(Mailbox mailbox, u16 value);
 
   // Logs an IFX register read.
-  void LogIFXRead(u16 address, u16 read_value);
+  void LogIFXRead(u16 address, u16 read_value) const;
 
   // Logs an IFX register write.
-  void LogIFXWrite(u16 address, u16 written_value);
+  void LogIFXWrite(u16 address, u16 written_value) const;
 
   // Logs a DMA operation
-  void LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length, const u8* data);
+  void LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length, const u8* data) const;
 
   // Whether or not the JIT has been created.
   bool IsJITCreated() const;

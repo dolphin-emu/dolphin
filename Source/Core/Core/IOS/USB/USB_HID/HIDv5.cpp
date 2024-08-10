@@ -4,7 +4,6 @@
 #include "Core/IOS/USB/USB_HID/HIDv5.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <memory>
 #include <mutex>
 
@@ -25,8 +24,8 @@ USB_HIDv5::~USB_HIDv5()
 
 std::optional<IPCReply> USB_HIDv5::IOCtl(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
@@ -40,15 +39,15 @@ std::optional<IPCReply> USB_HIDv5::IOCtl(const IOCtlRequest& request)
     return Shutdown(request);
   case USB::IOCTL_USBV5_GETDEVPARAMS:
     return HandleDeviceIOCtl(request,
-                             [&](USBV5Device& device) { return GetDeviceInfo(device, request); });
+                             [&](const USBV5Device& device) { return GetDeviceInfo(device, request); });
   case USB::IOCTL_USBV5_ATTACHFINISH:
     return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_SUSPEND_RESUME:
     return HandleDeviceIOCtl(request,
-                             [&](USBV5Device& device) { return SuspendResume(device, request); });
+                             [&](const USBV5Device& device) { return SuspendResume(device, request); });
   case USB::IOCTL_USBV5_CANCELENDPOINT:
     return HandleDeviceIOCtl(request,
-                             [&](USBV5Device& device) { return CancelEndpoint(device, request); });
+                             [&](const USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
     request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
                         Common::Log::LogLevel::LERROR);
@@ -69,10 +68,10 @@ std::optional<IPCReply> USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
       return IPCReply(IPC_EINVAL);
 
     std::lock_guard lock{m_usbv5_devices_mutex};
-    USBV5Device* device = GetUSBV5Device(request.in_vectors[0].address);
+    const USBV5Device* device = GetUSBV5Device(request.in_vectors[0].address);
     if (!device)
       return IPCReply(IPC_EINVAL);
-    auto host_device = GetDeviceById(device->host_id);
+    const auto host_device = GetDeviceById(device->host_id);
     if (request.request == USB::IOCTLV_USBV5_CTRLMSG)
       host_device->Attach();
     else
@@ -86,8 +85,8 @@ std::optional<IPCReply> USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
-                              const IOCtlVRequest& ioctlv)
+s32 USB_HIDv5::SubmitTransfer(const USBV5Device& device, USB::Device& host_device,
+                              const IOCtlVRequest& ioctlv) const
 {
   switch (ioctlv.request)
   {
@@ -98,13 +97,13 @@ s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
   {
     auto message = std::make_unique<USB::V5IntrMessage>(GetEmulationKernel(), ioctlv);
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
 
     // Unlike VEN, the endpoint is determined by the value at 8-12.
     // If it's non-zero, HID submits the request to the interrupt OUT endpoint.
     // Otherwise, the request is submitted to the IN endpoint.
-    AdditionalDeviceData* data = &m_additional_device_data[&device - m_usbv5_devices.data()];
+    const AdditionalDeviceData* data = &m_additional_device_data[&device - m_usbv5_devices.data()];
     if (memory.Read_U32(ioctlv.in_vectors[0].address + 8) != 0)
       message->endpoint = data->interrupt_out_endpoint;
     else
@@ -117,10 +116,10 @@ s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
   }
 }
 
-IPCReply USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u8 value = memory.Read_U8(request.buffer_in + 8);
   u8 endpoint = 0;
@@ -144,13 +143,13 @@ IPCReply USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& requ
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::GetDeviceInfo(const USBV5Device& device, const IOCtlRequest& request)
 {
   if (request.buffer_out == 0 || request.buffer_out_size != 0x60)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::shared_ptr<USB::Device> host_device = GetDeviceById(device.host_id);
   const u8 alt_setting = memory.Read_U8(request.buffer_in + 8);
@@ -169,11 +168,10 @@ IPCReply USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& reque
   memory.CopyToEmu(request.buffer_out + 56, &config_descriptor, sizeof(config_descriptor));
 
   std::vector<USB::InterfaceDescriptor> interfaces = host_device->GetInterfaces(0);
-  auto it = std::find_if(interfaces.begin(), interfaces.end(),
-                         [&](const USB::InterfaceDescriptor& interface) {
-                           return interface.bInterfaceNumber == device.interface_number &&
-                                  interface.bAlternateSetting == alt_setting;
-                         });
+  const auto it = std::ranges::find_if(interfaces, [&](const USB::InterfaceDescriptor& interface) {
+    return interface.bInterfaceNumber == device.interface_number && interface.bAlternateSetting ==
+           alt_setting;
+  });
   if (it == interfaces.end())
     return IPCReply(IPC_EINVAL);
   it->Swap();

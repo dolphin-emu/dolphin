@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <string>
-
-#include "Common/CommonTypes.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 

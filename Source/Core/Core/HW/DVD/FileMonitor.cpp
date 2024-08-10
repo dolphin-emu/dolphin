@@ -3,7 +3,6 @@
 
 #include "Core/HW/DVD/FileMonitor.h"
 
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -43,14 +42,14 @@ static bool IsSoundFile(const std::string& filename)
       ".str",    // Harry Potter & the Sorcerer's Stone
   };
 
-  return extensions.find(extension) != extensions.end();
+  return extensions.contains(extension);
 }
 
 FileLogger::FileLogger() = default;
 
 FileLogger::~FileLogger() = default;
 
-void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
+void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, const u64 offset)
 {
   // Do nothing if the log isn't selected
   if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::FILEMON,

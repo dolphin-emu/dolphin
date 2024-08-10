@@ -9,7 +9,7 @@
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
-void CachedInterpreterEmitter::Write(AnyCallback callback, const void* operands, std::size_t size)
+void CachedInterpreterEmitter::Write(const AnyCallback callback, const void* operands, const std::size_t size)
 {
   DEBUG_ASSERT(reinterpret_cast<std::uintptr_t>(m_code) % alignof(AnyCallback) == 0);
   if (m_code + sizeof(callback) + size >= m_code_end)

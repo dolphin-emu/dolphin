@@ -16,7 +16,6 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
-#include "Common/StringUtil.h"
 #include "Common/TypeUtils.h"
 
 #include "VideoCommon/AbstractShader.h"
@@ -44,7 +43,7 @@ public:
    * @note In the ShaderCode implementation, this does indeed write the parameter string to an
    * internal buffer. However, you're free to do whatever you like with the parameter.
    */
-  void Write(const char*, ...)
+  static void Write(const char*, ...)
 #ifdef __GNUC__
       __attribute__((format(printf, 2, 3)))
 #endif
@@ -54,7 +53,7 @@ public:
   /*
    * Tells us that a specific constant range (including last_index) is being used by the shader
    */
-  void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+  static void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 };
 
 /*
@@ -128,14 +127,14 @@ protected:
 class ShaderConstantProfile : public ShaderGeneratorInterface
 {
 public:
-  ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
-  void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
+  ShaderConstantProfile(const int num_constants) { constant_usage.resize(num_constants); }
+  void SetConstantsUsed(const unsigned int first_index, const unsigned int last_index)
   {
     for (unsigned int i = first_index; i < last_index + 1; ++i)
       constant_usage[i] = true;
   }
 
-  bool ConstantIsUsed(unsigned int index) const
+  static bool ConstantIsUsed(unsigned int index)
   {
     // TODO: Not ready for usage yet
     return true;
@@ -230,7 +229,7 @@ std::string BitfieldExtract(std::string_view source)
 
 template <auto last_member>
 void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
-                 const Common::EnumMap<std::string_view, last_member>& values, int indent,
+                 const Common::EnumMap<std::string_view, last_member>& values, const int indent,
                  bool break_)
 {
   using enum_type = decltype(last_member);
@@ -238,7 +237,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
   // Generate a tree of if statements recursively
   // std::function must be used because auto won't capture before initialization and thus can't be
   // used recursively
-  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, u32 high) {
+  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, const u32 high) {
     // Each generated statement is for low <= x < high
     if (high == low + 1)
     {
@@ -292,7 +291,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
 #define I_LINEPTPARAMS "clinept"
 #define I_TEXOFFSET "ctexoffset"
 
-static const char s_shader_uniforms[] = "\tuint    components;\n"
+static constexpr char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint    xfmem_dualTexInfo;\n"
                                         "\tuint    xfmem_numColorChans;\n"
                                         "\tuint    missing_color_hex;\n"
@@ -324,7 +323,7 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
                                         "\t#define xfmem_alpha(i) (xfmem_pack1[(i)].w)\n";
 
-static const char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
+static constexpr char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
                                                  "\tfloat4 " I_LINEPTPARAMS ";\n"
                                                  "\tint4 " I_TEXOFFSET ";\n"
                                                  "\tuint vs_expand;\n";

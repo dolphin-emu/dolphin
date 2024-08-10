@@ -20,19 +20,19 @@ constexpr size_t ABSOLUTE_ADDRESS_BIT = 0x2;
 
 // Compile-time helpers for mnemonic generation
 // Generate inclusive mask [left, right] -- MSB=0 LSB=31
-constexpr u32 Mask(u32 left, u32 right)
+constexpr u32 Mask(const u32 left, const u32 right)
 {
   return static_cast<u32>(((u64{1} << (32 - left)) - 1) & ~((u64{1} << (31 - right)) - 1));
 }
-constexpr u32 InsertVal(u32 val, u32 left, u32 right)
+constexpr u32 InsertVal(const u32 val, const u32 left, const u32 right)
 {
   return val << (31 - right) & Mask(left, right);
 }
-constexpr u32 InsertOpcode(u32 opcode)
+constexpr u32 InsertOpcode(const u32 opcode)
 {
   return InsertVal(opcode, 0, 5);
 }
-constexpr u32 SprBitswap(u32 spr)
+constexpr u32 SprBitswap(const u32 spr)
 {
   return ((spr & 0b0000011111) << 5) | ((spr & 0b1111100000) >> 5);
 }
@@ -42,43 +42,43 @@ constexpr ExtendedMnemonicDesc INVALID_EXT_MNEMONIC = {0, nullptr};
 
 // All operands as referenced by the Gekko/Broadway user manual
 // See section 12.1.2 under Chapter 12
-constexpr OperandDesc OpDesc_A = OperandDesc{Mask(11, 15), {16, false}};
-constexpr OperandDesc OpDesc_B = OperandDesc{Mask(16, 20), {11, false}};
-constexpr OperandDesc OpDesc_BD = OperandDesc{Mask(16, 29), {0, true}};
-constexpr OperandDesc OpDesc_BI = OperandDesc{Mask(11, 15), {16, false}};
-constexpr OperandDesc OpDesc_BO = OperandDesc{Mask(6, 10), {21, false}};
-constexpr OperandDesc OpDesc_C = OperandDesc{Mask(21, 25), {6, false}};
-constexpr OperandDesc OpDesc_Crba = OperandDesc{Mask(11, 15), {16, false}};
-constexpr OperandDesc OpDesc_Crbb = OperandDesc{Mask(16, 20), {11, false}};
-constexpr OperandDesc OpDesc_Crbd = OperandDesc{Mask(6, 10), {21, false}};
-constexpr OperandDesc OpDesc_Crfd = OperandDesc{Mask(6, 8), {23, false}};
-constexpr OperandDesc OpDesc_Crfs = OperandDesc{Mask(11, 13), {18, false}};
-constexpr OperandDesc OpDesc_CRM = OperandDesc{Mask(12, 19), {12, false}};
-constexpr OperandDesc OpDesc_D = OperandDesc{Mask(6, 10), {21, false}};
-constexpr OperandDesc OpDesc_FM = OperandDesc{Mask(7, 14), {17, false}};
-constexpr OperandDesc OpDesc_W1 = OperandDesc{Mask(16, 16), {15, false}};
-constexpr OperandDesc OpDesc_W2 = OperandDesc{Mask(21, 21), {10, false}};
-constexpr OperandDesc OpDesc_IMM = OperandDesc{Mask(16, 19), {12, false}};
-constexpr OperandDesc OpDesc_L = OperandDesc{Mask(10, 10), {21, false}};
-constexpr OperandDesc OpDesc_LI = OperandDesc{Mask(6, 29), {0, true}};
-constexpr OperandDesc OpDesc_MB = OperandDesc{Mask(21, 25), {6, false}};
-constexpr OperandDesc OpDesc_ME = OperandDesc{Mask(26, 30), {1, false}};
-constexpr OperandDesc OpDesc_NB = OperandDesc{Mask(16, 20), {11, false}};
-constexpr OperandDesc OpDesc_Offd = OperandDesc{Mask(16, 31), {0, true}};
-constexpr OperandDesc OpDesc_OffdPs = OperandDesc{Mask(20, 31), {0, true}};
-constexpr OperandDesc OpDesc_S = OperandDesc{Mask(6, 10), {21, false}};
-constexpr OperandDesc OpDesc_SH = OperandDesc{Mask(16, 20), {11, false}};
-constexpr OperandDesc OpDesc_SIMM = OperandDesc{Mask(16, 31), {0, true}};
-constexpr OperandDesc OpDesc_SPR = OperandDesc{Mask(11, 20), {11, false}};
-constexpr OperandDesc OpDesc_SR = OperandDesc{Mask(12, 15), {16, false}};
-constexpr OperandDesc OpDesc_TO = OperandDesc{Mask(6, 10), {21, false}};
-constexpr OperandDesc OpDesc_TPR = OperandDesc{Mask(11, 20), {11, false}};
-constexpr OperandDesc OpDesc_UIMM = OperandDesc{Mask(16, 31), {0, false}};
-constexpr OperandDesc OpDesc_I1 = OperandDesc{Mask(17, 19), {12, false}};
-constexpr OperandDesc OpDesc_I2 = OperandDesc{Mask(22, 24), {7, false}};
+constexpr auto OpDesc_A = OperandDesc{Mask(11, 15), {16, false}};
+constexpr auto OpDesc_B = OperandDesc{Mask(16, 20), {11, false}};
+constexpr auto OpDesc_BD = OperandDesc{Mask(16, 29), {0, true}};
+constexpr auto OpDesc_BI = OperandDesc{Mask(11, 15), {16, false}};
+constexpr auto OpDesc_BO = OperandDesc{Mask(6, 10), {21, false}};
+constexpr auto OpDesc_C = OperandDesc{Mask(21, 25), {6, false}};
+constexpr auto OpDesc_Crba = OperandDesc{Mask(11, 15), {16, false}};
+constexpr auto OpDesc_Crbb = OperandDesc{Mask(16, 20), {11, false}};
+constexpr auto OpDesc_Crbd = OperandDesc{Mask(6, 10), {21, false}};
+constexpr auto OpDesc_Crfd = OperandDesc{Mask(6, 8), {23, false}};
+constexpr auto OpDesc_Crfs = OperandDesc{Mask(11, 13), {18, false}};
+constexpr auto OpDesc_CRM = OperandDesc{Mask(12, 19), {12, false}};
+constexpr auto OpDesc_D = OperandDesc{Mask(6, 10), {21, false}};
+constexpr auto OpDesc_FM = OperandDesc{Mask(7, 14), {17, false}};
+constexpr auto OpDesc_W1 = OperandDesc{Mask(16, 16), {15, false}};
+constexpr auto OpDesc_W2 = OperandDesc{Mask(21, 21), {10, false}};
+constexpr auto OpDesc_IMM = OperandDesc{Mask(16, 19), {12, false}};
+constexpr auto OpDesc_L = OperandDesc{Mask(10, 10), {21, false}};
+constexpr auto OpDesc_LI = OperandDesc{Mask(6, 29), {0, true}};
+constexpr auto OpDesc_MB = OperandDesc{Mask(21, 25), {6, false}};
+constexpr auto OpDesc_ME = OperandDesc{Mask(26, 30), {1, false}};
+constexpr auto OpDesc_NB = OperandDesc{Mask(16, 20), {11, false}};
+constexpr auto OpDesc_Offd = OperandDesc{Mask(16, 31), {0, true}};
+constexpr auto OpDesc_OffdPs = OperandDesc{Mask(20, 31), {0, true}};
+constexpr auto OpDesc_S = OperandDesc{Mask(6, 10), {21, false}};
+constexpr auto OpDesc_SH = OperandDesc{Mask(16, 20), {11, false}};
+constexpr auto OpDesc_SIMM = OperandDesc{Mask(16, 31), {0, true}};
+constexpr auto OpDesc_SPR = OperandDesc{Mask(11, 20), {11, false}};
+constexpr auto OpDesc_SR = OperandDesc{Mask(12, 15), {16, false}};
+constexpr auto OpDesc_TO = OperandDesc{Mask(6, 10), {21, false}};
+constexpr auto OpDesc_TPR = OperandDesc{Mask(11, 20), {11, false}};
+constexpr auto OpDesc_UIMM = OperandDesc{Mask(16, 31), {0, false}};
+constexpr auto OpDesc_I1 = OperandDesc{Mask(17, 19), {12, false}};
+constexpr auto OpDesc_I2 = OperandDesc{Mask(22, 24), {7, false}};
 }  // namespace
 
-void OperandList::Insert(size_t before, u32 val)
+void OperandList::Insert(const size_t before, u32 val)
 {
   overfill = count == MAX_OPERANDS;
   for (size_t i = before + 1; i <= count && i < MAX_OPERANDS; i++)
@@ -122,7 +122,7 @@ u32 OperandDesc::TruncBits() const
   return mask_lobit - 1;
 }
 
-bool OperandDesc::Fits(u32 val) const
+bool OperandDesc::Fits(const u32 val) const
 {
   const u32 mask_sh = mask >> shift;
   if (is_signed)
@@ -141,7 +141,7 @@ bool OperandDesc::Fits(u32 val) const
   return (mask_sh & val) == val;
 }
 
-u32 OperandDesc::Fit(u32 val) const
+u32 OperandDesc::Fit(const u32 val) const
 {
   return (val << shift) & mask;
 }
@@ -673,7 +673,7 @@ extern const CaseInsensitiveDict<ParseInfo, '.', '_', '+', '-'> extended_mnemoni
       EMIT_MNEMONIC_ENTRY(opcode_val, ((extra_bits) | InsertVal(0b11, 30, 31)), __VA_ARGS__)
 
 // Defines all basic mnemonics that Broadway/Gekko supports
-extern const std::array<MnemonicDesc, NUM_MNEMONICS* VARIANT_PERMUTATIONS> mnemonics = {
+extern const std::array mnemonics = {
     // A-2
     OERC_MNEMONIC(31, InsertVal(266, 22, 30), OpDesc_D, OpDesc_A, OpDesc_B),  // add
     OERC_MNEMONIC(31, InsertVal(10, 22, 30), OpDesc_D, OpDesc_A, OpDesc_B),   // addc
@@ -1064,332 +1064,331 @@ void FillMfsprBatAndBitswap(OperandList& operands)
   PSEUDO(base, PLAIN_MNEMONIC, cb), PSEUDO(base, LINK_BIT, cb),                                    \
       PSEUDO(base, ABSOLUTE_ADDRESS_BIT, cb), PSEUDO(base, (LINK_BIT | ABSOLUTE_ADDRESS_BIT), cb)
 
-extern const std::array<ExtendedMnemonicDesc, NUM_EXT_MNEMONICS* VARIANT_PERMUTATIONS>
-    extended_mnemonics = {
-        // E.2.1
-        PLAIN_PSEUDO(GekkoMnemonic::Addi, NegateSIMM),      // subi
-        PLAIN_PSEUDO(GekkoMnemonic::Addis, NegateSIMM),     // subis
-        PLAIN_PSEUDO(GekkoMnemonic::Addic, NegateSIMM),     // subic
-        PLAIN_PSEUDO(GekkoMnemonic::AddicDot, NegateSIMM),  // subic.
+extern const std::array extended_mnemonics = {
+    // E.2.1
+    PLAIN_PSEUDO(GekkoMnemonic::Addi, NegateSIMM),      // subi
+    PLAIN_PSEUDO(GekkoMnemonic::Addis, NegateSIMM),     // subis
+    PLAIN_PSEUDO(GekkoMnemonic::Addic, NegateSIMM),     // subic
+    PLAIN_PSEUDO(GekkoMnemonic::AddicDot, NegateSIMM),  // subic.
 
-        // E.2.2
-        OERC_PSEUDO(GekkoMnemonic::Subf, SwapOps1And2),   // sub
-        OERC_PSEUDO(GekkoMnemonic::Subfc, SwapOps1And2),  // subc
+    // E.2.2
+    OERC_PSEUDO(GekkoMnemonic::Subf, SwapOps1And2),   // sub
+    OERC_PSEUDO(GekkoMnemonic::Subfc, SwapOps1And2),  // subc
 
-        // E.3.2
-        PLAIN_PSEUDO(GekkoMnemonic::Cmpi, SetCompareWordMode),   // cmpwi
-        PLAIN_PSEUDO(GekkoMnemonic::Cmp, SetCompareWordMode),    // cmpw
-        PLAIN_PSEUDO(GekkoMnemonic::Cmpli, SetCompareWordMode),  // cmplwi
-        PLAIN_PSEUDO(GekkoMnemonic::Cmpl, SetCompareWordMode),   // cmplw
+    // E.3.2
+    PLAIN_PSEUDO(GekkoMnemonic::Cmpi, SetCompareWordMode),   // cmpwi
+    PLAIN_PSEUDO(GekkoMnemonic::Cmp, SetCompareWordMode),    // cmpw
+    PLAIN_PSEUDO(GekkoMnemonic::Cmpli, SetCompareWordMode),  // cmplwi
+    PLAIN_PSEUDO(GekkoMnemonic::Cmpl, SetCompareWordMode),   // cmplw
 
-        // E.4.2
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2], b = operands[3];
-                    operands[2] = b;
-                    operands[3] = 0;
-                    operands.Insert(4, n - 1);
-                  })),  // extlwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2], b = operands[3];
-                    operands[2] = b + n;
-                    operands[3] = 32 - n;
-                    operands.Insert(4, 31);
-                  })),  // extrwi
-        RC_PSEUDO(GekkoMnemonic::Rlwimi, ([](OperandList& operands) {
-                    const u32 n = operands[2], b = operands[3];
-                    operands[2] = 32 - b;
-                    operands[3] = b;
-                    operands.Insert(4, b + n - 1);
-                  })),  // inslwi
-        RC_PSEUDO(GekkoMnemonic::Rlwimi, ([](OperandList& operands) {
-                    const u32 n = operands[2], b = operands[3];
-                    operands[2] = 32 - (b + n);
-                    operands[3] = b;
-                    operands.Insert(4, b + n - 1);
-                  })),  // insrwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    operands.Insert(3, 0);
-                    operands.Insert(4, 31);
-                  })),  // rotlwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2];
-                    operands[2] = 32 - n;
-                    operands.Insert(3, 0);
-                    operands.Insert(4, 31);
-                  })),  // rotrwi
-        RC_PSEUDO(GekkoMnemonic::Rlwnm, ([](OperandList& operands) {
-                    operands.Insert(3, 0);
-                    operands.Insert(4, 31);
-                  })),  // rotlw
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2];
-                    operands.Insert(3, 0);
-                    operands.Insert(4, 31 - n);
-                  })),  // slwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2];
-                    operands[2] = 32 - n;
-                    operands.Insert(3, n);
-                    operands.Insert(4, 31);
-                  })),  // srwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2];
-                    operands[2] = 0;
-                    operands.Insert(3, n);
-                    operands.Insert(4, 31);
-                  })),  // clrlwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 n = operands[2];
-                    operands[2] = 0;
-                    operands.Insert(3, 0);
-                    operands.Insert(4, 31 - n);
-                  })),  // clrrwi
-        RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
-                    const u32 b = operands[2], n = operands[3];
-                    operands[2] = n;
-                    operands[3] = b - n;
-                    operands.Insert(4, 31 - n);
-                  })),  // clrlslwi
+    // E.4.2
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2], b = operands[3];
+                operands[2] = b;
+                operands[3] = 0;
+                operands.Insert(4, n - 1);
+              })), // extlwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2], b = operands[3];
+                operands[2] = b + n;
+                operands[3] = 32 - n;
+                operands.Insert(4, 31);
+              })), // extrwi
+    RC_PSEUDO(GekkoMnemonic::Rlwimi, ([](OperandList& operands) {
+                const u32 n = operands[2], b = operands[3];
+                operands[2] = 32 - b;
+                operands[3] = b;
+                operands.Insert(4, b + n - 1);
+              })), // inslwi
+    RC_PSEUDO(GekkoMnemonic::Rlwimi, ([](OperandList& operands) {
+                const u32 n = operands[2], b = operands[3];
+                operands[2] = 32 - (b + n);
+                operands[3] = b;
+                operands.Insert(4, b + n - 1);
+              })), // insrwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                operands.Insert(3, 0);
+                operands.Insert(4, 31);
+              })), // rotlwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2];
+                operands[2] = 32 - n;
+                operands.Insert(3, 0);
+                operands.Insert(4, 31);
+              })), // rotrwi
+    RC_PSEUDO(GekkoMnemonic::Rlwnm, ([](OperandList& operands) {
+                operands.Insert(3, 0);
+                operands.Insert(4, 31);
+              })), // rotlw
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2];
+                operands.Insert(3, 0);
+                operands.Insert(4, 31 - n);
+              })), // slwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2];
+                operands[2] = 32 - n;
+                operands.Insert(3, n);
+                operands.Insert(4, 31);
+              })), // srwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2];
+                operands[2] = 0;
+                operands.Insert(3, n);
+                operands.Insert(4, 31);
+              })), // clrlwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 n = operands[2];
+                operands[2] = 0;
+                operands.Insert(3, 0);
+                operands.Insert(4, 31 - n);
+              })), // clrrwi
+    RC_PSEUDO(GekkoMnemonic::Rlwinm, ([](OperandList& operands) {
+                const u32 b = operands[2], n = operands[3];
+                operands[2] = n;
+                operands[3] = b - n;
+                operands.Insert(4, 31 - n);
+              })), // clrlslwi
 
-        // E.5.2
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<12>)),       // bt
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<4>)),        // bf
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<16, 0>)),  // bdnz
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<8>)),        // bdnzt
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<0>)),        // bdnzf
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<18, 0>)),  // bdz
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<10>)),       // bdzt
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<2>)),        // bdzf
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<13>)),       // bt+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<5>)),        // bf+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<17, 0>)),  // bdnz+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<9>)),        // bdnzt+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<1>)),        // bdnzf+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<19, 0>)),  // bdz+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<11>)),       // bdzt+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<3>)),        // bdzf+
+    // E.5.2
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<12>)),       // bt
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<4>)),        // bf
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<16, 0>)),  // bdnz
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<8>)),        // bdnzt
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<0>)),        // bdnzf
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<18, 0>)),  // bdz
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<10>)),       // bdzt
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<2>)),        // bdzf
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<13>)),       // bt+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<5>)),        // bf+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<17, 0>)),  // bdnz+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<9>)),        // bdnzt+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<1>)),        // bdnzf+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBI<19, 0>)),  // bdz+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<11>)),       // bdzt+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBO<3>)),        // bdzf+
 
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<20, 0>)),  // blr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<12>)),       // btlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<4>)),        // bflr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<16, 0>)),  // bdnzlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<8>)),        // bdnztlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<0>)),        // bdnzflr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<18, 0>)),  // bdzlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<10>)),       // bdztlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<2>)),        // bdzflr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<20, 0>)),  // blr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<12>)),       // btlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<4>)),        // bflr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<16, 0>)),  // bdnzlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<8>)),        // bdnztlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<0>)),        // bdnzflr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<18, 0>)),  // bdzlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<10>)),       // bdztlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<2>)),        // bdzflr
 
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<13>)),       // btlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<5>)),        // bflr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<17, 0>)),  // bdnzlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<9>)),        // bdnztlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<1>)),        // bdnzflr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<19, 0>)),  // bdzlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<11>)),       // bdztlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<3>)),        // bdzflr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<13>)),       // btlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<5>)),        // bflr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<17, 0>)),  // bdnzlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<9>)),        // bdnztlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<1>)),        // bdnzflr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBI<19, 0>)),  // bdzlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<11>)),       // bdztlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBO<3>)),        // bdzflr+
 
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBI<20, 0>)),  // bctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<12>)),       // btctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<4>)),        // bfctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<13>)),       // btctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<5>)),        // bfctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBI<20, 0>)),  // bctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<12>)),       // btctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<4>)),        // bfctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<13>)),       // btctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBO<5>)),        // bfctr+
 
-        // E.5.3
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 0, 2>)),  // blt
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 1, 2>)),   // ble
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 2, 2>)),  // beq
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 0, 2>)),   // bge
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 1, 2>)),  // bgt
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 0, 2>)),   // bnl
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 2, 2>)),   // bne
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 1, 2>)),   // bng
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 3, 2>)),  // bso
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 3, 2>)),   // bns
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 3, 2>)),  // bun
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 3, 2>)),   // bnu
+    // E.5.3
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 0, 2>)),  // blt
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 1, 2>)),   // ble
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 2, 2>)),  // beq
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 0, 2>)),   // bge
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 1, 2>)),  // bgt
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 0, 2>)),   // bnl
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 2, 2>)),   // bne
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 1, 2>)),   // bng
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 3, 2>)),  // bso
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 3, 2>)),   // bns
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<12, 3, 2>)),  // bun
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<4, 3, 2>)),   // bnu
 
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 0, 2>)),  // blt+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 1, 2>)),   // ble+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 2, 2>)),  // beq+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 0, 2>)),   // bge+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 1, 2>)),  // bgt+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 0, 2>)),   // bnl+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 2, 2>)),   // bne+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 1, 2>)),   // bng+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 3, 2>)),  // bso+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 3, 2>)),   // bns+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 3, 2>)),  // bun+
-        LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 3, 2>)),   // bnu+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 0, 2>)),  // blt+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 1, 2>)),   // ble+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 2, 2>)),  // beq+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 0, 2>)),   // bge+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 1, 2>)),  // bgt+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 0, 2>)),   // bnl+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 2, 2>)),   // bne+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 1, 2>)),   // bng+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 3, 2>)),  // bso+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 3, 2>)),   // bns+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<13, 3, 2>)),  // bun+
+    LKAA_PSEUDO(GekkoMnemonic::Bc, (FillBOBICond<5, 3, 2>)),   // bnu+
 
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 0, 1>)),  // bltlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 1, 1>)),   // blelr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 2, 1>)),  // beqlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 0, 1>)),   // bgelr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 1, 1>)),  // bgtlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 0, 1>)),   // bnllr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 2, 1>)),   // bnelr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 1, 1>)),   // bnglr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 3, 1>)),  // bsolr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 3, 1>)),   // bnslr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 3, 1>)),  // bunlr
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 3, 1>)),   // bnulr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 0, 1>)),  // bltlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 1, 1>)),   // blelr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 2, 1>)),  // beqlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 0, 1>)),   // bgelr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 1, 1>)),  // bgtlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 0, 1>)),   // bnllr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 2, 1>)),   // bnelr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 1, 1>)),   // bnglr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 3, 1>)),  // bsolr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 3, 1>)),   // bnslr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<12, 3, 1>)),  // bunlr
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<4, 3, 1>)),   // bnulr
 
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 0, 1>)),  // bltlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 1, 1>)),   // blelr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 2, 1>)),  // beqlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 0, 1>)),   // bgelr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 1, 1>)),  // bgtlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 0, 1>)),   // bnllr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 2, 1>)),   // bnelr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 1, 1>)),   // bnglr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 3, 1>)),  // bsolr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 3, 1>)),   // bnslr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 3, 1>)),  // bunlr+
-        LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 3, 1>)),   // bnulr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 0, 1>)),  // bltlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 1, 1>)),   // blelr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 2, 1>)),  // beqlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 0, 1>)),   // bgelr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 1, 1>)),  // bgtlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 0, 1>)),   // bnllr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 2, 1>)),   // bnelr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 1, 1>)),   // bnglr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 3, 1>)),  // bsolr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 3, 1>)),   // bnslr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<13, 3, 1>)),  // bunlr+
+    LK_PSEUDO(GekkoMnemonic::Bclr, (FillBOBICond<5, 3, 1>)),   // bnulr+
 
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 0, 1>)),  // bltctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 1, 1>)),   // blectr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 2, 1>)),  // beqctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 0, 1>)),   // bgectr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 1, 1>)),  // bgtctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 0, 1>)),   // bnlctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 2, 1>)),   // bnectr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 1, 1>)),   // bngctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 3, 1>)),  // bsoctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 3, 1>)),   // bnsctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 3, 1>)),  // bunctr
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 3, 1>)),   // bnuctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 0, 1>)),  // bltctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 1, 1>)),   // blectr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 2, 1>)),  // beqctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 0, 1>)),   // bgectr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 1, 1>)),  // bgtctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 0, 1>)),   // bnlctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 2, 1>)),   // bnectr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 1, 1>)),   // bngctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 3, 1>)),  // bsoctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 3, 1>)),   // bnsctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<12, 3, 1>)),  // bunctr
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<4, 3, 1>)),   // bnuctr
 
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 0, 1>)),  // bltctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 1, 1>)),   // blectr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 2, 1>)),  // beqctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 0, 1>)),   // bgectr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 1, 1>)),  // bgtctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 0, 1>)),   // bnlctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 2, 1>)),   // bnectr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 1, 1>)),   // bngctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 3, 1>)),  // bsoctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 3, 1>)),   // bnsctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 3, 1>)),  // bunctr+
-        LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 3, 1>)),   // bnuctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 0, 1>)),  // bltctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 1, 1>)),   // blectr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 2, 1>)),  // beqctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 0, 1>)),   // bgectr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 1, 1>)),  // bgtctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 0, 1>)),   // bnlctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 2, 1>)),   // bnectr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 1, 1>)),   // bngctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 3, 1>)),  // bsoctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 3, 1>)),   // bnsctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<13, 3, 1>)),  // bunctr+
+    LK_PSEUDO(GekkoMnemonic::Bcctr, (FillBOBICond<5, 3, 1>)),   // bnuctr+
 
-        // E.6
-        PLAIN_PSEUDO(GekkoMnemonic::Creqv,
-                     [](OperandList& operands) {
-                       operands.Insert(1, operands[0]);
-                       operands.Insert(2, operands[0]);
-                     }),  // crset
-        PLAIN_PSEUDO(GekkoMnemonic::Crxor,
-                     [](OperandList& operands) {
-                       operands.Insert(1, operands[0]);
-                       operands.Insert(2, operands[0]);
-                     }),  // crclr
-        PLAIN_PSEUDO(GekkoMnemonic::Cror,
-                     [](OperandList& operands) { operands.Insert(2, operands[1]); }),  // crmove
-        PLAIN_PSEUDO(GekkoMnemonic::Crnor,
-                     [](OperandList& operands) { operands.Insert(2, operands[1]); }),  // crnot
+    // E.6
+    PLAIN_PSEUDO(GekkoMnemonic::Creqv,
+                 [](OperandList& operands) {
+                   operands.Insert(1, operands[0]);
+                   operands.Insert(2, operands[0]);
+                 }),  // crset
+    PLAIN_PSEUDO(GekkoMnemonic::Crxor,
+                 [](OperandList& operands) {
+                   operands.Insert(1, operands[0]);
+                   operands.Insert(2, operands[0]);
+                 }),  // crclr
+    PLAIN_PSEUDO(GekkoMnemonic::Cror,
+                 [](OperandList& operands) { operands.Insert(2, operands[1]); }),  // crmove
+    PLAIN_PSEUDO(GekkoMnemonic::Crnor,
+                 [](OperandList& operands) { operands.Insert(2, operands[1]); }),  // crnot
 
-        // E.7
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<16>),   // twlt
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<16>),  // twlti
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<20>),   // twle
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<20>),  // twlei
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<4>),    // tweq
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<4>),   // tweqi
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<12>),   // twge
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<12>),  // twgei
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<8>),    // twgt
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<8>),   // twgti
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<12>),   // twnl
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<12>),  // twnli
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<24>),   // twne
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<24>),  // twnei
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<20>),   // twng
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<20>),  // twngi
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<2>),    // twllt
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<2>),   // twllti
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<6>),    // twlle
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<6>),   // twllei
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<5>),    // twlge
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<5>),   // twlgei
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<1>),    // twlgt
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<1>),   // twlgti
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<5>),    // twlnl
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<5>),   // twlnli
-        PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<6>),    // twlng
-        PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<6>),   // twlngi
-        PLAIN_PSEUDO(GekkoMnemonic::Tw,
-                     [](OperandList& operands) {
-                       operands.Insert(0, 31);
-                       operands.Insert(1, 0);
-                       operands.Insert(2, 0);
-                     }),  // trap
+    // E.7
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<16>),   // twlt
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<16>),  // twlti
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<20>),   // twle
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<20>),  // twlei
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<4>),    // tweq
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<4>),   // tweqi
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<12>),   // twge
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<12>),  // twgei
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<8>),    // twgt
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<8>),   // twgti
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<12>),   // twnl
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<12>),  // twnli
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<24>),   // twne
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<24>),  // twnei
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<20>),   // twng
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<20>),  // twngi
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<2>),    // twllt
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<2>),   // twllti
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<6>),    // twlle
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<6>),   // twllei
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<5>),    // twlge
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<5>),   // twlgei
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<1>),    // twlgt
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<1>),   // twlgti
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<5>),    // twlnl
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<5>),   // twlnli
+    PLAIN_PSEUDO(GekkoMnemonic::Tw, TrapSetTO<6>),    // twlng
+    PLAIN_PSEUDO(GekkoMnemonic::Twi, TrapSetTO<6>),   // twlngi
+    PLAIN_PSEUDO(GekkoMnemonic::Tw,
+                 [](OperandList& operands) {
+                   operands.Insert(0, 31);
+                   operands.Insert(1, 0);
+                   operands.Insert(2, 0);
+                 }),  // trap
 
-        // E.8
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(1)>),    // mtxer
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(1)>),    // mfxer
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(8)>),    // mtlr
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(8)>),    // mflr
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(9)>),    // mtctr
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(9)>),    // mfctr
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(18)>),   // mtdsisr
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(18)>),   // mfdsisr
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(19)>),   // mtdar
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(19)>),   // mfdar
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(22)>),   // mtdec
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(22)>),   // mfdec
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(25)>),   // mtsdr1
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(25)>),   // mfsdr1
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(26)>),   // mtsrr0
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(26)>),   // mfsrr0
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(27)>),   // mtsrr1
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(27)>),   // mfsrr1
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(280)>),  // mtasr
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(280)>),  // mfasr
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(282)>),  // mtear
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(282)>),  // mfear
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(284)>),  // mttbl
-        PLAIN_PSEUDO(GekkoMnemonic::Mftb_nobitswap, FillMfspr<SprBitswap(268)>),   // mftbl
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(285)>),  // mttbu
-        PLAIN_PSEUDO(GekkoMnemonic::Mftb_nobitswap, FillMfspr<SprBitswap(269)>),   // mftbu
-        PLAIN_PSEUDO(
-            GekkoMnemonic::Mtspr_nobitswap,
-            [](OperandList& operands) { operands[0] = SprBitswap(operands[0] + 272); }),  // mtsprg
-        PLAIN_PSEUDO(
-            GekkoMnemonic::Mfspr_nobitswap,
-            [](OperandList& operands) { operands[1] = SprBitswap(operands[1] + 272); }),  // mfsprg
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<528>),        // mtibatu
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<528>),        // mfibatu
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<529>),        // mtibatl
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<529>),        // mfibatl
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<536>),        // mtdbatu
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<536>),        // mfdbatu
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<537>),        // mtdbatl
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<537>),        // mfdbatl
+    // E.8
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(1)>),    // mtxer
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(1)>),    // mfxer
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(8)>),    // mtlr
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(8)>),    // mflr
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(9)>),    // mtctr
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(9)>),    // mfctr
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(18)>),   // mtdsisr
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(18)>),   // mfdsisr
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(19)>),   // mtdar
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(19)>),   // mfdar
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(22)>),   // mtdec
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(22)>),   // mfdec
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(25)>),   // mtsdr1
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(25)>),   // mfsdr1
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(26)>),   // mtsrr0
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(26)>),   // mfsrr0
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(27)>),   // mtsrr1
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(27)>),   // mfsrr1
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(280)>),  // mtasr
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(280)>),  // mfasr
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(282)>),  // mtear
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfspr<SprBitswap(282)>),  // mfear
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(284)>),  // mttbl
+    PLAIN_PSEUDO(GekkoMnemonic::Mftb_nobitswap, FillMfspr<SprBitswap(268)>),   // mftbl
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtspr<SprBitswap(285)>),  // mttbu
+    PLAIN_PSEUDO(GekkoMnemonic::Mftb_nobitswap, FillMfspr<SprBitswap(269)>),   // mftbu
+    PLAIN_PSEUDO(
+        GekkoMnemonic::Mtspr_nobitswap,
+        [](OperandList& operands) { operands[0] = SprBitswap(operands[0] + 272); }),  // mtsprg
+    PLAIN_PSEUDO(
+        GekkoMnemonic::Mfspr_nobitswap,
+        [](OperandList& operands) { operands[1] = SprBitswap(operands[1] + 272); }),  // mfsprg
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<528>),        // mtibatu
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<528>),        // mfibatu
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<529>),        // mtibatl
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<529>),        // mfibatl
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<536>),        // mtdbatu
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<536>),        // mfdbatu
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, FillMtsprBatAndBitswap<537>),        // mtdbatl
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, FillMfsprBatAndBitswap<537>),        // mfdbatl
 
-        // E.9
-        PLAIN_PSEUDO(GekkoMnemonic::Ori,
-                     [](OperandList& operands) {
-                       operands.Insert(0, 0);
-                       operands.Insert(1, 0);
-                       operands.Insert(2, 0);
-                     }),  // nop
-        PLAIN_PSEUDO(GekkoMnemonic::Addi,
-                     [](OperandList& operands) { operands.Insert(1, 0); }),  // li
-        PLAIN_PSEUDO(GekkoMnemonic::Addis,
-                     [](OperandList& operands) { operands.Insert(1, 0); }),  // lis
-        PLAIN_PSEUDO(GekkoMnemonic::Addi, SwapOps1And2),                     // la
-        RC_PSEUDO(GekkoMnemonic::Or,
-                  ([](OperandList& operands) { operands.Insert(2, operands[1]); })),  // mr
-        RC_PSEUDO(GekkoMnemonic::Nor,
-                  ([](OperandList& operands) { operands.Insert(2, operands[1]); })),  // not
-        PLAIN_PSEUDO(GekkoMnemonic::Mtcrf,
-                     [](OperandList& operands) { operands.Insert(0, 0xff); }),  // mtcr
+    // E.9
+    PLAIN_PSEUDO(GekkoMnemonic::Ori,
+                 [](OperandList& operands) {
+                 operands.Insert(0, 0);
+                 operands.Insert(1, 0);
+                 operands.Insert(2, 0);
+                 }), // nop
+    PLAIN_PSEUDO(GekkoMnemonic::Addi,
+                 [](OperandList& operands) { operands.Insert(1, 0); }), // li
+    PLAIN_PSEUDO(GekkoMnemonic::Addis,
+                 [](OperandList& operands) { operands.Insert(1, 0); }), // lis
+    PLAIN_PSEUDO(GekkoMnemonic::Addi, SwapOps1And2),                    // la
+    RC_PSEUDO(GekkoMnemonic::Or,
+              ([](OperandList& operands) { operands.Insert(2, operands[1]); })), // mr
+    RC_PSEUDO(GekkoMnemonic::Nor,
+              ([](OperandList& operands) { operands.Insert(2, operands[1]); })), // not
+    PLAIN_PSEUDO(GekkoMnemonic::Mtcrf,
+                 [](OperandList& operands) { operands.Insert(0, 0xff); }), // mtcr
 
-        // Additional mnemonics
-        PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, BitswapIdx<1>),  // mfspr
-        PLAIN_PSEUDO(GekkoMnemonic::Mftb_nobitswap, BitswapIdx<1>),   // mfspr
-        PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, BitswapIdx<0>),  // mtspr
+    // Additional mnemonics
+    PLAIN_PSEUDO(GekkoMnemonic::Mfspr_nobitswap, BitswapIdx<1>), // mfspr
+    PLAIN_PSEUDO(GekkoMnemonic::Mftb_nobitswap, BitswapIdx<1>),  // mfspr
+    PLAIN_PSEUDO(GekkoMnemonic::Mtspr_nobitswap, BitswapIdx<0>), // mtspr
 };
 
 #undef EMIT_MNEMONIC_ENTRY
@@ -1412,30 +1411,32 @@ extern const std::array<ExtendedMnemonicDesc, NUM_EXT_MNEMONICS* VARIANT_PERMUTA
 
 namespace
 {
-constexpr TransitionF HasPlusOrMinus = [](char c) { return c == '+' || c == '-'; };
-constexpr TransitionF HasDigit = [](char c) -> bool { return std::isdigit(c); };
-constexpr TransitionF HasE = [](char c) { return c == 'e'; };
-constexpr TransitionF HasDot = [](char c) { return c == '.'; };
+constexpr TransitionF HasPlusOrMinus = [](const char c) { return c == '+' || c == '-'; };
+constexpr TransitionF HasDigit = [](const char c) -> bool { return std::isdigit(c); };
+constexpr TransitionF HasE = [](const char c) { return c == 'e'; };
+constexpr TransitionF HasDot = [](const char c) { return c == '.'; };
 
 // Normal string characters
-constexpr TransitionF HasNormal = [](char c) { return c != '\n' && c != '"' && c != '\\'; };
+constexpr TransitionF HasNormal = [](const char c) { return c != '\n' && c != '"' && c != '\\'; };
 // Invalid characters in string
-constexpr TransitionF HasInvalid = [](char c) { return c == '\n'; };
+constexpr TransitionF HasInvalid = [](const char c) { return c == '\n'; };
 // Octal digits
-constexpr TransitionF HasOctal = [](char c) { return c >= '0' && c <= '7'; };
+constexpr TransitionF HasOctal = [](const char c) { return c >= '0' && c <= '7'; };
 // Hex digits
-constexpr TransitionF HasHex = [](char c) -> bool { return std::isxdigit(c); };
+constexpr TransitionF HasHex = [](const char c) -> bool { return std::isxdigit(c); };
 // Normal - octal
-constexpr TransitionF HasNormalMinusOctal = [](char c) { return HasNormal(c) && !HasOctal(c); };
+constexpr TransitionF HasNormalMinusOctal = [](const char c) {
+  return HasNormal(c) && !HasOctal(c);
+};
 // Normal - hex
-constexpr TransitionF HasNormalMinusHex = [](char c) { return HasNormal(c) && !HasHex(c); };
+constexpr TransitionF HasNormalMinusHex = [](const char c) { return HasNormal(c) && !HasHex(c); };
 // Escape start
-constexpr TransitionF HasEscape = [](char c) { return c == '\\'; };
+constexpr TransitionF HasEscape = [](const char c) { return c == '\\'; };
 // All single-character escapes
-constexpr TransitionF HasSCE = [](char c) { return !HasOctal(c) && c != 'x' && c != '\n'; };
+constexpr TransitionF HasSCE = [](const char c) { return !HasOctal(c) && c != 'x' && c != '\n'; };
 // Hex escape
-constexpr TransitionF HasHexStart = [](char c) { return c == 'x'; };
-constexpr TransitionF HasQuote = [](char c) { return c == '"'; };
+constexpr TransitionF HasHexStart = [](const char c) { return c == 'x'; };
+constexpr TransitionF HasQuote = [](const char c) { return c == '"'; };
 }  // namespace
 
 extern const std::vector<DfaNode> float_dfa = {

@@ -65,17 +65,17 @@ void ProcessorInterfaceManager::Init()
       core_timing.RegisterEvent("IOSNotifyPowerButton", IOSNotifyPowerButtonCallback);
 }
 
-void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   mmio->Register(base | PI_INTERRUPT_CAUSE, MMIO::DirectRead<u32>(&m_interrupt_cause),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_interrupt_cause &= ~val;
                    processor_interface.UpdateException();
                  }));
 
   mmio->Register(base | PI_INTERRUPT_MASK, MMIO::DirectRead<u32>(&m_interrupt_mask),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_interrupt_mask = val;
                    processor_interface.UpdateException();
@@ -91,7 +91,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&m_fifo_cpu_write_pointer, 0xFFFFFFE0));
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    // Used by GXAbortFrame
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_FIFO_RESET: {:08x}", val);
                    if ((val & 1) != 0)
@@ -113,13 +113,13 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    }
                  }));
 
-  mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   auto& processor_interface = system.GetProcessorInterface();
+  mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
+                   const auto& processor_interface = system.GetProcessorInterface();
                    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Read PI_RESET_CODE: {:08x}",
                                  processor_interface.m_reset_code);
                    return processor_interface.m_reset_code;
                  }),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_reset_code = val;
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: {:08x}",
@@ -143,16 +143,19 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void ProcessorInterfaceManager::UpdateException()
+void ProcessorInterfaceManager::UpdateException() const
 {
-  auto& ppc_state = m_system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
   if ((m_interrupt_cause & m_interrupt_mask) != 0)
-    ppc_state.Exceptions |= EXCEPTION_EXTERNAL_INT;
+    Exceptions |= EXCEPTION_EXTERNAL_INT;
   else
-    ppc_state.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
+    Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
-static const char* Debug_GetInterruptName(u32 cause_mask)
+static const char* Debug_GetInterruptName(const u32 cause_mask)
 {
   switch (cause_mask)
   {
@@ -193,7 +196,7 @@ static const char* Debug_GetInterruptName(u32 cause_mask)
   }
 }
 
-void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
+void ProcessorInterfaceManager::SetInterrupt(const u32 cause_mask, const bool set)
 {
   DEBUG_ASSERT_MSG(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
@@ -218,44 +221,44 @@ void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
   UpdateException();
 }
 
-void ProcessorInterfaceManager::SetResetButton(bool set)
+void ProcessorInterfaceManager::SetResetButton(const bool set)
 {
   SetInterrupt(INT_CAUSE_RST_BUTTON, !set);
 }
 
-void ProcessorInterfaceManager::ToggleResetButtonCallback(Core::System& system, u64 userdata,
+void ProcessorInterfaceManager::ToggleResetButtonCallback(const Core::System& system, const u64 userdata,
                                                           s64 cyclesLate)
 {
   system.GetProcessorInterface().SetResetButton(!!userdata);
 }
 
-void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& system, u64 userdata,
+void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(const Core::System& system, u64 userdata,
                                                              s64 cyclesLate)
 {
   const auto ios = system.GetIOS();
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->ResetButton();
 }
 
-void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata,
+void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(const Core::System& system, u64 userdata,
                                                              s64 cyclesLate)
 {
   const auto ios = system.GetIOS();
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->PowerButton();
 }
 
-void ProcessorInterfaceManager::ResetButton_Tap()
+void ProcessorInterfaceManager::ResetButton_Tap() const
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   auto& core_timing = m_system.GetCoreTiming();
@@ -266,9 +269,9 @@ void ProcessorInterfaceManager::ResetButton_Tap()
                             m_event_type_toggle_reset_button, false, CoreTiming::FromThread::ANY);
 }
 
-void ProcessorInterfaceManager::PowerButton_Tap()
+void ProcessorInterfaceManager::PowerButton_Tap() const
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   auto& core_timing = m_system.GetCoreTiming();

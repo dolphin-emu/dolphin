@@ -34,17 +34,18 @@ struct GUIDComparator
 static std::set<GUID, GUIDComparator> s_guids_in_use;
 static std::mutex s_guids_mutex;
 
-void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
+void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
 {
   std::list<DIDEVICEINSTANCE> joysticks;
-  idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
+  idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, &joysticks,
                     DIEDFL_ATTACHEDONLY);
 
-  std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
-  for (DIDEVICEINSTANCE& joystick : joysticks)
+  const std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
+  for (auto& [_dwSize, guidInstance, guidProduct, _dwDevType, _tszInstanceName, _tszProductName,
+         _guidFFDriver, _wUsagePage, _wUsage] : joysticks)
   {
     // Skip XInput Devices
-    if (xinput_guids.count(joystick.guidProduct.Data1))
+    if (xinput_guids.contains(guidProduct.Data1))
     {
       continue;
     }
@@ -52,7 +53,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
     // Skip devices we are already using.
     {
       std::lock_guard lk(s_guids_mutex);
-      if (s_guids_in_use.count(joystick.guidInstance))
+      if (s_guids_in_use.contains(guidInstance))
       {
         continue;
       }
@@ -60,12 +61,12 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
 
     LPDIRECTINPUTDEVICE8 js_device;
     // Don't print any warnings on failure
-    if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, nullptr)))
+    if (SUCCEEDED(idi8->CreateDevice(guidInstance, &js_device, nullptr)))
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
       {
-        HRESULT hr = js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
-                                                    DISCL_BACKGROUND | DISCL_EXCLUSIVE);
+        const HRESULT hr = js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
+                                                          DISCL_BACKGROUND | DISCL_EXCLUSIVE);
         if (FAILED(hr))
         {
           WARN_LOG_FMT(CONTROLLERINTERFACE,
@@ -91,7 +92,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
           if (g_controller_interface.AddDevice(std::move(js)))
           {
             std::lock_guard lk(s_guids_mutex);
-            s_guids_in_use.insert(joystick.guidInstance);
+            s_guids_in_use.insert(guidInstance);
           }
         }
       }
@@ -127,8 +128,8 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
     return;
 
   // max of 32 buttons and 4 hats / the limit of the data format I am using
-  js_caps.dwButtons = std::min((DWORD)32, js_caps.dwButtons);
-  js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
+  js_caps.dwButtons = std::min(static_cast<DWORD>(32), js_caps.dwButtons);
+  js_caps.dwPOVs = std::min(static_cast<DWORD>(4), js_caps.dwPOVs);
 
   // m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
 
@@ -174,17 +175,18 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
 
   // Force feedback:
   std::list<DIDEVICEOBJECTINSTANCE> objects;
-  if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
+  if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, &objects, DIDFT_AXIS)))
   {
     const int num_ff_axes =
-        std::count_if(std::begin(objects), std::end(objects),
-                      [](const auto& pdidoi) { return (pdidoi.dwFlags & DIDOI_FFACTUATOR) != 0; });
+        std::ranges::count_if(objects, [](const auto& pdidoi) {
+          return (pdidoi.dwFlags & DIDOI_FFACTUATOR) != 0;
+        });
     InitForceFeedback(m_device, num_ff_axes);
   }
 
   // Set hats to center:
   // "The center position is normally reported as -1" -MSDN
-  std::fill(std::begin(m_state_in.rgdwPOV), std::end(m_state_in.rgdwPOV), -1);
+  std::ranges::fill(m_state_in.rgdwPOV, -1);
 }
 
 Joystick::~Joystick()
@@ -245,7 +247,7 @@ Core::DeviceRemoval Joystick::UpdateInput()
         if (evt->dwOfs < DIJOFS_BUTTON(0))
           *(DWORD*)(((BYTE*)&m_state_in) + evt->dwOfs) = evt->dwData;
         else
-          ((BYTE*)&m_state_in)[evt->dwOfs] = (BYTE)evt->dwData;
+          ((BYTE*)&m_state_in)[evt->dwOfs] = static_cast<BYTE>(evt->dwData);
       }
 
       // seems like this needs to be done maybe...
@@ -277,8 +279,8 @@ std::string Joystick::Axis::GetName() const
   const char sign = m_range < 0 ? '-' : '+';
   if (m_index < 6)  // axis
     return fmt::format("Axis {:c}{}{:c}", 'X' + m_index % 3, m_index > 2 ? "r" : "", sign);
-  else  // slider
-    return fmt::format("Slider {}{:c}", m_index - 6, sign);
+    // slider
+  return fmt::format("Slider {}{:c}", m_index - 6, sign);
 }
 
 std::string Joystick::Hat::GetName() const
@@ -290,12 +292,12 @@ std::string Joystick::Hat::GetName() const
 
 ControlState Joystick::Axis::GetState() const
 {
-  return ControlState(m_axis - m_base) / m_range;
+  return static_cast<ControlState>(m_axis - m_base) / m_range;
 }
 
 ControlState Joystick::Button::GetState() const
 {
-  return ControlState(m_button > 0);
+  return m_button > 0;
 }
 
 ControlState Joystick::Hat::GetState() const
@@ -307,6 +309,6 @@ ControlState Joystick::Hat::GetState() const
   if (is_centered)
     return 0;
 
-  return (std::abs(int(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
+  return (std::abs(static_cast<int>(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
 }
 }  // namespace ciface::DInput

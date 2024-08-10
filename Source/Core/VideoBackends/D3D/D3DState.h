@@ -10,7 +10,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/Constants.h"
@@ -75,7 +74,7 @@ public:
     m_pending.rasterizerState = state;
   }
 
-  void SetTexture(size_t index, ID3D11ShaderResourceView* texture)
+  void SetTexture(const size_t index, ID3D11ShaderResourceView* texture)
   {
     if (m_current.textures[index] != texture)
       m_dirtyFlags.set(DirtyFlag_Texture0 + index);
@@ -83,7 +82,7 @@ public:
     m_pending.textures[index] = texture;
   }
 
-  void SetSampler(size_t index, ID3D11SamplerState* sampler)
+  void SetSampler(const size_t index, ID3D11SamplerState* sampler)
   {
     if (m_current.samplers[index] != sampler)
       m_dirtyFlags.set(DirtyFlag_Sampler0 + index);
@@ -119,7 +118,7 @@ public:
     m_pending.geometryConstants = buffer;
   }
 
-  void SetVertexBuffer(ID3D11Buffer* buffer, u32 stride, u32 offset)
+  void SetVertexBuffer(ID3D11Buffer* buffer, const u32 stride, const u32 offset)
   {
     if (m_current.vertexBuffer != buffer || m_current.vertexBufferStride != stride ||
         m_current.vertexBufferOffset != offset)
@@ -138,7 +137,7 @@ public:
     m_pending.indexBuffer = buffer;
   }
 
-  void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology)
+  void SetPrimitiveTopology(const D3D11_PRIMITIVE_TOPOLOGY topology)
   {
     if (m_current.topology != topology)
       m_dirtyFlags.set(DirtyFlag_InputAssembler);
@@ -163,9 +162,9 @@ public:
   }
 
   void SetPixelShaderDynamic(ID3D11PixelShader* shader, ID3D11ClassInstance* const* classInstances,
-                             u32 classInstancesCount)
+                             const u32 classInstancesCount)
   {
-    D3D::context->PSSetShader(shader, classInstances, classInstancesCount);
+    context->PSSetShader(shader, classInstances, classInstancesCount);
     m_current.pixelShader = shader;
     m_pending.pixelShader = shader;
   }
@@ -202,7 +201,7 @@ public:
     m_pending.uav = uav;
   }
 
-  void SetIntegerRTV(bool enable)
+  void SetIntegerRTV(const bool enable)
   {
     if (m_current.use_integer_rtv != enable)
       m_dirtyFlags.set(DirtyFlag_Framebuffer);
@@ -211,7 +210,7 @@ public:
   }
 
   // removes currently set texture from all slots, returns mask of previously bound slots
-  u32 UnsetTexture(ID3D11ShaderResourceView* srv);
+  u32 UnsetTexture(const ID3D11ShaderResourceView* srv);
   void SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceView* srv);
   void ApplyTextures();
 
@@ -249,7 +248,7 @@ private:
     DirtyFlag_Max
   };
 
-  std::bitset<DirtyFlags::DirtyFlag_Max> m_dirtyFlags;
+  std::bitset<DirtyFlag_Max> m_dirtyFlags;
 
   struct Resources
   {

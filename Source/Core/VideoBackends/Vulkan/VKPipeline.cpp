@@ -15,12 +15,10 @@
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include "VideoCommon/DriverDetails.h"
-
 namespace Vulkan
 {
-VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline,
-                       VkPipelineLayout pipeline_layout, AbstractPipelineUsage usage)
+VKPipeline::VKPipeline(const AbstractPipelineConfig& config, const VkPipeline pipeline,
+                       const VkPipelineLayout pipeline_layout, const AbstractPipelineUsage usage)
     : AbstractPipeline(config), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout),
       m_usage(usage)
 {
@@ -31,7 +29,7 @@ VKPipeline::~VKPipeline()
   vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
 }
 
-static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
+static bool IsStripPrimitiveTopology(const VkPrimitiveTopology topology)
 {
   return topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP ||
          topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ||
@@ -46,7 +44,7 @@ GetVulkanRasterizationState(const RasterizationState& state)
       {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
        VK_CULL_MODE_FRONT_AND_BACK}};
 
-  bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
+  const bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
 
   return {
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,  // VkStructureType sType
@@ -55,7 +53,7 @@ GetVulkanRasterizationState(const RasterizationState& state)
       depth_clamp,           // VkBool32                                  depthClampEnable
       VK_FALSE,              // VkBool32                                  rasterizerDiscardEnable
       VK_POLYGON_MODE_FILL,  // VkPolygonMode                             polygonMode
-      cull_modes[u32(state.cullmode.Value())],  // VkCullModeFlags        cullMode
+      cull_modes[static_cast<u32>(state.cullmode.Value())],  // VkCullModeFlags        cullMode
       VK_FRONT_FACE_CLOCKWISE,                  // VkFrontFace            frontFace
       VK_FALSE,  // VkBool32                                              depthBiasEnable
       0.0f,      // float                                                 depthBiasConstantFactor
@@ -85,7 +83,7 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
 {
   // Less/greater are swapped due to inverted depth.
   VkCompareOp compare_op;
-  bool inverted_depth = !g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
+  const bool inverted_depth = !g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
   switch (state.func)
   {
   case CompareMode::Never:
@@ -139,7 +137,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 {
   VkPipelineColorBlendAttachmentState vk_state = {};
 
-  bool use_dual_source = state.usedualsrc;
+  const bool use_dual_source = state.usedualsrc;
 
   vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
   vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
@@ -206,7 +204,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 static VkPipelineColorBlendStateCreateInfo
 GetVulkanColorBlendState(const BlendingState& state,
                          const VkPipelineColorBlendAttachmentState* attachments,
-                         uint32_t num_attachments)
+                         const uint32_t num_attachments)
 {
   static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
       {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
@@ -214,7 +212,7 @@ GetVulkanColorBlendState(const BlendingState& state,
        VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
        VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
 
-  VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logicopenable);
+  VkBool32 vk_logic_op_enable = state.logicopenable;
   if (vk_logic_op_enable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     // At the time of writing, Adreno and Mali drivers didn't support logic ops.
@@ -223,10 +221,10 @@ GetVulkanColorBlendState(const BlendingState& state,
     vk_logic_op_enable = VK_FALSE;
   }
 
-  VkLogicOp vk_logic_op =
-      vk_logic_op_enable ? vk_logic_ops[u32(state.logicmode.Value())] : VK_LOGIC_OP_CLEAR;
+  const VkLogicOp vk_logic_op =
+      vk_logic_op_enable ? vk_logic_ops[static_cast<u32>(state.logicmode.Value())] : VK_LOGIC_OP_CLEAR;
 
-  VkPipelineColorBlendStateCreateInfo vk_state = {
+  const VkPipelineColorBlendStateCreateInfo vk_state = {
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,                  // const void*                                   pNext
       0,                        // VkPipelineColorBlendStateCreateFlags          flags
@@ -276,7 +274,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   }
 
   // Declare descriptors for empty vertex buffers/attributes
-  static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
+  static constexpr VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,  // const void*                                pNext
       0,        // VkPipelineVertexInputStateCreateFlags       flags
@@ -369,9 +367,9 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
                                static_cast<uint32_t>(blend_attachment_states.size()));
 
   // This viewport isn't used, but needs to be specified anyway.
-  static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-  static const VkRect2D scissor = {{0, 0}, {1, 1}};
-  static const VkPipelineViewportStateCreateInfo viewport_state = {
+  static constexpr VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+  static constexpr VkRect2D scissor = {{0, 0}, {1, 1}};
+  static constexpr VkPipelineViewportStateCreateInfo viewport_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
       nullptr,
       0,          // VkPipelineViewportStateCreateFlags    flags;
@@ -382,11 +380,11 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   };
 
   // Set viewport and scissor dynamic state so we can change it elsewhere.
-  static const std::array<VkDynamicState, 2> dynamic_states{
+  static constexpr std::array dynamic_states{
       VK_DYNAMIC_STATE_VIEWPORT,
       VK_DYNAMIC_STATE_SCISSOR,
   };
-  static const VkPipelineDynamicStateCreateInfo dynamic_state = {
+  static constexpr VkPipelineDynamicStateCreateInfo dynamic_state = {
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
       0,                                        // VkPipelineDynamicStateCreateFlags    flags
       static_cast<u32>(dynamic_states.size()),  // uint32_t dynamicStateCount

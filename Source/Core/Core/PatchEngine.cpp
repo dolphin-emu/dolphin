@@ -55,7 +55,7 @@ const char* PatchTypeAsString(PatchType type)
 
 std::optional<PatchEntry> DeserializeLine(std::string line)
 {
-  std::string::size_type loc = line.find('=');
+  const std::string::size_type loc = line.find('=');
   if (loc != std::string::npos)
     line[loc] = ':';
 
@@ -77,7 +77,7 @@ std::optional<PatchEntry> DeserializeLine(std::string line)
     entry.conditional = true;
   }
 
-  const auto iter = std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
+  const auto iter = std::ranges::find(s_patch_type_strings, items[1]);
   if (iter == s_patch_type_strings.end())
     return std::nullopt;
   entry.type = static_cast<PatchType>(std::distance(s_patch_type_strings.begin(), iter));
@@ -90,13 +90,10 @@ std::string SerializeLine(const PatchEntry& entry)
   if (entry.conditional)
   {
     return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
+                       PatchTypeAsString(entry.type), entry.value, entry.comparand);
   }
-  else
-  {
-    return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value);
-  }
+  return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
+                     PatchTypeAsString(entry.type), entry.value);
 }
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
@@ -142,8 +139,8 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
 
     if (ini == &globalIni)
     {
-      for (Patch& patch : *patches)
-        patch.default_enabled = patch.enabled;
+      for (auto& [_name, _entries, enabled, default_enabled, _user_defined] : *patches)
+        default_enabled = enabled;
     }
   }
 }
@@ -154,17 +151,17 @@ void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patc
   std::vector<std::string> lines_enabled;
   std::vector<std::string> lines_disabled;
 
-  for (const auto& patch : patches)
+  for (const auto& [name, entries, enabled, default_enabled, user_defined] : patches)
   {
-    if (patch.enabled != patch.default_enabled)
-      (patch.enabled ? lines_enabled : lines_disabled).emplace_back('$' + patch.name);
+    if (enabled != default_enabled)
+      (enabled ? lines_enabled : lines_disabled).emplace_back('$' + name);
 
-    if (!patch.user_defined)
+    if (!user_defined)
       continue;
 
-    lines.emplace_back('$' + patch.name);
+    lines.emplace_back('$' + name);
 
-    for (const PatchEntry& entry : patch.entries)
+    for (const PatchEntry& entry : entries)
       lines.emplace_back(SerializeLine(entry));
   }
 
@@ -177,8 +174,8 @@ void LoadPatches()
 {
   const auto& sconfig = SConfig::GetInstance();
   Common::IniFile merged = sconfig.LoadGameIni();
-  Common::IniFile globalIni = sconfig.LoadDefaultGameIni();
-  Common::IniFile localIni = sconfig.LoadLocalGameIni();
+  const Common::IniFile globalIni = sconfig.LoadDefaultGameIni();
+  const Common::IniFile localIni = sconfig.LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 
@@ -190,29 +187,29 @@ void LoadPatches()
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // Check if I'm syncing Codes
-  if (Config::Get(Config::SESSION_CODE_SYNC_OVERRIDE))
+  if (Get(Config::SESSION_CODE_SYNC_OVERRIDE))
   {
     Gecko::SetSyncedCodesAsActive();
     ActionReplay::SetSyncedCodesAsActive();
   }
   else
   {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
     ActionReplay::LoadAndApplyCodes(globalIni, localIni);
   }
 }
 
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
-  for (const Patch& patch : patches)
+  for (const auto& [_name, entries, enabled, _default_enabled, _user_defined] : patches)
   {
-    if (patch.enabled)
+    if (enabled)
     {
-      for (const PatchEntry& entry : patch.entries)
+      for (const PatchEntry& entry : entries)
       {
-        u32 addr = entry.address;
-        u32 value = entry.value;
-        u32 comparand = entry.comparand;
+        const u32 addr = entry.address;
+        const u32 value = entry.value;
+        const u32 comparand = entry.comparand;
         switch (entry.type)
         {
         case PatchType::Patch8Bit:
@@ -243,13 +240,13 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
 }
 
 static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
-                               std::span<const std::size_t> memory_patch_indices)
+                               const std::span<const std::size_t> memory_patch_indices)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 
   std::lock_guard lock(s_on_frame_memory_mutex);
-  for (std::size_t index : memory_patch_indices)
+  for (const std::size_t index : memory_patch_indices)
   {
     guard.GetSystem().GetPowerPC().GetDebugInterface().ApplyExistingPatch(guard, index);
   }
@@ -260,12 +257,16 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackValid(const Core::CPUThreadGuard& guard)
 {
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = guard.GetSystem().GetPPCState();
 
-  DEBUG_ASSERT(ppc_state.msr.DR && ppc_state.msr.IR);
+  DEBUG_ASSERT(msr.DR && msr.IR);
 
   // Check the stack pointer
-  const u32 SP = ppc_state.gpr[1];
+  const u32 SP = gpr[1];
   if (!PowerPC::MMU::HostIsRAMAddress(guard, SP))
     return false;
 
@@ -283,13 +284,13 @@ static bool IsStackValid(const Core::CPUThreadGuard& guard)
          0 != PowerPC::MMU::HostRead_Instruction(guard, address);
 }
 
-void AddMemoryPatch(std::size_t index)
+void AddMemoryPatch(const std::size_t index)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   s_on_frame_memory.push_back(index);
 }
 
-void RemoveMemoryPatch(std::size_t index)
+void RemoveMemoryPatch(const std::size_t index)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   std::erase(s_on_frame_memory, index);
@@ -297,21 +298,25 @@ void RemoveMemoryPatch(std::size_t index)
 
 bool ApplyFramePatches(Core::System& system)
 {
-  const auto& ppc_state = system.GetPPCState();
+  const auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(system);
+  const Core::CPUThreadGuard guard(system);
 
   // Because we're using the VI Interrupt to time this instead of patching the game with a
   // callback hook we can end up catching the game in an exception vector.
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackValid(guard))
+  if (!msr.DR || !msr.IR || !IsStackValid(guard))
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
                   "MSR = {:#010x}",
-                  ppc_state.pc, ppc_state.msr.Hex);
+                  pc, msr.Hex);
     return false;
   }
 

@@ -42,10 +42,10 @@ signals:
 
 private:
   void OnEmulationStateChanged(Core::State state);
-  void OnDebugModeToggled(bool enabled);
+  void OnDebugModeToggled(bool enabled) const;
 
   void MakeActions();
-  void UpdateIcons();
+  void UpdateIcons() const;
   void UpdatePausePlayButtonState(bool playing_state);
 
   QAction* m_open_action;

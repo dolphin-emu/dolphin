@@ -12,12 +12,12 @@ namespace DX12
 DescriptorAllocator::DescriptorAllocator() = default;
 DescriptorAllocator::~DescriptorAllocator() = default;
 
-bool DescriptorAllocator::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type,
-                                 u32 num_descriptors)
+bool DescriptorAllocator::Create(ID3D12Device* device, const D3D12_DESCRIPTOR_HEAP_TYPE type,
+                                 const u32 num_descriptors)
 {
   const D3D12_DESCRIPTOR_HEAP_DESC desc = {type, static_cast<UINT>(num_descriptors),
                                            D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE};
-  HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
+  const HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating descriptor heap for linear allocator failed: {}",
              DX12HRWrap(hr));
   if (FAILED(hr))
@@ -30,7 +30,7 @@ bool DescriptorAllocator::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYP
   return true;
 }
 
-bool DescriptorAllocator::Allocate(u32 num_handles, DescriptorHandle* out_base_handle)
+bool DescriptorAllocator::Allocate(const u32 num_handles, DescriptorHandle* out_base_handle)
 {
   if ((m_current_offset + num_handles) > m_num_descriptors)
     return false;
@@ -77,7 +77,7 @@ bool SamplerAllocator::Create(ID3D12Device* device)
 bool SamplerAllocator::GetGroupHandle(const SamplerStateSet& sss,
                                       D3D12_GPU_DESCRIPTOR_HANDLE* handle)
 {
-  auto it = m_sampler_map.find(sss);
+  const auto it = m_sampler_map.find(sss);
   if (it != m_sampler_map.end())
   {
     *handle = it->second;

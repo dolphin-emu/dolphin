@@ -5,12 +5,9 @@
 
 #include <array>
 #include <cstddef>
-#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
-#include <string>
-#include <unordered_map>
 #include <utility>
 
 #include "Common/CommonTypes.h"
@@ -25,7 +22,6 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/UberShaderVertex.h"
@@ -60,7 +56,7 @@ public:
   void Reload();
 
   // Retrieves all pending shaders/pipelines from the async compiler.
-  void RetrieveAsyncShaders();
+  void RetrieveAsyncShaders() const;
 
   // Accesses ShaderGen shader caches
   const AbstractPipeline* GetPipelineForUid(const GXPipelineUid& uid);
@@ -104,7 +100,7 @@ public:
   }
 
   // Palette texture conversion pipelines
-  const AbstractPipeline* GetPaletteConversionPipeline(TLUTFormat format);
+  const AbstractPipeline* GetPaletteConversionPipeline(TLUTFormat format) const;
 
   // Texture reinterpret pipelines
   const AbstractPipeline* GetTextureReinterpretPipeline(TextureFormat from_format,
@@ -117,7 +113,7 @@ public:
 private:
   static constexpr size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
 
-  void WaitForAsyncCompiler();
+  void WaitForAsyncCompiler() const;
   void LoadCaches();
   void ClearCaches();
   void LoadPipelineUIDCache();
@@ -148,7 +144,7 @@ private:
   bool UseGeometryShaderForEFBCopies() const;
 
   // GX pipeline compiler methods
-  AbstractPipelineConfig
+  static AbstractPipelineConfig
   GetGXPipelineConfig(const NativeVertexFormat* vertex_format, const AbstractShader* vertex_shader,
                       const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
                       const RasterizationState& rasterization_state, const DepthState& depth_state,
@@ -174,7 +170,7 @@ private:
   template <ShaderStage stage, typename K, typename T>
   void LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid);
   template <typename T>
-  void ClearShaderCache(T& cache);
+  static void ClearShaderCache(T& cache);
   template <typename KeyType, typename DiskKeyType, typename T>
   void LoadPipelineCache(T& cache, Common::LinearDiskCache<DiskKeyType, u8>& disk_cache,
                          APIType api_type, const char* type, bool include_gameid);

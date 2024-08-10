@@ -12,17 +12,13 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
-#include <QRadioButton>
 #include <QSpacerItem>
 #include <QTableWidget>
-#include <QTableWidgetItem>
 #include <QVBoxLayout>
 
 #include "Common/Version.h"
 
 #include "Core/Config/NetplaySettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
@@ -75,11 +71,11 @@ void NetPlayBrowser::CreateWidgets()
 
   m_region_combo->addItem(tr("Any Region"));
 
-  for (const auto& region : NetPlayIndex::GetRegions())
+  for (const auto& [fst, snd] : NetPlayIndex::GetRegions())
   {
     m_region_combo->addItem(
-        tr("%1 (%2)").arg(tr(region.second.c_str())).arg(QString::fromStdString(region.first)),
-        QString::fromStdString(region.first));
+        tr("%1 (%2)").arg(tr(snd.c_str())).arg(QString::fromStdString(fst)),
+        QString::fromStdString(fst));
   }
 
   m_region_combo->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
@@ -176,7 +172,7 @@ void NetPlayBrowser::Refresh()
   if (m_check_hide_ingame->isChecked())
     filters["in_game"] = "0";
 
-  std::unique_lock<std::mutex> lock(m_refresh_filters_mutex);
+  std::unique_lock lock(m_refresh_filters_mutex);
   m_refresh_filters = std::move(filters);
   m_refresh_event.Set();
 }
@@ -187,7 +183,7 @@ void NetPlayBrowser::RefreshLoop()
   {
     m_refresh_event.Wait();
 
-    std::unique_lock<std::mutex> lock(m_refresh_filters_mutex);
+    std::unique_lock lock(m_refresh_filters_mutex);
     if (m_refresh_filters)
     {
       auto filters = std::move(*m_refresh_filters);
@@ -214,7 +210,7 @@ void NetPlayBrowser::RefreshLoop()
   }
 }
 
-void NetPlayBrowser::UpdateList()
+void NetPlayBrowser::UpdateList() const
 {
   const int session_count = static_cast<int>(m_sessions.size());
 
@@ -237,17 +233,18 @@ void NetPlayBrowser::UpdateList()
 
   for (int i = 0; i < session_count; i++)
   {
-    const auto& entry = m_sessions[i];
+    const auto& [entry_name, entry_region, _method, _server_id, entry_game_id, entry_version,
+      entry_player_count, _port, has_password, entry_in_game] = m_sessions[i];
 
-    auto* region = new QTableWidgetItem(QString::fromStdString(entry.region));
-    auto* name = new QTableWidgetItem(QString::fromStdString(entry.name));
-    auto* password = new QTableWidgetItem(entry.has_password ? tr("Yes") : tr("No"));
-    auto* in_game = new QTableWidgetItem(entry.in_game ? tr("Yes") : tr("No"));
-    auto* game_id = new QTableWidgetItem(QString::fromStdString(entry.game_id));
-    auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry.player_count));
-    auto* version = new QTableWidgetItem(QString::fromStdString(entry.version));
+    auto* region = new QTableWidgetItem(QString::fromStdString(entry_region));
+    auto* name = new QTableWidgetItem(QString::fromStdString(entry_name));
+    auto* password = new QTableWidgetItem(has_password ? tr("Yes") : tr("No"));
+    auto* in_game = new QTableWidgetItem(entry_in_game ? tr("Yes") : tr("No"));
+    auto* game_id = new QTableWidgetItem(QString::fromStdString(entry_game_id));
+    auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry_player_count));
+    auto* version = new QTableWidgetItem(QString::fromStdString(entry_version));
 
-    const bool enabled = Common::GetScmDescStr() == entry.version;
+    const bool enabled = Common::GetScmDescStr() == entry_version;
 
     for (const auto& item : {region, name, password, in_game, game_id, player_count, version})
       item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
@@ -265,13 +262,13 @@ void NetPlayBrowser::UpdateList()
       (session_count == 1 ? tr("%1 session found") : tr("%1 sessions found")).arg(session_count));
 }
 
-void NetPlayBrowser::OnSelectionChanged()
+void NetPlayBrowser::OnSelectionChanged() const
 {
   m_button_box->button(QDialogButtonBox::Ok)
       ->setEnabled(!m_table_widget->selectedItems().isEmpty());
 }
 
-void NetPlayBrowser::OnUpdateStatusRequested(const QString& status)
+void NetPlayBrowser::OnUpdateStatusRequested(const QString& status) const
 {
   m_status_label->setText(status);
 }
@@ -289,7 +286,7 @@ void NetPlayBrowser::accept()
 
   const int index = m_table_widget->selectedItems()[0]->row();
 
-  NetPlaySession& session = m_sessions[index];
+  const NetPlaySession& session = m_sessions[index];
 
   std::string server_id = session.server_id;
 
@@ -304,12 +301,12 @@ void NetPlayBrowser::accept()
     dialog.setTextEchoMode(QLineEdit::Password);
 
     SetQWidgetWindowDecorations(&dialog);
-    if (dialog.exec() != QDialog::Accepted)
+    if (dialog.exec() != Accepted)
       return;
 
     const std::string password = dialog.textValue().toStdString();
 
-    auto decrypted_id = session.DecryptID(password);
+    const auto decrypted_id = session.DecryptID(password);
 
     if (!decrypted_id)
     {
@@ -322,14 +319,14 @@ void NetPlayBrowser::accept()
 
   QDialog::accept();
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, session.method);
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, session.method);
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, session.port);
+  SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, session.port);
 
   if (session.method == "traversal")
-    Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, server_id);
+    SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, server_id);
   else
-    Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
+    SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
 
   emit Join();
 }
@@ -343,7 +340,7 @@ void NetPlayBrowser::SaveSettings() const
   settings.setValue(QStringLiteral("netplaybrowser/name"), m_edit_name->text());
   settings.setValue(QStringLiteral("netplaybrowser/game_id"), m_edit_game_id->text());
 
-  QString visibility(QStringLiteral("all"));
+  auto visibility(QStringLiteral("all"));
   if (m_radio_public->isChecked())
     visibility = QStringLiteral("public");
   else if (m_radio_private->isChecked())

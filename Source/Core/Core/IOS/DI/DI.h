@@ -114,17 +114,17 @@ private:
   struct ExecutingCommandInfo
   {
     ExecutingCommandInfo() {}
-    ExecutingCommandInfo(u32 request_address) : m_request_address(request_address) {}
+    ExecutingCommandInfo(const u32 request_address) : m_request_address(request_address) {}
     u32 m_request_address = 0;
     bool m_copy_diimmbuf = false;
   };
 
-  friend class ::CBoot;
-  friend void ::IOS::HLE::Init(Core::System&);
+  friend class CBoot;
+  friend void HLE::Init(Core::System&);
 
   void ProcessQueuedIOCtl();
   std::optional<DIResult> StartIOCtl(const IOCtlRequest& request);
-  std::optional<DIResult> WriteIfFits(const IOCtlRequest& request, u32 value);
+  std::optional<DIResult> WriteIfFits(const IOCtlRequest& request, u32 value) const;
   std::optional<DIResult> StartDMATransfer(u32 command_length, const IOCtlRequest& request);
   std::optional<DIResult> StartImmediateTransfer(const IOCtlRequest& request,
                                                  bool write_to_buf = true);

@@ -9,17 +9,12 @@
 
 #ifdef USE_DISCORD_PRESENCE
 
-#include <algorithm>
-#include <ctime>
-#include <set>
 #include <string>
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
 
 #include "Common/Hash.h"
-#include "Common/HttpRequest.h"
-#include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
@@ -35,7 +30,7 @@ static bool s_using_custom_client = false;
 namespace
 {
 Handler* event_handler = nullptr;
-const char* username = "";
+auto username = "";
 static int64_t s_start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
                                        std::chrono::system_clock::now().time_since_epoch())
                                        .count();
@@ -59,12 +54,12 @@ void HandleDiscordJoin(const char* join_secret)
   if (event_handler == nullptr)
     return;
 
-  if (Config::Get(Config::NETPLAY_NICKNAME) == Config::NETPLAY_NICKNAME.GetDefaultValue())
-    Config::SetCurrent(Config::NETPLAY_NICKNAME, username);
+  if (Get(Config::NETPLAY_NICKNAME) == Config::NETPLAY_NICKNAME.GetDefaultValue())
+    SetCurrent(Config::NETPLAY_NICKNAME, username);
 
   std::string secret(join_secret);
 
-  std::string type = secret.substr(0, secret.find('\n'));
+  const std::string type = secret.substr(0, secret.find('\n'));
   size_t offset = type.length() + 1;
 
   switch (static_cast<SecretType>(std::stol(type)))
@@ -76,22 +71,22 @@ void HandleDiscordJoin(const char* join_secret)
   case SecretType::IPAddress:
   {
     // SetBaseOrCurrent will save the ip address, which isn't what's wanted in this situation
-    Config::SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "direct");
+    SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "direct");
 
-    std::string host = secret.substr(offset, secret.find_last_of(':') - offset);
-    Config::SetCurrent(Config::NETPLAY_ADDRESS, host);
+    const std::string host = secret.substr(offset, secret.find_last_of(':') - offset);
+    SetCurrent(Config::NETPLAY_ADDRESS, host);
 
     offset += host.length();
     if (secret[offset] == ':')
-      Config::SetCurrent(Config::NETPLAY_CONNECT_PORT, std::stoul(secret.substr(offset + 1)));
+      SetCurrent(Config::NETPLAY_CONNECT_PORT, std::stoul(secret.substr(offset + 1)));
   }
   break;
 
   case SecretType::RoomID:
   {
-    Config::SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "traversal");
+    SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "traversal");
 
-    Config::SetCurrent(Config::NETPLAY_HOST_CODE, secret.substr(offset));
+    SetCurrent(Config::NETPLAY_HOST_CODE, secret.substr(offset));
   }
   break;
   }
@@ -112,12 +107,12 @@ std::string ArtworkForGameId()
 }  // namespace
 #endif
 
-Discord::Handler::~Handler() = default;
+Handler::~Handler() = default;
 
 void Init()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   DiscordEventHandlers handlers = {};
@@ -133,7 +128,7 @@ void Init()
 void UpdateClientID(const std::string& new_client)
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   s_using_custom_client = new_client.empty() || new_client.compare(DEFAULT_CLIENT_ID) != 0;
@@ -149,7 +144,7 @@ void UpdateClientID(const std::string& new_client)
 void CallPendingCallbacks()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   Discord_RunCallbacks();
@@ -173,7 +168,7 @@ bool UpdateDiscordPresenceRaw(const std::string& details, const std::string& sta
                               const int party_max)
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return false;
 
   // only /dev/dolphin sets this, don't let homebrew change official client ID raw presence
@@ -203,7 +198,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
                            const std::string& current_game, bool reset_timer)
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   // reset the client ID if running homebrew has changed it
@@ -257,7 +252,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
     }
   }
 #ifdef USE_RETRO_ACHIEVEMENTS
-  else if (Config::Get(Config::RA_ENABLED) && Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+  else if (Get(Config::RA_ENABLED) && Get(Config::RA_DISCORD_PRESENCE_ENABLED))
   {
     state_string = AchievementManager::GetInstance().GetRichPresence().data();
     if (state_string.length() >= 128)
@@ -294,7 +289,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
 #endif
 }
 
-std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
+std::string CreateSecretFromIPAddress(const std::string& ip_address, const int port)
 {
   const std::string port_string = std::to_string(port);
   std::string secret;
@@ -308,7 +303,7 @@ std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
 void Shutdown()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   Discord_ClearPresence();
@@ -316,18 +311,29 @@ void Shutdown()
 #endif
 }
 
-void SetDiscordPresenceEnabled(bool enabled)
+void EnableDiscordPresence()
 {
-  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE) == enabled)
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
-  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
-    Discord::Shutdown();
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    Shutdown();
 
-  Config::SetBase(Config::MAIN_USE_DISCORD_PRESENCE, enabled);
+  SetBase(Config::MAIN_USE_DISCORD_PRESENCE, true);
 
-  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
-    Discord::Init();
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    Init();
+}
+
+void DisableDiscordPresence()
+{
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    Shutdown();
+
+  SetBase(Config::MAIN_USE_DISCORD_PRESENCE, false);
+
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    Init();
 }
 
 }  // namespace Discord

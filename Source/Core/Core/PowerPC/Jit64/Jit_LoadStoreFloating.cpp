@@ -56,9 +56,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   else
   {
     if (update)
-      ADD(32, addr, Imm32((s32)(s16)inst.SIMM_16));
+      ADD(32, addr, Imm32(static_cast<s16>(inst.SIMM_16)));
     else
-      offset = (s16)inst.SIMM_16;
+      offset = static_cast<s16>(inst.SIMM_16);
   }
 
   RCMode Rd_mode = !single ? RCMode::ReadWrite : RCMode::Write;
@@ -98,7 +98,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   int s = inst.RS;
   int a = inst.RA;
   int b = inst.RB;
-  s32 imm = (s16)inst.SIMM_16;
+  s32 imm = static_cast<s16>(inst.SIMM_16);
   int accessSize = single ? 32 : 64;
 
   FALLBACK_IF(update && jo.memcheck && indexed && a == b);

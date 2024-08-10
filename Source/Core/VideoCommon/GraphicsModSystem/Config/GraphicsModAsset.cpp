@@ -20,7 +20,7 @@ void GraphicsModAssetConfig::SerializeToConfig(picojson::object& json_obj) const
 
 bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
 {
-  auto name_iter = obj.find("name");
+  const auto name_iter = obj.find("name");
   if (name_iter == obj.end())
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, specified asset has no name");
@@ -34,7 +34,7 @@ bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
   }
   m_asset_id = name_iter->second.to_str();
 
-  auto data_iter = obj.find("data");
+  const auto data_iter = obj.find("data");
   if (data_iter == obj.end())
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, specified asset '{}' has no data",

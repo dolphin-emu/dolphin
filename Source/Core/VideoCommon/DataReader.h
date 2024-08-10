@@ -24,7 +24,7 @@ public:
 
   size_t size() const { return end - buffer; }
   template <typename T, bool swapped = true>
-  DOLPHIN_FORCE_INLINE T Peek(int offset = 0) const
+  DOLPHIN_FORCE_INLINE T Peek(const int offset = 0) const
   {
     T data;
     std::memcpy(&data, &buffer[offset], sizeof(T));
@@ -54,7 +54,7 @@ public:
   }
 
   template <typename T = u8>
-  void Skip(size_t data = 1)
+  void Skip(const size_t data = 1)
   {
     buffer += sizeof(T) * data;
   }

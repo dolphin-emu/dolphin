@@ -13,7 +13,7 @@ ConstantPool::ConstantPool() = default;
 
 ConstantPool::~ConstantPool() = default;
 
-void ConstantPool::Init(void* memory, size_t size)
+void ConstantPool::Init(void* memory, const size_t size)
 {
   m_region = memory;
   m_region_size = size;
@@ -36,8 +36,8 @@ void ConstantPool::Shutdown()
   m_const_info.clear();
 }
 
-const void* ConstantPool::GetConstant(const void* value, size_t element_size, size_t num_elements,
-                                      size_t index)
+const void* ConstantPool::GetConstant(const void* value, const size_t element_size, const size_t num_elements,
+                                      const size_t index)
 {
   const size_t value_size = element_size * num_elements;
   auto iter = m_const_info.find(value);
@@ -54,8 +54,8 @@ const void* ConstantPool::GetConstant(const void* value, size_t element_size, si
     iter = m_const_info.emplace(std::make_pair(value, ConstantInfo{ptr, value_size})).first;
   }
 
-  const ConstantInfo& info = iter->second;
-  ASSERT_MSG(DYNA_REC, info.m_size == value_size, "Constant has incorrect size in constant pool.");
-  u8* location = static_cast<u8*>(info.m_location);
+  const auto& [m_location, m_size] = iter->second;
+  ASSERT_MSG(DYNA_REC, m_size == value_size, "Constant has incorrect size in constant pool.");
+  const u8* location = static_cast<u8*>(m_location);
   return location + element_size * index;
 }

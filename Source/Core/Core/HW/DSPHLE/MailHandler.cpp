@@ -11,7 +11,7 @@
 
 namespace DSP::HLE
 {
-CMailHandler::CMailHandler(DSP::DSPManager& dsp) : m_dsp(dsp)
+CMailHandler::CMailHandler(DSPManager& dsp) : m_dsp(dsp)
 {
 }
 
@@ -19,13 +19,13 @@ CMailHandler::~CMailHandler()
 {
 }
 
-void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
+void CMailHandler::PushMail(u32 mail, const bool interrupt, const int cycles_into_future)
 {
   if (interrupt)
   {
     if (m_pending_mails.empty())
     {
-      m_dsp.GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP, cycles_into_future);
+      m_dsp.GenerateDSPInterruptFromDSPEmu(INT_DSP, cycles_into_future);
     }
     else
     {
@@ -43,7 +43,7 @@ u16 CMailHandler::ReadDSPMailboxHigh()
   {
     m_last_mail = m_pending_mails.front().first;
   }
-  return u16(m_last_mail >> 0x10);
+  return static_cast<u16>(m_last_mail >> 0x10);
 }
 
 u16 CMailHandler::ReadDSPMailboxLow()
@@ -58,7 +58,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 
     if (generate_interrupt)
     {
-      m_dsp.GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+      m_dsp.GenerateDSPInterruptFromDSPEmu(INT_DSP);
     }
   }
   // Clear the top bit of the high mail word after the mail has been read.
@@ -66,7 +66,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
   // (The CPU reads the high word first, and then the low word; since this function returns the low
   // word, this means that the next read of the high word will have the top bit cleared.)
   m_last_mail &= ~0x8000'0000;
-  return u16(m_last_mail & 0xffff);
+  return static_cast<u16>(m_last_mail & 0xffff);
 }
 
 void CMailHandler::ClearPending()
@@ -79,7 +79,7 @@ bool CMailHandler::HasPending() const
   return !m_pending_mails.empty();
 }
 
-void CMailHandler::SetHalted(bool halt)
+void CMailHandler::SetHalted(const bool halt)
 {
   m_halted = halt;
 }

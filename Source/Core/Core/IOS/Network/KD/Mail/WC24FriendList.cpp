@@ -58,8 +58,9 @@ bool WC24FriendList::CheckFriendList() const
 
 bool WC24FriendList::DoesFriendExist(u64 friend_id) const
 {
-  return std::any_of(m_data.friend_codes.cbegin(), m_data.friend_codes.cend(),
-                     [&friend_id](const u64 v) { return v == friend_id; });
+  return std::ranges::any_of(m_data.friend_codes, [&friend_id](const u64 v) {
+    return v == friend_id;
+  });
 }
 
 std::vector<u64> WC24FriendList::GetUnconfirmedFriends() const
@@ -78,13 +79,13 @@ std::vector<u64> WC24FriendList::GetUnconfirmedFriends() const
   return friends;
 }
 
-u64 WC24FriendList::ConvertEmailToFriendCode(std::string_view email)
+u64 WC24FriendList::ConvertEmailToFriendCode(const std::string_view email)
 {
   u32 upper = 0x80;
   u32 lower{};
 
   u32 idx{};
-  for (char chr : email)
+  for (const char chr : email)
   {
     if (idx == 7)
     {

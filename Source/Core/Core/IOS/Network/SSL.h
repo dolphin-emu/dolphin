@@ -8,9 +8,7 @@
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
-#include <mbedtls/net_sockets.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/platform.h>
 #include <mbedtls/ssl.h>
 #include <mbedtls/x509_crt.h>
 #include <string>
@@ -89,7 +87,7 @@ public:
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
-  int GetSSLFreeID() const;
+  static int GetSSLFreeID();
 
   static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
 
@@ -97,7 +95,7 @@ private:
   bool m_cert_error_shown = false;
 };
 
-constexpr bool IsSSLIDValid(int id)
+constexpr bool IsSSLIDValid(const int id)
 {
   return (id >= 0 && id < NET_SSL_MAXINSTANCES && NetSSLDevice::_SSL[id].active);
 }

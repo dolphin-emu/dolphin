@@ -19,6 +19,6 @@ class VideoSoftware : public VideoBackendBase
 
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "Software Renderer";
+  static constexpr auto NAME = "Software Renderer";
 };
 }  // namespace SW

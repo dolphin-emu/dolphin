@@ -9,7 +9,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
 
-void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
+void RasterizationState::Generate(const BPMemory& bp, const PrimitiveType primitive_type)
 {
   cullmode = bp.genMode.cullmode;
   primitive = primitive_type;
@@ -26,12 +26,12 @@ void DepthState::Generate(const BPMemory& bp)
   func = bp.zmode.func.Value();
 }
 
-static bool IsDualSrc(SrcBlendFactor factor)
+static bool IsDualSrc(const SrcBlendFactor factor)
 {
   return factor == SrcBlendFactor::SrcAlpha || factor == SrcBlendFactor::InvSrcAlpha;
 }
 
-static bool IsDualSrc(DstBlendFactor factor)
+static bool IsDualSrc(const DstBlendFactor factor)
 {
   return factor == DstBlendFactor::SrcAlpha || factor == DstBlendFactor::InvSrcAlpha;
 }
@@ -49,7 +49,7 @@ bool BlendingState::RequiresDualSrc() const
 // ONE on blending. As the backends may emulate this framebuffer
 // configuration with an alpha channel, we just drop all references
 // to the destination alpha channel.
-static SrcBlendFactor RemoveDstAlphaUsage(SrcBlendFactor factor)
+static SrcBlendFactor RemoveDstAlphaUsage(const SrcBlendFactor factor)
 {
   switch (factor)
   {
@@ -62,7 +62,7 @@ static SrcBlendFactor RemoveDstAlphaUsage(SrcBlendFactor factor)
   }
 }
 
-static DstBlendFactor RemoveDstAlphaUsage(DstBlendFactor factor)
+static DstBlendFactor RemoveDstAlphaUsage(const DstBlendFactor factor)
 {
   switch (factor)
   {
@@ -79,7 +79,7 @@ static DstBlendFactor RemoveDstAlphaUsage(DstBlendFactor factor)
 // the alpha component, CLR and ALPHA are indentical. So just always
 // use ALPHA as this makes it easier for the backends to use the second
 // alpha value of dual source blending.
-static DstBlendFactor RemoveSrcColorUsage(DstBlendFactor factor)
+static DstBlendFactor RemoveSrcColorUsage(const DstBlendFactor factor)
 {
   switch (factor)
   {
@@ -94,7 +94,7 @@ static DstBlendFactor RemoveSrcColorUsage(DstBlendFactor factor)
 
 // Same as RemoveSrcColorUsage, but because of the overlapping enum,
 // this must be written as another function.
-static SrcBlendFactor RemoveDstColorUsage(SrcBlendFactor factor)
+static SrcBlendFactor RemoveDstColorUsage(const SrcBlendFactor factor)
 {
   switch (factor)
   {
@@ -231,19 +231,20 @@ void BlendingState::ApproximateLogicOpWithBlending()
 
   logicopenable = false;
   usedualsrc = false;
-  const LogicOpApproximation& approximation = approximations[static_cast<u32>(logicmode.Value())];
-  if (approximation.blendEnable)
+  const auto& [blendEnable, subtract_approximation, srcfactor_approximation,
+    dstfactor_approximation] = approximations[static_cast<u32>(logicmode.Value())];
+  if (blendEnable)
   {
     blendenable = true;
-    subtract = approximation.subtract;
-    srcfactor = approximation.srcfactor;
-    srcfactoralpha = approximation.srcfactor;
-    dstfactor = approximation.dstfactor;
-    dstfactoralpha = approximation.dstfactor;
+    subtract = subtract_approximation;
+    srcfactor = srcfactor_approximation;
+    srcfactoralpha = srcfactor_approximation;
+    dstfactor = dstfactor_approximation;
+    dstfactoralpha = dstfactor_approximation;
   }
 }
 
-bool BlendingState::LogicOpApproximationIsExact()
+bool BlendingState::LogicOpApproximationIsExact() const
 {
   switch (logicmode.Value())
   {
@@ -259,7 +260,7 @@ bool BlendingState::LogicOpApproximationIsExact()
   }
 }
 
-bool BlendingState::LogicOpApproximationWantsShaderHelp()
+bool BlendingState::LogicOpApproximationWantsShaderHelp() const
 {
   switch (logicmode.Value())
   {
@@ -274,11 +275,11 @@ bool BlendingState::LogicOpApproximationWantsShaderHelp()
   }
 }
 
-void SamplerState::Generate(const BPMemory& bp, u32 index)
+void SamplerState::Generate(const BPMemory& bp, const u32 index)
 {
-  auto tex = bp.tex.GetUnit(index);
-  const TexMode0& bp_tm0 = tex.texMode0;
-  const TexMode1& bp_tm1 = tex.texMode1;
+  const auto [texMode0, texMode1, _texImage0, _texImage1, _texImage2, _texImage3, _texTlut, _unknown] = bp.tex.GetUnit(index);
+  const TexMode0& bp_tm0 = texMode0;
+  const TexMode1& bp_tm1 = texMode1;
 
   // GX can configure the mip filter to none. However, D3D and Vulkan can't express this in their
   // sampler states. Therefore, we set the min/max LOD to zero if this option is used.
@@ -304,7 +305,7 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
 
   // Wrap modes
   // Hardware testing indicates that wrap_mode set to 3 behaves the same as clamp.
-  auto filter_invalid_wrap = [](WrapMode mode) {
+  auto filter_invalid_wrap = [](const WrapMode mode) {
     return (mode <= WrapMode::Mirror) ? mode : WrapMode::Clamp;
   };
   tm0.wrap_u = filter_invalid_wrap(bp_tm0.wrap_s);
@@ -324,7 +325,7 @@ RasterizationState GetInvalidRasterizationState()
   return state;
 }
 
-RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
+RasterizationState GetNoCullRasterizationState(const PrimitiveType primitive)
 {
   RasterizationState state = {};
   state.cullmode = CullMode::None;
@@ -332,7 +333,7 @@ RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
   return state;
 }
 
-RasterizationState GetCullBackFaceRasterizationState(PrimitiveType primitive)
+RasterizationState GetCullBackFaceRasterizationState(const PrimitiveType primitive)
 {
   RasterizationState state = {};
   state.cullmode = CullMode::Back;
@@ -444,7 +445,7 @@ SamplerState GetLinearSamplerState()
   return state;
 }
 
-FramebufferState GetColorFramebufferState(AbstractTextureFormat format)
+FramebufferState GetColorFramebufferState(const AbstractTextureFormat format)
 {
   FramebufferState state = {};
   state.color_texture_format = format;

@@ -13,7 +13,7 @@
 
 constexpr int PADDING = 1;
 
-StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
+StickWidget::StickWidget(QWidget* parent, const u16 max_x, const u16 max_y)
     : QWidget(parent), m_max_x(max_x), m_max_y(max_y)
 {
   setMouseTracking(false);
@@ -24,14 +24,14 @@ StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
   setMinimumSize(QSize(64, 64));
 }
 
-void StickWidget::SetX(u16 x)
+void StickWidget::SetX(const u16 x)
 {
   m_x = std::min(m_max_x, x);
 
   update();
 }
 
-void StickWidget::SetY(u16 y)
+void StickWidget::SetY(const u16 y)
 {
   m_y = std::min(m_max_y, y);
 
@@ -57,13 +57,13 @@ void StickWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING + diameter / 2, PADDING, PADDING + diameter / 2, PADDING + diameter);
 
   // convert from value space to widget space
-  u16 x = PADDING + ((m_x * diameter) / m_max_x);
-  u16 y = PADDING + (diameter - (m_y * diameter) / m_max_y);
+  const u16 x = PADDING + ((m_x * diameter) / m_max_x);
+  const u16 y = PADDING + (diameter - (m_y * diameter) / m_max_y);
 
   painter.drawLine(PADDING + diameter / 2, PADDING + diameter / 2, x, y);
 
   painter.setBrush(Qt::blue);
-  int neutral_radius = diameter / 30;
+  const int neutral_radius = diameter / 30;
   painter.drawEllipse(x - neutral_radius, y - neutral_radius, neutral_radius * 2,
                       neutral_radius * 2);
 }
@@ -80,10 +80,10 @@ void StickWidget::mouseMoveEvent(QMouseEvent* event)
     handleMouseEvent(event);
 }
 
-void StickWidget::handleMouseEvent(QMouseEvent* event)
+void StickWidget::handleMouseEvent(const QMouseEvent* event)
 {
-  u16 prev_x = m_x;
-  u16 prev_y = m_y;
+  const u16 prev_x = m_x;
+  const u16 prev_y = m_y;
 
   if (event->button() == Qt::RightButton)
   {
@@ -93,8 +93,8 @@ void StickWidget::handleMouseEvent(QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = (event->pos().x() * m_max_x) / width();
-    int new_y = m_max_y - (event->pos().y() * m_max_y) / height();
+    const int new_x = (event->pos().x() * m_max_x) / width();
+    const int new_y = m_max_y - (event->pos().y() * m_max_y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(m_max_x), new_x));
     m_y = std::max(0, std::min(static_cast<int>(m_max_y), new_y));

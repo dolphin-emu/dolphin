@@ -88,7 +88,7 @@ void VideoInterfaceManager::DoState(PointerWrap& p)
 }
 
 // Executed after Init, before game boot
-void VideoInterfaceManager::Preset(bool _bNTSC)
+void VideoInterfaceManager::Preset(const bool _bNTSC)
 {
   // NOTE: Make sure all registers are set to the correct initial state. The
   //	variables are not going to start zeroed if another game has been run
@@ -151,13 +151,13 @@ void VideoInterfaceManager::Preset(bool _bNTSC)
   m_filter_coef_tables = {};
   m_unknown_aa_register = 0;
 
-  DiscIO::Region region = SConfig::GetInstance().m_region;
+  const DiscIO::Region region = SConfig::GetInstance().m_region;
 
   // 54MHz, capable of progressive scan
-  m_clock = DiscIO::IsNTSC(region);
+  m_clock = IsNTSC(region);
 
   // Say component cable is plugged
-  m_dtv_status.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  m_dtv_status.component_plugged = Get(Config::SYSCONF_PROGRESSIVE_SCAN);
   m_dtv_status.ntsc_j = region == DiscIO::Region::NTSC_J;
 
   m_fb_width.Hex = 0;
@@ -175,7 +175,7 @@ void VideoInterfaceManager::Init()
   Preset(true);
 }
 
-void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   struct MappedVar
   {
@@ -183,7 +183,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     u16* ptr;
   };
 
-  std::array<MappedVar, 46> directly_mapped_vars{{
+  const std::array<MappedVar, 46> directly_mapped_vars{{
       {VI_VERTICAL_TIMING, &m_vertical_timing_register.Hex},
       {VI_HORIZONTAL_TIMING_0_HI, &m_h_timing_0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_h_timing_0.Lo},
@@ -233,10 +233,9 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }};
 
   // Declare all the boilerplate direct MMIOs.
-  for (auto& mapped_var : directly_mapped_vars)
+  for (const auto& [addr, ptr] : directly_mapped_vars)
   {
-    mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::DirectWrite<u16>(mapped_var.ptr));
+    mmio->Register(base | addr, MMIO::DirectRead<u16>(ptr), MMIO::DirectWrite<u16>(ptr));
   }
 
   std::array<MappedVar, 8> update_params_on_read_vars{{
@@ -254,7 +253,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (auto& mapped_var : update_params_on_read_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::ComplexWrite<u16>([mapped_var](Core::System& system, u32, u16 val) {
+                   MMIO::ComplexWrite<u16>([mapped_var](const Core::System& system, u32, const u16 val) {
                      *mapped_var.ptr = val;
                      system.GetVideoInterface().UpdateParameters();
                    }));
@@ -262,28 +261,28 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // XFB related MMIOs that require special handling on writes.
   mmio->Register(base | VI_FB_LEFT_TOP_HI, MMIO::DirectRead<u16>(&m_xfb_info_top.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_info_top.Hi = val;
                    if (vi.m_xfb_info_top.CLRPOFF)
                      vi.m_xfb_info_top.POFF = 0;
                  }));
   mmio->Register(base | VI_FB_LEFT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_xfb_info_bottom.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_info_bottom.Hi = val;
                    if (vi.m_xfb_info_bottom.CLRPOFF)
                      vi.m_xfb_info_bottom.POFF = 0;
                  }));
   mmio->Register(base | VI_FB_RIGHT_TOP_HI, MMIO::DirectRead<u16>(&m_xfb_3d_info_top.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_3d_info_top.Hi = val;
                    if (vi.m_xfb_3d_info_top.CLRPOFF)
                      vi.m_xfb_3d_info_top.POFF = 0;
                  }));
   mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_xfb_3d_info_bottom.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_3d_info_bottom.Hi = val;
                    if (vi.m_xfb_3d_info_bottom.CLRPOFF)
@@ -292,25 +291,25 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // MMIOs with unimplemented writes that trigger warnings.
   mmio->Register(
-      base | VI_VERTICAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-        auto& vi = system.GetVideoInterface();
+      base | VI_VERTICAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
+        const auto& vi = system.GetVideoInterface();
         return 1 + (vi.m_half_line_count) / 2;
       }),
-      MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+      MMIO::ComplexWrite<u16>([](Core::System& system, u32, const u16 val) {
         WARN_LOG_FMT(
             VIDEOINTERFACE,
             "Changing vertical beam position to {:#06x} - not documented or implemented yet", val);
       }));
   mmio->Register(
-      base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-        auto& vi = system.GetVideoInterface();
-        u16 value = static_cast<u16>(
+      base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
+        const auto& vi = system.GetVideoInterface();
+        const u16 value = static_cast<u16>(
             1 + vi.m_h_timing_0.HLW *
                     (system.GetCoreTiming().GetTicks() - vi.m_ticks_last_line_start) /
                     (vi.GetTicksPerHalfLine()));
         return std::clamp<u16>(value, 1, vi.m_h_timing_0.HLW * 2);
       }),
-      MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+      MMIO::ComplexWrite<u16>([](Core::System& system, u32, const u16 val) {
         WARN_LOG_FMT(
             VIDEOINTERFACE,
             "Changing horizontal beam position to {:#06x} - not documented or implemented yet",
@@ -320,27 +319,27 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // The following MMIOs are interrupts related and update interrupt status
   // on writes.
   mmio->Register(base | VI_PRERETRACE_HI, MMIO::DirectRead<u16>(&m_interrupt_register[0].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[0].Hi = val;
                    vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_POSTRETRACE_HI, MMIO::DirectRead<u16>(&m_interrupt_register[1].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[1].Hi = val;
                    vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_DISPLAY_INTERRUPT_2_HI,
                  MMIO::DirectRead<u16>(&m_interrupt_register[2].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[2].Hi = val;
                    vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_DISPLAY_INTERRUPT_3_HI,
                  MMIO::DirectRead<u16>(&m_interrupt_register[3].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[3].Hi = val;
                    vi.UpdateInterrupts();
@@ -348,21 +347,21 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Unknown anti-aliasing related MMIO register: puts a warning on log and
   // needs to shift/mask when reading/writing.
-  mmio->Register(base | VI_UNK_AA_REG_HI, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& vi = system.GetVideoInterface();
+  mmio->Register(base | VI_UNK_AA_REG_HI, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
+                   const auto& vi = system.GetVideoInterface();
                    return vi.m_unknown_aa_register >> 16;
                  }),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_unknown_aa_register =
-                       (vi.m_unknown_aa_register & 0x0000FFFF) | ((u32)val << 16);
+                       (vi.m_unknown_aa_register & 0x0000FFFF) | (static_cast<u32>(val) << 16);
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (hi)");
                  }));
-  mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& vi = system.GetVideoInterface();
+  mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
+                   const auto& vi = system.GetVideoInterface();
                    return vi.m_unknown_aa_register & 0xFFFF;
                  }),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_unknown_aa_register = (vi.m_unknown_aa_register & 0xFFFF0000) | val;
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (lo)");
@@ -371,10 +370,10 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Control register writes only updates some select bits, and additional
   // processing needs to be done if a reset is requested.
   mmio->Register(base | VI_CONTROL_REGISTER, MMIO::DirectRead<u16>(&m_display_control_register.Hex),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
 
-                   UVIDisplayControlRegister tmpConfig(val);
+                   const UVIDisplayControlRegister tmpConfig(val);
                    vi.m_display_control_register.ENB = tmpConfig.ENB;
                    vi.m_display_control_register.NIN = tmpConfig.NIN;
                    vi.m_display_control_register.DLR = tmpConfig.DLR;
@@ -409,7 +408,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void VideoInterfaceManager::UpdateInterrupts()
+void VideoInterfaceManager::UpdateInterrupts() const
 {
   if ((m_interrupt_register[0].IR_INT && m_interrupt_register[0].IR_MASK) ||
       (m_interrupt_register[1].IR_INT && m_interrupt_register[1].IR_MASK) ||
@@ -428,8 +427,7 @@ u32 VideoInterfaceManager::GetXFBAddressTop() const
 {
   if (m_xfb_info_top.POFF)
     return m_xfb_info_top.FBB << 5;
-  else
-    return m_xfb_info_top.FBB;
+  return m_xfb_info_top.FBB;
 }
 
 u32 VideoInterfaceManager::GetXFBAddressBottom() const
@@ -437,8 +435,7 @@ u32 VideoInterfaceManager::GetXFBAddressBottom() const
   // POFF for XFB bottom is connected to POFF for XFB top
   if (m_xfb_info_top.POFF)
     return m_xfb_info_bottom.FBB << 5;
-  else
-    return m_xfb_info_bottom.FBB;
+  return m_xfb_info_bottom.FBB;
 }
 
 u32 VideoInterfaceManager::GetHalfLinesPerEvenField() const
@@ -480,15 +477,15 @@ float VideoInterfaceManager::GetAspectRatio() const
   // multiply the result by 1.33333... (the ratio between 16:9 and 4:3)
 
   // 1. Get our active area in BT.601 samples (more or less pixels)
-  int active_lines = m_vertical_timing_register.ACV;
-  int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
+  const int active_lines = m_vertical_timing_register.ACV;
+  const int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
-  float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
-  float vertical_period = tick_length * GetTicksPerField();
-  float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
-  float vertical_active_area = active_lines * horizontal_period;
-  float horizontal_active_area = tick_length * GetTicksPerSample() * active_width_samples;
+  const float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
+  const float vertical_period = tick_length * GetTicksPerField();
+  const float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
+  const float vertical_active_area = active_lines * horizontal_period;
+  const float horizontal_active_area = tick_length * GetTicksPerSample() * active_width_samples;
 
   // We are approximating the horizontal/vertical flyback transformers that control the
   // position of the electron beam on the screen. Our flyback transformers create a
@@ -544,13 +541,13 @@ float VideoInterfaceManager::GetAspectRatio() const
   }
 
   // 5. Calculate the final ratio and scale to 4:3
-  float ratio = horizontal_active_ratio / vertical_active_ratio;
+  const float ratio = horizontal_active_ratio / vertical_active_ratio;
   const bool running_fifo_log = m_system.GetFifoPlayer().IsRunningWithFakeVideoInterfaceUpdates();
-  if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
-      !running_fifo_log)           // we don't know the correct ratio for fifos
-    return ratio * (4.0f / 3.0f);  // Scale to 4:3
-  else
-    return (4.0f / 3.0f);  // VI isn't initialized correctly, just return 4:3 instead
+  if (std::isnormal(ratio) &&     // Check we have a sane ratio without any infs/nans/zeros
+      !running_fifo_log)          // we don't know the correct ratio for fifos
+    return ratio * (4.0f / 3.0f); // Scale to 4:3
+  return (4.0f / 3.0f);
+  // VI isn't initialized correctly, just return 4:3 instead
 }
 
 // This function updates:
@@ -687,8 +684,8 @@ float VideoInterfaceManager::GetAspectRatio() const
 
 void VideoInterfaceManager::UpdateParameters()
 {
-  u32 equ_hl = 3 * m_vertical_timing_register.EQU;
-  u32 acv_hl = 2 * m_vertical_timing_register.ACV;
+  const u32 equ_hl = 3 * m_vertical_timing_register.EQU;
+  const u32 acv_hl = 2 * m_vertical_timing_register.ACV;
   m_odd_field_first_hl = equ_hl + m_vblank_timing_odd.PRB;
   m_odd_field_last_hl = m_odd_field_first_hl + acv_hl - 1;
 
@@ -731,7 +728,7 @@ u32 VideoInterfaceManager::GetTicksPerField() const
   return GetTicksPerEvenField();
 }
 
-void VideoInterfaceManager::LogField(FieldType field, u32 xfb_address) const
+void VideoInterfaceManager::LogField(FieldType field, const u32 xfb_address) const
 {
   static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
 
@@ -755,18 +752,18 @@ void VideoInterfaceManager::LogField(FieldType field, u32 xfb_address) const
                 GetTicksPerOddField());
 }
 
-void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
+void VideoInterfaceManager::OutputField(const FieldType field, const u64 ticks) const
 {
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
-  bool potentially_interlaced_xfb =
+  const bool potentially_interlaced_xfb =
       m_picture_configuration.WPL != 0 &&
       ((m_picture_configuration.STD / m_picture_configuration.WPL) == 2);
   // Are there an odd number of half-lines per field (definition of interlaced video)
-  bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
+  const bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
 
   u32 fbStride = m_picture_configuration.STD * 16;
-  u32 fbWidth = m_picture_configuration.WPL * 16;
+  const u32 fbWidth = m_picture_configuration.WPL * 16;
   u32 fbHeight = m_vertical_timing_register.ACV;
 
   u32 xfbAddr;
@@ -822,31 +819,31 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
     g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
-void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)
+void VideoInterfaceManager::BeginField(const FieldType field, const u64 ticks) const
 {
   // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
   // going to change the VI registers while a frame is scanning out.
-  if (Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
+  if (Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 }
 
-void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
+void VideoInterfaceManager::EndField(const FieldType field, const u64 ticks) const
 {
   // If the game does change VI registers while a frame is scanning out, we can defer output
   // until the end so the last register values are used. This still isn't accurate, but it does
   // produce more acceptable results in some problematic cases.
   // Currently, this is only known to be necessary to eliminate flickering in WWE Crush Hour.
-  if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
+  if (!Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
-  Core::OnFrameEnd(m_system);
+  OnFrameEnd(m_system);
 }
 
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scanned (progressive/interlace)
-void VideoInterfaceManager::Update(u64 ticks)
+void VideoInterfaceManager::Update(const u64 ticks)
 {
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
@@ -879,14 +876,14 @@ void VideoInterfaceManager::Update(u64 ticks)
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
-    Core::Callback_NewField(m_system);
+    Callback_NewField(m_system);
 
   // If an SI poll is scheduled to happen on this half-line, do it!
 
   if (m_half_line_of_next_si_poll == m_half_line_count)
   {
-    Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
-                          Config::Get(Config::MAIN_LOCK_CURSOR));
+    Core::UpdateInputGate(!Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
+                          Get(Config::MAIN_LOCK_CURSOR));
     auto& si = m_system.GetSerialInterface();
     si.UpdateDevices();
     m_half_line_of_next_si_poll += 2 * si.GetPollXLines();
@@ -913,7 +910,7 @@ void VideoInterfaceManager::Update(u64 ticks)
     m_half_line_count = 0;
   }
 
-  auto& core_timing = m_system.GetCoreTiming();
+  const auto& core_timing = m_system.GetCoreTiming();
   if (!(m_half_line_count & 1))
   {
     m_ticks_last_line_start = core_timing.GetTicks();
@@ -928,7 +925,7 @@ void VideoInterfaceManager::Update(u64 ticks)
 
   for (UVIInterruptRegister& reg : m_interrupt_register)
   {
-    u32 target_halfline = (reg.HCT > m_h_timing_0.HLW) ? 1 : 0;
+    const u32 target_halfline = (reg.HCT > m_h_timing_0.HLW) ? 1 : 0;
     if ((1 + (m_half_line_count) / 2 == reg.VCT) && ((m_half_line_count & 1) == target_halfline))
     {
       reg.IR_INT = 1;
@@ -939,10 +936,10 @@ void VideoInterfaceManager::Update(u64 ticks)
 }
 
 // Create a fake VI mode for a fifolog
-void VideoInterfaceManager::FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride,
+void VideoInterfaceManager::FakeVIUpdate(const u32 xfb_address, const u32 fb_width, u32 fb_stride,
                                          u32 fb_height)
 {
-  bool interlaced = fb_height > 480 / 2;
+  const bool interlaced = fb_height > 480 / 2;
   if (interlaced)
   {
     fb_height = fb_height / 2;
@@ -962,7 +959,7 @@ void VideoInterfaceManager::FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_s
 
   UpdateParameters();
 
-  u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
+  const u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
 
   if ((m_half_line_count - m_even_field_first_hl) % total_halflines <
       (m_half_line_count - m_odd_field_first_hl) % total_halflines)

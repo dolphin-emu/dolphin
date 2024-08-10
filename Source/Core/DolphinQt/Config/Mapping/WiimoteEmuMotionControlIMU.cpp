@@ -8,8 +8,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QString>
-#include <QVBoxLayout>
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -38,7 +36,7 @@ void WiimoteEmuMotionControlIMU::CreateMainLayout()
   warning_layout->addWidget(warning_label, 1);
   warning_layout->addWidget(warning_input_sources_button, 0, Qt::AlignRight);
   connect(warning_input_sources_button, &QPushButton::clicked, this, [this] {
-    ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+    auto window = new ControllerInterfaceWindow(this);
     window->setAttribute(Qt::WA_DeleteOnClose, true);
     window->setWindowModality(Qt::WindowModality::WindowModal);
     SetQWidgetWindowDecorations(window);

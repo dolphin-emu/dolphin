@@ -62,7 +62,7 @@ static void MultipleVec3Perspective(const Vec3& vec, const Projection::Raw& proj
   result.x = proj[0] * vec.x + proj[1] * vec.z;
   result.y = proj[2] * vec.y + proj[3] * vec.z;
   // result.z = (proj[4] * vec.z + proj[5]);
-  result.z = (proj[4] * vec.z + proj[5]) * (1.0f - (float)1e-7);
+  result.z = (proj[4] * vec.z + proj[5]) * (1.0f - static_cast<float>(1e-7));
   result.w = -vec.z;
 }
 
@@ -105,7 +105,7 @@ void TransformNormal(const InputVertexData* src, OutputVertexData* dst)
   dst->normal[0].Normalize();
 }
 
-static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
+static void TransformTexCoordRegular(const TexMtxInfo& texinfo, const int coordNum,
                                      const InputVertexData* srcVertex, OutputVertexData* dstVertex)
 {
   Vec3 src;
@@ -126,7 +126,7 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
   default:
   {
     ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
-    u32 texnum = static_cast<u32>(texinfo.sourcerow.Value()) - static_cast<u32>(SourceRow::Tex0);
+    const u32 texnum = static_cast<u32>(texinfo.sourcerow.Value()) - static_cast<u32>(SourceRow::Tex0);
     src.x = srcVertex->texCoords[texnum][0];
     src.y = srcVertex->texCoords[texnum][1];
     src.z = 1.0f;
@@ -197,14 +197,14 @@ struct LightPointer
   Vec3 dir;
 };
 
-static inline void AddScaledIntegerColor(const u8* src, float scale, Vec3& dst)
+static inline void AddScaledIntegerColor(const u8* src, const float scale, Vec3& dst)
 {
   dst.x += src[1] * scale;
   dst.y += src[2] * scale;
   dst.z += src[3] * scale;
 }
 
-static inline float SafeDivide(float n, float d)
+static inline float SafeDivide(const float n, const float d)
 {
   return (d == 0) ? (n > 0 ? 1 : 0) : n / d;
 }
@@ -229,8 +229,8 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   {
     ldir = ldir.Normalized();
     attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
-    Vec3 attLen = Vec3(1.0, attn, attn * attn);
-    Vec3 cosAttn = light->cosatt;
+    const auto attLen = Vec3(1.0, attn, attn * attn);
+    const Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
     if (chan.diffusefunc != DiffuseFunc::None)
       distAttn = distAttn.Normalized();
@@ -240,13 +240,13 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   }
   case AttenuationFunc::Spot:
   {
-    float dist2 = ldir.Length2();
-    float dist = sqrtf(dist2);
+    const float dist2 = ldir.Length2();
+    const float dist = sqrtf(dist2);
     ldir = ldir / dist;
     attn = std::max(0.0f, ldir * light->dir);
 
-    float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
-    float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
+    const float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
+    const float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
     attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
     break;
   }
@@ -257,13 +257,13 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   return attn;
 }
 
-static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
+static void LightColor(const Vec3& pos, const Vec3& normal, const u8 lightNum, const LitChannel& chan,
                        Vec3& lightCol)
 {
-  const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
+  auto light = (const LightPointer*)&xfmem.lights[lightNum];
 
   Vec3 ldir = light->pos - pos;
-  float attn = CalculateLightAttn(light, &ldir, normal, chan);
+  const float attn = CalculateLightAttn(light, &ldir, normal, chan);
 
   float difAttn = ldir * normal;
   switch (chan.diffusefunc)
@@ -283,13 +283,13 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   }
 }
 
-static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
+static void LightAlpha(const Vec3& pos, const Vec3& normal, const u8 lightNum, const LitChannel& chan,
                        float& lightCol)
 {
-  const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
+  auto light = (const LightPointer*)&xfmem.lights[lightNum];
 
   Vec3 ldir = light->pos - pos;
-  float attn = CalculateLightAttn(light, &ldir, normal, chan);
+  const float attn = CalculateLightAttn(light, &ldir, normal, chan);
 
   float difAttn = ldir * normal;
   switch (chan.diffusefunc)
@@ -341,16 +341,16 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
         lightCol.z = ambColor[3];
       }
 
-      u8 mask = colorchan.GetFullLightMask();
+      const u8 mask = colorchan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
       {
         if (mask & (1 << i))
           LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
       }
 
-      int light_x = std::clamp(static_cast<int>(lightCol.x), 0, 255);
-      int light_y = std::clamp(static_cast<int>(lightCol.y), 0, 255);
-      int light_z = std::clamp(static_cast<int>(lightCol.z), 0, 255);
+      const int light_x = std::clamp(static_cast<int>(lightCol.x), 0, 255);
+      const int light_y = std::clamp(static_cast<int>(lightCol.y), 0, 255);
+      const int light_z = std::clamp(static_cast<int>(lightCol.z), 0, 255);
       chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
       chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
       chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
@@ -375,14 +375,14 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       else
         lightCol = static_cast<float>(xfmem.ambColor[chan] & 0xff);
 
-      u8 mask = alphachan.GetFullLightMask();
+      const u8 mask = alphachan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
       {
         if (mask & (1 << i))
           LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
       }
 
-      int light_a = std::clamp(static_cast<int>(lightCol), 0, 255);
+      const int light_a = std::clamp(static_cast<int>(lightCol), 0, 255);
       chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
     }
     else
@@ -409,11 +409,11 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       break;
     case TexGenType::EmbossMap:
     {
-      const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
+      auto light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
       Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
-      float d1 = ldir * dst->normal[1];
-      float d2 = ldir * dst->normal[2];
+      const float d1 = ldir * dst->normal[1];
+      const float d2 = ldir * dst->normal[2];
 
       dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
       dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
@@ -422,14 +422,14 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
     break;
     case TexGenType::Color0:
       ASSERT(texinfo.inputform == TexInputForm::AB11);
-      dst->texCoords[coordNum].x = (float)dst->color[0][0] / 255.0f;
-      dst->texCoords[coordNum].y = (float)dst->color[0][1] / 255.0f;
+      dst->texCoords[coordNum].x = static_cast<float>(dst->color[0][0]) / 255.0f;
+      dst->texCoords[coordNum].y = static_cast<float>(dst->color[0][1]) / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     case TexGenType::Color1:
       ASSERT(texinfo.inputform == TexInputForm::AB11);
-      dst->texCoords[coordNum].x = (float)dst->color[1][0] / 255.0f;
-      dst->texCoords[coordNum].y = (float)dst->color[1][1] / 255.0f;
+      dst->texCoords[coordNum].x = static_cast<float>(dst->color[1][0]) / 255.0f;
+      dst->texCoords[coordNum].y = static_cast<float>(dst->color[1][1]) / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     default:

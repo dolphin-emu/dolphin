@@ -3,13 +3,11 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "AudioCommon/Enums.h"
-#include "AudioCommon/SoundStream.h"
 
 class Mixer;
 
@@ -20,21 +18,21 @@ class System;
 
 namespace AudioCommon
 {
-void InitSoundStream(Core::System& system);
-void PostInitSoundStream(Core::System& system);
-void ShutdownSoundStream(Core::System& system);
+void InitSoundStream(const Core::System& system);
+void PostInitSoundStream(const Core::System& system);
+void ShutdownSoundStream(const Core::System& system);
 std::string GetDefaultSoundBackend();
 std::vector<std::string> GetSoundBackends();
 DPL2Quality GetDefaultDPL2Quality();
 bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);
-void UpdateSoundStream(Core::System& system);
-void SetSoundStreamRunning(Core::System& system, bool running);
-void SendAIBuffer(Core::System& system, const short* samples, unsigned int num_samples);
-void StartAudioDump(Core::System& system);
-void StopAudioDump(Core::System& system);
-void IncreaseVolume(Core::System& system, unsigned short offset);
-void DecreaseVolume(Core::System& system, unsigned short offset);
-void ToggleMuteVolume(Core::System& system);
+void UpdateSoundStream(const Core::System& system);
+void SetSoundStreamRunning(const Core::System& system, bool running);
+void SendAIBuffer(const Core::System& system, const short* samples, unsigned int num_samples);
+void StartAudioDump(const Core::System& system);
+void StopAudioDump(const Core::System& system);
+void IncreaseVolume(const Core::System& system, unsigned short offset);
+void DecreaseVolume(const Core::System& system, unsigned short offset);
+void ToggleMuteVolume(const Core::System& system);
 }  // namespace AudioCommon

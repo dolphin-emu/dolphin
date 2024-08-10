@@ -10,7 +10,6 @@
 #include <set>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -24,7 +23,7 @@ namespace Common
 {
 struct SCall
 {
-  SCall(u32 a, u32 b) : function(a), call_address(b) {}
+  SCall(const u32 a, const u32 b) : function(a), call_address(b) {}
   u32 function;
   u32 call_address;
 };
@@ -88,7 +87,7 @@ public:
   XFuncMap& AccessSymbols() { return m_functions; }
   bool IsEmpty() const;
   void Clear(const char* prefix = "");
-  void List();
+  void List() const;
   void Index();
 
 protected:

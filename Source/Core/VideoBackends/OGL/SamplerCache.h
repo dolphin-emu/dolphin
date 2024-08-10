@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/RenderState.h"
 
@@ -29,8 +28,8 @@ public:
   void InvalidateBinding(u32 stage);
 
   void Clear();
-  void BindNearestSampler(int stage);
-  void BindLinearSampler(int stage);
+  void BindNearestSampler(int stage) const;
+  void BindLinearSampler(int stage) const;
 
 private:
   static void SetParameters(GLuint sampler_id, const SamplerState& params);

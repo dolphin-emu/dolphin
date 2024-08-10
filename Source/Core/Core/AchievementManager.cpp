@@ -18,7 +18,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
@@ -34,7 +33,6 @@
 #include "UICommon/DiscordPresence.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoEvents.h"
 
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
     {"User-Agent", Common::GetUserAgentStr()}};
@@ -48,13 +46,13 @@ AchievementManager& AchievementManager::GetInstance()
 void AchievementManager::Init()
 {
   LoadDefaultBadges();
-  if (!m_client && Config::Get(Config::RA_ENABLED))
+  if (!m_client && Get(Config::RA_ENABLED))
   {
     {
       std::lock_guard lg{m_lock};
       m_client = rc_client_create(MemoryVerifier, Request);
     }
-    std::string host_url = Config::Get(Config::RA_HOST_URL);
+    const std::string host_url = Get(Config::RA_HOST_URL);
     if (!host_url.empty())
       rc_client_set_host(m_client, host_url.c_str());
     rc_client_set_event_handler(m_client, EventHandler);
@@ -62,7 +60,7 @@ void AchievementManager::Init()
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
-    rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+    rc_client_set_hardcore_enabled(m_client, Get(Config::RA_HARDCORE_ENABLED));
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
@@ -84,9 +82,9 @@ picojson::value AchievementManager::LoadApprovedList()
     WARN_LOG_FMT(ACHIEVEMENTS, "Error: {}", error);
     return {};
   }
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
   context->Update(temp.serialize());
-  auto digest = context->Finish();
+  const auto digest = context->Finish();
   if (digest != APPROVED_LIST_HASH)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to verify approved game settings list {}",
@@ -109,7 +107,7 @@ void AchievementManager::SetUpdateCallback(UpdateCallback callback)
   m_update_callback(UpdatedItems{.all = true});
 }
 
-void AchievementManager::Login(const std::string& password)
+void AchievementManager::Login(const std::string& password) const
 {
   if (!m_client)
   {
@@ -120,25 +118,25 @@ void AchievementManager::Login(const std::string& password)
   }
   if (password.empty())
   {
-    rc_client_begin_login_with_token(m_client, Config::Get(Config::RA_USERNAME).c_str(),
-                                     Config::Get(Config::RA_API_TOKEN).c_str(), LoginCallback,
+    rc_client_begin_login_with_token(m_client, Get(Config::RA_USERNAME).c_str(),
+                                     Get(Config::RA_API_TOKEN).c_str(), LoginCallback,
                                      nullptr);
   }
   else
   {
-    rc_client_begin_login_with_password(m_client, Config::Get(Config::RA_USERNAME).c_str(),
+    rc_client_begin_login_with_password(m_client, Get(Config::RA_USERNAME).c_str(),
                                         password.c_str(), LoginCallback, nullptr);
   }
 }
 
-bool AchievementManager::HasAPIToken() const
+bool AchievementManager::HasAPIToken()
 {
-  return !Config::Get(Config::RA_API_TOKEN).empty();
+  return !Get(Config::RA_API_TOKEN).empty();
 }
 
 void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Volume* volume)
 {
-  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
+  if (!Get(Config::RA_ENABLED) || !HasAPIToken())
   {
     return;
   }
@@ -153,15 +151,15 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
                   "Attempted to load game achievements without achievement client initialized.");
     return;
   }
-  rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
-  rc_client_set_encore_mode_enabled(m_client, Config::Get(Config::RA_ENCORE_ENABLED));
-  rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
+  rc_client_set_unofficial_enabled(m_client, Get(Config::RA_UNOFFICIAL_ENABLED));
+  rc_client_set_encore_mode_enabled(m_client, Get(Config::RA_ENCORE_ENABLED));
+  rc_client_set_spectator_mode_enabled(m_client, Get(Config::RA_SPECTATOR_ENABLED));
   if (volume)
   {
     std::lock_guard lg{m_lock};
     if (!m_loading_volume)
     {
-      m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+      m_loading_volume = CreateVolume(volume->GetBlobReader().CopyReader());
     }
   }
   std::lock_guard lg{m_filereader_lock};
@@ -192,15 +190,15 @@ bool AchievementManager::IsGameLoaded() const
   return game_info && game_info->id != 0;
 }
 
-void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
+void AchievementManager::SetBackgroundExecutionAllowed(const bool allowed)
 {
   m_background_execution_allowed = allowed;
 
-  Core::System* system = m_system.load(std::memory_order_acquire);
+  const Core::System* system = m_system.load(std::memory_order_acquire);
   if (!system)
     return;
 
-  if (allowed && Core::GetState(*system) == Core::State::Paused)
+  if (allowed && GetState(*system) == Core::State::Paused)
     DoIdle();
 }
 
@@ -239,10 +237,11 @@ void AchievementManager::FetchGameBadges()
   }
   for (u32 bx = 0; bx < achievement_list->num_buckets; bx++)
   {
-    auto& bucket = achievement_list->buckets[bx];
-    for (u32 achievement = 0; achievement < bucket.num_achievements; achievement++)
+    const auto& [achievements, num_achievements, _label, _subset_id, _bucket_type] =
+      achievement_list->buckets[bx];
+    for (u32 achievement = 0; achievement < num_achievements; achievement++)
     {
-      u32 achievement_id = bucket.achievements[achievement]->id;
+      u32 achievement_id = achievements[achievement]->id;
 
       FetchBadge(
           &m_unlocked_badges[achievement_id], RC_IMAGE_TYPE_ACHIEVEMENT,
@@ -275,24 +274,24 @@ void AchievementManager::DoFrame()
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
-  Core::System* system = m_system.load(std::memory_order_acquire);
+  const Core::System* system = m_system.load(std::memory_order_acquire);
   if (!system)
     return;
-  auto current_time = std::chrono::steady_clock::now();
+  const auto current_time = std::chrono::steady_clock::now();
   if (current_time - m_last_rp_time > std::chrono::seconds{10})
   {
     m_last_rp_time = current_time;
     rc_client_get_rich_presence_message(m_client, m_rich_presence.data(), RP_SIZE);
     m_update_callback(UpdatedItems{.rich_presence = true});
-    if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+    if (Get(Config::RA_DISCORD_PRESENCE_ENABLED))
       Discord::UpdateDiscordPresence();
   }
 }
 
-bool AchievementManager::CanPause()
+bool AchievementManager::CanPause() const
 {
   u32 frames_to_next_pause = 0;
-  bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
+  const bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
   if (!can_pause)
   {
     OSD::AddMessage(
@@ -305,7 +304,7 @@ bool AchievementManager::CanPause()
   return can_pause;
 }
 
-void AchievementManager::DoIdle()
+void AchievementManager::DoIdle() const
 {
   std::thread([this]() {
     while (true)
@@ -313,8 +312,8 @@ void AchievementManager::DoIdle()
       Common::SleepCurrentThread(1000);
       {
         std::lock_guard lg{m_lock};
-        Core::System* system = m_system.load(std::memory_order_acquire);
-        if (!system || Core::GetState(*system) != Core::State::Paused)
+        const Core::System* system = m_system.load(std::memory_order_acquire);
+        if (!system || GetState(*system) != Core::State::Paused)
           return;
         if (!m_background_execution_allowed)
           return;
@@ -323,9 +322,9 @@ void AchievementManager::DoIdle()
       }
       // rc_client_idle peeks at memory to recalculate rich presence and therefore
       // needs to be on host or CPU thread to access memory.
-      Core::QueueHostJob([this](Core::System& system) {
+      Core::QueueHostJob([this](const Core::System& system) {
         std::lock_guard lg{m_lock};
-        if (Core::GetState(system) != Core::State::Paused)
+        if (GetState(system) != Core::State::Paused)
           return;
         if (!m_background_execution_allowed)
           return;
@@ -337,14 +336,14 @@ void AchievementManager::DoIdle()
   }).detach();
 }
 
-std::recursive_mutex& AchievementManager::GetLock()
+std::recursive_mutex& AchievementManager::GetLock() const
 {
   return m_lock;
 }
 
-void AchievementManager::SetHardcoreMode()
+void AchievementManager::SetHardcoreMode() const
 {
-  rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+  rc_client_set_hardcore_enabled(m_client, Get(Config::RA_HARDCORE_ENABLED));
 }
 
 bool AchievementManager::IsHardcoreModeActive() const
@@ -382,8 +381,8 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
 
     if (known_id)
     {
-      auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
+      const auto context = Common::SHA1::CreateContext();
+      context->Update(Common::BitCastToArray<u8>(patch_itr->entries.size()));
       for (const auto& entry : patch_itr->entries)
       {
         context->Update(Common::BitCastToArray<u8>(entry.type));
@@ -413,9 +412,9 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
   }
 }
 
-void AchievementManager::SetSpectatorMode()
+void AchievementManager::SetSpectatorMode() const
 {
-  rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
+  rc_client_set_spectator_mode_enabled(m_client, Get(Config::RA_SPECTATOR_ENABLED));
 }
 
 std::string_view AchievementManager::GetPlayerDisplayName() const
@@ -448,7 +447,7 @@ std::string_view AchievementManager::GetGameDisplayName() const
   return IsGameLoaded() ? std::string_view(rc_client_get_game_info(m_client)->title) : "";
 }
 
-rc_client_t* AchievementManager::GetClient()
+rc_client_t* AchievementManager::GetClient() const
 {
   return m_client;
 }
@@ -463,18 +462,18 @@ const AchievementManager::Badge& AchievementManager::GetGameBadge() const
   return m_game_badge.data.empty() ? m_default_game_badge : m_game_badge;
 }
 
-const AchievementManager::Badge& AchievementManager::GetAchievementBadge(AchievementId id,
-                                                                         bool locked) const
+const AchievementManager::Badge& AchievementManager::GetAchievementBadge(const AchievementId id,
+                                                                         const bool locked) const
 {
   auto& badge_list = locked ? m_locked_badges : m_unlocked_badges;
-  auto itr = badge_list.find(id);
+  const auto itr = badge_list.find(id);
   return (itr != badge_list.end() && itr->second.data.size() > 0) ?
              itr->second :
              (locked ? m_default_locked_badge : m_default_unlocked_badge);
 }
 
 const AchievementManager::LeaderboardStatus*
-AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderboard_id)
+AchievementManager::GetLeaderboardInfo(const AchievementId leaderboard_id)
 {
   if (const auto leaderboard_iter = m_leaderboard_map.find(leaderboard_id);
       leaderboard_iter != m_leaderboard_map.end())
@@ -516,18 +515,18 @@ std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
   return display_values;
 }
 
-void AchievementManager::DoState(PointerWrap& p)
+void AchievementManager::DoState(PointerWrap& p) const
 {
-  if (!m_client || !Config::Get(Config::RA_ENABLED))
+  if (!m_client || !Get(Config::RA_ENABLED))
     return;
   size_t size = 0;
   if (!p.IsReadMode())
     size = rc_client_progress_size(m_client);
   p.Do(size);
-  auto buffer = std::make_unique<u8[]>(size);
+  const auto buffer = std::make_unique<u8[]>(size);
   if (!p.IsReadMode())
   {
-    int result = rc_client_serialize_progress_sized(m_client, buffer.get(), size);
+    const int result = rc_client_serialize_progress_sized(m_client, buffer.get(), size);
     if (result != RC_OK)
     {
       ERROR_LOG_FMT(ACHIEVEMENTS, "Failed serializing achievement client with error code {}",
@@ -535,17 +534,17 @@ void AchievementManager::DoState(PointerWrap& p)
       return;
     }
   }
-  p.DoArray(buffer.get(), (u32)size);
+  p.DoArray(buffer.get(), static_cast<u32>(size));
   if (p.IsReadMode())
   {
-    int result = rc_client_deserialize_progress_sized(m_client, buffer.get(), size);
+    const int result = rc_client_deserialize_progress_sized(m_client, buffer.get(), size);
     if (result != RC_OK)
     {
       ERROR_LOG_FMT(ACHIEVEMENTS, "Failed deserializing achievement client with error code {}",
                     result);
       return;
     }
-    size_t new_size = rc_client_progress_size(m_client);
+    const size_t new_size = rc_client_progress_size(m_client);
     if (size != new_size)
     {
       ERROR_LOG_FMT(ACHIEVEMENTS, "Loaded client size {} does not match size in state {}", new_size,
@@ -577,7 +576,7 @@ void AchievementManager::CloseGame()
       m_image_queue.Cancel();
       rc_client_unload_game(m_client);
       m_system.store(nullptr, std::memory_order_release);
-      if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+      if (Get(Config::RA_DISCORD_PRESENCE_ENABLED))
         Discord::UpdateDiscordPresence();
       INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
     }
@@ -594,7 +593,7 @@ void AchievementManager::Logout()
     m_player_badge.width = 0;
     m_player_badge.height = 0;
     m_player_badge.data.clear();
-    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+    SetBaseOrCurrent(Config::RA_API_TOKEN, "");
   }
 
   m_update_callback(UpdatedItems{.all = true});
@@ -637,7 +636,7 @@ void* AchievementManager::FilereaderOpenByVolume(const char* path_utf8)
   return state.release();
 }
 
-void AchievementManager::FilereaderSeek(void* file_handle, int64_t offset, int origin)
+void AchievementManager::FilereaderSeek(void* file_handle, const int64_t offset, const int origin)
 {
   switch (origin)
   {
@@ -658,20 +657,17 @@ int64_t AchievementManager::FilereaderTell(void* file_handle)
   return static_cast<FilereaderState*>(file_handle)->position;
 }
 
-size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes)
+size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, const size_t requested_bytes)
 {
-  FilereaderState* filereader_state = static_cast<FilereaderState*>(file_handle);
-  bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
-                                                 static_cast<u8*>(buffer), DiscIO::PARTITION_NONE));
+  auto filereader_state = static_cast<FilereaderState*>(file_handle);
+  const bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
+                                                       static_cast<u8*>(buffer), DiscIO::PARTITION_NONE));
   if (success)
   {
     filereader_state->position += requested_bytes;
     return requested_bytes;
   }
-  else
-  {
-    return 0;
-  }
+  return 0;
 }
 
 void AchievementManager::FilereaderClose(void* file_handle)
@@ -726,7 +722,7 @@ void AchievementManager::LoadDefaultBadges()
   }
 }
 
-void AchievementManager::LoginCallback(int result, const char* error_message, rc_client_t* client,
+void AchievementManager::LoginCallback(const int result, const char* error_message, rc_client_t* client,
                                        void* userdata)
 {
   if (result != RC_OK)
@@ -738,7 +734,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
 
   const rc_client_user_t* user;
   {
-    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    std::lock_guard lg{GetInstance().GetLock()};
     user = rc_client_get_user_info(client);
   }
   if (!user)
@@ -747,7 +743,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
     return;
   }
 
-  std::string config_username = Config::Get(Config::RA_USERNAME);
+  const std::string config_username = Get(Config::RA_USERNAME);
   if (config_username != user->username)
   {
     if (Common::CaseInsensitiveEquals(config_username, user->username))
@@ -755,7 +751,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
       INFO_LOG_FMT(ACHIEVEMENTS,
                    "Case mismatch between site {} and local {}; updating local config.",
                    user->username, Config::Get(Config::RA_USERNAME));
-      Config::SetBaseOrCurrent(Config::RA_USERNAME, user->username);
+      SetBaseOrCurrent(Config::RA_USERNAME, user->username);
     }
     else
     {
@@ -767,26 +763,26 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.",
                user->username);
-  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  Config::SetBaseOrCurrent(Config::RA_API_TOKEN, user->token);
-  AchievementManager::GetInstance().FetchPlayerBadge();
+  std::lock_guard lg{GetInstance().GetLock()};
+  SetBaseOrCurrent(Config::RA_API_TOKEN, user->token);
+  GetInstance().FetchPlayerBadge();
 }
 
-void AchievementManager::FetchBoardInfo(AchievementId leaderboard_id)
+void AchievementManager::FetchBoardInfo(const AchievementId leaderboard_id)
 {
-  u32* callback_data_1 = new u32(leaderboard_id);
-  u32* callback_data_2 = new u32(leaderboard_id);
+  auto callback_data_1 = new u32(leaderboard_id);
+  auto callback_data_2 = new u32(leaderboard_id);
   rc_client_begin_fetch_leaderboard_entries(m_client, leaderboard_id, 1, 4,
                                             LeaderboardEntriesCallback, callback_data_1);
   rc_client_begin_fetch_leaderboard_entries_around_user(
       m_client, leaderboard_id, 4, LeaderboardEntriesCallback, callback_data_2);
 }
 
-void AchievementManager::LeaderboardEntriesCallback(int result, const char* error_message,
-                                                    rc_client_leaderboard_entry_list_t* list,
+void AchievementManager::LeaderboardEntriesCallback(const int result, const char* error_message,
+                                                    const rc_client_leaderboard_entry_list_t* list,
                                                     rc_client_t* client, void* userdata)
 {
-  u32* leaderboard_id = reinterpret_cast<u32*>(userdata);
+  auto leaderboard_id = static_cast<u32*>(userdata);
   Common::ScopeGuard on_end_scope([&]() { delete leaderboard_id; });
 
   if (result != RC_OK)
@@ -795,25 +791,25 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
     return;
   }
 
-  auto& leaderboard = AchievementManager::GetInstance().m_leaderboard_map[*leaderboard_id];
+  auto& [_name, _description, player_index, entries] = GetInstance().m_leaderboard_map[*leaderboard_id];
   for (size_t ix = 0; ix < list->num_entries; ix++)
   {
-    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-    const auto& response_entry = list->entries[ix];
-    auto& map_entry = leaderboard.entries[response_entry.index];
-    map_entry.username.assign(response_entry.user);
-    memcpy(map_entry.score.data(), response_entry.display, FORMAT_SIZE);
-    map_entry.rank = response_entry.rank;
+    std::lock_guard lg{GetInstance().GetLock()};
+    const auto& [user, display, _submitted, response_rank, index] = list->entries[ix];
+    auto& [username, score, map_rank] = entries[index];
+    username.assign(user);
+    memcpy(score.data(), display, FORMAT_SIZE);
+    map_rank = response_rank;
     if (ix == list->user_index)
-      leaderboard.player_index = response_entry.rank;
+      player_index = response_rank;
   }
-  AchievementManager::GetInstance().m_update_callback({.leaderboards = {*leaderboard_id}});
+  GetInstance().m_update_callback({.leaderboards = {*leaderboard_id}});
 }
 
-void AchievementManager::LoadGameCallback(int result, const char* error_message,
+void AchievementManager::LoadGameCallback(const int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
-  AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  GetInstance().m_loading_volume.reset(nullptr);
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
@@ -832,7 +828,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
 
-  auto& instance = AchievementManager::GetInstance();
+  auto& instance = GetInstance();
   rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
   instance.m_display_welcome_message = true;
   instance.FetchGameBadges();
@@ -846,10 +842,10 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
       rc_client_create_leaderboard_list(client, RC_CLIENT_LEADERBOARD_LIST_GROUPING_NONE);
   for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
   {
-    const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
-    for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
+    const auto& [leaderboards, num_leaderboards, _label, _subset_id, _bucket_type] = leaderboard_list->buckets[bucket];
+    for (u32 board = 0; board < num_leaderboards; board++)
     {
-      const auto& leaderboard = leaderboard_bucket.leaderboards[board];
+      const auto& leaderboard = leaderboards[board];
       instance.m_leaderboard_map.insert(
           std::pair(leaderboard->id, LeaderboardStatus{.name = leaderboard->title,
                                                        .description = leaderboard->description}));
@@ -858,10 +854,10 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   rc_client_destroy_leaderboard_list(leaderboard_list);
 }
 
-void AchievementManager::ChangeMediaCallback(int result, const char* error_message,
+void AchievementManager::ChangeMediaCallback(const int result, const char* error_message,
                                              rc_client_t* client, void* userdata)
 {
-  AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  GetInstance().m_loading_volume.reset(nullptr);
   if (result == RC_OK)
   {
     return;
@@ -888,7 +884,7 @@ void AchievementManager::DisplayWelcomeMessage()
       rc_client_get_hardcore_enabled(m_client) ? OSD::Color::YELLOW : OSD::Color::CYAN;
 
   OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN, &GetGameBadge());
-  auto info = rc_client_get_game_info(m_client);
+  const auto info = rc_client_get_game_info(m_client);
   if (!info)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempting to welcome player to game not running.");
@@ -917,14 +913,14 @@ void AchievementManager::DisplayWelcomeMessage()
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
-  const auto& instance = AchievementManager::GetInstance();
+  const auto& instance = GetInstance();
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
                               client_event->achievement->points),
                   OSD::Duration::VERY_LONG,
                   (rc_client_get_hardcore_enabled(instance.m_client)) ? OSD::Color::YELLOW :
                                                                         OSD::Color::CYAN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
-  AchievementManager::GetInstance().m_update_callback(
+  GetInstance().m_update_callback(
       UpdatedItems{.achievements = {client_event->achievement->id}});
 }
 
@@ -933,14 +929,14 @@ void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* 
   OSD::AddMessage(fmt::format("Attempting leaderboard: {} - {}", client_event->leaderboard->title,
                               client_event->leaderboard->description),
                   OSD::Duration::VERY_LONG, OSD::Color::GREEN);
-  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
+  GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardFailedEvent(const rc_client_event_t* client_event)
 {
   OSD::AddMessage(fmt::format("Failed leaderboard: {}", client_event->leaderboard->title),
                   OSD::Duration::VERY_LONG, OSD::Color::RED);
-  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
+  GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event)
@@ -949,19 +945,19 @@ void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t
                               client_event->leaderboard->tracker_value,
                               client_event->leaderboard->title),
                   OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
-  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
-  AchievementManager::GetInstance().m_update_callback(
+  GetInstance().FetchBoardInfo(client_event->leaderboard->id);
+  GetInstance().m_update_callback(
       UpdatedItems{.leaderboards = {client_event->leaderboard->id}});
 }
 
 void AchievementManager::HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event)
 {
-  auto& active_leaderboards = AchievementManager::GetInstance().m_active_leaderboards;
-  for (auto& leaderboard : active_leaderboards)
+  auto& active_leaderboards = GetInstance().m_active_leaderboards;
+  for (auto& [display, id] : active_leaderboards)
   {
-    if (leaderboard.id == client_event->leaderboard_tracker->id)
+    if (id == client_event->leaderboard_tracker->id)
     {
-      strncpy(leaderboard.display, client_event->leaderboard_tracker->display,
+      strncpy(display, client_event->leaderboard_tracker->display,
               RC_CLIENT_LEADERBOARD_DISPLAY_SIZE);
     }
   }
@@ -969,13 +965,13 @@ void AchievementManager::HandleLeaderboardTrackerUpdateEvent(const rc_client_eve
 
 void AchievementManager::HandleLeaderboardTrackerShowEvent(const rc_client_event_t* client_event)
 {
-  AchievementManager::GetInstance().m_active_leaderboards.push_back(
+  GetInstance().m_active_leaderboards.push_back(
       *client_event->leaderboard_tracker);
 }
 
 void AchievementManager::HandleLeaderboardTrackerHideEvent(const rc_client_event_t* client_event)
 {
-  auto& active_leaderboards = AchievementManager::GetInstance().m_active_leaderboards;
+  auto& active_leaderboards = GetInstance().m_active_leaderboards;
   std::erase_if(active_leaderboards, [client_event](const auto& leaderboard) {
     return leaderboard.id == client_event->leaderboard_tracker->id;
   });
@@ -984,29 +980,29 @@ void AchievementManager::HandleLeaderboardTrackerHideEvent(const rc_client_event
 void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  auto& instance = AchievementManager::GetInstance();
+  auto& instance = GetInstance();
   const auto [iter, inserted] = instance.m_active_challenges.insert(client_event->achievement->id);
   if (inserted)
     instance.m_challenges_updated = true;
-  AchievementManager::GetInstance().m_update_callback(UpdatedItems{.rich_presence = true});
+  GetInstance().m_update_callback(UpdatedItems{.rich_presence = true});
 }
 
 void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
     const rc_client_event_t* client_event)
 {
-  auto& instance = AchievementManager::GetInstance();
+  auto& instance = GetInstance();
   const auto removed = instance.m_active_challenges.erase(client_event->achievement->id);
   if (removed > 0)
     instance.m_challenges_updated = true;
-  AchievementManager::GetInstance().m_update_callback(UpdatedItems{.rich_presence = true});
+  GetInstance().m_update_callback(UpdatedItems{.rich_presence = true});
 }
 
 void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  auto& instance = AchievementManager::GetInstance();
-  auto current_time = std::chrono::steady_clock::now();
-  const auto message_wait_time = std::chrono::milliseconds{OSD::Duration::SHORT};
+  auto& instance = GetInstance();
+  const auto current_time = std::chrono::steady_clock::now();
+  constexpr auto message_wait_time = std::chrono::milliseconds{OSD::Duration::SHORT};
   if (current_time - instance.m_last_progress_message < message_wait_time)
     return;
   OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,
@@ -1014,12 +1010,12 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
                   OSD::Duration::SHORT, OSD::Color::GREEN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
   instance.m_last_progress_message = current_time;
-  AchievementManager::GetInstance().m_update_callback(
+  GetInstance().m_update_callback(
       UpdatedItems{.achievements = {client_event->achievement->id}});
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
-                                                  rc_client_t* client)
+                                                  const rc_client_t* client)
 {
   auto* user_info = rc_client_get_user_info(client);
   auto* game_info = rc_client_get_game_info(client);
@@ -1028,17 +1024,17 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
     WARN_LOG_FMT(ACHIEVEMENTS, "Received Game Completed event when game not running.");
     return;
   }
-  bool hardcore = rc_client_get_hardcore_enabled(client);
+  const bool hardcore = rc_client_get_hardcore_enabled(client);
   OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
                               hardcore ? "mastered" : "completed", game_info->title),
                   OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
-                  &AchievementManager::GetInstance().GetGameBadge());
+                  &GetInstance().GetGameBadge());
 }
 
 void AchievementManager::HandleResetEvent(const rc_client_event_t* client_event)
 {
   INFO_LOG_FMT(ACHIEVEMENTS, "Reset requested by Achievement Mananger");
-  Core::Stop(Core::System::GetInstance());
+  Stop(Core::System::GetInstance());
 }
 
 void AchievementManager::HandleServerErrorEvent(const rc_client_event_t* client_event)
@@ -1053,10 +1049,10 @@ void AchievementManager::Request(const rc_api_request_t* request,
 {
   std::string url = request->url;
   std::string post_data = request->post_data;
-  AchievementManager::GetInstance().m_queue.EmplaceItem(
+  GetInstance().m_queue.EmplaceItem(
       [url = std::move(url), post_data = std::move(post_data), callback = std::move(callback),
        callback_data = std::move(callback_data)] {
-        Common::HttpRequest http_request;
+        const Common::HttpRequest http_request;
         Common::HttpRequest::Response http_response;
         if (!post_data.empty())
         {
@@ -1099,16 +1095,16 @@ void AchievementManager::Request(const rc_api_request_t* request,
 // to rc_client at construction, and in the Load Game callback, after the verification has been
 // complete, I call rc_client_set_read_memory_function to switch to the usual MemoryPeeker for all
 // future synchronous calls.
-u32 AchievementManager::MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+u32 AchievementManager::MemoryVerifier(const u32 address, u8* buffer, const u32 num_bytes, rc_client_t* client)
 {
-  auto& system = Core::System::GetInstance();
-  u32 ram_size = system.GetMemory().GetRamSizeReal();
+  const auto& system = Core::System::GetInstance();
+  const u32 ram_size = system.GetMemory().GetRamSizeReal();
   if (address >= ram_size)
     return 0;
   return std::min(ram_size - address, num_bytes);
 }
 
-u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+u32 AchievementManager::MemoryPeeker(const u32 address, u8* buffer, const u32 num_bytes, rc_client_t* client)
 {
   if (buffer == nullptr)
     return 0u;
@@ -1118,7 +1114,7 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
     ASSERT_MSG(ACHIEVEMENTS, false, "MemoryPeeker called from wrong thread");
     return 0;
   }
-  Core::CPUThreadGuard threadguard(system);
+  const Core::CPUThreadGuard threadguard(system);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
     auto value = system.GetMMU().HostTryReadU8(threadguard, address + num_read,
@@ -1130,8 +1126,8 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
   return num_bytes;
 }
 
-void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_type,
-                                    const AchievementManager::BadgeNameFunction function,
+void AchievementManager::FetchBadge(Badge* badge, u32 badge_type,
+                                    const BadgeNameFunction function,
                                     const UpdatedItems callback_data)
 {
   if (!m_client || !HasAPIToken())
@@ -1161,7 +1157,7 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
         "{}/badge-{}-{}.png", File::GetUserPath(D_RETROACHIEVEMENTSCACHE_IDX), badge_type,
         Common::SHA1::DigestToString(Common::SHA1::CalculateDigest(name_to_fetch)));
 
-    AchievementManager::Badge tmp_badge;
+    Badge tmp_badge;
     if (!LoadPNGTexture(&tmp_badge, cache_path))
     {
       rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
@@ -1224,7 +1220,7 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
   });
 }
 
-void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_t* client)
+void AchievementManager::EventHandler(const rc_client_event_t* event, const rc_client_t* client)
 {
   switch (event->type)
   {

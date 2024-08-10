@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <ctime>
-#include <iomanip>
 #include <string>
 
 #include <fmt/chrono.h>
@@ -32,7 +31,7 @@ const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
   return m_buffer;
 }
 
-std::string SettingsHandler::GetValue(std::string_view key) const
+std::string SettingsHandler::GetValue(const std::string_view key) const
 {
   constexpr char delim[] = "\n";
   std::string toFind = std::string(delim).append(key).append("=");
@@ -45,17 +44,14 @@ std::string SettingsHandler::GetValue(std::string_view key) const
       delimFound = decoded.length() - 1;
     return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
   }
-  else
+  toFind = std::string(key).append("=");
+  found = decoded.find(toFind);
+  if (found == 0)
   {
-    toFind = std::string(key).append("=");
-    found = decoded.find(toFind);
-    if (found == 0)
-    {
-      size_t delimFound = decoded.find(delim, found + toFind.length());
-      if (delimFound == std::string_view::npos)
-        delimFound = decoded.length() - 1;
-      return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
-    }
+    size_t delimFound = decoded.find(delim, found + toFind.length());
+    if (delimFound == std::string_view::npos)
+      delimFound = decoded.length() - 1;
+    return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
   }
 
   return "";
@@ -65,7 +61,7 @@ void SettingsHandler::Decrypt()
 {
   while (m_position < m_buffer.size())
   {
-    decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
+    decoded.push_back(static_cast<u8>(m_buffer[m_position] ^ m_key));
     m_position++;
     m_key = (m_key >> 31) | (m_key << 1);
   }
@@ -82,13 +78,13 @@ void SettingsHandler::AddSetting(std::string_view key, std::string_view value)
   WriteLine(fmt::format("{}={}\r\n", key, value));
 }
 
-void SettingsHandler::WriteLine(std::string_view str)
+void SettingsHandler::WriteLine(const std::string_view str)
 {
   const u32 old_position = m_position;
   const u32 old_key = m_key;
 
   // Encode and write the line
-  for (char c : str)
+  for (const char c : str)
     WriteByte(c);
 
   // If the encoded data contains a null byte, Nintendo's decoder will stop at that null byte
@@ -106,7 +102,7 @@ void SettingsHandler::WriteLine(std::string_view str)
   }
 }
 
-void SettingsHandler::WriteByte(u8 b)
+void SettingsHandler::WriteByte(const u8 b)
 {
   if (m_position >= m_buffer.size())
     return;

@@ -85,7 +85,7 @@ public:
   {
     return m_gpu_descriptor_heaps.data();
   }
-  u32 GetGPUDescriptorHeapCount() const { return static_cast<u32>(m_gpu_descriptor_heaps.size()); }
+  u32 GetGPUDescriptorHeapCount() const { return m_gpu_descriptor_heaps.size(); }
   const DescriptorHandle& GetNullSRVDescriptor() const { return m_null_srv_descriptor; }
 
   // Root signature access.
@@ -106,10 +106,10 @@ public:
   D3D_FEATURE_LEVEL GetFeatureLevel() const { return m_feature_level; }
 
   // Test for support for the specified texture format.
-  bool SupportsTextureFormat(DXGI_FORMAT format);
+  bool SupportsTextureFormat(DXGI_FORMAT format) const;
 
   // Creates command lists, global buffers and descriptor heaps.
-  bool CreateGlobalResources();
+  static bool CreateGlobalResources();
 
   // Executes the current command list.
   void ExecuteCommandList(bool wait_for_completion);
@@ -131,10 +131,10 @@ public:
 
 private:
   // Number of command lists. One is being built while the other(s) are executed.
-  static const u32 NUM_COMMAND_LISTS = 3;
+  static constexpr u32 NUM_COMMAND_LISTS = 3;
 
   // Textures that don't fit into this buffer will be uploaded with a staging buffer.
-  static const u32 TEXTURE_UPLOAD_BUFFER_SIZE = 32 * 1024 * 1024;
+  static constexpr u32 TEXTURE_UPLOAD_BUFFER_SIZE = 32 * 1024 * 1024;
 
   struct CommandListResources
   {
@@ -161,7 +161,7 @@ private:
   bool CreateTextureUploadBuffer();
   bool CreateCommandLists();
   void MoveToNextCommandList();
-  void DestroyPendingResources(CommandListResources& cmdlist);
+  static void DestroyPendingResources(CommandListResources& cmdlist);
 
   ComPtr<IDXGIFactory> m_dxgi_factory;
   ComPtr<ID3D12Debug> m_debug_interface;
@@ -198,7 +198,7 @@ extern std::unique_ptr<DXContext> g_dx_context;
 // Unlike the version in Common, this variant also knows to call GetDeviceRemovedReason if needed.
 struct DX12HRWrap
 {
-  constexpr explicit DX12HRWrap(HRESULT hr) : m_hr(hr) {}
+  constexpr explicit DX12HRWrap(const HRESULT hr) : m_hr(hr) {}
   const HRESULT m_hr;
 };
 
@@ -207,7 +207,7 @@ struct DX12HRWrap
 template <>
 struct fmt::formatter<DX12::DX12HRWrap>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DX12::DX12HRWrap& hr, FormatContext& ctx) const
   {
@@ -218,9 +218,6 @@ struct fmt::formatter<DX12::DX12HRWrap>
           ctx.out(), "{}\nDevice removal reason: {}", Common::HRWrap(hr.m_hr),
           Common::HRWrap(DX12::g_dx_context->GetDevice()->GetDeviceRemovedReason()));
     }
-    else
-    {
-      return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
-    }
+    return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
   }
 };

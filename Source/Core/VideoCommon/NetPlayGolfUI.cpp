@@ -20,9 +20,9 @@ NetPlayGolfUI::NetPlayGolfUI(std::shared_ptr<NetPlay::NetPlayClient> netplay_cli
 
 NetPlayGolfUI::~NetPlayGolfUI() = default;
 
-void NetPlayGolfUI::Display()
+void NetPlayGolfUI::Display() const
 {
-  auto client = m_netplay_client.lock();
+  const auto client = m_netplay_client.lock();
   if (!client)
     return;
 
@@ -50,7 +50,7 @@ void NetPlayGolfUI::Display()
       client->RequestGolfControl();
     }
 
-    for (auto player : client->GetPlayers())
+    for (const auto player : client->GetPlayers())
     {
       if (client->IsLocalPlayer(player->pid) || !client->PlayerHasControllerMapped(player->pid))
         continue;

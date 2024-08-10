@@ -7,9 +7,6 @@
 
 #include "AudioCommon/SoundStream.h"
 #include "Common/Event.h"
-#include "Core/Core.h"
-#include "Core/HW/AudioInterface.h"
-#include "Core/HW/SystemTimers.h"
 
 #ifdef _WIN32
 #include <al.h>

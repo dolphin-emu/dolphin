@@ -78,11 +78,11 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
           .replace(QStringLiteral("%AUTHORS%"), tr("Authors"))
           .replace(QStringLiteral("%SUPPORT%"), tr("Support"));
 
-  QLabel* text_label = new QLabel(text);
+  auto text_label = new QLabel(text);
   text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
   text_label->setOpenExternalLinks(true);
 
-  QLabel* copyright = new QLabel(
+  auto copyright = new QLabel(
       QStringLiteral("<small>%1</small>")
           .arg(
               // i18n: This message uses curly quotes in English. If you want to use curly quotes
@@ -92,12 +92,12 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
               tr("\u00A9 2003-2024+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
                  "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.")));
 
-  QLabel* logo = new QLabel();
+  auto logo = new QLabel();
   logo->setPixmap(Resources::GetAppIcon().pixmap(200, 200));
   logo->setContentsMargins(30, 0, 30, 0);
 
-  QVBoxLayout* main_layout = new QVBoxLayout;
-  QHBoxLayout* h_layout = new QHBoxLayout;
+  auto main_layout = new QVBoxLayout;
+  auto h_layout = new QHBoxLayout;
 
   setLayout(main_layout);
   main_layout->addLayout(h_layout);

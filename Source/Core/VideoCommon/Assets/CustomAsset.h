@@ -3,12 +3,10 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 #include <memory>
 #include <mutex>
-#include <optional>
 
 namespace VideoCommon
 {
@@ -96,7 +94,7 @@ template <typename AssetType>
 struct CachedAsset
 {
   std::shared_ptr<AssetType> m_asset;
-  VideoCommon::CustomAssetLibrary::TimeType m_cached_write_time;
+  CustomAssetLibrary::TimeType m_cached_write_time;
 };
 
 }  // namespace VideoCommon

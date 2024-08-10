@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_COPY_READ_BUFFER_BINDING 0x8F36
 #define GL_COPY_WRITE_BUFFER_BINDING 0x8F37
 #define GL_TRANSFORM_FEEDBACK_ACTIVE 0x8E24

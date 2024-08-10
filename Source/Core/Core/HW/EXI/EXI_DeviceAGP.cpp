@@ -19,7 +19,7 @@
 
 namespace ExpansionInterface
 {
-CEXIAgp::CEXIAgp(Core::System& system, Slot slot) : IEXIDevice(system)
+CEXIAgp::CEXIAgp(Core::System& system, const Slot slot) : IEXIDevice(system)
 {
   ASSERT(IsMemcardSlot(slot));
   m_slot = slot;
@@ -38,13 +38,13 @@ CEXIAgp::~CEXIAgp()
   std::string filename;
   std::string ext;
   std::string gbapath;
-  SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
+  SplitPath(Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   gbapath = path + filename;
 
   SaveFileFromEEPROM(gbapath + ".sav");
 }
 
-void CEXIAgp::CRC8(const u8* data, u32 size)
+void CEXIAgp::CRC8(const u8* data, const u32 size)
 {
   for (u32 it = 0; it < size; it++)
   {
@@ -76,7 +76,7 @@ void CEXIAgp::LoadRom()
   std::string path;
   std::string filename;
   std::string ext;
-  SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
+  SplitPath(Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   const std::string gbapath = path + filename;
   LoadFileToROM(gbapath + ext);
   INFO_LOG_FMT(EXPANSIONINTERFACE, "Loaded GBA rom: {} card: {}", gbapath, m_slot);
@@ -89,7 +89,7 @@ void CEXIAgp::LoadFileToROM(const std::string& filename)
   File::IOFile pStream(filename, "rb");
   if (pStream)
   {
-    u64 filesize = pStream.GetSize();
+    const u64 filesize = pStream.GetSize();
     m_rom_size = filesize & 0xFFFFFFFF;
     m_rom_mask = (m_rom_size - 1);
 
@@ -110,7 +110,7 @@ void CEXIAgp::LoadFileToEEPROM(const std::string& filename)
   File::IOFile pStream(filename, "rb");
   if (pStream)
   {
-    u64 filesize = pStream.GetSize();
+    const u64 filesize = pStream.GetSize();
     m_eeprom_size = filesize & 0xFFFFFFFF;
     m_eeprom_mask = (m_eeprom_size - 1);
 
@@ -152,7 +152,7 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
       std::vector<u8> temp_eeprom(m_eeprom_size);
       for (u32 index = 0; index < (m_eeprom_size / 8); index++)
       {
-        u64 NewVal = ((u64*)(m_eeprom.data()))[index];
+        const u64 NewVal = ((u64*)(m_eeprom.data()))[index];
         for (u32 indexb = 0; indexb < 8; indexb++)
           temp_eeprom[index * 8 + (7 - indexb)] = (NewVal >> (indexb * 8)) & 0xFF;
       }
@@ -165,7 +165,7 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
   }
 }
 
-u32 CEXIAgp::ImmRead(u32 _uSize)
+u32 CEXIAgp::ImmRead(const u32 _uSize)
 {
   u32 uData = 0;
   u8 RomVal1, RomVal2, RomVal3, RomVal4;
@@ -261,7 +261,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
   return uData;
 }
 
-void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
+void CEXIAgp::ImmWrite(const u32 _uData, const u32 _uSize)
 {
   // 0x00 = Execute current command?
   if ((_uSize == 1) && ((_uData & 0xFF000000) == 0))

@@ -54,7 +54,7 @@ public:
     std::lock_guard lock{m_device_list_mutex};
 
     libusb_device** list;
-    ssize_t count = libusb_get_device_list(m_context, &list);
+    const ssize_t count = libusb_get_device_list(m_context, &list);
     if (count < 0)
       return static_cast<int>(count);
 
@@ -68,7 +68,7 @@ public:
   }
 
 private:
-  void EventThread()
+  void EventThread() const
   {
     Common::SetCurrentThreadName("libusb thread");
     timeval tv{5, 0};
@@ -115,7 +115,7 @@ int Context::GetDeviceList(GetDeviceListCallback callback) const
   return m_impl->GetDeviceList(std::move(callback));
 }
 
-std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, u8 config_num)
+std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, const u8 config_num)
 {
 #if defined(__LIBUSB__)
   libusb_config_descriptor* descriptor = nullptr;
@@ -140,7 +140,7 @@ const char* ErrorWrap::GetName() const
 const char* ErrorWrap::GetStrError() const
 {
 #if defined(__LIBUSB__)
-  return libusb_strerror(static_cast<libusb_error>(m_error));
+  return libusb_strerror(m_error);
 #else
   return "__LIBUSB__ not defined";
 #endif

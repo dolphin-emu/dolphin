@@ -32,13 +32,13 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
   AchievementManager::GetInstance().SetUpdateCallback(
       [this](AchievementManager::UpdatedItems updated_items) {
         QueueOnObject(this, [this, updated_items = std::move(updated_items)] {
-          AchievementsWindow::UpdateData(std::move(updated_items));
+          UpdateData(std::move(updated_items));
         });
       });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this] { m_settings_widget->UpdateData(); });
   connect(&Settings::Instance(), &Settings::HardcoreStateChanged, this,
-          [this] { AchievementsWindow::UpdateData({.all = true}); });
+          [this] { UpdateData({.all = true}); });
 }
 
 void AchievementsWindow::showEvent(QShowEvent* event)
@@ -77,7 +77,7 @@ void AchievementsWindow::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_items)
+void AchievementsWindow::UpdateData(const AchievementManager::UpdatedItems& updated_items)
 {
   m_settings_widget->UpdateData();
   if (updated_items.all)
@@ -106,7 +106,7 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
   }
 
   {
-    auto& instance = AchievementManager::GetInstance();
+    const auto& instance = AchievementManager::GetInstance();
     std::lock_guard lg{instance.GetLock()};
     const bool is_game_loaded = instance.IsGameLoaded();
     m_header_widget->setVisible(instance.HasAPIToken());
@@ -116,7 +116,7 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
   update();
 }
 
-void AchievementsWindow::ForceSettingsTab()
+void AchievementsWindow::ForceSettingsTab() const
 {
   m_tab_widget->setCurrentIndex(0);
 }

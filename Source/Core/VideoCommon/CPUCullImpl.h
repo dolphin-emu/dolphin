@@ -60,7 +60,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void vuzp12q_f32(Vector& a, Vector& b)
 #endif
 #ifdef USE_SSE
 template <int i>
-ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector vector_broadcast(Vector v)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector vector_broadcast(const Vector v)
 {
   return _mm_shuffle_ps(v, v, _MM_SHUFFLE(i, i, i, i));
 }
@@ -242,7 +242,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposed(const void* source, 
                                                             Vector& o1, Vector& o2, Vector& o3)
 {
 #if defined(USE_SSE)
-  const Vector* vsource = static_cast<const Vector*>(source);
+  auto vsource = static_cast<const Vector*>(source);
   o0 = vsource[0];
   o1 = vsource[1];
   o2 = vsource[2];
@@ -268,7 +268,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposed(const void* source, 
 ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedPos(const void* source, Vector& o0,
                                                                Vector& o1, Vector& o2, Vector& o3)
 {
-  const Vector* vsource = static_cast<const Vector*>(source);
+  auto vsource = static_cast<const Vector*>(source);
 #if defined(USE_SSE)
   o0 = vsource[0];
   o1 = vsource[1];
@@ -299,7 +299,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedPos(const void* sourc
 ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadPos(const void* source,  //
                                                      Vector& o0, Vector& o1, Vector& o2)
 {
-  const Vector* vsource = static_cast<const Vector*>(source);
+  auto vsource = static_cast<const Vector*>(source);
   o0 = vsource[0];
   o1 = vsource[1];
   o2 = vsource[2];
@@ -415,7 +415,7 @@ LoadTransformVertex(const u8* data, Vector pos0, Vector pos1, Vector pos2, Vecto
     u32 idx = data[0] & 0x3f;
     data += sizeof(u32);
 
-    const float* fdata = reinterpret_cast<const float*>(data);
+    auto fdata = reinterpret_cast<const float*>(data);
 
 #ifdef USE_NEON
     LoadTransposedPos(&xfmem.posMatrices[idx * 4], pos0, pos1, pos2, pos3);
@@ -470,7 +470,7 @@ LoadTransformVertex(const u8* data, Vector pos0, Vector pos1, Vector pos2, Vecto
   }
   else
   {
-    const float* fdata = reinterpret_cast<const float*>(data);
+    auto fdata = reinterpret_cast<const float*>(data);
     if constexpr (PositionHas3Elems)
     {
 #if defined(USE_SSE)
@@ -509,8 +509,8 @@ template <bool PositionHas3Elems, bool PerVertexPosMtx>
 ATTR_TARGET static void TransformVertices(void* output, const void* vertices, u32 stride, int count)
 {
   const VertexShaderManager& vsmanager = Core::System::GetInstance().GetVertexShaderManager();
-  const u8* cvertices = static_cast<const u8*>(vertices);
-  Vector* voutput = static_cast<Vector*>(output);
+  auto cvertices = static_cast<const u8*>(vertices);
+  auto voutput = static_cast<Vector*>(output);
   u32 idx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 0x3f;
 #ifdef USE_AVX
   __m256 proj0, proj1, proj2, proj3;
@@ -559,9 +559,9 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static bool CullTriangle(const CPUCull::Transfo
   if (Mode == CullMode::All)
     return true;
 
-  Vector va = reinterpret_cast<const Vector&>(a);
-  Vector vb = reinterpret_cast<const Vector&>(b);
-  Vector vc = reinterpret_cast<const Vector&>(c);
+  auto va = reinterpret_cast<const Vector&>(a);
+  auto vb = reinterpret_cast<const Vector&>(b);
+  auto vc = reinterpret_cast<const Vector&>(c);
 
   // See videosoftware Clipper.cpp
 
@@ -655,7 +655,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static bool CullTriangle(const CPUCull::Transfo
 
 template <OpcodeDecoder::Primitive Primitive, CullMode Mode>
 ATTR_TARGET static bool AreAllVerticesCulled(const CPUCull::TransformedVertex* transformed,
-                                             int count)
+                                             const int count)
 {
   switch (Primitive)
   {

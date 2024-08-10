@@ -6,7 +6,7 @@
 #include <QStyle>
 #include <QStyleOption>
 
-ToolTipSlider::ToolTipSlider(Qt::Orientation orientation) : ToolTipWidget(orientation)
+ToolTipSlider::ToolTipSlider(const Qt::Orientation orientation) : ToolTipWidget(orientation)
 {
 }
 

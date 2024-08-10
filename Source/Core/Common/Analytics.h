@@ -7,7 +7,6 @@
 #include <memory>
 #include <shared_mutex>
 #include <string>
-#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -76,14 +75,14 @@ public:
   AnalyticsReportBuilder& AddBuilder(const AnalyticsReportBuilder& other)
   {
     // Get before locking the object to avoid deadlocks with this += this.
-    std::string other_report = other.Get();
+    const std::string other_report = other.Get();
     std::lock_guard lk{m_lock};
     m_report += other_report;
     return *this;
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(std::string_view key, const T& value)
+  AnalyticsReportBuilder& AddData(const std::string_view key, const T& value)
   {
     std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
@@ -92,7 +91,7 @@ public:
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(std::string_view key, const std::vector<T>& value)
+  AnalyticsReportBuilder& AddData(const std::string_view key, const std::vector<T>& value)
   {
     std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
@@ -162,8 +161,8 @@ protected:
   AnalyticsReportBuilder m_base_builder;
 
   std::thread m_reporter_thread;
-  Common::Event m_reporter_event;
-  Common::Flag m_reporter_stop_request;
+  Event m_reporter_event;
+  Flag m_reporter_stop_request;
   SPSCQueue<std::string> m_reports_queue;
 };
 

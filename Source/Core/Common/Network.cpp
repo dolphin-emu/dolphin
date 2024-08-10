@@ -36,10 +36,10 @@ MACAddress GenerateMacAddress(const MACConsumer type)
   switch (type)
   {
   case MACConsumer::BBA:
-    std::copy(oui_bba.begin(), oui_bba.end(), mac.begin());
+    std::ranges::copy(oui_bba, mac.begin());
     break;
   case MACConsumer::IOS:
-    std::copy(oui_ios.begin(), oui_ios.end(), mac.begin());
+    std::ranges::copy(oui_ios, mac.begin());
     break;
   }
 
@@ -54,7 +54,7 @@ std::string MacAddressToString(const MACAddress& mac)
                      mac[4], mac[5]);
 }
 
-std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
+std::optional<MACAddress> StringToMacAddress(const std::string_view mac_string)
 {
   if (mac_string.empty())
     return std::nullopt;
@@ -64,7 +64,7 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 
   for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
   {
-    char c = Common::ToLower(mac_string.at(i));
+    const char c = ToLower(mac_string.at(i));
     if (c >= '0' && c <= '9')
     {
       mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
@@ -88,23 +88,23 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 
 EthernetHeader::EthernetHeader() = default;
 
-EthernetHeader::EthernetHeader(u16 ether_type) : ethertype(htons(ether_type))
+EthernetHeader::EthernetHeader(const u16 ether_type) : ethertype(htons(ether_type))
 {
 }
 
-EthernetHeader::EthernetHeader(const MACAddress& dest, const MACAddress& src, u16 ether_type)
+EthernetHeader::EthernetHeader(const MACAddress& dest, const MACAddress& src, const u16 ether_type)
     : destination(dest), source(src), ethertype(htons(ether_type))
 {
 }
 
-u16 EthernetHeader::Size() const
+u16 EthernetHeader::Size()
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 IPv4Header::IPv4Header() = default;
 
-IPv4Header::IPv4Header(u16 data_size, u8 ip_proto, const sockaddr_in& from, const sockaddr_in& to)
+IPv4Header::IPv4Header(const u16 data_size, const u8 ip_proto, const sockaddr_in& from, const sockaddr_in& to)
 {
   version_ihl = 0x45;
   total_len = htons(Size() + data_size);
@@ -117,9 +117,9 @@ IPv4Header::IPv4Header(u16 data_size, u8 ip_proto, const sockaddr_in& from, cons
   header_checksum = htons(ComputeNetworkChecksum(this, Size()));
 }
 
-u16 IPv4Header::Size() const
+u16 IPv4Header::Size()
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 u8 IPv4Header::DefinedSize() const
@@ -129,8 +129,8 @@ u8 IPv4Header::DefinedSize() const
 
 TCPHeader::TCPHeader() = default;
 
-TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, const u8* data,
-                     u16 length)
+TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, const u32 seq, const u8* data,
+                     const u16 length)
 {
   std::memcpy(&source_port, &from.sin_port, 2);
   std::memcpy(&destination_port, &to.sin_port, 2);
@@ -155,7 +155,7 @@ TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, co
   checksum = htons(static_cast<u16>(tcp_checksum));
 }
 
-TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
+TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, const u32 seq, const u32 ack, const u16 flags)
 {
   source_port = from.sin_port;
   destination_port = to.sin_port;
@@ -172,38 +172,38 @@ u8 TCPHeader::GetHeaderSize() const
   return (ntohs(properties) & 0xf000) >> 10;
 }
 
-u16 TCPHeader::Size() const
+u16 TCPHeader::Size()
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
-u8 TCPHeader::IPProto() const
+u8 TCPHeader::IPProto()
 {
-  return static_cast<u8>(IPPROTO_TCP);
+  return IPPROTO_TCP;
 }
 
 UDPHeader::UDPHeader() = default;
 
-UDPHeader::UDPHeader(const sockaddr_in& from, const sockaddr_in& to, u16 data_length)
+UDPHeader::UDPHeader(const sockaddr_in& from, const sockaddr_in& to, const u16 data_length)
 {
   std::memcpy(&source_port, &from.sin_port, 2);
   std::memcpy(&destination_port, &to.sin_port, 2);
   length = htons(Size() + data_length);
 }
 
-u16 UDPHeader::Size() const
+u16 UDPHeader::Size()
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
-u8 UDPHeader::IPProto() const
+u8 UDPHeader::IPProto()
 {
-  return static_cast<u8>(IPPROTO_UDP);
+  return IPPROTO_UDP;
 }
 
 ARPHeader::ARPHeader() = default;
 
-ARPHeader::ARPHeader(u32 from_ip, const MACAddress& from_mac, u32 to_ip, const MACAddress& to_mac)
+ARPHeader::ARPHeader(const u32 from_ip, const MACAddress& from_mac, const u32 to_ip, const MACAddress& to_mac)
 {
   hardware_type = htons(BBA_HARDWARE_TYPE);
   protocol_type = IPV4_HEADER_TYPE;
@@ -216,17 +216,17 @@ ARPHeader::ARPHeader(u32 from_ip, const MACAddress& from_mac, u32 to_ip, const M
   sender_address = from_mac;
 }
 
-u16 ARPHeader::Size() const
+u16 ARPHeader::Size()
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 DHCPBody::DHCPBody() = default;
 
-DHCPBody::DHCPBody(u32 transaction, const MACAddress& client_address, u32 new_ip, u32 serv_ip)
+DHCPBody::DHCPBody(const u32 transaction, const MACAddress& client_address, const u32 new_ip, const u32 serv_ip)
 {
   transaction_id = transaction;
-  message_type = DHCPConst::MESSAGE_REPLY;
+  message_type = MESSAGE_REPLY;
   hardware_type = BBA_HARDWARE_TYPE;
   hardware_addr = MAC_ADDRESS_SIZE;
   client_mac = client_address;
@@ -263,19 +263,19 @@ DHCPPacket::DHCPPacket(const std::vector<u8>& data)
   }
 }
 
-void DHCPPacket::AddOption(u8 fnc, const std::vector<u8>& params)
+void DHCPPacket::AddOption(const u8 fnc, const std::vector<u8>& params)
 {
   if (params.size() > 255)
     return;
-  std::vector<u8> opt = {fnc, u8(params.size())};
+  std::vector opt = {fnc, static_cast<u8>(params.size())};
   opt.insert(opt.end(), params.begin(), params.end());
   options.emplace_back(std::move(opt));
 }
 
 std::vector<u8> DHCPPacket::Build() const
 {
-  const u8* body_ptr = reinterpret_cast<const u8*>(&body);
-  std::vector<u8> result(body_ptr, body_ptr + DHCPBody::SIZE);
+  auto body_ptr = reinterpret_cast<const u8*>(&body);
+  std::vector result(body_ptr, body_ptr + DHCPBody::SIZE);
 
   for (auto& opt : options)
   {
@@ -289,12 +289,12 @@ std::vector<u8> DHCPPacket::Build() const
 
 // Compute the network checksum with a 32-bit accumulator using the
 // "Normal" order, see RFC 1071 for more details.
-u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value)
+u16 ComputeNetworkChecksum(const void* data, const u16 length, const u32 initial_value)
 {
   u32 checksum = initial_value;
   std::size_t index = 0;
-  const std::string_view data_view{reinterpret_cast<const char*>(data), length};
-  for (u8 b : data_view)
+  const std::string_view data_view{static_cast<const char*>(data), length};
+  for (const u8 b : data_view)
   {
     const bool is_hi = index++ % 2 == 0;
     checksum += is_hi ? b << 8 : b;
@@ -306,7 +306,7 @@ u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value)
 
 // Compute the TCP checksum with its pseudo header
 u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const void* data,
-                              u16 length, u8 protocol)
+                              const u16 length, const u8 protocol)
 {
   const u32 source_addr = ntohl(std::bit_cast<u32>(from));
   const u32 destination_addr = ntohl(std::bit_cast<u32>(to));
@@ -321,15 +321,15 @@ template <typename Container, typename T>
 static inline void InsertObj(Container* container, const T& obj)
 {
   static_assert(std::is_trivially_copyable_v<T>);
-  const u8* const ptr = reinterpret_cast<const u8*>(&obj);
+  const auto ptr = reinterpret_cast<const u8*>(&obj);
   container->insert(container->end(), ptr, ptr + sizeof(obj));
 }
 
 ARPPacket::ARPPacket() = default;
 
-u16 ARPPacket::Size() const
+u16 ARPPacket::Size()
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 ARPPacket::ARPPacket(const MACAddress& destination, const MACAddress& source)
@@ -351,9 +351,9 @@ std::vector<u8> ARPPacket::Build() const
 TCPPacket::TCPPacket() = default;
 
 TCPPacket::TCPPacket(const MACAddress& destination, const MACAddress& source,
-                     const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
+                     const sockaddr_in& from, const sockaddr_in& to, const u32 seq, const u32 ack, const u16 flags)
     : eth_header(destination, source, IPV4_ETHERTYPE),
-      ip_header(Common::TCPHeader::SIZE, IPPROTO_TCP, from, to),
+      ip_header(TCPHeader::SIZE, IPPROTO_TCP, from, to),
       tcp_header(from, to, seq, ack, flags)
 {
 }
@@ -386,11 +386,11 @@ std::vector<u8> TCPPacket::Build() const
 
   auto ip_checksum_bitcast_ptr =
       Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
-  ip_checksum_bitcast_ptr = u16(0);
-  ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
+  ip_checksum_bitcast_ptr = static_cast<u16>(0);
+  ip_checksum_bitcast_ptr = htons(ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(tcp_ptr + offsetof(TCPHeader, checksum));
-  checksum_bitcast_ptr = u16(0);
+  checksum_bitcast_ptr = static_cast<u16>(0);
   checksum_bitcast_ptr = ComputeTCPNetworkChecksum(
       ip_header.source_addr, ip_header.destination_addr, tcp_ptr, tcp_length, IPPROTO_TCP);
 
@@ -407,7 +407,7 @@ UDPPacket::UDPPacket() = default;
 UDPPacket::UDPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, const std::vector<u8>& payload)
     : eth_header(destination, source, IPV4_ETHERTYPE),
-      ip_header(static_cast<u16>(payload.size() + Common::UDPHeader::SIZE), IPPROTO_UDP, from, to),
+      ip_header(static_cast<u16>(payload.size() + UDPHeader::SIZE), IPPROTO_UDP, from, to),
       udp_header(from, to, static_cast<u16>(payload.size())), data(payload)
 {
 }
@@ -436,11 +436,11 @@ std::vector<u8> UDPPacket::Build() const
 
   auto ip_checksum_bitcast_ptr =
       Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
-  ip_checksum_bitcast_ptr = u16(0);
-  ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
+  ip_checksum_bitcast_ptr = static_cast<u16>(0);
+  ip_checksum_bitcast_ptr = htons(ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(udp_ptr + offsetof(UDPHeader, checksum));
-  checksum_bitcast_ptr = u16(0);
+  checksum_bitcast_ptr = static_cast<u16>(0);
   checksum_bitcast_ptr = ComputeTCPNetworkChecksum(
       ip_header.source_addr, ip_header.destination_addr, udp_ptr, udp_length, IPPROTO_UDP);
 
@@ -452,7 +452,7 @@ u16 UDPPacket::Size() const
   return static_cast<u16>(MIN_SIZE + data.size() + ipv4_options.size());
 }
 
-PacketView::PacketView(const u8* ptr, std::size_t size) : m_ptr(ptr), m_size(size)
+PacketView::PacketView(const u8* ptr, const std::size_t size) : m_ptr(ptr), m_size(size)
 {
 }
 
@@ -489,7 +489,7 @@ std::optional<TCPPacket> PacketView::GetTCPPacket() const
   if (m_size < offset + TCPHeader::SIZE)
     return std::nullopt;
   result.ipv4_options =
-      std::vector<u8>(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
+      std::vector(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
   result.tcp_header = Common::BitCastPtr<TCPHeader>(m_ptr + offset);
   const u16 data_offset = result.tcp_header.GetHeaderSize() + offset;
 
@@ -499,8 +499,8 @@ std::optional<TCPPacket> PacketView::GetTCPPacket() const
   if (m_size < end || end < data_offset)
     return std::nullopt;
 
-  result.tcp_options = std::vector<u8>(m_ptr + offset + TCPHeader::SIZE, m_ptr + data_offset);
-  result.data = std::vector<u8>(m_ptr + data_offset, m_ptr + end);
+  result.tcp_options = std::vector(m_ptr + offset + TCPHeader::SIZE, m_ptr + data_offset);
+  result.data = std::vector(m_ptr + data_offset, m_ptr + end);
 
   return result;
 }
@@ -516,7 +516,7 @@ std::optional<UDPPacket> PacketView::GetUDPPacket() const
   if (m_size < offset + UDPHeader::SIZE)
     return std::nullopt;
   result.ipv4_options =
-      std::vector<u8>(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
+      std::vector(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
   result.udp_header = Common::BitCastPtr<UDPHeader>(m_ptr + offset);
   const u16 data_offset = UDPHeader::SIZE + offset;
 
@@ -526,7 +526,7 @@ std::optional<UDPPacket> PacketView::GetUDPPacket() const
   if (m_size < end || end < data_offset)
     return std::nullopt;
 
-  result.data = std::vector<u8>(m_ptr + data_offset, m_ptr + end);
+  result.data = std::vector(m_ptr + data_offset, m_ptr + end);
 
   return result;
 }

@@ -4,17 +4,16 @@
 #include "Common/Debug/MemoryPatches.h"
 
 #include <algorithm>
-#include <sstream>
 #include <utility>
 
 namespace Common::Debug
 {
-MemoryPatch::MemoryPatch(u32 address_, std::vector<u8> value_)
+MemoryPatch::MemoryPatch(const u32 address_, std::vector<u8> value_)
     : address(address_), value(std::move(value_))
 {
 }
 
-MemoryPatch::MemoryPatch(u32 address_, u32 value_)
+MemoryPatch::MemoryPatch(const u32 address_, const u32 value_)
     : MemoryPatch(address_, {static_cast<u8>(value_ >> 24), static_cast<u8>(value_ >> 16),
                              static_cast<u8>(value_ >> 8), static_cast<u8>(value_)})
 {
@@ -63,8 +62,8 @@ const std::vector<MemoryPatch>& MemoryPatches::GetPatches() const
 
 void MemoryPatches::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
 {
-  const auto it = std::find_if(m_patches.begin(), m_patches.end(),
-                               [address](const auto& patch) { return patch.address == address; });
+  const auto it = std::ranges::find_if(
+      m_patches, [address](const auto& patch) { return patch.address == address; });
 
   if (it == m_patches.end())
     return;
@@ -73,7 +72,7 @@ void MemoryPatches::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
   RemovePatch(guard, index);
 }
 
-void MemoryPatches::EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void MemoryPatches::EnablePatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   if (m_patches[index].is_enabled == MemoryPatch::State::Enabled)
     return;
@@ -81,7 +80,7 @@ void MemoryPatches::EnablePatch(const Core::CPUThreadGuard& guard, std::size_t i
   Patch(guard, index);
 }
 
-void MemoryPatches::DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void MemoryPatches::DisablePatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   if (m_patches[index].is_enabled == MemoryPatch::State::Disabled)
     return;
@@ -91,12 +90,12 @@ void MemoryPatches::DisablePatch(const Core::CPUThreadGuard& guard, std::size_t 
 
 bool MemoryPatches::HasEnabledPatch(u32 address) const
 {
-  return std::any_of(m_patches.begin(), m_patches.end(), [address](const MemoryPatch& patch) {
+  return std::ranges::any_of(m_patches, [address](const MemoryPatch& patch) {
     return patch.address == address && patch.is_enabled == MemoryPatch::State::Enabled;
   });
 }
 
-void MemoryPatches::RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void MemoryPatches::RemovePatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   DisablePatch(guard, index);
   UnPatch(index);

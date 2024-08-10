@@ -10,7 +10,6 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/Intrinsics.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Swap.h"
@@ -29,7 +28,7 @@ void SDSP::InitializeIFX()
   GetMailbox(Mailbox::DSP).store(0);
 }
 
-u32 SDSP::PeekMailbox(Mailbox mailbox) const
+u32 SDSP::PeekMailbox(const Mailbox mailbox) const
 {
   return GetMailbox(mailbox).load();
 }
@@ -48,13 +47,13 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
   return static_cast<u16>(value);
 }
 
-u16 SDSP::ReadMailboxHigh(Mailbox mailbox)
+u16 SDSP::ReadMailboxHigh(const Mailbox mailbox) const
 {
   // TODO: mask away the top bit?
   return static_cast<u16>(PeekMailbox(mailbox) >> 16);
 }
 
-void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
+void SDSP::WriteMailboxLow(Mailbox mailbox, const u16 value)
 {
   const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
   const u32 new_value = (old_value & ~0xffff) | value;
@@ -68,7 +67,7 @@ void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 #endif
 }
 
-void SDSP::WriteMailboxHigh(Mailbox mailbox, u16 value)
+void SDSP::WriteMailboxHigh(const Mailbox mailbox, const u16 value)
 {
   const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
   const u32 new_value = (old_value & 0xffff) | (value << 16);
@@ -76,7 +75,7 @@ void SDSP::WriteMailboxHigh(Mailbox mailbox, u16 value)
   GetMailbox(mailbox).store(new_value & ~0x80000000, std::memory_order_release);
 }
 
-void SDSP::WriteIFX(u32 address, u16 value)
+void SDSP::WriteIFX(const u32 address, const u16 value)
 {
   m_dsp_core.LogIFXWrite(address, value);
 
@@ -178,11 +177,11 @@ void SDSP::WriteIFX(u32 address, u16 value)
     if ((address & 0xff) >= 0xa0)
     {
       const u32 index = (address & 0xFF) - 0xa0;
-      const auto& label = pdlabels[index];
+      const auto& [_addr, name, description] = pdlabels[index];
 
-      if (label.name && label.description)
+      if (name && description)
       {
-        DEBUG_LOG_FMT(DSPLLE, "{:04x} MW {} ({:04x})", pc, label.name, value);
+        DEBUG_LOG_FMT(DSPLLE, "{:04x} MW {} ({:04x})", pc, name, value);
       }
       else
       {
@@ -198,7 +197,7 @@ void SDSP::WriteIFX(u32 address, u16 value)
   }
 }
 
-u16 SDSP::ReadIFXImpl(u16 address)
+u16 SDSP::ReadIFXImpl(const u16 address)
 {
   switch (address & 0xff)
   {
@@ -249,11 +248,11 @@ u16 SDSP::ReadIFXImpl(u16 address)
     if ((address & 0xff) >= 0xa0)
     {
       const u32 index = (address & 0xFF) - 0xa0;
-      const auto& label = pdlabels[index];
+      const auto& [_addr, name, description] = pdlabels[index];
 
-      if (label.name && label.description)
+      if (name && description)
       {
-        DEBUG_LOG_FMT(DSPLLE, "{:04x} MR {} ({:04x})", pc, label.name, ifx_reg);
+        DEBUG_LOG_FMT(DSPLLE, "{:04x} MR {} ({:04x})", pc, name, ifx_reg);
       }
       else
       {
@@ -269,14 +268,14 @@ u16 SDSP::ReadIFXImpl(u16 address)
   }
 }
 
-u16 SDSP::ReadIFX(u16 address)
+u16 SDSP::ReadIFX(const u16 address)
 {
   const u16 retval = ReadIFXImpl(address);
   m_dsp_core.LogIFXRead(address, retval);
   return retval;
 }
 
-const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
+const u8* SDSP::IDMAIn(const u16 dsp_addr, const u32 addr, const u32 size) const
 {
   Common::UnWriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
   Host::DMAToDSP(iram + dsp_addr / 2, addr, size);
@@ -289,7 +288,7 @@ const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
   return reinterpret_cast<const u8*>(iram) + dsp_addr;
 }
 
-const u8* SDSP::IDMAOut(u16 dsp_addr, u32 addr, u32 size)
+const u8* SDSP::IDMAOut(const u16 dsp_addr, const u32 addr, const u32 size)
 {
   ERROR_LOG_FMT(DSPLLE, "*** idma_out IRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
                 dsp_addr / 2, addr, size);
@@ -297,7 +296,7 @@ const u8* SDSP::IDMAOut(u16 dsp_addr, u32 addr, u32 size)
 }
 
 // TODO: These should eat clock cycles.
-const u8* SDSP::DDMAIn(u16 dsp_addr, u32 addr, u32 size)
+const u8* SDSP::DDMAIn(const u16 dsp_addr, const u32 addr, const u32 size) const
 {
   Host::DMAToDSP(dram + dsp_addr / 2, addr, size);
   DEBUG_LOG_FMT(DSPLLE, "*** ddma_in RAM ({:#010x}) -> DRAM_DSP ({:#06x}) : size ({:#010x})", addr,
@@ -306,7 +305,7 @@ const u8* SDSP::DDMAIn(u16 dsp_addr, u32 addr, u32 size)
   return reinterpret_cast<const u8*>(dram) + dsp_addr;
 }
 
-const u8* SDSP::DDMAOut(u16 dsp_addr, u32 addr, u32 size)
+const u8* SDSP::DDMAOut(const u16 dsp_addr, const u32 addr, const u32 size) const
 {
   Host::DMAFromDSP(dram + dsp_addr / 2, addr, size);
   DEBUG_LOG_FMT(DSPLLE, "*** ddma_out DRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",

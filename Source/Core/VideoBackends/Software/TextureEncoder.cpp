@@ -22,7 +22,7 @@ namespace TextureEncoder
 {
 static inline void RGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8* a)
 {
-  u32 srcColor = *(u32*)src;
+  const u32 srcColor = *(u32*)src;
   *a = Convert6To8(srcColor & 0x3f);
   *b = Convert6To8((srcColor >> 6) & 0x3f);
   *g = Convert6To8((srcColor >> 12) & 0x3f);
@@ -31,16 +31,16 @@ static inline void RGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8* a)
 
 static inline void RGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 {
-  u32 srcColor = *(u32*)src;
+  const u32 srcColor = *(u32*)src;
   *b = Convert6To8((srcColor >> 6) & 0x3f);
   *g = Convert6To8((srcColor >> 12) & 0x3f);
   *r = Convert6To8((srcColor >> 18) & 0x3f);
 }
 
-static inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
+static inline u8 RGB8_to_I(const u8 r, const u8 g, const u8 b)
 {
   // values multiplied by 256 to keep math integer
-  u16 val = 4096 + 66 * r + 129 * g + 25 * b;
+  const u16 val = 4096 + 66 * r + 129 * g + 25 * b;
   return val >> 8;
 }
 
@@ -55,7 +55,7 @@ static inline void BoxfilterRGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       a16 += srcColor & 0x3f;
       b16 += (srcColor >> 6) & 0x3f;
@@ -81,7 +81,7 @@ static inline void BoxfilterRGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       b16 += (srcColor >> 6) & 0x3f;
       g16 += (srcColor >> 12) & 0x3f;
@@ -97,7 +97,7 @@ static inline void BoxfilterRGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
   *b = b16 + (b16 >> 6);
 }
 
-static inline void BoxfilterRGBA_to_x8(const u8* src, u8* x8, int shift)
+static inline void BoxfilterRGBA_to_x8(const u8* src, u8* x8, const int shift)
 {
   u16 x16 = 0;
 
@@ -105,7 +105,7 @@ static inline void BoxfilterRGBA_to_x8(const u8* src, u8* x8, int shift)
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       x16 += (srcColor >> shift) & 0x3f;
 
@@ -117,7 +117,7 @@ static inline void BoxfilterRGBA_to_x8(const u8* src, u8* x8, int shift)
   *x8 = x16 + (x16 >> 6);
 }
 
-static inline void BoxfilterRGBA_to_xx8(const u8* src, u8* x1, u8* x2, int shift1, int shift2)
+static inline void BoxfilterRGBA_to_xx8(const u8* src, u8* x1, u8* x2, const int shift1, const int shift2)
 {
   u16 x16_1 = 0;
   u16 x16_2 = 0;
@@ -126,7 +126,7 @@ static inline void BoxfilterRGBA_to_xx8(const u8* src, u8* x1, u8* x2, int shift
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       x16_1 += (srcColor >> shift1) & 0x3f;
       x16_2 += (srcColor >> shift2) & 0x3f;
@@ -162,7 +162,7 @@ static inline void BoxfilterRGB_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
   *b = b16 >> 2;
 }
 
-static inline void BoxfilterRGB_to_x8(const u8* src, u8* x8, int comp)
+static inline void BoxfilterRGB_to_x8(const u8* src, u8* x8, const int comp)
 {
   u16 x16 = 0;
 
@@ -180,7 +180,7 @@ static inline void BoxfilterRGB_to_x8(const u8* src, u8* x8, int comp)
   *x8 = x16 >> 2;
 }
 
-static inline void BoxfilterRGB_to_xx8(const u8* src, u8* x1, u8* x2, int comp1, int comp2)
+static inline void BoxfilterRGB_to_xx8(const u8* src, u8* x1, u8* x2, const int comp1, const int comp2)
 {
   u16 x16_1 = 0;
   u16 x16_2 = 0;
@@ -201,12 +201,12 @@ static inline void BoxfilterRGB_to_xx8(const u8* src, u8* x1, u8* x2, int comp1,
   *x2 = x16_2 >> 2;
 }
 
-static void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16* sBlkCount, u16* tBlkCount,
+static void SetBlockDimensions(const int blkWidthLog2, const int blkHeightLog2, u16* sBlkCount, u16* tBlkCount,
                                u16* sBlkSize, u16* tBlkSize)
 {
   // if half_scale is 1 then the size is cut in half
-  u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
-  u32 height = bpmem.copyTexSrcWH.y >> bpmem.triggerEFBCopy.half_scale;
+  const u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
+  const u32 height = bpmem.copyTexSrcWH.y >> bpmem.triggerEFBCopy.half_scale;
 
   *sBlkCount = (width >> blkWidthLog2) + 1;
   *tBlkCount = (height >> blkHeightLog2) + 1;
@@ -215,14 +215,14 @@ static void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16* sBlkCou
   *tBlkSize = 1 << blkHeightLog2;
 }
 
-static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32* tBlkSpan,
+static void SetSpans(const int sBlkSize, const int tBlkSize, s32* tSpan, s32* sBlkSpan, s32* tBlkSpan,
                      s32* writeStride)
 {
   // width is 1 less than the number of pixels of width
-  u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
-  u32 alignedWidth = Common::AlignUp(width + 1, sBlkSize);
+  const u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
+  const u32 alignedWidth = Common::AlignUp(width + 1, sBlkSize);
 
-  u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale;
+  const u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale;
 
   *tSpan = (640 - sBlkSize) *
            readStride;  // bytes to advance src pointer after each row of texels in a block
@@ -1422,7 +1422,7 @@ namespace
 {
 void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
                    u32 num_blocks_y, u32 memory_stride, const MathUtil::Rectangle<int>& src_rect,
-                   bool scale_by_half)
+                   const bool scale_by_half)
 {
   const u8* src = EfbInterface::GetPixelPointer(src_rect.left, src_rect.top, params.depth);
 
@@ -1469,10 +1469,10 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
 }
 }  // namespace
 
-void Encode(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
-            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-            const MathUtil::Rectangle<int>& src_rect, bool scale_by_half, float y_scale,
-            float gamma)
+void Encode(AbstractStagingTexture* dst, const EFBCopyParams& params, const u32 native_width,
+            const u32 bytes_per_row, const u32 num_blocks_y, const u32 memory_stride,
+            const MathUtil::Rectangle<int>& src_rect, const bool scale_by_half, const float y_scale,
+            const float gamma)
 {
   // HACK: Override the memory stride for this staging texture with new copy stride.
   // This is required because the texture encoder assumes that we're writing directly to memory,

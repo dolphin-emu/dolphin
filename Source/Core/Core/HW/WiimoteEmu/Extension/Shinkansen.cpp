@@ -57,7 +57,7 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
 
 void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  DesiredState& state = target_state->data.emplace<DesiredState>();
+  auto& [brake, power, buttons] = target_state->data.emplace<DesiredState>();
 
   const auto analog = m_levers->GetState().data;
   // The game requires these specific values, all other values are treated like 0/255 (which are
@@ -65,8 +65,8 @@ void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   const u8 brake_values[] = {0, 53, 79, 105, 132, 159, 187, 217, 250};
   const u8 power_values[] = {255, 229, 208, 189, 170, 153, 135, 118, 101, 85, 68, 51, 35, 17};
   // Not casting from size_t would trigger a static assert in MapFloat due to its use of llround
-  state.brake = brake_values[MapFloat(analog[0], 0, 0, static_cast<int>(sizeof(brake_values) - 1))];
-  state.power = power_values[MapFloat(analog[1], 0, 0, static_cast<int>(sizeof(power_values) - 1))];
+  brake = brake_values[MapFloat(analog[0], 0, 0, static_cast<int>(sizeof(brake_values) - 1))];
+  power = power_values[MapFloat(analog[1], 0, 0, static_cast<int>(sizeof(power_values) - 1))];
 
   // Note: This currently assumes a little-endian host.
   const u16 button_bitmasks[] = {
@@ -81,7 +81,7 @@ void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
       0x0010,  // Select
       0x0004,  // Start
   };
-  m_buttons->GetState(&state.buttons, button_bitmasks);
+  m_buttons->GetState(&buttons, button_bitmasks);
 }
 
 void Shinkansen::Update(const DesiredExtensionState& target_state)
@@ -117,7 +117,7 @@ void Shinkansen::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-ControllerEmu::ControlGroup* Shinkansen::GetGroup(ShinkansenGroup group)
+ControllerEmu::ControlGroup* Shinkansen::GetGroup(const ShinkansenGroup group) const
 {
   switch (group)
   {

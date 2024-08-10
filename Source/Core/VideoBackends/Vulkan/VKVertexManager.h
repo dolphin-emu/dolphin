@@ -4,7 +4,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"
@@ -35,17 +34,17 @@ protected:
                     u32* out_base_index) override;
   void UploadUniforms() override;
 
-  void DestroyTexelBufferViews();
+  void DestroyTexelBufferViews() const;
 
-  void UpdateVertexShaderConstants();
-  void UpdateGeometryShaderConstants();
-  void UpdatePixelShaderConstants();
+  void UpdateVertexShaderConstants() const;
+  void UpdateGeometryShaderConstants() const;
+  void UpdatePixelShaderConstants() const;
 
   // Allocates storage in the uniform buffer of the specified size. If this storage cannot be
   // allocated immediately, the current command buffer will be submitted and all stage's
   // constants will be re-uploaded. false will be returned in this case, otherwise true.
-  bool ReserveConstantStorage();
-  void UploadAllConstants();
+  bool ReserveConstantStorage() const;
+  void UploadAllConstants() const;
 
   std::unique_ptr<StreamBuffer> m_vertex_stream_buffer;
   std::unique_ptr<StreamBuffer> m_index_stream_buffer;

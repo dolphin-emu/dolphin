@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"
@@ -32,14 +31,14 @@ public:
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
   // NOTE: m_projection_matrix must be up to date when this is called
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
-  void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
+  void TransformToClipSpace(const float* data, float* out, u32 mtxIdx) const;
 
   static bool UseVertexDepthRange();
 
   VertexShaderConstants constants{};
   bool dirty = false;
 
-  static DOLPHIN_FORCE_INLINE void UpdateValue(bool* dirty, u32* old_value, u32 new_value)
+  static DOLPHIN_FORCE_INLINE void UpdateValue(bool* dirty, u32* old_value, const u32 new_value)
   {
     if (*old_value == new_value)
       return;
@@ -47,7 +46,7 @@ public:
     *dirty = true;
   }
 
-  static DOLPHIN_FORCE_INLINE void UpdateOffset(bool* dirty, bool include_components,
+  static DOLPHIN_FORCE_INLINE void UpdateOffset(bool* dirty, const bool include_components,
                                                 u32* old_value, const AttributeFormat& attribute)
   {
     if (!attribute.enable)
@@ -59,7 +58,7 @@ public:
   }
 
   template <size_t N>
-  static DOLPHIN_FORCE_INLINE void UpdateOffsets(bool* dirty, bool include_components,
+  static DOLPHIN_FORCE_INLINE void UpdateOffsets(bool* dirty, const bool include_components,
                                                  std::array<u32, N>* old_value,
                                                  const std::array<AttributeFormat, N>& attribute)
   {
@@ -67,7 +66,7 @@ public:
       UpdateOffset(dirty, include_components, &(*old_value)[i], attribute[i]);
   }
 
-  DOLPHIN_FORCE_INLINE void SetVertexFormat(u32 components, const PortableVertexDeclaration& format)
+  DOLPHIN_FORCE_INLINE void SetVertexFormat(const u32 components, const PortableVertexDeclaration& format)
   {
     UpdateValue(&dirty, &constants.components, components);
     UpdateValue(&dirty, &constants.vertex_stride, format.stride / 4);

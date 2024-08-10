@@ -6,18 +6,11 @@
 #include <fmt/format.h>
 
 #include <QAction>
-#include <QCloseEvent>
 #include <QContextMenuEvent>
-#include <QDragEnterEvent>
-#include <QDropEvent>
-#include <QFileDialog>
-#include <QIcon>
 #include <QMenu>
 #include <QMimeData>
-#include <QMouseEvent>
 #include <QPainter>
 
-#include "AudioCommon/AudioCommon.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -34,33 +27,33 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/GameCubePane.h"
 
-static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_view rom_path = {})
+static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, const std::string_view rom_path = {})
 {
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       Core::System::GetInstance(),
       [core, rom_path = std::string(rom_path)]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
         {
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
           core_ptr->Stop();
-          Config::SetCurrent(info, rom_path);
-          auto& system = Core::System::GetInstance();
-          auto& core_timing = system.GetCoreTiming();
+          SetCurrent(info, rom_path);
+          const auto& system = Core::System::GetInstance();
+          const auto& core_timing = system.GetCoreTiming();
           if (core_ptr->Start(core_timing.GetTicks()))
             return;
-          Config::SetCurrent(info, Config::GetBase(info));
+          SetCurrent(info, GetBase(info));
           core_ptr->Start(core_timing.GetTicks());
         }
       },
       false);
 }
 
-static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::string_view card_path)
+static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, const std::string_view card_path)
 {
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       Core::System::GetInstance(),
       [core, card_path = std::string(card_path)]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
           core_ptr->EReaderQueueCard(card_path);
       },
       false);
@@ -108,7 +101,7 @@ void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
   update();
 }
 
-void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
+void GBAWidget::SetVideoBuffer(const std::span<const u32> video_buffer)
 {
   m_previous_frame = std::move(m_last_frame);
   if (video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
@@ -125,7 +118,7 @@ void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
   update();
 }
 
-void GBAWidget::SetVolume(int volume)
+void GBAWidget::SetVolume(const int volume)
 {
   m_muted = false;
   m_volume = std::clamp(volume, 0, 100);
@@ -142,7 +135,7 @@ void GBAWidget::VolumeUp()
   SetVolume(m_volume + 10);
 }
 
-bool GBAWidget::IsMuted()
+bool GBAWidget::IsMuted() const
 {
   return m_muted;
 }
@@ -160,10 +153,10 @@ void GBAWidget::ToggleDisconnect()
 
   m_force_disconnect = !m_force_disconnect;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       Core::System::GetInstance(),
       [core = m_core, force_disconnect = m_force_disconnect]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
           core_ptr->SetForceDisconnect(force_disconnect);
       },
       false);
@@ -174,7 +167,7 @@ void GBAWidget::LoadROM()
   if (!CanControlCore())
     return;
 
-  std::string rom_path = GameCubePane::GetOpenGBARom("");
+  const std::string rom_path = GameCubePane::GetOpenGBARom("");
   if (rom_path.empty())
     return;
 
@@ -199,7 +192,7 @@ void GBAWidget::PromptForEReaderCards()
     QueueEReaderCard(m_core, QDir::toNativeSeparators(card_path).toStdString());
 }
 
-void GBAWidget::ResetCore()
+void GBAWidget::ResetCore() const
 {
   if (!CanResetCore())
     return;
@@ -212,7 +205,7 @@ void GBAWidget::DoState(bool export_state)
   if (!CanControlCore() && !export_state)
     return;
 
-  QString state_path = QDir::toNativeSeparators(
+  const QString state_path = QDir::toNativeSeparators(
       (export_state ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(
           this, tr("Select a File"), QString(),
           tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 "
@@ -223,10 +216,10 @@ void GBAWidget::DoState(bool export_state)
   if (state_path.isEmpty())
     return;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       Core::System::GetInstance(),
       [export_state, core = m_core, state_path = state_path.toStdString()]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
         {
           if (export_state)
             core_ptr->ExportState(state_path);
@@ -244,7 +237,7 @@ void GBAWidget::ImportExportSave(bool export_save)
   if (!m_core_info.has_rom)
     return;
 
-  QString save_path = QDir::toNativeSeparators(
+  const QString save_path = QDir::toNativeSeparators(
       (export_save ? DolphinFileDialog::getSaveFileName :
                      DolphinFileDialog::getOpenFileName)(this, tr("Select a File"), QString(),
                                                          tr("Save Game Files (*.sav);;"
@@ -254,10 +247,10 @@ void GBAWidget::ImportExportSave(bool export_save)
   if (save_path.isEmpty())
     return;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       Core::System::GetInstance(),
       [export_save, core = m_core, save_path = save_path.toStdString()]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
         {
           if (export_save)
             core_ptr->ExportSave(save_path);
@@ -268,7 +261,7 @@ void GBAWidget::ImportExportSave(bool export_save)
       false);
 }
 
-void GBAWidget::Resize(int scale)
+void GBAWidget::Resize(const int scale)
 {
   showNormal();
   resize(m_core_info.width * scale, m_core_info.height * scale);
@@ -280,7 +273,7 @@ bool GBAWidget::IsBorderless() const
          windowState().testFlag(Qt::WindowFullScreen);
 }
 
-void GBAWidget::SetBorderless(bool enable)
+void GBAWidget::SetBorderless(const bool enable)
 {
   if (windowState().testFlag(Qt::WindowFullScreen))
   {
@@ -294,7 +287,7 @@ void GBAWidget::SetBorderless(bool enable)
   }
   else if (windowFlags().testFlag(Qt::FramelessWindowHint) != enable)
   {
-    QRect saved_geometry = geometry();
+    const QRect saved_geometry = geometry();
     setWindowFlag(Qt::FramelessWindowHint, enable);
     setGeometry(saved_geometry);
     show();
@@ -306,7 +299,7 @@ bool GBAWidget::IsAlwaysOnTop() const
   return windowFlags().testFlag(Qt::WindowStaysOnTopHint);
 }
 
-void GBAWidget::SetAlwaysOnTop(bool enable)
+void GBAWidget::SetAlwaysOnTop(const bool enable)
 {
   if (windowFlags().testFlag(Qt::WindowStaysOnTopHint) == enable)
     return;
@@ -333,13 +326,13 @@ void GBAWidget::UpdateTitle()
 
 void GBAWidget::UpdateVolume()
 {
-  int volume = m_muted ? 0 : m_volume * 256 / 100;
-  auto& system = Core::System::GetInstance();
+  const int volume = m_muted ? 0 : m_volume * 256 / 100;
+  const auto& system = Core::System::GetInstance();
   system.GetSoundStream()->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
   UpdateTitle();
 }
 
-Qt::WindowFlags GBAWidget::LoadWindowFlags(int device_number)
+Qt::WindowFlags GBAWidget::LoadWindowFlags(const int device_number)
 {
   const QSettings& settings = Settings::GetQSettings();
   const QString key = QStringLiteral("gbawidget/flags%1").arg(device_number + 1);
@@ -358,7 +351,7 @@ void GBAWidget::LoadSettings()
     m_interframe_blending = settings.value(key).toBool();
 }
 
-void GBAWidget::SaveSettings()
+void GBAWidget::SaveSettings() const
 {
   QSettings& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("gbawidget/flags%1").arg(m_local_pad + 1),
@@ -373,7 +366,7 @@ bool GBAWidget::CanControlCore()
   return !Core::System::GetInstance().GetMovie().IsMovieActive() && !NetPlay::IsNetPlayRunning();
 }
 
-bool GBAWidget::CanResetCore()
+bool GBAWidget::CanResetCore() const
 {
   return m_is_local_pad;
 }
@@ -521,7 +514,7 @@ void GBAWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!m_moving)
     return;
-  auto event_pos = event->globalPosition().toPoint();
+  const auto event_pos = event->globalPosition().toPoint();
   move(event_pos - m_move_pos - (geometry().topLeft() - pos()));
 }
 
@@ -539,12 +532,12 @@ void GBAWidget::paintEvent(QPaintEvent* event)
   else if (static_cast<float>(m_core_info.width) / m_core_info.height >
            static_cast<float>(width()) / height())
   {
-    int new_height = width() * m_core_info.height / m_core_info.width;
+    const int new_height = width() * m_core_info.height / m_core_info.width;
     target_rect = QRect(0, (height() - new_height) / 2, width(), new_height);
   }
   else
   {
-    int new_width = height() * m_core_info.width / m_core_info.height;
+    const int new_width = height() * m_core_info.width / m_core_info.height;
     target_rect = QRect((width() - new_width) / 2, 0, new_width, height());
   }
 
@@ -608,12 +601,12 @@ void GBAWidgetController::Create(std::weak_ptr<HW::GBA::Core> core, const HW::GB
   m_widget = new GBAWidget(std::move(core), info, netplay_pad);
 }
 
-void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info)
+void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info) const
 {
   m_widget->GameChanged(info);
 }
 
-void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer)
+void GBAWidgetController::FrameEnded(const std::span<const u32> video_buffer) const
 {
   m_widget->SetVideoBuffer(video_buffer);
 }

@@ -16,7 +16,7 @@ private:
   class Button : public Input
   {
   public:
-    Button(u8 index, const BYTE& button) : m_button(button), m_index(index) {}
+    Button(const u8 index, const BYTE& button) : m_button(button), m_index(index) {}
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -28,7 +28,7 @@ private:
   class Axis : public Input
   {
   public:
-    Axis(u8 index, const LONG& axis, LONG base, LONG range)
+    Axis(const u8 index, const LONG& axis, const LONG base, const LONG range)
         : m_axis(axis), m_base(base), m_range(range), m_index(index)
     {
     }
@@ -44,7 +44,7 @@ private:
   class Hat : public Input
   {
   public:
-    Hat(u8 index, const DWORD& hat, u8 direction)
+    Hat(const u8 index, const DWORD& hat, const u8 direction)
         : m_hat(hat), m_direction(direction), m_index(index)
     {
     }

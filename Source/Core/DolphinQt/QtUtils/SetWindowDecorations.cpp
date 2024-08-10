@@ -11,15 +11,15 @@
 #include <dwmapi.h>
 #endif
 
-void SetQWidgetWindowDecorations(QWidget* widget)
+void SetQWidgetWindowDecorations(const QWidget* widget)
 {
 #ifdef _WIN32
   if (!Settings::Instance().IsThemeDark())
     return;
 
-  BOOL use_dark_title_bar = TRUE;
-  DwmSetWindowAttribute(HWND(widget->winId()),
+  constexpr BOOL use_dark_title_bar = TRUE;
+  DwmSetWindowAttribute(reinterpret_cast<HWND>(widget->winId()),
                         20 /* DWMWINDOWATTRIBUTE::DWMWA_USE_IMMERSIVE_DARK_MODE */,
-                        &use_dark_title_bar, DWORD(sizeof(use_dark_title_bar)));
+                        &use_dark_title_bar, sizeof(use_dark_title_bar));
 #endif
 }

@@ -36,7 +36,7 @@ public:
   void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
-  ControllerEmu::ControlGroup* GetGroup(ShinkansenGroup group);
+  ControllerEmu::ControlGroup* GetGroup(ShinkansenGroup group) const;
 
 private:
   ControllerEmu::Buttons* m_buttons;

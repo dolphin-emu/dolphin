@@ -19,8 +19,8 @@ class AchievementBox final : public QGroupBox
   Q_OBJECT
 public:
   explicit AchievementBox(QWidget* parent, rc_client_achievement_t* achievement);
-  void UpdateData();
-  void UpdateProgress();
+  void UpdateData() const;
+  void UpdateProgress() const;
 
 private:
   QLabel* m_badge;

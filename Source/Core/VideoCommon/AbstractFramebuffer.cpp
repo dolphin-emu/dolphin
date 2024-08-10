@@ -8,9 +8,9 @@
 AbstractFramebuffer::AbstractFramebuffer(AbstractTexture* color_attachment,
                                          AbstractTexture* depth_attachment,
                                          std::vector<AbstractTexture*> additional_color_attachments,
-                                         AbstractTextureFormat color_format,
-                                         AbstractTextureFormat depth_format, u32 width, u32 height,
-                                         u32 layers, u32 samples)
+                                         const AbstractTextureFormat color_format,
+                                         const AbstractTextureFormat depth_format, const u32 width, const u32 height,
+                                         const u32 layers, const u32 samples)
     : m_color_attachment(color_attachment), m_depth_attachment(depth_attachment),
       m_additional_color_attachments(std::move(additional_color_attachments)),
       m_color_format(color_format), m_depth_format(depth_format), m_width(width), m_height(height),
@@ -44,7 +44,7 @@ bool AbstractFramebuffer::ValidateConfig(
     return false;
   }
 
-  for (auto* attachment : additional_color_attachments)
+  for (const auto* attachment : additional_color_attachments)
   {
     if (!CheckAttachment(attachment))
     {
@@ -64,7 +64,7 @@ bool AbstractFramebuffer::ValidateConfig(
     }
   }
 
-  for (auto* attachment : additional_color_attachments)
+  for (const auto* attachment : additional_color_attachments)
   {
     if (color_attachment->GetConfig().width != attachment->GetConfig().width ||
         color_attachment->GetConfig().height != attachment->GetConfig().height ||
@@ -79,5 +79,5 @@ bool AbstractFramebuffer::ValidateConfig(
 
 MathUtil::Rectangle<int> AbstractFramebuffer::GetRect() const
 {
-  return MathUtil::Rectangle<int>(0, 0, static_cast<int>(m_width), static_cast<int>(m_height));
+  return MathUtil::Rectangle(0, 0, static_cast<int>(m_width), static_cast<int>(m_height));
 }

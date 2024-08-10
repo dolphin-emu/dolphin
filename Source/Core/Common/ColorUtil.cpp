@@ -16,9 +16,9 @@ static const int s_lut4to8[] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
 
 static const int s_lut3to8[] = {0x00, 0x24, 0x48, 0x6D, 0x91, 0xB6, 0xDA, 0xFF};
 
-static u32 Decode5A3(u16 val)
+static u32 Decode5A3(const u16 val)
 {
-  const u32 bg_color = 0x00000000;
+  constexpr u32 bg_color = 0x00000000;
 
   int r, g, b, a;
 
@@ -40,7 +40,7 @@ static u32 Decode5A3(u16 val)
   return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-void Decode5A3Image(u32* dst, const u16* src, int width, int height)
+void Decode5A3Image(u32* dst, const u16* src, const int width, const int height)
 {
   for (int y = 0; y < height; y += 4)
   {
@@ -50,7 +50,7 @@ void Decode5A3Image(u32* dst, const u16* src, int width, int height)
       {
         for (int ix = 0; ix < 4; ix++)
         {
-          u32 RGBA = Decode5A3(Common::swap16(src[ix]));
+          const u32 RGBA = Decode5A3(swap16(src[ix]));
           dst[(y + iy) * width + (x + ix)] = RGBA;
         }
       }
@@ -58,7 +58,7 @@ void Decode5A3Image(u32* dst, const u16* src, int width, int height)
   }
 }
 
-void DecodeCI8Image(u32* dst, const u8* src, const u16* pal, int width, int height)
+void DecodeCI8Image(u32* dst, const u8* src, const u16* pal, const int width, const int height)
 {
   for (int y = 0; y < height; y += 4)
   {
@@ -70,7 +70,7 @@ void DecodeCI8Image(u32* dst, const u8* src, const u16* pal, int width, int heig
         for (int ix = 0; ix < 8; ix++)
         {
           // huh, this seems wrong. CI8, not 5A3, no?
-          tdst[ix] = Decode5A3(Common::swap16(pal[src[ix]]));
+          tdst[ix] = Decode5A3(swap16(pal[src[ix]]));
         }
       }
     }

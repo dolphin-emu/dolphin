@@ -19,7 +19,7 @@ SwapChain::~SwapChain() = default;
 
 std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi)
 {
-  std::unique_ptr<SwapChain> swap_chain =
+  auto swap_chain =
       std::make_unique<SwapChain>(wsi, D3D::dxgi_factory.Get(), D3D::device.Get());
   if (!swap_chain->CreateSwapChain(WantsStereo(), WantsHDR()))
     return nullptr;
@@ -30,7 +30,7 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi)
 bool SwapChain::CreateSwapChainBuffers()
 {
   ComPtr<ID3D11Texture2D> texture;
-  HRESULT hr = m_swap_chain->GetBuffer(0, IID_PPV_ARGS(&texture));
+  const HRESULT hr = m_swap_chain->GetBuffer(0, IID_PPV_ARGS(&texture));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return false;

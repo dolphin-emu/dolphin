@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -24,7 +23,6 @@
 #include "Common/Timer.h"
 
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -35,15 +33,15 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
-                       u16 size_mbits)
+MemoryCard::MemoryCard(const std::string& filename, const ExpansionInterface::Slot card_slot,
+                       const u16 size_mbits)
     : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
 {
   File::IOFile file(m_filename, "rb");
   if (file)
   {
     // Measure size of the existing memcard file.
-    m_memory_card_size = (u32)file.GetSize();
+    m_memory_card_size = static_cast<u32>(file.GetSize());
     m_nintendo_card_id = m_memory_card_size / SIZE_TO_Mb;
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
     memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
@@ -60,11 +58,11 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
 
     // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
-    auto& sram = Core::System::GetInstance().GetSRAM();
-    const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
+    const auto& [_rtc, settings, settings_ex] = Core::System::GetInstance().GetSRAM();
+    const CardFlashId& flash_id = settings_ex.flash_id[Memcard::SLOT_A];
     const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
-    const u32 rtc_bias = sram.settings.rtc_bias;
-    const u32 sram_language = static_cast<u32>(sram.settings.language);
+    const u32 rtc_bias = settings.rtc_bias;
+    const u32 sram_language = settings.language;
     const u64 format_time =
         Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
     Memcard::GCMemcard::Format(&m_memcard_data[0], flash_id, size_mbits, shift_jis, rtc_bias,
@@ -94,23 +92,23 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
+  if (!Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }
 
   Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_slot).c_str());
 
-  const auto flush_interval = std::chrono::seconds(15);
+  constexpr auto flush_interval = std::chrono::seconds(15);
 
   while (true)
   {
     // If triggered, we're exiting.
     // If timed out, check if we need to flush.
-    bool do_exit = m_flush_trigger.WaitFor(flush_interval);
+    const bool do_exit = m_flush_trigger.WaitFor(flush_interval);
     if (!do_exit)
     {
-      bool is_dirty = m_dirty.TestAndClear();
+      const bool is_dirty = m_dirty.TestAndClear();
       if (!is_dirty)
       {
         continue;
@@ -167,7 +165,7 @@ void MemoryCard::MakeDirty()
   m_dirty.Set();
 }
 
-s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
+s32 MemoryCard::Read(const u32 src_address, const s32 length, u8* dest_address)
 {
   if (!IsAddressInBounds(src_address, length))
   {
@@ -179,7 +177,7 @@ s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
   return length;
 }
 
-s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
+s32 MemoryCard::Write(const u32 dest_address, const s32 length, const u8* src_address)
 {
   if (!IsAddressInBounds(dest_address, length))
   {
@@ -196,18 +194,15 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
   return length;
 }
 
-void MemoryCard::ClearBlock(u32 address)
+void MemoryCard::ClearBlock(const u32 address)
 {
   if (address & (Memcard::BLOCK_SIZE - 1) || !IsAddressInBounds(address, Memcard::BLOCK_SIZE))
   {
     PanicAlertFmtT("MemoryCard: ClearBlock called on invalid address ({0:#x})", address);
     return;
   }
-  else
-  {
-    std::unique_lock l(m_flush_mutex);
-    memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
-  }
+  std::unique_lock l(m_flush_mutex);
+  memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
   MakeDirty();
 }
 

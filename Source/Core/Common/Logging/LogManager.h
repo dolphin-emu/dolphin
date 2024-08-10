@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <cstdarg>
 #include <map>
 #include <string>
 
@@ -38,14 +37,15 @@ public:
   static void Init();
   static void Shutdown();
 
-  void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void Log(LogLevel level, LogType type, const char* file, int line, const char* message) const;
   void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
+                       const char* message) const;
 
   LogLevel GetLogLevel() const;
   void SetLogLevel(LogLevel level);
 
-  void SetEnable(LogType type, bool enable);
+  void Enable(const LogType type);
+  void Disable(const LogType type);
   bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
 
   std::map<std::string, std::string> GetLogTypes();

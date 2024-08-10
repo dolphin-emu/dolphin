@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <memory>
 
 #include "Common/CommonTypes.h"
 
@@ -97,7 +96,7 @@ union UVIVerticalTimingRegister
   };
 
   UVIVerticalTimingRegister() = default;
-  explicit UVIVerticalTimingRegister(u16 hex) : Hex{hex} {}
+  explicit UVIVerticalTimingRegister(const u16 hex) : Hex{hex} {}
 };
 
 union UVIDisplayControlRegister
@@ -117,7 +116,7 @@ union UVIDisplayControlRegister
   };
 
   UVIDisplayControlRegister() = default;
-  explicit UVIDisplayControlRegister(u16 hex) : Hex{hex} {}
+  explicit UVIDisplayControlRegister(const u16 hex) : Hex{hex} {}
 };
 
 union UVIHorizontalTiming0
@@ -267,7 +266,7 @@ union UVIHorizontalScaling
   };
 
   UVIHorizontalScaling() = default;
-  explicit UVIHorizontalScaling(u16 hex) : Hex{hex} {}
+  explicit UVIHorizontalScaling(const u16 hex) : Hex{hex} {}
 };
 
 // Used for tables 0-2
@@ -375,7 +374,7 @@ public:
   void Update(u64 ticks);
 
   // UpdateInterrupts: check if we have to generate a new VI Interrupt
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
 
   // Change values pertaining to video mode
   void UpdateParameters();
@@ -403,9 +402,9 @@ private:
   u32 GetTicksPerOddField() const;
 
   void LogField(FieldType field, u32 xfb_address) const;
-  void OutputField(FieldType field, u64 ticks);
-  void BeginField(FieldType field, u64 ticks);
-  void EndField(FieldType field, u64 ticks);
+  void OutputField(FieldType field, u64 ticks) const;
+  void BeginField(FieldType field, u64 ticks) const;
+  void EndField(FieldType field, u64 ticks) const;
 
   // Registers listed in order:
   UVIVerticalTimingRegister m_vertical_timing_register;

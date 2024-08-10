@@ -46,7 +46,7 @@ struct OutputVertexData
   std::array<std::array<u8, 4>, 2> color{};
   std::array<Vec3, 8> texCoords{};
 
-  void Lerp(float t, const OutputVertexData* a, const OutputVertexData* b)
+  void Lerp(const float t, const OutputVertexData* a, const OutputVertexData* b)
   {
 #define LINTERP(T, OUT, IN) (OUT) + ((IN - OUT) * T)
 

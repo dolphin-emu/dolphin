@@ -13,6 +13,6 @@ class System;
 namespace HW
 {
 void Init(Core::System& system, const Sram* override_sram);
-void Shutdown(Core::System& system);
-void DoState(Core::System& system, PointerWrap& p);
+void Shutdown(const Core::System& system);
+void DoState(const Core::System& system, PointerWrap& p);
 }  // namespace HW

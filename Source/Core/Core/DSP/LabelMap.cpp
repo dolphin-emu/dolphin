@@ -14,7 +14,7 @@ namespace DSP
 {
 struct LabelMap::Label
 {
-  Label(std::string lbl, s32 address, LabelType ltype)
+  Label(std::string lbl, const s32 address, const LabelType ltype)
       : name(std::move(lbl)), addr(address), type(ltype)
   {
   }
@@ -29,16 +29,16 @@ LabelMap::~LabelMap() = default;
 
 void LabelMap::RegisterDefaults()
 {
-  for (const auto& reg_name_label : regnames)
+  for (const auto& [addr, name, _description] : regnames)
   {
-    if (reg_name_label.name != nullptr)
-      RegisterLabel(reg_name_label.name, reg_name_label.addr);
+    if (name != nullptr)
+      RegisterLabel(name, addr);
   }
 
-  for (const auto& predefined_label : pdlabels)
+  for (const auto& [addr, name, _description] : pdlabels)
   {
-    if (predefined_label.name != nullptr)
-      RegisterLabel(predefined_label.name, predefined_label.addr);
+    if (name != nullptr)
+      RegisterLabel(name, addr);
   }
 }
 
@@ -52,10 +52,7 @@ bool LabelMap::RegisterLabel(std::string label, u16 lval, LabelType type)
       fmt::print("Attempted to redefine label {} from {:04x} to {:04x}\n", label, lval, *old_value);
       return false;
     }
-    else
-    {
-      return true;
-    }
+    return true;
   }
   labels.emplace_back(std::move(label), lval, type);
   return true;
@@ -63,8 +60,9 @@ bool LabelMap::RegisterLabel(std::string label, u16 lval, LabelType type)
 
 void LabelMap::DeleteLabel(std::string_view label)
 {
-  const auto iter = std::find_if(labels.cbegin(), labels.cend(),
-                                 [&label](const auto& entry) { return entry.name == label; });
+  const auto iter = std::ranges::find_if(std::as_const(labels), [&label](const auto& entry) {
+    return entry.name == label;
+  });
 
   if (iter == labels.cend())
     return;
@@ -72,7 +70,7 @@ void LabelMap::DeleteLabel(std::string_view label)
   labels.erase(iter);
 }
 
-std::optional<u16> LabelMap::GetLabelValue(std::string_view name, LabelType type) const
+std::optional<u16> LabelMap::GetLabelValue(std::string_view name, const LabelType type) const
 {
   for (const auto& label : labels)
   {
@@ -82,10 +80,7 @@ std::optional<u16> LabelMap::GetLabelValue(std::string_view name, LabelType type
       {
         return label.addr;
       }
-      else
-      {
-        fmt::print("Wrong label type requested. {}\n", name);
-      }
+      fmt::print("Wrong label type requested. {}\n", name);
     }
   }
 

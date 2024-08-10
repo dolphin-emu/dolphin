@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <d3d11.h>
-#include <string_view>
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/AbstractGfx.h"
 
@@ -16,7 +14,7 @@ class SwapChain;
 class DXTexture;
 class DXFramebuffer;
 
-class Gfx final : public ::AbstractGfx
+class Gfx final : public AbstractGfx
 {
 public:
   Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
@@ -73,7 +71,7 @@ public:
   SurfaceInfo GetSurfaceInfo() const override;
 
 private:
-  void CheckForSwapChainChanges();
+  void CheckForSwapChainChanges() const;
 
   StateCache m_state_cache;
 

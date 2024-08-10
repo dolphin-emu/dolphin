@@ -58,7 +58,7 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
   return matrix;
 }
 
-bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* format)
+bool GLTFComponentTypeToAttributeFormat(const int component_type, AttributeFormat* format)
 {
   switch (component_type)
   {
@@ -113,7 +113,7 @@ bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* for
   return true;
 }
 
-bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_index,
+bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, const u32 accessor_index,
                                      MeshDataChunk* chunk)
 {
   const tinygltf::Accessor& accessor = model.accessors[accessor_index];
@@ -137,7 +137,7 @@ bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_
   return true;
 }
 
-bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_index,
+bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, const u32 accessor_index,
                                  std::size_t* outbound_offset, MeshDataChunk* chunk)
 {
   const tinygltf::Accessor& accessor = model.accessors[accessor_index];
@@ -419,7 +419,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
   return true;
 }
 
-bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
+bool ReadGLTFNodes(const std::string_view mesh_file, const tinygltf::Model& model,
                    const tinygltf::Node& node, const Common::Matrix44& mat, MeshData* data)
 {
   if (node.mesh != -1)
@@ -452,7 +452,7 @@ bool ReadGLTFMaterials(std::string_view mesh_file, const tinygltf::Model& model,
   return true;
 }
 
-bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData* data)
+bool ReadGLTF(const std::string_view mesh_file, const tinygltf::Model& model, MeshData* data)
 {
   int scene_index = model.defaultScene;
   if (scene_index == -1)
@@ -471,7 +471,7 @@ bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData
   return ReadGLTFMaterials(mesh_file, model, data);
 }
 }  // namespace
-bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+bool MeshData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                         const picojson::object& json, MeshData* data)
 {
   if (const auto iter = json.find("material_mapping"); iter != json.end())
@@ -512,7 +512,7 @@ void MeshData::ToJson(picojson::object& obj, const MeshData& data)
   obj.emplace("material_mapping", std::move(material_mapping));
 }
 
-bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
+bool MeshData::FromDolphinMesh(const std::span<const u8> raw_data, MeshData* data)
 {
   std::size_t offset = 0;
 
@@ -583,44 +583,46 @@ bool MeshData::ToDolphinMesh(File::IOFile* file_data, const MeshData& data)
 {
   const std::size_t chunk_size = data.m_mesh_chunks.size();
   file_data->WriteBytes(&chunk_size, sizeof(std::size_t));
-  for (const auto& chunk : data.m_mesh_chunks)
+  for (const auto& [vertex_data, vertex_stride, num_vertices, indices, num_indices,
+         vertex_declaration, primitive_type, components_available, minimum_position,
+         maximum_position, transform, material_name] : data.m_mesh_chunks)
   {
-    if (!file_data->WriteBytes(&chunk.num_vertices, sizeof(u32)))
+    if (!file_data->WriteBytes(&num_vertices, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(&chunk.vertex_stride, sizeof(u32)))
+    if (!file_data->WriteBytes(&vertex_stride, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(chunk.vertex_data.get(), chunk.num_vertices * chunk.vertex_stride))
+    if (!file_data->WriteBytes(vertex_data.get(), num_vertices * vertex_stride))
       return false;
-    if (!file_data->WriteBytes(&chunk.num_indices, sizeof(u32)))
+    if (!file_data->WriteBytes(&num_indices, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(chunk.indices.get(), chunk.num_indices * sizeof(u16)))
+    if (!file_data->WriteBytes(indices.get(), num_indices * sizeof(u16)))
       return false;
-    if (!file_data->WriteBytes(&chunk.vertex_declaration, sizeof(PortableVertexDeclaration)))
+    if (!file_data->WriteBytes(&vertex_declaration, sizeof(PortableVertexDeclaration)))
       return false;
-    if (!file_data->WriteBytes(&chunk.primitive_type, sizeof(PrimitiveType)))
+    if (!file_data->WriteBytes(&primitive_type, sizeof(PrimitiveType)))
       return false;
-    if (!file_data->WriteBytes(&chunk.components_available, sizeof(u32)))
+    if (!file_data->WriteBytes(&components_available, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(&chunk.minimum_position, sizeof(Common::Vec3)))
+    if (!file_data->WriteBytes(&minimum_position, sizeof(Common::Vec3)))
       return false;
-    if (!file_data->WriteBytes(&chunk.maximum_position, sizeof(Common::Vec3)))
+    if (!file_data->WriteBytes(&maximum_position, sizeof(Common::Vec3)))
       return false;
-    if (!file_data->WriteBytes(&chunk.transform.data[0],
-                               chunk.transform.data.size() * sizeof(float)))
+    if (!file_data->WriteBytes(&transform.data[0],
+                               transform.data.size() * sizeof(float)))
     {
       return false;
     }
 
-    const std::size_t material_name_size = chunk.material_name.size();
+    const std::size_t material_name_size = material_name.size();
     if (!file_data->WriteBytes(&material_name_size, sizeof(std::size_t)))
       return false;
-    if (!file_data->WriteBytes(&chunk.material_name[0], chunk.material_name.size() * sizeof(char)))
+    if (!file_data->WriteBytes(&material_name[0], material_name.size() * sizeof(char)))
       return false;
   }
   return true;
 }
 
-bool MeshData::FromGLTF(std::string_view gltf_file, MeshData* data)
+bool MeshData::FromGLTF(const std::string_view gltf_file, MeshData* data)
 {
   if (gltf_file.ends_with(".glb"))
   {

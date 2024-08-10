@@ -18,12 +18,12 @@
 
 using namespace Gen;
 
-static OpArg CROffset(int field)
+static OpArg CROffset(const int field)
 {
   return PPCSTATE_CR(field);
 }
 
-void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
+void Jit64::GetCRFieldBit(const int field, const int bit, const X64Reg out, const bool negate)
 {
   switch (bit)
   {
@@ -52,7 +52,7 @@ void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
   }
 }
 
-void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
+void Jit64::SetCRFieldBit(const int field, const int bit, const X64Reg in)
 {
   MOV(64, R(RSCRATCH2), CROffset(field));
   MOVZX(32, 8, in, R(in));
@@ -93,7 +93,7 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
   MOV(64, CROffset(field), R(RSCRATCH2));
 }
 
-void Jit64::ClearCRFieldBit(int field, int bit)
+void Jit64::ClearCRFieldBit(const int field, const int bit)
 {
   switch (bit)
   {
@@ -120,7 +120,7 @@ void Jit64::ClearCRFieldBit(int field, int bit)
   // clearing.
 }
 
-void Jit64::SetCRFieldBit(int field, int bit)
+void Jit64::SetCRFieldBit(const int field, const int bit)
 {
   MOV(64, R(RSCRATCH), CROffset(field));
   if (bit != PowerPC::CR_GT_BIT)
@@ -150,19 +150,19 @@ void Jit64::SetCRFieldBit(int field, int bit)
   MOV(64, CROffset(field), R(RSCRATCH));
 }
 
-void Jit64::FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg)
+void Jit64::FixGTBeforeSettingCRFieldBit(const X64Reg reg)
 {
   // GT is considered unset if the internal representation is <= 0, or in other words,
   // if the internal representation either has bit 63 set or has all bits set to zero.
   // If all bits are zero and we set some bit that's unrelated to GT, we need to set bit 63 so GT
   // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
   TEST(64, R(reg), R(reg));
-  FixupBranch dont_clear_gt = J_CC(CC_NZ);
+  const FixupBranch dont_clear_gt = J_CC(CC_NZ);
   BTS(64, R(reg), Imm8(63));
   SetJumpTarget(dont_clear_gt);
 }
 
-FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
+FixupBranch Jit64::JumpIfCRFieldBit(const int field, const int bit, const bool jump_if_set)
 {
   switch (bit)
   {
@@ -191,7 +191,7 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 }
 
 // Could be done with one temp register, but with two temp registers it's faster
-void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
+void Jit64::UpdateFPExceptionSummary(const X64Reg fpscr, const X64Reg tmp1, const X64Reg tmp2)
 {
   // Kill dependency on tmp1 (not required for correctness, since SHL will shift out upper bytes)
   XOR(32, R(tmp1), R(tmp1));
@@ -217,7 +217,7 @@ void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
   OR(32, R(fpscr), R(tmp1));
 }
 
-static void DoICacheReset(PowerPC::PowerPCState& ppc_state, JitInterface& jit_interface)
+static void DoICacheReset(PowerPC::PowerPCState& ppc_state, const JitInterface& jit_interface)
 {
   ppc_state.iCache.Reset(jit_interface);
 }
@@ -520,9 +520,9 @@ void Jit64::mtcrf(UGeckoInstruction inst)
         {
           u8 newcr = (gpr.Imm32(inst.RS) >> (28 - (i * 4))) & 0xF;
           u64 newcrval = PowerPC::ConditionRegister::PPCToInternal(newcr);
-          if ((s64)newcrval == (s32)newcrval)
+          if (static_cast<s64>(newcrval) == static_cast<s32>(newcrval))
           {
-            MOV(64, CROffset(i), Imm32((s32)newcrval));
+            MOV(64, CROffset(i), Imm32(static_cast<s32>(newcrval)));
           }
           else
           {

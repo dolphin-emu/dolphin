@@ -6,7 +6,6 @@
 #include "Core/HotkeyManager.h"
 
 #include <QFileDialog>
-#include <QObject>
 #include <QString>
 
 namespace DolphinFileDialog

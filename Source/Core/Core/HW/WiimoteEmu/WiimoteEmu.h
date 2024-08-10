@@ -118,23 +118,23 @@ public:
   static constexpr u16 BUTTON_MINUS = 0x1000;
   static constexpr u16 BUTTON_HOME = 0x8000;
 
-  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
-  static constexpr const char* DPAD_GROUP = _trans("D-Pad");
-  static constexpr const char* ACCELEROMETER_GROUP = "IMUAccelerometer";
-  static constexpr const char* GYROSCOPE_GROUP = "IMUGyroscope";
-  static constexpr const char* IR_GROUP = "IR";
-  static constexpr const char* IR_PASSTHROUGH_GROUP = "IRPassthrough";
+  static constexpr auto BUTTONS_GROUP = _trans("Buttons");
+  static constexpr auto DPAD_GROUP = _trans("D-Pad");
+  static constexpr auto ACCELEROMETER_GROUP = "IMUAccelerometer";
+  static constexpr auto GYROSCOPE_GROUP = "IMUGyroscope";
+  static constexpr auto IR_GROUP = "IR";
+  static constexpr auto IR_PASSTHROUGH_GROUP = "IRPassthrough";
 
-  static constexpr const char* A_BUTTON = "A";
-  static constexpr const char* B_BUTTON = "B";
-  static constexpr const char* ONE_BUTTON = "1";
-  static constexpr const char* TWO_BUTTON = "2";
-  static constexpr const char* MINUS_BUTTON = "-";
-  static constexpr const char* PLUS_BUTTON = "+";
-  static constexpr const char* HOME_BUTTON = "Home";
+  static constexpr auto A_BUTTON = "A";
+  static constexpr auto B_BUTTON = "B";
+  static constexpr auto ONE_BUTTON = "1";
+  static constexpr auto TWO_BUTTON = "2";
+  static constexpr auto MINUS_BUTTON = "-";
+  static constexpr auto PLUS_BUTTON = "+";
+  static constexpr auto HOME_BUTTON = "Home";
 
-  static constexpr const char* UPRIGHT_OPTION = "Upright Wiimote";
-  static constexpr const char* SIDEWAYS_OPTION = "Sideways Wiimote";
+  static constexpr auto UPRIGHT_OPTION = "Upright Wiimote";
+  static constexpr auto SIDEWAYS_OPTION = "Sideways Wiimote";
 
   explicit Wiimote(unsigned int index);
   ~Wiimote();
@@ -159,9 +159,9 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+  void PrepareInput(DesiredWiimoteState* target_state,
                     SensorBarState sensor_bar_state) override;
-  void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
+  void Update(const DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
   void InterruptDataOutput(const u8* data, u32 size) override;
@@ -216,17 +216,17 @@ private:
   Common::Vec3 GetTotalAngularVelocity() const;
   Common::Matrix44 GetTotalTransformation() const;
 
-  void HandleReportRumble(const WiimoteCommon::OutputReportRumble&);
+  void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) const;
   void HandleReportLeds(const WiimoteCommon::OutputReportLeds&);
   void HandleReportMode(const WiimoteCommon::OutputReportMode&);
   void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&);
   void HandleReadData(const WiimoteCommon::OutputReportReadData&);
   void HandleWriteData(const WiimoteCommon::OutputReportWriteData&);
   void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&);
-  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&) const;
   void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&);
   void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&);
-  void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&);
+  void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) const;
 
   template <typename T, typename H>
   void InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size);
@@ -236,9 +236,9 @@ private:
   void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();
 
-  void SetRumble(bool on);
+  void SetRumble(bool on) const;
 
-  void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err);
+  void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err) const;
 
   bool IsSideways() const;
   bool IsUpright() const;

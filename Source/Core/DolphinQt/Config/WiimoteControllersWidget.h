@@ -27,18 +27,18 @@ class WiimoteControllersWidget final : public QWidget
 public:
   explicit WiimoteControllersWidget(QWidget* parent);
 
-  void UpdateBluetoothAvailableStatus();
+  void UpdateBluetoothAvailableStatus() const;
 
 private:
-  void SaveSettings();
+  void SaveSettings() const;
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
-  void OnWiimoteRefreshPressed();
+  static void OnWiimoteRefreshPressed();
   void OnWiimoteConfigure(size_t index);
 
   void CreateLayout();
   void ConnectWidgets();
-  void LoadSettings(Core::State state);
+  void LoadSettings(Core::State state) const;
 
   QGroupBox* m_wiimote_box;
   QGridLayout* m_wiimote_layout;

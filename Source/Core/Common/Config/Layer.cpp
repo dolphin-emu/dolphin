@@ -4,14 +4,14 @@
 #include "Common/Config/Layer.h"
 
 #include <algorithm>
-#include <cstring>
 #include <map>
+#include <ranges>
 
 #include "Common/Config/Config.h"
 
 namespace Config
 {
-ConfigLayerLoader::ConfigLayerLoader(LayerType layer) : m_layer(layer)
+ConfigLayerLoader::ConfigLayerLoader(const LayerType layer) : m_layer(layer)
 {
 }
 
@@ -22,7 +22,7 @@ LayerType ConfigLayerLoader::GetLayer() const
   return m_layer;
 }
 
-Layer::Layer(LayerType type) : m_layer(type)
+Layer::Layer(const LayerType type) : m_layer(type)
 {
 }
 
@@ -60,19 +60,19 @@ bool Layer::DeleteKey(const Location& location)
 void Layer::DeleteAllKeys()
 {
   m_is_dirty = true;
-  for (auto& pair : m_map)
+  for (auto& val : m_map | std::views::values)
   {
-    pair.second.reset();
+    val.reset();
   }
 }
 
-Section Layer::GetSection(System system, const std::string& section)
+Section Layer::GetSection(const System system, const std::string& section)
 {
   return Section{m_map.lower_bound(Location{system, section, ""}),
                  m_map.lower_bound(Location{system, section + '\001', ""})};
 }
 
-ConstSection Layer::GetSection(System system, const std::string& section) const
+ConstSection Layer::GetSection(const System system, const std::string& section) const
 {
   return ConstSection{m_map.lower_bound(Location{system, section, ""}),
                       m_map.lower_bound(Location{system, section + '\001', ""})};

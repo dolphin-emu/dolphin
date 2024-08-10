@@ -51,8 +51,8 @@ enum class AbstractTextureType
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
-  constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_, u32 samples_,
-                          AbstractTextureFormat format_, u32 flags_, AbstractTextureType type_)
+  constexpr TextureConfig(const u32 width_, const u32 height_, const u32 levels_, const u32 layers_, const u32 samples_,
+                          const AbstractTextureFormat format_, const u32 flags_, const AbstractTextureType type_)
       : width(width_), height(height_), levels(levels_), layers(layers_), samples(samples_),
         format(format_), flags(flags_), type(type_)
   {

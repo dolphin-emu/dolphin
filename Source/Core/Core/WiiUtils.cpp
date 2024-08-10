@@ -10,7 +10,6 @@
 #include <memory>
 #include <optional>
 #include <sstream>
-#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -51,7 +50,7 @@
 namespace WiiUtils
 {
 static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
-                      IOS::HLE::ESCore::VerifySignature verify_signature)
+                      const IOS::HLE::ESCore::VerifySignature verify_signature)
 {
   if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
@@ -67,7 +66,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   IOS::HLE::ReturnCode ret;
 
   // Ensure the common key index is correct, as it's checked by IOS.
-  IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
+  const IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
   while ((ret = es.ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
                                 IOS::HLE::ESCore::TicketImportType::Unpersonalised,
@@ -85,15 +84,15 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
 
   const bool contents_imported = [&]() {
     const u64 title_id = tmd.GetTitleId();
-    for (const IOS::ES::Content& content : tmd.GetContents())
+    for (const auto& [id, index, _type, _size, _sha1] : tmd.GetContents())
     {
-      const std::vector<u8> data = wad.GetContent(content.index);
+      const std::vector<u8> data = wad.GetContent(index);
 
-      if (es.ImportContentBegin(context, title_id, content.id) < 0 ||
+      if (es.ImportContentBegin(context, title_id, id) < 0 ||
           es.ImportContentData(context, 0, data.data(), static_cast<u32>(data.size())) < 0 ||
           es.ImportContentEnd(context, 0) < 0)
       {
-        PanicAlertFmtT("WAD installation failed: Could not import content {0:08x}.", content.id);
+        PanicAlertFmtT("WAD installation failed: Could not import content {0:08x}.", id);
         return false;
       }
     }
@@ -111,10 +110,10 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   // during the process of downloading a game, and some games (eg. Mega Man 9) refuse to load DLC if
   // they are not present. So ensure they exist and create them if they don't.
   const bool shop_logs_exist = [&] {
-    const std::array<u8, 32> dummy_data{};
+    constexpr std::array<u8, 32> dummy_data{};
     for (const std::string path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
     {
-      constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+      constexpr auto rw_mode = IOS::HLE::FS::Mode::ReadWrite;
       if (fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, 0,
                              {rw_mode, rw_mode, rw_mode}) != IOS::HLE::FS::ResultCode::Success)
       {
@@ -142,7 +141,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   return true;
 }
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType install_type)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, const InstallType install_type)
 {
   if (!wad.GetTMD().IsValid())
     return false;
@@ -198,7 +197,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
 
 bool InstallWAD(const std::string& wad_path)
 {
-  std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
+  const std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
   if (!wad)
     return false;
 
@@ -206,13 +205,13 @@ bool InstallWAD(const std::string& wad_path)
   return InstallWAD(ios, *wad, InstallType::Permanent);
 }
 
-bool UninstallTitle(u64 title_id)
+bool UninstallTitle(const u64 title_id)
 {
-  IOS::HLE::Kernel ios;
+  const IOS::HLE::Kernel ios;
   return ios.GetESCore().DeleteTitleContent(title_id) == IOS::HLE::IPC_SUCCESS;
 }
 
-bool IsTitleInstalled(u64 title_id)
+bool IsTitleInstalled(const u64 title_id)
 {
   IOS::HLE::Kernel ios;
   const auto entries = ios.GetFS()->ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
@@ -227,14 +226,14 @@ bool IsTitleInstalled(u64 title_id)
                      [](const std::string& file) { return file != "title.tmd"; });
 }
 
-bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, u64 title_id)
+bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, const u64 title_id)
 {
   const auto entries = fs.ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
   return entries && std::any_of(entries->begin(), entries->end(),
                                 [](const std::string& file) { return file == "title.tmd"; });
 }
 
-IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
+IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, const u64 title_id)
 {
   auto file = fs.OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
                           "/title/00000001/00000002/data/tmds.sys", IOS::HLE::FS::Mode::Read);
@@ -268,12 +267,12 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
   }
 }
 
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, u64 title_id)
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, const IOS::HLE::ESCore& es, const u64 title_id)
 {
   if (IsTMDImported(fs, title_id))
     return true;
 
-  auto tmd = FindBackupTMD(fs, title_id);
+  const auto tmd = FindBackupTMD(fs, title_id);
   if (!tmd.IsValid())
     return false;
 
@@ -301,13 +300,13 @@ protected:
     u16 version;
   };
 
-  std::string GetDeviceRegion();
-  std::string GetDeviceId();
+  std::string GetDeviceRegion() const;
+  std::string GetDeviceId() const;
 
   IOS::HLE::Kernel m_ios;
 };
 
-std::string SystemUpdater::GetDeviceRegion()
+std::string SystemUpdater::GetDeviceRegion() const
 {
   // Try to determine the region from an installed system menu.
   const auto tmd = m_ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -324,12 +323,12 @@ std::string SystemUpdater::GetDeviceRegion()
   return "";
 }
 
-std::string SystemUpdater::GetDeviceId()
+std::string SystemUpdater::GetDeviceId() const
 {
   u32 ios_device_id;
   if (m_ios.GetESCore().GetDeviceId(&ios_device_id) < 0)
     return "";
-  return std::to_string((u64(1) << 32) | ios_device_id);
+  return std::to_string((static_cast<u64>(1) << 32) | ios_device_id);
 }
 
 class OnlineSystemUpdater final : public SystemUpdater
@@ -345,20 +344,20 @@ private:
     std::vector<TitleInfo> titles;
   };
 
-  Response GetSystemTitles();
+  Response GetSystemTitles() const;
   Response ParseTitlesResponse(const std::vector<u8>& response) const;
-  bool ShouldInstallTitle(const TitleInfo& title);
+  bool ShouldInstallTitle(const TitleInfo& title) const;
 
   UpdateResult InstallTitleFromNUS(const std::string& prefix_url, const TitleInfo& title,
                                    std::unordered_set<u64>* updated_titles);
 
   // Helper functions to download contents from NUS.
   std::pair<IOS::ES::TMDReader, std::vector<u8>> DownloadTMD(const std::string& prefix_url,
-                                                             const TitleInfo& title);
+                                                             const TitleInfo& title) const;
   std::pair<std::vector<u8>, std::vector<u8>> DownloadTicket(const std::string& prefix_url,
-                                                             const TitleInfo& title);
+                                                             const TitleInfo& title) const;
   std::optional<std::vector<u8>> DownloadContent(const std::string& prefix_url,
-                                                 const TitleInfo& title, u32 cid);
+                                                 const TitleInfo& title, u32 cid) const;
 
   UpdateCallback m_update_callback;
   std::string m_requested_region;
@@ -371,10 +370,10 @@ OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, const s
 }
 
 OnlineSystemUpdater::Response
-OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
+OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response)
 {
   pugi::xml_document doc;
-  pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());
+  const pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());
   if (!result)
   {
     ERROR_LOG_FMT(CORE, "ParseTitlesResponse: Could not parse response");
@@ -417,7 +416,7 @@ OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
   return info;
 }
 
-bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title)
+bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title) const
 {
   const auto& es = m_ios.GetESCore();
   const auto installed_tmd = es.FindInstalledTMD(title.id);
@@ -425,7 +424,7 @@ bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title)
            es.GetStoredContentsFromTMD(installed_tmd).size() == installed_tmd.GetNumContents());
 }
 
-constexpr const char* GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0" encoding="UTF-8"?>
+constexpr auto GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -440,7 +439,7 @@ constexpr const char* GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0"
 </soapenv:Envelope>
 )";
 
-OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
+OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles() const
 {
   // Construct the request by loading the template first, then updating some fields.
   pugi::xml_document doc;
@@ -460,7 +459,7 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
   doc.save(stream);
   const std::string request = stream.str();
 
-  std::string base_url = Config::Get(Config::MAIN_WII_NUS_SHOP_URL);
+  std::string base_url = Get(Config::MAIN_WII_NUS_SHOP_URL);
   if (base_url.empty())
   {
     // The NUS servers for the Wii are offline (https://bugs.dolphin-emu.org/issues/12865),
@@ -491,8 +490,8 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
 
 UpdateResult OnlineSystemUpdater::DoOnlineUpdate()
 {
-  const Response info = GetSystemTitles();
-  if (info.titles.empty())
+  const auto [content_prefix_url, titles] = GetSystemTitles();
+  if (titles.empty())
     return UpdateResult::ServerFailed;
 
   // Download and install any title that is older than the NUS version.
@@ -500,19 +499,19 @@ UpdateResult OnlineSystemUpdater::DoOnlineUpdate()
   // As we install any IOS required by titles, the real order is boot2, SM IOS, SM, IOSes, channels.
   std::unordered_set<u64> updated_titles;
   size_t processed = 0;
-  for (const TitleInfo& title : info.titles)
+  for (const TitleInfo& title : titles)
   {
-    if (!m_update_callback(processed++, info.titles.size(), title.id))
+    if (!m_update_callback(processed++, titles.size(), title.id))
       return UpdateResult::Cancelled;
 
-    const UpdateResult res = InstallTitleFromNUS(info.content_prefix_url, title, &updated_titles);
+    const UpdateResult res = InstallTitleFromNUS(content_prefix_url, title, &updated_titles);
     if (res != UpdateResult::Succeeded)
     {
       ERROR_LOG_FMT(CORE, "Failed to update {:016x} -- aborting update", title.id);
       return res;
     }
 
-    m_update_callback(processed, info.titles.size(), title.id);
+    m_update_callback(processed, titles.size(), title.id);
   }
 
   if (updated_titles.empty())
@@ -532,14 +531,14 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   if (title.id == Titles::BOOT2)
     return UpdateResult::Succeeded;
 
-  if (!ShouldInstallTitle(title) || updated_titles->find(title.id) != updated_titles->end())
+  if (!ShouldInstallTitle(title) || updated_titles->contains(title.id))
     return UpdateResult::Succeeded;
 
   NOTICE_LOG_FMT(CORE, "Updating title {:016x}", title.id);
 
   // Download the ticket and certificates.
-  const auto ticket = DownloadTicket(prefix_url, title);
-  if (ticket.first.empty() || ticket.second.empty())
+  const auto [ticket_fst, ticket_snd] = DownloadTicket(prefix_url, title);
+  if (ticket_fst.empty() || ticket_snd.empty())
   {
     ERROR_LOG_FMT(CORE, "Failed to download ticket and certs");
     return UpdateResult::DownloadFailed;
@@ -548,23 +547,23 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   // Import the ticket.
   IOS::HLE::ReturnCode ret = IOS::HLE::IPC_SUCCESS;
   auto& es = m_ios.GetESCore();
-  if ((ret = es.ImportTicket(ticket.first, ticket.second)) < 0)
+  if ((ret = es.ImportTicket(ticket_fst, ticket_snd)) < 0)
   {
     ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
   // Download the TMD.
-  const auto tmd = DownloadTMD(prefix_url, title);
-  if (!tmd.first.IsValid())
+  const auto [tmd_fst, tmd_snd] = DownloadTMD(prefix_url, title);
+  if (!tmd_fst.IsValid())
   {
     ERROR_LOG_FMT(CORE, "Failed to download TMD");
     return UpdateResult::DownloadFailed;
   }
 
   // Download and import any required system title first.
-  const u64 ios_id = tmd.first.GetIOSId();
-  if (ios_id != 0 && IOS::ES::IsTitleType(ios_id, IOS::ES::TitleType::System))
+  const u64 ios_id = tmd_fst.GetIOSId();
+  if (ios_id != 0 && IsTitleType(ios_id, IOS::ES::TitleType::System))
   {
     if (!es.FindInstalledTMD(ios_id).IsValid())
     {
@@ -580,21 +579,23 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 
   // Initialise the title import.
   IOS::HLE::ESCore::Context context;
-  if ((ret = es.ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
+  if ((ret = es.ImportTitleInit(context, tmd_fst.GetBytes(), tmd_snd)) < 0)
   {
     ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
   // Now download and install contents listed in the TMD.
-  const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd.first);
+  const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd_fst);
   const UpdateResult import_result = [&]() {
-    for (const IOS::ES::Content& content : tmd.first.GetContents())
+    for (const IOS::ES::Content& content : tmd_fst.GetContents())
     {
-      const bool is_already_installed = std::find_if(stored_contents.begin(), stored_contents.end(),
-                                                     [&content](const auto& stored_content) {
-                                                       return stored_content.id == content.id;
-                                                     }) != stored_contents.end();
+      const bool is_already_installed =
+          std::ranges::find_if(
+              stored_contents,
+              [&content](const auto& stored_content) {
+                return stored_content.id == content.id;
+              }) != stored_contents.end();
 
       // Do skip what is already installed on the NAND.
       if (is_already_installed)
@@ -640,7 +641,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 }
 
 std::pair<IOS::ES::TMDReader, std::vector<u8>>
-OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title)
+OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title) const
 {
   const std::string url = (title.version == 0) ?
                               fmt::format("{}/{:016x}/tmd", prefix_url, title.id) :
@@ -662,12 +663,12 @@ OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo&
   const auto tmd_begin = response->begin();
   const auto tmd_end = tmd_begin + tmd_size;
 
-  return {IOS::ES::TMDReader(std::vector<u8>(tmd_begin, tmd_end)),
-          std::vector<u8>(tmd_end, response->end())};
+  return {IOS::ES::TMDReader(std::vector(tmd_begin, tmd_end)),
+          std::vector(tmd_end, response->end())};
 }
 
 std::pair<std::vector<u8>, std::vector<u8>>
-OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleInfo& title)
+OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleInfo& title) const
 {
   const std::string url = fmt::format("{}/{:016x}/cetk", prefix_url, title.id);
   const Common::HttpRequest::Response response = m_http.Get(url);
@@ -680,11 +681,11 @@ OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleIn
 
   const auto ticket_begin = response->begin();
   const auto ticket_end = ticket_begin + sizeof(IOS::ES::Ticket);
-  return {std::vector<u8>(ticket_begin, ticket_end), std::vector<u8>(ticket_end, response->end())};
+  return {std::vector(ticket_begin, ticket_end), std::vector(ticket_end, response->end())};
 }
 
 std::optional<std::vector<u8>> OnlineSystemUpdater::DownloadContent(const std::string& prefix_url,
-                                                                    const TitleInfo& title, u32 cid)
+                                                                    const TitleInfo& title, u32 cid) const
 {
   const std::string url = fmt::format("{}/{:016x}/{:08x}", prefix_url, title.id, cid);
   return m_http.Get(url);
@@ -751,7 +752,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
 
   const auto partitions = m_volume->GetPartitions();
   const auto update_partition =
-      std::find_if(partitions.cbegin(), partitions.cend(), [&](const DiscIO::Partition& partition) {
+      std::ranges::find_if(partitions, [&](const DiscIO::Partition& partition) {
         return m_volume->GetPartitionType(partition) == 1u;
       });
 
@@ -766,7 +767,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
   return UpdateFromManifest("__update.inf");
 }
 
-UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_name)
+UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string_view manifest_name)
 {
   const DiscIO::FileSystem* disc_fs = m_volume->GetFileSystem(m_partition);
   if (!disc_fs)
@@ -803,7 +804,7 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_nam
     const std::bitset<32> attrs = Common::swap32(entry.data() + offsetof(Entry, attribute));
     const u64 title_id = Common::swap64(entry.data() + offsetof(Entry, title_id));
     const u16 title_version = Common::swap16(entry.data() + offsetof(Entry, title_version));
-    const char* path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
+    auto path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
     const std::string_view path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
 
     if (!m_update_callback(i, num_entries, title_id))
@@ -822,8 +823,8 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_nam
   return updates_installed == 0 ? UpdateResult::AlreadyUpToDate : UpdateResult::Succeeded;
 }
 
-UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
-                                             const TitleInfo& title, std::string_view path)
+UpdateResult DiscSystemUpdater::ProcessEntry(const u32 type, const std::bitset<32> attrs,
+                                             const TitleInfo& title, const std::string_view path)
 {
   // Skip any unknown type and boot2 updates (for now).
   if (type != 2 && type != 3 && type != 6 && type != 7)
@@ -872,7 +873,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 
   // Check for NANDs that were used with old Dolphin versions.
   const std::string sys_replace_path =
-      Common::RootUserPath(Common::FromWhichRoot::Configured) + "/sys/replace";
+      RootUserPath(Common::FromWhichRoot::Configured) + "/sys/replace";
   if (File::Exists(sys_replace_path))
   {
     ERROR_LOG_FMT(CORE,
@@ -884,7 +885,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
   }
 
   // Clean up after a bug fixed in https://github.com/dolphin-emu/dolphin/pull/8802
-  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FromWhichRoot::Configured);
+  const std::string rfl_db_path = GetMiiDatabasePath(Common::FromWhichRoot::Configured);
   const File::FileInfo rfl_db(rfl_db_path);
   if (rfl_db.Exists() && rfl_db.GetSize() == 0)
   {
@@ -897,7 +898,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 
   for (const u64 title_id : es.GetInstalledTitles())
   {
-    const std::string title_dir = Common::GetTitlePath(title_id, Common::FromWhichRoot::Configured);
+    const std::string title_dir = GetTitlePath(title_id, Common::FromWhichRoot::Configured);
     const std::string content_dir = title_dir + "/content";
     const std::string data_dir = title_dir + "/data";
 
@@ -947,8 +948,9 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
 
     const auto installed_contents = es.GetStoredContentsFromTMD(tmd);
-    const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
-                                          [](const auto& content) { return !content.IsShared(); });
+    const bool is_installed = std::ranges::any_of(installed_contents, [](const auto& content) {
+      return !content.IsShared();
+    });
 
     if (is_installed && installed_contents != tmd.GetContents() &&
         (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_DATA) == 0)
@@ -1011,14 +1013,14 @@ static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
 
 std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice()
 {
-  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     return nullptr;
   return std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(GetBluetoothDevice());
 }
 
 std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice()
 {
-  if (!Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (!Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     return nullptr;
   return std::static_pointer_cast<IOS::HLE::BluetoothRealDevice>(GetBluetoothDevice());
 }

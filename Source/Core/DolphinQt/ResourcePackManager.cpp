@@ -7,7 +7,6 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHeaderView>
-#include <QPushButton>
 #include <QTableWidget>
 #include <QUrl>
 
@@ -99,7 +98,7 @@ void ResourcePackManager::RepopulateTable()
   header->setStretchLastSection(true);
   header->setHighlightSections(false);
 
-  int size = static_cast<int>(ResourcePack::GetPacks().size());
+  const int size = static_cast<int>(ResourcePack::GetPacks().size());
 
   m_table_widget->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table_widget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -126,7 +125,7 @@ void ResourcePackManager::RepopulateTable()
     QPixmap logo;
 
     logo.loadFromData(reinterpret_cast<const uchar*>(pack.GetLogo().data()),
-                      (int)pack.GetLogo().size());
+                      static_cast<int>(pack.GetLogo().size()));
 
     logo_item->setIcon(QIcon(logo));
 
@@ -143,7 +142,7 @@ void ResourcePackManager::RepopulateTable()
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      if (ResourcePack::IsInstalled(pack))
+      if (IsInstalled(pack))
       {
         item->setBackground(QColor(Qt::green));
 
@@ -165,7 +164,7 @@ void ResourcePackManager::RepopulateTable()
 }
 
 // Revert the indicies as to be more intuitive for users
-int ResourcePackManager::GetResourcePackIndex(QTableWidgetItem* item) const
+int ResourcePackManager::GetResourcePackIndex(const QTableWidgetItem* item) const
 {
   return m_table_widget->rowCount() - 1 - item->row();
 }
@@ -177,7 +176,7 @@ void ResourcePackManager::Change()
   if (items.empty())
     return;
 
-  if (ResourcePack::IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]))
+  if (IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]))
   {
     Uninstall();
   }
@@ -196,7 +195,7 @@ void ResourcePackManager::Install()
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
-  bool success = item.Install(File::GetUserPath(D_LOAD_IDX));
+  const bool success = item.Install(File::GetUserPath(D_LOAD_IDX));
 
   if (!success)
   {
@@ -217,7 +216,7 @@ void ResourcePackManager::Uninstall()
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
-  bool success = item.Uninstall(File::GetUserPath(D_LOAD_IDX));
+  const bool success = item.Uninstall(File::GetUserPath(D_LOAD_IDX));
 
   if (!success)
   {
@@ -264,7 +263,7 @@ void ResourcePackManager::PriorityDown()
     return;
 
   auto& pack = ResourcePack::GetPacks()[row];
-  std::string path = pack.GetPath();
+  const std::string path = pack.GetPath();
 
   row--;
 
@@ -289,7 +288,7 @@ void ResourcePackManager::PriorityUp()
     return;
 
   auto& pack = ResourcePack::GetPacks()[row];
-  std::string path = pack.GetPath();
+  const std::string path = pack.GetPath();
 
   row++;
 
@@ -316,7 +315,7 @@ void ResourcePackManager::SelectionChanged()
   if (has_selection)
   {
     m_change_button->setText(
-        ResourcePack::IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]) ?
+        IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]) ?
             tr("Uninstall") :
             tr("Install"));
   }
@@ -329,9 +328,9 @@ void ResourcePackManager::SelectionChanged()
   m_priority_up_button->setEnabled(has_selection && items[0]->row() != 0);
 }
 
-void ResourcePackManager::ItemDoubleClicked(QTableWidgetItem* item)
+void ResourcePackManager::ItemDoubleClicked(const QTableWidgetItem* item)
 {
-  auto item_data = item->data(Qt::UserRole);
+  const auto item_data = item->data(Qt::UserRole);
 
   if (item_data.isNull())
     return;

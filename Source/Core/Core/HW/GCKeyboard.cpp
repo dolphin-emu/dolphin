@@ -3,15 +3,10 @@
 
 #include "Core/HW/GCKeyboard.h"
 
-#include <cstring>
-
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GCKeyboardEmu.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"
 
@@ -49,12 +44,12 @@ void LoadConfig()
   s_config.LoadConfig();
 }
 
-ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)
+ControllerEmu::ControlGroup* GetGroup(const int port, const KeyboardGroup group)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetGroup(group);
 }
 
-KeyboardStatus GetStatus(int port)
+KeyboardStatus GetStatus(const int port)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }

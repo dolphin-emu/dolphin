@@ -11,8 +11,6 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
-
 namespace WiimoteEmu
 {
 void CameraLogic::Reset()
@@ -29,7 +27,7 @@ void CameraLogic::DoState(PointerWrap& p)
   // FYI: m_is_enabled is handled elsewhere.
 }
 
-int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int CameraLogic::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -40,7 +38,7 @@ int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   return RawRead(&m_reg_data, addr, count, data_out);
 }
 
-int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int CameraLogic::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -52,25 +50,25 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 }
 
 std::array<CameraPoint, CameraLogic::NUM_POINTS>
-CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Vec2 field_of_view)
 {
   using Common::Matrix33;
   using Common::Matrix44;
   using Common::Vec3;
   using Common::Vec4;
 
-  const std::array<Vec3, 2> leds{
+  constexpr std::array leds{
       Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
       Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };
 
   const auto camera_view =
       Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
-      Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
+      Matrix44::FromMatrix33(Matrix33::RotateX(MathUtil::TAU / 4)) * transform;
 
-  std::array<CameraPoint, CameraLogic::NUM_POINTS> camera_points;
+  std::array<CameraPoint, NUM_POINTS> camera_points;
 
-  std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
+  std::ranges::transform(leds, camera_points.begin(), [&](const Vec3& v) {
     const auto point = camera_view * Vec4(v, 1.0);
 
     // Check if LED is behind camera.
@@ -78,8 +76,8 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 fie
       return CameraPoint();
 
     // FYI: truncating vs. rounding seems to produce more symmetrical cursor positioning.
-    const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
-    const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
+    const auto x = static_cast<s32>((1 - point.x / point.w) * CAMERA_RES_X / 2);
+    const auto y = static_cast<s32>((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
     // Check if LED is outside of view.
     if (x < 0 || y < 0 || x >= CAMERA_RES_X || y >= CAMERA_RES_Y)
@@ -91,7 +89,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 fie
 
     const auto clamped_point_size = std::clamp<s32>(std::lround(point_size), 1, MAX_POINT_SIZE);
 
-    return CameraPoint({u16(x), u16(y)}, u8(clamped_point_size));
+    return CameraPoint({static_cast<u16>(x), static_cast<u16>(y)}, static_cast<u8>(clamped_point_size));
   });
 
   return camera_points;
@@ -166,7 +164,7 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
             std::lround((irdata.xmax - irdata.xmin) * (irdata.ymax - irdata.ymin) /
                         SUBPIXEL_RESOLUTION / SUBPIXEL_RESOLUTION * MathUtil::TAU / 8);
 
-        irdata.intensity = u8(std::min(MAX_INTENSITY, intensity));
+        irdata.intensity = static_cast<u8>(std::min(MAX_INTENSITY, intensity));
 
         Common::BitCastPtr<IRFull>(&data[i * sizeof(IRFull)]) = irdata;
       }
@@ -179,9 +177,14 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
   }
 }
 
-void CameraLogic::SetEnabled(bool is_enabled)
+void CameraLogic::Enable()
 {
-  m_is_enabled = is_enabled;
+  m_is_enabled = true;
+}
+
+void CameraLogic::Disable()
+{
+  m_is_enabled = false;
 }
 
 }  // namespace WiimoteEmu

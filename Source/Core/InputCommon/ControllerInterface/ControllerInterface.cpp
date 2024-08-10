@@ -43,7 +43,7 @@ ControllerInterface g_controller_interface;
 // update values in different threads by input channel. We start from InputChannel::Host on all
 // threads as hotkeys are updated from a worker thread, but UI can read from the main thread. This
 // will never interfere with game threads.
-static thread_local ciface::InputChannel tls_input_channel = ciface::InputChannel::Host;
+static thread_local auto tls_input_channel = ciface::InputChannel::Host;
 
 static thread_local bool tls_is_updating_devices = false;
 
@@ -101,7 +101,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
     InvokeDevicesChangedCallbacks();
 }
 
-void ControllerInterface::ChangeWindow(void* hwnd, WindowChangeReason reason)
+void ControllerInterface::ChangeWindow(void* hwnd, const WindowChangeReason reason)
 {
   if (!m_is_init)
     return;
@@ -116,7 +116,7 @@ void ControllerInterface::ChangeWindow(void* hwnd, WindowChangeReason reason)
     RefreshDevices(RefreshReason::WindowChangeOnly);
 }
 
-void ControllerInterface::RefreshDevices(RefreshReason reason)
+void ControllerInterface::RefreshDevices(const RefreshReason reason)
 {
   if (!m_is_init)
     return;
@@ -134,7 +134,7 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   {
     m_populating_devices_counter.fetch_add(1);
 
-    for (auto& backend : m_input_backends)
+    for (const auto& backend : m_input_backends)
       backend->HandleWindowChange();
 
     if (m_populating_devices_counter.fetch_sub(1) == 1)
@@ -157,7 +157,7 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // do it async, to not risk the emulated controllers default config loading not finding a default
   // device.
 
-  for (auto& backend : m_input_backends)
+  for (const auto& backend : m_input_backends)
     backend->PopulateDevices();
 
   WiimoteReal::PopulateDevices();
@@ -248,7 +248,7 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     std::lock_guard lk(m_devices_mutex);
 
     const auto is_id_in_use = [&device, this](int id) {
-      return std::any_of(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
+      return std::ranges::any_of(m_devices, [&device, &id](const auto& d) {
         return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
                d->GetId() == id;
       });
@@ -277,14 +277,15 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     // need their order to be consistent, and we need the same one to always be the first, where
     // present (the keyboard and mouse device usually). This is because when defaulting a
     // controller profile, it will automatically select the first device in the list as its default.
-    std::stable_sort(m_devices.begin(), m_devices.end(),
-                     [](const std::shared_ptr<ciface::Core::Device>& a,
-                        const std::shared_ptr<ciface::Core::Device>& b) {
-                       // It would be nice to sort devices by Source then Name then ID but it's
-                       // better to leave them sorted by the add order, which also avoids breaking
-                       // the order on other platforms that are less tested.
-                       return a->GetSortPriority() > b->GetSortPriority();
-                     });
+    std::ranges::stable_sort(
+        m_devices,
+        [](const std::shared_ptr<ciface::Core::Device>& a,
+           const std::shared_ptr<ciface::Core::Device>& b) {
+          // It would be nice to sort devices by Source then Name then ID but it's
+          // better to leave them sorted by the add order, which also avoids breaking
+          // the order on other platforms that are less tested.
+          return a->GetSortPriority() > b->GetSortPriority();
+        });
   }
 
   if (!m_populating_devices_counter)
@@ -293,7 +294,7 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
 }
 
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback,
-                                       bool force_devices_release)
+                                       const bool force_devices_release)
 {
   // If we are shutdown (or in process of shutting down) ignore this request:
   if (!m_is_init)
@@ -351,7 +352,7 @@ void ControllerInterface::UpdateInput()
 
     tls_is_updating_devices = true;
 
-    for (auto& backend : m_input_backends)
+    for (const auto& backend : m_input_backends)
       backend->UpdateInput(devices_to_remove);
 
     for (const auto& d : m_devices)
@@ -368,15 +369,16 @@ void ControllerInterface::UpdateInput()
   if (devices_to_remove.size() > 0)
   {
     RemoveDevice([&](const ciface::Core::Device* device) {
-      return std::any_of(devices_to_remove.begin(), devices_to_remove.end(),
-                         [device](const std::weak_ptr<ciface::Core::Device>& d) {
-                           return d.lock().get() == device;
-                         });
+      return std::ranges::any_of(
+          devices_to_remove,
+          [device](const std::weak_ptr<ciface::Core::Device>& d) {
+            return d.lock().get() == device;
+          });
     });
   }
 }
 
-void ControllerInterface::SetCurrentInputChannel(ciface::InputChannel input_channel)
+void ControllerInterface::SetCurrentInputChannel(const ciface::InputChannel input_channel)
 {
   tls_input_channel = input_channel;
 }
@@ -391,7 +393,7 @@ WindowSystemInfo ControllerInterface::GetWindowSystemInfo() const
   return m_wsi;
 }
 
-void ControllerInterface::SetAspectRatioAdjustment(float value)
+void ControllerInterface::SetAspectRatioAdjustment(const float value)
 {
   m_aspect_ratio_adjustment = value;
 }
@@ -402,11 +404,10 @@ Common::Vec2 ControllerInterface::GetWindowInputScale() const
 
   if (ar > 1)
     return {1.f, ar};
-  else
-    return {1 / ar, 1.f};
+  return {1 / ar, 1.f};
 }
 
-void ControllerInterface::SetMouseCenteringRequested(bool center)
+void ControllerInterface::SetMouseCenteringRequested(const bool center)
 {
   m_requested_mouse_centering = center;
 }

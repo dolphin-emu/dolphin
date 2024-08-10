@@ -3,7 +3,6 @@
 
 #include "Core/Debugger/Dump.h"
 
-#include <cstdio>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -14,7 +13,7 @@ CDump::CDump(const std::string& filename)
   File::IOFile pStream(filename, "rb");
   if (pStream)
   {
-    m_size = (size_t)pStream.GetSize();
+    m_size = pStream.GetSize();
 
     m_pData = new u8[m_size];
 
@@ -31,14 +30,14 @@ CDump::~CDump()
   }
 }
 
-int CDump::GetNumberOfSteps()
+int CDump::GetNumberOfSteps() const
 {
-  return (int)(m_size / STRUCTUR_SIZE);
+  return static_cast<int>(m_size / STRUCTUR_SIZE);
 }
 
-u32 CDump::GetGPR(int _step, int _gpr)
+u32 CDump::GetGPR(const int _step, const int _gpr) const
 {
-  u32 offset = _step * STRUCTUR_SIZE;
+  const u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
     return UINT32_MAX;
@@ -46,9 +45,9 @@ u32 CDump::GetGPR(int _step, int _gpr)
   return Read32(offset + OFFSET_GPR + (_gpr * 4));
 }
 
-u32 CDump::GetPC(int _step)
+u32 CDump::GetPC(const int _step) const
 {
-  u32 offset = _step * STRUCTUR_SIZE;
+  const u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
     return UINT32_MAX;
@@ -56,10 +55,10 @@ u32 CDump::GetPC(int _step)
   return Read32(offset + OFFSET_PC);
 }
 
-u32 CDump::Read32(u32 _pos)
+u32 CDump::Read32(const u32 _pos) const
 {
-  u32 result = (m_pData[_pos + 0] << 24) | (m_pData[_pos + 1] << 16) | (m_pData[_pos + 2] << 8) |
-               (m_pData[_pos + 3] << 0);
+  const u32 result = (m_pData[_pos + 0] << 24) | (m_pData[_pos + 1] << 16) | (m_pData[_pos + 2] << 8) |
+                     (m_pData[_pos + 3] << 0);
 
   return result;
 }

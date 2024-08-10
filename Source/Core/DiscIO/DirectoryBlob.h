@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiEncryptionCache.h"
@@ -160,9 +159,9 @@ private:
 class DiscContentContainer
 {
 public:
-  void Add(u64 offset, std::vector<u8> vector)
+  void Add(const u64 offset, std::vector<u8> vector)
   {
-    size_t vector_size = vector.size();
+    const size_t vector_size = vector.size();
     return Add(offset, vector_size, std::make_shared<std::vector<u8>>(std::move(vector)));
   }
   void Add(u64 offset, u64 size, ContentSource source);
@@ -181,7 +180,7 @@ public:
   DirectoryBlobPartition() = default;
   DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
   DirectoryBlobPartition(
-      DiscIO::VolumeDisc* volume, const DiscIO::Partition& partition, std::optional<bool> is_wii,
+      VolumeDisc* volume, const Partition& partition, std::optional<bool> is_wii,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
           fst_callback,
@@ -194,16 +193,16 @@ public:
 
   bool IsWii() const { return m_is_wii; }
   u64 GetDataSize() const { return m_data_size; }
-  void SetDataSize(u64 size) { m_data_size = size; }
+  void SetDataSize(const u64 size) { m_data_size = size; }
   const std::string& GetRootDirectory() const { return m_root_directory; }
   const DiscContentContainer& GetContents() const { return m_contents; }
-  const std::optional<DiscIO::Partition>& GetWrappedPartition() const
+  const std::optional<Partition>& GetWrappedPartition() const
   {
     return m_wrapped_partition;
   }
 
   const std::array<u8, VolumeWii::AES_KEY_SIZE>& GetKey() const { return m_key; }
-  void SetKey(std::array<u8, VolumeWii::AES_KEY_SIZE> key) { m_key = key; }
+  void SetKey(const std::array<u8, VolumeWii::AES_KEY_SIZE> key) { m_key = key; }
 
 private:
   void SetDiscType(std::optional<bool> is_wii, const std::vector<u8>& disc_header);
@@ -223,10 +222,10 @@ private:
                 std::vector<u8>* disc_header);
 
   // FST creation
-  void WriteEntryData(std::vector<u8>* fst_data, u32* entry_offset, u8 type, u32 name_offset,
-                      u64 data_offset, u64 length, u32 address_shift);
-  void WriteEntryName(std::vector<u8>* fst_data, u32* name_offset, const std::string& name,
-                      u64 name_table_offset);
+  static void WriteEntryData(std::vector<u8>* fst_data, u32* entry_offset, u8 type, u32 name_offset,
+                             u64 data_offset, u64 length, u32 address_shift);
+  static void WriteEntryName(std::vector<u8>* fst_data, u32* name_offset, const std::string& name,
+                             u64 name_table_offset);
   void WriteDirectory(std::vector<u8>* fst_data, std::vector<FSTBuilderNode>* parent_entries,
                       u32* fst_offset, u32* name_offset, u64* data_offset, u32 parent_entry_index,
                       u64 name_table_offset);
@@ -242,7 +241,7 @@ private:
 
   u64 m_data_size = 0;
 
-  std::optional<DiscIO::Partition> m_wrapped_partition = std::nullopt;
+  std::optional<Partition> m_wrapped_partition = std::nullopt;
 };
 
 class DirectoryBlobReader : public BlobReader
@@ -252,7 +251,7 @@ class DirectoryBlobReader : public BlobReader
 public:
   static std::unique_ptr<DirectoryBlobReader> Create(const std::string& dol_path);
   static std::unique_ptr<DirectoryBlobReader> Create(
-      std::unique_ptr<DiscIO::VolumeDisc> volume,
+      std::unique_ptr<VolumeDisc> volume,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
           fst_callback);
@@ -279,7 +278,7 @@ public:
 private:
   struct PartitionWithType
   {
-    PartitionWithType(DirectoryBlobPartition&& partition_, PartitionType type_)
+    PartitionWithType(DirectoryBlobPartition&& partition_, const PartitionType type_)
         : partition(std::move(partition_)), type(type_)
     {
     }
@@ -291,7 +290,7 @@ private:
   explicit DirectoryBlobReader(const std::string& game_partition_root,
                                const std::string& true_root);
   explicit DirectoryBlobReader(
-      std::unique_ptr<DiscIO::VolumeDisc> volume,
+      std::unique_ptr<VolumeDisc> volume,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
           fst_callback);
@@ -311,7 +310,7 @@ private:
   void SetPartitions(std::vector<PartitionWithType>&& partitions);
   void SetPartitionHeader(DirectoryBlobPartition* partition, u64 partition_address);
 
-  DiscIO::VolumeDisc* GetWrappedVolume() { return m_wrapped_volume.get(); }
+  VolumeDisc* GetWrappedVolume() const { return m_wrapped_volume.get(); }
 
   // For GameCube:
   DirectoryBlobPartition m_gamecube_pseudopartition;
@@ -326,7 +325,7 @@ private:
 
   u64 m_data_size;
 
-  std::unique_ptr<DiscIO::VolumeDisc> m_wrapped_volume;
+  std::unique_ptr<VolumeDisc> m_wrapped_volume;
 };
 
 }  // namespace DiscIO

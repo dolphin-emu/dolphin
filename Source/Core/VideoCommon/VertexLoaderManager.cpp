@@ -71,7 +71,7 @@ void Init()
 
 void Clear()
 {
-  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
+  std::lock_guard lk(s_vertex_loader_map_lock);
   s_vertex_loader_map.clear();
   s_native_vertex_map.clear();
 }
@@ -82,8 +82,8 @@ void UpdateVertexArrayPointers()
   if (!g_bases_dirty) [[likely]]
     return;
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
 
   // Some games such as Burnout 2 can put invalid addresses into
   // the array base registers. (see issue 8591)
@@ -139,8 +139,8 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
   if (iter == s_native_vertex_map.end())
   {
     std::unique_ptr<NativeVertexFormat> fmt = g_gfx->CreateNativeVertexFormat(decl);
-    auto ipair = s_native_vertex_map.emplace(decl, std::move(fmt));
-    iter = ipair.first;
+    const auto [fst, _snd] = s_native_vertex_map.emplace(decl, std::move(fmt));
+    iter = fst;
   }
 
   return iter->second.get();
@@ -152,11 +152,11 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   // Avoid this by initializing the padding to zero.
   PortableVertexDeclaration new_decl;
   static_assert(std::is_trivially_copyable_v<PortableVertexDeclaration>);
-  std::memset(static_cast<void*>(&new_decl), 0, sizeof(new_decl));
+  std::memset(&new_decl, 0, sizeof(new_decl));
   new_decl.stride = decl.stride;
 
-  auto MakeDummyAttribute = [](AttributeFormat& attr, ComponentFormat type, int components,
-                               bool integer) {
+  auto MakeDummyAttribute = [](AttributeFormat& attr, const ComponentFormat type, const int components,
+                               const bool integer) {
     attr.type = type;
     attr.components = components;
     attr.offset = 0;
@@ -207,9 +207,9 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
 namespace detail
 {
 template <bool IsPreprocess>
-VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
+VertexLoaderBase* GetOrCreateLoader(const int vtx_attr_group)
 {
-  constexpr CPState* state = IsPreprocess ? &g_preprocess_cp_state : &g_main_cp_state;
+  const constexpr CPState* state = IsPreprocess ? &g_preprocess_cp_state : &g_main_cp_state;
   constexpr BitSet8& attr_dirty = IsPreprocess ? g_preprocess_vat_dirty : g_main_vat_dirty;
   constexpr auto& vertex_loaders =
       IsPreprocess ? g_preprocess_vertex_loaders : g_main_vertex_loaders;
@@ -220,9 +220,9 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
   // thread
   bool check_for_native_format = !IsPreprocess;
 
-  VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
-  VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
+  const VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
+  std::lock_guard lk(s_vertex_loader_map_lock);
+  const auto iter = s_vertex_loader_map.find(uid);
   if (iter != s_vertex_loader_map.end())
   {
     loader = iter->second.get();
@@ -248,13 +248,13 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
 
 }  // namespace detail
 
-static void CheckCPConfiguration(int vtx_attr_group)
+static void CheckCPConfiguration(const int vtx_attr_group)
 {
   // Validate that the XF input configuration matches the CP configuration
-  u32 num_cp_colors = std::count_if(
+  const u32 num_cp_colors = std::count_if(
       g_main_cp_state.vtx_desc.low.Color.begin(), g_main_cp_state.vtx_desc.low.Color.end(),
       [](auto format) { return format != VertexComponentFormat::NotPresent; });
-  u32 num_cp_tex_coords = std::count_if(
+  const u32 num_cp_tex_coords = std::count_if(
       g_main_cp_state.vtx_desc.high.TexCoord.begin(), g_main_cp_state.vtx_desc.high.TexCoord.end(),
       [](auto format) { return format != VertexComponentFormat::NotPresent; });
 
@@ -376,7 +376,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
 }
 
 template <bool IsPreprocess>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src)
+int RunVertices(const int vtx_attr_group, const OpcodeDecoder::Primitive primitive, int count, const u8* src)
 {
   if (count == 0) [[unlikely]]
     return 0;
@@ -384,7 +384,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 
   VertexLoaderBase* loader = RefreshLoader<IsPreprocess>(vtx_attr_group);
 
-  int size = count * loader->m_vertex_size;
+  const int size = count * loader->m_vertex_size;
 
   if constexpr (!IsPreprocess)
   {
@@ -405,7 +405,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 
       s_current_vtx_fmt = loader->m_native_vertex_format;
       g_current_components = loader->m_native_components;
-      auto& system = Core::System::GetInstance();
+      const auto& system = Core::System::GetInstance();
       auto& vertex_shader_manager = system.GetVertexShaderManager();
       vertex_shader_manager.SetVertexFormat(loader->m_native_components,
                                             loader->m_native_vertex_format->GetVertexDeclaration());

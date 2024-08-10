@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -15,12 +14,12 @@
 
 namespace
 {
-u32 SubtractBE32(u32 minuend_be, u32 subtrahend_le)
+u32 SubtractBE32(const u32 minuend_be, const u32 subtrahend_le)
 {
   return Common::swap32(Common::swap32(minuend_be) - subtrahend_le);
 }
 
-void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_size,
+void Replace(const u64 offset, const u64 size, u8* out_ptr, const u64 replace_offset, const u64 replace_size,
              const u8* replace_ptr)
 {
   const u64 replace_start = std::max(offset, replace_offset);
@@ -34,11 +33,11 @@ void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_
 }
 
 template <typename T>
-void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, const T& replace_value)
+void Replace(const u64 offset, const u64 size, u8* out_ptr, const u64 replace_offset, const T& replace_value)
 {
   static_assert(std::is_trivially_copyable_v<T>);
 
-  const u8* replace_ptr = reinterpret_cast<const u8*>(&replace_value);
+  auto replace_ptr = reinterpret_cast<const u8*>(&replace_value);
   Replace(offset, size, out_ptr, replace_offset, sizeof(T), replace_ptr);
 }
 }  // namespace
@@ -108,7 +107,7 @@ u64 TGCFileReader::GetDataSize() const
   return m_size - Common::swap32(m_header.tgc_header_size);
 }
 
-bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
+bool TGCFileReader::Read(const u64 offset, const u64 nbytes, u8* out_ptr)
 {
   const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
 

@@ -10,7 +10,6 @@
 #include <cubeb/cubeb.h>
 
 #include "AudioCommon/CubebUtils.h"
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
@@ -73,13 +72,13 @@ static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state st
 }
 
 long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                           void* /*output_buffer*/, long nframes)
+                           void* /*output_buffer*/, const long nframes)
 {
-  CEXIMic* mic = static_cast<CEXIMic*>(user_data);
+  auto mic = static_cast<CEXIMic*>(user_data);
 
   std::lock_guard lk(mic->ring_lock);
 
-  const s16* buff_in = static_cast<const s16*>(input_buffer);
+  auto buff_in = static_cast<const s16*>(input_buffer);
   for (long i = 0; i < nframes; i++)
   {
     mic->stream_buffer[mic->stream_wpos] = buff_in[i];
@@ -177,7 +176,7 @@ void CEXIMic::StreamReadOne()
 
   if (samples_avail >= buff_size_samples)
   {
-    s16* last_buffer = &stream_buffer[stream_rpos];
+    const s16* last_buffer = &stream_buffer[stream_rpos];
     std::memcpy(ring_buffer, last_buffer, buff_size);
 
     samples_avail -= buff_size_samples;
@@ -196,7 +195,7 @@ void CEXIMic::StreamReadOne()
 
 u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
 
-CEXIMic::CEXIMic(Core::System& system, int index)
+CEXIMic::CEXIMic(Core::System& system, const int index)
     : IEXIDevice(system), slot(index)
 #ifdef _WIN32
       ,
@@ -220,7 +219,7 @@ CEXIMic::CEXIMic(Core::System& system, int index)
   Common::Event sync_event;
   m_work_queue.EmplaceItem([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-    auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    const auto result = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
     m_should_couninit = result == S_OK || result == S_FALSE;
   });
@@ -254,7 +253,7 @@ bool CEXIMic::IsPresent() const
   return true;
 }
 
-void CEXIMic::SetCS(int cs)
+void CEXIMic::SetCS(const int cs)
 {
   if (cs)  // not-selected to selected
     m_position = 0;
@@ -264,7 +263,7 @@ void CEXIMic::SetCS(int cs)
 
 void CEXIMic::UpdateNextInterruptTicks()
 {
-  int diff = (m_system.GetSystemTimers().GetTicksPerSecond() / sample_rate) * buff_size_samples;
+  const int diff = (m_system.GetSystemTimers().GetTicksPerSecond() / sample_rate) * buff_size_samples;
   next_int_ticks = m_system.GetCoreTiming().GetTicks() + diff;
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
@@ -280,10 +279,7 @@ bool CEXIMic::IsInterruptSet()
 
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 void CEXIMic::TransferByte(u8& byte)
@@ -296,7 +292,7 @@ void CEXIMic::TransferByte(u8& byte)
     return;
   }
 
-  int pos = m_position - 1;
+  const int pos = m_position - 1;
 
   switch (command)
   {
@@ -316,7 +312,7 @@ void CEXIMic::TransferByte(u8& byte)
 
   case cmdSetStatus:
   {
-    bool wasactive = status.is_active;
+    const bool wasactive = status.is_active;
     status.U8[pos ^ 1] = byte;
 
     // safe to do since these can only be entered if both bytes of status have been written

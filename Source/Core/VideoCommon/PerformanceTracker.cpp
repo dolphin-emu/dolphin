@@ -12,7 +12,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -20,7 +19,7 @@ static constexpr double SAMPLE_RC_RATIO = 0.25;
 
 PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
                                        const std::optional<s64> sample_window_us)
-    : m_on_state_changed_handle{Core::AddOnStateChangedCallback([this](Core::State state) {
+    : m_on_state_changed_handle{Core::AddOnStateChangedCallback([this](const Core::State state) {
         if (state == Core::State::Paused)
           SetPaused(true);
         else if (state == Core::State::Running)
@@ -121,7 +120,7 @@ DT PerformanceTracker::GetDtStd() const
   double total = 0.0;
   for (std::size_t i = m_dt_queue_begin; i != m_dt_queue_end; i = IncrementIndex(i))
   {
-    double diff = DT_s(m_dt_queue[i] - m_dt_avg).count();
+    const double diff = DT_s(m_dt_queue[i] - m_dt_avg).count();
     total += diff * diff;
   }
 
@@ -194,7 +193,7 @@ void PerformanceTracker::QueueClear()
   m_dt_queue_end = 0;
 }
 
-void PerformanceTracker::QueuePush(DT dt)
+void PerformanceTracker::QueuePush(const DT dt)
 {
   m_dt_queue[m_dt_queue_end] = dt;
   m_dt_queue_end = IncrementIndex(m_dt_queue_end);
@@ -227,7 +226,7 @@ bool PerformanceTracker::QueueEmpty() const
   return m_dt_queue_begin == m_dt_queue_end;
 }
 
-void PerformanceTracker::LogRenderTimeToFile(DT val)
+void PerformanceTracker::LogRenderTimeToFile(const DT val)
 {
   if (!m_log_name || !g_ActiveConfig.bLogRenderTimeToFile)
     return;
@@ -241,7 +240,7 @@ void PerformanceTracker::LogRenderTimeToFile(DT val)
   m_bench_file << std::fixed << std::setprecision(8) << DT_ms(val).count() << std::endl;
 }
 
-void PerformanceTracker::SetPaused(bool paused)
+void PerformanceTracker::SetPaused(const bool paused)
 {
   std::unique_lock lock{m_mutex};
 

@@ -12,7 +12,7 @@ class CPUCull
 public:
   ~CPUCull();
   void Init();
-  bool AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
+  bool AreAllVerticesCulled(const VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
                             const u8* src, u32 count);
 
   struct alignas(16) TransformedVertex
@@ -21,7 +21,7 @@ public:
   };
 
   using TransformFunction = void (*)(void*, const void*, u32, int);
-  using CullFunction = bool (*)(const CPUCull::TransformedVertex*, int);
+  using CullFunction = bool (*)(const TransformedVertex*, int);
 
 private:
   template <typename T>

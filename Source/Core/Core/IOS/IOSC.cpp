@@ -205,7 +205,7 @@ static size_t GetSizeForType(IOSC::ObjectType type, IOSC::ObjectSubType subtype)
   return iterator != s_type_to_size_map.end() ? iterator->second : 0;
 }
 
-IOSC::IOSC(ConsoleType console_type) : m_console_type(console_type)
+IOSC::IOSC(const ConsoleType console_type) : m_console_type(console_type)
 {
   LoadDefaultEntries();
   LoadEntries();
@@ -213,9 +213,9 @@ IOSC::IOSC(ConsoleType console_type) : m_console_type(console_type)
 
 IOSC::~IOSC() = default;
 
-ReturnCode IOSC::CreateObject(Handle* handle, ObjectType type, ObjectSubType subtype, u32 pid)
+ReturnCode IOSC::CreateObject(Handle* handle, const ObjectType type, const ObjectSubType subtype, const u32 pid)
 {
-  auto iterator = FindFreeEntry();
+  const auto iterator = FindFreeEntry();
   if (iterator == m_key_entries.end())
     return IOSC_FAIL_ALLOC;
 
@@ -228,7 +228,7 @@ ReturnCode IOSC::CreateObject(Handle* handle, ObjectType type, ObjectSubType sub
   return IPC_SUCCESS;
 }
 
-ReturnCode IOSC::DeleteObject(Handle handle, u32 pid)
+ReturnCode IOSC::DeleteObject(const Handle handle, const u32 pid)
 {
   if (IsDefaultHandle(handle) || !HasOwnership(handle, pid))
     return IOSC_EACCES;
@@ -242,8 +242,8 @@ ReturnCode IOSC::DeleteObject(Handle handle, u32 pid)
 }
 
 constexpr size_t AES128_KEY_SIZE = 0x10;
-ReturnCode IOSC::ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* iv,
-                                 const u8* encrypted_key, u32 pid)
+ReturnCode IOSC::ImportSecretKey(const Handle dest_handle, const Handle decrypt_handle, u8* iv,
+                                 const u8* encrypted_key, const u32 pid)
 {
   std::array<u8, AES128_KEY_SIZE> decrypted_key;
   const ReturnCode ret =
@@ -254,7 +254,7 @@ ReturnCode IOSC::ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* 
   return ImportSecretKey(dest_handle, decrypted_key.data(), pid);
 }
 
-ReturnCode IOSC::ImportSecretKey(Handle dest_handle, const u8* decrypted_key, u32 pid)
+ReturnCode IOSC::ImportSecretKey(const Handle dest_handle, const u8* decrypted_key, const u32 pid)
 {
   if (!HasOwnership(dest_handle, pid) || IsDefaultHandle(dest_handle))
     return IOSC_EACCES;
@@ -267,12 +267,12 @@ ReturnCode IOSC::ImportSecretKey(Handle dest_handle, const u8* decrypted_key, u3
   if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != ObjectSubType::AES128)
     return IOSC_INVALID_OBJTYPE;
 
-  dest_entry->data = std::vector<u8>(decrypted_key, decrypted_key + AES128_KEY_SIZE);
+  dest_entry->data = std::vector(decrypted_key, decrypted_key + AES128_KEY_SIZE);
   return IPC_SUCCESS;
 }
 
-ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
-                                 const u8* public_key_exponent, u32 pid)
+ReturnCode IOSC::ImportPublicKey(const Handle dest_handle, const u8* public_key,
+                                 const u8* public_key_exponent, const u32 pid)
 {
   if (!HasOwnership(dest_handle, pid) || IsDefaultHandle(dest_handle))
     return IOSC_EACCES;
@@ -299,8 +299,8 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
   return IPC_SUCCESS;
 }
 
-ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Handle public_handle,
-                                  u32 pid)
+ReturnCode IOSC::ComputeSharedKey(const Handle dest_handle, const Handle private_handle, const Handle public_handle,
+                                  const u32 pid)
 {
   if (!HasOwnership(dest_handle, pid) || !HasOwnership(private_handle, pid) ||
       !HasOwnership(public_handle, pid) || IsDefaultHandle(dest_handle))
@@ -331,8 +331,8 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
   return IPC_SUCCESS;
 }
 
-ReturnCode IOSC::DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* iv, const u8* input,
-                                size_t size, u8* output, u32 pid) const
+ReturnCode IOSC::DecryptEncrypt(const Common::AES::Mode mode, const Handle key_handle, u8* iv, const u8* input,
+                                const size_t size, u8* output, const u32 pid) const
 {
   if (!HasOwnership(key_handle, pid))
     return IOSC_EACCES;
@@ -346,7 +346,7 @@ ReturnCode IOSC::DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* i
   if (entry->data.size() != AES128_KEY_SIZE)
     return IOSC_FAIL_INTERNAL;
 
-  auto key = entry->data.data();
+  const auto key = entry->data.data();
   // TODO? store enc + dec ctxs in the KeyEntry so they only need to be created once.
   // This doesn't seem like a hot path, though.
   std::unique_ptr<Common::AES::Context> ctx;
@@ -359,20 +359,20 @@ ReturnCode IOSC::DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* i
   return IPC_SUCCESS;
 }
 
-ReturnCode IOSC::Encrypt(Handle key_handle, u8* iv, const u8* input, size_t size, u8* output,
-                         u32 pid) const
+ReturnCode IOSC::Encrypt(const Handle key_handle, u8* iv, const u8* input, const size_t size, u8* output,
+                         const u32 pid) const
 {
   return DecryptEncrypt(Common::AES::Mode::Encrypt, key_handle, iv, input, size, output, pid);
 }
 
-ReturnCode IOSC::Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size, u8* output,
-                         u32 pid) const
+ReturnCode IOSC::Decrypt(const Handle key_handle, u8* iv, const u8* input, const size_t size, u8* output,
+                         const u32 pid) const
 {
   return DecryptEncrypt(Common::AES::Mode::Decrypt, key_handle, iv, input, size, output, pid);
 }
 
-ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
-                                     const std::vector<u8>& signature, u32 pid) const
+ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, const Handle signer_handle,
+                                     const std::vector<u8>& signature, const u32 pid) const
 {
   if (!HasOwnership(signer_handle, pid))
     return IOSC_EACCES;
@@ -436,8 +436,8 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
   }
 }
 
-ReturnCode IOSC::ImportCertificate(const ES::CertReader& cert, Handle signer_handle,
-                                   Handle dest_handle, u32 pid)
+ReturnCode IOSC::ImportCertificate(const ES::CertReader& cert, const Handle signer_handle,
+                                   const Handle dest_handle, const u32 pid)
 {
   if (!HasOwnership(signer_handle, pid) || !HasOwnership(dest_handle, pid))
     return IOSC_EACCES;
@@ -463,7 +463,7 @@ ReturnCode IOSC::ImportCertificate(const ES::CertReader& cert, Handle signer_han
   return ImportPublicKey(dest_handle, public_key.data(), exponent, pid);
 }
 
-ReturnCode IOSC::GetOwnership(Handle handle, u32* owner) const
+ReturnCode IOSC::GetOwnership(const Handle handle, u32* owner) const
 {
   const KeyEntry* entry = FindEntry(handle);
   if (entry && entry->in_use)
@@ -474,7 +474,7 @@ ReturnCode IOSC::GetOwnership(Handle handle, u32* owner) const
   return IOSC_EINVAL;
 }
 
-ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
+ReturnCode IOSC::SetOwnership(const Handle handle, const u32 new_owner, const u32 pid)
 {
   if (!HasOwnership(handle, pid))
     return IOSC_EACCES;
@@ -506,12 +506,14 @@ u32 IOSC::GetDeviceId() const
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 static CertECC MakeBlankEccCert(const std::string& issuer, const std::string& name,
-                                const u8* private_key, u32 key_id)
+                                const u8* private_key, const u32 key_id)
 {
   CertECC cert{};
-  cert.signature.type = SignatureType(Common::swap32(u32(SignatureType::ECC)));
+  cert.signature.type = static_cast<SignatureType>(Common::swap32(
+      static_cast<u32>(SignatureType::ECC)));
   issuer.copy(cert.signature.issuer, sizeof(cert.signature.issuer) - 1);
-  cert.header.public_key_type = PublicKeyType(Common::swap32(u32(PublicKeyType::ECC)));
+  cert.header.public_key_type = static_cast<PublicKeyType>(Common::swap32(
+      static_cast<u32>(PublicKeyType::ECC)));
   name.copy(cert.header.name, sizeof(cert.header.name) - 1);
   cert.header.id = Common::swap32(key_id);
   cert.public_key = Common::ec::PrivToPub(private_key);
@@ -527,7 +529,7 @@ CertECC IOSC::GetDeviceCertificate() const
   return cert;
 }
 
-void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const
+void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, const u32 data_size) const
 {
   std::array<u8, 30> ap_priv{};
 
@@ -551,7 +553,7 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   // Sign the data.
   const auto data_digest = Common::SHA1::CalculateDigest(data, data_size);
   const auto signature = Common::ec::Sign(ap_priv.data(), data_digest.data());
-  std::copy(signature.cbegin(), signature.cend(), sig_out);
+  std::ranges::copy(signature, sig_out);
 }
 
 void IOSC::LoadDefaultEntries()
@@ -582,7 +584,7 @@ void IOSC::LoadDefaultEntries()
                                           0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7}},
                                         3};
     m_root_key_entry = {TYPE_PUBLIC_KEY, ObjectSubType::RSA4096,
-                        std::vector<u8>(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
+                        std::vector(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
                         Common::swap32(0x00010001), 0};
     // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults
     // to 2.
@@ -596,7 +598,7 @@ void IOSC::LoadDefaultEntries()
                                           0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa}},
                                         3};
     m_root_key_entry = {TYPE_PUBLIC_KEY, ObjectSubType::RSA4096,
-                        std::vector<u8>(ROOT_PUBLIC_KEY_DEV.begin(), ROOT_PUBLIC_KEY_DEV.end()),
+                        std::vector(ROOT_PUBLIC_KEY_DEV.begin(), ROOT_PUBLIC_KEY_DEV.end()),
                         Common::swap32(0x00010001), 0};
     m_ms_id = 3;
     m_ca_id = 2;
@@ -654,50 +656,49 @@ void IOSC::LoadEntries()
 
 IOSC::KeyEntry::KeyEntry() = default;
 
-IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
-                         u32 misc_data_, u32 owner_mask_)
+IOSC::KeyEntry::KeyEntry(const ObjectType type_, const ObjectSubType subtype_, std::vector<u8>&& data_,
+                         const u32 misc_data_, const u32 owner_mask_)
     : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)), misc_data(misc_data_),
       owner_mask(owner_mask_)
 {
 }
 
-IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
-                         u32 owner_mask_)
+IOSC::KeyEntry::KeyEntry(const ObjectType type_, const ObjectSubType subtype_, std::vector<u8>&& data_,
+                         const u32 owner_mask_)
     : KeyEntry(type_, subtype_, std::move(data_), {}, owner_mask_)
 {
 }
 
 IOSC::KeyEntries::iterator IOSC::FindFreeEntry()
 {
-  return std::find_if(m_key_entries.begin(), m_key_entries.end(),
-                      [](const auto& entry) { return !entry.in_use; });
+  return std::ranges::find_if(m_key_entries, [](const auto& entry) { return !entry.in_use; });
 }
 
-IOSC::KeyEntry* IOSC::FindEntry(Handle handle)
+IOSC::KeyEntry* IOSC::FindEntry(const Handle handle)
 {
   return handle < m_key_entries.size() ? &m_key_entries[handle] : nullptr;
 }
-const IOSC::KeyEntry* IOSC::FindEntry(Handle handle, SearchMode mode) const
+const IOSC::KeyEntry* IOSC::FindEntry(const Handle handle, const SearchMode mode) const
 {
   if (mode == SearchMode::IncludeRootKey && handle == HANDLE_ROOT_KEY)
     return &m_root_key_entry;
   return handle < m_key_entries.size() ? &m_key_entries[handle] : nullptr;
 }
 
-IOSC::Handle IOSC::GetHandleFromIterator(IOSC::KeyEntries::iterator iterator) const
+IOSC::Handle IOSC::GetHandleFromIterator(KeyEntries::iterator iterator) const
 {
   ASSERT(iterator != m_key_entries.end());
   return static_cast<Handle>(iterator - m_key_entries.begin());
 }
 
-bool IOSC::HasOwnership(Handle handle, u32 pid) const
+bool IOSC::HasOwnership(const Handle handle, const u32 pid) const
 {
   u32 owner_mask;
   return handle == HANDLE_ROOT_KEY ||
          (GetOwnership(handle, &owner_mask) == IPC_SUCCESS && ((1 << pid) & owner_mask) != 0);
 }
 
-bool IOSC::IsDefaultHandle(Handle handle) const
+bool IOSC::IsDefaultHandle(const Handle handle)
 {
   constexpr Handle last_default_handle = HANDLE_NEW_COMMON_KEY;
   return handle <= last_default_handle || handle == HANDLE_ROOT_KEY;

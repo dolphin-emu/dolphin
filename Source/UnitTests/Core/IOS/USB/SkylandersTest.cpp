@@ -130,16 +130,16 @@ TEST(Skylanders, Keygen)
     std::array<u8, 4> nuid;
     u8 sector;
     u64 expected;
-  } const inputs[]{{{0x00, 0x00, 0x00, 0x00}, 0, 0x4B0B20107CCB},
+  } constexpr inputs[]{{{0x00, 0x00, 0x00, 0x00}, 0, 0x4B0B20107CCB},
                    {{0x94, 0xB0, 0xEE, 0x2D}, 0, 0x4B0B20107CCB},
                    {{0x00, 0x00, 0x00, 0x00}, 11, 0xEA168579FF28},
                    {{0x94, 0xB0, 0xEE, 0x2D}, 1, 0x278e4DA896B5},
                    {{0xF7, 0xDB, 0xFD, 0x5F}, 2, 0x75B9B1F4B9EB}};
 
-  for (auto& test : inputs)
+  for (const auto& [nuid, sector, expected] : inputs)
   {
-    auto actual = CalculateKeyA(test.sector, test.nuid);
-    EXPECT_EQ(test.expected, actual);
+    auto actual = CalculateKeyA(sector, nuid);
+    EXPECT_EQ(expected, actual);
   }
 }
 

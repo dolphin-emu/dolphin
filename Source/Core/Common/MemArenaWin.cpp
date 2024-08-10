@@ -44,7 +44,7 @@ struct WindowsMemoryRegion
   size_t m_size;
   bool m_is_mapped;
 
-  WindowsMemoryRegion(u8* start, size_t size, bool is_mapped)
+  WindowsMemoryRegion(u8* start, const size_t size, const bool is_mapped)
       : m_start(start), m_size(size), m_is_mapped(is_mapped)
   {
   }
@@ -52,7 +52,7 @@ struct WindowsMemoryRegion
 
 static bool InitWindowsMemoryFunctions(WindowsMemoryFunctions* functions)
 {
-  DynamicLibrary kernelBase{"KernelBase.dll"};
+  const DynamicLibrary kernelBase{"KernelBase.dll"};
   if (!kernelBase.IsOpen())
     return false;
 
@@ -107,17 +107,17 @@ MemArena::~MemArena()
   ReleaseSHMSegment();
 }
 
-static DWORD GetHighDWORD(u64 value)
+static DWORD GetHighDWORD(const u64 value)
 {
   return static_cast<DWORD>(value >> 32);
 }
 
-static DWORD GetLowDWORD(u64 value)
+static DWORD GetLowDWORD(const u64 value)
 {
   return static_cast<DWORD>(value);
 }
 
-void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
+void MemArena::GrabSHMSegment(const size_t size, std::string_view base_name)
 {
   const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
   m_memory_handle =
@@ -133,14 +133,14 @@ void MemArena::ReleaseSHMSegment()
   m_memory_handle = nullptr;
 }
 
-void* MemArena::CreateView(s64 offset, size_t size)
+void* MemArena::CreateView(const s64 offset, const size_t size) const
 {
   const u64 off = static_cast<u64>(offset);
   return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, GetHighDWORD(off), GetLowDWORD(off),
                          size, nullptr);
 }
 
-void MemArena::ReleaseView(void* view, size_t size)
+void MemArena::ReleaseView(const void* view, size_t size)
 {
   UnmapViewOfFile(view);
 }
@@ -209,9 +209,9 @@ void MemArena::ReleaseMemoryRegion()
   }
 }
 
-WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, size_t size)
+WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, const size_t size)
 {
-  u8* const address = static_cast<u8*>(start_address);
+  const auto address = static_cast<u8*>(start_address);
   auto& regions = m_regions;
   if (regions.empty())
   {
@@ -222,7 +222,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   // find closest region that is <= the given address by using upper bound and decrementing
   auto it = std::upper_bound(
       regions.begin(), regions.end(), address,
-      [](u8* addr, const WindowsMemoryRegion& region) { return addr < region.m_start; });
+      [](const u8* addr, const WindowsMemoryRegion& region) { return addr < region.m_start; });
   if (it == regions.begin())
   {
     // this should never happen, implies that the given address is before the start of the
@@ -305,22 +305,19 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
     regions.insert(it + 1, WindowsMemoryRegion(new_mapping_start, new_mapping_size, false));
     return &regions[mapping_index + 1];
   }
-  else
-  {
-    // split into three; update tracked mappings and return the middle one
-    it->m_size = size_before;
-    u8* const middle_mapping_start = address;
-    const size_t middle_mapping_size = size;
-    u8* const after_mapping_start = address + size;
-    const size_t after_mapping_size = mapping_size - minimum_size;
-    regions.insert(it + 1, WindowsMemoryRegion(after_mapping_start, after_mapping_size, false));
-    regions.insert(regions.begin() + mapping_index + 1,
-                   WindowsMemoryRegion(middle_mapping_start, middle_mapping_size, false));
-    return &regions[mapping_index + 1];
-  }
+  // split into three; update tracked mappings and return the middle one
+  it->m_size = size_before;
+  u8* const middle_mapping_start = address;
+  const size_t middle_mapping_size = size;
+  u8* const after_mapping_start = address + size;
+  const size_t after_mapping_size = mapping_size - minimum_size;
+  regions.insert(it + 1, WindowsMemoryRegion(after_mapping_start, after_mapping_size, false));
+  regions.insert(regions.begin() + mapping_index + 1,
+                 WindowsMemoryRegion(middle_mapping_start, middle_mapping_size, false));
+  return &regions[mapping_index + 1];
 }
 
-void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
+void* MemArena::MapInMemoryRegion(const s64 offset, const size_t size, void* base)
 {
   if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
@@ -348,12 +345,12 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
     return rv;
   }
 
-  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, static_cast<DWORD>((u64)offset), size, base);
 }
 
-bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
+bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
 {
-  u8* const address = static_cast<u8*>(start_address);
+  const auto address = static_cast<u8*>(start_address);
   auto& regions = m_regions;
   if (regions.empty())
   {
@@ -363,9 +360,9 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   }
 
   // there should be a mapping that matches the request exactly, find it
-  auto it = std::lower_bound(
+  const auto it = std::lower_bound(
       regions.begin(), regions.end(), address,
-      [](const WindowsMemoryRegion& region, u8* addr) { return region.m_start < addr; });
+      [](const WindowsMemoryRegion& region, const u8* addr) { return region.m_start < addr; });
   if (it == regions.end() || it->m_start != address || it->m_size != size)
   {
     // didn't find it, we were given bogus input
@@ -379,8 +376,8 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   if (can_join_with_preceding && can_join_with_succeeding)
   {
     // join three mappings to one
-    auto it_preceding = it - 1;
-    auto it_succeeding = it + 1;
+    const auto it_preceding = it - 1;
+    const auto it_succeeding = it + 1;
     const size_t total_size = it_preceding->m_size + size + it_succeeding->m_size;
     if (!VirtualFree(it_preceding->m_start, total_size, MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS))
     {
@@ -394,7 +391,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   else if (can_join_with_preceding && !can_join_with_succeeding)
   {
     // join two mappings to one
-    auto it_preceding = it - 1;
+    const auto it_preceding = it - 1;
     const size_t total_size = it_preceding->m_size + size;
     if (!VirtualFree(it_preceding->m_start, total_size, MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS))
     {
@@ -408,7 +405,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   else if (!can_join_with_preceding && can_join_with_succeeding)
   {
     // join two mappings to one
-    auto it_succeeding = it + 1;
+    const auto it_succeeding = it + 1;
     const size_t total_size = size + it_succeeding->m_size;
     if (!VirtualFree(it->m_start, total_size, MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS))
     {
@@ -422,7 +419,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   return true;
 }
 
-void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
+void MemArena::UnmapFromMemoryRegion(void* view, const size_t size)
 {
   if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
@@ -452,7 +449,7 @@ LazyMemoryRegion::~LazyMemoryRegion()
   Release();
 }
 
-void* LazyMemoryRegion::Create(size_t size)
+void* LazyMemoryRegion::Create(const size_t size)
 {
   ASSERT(!m_memory);
 
@@ -463,9 +460,9 @@ void* LazyMemoryRegion::Create(size_t size)
     return nullptr;
 
   // reserve block of memory
-  const size_t memory_size = Common::AlignUp(size, BLOCK_SIZE);
+  const size_t memory_size = AlignUp(size, BLOCK_SIZE);
   const size_t block_count = memory_size / BLOCK_SIZE;
-  u8* memory =
+  auto memory =
       static_cast<u8*>(static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(
           nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
           nullptr, 0));
@@ -494,8 +491,8 @@ void* LazyMemoryRegion::Create(size_t size)
   m_size = memory_size;
 
   // allocate a single block of real memory in the page file
-  HANDLE zero_block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
-                                        GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+  const HANDLE zero_block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
+                                              GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
   if (zero_block == nullptr)
   {
     NOTICE_LOG_FMT(MEMMAP, "CreateFileMapping() failed for zero block: {}", GetLastErrorString());
@@ -508,7 +505,7 @@ void* LazyMemoryRegion::Create(size_t size)
   // map the zero page into every block
   for (size_t i = 0; i < block_count; ++i)
   {
-    void* result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+    const void* result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
         zero_block, nullptr, memory + i * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
         PAGE_READONLY, nullptr, 0);
     if (!result)
@@ -527,7 +524,7 @@ void* LazyMemoryRegion::Create(size_t size)
 void LazyMemoryRegion::Clear()
 {
   ASSERT(m_memory);
-  u8* const memory = static_cast<u8*>(m_memory);
+  const auto memory = static_cast<u8*>(m_memory);
 
   // reset every writable block back to the zero block
   for (size_t i = 0; i < m_writable_block_handles.size(); ++i)
@@ -550,7 +547,7 @@ void LazyMemoryRegion::Clear()
     m_writable_block_handles[i] = nullptr;
 
     // map the zero block
-    void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+    const void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
         m_zero_block, nullptr, memory + i * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
         PAGE_READONLY, nullptr, 0);
     if (!map_result)
@@ -565,7 +562,7 @@ void LazyMemoryRegion::Release()
   if (m_memory)
   {
     // unmap all pages and release the not-zero block handles
-    u8* const memory = static_cast<u8*>(m_memory);
+    const auto memory = static_cast<u8*>(m_memory);
     for (size_t i = 0; i < m_writable_block_handles.size(); ++i)
     {
       static_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
@@ -584,7 +581,7 @@ void LazyMemoryRegion::Release()
   }
   if (m_memory)
   {
-    u8* const memory = static_cast<u8*>(m_memory);
+    const auto memory = static_cast<u8*>(m_memory);
     const size_t block_count = m_size / BLOCK_SIZE;
     for (size_t i = 0; i < block_count; ++i)
       VirtualFree(memory + i * BLOCK_SIZE, 0, MEM_RELEASE);
@@ -593,9 +590,9 @@ void LazyMemoryRegion::Release()
   }
 }
 
-void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
+void LazyMemoryRegion::MakeMemoryBlockWritable(const size_t block_index)
 {
-  u8* const memory = static_cast<u8*>(m_memory);
+  const auto memory = static_cast<u8*>(m_memory);
 
   // unmap the zero block
   if (!static_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
@@ -606,8 +603,8 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
   }
 
   // allocate a fresh block to map
-  HANDLE block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                                   GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+  const HANDLE block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                                         GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
   if (block == nullptr)
   {
     PanicAlertFmt("CreateFileMapping() failed for writable block: {}", GetLastErrorString());
@@ -615,7 +612,7 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
   }
 
   // map the new block
-  void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+  const void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
       block, nullptr, memory + block_index * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
       PAGE_READWRITE, nullptr, 0);
   if (!map_result)

@@ -39,7 +39,7 @@ inline void UpdateFPExceptionSummary(PowerPC::PowerPCState& ppc_state)
   CheckFPExceptions(ppc_state);
 }
 
-inline void SetFPException(PowerPC::PowerPCState& ppc_state, u32 mask)
+inline void SetFPException(PowerPC::PowerPCState& ppc_state, const u32 mask)
 {
   if ((ppc_state.fpscr.Hex & mask) != mask)
   {
@@ -50,7 +50,7 @@ inline void SetFPException(PowerPC::PowerPCState& ppc_state, u32 mask)
   UpdateFPExceptionSummary(ppc_state);
 }
 
-inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
+inline float ForceSingle(const UReg_FPSCR& fpscr, const double value)
 {
   if (fpscr.NI)
   {
@@ -88,7 +88,7 @@ inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
   return d;
 }
 
-inline double Force25Bit(double d)
+inline double Force25Bit(const double d)
 {
   u64 integral = std::bit_cast<u64>(d);
 
@@ -97,7 +97,7 @@ inline double Force25Bit(double d)
   return std::bit_cast<double>(integral);
 }
 
-inline double MakeQuiet(double d)
+inline double MakeQuiet(const double d)
 {
   const u64 integral = std::bit_cast<u64>(d) | Common::DOUBLE_QBIT;
 
@@ -111,7 +111,7 @@ struct FPResult
 {
   bool HasNoInvalidExceptions() const { return (exception & FPSCR_VX_ANY) == 0; }
 
-  void SetException(PowerPC::PowerPCState& ppc_state, FPSCRExceptionFlag flag)
+  void SetException(PowerPC::PowerPCState& ppc_state, const FPSCRExceptionFlag flag)
   {
     exception = flag;
     SetFPException(ppc_state, flag);
@@ -121,7 +121,7 @@ struct FPResult
   FPSCRExceptionFlag exception{};
 };
 
-inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a * b};
 
@@ -153,7 +153,7 @@ inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a / b};
 
@@ -195,7 +195,7 @@ inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a + b};
 
@@ -228,7 +228,7 @@ inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a - b};
 
@@ -264,7 +264,7 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, const double a, const double c, const double b)
 {
   FPResult result{std::fma(a, c, b)};
 
@@ -302,7 +302,7 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, do
   return result;
 }
 
-inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, const double a, const double c, const double b)
 {
   FPResult result{std::fma(a, c, -b)};
 
@@ -341,62 +341,56 @@ inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, do
 }
 
 // used by stfsXX instructions and ps_rsqrte
-inline u32 ConvertToSingle(u64 x)
+inline u32 ConvertToSingle(const u64 x)
 {
-  const u32 exp = u32((x >> 52) & 0x7ff);
+  const u32 exp = static_cast<u32>((x >> 52) & 0x7ff);
 
   if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
-  else if (exp >= 874)
+  if (exp >= 874)
   {
-    u32 t = u32(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
+    u32 t = static_cast<u32>(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
     t = t >> (905 - exp);
-    t |= u32((x >> 32) & 0x80000000);
+    t |= static_cast<u32>((x >> 32) & 0x80000000);
     return t;
   }
-  else
-  {
-    // This is said to be undefined.
-    // The code is based on hardware tests.
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
-  }
+  // This is said to be undefined.
+  // The code is based on hardware tests.
+  return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
 }
 
 // used by psq_stXX operations.
-inline u32 ConvertToSingleFTZ(u64 x)
+inline u32 ConvertToSingleFTZ(const u64 x)
 {
-  const u32 exp = u32((x >> 52) & 0x7ff);
+  const u32 exp = static_cast<u32>((x >> 52) & 0x7ff);
 
   if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
-  else
-  {
-    return u32((x >> 32) & 0x80000000);
-  }
+  return static_cast<u32>((x >> 32) & 0x80000000);
 }
 
-inline u64 ConvertToDouble(u32 value)
+inline u64 ConvertToDouble(const u32 value)
 {
   // This is a little-endian re-implementation of the algorithm described in
   // the PowerPC Programming Environments Manual for loading single
   // precision floating point numbers.
   // See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
 
-  u64 x = value;
+  const u64 x = value;
   u64 exp = (x >> 23) & 0xff;
   u64 frac = x & 0x007fffff;
 
   if (exp > 0 && exp < 255)  // Normal number
   {
-    u64 y = !(exp >> 7);
-    u64 z = y << 61 | y << 60 | y << 59;
+    const u64 y = !(exp >> 7);
+    const u64 z = y << 61 | y << 60 | y << 59;
     return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
   }
-  else if (exp == 0 && frac != 0)  // Subnormal number
+  if (exp == 0 && frac != 0)  // Subnormal number
   {
     exp = 1023 - 126;
     do
@@ -407,10 +401,8 @@ inline u64 ConvertToDouble(u32 value)
 
     return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
   }
-  else  // QNaN, SNaN or Zero
-  {
-    u64 y = exp >> 7;
-    u64 z = y << 61 | y << 60 | y << 59;
-    return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
-  }
+  // QNaN, SNaN or Zero
+  const u64 y = exp >> 7;
+  const u64 z = y << 61 | y << 60 | y << 59;
+  return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
 }

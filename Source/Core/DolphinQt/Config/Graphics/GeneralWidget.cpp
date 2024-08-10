@@ -3,15 +3,12 @@
 
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
 
-#include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QRadioButton>
 #include <QSignalBlocker>
-#include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -32,19 +29,19 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GeneralWidget::GeneralWidget(GraphicsWindow* parent)
+GeneralWidget::GeneralWidget(const GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
-  emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()) !=
                           Core::State::Uninitialized);
 }
 
@@ -121,7 +118,7 @@ void GeneralWidget::CreateWidgets()
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
   auto* shader_compilation_layout = new QGridLayout();
 
-  const std::array<const char*, 4> modes = {{
+  constexpr std::array<const char*, 4> modes = {{
       QT_TR_NOOP("Specialized (Default)"),
       QT_TR_NOOP("Exclusive Ubershaders"),
       QT_TR_NOOP("Hybrid Ubershaders"),
@@ -151,12 +148,12 @@ void GeneralWidget::ConnectWidgets()
 {
   // Video Backend
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &GeneralWidget::SaveSettings);
-  connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](int index) {
+  connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](const int index) {
     g_Config.iAdapter = index;
-    Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
-    emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+    SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+    emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
   });
-  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
+  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](const int index) {
     const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
                                         (index == static_cast<int>(AspectMode::CustomStretch));
     m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
@@ -167,15 +164,15 @@ void GeneralWidget::ConnectWidgets()
   });
 }
 
-void GeneralWidget::LoadSettings()
+void GeneralWidget::LoadSettings() const
 {
   // Video Backend
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-      QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
+      QVariant(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)))));
 
   const bool is_custom_aspect_ratio =
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
+      (Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
+      (Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
   m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -187,12 +184,12 @@ void GeneralWidget::SaveSettings()
 {
   // Video Backend
   const auto current_backend = m_backend_combo->currentData().toString().toStdString();
-  if (Config::Get(Config::MAIN_GFX_BACKEND) == current_backend)
+  if (Get(Config::MAIN_GFX_BACKEND) == current_backend)
     return;
 
-  if (Config::GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
+  if (GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
   {
-    auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
+    const auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
                               ->GetWarningMessage();
     if (warningMessage)
     {
@@ -207,17 +204,17 @@ void GeneralWidget::SaveSettings()
       if (confirm_sw.exec() != QMessageBox::Yes)
       {
         m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-            QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
+            QVariant(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)))));
         return;
       }
     }
   }
 
-  Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, current_backend);
+  SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, current_backend);
   emit BackendChanged(QString::fromStdString(current_backend));
 }
 
-void GeneralWidget::OnEmulationStateChanged(bool running)
+void GeneralWidget::OnEmulationStateChanged(const bool running)
 {
   m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);
@@ -226,33 +223,33 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
 
-  std::string current_backend = m_backend_combo->currentData().toString().toStdString();
-  if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
-    emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  const std::string current_backend = m_backend_combo->currentData().toString().toStdString();
+  if (Get(Config::MAIN_GFX_BACKEND) != current_backend)
+    emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 }
 
-void GeneralWidget::AddDescriptions()
+void GeneralWidget::AddDescriptions() const
 {
   // We need QObject::tr
-  static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which graphics API to use internally.<br><br>The software renderer is extremely "
       "slow and only useful for debugging, so any of the other backends are "
       "recommended. Different games and different GPUs will behave differently on each "
       "backend, so for the best emulation experience it is recommended to try each and "
       "select the backend that is least problematic.<br><br><dolphin_emphasis>If unsure, "
       "select OpenGL.</dolphin_emphasis>");
-  static const char TR_FULLSCREEN_DESCRIPTION[] =
+  static constexpr char TR_FULLSCREEN_DESCRIPTION[] =
       QT_TR_NOOP("Uses the entire screen for rendering.<br><br>If disabled, a "
                  "render window will be created instead.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_AUTOSIZE_DESCRIPTION[] =
+  static constexpr char TR_AUTOSIZE_DESCRIPTION[] =
       QT_TR_NOOP("Automatically adjusts the window size to the internal resolution.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_RENDER_TO_MAINWINDOW_DESCRIPTION[] =
+  static constexpr char TR_RENDER_TO_MAINWINDOW_DESCRIPTION[] =
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which aspect ratio to use for displaying the game."
       "<br><br>The aspect ratio of the image sent out by the original consoles varied depending on "
       "the game and rarely exactly matched 4:3 or 16:9. Some of the image would be cut off by the "
@@ -271,39 +268,39 @@ void GeneralWidget::AddDescriptions()
       "specified aspect ratio. This will usually distort the image's proportions, and should not "
       "be used under normal circumstances."
       "<br><br><dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
-  static const char TR_VSYNC_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_VSYNC_DESCRIPTION[] = QT_TR_NOOP(
       "Waits for vertical blanks in order to prevent tearing.<br><br>Decreases performance "
       "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "
       "this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
       "Shows the player's maximum ping while playing on "
       "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
+  static constexpr char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
       QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
                  "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION[] =
+  static constexpr char TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low.<br><br>Recommended for low-end hardware. "
                  "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>");
   // The "very powerful GPU" mention below is by 2021 PC GPU standards
-  static const char TR_SHADER_COMPILE_EXCLUSIVE_UBER_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_SHADER_COMPILE_EXCLUSIVE_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will always be used. Provides a near stutter-free experience at the cost of "
       "very high GPU performance requirements.<br><br><dolphin_emphasis>Don't use this unless you "
       "encountered stuttering with Hybrid Ubershaders and have a very powerful "
       "GPU.</dolphin_emphasis>");
-  static const char TR_SHADER_COMPILE_HYBRID_UBER_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_SHADER_COMPILE_HYBRID_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will be used to prevent stuttering during shader compilation, but "
       "specialized shaders will be used when they will not cause stuttering.<br><br>In the "
       "best case it eliminates shader compilation stuttering while having minimal "
       "performance impact, but results depend on video driver behavior.");
-  static const char TR_SHADER_COMPILE_SKIP_DRAWING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_SHADER_COMPILE_SKIP_DRAWING_DESCRIPTION[] = QT_TR_NOOP(
       "Prevents shader compilation stuttering by not rendering waiting objects. Can work in "
       "scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken "
       "effects.<br><br><dolphin_emphasis>Not recommended, only use if the other "
       "options give poor results.</dolphin_emphasis>");
-  static const char TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION[] =
+  static constexpr char TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION[] =
       QT_TR_NOOP("Waits for all shaders to finish compiling before starting a game. Enabling this "
                  "option may reduce stuttering or hitching for a short time after the game is "
                  "started, at the cost of a longer delay before the game starts. For systems with "
@@ -345,7 +342,7 @@ void GeneralWidget::AddDescriptions()
   m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
 }
 
-void GeneralWidget::OnBackendChanged(const QString& backend_name)
+void GeneralWidget::OnBackendChanged(const QString& backend_name) const
 {
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(QVariant(backend_name)));
 
@@ -361,7 +358,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   const bool supports_adapters = !adapters.empty();
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning(Core::System::GetInstance()));
+  m_adapter_combo->setEnabled(supports_adapters && !IsRunning(Core::System::GetInstance()));
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"

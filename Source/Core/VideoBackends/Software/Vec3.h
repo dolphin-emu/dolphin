@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cmath>
 #include <cstdlib>
 
 class Vec3
@@ -12,7 +11,7 @@ public:
   float x, y, z;
 
   Vec3() = default;
-  explicit Vec3(float f) { x = y = z = f; }
+  explicit Vec3(const float f) { x = y = z = f; }
   explicit Vec3(const float* f)
   {
     x = f[0];
@@ -54,7 +53,7 @@ public:
   Vec3 operator*(const float f) const { return Vec3(x * f, y * f, z * f); }
   Vec3 operator/(const float f) const
   {
-    float invf = (1.0f / f);
+    const float invf = (1.0f / f);
     return Vec3(x * invf, y * invf, z * invf);
   }
 
@@ -69,10 +68,10 @@ public:
 
   float Length2() const { return (x * x) + (y * y) + (z * z); }
   float Length() const { return sqrtf(Length2()); }
-  float Distance2To(Vec3& other) { return (other - (*this)).Length2(); }
+  float Distance2To(const Vec3& other) const { return (other - (*this)).Length2(); }
   Vec3 Normalized() const { return (*this) / Length(); }
   void Normalize() { (*this) /= Length(); }
-  float& operator[](int i) { return *((&x) + i); }
+  float& operator[](const int i) { return *((&x) + i); }
   float operator[](const int i) const { return *((&x) + i); }
   bool operator==(const Vec3& other) const { return x == other.x && y == other.y && z == other.z; }
   void SetZero()

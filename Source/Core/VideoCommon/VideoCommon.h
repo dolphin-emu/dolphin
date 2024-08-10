@@ -44,7 +44,7 @@ enum class APIType
   Nothing
 };
 
-inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
+inline u32 RGBA8ToRGBA6ToRGBA8(const u32 src)
 {
   u32 color = src;
   color &= 0xFCFCFCFC;
@@ -52,7 +52,7 @@ inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
   return color;
 }
 
-inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
+inline u32 RGBA8ToRGB565ToRGBA8(const u32 src)
 {
   u32 color = (src & 0xF8FCF8);
   color |= (color >> 5) & 0x070007;
@@ -61,12 +61,12 @@ inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
   return color;
 }
 
-inline u32 Z24ToZ16ToZ24(u32 src)
+inline u32 Z24ToZ16ToZ24(const u32 src)
 {
   return (src & 0xFFFF00) | (src >> 16);
 }
 
-inline u32 CompressZ16(u32 z24depth, DepthFormat format)
+inline u32 CompressZ16(const u32 z24depth, const DepthFormat format)
 {
   // Flipper offers a number of choices for 16bit Z formats that adjust
   // where the bulk of the precision lies.
@@ -118,7 +118,7 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
     return z24depth >> 8;
   }
 
-  u32 mantissa_bits = 16 - exp_bits;
+  const u32 mantissa_bits = 16 - exp_bits;
 
   // Calculate which bits we need to extract from z24depth for our mantissa
   u32 top = std::max<u32>(24 - leading_ones, mantissa_bits);
@@ -126,10 +126,10 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
   {
     top -= 1;  // We know the next bit is zero, so we don't need to include it.
   }
-  u32 bottom = top - mantissa_bits;
+  const u32 bottom = top - mantissa_bits;
 
-  u32 exponent = leading_ones << mantissa_bits;  // Upper bits contain exponent
-  u32 mantissa = Common::ExtractBits(z24depth, bottom, top - 1);
+  const u32 exponent = leading_ones << mantissa_bits;  // Upper bits contain exponent
+  const u32 mantissa = Common::ExtractBits(z24depth, bottom, top - 1);
 
   return exponent | mantissa;
 }

@@ -13,7 +13,7 @@ namespace DSP::Interpreter
 // ---------------------------------------------------------------------------------------
 
 // s64 -> s40
-inline s64 dsp_convert_long_acc(s64 val)
+inline s64 dsp_convert_long_acc(const s64 val)
 {
   return ((val << 24) >> 24);
 }

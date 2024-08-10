@@ -107,4 +107,4 @@ struct Rela_Header
   signed int addend;
 };
 
-const char ELFID[4] = {0x7F, 'E', 'L', 'F'};
+constexpr char ELFID[4] = {0x7F, 'E', 'L', 'F'};

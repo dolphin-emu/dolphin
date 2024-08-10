@@ -3,13 +3,11 @@
 
 #include "DolphinQt/Settings/InterfacePane.h"
 
-#include <QCheckBox>
 #include <QComboBox>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -32,12 +30,10 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
-#include "UICommon/GameFile.h"
-
 static ConfigStringChoice* MakeLanguageComboBox()
 {
   using QPair = std::pair<QString, QString>;
-  std::vector<QPair> languages = {
+  const std::vector languages = {
       QPair{QObject::tr("<System Language>"), QString{}},
       QPair{QStringLiteral(u"Bahasa Melayu"), QStringLiteral("ms")},      // Malay
       QPair{QStringLiteral(u"Catal\u00E0"), QStringLiteral("ca")},        // Catalan
@@ -126,12 +122,12 @@ void InterfacePane::CreateUI()
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
   // List avalable themes
-  auto theme_paths =
+  const auto theme_paths =
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
   std::vector<std::string> theme_names;
   theme_names.reserve(theme_paths.size());
-  std::transform(theme_paths.cbegin(), theme_paths.cend(), std::back_inserter(theme_names),
-                 PathToFileName);
+  std::ranges::transform(std::as_const(theme_paths), std::back_inserter(theme_names),
+                         PathToFileName);
 
   // Theme Combobox
   m_combobox_theme = new ConfigStringChoice(theme_names, Config::MAIN_THEME_NAME);
@@ -142,7 +138,7 @@ void InterfacePane::CreateUI()
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
-  auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
+  const auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
 
@@ -237,7 +233,9 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::MetadataRefreshRequested);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetDebugModeEnabled);
+          &Settings::EnableDebugMode);
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
+        &Settings::DisableDebugMode);
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, &Settings::Instance(),
           &Settings::ThemeChanged);
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
@@ -256,7 +254,7 @@ void InterfacePane::ConnectLayout()
           &Settings::LockCursorChanged);
 }
 
-void InterfacePane::UpdateShowDebuggingCheckbox()
+void InterfacePane::UpdateShowDebuggingCheckbox() const
 {
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
@@ -268,7 +266,7 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
   static constexpr char TR_DISABLED_IN_HARDCORE_DESCRIPTION[] =
       QT_TR_NOOP("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>");
 
-  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
   if (hardcore)
   {
@@ -282,7 +280,7 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
   }
 }
 
-void InterfacePane::LoadUserStyle()
+void InterfacePane::LoadUserStyle() const
 {
   const Settings::StyleType style_type = Settings::Instance().GetStyleType();
   const QString userstyle = Settings::Instance().GetUserStyleName();
@@ -294,7 +292,7 @@ void InterfacePane::LoadUserStyle()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 }
 
-void InterfacePane::OnUserStyleChanged()
+void InterfacePane::OnUserStyleChanged() const
 {
   const auto selected_style = m_combobox_userstyle->currentData();
   bool is_builtin_type = false;
@@ -314,7 +312,7 @@ void InterfacePane::OnLanguageChanged()
       tr("You must restart Dolphin in order for the change to take effect."));
 }
 
-void InterfacePane::AddDescriptions()
+void InterfacePane::AddDescriptions() const
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
       "Uses Dolphin's database of properly formatted names in the game list's Title column."

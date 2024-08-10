@@ -274,7 +274,7 @@ InputConfig* WiimoteEmuExtension::GetConfig()
   return Wiimote::GetConfig();
 }
 
-void WiimoteEmuExtension::ChangeExtensionType(u32 type)
+void WiimoteEmuExtension::ChangeExtensionType(const u32 type) const
 {
   using WiimoteEmu::ExtensionNumber;
 

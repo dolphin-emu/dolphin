@@ -16,7 +16,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QList>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
@@ -44,7 +43,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   setWindowTitle(tr("Convert"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  QGridLayout* grid_layout = new QGridLayout;
+  auto grid_layout = new QGridLayout;
   grid_layout->setColumnStretch(1, 1);
 
   m_format = new QComboBox;
@@ -52,8 +51,9 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   m_format->addItem(QStringLiteral("GCZ"), static_cast<int>(DiscIO::BlobType::GCZ));
   m_format->addItem(QStringLiteral("WIA"), static_cast<int>(DiscIO::BlobType::WIA));
   m_format->addItem(QStringLiteral("RVZ"), static_cast<int>(DiscIO::BlobType::RVZ));
-  if (std::all_of(m_files.begin(), m_files.end(),
-                  [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
+  if (std::ranges::all_of(m_files, [](const auto& file) {
+    return file->GetBlobType() == DiscIO::BlobType::PLAIN;
+  }))
   {
     m_format->setCurrentIndex(m_format->count() - 1);
   }
@@ -76,15 +76,15 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
   grid_layout->addWidget(m_scrub, 4, 1);
 
-  QPushButton* convert_button = new QPushButton(tr("Convert..."));
+  auto convert_button = new QPushButton(tr("Convert..."));
 
-  QVBoxLayout* options_layout = new QVBoxLayout;
+  auto options_layout = new QVBoxLayout;
   options_layout->addLayout(grid_layout);
   options_layout->addWidget(convert_button);
-  QGroupBox* options_group = new QGroupBox(tr("Options"));
+  auto options_group = new QGroupBox(tr("Options"));
   options_group->setLayout(options_layout);
 
-  QLabel* info_text = new QLabel(
+  auto info_text = new QLabel(
       tr("ISO: A simple and robust format which is supported by many programs. It takes up more "
          "space than any other format.\n\n"
          "GCZ: A basic compressed format which is compatible with most versions of Dolphin and "
@@ -97,12 +97,12 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
          "It can efficiently compress both junk data and encrypted Wii data."));
   info_text->setWordWrap(true);
 
-  QVBoxLayout* info_layout = new QVBoxLayout;
+  auto info_layout = new QVBoxLayout;
   info_layout->addWidget(info_text);
-  QGroupBox* info_group = new QGroupBox(tr("Info"));
+  auto info_group = new QGroupBox(tr("Info"));
   info_group->setLayout(info_layout);
 
-  QVBoxLayout* main_layout = new QVBoxLayout;
+  auto main_layout = new QVBoxLayout;
   main_layout->addWidget(options_group);
   main_layout->addWidget(info_group);
 
@@ -117,7 +117,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   OnCompressionChanged();
 }
 
-void ConvertDialog::AddToBlockSizeComboBox(int size)
+void ConvertDialog::AddToBlockSizeComboBox(const int size) const
 {
   m_block_size->addItem(QString::fromStdString(UICommon::FormatSize(size, 0)), size);
 
@@ -128,19 +128,19 @@ void ConvertDialog::AddToBlockSizeComboBox(int size)
 }
 
 void ConvertDialog::AddToCompressionComboBox(const QString& name,
-                                             DiscIO::WIARVZCompressionType type)
+                                             DiscIO::WIARVZCompressionType type) const
 {
   m_compression->addItem(name, static_cast<int>(type));
 }
 
-void ConvertDialog::AddToCompressionLevelComboBox(int level)
+void ConvertDialog::AddToCompressionLevelComboBox(const int level) const
 {
   m_compression_level->addItem(QString::number(level), level);
 }
 
 void ConvertDialog::OnFormatChanged()
 {
-  const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+  const auto format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
 
   m_block_size->clear();
   m_compression->clear();
@@ -153,7 +153,7 @@ void ConvertDialog::OnFormatChanged()
     // To support legacy versions of dolphin, we have to check the GCZ block size
     // See DiscIO::IsGCZBlockSizeLegacyCompatible() for details
     const auto block_size_ok = [this](int block_size) {
-      return std::all_of(m_files.begin(), m_files.end(), [block_size](const auto& file) {
+      return std::ranges::all_of(m_files, [block_size](const auto& file) {
         return DiscIO::IsGCZBlockSizeLegacyCompatible(block_size, file->GetVolumeSize());
       });
     };
@@ -250,23 +250,23 @@ void ConvertDialog::OnFormatChanged()
   // Block scrubbing of RVZ containers and Datel discs
   const bool scrubbing_allowed =
       format != DiscIO::BlobType::RVZ &&
-      std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc));
+      std::ranges::none_of(m_files, std::mem_fn(&UICommon::GameFile::IsDatelDisc));
 
   m_scrub->setEnabled(scrubbing_allowed);
   if (!scrubbing_allowed)
     m_scrub->setChecked(false);
 }
 
-void ConvertDialog::OnCompressionChanged()
+void ConvertDialog::OnCompressionChanged() const
 {
   m_compression_level->clear();
 
   const auto compression_type =
       static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
 
-  const std::pair<int, int> range = DiscIO::GetAllowedCompressionLevels(compression_type, true);
+  const auto [fst, snd] = GetAllowedCompressionLevels(compression_type, true);
 
-  for (int i = range.first; i <= range.second; ++i)
+  for (int i = fst; i <= snd; ++i)
   {
     AddToCompressionLevelComboBox(i);
     if (i == 5)
@@ -276,7 +276,7 @@ void ConvertDialog::OnCompressionChanged()
   m_compression_level->setEnabled(m_compression_level->count() > 1);
 }
 
-bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
+bool ConvertDialog::ShowAreYouSureDialog(const QString& text) const
 {
   ModalMessageBox warning(this);
   warning.setIcon(QMessageBox::Warning);
@@ -291,9 +291,9 @@ bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
 
 void ConvertDialog::Convert()
 {
-  const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+  const auto format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
   const int block_size = m_block_size->currentData().toInt();
-  const DiscIO::WIARVZCompressionType compression =
+  const auto compression =
       static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
   const int compression_level = m_compression_level->currentData().toInt();
   const bool scrub = m_scrub->isChecked();
@@ -309,7 +309,7 @@ void ConvertDialog::Convert()
   }
 
   if (!scrub && format == DiscIO::BlobType::GCZ &&
-      std::any_of(m_files.begin(), m_files.end(), [](const auto& file) {
+      std::ranges::any_of(m_files, [](const auto& file) {
         return file->GetPlatform() == DiscIO::Platform::WiiDisc && !file->IsDatelDisc();
       }))
   {
@@ -321,7 +321,7 @@ void ConvertDialog::Convert()
     }
   }
 
-  if (std::any_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsNKit)))
+  if (std::ranges::any_of(m_files, std::mem_fn(&UICommon::GameFile::IsNKit)))
   {
     if (!ShowAreYouSureDialog(
             tr("Dolphin can't convert NKit files to non-NKit files. Converting an NKit file in "
@@ -399,7 +399,7 @@ void ConvertDialog::Convert()
           QDir(dst_dir)
               .absoluteFilePath(QFileInfo(QString::fromStdString(original_path)).completeBaseName())
               .append(extension);
-      QFileInfo dst_info = QFileInfo(dst_path);
+      auto dst_info = QFileInfo(dst_path);
       if (dst_info.exists())
       {
         ModalMessageBox confirm_replace(this);
@@ -416,10 +416,10 @@ void ConvertDialog::Convert()
       }
     }
 
-    if (std::filesystem::exists(StringToPath(dst_path.toStdString())))
+    if (exists(StringToPath(dst_path.toStdString())))
     {
       std::error_code ec;
-      if (std::filesystem::equivalent(StringToPath(dst_path.toStdString()),
+      if (equivalent(StringToPath(dst_path.toStdString()),
                                       StringToPath(original_path), ec))
       {
         ModalMessageBox::critical(
@@ -474,64 +474,61 @@ void ConvertDialog::Convert()
           tr("Failed to open the input file \"%1\".").arg(QString::fromStdString(original_path)));
       return;
     }
-    else
+    const auto callback = [&progress_dialog](const std::string& text, const float percent) {
+      progress_dialog.SetValue(percent * 100);
+      return !progress_dialog.WasCanceled();
+    };
+
+    std::future<bool> success;
+
+    switch (format)
     {
-      const auto callback = [&progress_dialog](const std::string& text, float percent) {
-        progress_dialog.SetValue(percent * 100);
-        return !progress_dialog.WasCanceled();
-      };
+    case DiscIO::BlobType::PLAIN:
+      success = std::async(std::launch::async, [&] {
+        const bool good = ConvertToPlain(blob_reader.get(), original_path,
+                                         dst_path.toStdString(), callback);
+        progress_dialog.Reset();
+        return good;
+      });
+      break;
 
-      std::future<bool> success;
+    case DiscIO::BlobType::GCZ:
+      success = std::async(std::launch::async, [&] {
+        const bool good = ConvertToGCZ(
+            blob_reader.get(), original_path, dst_path.toStdString(),
+            file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
+        progress_dialog.Reset();
+        return good;
+      });
+      break;
 
-      switch (format)
-      {
-      case DiscIO::BlobType::PLAIN:
-        success = std::async(std::launch::async, [&] {
-          const bool good = DiscIO::ConvertToPlain(blob_reader.get(), original_path,
-                                                   dst_path.toStdString(), callback);
-          progress_dialog.Reset();
-          return good;
-        });
-        break;
+    case DiscIO::BlobType::WIA:
+    case DiscIO::BlobType::RVZ:
+      success = std::async(std::launch::async, [&] {
+        const bool good =
+            ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
+                              format == DiscIO::BlobType::RVZ, compression,
+                              compression_level, block_size, callback);
+        progress_dialog.Reset();
+        return good;
+      });
+      break;
 
-      case DiscIO::BlobType::GCZ:
-        success = std::async(std::launch::async, [&] {
-          const bool good = DiscIO::ConvertToGCZ(
-              blob_reader.get(), original_path, dst_path.toStdString(),
-              file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
-          progress_dialog.Reset();
-          return good;
-        });
-        break;
-
-      case DiscIO::BlobType::WIA:
-      case DiscIO::BlobType::RVZ:
-        success = std::async(std::launch::async, [&] {
-          const bool good =
-              DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
-                                        format == DiscIO::BlobType::RVZ, compression,
-                                        compression_level, block_size, callback);
-          progress_dialog.Reset();
-          return good;
-        });
-        break;
-
-      default:
-        ASSERT(false);
-        break;
-      }
-
-      SetQWidgetWindowDecorations(progress_dialog.GetRaw());
-      progress_dialog.GetRaw()->exec();
-      if (!success.get())
-      {
-        ModalMessageBox::critical(this, tr("Error"),
-                                  tr("Dolphin failed to complete the requested action."));
-        return;
-      }
-
-      success_count++;
+    default:
+      ASSERT(false);
+      break;
     }
+
+    SetQWidgetWindowDecorations(progress_dialog.GetRaw());
+    progress_dialog.GetRaw()->exec();
+    if (!success.get())
+    {
+      ModalMessageBox::critical(this, tr("Error"),
+                                tr("Dolphin failed to complete the requested action."));
+      return;
+    }
+
+    success_count++;
   }
 
   ModalMessageBox::information(this, tr("Success"),

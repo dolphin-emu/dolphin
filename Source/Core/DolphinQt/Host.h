@@ -21,10 +21,10 @@ public:
 
   static Host* GetInstance();
 
-  bool GetRenderFocus();
+  bool GetRenderFocus() const;
   bool GetRenderFullFocus();
   bool GetRenderFullscreen();
-  bool GetGBAFocus();
+  static bool GetGBAFocus();
   bool GetTASInputFocus() const;
 
   void SetMainWindowHandle(void* handle);
@@ -33,7 +33,7 @@ public:
   void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void SetTASInputFocus(bool focus);
-  void ResizeSurface(int new_width, int new_height);
+  static void ResizeSurface(int new_width, int new_height);
 
 signals:
   void RequestTitle(const QString& title);

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <QStringList>
 #include <QWidget>
 
 class QCheckBox;
@@ -28,7 +27,7 @@ private:
 
   void OnServerAdded();
   void OnServerRemoved();
-  void OnServersToggled();
+  void OnServersToggled() const;
 
   QCheckBox* m_servers_enabled;
   QListWidget* m_server_list;

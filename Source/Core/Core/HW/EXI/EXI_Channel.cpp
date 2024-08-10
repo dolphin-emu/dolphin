@@ -26,7 +26,7 @@ enum
   EXI_READWRITE
 };
 
-CEXIChannel::CEXIChannel(Core::System& system, u32 channel_id,
+CEXIChannel::CEXIChannel(Core::System& system, const u32 channel_id,
                          const Memcard::HeaderData& memcard_header_data)
     : m_system(system), m_channel_id(channel_id), m_memcard_header_data(memcard_header_data)
 {
@@ -44,7 +44,7 @@ CEXIChannel::~CEXIChannel()
   RemoveDevices();
 }
 
-void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   // Warning: the base is not aligned on a page boundary here. We can't use |
   // to select a register address, instead we need to use +.
@@ -63,8 +63,8 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    return m_status.Hex;
                  }),
-                 MMIO::ComplexWrite<u32>([this](Core::System& system, u32, u32 val) {
-                   UEXI_STATUS new_status(val);
+                 MMIO::ComplexWrite<u32>([this](const Core::System& system, u32, const u32 val) {
+                   const UEXI_STATUS new_status(val);
 
                    m_status.EXIINTMASK = new_status.EXIINTMASK;
                    if (new_status.EXIINT)
@@ -100,7 +100,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base + EXI_DMA_LENGTH, MMIO::DirectRead<u32>(&m_dma_length),
                  MMIO::DirectWrite<u32>(&m_dma_length));
   mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.Hex),
-                 MMIO::ComplexWrite<u32>([this](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([this](Core::System&, u32, const u32 val) {
                    m_control.Hex = val;
 
                    if (m_control.TSTART)
@@ -177,7 +177,7 @@ void CEXIChannel::AddDevice(const EXIDeviceType device_type, const int device_nu
 }
 
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
-                            bool notify_presence_changed)
+                            const bool notify_presence_changed)
 {
   DEBUG_ASSERT(device_num < NUM_DEVICES);
 
@@ -214,13 +214,10 @@ bool CEXIChannel::IsCausingInterrupt()
   {
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
-IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
+IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select) const
 {
   switch (chip_select)
   {
@@ -242,12 +239,12 @@ void CEXIChannel::DoState(PointerWrap& p)
   p.Do(m_control);
   p.Do(m_imm_data);
 
-  Memcard::HeaderData old_header_data = m_memcard_header_data;
+  const Memcard::HeaderData old_header_data = m_memcard_header_data;
   p.Do(m_memcard_header_data);
 
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
-    std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
+    const std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
     EXIDeviceType type = device->m_device_type;
     p.Do(type);
 
@@ -287,7 +284,7 @@ void CEXIChannel::DoState(PointerWrap& p)
   }
 }
 
-void CEXIChannel::SetEXIINT(bool exiint)
+void CEXIChannel::SetEXIINT(const bool exiint)
 {
   m_status.EXIINT = !!exiint;
 }

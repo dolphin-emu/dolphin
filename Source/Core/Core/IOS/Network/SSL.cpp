@@ -52,7 +52,7 @@ namespace
 //
 // The hostname still needs to be set as it is checked against the Common Name
 // field during the certificate verification process.
-int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
+int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, const size_t len)
 {
   auto* ssl = static_cast<WII_SSL*>(ctx);
   auto* fd = &ssl->hostfd;
@@ -62,7 +62,7 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
   const int ret = mbedtls_net_send(fd, buf, len);
 
   // Log raw SSL packets if we don't dump unencrypted SSL writes
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
   {
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(
         buf, ret, *fd, nullptr);
@@ -71,14 +71,14 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
   return ret;
 }
 
-int SSLRecv(void* ctx, unsigned char* buf, size_t len)
+int SSLRecv(void* ctx, unsigned char* buf, const size_t len)
 {
   auto* ssl = static_cast<WII_SSL*>(ctx);
   auto* fd = &ssl->hostfd;
   const int ret = mbedtls_net_recv(fd, buf, len);
 
   // Log raw SSL packets if we don't dump unencrypted SSL reads
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
   {
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(
         buf, ret, *fd, nullptr);
@@ -91,38 +91,40 @@ int SSLRecv(void* ctx, unsigned char* buf, size_t len)
 NetSSLDevice::NetSSLDevice(EmulationKernel& ios, const std::string& device_name)
     : EmulationDevice(ios, device_name)
 {
-  for (WII_SSL& ssl : _SSL)
+  for (auto& [_ctx, _config, _session, _entropy, _ctr_drbg, _cacert, _clicert, _pk, _sockfd,
+         _hostfd, _hostname, active] : _SSL)
   {
-    ssl.active = false;
+    active = false;
   }
 }
 
 NetSSLDevice::~NetSSLDevice()
 {
   // Cleanup sessions
-  for (WII_SSL& ssl : _SSL)
+  for (auto& [ctx, config, session, entropy, ctr_drbg, cacert, clicert, _pk, _sockfd, _hostfd,
+         hostname, active] : _SSL)
   {
-    if (ssl.active)
+    if (active)
     {
-      mbedtls_ssl_close_notify(&ssl.ctx);
+      mbedtls_ssl_close_notify(&ctx);
 
-      mbedtls_x509_crt_free(&ssl.cacert);
-      mbedtls_x509_crt_free(&ssl.clicert);
+      mbedtls_x509_crt_free(&cacert);
+      mbedtls_x509_crt_free(&clicert);
 
-      mbedtls_ssl_session_free(&ssl.session);
-      mbedtls_ssl_free(&ssl.ctx);
-      mbedtls_ssl_config_free(&ssl.config);
-      mbedtls_ctr_drbg_free(&ssl.ctr_drbg);
-      mbedtls_entropy_free(&ssl.entropy);
+      mbedtls_ssl_session_free(&session);
+      mbedtls_ssl_free(&ctx);
+      mbedtls_ssl_config_free(&config);
+      mbedtls_ctr_drbg_free(&ctr_drbg);
+      mbedtls_entropy_free(&entropy);
 
-      ssl.hostname.clear();
+      hostname.clear();
 
-      ssl.active = false;
+      active = false;
     }
   }
 }
 
-int NetSSLDevice::GetSSLFreeID() const
+int NetSSLDevice::GetSSLFreeID()
 {
   for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
   {
@@ -154,7 +156,7 @@ constexpr std::array<u8, 32> s_root_ca_hash = {{0xc5, 0xb0, 0xf8, 0xdf, 0xce, 0x
                                                 0xf2, 0xbd, 0xdf, 0x9e, 0x39, 0x17, 0x1e, 0x5f}};
 
 static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash,
-                                    bool silent)
+                                    const bool silent)
 {
   File::IOFile file(path, "rb");
   std::vector<u8> bytes(file.GetSize());
@@ -250,7 +252,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_init(&ssl->ctx);
       mbedtls_entropy_init(&ssl->entropy);
-      static constexpr const char* pers = "dolphin-emu";
+      static constexpr auto pers = "dolphin-emu";
       mbedtls_ctr_drbg_init(&ssl->ctr_drbg);
       int ret = mbedtls_ctr_drbg_seed(&ssl->ctr_drbg, mbedtls_entropy_func, &ssl->entropy,
                                       (const unsigned char*)pers, strlen(pers));
@@ -273,7 +275,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       mbedtls_ssl_conf_cert_profile(&ssl->config, &mbedtls_x509_crt_profile_wii);
       mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
 
-      if (Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption)
+      if (Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption)
         mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_REQUIRED);
       else
         mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
@@ -353,7 +355,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       int ret = mbedtls_x509_crt_parse_der(
           &ssl->cacert, memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
 
-      if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
+      if (Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
       {
         std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
         File::IOFile(filename, "wb")
@@ -525,10 +527,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                                                       IOCTLV_NET_SSL_DOHANDSHAKE);
       return std::nullopt;
     }
-    else
-    {
-      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
-    }
+    WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     break;
   }
   case IOCTLV_NET_SSL_WRITE:
@@ -540,10 +539,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                                                       IOCTLV_NET_SSL_WRITE);
       return std::nullopt;
     }
-    else
-    {
-      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
-    }
+    WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_WRITE "
                  "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
@@ -564,10 +560,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                                                       IOCTLV_NET_SSL_READ);
       return std::nullopt;
     }
-    else
-    {
-      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
-    }
+    WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
 
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_READ({})"

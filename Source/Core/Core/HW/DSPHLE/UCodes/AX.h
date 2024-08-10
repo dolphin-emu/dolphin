@@ -123,11 +123,11 @@ protected:
   // Convert a mixer_control bitfield to our internal representation for that
   // value. Required because that bitfield has a different meaning in some
   // versions of AX.
-  AXMixControl ConvertMixerControl(u32 mixer_control);
+  AXMixControl ConvertMixerControl(u32 mixer_control) const;
 
   // Apply updates to a PB. Generic, used in AX GC and AX Wii.
   template <typename PBType>
-  void ApplyUpdatesForMs(int curr_ms, PBType& pb, u16* num_updates, u16* updates)
+  void ApplyUpdatesForMs(const int curr_ms, PBType& pb, u16* num_updates, u16* updates)
   {
     auto pb_mem = Common::BitCastToArray<u16>(pb);
 
@@ -147,7 +147,7 @@ protected:
   }
 
   virtual void HandleCommandList();
-  void SignalWorkEnd();
+  void SignalWorkEnd() const;
 
   struct BufferDesc
   {
@@ -158,15 +158,16 @@ protected:
   template <int Millis, size_t BufCount>
   void InitMixingBuffers(u32 init_addr, const std::array<BufferDesc, BufCount>& buffers)
   {
-    auto& system = m_dsphle->GetSystem();
+    const auto& system = m_dsphle->GetSystem();
     auto& memory = system.GetMemory();
     std::array<u16, 3 * BufCount> init_array;
     memory.CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
     for (size_t i = 0; i < BufCount; ++i)
     {
       const BufferDesc& buf = buffers[i];
-      s32 value = s32((u32(init_array[3 * i]) << 16) | init_array[3 * i + 1]);
-      s16 delta = init_array[3 * i + 2];
+      const s32 value = static_cast<s32>((static_cast<u32>(init_array[3 * i]) << 16) | init_array[
+                                           3 * i + 1]);
+      const s16 delta = init_array[3 * i + 2];
       if (value == 0)
       {
         memset(buf.ptr, 0, Millis * buf.samples_per_milli * sizeof(int));
@@ -182,10 +183,10 @@ protected:
   void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
   void ProcessPBList(u32 pb_addr);
   void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
-  void UploadLRS(u32 dst_addr);
+  void UploadLRS(u32 dst_addr) const;
   void SetMainLR(u32 src_addr);
   void RunCompressor(u16 threshold, u16 release_stages, u32 table_addr, u32 millis);
-  void OutputSamples(u32 out_addr, u32 surround_addr);
+  void OutputSamples(u32 out_addr, u32 surround_addr) const;
   void MixAUXBLR(u32 ul_addr, u32 dl_addr);
   void SetOppositeLR(u32 src_addr);
   void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl, u32 auxb_l_dl,

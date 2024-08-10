@@ -7,7 +7,6 @@
 
 #include <QObject>
 
-#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "InputCommon/InputProfile.h"
 
@@ -74,7 +73,7 @@ signals:
 private:
   void Run();
   void CheckDebuggingHotkeys();
-  void CheckGBAHotkeys();
+  static void CheckGBAHotkeys();
 
   Common::Flag m_stop_requested;
   std::thread m_thread;

@@ -37,7 +37,7 @@ WatchWidget::WatchWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("watchwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -46,7 +46,7 @@ WatchWidget::WatchWidget(QWidget* parent)
 
   ConnectWidgets();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     UpdateButtonsEnabled();
     if (state != Core::State::Starting)
       Update();
@@ -55,10 +55,10 @@ WatchWidget::WatchWidget(QWidget* parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &WatchWidget::Update);
 
   connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsWatchVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsWatchVisible()); });
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);
   UpdateIcons();
@@ -116,7 +116,7 @@ void WatchWidget::CreateWidgets()
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(layout);
 
   setWidget(widget);
@@ -128,7 +128,7 @@ void WatchWidget::ConnectWidgets()
   connect(m_table, &QTableWidget::itemChanged, this, &WatchWidget::OnItemChanged);
 }
 
-void WatchWidget::UpdateIcons()
+void WatchWidget::UpdateIcons() const
 {
   // TODO: Create a "debugger_add_watch" icon
   m_new->setIcon(Resources::GetThemeIcon("debugger_add_breakpoint"));
@@ -138,12 +138,12 @@ void WatchWidget::UpdateIcons()
   m_save->setIcon(Resources::GetThemeIcon("debugger_save"));
 }
 
-void WatchWidget::UpdateButtonsEnabled()
+void WatchWidget::UpdateButtonsEnabled() const
 {
   if (!isVisible())
     return;
 
-  const bool is_enabled = Core::IsRunning(m_system);
+  const bool is_enabled = IsRunning(m_system);
   m_new->setEnabled(is_enabled);
   m_delete->setEnabled(is_enabled);
   m_clear->setEnabled(is_enabled);
@@ -158,7 +158,7 @@ void WatchWidget::Update()
 
   m_updating = true;
 
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
   {
     m_table->setDisabled(true);
     m_updating = false;
@@ -168,10 +168,10 @@ void WatchWidget::Update()
   m_table->setDisabled(false);
   m_table->clearContents();
 
-  Core::CPUThreadGuard guard(m_system);
-  auto& debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
+  const Core::CPUThreadGuard guard(m_system);
+  const auto& debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
 
-  int size = static_cast<int>(debug_interface.GetWatches().size());
+  const int size = static_cast<int>(debug_interface.GetWatches().size());
 
   m_table->setRowCount(size + 1);
 
@@ -190,15 +190,15 @@ void WatchWidget::Update()
     auto* lockValue = new QTableWidgetItem;
     lockValue->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
 
-    std::array<QTableWidgetItem*, NUM_COLUMNS> items = {label,  address,    hex,      decimal,
+    std::array items = {label,  address,    hex,      decimal,
                                                         string, floatValue, lockValue};
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    if (!Core::IsRunning(m_system) || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
+    if (!IsRunning(m_system) || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 
-    if (Core::IsRunning(m_system))
+    if (IsRunning(m_system))
     {
       if (PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       {
@@ -229,7 +229,7 @@ void WatchWidget::Update()
   m_updating = false;
 }
 
-void WatchWidget::SetEmptyRow(int row)
+void WatchWidget::SetEmptyRow(const int row) const
 {
   auto* label = new QTableWidgetItem;
   label->setData(Qt::UserRole, -1);
@@ -246,7 +246,7 @@ void WatchWidget::SetEmptyRow(int row)
 
 void WatchWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetWatchVisible(false);
+  Settings::Instance().HideWatch();
 }
 
 void WatchWidget::showEvent(QShowEvent* event)
@@ -299,7 +299,7 @@ void WatchWidget::OnLoad()
     return;
   }
 
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   if (ini.GetLines("Watches", &watches, false))
   {
@@ -315,7 +315,7 @@ void WatchWidget::OnLoad()
   Update();
 }
 
-void WatchWidget::OnSave()
+void WatchWidget::OnSave() const
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
@@ -326,7 +326,7 @@ void WatchWidget::OnSave()
 
 void WatchWidget::ShowContextMenu()
 {
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   if (!m_table->selectedItems().empty())
@@ -346,7 +346,7 @@ void WatchWidget::ShowContextMenu()
     }
     else if (count == 1)
     {
-      auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
+      const auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
 
       if (!row_variant.isNull())
       {
@@ -372,13 +372,13 @@ void WatchWidget::ShowContextMenu()
   menu->exec(QCursor::pos());
 }
 
-void WatchWidget::OnItemChanged(QTableWidgetItem* item)
+void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
 {
   if (m_updating || item->data(Qt::UserRole).isNull())
     return;
 
-  int row = item->data(Qt::UserRole).toInt();
-  int column = item->data(Qt::UserRole + 1).toInt();
+  const int row = item->data(Qt::UserRole).toInt();
+  const int column = item->data(Qt::UserRole + 1).toInt();
 
   if (row == -1)
   {
@@ -407,11 +407,11 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       bool good;
       const bool column_uses_hex_formatting =
           column == COLUMN_INDEX_ADDRESS || column == COLUMN_INDEX_HEX;
-      quint32 value = item->text().toUInt(&good, column_uses_hex_formatting ? 16 : 10);
+      const quint32 value = item->text().toUInt(&good, column_uses_hex_formatting ? 16 : 10);
 
       if (good)
       {
-        Core::CPUThreadGuard guard(m_system);
+        const Core::CPUThreadGuard guard(m_system);
 
         auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
         if (column == COLUMN_INDEX_ADDRESS)
@@ -438,7 +438,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
       debug_interface.UpdateWatchLockedState(row, item->checkState() == Qt::Checked);
       const auto& watch = debug_interface.GetWatch(row);
-      Core::CPUThreadGuard guard(m_system);
+      const Core::CPUThreadGuard guard(m_system);
       if (watch.locked)
         LockWatchAddress(guard, watch.address);
       else
@@ -451,7 +451,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
   }
 }
 
-void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address)
+void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   const std::string memory_data_as_string = PowerPC::MMU::HostGetString(guard, address, 4);
 
@@ -467,7 +467,7 @@ void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 addres
 void WatchWidget::DeleteSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     std::vector<int> row_indices;
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
@@ -480,7 +480,7 @@ void WatchWidget::DeleteSelectedWatches()
     }
 
     // Sort greatest to smallest, so we don't stomp on existing indices
-    std::sort(row_indices.begin(), row_indices.end(), std::greater{});
+    std::ranges::sort(row_indices, std::greater{});
     for (const int row : row_indices)
     {
       DeleteWatch(guard, row);
@@ -490,34 +490,34 @@ void WatchWidget::DeleteSelectedWatches()
   Update();
 }
 
-void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, int row)
+void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, const int row) const
 {
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
   debug_interface.UnsetPatch(guard, debug_interface.GetWatch(row).address);
   debug_interface.RemoveWatch(row);
 }
 
-void WatchWidget::DeleteWatchAndUpdate(int row)
+void WatchWidget::DeleteWatchAndUpdate(const int row)
 {
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     DeleteWatch(guard, row);
   }
 
   Update();
 }
 
-void WatchWidget::AddWatchBreakpoint(int row)
+void WatchWidget::AddWatchBreakpoint(const int row)
 {
   emit RequestMemoryBreakpoint(m_system.GetPowerPC().GetDebugInterface().GetWatch(row).address);
 }
 
-void WatchWidget::ShowInMemory(int row)
+void WatchWidget::ShowInMemory(const int row)
 {
   emit ShowMemory(m_system.GetPowerPC().GetDebugInterface().GetWatch(row).address);
 }
 
-void WatchWidget::AddWatch(QString name, u32 addr)
+void WatchWidget::AddWatch(const QString& name, const u32 addr)
 {
   m_system.GetPowerPC().GetDebugInterface().SetWatch(addr, name.toStdString());
   Update();
@@ -526,7 +526,7 @@ void WatchWidget::AddWatch(QString name, u32 addr)
 void WatchWidget::LockSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
@@ -550,7 +550,7 @@ void WatchWidget::UnlockSelectedWatches()
 {
   {
     auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
       const auto* item = m_table->item(index.row(), index.column());

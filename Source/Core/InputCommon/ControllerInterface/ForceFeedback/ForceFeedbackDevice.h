@@ -7,8 +7,6 @@
 #include <string>
 #include <thread>
 
-#include <Windows.h>
-
 #include "Common/Event.h"
 #include "Common/Flag.h"
 
@@ -32,7 +30,7 @@ private:
     Force(ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect);
 
     void UpdateOutput();
-    void Release();
+    void Release() const;
 
     void SetState(ControlState state) override;
     std::string GetName() const override;
@@ -62,7 +60,7 @@ private:
     bool UpdateParameters(int magnitude);
 
     void PlayEffect();
-    void StopEffect();
+    void StopEffect() const;
 
     P m_params = {};
   };

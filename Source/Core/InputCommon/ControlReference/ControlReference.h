@@ -44,7 +44,7 @@ public:
 
   int BoundCount() const;
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
-  void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
+  void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env) const;
   std::string GetExpression() const;
 
   // Returns a human-readable error description when the given expression is invalid.
@@ -63,20 +63,20 @@ protected:
 namespace ControllerEmu
 {
 template <>
-inline bool ControlStateCast<bool>(ControlState value)
+inline bool ControlStateCast<bool>(const ControlState value)
 {
   // Round to nearest of 0 or 1.
   return std::lround(value) > 0;
 }
 
 template <>
-inline int ControlStateCast<int>(ControlState value)
+inline int ControlStateCast<int>(const ControlState value)
 {
   return std::lround(value);
 }
 
 template <>
-inline ControlState ControlStateCast<ControlState>(ControlState value)
+inline ControlState ControlStateCast<ControlState>(const ControlState value)
 {
   return value;
 }

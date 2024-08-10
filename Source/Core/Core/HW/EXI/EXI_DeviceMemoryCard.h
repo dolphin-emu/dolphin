@@ -62,25 +62,25 @@ public:
   static void Shutdown();
 
   static std::pair<std::string /* path */, bool /* migrate */>
-  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder, Movie::MovieManager& movie);
+  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder, const Movie::MovieManager& movie);
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 size_mb);
-  static void EventCompleteFindInstance(Core::System& system, u64 userdata,
+  static void EventCompleteFindInstance(const Core::System& system, u64 userdata,
                                         std::function<void(CEXIMemoryCard*)> callback);
 
   // Scheduled when a command that required delayed end signaling is done.
-  static void CmdDoneCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+  static void CmdDoneCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
 
   // Scheduled when memory card is done transferring data
-  static void TransferCompleteCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+  static void TransferCompleteCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
 
   // Signals that the command that was previously executed is now done.
   void CmdDone();
 
   // Signals that the transfer that was previously executed is now done.
-  void TransferComplete();
+  void TransferComplete() const;
 
   // Variant of CmdDone which schedules an event later in the future to complete the command.
   void CmdDoneLater(u64 cycles);

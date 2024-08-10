@@ -76,7 +76,7 @@ public:
   void AddLiteral(u32 lit);
   void AddSymbolResolve(std::string_view sym, bool absolute);
 
-  void RunFixups();
+  void RunFixups() const;
 
   void EvalOperatorRel(AsmOp operation);
   void EvalOperatorAbs(AsmOp operation);
@@ -119,7 +119,7 @@ private:
 // OVERRIDES //
 ///////////////
 
-void GekkoIRPlugin::OnDirectivePre(GekkoDirective directive)
+void GekkoIRPlugin::OnDirectivePre(const GekkoDirective directive)
 {
   m_evaluation_mode = EvalMode::AbsAddrSinglePass;
   m_active_directive = directive;
@@ -138,7 +138,7 @@ void GekkoIRPlugin::OnDirectivePre(GekkoDirective directive)
   }
 }
 
-void GekkoIRPlugin::OnDirectivePost(GekkoDirective directive)
+void GekkoIRPlugin::OnDirectivePost(const GekkoDirective directive)
 {
   switch (directive)
   {
@@ -201,7 +201,7 @@ void GekkoIRPlugin::OnDirectivePost(GekkoDirective directive)
   m_eval_stack = {};
 }
 
-void GekkoIRPlugin::OnInstructionPre(const ParseInfo& mnemonic_info, bool extended)
+void GekkoIRPlugin::OnInstructionPre(const ParseInfo& mnemonic_info, const bool extended)
 {
   m_evaluation_mode = EvalMode::RelAddrDoublePass;
   StartInstruction(mnemonic_info.mnemonic_index, extended);
@@ -236,7 +236,7 @@ void GekkoIRPlugin::OnResolvedExprPost()
     AddBytes<u32>(static_cast<u32>(m_eval_stack.back()));
     break;
   case GekkoDirective::_8byte:
-    AddBytes<u64>(static_cast<u64>(m_eval_stack.back()));
+    AddBytes<u64>(m_eval_stack.back());
     break;
   default:
     return;
@@ -244,7 +244,7 @@ void GekkoIRPlugin::OnResolvedExprPost()
   m_eval_stack.clear();
 }
 
-void GekkoIRPlugin::OnOperator(AsmOp operation)
+void GekkoIRPlugin::OnOperator(const AsmOp operation)
 {
   if (m_evaluation_mode == EvalMode::RelAddrDoublePass)
   {
@@ -256,7 +256,7 @@ void GekkoIRPlugin::OnOperator(AsmOp operation)
   }
 }
 
-void GekkoIRPlugin::OnTerminal(Terminal type, const AssemblerToken& val)
+void GekkoIRPlugin::OnTerminal(const Terminal type, const AssemblerToken& val)
 {
   if (type == Terminal::Str)
   {
@@ -278,18 +278,18 @@ void GekkoIRPlugin::OnHiaddr(std::string_view id)
   {
     AddSymbolResolve(id, true);
     AddLiteral(16);
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs >> rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs >> rhs; });
     AddLiteral(0xffff);
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs & rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs & rhs; });
   }
   else
   {
     u32 base;
-    if (auto lbl = LookupLabel(id); lbl)
+    if (const auto lbl = LookupLabel(id); lbl)
     {
       base = *lbl;
     }
-    else if (auto var = LookupVar(id); var)
+    else if (const auto var = LookupVar(id); var)
     {
       base = *var;
     }
@@ -308,16 +308,16 @@ void GekkoIRPlugin::OnLoaddr(std::string_view id)
   {
     AddSymbolResolve(id, true);
     AddLiteral(0xffff);
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs & rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs & rhs; });
   }
   else
   {
     u32 base;
-    if (auto lbl = LookupLabel(id); lbl)
+    if (const auto lbl = LookupLabel(id); lbl)
     {
       base = *lbl;
     }
-    else if (auto var = LookupVar(id); var)
+    else if (const auto var = LookupVar(id); var)
     {
       base = *var;
     }
@@ -331,7 +331,7 @@ void GekkoIRPlugin::OnLoaddr(std::string_view id)
   }
 }
 
-void GekkoIRPlugin::OnCloseParen(ParenType type)
+void GekkoIRPlugin::OnCloseParen(const ParenType type)
 {
   if (type != ParenType::RelConv)
   {
@@ -389,19 +389,19 @@ u32 GekkoIRPlugin::CurrentAddress() const
   return m_active_block->BlockEndAddress();
 }
 
-std::optional<u64> GekkoIRPlugin::LookupVar(std::string_view var)
+std::optional<u64> GekkoIRPlugin::LookupVar(const std::string_view var)
 {
-  auto var_it = m_constants.find(var);
+  const auto var_it = m_constants.find(var);
   return var_it == m_constants.end() ? std::nullopt : std::optional(var_it->second);
 }
 
-std::optional<u32> GekkoIRPlugin::LookupLabel(std::string_view lab)
+std::optional<u32> GekkoIRPlugin::LookupLabel(const std::string_view lab)
 {
-  auto label_it = m_labels.find(lab);
+  const auto label_it = m_labels.find(lab);
   return label_it == m_labels.end() ? std::nullopt : std::optional(label_it->second);
 }
 
-void GekkoIRPlugin::AddStringBytes(std::string_view str, bool null_term)
+void GekkoIRPlugin::AddStringBytes(const std::string_view str, const bool null_term)
 {
   ByteChunk& bytes = GetChunk<ByteChunk>();
   ConvertStringLiteral(str, &bytes);
@@ -447,7 +447,7 @@ void GekkoIRPlugin::AddBytes(T val)
   }
 }
 
-void GekkoIRPlugin::PadAlign(u32 bits)
+void GekkoIRPlugin::PadAlign(const u32 bits)
 {
   const u32 align_mask = (1 << bits) - 1;
   const u32 current_addr = m_active_block->BlockEndAddress();
@@ -458,7 +458,7 @@ void GekkoIRPlugin::PadAlign(u32 bits)
   }
 }
 
-void GekkoIRPlugin::PadSpace(size_t space)
+void GekkoIRPlugin::PadSpace(const size_t space)
 {
   GetChunk<PadChunk>() += space;
 }
@@ -468,7 +468,7 @@ void GekkoIRPlugin::StartBlock(u32 address)
   m_active_block = &m_output_result.blocks.emplace_back(address);
 }
 
-void GekkoIRPlugin::StartBlockAlign(u32 bits)
+void GekkoIRPlugin::StartBlockAlign(const u32 bits)
 {
   const u32 align_mask = (1 << bits) - 1;
   const u32 current_addr = m_active_block->BlockEndAddress();
@@ -478,7 +478,7 @@ void GekkoIRPlugin::StartBlockAlign(u32 bits)
   }
 }
 
-void GekkoIRPlugin::StartInstruction(size_t mnemonic_index, bool extended)
+void GekkoIRPlugin::StartInstruction(const size_t mnemonic_index, const bool extended)
 {
   m_build_inst = GekkoInstruction{
       .mnemonic_index = mnemonic_index,
@@ -523,7 +523,7 @@ void GekkoIRPlugin::AddLiteral(u32 lit)
 void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
 {
   const u32 source_address = m_active_block->BlockEndAddress();
-  AssemblerError err_on_fail = AssemblerError{
+  auto err_on_fail = AssemblerError{
       fmt::format("Unresolved symbol '{}'", sym),
       m_owner->lexer.CurrentLine(),
       m_owner->lexer.LineNumber(),
@@ -534,7 +534,7 @@ void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
 
   m_fixup_stack.emplace(
       [this, sym, absolute, source_address, err_on_fail = std::move(err_on_fail)] {
-        auto label_it = m_labels.find(sym);
+        const auto label_it = m_labels.find(sym);
         if (label_it != m_labels.end())
         {
           if (absolute)
@@ -544,7 +544,7 @@ void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
           return label_it->second - source_address;
         }
 
-        auto var_it = m_constants.find(sym);
+        const auto var_it = m_constants.find(sym);
         if (var_it != m_constants.end())
         {
           return static_cast<u32>(var_it->second);
@@ -555,14 +555,14 @@ void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
       });
 }
 
-void GekkoIRPlugin::SaveOperandFixup(size_t str_left, size_t str_right)
+void GekkoIRPlugin::SaveOperandFixup(const size_t str_left, const size_t str_right)
 {
   m_operand_fixups.emplace_back(std::move(m_fixup_stack.top()));
   m_fixup_stack.pop();
   m_output_result.operand_pool.emplace_back(Interval{str_left, str_right - str_left}, 0);
 }
 
-void GekkoIRPlugin::RunFixups()
+void GekkoIRPlugin::RunFixups() const
 {
   for (size_t i = 0; i < m_operand_fixups.size(); i++)
   {
@@ -582,7 +582,7 @@ void GekkoIRPlugin::FinishInstruction()
   m_operand_scan_begin = 0;
 }
 
-void GekkoIRPlugin::EvalOperatorAbs(AsmOp operation)
+void GekkoIRPlugin::EvalOperatorAbs(const AsmOp operation)
 {
 #define EVAL_BINARY_OP(OPERATOR)                                                                   \
   {                                                                                                \
@@ -631,47 +631,47 @@ void GekkoIRPlugin::EvalOperatorAbs(AsmOp operation)
 #undef EVAL_UNARY_OP
 }
 
-void GekkoIRPlugin::EvalOperatorRel(AsmOp operation)
+void GekkoIRPlugin::EvalOperatorRel(const AsmOp operation)
 {
   switch (operation)
   {
   case AsmOp::Or:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs | rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs | rhs; });
     break;
   case AsmOp::Xor:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs ^ rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs ^ rhs; });
     break;
   case AsmOp::And:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs & rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs & rhs; });
     break;
   case AsmOp::Lsh:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs << rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs << rhs; });
     break;
   case AsmOp::Rsh:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs >> rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs >> rhs; });
     break;
   case AsmOp::Add:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs + rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs + rhs; });
     break;
   case AsmOp::Sub:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs - rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs - rhs; });
     break;
   case AsmOp::Mul:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs * rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs * rhs; });
     break;
   case AsmOp::Div:
-    AddBinaryEvaluator([](u32 lhs, u32 rhs) { return lhs / rhs; });
+    AddBinaryEvaluator([](const u32 lhs, const u32 rhs) { return lhs / rhs; });
     break;
   case AsmOp::Neg:
-    AddUnaryEvaluator([](u32 val) { return static_cast<u32>(-static_cast<s32>(val)); });
+    AddUnaryEvaluator([](const u32 val) { return static_cast<u32>(-static_cast<s32>(val)); });
     break;
   case AsmOp::Not:
-    AddUnaryEvaluator([](u32 val) { return ~val; });
+    AddUnaryEvaluator([](const u32 val) { return ~val; });
     break;
   }
 }
 
-void GekkoIRPlugin::EvalTerminalRel(Terminal type, const AssemblerToken& tok)
+void GekkoIRPlugin::EvalTerminalRel(const Terminal type, const AssemblerToken& tok)
 {
   switch (type)
   {
@@ -688,7 +688,7 @@ void GekkoIRPlugin::EvalTerminalRel(Terminal type, const AssemblerToken& tok)
   case Terminal::Eq:
   case Terminal::So:
   {
-    std::optional<u32> val = tok.EvalToken<u32>();
+    const std::optional<u32> val = tok.EvalToken<u32>();
     ASSERT(val.has_value());
     AddLiteral(*val);
     break;
@@ -700,11 +700,11 @@ void GekkoIRPlugin::EvalTerminalRel(Terminal type, const AssemblerToken& tok)
 
   case Terminal::Id:
   {
-    if (auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
+    if (const auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
     {
       AddLiteral(label_it->second - CurrentAddress());
     }
-    else if (auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
+    else if (const auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
     {
       AddLiteral(var_it->second);
     }
@@ -722,7 +722,7 @@ void GekkoIRPlugin::EvalTerminalRel(Terminal type, const AssemblerToken& tok)
   }
 }
 
-void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
+void GekkoIRPlugin::EvalTerminalAbs(const Terminal type, const AssemblerToken& tok)
 {
   switch (type)
   {
@@ -739,7 +739,7 @@ void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
   case Terminal::Eq:
   case Terminal::So:
   {
-    std::optional<u64> val = tok.EvalToken<u64>();
+    const std::optional<u64> val = tok.EvalToken<u64>();
     ASSERT(val.has_value());
     m_eval_stack.push_back(*val);
     break;
@@ -758,16 +758,16 @@ void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
   }
 
   case Terminal::Dot:
-    m_eval_stack.push_back(static_cast<u64>(CurrentAddress()));
+    m_eval_stack.push_back(CurrentAddress());
     break;
 
   case Terminal::Id:
   {
-    if (auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
+    if (const auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
     {
       m_eval_stack.push_back(label_it->second);
     }
-    else if (auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
+    else if (const auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
     {
       m_eval_stack.push_back(var_it->second);
     }
@@ -791,7 +791,7 @@ void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
 u32 IRBlock::BlockEndAddress() const
 {
   return std::accumulate(chunks.begin(), chunks.end(), block_address,
-                         [](u32 acc, const ChunkVariant& chunk) {
+                         [](const u32 acc, const ChunkVariant& chunk) {
                            size_t size;
                            if (std::holds_alternative<InstChunk>(chunk))
                            {
@@ -815,7 +815,7 @@ u32 IRBlock::BlockEndAddress() const
                          });
 }
 
-FailureOr<GekkoIR> ParseToIR(std::string_view assembly, u32 base_virtual_address)
+FailureOr<GekkoIR> ParseToIR(const std::string_view assembly, const u32 base_virtual_address)
 {
   GekkoIR ret;
   GekkoIRPlugin plugin(ret, base_virtual_address);

@@ -28,14 +28,14 @@ static constexpr int BLOCK_SIZE = 2;
 struct SlopeContext
 {
   SlopeContext(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-               s32 x0_, s32 y0_, s32 x_off, s32 y_off)
+               const s32 x0_, const s32 y0_, const s32 x_off, const s32 y_off)
       : x0(x0_), y0(y0_)
   {
     // adjust a little less than 0.5
-    const float adjust = 0.495f;
+    constexpr float adjust = 0.495f;
 
-    xOff = ((float)x0_ - (v0->screenPosition.x - x_off)) + adjust;
-    yOff = ((float)y0_ - (v0->screenPosition.y - y_off)) + adjust;
+    xOff = (static_cast<float>(x0_) - (v0->screenPosition.x - x_off)) + adjust;
+    yOff = (static_cast<float>(y0_) - (v0->screenPosition.y - y_off)) + adjust;
 
     dx10 = v1->screenPosition.x - v0->screenPosition.x;
     dx20 = v2->screenPosition.x - v0->screenPosition.x;
@@ -55,15 +55,15 @@ struct SlopeContext
 struct Slope
 {
   Slope() = default;
-  Slope(float f0_, float f1, float f2, const SlopeContext& ctx) : f0(f0_)
+  Slope(const float f0_, const float f1, const float f2, const SlopeContext& ctx) : f0(f0_)
   {
-    float delta_20 = f2 - f0_;
-    float delta_10 = f1 - f0_;
+    const float delta_20 = f2 - f0_;
+    const float delta_10 = f1 - f0_;
 
     //        x2 - x0    y1 - y0    x1 - x0    y2 - y0
-    float a = delta_20 * ctx.dy10 - delta_10 * ctx.dy20;
-    float b = ctx.dx20 * delta_10 - ctx.dx10 * delta_20;
-    float c = ctx.dx20 * ctx.dy10 - ctx.dx10 * ctx.dy20;
+    const float a = delta_20 * ctx.dy10 - delta_10 * ctx.dy20;
+    const float b = ctx.dx20 * delta_10 - ctx.dx10 * delta_20;
+    const float c = ctx.dx20 * ctx.dy10 - ctx.dx10 * ctx.dy20;
 
     dfdx = a / c;
     dfdy = b / c;
@@ -88,10 +88,10 @@ struct Slope
   float xOff = 0.0f;
   float yOff = 0.0f;
 
-  float GetValue(s32 x, s32 y) const
+  float GetValue(const s32 x, const s32 y) const
   {
-    float dx = xOff + (float)(x - x0);
-    float dy = yOff + (float)(y - y0);
+    const float dx = xOff + static_cast<float>(x - x0);
+    const float dy = yOff + static_cast<float>(y - y0);
     return f0 + (dfdx * dx) + (dfdy * dy);
   }
 };
@@ -120,20 +120,20 @@ void ScissorChanged()
 
 // Returns approximation of log2(f) in s28.4
 // results are close enough to use for LOD
-static s32 FixedLog2(float f)
+static s32 FixedLog2(const float f)
 {
   u32 x;
   std::memcpy(&x, &f, sizeof(u32));
 
-  s32 logInt = ((x & 0x7F800000) >> 19) - 2032;  // integer part
-  s32 logFract = (x & 0x007fffff) >> 19;         // approximate fractional part
+  const s32 logInt = ((x & 0x7F800000) >> 19) - 2032; // integer part
+  const s32 logFract = (x & 0x007fffff) >> 19;        // approximate fractional part
 
   return logInt + logFract;
 }
 
-static inline int iround(float x)
+static inline int iround(const float x)
 {
-  int t = (int)x;
+  const int t = static_cast<int>(x);
   if ((x - t) >= 0.5)
     return t + 1;
 
@@ -145,11 +145,11 @@ void SetTevKonstColors()
   tev.SetKonstColors();
 }
 
-static void Draw(s32 x, s32 y, s32 xi, s32 yi)
+static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
 {
   INCSTAT(g_stats.this_frame.rasterized_pixels);
 
-  s32 z = (s32)std::clamp<float>(ZSlope.GetValue(x, y), 0.0f, 16777215.0f);
+  const s32 z = static_cast<s32>(std::clamp<float>(ZSlope.GetValue(x, y), 0.0f, 16777215.0f));
 
   if (bpmem.GetEmulatedZ() == EmulatedZ::Early)
   {
@@ -164,7 +164,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
   }
 
-  RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+  const auto& [_InvW, Uv] = rasterBlock.Pixel[xi][yi];
 
   tev.Position[0] = x;
   tev.Position[1] = y;
@@ -175,10 +175,10 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   {
     for (int comp = 0; comp < 4; comp++)
     {
-      u16 color = (u16)ColorSlopes[i][comp].GetValue(x, y);
+      const u16 color = static_cast<u16>(ColorSlopes[i][comp].GetValue(x, y));
 
       // clamp color value to 0
-      u16 mask = ~(color >> 8);
+      const u16 mask = ~(color >> 8);
 
       tev.Color[i][comp] = color & mask;
     }
@@ -188,8 +188,8 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
   {
     // multiply by 128 because TEV stores UVs as s17.7
-    tev.Uv[i].s = (s32)(pixel.Uv[i][0] * 128);
-    tev.Uv[i].t = (s32)(pixel.Uv[i][1] * 128);
+    tev.Uv[i].s = static_cast<s32>(Uv[i][0] * 128);
+    tev.Uv[i].t = static_cast<s32>(Uv[i][1] * 128);
   }
 
   for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
@@ -207,25 +207,23 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   tev.Draw();
 }
 
-static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
+// LOD calculation requires data from the texture mode for bias, etc.
+// it does not seem to use the actual texture size
+static inline void CalculateLOD(s32* lodp, bool* linear, const u32 texmap, const u32 texcoord)
 {
-  auto texUnit = bpmem.tex.GetUnit(texmap);
-
-  // LOD calculation requires data from the texture mode for bias, etc.
-  // it does not seem to use the actual texture size
-  const TexMode0& tm0 = texUnit.texMode0;
-  const TexMode1& tm1 = texUnit.texMode1;
+  const auto [tm0, tm1, texImage0, texImage1, texImage2, texImage3, texTlut, unknown] =
+    bpmem.tex.GetUnit(texmap);
 
   float sDelta, tDelta;
 
-  float* uv00 = rasterBlock.Pixel[0][0].Uv[texcoord];
-  float* uv10 = rasterBlock.Pixel[1][0].Uv[texcoord];
-  float* uv01 = rasterBlock.Pixel[0][1].Uv[texcoord];
+  const float* uv00 = rasterBlock.Pixel[0][0].Uv[texcoord];
+  const float* uv10 = rasterBlock.Pixel[1][0].Uv[texcoord];
+  const float* uv01 = rasterBlock.Pixel[0][1].Uv[texcoord];
 
-  float dudx = fabsf(uv00[0] - uv10[0]);
-  float dvdx = fabsf(uv00[1] - uv10[1]);
-  float dudy = fabsf(uv00[0] - uv01[0]);
-  float dvdy = fabsf(uv00[1] - uv01[1]);
+  const float dudx = fabsf(uv00[0] - uv10[0]);
+  const float dvdx = fabsf(uv00[1] - uv10[1]);
+  const float dudy = fabsf(uv00[0] - uv01[0]);
+  const float dvdy = fabsf(uv00[1] - uv01[1]);
 
   if (tm0.diag_lod == LODType::Diagonal)
   {
@@ -258,50 +256,50 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   *lodp = lod;
 }
 
-static void BuildBlock(s32 blockX, s32 blockY)
+static void BuildBlock(const s32 blockX, const s32 blockY)
 {
   for (s32 yi = 0; yi < BLOCK_SIZE; yi++)
   {
     for (s32 xi = 0; xi < BLOCK_SIZE; xi++)
     {
-      RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+      auto& [InvW, Uv] = rasterBlock.Pixel[xi][yi];
 
-      s32 x = xi + blockX;
-      s32 y = yi + blockY;
+      const s32 x = xi + blockX;
+      const s32 y = yi + blockY;
 
-      float invW = 1.0f / WSlope.GetValue(x, y);
-      pixel.InvW = invW;
+      const float invW = 1.0f / WSlope.GetValue(x, y);
+      InvW = invW;
 
       // tex coords
       for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
       {
         float projection = invW;
-        float q = TexSlopes[i][2].GetValue(x, y) * invW;
+        const float q = TexSlopes[i][2].GetValue(x, y) * invW;
         if (q != 0.0f)
           projection = invW / q;
 
-        pixel.Uv[i][0] = TexSlopes[i][0].GetValue(x, y) * projection;
-        pixel.Uv[i][1] = TexSlopes[i][1].GetValue(x, y) * projection;
+        Uv[i][0] = TexSlopes[i][0].GetValue(x, y) * projection;
+        Uv[i][1] = TexSlopes[i][1].GetValue(x, y) * projection;
       }
     }
   }
 
   for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
   {
-    u32 texmap = bpmem.tevindref.getTexMap(i);
-    u32 texcoord = bpmem.tevindref.getTexCoord(i);
+    const u32 texmap = bpmem.tevindref.getTexMap(i);
+    const u32 texcoord = bpmem.tevindref.getTexCoord(i);
 
     CalculateLOD(&rasterBlock.IndirectLod[i], &rasterBlock.IndirectLinear[i], texmap, texcoord);
   }
 
   for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
   {
-    int stageOdd = i & 1;
+    const int stageOdd = i & 1;
     const TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
     if (order.getEnable(stageOdd))
     {
-      u32 texmap = order.getTexMap(stageOdd);
-      u32 texcoord = order.getTexCoord(stageOdd);
+      const u32 texmap = order.getTexMap(stageOdd);
+      const u32 texcoord = order.getTexCoord(stageOdd);
 
       CalculateLOD(&rasterBlock.TextureLod[i], &rasterBlock.TextureLinear[i], texmap, texcoord);
     }
@@ -309,7 +307,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 }
 
 void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
-                  const OutputVertexData* v2, s32 x_off, s32 y_off)
+                  const OutputVertexData* v2, const s32 x_off, const s32 y_off)
 {
   if (!bpmem.genMode.zfreeze)
   {

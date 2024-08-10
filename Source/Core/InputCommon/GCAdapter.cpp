@@ -80,8 +80,8 @@ enum class AdapterStatus
   Error,
 };
 
-static std::atomic<AdapterStatus> s_status = AdapterStatus::NotDetected;
-static std::atomic<libusb_error> s_adapter_error = LIBUSB_SUCCESS;
+static std::atomic s_status = AdapterStatus::NotDetected;
+static std::atomic s_adapter_error = LIBUSB_SUCCESS;
 static libusb_device_handle* s_handle = nullptr;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
 // Java classes
@@ -119,7 +119,7 @@ struct PortState
 static std::array<PortState, SerialInterface::MAX_SI_CHANNELS> s_port_states;
 
 static std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> s_controller_write_payload;
-static std::atomic<int> s_controller_write_payload_size{0};
+static std::atomic s_controller_write_payload_size{0};
 
 static std::thread s_read_adapter_thread;
 static Common::Flag s_read_adapter_thread_running;
@@ -207,7 +207,7 @@ static void ReadThreadFunc()
 
     int payload_size = 0;
     int error = libusb_interrupt_transfer(s_handle, s_endpoint_in, input_buffer.data(),
-                                          int(input_buffer.size()), &payload_size, USB_TIMEOUT_MS);
+                                          input_buffer.size(), &payload_size, USB_TIMEOUT_MS);
     if (error != LIBUSB_SUCCESS)
     {
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "Read: libusb_interrupt_transfer failed: {}",
@@ -313,8 +313,8 @@ static void WriteThreadFunc()
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #if LIBUSB_API_HAS_HOTPLUG
-static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotplug_event event,
-                           void* user_data)
+static int HotplugCallback(libusb_context* ctx, const libusb_device* dev,
+                           const libusb_hotplug_event event, void* user_data)
 {
   if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
   {
@@ -414,9 +414,9 @@ static void RefreshConfig()
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    s_is_adapter_wanted |= Config::Get(Config::GetInfoForSIDevice(i)) ==
-                           SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
-    s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
+    s_is_adapter_wanted |=
+        Get(Config::GetInfoForSIDevice(i)) == SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
+    s_config_rumble_enabled[i] = Get(Config::GetInfoForAdapterRumble(i));
   }
 }
 
@@ -432,11 +432,11 @@ void Init()
     return;
 #endif
 
-  auto& system = Core::System::GetInstance();
-  if (const Core::State state = Core::GetState(system);
+  const auto& system = Core::System::GetInstance();
+  if (const Core::State state = GetState(system);
       state != Core::State::Uninitialized && state != Core::State::Starting)
   {
-    auto& core_timing = system.GetCoreTiming();
+    const auto& core_timing = system.GetCoreTiming();
     if ((core_timing.GetTicks() - s_last_init) < system.GetSystemTimers().GetTicksPerSecond())
       return;
 
@@ -691,7 +691,7 @@ void Shutdown()
 
   if (s_config_callback_id)
   {
-    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    RemoveConfigChangedCallback(*s_config_callback_id);
     s_config_callback_id = std::nullopt;
   }
 }
@@ -739,7 +739,7 @@ static void Reset()
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter detached");
 }
 
-GCPadStatus Input(int chan)
+GCPadStatus Input(const int chan)
 {
   if (!UseAdapter())
     return {};
@@ -754,20 +754,20 @@ GCPadStatus Input(int chan)
 
   std::lock_guard lk(s_read_mutex);
 
-  auto& pad_state = s_port_states[chan];
+  auto& [origin, status, _controller_type, is_new_connection] = s_port_states[chan];
 
   // Return the "origin" state for the first input on a new connection.
-  if (pad_state.is_new_connection)
+  if (is_new_connection)
   {
-    pad_state.is_new_connection = false;
-    return pad_state.origin;
+    is_new_connection = false;
+    return origin;
   }
 
-  return pad_state.status;
+  return status;
 }
 
 // Get ControllerType from first byte in input payload.
-static ControllerType IdentifyControllerType(u8 data)
+static ControllerType IdentifyControllerType(const u8 data)
 {
   if (Common::ExtractBit<4>(data))
     return ControllerType::Wired;
@@ -778,7 +778,7 @@ static ControllerType IdentifyControllerType(u8 data)
   return ControllerType::None;
 }
 
-void ProcessInputPayload(const u8* data, std::size_t size)
+void ProcessInputPayload(const u8* data, const std::size_t size)
 {
   if (size != CONTROLLER_INPUT_PAYLOAD_EXPECTED_SIZE
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -803,7 +803,7 @@ void ProcessInputPayload(const u8* data, std::size_t size)
 
       const auto type = IdentifyControllerType(channel_data[0]);
 
-      auto& pad_state = s_port_states[chan];
+      auto& [origin, status, controller_type, is_new_connection] = s_port_states[chan];
 
       GCPadStatus pad = {};
 
@@ -854,29 +854,29 @@ void ProcessInputPayload(const u8* data, std::size_t size)
         pad.button = PAD_ERR_STATUS;
       }
 
-      if (type != ControllerType::None && pad_state.controller_type == ControllerType::None)
+      if (type != ControllerType::None && controller_type == ControllerType::None)
       {
         NOTICE_LOG_FMT(CONTROLLERINTERFACE, "New device connected to Port {} of Type: {:02x}",
                        chan + 1, channel_data[0]);
 
         pad.button |= PAD_GET_ORIGIN;
-        pad_state.origin = pad;
-        pad_state.is_new_connection = true;
+        origin = pad;
+        is_new_connection = true;
       }
 
-      pad_state.controller_type = type;
-      pad_state.status = pad;
+      controller_type = type;
+      status = pad;
     }
   }
 }
 
-bool DeviceConnected(int chan)
+bool DeviceConnected(const int chan)
 {
   std::lock_guard lk(s_read_mutex);
   return s_port_states[chan].controller_type != ControllerType::None;
 }
 
-void ResetDeviceType(int chan)
+void ResetDeviceType(const int chan)
 {
   std::lock_guard lk(s_read_mutex);
   s_port_states[chan].controller_type = ControllerType::None;
@@ -915,7 +915,7 @@ static void ResetRumbleLockNeeded()
     return;
   }
 
-  std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
+  std::ranges::fill(s_controller_rumble, 0);
 
   std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
       0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
@@ -935,7 +935,7 @@ static void ResetRumbleLockNeeded()
 }
 #endif
 
-void Output(int chan, u8 rumble_command)
+void Output(const int chan, const u8 rumble_command)
 {
   if (!UseAdapter() || !s_config_rumble_enabled[chan])
     return;
@@ -953,7 +953,7 @@ void Output(int chan, u8 rumble_command)
       s_port_states[chan].controller_type != ControllerType::Wireless)
   {
     s_controller_rumble[chan] = rumble_command;
-    std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
+    const std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
         0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
         s_controller_rumble[3]};
     {

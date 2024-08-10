@@ -5,7 +5,6 @@
 
 #include <memory>
 
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 
 class PointerWrap;
@@ -33,7 +32,7 @@ private:
   };
 
   // Returns whether the widescreen state wants to change, and its target value
-  std::optional<bool> GetWidescreenOverride() const;
+  static std::optional<bool> GetWidescreenOverride();
   void UpdateWidescreenHeuristic();
 
   bool m_is_game_widescreen = false;

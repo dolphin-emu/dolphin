@@ -61,7 +61,7 @@ public:
   void UpdateFont(const QFont& font);
   void ToggleBreakpoint(u32 addr, bool row);
 
-  std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text) const;
+  static std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text);
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
@@ -69,7 +69,8 @@ public:
   void SetAddress(u32 address);
   void SetFocus() const;
 
-  void SetBPLoggingEnabled(bool enabled);
+  void EnableBPLogging();
+  void DisableBPLogging();
 
 signals:
   void BreakpointsChanged();
@@ -79,13 +80,13 @@ signals:
 private:
   void OnContextMenu(const QPoint& pos);
   void OnCopyAddress(u32 addr);
-  void OnCopyHex(u32 addr);
-  void UpdateBreakpointTags();
-  void UpdateColumns();
-  void UpdateColumns(const Core::CPUThreadGuard* guard);
+  void OnCopyHex(u32 addr) const;
+  void UpdateBreakpointTags() const;
+  void UpdateColumns() const;
+  void UpdateColumns(const Core::CPUThreadGuard* guard) const;
   void ScrollbarActionTriggered(int action);
-  void ScrollbarSliderReleased();
-  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+  void ScrollbarSliderReleased() const;
+  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type) const;
 
   Core::System& m_system;
 

@@ -51,7 +51,7 @@ constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xA
                              0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
-void StorageDeleter::operator()(Storage* p) const
+void StorageDeleter::operator()(const Storage* p) const
 {
   delete p;
 }
@@ -61,7 +61,7 @@ namespace FS = IOS::HLE::FS;
 class NandStorage final : public Storage
 {
 public:
-  explicit NandStorage(FS::FileSystem* fs, u64 tid) : m_fs{fs}, m_tid{tid}
+  explicit NandStorage(FS::FileSystem* fs, const u64 tid) : m_fs{fs}, m_tid{tid}
   {
     m_data_dir = Common::GetTitleDataPath(tid);
     InitTitleUidAndGid();
@@ -82,14 +82,14 @@ public:
     if (banner_delete_result != FS::ResultCode::Success)
       return false;
 
-    for (const SaveFile& file : m_files_list)
+    for (const auto& [_mode, _attributes, _type, path, _data] : m_files_list)
     {
       // files in subdirs are deleted automatically when the subdir is deleted
-      if (file.path.find('/') != std::string::npos)
+      if (path.find('/') != std::string::npos)
         continue;
 
       const auto result =
-          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + file.path);
+          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + path);
       if (result != FS::ResultCode::Success)
         return false;
     }
@@ -164,18 +164,18 @@ public:
     if (!m_uid || !m_gid)
       return false;
 
-    for (const SaveFile& file : files)
+    for (const auto& [mode, _attributes, type, file_path, file_data] : files)
     {
-      const FS::Modes modes = GetFsMode(file.mode);
-      const std::string path = m_data_dir + '/' + file.path;
-      if (file.type == SaveFile::Type::File)
+      const FS::Modes modes = GetFsMode(mode);
+      const std::string path = m_data_dir + '/' + file_path;
+      if (type == SaveFile::Type::File)
       {
         const auto raw_file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, path, modes);
-        const std::optional<std::vector<u8>>& data = *file.data;
+        const std::optional<std::vector<u8>>& data = *file_data;
         if (!data || !raw_file || !raw_file->Write(data->data(), data->size()))
           return false;
       }
-      else if (file.type == SaveFile::Type::Directory)
+      else if (type == SaveFile::Type::Directory)
       {
         const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path);
         if (meta && meta->is_file)
@@ -227,7 +227,7 @@ private:
       m_files_size += sizeof(FileHDR);
 
       if (metadata->is_file)
-        m_files_size += static_cast<u32>(Common::AlignUp(metadata->size, BLOCK_SZ));
+        m_files_size += Common::AlignUp(metadata->size, BLOCK_SZ);
       else
         ScanForFiles(path);
     }
@@ -242,14 +242,14 @@ private:
     m_gid = metadata->gid;
   }
 
-  static constexpr FS::Modes GetFsMode(u8 bin_mode)
+  static constexpr FS::Modes GetFsMode(const u8 bin_mode)
   {
-    return {FS::Mode(bin_mode >> 4 & 3), FS::Mode(bin_mode >> 2 & 3), FS::Mode(bin_mode >> 0 & 3)};
+    return {static_cast<FS::Mode>(bin_mode >> 4 & 3), static_cast<FS::Mode>(bin_mode >> 2 & 3), static_cast<FS::Mode>(bin_mode >> 0 & 3)};
   }
 
   static constexpr u8 GetBinMode(const FS::Modes& modes)
   {
-    return u8(modes.owner) << 4 | u8(modes.group) << 2 | u8(modes.other) << 0;
+    return static_cast<u8>(modes.owner) << 4 | static_cast<u8>(modes.group) << 2 | static_cast<u8>(modes.other) << 0;
   }
 
   u8 GetBinMode(const std::string& path) const
@@ -300,7 +300,7 @@ public:
       return {};
     }
 
-    Md5 md5_file = header.md5;
+    const Md5 md5_file = header.md5;
     header.md5 = s_md5_blanker;
     Md5 md5_calc;
     mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
@@ -343,7 +343,7 @@ public:
 
       save_file.mode = file_hdr.permissions;
       save_file.attributes = file_hdr.attrib;
-      const SaveFile::Type type = static_cast<SaveFile::Type>(file_hdr.type);
+      const auto type = static_cast<SaveFile::Type>(file_hdr.type);
       if (type != SaveFile::Type::Directory && type != SaveFile::Type::File)
         return {};
       save_file.type = type;
@@ -396,21 +396,21 @@ public:
     if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return false;
 
-    for (const SaveFile& save_file : files)
+    for (const auto& [mode, attributes, type, path, save_file_data] : files)
     {
       FileHDR file_hdr{};
       file_hdr.magic = FILE_HDR_MAGIC;
-      file_hdr.permissions = save_file.mode;
-      file_hdr.attrib = save_file.attributes;
-      file_hdr.type = static_cast<u8>(save_file.type);
-      if (save_file.path.length() > file_hdr.name.size())
+      file_hdr.permissions = mode;
+      file_hdr.attrib = attributes;
+      file_hdr.type = static_cast<u8>(type);
+      if (path.length() > file_hdr.name.size())
         return false;
-      std::strncpy(file_hdr.name.data(), save_file.path.data(), file_hdr.name.size());
+      std::strncpy(file_hdr.name.data(), path.data(), file_hdr.name.size());
 
       std::optional<std::vector<u8>> data;
       if (file_hdr.type == 1)
       {
-        data = *save_file.data;
+        data = *save_file_data;
         if (!data)
           return false;
         file_hdr.size = static_cast<u32>(data->size());
@@ -422,7 +422,7 @@ public:
       if (data)
       {
         std::vector<u8> file_data_enc(Common::AlignUp(data->size(), BLOCK_SZ));
-        std::copy(data->cbegin(), data->cend(), file_data_enc.begin());
+        std::ranges::copy(std::as_const(*data), file_data_enc.begin());
         m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr.iv.data(), file_data_enc.data(),
                        file_data_enc.size(), file_data_enc.data(), IOS::PID_ES);
         if (!m_file.WriteBytes(file_data_enc.data(), file_data_enc.size()))
@@ -449,7 +449,7 @@ private:
     Common::SHA1::Digest data_sha1;
     {
       const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
-      auto data = std::make_unique<u8[]>(data_size);
+      const auto data = std::make_unique<u8[]>(data_size);
       m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
       if (!m_file.ReadBytes(data.get(), data_size))
         return false;
@@ -460,7 +460,7 @@ private:
     IOS::CertECC ap_cert;
     Common::ec::Signature ap_sig;
     m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
-                data_sha1.data(), static_cast<u32>(data_sha1.size()));
+                data_sha1.data(), data_sha1.size());
 
     // Write signatures.
     if (!m_file.Seek(0, File::SeekOrigin::End))
@@ -476,7 +476,7 @@ private:
   File::IOFile m_file;
 };
 
-StoragePointer MakeNandStorage(FS::FileSystem* fs, u64 tid)
+StoragePointer MakeNandStorage(FS::FileSystem* fs, const u64 tid)
 {
   return StoragePointer{new NandStorage{fs, tid}};
 }
@@ -566,7 +566,7 @@ CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_ov
   return Copy(data_bin.get(), nand.get());
 }
 
-static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
+static CopyResult Export(const u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
                                        static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
@@ -575,13 +575,13 @@ static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel
               MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
-CopyResult Export(u64 tid, std::string_view export_path)
+CopyResult Export(const u64 tid, const std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   return Export(tid, export_path, &ios);
 }
 
-size_t ExportAll(std::string_view export_path)
+size_t ExportAll(const std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   size_t exported_save_count = 0;

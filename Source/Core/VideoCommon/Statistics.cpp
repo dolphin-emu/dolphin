@@ -176,7 +176,7 @@ void Statistics::AddScissorRect()
     }
     else
     {
-      add = std::find_if(scissors.begin(), scissors.end(), [&](auto& s) {
+      add = std::ranges::find_if(scissors, [&](auto& s) {
               return s.Matches(scissor, show_scissors, show_viewports);
             }) == scissors.end();
     }
@@ -237,15 +237,16 @@ void Statistics::DisplayScissor()
     ImGui::Text("Displaying rectangle %zu / %zu (OoB)", current_scissor, scissors.size());
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 p = ImGui::GetCursorScreenPos();
+  const ImVec2 p = ImGui::GetCursorScreenPos();
   ImGui::Dummy(ImVec2(1024 * 3 / scissor_scale, 1024 * 3 / scissor_scale));
 
   constexpr int DRAW_START = -1024;
   constexpr int DRAW_END = DRAW_START + 3 * 1024;
 
-  const auto vec = [&](int x, int y, int xoff = 0, int yoff = 0) {
-    return ImVec2(p.x + int(float(x - DRAW_START) / scissor_scale) + xoff,
-                  p.y + int(float(y - DRAW_START) / scissor_scale) + yoff);
+  const auto vec = [&](const int x, const int y, const int xoff = 0, const int yoff = 0) {
+    return ImVec2(p.x + static_cast<int>(static_cast<float>(x - DRAW_START) / scissor_scale) + xoff,
+                  p.y + static_cast<int>(static_cast<float>(y - DRAW_START) / scissor_scale) +
+                  yoff);
   };
 
   const auto light_grey = ImGui::GetColorU32(ImVec4(.5f, .5f, .5f, 1.f));
@@ -256,13 +257,13 @@ void Statistics::DisplayScissor()
   for (int y = DRAW_START; y <= DRAW_END; y += 1024)
     draw_list->AddLine(vec(DRAW_START, y), vec(DRAW_END, y), light_grey);
 
-  const auto draw_x = [&](int x, int y, int size, ImU32 col) {
+  const auto draw_x = [&](const int x, const int y, const int size, const ImU32 col) {
     // Add an extra offset on the second parameter as otherwise ImGui seems to give results that are
     // too small on one side
     draw_list->AddLine(vec(x, y, -size, -size), vec(x, y, +size + 1, +size + 1), col);
     draw_list->AddLine(vec(x, y, -size, +size), vec(x, y, +size + 1, -size - 1), col);
   };
-  const auto draw_rect = [&](int x0, int y0, int x1, int y1, ImU32 col, bool show_oob = true) {
+  const auto draw_rect = [&](int x0, int y0, int x1, int y1, const ImU32 col, const bool show_oob = true) {
     x0 = std::clamp(x0, DRAW_START, DRAW_END);
     y0 = std::clamp(y0, DRAW_START, DRAW_END);
     x1 = std::clamp(x1, DRAW_START, DRAW_END);
@@ -280,15 +281,15 @@ void Statistics::DisplayScissor()
       draw_list->AddLine(vec(x1, y1), vec(x1, y1, 0, -8), col);
     }
   };
-  static std::array<ImVec4, 6> COLORS = {
+  static std::array COLORS = {
       ImVec4(1, 0, 0, 1), ImVec4(1, 1, 0, 1), ImVec4(0, 1, 0, 1),
       ImVec4(0, 1, 1, 1), ImVec4(0, 0, 1, 1), ImVec4(1, 0, 1, 1),
   };
-  const auto draw_scissor = [&](size_t index) {
+  const auto draw_scissor = [&](const size_t index) {
     const auto& info = scissors[index];
     const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
-    int x_off = info.scissor_off.x << 1;
-    int y_off = info.scissor_off.y << 1;
+    const int x_off = info.scissor_off.x << 1;
+    const int y_off = info.scissor_off.y << 1;
     // Subtract 2048 instead of 1024, because when x_off is large enough we need to show two
     // rectangles in the upper sections
     for (int y = y_off - 2048; y < DRAW_END; y += 1024)
@@ -334,14 +335,14 @@ void Statistics::DisplayScissor()
     ImGui::TableSetupColumn("Affected");
     ImGui::TableHeadersRow();
   };
-  const auto draw_scissor_table_row = [&](size_t index) {
+  const auto draw_scissor_table_row = [&](const size_t index) {
     const auto& info = scissors[index];
-    int x_off = (info.scissor_off.x << 1) - info.viewport_top;
-    int y_off = (info.scissor_off.y << 1) - info.viewport_left;
-    int x0 = info.scissor_tl.x - info.viewport_top;
-    int x1 = info.scissor_br.x - info.viewport_left;
-    int y0 = info.scissor_tl.y - info.viewport_top;
-    int y1 = info.scissor_br.y - info.viewport_left;
+    const int x_off = (info.scissor_off.x << 1) - info.viewport_top;
+    const int y_off = (info.scissor_off.y << 1) - info.viewport_left;
+    const int x0 = info.scissor_tl.x - info.viewport_top;
+    const int x1 = info.scissor_br.x - info.viewport_left;
+    const int y0 = info.scissor_tl.y - info.viewport_top;
+    const int y1 = info.scissor_br.y - info.viewport_left;
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
     ImGui::TableNextColumn();
@@ -362,7 +363,7 @@ void Statistics::DisplayScissor()
     float scale_height = ImGui::GetTextLineHeight() / EFB_HEIGHT;
     if (show_raw_scissors)
       scale_height += ImGui::GetTextLineHeightWithSpacing() / EFB_HEIGHT;
-    ImVec2 p2 = ImGui::GetCursorScreenPos();
+    const ImVec2 p2 = ImGui::GetCursorScreenPos();
     // Use a height of 1 since we want this to span two table rows (if possible)
     ImGui::Dummy(ImVec2(EFB_WIDTH * scale_height, 1));
     for (size_t i = 0; i < info.m_result.size(); i++)
@@ -380,7 +381,7 @@ void Statistics::DisplayScissor()
     draw_list->AddRect(
         p2, ImVec2(p2.x + EFB_WIDTH * scale_height, p2.y + EFB_HEIGHT * scale_height), light_grey);
     ImGui::SameLine();
-    ImGui::Text("%d", int(info.m_result.size()));
+    ImGui::Text("%d", static_cast<int>(info.m_result.size()));
 
     if (show_raw_scissors)
     {
@@ -401,7 +402,7 @@ void Statistics::DisplayScissor()
       ImGui::TableNextColumn();
     }
   };
-  const auto scissor_table_skip_row = [&](size_t index) {
+  const auto scissor_table_skip_row = [&](const size_t index) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
@@ -421,7 +422,7 @@ void Statistics::DisplayScissor()
     ImGui::TableSetupColumn("vy1");
     ImGui::TableHeadersRow();
   };
-  const auto draw_viewport_table_row = [&](size_t index) {
+  const auto draw_viewport_table_row = [&](const size_t index) {
     const auto& info = scissors[index];
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
@@ -434,7 +435,7 @@ void Statistics::DisplayScissor()
     ImGui::TableNextColumn();
     ImGui::Text("%.1f", info.viewport_bottom);
   };
-  const auto viewport_table_skip_row = [&](size_t index) {
+  const auto viewport_table_skip_row = [&](const size_t index) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);

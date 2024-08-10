@@ -43,24 +43,24 @@ const TBuiltInResource* GetCompilerResourceLimits()
 }
 
 std::optional<SPIRV::CodeVector>
-CompileShaderToSPV(EShLanguage stage, APIType api_type,
-                   glslang::EShTargetLanguageVersion language_version, const char* stage_filename,
-                   std::string_view source)
+CompileShaderToSPV(EShLanguage stage, const APIType api_type,
+                   const glslang::EShTargetLanguageVersion language_version, const char* stage_filename,
+                   const std::string_view source)
 {
   if (!InitializeGlslang())
     return std::nullopt;
 
-  std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
+  const auto shader = std::make_unique<glslang::TShader>(stage);
   std::unique_ptr<glslang::TProgram> program;
   glslang::TShader::ForbidIncluder includer;
-  EProfile profile = ECoreProfile;
-  EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
+  constexpr EProfile profile = ECoreProfile;
+  auto messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
   if (api_type == APIType::Vulkan || api_type == APIType::Metal)
     messages = static_cast<EShMessages>(messages | EShMsgVulkanRules);
-  int default_version = 450;
+  constexpr int default_version = 450;
 
   const char* pass_source_code = source.data();
-  int pass_source_code_length = static_cast<int>(source.size());
+  const int pass_source_code_length = static_cast<int>(source.size());
 
   shader->setEnvTarget(glslang::EShTargetSpv, language_version);
 
@@ -68,7 +68,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 
   auto DumpBadShader = [&](const char* msg) {
     static int counter = 0;
-    std::string filename = VideoBackendBase::BadShaderFilename(stage_filename, counter++);
+    const std::string filename = VideoBackendBase::BadShaderFilename(stage_filename, counter++);
     std::ofstream stream;
     File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())
@@ -139,7 +139,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
     options.stripDebugInfo = true;
   }
 
-  glslang::GlslangToSpv(*intermediate, out_code, &logger, &options);
+  GlslangToSpv(*intermediate, out_code, &logger, &options);
 
   // Write out messages
   // Temporary: skip if it contains "Warning, version 450 is not yet complete; most version-specific
@@ -162,26 +162,26 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 
 namespace SPIRV
 {
-std::optional<CodeVector> CompileVertexShader(std::string_view source_code, APIType api_type,
-                                              glslang::EShTargetLanguageVersion language_version)
+std::optional<CodeVector> CompileVertexShader(const std::string_view source_code, const APIType api_type,
+                                              const glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangVertex, api_type, language_version, "vs", source_code);
 }
 
-std::optional<CodeVector> CompileGeometryShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version)
+std::optional<CodeVector> CompileGeometryShader(const std::string_view source_code, const APIType api_type,
+                                                const glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangGeometry, api_type, language_version, "gs", source_code);
 }
 
-std::optional<CodeVector> CompileFragmentShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version)
+std::optional<CodeVector> CompileFragmentShader(const std::string_view source_code, const APIType api_type,
+                                                const glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangFragment, api_type, language_version, "ps", source_code);
 }
 
-std::optional<CodeVector> CompileComputeShader(std::string_view source_code, APIType api_type,
-                                               glslang::EShTargetLanguageVersion language_version)
+std::optional<CodeVector> CompileComputeShader(const std::string_view source_code, const APIType api_type,
+                                               const glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangCompute, api_type, language_version, "cs", source_code);
 }

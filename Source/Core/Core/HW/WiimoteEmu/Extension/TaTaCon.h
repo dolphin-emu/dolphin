@@ -35,7 +35,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(TaTaConGroup group);
+  ControllerEmu::ControlGroup* GetGroup(TaTaConGroup group) const;
 
   static constexpr u8 CENTER_LEFT = 0x40;
   static constexpr u8 CENTER_RIGHT = 0x10;

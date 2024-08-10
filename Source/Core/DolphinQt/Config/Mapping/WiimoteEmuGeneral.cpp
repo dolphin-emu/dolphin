@@ -83,14 +83,14 @@ void WiimoteEmuGeneral::Connect()
   connect(this, &MappingWidget::Update, this, &WiimoteEmuGeneral::Update);
 }
 
-void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
+void WiimoteEmuGeneral::OnAttachmentChanged(const int extension) const
 {
   GetParent()->ShowExtensionMotionTabs(extension == WiimoteEmu::ExtensionNumber::NUNCHUK);
 
   m_extension_widget->ChangeExtensionType(extension);
 }
 
-void WiimoteEmuGeneral::OnAttachmentSelected(int extension)
+void WiimoteEmuGeneral::OnAttachmentSelected(const int extension)
 {
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
@@ -101,7 +101,7 @@ void WiimoteEmuGeneral::OnAttachmentSelected(int extension)
   SaveSettings();
 }
 
-void WiimoteEmuGeneral::ConfigChanged()
+void WiimoteEmuGeneral::ConfigChanged() const
 {
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
@@ -112,9 +112,9 @@ void WiimoteEmuGeneral::ConfigChanged()
       !ce_extension->GetSelectionSetting().IsSimpleValue());
 }
 
-void WiimoteEmuGeneral::Update()
+void WiimoteEmuGeneral::Update() const
 {
-  auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
+  const auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
   m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());

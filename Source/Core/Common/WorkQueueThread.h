@@ -8,7 +8,6 @@
 #include <functional>
 #include <queue>
 #include <string>
-#include <string_view>
 #include <thread>
 
 #include "Common/Thread.h"
@@ -94,7 +93,7 @@ public:
   // Blocks until the worker thread exits.
   // If cancel is true, will Cancel before before telling the worker to exit
   // Otherwise, all currently queued items will complete before the worker exits
-  void Shutdown(bool cancel = false)
+  void Shutdown(const bool cancel = false)
   {
     {
       std::unique_lock lg(m_lock);
@@ -133,7 +132,7 @@ public:
 private:
   void ThreadLoop()
   {
-    Common::SetCurrentThreadName(m_thread_name.c_str());
+    SetCurrentThreadName(m_thread_name.c_str());
 
     while (true)
     {

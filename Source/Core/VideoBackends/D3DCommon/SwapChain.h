@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace D3DCommon
@@ -20,7 +19,7 @@ public:
   virtual ~SwapChain();
 
   // Sufficient buffers for triple buffering.
-  static const u32 SWAP_CHAIN_BUFFER_COUNT = 3;
+  static constexpr u32 SWAP_CHAIN_BUFFER_COUNT = 3;
 
   // Returns true if the stereo mode is quad-buffering.
   static bool WantsStereo();
@@ -37,7 +36,7 @@ public:
 
   // Mode switches.
   bool GetFullscreen() const;
-  void SetFullscreen(bool request);
+  void SetFullscreen(bool request) const;
 
   // Checks for loss of exclusive fullscreen.
   bool CheckForFullscreenChange();

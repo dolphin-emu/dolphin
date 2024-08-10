@@ -79,7 +79,7 @@ FifoDataFile::FifoDataFile() = default;
 
 FifoDataFile::~FifoDataFile() = default;
 
-bool FifoDataFile::ShouldGenerateFakeVIUpdates() const
+bool FifoDataFile::ShouldGenerateFakeVIUpdates()
 {
   return true;
 }
@@ -89,7 +89,7 @@ bool FifoDataFile::HasBrokenEFBCopies() const
   return m_Version < 2;
 }
 
-void FifoDataFile::SetIsWii(bool isWii)
+void FifoDataFile::SetIsWii(const bool isWii)
 {
   SetFlag(FLAG_IS_WII, isWii);
 }
@@ -114,22 +114,22 @@ bool FifoDataFile::Save(const std::string& filename)
   PadFile(sizeof(FileHeader), file);
 
   // Add space for frame list
-  u64 frameListOffset = file.Tell();
+  const u64 frameListOffset = file.Tell();
   PadFile(m_Frames.size() * sizeof(FileFrameInfo), file);
 
-  u64 bpMemOffset = file.Tell();
+  const u64 bpMemOffset = file.Tell();
   file.WriteArray(m_BPMem);
 
-  u64 cpMemOffset = file.Tell();
+  const u64 cpMemOffset = file.Tell();
   file.WriteArray(m_CPMem);
 
-  u64 xfMemOffset = file.Tell();
+  const u64 xfMemOffset = file.Tell();
   file.WriteArray(m_XFMem);
 
-  u64 xfRegsOffset = file.Tell();
+  const u64 xfRegsOffset = file.Tell();
   file.WriteArray(m_XFRegs);
 
-  u64 texMemOffset = file.Tell();
+  const u64 texMemOffset = file.Tell();
   file.WriteArray(m_TexMem);
 
   // Write header
@@ -137,7 +137,7 @@ bool FifoDataFile::Save(const std::string& filename)
   header.fileId = FILE_ID;
   header.file_version = VERSION_NUMBER;
   // Maintain backwards compatability so long as the RAM sizes aren't overridden.
-  if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+  if (Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     header.min_loader_version = MIN_LOADER_VERSION_FOR_RAM_OVERRIDE;
   else
     header.min_loader_version = MIN_LOADER_VERSION;
@@ -158,12 +158,12 @@ bool FifoDataFile::Save(const std::string& filename)
   header.texMemSize = TEX_MEM_SIZE;
 
   header.frameListOffset = frameListOffset;
-  header.frameCount = (u32)m_Frames.size();
+  header.frameCount = static_cast<u32>(m_Frames.size());
 
   header.flags = m_Flags;
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   header.mem1_size = memory.GetRamSizeReal();
   header.mem2_size = memory.GetExRamSizeReal();
 
@@ -173,25 +173,25 @@ bool FifoDataFile::Save(const std::string& filename)
   // Write frames list
   for (unsigned int i = 0; i < m_Frames.size(); ++i)
   {
-    const FifoFrameInfo& srcFrame = m_Frames[i];
+    const auto& [fifoData, fifoStart, fifoEnd, memoryUpdates] = m_Frames[i];
 
     // Write FIFO data
     file.Seek(0, File::SeekOrigin::End);
-    u64 dataOffset = file.Tell();
-    file.WriteBytes(srcFrame.fifoData.data(), srcFrame.fifoData.size());
+    const u64 dataOffset = file.Tell();
+    file.WriteBytes(fifoData.data(), fifoData.size());
 
-    u64 memoryUpdatesOffset = WriteMemoryUpdates(srcFrame.memoryUpdates, file);
+    const u64 memoryUpdatesOffset = WriteMemoryUpdates(memoryUpdates, file);
 
     FileFrameInfo dstFrame;
-    dstFrame.fifoDataSize = static_cast<u32>(srcFrame.fifoData.size());
+    dstFrame.fifoDataSize = static_cast<u32>(fifoData.size());
     dstFrame.fifoDataOffset = dataOffset;
-    dstFrame.fifoStart = srcFrame.fifoStart;
-    dstFrame.fifoEnd = srcFrame.fifoEnd;
+    dstFrame.fifoStart = fifoStart;
+    dstFrame.fifoEnd = fifoEnd;
     dstFrame.memoryUpdatesOffset = memoryUpdatesOffset;
-    dstFrame.numMemoryUpdates = static_cast<u32>(srcFrame.memoryUpdates.size());
+    dstFrame.numMemoryUpdates = static_cast<u32>(memoryUpdates.size());
 
     // Write frame info
-    u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
+    const u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, File::SeekOrigin::Begin);
     file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));
   }
@@ -202,7 +202,7 @@ bool FifoDataFile::Save(const std::string& filename)
   return true;
 }
 
-std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bool flagsOnly)
+std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, const bool flagsOnly)
 {
   File::IOFile file;
   file.Open(filename, "rb");
@@ -258,9 +258,9 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     // Force settings to match those used when the DFF was created.  This is sort of a hack.
     // It only works because this function gets called twice, and the first time (flagsOnly mode)
     // happens to be before HW::Init().  But the convenience is hard to deny!
-    Config::SetCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, true);
-    Config::SetCurrent(Config::MAIN_MEM1_SIZE, header.mem1_size);
-    Config::SetCurrent(Config::MAIN_MEM2_SIZE, header.mem2_size);
+    SetCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, true);
+    SetCurrent(Config::MAIN_MEM1_SIZE, header.mem1_size);
+    SetCurrent(Config::MAIN_MEM2_SIZE, header.mem2_size);
 
     return dataFile;
   }
@@ -270,8 +270,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   // It should be noted, however, that Dolphin *will still crash* from the nullptr being returned
   // in a non-flagsOnly context, so if this code becomes necessary, it should be moved above the
   // prior conditional.
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   if (header.mem1_size != memory.GetRamSizeReal() || header.mem2_size != memory.GetExRamSizeReal())
   {
     CriticalAlertFmtT("Emulated memory size mismatch!\n"
@@ -319,7 +319,7 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   // Read frames
   for (u32 i = 0; i < header.frameCount; ++i)
   {
-    u64 frameOffset = header.frameListOffset + (i * sizeof(FileFrameInfo));
+    const u64 frameOffset = header.frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, File::SeekOrigin::Begin);
     FileFrameInfo srcFrame;
     if (!file.ReadBytes(&srcFrame, sizeof(FileFrameInfo)))
@@ -345,13 +345,13 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   return dataFile;
 }
 
-void FifoDataFile::PadFile(size_t numBytes, File::IOFile& file)
+void FifoDataFile::PadFile(const size_t numBytes, const File::IOFile& file)
 {
   for (size_t i = 0; i < numBytes; ++i)
     fputc(0, file.GetHandle());
 }
 
-void FifoDataFile::SetFlag(u32 flag, bool set)
+void FifoDataFile::SetFlag(const u32 flag, const bool set)
 {
   if (set)
     m_Flags |= flag;
@@ -359,7 +359,7 @@ void FifoDataFile::SetFlag(u32 flag, bool set)
     m_Flags &= ~flag;
 }
 
-bool FifoDataFile::GetFlag(u32 flag) const
+bool FifoDataFile::GetFlag(const u32 flag) const
 {
   return !!(m_Flags & flag);
 }
@@ -368,26 +368,26 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
                                      File::IOFile& file)
 {
   // Add space for memory update list
-  u64 updateListOffset = file.Tell();
+  const u64 updateListOffset = file.Tell();
   PadFile(memUpdates.size() * sizeof(FileMemoryUpdate), file);
 
   for (unsigned int i = 0; i < memUpdates.size(); ++i)
   {
-    const MemoryUpdate& srcUpdate = memUpdates[i];
+    const auto& [fifoPosition, address, data, type] = memUpdates[i];
 
     // Write memory
     file.Seek(0, File::SeekOrigin::End);
-    u64 dataOffset = file.Tell();
-    file.WriteBytes(srcUpdate.data.data(), srcUpdate.data.size());
+    const u64 dataOffset = file.Tell();
+    file.WriteBytes(data.data(), data.size());
 
     FileMemoryUpdate dstUpdate;
-    dstUpdate.address = srcUpdate.address;
+    dstUpdate.address = address;
     dstUpdate.dataOffset = dataOffset;
-    dstUpdate.dataSize = static_cast<u32>(srcUpdate.data.size());
-    dstUpdate.fifoPosition = srcUpdate.fifoPosition;
-    dstUpdate.type = static_cast<u8>(srcUpdate.type);
+    dstUpdate.dataSize = static_cast<u32>(data.size());
+    dstUpdate.fifoPosition = fifoPosition;
+    dstUpdate.type = static_cast<u8>(type);
 
-    u64 updateOffset = updateListOffset + (i * sizeof(FileMemoryUpdate));
+    const u64 updateOffset = updateListOffset + (i * sizeof(FileMemoryUpdate));
     file.Seek(updateOffset, File::SeekOrigin::Begin);
     file.WriteBytes(&dstUpdate, sizeof(FileMemoryUpdate));
   }
@@ -395,25 +395,25 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
   return updateListOffset;
 }
 
-void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates,
+void FifoDataFile::ReadMemoryUpdates(const u64 fileOffset, const u32 numUpdates,
                                      std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
 {
   memUpdates.resize(numUpdates);
 
   for (u32 i = 0; i < numUpdates; ++i)
   {
-    u64 updateOffset = fileOffset + (i * sizeof(FileMemoryUpdate));
+    const u64 updateOffset = fileOffset + (i * sizeof(FileMemoryUpdate));
     file.Seek(updateOffset, File::SeekOrigin::Begin);
     FileMemoryUpdate srcUpdate;
     file.ReadBytes(&srcUpdate, sizeof(FileMemoryUpdate));
 
-    MemoryUpdate& dstUpdate = memUpdates[i];
-    dstUpdate.address = srcUpdate.address;
-    dstUpdate.fifoPosition = srcUpdate.fifoPosition;
-    dstUpdate.data.resize(srcUpdate.dataSize);
-    dstUpdate.type = static_cast<MemoryUpdate::Type>(srcUpdate.type);
+    auto& [fifoPosition, address, data, type] = memUpdates[i];
+    address = srcUpdate.address;
+    fifoPosition = srcUpdate.fifoPosition;
+    data.resize(srcUpdate.dataSize);
+    type = static_cast<MemoryUpdate::Type>(srcUpdate.type);
 
     file.Seek(srcUpdate.dataOffset, File::SeekOrigin::Begin);
-    file.ReadBytes(dstUpdate.data.data(), srcUpdate.dataSize);
+    file.ReadBytes(data.data(), srcUpdate.dataSize);
   }
 }

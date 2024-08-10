@@ -5,7 +5,6 @@
 
 #include <cstring>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
@@ -51,7 +50,7 @@ void WiiNetConfig::ResetConfig(FS::FileSystem* fs)
   WriteConfig(fs);
 }
 
-void WiiNetConfig::WriteToMem(Memory::MemoryManager& memory, const u32 address) const
+void WiiNetConfig::WriteToMem(const Memory::MemoryManager& memory, const u32 address) const
 {
   memory.CopyToEmu(address, &m_data, sizeof(m_data));
 }

@@ -18,7 +18,7 @@ std::string GetHResultMessage(HRESULT hr);
 // for HRESULT as HRESULT is simply a typedef on long and not a distinct type.
 struct HRWrap
 {
-  constexpr explicit HRWrap(HRESULT hr) : m_hr(hr) {}
+  constexpr explicit HRWrap(const HRESULT hr) : m_hr(hr) {}
   const HRESULT m_hr;
 };
 }  // namespace Common
@@ -26,7 +26,7 @@ struct HRWrap
 template <>
 struct fmt::formatter<Common::HRWrap>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const Common::HRWrap& hr, FormatContext& ctx) const
   {
@@ -38,7 +38,7 @@ struct fmt::formatter<Common::HRWrap>
 template <>
 struct fmt::formatter<winrt::hresult>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const winrt::hresult& hr, FormatContext& ctx) const
   {

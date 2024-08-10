@@ -47,7 +47,7 @@ std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, u8 
 // int instead of a libusb_error.
 struct ErrorWrap
 {
-  constexpr explicit ErrorWrap(int error) : m_error(error) {}
+  constexpr explicit ErrorWrap(const int error) : m_error(error) {}
   const int m_error;
 
   const char* GetStrError() const;
@@ -58,7 +58,7 @@ struct ErrorWrap
 template <>
 struct fmt::formatter<LibusbUtils::ErrorWrap>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const LibusbUtils::ErrorWrap& wrap, FormatContext& ctx) const
   {

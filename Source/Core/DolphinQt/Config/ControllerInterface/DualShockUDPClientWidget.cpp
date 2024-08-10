@@ -9,7 +9,6 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QListWidget>
-#include <QPushButton>
 
 #include "Common/Config/Config.h"
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
@@ -28,7 +27,7 @@ void DualShockUDPClientWidget::CreateWidgets()
   auto* main_layout = new QVBoxLayout;
 
   m_servers_enabled = new QCheckBox(tr("Enable"));
-  m_servers_enabled->setChecked(Config::Get(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED));
+  m_servers_enabled->setChecked(Get(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED));
   main_layout->addWidget(m_servers_enabled, 0, {});
 
   m_server_list = new QListWidget();
@@ -40,7 +39,7 @@ void DualShockUDPClientWidget::CreateWidgets()
   m_remove_server = new NonDefaultQPushButton(tr("Remove"));
   m_remove_server->setEnabled(m_servers_enabled->isChecked());
 
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   hlayout->addStretch();
   hlayout->addWidget(m_add_server);
   hlayout->addWidget(m_remove_server);
@@ -77,22 +76,22 @@ void DualShockUDPClientWidget::RefreshServerList()
   m_server_list->clear();
 
   const auto server_address_setting =
-      Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS);
-  const auto server_port_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVER_PORT);
+      Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Get(ciface::DualShockUDPClient::Settings::SERVER_PORT);
 
   // Update our servers setting if the user is using old configuration
   if (!server_address_setting.empty() && server_port_setting != 0)
   {
-    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+    const auto& servers_setting = Get(ciface::DualShockUDPClient::Settings::SERVERS);
+    SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
                              servers_setting + fmt::format("{}:{}:{};", "DS4",
                                                            server_address_setting,
                                                            server_port_setting));
-    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS, "");
-    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_PORT, 0);
+    SetBase(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS, "");
+    SetBase(ciface::DualShockUDPClient::Settings::SERVER_PORT, 0);
   }
 
-  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+  const auto& servers_setting = Get(ciface::DualShockUDPClient::Settings::SERVERS);
   const auto server_details = SplitString(servers_setting, ';');
   for (const std::string& server_detail : server_details)
   {
@@ -100,7 +99,7 @@ void DualShockUDPClientWidget::RefreshServerList()
     if (server_info.size() < 3)
       continue;
 
-    QListWidgetItem* list_item = new QListWidgetItem(QString::fromStdString(
+    auto list_item = new QListWidgetItem(QString::fromStdString(
         fmt::format("{}:{} - {}", server_info[1], server_info[2], server_info[0])));
     m_server_list->addItem(list_item);
   }
@@ -120,7 +119,7 @@ void DualShockUDPClientWidget::OnServerRemoved()
 {
   const int row_to_remove = m_server_list->currentRow();
 
-  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+  const auto& servers_setting = Get(ciface::DualShockUDPClient::Settings::SERVERS);
   const auto server_details = SplitString(servers_setting, ';');
 
   std::string new_server_setting;
@@ -134,15 +133,15 @@ void DualShockUDPClientWidget::OnServerRemoved()
     new_server_setting += server_details[i] + ';';
   }
 
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS, new_server_setting);
+  SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS, new_server_setting);
 
   RefreshServerList();
 }
 
-void DualShockUDPClientWidget::OnServersToggled()
+void DualShockUDPClientWidget::OnServersToggled() const
 {
-  bool checked = m_servers_enabled->isChecked();
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, checked);
+  const bool checked = m_servers_enabled->isChecked();
+  SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, checked);
   m_add_server->setEnabled(checked);
   m_remove_server->setEnabled(checked);
 }

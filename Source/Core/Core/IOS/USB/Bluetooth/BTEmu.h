@@ -7,7 +7,6 @@
 #include <deque>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/HW/Wiimote.h"
@@ -52,10 +51,10 @@ public:
   void SendACLPacket(const bdaddr_t& source, const u8* data, u32 size);
 
   // Returns true if controller is configured to see the connection request.
-  bool RemoteConnect(WiimoteDevice&);
+  bool RemoteConnect(const WiimoteDevice&);
   bool RemoteDisconnect(const bdaddr_t& address);
 
-  WiimoteDevice* AccessWiimoteByIndex(std::size_t index);
+  WiimoteDevice* AccessWiimoteByIndex(std::size_t index) const;
 
   void DoState(PointerWrap& p) override;
 
@@ -100,8 +99,8 @@ private:
 
   static u16 GetConnectionHandle(const bdaddr_t&);
 
-  WiimoteDevice* AccessWiimote(const bdaddr_t& address);
-  WiimoteDevice* AccessWiimote(u16 connection_handle);
+  WiimoteDevice* AccessWiimote(const bdaddr_t& address) const;
+  WiimoteDevice* AccessWiimote(u16 connection_handle) const;
 
   static u32 GetWiimoteNumberFromConnectionHandle(u16 connection_handle);
 

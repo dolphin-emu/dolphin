@@ -12,7 +12,6 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 
 namespace ControllerEmu
@@ -32,7 +31,7 @@ MixedTriggers::MixedTriggers(const std::string& name_)
 }
 
 void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
-                             bool adjusted) const
+                             const bool adjusted) const
 {
   const ControlState threshold = GetThreshold();
   ControlState deadzone = GetDeadzone();
@@ -43,7 +42,7 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
     deadzone = 0.0;
   }
 
-  const int trigger_count = int(controls.size() / 2);
+  const int trigger_count = static_cast<int>(controls.size() / 2);
   for (int i = 0; i != trigger_count; ++i)
   {
     const ControlState button_value = ApplyDeadzone(controls[i]->GetState(), deadzone);
@@ -65,7 +64,7 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
 }
 
 void MixedTriggers::GetState(u16* digital, const u16* bitmasks, ControlState* analog,
-                             const InputOverrideFunction& override_func, bool adjusted) const
+                             const InputOverrideFunction& override_func, const bool adjusted) const
 {
   if (!override_func)
     return GetState(digital, bitmasks, analog, adjusted);
@@ -79,7 +78,7 @@ void MixedTriggers::GetState(u16* digital, const u16* bitmasks, ControlState* an
     deadzone = 0.0;
   }
 
-  const int trigger_count = int(controls.size() / 2);
+  const int trigger_count = static_cast<int>(controls.size() / 2);
   for (int i = 0; i != trigger_count; ++i)
   {
     bool button_bool = false;
@@ -94,7 +93,7 @@ void MixedTriggers::GetState(u16* digital, const u16* bitmasks, ControlState* an
     }
 
     if (const std::optional<ControlState> button_override =
-            override_func(name, controls[i]->name, static_cast<ControlState>(button_bool)))
+            override_func(name, controls[i]->name, button_bool))
     {
       button_bool = std::lround(*button_override) > 0;
     }

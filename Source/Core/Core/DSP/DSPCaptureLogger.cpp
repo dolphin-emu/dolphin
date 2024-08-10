@@ -15,8 +15,8 @@ namespace DSP
 {
 // Definition of the packet structures stored in PCAP capture files.
 
-const u8 IFX_ACCESS_PACKET_MAGIC = 0;
-const u8 DMA_PACKET_MAGIC = 1;
+constexpr u8 IFX_ACCESS_PACKET_MAGIC = 0;
+constexpr u8 DMA_PACKET_MAGIC = 1;
 
 #pragma pack(push, 1)
 struct IFXAccessPacket
@@ -52,7 +52,7 @@ PCAPDSPCaptureLogger::PCAPDSPCaptureLogger(std::unique_ptr<Common::PCAP>&& pcap)
 {
 }
 
-void PCAPDSPCaptureLogger::LogIFXAccess(bool read, u16 address, u16 value)
+void PCAPDSPCaptureLogger::LogIFXAccess(const bool read, const u16 address, const u16 value) const
 {
   IFXAccessPacket pkt;
   pkt.magic = IFX_ACCESS_PACKET_MAGIC;
@@ -63,14 +63,14 @@ void PCAPDSPCaptureLogger::LogIFXAccess(bool read, u16 address, u16 value)
   m_pcap->AddPacket(pkt);
 }
 
-void PCAPDSPCaptureLogger::LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length,
+void PCAPDSPCaptureLogger::LogDMA(const u16 control, const u32 gc_address, const u16 dsp_address, const u16 length,
                                   const u8* data)
 {
   // The length of a DMA cannot be above 64K, so we use a static buffer for
   // the construction of the packet.
   static u8 buffer[0x10000];
 
-  DMAPacket* pkt = reinterpret_cast<DMAPacket*>(&buffer[0]);
+  auto pkt = reinterpret_cast<DMAPacket*>(&buffer[0]);
   pkt->magic = DMA_PACKET_MAGIC;
   pkt->dma_control = control;
   pkt->gc_address = gc_address;

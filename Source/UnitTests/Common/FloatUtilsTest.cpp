@@ -29,8 +29,8 @@ TEST(FloatUtils, FlushToZero)
   // To test the software implementation we need to make sure FTZ and DAZ are disabled.
   // Using volatile here to ensure the compiler doesn't constant-fold it,
   // we want the multiplication to occur at test runtime.
-  volatile float s = std::numeric_limits<float>::denorm_min();
-  volatile double d = std::numeric_limits<double>::denorm_min();
+  volatile constexpr float s = std::numeric_limits<float>::denorm_min();
+  volatile constexpr double d = std::numeric_limits<double>::denorm_min();
   EXPECT_LT(0.f, s * 2);
   EXPECT_LT(0.0, d * 2);
 
@@ -49,7 +49,7 @@ TEST(FloatUtils, FlushToZero)
 
   // Test all subnormals as well as an equally large set of random normal floats.
   std::default_random_engine engine(0);
-  std::uniform_int_distribution<u32> dist(0x00800000u, 0x7fffffffu);
+  std::uniform_int_distribution dist(0x00800000u, 0x7fffffffu);
   for (u32 i = 0; i <= 0x007fffffu; ++i)
   {
     u32 i_tmp = i;
@@ -88,7 +88,7 @@ TEST(FloatUtils, ApproximateReciprocalSquareRoot)
   for (size_t i = 0; i < double_test_values.size(); ++i)
   {
     u64 ivalue = double_test_values[i];
-    double dvalue = std::bit_cast<double>(ivalue);
+    const double dvalue = std::bit_cast<double>(ivalue);
 
     u64 expected = expected_values[i];
 

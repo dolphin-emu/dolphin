@@ -34,7 +34,7 @@ RegisterWidget::RegisterWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("registerwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -47,9 +47,9 @@ RegisterWidget::RegisterWidget(QWidget* parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsRegistersVisible());
   });
 }
@@ -64,7 +64,7 @@ RegisterWidget::~RegisterWidget()
 
 void RegisterWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetRegistersVisible(false);
+  Settings::Instance().HideRegisters();
 }
 
 void RegisterWidget::showEvent(QShowEvent* event)
@@ -92,7 +92,7 @@ void RegisterWidget::CreateWidgets()
 
   m_table->setHorizontalHeaderLabels(empty_list);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   auto* layout = new QVBoxLayout;
   layout->addWidget(m_table);
   layout->setContentsMargins(2, 2, 2, 2);
@@ -109,7 +109,7 @@ void RegisterWidget::ConnectWidgets()
   connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &RegisterWidget::setFont);
 }
 
-void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
+void RegisterWidget::OnItemChanged(QTableWidgetItem* item) const
 {
   if (!item->data(DATA_TYPE).isNull() && !m_updating)
     static_cast<RegisterColumn*>(item)->SetValue();
@@ -117,7 +117,7 @@ void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
 
 void RegisterWidget::ShowContextMenu()
 {
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto* raw_item = m_table->currentItem();
@@ -125,8 +125,8 @@ void RegisterWidget::ShowContextMenu()
   if (raw_item != nullptr && !raw_item->data(DATA_TYPE).isNull())
   {
     auto* item = static_cast<RegisterColumn*>(raw_item);
-    auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
-    auto display = item->GetDisplay();
+    const auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
+    const auto display = item->GetDisplay();
 
     // i18n: This kind of "watch" is used for watching emulated memory.
     // It's not related to timekeeping devices.
@@ -144,7 +144,7 @@ void RegisterWidget::ShowContextMenu()
 
     menu->addSeparator();
 
-    QActionGroup* group = new QActionGroup(menu);
+    auto group = new QActionGroup(menu);
     group->setExclusive(true);
 
     auto* view_hex = menu->addAction(tr("Hexadecimal"));
@@ -268,7 +268,7 @@ void RegisterWidget::ShowContextMenu()
                          view_double_column})
     {
       connect(action, &QAction::triggered, [this, action] {
-        auto col = m_table->currentItem()->column();
+        const auto col = m_table->currentItem()->column();
         for (int i = 0; i < 32; i++)
         {
           auto* update_item = static_cast<RegisterColumn*>(m_table->item(i, col));
@@ -298,14 +298,14 @@ void RegisterWidget::AutoStep(const std::string& reg) const
 
   while (true)
   {
-    const AutoStepResults results = [this, &trace] {
-      Core::CPUThreadGuard guard(m_system);
+    const auto [_reg_tracked, _mem_tracked, _count, timed_out, _trackers_empty] = [this, &trace] {
+      const Core::CPUThreadGuard guard(m_system);
       return trace.AutoStepping(guard, true);
     }();
 
     emit Host::GetInstance()->UpdateDisasmDialog();
 
-    if (!results.timed_out)
+    if (!timed_out)
       break;
 
     // Can keep running and try again after a time out.
@@ -324,17 +324,17 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 0, RegisterType::gpr, "r" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().gpr[i]; },
-        [this, i](u64 value) { m_system.GetPPCState().gpr[i] = value; });
+        [this, i](const u64 value) { m_system.GetPPCState().gpr[i] = value; });
 
     // Floating point registers (double)
     AddRegister(
         i, 2, RegisterType::fpr, "f" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().ps[i].PS0AsU64(); },
-        [this, i](u64 value) { m_system.GetPPCState().ps[i].SetPS0(value); });
+        [this, i](const u64 value) { m_system.GetPPCState().ps[i].SetPS0(value); });
 
     AddRegister(
         i, 4, RegisterType::fpr, "", [this, i] { return m_system.GetPPCState().ps[i].PS1AsU64(); },
-        [this, i](u64 value) { m_system.GetPPCState().ps[i].SetPS1(value); });
+        [this, i](const u64 value) { m_system.GetPPCState().ps[i].SetPS1(value); });
   }
 
   // The IBAT and DBAT registers have a large gap between
@@ -346,17 +346,23 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 5, RegisterType::ibat, "IBAT" + std::to_string(i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_IBAT0U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_IBAT0L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+            _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+            _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+            _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+            _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_IBAT0U + i * 2]) << 32) + spr[SPR_IBAT0L + i * 2];
         },
         nullptr);
     AddRegister(
         i + 4, 5, RegisterType::ibat, "IBAT" + std::to_string(4 + i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_IBAT4U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_IBAT4L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+            _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+            _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+            _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+            _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_IBAT4U + i * 2]) << 32) + spr[SPR_IBAT4L + i * 2];
         },
         nullptr);
 
@@ -364,17 +370,23 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i + 8, 5, RegisterType::dbat, "DBAT" + std::to_string(i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_DBAT0U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_DBAT0L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+                      _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+                      _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+                      _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+                      _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_DBAT0U + i * 2]) << 32) + spr[SPR_DBAT0L + i * 2];
         },
         nullptr);
     AddRegister(
         i + 12, 5, RegisterType::dbat, "DBAT" + std::to_string(4 + i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_DBAT4U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_DBAT4L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+            _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+            _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+            _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+            _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_DBAT4U + i * 2]) << 32) + spr[SPR_DBAT4L + i * 2];
         },
         nullptr);
   }
@@ -390,16 +402,16 @@ void RegisterWidget::PopulateTable()
   // HID registers
   AddRegister(
       24, 7, RegisterType::hid, "HID0", [this] { return m_system.GetPPCState().spr[SPR_HID0]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID0] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID0] = static_cast<u32>(value); });
   AddRegister(
       25, 7, RegisterType::hid, "HID1", [this] { return m_system.GetPPCState().spr[SPR_HID1]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID1] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID1] = static_cast<u32>(value); });
   AddRegister(
       26, 7, RegisterType::hid, "HID2", [this] { return m_system.GetPPCState().spr[SPR_HID2]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID2] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID2] = static_cast<u32>(value); });
   AddRegister(
       27, 7, RegisterType::hid, "HID4", [this] { return m_system.GetPPCState().spr[SPR_HID4]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID4] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID4] = static_cast<u32>(value); });
 
   for (int i = 0; i < 16; i++)
   {
@@ -407,7 +419,7 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 7, RegisterType::sr, "SR" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().sr[i]; },
-        [this, i](u64 value) { m_system.GetPPCState().sr[i] = value; });
+        [this, i](const u64 value) { m_system.GetPPCState().sr[i] = value; });
   }
 
   // Special registers
@@ -419,54 +431,54 @@ void RegisterWidget::PopulateTable()
   // PC
   AddRegister(
       17, 5, RegisterType::pc, "PC", [this] { return m_system.GetPPCState().pc; },
-      [this](u64 value) { m_system.GetPPCState().pc = value; });
+      [this](const u64 value) { m_system.GetPPCState().pc = value; });
 
   // LR
   AddRegister(
       18, 5, RegisterType::lr, "LR", [this] { return m_system.GetPPCState().spr[SPR_LR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_LR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_LR] = value; });
 
   // CTR
   AddRegister(
       19, 5, RegisterType::ctr, "CTR", [this] { return m_system.GetPPCState().spr[SPR_CTR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_CTR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_CTR] = value; });
 
   // CR
   AddRegister(
       20, 5, RegisterType::cr, "CR", [this] { return m_system.GetPPCState().cr.Get(); },
-      [this](u64 value) { m_system.GetPPCState().cr.Set(value); });
+      [this](const u64 value) { m_system.GetPPCState().cr.Set(value); });
 
   // XER
   AddRegister(
       21, 5, RegisterType::xer, "XER", [this] { return m_system.GetPPCState().GetXER().Hex; },
-      [this](u64 value) { m_system.GetPPCState().SetXER(UReg_XER(value)); });
+      [this](const u64 value) { m_system.GetPPCState().SetXER(UReg_XER(value)); });
 
   // FPSCR
   AddRegister(
       22, 5, RegisterType::fpscr, "FPSCR", [this] { return m_system.GetPPCState().fpscr.Hex; },
-      [this](u64 value) { m_system.GetPPCState().fpscr = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().fpscr = static_cast<u32>(value); });
 
   // MSR
   AddRegister(
       23, 5, RegisterType::msr, "MSR", [this] { return m_system.GetPPCState().msr.Hex; },
-      [this](u64 value) {
+      [this](const u64 value) {
         m_system.GetPPCState().msr.Hex = value;
-        PowerPC::MSRUpdated(m_system.GetPPCState());
+        MSRUpdated(m_system.GetPPCState());
       });
 
   // SRR 0-1
   AddRegister(
       24, 5, RegisterType::srr, "SRR0", [this] { return m_system.GetPPCState().spr[SPR_SRR0]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_SRR0] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_SRR0] = value; });
   AddRegister(
       25, 5, RegisterType::srr, "SRR1", [this] { return m_system.GetPPCState().spr[SPR_SRR1]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_SRR1] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_SRR1] = value; });
 
   // Exceptions
   AddRegister(
       26, 5, RegisterType::exceptions, "Exceptions",
       [this] { return m_system.GetPPCState().Exceptions; },
-      [this](u64 value) { m_system.GetPPCState().Exceptions = value; });
+      [this](const u64 value) { m_system.GetPPCState().Exceptions = value; });
 
   // Int Mask
   AddRegister(
@@ -481,18 +493,22 @@ void RegisterWidget::PopulateTable()
   // DSISR
   AddRegister(
       29, 5, RegisterType::dsisr, "DSISR", [this] { return m_system.GetPPCState().spr[SPR_DSISR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_DSISR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_DSISR] = value; });
   // DAR
   AddRegister(
       30, 5, RegisterType::dar, "DAR", [this] { return m_system.GetPPCState().spr[SPR_DAR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_DAR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_DAR] = value; });
 
   // Hash Mask
   AddRegister(
       31, 5, RegisterType::pt_hashmask, "Hash Mask",
       [this] {
-        const auto& ppc_state = m_system.GetPPCState();
-        return (ppc_state.pagetable_hashmask << 6) | ppc_state.pagetable_base;
+        const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+              _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+              _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+              pagetable_base, pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+               _reserve_address] = m_system.GetPPCState();
+        return (pagetable_hashmask << 6) | pagetable_base;
       },
       nullptr);
 
@@ -500,7 +516,7 @@ void RegisterWidget::PopulateTable()
   m_table->resizeColumnsToContents();
 }
 
-void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
+void RegisterWidget::AddRegister(const int row, const int column, const RegisterType type, const std::string& register_name,
                                  std::function<u64()> get_reg, std::function<void(u64)> set_reg)
 {
   auto* value = new RegisterColumn(type, std::move(get_reg), std::move(set_reg));
@@ -508,7 +524,7 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
   if (m_table->rowCount() <= row)
     m_table->setRowCount(row + 1);
 
-  bool has_label = !register_name.empty();
+  const bool has_label = !register_name.empty();
 
   if (has_label)
   {
@@ -534,7 +550,7 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
 
 void RegisterWidget::Update()
 {
-  if (isVisible() && Core::GetState(m_system) == Core::State::Paused)
+  if (isVisible() && GetState(m_system) == Core::State::Paused)
   {
     m_updating = true;
     emit UpdateTable();

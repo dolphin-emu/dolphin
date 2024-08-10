@@ -3,15 +3,10 @@
 
 #pragma once
 
-#include <limits>
 #include <optional>
-#include <set>
 #include <string>
 #include <string_view>
-#include <utility>
-#include <vector>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -78,9 +73,9 @@ struct SConfig
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
   bool SetPathsAndGameMetadata(Core::System& system, const BootParameters& boot);
-  DiscIO::Language GetCurrentLanguage(bool wii) const;
-  DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
-  std::string GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const;
+  static DiscIO::Language GetCurrentLanguage(bool wii);
+  static DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region);
+  static std::string GetGameTDBImageRegionCode(bool wii, DiscIO::Region region);
 
   Common::IniFile LoadDefaultGameIni() const;
   Common::IniFile LoadLocalGameIni() const;
@@ -96,10 +91,10 @@ struct SConfig
   SConfig& operator=(SConfig&&) = delete;
 
   // Save settings
-  void SaveSettings();
+  static void SaveSettings();
 
   // Load settings
-  void LoadSettings();
+  static void LoadSettings();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }

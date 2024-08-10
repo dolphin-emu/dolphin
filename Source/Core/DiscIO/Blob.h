@@ -79,7 +79,7 @@ public:
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
   template <typename T>
-  std::optional<T> ReadSwapped(u64 offset)
+  std::optional<T> ReadSwapped(const u64 offset)
   {
     T temp;
     if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp)))
@@ -149,7 +149,7 @@ private:
       num_blocks = 0;
       lru_sreg = 0;
     }
-    void Fill(u64 block, u32 count)
+    void Fill(const u64 block, const u32 count)
     {
       block_idx = block;
       num_blocks = count;
@@ -159,7 +159,7 @@ private:
       //   desirable in that case.
       MarkUsed();
     }
-    bool Contains(u64 block) const { return block >= block_idx && block - block_idx < num_blocks; }
+    bool Contains(const u64 block) const { return block >= block_idx && block - block_idx < num_blocks; }
     void MarkUsed() { lru_sreg |= 0x80000000; }
     void ShiftLRU() { lru_sreg >>= 1; }
     bool IsLessRecentlyUsedThan(const Cache& other) const { return lru_sreg < other.lru_sreg; }

@@ -17,7 +17,7 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, const PWSTR pCmdLine, int nCmdShow)
 {
   if (lstrlenW(pCmdLine) == 0)
   {
@@ -31,14 +31,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   // Test for write permissions
   bool need_admin = false;
 
-  auto path = Common::GetModuleName(hInstance);
+  const auto path = Common::GetModuleName(hInstance);
   if (!path)
   {
     UI::Error("Failed to get updater filename.");
     return 1;
   }
 
-  const auto test_fh = ::CreateFileW(
+  const auto test_fh = CreateFileW(
       (std::filesystem::path(*path).parent_path() / "directory_writable_check.tmp").c_str(),
       GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
       FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
@@ -62,7 +62,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 0;
   }
 
-  std::vector<std::string> args = Common::CommandLineToUtf8Argv(pCmdLine);
+  const std::vector<std::string> args = Common::CommandLineToUtf8Argv(pCmdLine);
 
   return RunUpdater(args) ? 0 : 1;
 }

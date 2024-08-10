@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_NEGATIVE_ONE_TO_ONE 0x935E
 #define GL_ZERO_TO_ONE 0x935F
 #define GL_CLIP_ORIGIN 0x935C

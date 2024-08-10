@@ -51,7 +51,7 @@
 
 namespace PowerPC
 {
-MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCManager& power_pc)
+MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPCManager& power_pc)
     : m_system(system), m_memory(memory), m_power_pc(power_pc), m_ppc_state(power_pc.GetPPCState())
 {
 }
@@ -59,37 +59,37 @@ MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCMa
 MMU::~MMU() = default;
 
 // Overloaded byteswap functions, for use within the templated functions below.
-[[maybe_unused]] static u8 bswap(u8 val)
+[[maybe_unused]] static u8 bswap(const u8 val)
 {
   return val;
 }
-[[maybe_unused]] static s8 bswap(s8 val)
+[[maybe_unused]] static s8 bswap(const s8 val)
 {
   return val;
 }
-[[maybe_unused]] static u16 bswap(u16 val)
+[[maybe_unused]] static u16 bswap(const u16 val)
 {
   return Common::swap16(val);
 }
-[[maybe_unused]] static s16 bswap(s16 val)
+[[maybe_unused]] static s16 bswap(const s16 val)
 {
   return Common::swap16(val);
 }
-[[maybe_unused]] static u32 bswap(u32 val)
+[[maybe_unused]] static u32 bswap(const u32 val)
 {
   return Common::swap32(val);
 }
-[[maybe_unused]] static u64 bswap(u64 val)
+[[maybe_unused]] static u64 bswap(const u64 val)
 {
   return Common::swap64(val);
 }
 
-static constexpr bool IsOpcodeFlag(XCheckTLBFlag flag)
+static constexpr bool IsOpcodeFlag(const XCheckTLBFlag flag)
 {
   return flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException;
 }
 
-static constexpr bool IsNoExceptionFlag(XCheckTLBFlag flag)
+static constexpr bool IsNoExceptionFlag(const XCheckTLBFlag flag)
 {
   return flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::OpcodeNoException;
 }
@@ -121,7 +121,7 @@ static u32 EFB_Read(const u32 addr)
   return var;
 }
 
-static void EFB_Write(u32 data, u32 addr)
+static void EFB_Write(const u32 data, const u32 addr)
 {
   const u32 x = (addr & 0xfff) >> 2;
   const u32 y = (addr >> 12) & 0x3ff;
@@ -191,11 +191,8 @@ T MMU::ReadFromHardware(u32 em_address)
     {
       return EFB_Read(em_address);
     }
-    else
-    {
-      return static_cast<T>(
-          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
-    }
+    return static_cast<T>(
+      m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
@@ -461,15 +458,15 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
    location through ReadFromHardware and WriteToHardware */
 // ----------------
 
-u32 MMU::Read_Opcode(u32 address)
+u32 MMU::Read_Opcode(const u32 address)
 {
-  TryReadInstResult result = TryReadInstruction(address);
-  if (!result.valid)
+  const auto [valid, _from_bat, hex, _physical_address] = TryReadInstruction(address);
+  if (!valid)
   {
     GenerateISIException(address);
     return 0;
   }
-  return result.hex;
+  return hex;
 }
 
 TryReadInstResult MMU::TryReadInstruction(u32 address)
@@ -477,16 +474,13 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
   bool from_bat = true;
   if (m_ppc_state.msr.IR)
   {
-    auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
+    const auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
     {
       return TryReadInstResult{false, false, 0, 0};
     }
-    else
-    {
-      address = tlb_addr.address;
-      from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
-    }
+    address = tlb_addr.address;
+    from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
   }
 
   u32 hex;
@@ -510,7 +504,7 @@ u32 MMU::HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 addre
 
 std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThreadGuard& guard,
                                                            const u32 address,
-                                                           RequestedAddressSpace space)
+                                                           const RequestedAddressSpace space)
 {
   if (!HostIsInstructionRAMAddress(guard, address, space))
     return std::nullopt;
@@ -521,19 +515,19 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   case RequestedAddressSpace::Effective:
   {
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(!!mmu.m_ppc_state.msr.IR, value);
+    return ReadResult(!!mmu.m_ppc_state.msr.IR, value);
   }
   case RequestedAddressSpace::Physical:
   {
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
-    return ReadResult<u32>(false, value);
+    return ReadResult(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!mmu.m_ppc_state.msr.IR)
       return std::nullopt;
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(true, value);
+    return ReadResult(true, value);
   }
   }
 
@@ -541,7 +535,7 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   return std::nullopt;
 }
 
-void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
+void MMU::Memcheck(const u32 address, const u64 var, const bool write, const size_t size) const
 {
   if (!m_power_pc.GetMemChecks().HasAny())
     return;
@@ -579,35 +573,36 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 
 u8 MMU::Read_U8(const u32 address)
 {
-  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
+  const u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
   Memcheck(address, var, false, 1);
   return var;
 }
 
 u16 MMU::Read_U16(const u32 address)
 {
-  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
+  const u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
   Memcheck(address, var, false, 2);
   return var;
 }
 
 u32 MMU::Read_U32(const u32 address)
 {
-  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
+  const u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
   Memcheck(address, var, false, 4);
   return var;
 }
 
 u64 MMU::Read_U64(const u32 address)
 {
-  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
+  const u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
   Memcheck(address, var, false, 8);
   return var;
 }
 
 template <typename T>
 std::optional<ReadResult<T>> MMU::HostTryReadUX(const Core::CPUThreadGuard& guard,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
@@ -638,46 +633,52 @@ std::optional<ReadResult<T>> MMU::HostTryReadUX(const Core::CPUThreadGuard& guar
   return std::nullopt;
 }
 
-std::optional<ReadResult<u8>> MMU::HostTryReadU8(const Core::CPUThreadGuard& guard, u32 address,
-                                                 RequestedAddressSpace space)
+std::optional<ReadResult<u8>> MMU::HostTryReadU8(const Core::CPUThreadGuard& guard,
+                                                 const u32 address,
+                                                 const RequestedAddressSpace space)
 {
   return HostTryReadUX<u8>(guard, address, space);
 }
 
-std::optional<ReadResult<u16>> MMU::HostTryReadU16(const Core::CPUThreadGuard& guard, u32 address,
-                                                   RequestedAddressSpace space)
+std::optional<ReadResult<u16>> MMU::HostTryReadU16(const Core::CPUThreadGuard& guard,
+                                                   const u32 address,
+                                                   const RequestedAddressSpace space)
 {
   return HostTryReadUX<u16>(guard, address, space);
 }
 
-std::optional<ReadResult<u32>> MMU::HostTryReadU32(const Core::CPUThreadGuard& guard, u32 address,
-                                                   RequestedAddressSpace space)
+std::optional<ReadResult<u32>> MMU::HostTryReadU32(const Core::CPUThreadGuard& guard,
+                                                   const u32 address,
+                                                   const RequestedAddressSpace space)
 {
   return HostTryReadUX<u32>(guard, address, space);
 }
 
-std::optional<ReadResult<u64>> MMU::HostTryReadU64(const Core::CPUThreadGuard& guard, u32 address,
-                                                   RequestedAddressSpace space)
+std::optional<ReadResult<u64>> MMU::HostTryReadU64(const Core::CPUThreadGuard& guard,
+                                                   const u32 address,
+                                                   const RequestedAddressSpace space)
 {
   return HostTryReadUX<u64>(guard, address, space);
 }
 
-std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard& guard, u32 address,
-                                                     RequestedAddressSpace space)
+std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard& guard,
+                                                     const u32 address,
+                                                     const RequestedAddressSpace space)
 {
   const auto result = HostTryReadUX<u32>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<float>(result->translated, std::bit_cast<float>(result->value));
+  return ReadResult(result->translated, std::bit_cast<float>(result->value));
 }
 
 std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard& guard,
-                                                      u32 address, RequestedAddressSpace space)
+                                                      const u32 address,
+                                                      const RequestedAddressSpace space)
 {
   const auto result = HostTryReadUX<u64>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<double>(result->translated, std::bit_cast<double>(result->value));
+  return ReadResult(result->translated, std::bit_cast<double>(result->value));
 }
 
 void MMU::Write_U8(const u32 var, const u32 address)
@@ -796,7 +797,7 @@ void MMU::HostWrite_F64(const Core::CPUThreadGuard& guard, const double var, con
 
 std::optional<WriteResult> MMU::HostTryWriteUX(const Core::CPUThreadGuard& guard, const u32 var,
                                                const u32 address, const u32 size,
-                                               RequestedAddressSpace space)
+                                               const RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
@@ -822,25 +823,28 @@ std::optional<WriteResult> MMU::HostTryWriteUX(const Core::CPUThreadGuard& guard
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU8(const Core::CPUThreadGuard& guard, const u32 var,
-                                               const u32 address, RequestedAddressSpace space)
+                                               const u32 address, const RequestedAddressSpace space)
 {
   return HostTryWriteUX(guard, var, address, 1, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU16(const Core::CPUThreadGuard& guard, const u32 var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   return HostTryWriteUX(guard, var, address, 2, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU32(const Core::CPUThreadGuard& guard, const u32 var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   return HostTryWriteUX(guard, var, address, 4, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU64(const Core::CPUThreadGuard& guard, const u64 var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   const auto result = HostTryWriteUX(guard, static_cast<u32>(var >> 32), address, 4, space);
   if (!result)
@@ -850,27 +854,29 @@ std::optional<WriteResult> MMU::HostTryWriteU64(const Core::CPUThreadGuard& guar
 }
 
 std::optional<WriteResult> MMU::HostTryWriteF32(const Core::CPUThreadGuard& guard, const float var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   const u32 integral = std::bit_cast<u32>(var);
   return HostTryWriteU32(guard, integral, address, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteF64(const Core::CPUThreadGuard& guard, const double var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   const u64 integral = std::bit_cast<u64>(var);
   return HostTryWriteU64(guard, integral, address, space);
 }
 
-std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, size_t size)
+std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, const size_t size)
 {
   std::string s;
   do
   {
     if (!HostIsRAMAddress(guard, address))
       break;
-    u8 res = HostRead_U8(guard, address);
+    const u8 res = HostRead_U8(guard, address);
     if (!res)
       break;
     s += static_cast<char>(res);
@@ -879,7 +885,8 @@ std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, s
   return s;
 }
 
-std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 address, size_t size)
+std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 address,
+                                     const size_t size)
 {
   std::u16string s;
   do
@@ -896,10 +903,10 @@ std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 addr
 }
 
 std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThreadGuard& guard,
-                                                              u32 address, size_t size,
-                                                              RequestedAddressSpace space)
+                                                              u32 address, const size_t size,
+                                                              const RequestedAddressSpace space)
 {
-  auto c = HostTryReadU8(guard, address, space);
+  const auto c = HostTryReadU8(guard, address, space);
   if (!c)
     return std::nullopt;
   if (c->value == 0)
@@ -915,7 +922,7 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
       break;
     s += static_cast<char>(res->value);
   }
-  return ReadResult<std::string>(c->translated, std::move(s));
+  return ReadResult(c->translated, std::move(s));
 }
 
 bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) const
@@ -938,7 +945,7 @@ bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) cons
 }
 
 template <XCheckTLBFlag flag>
-bool MMU::IsRAMAddress(u32 address, bool translate)
+bool MMU::IsRAMAddress(u32 address, const bool translate)
 {
   if (translate)
   {
@@ -948,30 +955,29 @@ bool MMU::IsRAMAddress(u32 address, bool translate)
     address = translate_address.address;
   }
 
-  u32 segment = address >> 28;
+  const u32 segment = address >> 28;
   if (m_memory.GetRAM() && segment == 0x0 && (address & 0x0FFFFFFF) < m_memory.GetRamSizeReal())
   {
     return true;
   }
-  else if (m_memory.GetEXRAM() && segment == 0x1 &&
-           (address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
+  if (m_memory.GetEXRAM() && segment == 0x1 && (address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
   {
     return true;
   }
-  else if (m_memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
   {
     return true;
   }
-  else if (m_memory.GetL1Cache() && segment == 0xE &&
-           (address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && segment == 0xE &&
+      (address < (0xE0000000 + m_memory.GetL1CacheSize())))
   {
     return true;
   }
   return false;
 }
 
-bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
-                           RequestedAddressSpace space)
+bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, const u32 address,
+                           const RequestedAddressSpace space)
 {
   auto& mmu = guard.GetSystem().GetMMU();
   switch (space)
@@ -990,8 +996,8 @@ bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
   return false;
 }
 
-bool MMU::HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
-                                      RequestedAddressSpace space)
+bool MMU::HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, const u32 address,
+                                      const RequestedAddressSpace space)
 {
   // Instructions are always 32bit aligned.
   if (address & 3)
@@ -1014,7 +1020,7 @@ bool MMU::HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 add
   return false;
 }
 
-void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 num_blocks)
+void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 num_blocks) const
 {
   // TODO: It's not completely clear this is the right spot for this code;
   // what would happen if, for example, the DVD drive tried to write to the EFB?
@@ -1047,7 +1053,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   m_memory.CopyToEmu(mem_address, src, 32 * num_blocks);
 }
 
-void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks)
+void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks) const
 {
   // No known game uses this; here for completeness.
   // TODO: Refactor.
@@ -1080,7 +1086,7 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
 
 static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* wi)
 {
-  u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
+  const u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
   if ((bat_result & BAT_MAPPED_BIT) == 0)
     return false;
   *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
@@ -1093,7 +1099,7 @@ void MMU::ClearDCacheLine(u32 address)
   DEBUG_ASSERT((address & 0x1F) == 0);
   if (m_ppc_state.msr.DR)
   {
-    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    const auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
     {
       // dcbz to direct store segments is ignored. This is a little
@@ -1122,7 +1128,7 @@ void MMU::StoreDCacheLine(u32 address)
 
   if (m_ppc_state.msr.DR)
   {
-    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    const auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
     {
       return;
@@ -1146,7 +1152,7 @@ void MMU::InvalidateDCacheLine(u32 address)
 
   if (m_ppc_state.msr.DR)
   {
-    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    const auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
     {
       return;
@@ -1168,7 +1174,7 @@ void MMU::FlushDCacheLine(u32 address)
 
   if (m_ppc_state.msr.DR)
   {
-    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    const auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
     {
       return;
@@ -1186,13 +1192,13 @@ void MMU::FlushDCacheLine(u32 address)
     m_ppc_state.dCache.Flush(m_memory, address);
 }
 
-void MMU::TouchDCacheLine(u32 address, bool store)
+void MMU::TouchDCacheLine(u32 address, const bool store)
 {
   address &= ~0x1F;
 
   if (m_ppc_state.msr.DR)
   {
-    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    const auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
     {
       return;
@@ -1210,7 +1216,7 @@ void MMU::TouchDCacheLine(u32 address, bool store)
     m_ppc_state.dCache.Touch(m_memory, address, store);
 }
 
-u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
+u32 MMU::IsOptimizableMMIOAccess(u32 address, const u32 access_size) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return 0;
@@ -1255,7 +1261,7 @@ bool MMU::IsOptimizableGatherPipeWrite(u32 address) const
   return address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS;
 }
 
-TranslateResult MMU::JitCache_TranslateAddress(u32 address)
+TranslateResult MMU::JitCache_TranslateAddress(const u32 address)
 {
   if (!m_ppc_state.msr.IR)
     return TranslateResult{address};
@@ -1269,7 +1275,7 @@ TranslateResult MMU::JitCache_TranslateAddress(u32 address)
   return TranslateResult{from_bat, tlb_addr.address};
 }
 
-void MMU::GenerateDSIException(u32 effective_address, bool write)
+void MMU::GenerateDSIException(const u32 effective_address, const bool write) const
 {
   // DSI exceptions are only supported in MMU mode.
   if (!m_system.IsMMUMode())
@@ -1297,7 +1303,7 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
   m_ppc_state.Exceptions |= EXCEPTION_DSI;
 }
 
-void MMU::GenerateISIException(u32 effective_address)
+void MMU::GenerateISIException(const u32 effective_address) const
 {
   // Address of instruction could not be translated
   m_ppc_state.npc = effective_address;
@@ -1306,7 +1312,7 @@ void MMU::GenerateISIException(u32 effective_address)
   WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", m_ppc_state.pc);
 }
 
-void MMU::SDRUpdated()
+void MMU::SDRUpdated() const
 {
   const auto sdr = UReg_SDR1{m_ppc_state.spr[SPR_SDR]};
   const u32 htabmask = sdr.htabmask;
@@ -1333,17 +1339,18 @@ enum class TLBLookupResult
   UpdateC
 };
 
-static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
+static TLBLookupResult LookupTLBPageAddress(PowerPCState& ppc_state,
                                             const XCheckTLBFlag flag, const u32 vpa, const u32 vsid,
                                             u32* paddr, bool* wi)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
-  const size_t tlb_index = IsOpcodeFlag(flag) ? PowerPC::INST_TLB_INDEX : PowerPC::DATA_TLB_INDEX;
-  TLBEntry& tlbe = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
+  const size_t tlb_index = IsOpcodeFlag(flag) ? INST_TLB_INDEX : DATA_TLB_INDEX;
+  auto& [tlbe_tag, paddr, tlbe_vsid, pte, recent] =
+      ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
 
-  if (tlbe.tag[0] == tag && tlbe.vsid[0] == vsid)
+  if (tlbe_tag[0] == tag && tlbe_vsid[0] == vsid)
   {
-    UPTE_Hi pte2(tlbe.pte[0]);
+    UPTE_Hi pte2(pte[0]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1351,22 +1358,22 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
       if (pte2.C == 0)
       {
         pte2.C = 1;
-        tlbe.pte[0] = pte2.Hex;
+        pte[0] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe.recent = 0;
+      recent = 0;
 
-    *paddr = tlbe.paddr[0] | (vpa & 0xfff);
+    *paddr = paddr[0] | (vpa & 0xfff);
     *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
-  if (tlbe.tag[1] == tag && tlbe.vsid[1] == vsid)
+  if (tlbe_tag[1] == tag && tlbe_vsid[1] == vsid)
   {
-    UPTE_Hi pte2(tlbe.pte[1]);
+    UPTE_Hi pte2(pte[1]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1374,15 +1381,15 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
       if (pte2.C == 0)
       {
         pte2.C = 1;
-        tlbe.pte[1] = pte2.Hex;
+        pte[1] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe.recent = 1;
+      recent = 1;
 
-    *paddr = tlbe.paddr[1] | (vpa & 0xfff);
+    *paddr = paddr[1] | (vpa & 0xfff);
     *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
@@ -1390,29 +1397,29 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
   return TLBLookupResult::NotFound;
 }
 
-static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag flag, UPTE_Hi pte2,
+static void UpdateTLBEntry(PowerPCState& ppc_state, const XCheckTLBFlag flag, const UPTE_Hi pte2,
                            const u32 address, const u32 vsid)
 {
   if (IsNoExceptionFlag(flag))
     return;
 
   const u32 tag = address >> HW_PAGE_INDEX_SHIFT;
-  const size_t tlb_index = IsOpcodeFlag(flag) ? PowerPC::INST_TLB_INDEX : PowerPC::DATA_TLB_INDEX;
-  TLBEntry& tlbe = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
-  const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
-  tlbe.recent = index;
-  tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe.pte[index] = pte2.Hex;
-  tlbe.tag[index] = tag;
-  tlbe.vsid[index] = vsid;
+  const size_t tlb_index = IsOpcodeFlag(flag) ? INST_TLB_INDEX : DATA_TLB_INDEX;
+  auto& [tlbe_tag, paddr, tlbe_vsid, pte, recent] = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
+  const u32 index = recent == 0 && tlbe_tag[0] != TLBEntry::INVALID_TAG;
+  recent = index;
+  paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
+  pte[index] = pte2.Hex;
+  tlbe_tag[index] = tag;
+  tlbe_vsid[index] = vsid;
 }
 
-void MMU::InvalidateTLBEntry(u32 address)
+void MMU::InvalidateTLBEntry(const u32 address) const
 {
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
-  m_ppc_state.tlb[PowerPC::DATA_TLB_INDEX][entry_index].Invalidate();
-  m_ppc_state.tlb[PowerPC::INST_TLB_INDEX][entry_index].Invalidate();
+  m_ppc_state.tlb[DATA_TLB_INDEX][entry_index].Invalidate();
+  m_ppc_state.tlb[INST_TLB_INDEX][entry_index].Invalidate();
 }
 
 // Page Address Translation
@@ -1515,7 +1522,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
   return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
 }
 
-void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
+void MMU::UpdateBATs(BatTable& bat_table, const u32 base_spr) const
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
   // TODO: Handle PP settings.
@@ -1544,7 +1551,7 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
       // implemented this way for invalid BATs as well.
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: BPRN overlaps BL");
     }
-    if (!Common::IsValidLowMask((u32)batu.BL))
+    if (!Common::IsValidLowMask(static_cast<u32>(batu.BL)))
     {
       // With a valid BAT, the simplest way of masking is
       // (input & ~BL_mask) for matching and (input & BL_mask) for
@@ -1559,8 +1566,8 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
       {
         // This bit is a little weird: if BRPN & j != 0, we end up with
         // a strange mapping. Need to check on hardware.
-        u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
-        u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
+        const u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
+        const u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
 
         // BAT_MAPPED_BIT is whether the translation is valid
         // BAT_PHYSICAL_BIT is whether we can use the fastmem arena
@@ -1608,14 +1615,14 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
   }
 }
 
-void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
+void MMU::UpdateFakeMMUBat(BatTable& bat_table, const u32 start_addr) const
 {
   for (u32 i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
   {
     // Map from 0x4XXXXXXX or 0x7XXXXXXX to the range
     // [0x7E000000,0x80000000).
-    u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
-    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & m_memory.GetFakeVMemMask());
+    const u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
+    const u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & m_memory.GetFakeVMemMask());
     u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
 
     if (m_power_pc.GetMemChecks().OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
@@ -1629,7 +1636,7 @@ void MMU::DBATUpdated()
 {
   m_dbat_table = {};
   UpdateBATs(m_dbat_table, SPR_DBAT0U);
-  bool extended_bats = m_system.IsWii() && HID4(m_ppc_state).SBE;
+  const bool extended_bats = m_system.IsWii() && HID4(m_ppc_state).SBE;
   if (extended_bats)
     UpdateBATs(m_dbat_table, SPR_DBAT4U);
   if (m_memory.GetFakeVMEM())
@@ -1651,7 +1658,7 @@ void MMU::IBATUpdated()
 {
   m_ibat_table = {};
   UpdateBATs(m_ibat_table, SPR_IBAT0U);
-  bool extended_bats = m_system.IsWii() && HID4(m_ppc_state).SBE;
+  const bool extended_bats = m_system.IsWii() && HID4(m_ppc_state).SBE;
   if (extended_bats)
     UpdateBATs(m_ibat_table, SPR_IBAT4U);
   if (m_memory.GetFakeVMEM())
@@ -1678,61 +1685,61 @@ MMU::TranslateAddressResult MMU::TranslateAddress(u32 address)
   return TranslatePageAddress<flag>(EffectiveAddress{address}, &wi);
 }
 
-std::optional<u32> MMU::GetTranslatedAddress(u32 address)
+std::optional<u32> MMU::GetTranslatedAddress(const u32 address)
 {
   auto result = TranslateAddress<XCheckTLBFlag::NoException>(address);
   if (!result.Success())
   {
     return std::nullopt;
   }
-  return std::optional<u32>(result.address);
+  return std::optional(result.address);
 }
 
-void ClearDCacheLineFromJit(MMU& mmu, u32 address)
+void ClearDCacheLineFromJit(MMU& mmu, const u32 address)
 {
   mmu.ClearDCacheLine(address);
 }
-u32 ReadU8FromJit(MMU& mmu, u32 address)
+u32 ReadU8FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U8(address);
 }
-u32 ReadU16FromJit(MMU& mmu, u32 address)
+u32 ReadU16FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U16(address);
 }
-u32 ReadU32FromJit(MMU& mmu, u32 address)
+u32 ReadU32FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U32(address);
 }
-u64 ReadU64FromJit(MMU& mmu, u32 address)
+u64 ReadU64FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U64(address);
 }
-void WriteU8FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU8FromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U8(var, address);
 }
-void WriteU16FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU16FromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U16(var, address);
 }
-void WriteU32FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32FromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U32(var, address);
 }
-void WriteU64FromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64FromJit(MMU& mmu, const u64 var, const u32 address)
 {
   mmu.Write_U64(var, address);
 }
-void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU16SwapFromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U16_Swap(var, address);
 }
-void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32SwapFromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U32_Swap(var, address);
 }
-void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64SwapFromJit(MMU& mmu, const u64 var, const u32 address)
 {
   mmu.Write_U64_Swap(var, address);
 }

@@ -37,11 +37,11 @@ public:
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
-  void SetViewColumn(int col, bool view);
+  void SetViewColumn(int col, bool view) const;
   void SetSearchTerm(const QString& term);
 
-  void OnColumnVisibilityToggled(const QString& row, bool visible);
-  void OnGameListVisibilityChanged();
+  void OnColumnVisibilityToggled(const QString& row, bool visible) const;
+  void OnGameListVisibilityChanged() const;
 
   void resizeEvent(QResizeEvent* event) override;
 
@@ -61,33 +61,33 @@ signals:
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 private:
-  void ShowHeaderContextMenu(const QPoint& pos);
+  void ShowHeaderContextMenu(const QPoint& pos) const;
   void ShowContextMenu(const QPoint&);
-  void OpenContainingFolder();
+  void OpenContainingFolder() const;
   void OpenProperties();
   void OpenWiiSaveFolder();
   void OpenGCSaveFolder();
-  void OpenWiki();
+  void OpenWiki() const;
   void StartWithRiivolution();
-  void SetDefaultISO();
+  void SetDefaultISO() const;
   void DeleteFile();
 #ifdef _WIN32
-  bool AddShortcutToDesktop();
+  bool AddShortcutToDesktop() const;
 #endif
-  void InstallWAD();
-  void UninstallWAD();
+  void InstallWAD() const;
+  void UninstallWAD() const;
   void ExportWiiSave();
   void ConvertFile();
-  void ChangeDisc();
+  void ChangeDisc() const;
   void NewTag();
   void DeleteTag();
-  void UpdateColumnVisibility();
+  void UpdateColumnVisibility() const;
 
   void ZoomIn();
   void ZoomOut();
 
-  void OnHeaderViewChanged();
-  void OnSectionResized(int index, int, int);
+  void OnHeaderViewChanged() const;
+  void OnSectionResized(int index, int, int) const;
 
   void MakeListView();
   void MakeGridView();
@@ -97,7 +97,7 @@ private:
   QAbstractItemView* GetActiveView() const;
   QSortFilterProxyModel* GetActiveProxyModel() const;
   void ConsiderViewChange();
-  void UpdateFont();
+  void UpdateFont() const;
 
   GameListModel m_model;
   QSortFilterProxyModel* m_list_proxy;

@@ -39,5 +39,6 @@ CMakeLists.txt.user
 *.kdev4
 # Ignore IDEA/Clion files/dirs
 /.idea/
+Source/.idea
 # Ignore Visual Studio Code's working dir
 /.vscode/

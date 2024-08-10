@@ -4,9 +4,7 @@
 #include "DolphinQt/GameList/GameTracker.h"
 
 #include <QApplication>
-#include <QDir>
 #include <QDirIterator>
-#include <QFile>
 
 #include "Common/Config/Config.h"
 
@@ -55,7 +53,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}});
   });
 
-  m_load_thread.Reset("GameList Tracker", [this](Command command) {
+  m_load_thread.Reset("GameList Tracker", [this](const Command& command) {
     switch (command.type)
     {
     case CommandType::LoadCache:
@@ -244,7 +242,7 @@ void GameTracker::AddDirectoryInternal(const QString& dir)
 static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
 {
   return std::make_unique<QDirIterator>(dir, game_filters, QDir::NoFilter,
-                                        Config::Get(Config::MAIN_RECURSIVE_ISO_PATHS) ?
+                                        Get(Config::MAIN_RECURSIVE_ISO_PATHS) ?
                                             QDirIterator::Subdirectories :
                                             QDirIterator::NoIteratorFlags);
 }
@@ -252,7 +250,7 @@ static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
 void GameTracker::RemoveDirectoryInternal(const QString& dir)
 {
   RemovePath(dir);
-  auto it = GetIterator(dir);
+  const auto it = GetIterator(dir);
   while (it->hasNext())
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
@@ -272,7 +270,7 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
 
 void GameTracker::UpdateDirectoryInternal(const QString& dir)
 {
-  auto it = GetIterator(dir);
+  const auto it = GetIterator(dir);
   while (it->hasNext() && !m_processing_halted)
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
@@ -286,7 +284,7 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
     else
     {
       AddPath(path);
-      m_tracked_files[path] = QSet<QString>{dir};
+      m_tracked_files[path] = QSet{dir};
       LoadGame(path);
     }
   }
@@ -327,7 +325,7 @@ void GameTracker::UpdateFileInternal(const QString& file)
 
 QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
 {
-  auto it = GetIterator(dir);
+  const auto it = GetIterator(dir);
 
   QSet<QString> missing_files;
 

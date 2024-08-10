@@ -40,11 +40,11 @@ private:
 
   void ShowSearchResult(size_t index);
 
-  void UpdateTree();
+  void UpdateTree() const;
   void UpdateDetails();
-  void UpdateDescription();
+  void UpdateDescription() const;
 
-  void OnDebugFontChanged(const QFont& font);
+  void OnDebugFontChanged(const QFont& font) const;
 
   FifoPlayer& m_fifo_player;
 
@@ -64,7 +64,7 @@ private:
 
   struct SearchResult
   {
-    constexpr SearchResult(u32 frame, u32 object_idx, u32 cmd)
+    constexpr SearchResult(const u32 frame, const u32 object_idx, const u32 cmd)
         : m_frame(frame), m_object_idx(object_idx), m_cmd(cmd)
     {
     }

@@ -3,7 +3,6 @@
 
 #include "VideoBackends/Software/VideoBackend.h"
 
-#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
@@ -11,7 +10,6 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
-#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/EfbInterface.h"
@@ -25,8 +23,6 @@
 #include "VideoBackends/Software/TextureCache.h"
 
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/Present.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -40,7 +36,7 @@ public:
   void EnableQuery(PerfQueryGroup type) override {}
   void DisableQuery(PerfQueryGroup type) override {}
   void ResetQuery() override { EfbInterface::ResetPerfQuery(); }
-  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::GetPerfQueryResult(type); }
+  u32 GetQueryResult(const PerfQueryType type) override { return EfbInterface::GetPerfQueryResult(type); }
   void FlushResults() override {}
   bool IsFlushed() const override { return true; }
 };

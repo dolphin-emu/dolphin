@@ -18,29 +18,22 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPushButton>
-#include <QSettings>
 #include <QSignalBlocker>
 #include <QString>
 #include <QTableWidget>
-#include <QVBoxLayout>
 
 #include <fmt/format.h>
 
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 #include "Core/ActionReplay.h"
 #include "Core/CheatGeneration.h"
 #include "Core/CheatSearch.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
-#include "DolphinQt/Config/CheatCodeEditor.h"
-#include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -87,10 +80,10 @@ Q_DECLARE_METATYPE(Cheats::FilterType);
 
 void CheatSearchWidget::CreateWidgets()
 {
-  QLabel* session_info_label = new QLabel();
+  auto session_info_label = new QLabel();
   {
     QString ranges;
-    size_t range_count = m_session->GetMemoryRangeCount();
+    const size_t range_count = m_session->GetMemoryRangeCount();
     switch (range_count)
     {
     case 1:
@@ -173,7 +166,7 @@ void CheatSearchWidget::CreateWidgets()
       type = tr("Unknown data type");
       break;
     }
-    QString aligned = m_session->GetAligned() ? tr("aligned") : tr("unaligned");
+    const QString aligned = m_session->GetAligned() ? tr("aligned") : tr("unaligned");
     session_info_label->setText(tr("%1, %2, %3, %4").arg(ranges).arg(space).arg(type).arg(aligned));
     session_info_label->setWordWrap(true);
   }
@@ -213,7 +206,7 @@ void CheatSearchWidget::CreateWidgets()
   m_given_value_text = new QLineEdit();
   value_layout->addWidget(m_given_value_text);
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
   m_parse_values_as_hex_checkbox = new QCheckBox(tr("Parse as Hex"));
   if (m_session->IsIntegerType())
   {
@@ -249,7 +242,7 @@ void CheatSearchWidget::CreateWidgets()
   checkboxes_layout->addWidget(m_autoupdate_current_values);
   checkboxes_layout->setStretchFactor(m_autoupdate_current_values, 2);
 
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout();
   layout->addWidget(session_info_label);
   layout->addWidget(instructions_label);
   layout->addLayout(value_layout);
@@ -389,7 +382,7 @@ bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const
 {
   const bool update_status_text = source == UpdateSource::User;
 
-  auto tmp = m_session->ClonePartial(begin_index, end_index);
+  const auto tmp = m_session->ClonePartial(begin_index, end_index);
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
 
   const Cheats::SearchErrorCode error_code = tmp->RunSearch(guard);
@@ -457,7 +450,7 @@ void CheatSearchWidget::OnResetClicked()
   m_info_label_2->clear();
 }
 
-void CheatSearchWidget::OnAddressTableItemChanged(QTableWidgetItem* item)
+void CheatSearchWidget::OnAddressTableItemChanged(const QTableWidgetItem* item)
 {
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
   const int column = item->column();
@@ -491,10 +484,10 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   if (m_address_table->selectedItems().isEmpty())
     return;
 
-  auto* item = m_address_table->selectedItems()[0];
+  const auto* item = m_address_table->selectedItems()[0];
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
@@ -507,7 +500,7 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   menu->exec(QCursor::pos());
 }
 
-void CheatSearchWidget::OnValueSourceChanged()
+void CheatSearchWidget::OnValueSourceChanged() const
 {
   const auto filter_type = m_value_source_dropdown->currentData().value<Cheats::FilterType>();
   const bool is_value_search = filter_type == Cheats::FilterType::CompareAgainstSpecificValue;
@@ -521,7 +514,7 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
     return;
 
   // If the game is running CheatsManager::OnFrameEnd will update values automatically.
-  if (Core::GetState(m_system) != Core::State::Running)
+  if (GetState(m_system) != Core::State::Running)
     UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
@@ -534,10 +527,10 @@ void CheatSearchWidget::GenerateARCodes()
   bool had_error = false;
   std::optional<Cheats::GenerateActionReplayCodeErrorCode> error_code;
 
-  for (auto* const item : m_address_table->selectedItems())
+  for (const auto* const item : m_address_table->selectedItems())
   {
     const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
-    auto result = Cheats::GenerateActionReplayCode(*m_session, index);
+    auto result = GenerateActionReplayCode(*m_session, index);
     if (result)
     {
       emit ActionReplayCodeGenerated(*result);
@@ -620,7 +613,7 @@ void CheatSearchWidget::RecreateGUITable()
 
   const size_t result_count = m_session->GetResultCount();
   const bool too_many_results = result_count > TABLE_MAX_ROWS;
-  const int result_count_to_display = int(too_many_results ? TABLE_MAX_ROWS : result_count);
+  const int result_count_to_display = static_cast<int>(too_many_results ? TABLE_MAX_ROWS : result_count);
   m_address_table->setRowCount(result_count_to_display);
 
   for (int i = 0; i < result_count_to_display; ++i)

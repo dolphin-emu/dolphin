@@ -29,17 +29,17 @@ class RelativeMouseAxis final : public Core::Device::RelativeInput
 public:
   std::string GetName() const override
   {
-    return fmt::format("RelativeMouse {}{}", char('X' + m_index), (m_scale > 0) ? '+' : '-');
+    return fmt::format("RelativeMouse {}{}", static_cast<char>('X' + m_index), (m_scale > 0) ? '+' : '-');
   }
 
-  RelativeMouseAxis(u8 index, bool positive, const RelativeMouseState* state)
+  RelativeMouseAxis(const u8 index, const bool positive, const RelativeMouseState* state)
       : m_state(*state), m_index(index), m_scale(positive * 2 - 1)
   {
   }
 
   ControlState GetState() const override
   {
-    return ControlState(m_state.GetValue().data[m_index] * m_scale);
+    return m_state.GetValue().data[m_index] * m_scale;
   }
 
 private:
@@ -60,7 +60,7 @@ static const struct
 static bool s_keyboard_mouse_exists;
 static HWND s_hwnd;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8, const HWND hwnd)
 {
   if (s_keyboard_mouse_exists)
     return;
@@ -96,7 +96,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
     mo_device->Release();
 }
 
-void SetKeyboardMouseWindow(HWND hwnd)
+void SetKeyboardMouseWindow(const HWND hwnd)
 {
   s_hwnd = hwnd;
 }
@@ -211,8 +211,8 @@ void KeyboardMouse::UpdateCursorInput()
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // Convert the cursor position to a range from -1 to 1.
-  m_state_in.cursor.x = (ControlState(point.x) / win_width * 2 - 1) * window_scale.x;
-  m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * window_scale.y;
+  m_state_in.cursor.x = (static_cast<ControlState>(point.x) / win_width * 2 - 1) * window_scale.x;
+  m_state_in.cursor.y = (static_cast<ControlState>(point.y) / win_height * 2 - 1) * window_scale.y;
 }
 
 Core::DeviceRemoval KeyboardMouse::UpdateInput()
@@ -222,7 +222,7 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
   DIMOUSESTATE2 tmp_mouse;
 
   // if mouse position hasn't been updated in a short while, skip a dev state
-  DWORD cur_time = GetTickCount();
+  const DWORD cur_time = GetTickCount();
   if (cur_time - m_last_update > DROP_INPUT_TIME)
   {
     // set axes to zero
@@ -235,7 +235,7 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
 
   m_last_update = cur_time;
 
-  HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
+  const HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to get state");
@@ -255,7 +255,7 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
     std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
   }
 
-  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+  const HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
   if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");
@@ -297,13 +297,13 @@ std::string KeyboardMouse::Key::GetName() const
 
 std::string KeyboardMouse::Button::GetName() const
 {
-  return std::string("Click ") + char('0' + m_index);
+  return std::string("Click ") + static_cast<char>('0' + m_index);
 }
 
 std::string KeyboardMouse::Axis::GetName() const
 {
   char tmpstr[] = "Axis ..";
-  tmpstr[5] = (char)('X' + m_index);
+  tmpstr[5] = static_cast<char>('X' + m_index);
   tmpstr[6] = (m_range < 0 ? '-' : '+');
   return tmpstr;
 }
@@ -311,7 +311,7 @@ std::string KeyboardMouse::Axis::GetName() const
 std::string KeyboardMouse::Cursor::GetName() const
 {
   char tmpstr[] = "Cursor ..";
-  tmpstr[7] = (char)('X' + m_index);
+  tmpstr[7] = static_cast<char>('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;
 }
@@ -329,7 +329,7 @@ ControlState KeyboardMouse::Button::GetState() const
 
 ControlState KeyboardMouse::Axis::GetState() const
 {
-  return ControlState(m_axis) / m_range;
+  return static_cast<ControlState>(m_axis) / m_range;
 }
 
 ControlState KeyboardMouse::Cursor::GetState() const

@@ -29,7 +29,7 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   CreateWidgets();
 
@@ -44,10 +44,10 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
       settings.value(QStringLiteral("jitwidget/asmsplitter")).toByteArray());
 
   connect(&Settings::Instance(), &Settings::JITVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &JITWidget::Update);
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &JITWidget::Update);
@@ -105,7 +105,7 @@ void JITWidget::CreateWidgets()
   m_asm_splitter->addWidget(m_ppc_asm_widget);
   m_asm_splitter->addWidget(m_host_asm_widget);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(2, 2, 2, 2);
   widget->setLayout(layout);
@@ -121,11 +121,11 @@ void JITWidget::ConnectWidgets()
   connect(m_refresh_button, &QPushButton::clicked, this, &JITWidget::Update);
 }
 
-void JITWidget::Compare(u32 address)
+void JITWidget::Compare(const u32 address)
 {
   m_address = address;
 
-  Settings::Instance().SetJITVisible(true);
+  Settings::Instance().ShowJIT();
   raise();
   m_host_asm_widget->setFocus();
 
@@ -137,7 +137,7 @@ void JITWidget::Update()
   if (!isVisible())
     return;
 
-  if (!m_address || (Core::GetState(Core::System::GetInstance()) != Core::State::Paused))
+  if (!m_address || (GetState(Core::System::GetInstance()) != Core::State::Paused))
   {
     m_ppc_asm_widget->setHtml(QStringLiteral("<i>%1</i>").arg(tr("(ppc)")));
     m_host_asm_widget->setHtml(QStringLiteral("<i>%1</i>").arg(tr("(host)")));
@@ -147,24 +147,31 @@ void JITWidget::Update()
   // TODO: Actually do something with the table (Wx doesn't)
 
   // Get host side code disassembly
-  auto host_instructions_disasm = DisassembleBlock(m_disassembler.get(), m_address);
-  m_address = host_instructions_disasm.entry_address;
+  auto [text, entry_address, instruction_count, code_size] =
+    DisassembleBlock(m_disassembler.get(), m_address);
+  m_address = entry_address;
 
   m_host_asm_widget->setHtml(
-      QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(host_instructions_disasm.text)));
+      QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(text)));
 
   // == Fill in ppc box
-  u32 ppc_addr = m_address;
+  const u32 ppc_addr = m_address;
   PPCAnalyst::CodeBuffer code_buffer(32000);
   PPCAnalyst::BlockStats st;
   PPCAnalyst::BlockRegStats gpa;
   PPCAnalyst::BlockRegStats fpa;
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::PPCAnalyzer analyzer;
-  analyzer.SetDebuggingEnabled(Config::IsDebuggingEnabled());
-  analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
-  analyzer.SetFloatExceptionsEnabled(Config::Get(Config::MAIN_FLOAT_EXCEPTIONS));
-  analyzer.SetDivByZeroExceptionsEnabled(Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS));
+  Config::IsDebuggingEnabled() ? analyzer.EnableDebugging() : analyzer.DisableDebugging();
+  Get(Config::MAIN_JIT_FOLLOW_BRANCH) ?
+    analyzer.EnableBranchFollowing() :
+    analyzer.DisableBranchFollowing();
+  Get(Config::MAIN_FLOAT_EXCEPTIONS) ?
+    analyzer.EnableFloatExceptions() :
+    analyzer.DisableFloatExceptions();
+  Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS) ?
+    analyzer.EnableDivByZeroExceptions() :
+    analyzer.DisableDivByZeroExceptions();
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
@@ -175,32 +182,37 @@ void JITWidget::Update()
   if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, code_buffer.size()) != 0xFFFFFFFF)
   {
     std::string ppc_disasm_str;
-    auto ppc_disasm = std::back_inserter(ppc_disasm_str);
+    const auto ppc_disasm = std::back_inserter(ppc_disasm_str);
     for (u32 i = 0; i < code_block.m_num_instructions; i++)
     {
-      const PPCAnalyst::CodeOp& op = code_buffer[i];
-      const std::string opcode = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-      fmt::format_to(ppc_disasm, "{:08x} {}\n", op.address, opcode);
+      const auto& [inst, _opinfo, address, _branchTo, _regsIn, _regsOut, _fregsIn, _fregOut, _crIn,
+            _crOut, _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA,
+            _wantsCAInFlags, _outputCR, _outputFPRF, _outputCA, _canEndBlock, _canCauseException,
+            _skipLRStack, _skip, _crInUse, _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable,
+            _fprDiscardable, _fprInXmm, _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst,
+            _fprIsStoreSafeAfterInst] = code_buffer[i];
+      const std::string opcode = Common::GekkoDisassembler::Disassemble(inst.hex, address);
+      fmt::format_to(ppc_disasm, "{:08x} {}\n", address, opcode);
     }
 
     // Add stats to the end of the ppc box since it's generally the shortest.
     fmt::format_to(ppc_disasm, "\n{} estimated cycles", st.numCycles);
     fmt::format_to(ppc_disasm, "\nNum instr: PPC: {} Host: {}", code_block.m_num_instructions,
-                   host_instructions_disasm.instruction_count);
-    if (code_block.m_num_instructions != 0 && host_instructions_disasm.instruction_count != 0)
+                   instruction_count);
+    if (code_block.m_num_instructions != 0 && instruction_count != 0)
     {
       fmt::format_to(
           ppc_disasm, " (blowup: {}%)",
-          100 * host_instructions_disasm.instruction_count / code_block.m_num_instructions - 100);
+          100 * instruction_count / code_block.m_num_instructions - 100);
     }
 
     fmt::format_to(ppc_disasm, "\nNum bytes: PPC: {} Host: {}", code_block.m_num_instructions * 4,
-                   host_instructions_disasm.code_size);
-    if (code_block.m_num_instructions != 0 && host_instructions_disasm.code_size != 0)
+                   code_size);
+    if (code_block.m_num_instructions != 0 && code_size != 0)
     {
       fmt::format_to(
           ppc_disasm, " (blowup: {}%)",
-          100 * host_instructions_disasm.code_size / (4 * code_block.m_num_instructions) - 100);
+          100 * code_size / (4 * code_block.m_num_instructions) - 100);
     }
 
     m_ppc_asm_widget->setHtml(
@@ -217,7 +229,7 @@ void JITWidget::Update()
 
 void JITWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetJITVisible(false);
+  Settings::Instance().HideJIT();
 }
 
 void JITWidget::showEvent(QShowEvent* event)

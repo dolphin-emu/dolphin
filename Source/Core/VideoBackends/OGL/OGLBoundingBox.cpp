@@ -16,7 +16,7 @@ OGLBoundingBox::~OGLBoundingBox()
 
 bool OGLBoundingBox::Initialize()
 {
-  const BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
+  constexpr BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
 
   glGenBuffers(1, &m_buffer_id);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
@@ -26,7 +26,7 @@ bool OGLBoundingBox::Initialize()
   return true;
 }
 
-std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
+std::vector<BBoxType> OGLBoundingBox::Read(const u32 index, const u32 length)
 {
   std::vector<BBoxType> values(length);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
@@ -34,7 +34,7 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
   // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
   // on nVidia drivers. This is more noticeable at higher internal resolutions.
   // Using glGetBufferSubData instead does not seem to exhibit this slowdown.
-  if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
+  if (!HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
       !static_cast<OGLGfx*>(g_gfx.get())->IsGLES())
   {
     // We also need to ensure the the CPU does not receive stale values which have been updated by
@@ -51,11 +51,11 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
   else
   {
     // Using glMapBufferRange is faster on AMD cards by a measurable margin.
-    void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES,
-                                 GL_MAP_READ_BIT);
+    const void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES,
+                                       GL_MAP_READ_BIT);
     if (ptr)
     {
-      std::memcpy(values.data(), reinterpret_cast<const u8*>(ptr) + sizeof(BBoxType) * index,
+      std::memcpy(values.data(), static_cast<const u8*>(ptr) + sizeof(BBoxType) * index,
                   sizeof(BBoxType) * length);
 
       glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -66,7 +66,7 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void OGLBoundingBox::Write(u32 index, std::span<const BBoxType> values)
+void OGLBoundingBox::Write(const u32 index, const std::span<const BBoxType> values)
 {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
   glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(BBoxType) * index,

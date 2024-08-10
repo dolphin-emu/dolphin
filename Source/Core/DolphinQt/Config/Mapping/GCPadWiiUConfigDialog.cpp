@@ -9,12 +9,11 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/GCAdapter.h"
 
-GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
+GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(const int port, QWidget* parent)
     : QDialog(parent), m_port{port}
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -60,7 +59,7 @@ void GCPadWiiUConfigDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::accepted, this, &GCPadWiiUConfigDialog::accept);
 }
 
-void GCPadWiiUConfigDialog::UpdateAdapterStatus()
+void GCPadWiiUConfigDialog::UpdateAdapterStatus() const
 {
   const char* error_message = nullptr;
   const bool detected = GCAdapter::IsDetected(&error_message);
@@ -85,14 +84,14 @@ void GCPadWiiUConfigDialog::UpdateAdapterStatus()
   m_simulate_bongos->setEnabled(detected);
 }
 
-void GCPadWiiUConfigDialog::LoadSettings()
+void GCPadWiiUConfigDialog::LoadSettings() const
 {
-  m_rumble->setChecked(Config::Get(Config::GetInfoForAdapterRumble(m_port)));
-  m_simulate_bongos->setChecked(Config::Get(Config::GetInfoForSimulateKonga(m_port)));
+  m_rumble->setChecked(Get(Config::GetInfoForAdapterRumble(m_port)));
+  m_simulate_bongos->setChecked(Get(Config::GetInfoForSimulateKonga(m_port)));
 }
 
-void GCPadWiiUConfigDialog::SaveSettings()
+void GCPadWiiUConfigDialog::SaveSettings() const
 {
-  Config::SetBaseOrCurrent(Config::GetInfoForAdapterRumble(m_port), m_rumble->isChecked());
-  Config::SetBaseOrCurrent(Config::GetInfoForSimulateKonga(m_port), m_simulate_bongos->isChecked());
+  SetBaseOrCurrent(Config::GetInfoForAdapterRumble(m_port), m_rumble->isChecked());
+  SetBaseOrCurrent(Config::GetInfoForSimulateKonga(m_port), m_simulate_bongos->isChecked());
 }

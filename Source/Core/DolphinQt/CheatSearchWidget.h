@@ -5,11 +5,9 @@
 
 #include <QWidget>
 
-#include <functional>
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/CheatSearch.h"
@@ -66,9 +64,9 @@ private:
   void OnNextScanClicked();
   void OnRefreshClicked();
   void OnResetClicked();
-  void OnAddressTableItemChanged(QTableWidgetItem* item);
+  void OnAddressTableItemChanged(const QTableWidgetItem* item);
   void OnAddressTableContextMenu();
-  void OnValueSourceChanged();
+  void OnValueSourceChanged() const;
   void OnDisplayHexCheckboxStateChanged();
 
   void RefreshCurrentValueTableItem(QTableWidgetItem* current_value_table_item);

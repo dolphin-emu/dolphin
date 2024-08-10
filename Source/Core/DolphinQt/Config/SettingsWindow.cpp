@@ -4,12 +4,10 @@
 #include "DolphinQt/Config/SettingsWindow.h"
 
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
-#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/AdvancedPane.h"
 #include "DolphinQt/Settings/AudioPane.h"
@@ -19,8 +17,6 @@
 #include "DolphinQt/Settings/PathPane.h"
 #include "DolphinQt/Settings/WiiPane.h"
 
-#include "Core/Core.h"
-
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
   // Set Window Properties
@@ -28,7 +24,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   // Main Layout
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   // Add content to layout before dialog buttons.
   m_tab_widget = new QTabWidget();
@@ -43,7 +39,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_tab_widget->addTab(GetWrappedWidget(new AdvancedPane, this, 125, 200), tr("Advanced"));
 
   // Dialog box buttons
-  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  auto close_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
@@ -52,12 +48,12 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   setLayout(layout);
 }
 
-void SettingsWindow::SelectAudioPane()
+void SettingsWindow::SelectAudioPane() const
 {
   m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::Audio));
 }
 
-void SettingsWindow::SelectGeneralPane()
+void SettingsWindow::SelectGeneralPane() const
 {
   m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::General));
 }

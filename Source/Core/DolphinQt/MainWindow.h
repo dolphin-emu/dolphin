@@ -89,20 +89,20 @@ signals:
 
 private:
   void Open();
-  void RefreshGameList();
+  static void RefreshGameList();
   void Play(const std::optional<std::string>& savestate_path = {});
-  void Pause();
+  static void Pause();
   void TogglePause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
   bool RequestStop();
-  void ForceStop();
-  void Reset();
-  void FrameAdvance();
+  static void ForceStop();
+  static void Reset();
+  static void FrameAdvance();
   void StateLoad();
   void StateSave();
-  void StateLoadSlot();
-  void StateSaveSlot();
+  void StateLoadSlot() const;
+  void StateSaveSlot() const;
   void StateLoadSlotAt(int slot);
   void StateSaveSlotAt(int slot);
   void StateLoadLastSavedAt(int slot);
@@ -110,16 +110,16 @@ private:
   void StateSaveUndo();
   void StateSaveOldest();
   void SetStateSlot(int slot);
-  void IncrementSelectedStateSlot();
-  void DecrementSelectedStateSlot();
+  void IncrementSelectedStateSlot() const;
+  void DecrementSelectedStateSlot() const;
   void BootWiiSystemMenu();
 
   void PerformOnlineUpdate(const std::string& region);
 
-  void SetFullScreenResolution(bool fullscreen);
+  static void SetFullScreenResolution(bool fullscreen);
 
   void FullScreen();
-  void UnlockCursor();
+  void UnlockCursor() const;
   void ScreenShot();
 
   void CreateComponents();
@@ -133,7 +133,7 @@ private:
   void ConnectToolBar();
 
   void InitControllers();
-  void ShutdownControllers();
+  void ShutdownControllers() const;
 
   void InitCoreCallbacks();
 
@@ -150,7 +150,7 @@ private:
   void StartGame(const std::string& path, ScanForSecondDisc scan,
                  std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const std::vector<std::string>& paths,
-                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
+                 const std::unique_ptr<BootSessionData>& boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
@@ -163,14 +163,14 @@ private:
   void ShowFreeLookWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
-  void ShowNetPlaySetupDialog();
+  void ShowNetPlaySetupDialog() const;
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowMemcardManager();
   void ShowResourcePackManager();
-  void ShowCheatsManager();
+  void ShowCheatsManager() const;
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -181,11 +181,11 @@ private:
   void NetPlayInit();
   bool NetPlayJoin();
   bool NetPlayHost(const UICommon::GameFile& game);
-  void NetPlayQuit();
+  static void NetPlayQuit();
 
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
-  void OnConnectWiiRemote(int id);
+  static void OnConnectWiiRemote(int id);
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   void OnSignal();
@@ -197,12 +197,12 @@ private:
   void OnExportRecording();
   void OnActivateChat();
   void OnRequestGolfControl();
-  void ShowTASInput();
+  void ShowTASInput() const;
 
   void ChangeDisc();
-  void EjectDisc();
+  static void EjectDisc();
 
-  void OpenUserFolder();
+  static void OpenUserFolder();
 
   QStringList PromptFileNames();
 

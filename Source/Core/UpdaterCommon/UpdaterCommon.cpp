@@ -58,13 +58,13 @@ void LogToFile(const char* fmt, ...)
   va_end(args);
 }
 
-bool ProgressCallback(s64 total, s64 now, s64, s64)
+bool ProgressCallback(const s64 total, const s64 now, s64, s64)
 {
   UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
 }
 
-std::string HexEncode(const u8* buffer, size_t size)
+std::string HexEncode(const u8* buffer, const size_t size)
 {
   std::string out(size * 2, '\0');
 
@@ -77,20 +77,19 @@ std::string HexEncode(const u8* buffer, size_t size)
   return out;
 }
 
-bool HexDecode(const std::string& hex, u8* buffer, size_t size)
+bool HexDecode(const std::string& hex, u8* buffer, const size_t size)
 {
   if (hex.size() != size * 2)
     return false;
 
-  auto DecodeNibble = [](char c) -> std::optional<u8> {
+  auto DecodeNibble = [](const char c) -> std::optional<u8> {
     if (c >= '0' && c <= '9')
       return static_cast<u8>(c - '0');
-    else if (c >= 'a' && c <= 'f')
+    if (c >= 'a' && c <= 'f')
       return static_cast<u8>(c - 'a' + 10);
-    else if (c >= 'A' && c <= 'F')
+    if (c >= 'A' && c <= 'F')
       return static_cast<u8>(c - 'A' + 10);
-    else
-      return {};
+    return {};
   };
   for (size_t i = 0; i < size; ++i)
   {
@@ -119,8 +118,8 @@ std::optional<std::string> GzipInflate(const std::string& data)
   inflateInit2(&zstrm, 16 + MAX_WBITS);
 
   std::string out;
-  const size_t buf_len = 20 * 1024 * 1024;
-  auto buffer = std::make_unique<char[]>(buf_len);
+  constexpr size_t buf_len = 20 * 1024 * 1024;
+  const auto buffer = std::make_unique<char[]>(buf_len);
   int ret;
 
   do
@@ -156,7 +155,7 @@ Manifest::Hash ComputeHash(const std::string& contents)
 
 bool VerifySignature(const std::string& data, const std::string& b64_signature)
 {
-  u8 signature[64];  // ed25519 sig size.
+  u8 signature[64]; // ed25519 sig size.
   size_t sig_size;
 
   if (mbedtls_base64_decode(signature, sizeof(signature), &sig_size,
@@ -184,21 +183,21 @@ void TodoList::Log() const
   if (to_update.size())
   {
     LogToFile("Updating:\n");
-    for (const auto& op : to_update)
+    for (const auto& [filename, old_hash, new_hash] : to_update)
     {
       std::string old_desc =
-          op.old_hash ? HexEncode(op.old_hash->data(), op.old_hash->size()) : "(new)";
-      LogToFile("  - %s: %s -> %s\n", op.filename.c_str(), old_desc.c_str(),
-                HexEncode(op.new_hash.data(), op.new_hash.size()).c_str());
+          old_hash ? HexEncode(old_hash->data(), old_hash->size()) : "(new)";
+      LogToFile("  - %s: %s -> %s\n", filename.c_str(), old_desc.c_str(),
+                HexEncode(new_hash.data(), new_hash.size()).c_str());
     }
   }
   if (to_delete.size())
   {
     LogToFile("Deleting:\n");
-    for (const auto& op : to_delete)
+    for (const auto& [filename, old_hash] : to_delete)
     {
-      LogToFile("  - %s (%s)\n", op.filename.c_str(),
-                HexEncode(op.old_hash.data(), op.old_hash.size()).c_str());
+      LogToFile("  - %s (%s)\n", filename.c_str(),
+                HexEncode(old_hash.data(), old_hash.size()).c_str());
     }
   }
 }
@@ -214,15 +213,15 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
   {
     UI::SetTotalProgress(static_cast<int>(i + 1), static_cast<int>(to_download.size()));
 
-    auto& download = to_download[i];
+    const auto& [filename, hash] = to_download[i];
 
-    std::string hash_filename = HexEncode(download.hash.data(), download.hash.size());
+    std::string hash_filename = HexEncode(hash.data(), hash.size());
 
     // File already exists, skipping
     if (File::Exists(temp_path + DIR_SEP + hash_filename))
       continue;
 
-    UI::SetDescription("Downloading " + download.filename + "... (File " + std::to_string(i + 1) +
+    UI::SetDescription("Downloading " + filename + "... (File " + std::to_string(i + 1) +
                        " of " + std::to_string(to_download.size()) + ")");
     UI::SetCurrentMarquee(false);
 
@@ -239,7 +238,7 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
       return false;
 
     UI::SetCurrentMarquee(true);
-    UI::SetDescription("Verifying " + download.filename + "...");
+    UI::SetDescription("Verifying " + filename + "...");
 
     std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
     std::optional<std::string> maybe_decompressed = GzipInflate(contents);
@@ -249,7 +248,7 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
 
     // Check that the downloaded contents have the right hash.
     Manifest::Hash contents_hash = ComputeHash(decompressed);
-    if (contents_hash != download.hash)
+    if (contents_hash != hash)
     {
       LogToFile("Wrong hash on downloaded content %s.\n", url.c_str());
       return false;
@@ -277,38 +276,38 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
   TodoList todo;
 
   // Delete if present in this manifest but not in next manifest.
-  for (const auto& entry : this_manifest.entries)
+  for (const auto& [fst, snd] : this_manifest.entries)
   {
-    if (next_manifest.entries.find(entry.first) == next_manifest.entries.end())
+    if (!next_manifest.entries.contains(fst))
     {
       TodoList::DeleteOp del;
-      del.filename = entry.first;
-      del.old_hash = entry.second;
+      del.filename = fst;
+      del.old_hash = snd;
       todo.to_delete.push_back(std::move(del));
     }
   }
 
   // Download and update if present in next manifest with different hash from this manifest.
-  for (const auto& entry : next_manifest.entries)
+  for (const auto& [fst, snd] : next_manifest.entries)
   {
     std::optional<Manifest::Hash> old_hash;
 
-    const auto& old_entry = this_manifest.entries.find(entry.first);
+    const auto& old_entry = this_manifest.entries.find(fst);
     if (old_entry != this_manifest.entries.end())
       old_hash = old_entry->second;
 
-    if (!old_hash || *old_hash != entry.second)
+    if (!old_hash || *old_hash != snd)
     {
       TodoList::DownloadOp download;
-      download.filename = entry.first;
-      download.hash = entry.second;
+      download.filename = fst;
+      download.hash = snd;
 
       todo.to_download.push_back(std::move(download));
 
       TodoList::UpdateOp update;
-      update.filename = entry.first;
+      update.filename = fst;
       update.old_hash = old_hash;
-      update.new_hash = entry.second;
+      update.new_hash = snd;
       todo.to_update.push_back(std::move(update));
     }
   }
@@ -319,14 +318,14 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
 void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 {
   // This is best-effort cleanup, we ignore most errors.
-  for (const auto& download : todo.to_download)
-    File::Delete(temp_dir + DIR_SEP + HexEncode(download.hash.data(), download.hash.size()));
+  for (const auto& [_filename, hash] : todo.to_download)
+    File::Delete(temp_dir + DIR_SEP + HexEncode(hash.data(), hash.size()));
   File::DeleteDir(temp_dir);
 }
 
 bool BackupFile(const std::string& path)
 {
-  std::string backup_path = path + ".bak";
+  const std::string backup_path = path + ".bak";
   LogToFile("Backing up existing %s to .bak.\n", path.c_str());
   if (!File::Rename(path, backup_path))
   {
@@ -339,32 +338,29 @@ bool BackupFile(const std::string& path)
 bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
                          const std::string& install_base_path)
 {
-  for (const auto& op : to_delete)
+  for (const auto& [filename, old_hash] : to_delete)
   {
-    std::string path = install_base_path + DIR_SEP + op.filename;
+    std::string path = install_base_path + DIR_SEP + filename;
 
     if (!File::Exists(path))
     {
-      LogToFile("File %s is already missing.\n", op.filename.c_str());
+      LogToFile("File %s is already missing.\n", filename.c_str());
       continue;
     }
-    else
+    std::string contents;
+    if (!File::ReadFileToString(path, contents))
     {
-      std::string contents;
-      if (!File::ReadFileToString(path, contents))
-      {
-        LogToFile("Could not read file planned for deletion: %s.\n", op.filename.c_str());
-        return false;
-      }
-      Manifest::Hash contents_hash = ComputeHash(contents);
-      if (contents_hash != op.old_hash)
-      {
-        if (!BackupFile(path))
-          return false;
-      }
-
-      File::Delete(path);
+      LogToFile("Could not read file planned for deletion: %s.\n", filename.c_str());
+      return false;
     }
+    Manifest::Hash contents_hash = ComputeHash(contents);
+    if (contents_hash != old_hash)
+    {
+      if (!BackupFile(path))
+        return false;
+    }
+
+    File::Delete(path);
   }
   return true;
 }
@@ -377,12 +373,12 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
   const auto self_filename = self_path.filename();
 #endif
 
-  for (const auto& op : to_update)
+  for (const auto& [filename, old_hash, new_hash] : to_update)
   {
-    std::string path = install_base_path + DIR_SEP + op.filename;
+    std::string path = install_base_path + DIR_SEP + filename;
     if (!File::CreateFullPath(path))
     {
-      LogToFile("Could not create directory structure for %s.\n", op.filename.c_str());
+      LogToFile("Could not create directory structure for %s.\n", filename.c_str());
       return false;
     }
 
@@ -416,7 +412,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       // after entire update has completed, and have it delete our relocated executable. For now we
       // just let the relocated file hang around.
       // It is enough to match based on filename, don't need File/VolumeId etc.
-      const bool is_self = op.filename == self_filename;
+      const bool is_self = filename == self_filename;
 #else
       // On other platforms, the renaming is handled by Dolphin before running the Updater.
       const bool is_self = false;
@@ -425,16 +421,16 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       std::string contents;
       if (!File::ReadFileToString(path, contents))
       {
-        LogToFile("Could not read existing file %s.\n", op.filename.c_str());
+        LogToFile("Could not read existing file %s.\n", filename.c_str());
         return false;
       }
       Manifest::Hash contents_hash = ComputeHash(contents);
-      if (contents_hash == op.new_hash)
+      if (contents_hash == new_hash)
       {
-        LogToFile("File %s was already up to date. Partial update?\n", op.filename.c_str());
+        LogToFile("File %s was already up to date. Partial update?\n", filename.c_str());
         continue;
       }
-      else if (!op.old_hash || contents_hash != *op.old_hash || is_self)
+      if (!old_hash || contents_hash != *old_hash || is_self)
       {
         if (!BackupFile(path))
           return false;
@@ -442,8 +438,8 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     }
 
     // Now we can safely move the new contents to the location.
-    std::string content_filename = HexEncode(op.new_hash.data(), op.new_hash.size());
-    LogToFile("Updating file %s from content %s...\n", op.filename.c_str(),
+    std::string content_filename = HexEncode(new_hash.data(), new_hash.size());
+    LogToFile("Updating file %s from content %s...\n", filename.c_str(),
               content_filename.c_str());
 #ifdef __APPLE__
     // macOS caches the code signature of Mach-O executables when they're first loaded.
@@ -466,7 +462,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     if (!File::CopyRegularFile(temp_path + DIR_SEP + content_filename, path))
 #endif
     {
-      LogToFile("Could not update file %s.\n", op.filename.c_str());
+      LogToFile("Could not update file %s.\n", filename.c_str());
       return false;
     }
 
@@ -508,7 +504,7 @@ void FatalError(const std::string& message)
 {
   LogToFile("%s\n", message.c_str());
 
-  UI::SetVisible(true);
+  UI::Show();
   UI::Error(message);
 }
 
@@ -519,13 +515,13 @@ std::optional<Manifest> ParseManifest(const std::string& manifest)
 
   while (pos < manifest.size())
   {
-    size_t filename_end_pos = manifest.find('\t', pos);
+    const size_t filename_end_pos = manifest.find('\t', pos);
     if (filename_end_pos == std::string::npos)
     {
       LogToFile("Manifest entry %zu: could not find filename end.\n", parsed.entries.size());
       return {};
     }
-    size_t hash_end_pos = manifest.find('\n', filename_end_pos);
+    const size_t hash_end_pos = manifest.find('\n', filename_end_pos);
     if (hash_end_pos == std::string::npos)
     {
       LogToFile("Manifest entry %zu: could not find hash end.\n", parsed.entries.size());
@@ -557,7 +553,7 @@ std::optional<Manifest> ParseManifest(const std::string& manifest)
 // Not showing a progress bar here because this part is just too quick
 std::optional<Manifest> FetchAndParseManifest(const std::string& url)
 {
-  Common::HttpRequest http;
+  const Common::HttpRequest http;
 
   Common::HttpRequest::Response resp = http.Get(url);
   if (!resp)
@@ -566,24 +562,24 @@ std::optional<Manifest> FetchAndParseManifest(const std::string& url)
     return {};
   }
 
-  std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
-  std::optional<std::string> maybe_decompressed = GzipInflate(contents);
+  const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
+  const std::optional<std::string> maybe_decompressed = GzipInflate(contents);
   if (!maybe_decompressed)
     return {};
   std::string decompressed = std::move(*maybe_decompressed);
 
   // Split into manifest and signature.
-  size_t boundary = decompressed.rfind("\n\n");
+  const size_t boundary = decompressed.rfind("\n\n");
   if (boundary == std::string::npos)
   {
     LogToFile("No signature was found in manifest.\n");
     return {};
   }
 
-  std::string signature_block = decompressed.substr(boundary + 2);  // 2 for "\n\n".
-  decompressed.resize(boundary + 1);                                // 1 to keep the final "\n".
+  const std::string signature_block = decompressed.substr(boundary + 2); // 2 for "\n\n".
+  decompressed.resize(boundary + 1);                               // 1 to keep the final "\n".
 
-  std::vector<std::string> signatures = SplitString(signature_block, '\n');
+  const std::vector<std::string> signatures = SplitString(signature_block, '\n');
   bool found_valid_signature = false;
   for (const auto& signature : signatures)
   {
@@ -621,43 +617,43 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
       OptionParser().prog("Dolphin Updater").description("Dolphin Updater binary");
 
   parser.add_option("--this-manifest-url")
-      .dest("this-manifest-url")
-      .help("URL to the update manifest for the currently installed version.")
-      .metavar("URL");
+        .dest("this-manifest-url")
+        .help("URL to the update manifest for the currently installed version.")
+        .metavar("URL");
   parser.add_option("--next-manifest-url")
-      .dest("next-manifest-url")
-      .help("URL to the update manifest for the to-be-installed version.")
-      .metavar("URL");
+        .dest("next-manifest-url")
+        .help("URL to the update manifest for the to-be-installed version.")
+        .metavar("URL");
   parser.add_option("--content-store-url")
-      .dest("content-store-url")
-      .help("Base URL of the content store where files to download are stored.")
-      .metavar("URL");
+        .dest("content-store-url")
+        .help("Base URL of the content store where files to download are stored.")
+        .metavar("URL");
   parser.add_option("--install-base-path")
-      .dest("install-base-path")
-      .help("Base path of the Dolphin install to be updated.")
-      .metavar("PATH");
+        .dest("install-base-path")
+        .help("Base path of the Dolphin install to be updated.")
+        .metavar("PATH");
   parser.add_option("--binary-to-restart")
-      .dest("binary-to-restart")
-      .help("Binary to restart after the update is over.")
-      .metavar("PATH");
+        .dest("binary-to-restart")
+        .help("Binary to restart after the update is over.")
+        .metavar("PATH");
   parser.add_option("--log-file")
-      .dest("log-file")
-      .help("File where to log updater debug output.")
-      .metavar("PATH");
+        .dest("log-file")
+        .help("File where to log updater debug output.")
+        .metavar("PATH");
   parser.add_option("--parent-pid")
-      .dest("parent-pid")
-      .type("int")
-      .help("(optional) PID of the parent process. The updater will wait for this process to "
+        .dest("parent-pid")
+        .type("int")
+        .help("(optional) PID of the parent process. The updater will wait for this process to "
             "complete before proceeding.")
-      .metavar("PID");
+        .metavar("PID");
 
   optparse::Values options = parser.parse_args(args);
 
   Options opts;
 
   // Required arguments.
-  std::vector<std::string> required{"this-manifest-url", "next-manifest-url", "content-store-url",
-                                    "install-base-path"};
+  const std::vector<std::string> required{"this-manifest-url", "next-manifest-url", "content-store-url",
+                                          "install-base-path"};
   for (const auto& req : required)
   {
     if (!options.is_set(req))
@@ -684,7 +680,7 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 
 bool RunUpdater(std::vector<std::string> args)
 {
-  std::optional<Options> maybe_opts = ParseCommandLine(args);
+  const std::optional<Options> maybe_opts = ParseCommandLine(args);
 
   if (!maybe_opts)
   {
@@ -692,47 +688,48 @@ bool RunUpdater(std::vector<std::string> args)
   }
 
   UI::Init();
-  UI::SetVisible(false);
+  UI::Hide();
 
   Common::ScopeGuard ui_guard{[] { UI::Stop(); }};
-  Options opts = std::move(*maybe_opts);
+  const auto [this_manifest_url, next_manifest_url, content_store_url, install_base_path,
+    binary_to_restart, parent_pid, log_file_opts] = std::move(*maybe_opts);
 
-  if (opts.log_file)
+  if (log_file_opts)
   {
-    if (!log_file.Open(opts.log_file.value(), "w"))
+    if (!log_file.Open(log_file_opts.value(), "w"))
       log_file.SetHandle(stderr);
     else
       atexit(FlushLog);
   }
 
-  LogToFile("Updating from: %s\n", opts.this_manifest_url.c_str());
-  LogToFile("Updating to:   %s\n", opts.next_manifest_url.c_str());
-  LogToFile("Install path:  %s\n", opts.install_base_path.c_str());
+  LogToFile("Updating from: %s\n", this_manifest_url.c_str());
+  LogToFile("Updating to:   %s\n", next_manifest_url.c_str());
+  LogToFile("Install path:  %s\n", install_base_path.c_str());
 
-  if (!File::IsDirectory(opts.install_base_path))
+  if (!File::IsDirectory(install_base_path))
   {
     FatalError("Cannot find install base path, or not a directory.");
     return false;
   }
 
-  if (opts.parent_pid)
+  if (parent_pid)
   {
-    LogToFile("Waiting for parent PID %d to complete...\n", *opts.parent_pid);
+    LogToFile("Waiting for parent PID %d to complete...\n", *parent_pid);
 
-    auto pid = opts.parent_pid.value();
+    const auto pid = parent_pid.value();
 
-    UI::WaitForPID(static_cast<u32>(pid));
+    UI::WaitForPID(pid);
 
     LogToFile("Completed! Proceeding with update.\n");
   }
 
-  UI::SetVisible(true);
+  UI::Show();
 
   UI::SetDescription("Fetching and parsing manifests...");
 
   Manifest this_manifest, next_manifest;
   {
-    std::optional<Manifest> maybe_manifest = FetchAndParseManifest(opts.this_manifest_url);
+    std::optional<Manifest> maybe_manifest = FetchAndParseManifest(this_manifest_url);
     if (!maybe_manifest)
     {
       FatalError("Could not fetch current manifest. Aborting.");
@@ -740,7 +737,7 @@ bool RunUpdater(std::vector<std::string> args)
     }
     this_manifest = std::move(*maybe_manifest);
 
-    maybe_manifest = FetchAndParseManifest(opts.next_manifest_url);
+    maybe_manifest = FetchAndParseManifest(next_manifest_url);
     if (!maybe_manifest)
     {
       FatalError("Could not fetch next manifest. Aborting.");
@@ -751,10 +748,10 @@ bool RunUpdater(std::vector<std::string> args)
 
   UI::SetDescription("Computing what to do...");
 
-  TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
+  const TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
   todo.Log();
 
-  std::string temp_dir = File::CreateTempDir();
+  const std::string temp_dir = File::CreateTempDir();
   if (temp_dir.empty())
   {
     FatalError("Could not create temporary directory. Aborting.");
@@ -763,7 +760,7 @@ bool RunUpdater(std::vector<std::string> args)
 
   UI::SetDescription("Performing Update...");
 
-  bool ok = PerformUpdate(todo, opts.install_base_path, opts.content_store_url, temp_dir);
+  const bool ok = PerformUpdate(todo, install_base_path, content_store_url, temp_dir);
   CleanUpTempDir(temp_dir, todo);
   if (!ok)
   {
@@ -782,9 +779,9 @@ bool RunUpdater(std::vector<std::string> args)
   // Let the user process that we are done.
   UI::Sleep(1);
 
-  if (opts.binary_to_restart)
+  if (binary_to_restart)
   {
-    UI::LaunchApplication(opts.binary_to_restart.value());
+    UI::LaunchApplication(binary_to_restart.value());
   }
 
   return true;

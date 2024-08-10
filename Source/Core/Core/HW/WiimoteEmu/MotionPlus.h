@@ -131,7 +131,7 @@ public:
 
   static constexpr u16 VALUE_SCALE =
       (CALIBRATION_SCALE_OFFSET >> (CALIBRATION_BITS - BITS_OF_PRECISION));
-  static constexpr float VALUE_SCALE_DEGREES = VALUE_SCALE / float(MathUtil::TAU) * 360;
+  static constexpr float VALUE_SCALE_DEGREES = VALUE_SCALE / static_cast<float>(MathUtil::TAU) * 360;
 
   static constexpr float SLOW_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_SLOW_SCALE_DEGREES;
   static constexpr float FAST_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_FAST_SCALE_DEGREES;
@@ -153,10 +153,10 @@ public:
   ExtensionPort& GetExtPort();
 
   // Vec3 is interpreted as radians/s about the x,y,z axes following the "right-hand rule".
-  static MotionPlus::DataFormat::Data GetGyroscopeData(const Common::Vec3& angular_velocity);
-  static MotionPlus::DataFormat::Data GetDefaultGyroscopeData();
+  static DataFormat::Data GetGyroscopeData(const Common::Vec3& angular_velocity);
+  static DataFormat::Data GetDefaultGyroscopeData();
 
-  void PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data);
+  void PrepareInput(const DataFormat::Data& gyroscope_data);
 
   // Pointer to 6 bytes is expected.
   static void ApplyPassthroughModifications(PassthroughMode, u8* data);

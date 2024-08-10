@@ -17,7 +17,7 @@ SWOGLWindow::~SWOGLWindow() = default;
 
 std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
 {
-  std::unique_ptr<SWOGLWindow> window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
+  auto window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
   if (!window->Initialize(wsi))
   {
     PanicAlertFmt("Failed to create OpenGL window");
@@ -44,30 +44,30 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
     ERROR_LOG_FMT(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
     return false;
   }
-  else if (GLExtensions::Version() < 310)
+  if (GLExtensions::Version() < 310)
   {
     ERROR_LOG_FMT(VIDEO, "OpenGL Version {} detected, but at least 3.1 is required.",
                   GLExtensions::Version());
     return false;
   }
 
-  std::string frag_shader = "in vec2 TexCoord;\n"
+  const std::string frag_shader = "in vec2 TexCoord;\n"
                             "out vec4 ColorOut;\n"
                             "uniform sampler2D samp;\n"
                             "void main() {\n"
                             "	ColorOut = texture(samp, TexCoord);\n"
                             "}\n";
 
-  std::string vertex_shader = "out vec2 TexCoord;\n"
+  const std::string vertex_shader = "out vec2 TexCoord;\n"
                               "void main() {\n"
                               "	vec2 rawpos = vec2(gl_VertexID & 1, (gl_VertexID & 2) >> 1);\n"
                               "	gl_Position = vec4(rawpos * 2.0 - 1.0, 0.0, 1.0);\n"
                               "	TexCoord = vec2(rawpos.x, -rawpos.y);\n"
                               "}\n";
 
-  std::string header = m_gl_context->IsGLES() ? "#version 300 es\n"
-                                                "precision highp float;\n" :
-                                                "#version 140\n";
+  const std::string header = m_gl_context->IsGLES() ? "#version 300 es\n"
+                               "precision highp float;\n" :
+                               "#version 140\n";
 
   m_image_program = GLUtil::CompileProgram(header + vertex_shader, header + frag_shader);
 
@@ -85,13 +85,13 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
 }
 
 void SWOGLWindow::ShowImage(const AbstractTexture* image,
-                            const MathUtil::Rectangle<int>& xfb_region)
+                            const MathUtil::Rectangle<int>& xfb_region) const
 {
-  const SW::SWTexture* sw_image = static_cast<const SW::SWTexture*>(image);
+  auto sw_image = static_cast<const SW::SWTexture*>(image);
   m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
-  GLsizei glWidth = (GLsizei)m_gl_context->GetBackBufferWidth();
-  GLsizei glHeight = (GLsizei)m_gl_context->GetBackBufferHeight();
+  const GLsizei glWidth = static_cast<GLsizei>(m_gl_context->GetBackBufferWidth());
+  const GLsizei glHeight = static_cast<GLsizei>(m_gl_context->GetBackBufferHeight());
 
   glViewport(0, 0, glWidth, glHeight);
 

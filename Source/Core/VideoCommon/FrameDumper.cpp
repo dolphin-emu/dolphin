@@ -25,7 +25,7 @@ static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
                                             frame.stride,
-                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
+                                            Get(Config::GFX_PNG_COMPRESSION_LEVEL));
 }
 
 FrameDumper::FrameDumper()
@@ -41,13 +41,13 @@ FrameDumper::~FrameDumper()
 
 void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
                                    const MathUtil::Rectangle<int>& src_rect,
-                                   const MathUtil::Rectangle<int>& target_rect, u64 ticks,
-                                   int frame_number)
+                                   const MathUtil::Rectangle<int>& target_rect, const u64 ticks,
+                                   const int frame_number)
 {
-  int source_width = src_rect.GetWidth();
-  int source_height = src_rect.GetHeight();
-  int target_width = target_rect.GetWidth();
-  int target_height = target_rect.GetHeight();
+  const int source_width = src_rect.GetWidth();
+  const int source_height = src_rect.GetHeight();
+  const int target_width = target_rect.GetWidth();
+  const int target_height = target_rect.GetHeight();
 
   // We only need to render a copy if we need to stretch/scale the XFB copy.
   MathUtil::Rectangle<int> copy_rect = src_rect;
@@ -71,7 +71,7 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
   m_frame_dump_needs_flush = true;
 }
 
-bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
+bool FrameDumper::CheckFrameDumpRenderTexture(const u32 target_width, const u32 target_height)
 {
   // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
   // Or, resize texture if it isn't large enough to accommodate the current frame.
@@ -99,7 +99,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   return true;
 }
 
-bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height)
+bool FrameDumper::CheckFrameDumpReadbackTexture(const u32 target_width, const u32 target_height)
 {
   std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_texture;
   if (rbtex && rbtex->GetWidth() == target_width && rbtex->GetHeight() == target_height)
@@ -127,7 +127,7 @@ void FrameDumper::FlushFrameDump()
   std::swap(m_frame_dump_output_texture, m_frame_dump_readback_texture);
 
   // Queue encoding of the last frame dumped.
-  auto& output = m_frame_dump_output_texture;
+  const auto& output = m_frame_dump_output_texture;
   output->Flush();
   if (output->Map())
   {
@@ -169,7 +169,7 @@ void FrameDumper::ShutdownFrameDumping()
   m_frame_dump_output_texture.reset();
 }
 
-void FrameDumper::DumpFrameData(const u8* data, int w, int h, int stride)
+void FrameDumper::DumpFrameData(const u8* data, const int w, const int h, const int stride)
 {
   m_frame_dump_data = FrameData{data, w, h, stride, m_last_frame_state};
 
@@ -225,7 +225,7 @@ void FrameDumper::FrameDumpThreadFunc()
     // Save screenshot
     if (m_screenshot_request.TestAndClear())
     {
-      std::lock_guard<std::mutex> lk(m_screenshot_lock);
+      std::lock_guard lk(m_screenshot_lock);
 
       if (DumpFrameToPNG(frame, m_screenshot_name))
         OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
@@ -235,7 +235,7 @@ void FrameDumper::FrameDumpThreadFunc()
       m_screenshot_completed.Set();
     }
 
-    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+    if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     {
       if (!frame_dump_started)
       {
@@ -246,7 +246,7 @@ void FrameDumper::FrameDumpThreadFunc()
 
         // Stop frame dumping if we fail to start.
         if (!frame_dump_started)
-          Config::SetCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, false);
+          SetCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, false);
       }
 
       // If we failed to start frame dumping, don't write a frame.
@@ -317,12 +317,12 @@ std::string FrameDumper::GetFrameDumpNextImageFileName() const
 bool FrameDumper::StartFrameDumpToImage(const FrameData&)
 {
   m_frame_dump_image_counter = 1;
-  if (!Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT))
+  if (!Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT))
   {
     // Only check for the presence of the first image to confirm overwriting.
     // A previous run will always have at least one image, and it's safe to assume that if the user
     // has allowed the first image to be overwritten, this will apply any remaining images as well.
-    std::string filename = GetFrameDumpNextImageFileName();
+    const std::string filename = GetFrameDumpNextImageFileName();
     if (File::Exists(filename))
     {
       if (!AskYesNoFmtT("Frame dump image(s) '{0}' already exists. Overwrite?", filename))
@@ -341,7 +341,7 @@ void FrameDumper::DumpFrameToImage(const FrameData& frame)
 
 void FrameDumper::SaveScreenshot(std::string filename)
 {
-  std::lock_guard<std::mutex> lk(m_screenshot_lock);
+  std::lock_guard lk(m_screenshot_lock);
   m_screenshot_name = std::move(filename);
   m_screenshot_request.Set();
 }
@@ -351,20 +351,20 @@ bool FrameDumper::IsFrameDumping() const
   if (m_screenshot_request.IsSet())
     return true;
 
-  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+  if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return true;
 
   return false;
 }
 
-int FrameDumper::GetRequiredResolutionLeastCommonMultiple() const
+int FrameDumper::GetRequiredResolutionLeastCommonMultiple()
 {
-  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+  if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return VIDEO_ENCODER_LCM;
   return 1;
 }
 
-void FrameDumper::DoState(PointerWrap& p)
+void FrameDumper::DoState(const PointerWrap& p)
 {
 #ifdef HAVE_FFMPEG
   m_ffmpeg_dump.DoState(p);

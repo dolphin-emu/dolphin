@@ -5,9 +5,7 @@
 
 #include <vector>
 
-#include <QRegularExpression>
 #include <QSyntaxHighlighter>
-#include <QTextCharFormat>
 
 struct HighlightingRule;
 

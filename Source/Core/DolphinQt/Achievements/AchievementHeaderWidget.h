@@ -6,8 +6,6 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QWidget>
 
-#include "Core/AchievementManager.h"
-
 class QGroupBox;
 class QLabel;
 class QProgressBar;
@@ -17,7 +15,7 @@ class AchievementHeaderWidget final : public QWidget
   Q_OBJECT
 public:
   explicit AchievementHeaderWidget(QWidget* parent);
-  void UpdateData();
+  void UpdateData() const;
 
 private:
   QLabel* m_user_icon;

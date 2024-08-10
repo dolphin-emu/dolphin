@@ -15,8 +15,8 @@
 namespace DX12
 {
 DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D12PipelineState* pipeline,
-                       ID3D12RootSignature* root_signature, AbstractPipelineUsage usage,
-                       D3D12_PRIMITIVE_TOPOLOGY primitive_topology, bool use_integer_rtv)
+                       ID3D12RootSignature* root_signature, const AbstractPipelineUsage usage,
+                       const D3D12_PRIMITIVE_TOPOLOGY primitive_topology, const bool use_integer_rtv)
     : AbstractPipeline(config), m_pipeline(pipeline), m_root_signature(root_signature),
       m_usage(usage), m_primitive_topology(primitive_topology), m_use_integer_rtv(use_integer_rtv)
 {
@@ -66,7 +66,7 @@ static void GetD3DRasterizerDesc(D3D12_RASTERIZER_DESC* desc, const Rasterizatio
       {D3D12_CULL_MODE_NONE, D3D12_CULL_MODE_BACK, D3D12_CULL_MODE_FRONT, D3D12_CULL_MODE_FRONT}};
 
   desc->FillMode = D3D12_FILL_MODE_SOLID;
-  desc->CullMode = cull_modes[u32(rs_state.cullmode.Value())];
+  desc->CullMode = cull_modes[static_cast<u32>(rs_state.cullmode.Value())];
   desc->MultisampleEnable = fb_state.samples > 1;
 }
 
@@ -80,13 +80,13 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
        D3D12_COMPARISON_FUNC_ALWAYS}};
 
   desc->DepthEnable = state.testenable;
-  desc->DepthFunc = compare_funcs[u32(state.func.Value())];
+  desc->DepthFunc = compare_funcs[static_cast<u32>(state.func.Value())];
   desc->DepthWriteMask =
       state.updateenable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 }
 
 static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
-                            u8 render_target_count)
+                            const u8 render_target_count)
 {
   static constexpr std::array<D3D12_BLEND, 8> src_dual_src_factors = {
       {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
@@ -139,30 +139,30 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
           state.subtractAlpha ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
       if (state.usedualsrc)
       {
-        rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor.Value())];
-        rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha.Value())];
-        rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor.Value())];
-        rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha.Value())];
+        rtblend->SrcBlend = src_dual_src_factors[static_cast<u32>(state.srcfactor.Value())];
+        rtblend->SrcBlendAlpha = src_dual_src_factors[static_cast<u32>(state.srcfactoralpha.Value())];
+        rtblend->DestBlend = dst_dual_src_factors[static_cast<u32>(state.dstfactor.Value())];
+        rtblend->DestBlendAlpha = dst_dual_src_factors[static_cast<u32>(state.dstfactoralpha.Value())];
       }
       else
       {
-        rtblend->SrcBlend = src_factors[u32(state.srcfactor.Value())];
-        rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
-        rtblend->DestBlend = dst_factors[u32(state.dstfactor.Value())];
-        rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
+        rtblend->SrcBlend = src_factors[static_cast<u32>(state.srcfactor.Value())];
+        rtblend->SrcBlendAlpha = src_factors[static_cast<u32>(state.srcfactoralpha.Value())];
+        rtblend->DestBlend = dst_factors[static_cast<u32>(state.dstfactor.Value())];
+        rtblend->DestBlendAlpha = dst_factors[static_cast<u32>(state.dstfactoralpha.Value())];
       }
     }
     else
     {
       rtblend->LogicOpEnable = state.logicopenable;
       if (state.logicopenable)
-        rtblend->LogicOp = logic_ops[u32(state.logicmode.Value())];
+        rtblend->LogicOp = logic_ops[static_cast<u32>(state.logicmode.Value())];
     }
   }
 }
 
 std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config,
-                                               const void* cache_data, size_t cache_data_size)
+                                               const void* cache_data, const size_t cache_data_size)
 {
   DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 
@@ -221,7 +221,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   desc.CachedPSO.CachedBlobSizeInBytes = cache_data_size;
 
   ID3D12PipelineState* pso;
-  HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
+  const HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "CreateGraphicsPipelineState() {}failed: {}",
@@ -238,7 +238,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
 AbstractPipeline::CacheData DXPipeline::GetCacheData() const
 {
   ComPtr<ID3DBlob> blob;
-  HRESULT hr = m_pipeline->GetCachedBlob(&blob);
+  const HRESULT hr = m_pipeline->GetCachedBlob(&blob);
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed: {}", DX12HRWrap(hr));

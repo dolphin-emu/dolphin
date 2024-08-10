@@ -18,9 +18,9 @@
 const u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
 
-static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
+static void PosMtx_ReadDirect_UByte(const VertexLoader* loader)
 {
-  u32 posmtx = DataRead<u8>() & 0x3f;
+  const u32 posmtx = DataRead<u8>() & 0x3f;
   if (loader->m_remaining < 3)
     VertexLoaderManager::position_matrix_index_cache[loader->m_remaining] = posmtx;
   DataWrite<u32>(posmtx);
@@ -37,20 +37,20 @@ static void TexMtx_ReadDirect_UByte(VertexLoader* loader)
 
 static void TexMtx_Write_Float(VertexLoader* loader)
 {
-  DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
+  DataWrite(static_cast<float>(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
 static void TexMtx_Write_Float2(VertexLoader* loader)
 {
   DataWrite(0.f);
-  DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
+  DataWrite(static_cast<float>(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
 static void TexMtx_Write_Float3(VertexLoader* loader)
 {
   DataWrite(0.f);
   DataWrite(0.f);
-  DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
+  DataWrite(static_cast<float>(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
 static void SkipVertex(VertexLoader* loader)
@@ -102,7 +102,7 @@ void VertexLoader::CompileVertexTranslator()
   WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat,
                                                m_VtxAttr.g0.PosElements));
 
-  int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+  const int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
   m_native_vtx_decl.position.components = pos_elements;
   m_native_vtx_decl.position.enable = true;
   m_native_vtx_decl.position.offset = nat_offset;
@@ -113,7 +113,7 @@ void VertexLoader::CompileVertexTranslator()
   // Normals
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    TPipelineFunction pFunc =
+    const TPipelineFunction pFunc =
         VertexLoader_Normal::GetFunction(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat,
                                          m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
 
@@ -142,7 +142,7 @@ void VertexLoader::CompileVertexTranslator()
     m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
-    TPipelineFunction pFunc =
+    const TPipelineFunction pFunc =
         VertexLoader_Color::GetFunction(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
 
     if (pFunc != nullptr)
@@ -226,7 +226,7 @@ void VertexLoader::CompileVertexTranslator()
           WriteCall(VertexLoader_TextCoord::GetDummyFunction());
           break;
         }
-        else if (m_VtxDesc.low.TexMatIdx[j])
+        if (m_VtxDesc.low.TexMatIdx[j])
         {
           has_more = true;
         }
@@ -248,12 +248,12 @@ void VertexLoader::CompileVertexTranslator()
   m_native_vtx_decl.stride = nat_offset;
 }
 
-void VertexLoader::WriteCall(TPipelineFunction func)
+void VertexLoader::WriteCall(const TPipelineFunction func)
 {
   m_PipelineStages.push_back(func);
 }
 
-int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
+int VertexLoader::RunVertices(const u8* src, u8* dst, const int count)
 {
   g_vertex_manager_write_ptr = dst;
   g_video_buffer_read_ptr = src;
@@ -266,7 +266,7 @@ int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
     m_tcIndex = 0;
     m_colIndex = 0;
     m_texmtxwrite = m_texmtxread = 0;
-    for (TPipelineFunction& func : m_PipelineStages)
+    for (const TPipelineFunction& func : m_PipelineStages)
       func(this);
     PRIM_LOG("\n");
   }

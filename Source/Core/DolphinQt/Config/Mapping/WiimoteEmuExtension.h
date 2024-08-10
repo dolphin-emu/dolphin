@@ -18,7 +18,7 @@ public:
 
   InputConfig* GetConfig() override;
 
-  void ChangeExtensionType(u32 type);
+  void ChangeExtensionType(u32 type) const;
 
 private:
   void LoadSettings() override;

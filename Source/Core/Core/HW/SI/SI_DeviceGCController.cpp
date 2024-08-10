@@ -25,8 +25,8 @@
 namespace SerialInterface
 {
 // --- standard GameCube controller ---
-CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices device,
-                                               int device_number)
+CSIDevice_GCController::CSIDevice_GCController(Core::System& system, const SIDevices device,
+                                               const int device_number)
     : ISIDevice(system, device, device_number)
 {
   // Here we set origin to perfectly centered values.
@@ -39,13 +39,14 @@ CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices d
   m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
 }
 
-int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_GCController::RunBuffer(u8* buffer, const int request_length)
 {
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
 
-  GCPadStatus pad_status = GetPadStatus();
-  if (!pad_status.isConnected)
+  const auto [_button, _stickX, _stickY, _substickX, _substickY, _triggerLeft, _triggerRight,
+    _analogA, _analogB, isConnected] = GetPadStatus();
+  if (!isConnected)
     return -1;
 
   // Read the command
@@ -57,7 +58,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_CONTROLLER);
+    const u32 id = Common::swap32(SI_GC_CONTROLLER);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -79,8 +80,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Get Origin");
 
-    u8* calibration = reinterpret_cast<u8*>(&m_origin);
-    for (int i = 0; i < (int)sizeof(SOrigin); i++)
+    const u8* calibration = reinterpret_cast<u8*>(&m_origin);
+    for (int i = 0; i < static_cast<int>(sizeof(SOrigin)); i++)
     {
       buffer[i] = *calibration++;
     }
@@ -92,8 +93,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Recalibrate");
 
-    u8* calibration = reinterpret_cast<u8*>(&m_origin);
-    for (int i = 0; i < (int)sizeof(SOrigin); i++)
+    const u8* calibration = reinterpret_cast<u8*>(&m_origin);
+    for (int i = 0; i < static_cast<int>(sizeof(SOrigin)); i++)
     {
       buffer[i] = *calibration++;
     }
@@ -120,7 +121,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie, const int device_number,
                                                   GCPadStatus* pad_status)
 {
   movie.SetPolledDevice();
@@ -266,7 +267,7 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   {
     const u64 current_time = m_system.GetCoreTiming().GetTicks();
     const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
+    if (static_cast<u32>(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
@@ -298,7 +299,7 @@ void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
 }
 
 // SendCommand
-void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCController::SendCommand(const u32 command, const u8 poll)
 {
   UCommand controller_command(command);
 
@@ -313,9 +314,9 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
     {
       const SIDevices device = m_system.GetSerialInterface().GetDeviceType(pad_num);
       if (type == 1)
-        CSIDevice_GCController::Rumble(pad_num, 1.0, device);
+        Rumble(pad_num, 1.0, device);
       else
-        CSIDevice_GCController::Rumble(pad_num, 0.0, device);
+        Rumble(pad_num, 0.0, device);
     }
 
     if (poll == 0)
@@ -341,7 +342,7 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_last_button_combo);
 }
 
-CSIDevice_TaruKonga::CSIDevice_TaruKonga(Core::System& system, SIDevices device, int device_number)
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(Core::System& system, const SIDevices device, const int device_number)
     : CSIDevice_GCController(system, device, device_number)
 {
 }

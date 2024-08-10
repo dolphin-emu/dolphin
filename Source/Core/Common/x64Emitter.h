@@ -112,7 +112,7 @@ struct OpArg
 
   // dummy op arg, used for storage
   constexpr OpArg() = default;
-  constexpr OpArg(u64 offset_, int scale_, X64Reg rm_reg = RAX, X64Reg scaled_reg = RAX)
+  constexpr OpArg(const u64 offset_, const int scale_, const X64Reg rm_reg = RAX, const X64Reg scaled_reg = RAX)
       : scale{static_cast<u8>(scale_)}, offsetOrBaseReg{static_cast<u16>(rm_reg)},
         indexReg{static_cast<u16>(scaled_reg)}, offset{offset_}
   {
@@ -126,64 +126,64 @@ struct OpArg
   u64 Imm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);
-    return (u64)offset;
+    return offset;
   }
   u32 Imm32() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM32);
-    return (u32)offset;
+    return static_cast<u32>(offset);
   }
   u16 Imm16() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM16);
-    return (u16)offset;
+    return static_cast<u16>(offset);
   }
   u8 Imm8() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM8);
-    return (u8)offset;
+    return static_cast<u8>(offset);
   }
 
   s64 SImm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);
-    return (s64)offset;
+    return static_cast<s64>(offset);
   }
   s32 SImm32() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM32);
-    return (s32)offset;
+    return static_cast<s32>(offset);
   }
   s16 SImm16() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM16);
-    return (s16)offset;
+    return static_cast<s16>(offset);
   }
   s8 SImm8() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM8);
-    return (s8)offset;
+    return static_cast<s8>(offset);
   }
 
   OpArg AsImm64() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u64)offset, SCALE_IMM64);
+    return OpArg(offset, SCALE_IMM64);
   }
   OpArg AsImm32() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u32)offset, SCALE_IMM32);
+    return OpArg(static_cast<u32>(offset), SCALE_IMM32);
   }
   OpArg AsImm16() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u16)offset, SCALE_IMM16);
+    return OpArg(static_cast<u16>(offset), SCALE_IMM16);
   }
   OpArg AsImm8() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u8)offset, SCALE_IMM8);
+    return OpArg(static_cast<u8>(offset), SCALE_IMM8);
   }
 
   constexpr bool IsImm() const
@@ -192,7 +192,7 @@ struct OpArg
            scale == SCALE_IMM64;
   }
   constexpr bool IsSimpleReg() const { return scale == SCALE_NONE; }
-  constexpr bool IsSimpleReg(X64Reg reg) const { return IsSimpleReg() && GetSimpleReg() == reg; }
+  constexpr bool IsSimpleReg(const X64Reg reg) const { return IsSimpleReg() && GetSimpleReg() == reg; }
   constexpr bool IsZero() const { return IsImm() && offset == 0; }
   constexpr int GetImmBits() const
   {
@@ -219,7 +219,7 @@ struct OpArg
     return INVALID_REG;
   }
 
-  void AddMemOffset(int val)
+  void AddMemOffset(const int val)
   {
     DEBUG_ASSERT_MSG(DYNA_REC, scale == SCALE_RIP || (scale <= SCALE_ATREG && scale > SCALE_NONE),
                      "Tried to increment an OpArg which doesn't have an offset");
@@ -245,28 +245,28 @@ private:
 template <typename T>
 inline OpArg M(const T* ptr)
 {
-  return OpArg((u64)(const void*)ptr, (int)SCALE_RIP);
+  return OpArg((u64)static_cast<const void*>(ptr), SCALE_RIP);
 }
-constexpr OpArg R(X64Reg value)
+constexpr OpArg R(const X64Reg value)
 {
   return OpArg(0, SCALE_NONE, value);
 }
-constexpr OpArg MatR(X64Reg value)
+constexpr OpArg MatR(const X64Reg value)
 {
   return OpArg(0, SCALE_ATREG, value);
 }
 
-constexpr OpArg MDisp(X64Reg value, int offset)
+constexpr OpArg MDisp(const X64Reg value, const int offset)
 {
   return OpArg(static_cast<u32>(offset), SCALE_ATREG, value);
 }
 
-constexpr OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
+constexpr OpArg MComplex(const X64Reg base, const X64Reg scaled, const int scale, const int offset)
 {
   return OpArg(offset, scale, base, scaled);
 }
 
-constexpr OpArg MScaled(X64Reg scaled, int scale, int offset)
+constexpr OpArg MScaled(const X64Reg scaled, const int scale, const int offset)
 {
   if (scale == SCALE_1)
     return OpArg(offset, SCALE_ATREG, scaled);
@@ -274,24 +274,24 @@ constexpr OpArg MScaled(X64Reg scaled, int scale, int offset)
   return OpArg(offset, scale | 0x20, RAX, scaled);
 }
 
-constexpr OpArg MRegSum(X64Reg base, X64Reg offset)
+constexpr OpArg MRegSum(const X64Reg base, const X64Reg offset)
 {
   return MComplex(base, offset, 1, 0);
 }
 
-constexpr OpArg Imm8(u8 imm)
+constexpr OpArg Imm8(const u8 imm)
 {
   return OpArg(imm, SCALE_IMM8);
 }
-constexpr OpArg Imm16(u16 imm)
+constexpr OpArg Imm16(const u16 imm)
 {
   return OpArg(imm, SCALE_IMM16);
 }  // rarely used
-constexpr OpArg Imm32(u32 imm)
+constexpr OpArg Imm32(const u32 imm)
 {
   return OpArg(imm, SCALE_IMM32);
 }
-constexpr OpArg Imm64(u64 imm)
+constexpr OpArg Imm64(const u64 imm)
 {
   return OpArg(imm, SCALE_IMM64);
 }
@@ -302,14 +302,14 @@ inline OpArg ImmPtr(const void* imm)
 
 inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
 {
-  s64 distance = (s64)ptr - (s64)base;
+  const s64 distance = (s64)ptr - (s64)base;
   if (distance >= 0x80000000LL || distance < -0x80000000LL)
   {
     ASSERT_MSG(DYNA_REC, 0, "pointer offset out of range");
     return 0;
   }
 
-  return (u32)distance;
+  return static_cast<u32>(distance);
 }
 
 struct FixupBranch
@@ -341,7 +341,7 @@ private:
   // Must be cleared with SetCodePtr() afterwards.
   bool m_write_failed = false;
 
-  void CheckFlags();
+  void CheckFlags() const;
 
   void Rex(int w, int r, int x, int b);
   void WriteModRM(int mod, int reg, int rm);
@@ -375,8 +375,8 @@ private:
   void WriteMOVBE(int bits, u8 op, X64Reg regOp, const OpArg& arg);
   void WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg& a2);
 
-  void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
-                              size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
+  static void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
+                                     size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
 protected:
   void Write8(u8 value);
@@ -395,9 +395,9 @@ public:
   u8* AlignCode16();
   u8* AlignCodePage();
   const u8* GetCodePtr() const { return code; }
-  u8* GetWritableCodePtr() { return code; }
+  u8* GetWritableCodePtr() const { return code; }
   const u8* GetCodeEnd() const { return m_code_end; }
-  u8* GetWritableCodeEnd() { return m_code_end; }
+  u8* GetWritableCodeEnd() const { return m_code_end; }
 
   void LockFlags() { flags_locked = true; }
   void UnlockFlags() { flags_locked = false; }
@@ -465,7 +465,7 @@ public:
   [[nodiscard]] FixupBranch J_CC(CCFlags conditionCode, Jump jump = Jump::Short);
   void J_CC(CCFlags conditionCode, const u8* addr);
 
-  void SetJumpTarget(const FixupBranch& branch);
+  void SetJumpTarget(const FixupBranch& branch) const;
 
   void SETcc(CCFlags flag, OpArg dest);
   // Note: CMOV brings small if any benefit on current CPUs.
@@ -992,7 +992,7 @@ public:
                       std::is_function<std::remove_pointer_t<FunctionPointer>>(),
                   "Supplied type must be a function pointer.");
 
-    const void* ptr = reinterpret_cast<const void*>(func);
+    auto ptr = reinterpret_cast<const void*>(func);
     const u64 address = reinterpret_cast<u64>(ptr);
     const u64 distance = address - (reinterpret_cast<u64>(code) + 5);
 
@@ -1009,29 +1009,14 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionC16(FunctionPointer func, u16 param1)
+  void ABI_CallFunctionC16(FunctionPointer func, const u16 param1)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     ABI_CallFunction(func);
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionCC16(FunctionPointer func, u32 param1, u16 param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC(FunctionPointer func, u32 param1)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC(FunctionPointer func, u32 param1, u32 param2)
+  void ABI_CallFunctionCC16(FunctionPointer func, const u32 param1, const u16 param2)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1039,7 +1024,22 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionCP(FunctionPointer func, u32 param1, const void* param2)
+  void ABI_CallFunctionC(FunctionPointer func, const u32 param1)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCC(FunctionPointer func, const u32 param1, const u32 param2)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCP(FunctionPointer func, const u32 param1, const void* param2)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
@@ -1047,7 +1047,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionCCC(FunctionPointer func, u32 param1, u32 param2, u32 param3)
+  void ABI_CallFunctionCCC(FunctionPointer func, const u32 param1, const u32 param2, const u32 param3)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1056,7 +1056,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionCCP(FunctionPointer func, u32 param1, u32 param2, const void* param3)
+  void ABI_CallFunctionCCP(FunctionPointer func, const u32 param1, const u32 param2, const void* param3)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1065,7 +1065,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionCCCP(FunctionPointer func, u32 param1, u32 param2, u32 param3,
+  void ABI_CallFunctionCCCP(FunctionPointer func, const u32 param1, const u32 param2, const u32 param3,
                             const void* param4)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
@@ -1091,7 +1091,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
+  void ABI_CallFunctionPC(FunctionPointer func, const void* param1, const u32 param2)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1099,7 +1099,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, u32 param3)
+  void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, const u32 param3)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
     MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
@@ -1109,7 +1109,7 @@ public:
 
   // Pass a register as a parameter.
   template <typename FunctionPointer>
-  void ABI_CallFunctionR(FunctionPointer func, X64Reg reg1)
+  void ABI_CallFunctionR(FunctionPointer func, const X64Reg reg1)
   {
     if (reg1 != ABI_PARAM1)
       MOV(32, R(ABI_PARAM1), R(reg1));
@@ -1118,7 +1118,7 @@ public:
 
   // Pass a pointer and register as a parameter.
   template <typename FunctionPointer>
-  void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
+  void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, const X64Reg reg1)
   {
     if (reg1 != ABI_PARAM2)
       MOV(64, R(ABI_PARAM2), R(reg1));
@@ -1128,7 +1128,7 @@ public:
 
   // Pass two registers as parameters.
   template <typename FunctionPointer>
-  void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
+  void ABI_CallFunctionRR(FunctionPointer func, const X64Reg reg1, const X64Reg reg2)
   {
     MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
     ABI_CallFunction(func);
@@ -1136,7 +1136,7 @@ public:
 
   // Pass a pointer and two registers as parameters.
   template <typename FunctionPointer>
-  void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2)
+  void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, const X64Reg reg1, const X64Reg reg2)
   {
     MOVTwo(64, ABI_PARAM2, reg1, 0, ABI_PARAM3, reg2);
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
@@ -1144,7 +1144,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
+  void ABI_CallFunctionAC(const int bits, FunctionPointer func, const OpArg& arg1, const u32 param2)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);
@@ -1153,8 +1153,8 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionPAC(int bits, FunctionPointer func, const void* ptr1, const Gen::OpArg& arg2,
-                           u32 param3)
+  void ABI_CallFunctionPAC(const int bits, FunctionPointer func, const void* ptr1, const OpArg& arg2,
+                           const u32 param3)
   {
     if (!arg2.IsSimpleReg(ABI_PARAM2))
       MOV(bits, R(ABI_PARAM2), arg2);
@@ -1164,7 +1164,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1)
+  void ABI_CallFunctionA(const int bits, FunctionPointer func, const OpArg& arg1)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);

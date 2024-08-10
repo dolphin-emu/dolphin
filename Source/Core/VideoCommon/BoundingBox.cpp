@@ -11,8 +11,6 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-#include <algorithm>
-
 std::unique_ptr<BoundingBox> g_bounding_box;
 
 void BoundingBox::Enable(PixelShaderManager& pixel_shader_manager)
@@ -34,7 +32,7 @@ void BoundingBox::Flush()
 
   m_is_valid = false;
 
-  if (std::none_of(m_dirty.begin(), m_dirty.end(), [](bool dirty) { return dirty; }))
+  if (std::ranges::none_of(m_dirty, [](const bool dirty) { return dirty; }))
     return;
 
   // TODO: Does this make any difference over just writing all the values?
@@ -60,7 +58,7 @@ void BoundingBox::Readback()
   if (!g_ActiveConfig.backend_info.bSupportsBBox)
     return;
 
-  auto read_values = Read(0, NUM_BBOX_VALUES);
+  const auto read_values = Read(0, NUM_BBOX_VALUES);
 
   // Preserve dirty values, that way we don't need to sync.
   for (u32 i = 0; i < NUM_BBOX_VALUES; i++)
@@ -72,7 +70,7 @@ void BoundingBox::Readback()
   m_is_valid = true;
 }
 
-u16 BoundingBox::Get(u32 index)
+u16 BoundingBox::Get(const u32 index)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 
@@ -85,7 +83,7 @@ u16 BoundingBox::Get(u32 index)
   return static_cast<u16>(m_values[index]);
 }
 
-void BoundingBox::Set(u32 index, u16 value)
+void BoundingBox::Set(const u32 index, const u16 value)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 

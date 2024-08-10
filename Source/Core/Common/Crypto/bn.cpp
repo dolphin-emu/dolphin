@@ -4,7 +4,6 @@
 #include "Common/Crypto/bn.h"
 
 #include <cstddef>
-#include <cstdio>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
@@ -30,7 +29,7 @@ void bn_sub_modulus(u8* a, const u8* N, const size_t n)
   for (size_t i = n; i > 0;)
   {
     --i;
-    u32 dig = N[i] + c;
+    const u32 dig = N[i] + c;
     c = (a[i] < dig);
     a[i] -= dig;
   }
@@ -42,7 +41,7 @@ void bn_add(u8* d, const u8* a, const u8* b, const u8* N, const size_t n)
   for (size_t i = n; i > 0;)
   {
     --i;
-    u32 dig = a[i] + b[i] + c;
+    const u32 dig = a[i] + b[i] + c;
     c = (dig >= 0x100);
     d[i] = dig;
   }

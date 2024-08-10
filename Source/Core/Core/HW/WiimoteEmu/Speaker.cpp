@@ -12,7 +12,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/System.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
@@ -27,31 +26,29 @@ namespace WiimoteEmu
 {
 // Yamaha ADPCM decoder code based on The ffmpeg Project (Copyright (s) 2001-2003)
 
-static const s32 yamaha_difflookup[] = {1,  3,  5,  7,  9,  11,  13,  15,
-                                        -1, -3, -5, -7, -9, -11, -13, -15};
+static constexpr s32 yamaha_difflookup[] = {1,  3,  5,  7,  9,  11,  13,  15,
+                                            -1, -3, -5, -7, -9, -11, -13, -15};
 
 static const s32 yamaha_indexscale[] = {230, 230, 230, 230, 307, 409, 512, 614,
                                         230, 230, 230, 230, 307, 409, 512, 614};
 
-static s16 av_clip16(s32 a)
+static s16 av_clip16(const s32 a)
 {
   if ((a + 32768) & ~65535)
     return (a >> 31) ^ 32767;
-  else
-    return a;
+  return a;
 }
 
-static s32 av_clip(s32 a, s32 amin, s32 amax)
+static s32 av_clip(const s32 a, const s32 amin, const s32 amax)
 {
   if (a < amin)
     return amin;
-  else if (a > amax)
+  if (a > amax)
     return amax;
-  else
-    return a;
+  return a;
 }
 
-static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
+static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, const u8 nibble)
 {
   s.predictor += (s.step * yamaha_difflookup[nibble]) / 8;
   s.predictor = av_clip16(s.predictor);
@@ -88,20 +85,20 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
 
-  if (reg_data.format == SpeakerLogic::DATA_FORMAT_PCM)
+  if (reg_data.format == DATA_FORMAT_PCM)
   {
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
     {
-      samples[i] = ((s16)(s8)data[i]) * 0x100;
+      samples[i] = static_cast<s16>((s8)data[i]) * 0x100;
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 12000000;
     volume_divisor = 0xff;
-    sample_length = (unsigned int)length;
+    sample_length = static_cast<unsigned int>(length);
   }
-  else if (reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
+  else if (reg_data.format == DATA_FORMAT_ADPCM)
   {
     // 4 bit Yamaha ADPCM (same as dreamcast)
     for (int i = 0; i < length; ++i)
@@ -113,7 +110,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 6000000;
     volume_divisor = 0x7F;
-    sample_length = (unsigned int)length * 2;
+    sample_length = static_cast<unsigned int>(length) * 2;
   }
   else
   {
@@ -129,7 +126,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 
   // SetWiimoteSpeakerVolume expects values from 0 to 255.
   // Multiply by 256, floor to int, and clamp to 255 for a uniformly mapped conversion.
-  const double volume = float(reg_data.volume) * 256.f / volume_divisor;
+  const double volume = static_cast<float>(reg_data.volume) * 256.f / volume_divisor;
 
   // This used the "Constant Power Pan Law", but it is undesirable
   // if the pan is 0, and it implied that the loudness of a wiimote speaker
@@ -139,11 +136,11 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   // because you can lower their volume from the Wii settings and because they are
   // already extremely low quality, so any additional quality loss isn't welcome.
   speaker_pan = std::clamp(speaker_pan, -1.f, 1.f);
-  const u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
-  const u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
+  const u32 l_volume = std::min(static_cast<u32>(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
+  const u32 r_volume = std::min(static_cast<u32>(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
-  auto& system = Core::System::GetInstance();
-  SoundStream* sound_stream = system.GetSoundStream();
+  const auto& system = Core::System::GetInstance();
+  const SoundStream* sound_stream = system.GetSoundStream();
 
   sound_stream->GetMixer()->SetWiimoteSpeakerVolume(l_volume, r_volume);
 
@@ -190,12 +187,17 @@ void SpeakerLogic::DoState(PointerWrap& p)
   p.Do(reg_data);
 }
 
-void SpeakerLogic::SetSpeakerEnabled(bool enabled)
+void SpeakerLogic::EnableSpeaker()
 {
-  m_speaker_enabled = enabled;
+  m_speaker_enabled = true;
 }
 
-int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+void SpeakerLogic::DisableSpeaker()
+{
+  m_speaker_enabled = false;
+}
+
+int SpeakerLogic::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -203,7 +205,7 @@ int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   return RawRead(&reg_data, addr, count, data_out);
 }
 
-int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int SpeakerLogic::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -213,12 +215,9 @@ int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
     SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
     return count;
   }
-  else
-  {
-    // TODO: Does writing immediately change the decoder config even when active
-    // or does a write to 0x08 activate the new configuration or something?
-    return RawWrite(&reg_data, addr, count, data_in);
-  }
+  // TODO: Does writing immediately change the decoder config even when active
+  // or does a write to 0x08 activate the new configuration or something?
+  return RawWrite(&reg_data, addr, count, data_in);
 }
 
 }  // namespace WiimoteEmu

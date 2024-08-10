@@ -43,7 +43,7 @@ void GameListDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::accepted, this, &GameListDialog::accept);
 }
 
-void GameListDialog::PopulateGameList()
+void GameListDialog::PopulateGameList() const
 {
   m_game_list->clear();
 

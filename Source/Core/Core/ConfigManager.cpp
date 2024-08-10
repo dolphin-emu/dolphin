@@ -7,7 +7,6 @@
 #include <climits>
 #include <memory>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -18,7 +17,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -26,24 +24,17 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
-#include "Core/CommonTitles.h"
-#include "Core/Config/DefaultLocale.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
-#include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
@@ -120,7 +111,7 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   }
 }
 
-void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)
+void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, const DiscIO::Platform platform)
 {
   const u64 tmd_title_id = tmd.GetTitleId();
 
@@ -143,7 +134,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id)
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     u64 title_id, u16 revision, DiscIO::Region region)
+                                     const u64 title_id, const u16 revision, const DiscIO::Region region)
 {
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
                            m_title_id != title_id || m_revision != revision;
@@ -186,12 +177,12 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
 
-  const bool is_running_or_starting = Core::IsRunningOrStarting(system);
+  const bool is_running_or_starting = IsRunningOrStarting(system);
   if (is_running_or_starting)
-    Core::UpdateTitle(system);
+    UpdateTitle(system);
 
-  Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
-  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+  AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+  AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
   if (is_running_or_starting)
     DolphinAnalytics::Instance().ReportGameStart();
@@ -200,7 +191,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
-  if (!Core::IsRunningOrStarting(system))
+  if (!IsRunningOrStarting(system))
     return;
 
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
@@ -227,9 +218,9 @@ void SConfig::LoadDefaults()
 }
 
 // Static method to make a simple game ID for elf/dol files
-std::string SConfig::MakeGameID(std::string_view file_name)
+std::string SConfig::MakeGameID(const std::string_view file_name)
 {
-  size_t lastdot = file_name.find_last_of(".");
+  const size_t lastdot = file_name.find_last_of(".");
   if (lastdot == std::string::npos)
     return "ID-" + std::string(file_name);
   return "ID-" + std::string(file_name.substr(0, lastdot));
@@ -265,7 +256,7 @@ struct SetGameMetadata
     std::string executable_path = executable.path;
     constexpr char BACKSLASH = '\\';
     constexpr char FORWARDSLASH = '/';
-    std::replace(executable_path.begin(), executable_path.end(), BACKSLASH, FORWARDSLASH);
+    std::ranges::replace(executable_path, BACKSLASH, FORWARDSLASH);
     config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
 
     Host_TitleChanged();
@@ -296,7 +287,7 @@ struct SetGameMetadata
 
   bool operator()(const BootParameters::NANDTitle& nand_title) const
   {
-    IOS::HLE::Kernel ios;
+    const IOS::HLE::Kernel ios;
     const IOS::ES::TMDReader tmd = ios.GetESCore().FindInstalledTMD(nand_title.id);
     if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
     {
@@ -322,7 +313,7 @@ struct SetGameMetadata
 
   bool operator()(const BootParameters::DFF& dff) const
   {
-    std::unique_ptr<FifoDataFile> dff_file(FifoDataFile::Load(dff.dff_path, true));
+    const std::unique_ptr dff_file(FifoDataFile::Load(dff.dff_path, true));
     if (!dff_file)
       return false;
 
@@ -347,7 +338,7 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
     return false;
 
   if (m_region == DiscIO::Region::Unknown)
-    m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
+    m_region = Get(Config::MAIN_FALLBACK_REGION);
 
   // Set up paths
   const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));
@@ -357,13 +348,13 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
   return true;
 }
 
-DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
+DiscIO::Language SConfig::GetCurrentLanguage(const bool wii)
 {
   DiscIO::Language language;
   if (wii)
-    language = static_cast<DiscIO::Language>(Config::Get(Config::SYSCONF_LANGUAGE));
+    language = static_cast<DiscIO::Language>(Get(Config::SYSCONF_LANGUAGE));
   else
-    language = DiscIO::FromGameCubeLanguage(Config::Get(Config::MAIN_GC_LANGUAGE));
+    language = DiscIO::FromGameCubeLanguage(Get(Config::MAIN_GC_LANGUAGE));
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
   if (language > DiscIO::Language::Unknown || language < DiscIO::Language::Japanese)
@@ -371,7 +362,7 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
   return language;
 }
 
-DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const
+DiscIO::Language SConfig::GetLanguageAdjustedForRegion(const bool wii, DiscIO::Region region)
 {
   const DiscIO::Language language = GetCurrentLanguage(wii);
 
@@ -381,7 +372,7 @@ DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region 
   if (!wii && region == DiscIO::Region::NTSC_J && language == DiscIO::Language::English)
     return DiscIO::Language::Japanese;  // English and Japanese both use the value 0 in GC SRAM
 
-  if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
+  if (!Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
   {
     if (region == DiscIO::Region::NTSC_J)
       return DiscIO::Language::Japanese;
@@ -420,7 +411,7 @@ Common::IniFile SConfig::LoadGameIni() const
   return LoadGameIni(GetGameID(), m_revision);
 }
 
-Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, const std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -428,7 +419,7 @@ Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, const std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -436,7 +427,7 @@ Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadGameIni(const std::string& id, const std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -446,7 +437,7 @@ Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> r
   return game_ini;
 }
 
-std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const
+std::string SConfig::GetGameTDBImageRegionCode(const bool wii, const DiscIO::Region region)
 {
   switch (region)
   {

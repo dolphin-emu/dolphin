@@ -4,16 +4,13 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 
 #include <QAction>
-#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QPushButton>
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolButton>
-#include <QVBoxLayout>
 
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"
@@ -59,7 +56,7 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
 
-MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
+MappingWindow::MappingWindow(QWidget* parent, const Type type, const int port_num)
     : QDialog(parent), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
@@ -200,7 +197,7 @@ void MappingWindow::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-void MappingWindow::UpdateProfileIndex()
+void MappingWindow::UpdateProfileIndex() const
 {
   // Make sure currentIndex and currentData are accurate when the user manually types a name.
 
@@ -212,7 +209,7 @@ void MappingWindow::UpdateProfileIndex()
     m_profiles_combo->setCurrentText(current_text);
 }
 
-void MappingWindow::UpdateProfileButtonState()
+void MappingWindow::UpdateProfileButtonState() const
 {
   // Make sure save/delete buttons are disabled for built-in profiles
 
@@ -229,17 +226,17 @@ void MappingWindow::UpdateProfileButtonState()
   m_profiles_delete->setEnabled(!builtin);
 }
 
-void MappingWindow::OnSelectProfile(int)
+void MappingWindow::OnSelectProfile(int) const
 {
   UpdateProfileButtonState();
 }
 
-void MappingWindow::OnProfileTextChanged(const QString&)
+void MappingWindow::OnProfileTextChanged(const QString&) const
 {
   UpdateProfileButtonState();
 }
 
-void MappingWindow::OnDeleteProfilePressed()
+void MappingWindow::OnDeleteProfilePressed() const
 {
   UpdateProfileIndex();
 
@@ -310,7 +307,7 @@ void MappingWindow::OnLoadProfilePressed()
   emit ConfigChanged();
 }
 
-void MappingWindow::OnSaveProfilePressed()
+void MappingWindow::OnSaveProfilePressed() const
 {
   const QString profile_name = m_profiles_combo->currentText();
 
@@ -334,7 +331,7 @@ void MappingWindow::OnSaveProfilePressed()
   }
 }
 
-void MappingWindow::OnSelectDevice(int)
+void MappingWindow::OnSelectDevice(int) const
 {
   // Original string is stored in the "user-data".
   const auto device = m_devices_combo->currentData().toString().toStdString();
@@ -353,7 +350,7 @@ void MappingWindow::RefreshDevices()
   g_controller_interface.RefreshDevices();
 }
 
-void MappingWindow::OnGlobalDevicesChanged()
+void MappingWindow::OnGlobalDevicesChanged() const
 {
   const QSignalBlocker blocker(m_devices_combo);
 
@@ -388,7 +385,7 @@ void MappingWindow::OnGlobalDevicesChanged()
   }
 }
 
-void MappingWindow::SetMappingType(MappingWindow::Type type)
+void MappingWindow::SetMappingType(const Type type)
 {
   MappingWidget* widget;
 
@@ -480,7 +477,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   PopulateProfileSelection();
 }
 
-void MappingWindow::PopulateProfileSelection()
+void MappingWindow::PopulateProfileSelection() const
 {
   m_profiles_combo->clear();
 
@@ -555,7 +552,7 @@ void MappingWindow::OnClearFieldsPressed()
   emit Save();
 }
 
-void MappingWindow::ShowExtensionMotionTabs(bool show)
+void MappingWindow::ShowExtensionMotionTabs(const bool show) const
 {
   if (show)
   {

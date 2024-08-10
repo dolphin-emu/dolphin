@@ -17,10 +17,10 @@ public:
   explicit HacksWidget(GraphicsWindow* parent);
 
 private:
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
-  void OnBackendChanged(const QString& backend_name);
+  void OnBackendChanged(const QString& backend_name) const;
 
   // EFB
   ConfigBool* m_skip_efb_cpu;
@@ -47,8 +47,8 @@ private:
 
   void CreateWidgets();
   void ConnectWidgets();
-  void AddDescriptions();
+  void AddDescriptions() const;
 
-  void UpdateDeferEFBCopiesEnabled();
-  void UpdateSkipPresentingDuplicateFramesEnabled();
+  void UpdateDeferEFBCopiesEnabled() const;
+  void UpdateSkipPresentingDuplicateFramesEnabled() const;
 };

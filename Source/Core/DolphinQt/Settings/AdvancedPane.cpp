@@ -3,17 +3,14 @@
 
 #include "DolphinQt/Settings/AdvancedPane.h"
 
-#include <QCheckBox>
 #include <QComboBox>
 #include <QDateTimeEdit>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QRadioButton>
 #include <QSignalBlocker>
 #include <QSlider>
-#include <QVBoxLayout>
 #include <cmath>
 
 #include "Core/Config/MainSettings.h"
@@ -191,65 +188,65 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](int index) {
+  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](const int index) {
     const auto cpu_cores = PowerPC::AvailableCPUCores();
     if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
+      SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
   });
 
-  connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
-    Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
+  connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](const bool enable_clock_override) {
+    SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
   });
 
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     const float factor = m_cpu_clock_override_slider->value() / 100.f;
-    Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
+    SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
     Update();
   });
 
-  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
-    Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
+  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](const bool enable_ram_override) {
+    SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
     Update();
   });
 
   connect(m_mem1_override_slider, &QSlider::valueChanged, [this](int slider_value) {
     const u32 mem1_size = m_mem1_override_slider->value() * 0x100000;
-    Config::SetBaseOrCurrent(Config::MAIN_MEM1_SIZE, mem1_size);
+    SetBaseOrCurrent(Config::MAIN_MEM1_SIZE, mem1_size);
     Update();
   });
 
   connect(m_mem2_override_slider, &QSlider::valueChanged, [this](int slider_value) {
     const u32 mem2_size = m_mem2_override_slider->value() * 0x100000;
-    Config::SetBaseOrCurrent(Config::MAIN_MEM2_SIZE, mem2_size);
+    SetBaseOrCurrent(Config::MAIN_MEM2_SIZE, mem2_size);
     Update();
   });
 
-  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
-    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
+  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](const bool enable_custom_rtc) {
+    SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });
 
-  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
+  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](const QDateTime& date_time) {
+    SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
                              static_cast<u32>(date_time.toSecsSinceEpoch()));
     Update();
   });
 }
 
-void AdvancedPane::Update()
+void AdvancedPane::Update() const
 {
-  const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
-  const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
-  const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
+  const bool running = GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
+  const bool enable_cpu_clock_override_widgets = Get(Config::MAIN_OVERCLOCK_ENABLE);
+  const bool enable_ram_override_widgets = Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
+  const bool enable_custom_rtc_widgets = Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
 
   const auto available_cpu_cores = PowerPC::AvailableCPUCores();
-  const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
+  const auto cpu_core = Get(Config::MAIN_CPU_CORE);
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
     if (available_cpu_cores[i] == cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
+      m_cpu_emulation_engine_combobox->setCurrentIndex(static_cast<int>(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
   m_enable_mmu_checkbox->setEnabled(!running);
@@ -257,7 +254,7 @@ void AdvancedPane::Update()
 
   {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
+    bf.setBold(GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
                Config::LayerType::Base);
 
     const QSignalBlocker blocker(m_cpu_clock_override_checkbox);
@@ -271,14 +268,14 @@ void AdvancedPane::Update()
   {
     const QSignalBlocker blocker(m_cpu_clock_override_slider);
     m_cpu_clock_override_slider->setValue(
-        static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f)));
+        static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * 100.f)));
   }
 
   m_cpu_clock_override_slider_label->setText([] {
-    int core_clock =
+    const int core_clock =
         Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / std::pow(10, 6);
-    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f));
-    int clock = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * core_clock));
+    const int percent = static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * 100.f));
+    const int clock = static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * core_clock));
     return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 
@@ -290,12 +287,12 @@ void AdvancedPane::Update()
 
   {
     const QSignalBlocker blocker(m_mem1_override_slider);
-    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
+    const u32 mem1_size = Get(Config::MAIN_MEM1_SIZE) / 0x100000;
     m_mem1_override_slider->setValue(mem1_size);
   }
 
   m_mem1_override_slider_label->setText([] {
-    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
+    const u32 mem1_size = Get(Config::MAIN_MEM1_SIZE) / 0x100000;
     return tr("%1 MB (MEM1)").arg(QString::number(mem1_size));
   }());
 
@@ -304,20 +301,20 @@ void AdvancedPane::Update()
 
   {
     const QSignalBlocker blocker(m_mem2_override_slider);
-    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
+    const u32 mem2_size = Get(Config::MAIN_MEM2_SIZE) / 0x100000;
     m_mem2_override_slider->setValue(mem2_size);
   }
 
   m_mem2_override_slider_label->setText([] {
-    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
+    const u32 mem2_size = Get(Config::MAIN_MEM2_SIZE) / 0x100000;
     return tr("%1 MB (MEM2)").arg(QString::number(mem2_size));
   }());
 
   m_custom_rtc_checkbox->setEnabled(!running);
-  SignalBlocking(m_custom_rtc_checkbox)->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
+  SignalBlocking(m_custom_rtc_checkbox)->setChecked(Get(Config::MAIN_CUSTOM_RTC_ENABLE));
 
   QDateTime initial_date_time;
-  initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
+  initial_date_time.setSecsSinceEpoch(Get(Config::MAIN_CUSTOM_RTC_VALUE));
   m_custom_rtc_datetime->setEnabled(enable_custom_rtc_widgets);
   SignalBlocking(m_custom_rtc_datetime)->setDateTime(initial_date_time);
 }

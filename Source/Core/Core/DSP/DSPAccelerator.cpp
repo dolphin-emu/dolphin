@@ -38,7 +38,7 @@ u16 Accelerator::ReadD3()
   return val;
 }
 
-void Accelerator::WriteD3(u16 value)
+void Accelerator::WriteD3(const u16 value)
 {
   // Zelda ucode writes a bunch of zeros to ARAM through d3 during
   // initialization.  Don't know if it ever does it later, too.
@@ -76,11 +76,11 @@ u16 Accelerator::Read(const s16* coefs)
   {
   case 0x00:  // ADPCM audio
   {
-    int scale = 1 << (m_pred_scale & 0xF);
-    int coef_idx = (m_pred_scale >> 4) & 0x7;
+    const int scale = 1 << (m_pred_scale & 0xF);
+    const int coef_idx = (m_pred_scale >> 4) & 0x7;
 
-    s32 coef1 = coefs[coef_idx * 2 + 0];
-    s32 coef2 = coefs[coef_idx * 2 + 1];
+    const s32 coef1 = coefs[coef_idx * 2 + 0];
+    const s32 coef2 = coefs[coef_idx * 2 + 1];
 
     int temp = (m_current_address & 1) ? (ReadMemory(m_current_address >> 1) & 0xF) :
                                          (ReadMemory(m_current_address >> 1) >> 4);
@@ -88,7 +88,7 @@ u16 Accelerator::Read(const s16* coefs)
     if (temp >= 8)
       temp -= 16;
 
-    s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
+    const s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
     val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
     step_size_bytes = 2;
 
@@ -175,38 +175,38 @@ void Accelerator::DoState(PointerWrap& p)
 constexpr u32 START_END_ADDRESS_MASK = 0x3fffffff;
 constexpr u32 CURRENT_ADDRESS_MASK = 0xbfffffff;
 
-void Accelerator::SetStartAddress(u32 address)
+void Accelerator::SetStartAddress(const u32 address)
 {
   m_start_address = address & START_END_ADDRESS_MASK;
 }
 
-void Accelerator::SetEndAddress(u32 address)
+void Accelerator::SetEndAddress(const u32 address)
 {
   m_end_address = address & START_END_ADDRESS_MASK;
 }
 
-void Accelerator::SetCurrentAddress(u32 address)
+void Accelerator::SetCurrentAddress(const u32 address)
 {
   m_current_address = address & CURRENT_ADDRESS_MASK;
 }
 
-void Accelerator::SetSampleFormat(u16 format)
+void Accelerator::SetSampleFormat(const u16 format)
 {
   m_sample_format = format;
 }
 
-void Accelerator::SetYn1(s16 yn1)
+void Accelerator::SetYn1(const s16 yn1)
 {
   m_yn1 = yn1;
 }
 
-void Accelerator::SetYn2(s16 yn2)
+void Accelerator::SetYn2(const s16 yn2)
 {
   m_yn2 = yn2;
   m_reads_stopped = false;
 }
 
-void Accelerator::SetPredScale(u16 pred_scale)
+void Accelerator::SetPredScale(const u16 pred_scale)
 {
   m_pred_scale = pred_scale & 0x7f;
 }

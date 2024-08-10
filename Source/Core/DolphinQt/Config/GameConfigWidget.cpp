@@ -19,7 +19,6 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigEdit.h"
 
 #include "UICommon/GameFile.h"
@@ -29,13 +28,13 @@ constexpr int DETERMINISM_AUTO_INDEX = 1;
 constexpr int DETERMINISM_NONE_INDEX = 2;
 constexpr int DETERMINISM_FAKE_COMPLETION_INDEX = 3;
 
-constexpr const char* DETERMINISM_NOT_SET_STRING = "";
-constexpr const char* DETERMINISM_AUTO_STRING = "auto";
-constexpr const char* DETERMINISM_NONE_STRING = "none";
-constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
+constexpr auto DETERMINISM_NOT_SET_STRING = "";
+constexpr auto DETERMINISM_AUTO_STRING = "auto";
+constexpr auto DETERMINISM_NONE_STRING = "none";
+constexpr auto DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
-static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
-                        u16 revision, bool read_only)
+static void PopulateTab(QTabWidget* tab, const std::string& path, const std::string& game_id,
+                        u16 revision, const bool read_only)
 {
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
@@ -210,7 +209,7 @@ void GameConfigWidget::ConnectWidgets()
   // Buttons
   connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
-  for (QCheckBox* box :
+  for (const QCheckBox* box :
        {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
         m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
@@ -222,7 +221,7 @@ void GameConfigWidget::ConnectWidgets()
 }
 
 void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key, bool reverse)
+                                    const std::string& key, const bool reverse)
 {
   bool checked;
   if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
@@ -233,8 +232,8 @@ void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& sect
   checkbox->setCheckState(Qt::PartiallyChecked);
 }
 
-void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key, bool reverse)
+void GameConfigWidget::SaveCheckBox(const QCheckBox* checkbox, const std::string& section,
+                                    const std::string& key, const bool reverse)
 {
   // Delete any existing entries from the local gameini if checkbox is undetermined.
   // Otherwise, write the current value to the local gameini if the value differs from the default
@@ -334,7 +333,7 @@ void GameConfigWidget::SaveSettings()
   SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
   SaveCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
 
-  int determinism_num = m_deterministic_dual_core->currentIndex();
+  const int determinism_num = m_deterministic_dual_core->currentIndex();
 
   std::string determinism_mode = DETERMINISM_NOT_SET_STRING;
 
@@ -394,7 +393,7 @@ void GameConfigWidget::SaveSettings()
 
   SaveCheckBox(m_use_monoscopic_shadows, "Video_Stereoscopy", "StereoEFBMonoDepth");
 
-  bool success = m_gameini_local.Save(m_gameini_local_path.toStdString());
+  const bool success = m_gameini_local.Save(m_gameini_local_path.toStdString());
 
   // If the resulting file is empty, delete it. Kind of a hack, but meh.
   if (success && File::GetSize(m_gameini_local_path.toStdString()) == 0)

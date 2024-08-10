@@ -23,11 +23,11 @@ private:
   void CreateLayout();
   void CreateUI();
   void CreateInGame();
-  void AddDescriptions();
+  void AddDescriptions() const;
   void ConnectLayout();
-  void UpdateShowDebuggingCheckbox();
-  void LoadUserStyle();
-  void OnUserStyleChanged();
+  void UpdateShowDebuggingCheckbox() const;
+  void LoadUserStyle() const;
+  void OnUserStyleChanged() const;
   void OnLanguageChanged();
 
   QVBoxLayout* m_main_layout;

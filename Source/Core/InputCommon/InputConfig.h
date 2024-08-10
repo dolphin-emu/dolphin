@@ -30,7 +30,7 @@ public:
   ~InputConfig();
 
   bool LoadConfig();
-  void SaveConfig();
+  void SaveConfig() const;
 
   template <typename T, typename... Args>
   void CreateController(Args&&... args)
@@ -52,9 +52,9 @@ public:
 
   // These should be used after creating all controllers and before clearing them, respectively.
   void RegisterHotplugCallback();
-  void UnregisterHotplugCallback();
+  void UnregisterHotplugCallback() const;
 
-  void GenerateControllerTextures(const Common::IniFile& file);
+  void GenerateControllerTextures(const Common::IniFile& file) const;
 
 private:
   ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;

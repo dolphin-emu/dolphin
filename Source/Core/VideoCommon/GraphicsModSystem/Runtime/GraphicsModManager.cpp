@@ -4,7 +4,6 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 
 #include <string>
-#include <string_view>
 #include <variant>
 
 #include "Common/Logging/Log.h"
@@ -18,7 +17,6 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
-#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VideoConfig.h"
 
 std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;
@@ -103,7 +101,7 @@ bool GraphicsModManager::Initialize()
 }
 
 const std::vector<GraphicsModAction*>&
-GraphicsModManager::GetProjectionActions(ProjectionType projection_type) const
+GraphicsModManager::GetProjectionActions(const ProjectionType projection_type) const
 {
   if (const auto it = m_projection_target_to_actions.find(projection_type);
       it != m_projection_target_to_actions.end())
@@ -195,30 +193,30 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   std::map<std::string, std::vector<GraphicsTargetConfig>> group_to_targets;
   for (const auto& mod : mods)
   {
-    for (const GraphicsTargetGroupConfig& group : mod.m_groups)
+    for (const auto& [m_name, m_targets] : mod.m_groups)
     {
-      if (m_groups.find(group.m_name) != m_groups.end())
+      if (m_groups.contains(m_name))
       {
         WARN_LOG_FMT(
             VIDEO,
             "Specified graphics mod group '{}' for mod '{}' is already specified by another mod.",
-            group.m_name, mod.m_title);
+            m_name, mod.m_title);
       }
-      m_groups.insert(group.m_name);
+      m_groups.insert(m_name);
 
-      const auto internal_group = fmt::format("{}.{}", mod.m_title, group.m_name);
-      for (const GraphicsTargetConfig& target : group.m_targets)
+      const auto internal_group = fmt::format("{}.{}", mod.m_title, m_name);
+      for (const GraphicsTargetConfig& target : m_targets)
       {
-        group_to_targets[group.m_name].push_back(target);
+        group_to_targets[m_name].push_back(target);
         group_to_targets[internal_group].push_back(target);
       }
     }
 
     std::string base_path;
     SplitPath(mod.GetAbsolutePath(), &base_path, nullptr, nullptr);
-    for (const GraphicsModAssetConfig& asset : mod.m_assets)
+    for (const auto& [m_asset_id, m_map] : mod.m_assets)
     {
-      auto asset_map = asset.m_map;
+      auto asset_map = m_map;
       for (auto& [k, v] : asset_map)
       {
         if (v.is_absolute())
@@ -226,7 +224,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
           WARN_LOG_FMT(VIDEO,
                        "Specified graphics mod asset '{}' for mod '{}' has an absolute path, you "
                        "shouldn't release this to users.",
-                       asset.m_asset_id, mod.m_title);
+                       m_asset_id, mod.m_title);
         }
         else
         {
@@ -234,13 +232,13 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
         }
       }
 
-      filesystem_library->SetAssetIDMapData(asset.m_asset_id, std::move(asset_map));
+      filesystem_library->SetAssetIDMapData(m_asset_id, std::move(asset_map));
     }
   }
 
   for (const auto& mod : mods)
   {
-    for (const GraphicsModFeatureConfig& feature : mod.m_features)
+    for (const auto& [m_group, m_action, m_action_data] : mod.m_features)
     {
       const auto create_action =
           [filesystem_library](const std::string_view& action_name,
@@ -255,7 +253,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
         return std::make_unique<DecoratedAction>(std::move(action), std::move(mod_config));
       };
 
-      const auto internal_group = fmt::format("{}.{}", mod.m_title, feature.m_group);
+      const auto internal_group = fmt::format("{}.{}", mod.m_title, m_group);
 
       const auto add_target = [&](const GraphicsTargetConfig& target) {
         std::visit(
@@ -305,11 +303,11 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
       };
 
       const auto add_action = [&](GraphicsModConfig mod_config) -> bool {
-        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
+        auto action = create_action(m_action, m_action_data, std::move(mod_config));
         if (action == nullptr)
         {
-          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
-                       feature.m_group);
+          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", m_action,
+                       m_group);
           return false;
         }
         m_actions.push_back(std::move(action));
@@ -328,7 +326,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
           }
         }
       }
-      else if (const auto global_it = group_to_targets.find(feature.m_group);
+      else if (const auto global_it = group_to_targets.find(m_group);
                global_it != group_to_targets.end())
       {
         if (add_action(mod))
@@ -342,13 +340,13 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
       else
       {
         WARN_LOG_FMT(VIDEO, "Specified graphics mod group '{}' was not found for mod '{}'",
-                     feature.m_group, mod.m_title);
+                     m_group, mod.m_title);
       }
     }
   }
 }
 
-void GraphicsModManager::EndOfFrame()
+void GraphicsModManager::EndOfFrame() const
 {
   for (auto&& action : m_actions)
   {

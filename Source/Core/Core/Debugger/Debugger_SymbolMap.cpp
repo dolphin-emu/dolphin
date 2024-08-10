@@ -22,7 +22,7 @@
 namespace Dolphin_Debugger
 {
 // Returns true if the address is not a valid RAM address or NULL.
-static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
+static bool IsStackBottom(const Core::CPUThreadGuard& guard, const u32 addr)
 {
   return !addr || !PowerPC::MMU::HostIsRAMAddress(guard, addr);
 }
@@ -30,16 +30,20 @@ static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
 static void WalkTheStack(const Core::CPUThreadGuard& guard,
                          const std::function<void(u32)>& stack_step)
 {
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = guard.GetSystem().GetPPCState();
 
-  if (!IsStackBottom(guard, ppc_state.gpr[1]))
+  if (!IsStackBottom(guard, gpr[1]))
   {
-    u32 addr = PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[1]);  // SP
+    u32 addr = PowerPC::MMU::HostRead_U32(guard, gpr[1]);  // SP
 
     // Walk the stack chain
     for (int count = 0; !IsStackBottom(guard, addr + 4) && (count < 20); ++count)
     {
-      u32 func_addr = PowerPC::MMU::HostRead_U32(guard, addr + 4);
+      const u32 func_addr = PowerPC::MMU::HostRead_U32(guard, addr + 4);
       stack_step(func_addr);
 
       if (IsStackBottom(guard, addr))
@@ -59,7 +63,7 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
   auto& power_pc = system.GetPowerPC();
   const auto& ppc_state = power_pc.GetPPCState();
 
-  if (!Core::IsRunning(system) || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
+  if (!IsRunning(system) || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
 
   if (LR(ppc_state) == 0)
@@ -79,7 +83,7 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
       .vAddress = LR(ppc_state) - 4,
   });
 
-  WalkTheStack(guard, [&output, &ppc_symbol_db](u32 func_addr) {
+  WalkTheStack(guard, [&output, &ppc_symbol_db](const u32 func_addr) {
     std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
@@ -113,7 +117,7 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
     GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", lr_desc, LR(ppc_state));
   }
 
-  WalkTheStack(guard, [type, level, &ppc_symbol_db](u32 func_addr) {
+  WalkTheStack(guard, [type, level, &ppc_symbol_db](const u32 func_addr) {
     std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
@@ -121,8 +125,8 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
   });
 }
 
-void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 address, u32 size,
-                     std::string_view title)
+void PrintDataBuffer(const Core::System& system, const Common::Log::LogType type, const u32 address, const u32 size,
+                     const std::string_view title)
 {
   const u8* data = system.GetMemory().GetPointerForRange(address, size);
 

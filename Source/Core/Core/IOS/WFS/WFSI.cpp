@@ -25,13 +25,13 @@
 
 namespace
 {
-std::string TitleIdStr(u64 tid)
+std::string TitleIdStr(const u64 tid)
 {
   return fmt::format("{}{}{}{}", static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
                      static_cast<char>(tid >> 8), static_cast<char>(tid));
 }
 
-std::string GroupIdStr(u16 gid)
+std::string GroupIdStr(const u16 gid)
 {
   return fmt::format("{}{}", static_cast<char>(gid >> 8), static_cast<char>(gid & 0xFF));
 }
@@ -62,7 +62,7 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   u8* nodes_directory = m_whole_file.data() + 0x20;
   u32 nodes_count = Common::swap32(nodes_directory + 8);
   constexpr u32 NODE_SIZE = 0xC;
-  char* string_table = reinterpret_cast<char*>(nodes_directory + nodes_count * NODE_SIZE);
+  const char* string_table = reinterpret_cast<char*>(nodes_directory + nodes_count * NODE_SIZE);
 
   std::stack<std::pair<u32, std::string>> directory_stack;
   directory_stack.emplace(std::make_pair(nodes_count, ""));
@@ -73,22 +73,22 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
       directory_stack.pop();
     }
     const std::string& current_directory = directory_stack.top().second;
-    u8* node = nodes_directory + i * NODE_SIZE;
-    u32 name_offset = (node[1] << 16) | Common::swap16(node + 2);
-    u32 data_offset = Common::swap32(node + 4);
+    const u8* node = nodes_directory + i * NODE_SIZE;
+    const u32 name_offset = (node[1] << 16) | Common::swap16(node + 2);
+    const u32 data_offset = Common::swap32(node + 4);
     u32 size = Common::swap32(node + 8);
     std::string basename = string_table + name_offset;
     std::string fullname =
         current_directory.empty() ? basename : current_directory + "/" + basename;
 
-    u8 flags = *node;
+    const u8 flags = *node;
     if (flags == 1)
     {
       directory_stack.emplace(std::make_pair(size, fullname));
     }
     else
     {
-      std::vector<u8> contents(m_whole_file.data() + data_offset,
+      std::vector contents(m_whole_file.data() + data_offset,
                                m_whole_file.data() + data_offset + size);
       callback(fullname, contents);
     }
@@ -100,7 +100,7 @@ WFSIDevice::WFSIDevice(EmulationKernel& ios, const std::string& device_name)
 {
 }
 
-void WFSIDevice::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetCurrentTitleIdAndGroupId(const u64 tid, const u16 gid)
 {
   m_current_title_id = tid;
   m_current_group_id = gid;
@@ -109,7 +109,7 @@ void WFSIDevice::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
   m_current_group_id_str = GroupIdStr(gid);
 }
 
-void WFSIDevice::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetImportTitleIdAndGroupId(const u64 tid, const u16 gid)
 {
   m_import_title_id = tid;
   m_import_group_id = gid;
@@ -146,7 +146,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type {}, continue install: {}",
                  Common::ToUnderlying(m_patch_type), m_continue_install ? "true" : "false");
 
-    if (m_patch_type == PatchType::PATCH_TYPE_2)
+    if (m_patch_type == PATCH_TYPE_2)
     {
       const std::string content_dir = fmt::format("/vol/{}/title/{}/{}/content", m_device_name,
                                                   m_current_group_id_str, m_current_title_id_str);
@@ -178,9 +178,9 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 
     SetImportTitleIdAndGroupId(m_tmd.GetTitleId(), m_tmd.GetGroupId());
 
-    if (m_patch_type == PatchType::PATCH_TYPE_1)
+    if (m_patch_type == PATCH_TYPE_1)
       CancelPatchImport(m_continue_install);
-    else if (m_patch_type == PatchType::NOT_A_PATCH)
+    else if (m_patch_type == NOT_A_PATCH)
       CancelTitleImport(m_continue_install);
 
     break;
@@ -372,9 +372,9 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL");
 
     const bool continue_install = memory.Read_U32(request.buffer_in) != 0;
-    if (m_patch_type == PatchType::NOT_A_PATCH)
+    if (m_patch_type == NOT_A_PATCH)
       return_error_code = CancelTitleImport(continue_install);
-    else if (m_patch_type == PatchType::PATCH_TYPE_1 || m_patch_type == PatchType::PATCH_TYPE_2)
+    else if (m_patch_type == PATCH_TYPE_1 || m_patch_type == PATCH_TYPE_2)
       return_error_code = CancelPatchImport(continue_install);
     else
       return_error_code = WFS_EINVAL;
@@ -555,7 +555,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
   return IPCReply(return_error_code);
 }
 
-u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
+u32 WFSIDevice::GetTmd(const u16 group_id, const u32 title_id, u64 subtitle_id, const u32 address, u32* size) const
 {
   const std::string path = fmt::format("/vol/{}/title/{}/{}/meta/{:016x}.tmd", m_device_name,
                                        GroupIdStr(group_id), TitleIdStr(title_id), subtitle_id);
@@ -568,8 +568,8 @@ u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address,
   *size = static_cast<u32>(fp.GetSize());
   if (address)
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     fp.ReadBytes(memory.GetPointerForRange(address, *size), *size);
   }
   return IPC_SUCCESS;
@@ -582,7 +582,7 @@ static s32 DeleteTemporaryFiles(const std::string& device_name, u64 title_id)
   return IPC_SUCCESS;
 }
 
-s32 WFSIDevice::CancelTitleImport(bool continue_install)
+s32 WFSIDevice::CancelTitleImport(const bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -596,7 +596,7 @@ s32 WFSIDevice::CancelTitleImport(bool continue_install)
   return IPC_SUCCESS;
 }
 
-s32 WFSIDevice::CancelPatchImport(bool continue_install)
+s32 WFSIDevice::CancelPatchImport(const bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -606,7 +606,7 @@ s32 WFSIDevice::CancelPatchImport(bool continue_install)
         WFS::NativePath(fmt::format("/vol/{}/title/{}/{}/_patch", m_device_name,
                                     m_current_group_id_str, m_current_title_id_str)));
 
-    if (m_patch_type == PatchType::PATCH_TYPE_2)
+    if (m_patch_type == PATCH_TYPE_2)
     {
       // Move back _default.dol to default.dol.
       const std::string content_dir = fmt::format("/vol/{}/title/{}/{}/content", m_device_name,

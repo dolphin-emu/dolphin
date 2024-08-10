@@ -81,7 +81,7 @@ struct JitBlock : public JitBlockData
     Clock::time_point time_start;
   };
 
-  explicit JitBlock(bool profiling_enabled)
+  explicit JitBlock(const bool profiling_enabled)
       : profile_data(profiling_enabled ? std::make_unique<ProfileData>() : nullptr)
   {
   }
@@ -134,10 +134,10 @@ public:
     ClearAll();
   }
 
-  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
-  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
-  void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
-  bool Test(u32 bit) const { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
+  void Set(const u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
+  void Clear(const u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
+  void ClearAll() const { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
+  bool Test(const u32 bit) const { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
 };
 
 class JitBaseBlockCache
@@ -158,7 +158,7 @@ public:
   void Reset();
 
   // Code Cache
-  u8** GetEntryPoints();
+  u8** GetEntryPoints() const;
   JitBlock** GetFastBlockMapFallback();
   void RunOnBlocks(const Core::CPUThreadGuard& guard, std::function<void(const JitBlock&)> f) const;
 
@@ -199,7 +199,7 @@ private:
   JitBlock* MoveBlockIntoFastCache(u32 em_address, CPUEmuFeatureFlags feature_flags);
 
   // Fast but risky block lookup based on fast_block_map.
-  size_t FastLookupIndexForAddress(u32 address, u32 msr);
+  size_t FastLookupIndexForAddress(u32 address, u32 msr) const;
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.

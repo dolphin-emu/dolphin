@@ -10,7 +10,6 @@
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLExtensions/GLExtensions.h"
 
 #include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
@@ -84,33 +83,33 @@ bool VertexManager::Initialize()
         }};
     glGenTextures(static_cast<GLsizei>(m_texel_buffer_views.size()), m_texel_buffer_views.data());
     glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
-    for (const auto& it : format_mapping)
+    for (const auto& [fst, snd] : format_mapping)
     {
-      glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[it.first]);
-      glTexBuffer(GL_TEXTURE_BUFFER, it.second, m_texel_buffer->GetGLBufferId());
+      glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[fst]);
+      glTexBuffer(GL_TEXTURE_BUFFER, snd, m_texel_buffer->GetGLBufferId());
     }
   }
 
   return true;
 }
 
-void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+void VertexManager::UploadUtilityUniforms(const void* uniforms, const u32 uniforms_size)
 {
   InvalidateConstants();
   ProgramShaderCache::UploadConstants(uniforms, uniforms_size);
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
                                       u32* out_offset)
 {
   if (data_size > m_texel_buffer->GetSize())
     return false;
 
   const u32 elem_size = GetTexelBufferElementSize(format);
-  const auto dst = m_texel_buffer->Map(data_size, elem_size);
-  std::memcpy(dst.first, data, data_size);
+  const auto [fst, snd] = m_texel_buffer->Map(data_size, elem_size);
+  std::memcpy(fst, data, data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
-  *out_offset = dst.second / elem_size;
+  *out_offset = snd / elem_size;
   m_texel_buffer->Unmap(data_size);
 
   // Bind the correct view to the texel buffer slot.
@@ -120,9 +119,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   return true;
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset, const void* palette_data, u32 palette_size,
-                                      TexelBufferFormat palette_format, u32* out_palette_offset)
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
+                                      u32* out_offset, const void* palette_data, const u32 palette_size,
+                                      const TexelBufferFormat palette_format, u32* out_palette_offset)
 {
   const u32 elem_size = GetTexelBufferElementSize(format);
   const u32 palette_elem_size = GetTexelBufferElementSize(palette_format);
@@ -130,13 +129,13 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   if (reserve_size > m_texel_buffer->GetSize())
     return false;
 
-  const auto dst = m_texel_buffer->Map(reserve_size, elem_size);
+  const auto [fst, snd] = m_texel_buffer->Map(reserve_size, elem_size);
   const u32 palette_byte_offset = Common::AlignUp(data_size, palette_elem_size);
-  std::memcpy(dst.first, data, data_size);
-  std::memcpy(dst.first + palette_byte_offset, palette_data, palette_size);
+  std::memcpy(fst, data, data_size);
+  std::memcpy(fst + palette_byte_offset, palette_data, palette_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, palette_byte_offset + palette_size);
-  *out_offset = dst.second / elem_size;
-  *out_palette_offset = (dst.second + palette_byte_offset) / palette_elem_size;
+  *out_offset = snd / elem_size;
+  *out_palette_offset = (snd + palette_byte_offset) / palette_elem_size;
   m_texel_buffer->Unmap(palette_byte_offset + palette_size);
 
   glActiveTexture(GL_TEXTURE0);
@@ -160,7 +159,7 @@ GLuint VertexManager::GetIndexBufferHandle() const
   return m_index_buffer->m_buffer;
 }
 
-void VertexManager::ResetBuffer(u32 vertex_stride)
+void VertexManager::ResetBuffer(const u32 vertex_stride)
 {
   CheckBufferBinding();
 
@@ -172,11 +171,11 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(reinterpret_cast<u16*>(buffer.first));
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride, const u32 num_indices,
                                  u32* out_base_vertex, u32* out_base_index)
 {
-  u32 vertex_data_size = num_vertices * vertex_stride;
-  u32 index_data_size = num_indices * sizeof(u16);
+  const u32 vertex_data_size = num_vertices * vertex_stride;
+  const u32 index_data_size = num_indices * sizeof(u16);
 
   *out_base_vertex = vertex_stride > 0 ? (m_vertex_buffer->GetCurrentOffset() / vertex_stride) : 0;
   *out_base_index = m_index_buffer->GetCurrentOffset() / sizeof(u16);

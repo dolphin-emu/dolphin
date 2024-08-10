@@ -20,20 +20,20 @@
 
 using namespace Gen;
 
-static const X64Reg src_reg = ABI_PARAM1;
-static const X64Reg dst_reg = ABI_PARAM2;
-static const X64Reg scratch1 = RAX;
-static const X64Reg scratch2 = ABI_PARAM3;
-static const X64Reg scratch3 = ABI_PARAM4;
+static constexpr X64Reg src_reg = ABI_PARAM1;
+static constexpr X64Reg dst_reg = ABI_PARAM2;
+static constexpr X64Reg scratch1 = RAX;
+static constexpr X64Reg scratch2 = ABI_PARAM3;
+static constexpr X64Reg scratch3 = ABI_PARAM4;
 // The remaining number of vertices to be processed.  Starts at count - 1, and the final loop has it
 // at 0.
-static const X64Reg remaining_reg = R10;
-static const X64Reg skipped_reg = R11;
-static const X64Reg base_reg = RBX;
+static constexpr X64Reg remaining_reg = R10;
+static constexpr X64Reg skipped_reg = R11;
+static constexpr X64Reg base_reg = RBX;
 
 static const u8* memory_base_ptr = (u8*)&g_main_cp_state.array_strides;
 
-static OpArg MPIC(const void* ptr, X64Reg scale_reg, int scale = SCALE_1)
+static OpArg MPIC(const void* ptr, const X64Reg scale_reg, const int scale = SCALE_1)
 {
   return MComplex(base_reg, scale_reg, scale, PtrOffset(ptr, memory_base_ptr));
 }
@@ -55,12 +55,12 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
                                 vtx_desc, vtx_att);
 }
 
-OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attribute)
+OpArg VertexLoaderX64::GetVertexAddr(const CPArray array, const VertexComponentFormat attribute)
 {
-  OpArg data = MDisp(src_reg, m_src_ofs);
+  const OpArg data = MDisp(src_reg, m_src_ofs);
   if (IsIndexed(attribute))
   {
-    int bits = attribute == VertexComponentFormat::Index8 ? 8 : 16;
+    const int bits = attribute == VertexComponentFormat::Index8 ? 8 : 16;
     LoadAndSwap(bits, scratch1, data);
     m_src_ofs += bits / 8;
     if (array == CPArray::Position)
@@ -72,15 +72,12 @@ OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attrib
     MOV(64, R(scratch2), MPIC(&VertexLoaderManager::cached_arraybases[array]));
     return MRegSum(scratch1, scratch2);
   }
-  else
-  {
-    return data;
-  }
+  return data;
 }
 
-void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
-                                 ComponentFormat format, int count_in, int count_out,
-                                 bool dequantize, u8 scaling_exponent,
+void VertexLoaderX64::ReadVertex(OpArg data, const VertexComponentFormat attribute,
+                                 const ComponentFormat format, const int count_in, const int count_out,
+                                 const bool dequantize, const u8 scaling_exponent,
                                  AttributeFormat* native_format)
 {
   using ShuffleRow = std::array<__m128i, 3>;
@@ -124,13 +121,13 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
       _mm_set_ps1(1. / (1u << 30)), _mm_set_ps1(1. / (1u << 31)),
   };
 
-  X64Reg coords = XMM0;
+  constexpr X64Reg coords = XMM0;
 
   const auto write_zfreeze = [&]() {  // zfreeze
     if (native_format == &m_native_vtx_decl.position)
     {
       CMP(32, R(remaining_reg), Imm8(3));
-      FixupBranch dont_store = J_CC(CC_AE);
+      const FixupBranch dont_store = J_CC(CC_AE);
       // The position cache is composed of 3 rows of 4 floats each; since each float is 4 bytes,
       // we need to scale by 4 twice to cover the 4 floats.
       LEA(32, scratch3, MScaled(remaining_reg, SCALE_4, 0));
@@ -140,7 +137,7 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
     else if (native_format == &m_native_vtx_decl.normals[1])
     {
       TEST(32, R(remaining_reg), R(remaining_reg));
-      FixupBranch dont_store = J_CC(CC_NZ);
+      const FixupBranch dont_store = J_CC(CC_NZ);
       // For similar reasons, the cached tangent and binormal are 4 floats each
       MOVUPS(MPIC(VertexLoaderManager::tangent_cache.data()), coords);
       SetJumpTarget(dont_store);
@@ -148,15 +145,15 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
     else if (native_format == &m_native_vtx_decl.normals[2])
     {
       CMP(32, R(remaining_reg), R(remaining_reg));
-      FixupBranch dont_store = J_CC(CC_NZ);
+      const FixupBranch dont_store = J_CC(CC_NZ);
       // For similar reasons, the cached tangent and binormal are 4 floats each
       MOVUPS(MPIC(VertexLoaderManager::binormal_cache.data()), coords);
       SetJumpTarget(dont_store);
     }
   };
 
-  int elem_size = GetElementSize(format);
-  int load_bytes = elem_size * count_in;
+  const int elem_size = GetElementSize(format);
+  const int load_bytes = elem_size * count_in;
   OpArg dest = MDisp(dst_reg, m_dst_ofs);
 
   native_format->components = count_out;
@@ -190,7 +187,7 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
   else
   {
     // SSE2
-    X64Reg temp = XMM1;
+    constexpr X64Reg temp = XMM1;
     switch (format)
     {
     case ComponentFormat::UByte:
@@ -291,7 +288,7 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
   write_zfreeze();
 }
 
-void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, ColorFormat format)
+void VertexLoaderX64::ReadColor(OpArg data, const VertexComponentFormat attribute, const ColorFormat format)
 {
   int load_bytes = 0;
   switch (format)
@@ -443,7 +440,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 
     // zfreeze
     CMP(32, R(remaining_reg), Imm8(3));
-    FixupBranch dont_store = J_CC(CC_AE);
+    const FixupBranch dont_store = J_CC(CC_AE);
     MOV(32, MPIC(VertexLoaderManager::position_matrix_index_cache.data(), remaining_reg, SCALE_4),
         R(scratch1));
     SetJumpTarget(dont_store);
@@ -465,7 +462,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   }
 
   OpArg data = GetVertexAddr(CPArray::Position, m_VtxDesc.low.Position);
-  int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+  const int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
   ReadVertex(data, m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat, pos_elements, pos_elements,
              m_VtxAttr.g0.ByteDequant, m_VtxAttr.g0.PosFrac, &m_native_vtx_decl.position);
 
@@ -530,11 +527,11 @@ void VertexLoaderX64::GenerateVertexLoader()
 
   for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
   {
-    int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::ST ? 2 : 1;
+    const int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::ST ? 2 : 1;
     if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
     {
       data = GetVertexAddr(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord[i]);
-      u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
+      const u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
       ReadVertex(data, m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
                  m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant,
                  scaling_exponent, &m_native_vtx_decl.texcoords[i]);
@@ -599,7 +596,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 
-int VertexLoaderX64::RunVertices(const u8* src, u8* dst, int count)
+int VertexLoaderX64::RunVertices(const u8* src, u8* dst, const int count)
 {
   m_numLoadedVertices += count;
   return ((int (*)(const u8* src, u8* dst, int count, const void* base))region)(src, dst, count,

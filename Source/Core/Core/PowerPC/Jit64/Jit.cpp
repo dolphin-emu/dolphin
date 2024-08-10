@@ -122,7 +122,7 @@ Jit64::Jit64(Core::System& system) : JitBase(system), QuantizedMemoryRoutines(*t
 
 Jit64::~Jit64() = default;
 
-bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
+bool Jit64::HandleFault(const uintptr_t access_address, SContext* ctx)
 {
   const uintptr_t stack_guard = reinterpret_cast<uintptr_t>(m_stack_guard);
   // In the trap region?
@@ -136,20 +136,24 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
   // Only instructions that access I/O will get these, and there won't be that
   // many of them in a typical program/game.
 
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
 
   if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
   {
-    auto& ppc_state = m_system.GetPPCState();
+    const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+      _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+      _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+      _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+      _reserve_address] = m_system.GetPPCState();
     const uintptr_t memory_base = reinterpret_cast<uintptr_t>(
-        ppc_state.msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
+        msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
 
     if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
     {
       WARN_LOG_FMT(DYNA_REC,
                    "Jit64 address calculation overflowed! Please report if this happens a lot. "
                    "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
-                   ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
+                   ctx->CTX_PC, access_address, memory_base, msr.DR);
     }
 
     return BackPatch(ctx);
@@ -160,24 +164,24 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 
 bool Jit64::BackPatch(SContext* ctx)
 {
-  u8* codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
+  auto codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
 
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
 
-  auto it = m_back_patch_info.find(codePtr);
+  const auto it = m_back_patch_info.find(codePtr);
   if (it == m_back_patch_info.end())
   {
     PanicAlertFmt("BackPatch: no register use entry for address {}", fmt::ptr(codePtr));
     return false;
   }
 
-  TrampolineInfo& info = it->second;
+  const TrampolineInfo& info = it->second;
 
   u8* exceptionHandler = nullptr;
   if (jo.memcheck)
   {
-    auto it2 = m_exception_handler_at_loc.find(codePtr);
+    const auto it2 = m_exception_handler_at_loc.find(codePtr);
     if (it2 != m_exception_handler_at_loc.end())
       exceptionHandler = it2->second;
   }
@@ -212,7 +216,7 @@ bool Jit64::BackPatch(SContext* ctx)
   // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
   // swap it back so that the swap can happen again (this double swap isn't ideal but
   // only happens the first time we fault).
-  if (info.nonAtomicSwapStoreSrc != Gen::INVALID_REG)
+  if (info.nonAtomicSwapStoreSrc != INVALID_REG)
   {
     u64* ptr = ContextRN(ctx, info.nonAtomicSwapStoreSrc);
     switch (info.accessSize << 3)
@@ -227,7 +231,7 @@ bool Jit64::BackPatch(SContext* ctx)
       *ptr = Common::swap32(static_cast<u32>(*ptr));
       break;
     case 64:
-      *ptr = Common::swap64(static_cast<u64>(*ptr));
+      *ptr = Common::swap64(*ptr);
       break;
     default:
       DEBUG_ASSERT(false);
@@ -264,10 +268,10 @@ void Jit64::Init()
   gpr.SetEmitter(this);
   fpr.SetEmitter(this);
 
-  const size_t routines_size = asm_routines.CODE_SIZE;
+  constexpr size_t routines_size = asm_routines.CODE_SIZE;
   const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
   const size_t farcode_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
-  const size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
+  constexpr size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
   AllocCodeSpace(CODE_SIZE + routines_size + trampolines_size + farcode_size + constpool_size);
   AddChildCodeSpace(&asm_routines, routines_size);
   AddChildCodeSpace(&trampolines, trampolines_size);
@@ -390,7 +394,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 }
 
-void Jit64::HLEFunction(u32 hook_index)
+void Jit64::HLEFunction(const u32 hook_index)
 {
   gpr.Flush();
   fpr.Flush();
@@ -416,7 +420,7 @@ void Jit64::ImHere(Jit64& jit)
     f.WriteString(fmt::format("{0:08x}\n", ppc_state.pc));
   }
   auto& been_here = jit.m_been_here;
-  auto it = been_here.find(ppc_state.pc);
+  const auto it = been_here.find(ppc_state.pc);
   if (it != been_here.end())
   {
     it->second++;
@@ -436,7 +440,7 @@ bool Jit64::Cleanup()
     MOV(64, R(RSCRATCH), PPCSTATE(gather_pipe_ptr));
     SUB(64, R(RSCRATCH), PPCSTATE(gather_pipe_base_ptr));
     CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
-    FixupBranch exit = J_CC(CC_L);
+    const FixupBranch exit = J_CC(CC_L);
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionP(GPFifo::UpdateGatherPipe, &m_system.GetGPFifo());
     ABI_PopRegistersAndAdjustStack({}, 0);
@@ -447,7 +451,7 @@ bool Jit64::Cleanup()
   if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+    ABI_CallFunctionCCCP(UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
                          js.numFloatingPointInst, &m_ppc_state);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
@@ -465,16 +469,16 @@ bool Jit64::Cleanup()
   return did_something;
 }
 
-void Jit64::FakeBLCall(u32 after)
+void Jit64::FakeBLCall(const u32 after)
 {
   if (!m_enable_blr_optimization)
     return;
 
   // We may need to fake the BLR stack on inlined CALL instructions.
   // Else we can't return to this location any more.
-  MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
+  MOV(64, R(RSCRATCH2), Imm64(static_cast<u64>(m_ppc_state.feature_flags) << 32 | after));
   PUSH(RSCRATCH2);
-  FixupBranch skip_exit = CALL();
+  const FixupBranch skip_exit = CALL();
   POP(RSCRATCH2);
   JustWriteExit(after, false, 0);
   SetJumpTarget(skip_exit);
@@ -485,12 +489,12 @@ void Jit64::EmitUpdateMembase()
   MOV(64, R(RMEM), PPCSTATE(mem_ptr));
 }
 
-void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
+void Jit64::MSRUpdated(const OpArg& msr, const X64Reg scratch_reg)
 {
   ASSERT(!msr.IsSimpleReg(scratch_reg));
 
   // Update mem_ptr
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   if (msr.IsImm())
   {
     MOV(64, R(RMEM),
@@ -526,7 +530,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   }
 }
 
-void Jit64::WriteExit(u32 destination, bool bl, u32 after)
+void Jit64::WriteExit(const u32 destination, bool bl, const u32 after)
 {
   if (!m_enable_blr_optimization)
     bl = false;
@@ -535,7 +539,7 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   if (bl)
   {
-    MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
+    MOV(64, R(RSCRATCH2), Imm64(static_cast<u64>(m_ppc_state.feature_flags) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -544,7 +548,7 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
   JustWriteExit(destination, bl, after);
 }
 
-void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+void Jit64::JustWriteExit(const u32 destination, const bool bl, const u32 after)
 {
   // If nobody has taken care of this yet (this can be removed when all branches are done)
   JitBlock* b = js.curBlock;
@@ -558,11 +562,11 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   // Perform downcount flag check, followed by the requested exit
   if (bl)
   {
-    FixupBranch do_timing = J_CC(CC_LE, Jump::Near);
+    const FixupBranch do_timing = J_CC(CC_LE, Jump::Near);
     SwitchToFarCode();
     SetJumpTarget(do_timing);
     CALL(asm_routines.do_timing);
-    FixupBranch after_fixup = J(Jump::Near);
+    const FixupBranch after_fixup = J(Jump::Near);
     SwitchToNearCode();
 
     linkData.exitPtrs = GetWritableCodePtr();
@@ -583,7 +587,7 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   b->linkData.push_back(linkData);
 }
 
-void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
+void Jit64::WriteExitDestInRSCRATCH(bool bl, const u32 after)
 {
   if (!m_enable_blr_optimization)
     bl = false;
@@ -592,7 +596,7 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
 
   if (bl)
   {
-    MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
+    MOV(64, R(RSCRATCH2), Imm64(static_cast<u64>(m_ppc_state.feature_flags) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -617,7 +621,7 @@ void Jit64::WriteBLRExit()
     return;
   }
   MOV(32, PPCSTATE(pc), R(RSCRATCH));
-  bool disturbed = Cleanup();
+  const bool disturbed = Cleanup();
   if (disturbed)
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
   if (m_ppc_state.feature_flags != 0)
@@ -639,14 +643,14 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   Cleanup();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunctionP(CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, Jump::Near);
 }
 
-void Jit64::WriteIdleExit(u32 destination)
+void Jit64::WriteIdleExit(const u32 destination)
 {
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunction(CoreTiming::GlobalIdle);
@@ -661,7 +665,7 @@ void Jit64::WriteExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunctionP(CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -674,7 +678,7 @@ void Jit64::WriteExternalExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunctionP(CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -686,7 +690,7 @@ void Jit64::Run()
   ProtectStack();
   m_system.GetJitInterface().UpdateMembase();
 
-  CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
+  const auto pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
 
   UnprotectStack();
@@ -697,13 +701,13 @@ void Jit64::SingleStep()
   ProtectStack();
   m_system.GetJitInterface().UpdateMembase();
 
-  CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
+  const auto pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
 
   UnprotectStack();
 }
 
-void Jit64::Trace()
+void Jit64::Trace() const
 {
   std::string regs;
   std::string fregs;
@@ -729,12 +733,12 @@ void Jit64::Trace()
                 m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, fregs);
 }
 
-void Jit64::Jit(u32 em_address)
+void Jit64::Jit(const u32 em_address)
 {
   Jit(em_address, true);
 }
 
-void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
+void Jit64::Jit(const u32 em_address, const bool clear_cache_and_retry_on_failure)
 {
   CleanUpAfterStackFault();
 
@@ -749,10 +753,10 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   // Check if any code blocks have been freed in the block cache and transfer this information to
   // the local rangesets to allow overwriting them with new code.
-  for (auto range : blocks.GetRangesToFreeNear())
-    m_free_ranges_near.insert(range.first, range.second);
-  for (auto range : blocks.GetRangesToFreeFar())
-    m_free_ranges_far.insert(range.first, range.second);
+  for (const auto [fst, snd] : blocks.GetRangesToFreeNear())
+    m_free_ranges_near.insert(fst, snd);
+  for (const auto [fst, snd] : blocks.GetRangesToFreeFar())
+    m_free_ranges_far.insert(fst, snd);
   blocks.ClearRangesToFree();
 
   std::size_t block_size = m_code_buffer.size();
@@ -865,7 +869,7 @@ bool Jit64::SetEmitterStateToFreeCodeRegion()
   return true;
 }
 
-bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool Jit64::DoJit(const u32 em_address, JitBlock* b, const u32 nextPC)
 {
   js.firstFPInstructionFound = false;
   js.isLastInstruction = false;
@@ -909,10 +913,10 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
   // this lets them use fastmem).
-  if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+  if (!js.pairedQuantizeAddresses.contains(js.blockStart))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
-    BitSet8 gqr_static = ComputeStaticGQRs(code_block);
+    const BitSet8 gqr_static = ComputeStaticGQRs(code_block);
     if (gqr_static)
     {
       SwitchToFarCode();
@@ -927,9 +931,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       // Insert a check that the GQRs are still the value we expect at
       // the start of the block in case our guess turns out wrong.
-      for (int gqr : gqr_static)
+      for (const int gqr : gqr_static)
       {
-        u32 value = GQR(m_ppc_state, gqr);
+        const u32 value = GQR(m_ppc_state, gqr);
         js.constantGqr[gqr] = value;
         CMP_or_TEST(32, PPCSTATE_SPR(SPR_GQR0 + gqr), Imm32(value));
         J_CC(CC_NZ, target);
@@ -938,8 +942,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
   }
 
-  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
-      js.noSpeculativeConstantsAddresses.end())
+  if (!js.noSpeculativeConstantsAddresses.contains(js.blockStart))
   {
     IntializeSpeculativeConstants();
   }
@@ -968,7 +971,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
       bool gatherPipeIntCheck =
-          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
+          js.fifoWriteAddresses.contains(prev_address);
 
       // Gather pipe writes using an immediate address are explicitly tracked.
       if (jo.optimizeGatherPipe &&
@@ -976,7 +979,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       {
         js.fifoBytesSinceCheck = 0;
         js.mustCheckFifo = false;
-        BitSet32 registersInUse = CallerSavedRegistersInUse();
+        const BitSet32 registersInUse = CallerSavedRegistersInUse();
         ABI_PushRegistersAndAdjustStack(registersInUse, 0);
         ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
         ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -1043,7 +1046,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
+        ABI_CallFunctionP(CheckAndHandleBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
         CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));
@@ -1200,14 +1203,14 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   return true;
 }
 
-BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
+BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb)
 {
   return cb.m_gqr_used & ~cb.m_gqr_modified;
 }
 
 BitSet32 Jit64::CallerSavedRegistersInUse() const
 {
-  BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16);
+  const BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16);
   return in_use & ABI_ALL_CALLER_SAVED;
 }
 
@@ -1236,9 +1239,9 @@ void Jit64::IntializeSpeculativeConstants()
   // Insert a check at the start of the block to verify that the value is actually constant.
   // This can save a lot of backpatching and optimize gather pipe writes in more places.
   const u8* target = nullptr;
-  for (auto i : code_block.m_gpr_inputs)
+  for (const auto i : code_block.m_gpr_inputs)
   {
-    u32 compileTimeValue = m_ppc_state.gpr[i];
+    const u32 compileTimeValue = m_ppc_state.gpr[i];
     if (m_mmu.IsOptimizableGatherPipeWrite(compileTimeValue) ||
         m_mmu.IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
         compileTimeValue == 0xCC000000)
@@ -1262,9 +1265,9 @@ void Jit64::IntializeSpeculativeConstants()
   }
 }
 
-bool Jit64::HandleFunctionHooking(u32 address)
+bool Jit64::HandleFunctionHooking(const u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::JIT);
+  const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, CoreMode::JIT);
   if (!result)
     return false;
 
@@ -1279,14 +1282,19 @@ bool Jit64::HandleFunctionHooking(u32 address)
   return true;
 }
 
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
+void LogGeneratedX86(const size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
                      const JitBlock* b)
 {
   for (size_t i = 0; i < size; i++)
   {
-    const PPCAnalyst::CodeOp& op = code_buffer[i];
-    const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", op.address, disasm);
+    const auto& [inst, _opinfo, address, _branchTo, _regsIn, _regsOut, _fregsIn, _fregOut, _crIn,
+      _crOut, _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA,
+      _wantsCAInFlags, _outputCR, _outputFPRF, _outputCA, _canEndBlock, _canCauseException,
+      _skipLRStack, _skip, _crInUse, _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable,
+      _fprDiscardable, _fprInXmm, _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst,
+      _fprIsStoreSafeAfterInst] = code_buffer[i];
+    const std::string disasm = Common::GekkoDisassembler::Disassemble(inst.hex, address);
+    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", address, disasm);
   }
 
   disassembler x64disasm;

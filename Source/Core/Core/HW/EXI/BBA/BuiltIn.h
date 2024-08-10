@@ -44,9 +44,9 @@ class BbaTcpSocket : public sf::TcpSocket
 public:
   BbaTcpSocket();
 
-  sf::Socket::Status Connect(const sf::IpAddress& dest, u16 port, u32 net_ip);
-  sf::Socket::Status GetPeerName(sockaddr_in* addr) const;
-  sf::Socket::Status GetSockName(sockaddr_in* addr) const;
+  Status Connect(const sf::IpAddress& dest, u16 port, u32 net_ip);
+  Status GetPeerName(sockaddr_in* addr) const;
+  Status GetSockName(sockaddr_in* addr) const;
 
   enum class ConnectingState
   {
@@ -67,7 +67,7 @@ class BbaUdpSocket : public sf::UdpSocket
 public:
   BbaUdpSocket();
 
-  sf::Socket::Status Bind(u16 port, u32 net_ip);
+  Status Bind(u16 port, u32 net_ip);
 };
 
 struct StackRef

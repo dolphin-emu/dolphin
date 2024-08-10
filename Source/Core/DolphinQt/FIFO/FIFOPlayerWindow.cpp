@@ -3,19 +3,15 @@
 
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 
-#include <QCheckBox>
 #include <QDialogButtonBox>
-#include <QEvent>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QIcon>
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTabWidget>
-#include <QVBoxLayout>
 
 #include <algorithm>
 
@@ -58,7 +54,7 @@ FIFOPlayerWindow::FIFOPlayerWindow(FifoPlayer& fifo_player, FifoRecorder& fifo_r
     });
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (state == Core::State::Running && m_emu_state != Core::State::Paused)
       OnEmulationStarted();
     else if (state == Core::State::Uninitialized)
@@ -174,10 +170,10 @@ void FIFOPlayerWindow::CreateWidgets()
   setLayout(tab_layout);
 }
 
-void FIFOPlayerWindow::LoadSettings()
+void FIFOPlayerWindow::LoadSettings() const
 {
-  m_early_memory_updates->setChecked(Config::Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES));
-  m_loop->setChecked(Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY));
+  m_early_memory_updates->setChecked(Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES));
+  m_loop->setChecked(Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY));
 }
 
 void FIFOPlayerWindow::ConnectWidgets()
@@ -197,13 +193,13 @@ void FIFOPlayerWindow::ConnectWidgets()
   connect(m_object_range_to, &QSpinBox::valueChanged, this, &FIFOPlayerWindow::OnLimitsChanged);
 }
 
-void FIFOPlayerWindow::AddDescriptions()
+void FIFOPlayerWindow::AddDescriptions() const
 {
-  static const char TR_MEMORY_UPDATES_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_MEMORY_UPDATES_DESCRIPTION[] = QT_TR_NOOP(
       "If enabled, then all memory updates happen at once before the first frame.<br><br>"
       "Causes issues with many fifologs, but can be useful for testing.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_LOOP_DESCRIPTION[] =
+  static constexpr char TR_LOOP_DESCRIPTION[] =
       QT_TR_NOOP("If unchecked, then playback of the fifolog stops after the final frame.<br><br>"
                  "This is generally only useful when a frame-dumping option is enabled.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -214,8 +210,8 @@ void FIFOPlayerWindow::AddDescriptions()
 
 void FIFOPlayerWindow::LoadRecording()
 {
-  QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO Log"), QString(),
-                                                    tr("Dolphin FIFO Log (*.dff)"));
+  const QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO Log"), QString(),
+                                                          tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
     return;
@@ -225,15 +221,15 @@ void FIFOPlayerWindow::LoadRecording()
 
 void FIFOPlayerWindow::SaveRecording()
 {
-  QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO Log"), QString(),
-                                                    tr("Dolphin FIFO Log (*.dff)"));
+  const QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO Log"), QString(),
+                                                          tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
     return;
 
   FifoDataFile* file = m_fifo_recorder.GetRecordedFile();
 
-  bool result = file->Save(path.toStdString());
+  const bool result = file->Save(path.toStdString());
 
   if (!result)
   {
@@ -252,7 +248,7 @@ void FIFOPlayerWindow::StartRecording()
   UpdateInfo();
 }
 
-void FIFOPlayerWindow::StopRecording()
+void FIFOPlayerWindow::StopRecording() const
 {
   m_fifo_recorder.StopRecording();
 
@@ -260,7 +256,7 @@ void FIFOPlayerWindow::StopRecording()
   UpdateInfo();
 }
 
-void FIFOPlayerWindow::OnEmulationStarted()
+void FIFOPlayerWindow::OnEmulationStarted() const
 {
   UpdateControls();
 
@@ -268,7 +264,7 @@ void FIFOPlayerWindow::OnEmulationStarted()
     OnFIFOLoaded();
 }
 
-void FIFOPlayerWindow::OnEmulationStopped()
+void FIFOPlayerWindow::OnEmulationStopped() const
 {
   // If we have previously been recording, stop now.
   if (m_fifo_recorder.IsRecording())
@@ -280,17 +276,17 @@ void FIFOPlayerWindow::OnEmulationStopped()
   m_analyzer->Update();
 }
 
-void FIFOPlayerWindow::OnRecordingDone()
+void FIFOPlayerWindow::OnRecordingDone() const
 {
   UpdateInfo();
   UpdateControls();
 }
 
-void FIFOPlayerWindow::UpdateInfo()
+void FIFOPlayerWindow::UpdateInfo() const
 {
   if (m_fifo_player.IsPlaying())
   {
-    FifoDataFile* file = m_fifo_player.GetFile();
+    const FifoDataFile* file = m_fifo_player.GetFile();
     m_info_label->setText(tr("%1 frame(s)\n%2 object(s)\nCurrent Frame: %3")
                               .arg(QString::number(file->GetFrameCount()),
                                    QString::number(m_fifo_player.GetCurrentFrameObjectCount()),
@@ -300,15 +296,15 @@ void FIFOPlayerWindow::UpdateInfo()
 
   if (m_fifo_recorder.IsRecordingDone())
   {
-    FifoDataFile* file = m_fifo_recorder.GetRecordedFile();
+    const FifoDataFile* file = m_fifo_recorder.GetRecordedFile();
     size_t fifo_bytes = 0;
     size_t mem_bytes = 0;
 
     for (u32 i = 0; i < file->GetFrameCount(); ++i)
     {
       fifo_bytes += file->GetFrame(i).fifoData.size();
-      for (const auto& mem_update : file->GetFrame(i).memoryUpdates)
-        mem_bytes += mem_update.data.size();
+      for (const auto& [_fifoPosition, _address, data, _type] : file->GetFrame(i).memoryUpdates)
+        mem_bytes += data.size();
     }
 
     m_info_label->setText(tr("%1 FIFO bytes\n%2 memory bytes\n%3 frames")
@@ -317,7 +313,7 @@ void FIFOPlayerWindow::UpdateInfo()
     return;
   }
 
-  if (Core::IsRunning(Core::System::GetInstance()) && m_fifo_recorder.IsRecording())
+  if (IsRunning(Core::System::GetInstance()) && m_fifo_recorder.IsRecording())
   {
     m_info_label->setText(tr("Recording..."));
     return;
@@ -326,12 +322,12 @@ void FIFOPlayerWindow::UpdateInfo()
   m_info_label->setText(tr("No file loaded / recorded."));
 }
 
-void FIFOPlayerWindow::OnFIFOLoaded()
+void FIFOPlayerWindow::OnFIFOLoaded() const
 {
-  FifoDataFile* file = m_fifo_player.GetFile();
+  const FifoDataFile* file = m_fifo_player.GetFile();
 
-  auto object_count = m_fifo_player.GetMaxObjectCount();
-  auto frame_count = file->GetFrameCount();
+  const auto object_count = m_fifo_player.GetMaxObjectCount();
+  const auto frame_count = file->GetFrameCount();
 
   m_frame_range_to->setMaximum(frame_count - 1);
   m_object_range_to->setMaximum(object_count - 1);
@@ -348,14 +344,14 @@ void FIFOPlayerWindow::OnFIFOLoaded()
   m_analyzer->Update();
 }
 
-void FIFOPlayerWindow::OnConfigChanged()
+void FIFOPlayerWindow::OnConfigChanged() const
 {
-  Config::SetBase(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES,
+  SetBase(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES,
                   m_early_memory_updates->isChecked());
-  Config::SetBase(Config::MAIN_FIFOPLAYER_LOOP_REPLAY, m_loop->isChecked());
+  SetBase(Config::MAIN_FIFOPLAYER_LOOP_REPLAY, m_loop->isChecked());
 }
 
-void FIFOPlayerWindow::OnLimitsChanged()
+void FIFOPlayerWindow::OnLimitsChanged() const
 {
   FifoPlayer& player = m_fifo_player;
 
@@ -366,7 +362,7 @@ void FIFOPlayerWindow::OnLimitsChanged()
   UpdateLimits();
 }
 
-void FIFOPlayerWindow::UpdateLimits()
+void FIFOPlayerWindow::UpdateLimits() const
 {
   m_frame_range_from->setMaximum(m_frame_range_to->value());
   m_frame_range_to->setMinimum(m_frame_range_from->value());
@@ -374,11 +370,11 @@ void FIFOPlayerWindow::UpdateLimits()
   m_object_range_to->setMinimum(m_object_range_from->value());
 }
 
-void FIFOPlayerWindow::UpdateControls()
+void FIFOPlayerWindow::UpdateControls() const
 {
-  bool running = Core::IsRunning(Core::System::GetInstance());
-  bool is_recording = m_fifo_recorder.IsRecording();
-  bool is_playing = m_fifo_player.IsPlaying();
+  const bool running = IsRunning(Core::System::GetInstance());
+  const bool is_recording = m_fifo_recorder.IsRecording();
+  const bool is_playing = m_fifo_player.IsPlaying();
 
   m_frame_range_from->setEnabled(is_playing);
   m_frame_range_from_label->setEnabled(is_playing);
@@ -389,7 +385,7 @@ void FIFOPlayerWindow::UpdateControls()
   m_object_range_to->setEnabled(is_playing);
   m_object_range_to_label->setEnabled(is_playing);
 
-  bool enable_frame_record_count = !is_playing && !is_recording;
+  const bool enable_frame_record_count = !is_playing && !is_recording;
 
   m_frame_record_count_label->setEnabled(enable_frame_record_count);
   m_frame_record_count->setEnabled(enable_frame_record_count);

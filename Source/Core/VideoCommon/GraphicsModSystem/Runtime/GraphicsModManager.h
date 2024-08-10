@@ -12,7 +12,6 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
-#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -38,7 +37,7 @@ public:
   void Load(const GraphicsModGroupConfig& config);
 
 private:
-  void EndOfFrame();
+  void EndOfFrame() const;
   void Reset();
 
   class DecoratedAction;

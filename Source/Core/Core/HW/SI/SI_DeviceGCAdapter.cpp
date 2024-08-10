@@ -16,7 +16,7 @@
 
 namespace SerialInterface
 {
-CSIDevice_GCAdapter::CSIDevice_GCAdapter(Core::System& system, SIDevices device, int device_number)
+CSIDevice_GCAdapter::CSIDevice_GCAdapter(Core::System& system, const SIDevices device, const int device_number)
     : CSIDevice_GCController(system, device, device_number)
 {
   // Make sure PAD_GET_ORIGIN gets set due to a newly connected device.
@@ -25,7 +25,7 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(Core::System& system, SIDevices device,
   // get the correct pad number that should rumble locally when using netplay
   const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
   if (pad_num < 4)
-    m_simulate_konga = Config::Get(Config::GetInfoForSimulateKonga(pad_num));
+    m_simulate_konga = Get(Config::GetInfoForSimulateKonga(pad_num));
 }
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
@@ -49,7 +49,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
   return pad_status;
 }
 
-int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_GCAdapter::RunBuffer(u8* buffer, const int request_length)
 {
   if (!Core::WantsDeterminism())
   {
@@ -61,7 +61,7 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
     // into this port on the hardware gc adapter, exposing it to the game.
     if (!GCAdapter::DeviceConnected(m_device_number))
     {
-      u32 device = Common::swap32(SI_NONE);
+      const u32 device = Common::swap32(SI_NONE);
       memcpy(buffer, &device, sizeof(device));
       return 4;
     }
@@ -81,7 +81,7 @@ bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCController::Rumble(int pad_num, ControlState strength, SIDevices device)
+void CSIDevice_GCController::Rumble(const int pad_num, const ControlState strength, const SIDevices device)
 {
   if (device == SIDEVICE_WIIU_ADAPTER)
     GCAdapter::Output(pad_num, static_cast<u8>(strength));

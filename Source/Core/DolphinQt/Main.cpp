@@ -43,13 +43,13 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
-static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
-                              Common::MsgType style)
+static bool QtMsgAlertHandler(const char* caption, const char* text, const bool yes_no,
+                              const Common::MsgType style)
 {
   const bool called_from_cpu_thread = Core::IsCPUThread();
   const bool called_from_gpu_thread = Core::IsGPUThread();
 
-  std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
+  const std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
     // If we were called from the CPU/GPU thread, set us as the CPU/GPU thread.
     // This information is used in order to avoid deadlocks when calling e.g.
     // Host::SetRenderFocus or Core::CPUThreadGuard. (Host::SetRenderFocus
@@ -99,7 +99,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 
     if (button == QMessageBox::Ignore)
     {
-      Config::SetCurrent(Config::MAIN_USE_PANIC_HANDLERS, false);
+      SetCurrent(Config::MAIN_USE_PANIC_HANDLERS, false);
       return true;
     }
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 {
 #ifdef _WIN32
   const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
-  HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+  HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
   if (console_attached && stdout_handle)
   {
     freopen("CONOUT$", "w", stdout);
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
   // QApplication will parse arguments and remove any it recognizes as targeting Qt
   QApplication app(argc, argv);
 
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  auto parser = CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
   const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   const std::vector<std::string> args = parser->args();
 
@@ -169,10 +169,12 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
-  Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
+  options.is_set("batch") ?
+    Settings::Instance().DisableBatchMode() :
+    Settings::Instance().EnableBatchMode();
 
   // Hook up alerts from core
-  Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
+  RegisterMsgAlertHandler(QtMsgAlertHandler);
 
   // Hook up translations
   Translation::Initialize();
@@ -180,7 +182,7 @@ int main(int argc, char* argv[])
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
-                   &app, [] { Core::HostDispatchJobs(Core::System::GetInstance()); });
+                   &app, [] { HostDispatchJobs(Core::System::GetInstance()); });
 
   std::optional<std::string> save_state_path;
   if (options.is_set("save_state"))
@@ -201,7 +203,7 @@ int main(int argc, char* argv[])
   }
   else if (options.is_set("nand_title"))
   {
-    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    const std::string hex_string = options.get("nand_title");
     if (hex_string.length() == 16)
     {
       const u64 title_id = std::stoull(hex_string, nullptr, 16);
@@ -253,7 +255,7 @@ int main(int argc, char* argv[])
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-    if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
+    if (!Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
     {
       ModalMessageBox analytics_prompt(&win);
 
@@ -276,8 +278,10 @@ int main(int argc, char* argv[])
       SetQWidgetWindowDecorations(&analytics_prompt);
       const int answer = analytics_prompt.exec();
 
-      Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
-      Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
+      SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
+      answer == QMessageBox::Yes ?
+        Settings::Instance().EnableAnalytics() :
+        Settings::Instance().DisableAnalytics();
 
       DolphinAnalytics::Instance().ReloadConfig();
     }
@@ -285,15 +289,15 @@ int main(int argc, char* argv[])
 
     if (!Settings::Instance().IsBatchModeEnabled())
     {
-      auto* updater = new Updater(&win, Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
-                                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+      auto* updater = new Updater(&win, Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
+                                  Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
       updater->start();
     }
 
     retval = app.exec();
   }
 
-  Core::Shutdown(Core::System::GetInstance());
+  Shutdown(Core::System::GetInstance());
   UICommon::Shutdown();
   Host::GetInstance()->deleteLater();
 

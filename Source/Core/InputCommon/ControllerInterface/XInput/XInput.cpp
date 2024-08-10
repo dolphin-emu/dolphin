@@ -41,7 +41,7 @@ static constexpr std::array named_motors{"Motor L", "Motor R"};
 class Button final : public Core::Device::Input
 {
 public:
-  Button(u8 index, const WORD& buttons) : m_buttons(buttons), m_index(index) {}
+  Button(const u8 index, const WORD& buttons) : m_buttons(buttons), m_index(index) {}
   std::string GetName() const override { return named_buttons[m_index].name; }
   ControlState GetState() const override
   {
@@ -56,12 +56,15 @@ private:
 class Axis final : public Core::Device::Input
 {
 public:
-  Axis(u8 index, const SHORT& axis, SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
+  Axis(const u8 index, const SHORT& axis, const SHORT range)
+    : m_axis(axis), m_range(range), m_index(index)
+  {
+  }
   std::string GetName() const override
   {
     return std::string(named_axes[m_index]) + (m_range < 0 ? '-' : '+');
   }
-  ControlState GetState() const override { return ControlState(m_axis) / m_range; }
+  ControlState GetState() const override { return static_cast<ControlState>(m_axis) / m_range; }
 
 private:
   const SHORT& m_axis;
@@ -72,12 +75,12 @@ private:
 class Trigger final : public Core::Device::Input
 {
 public:
-  Trigger(u8 index, const BYTE& trigger, BYTE range)
+  Trigger(const u8 index, const BYTE& trigger, const BYTE range)
       : m_trigger(trigger), m_range(range), m_index(index)
   {
   }
   std::string GetName() const override { return named_triggers[m_index]; }
-  ControlState GetState() const override { return ControlState(m_trigger) / m_range; }
+  ControlState GetState() const override { return static_cast<ControlState>(m_trigger) / m_range; }
 
 private:
   const BYTE& m_trigger;
@@ -88,16 +91,16 @@ private:
 class Motor final : public Core::Device::Output
 {
 public:
-  Motor(u8 index, Device* parent, WORD& motor, WORD range)
+  Motor(const u8 index, Device* parent, WORD& motor, const WORD range)
       : m_motor(motor), m_range(range), m_index(index), m_parent(parent)
   {
   }
 
   std::string GetName() const override { return named_motors[m_index]; }
-  void SetState(ControlState state) override
+  void SetState(const ControlState state) override
   {
     const auto old_value = m_motor;
-    m_motor = (WORD)(state * m_range);
+    m_motor = static_cast<WORD>(state * m_range);
 
     // Only update if the state changed.
     if (m_motor != old_value)
@@ -154,24 +157,24 @@ void Init()
     }
 
     PXInputGetCapabilities =
-        (XInputGetCapabilities_t)::GetProcAddress(hXInput, "XInputGetCapabilities");
-    PXInputSetState = (XInputSetState_t)::GetProcAddress(hXInput, "XInputSetState");
+        (XInputGetCapabilities_t)GetProcAddress(hXInput, "XInputGetCapabilities");
+    PXInputSetState = (XInputSetState_t)GetProcAddress(hXInput, "XInputSetState");
     PXInputGetBatteryInformation =
-        (XInputGetBatteryInformation_t)::GetProcAddress(hXInput, "XInputGetBatteryInformation");
+        (XInputGetBatteryInformation_t)GetProcAddress(hXInput, "XInputGetBatteryInformation");
 
     // Ordinal 100 is the same as XInputGetState, except it doesn't dummy out the guide
     // button info. Try loading it and fall back if needed.
-    PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, (LPCSTR)100);
+    PXInputGetState = (XInputGetState_t)GetProcAddress(hXInput, (LPCSTR)100);
 
     s_have_guide_button = PXInputGetState != nullptr;
 
     if (!PXInputGetState)
-      PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, "XInputGetState");
+      PXInputGetState = (XInputGetState_t)GetProcAddress(hXInput, "XInputGetState");
 
     if (!PXInputGetCapabilities || !PXInputSetState || !PXInputGetState ||
         !PXInputGetBatteryInformation)
     {
-      ::FreeLibrary(hXInput);
+      FreeLibrary(hXInput);
       hXInput = nullptr;
       return;
     }
@@ -195,12 +198,13 @@ void DeInit()
 {
   if (hXInput)
   {
-    ::FreeLibrary(hXInput);
+    FreeLibrary(hXInput);
     hXInput = nullptr;
   }
 }
 
-Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubType), m_index(index)
+Device::Device(const XINPUT_CAPABILITIES& caps, const u8 index)
+  : m_subtype(caps.SubType), m_index(index)
 {
   // XInputGetCaps can be broken on some devices, so we'll just ignore it
   // and assume all gamepad + vibration capabilities are supported
@@ -212,12 +216,12 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
     if (named_buttons[i].bitmask == XINPUT_GAMEPAD_GUIDE && !s_have_guide_button)
       continue;
 
-    AddInput(new Button(u8(i), m_state_in.Gamepad.wButtons));
+    AddInput(new Button(static_cast<u8>(i), m_state_in.Gamepad.wButtons));
   }
 
   // Triggers.
   for (size_t i = 0; i != size(named_triggers); ++i)
-    AddInput(new Trigger(u8(i), (&m_state_in.Gamepad.bLeftTrigger)[i], 255));
+    AddInput(new Trigger(static_cast<u8>(i), (&m_state_in.Gamepad.bLeftTrigger)[i], 255));
 
   // Axes.
   for (size_t i = 0; i != size(named_axes); ++i)
@@ -225,13 +229,13 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
     const SHORT& ax = (&m_state_in.Gamepad.sThumbLX)[i];
 
     // Each axis gets a negative and a positive input instance associated with it.
-    AddInput(new Axis(u8(i), ax, -32768));
-    AddInput(new Axis(u8(i), ax, 32767));
+    AddInput(new Axis(static_cast<u8>(i), ax, -32768));
+    AddInput(new Axis(static_cast<u8>(i), ax, 32767));
   }
 
   // Rumble motors.
   for (size_t i = 0; i != size(named_motors); ++i)
-    AddOutput(new Motor(u8(i), this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
+    AddOutput(new Motor(static_cast<u8>(i), this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
 
   AddInput(new Battery(&m_battery_level));
 }
@@ -281,8 +285,8 @@ Core::DeviceRemoval Device::UpdateInput()
       m_battery_level = BATTERY_INPUT_MAX_VALUE;
       break;
     default:
-      m_battery_level =
-          battery_info.BatteryLevel / ControlState(BATTERY_LEVEL_FULL) * BATTERY_INPUT_MAX_VALUE;
+      m_battery_level = battery_info.BatteryLevel / static_cast<ControlState>(BATTERY_LEVEL_FULL) *
+                        BATTERY_INPUT_MAX_VALUE;
       break;
     }
   }

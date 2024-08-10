@@ -42,7 +42,7 @@ public:
                          StartGameCallback start_game_callback, QWidget* parent = nullptr);
   ~NetPlayDialog();
 
-  void show(std::string nickname, bool use_traversal);
+  void show(const std::string& nickname, bool use_traversal);
   void reject() override;
 
   // NetPlayUI methods
@@ -63,7 +63,8 @@ public:
   void OnPlayerConnect(const std::string& player) override;
   void OnPlayerDisconnect(const std::string& player) override;
   void OnPadBufferChanged(u32 buffer) override;
-  void OnHostInputAuthorityChanged(bool enabled) override;
+  void EnableOnHostInputAuthority() override;
+  void DisableHostInputAuthority() override;
   void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
   void OnConnectionError(const std::string& message) override;
@@ -83,8 +84,8 @@ public:
   std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
                              int device_number) override;
 
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
   void ShowGameDigestDialog(const std::string& title) override;
   void SetGameDigestProgress(int pid, int progress) override;
@@ -109,14 +110,15 @@ private:
   void OnChat();
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
-                      int duration = OSD::Duration::NORMAL);
+                      int duration = OSD::Duration::NORMAL) const;
   void ResetExternalIP();
   void UpdateDiscordPresence();
   void UpdateGUI();
   void GameStatusChanged(bool running);
-  void SetOptionsEnabled(bool enabled);
+  void EnableOptions() const;
+  void DisableOptions() const;
 
-  void SendMessage(const std::string& message);
+  void SendMessage(const std::string& message) const;
 
   // Chat
   QGroupBox* m_chat_box;

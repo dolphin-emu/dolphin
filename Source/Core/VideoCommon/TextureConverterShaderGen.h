@@ -18,7 +18,7 @@ namespace TextureConversionShaderGen
 #pragma pack(1)
 struct UidData
 {
-  u32 NumValues() const { return sizeof(UidData); }
+  static u32 NumValues() { return sizeof(UidData); }
   EFBCopyFormat dst_format;
 
   u32 efb_has_alpha : 1;
@@ -45,7 +45,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 template <>
 struct fmt::formatter<TextureConversionShaderGen::UidData>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TextureConversionShaderGen::UidData& uid, FormatContext& ctx) const
   {
@@ -53,7 +53,7 @@ struct fmt::formatter<TextureConversionShaderGen::UidData>
     if (uid.dst_format == EFBCopyFormat::XFB)
       dst_format = "XFB";
     else
-      dst_format = fmt::to_string(uid.dst_format);
+      dst_format = to_string(uid.dst_format);
     return fmt::format_to(ctx.out(),
                           "dst_format: {}, efb_has_alpha: {}, is_depth_copy: {}, is_intensity: {}, "
                           "scale_by_half: {}, all_copy_filter_coefs_needed: {}, "

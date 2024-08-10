@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
-#include <stack>
 #include <string>
 #include <vector>
 
@@ -18,7 +16,7 @@ namespace InputCommon
 {
 namespace
 {
-Pixel SampleNearest(const ImagePixelData& src, double u, double v)
+Pixel SampleNearest(const ImagePixelData& src, const double u, const double v)
 {
   const u32 x = std::clamp(static_cast<u32>(u * src.width), 0u, src.width - 1);
   const u32 y = std::clamp(static_cast<u32>(v * src.height), 0u, src.height - 1);
@@ -82,19 +80,20 @@ bool WriteImage(const std::string& path, const ImagePixelData& image)
     for (u32 x = 0; x < image.width; ++x)
     {
       const auto index = x + y * image.width;
-      const auto pixel = image.pixels[index];
-      buffer.push_back(pixel.r);
-      buffer.push_back(pixel.g);
-      buffer.push_back(pixel.b);
-      buffer.push_back(pixel.a);
+      const auto [r, g, b, a] = image.pixels[index];
+      buffer.push_back(r);
+      buffer.push_back(g);
+      buffer.push_back(b);
+      buffer.push_back(a);
     }
   }
 
-  return Common::SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width,
-                         image.height, image.width * 4);
+  return SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width, image.height,
+                 image.width * 4);
 }
 
-ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width, u32 new_height)
+ImagePixelData Resize(const ResizeMode mode, const ImagePixelData& src, const u32 new_width,
+                      const u32 new_height)
 {
   ImagePixelData result(new_width, new_height);
 
@@ -117,8 +116,9 @@ ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width,
   return result;
 }
 
-ImagePixelData ResizeKeepAspectRatio(ResizeMode mode, const ImagePixelData& src, u32 new_width,
-                                     u32 new_height, const Pixel& background_color)
+ImagePixelData ResizeKeepAspectRatio(const ResizeMode mode, const ImagePixelData& src,
+                                     const u32 new_width, const u32 new_height,
+                                     const Pixel& background_color)
 {
   ImagePixelData result(new_width, new_height, background_color);
 

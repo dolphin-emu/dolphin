@@ -83,7 +83,7 @@ public:
   u8 GetLMPVersion() const { return m_lmp_version; }
   u16 GetLMPSubVersion() const { return m_lmp_subversion; }
   // Broadcom Corporation
-  u16 GetManufactorID() const { return 0x000F; }
+  static u16 GetManufactorID() { return 0x000F; }
   const ClassType& GetClass() const { return m_class; }
   const FeaturesType& GetFeatures() const { return m_features; }
   const LinkKeyType& GetLinkKey() const { return m_link_key; }
@@ -149,13 +149,13 @@ private:
   bool LinkChannel(u16 psm);
   u16 GenerateChannelID() const;
 
-  bool DoesChannelExist(u16 scid) const { return m_channels.count(scid) != 0; }
-  void SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data);
+  bool DoesChannelExist(const u16 scid) const { return m_channels.contains(scid); }
+  void SendCommandToACL(u8 ident, u8 code, u8 command_length, const u8* command_data) const;
 
   void SignalChannel(u8* data, u32 size);
 
   void SendConnectionRequest(u16 psm);
-  void SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_out);
+  void SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_out) const;
 
   void ReceiveConnectionReq(u8 ident, u8* data, u32 size);
   void ReceiveConnectionResponse(u8 ident, u8* data, u32 size);
@@ -163,12 +163,12 @@ private:
   void ReceiveConfigurationReq(u8 ident, u8* data, u32 size);
   void ReceiveConfigurationResponse(u8 ident, u8* data, u32 size);
 
-  void HandleSDP(u16 cid, u8* data, u32 size);
+  void HandleSDP(u16 cid, u8* data, u32 size) const;
   void SDPSendServiceSearchResponse(u16 cid, u16 transaction_id, u8* service_search_pattern,
-                                    u16 maximum_service_record_count);
+                                    u16 maximum_service_record_count) const;
 
   void SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
                                        u16 start_attr_id, u16 end_attr_id,
-                                       u16 maximum_attribute_byte_count, u8* continuation_state);
+                                       u16 maximum_attribute_byte_count, u8* continuation_state) const;
 };
 }  // namespace IOS::HLE

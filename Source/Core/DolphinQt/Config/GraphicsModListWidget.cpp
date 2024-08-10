@@ -3,14 +3,12 @@
 
 #include "DolphinQt/Config/GraphicsModListWidget.h"
 
-#include <QCheckBox>
 #include <QDesktopServices>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
 #include <QUrl>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include <set>
@@ -29,7 +27,7 @@
 GraphicsModListWidget::GraphicsModListWidget(const UICommon::GameFile& game)
     : m_game_id(game.GetGameID()), m_mod_group(m_game_id)
 {
-  CalculateGameRunning(Core::GetState(Core::System::GetInstance()));
+  CalculateGameRunning(GetState(Core::System::GetInstance()));
   if (m_loaded_game_is_running && g_Config.graphics_mod_config)
   {
     m_mod_group.SetChangeCount(g_Config.graphics_mod_config->GetChangeCount());
@@ -66,7 +64,7 @@ void GraphicsModListWidget::CreateWidgets()
 
   m_open_directory_button = new QPushButton(tr("Open Directory..."));
   m_refresh = new QPushButton(tr("&Refresh List"));
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   hlayout->addWidget(m_open_directory_button);
   hlayout->addWidget(m_refresh);
 
@@ -129,24 +127,25 @@ void GraphicsModListWidget::RefreshModList()
 
   std::set<std::string> groups;
 
-  for (const GraphicsModConfig& mod : m_mod_group.GetMods())
+  for (const auto& [_m_title, _m_author, _m_description, _m_enabled, _m_weight, _m_relative_path,
+         _m_source, m_groups, _m_features, _m_assets] : m_mod_group.GetMods())
   {
-    for (const GraphicsTargetGroupConfig& group : mod.m_groups)
-      groups.insert(group.m_name);
+    for (const auto& [m_name, _m_targets] : m_groups)
+      groups.insert(m_name);
   }
 
   for (const GraphicsModConfig& mod : m_mod_group.GetMods())
   {
     // If no group matches the mod's features, or if the mod has no features, skip it
-    if (std::none_of(mod.m_features.begin(), mod.m_features.end(),
-                     [&groups](const GraphicsModFeatureConfig& feature) {
-                       return groups.count(feature.m_group) == 1;
-                     }))
+    if (std::ranges::none_of(mod.m_features,
+                             [&groups](const GraphicsModFeatureConfig& feature) {
+                               return groups.count(feature.m_group) == 1;
+                             }))
     {
       continue;
     }
 
-    QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(mod.m_title));
+    auto item = new QListWidgetItem(QString::fromStdString(mod.m_title));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
     item->setData(Qt::UserRole, QString::fromStdString(mod.GetAbsolutePath()));
     item->setCheckState(mod.m_enabled ? Qt::Checked : Qt::Unchecked);
@@ -165,7 +164,7 @@ void GraphicsModListWidget::ModSelectionChanged()
   OnModChanged(absolute_path);
 }
 
-void GraphicsModListWidget::ModItemChanged(QListWidgetItem* item)
+void GraphicsModListWidget::ModItemChanged(const QListWidgetItem* item)
 {
   const auto absolute_path = item->data(Qt::UserRole).toString();
   GraphicsModConfig* mod = m_mod_group.GetMod(absolute_path.toStdString());
@@ -253,7 +252,7 @@ const GraphicsModGroupConfig& GraphicsModListWidget::GetGraphicsModConfig() cons
   return m_mod_group;
 }
 
-void GraphicsModListWidget::CalculateGameRunning(Core::State state)
+void GraphicsModListWidget::CalculateGameRunning(const Core::State state)
 {
   m_loaded_game_is_running =
       state == Core::State::Running ? m_game_id == SConfig::GetInstance().GetGameID() : false;

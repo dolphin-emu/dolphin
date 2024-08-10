@@ -28,7 +28,7 @@ namespace IOS::HLE
 //
 //       To minimize the effect of this hack, we should only do this for disc titles
 //       booted from the game list, though.
-static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& context)
+static bool ShouldReturnFakeViewsForIOSes(const u64 title_id, const TitleContext& context)
 {
   const bool ios = IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
   const bool disc_title = context.active && ES::IsDiscTitle(context.tmd.GetTitleId());
@@ -36,13 +36,13 @@ static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& cont
          (ios && SConfig::GetInstance().m_disc_booted_from_game_list && disc_title);
 }
 
-IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 TitleID = memory.Read_U64(request.in_vectors[0].address);
 
@@ -67,13 +67,13 @@ IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 TitleID = memory.Read_U64(request.in_vectors[0].address);
   const u32 maxViews = memory.Read_U32(request.in_vectors[1].address);
@@ -86,7 +86,7 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
   }
   else if (ticket.IsValid())
   {
-    u32 number_of_views = std::min(maxViews, static_cast<u32>(ticket.GetNumberOfTickets()));
+    const u32 number_of_views = std::min(maxViews, static_cast<u32>(ticket.GetNumberOfTickets()));
     for (u32 view = 0; view < number_of_views; ++view)
     {
       const std::vector<u8> ticket_view = ticket.GetRawTicketView(view);
@@ -106,7 +106,7 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
 }
 
 ReturnCode ESCore::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
-                                     std::optional<u8> desired_version) const
+                                     const std::optional<u8> desired_version) const
 {
   const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);
@@ -147,11 +147,11 @@ ReturnCode ESCore::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* tic
     return ES_EACCES;
   }
 
-  std::copy(ticket_bytes.begin(), ticket_bytes.end(), ticket);
+  std::ranges::copy(ticket_bytes, ticket);
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
+IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.in_vectors[0].size != sizeof(ES::TicketView) ||
@@ -160,14 +160,14 @@ IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   return IPCReply(m_core.GetTicketFromView(
       memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView)),
       memory.GetPointerForRange(request.io_vectors[0].address, sizeof(ES::Ticket)), nullptr, 0));
 }
 
-IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request) const
 {
   u32 ticket_size = 0;
   if (!request.HasNumberOfValidVectors(1, 1) ||
@@ -177,8 +177,8 @@ IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const ReturnCode ret = m_core.GetTicketFromView(
       memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView)), nullptr,
       &ticket_size, std::nullopt);
@@ -186,7 +186,7 @@ IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
   return IPCReply(ret);
 }
 
-IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(ES::TicketView) ||
@@ -195,8 +195,8 @@ IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   u32 ticket_size = memory.Read_U32(request.in_vectors[1].address);
   if (ticket_size != request.io_vectors[0].size)
@@ -208,13 +208,13 @@ IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
       std::nullopt));
 }
 
-IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 TitleID = memory.Read_U64(request.in_vectors[0].address);
   const ES::TMDReader tmd = m_core.FindInstalledTMD(TitleID);
@@ -229,10 +229,10 @@ IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(ES::TMDHeader::title_id) ||
@@ -258,7 +258,7 @@ IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
@@ -270,8 +270,8 @@ IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   if (request.io_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const bool has_tmd = request.in_vectors[0].size != 0;
   size_t tmd_view_size = 0;
@@ -302,7 +302,7 @@ IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return IPCReply(ES_EINVAL);
@@ -311,8 +311,8 @@ IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
   if (request.in_vectors[0].size >= 4 * 1024 * 1024)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // Check whether the TMD view size is consistent.
   if (request.in_vectors[1].size != sizeof(u32) ||
@@ -351,7 +351,7 @@ IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.io_vectors[0].size != sizeof(ES::TicketView))
@@ -365,8 +365,8 @@ IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
   if (!has_ticket_vector && request.in_vectors[0].size != 0)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::vector<u8> view;
 
@@ -392,7 +392,7 @@ IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
@@ -400,20 +400,20 @@ IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
   if (!m_core.m_title_context.active)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(static_cast<u32>(m_core.m_title_context.tmd.GetBytes().size()),
                    request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMD(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMD(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 tmd_size = memory.Read_U32(request.in_vectors[0].address);
   if (tmd_size != request.io_vectors[0].size)

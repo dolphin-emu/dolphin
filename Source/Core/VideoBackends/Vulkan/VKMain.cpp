@@ -9,7 +9,6 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
@@ -19,8 +18,6 @@
 #include "VideoBackends/Vulkan/VKVertexManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -37,13 +34,13 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
   if (LoadVulkanLibrary())
   {
     u32 vk_api_version = 0;
-    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(WindowSystemType::Headless,
-                                                                   false, false, &vk_api_version);
+    const VkInstance temp_instance = VulkanContext::CreateVulkanInstance(WindowSystemType::Headless,
+                                                                         false, false, &vk_api_version);
     if (temp_instance)
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
       {
-        VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(temp_instance);
+        const VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(temp_instance);
         VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
 
         if (!gpu_list.empty())
@@ -53,7 +50,7 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
           if (device_index >= gpu_list.size())
             device_index = 0;
 
-          VkPhysicalDevice gpu = gpu_list[device_index];
+          const VkPhysicalDevice gpu = gpu_list[device_index];
           VkPhysicalDeviceProperties properties;
           vkGetPhysicalDeviceProperties(gpu, &properties);
           VkPhysicalDeviceFeatures features;
@@ -86,7 +83,7 @@ static bool IsHostGPULoggingEnabled()
 }
 
 // Helper method to determine whether to enable the debug utils extension.
-static bool ShouldEnableDebugUtils(bool enable_validation_layers)
+static bool ShouldEnableDebugUtils(const bool enable_validation_layers)
 {
   // Enable debug utils if the Host GPU log option is checked, or validation layers are enabled.
   // The only issue here is that if Host GPU is not checked when the instance is created, the debug
@@ -114,10 +111,10 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
   // We use this instance to fill in backend info, then re-use it for the actual device.
-  bool enable_surface = wsi.type != WindowSystemType::Headless;
-  bool enable_debug_utils = ShouldEnableDebugUtils(enable_validation_layer);
+  const bool enable_surface = wsi.type != WindowSystemType::Headless;
+  const bool enable_debug_utils = ShouldEnableDebugUtils(enable_validation_layer);
   u32 vk_api_version = 0;
-  VkInstance instance = VulkanContext::CreateVulkanInstance(
+  const VkInstance instance = VulkanContext::CreateVulkanInstance(
       wsi.type, enable_debug_utils, enable_validation_layer, &vk_api_version);
   if (instance == VK_NULL_HANDLE)
   {
@@ -137,7 +134,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Obtain a list of physical devices (GPUs) from the instance.
   // We'll re-use this list later when creating the device.
-  VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
+  const VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
   if (gpu_list.empty())
   {
     PanicAlertFmt("No Vulkan physical devices available.");

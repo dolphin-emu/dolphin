@@ -15,9 +15,7 @@
 // NOTE: winrt translates com failures to c++ exceptions, so we must use try/catch in this file to
 // prevent possible errors from escaping and terminating Dolphin.
 #include <winrt/base.h>
-#include <winrt/windows.devices.haptics.h>
 #include <winrt/windows.devices.power.h>
-#include <winrt/windows.foundation.collections.h>
 #include <winrt/windows.gaming.input.h>
 #include <winrt/windows.system.power.h>
 #pragma comment(lib, "windowsapp")
@@ -95,19 +93,19 @@ public:
     if (m_gamepad)
     {
       // Axes:
-      for (auto& axis : gamepad_axis_names)
+      for (const auto& [ptr, name] : gamepad_axis_names)
       {
-        AddInput(new NamedAxis(&(m_gamepad_reading.*axis.ptr), 0.0, -1.0, axis.name));
-        AddInput(new NamedAxis(&(m_gamepad_reading.*axis.ptr), 0.0, +1.0, axis.name));
+        AddInput(new NamedAxis(&(m_gamepad_reading.*ptr), 0.0, -1.0, name));
+        AddInput(new NamedAxis(&(m_gamepad_reading.*ptr), 0.0, +1.0, name));
       }
 
       // Triggers:
-      for (auto& trigger : gamepad_trigger_names)
-        AddInput(new NamedTrigger(&(m_gamepad_reading.*trigger.ptr), trigger.name));
+      for (const auto& [ptr, name] : gamepad_trigger_names)
+        AddInput(new NamedTrigger(&(m_gamepad_reading.*ptr), name));
 
       // Motors:
-      for (auto& motor : gamepad_motor_names)
-        AddOutput(new NamedMotor(&(m_state_out.*motor.ptr), motor.name, this));
+      for (const auto& [ptr, name] : gamepad_motor_names)
+        AddOutput(new NamedMotor(&(m_state_out.*ptr), name, this));
     }
 
     // Add IRawGameController's axes if IGamepad is not available.
@@ -199,7 +197,7 @@ private:
   {
   public:
     explicit Button(const ButtonValueType* button) : m_button(*button) {}
-    ControlState GetState() const override { return ControlState(m_button != 0); }
+    ControlState GetState() const override { return m_button != 0; }
 
   private:
     const ButtonValueType& m_button;
@@ -209,7 +207,7 @@ private:
   class NamedButton final : public Button
   {
   public:
-    NamedButton(const ButtonValueType* button, std::string_view name) : Button(button), m_name(name)
+    NamedButton(const ButtonValueType* button, const std::string_view name) : Button(button), m_name(name)
     {
     }
     std::string GetName() const override { return std::string(m_name); }
@@ -222,7 +220,7 @@ private:
   class IndexedButton final : public Button
   {
   public:
-    IndexedButton(const ButtonValueType* button, u32 index) : Button(button), m_index(index) {}
+    IndexedButton(const ButtonValueType* button, const u32 index) : Button(button), m_index(index) {}
     std::string GetName() const override { return fmt::format("Button {}", m_index); }
 
   private:
@@ -232,12 +230,12 @@ private:
   class Axis : public Input
   {
   public:
-    Axis(const double* axis, double base, double range)
+    Axis(const double* axis, const double base, const double range)
         : m_base(base), m_range(range), m_axis(*axis)
     {
     }
 
-    ControlState GetState() const override { return ControlState(m_axis - m_base) / m_range; }
+    ControlState GetState() const override { return (m_axis - m_base) / m_range; }
 
   protected:
     const double m_base;
@@ -250,7 +248,7 @@ private:
   class NamedAxis final : public Axis
   {
   public:
-    NamedAxis(const double* axis, double base, double range, std::string_view name)
+    NamedAxis(const double* axis, const double base, const double range, const std::string_view name)
         : Axis(axis, base, range), m_name(name)
     {
     }
@@ -266,7 +264,7 @@ private:
   class NamedTrigger final : public Axis
   {
   public:
-    NamedTrigger(const double* axis, std::string_view name) : Axis(axis, 0.0, 1.0), m_name(name) {}
+    NamedTrigger(const double* axis, const std::string_view name) : Axis(axis, 0.0, 1.0), m_name(name) {}
     std::string GetName() const override { return std::string(m_name); }
 
   private:
@@ -276,12 +274,12 @@ private:
   class NamedMotor final : public Output
   {
   public:
-    NamedMotor(double* motor, std::string_view name, Device* parent)
+    NamedMotor(double* motor, const std::string_view name, Device* parent)
         : m_motor(*motor), m_name(name), m_parent(*parent)
     {
     }
     std::string GetName() const override { return std::string(m_name); }
-    void SetState(ControlState state) override
+    void SetState(const ControlState state) override
     {
       if (m_motor == state)
         return;
@@ -299,7 +297,7 @@ private:
   class IndexedAxis final : public Axis
   {
   public:
-    IndexedAxis(const double* axis, double base, double range, u32 index)
+    IndexedAxis(const double* axis, const double base, const double range, const u32 index)
         : Axis(axis, base, range), m_index(index)
     {
     }
@@ -315,7 +313,7 @@ private:
   class IndexedSwitch final : public Input
   {
   public:
-    IndexedSwitch(const WGI::GameControllerSwitchPosition* swtch, u32 index,
+    IndexedSwitch(const WGI::GameControllerSwitchPosition* swtch, const u32 index,
                   WGI::GameControllerSwitchPosition direction)
         : m_switch(*swtch), m_index(index), m_direction(static_cast<int32_t>(direction))
     {
@@ -333,7 +331,7 @@ private:
       // directions. This tests that the current switch state value is within 1 of the desired
       // state.
       const auto direction_diff = std::abs(static_cast<int32_t>(m_switch) - m_direction);
-      return ControlState(direction_diff <= 1 || direction_diff == 7);
+      return direction_diff <= 1 || direction_diff == 7;
     }
 
   private:
@@ -361,12 +359,12 @@ private:
   {
   public:
     SimpleHaptics(Haptics::SimpleHapticsController haptics,
-                  Haptics::SimpleHapticsControllerFeedback feedback, u32 haptics_index)
+                  Haptics::SimpleHapticsControllerFeedback feedback, const u32 haptics_index)
         : m_haptics(haptics), m_feedback(feedback), m_haptics_index(haptics_index)
     {
     }
 
-    void SetState(ControlState state) override
+    void SetState(const ControlState state) override
     {
       if (m_current_state == state)
         return;
@@ -400,8 +398,8 @@ private:
   {
   public:
     NamedFeedback(Haptics::SimpleHapticsController haptics,
-                  Haptics::SimpleHapticsControllerFeedback feedback, u32 haptics_index,
-                  std::string_view feedback_name)
+                  Haptics::SimpleHapticsControllerFeedback feedback, const u32 haptics_index,
+                  const std::string_view feedback_name)
         : SimpleHaptics(haptics, feedback, haptics_index), m_feedback_name(feedback_name)
     {
     }
@@ -424,7 +422,7 @@ private:
       u32 i = 0;
       for (const auto& button : m_buttons)
       {
-        WGI::GameControllerButtonLabel lbl{WGI::GameControllerButtonLabel::None};
+        auto lbl{WGI::GameControllerButtonLabel::None};
         try
         {
           lbl = m_raw_controller.GetButtonLabel(i);
@@ -500,8 +498,8 @@ private:
     // This cludge is needed to workaround GetCurrentReading wanting array_view<bool>, while
     // using std::vector<bool> would create a bit-packed array, which isn't wanted. So, we keep
     // vector<u8> and view it as array<bool>.
-    auto buttons =
-        winrt::array_view<bool>(reinterpret_cast<winrt::array_view<bool>::pointer>(&m_buttons[0]),
+    const auto buttons =
+        winrt::array_view(reinterpret_cast<winrt::array_view<bool>::pointer>(&m_buttons[0]),
                                 static_cast<winrt::array_view<bool>::size_type>(m_buttons.size()));
     try
     {
@@ -534,7 +532,7 @@ private:
     return Core::DeviceRemoval::Keep;
   }
 
-  void UpdateMotors()
+  void UpdateMotors() const
   {
     try
     {
@@ -551,7 +549,7 @@ private:
     try
     {
       // Workaround for Steam. If Steam's GameOverlayRenderer64.dll is loaded, battery_info is null.
-      auto battery_info = m_raw_controller.try_as<WGI::IGameControllerBatteryInfo>();
+      const auto battery_info = m_raw_controller.try_as<WGI::IGameControllerBatteryInfo>();
       if (!battery_info)
         return false;
       const winrt::Windows::Devices::Power::BatteryReport report =

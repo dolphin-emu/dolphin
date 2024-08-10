@@ -173,7 +173,7 @@ bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& pack
 
 bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
 {
-  u64 file_size = Common::PacketReadU64(packet);
+  const u64 file_size = Common::PacketReadU64(packet);
 
   if (file_size == 0)
     return true;
@@ -237,7 +237,7 @@ static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::st
     if (name.find('\\') != std::string::npos)
       return false;
 #endif
-    if (std::all_of(name.begin(), name.end(), [](char c) { return c == '.'; }))
+    if (std::ranges::all_of(name, [](const char c) { return c == '.'; }))
       return false;
 
     bool is_folder;
@@ -262,7 +262,7 @@ bool DecompressPacketIntoFolder(sf::Packet& packet, const std::string& folder_pa
 
 std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet)
 {
-  u64 size = Common::PacketReadU64(packet);
+  const u64 size = Common::PacketReadU64(packet);
 
   std::vector<u8> out_buffer(size);
 

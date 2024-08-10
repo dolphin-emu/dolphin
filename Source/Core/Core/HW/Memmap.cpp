@@ -47,7 +47,7 @@ MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 
 MemoryManager::~MemoryManager() = default;
 
-void MemoryManager::InitMMIO(bool is_wii)
+void MemoryManager::InitMMIO(const bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
 
@@ -74,14 +74,14 @@ void MemoryManager::InitMMIO(bool is_wii)
 void MemoryManager::Init()
 {
   const auto get_mem1_size = [] {
-    if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
-      return Config::Get(Config::MAIN_MEM1_SIZE);
-    return Memory::MEM1_SIZE_RETAIL;
+    if (Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+      return Get(Config::MAIN_MEM1_SIZE);
+    return MEM1_SIZE_RETAIL;
   };
   const auto get_mem2_size = [] {
-    if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
-      return Config::Get(Config::MAIN_MEM2_SIZE);
-    return Memory::MEM2_SIZE_RETAIL;
+    if (Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+      return Get(Config::MAIN_MEM2_SIZE);
+    return MEM2_SIZE_RETAIL;
   };
   m_ram_size_real = get_mem1_size();
   m_ram_size = MathUtil::NextPowerOf2(GetRamSizeReal());
@@ -110,41 +110,41 @@ void MemoryManager::Init()
   const bool fake_vmem = !wii && !mmu;
 
   u32 mem_size = 0;
-  for (PhysicalMemoryRegion& region : m_physical_regions)
+  for (auto& [_out_pointer, _physical_address, size, flags, shm_position, active] : m_physical_regions)
   {
-    if (!wii && (region.flags & PhysicalMemoryRegion::WII_ONLY))
+    if (!wii && (flags & PhysicalMemoryRegion::WII_ONLY))
       continue;
-    if (!fake_vmem && (region.flags & PhysicalMemoryRegion::FAKE_VMEM))
+    if (!fake_vmem && (flags & PhysicalMemoryRegion::FAKE_VMEM))
       continue;
 
-    region.shm_position = mem_size;
-    region.active = true;
-    mem_size += region.size;
+    shm_position = mem_size;
+    active = true;
+    mem_size += size;
   }
   m_arena.GrabSHMSegment(mem_size, "dolphin-emu");
 
   m_physical_page_mappings.fill(nullptr);
 
   // Create an anonymous view of the physical memory
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [out_pointer, physical_address, size, _flags, shm_position, active] : m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    *region.out_pointer = (u8*)m_arena.CreateView(region.shm_position, region.size);
+    *out_pointer = static_cast<u8*>(m_arena.CreateView(shm_position, size));
 
-    if (!*region.out_pointer)
+    if (!*out_pointer)
     {
       PanicAlertFmt(
           "Memory::Init(): Failed to create view for physical region at 0x{:08X} (size 0x{:08X}).",
-          region.physical_address, region.size);
+          physical_address, size);
       exit(0);
     }
 
-    for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
+    for (u32 i = 0; i < size; i += PowerPC::BAT_PAGE_SIZE)
     {
-      const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
-      m_physical_page_mappings[index] = *region.out_pointer + i;
+      const size_t index = (i + physical_address) >> PowerPC::BAT_INDEX_SHIFT;
+      m_physical_page_mappings[index] = *out_pointer + i;
     }
   }
 
@@ -211,19 +211,20 @@ bool MemoryManager::InitFastmemArena()
   m_physical_base = m_fastmem_arena + guard_size;
   m_logical_base = m_fastmem_arena + ppc_view_size + guard_size * 2;
 
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [_out_pointer, physical_address, size, _flags, shm_position, active] :
+       m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    u8* base = m_physical_base + region.physical_address;
-    u8* view = (u8*)m_arena.MapInMemoryRegion(region.shm_position, region.size, base);
+    u8* base = m_physical_base + physical_address;
+    const u8* view = static_cast<u8*>(m_arena.MapInMemoryRegion(shm_position, size, base));
 
     if (base != view)
     {
       PanicAlertFmt("Memory::InitFastmemArena(): Failed to map memory region at 0x{:08X} "
                     "(size 0x{:08X}) into physical fastmem region.",
-                    region.physical_address, region.size);
+                    physical_address, size);
       return false;
     }
   }
@@ -235,9 +236,9 @@ bool MemoryManager::InitFastmemArena()
 
 void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
-  for (auto& entry : m_logical_mapped_entries)
+  for (const auto& [mapped_pointer, mapped_size] : m_logical_mapped_entries)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(mapped_pointer, mapped_size);
   }
   m_logical_mapped_entries.clear();
 
@@ -247,28 +248,28 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
   {
     if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
     {
-      u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+      const u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
-      u32 logical_size = PowerPC::BAT_PAGE_SIZE;
+      constexpr u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
-      for (const auto& physical_region : m_physical_regions)
+      for (const auto& [out_pointer, mapping_address, size, _flags, shm_position, active] :
+           m_physical_regions)
       {
-        if (!physical_region.active)
+        if (!active)
           continue;
 
-        u32 mapping_address = physical_region.physical_address;
-        u32 mapping_end = mapping_address + physical_region.size;
-        u32 intersection_start = std::max(mapping_address, translated_address);
-        u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
+        u32 mapping_end = mapping_address + size;
+        const u32 intersection_start = std::max(mapping_address, translated_address);
+        const u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
         if (intersection_start < intersection_end)
         {
           // Found an overlapping region; map it.
 
           if (m_is_fastmem_arena_initialized)
           {
-            u32 position = physical_region.shm_position + intersection_start - mapping_address;
+            const u32 position = shm_position + intersection_start - mapping_address;
             u8* base = m_logical_base + logical_address + intersection_start - translated_address;
-            u32 mapped_size = intersection_end - intersection_start;
+            const u32 mapped_size = intersection_end - intersection_start;
 
             void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
             if (!mapped_pointer)
@@ -283,14 +284,14 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
           }
 
           m_logical_page_mappings[i] =
-              *physical_region.out_pointer + intersection_start - mapping_address;
+              *out_pointer + intersection_start - mapping_address;
         }
       }
     }
   }
 }
 
-void MemoryManager::DoState(PointerWrap& p)
+void MemoryManager::DoState(PointerWrap& p) const
 {
   const u32 current_ram_size = GetRamSize();
   const u32 current_l1_cache_size = GetL1CacheSize();
@@ -344,13 +345,14 @@ void MemoryManager::Shutdown()
   ShutdownFastmemArena();
 
   m_is_initialized = false;
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [out_pointer, _physical_address, size, _flags, _shm_position, active] :
+       m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    m_arena.ReleaseView(*region.out_pointer, region.size);
-    *region.out_pointer = nullptr;
+    m_arena.ReleaseView(*out_pointer, size);
+    *out_pointer = nullptr;
   }
   m_arena.ReleaseSHMSegment();
   m_mmio_mapping.reset();
@@ -362,18 +364,18 @@ void MemoryManager::ShutdownFastmemArena()
   if (!m_is_fastmem_arena_initialized)
     return;
 
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [_out_pointer, physical_address, size, _flags, _shm_position, active] : m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    u8* base = m_physical_base + region.physical_address;
-    m_arena.UnmapFromMemoryRegion(base, region.size);
+    u8* base = m_physical_base + physical_address;
+    m_arena.UnmapFromMemoryRegion(base, size);
   }
 
-  for (auto& entry : m_logical_mapped_entries)
+  for (const auto& [mapped_pointer, mapped_size] : m_logical_mapped_entries)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(mapped_pointer, mapped_size);
   }
   m_logical_mapped_entries.clear();
 
@@ -387,7 +389,7 @@ void MemoryManager::ShutdownFastmemArena()
   m_is_fastmem_arena_initialized = false;
 }
 
-void MemoryManager::Clear()
+void MemoryManager::Clear() const
 {
   if (m_ram)
     memset(m_ram, 0, GetRamSize());
@@ -399,7 +401,7 @@ void MemoryManager::Clear()
     memset(m_exram, 0, GetExRamSize());
 }
 
-u8* MemoryManager::GetPointerForRange(u32 address, size_t size) const
+u8* MemoryManager::GetPointerForRange(const u32 address, const size_t size) const
 {
   std::span<u8> span = GetSpanForAddress(address);
 
@@ -420,12 +422,12 @@ u8* MemoryManager::GetPointerForRange(u32 address, size_t size) const
   return span.data();
 }
 
-void MemoryManager::CopyFromEmu(void* data, u32 address, size_t size) const
+void MemoryManager::CopyFromEmu(void* data, const u32 address, const size_t size) const
 {
   if (size == 0)
     return;
 
-  void* pointer = GetPointerForRange(address, size);
+  const void* pointer = GetPointerForRange(address, size);
   if (!pointer)
   {
     PanicAlertFmt("Invalid range in CopyFromEmu. {:x} bytes from {:#010x}", size, address);
@@ -434,7 +436,7 @@ void MemoryManager::CopyFromEmu(void* data, u32 address, size_t size) const
   memcpy(data, pointer, size);
 }
 
-void MemoryManager::CopyToEmu(u32 address, const void* data, size_t size)
+void MemoryManager::CopyToEmu(const u32 address, const void* data, const size_t size) const
 {
   if (size == 0)
     return;
@@ -448,7 +450,7 @@ void MemoryManager::CopyToEmu(u32 address, const void* data, size_t size)
   memcpy(pointer, data, size);
 }
 
-void MemoryManager::Memset(u32 address, u8 value, size_t size)
+void MemoryManager::Memset(const u32 address, const u8 value, const size_t size) const
 {
   if (size == 0)
     return;
@@ -462,7 +464,7 @@ void MemoryManager::Memset(u32 address, u8 value, size_t size)
   memset(pointer, value, size);
 }
 
-std::string MemoryManager::GetString(u32 em_address, size_t size)
+std::string MemoryManager::GetString(u32 em_address, const size_t size) const
 {
   std::string result;
 
@@ -479,14 +481,12 @@ std::string MemoryManager::GetString(u32 em_address, size_t size)
     }
     return result;
   }
-  else  // Fixed size string, potentially null terminated or null padded.
-  {
-    result.resize(size);
-    CopyFromEmu(result.data(), em_address, size);
-    size_t length = strnlen(result.data(), size);
-    result.resize(length);
-    return result;
-  }
+  // Fixed size string, potentially null terminated or null padded.
+  result.resize(size);
+  CopyFromEmu(result.data(), em_address, size);
+  const size_t length = strnlen(result.data(), size);
+  result.resize(length);
+  return result;
 }
 
 std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
@@ -506,69 +506,69 @@ std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
     }
   }
 
-  auto& ppc_state = m_system.GetPPCState();
+  const auto& ppc_state = m_system.GetPPCState();
   PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
                 LR(ppc_state));
   return {};
 }
 
-u8 MemoryManager::Read_U8(u32 address) const
+u8 MemoryManager::Read_U8(const u32 address) const
 {
   u8 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return value;
 }
 
-u16 MemoryManager::Read_U16(u32 address) const
+u16 MemoryManager::Read_U16(const u32 address) const
 {
   u16 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap16(value);
 }
 
-u32 MemoryManager::Read_U32(u32 address) const
+u32 MemoryManager::Read_U32(const u32 address) const
 {
   u32 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap32(value);
 }
 
-u64 MemoryManager::Read_U64(u32 address) const
+u64 MemoryManager::Read_U64(const u32 address) const
 {
   u64 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap64(value);
 }
 
-void MemoryManager::Write_U8(u8 value, u32 address)
+void MemoryManager::Write_U8(const u8 value, const u32 address) const
 {
   CopyToEmu(address, &value, sizeof(value));
 }
 
-void MemoryManager::Write_U16(u16 value, u32 address)
+void MemoryManager::Write_U16(const u16 value, const u32 address) const
 {
-  u16 swapped_value = Common::swap16(value);
+  const u16 swapped_value = Common::swap16(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U32(u32 value, u32 address)
+void MemoryManager::Write_U32(const u32 value, const u32 address) const
 {
-  u32 swapped_value = Common::swap32(value);
+  const u32 swapped_value = Common::swap32(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U64(u64 value, u32 address)
+void MemoryManager::Write_U64(const u64 value, const u32 address) const
 {
-  u64 swapped_value = Common::swap64(value);
+  const u64 swapped_value = Common::swap64(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U32_Swap(u32 value, u32 address)
+void MemoryManager::Write_U32_Swap(const u32 value, const u32 address) const
 {
   CopyToEmu(address, &value, sizeof(value));
 }
 
-void MemoryManager::Write_U64_Swap(u64 value, u32 address)
+void MemoryManager::Write_U64_Swap(const u64 value, const u32 address) const
 {
   CopyToEmu(address, &value, sizeof(value));
 }

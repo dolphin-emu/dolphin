@@ -19,7 +19,6 @@
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/WIABlob.h"
 #include "UICommon/UICommon.h"
 
@@ -30,16 +29,16 @@ ParseCompressionTypeString(const std::string& compression_str)
 {
   if (compression_str == "none")
     return DiscIO::WIARVZCompressionType::None;
-  else if (compression_str == "purge")
-    return DiscIO::WIARVZCompressionType::Purge;
-  else if (compression_str == "bzip2")
-    return DiscIO::WIARVZCompressionType::Bzip2;
-  else if (compression_str == "lzma")
-    return DiscIO::WIARVZCompressionType::LZMA;
-  else if (compression_str == "lzma2")
-    return DiscIO::WIARVZCompressionType::LZMA2;
-  else if (compression_str == "zstd")
-    return DiscIO::WIARVZCompressionType::Zstd;
+    if (compression_str == "purge")
+      return DiscIO::WIARVZCompressionType::Purge;
+    if (compression_str == "bzip2")
+      return DiscIO::WIARVZCompressionType::Bzip2;
+    if (compression_str == "lzma")
+      return DiscIO::WIARVZCompressionType::LZMA;
+    if (compression_str == "lzma2")
+      return DiscIO::WIARVZCompressionType::LZMA2;
+    if (compression_str == "zstd")
+      return DiscIO::WIARVZCompressionType::Zstd;
   return std::nullopt;
 }
 
@@ -47,11 +46,11 @@ static std::optional<DiscIO::BlobType> ParseFormatString(const std::string& form
 {
   if (format_str == "iso")
     return DiscIO::BlobType::PLAIN;
-  else if (format_str == "gcz")
+  if (format_str == "gcz")
     return DiscIO::BlobType::GCZ;
-  else if (format_str == "wia")
+  if (format_str == "wia")
     return DiscIO::BlobType::WIA;
-  else if (format_str == "rvz")
+  if (format_str == "rvz")
     return DiscIO::BlobType::RVZ;
   return std::nullopt;
 }
@@ -153,10 +152,10 @@ int ConvertCommand(const std::vector<std::string>& args)
   }
 
   // --scrub
-  const bool scrub = static_cast<bool>(options.get("scrub"));
+  const bool scrub = options.get("scrub");
 
   // Open the volume
-  std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
+  const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
   if (!volume)
   {
     if (scrub)
@@ -225,7 +224,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       return EXIT_FAILURE;
     }
 
-    if (!DiscIO::IsDiscImageBlockSizeValid(block_size_o.value(), format))
+    if (!IsDiscImageBlockSizeValid(block_size_o.value(), format))
     {
       fmt::print(std::cerr, "Error: Block size is not valid for this format\n");
       return EXIT_FAILURE;
@@ -249,7 +248,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   }
 
   // --compress, --compress_level
-  std::optional<DiscIO::WIARVZCompressionType> compression_o =
+  const std::optional<DiscIO::WIARVZCompressionType> compression_o =
       ParseCompressionTypeString(options["compression"]);
 
   std::optional<int> compression_level_o;
@@ -286,9 +285,9 @@ int ConvertCommand(const std::vector<std::string>& args)
         return EXIT_FAILURE;
       }
 
-      const std::pair<int, int> range =
-          DiscIO::GetAllowedCompressionLevels(compression_o.value(), false);
-      if (compression_level_o.value() < range.first || compression_level_o.value() > range.second)
+      const auto [fst, snd] =
+          GetAllowedCompressionLevels(compression_o.value(), false);
+      if (compression_level_o.value() < fst || compression_level_o.value() > snd)
       {
         fmt::print(std::cerr, "Error: Compression level not in acceptable range\n");
         return EXIT_FAILURE;
@@ -305,7 +304,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
   case DiscIO::BlobType::PLAIN:
   {
-    success = DiscIO::ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
+    success = ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
                                      NOOP_STATUS_CALLBACK);
     break;
   }
@@ -320,7 +319,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       else if (volume->GetVolumeType() == DiscIO::Platform::WiiDisc)
         sub_type = 1;
     }
-    success = DiscIO::ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
+    success = ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
                                    block_size_o.value(), NOOP_STATUS_CALLBACK);
     break;
   }
@@ -328,7 +327,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   case DiscIO::BlobType::WIA:
   case DiscIO::BlobType::RVZ:
   {
-    success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
+    success = ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
                                         format == DiscIO::BlobType::RVZ, compression_o.value(),
                                         compression_level_o.value(), block_size_o.value(),
                                         NOOP_STATUS_CALLBACK);

@@ -40,11 +40,11 @@ public:
   ~AudioInterfaceManager();
 
   void Init();
-  void Shutdown();
+  static void Shutdown();
   void DoState(PointerWrap& p);
   bool IsPlaying() const;
 
-  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base) const;
 
   // Get the audio rate divisors (divisors for 48KHz or 32KHz only)
   // Mixer::FIXED_SAMPLE_RATE_DIVIDEND will be the dividend used for these divisors
@@ -66,7 +66,7 @@ private:
   union AICR
   {
     AICR() = default;
-    explicit AICR(u32 hex_) : hex{hex_} {}
+    explicit AICR(const u32 hex_) : hex{hex_} {}
     struct
     {
       u32 PSTAT : 1;     // sample counter/playback enable
@@ -95,7 +95,7 @@ private:
     u32 hex = 0;
   };
 
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
   void GenerateAudioInterrupt();
   void IncreaseSampleCount(const u32 amount);
   int GetAIPeriod() const;
@@ -103,7 +103,7 @@ private:
   void SetAISSampleRate(SampleRate sample_rate);
 
   void Update(u64 userdata, s64 cycles_late);
-  static void GlobalUpdate(Core::System& system, u64 userdata, s64 cycles_late);
+  static void GlobalUpdate(const Core::System& system, u64 userdata, s64 cycles_late);
 
   // Registers
   AICR m_control;

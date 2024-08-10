@@ -16,12 +16,12 @@
 namespace SerialInterface
 {
 // --- GameCube keyboard ---
-CSIDevice_Keyboard::CSIDevice_Keyboard(Core::System& system, SIDevices device, int device_number)
+CSIDevice_Keyboard::CSIDevice_Keyboard(Core::System& system, const SIDevices device, const int device_number)
     : ISIDevice(system, device, device_number)
 {
 }
 
-int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_Keyboard::RunBuffer(u8* buffer, const int request_length)
 {
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
@@ -35,7 +35,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_KEYBOARD);
+    const u32 id = Common::swap32(SI_GC_KEYBOARD);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -80,7 +80,7 @@ bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
+void CSIDevice_Keyboard::SendCommand(const u32 command, u8 poll)
 {
   UCommand keyboard_command(command);
 
@@ -106,7 +106,7 @@ using MaskArray = std::array<KeyMasks, N>;
 template <size_t N>
 using KeyScanCodeArray = std::array<KeyScanCode, N>;
 
-CSIDevice_Keyboard::KeyArray CSIDevice_Keyboard::MapKeys(const KeyboardStatus& key_status) const
+CSIDevice_Keyboard::KeyArray CSIDevice_Keyboard::MapKeys(const KeyboardStatus& key_status)
 {
   static constexpr MaskArray<16> key0_masks{
       KEYMASK_HOME, KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN, KEYMASK_SCROLLLOCK, KEYMASK_A,

@@ -31,7 +31,7 @@ static std::optional<picojson::value> ParseResponse(const std::vector<u8>& respo
 
   picojson::value json;
 
-  const auto error = picojson::parse(json, response_string);
+  const auto error = parse(json, response_string);
 
   if (!error.empty())
     return {};
@@ -42,21 +42,21 @@ static std::optional<picojson::value> ParseResponse(const std::vector<u8>& respo
 std::optional<std::vector<NetPlaySession>>
 NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 {
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
 
-  std::string list_url = Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/list";
+  std::string list_url = Get(Config::NETPLAY_INDEX_URL) + "/v0/list";
 
   if (!filters.empty())
   {
     list_url += '?';
-    for (const auto& filter : filters)
+    for (const auto& [fst, snd] : filters)
     {
-      list_url += filter.first + '=' + request.EscapeComponent(filter.second) + '&';
+      list_url += fst + '=' + request.EscapeComponent(snd) + '&';
     }
     list_url.pop_back();
   }
 
-  auto response =
+  const auto response =
       request.Get(list_url, {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
   if (!response)
   {
@@ -129,7 +129,7 @@ void NetPlayIndex::NotificationLoop()
   {
     Common::HttpRequest request;
     auto response = request.Get(
-        Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
+        Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
             "&player_count=" + std::to_string(m_player_count) +
             "&game=" + request.EscapeComponent(m_game) + "&in_game=" + std::to_string(m_in_game),
         {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
@@ -161,9 +161,9 @@ void NetPlayIndex::NotificationLoop()
 
 bool NetPlayIndex::Add(const NetPlaySession& session)
 {
-  Common::HttpRequest request;
-  auto response = request.Get(
-      Config::Get(Config::NETPLAY_INDEX_URL) +
+  const Common::HttpRequest request;
+  const auto response = request.Get(
+      Get(Config::NETPLAY_INDEX_URL) +
           "/v0/session/add?name=" + request.EscapeComponent(session.name) +
           "&region=" + request.EscapeComponent(session.region) +
           "&game=" + request.EscapeComponent(session.game_id) +
@@ -210,12 +210,12 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
   return true;
 }
 
-void NetPlayIndex::SetInGame(bool in_game)
+void NetPlayIndex::SetInGame(const bool in_game)
 {
   m_in_game = in_game;
 }
 
-void NetPlayIndex::SetPlayerCount(int player_count)
+void NetPlayIndex::SetPlayerCount(const int player_count)
 {
   m_player_count = player_count;
 }
@@ -236,8 +236,8 @@ void NetPlayIndex::Remove()
     m_session_thread.join();
 
   // We don't really care whether this fails or not
-  Common::HttpRequest request;
-  request.Get(Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
+  const Common::HttpRequest request;
+  request.Get(Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
               {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
   m_secret.clear();
@@ -256,7 +256,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
 // It isn't very secure but is preferable to adding another dependency on mbedtls
 // The encrypted data is encoded as nibbles with the character 'A' as the base offset
 
-bool NetPlaySession::EncryptID(std::string_view password)
+bool NetPlaySession::EncryptID(const std::string_view password)
 {
   if (password.empty())
     return false;
@@ -284,7 +284,7 @@ bool NetPlaySession::EncryptID(std::string_view password)
   return true;
 }
 
-std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) const
+std::optional<std::string> NetPlaySession::DecryptID(const std::string_view password) const
 {
   if (password.empty())
     return {};
@@ -297,7 +297,7 @@ std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) 
 
   for (size_t i = 0; i < server_id.size(); i += 2)
   {
-    char c = (server_id[i] - 'A') << 4 | (server_id[i + 1] - 'A');
+    const char c = (server_id[i] - 'A') << 4 | (server_id[i + 1] - 'A');
     decoded.push_back(c);
   }
 

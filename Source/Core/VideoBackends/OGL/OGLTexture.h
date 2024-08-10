@@ -8,8 +8,6 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/GL/GLUtil.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -38,17 +36,15 @@ public:
     {
       if (m_config.IsMultisampled())
         return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
-      else
-        return GL_TEXTURE_2D_ARRAY;
+      return GL_TEXTURE_2D_ARRAY;
     }
-    else if (m_config.type == AbstractTextureType::Texture_2D)
+    if (m_config.type == AbstractTextureType::Texture_2D)
     {
       if (m_config.IsMultisampled())
         return GL_TEXTURE_2D_MULTISAMPLE;
-      else
-        return GL_TEXTURE_2D;
+      return GL_TEXTURE_2D;
     }
-    else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+    if (m_config.type == AbstractTextureType::Texture_CubeMap)
     {
       return GL_TEXTURE_CUBE_MAP;
     }
@@ -59,9 +55,9 @@ public:
   GLenum GetGLFormatForImageTexture() const;
 
 private:
-  void BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle<int>& src_rect,
+  void BlitFramebuffer(const OGLTexture* srcentry, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                       u32 dst_layer, u32 dst_level);
+                       u32 dst_layer, u32 dst_level) const;
 
   GLuint m_texId;
   std::string m_name;

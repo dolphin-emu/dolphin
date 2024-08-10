@@ -19,7 +19,7 @@ void AbstractTexture::FinishedRendering()
 {
 }
 
-bool AbstractTexture::Save(const std::string& filename, unsigned int level, int compression) const
+bool AbstractTexture::Save(const std::string& filename, const unsigned int level, const int compression) const
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
@@ -31,15 +31,15 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   ASSERT(m_config.format != AbstractTextureFormat::RGBA16F);
 
   // Determine dimensions of image we want to save.
-  u32 level_width = std::max(1u, m_config.width >> level);
-  u32 level_height = std::max(1u, m_config.height >> level);
+  const u32 level_width = std::max(1u, m_config.width >> level);
+  const u32 level_height = std::max(1u, m_config.height >> level);
 
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but this is not a frequently-executed code path..
-  TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
-                                        AbstractTextureFormat::RGBA8, 0,
-                                        AbstractTextureType::Texture_2DArray);
-  auto readback_texture =
+  const TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
+                                              AbstractTextureFormat::RGBA8, 0,
+                                              AbstractTextureType::Texture_2DArray);
+  const auto readback_texture =
       g_gfx->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
   if (!readback_texture)
     return false;
@@ -52,13 +52,13 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   if (!readback_texture->Map())
     return false;
 
-  return Common::SavePNG(filename,
+  return SavePNG(filename,
                          reinterpret_cast<const u8*>(readback_texture->GetMappedPointer()),
                          Common::ImageByteFormat::RGBA, level_width, level_height,
                          static_cast<int>(readback_texture->GetMappedStride()), compression);
 }
 
-bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsCompressedFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -73,7 +73,7 @@ bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
   }
 }
 
-bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsDepthFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -88,13 +88,13 @@ bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
   }
 }
 
-bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsStencilFormat(const AbstractTextureFormat format)
 {
   return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
-bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
-                                                       AbstractTextureFormat color_format)
+bool AbstractTexture::IsCompatibleDepthAndColorFormats(const AbstractTextureFormat depth_format,
+                                                       const AbstractTextureFormat color_format)
 {
   switch (depth_format)
   {
@@ -109,7 +109,7 @@ bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat dep
   }
 }
 
-u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
+u32 AbstractTexture::CalculateStrideForFormat(const AbstractTextureFormat format, const u32 row_length)
 {
   switch (format)
   {
@@ -138,7 +138,7 @@ u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 
   }
 }
 
-u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
+u32 AbstractTexture::GetTexelSizeForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -167,7 +167,7 @@ u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
   }
 }
 
-u32 AbstractTexture::GetBlockSizeForFormat(AbstractTextureFormat format)
+u32 AbstractTexture::GetBlockSizeForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {

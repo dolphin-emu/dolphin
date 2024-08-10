@@ -29,7 +29,7 @@
 #include "Core/System.h"
 
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPatch& patch,
-                      bool store_existing_value)
+                      const bool store_existing_value)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
@@ -66,13 +66,13 @@ void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPa
   }
 }
 
-void PPCPatches::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void PPCPatches::ApplyExistingPatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   auto& patch = m_patches[index];
   ApplyMemoryPatch(guard, patch, false);
 }
 
-void PPCPatches::Patch(const Core::CPUThreadGuard& guard, std::size_t index)
+void PPCPatches::Patch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   auto& patch = m_patches[index];
   if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
@@ -81,9 +81,9 @@ void PPCPatches::Patch(const Core::CPUThreadGuard& guard, std::size_t index)
     PatchEngine::AddMemoryPatch(index);
 }
 
-void PPCPatches::UnPatch(std::size_t index)
+void PPCPatches::UnPatch(const std::size_t index)
 {
-  auto& patch = m_patches[index];
+  const auto& patch = m_patches[index];
   if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
     return;
 
@@ -97,12 +97,12 @@ PPCDebugInterface::PPCDebugInterface(Core::System& system, PPCSymbolDB& ppc_symb
 
 PPCDebugInterface::~PPCDebugInterface() = default;
 
-std::size_t PPCDebugInterface::SetWatch(u32 address, std::string name)
+std::size_t PPCDebugInterface::SetWatch(const u32 address, std::string name)
 {
   return m_watches.SetWatch(address, std::move(name));
 }
 
-const Common::Debug::Watch& PPCDebugInterface::GetWatch(std::size_t index) const
+const Common::Debug::Watch& PPCDebugInterface::GetWatch(const std::size_t index) const
 {
   return m_watches.GetWatch(index);
 }
@@ -112,47 +112,47 @@ const std::vector<Common::Debug::Watch>& PPCDebugInterface::GetWatches() const
   return m_watches.GetWatches();
 }
 
-void PPCDebugInterface::UnsetWatch(u32 address)
+void PPCDebugInterface::UnsetWatch(const u32 address)
 {
   m_watches.UnsetWatch(address);
 }
 
-void PPCDebugInterface::UpdateWatch(std::size_t index, u32 address, std::string name)
+void PPCDebugInterface::UpdateWatch(const std::size_t index, const u32 address, std::string name)
 {
   return m_watches.UpdateWatch(index, address, std::move(name));
 }
 
-void PPCDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
+void PPCDebugInterface::UpdateWatchAddress(const std::size_t index, const u32 address)
 {
   return m_watches.UpdateWatchAddress(index, address);
 }
 
-void PPCDebugInterface::UpdateWatchName(std::size_t index, std::string name)
+void PPCDebugInterface::UpdateWatchName(const std::size_t index, std::string name)
 {
   return m_watches.UpdateWatchName(index, std::move(name));
 }
 
-void PPCDebugInterface::UpdateWatchLockedState(std::size_t index, bool locked)
+void PPCDebugInterface::UpdateWatchLockedState(const std::size_t index, const bool locked)
 {
   return m_watches.UpdateWatchLockedState(index, locked);
 }
 
-void PPCDebugInterface::EnableWatch(std::size_t index)
+void PPCDebugInterface::EnableWatch(const std::size_t index)
 {
   m_watches.EnableWatch(index);
 }
 
-void PPCDebugInterface::DisableWatch(std::size_t index)
+void PPCDebugInterface::DisableWatch(const std::size_t index)
 {
   m_watches.DisableWatch(index);
 }
 
-bool PPCDebugInterface::HasEnabledWatch(u32 address) const
+bool PPCDebugInterface::HasEnabledWatch(const u32 address) const
 {
   return m_watches.HasEnabledWatch(address);
 }
 
-void PPCDebugInterface::RemoveWatch(std::size_t index)
+void PPCDebugInterface::RemoveWatch(const std::size_t index)
 {
   return m_watches.RemoveWatch(index);
 }
@@ -172,23 +172,23 @@ void PPCDebugInterface::ClearWatches()
   m_watches.Clear();
 }
 
-void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address, u32 value)
+void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, const u32 address, const u32 value)
 {
   m_patches.SetPatch(guard, address, value);
 }
 
-void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address,
+void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, const u32 address,
                                  std::vector<u8> value)
 {
   m_patches.SetPatch(guard, address, std::move(value));
 }
 
-void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address, u32 value)
+void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, const u32 address, const u32 value)
 {
   m_patches.SetFramePatch(guard, address, value);
 }
 
-void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
+void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, const u32 address,
                                       std::vector<u8> value)
 {
   m_patches.SetFramePatch(guard, address, std::move(value));
@@ -199,27 +199,27 @@ const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() c
   return m_patches.GetPatches();
 }
 
-void PPCDebugInterface::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
+void PPCDebugInterface::UnsetPatch(const Core::CPUThreadGuard& guard, const u32 address)
 {
   m_patches.UnsetPatch(guard, address);
 }
 
-void PPCDebugInterface::EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void PPCDebugInterface::EnablePatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   m_patches.EnablePatch(guard, index);
 }
 
-void PPCDebugInterface::DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void PPCDebugInterface::DisablePatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   m_patches.DisablePatch(guard, index);
 }
 
-bool PPCDebugInterface::HasEnabledPatch(u32 address) const
+bool PPCDebugInterface::HasEnabledPatch(const u32 address) const
 {
   return m_patches.HasEnabledPatch(address);
 }
 
-void PPCDebugInterface::RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void PPCDebugInterface::RemovePatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   m_patches.RemovePatch(guard, index);
 }
@@ -229,7 +229,7 @@ void PPCDebugInterface::ClearPatches(const Core::CPUThreadGuard& guard)
   m_patches.ClearPatches(guard);
 }
 
-void PPCDebugInterface::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
+void PPCDebugInterface::ApplyExistingPatch(const Core::CPUThreadGuard& guard, const std::size_t index)
 {
   m_patches.ApplyExistingPatch(guard, index);
 }
@@ -249,11 +249,11 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
   if (!active_thread->IsValid(guard))
     return threads;
 
-  std::vector<u32> visited_addrs{active_thread->GetAddress()};
+  std::vector visited_addrs{active_thread->GetAddress()};
   const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::MMU::HostIsRAMAddress(guard, addr))
     {
-      if (std::find(visited_addrs.begin(), visited_addrs.end(), addr) != visited_addrs.end())
+      if (std::ranges::find(visited_addrs, addr) != visited_addrs.end())
         break;
       visited_addrs.push_back(addr);
       auto thread = std::make_unique<Core::Debug::OSThreadView>(guard, addr);
@@ -266,7 +266,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
 
   const u32 prev_addr = active_thread->Data().thread_link.prev;
   insert_threads(prev_addr, [](const auto& thread) { return thread.Data().thread_link.prev; });
-  std::reverse(threads.begin(), threads.end());
+  std::ranges::reverse(threads);
 
   const u32 next_addr = active_thread->Data().thread_link.next;
   threads.emplace_back(std::move(active_thread));
@@ -295,14 +295,11 @@ std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u3
 
     return disasm;
   }
-  else
-  {
-    return "<unknown>";
-  }
+  return "<unknown>";
 }
 
-std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
-                                                  u32 address) const
+std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, const int memory,
+                                                  const u32 address) const
 {
   if (IsAlive())
   {
@@ -320,13 +317,13 @@ std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& gu
   return "<unknwn>";  // bad spelling - 8 chars
 }
 
-u32 PPCDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const
+u32 PPCDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   return PowerPC::MMU::HostRead_U32(guard, address);
 }
 
-u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int memory,
-                                       u32 address) const
+u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, const int memory,
+                                       const u32 address) const
 {
   switch (memory)
   {
@@ -343,27 +340,27 @@ u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int me
   }
 }
 
-u32 PPCDebugInterface::ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const
+u32 PPCDebugInterface::ReadInstruction(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   return PowerPC::MMU::HostRead_Instruction(guard, address);
 }
 
 bool PPCDebugInterface::IsAlive() const
 {
-  return Core::IsRunning(m_system);
+  return IsRunning(m_system);
 }
 
-bool PPCDebugInterface::IsBreakpoint(u32 address) const
+bool PPCDebugInterface::IsBreakpoint(const u32 address) const
 {
   return m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(address);
 }
 
-void PPCDebugInterface::AddBreakpoint(u32 address)
+void PPCDebugInterface::AddBreakpoint(const u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(address);
 }
 
-void PPCDebugInterface::RemoveBreakpoint(u32 address)
+void PPCDebugInterface::RemoveBreakpoint(const u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().Remove(address);
 }
@@ -373,7 +370,7 @@ void PPCDebugInterface::ClearAllBreakpoints()
   m_system.GetPowerPC().GetBreakPoints().Clear();
 }
 
-void PPCDebugInterface::ToggleBreakpoint(u32 address)
+void PPCDebugInterface::ToggleBreakpoint(const u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(address);
 }
@@ -383,12 +380,12 @@ void PPCDebugInterface::ClearAllMemChecks()
   m_system.GetPowerPC().GetMemChecks().Clear();
 }
 
-bool PPCDebugInterface::IsMemCheck(u32 address, size_t size) const
+bool PPCDebugInterface::IsMemCheck(const u32 address, const size_t size) const
 {
   return m_system.GetPowerPC().GetMemChecks().GetMemCheck(address, size) != nullptr;
 }
 
-void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool log)
+void PPCDebugInterface::ToggleMemCheck(const u32 address, const bool read, const bool write, const bool log)
 {
   if (!IsMemCheck(address))
   {
@@ -413,7 +410,7 @@ void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) const
+u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, const u32 address) const
 {
   if (!guard || !IsAlive())
     return 0xFFFFFF;
@@ -438,7 +435,7 @@ u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) 
 }
 // =============
 
-std::string_view PPCDebugInterface::GetDescription(u32 address) const
+std::string_view PPCDebugInterface::GetDescription(const u32 address) const
 {
   return m_ppc_symbol_db.GetDescription(address);
 }
@@ -457,8 +454,8 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   // match[1]: negative sign for offset or no match.
   // match[2]: 0xNNNN, 0, or rNN. Check next for 'r' to see if a gpr needs to be loaded.
   // match[3]: will either be p, toc, or NN. Always a gpr.
-  const std::string_view offset_match{&*match[2].first, size_t(match[2].length())};
-  const std::string_view register_match{&*match[3].first, size_t(match[3].length())};
+  const std::string_view offset_match{&*match[2].first, static_cast<size_t>(match[2].length())};
+  const std::string_view register_match{&*match[3].first, static_cast<size_t>(match[3].length())};
   constexpr char is_reg = 'r';
   u32 offset = 0;
 
@@ -487,7 +484,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
 
   const u32 base_address = m_system.GetPPCState().gpr[i];
 
-  if (std::string_view sign{&*match[1].first, size_t(match[1].length())}; !sign.empty())
+  if (const std::string_view sign{&*match[1].first, static_cast<size_t>(match[1].length())}; !sign.empty())
     return base_address - offset;
 
   return base_address + offset;
@@ -498,12 +495,12 @@ u32 PPCDebugInterface::GetPC() const
   return m_system.GetPPCState().pc;
 }
 
-void PPCDebugInterface::SetPC(u32 address)
+void PPCDebugInterface::SetPC(const u32 address)
 {
   m_system.GetPPCState().pc = address;
 }
 
-void PPCDebugInterface::RunTo(u32 address)
+void PPCDebugInterface::RunTo(const u32 address)
 {
   auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
   breakpoints.SetTemporary(address);
@@ -512,9 +509,9 @@ void PPCDebugInterface::RunTo(u32 address)
 
 std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()
 {
-  const bool has_ssl = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) ||
-                       Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
-  const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
+  const bool has_ssl = Get(Config::MAIN_NETWORK_SSL_DUMP_READ) ||
+                       Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
+  const bool is_pcap = Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
   const auto current_capture_type = [&] {
     if (is_pcap)
       return Core::NetworkCaptureType::PCAP;

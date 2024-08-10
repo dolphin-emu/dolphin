@@ -43,40 +43,40 @@ protected:
   const std::string m_invalid_path;
 };
 
-static void DeleteShouldNotRemoveDirectory(const std::string& path, File::IfAbsentBehavior behavior)
+static void DeleteShouldNotRemoveDirectory(const std::string& path, const File::IfAbsentBehavior behavior)
 {
   File::CreateDir(path);
   EXPECT_FALSE(File::Delete(path, behavior));
-  File::DeleteDir(path, behavior);
+  DeleteDir(path, behavior);
 }
 
-static void DeleteShouldRemoveFile(const std::string& path, File::IfAbsentBehavior behavior)
+static void DeleteShouldRemoveFile(const std::string& path, const File::IfAbsentBehavior behavior)
 {
   File::CreateEmptyFile(path);
   EXPECT_TRUE(File::Delete(path, behavior));
 }
 
 static void DeleteShouldReturnTrueForInvalidPath(const std::string& path,
-                                                 File::IfAbsentBehavior behavior)
+                                                 const File::IfAbsentBehavior behavior)
 {
   EXPECT_TRUE(File::Delete(path, behavior));
 }
 
-static void DeleteDirShouldRemoveDirectory(const std::string& path, File::IfAbsentBehavior behavior)
+static void DeleteDirShouldRemoveDirectory(const std::string& path, const File::IfAbsentBehavior behavior)
 {
   File::CreateDir(path);
   EXPECT_TRUE(File::DeleteDir(path, behavior));
 }
 
-static void DeleteDirShouldNotRemoveFile(const std::string& path, File::IfAbsentBehavior behavior)
+static void DeleteDirShouldNotRemoveFile(const std::string& path, const File::IfAbsentBehavior behavior)
 {
   File::CreateEmptyFile(path);
   EXPECT_FALSE(File::DeleteDir(path, behavior));
-  File::Delete(path, behavior);
+  Delete(path, behavior);
 }
 
 static void DeleteDirShouldReturnTrueForInvalidPath(const std::string& path,
-                                                    File::IfAbsentBehavior behavior)
+                                                    const File::IfAbsentBehavior behavior)
 {
   EXPECT_TRUE(File::DeleteDir(path, behavior));
 }

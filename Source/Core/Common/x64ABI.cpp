@@ -10,7 +10,7 @@ using namespace Gen;
 
 // Shared code between Win64 and Unix64
 
-void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
+void XEmitter::ABI_CalculateFrameSize(const BitSet32 mask, size_t rsp_alignment, const size_t needed_frame_size,
                                       size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp)
 {
   size_t shadow = 0;
@@ -18,17 +18,17 @@ void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_
   shadow = 0x20;
 #endif
 
-  int count = (mask & ABI_ALL_GPRS).Count();
+  const int count = (mask & ABI_ALL_GPRS).Count();
   rsp_alignment -= count * 8;
   size_t subtraction = 0;
-  int fpr_count = (mask & ABI_ALL_FPRS).Count();
+  const int fpr_count = (mask & ABI_ALL_FPRS).Count();
   if (fpr_count)
   {
     // If we have any XMMs to save, we must align the stack here.
     subtraction = rsp_alignment & 0xf;
   }
   subtraction += 16 * fpr_count;
-  size_t xmm_base_subtraction = subtraction;
+  const size_t xmm_base_subtraction = subtraction;
   subtraction += needed_frame_size;
   subtraction += shadow;
   // Final alignment.
@@ -40,8 +40,8 @@ void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_
   *xmm_offsetp = subtraction - xmm_base_subtraction;
 }
 
-size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
-                                                 size_t needed_frame_size)
+size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, const size_t rsp_alignment,
+                                                 const size_t needed_frame_size)
 {
   mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
@@ -55,49 +55,49 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_align
     MOV(64, R(RBP), R(RSP));
   }
   for (int r : (mask & ABI_ALL_GPRS & ~BitSet32{RBP}))
-    PUSH((X64Reg)r);
+    PUSH(static_cast<X64Reg>(r));
 
   if (subtraction)
-    SUB(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
+    SUB(64, R(RSP), subtraction >= 0x80 ? Imm32(static_cast<u32>(subtraction)) : Imm8(static_cast<u8>(subtraction)));
 
-  for (int x : (mask & ABI_ALL_FPRS))
+  for (const int x : (mask & ABI_ALL_FPRS))
   {
-    MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg)(x - 16));
+    MOVAPD(MDisp(RSP, static_cast<int>(xmm_offset)), static_cast<X64Reg>(x - 16));
     xmm_offset += 16;
   }
 
   return shadow;
 }
 
-void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
-                                              size_t needed_frame_size)
+void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, const size_t rsp_alignment,
+                                              const size_t needed_frame_size)
 {
   mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
   ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction,
                          &xmm_offset);
 
-  for (int x : (mask & ABI_ALL_FPRS))
+  for (const int x : (mask & ABI_ALL_FPRS))
   {
-    MOVAPD((X64Reg)(x - 16), MDisp(RSP, (int)xmm_offset));
+    MOVAPD(static_cast<X64Reg>(x - 16), MDisp(RSP, static_cast<int>(xmm_offset)));
     xmm_offset += 16;
   }
 
   if (subtraction)
-    ADD(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
+    ADD(64, R(RSP), subtraction >= 0x80 ? Imm32(static_cast<u32>(subtraction)) : Imm8(static_cast<u8>(subtraction)));
 
   for (int r = 15; r >= 0; r--)
   {
     if (r != RBP && mask[r])
-      POP((X64Reg)r);
+      POP(static_cast<X64Reg>(r));
   }
   // RSP is pushed first and popped last to make debuggers/profilers happy
   if (mask[RBP])
     POP(RBP);
 }
 
-void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2,
-                      Gen::X64Reg src2)
+void XEmitter::MOVTwo(const int bits, const X64Reg dst1, const X64Reg src1, const s32 offset1, const X64Reg dst2,
+                      const X64Reg src2)
 {
   if (dst1 == src2 && dst2 == src1)
   {

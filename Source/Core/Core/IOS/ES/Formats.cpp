@@ -20,7 +20,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
@@ -35,18 +34,18 @@ namespace IOS::ES
 {
 constexpr size_t CONTENT_VIEW_SIZE = 0x10;
 
-bool IsTitleType(u64 title_id, TitleType title_type)
+bool IsTitleType(const u64 title_id, TitleType title_type)
 {
   return static_cast<u32>(title_id >> 32) == static_cast<u32>(title_type);
 }
 
-bool IsDiscTitle(u64 title_id)
+bool IsDiscTitle(const u64 title_id)
 {
   return IsTitleType(title_id, TitleType::Game) ||
          IsTitleType(title_id, TitleType::GameWithChannel);
 }
 
-bool IsChannel(u64 title_id)
+bool IsChannel(const u64 title_id)
 {
   if (title_id == Titles::SYSTEM_MENU)
     return true;
@@ -92,7 +91,7 @@ void SignedBlobReader::SetBytes(std::vector<u8> bytes)
   m_bytes = std::move(bytes);
 }
 
-static size_t GetIssuerOffset(SignatureType signature_type)
+static size_t GetIssuerOffset(const SignatureType signature_type)
 {
   switch (signature_type)
   {
@@ -172,7 +171,7 @@ size_t SignedBlobReader::GetSignatureSize() const
 template <typename T>
 static std::string DetailGetIssuer(const u8* bytes)
 {
-  const char* issuer = reinterpret_cast<const char*>(bytes + offsetof(T, issuer));
+  auto issuer = reinterpret_cast<const char*>(bytes + offsetof(T, issuer));
   return {issuer, strnlen(issuer, sizeof(T::issuer))};
 }
 
@@ -196,7 +195,7 @@ void SignedBlobReader::DoState(PointerWrap& p)
   p.Do(m_bytes);
 }
 
-bool IsValidTMDSize(size_t size)
+bool IsValidTMDSize(const size_t size)
 {
   return size <= 0x49e4;
 }
@@ -228,7 +227,7 @@ bool TMDReader::IsValid() const
 std::vector<u8> TMDReader::GetRawView() const
 {
   // Base fields
-  std::vector<u8> view(m_bytes.cbegin() + offsetof(TMDHeader, tmd_version),
+  std::vector view(m_bytes.cbegin() + offsetof(TMDHeader, tmd_version),
                        m_bytes.cbegin() + offsetof(TMDHeader, access_rights));
 
   const auto version = m_bytes.cbegin() + offsetof(TMDHeader, title_version);
@@ -285,7 +284,7 @@ DiscIO::Region TMDReader::GetRegion() const
   if (GetTitleId() == Titles::SYSTEM_MENU)
     return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
-  const DiscIO::Region region =
+  const auto region =
       static_cast<DiscIO::Region>(Common::swap16(m_bytes.data() + offsetof(TMDHeader, region)));
 
   return region <= DiscIO::Region::NTSC_K ? region : DiscIO::Region::Unknown;
@@ -302,7 +301,7 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  if (std::all_of(std::begin(game_id), std::end(game_id), Common::IsPrintableCharacter))
+  if (std::ranges::all_of(game_id, Common::IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());
@@ -324,7 +323,7 @@ u16 TMDReader::GetNumContents() const
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, num_contents));
 }
 
-bool TMDReader::GetContent(u16 index, Content* content) const
+bool TMDReader::GetContent(const u16 index, Content* content) const
 {
   if (index >= GetNumContents())
   {
@@ -349,7 +348,7 @@ std::vector<Content> TMDReader::GetContents() const
   return contents;
 }
 
-bool TMDReader::FindContentById(u32 id, Content* content) const
+bool TMDReader::FindContentById(const u32 id, Content* content) const
 {
   for (u16 index = 0; index < GetNumContents(); ++index)
   {
@@ -406,7 +405,7 @@ u32 TicketReader::GetTicketSize() const
   return sizeof(Ticket);
 }
 
-std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
+std::vector<u8> TicketReader::GetRawTicket(const u64 ticket_id_to_find) const
 {
   for (size_t i = 0; i < GetNumberOfTickets(); ++i)
   {
@@ -418,7 +417,7 @@ std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
   return {};
 }
 
-std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
+std::vector<u8> TicketReader::GetRawTicketView(const u32 ticket_num) const
 {
   // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.
   const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * ticket_num;
@@ -466,7 +465,7 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
                   index);
     index = 0;
   }
-  auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
+  const auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
 
   std::array<u8, 16> key;
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
@@ -485,7 +484,7 @@ HLE::IOSC::ConsoleType TicketReader::GetConsoleType() const
   return is_rvt ? HLE::IOSC::ConsoleType::RVT : HLE::IOSC::ConsoleType::Retail;
 }
 
-void TicketReader::DeleteTicket(u64 ticket_id_to_delete)
+void TicketReader::DeleteTicket(const u64 ticket_id_to_delete)
 {
   std::vector<u8> new_ticket;
   const size_t num_tickets = GetNumberOfTickets();
@@ -535,12 +534,12 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
                      sizeof(Ticket::title_key), key.data(), PID_ES);
   // Finally, IOS copies the decrypted title key back to the ticket buffer.
   if (ret == IPC_SUCCESS)
-    std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
+    std::ranges::copy(std::as_const(key), ticket_begin + offsetof(Ticket, title_key));
 
   return ret;
 }
 
-void TicketReader::OverwriteCommonKeyIndex(u8 index)
+void TicketReader::OverwriteCommonKeyIndex(const u8 index)
 {
   m_bytes[offsetof(Ticket, common_key_index)] = index;
 }
@@ -575,8 +574,9 @@ SharedContentMap::~SharedContentMap() = default;
 std::optional<std::string>
 SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
 {
-  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
-                               [&sha1](const auto& entry) { return entry.sha1 == sha1; });
+  const auto it = std::ranges::find_if(m_entries, [&sha1](const auto& entry) {
+    return entry.sha1 == sha1;
+  });
   if (it == m_entries.end())
     return {};
 
@@ -588,8 +588,8 @@ std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
 {
   std::vector<std::array<u8, 20>> hashes;
   hashes.reserve(m_entries.size());
-  for (const auto& content_entry : m_entries)
-    hashes.emplace_back(content_entry.sha1);
+  for (const auto& [_id, sha1] : m_entries)
+    hashes.emplace_back(sha1);
 
   return hashes;
 }
@@ -602,7 +602,7 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
 
   const std::string id = fmt::format("{:08x}", m_last_id);
   Entry entry;
-  std::copy(id.cbegin(), id.cend(), entry.id.begin());
+  std::ranges::copy(id, entry.id.begin());
   entry.sha1 = sha1;
   m_entries.push_back(entry);
 
@@ -634,7 +634,7 @@ bool SharedContentMap::WriteEntries() const
          HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, u64 fd, u64* ticks)
+static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, const u64 fd, u64* ticks)
 {
   u64 title_id = 0;
   if (fs.Read(fd, &title_id, 1, ticks) != sizeof(title_id))
@@ -672,8 +672,9 @@ UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs{fs_core.GetFS()}
 
 u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 {
-  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
-                               [title_id](const auto& entry) { return entry.second == title_id; });
+  const auto it = std::ranges::find_if(m_entries, [title_id](const auto& entry) {
+    return entry.second == title_id;
+  });
   return (it == m_entries.end()) ? 0 : it->first;
 }
 
@@ -726,7 +727,7 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
       {SignatureType::ECC, PublicKeyType::ECC, sizeof(CertECC)},
   }};
 
-  const auto info = std::find_if(types.cbegin(), types.cend(), [this](const CertStructInfo& entry) {
+  const auto info = std::ranges::find_if(types, [this](const CertStructInfo& entry) {
     return m_bytes.size() >= std::get<2>(entry) && std::get<0>(entry) == GetSignatureType() &&
            std::get<1>(entry) == GetPublicKeyType();
   });
@@ -751,8 +752,8 @@ u32 CertReader::GetId() const
 
 std::string CertReader::GetName() const
 {
-  const char* name = reinterpret_cast<const char*>(m_bytes.data() + GetSignatureSize() +
-                                                   offsetof(CertHeader, name));
+  auto name = reinterpret_cast<const char*>(m_bytes.data() + GetSignatureSize() +
+                                            offsetof(CertHeader, name));
   return std::string(name, strnlen(name, sizeof(CertHeader::name)));
 }
 
@@ -793,7 +794,7 @@ std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)
   size_t processed = 0;
   while (processed != chain.size())
   {
-    CertReader cert_reader{std::vector<u8>(chain.begin() + processed, chain.end())};
+    CertReader cert_reader{std::vector(chain.begin() + processed, chain.end())};
     if (!cert_reader.IsValid())
       return certs;
 

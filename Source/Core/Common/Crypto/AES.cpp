@@ -47,7 +47,7 @@ public:
   }
 
   virtual bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out,
-                     size_t len) const override
+                     const size_t len) const override
   {
     std::array<u8, BLOCK_SIZE> iv_tmp{};
     if (iv)
@@ -84,7 +84,7 @@ private:
 template <Mode AesMode>
 class ContextAESNI final : public Context
 {
-  static inline __m128i Aes128KeygenAssistFinish(__m128i key, __m128i kga)
+  static inline __m128i Aes128KeygenAssistFinish(__m128i key, const __m128i kga)
   {
     __m128i tmp = _mm_shuffle_epi32(kga, _MM_SHUFFLE(3, 3, 3, 3));
     tmp = _mm_xor_si128(tmp, key);
@@ -157,7 +157,7 @@ public:
     }
     else
     {
-      __m128i iv_next = block;
+      const __m128i iv_next = block;
 
       block = _mm_xor_si128(block, round_keys[0]);
 
@@ -422,7 +422,8 @@ std::unique_ptr<Context> CreateContextDecrypt(const u8* key)
 }
 
 // OFB encryption and decryption are the exact same. We don't encrypt though.
-void CryptOFB(const u8* key, const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t size)
+void CryptOFB(const u8* key, const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out,
+              const size_t size)
 {
   mbedtls_aes_context aes_ctx;
   size_t iv_offset = 0;

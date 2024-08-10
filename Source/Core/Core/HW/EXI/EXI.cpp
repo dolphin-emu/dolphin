@@ -33,16 +33,16 @@ ExpansionInterfaceManager::ExpansionInterfaceManager(Core::System& system) : m_s
 
 ExpansionInterfaceManager::~ExpansionInterfaceManager() = default;
 
-void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
+void ExpansionInterfaceManager::AddMemoryCard(const Slot slot) const
 {
   EXIDeviceType memorycard_device;
 
-  auto& movie = m_system.GetMovie();
+  const auto& movie = m_system.GetMovie();
   if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {
     if (movie.IsUsingMemcard(slot))
     {
-      memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
+      memorycard_device = Get(Config::GetInfoForEXIDevice(slot));
       if (memorycard_device != EXIDeviceType::MemoryCardFolder &&
           memorycard_device != EXIDeviceType::MemoryCard)
       {
@@ -60,13 +60,13 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
   }
   else
   {
-    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
+    memorycard_device = Get(Config::GetInfoForEXIDevice(slot));
   }
 
   m_channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
 
-u8 SlotToEXIChannel(Slot slot)
+u8 SlotToEXIChannel(const Slot slot)
 {
   switch (slot)
   {
@@ -82,7 +82,7 @@ u8 SlotToEXIChannel(Slot slot)
   }
 }
 
-u8 SlotToEXIDevice(Slot slot)
+u8 SlotToEXIDevice(const Slot slot)
 {
   switch (slot)
   {
@@ -117,31 +117,31 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
 
   {
     u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
-    int size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+    const int size_override = Get(Config::MAIN_MEMORY_CARD_SIZE);
     if (size_override >= 0 && size_override <= 4)
       size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
     const bool shift_jis =
         Config::ToGameCubeRegion(SConfig::GetInstance().m_region) == DiscIO::Region::NTSC_J;
     const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
     const u32 rtc_bias = sram.settings.rtc_bias;
-    const u32 sram_language = static_cast<u32>(sram.settings.language);
+    const u32 sram_language = sram.settings.language;
     const u64 format_time =
-        Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
+        Common::Timer::GetLocalTimeSinceJan1970() - CEXIIPL::GC_EPOCH;
 
     for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
     {
       Memcard::HeaderData header_data;
-      Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
+      InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
                                     sram_language, format_time + i);
       m_channels[i] = std::make_unique<CEXIChannel>(m_system, i, header_data);
     }
   }
 
-  for (Slot slot : MEMCARD_SLOTS)
+  for (const Slot slot : MEMCARD_SLOTS)
     AddMemoryCard(slot);
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
-  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
+  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Get(Config::MAIN_SERIAL_PORT_1),
                                                      SlotToEXIDevice(Slot::SP1));
   m_channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 
@@ -160,18 +160,18 @@ void ExpansionInterfaceManager::Shutdown()
   if (!m_using_overridden_sram)
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    auto& sram = m_system.GetSRAM();
+    const auto& sram = m_system.GetSRAM();
     file.WriteArray(&sram, 1);
   }
 }
 
-void ExpansionInterfaceManager::DoState(PointerWrap& p)
+void ExpansionInterfaceManager::DoState(PointerWrap& p) const
 {
-  for (auto& channel : m_channels)
+  for (const auto& channel : m_channels)
     channel->DoState(p);
 }
 
-void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base) const
 {
   for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
@@ -185,47 +185,47 @@ void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void ExpansionInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 userdata,
+void ExpansionInterfaceManager::ChangeDeviceCallback(const Core::System& system, const u64 userdata,
                                                      s64 cycles_late)
 {
-  u8 channel = (u8)(userdata >> 32);
-  u8 type = (u8)(userdata >> 16);
-  u8 num = (u8)userdata;
+  const u8 channel = static_cast<u8>(userdata >> 32);
+  u8 type = static_cast<u8>(userdata >> 16);
+  const u8 num = static_cast<u8>(userdata);
 
   system.GetExpansionInterface().m_channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type),
                                                                    num);
 }
 
-void ExpansionInterfaceManager::ChangeDevice(Slot slot, EXIDeviceType device_type,
-                                             CoreTiming::FromThread from_thread)
+void ExpansionInterfaceManager::ChangeDevice(const Slot slot, const EXIDeviceType device_type,
+                                             const CoreTiming::FromThread from_thread) const
 {
   ChangeDevice(SlotToEXIChannel(slot), SlotToEXIDevice(slot), device_type, from_thread);
 }
 
-void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
-                                             CoreTiming::FromThread from_thread)
+void ExpansionInterfaceManager::ChangeDevice(const u8 channel, const u8 device_num, EXIDeviceType device_type,
+                                             const CoreTiming::FromThread from_thread) const
 {
   // Let the hardware see no device for 1 second
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(0, m_event_type_change_device,
-                            ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
+                            (static_cast<u64>(channel) << 32) | (static_cast<u64>(EXIDeviceType::None) << 16) | device_num,
                             from_thread);
   core_timing.ScheduleEvent(
       m_system.GetSystemTimers().GetTicksPerSecond(), m_event_type_change_device,
-      ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
+      (static_cast<u64>(channel) << 32) | (static_cast<u64>(device_type) << 16) | device_num, from_thread);
 }
 
-CEXIChannel* ExpansionInterfaceManager::GetChannel(u32 index)
+CEXIChannel* ExpansionInterfaceManager::GetChannel(const u32 index) const
 {
   return m_channels.at(index).get();
 }
 
-IEXIDevice* ExpansionInterfaceManager::GetDevice(Slot slot)
+IEXIDevice* ExpansionInterfaceManager::GetDevice(const Slot slot) const
 {
   return m_channels.at(SlotToEXIChannel(slot))->GetDevice(1 << SlotToEXIDevice(slot));
 }
 
-void ExpansionInterfaceManager::UpdateInterrupts()
+void ExpansionInterfaceManager::UpdateInterrupts() const
 {
   // Interrupts are mapped a bit strangely:
   // Channel 0 Device 0 generates interrupt on channel 0
@@ -234,20 +234,20 @@ void ExpansionInterfaceManager::UpdateInterrupts()
   m_channels[2]->SetEXIINT(m_channels[0]->GetDevice(4)->IsInterruptSet());
 
   bool causeInt = false;
-  for (auto& channel : m_channels)
+  for (const auto& channel : m_channels)
     causeInt |= channel->IsCausingInterrupt();
 
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
-void ExpansionInterfaceManager::UpdateInterruptsCallback(Core::System& system, u64 userdata,
+void ExpansionInterfaceManager::UpdateInterruptsCallback(const Core::System& system, u64 userdata,
                                                          s64 cycles_late)
 {
   system.GetExpansionInterface().UpdateInterrupts();
 }
 
-void ExpansionInterfaceManager::ScheduleUpdateInterrupts(CoreTiming::FromThread from,
-                                                         int cycles_late)
+void ExpansionInterfaceManager::ScheduleUpdateInterrupts(const CoreTiming::FromThread from,
+                                                         const int cycles_late) const
 {
   m_system.GetCoreTiming().ScheduleEvent(cycles_late, m_event_type_update_interrupts, 0, from);
 }

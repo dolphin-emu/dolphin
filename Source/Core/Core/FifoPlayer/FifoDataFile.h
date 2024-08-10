@@ -62,18 +62,18 @@ public:
   void SetIsWii(bool isWii);
   bool GetIsWii() const;
   bool HasBrokenEFBCopies() const;
-  bool ShouldGenerateFakeVIUpdates() const;
+  static bool ShouldGenerateFakeVIUpdates();
 
   u32* GetBPMem() { return m_BPMem.data(); }
   u32* GetCPMem() { return m_CPMem.data(); }
   u32* GetXFMem() { return m_XFMem.data(); }
   u32* GetXFRegs() { return m_XFRegs.data(); }
   u8* GetTexMem() { return m_TexMem.data(); }
-  u32 GetRamSizeReal() { return m_ram_size_real; }
-  u32 GetExRamSizeReal() { return m_exram_size_real; }
+  u32 GetRamSizeReal() const { return m_ram_size_real; }
+  u32 GetExRamSizeReal() const { return m_exram_size_real; }
 
   void AddFrame(const FifoFrameInfo& frameInfo);
-  const FifoFrameInfo& GetFrame(u32 frame) const { return m_Frames[frame]; }
+  const FifoFrameInfo& GetFrame(const u32 frame) const { return m_Frames[frame]; }
   u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
   bool Save(const std::string& filename);
 
@@ -85,12 +85,12 @@ private:
     FLAG_IS_WII = 1
   };
 
-  void PadFile(size_t numBytes, File::IOFile& file);
+  static void PadFile(size_t numBytes, const File::IOFile& file);
 
   void SetFlag(u32 flag, bool set);
   bool GetFlag(u32 flag) const;
 
-  u64 WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
+  static u64 WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
   static void ReadMemoryUpdates(u64 fileOffset, u32 numUpdates,
                                 std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
 

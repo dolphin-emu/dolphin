@@ -13,6 +13,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 
 // Format Handlers
+#include <ranges>
+
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
@@ -28,7 +30,7 @@ SignatureDB::HandlerType GetHandlerType(const std::string& file_path)
   return SignatureDB::HandlerType::DSY;
 }
 
-std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(SignatureDB::HandlerType handler)
+std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(const SignatureDB::HandlerType handler)
 {
   switch (handler)
   {
@@ -43,7 +45,7 @@ std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(SignatureDB::Handl
 }
 }  // Anonymous namespace
 
-SignatureDB::SignatureDB(HandlerType handler) : m_handler(CreateFormatHandler(handler))
+SignatureDB::SignatureDB(const HandlerType handler) : m_handler(CreateFormatHandler(handler))
 {
 }
 
@@ -51,12 +53,12 @@ SignatureDB::SignatureDB(const std::string& file_path) : SignatureDB(GetHandlerT
 {
 }
 
-void SignatureDB::Clear()
+void SignatureDB::Clear() const
 {
   m_handler->Clear();
 }
 
-bool SignatureDB::Load(const std::string& file_path)
+bool SignatureDB::Load(const std::string& file_path) const
 {
   return m_handler->Load(file_path);
 }
@@ -71,7 +73,7 @@ void SignatureDB::List() const
   m_handler->List();
 }
 
-void SignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& filter)
+void SignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& filter) const
 {
   m_handler->Populate(func_db, filter);
 }
@@ -81,23 +83,23 @@ void SignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
   m_handler->Apply(guard, func_db);
 }
 
-bool SignatureDB::Add(const Core::CPUThreadGuard& guard, u32 start_addr, u32 size,
-                      const std::string& name)
+bool SignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 start_addr, const u32 size,
+                      const std::string& name) const
 {
   return m_handler->Add(guard, start_addr, size, name);
 }
 
 // Adds a known function to the hash database
-bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
+bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 startAddr, const u32 size,
                           const std::string& name)
 {
-  u32 hash = ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
+  const u32 hash = ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
 
   DBFunc temp_dbfunc;
   temp_dbfunc.size = size;
   temp_dbfunc.name = name;
 
-  FuncDB::iterator iter = m_database.find(hash);
+  const auto iter = m_database.find(hash);
   if (iter == m_database.end())
   {
     m_database[hash] = temp_dbfunc;
@@ -108,10 +110,9 @@ bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 
 
 void HashSignatureDB::List() const
 {
-  for (const auto& entry : m_database)
+  for (const auto& [fst, snd] : m_database)
   {
-    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes, hash = {:08x}", entry.second.name, entry.second.size,
-                  entry.first);
+    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes, hash = {:08x}", snd.name, snd.size, fst);
   }
   INFO_LOG_FMT(SYMBOLS, "{} functions known in current database.", m_database.size());
 }
@@ -123,21 +124,21 @@ void HashSignatureDB::Clear()
 
 void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
-  for (const auto& entry : m_database)
+  for (const auto& [fst, snd] : m_database)
   {
-    for (const auto& function : symbol_db->GetSymbolsFromHash(entry.first))
+    for (const auto& function : symbol_db->GetSymbolsFromHash(fst))
     {
       // Found the function. Let's rename it according to the symbol file.
-      function->Rename(entry.second.name);
-      if (entry.second.size == static_cast<unsigned int>(function->size))
+      function->Rename(snd.name);
+      if (snd.size == function->size)
       {
-        INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", entry.second.name,
-                     function->address, function->size);
+        INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", snd.name, function->address,
+                     function->size);
       }
       else
       {
         ERROR_LOG_FMT(SYMBOLS, "Wrong size! Found {} at {:08x} (size: {:08x} instead of {:08x})!",
-                      entry.second.name, function->address, function->size, entry.second.size);
+                      snd.name, function->address, function->size, snd.size);
       }
     }
   }
@@ -146,31 +147,31 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
 
 void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
 {
-  for (const auto& symbol : symbol_db->Symbols())
+  for (const auto& val : symbol_db->Symbols() | std::views::values)
   {
-    if ((filter.empty() && (!symbol.second.name.empty()) &&
-         symbol.second.name.substr(0, 3) != "zz_" && symbol.second.name.substr(0, 1) != ".") ||
-        ((!filter.empty()) && symbol.second.name.substr(0, filter.size()) == filter))
+    if ((filter.empty() && (!val.name.empty()) &&
+         val.name.substr(0, 3) != "zz_" && val.name.substr(0, 1) != ".") ||
+        ((!filter.empty()) && val.name.substr(0, filter.size()) == filter))
     {
       DBFunc temp_dbfunc;
-      temp_dbfunc.name = symbol.second.name;
-      temp_dbfunc.size = symbol.second.size;
-      m_database[symbol.second.hash] = temp_dbfunc;
+      temp_dbfunc.name = val.name;
+      temp_dbfunc.size = val.size;
+      m_database[val.hash] = temp_dbfunc;
     }
   }
 }
 
-u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 offsetStart,
-                                         u32 offsetEnd)
+u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, const u32 offsetStart,
+                                         const u32 offsetEnd)
 {
   u32 sum = 0;
   for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
   {
-    u32 opcode = PowerPC::MMU::HostRead_Instruction(guard, offset);
-    u32 op = opcode & 0xFC000000;
+    const u32 opcode = PowerPC::MMU::HostRead_Instruction(guard, offset);
+    const u32 op = opcode & 0xFC000000;
     u32 op2 = 0;
     u32 op3 = 0;
-    u32 auxop = op >> 26;
+    const u32 auxop = op >> 26;
     switch (auxop)
     {
     case 4:  // PS instructions

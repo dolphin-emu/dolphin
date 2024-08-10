@@ -12,7 +12,7 @@
 
 namespace AudioCommon
 {
-AudioStretcher::AudioStretcher(unsigned int sample_rate) : m_sample_rate(sample_rate)
+AudioStretcher::AudioStretcher(const unsigned int sample_rate) : m_sample_rate(sample_rate)
 {
   m_sound_touch.setChannels(2);
   m_sound_touch.setSampleRate(sample_rate);
@@ -25,14 +25,15 @@ void AudioStretcher::Clear()
   m_sound_touch.clear();
 }
 
-void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsigned int num_out)
+void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in,
+                                    const unsigned int num_out)
 {
   const double time_delta = static_cast<double>(num_out) / m_sample_rate;  // seconds
 
   // We were given actual_samples number of samples, and num_samples were requested from us.
   double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
 
-  const double max_latency = Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
+  const double max_latency = Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
   const double max_backlog = m_sample_rate * max_latency / 1000.0 / m_stretch_ratio;
   const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
   if (backlog_fullness > 5.0)
@@ -64,7 +65,7 @@ void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsign
   m_sound_touch.putSamples(in, num_in);
 }
 
-void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
+void AudioStretcher::GetStretchedSamples(short* out, const unsigned int num_out)
 {
   const size_t samples_received = m_sound_touch.receiveSamples(out, num_out);
 

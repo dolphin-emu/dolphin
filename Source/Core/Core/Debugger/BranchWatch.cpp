@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
+#include <ranges>
 
 #include <fmt/format.h>
 
@@ -48,8 +49,8 @@ union USnapshotMetadata
   BitField<3, 4, Inspection, StorageType> inspection;
 
   USnapshotMetadata() : hex(0) {}
-  explicit USnapshotMetadata(bool is_virtual_, bool condition_, bool is_selected_,
-                             Inspection inspection_)
+  explicit USnapshotMetadata(const bool is_virtual_, const bool condition_, const bool is_selected_,
+                             const Inspection inspection_)
       : USnapshotMetadata()
   {
     is_virtual = is_virtual_;
@@ -69,12 +70,12 @@ void BranchWatch::Save(const CPUThreadGuard& guard, std::FILE* file) const
   if (file == nullptr)
     return;
 
-  const auto routine = [&](const Collection& collection, bool is_virtual, bool condition) {
+  const auto routine = [&](const Collection& collection, const bool is_virtual, const bool condition) {
     for (const Collection::value_type& kv : collection)
     {
-      const auto iter = std::find_if(
-          m_selection.begin(), m_selection.end(),
-          [&](const Selection::value_type& value) { return value.collection_ptr == &kv; });
+      const auto iter = std::ranges::find_if(m_selection, [&](const Selection::value_type& value) {
+        return value.collection_ptr == &kv;
+      });
       fmt::println(file, "{:08x} {:08x} {:08x} {} {} {:x}", kv.first.origin_addr,
                    kv.first.destin_addr, kv.first.original_inst.hex, kv.second.total_hits,
                    kv.second.hits_snapshot,
@@ -136,7 +137,7 @@ void BranchWatch::IsolateHasExecuted(const CPUThreadGuard&)
   case Phase::Blacklist:
   {
     m_selection.reserve(GetCollectionSize() - m_blacklist_size);
-    const auto routine = [&](Collection& collection, bool is_virtual, bool condition) {
+    const auto routine = [&](Collection& collection, const bool is_virtual, const bool condition) {
       for (Collection::value_type& kv : collection)
       {
         if (kv.second.hits_snapshot == 0)
@@ -174,8 +175,8 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
   case Phase::Blacklist:
   {
     const auto routine = [&](Collection& collection) {
-      for (Collection::value_type& kv : collection)
-        kv.second.hits_snapshot = kv.second.total_hits;
+      for (auto& [total_hits, hits_snapshot] : collection | std::views::values)
+        hits_snapshot = total_hits;
     };
     routine(m_collection_vt);
     routine(m_collection_vf);
@@ -198,7 +199,7 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
 
 void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
 {
-  if (Core::GetState(guard.GetSystem()) == Core::State::Uninitialized)
+  if (GetState(guard.GetSystem()) == State::Uninitialized)
   {
     ASSERT_MSG(CORE, false, "Core is uninitialized.");
     return;
@@ -210,17 +211,17 @@ void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
     // This is a dirty hack of the assumptions that make the blacklist phase work. If the
     // hits_snapshot is non-zero while in the blacklist phase, that means it has been marked
     // for exclusion from the transition to the reduction phase.
-    const auto routine = [&](Collection& collection, PowerPC::RequestedAddressSpace address_space) {
-      for (Collection::value_type& kv : collection)
+    const auto routine = [&](Collection& collection, const PowerPC::RequestedAddressSpace address_space) {
+      for (auto& [fst, snd] : collection)
       {
-        if (kv.second.hits_snapshot == 0)
+        if (snd.hits_snapshot == 0)
         {
           const std::optional read_result =
-              PowerPC::MMU::HostTryReadInstruction(guard, kv.first.origin_addr, address_space);
+              PowerPC::MMU::HostTryReadInstruction(guard, fst.origin_addr, address_space);
           if (!read_result.has_value())
             continue;
-          if (kv.first.original_inst.hex == read_result->value)
-            kv.second.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
+          if (fst.original_inst.hex == read_result->value)
+            snd.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
         }
       }
     };
@@ -246,7 +247,7 @@ void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
 
 void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
 {
-  if (Core::GetState(guard.GetSystem()) == Core::State::Uninitialized)
+  if (GetState(guard.GetSystem()) == State::Uninitialized)
   {
     ASSERT_MSG(CORE, false, "Core is uninitialized.");
     return;
@@ -256,16 +257,16 @@ void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
   case Phase::Blacklist:
   {
     // Same dirty hack with != rather than ==, see above for details
-    const auto routine = [&](Collection& collection, PowerPC::RequestedAddressSpace address_space) {
-      for (Collection::value_type& kv : collection)
-        if (kv.second.hits_snapshot == 0)
+    const auto routine = [&](Collection& collection, const PowerPC::RequestedAddressSpace address_space) {
+      for (auto& [fst, snd] : collection)
+        if (snd.hits_snapshot == 0)
         {
           const std::optional read_result =
-              PowerPC::MMU::HostTryReadInstruction(guard, kv.first.origin_addr, address_space);
+              PowerPC::MMU::HostTryReadInstruction(guard, fst.origin_addr, address_space);
           if (!read_result.has_value())
             continue;
-          if (kv.first.original_inst.hex != read_result->value)
-            kv.second.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
+          if (fst.original_inst.hex != read_result->value)
+            snd.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
         }
     };
     routine(m_collection_vt, PowerPC::RequestedAddressSpace::Virtual);
@@ -288,13 +289,13 @@ void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
   }
 }
 
-void BranchWatch::UpdateHitsSnapshot()
+void BranchWatch::UpdateHitsSnapshot() const
 {
   switch (m_recording_phase)
   {
   case Phase::Reduction:
-    for (Selection::value_type& value : m_selection)
-      value.collection_ptr->second.hits_snapshot = value.collection_ptr->second.total_hits;
+    for (const auto& [collection_ptr, _is_virtual, _condition, _inspection] : m_selection)
+      collection_ptr->second.hits_snapshot = collection_ptr->second.total_hits;
     return;
   case Phase::Blacklist:
     return;
@@ -303,11 +304,10 @@ void BranchWatch::UpdateHitsSnapshot()
 
 void BranchWatch::ClearSelectionInspection()
 {
-  std::for_each(m_selection.begin(), m_selection.end(),
-                [](Selection::value_type& value) { value.inspection = {}; });
+  std::ranges::for_each(m_selection, [](Selection::value_type& value) { value.inspection = {}; });
 }
 
-void BranchWatch::SetSelectedInspected(std::size_t idx, SelectionInspection inspection)
+void BranchWatch::SetSelectedInspected(const std::size_t idx, const SelectionInspection inspection)
 {
   m_selection[idx].inspection |= inspection;
 }

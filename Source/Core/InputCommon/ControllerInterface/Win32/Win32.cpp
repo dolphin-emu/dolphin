@@ -5,8 +5,6 @@
 
 #include <Windows.h>
 #include <cfgmgr32.h>
-// must be before hidclass
-#include <initguid.h>
 
 #include <hidclass.h>
 
@@ -35,13 +33,13 @@ public:
 
   void PopulateDevices() override;
   void HandleWindowChange() override;
-  HWND GetHWND();
+  HWND GetHWND() const;
 };
 }  // namespace ciface::Win32
 
 _Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALLBACK
-    OnDevicesChanged(_In_ HCMNOTIFICATION hNotify, _In_opt_ PVOID Context,
-                     _In_ CM_NOTIFY_ACTION Action,
+    OnDevicesChanged(_In_ HCMNOTIFICATION hNotify, _In_opt_ const PVOID Context,
+                     _In_ const CM_NOTIFY_ACTION Action,
                      _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
                      _In_ DWORD EventDataSize)
 {
@@ -72,7 +70,7 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
   return std::make_unique<InputBackend>(controller_interface);
 }
 
-HWND InputBackend::GetHWND()
+HWND InputBackend::GetHWND() const
 {
   return static_cast<HWND>(GetControllerInterface().GetWindowSystemInfo().render_window);
 }
@@ -98,15 +96,15 @@ void InputBackend::PopulateDevices()
 {
   std::lock_guard lk_population(s_populate_mutex);
   s_first_populate_devices_asked.Set();
-  ciface::DInput::PopulateDevices(GetHWND());
-  ciface::XInput::PopulateDevices();
-  ciface::WGInput::PopulateDevices();
+  DInput::PopulateDevices(GetHWND());
+  XInput::PopulateDevices();
+  WGInput::PopulateDevices();
 }
 
 void InputBackend::HandleWindowChange()
 {
   std::lock_guard lk_population(s_populate_mutex);
-  ciface::DInput::ChangeWindow(GetHWND());
+  DInput::ChangeWindow(GetHWND());
 }
 
 InputBackend::~InputBackend()

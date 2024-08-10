@@ -94,7 +94,7 @@ s32 CachedInterpreter::EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlock
   const auto& [downcount, num_load_stores, num_fp_inst] = operands;
   ppc_state.pc = ppc_state.npc;
   ppc_state.downcount -= downcount;
-  PowerPC::UpdatePerformanceMonitor(downcount, num_load_stores, num_fp_inst, ppc_state);
+  UpdatePerformanceMonitor(downcount, num_load_stores, num_fp_inst, ppc_state);
   return 0;
 }
 
@@ -177,7 +177,7 @@ s32 CachedInterpreter::CheckBreakpoint(PowerPC::PowerPCState& ppc_state,
   return sizeof(AnyCallback) + sizeof(operands);
 }
 
-s32 CachedInterpreter::CheckIdle(PowerPC::PowerPCState& ppc_state,
+s32 CachedInterpreter::CheckIdle(const PowerPC::PowerPCState& ppc_state,
                                  const CheckIdleOperands& operands)
 {
   const auto& [core_timing, idle_pc] = operands;
@@ -186,7 +186,7 @@ s32 CachedInterpreter::CheckIdle(PowerPC::PowerPCState& ppc_state,
   return sizeof(AnyCallback) + sizeof(operands);
 }
 
-bool CachedInterpreter::HandleFunctionHooking(u32 address)
+bool CachedInterpreter::HandleFunctionHooking(const u32 address)
 {
   // CachedInterpreter inherits from JitBase and is considered a JIT by relevant code.
   // (see JitInterface and how m_mode is set within PowerPC.cpp)
@@ -229,12 +229,12 @@ void CachedInterpreter::ResetFreeMemoryRanges()
   m_free_ranges.insert(region, region + region_size);
 }
 
-void CachedInterpreter::Jit(u32 em_address)
+void CachedInterpreter::Jit(const u32 em_address)
 {
   Jit(em_address, true);
 }
 
-void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
+void CachedInterpreter::Jit(const u32 em_address, const bool clear_cache_and_retry_on_failure)
 {
   if (IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
   {

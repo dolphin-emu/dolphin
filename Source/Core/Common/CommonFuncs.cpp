@@ -4,9 +4,7 @@
 #include "Common/CommonFuncs.h"
 
 #include <cstddef>
-#include <cstring>
 #include <errno.h>
-#include <type_traits>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -60,7 +58,7 @@ std::string GetLastErrorString()
 }
 
 // Like GetLastErrorString() but if you have already queried the error code.
-std::string GetWin32ErrorString(DWORD error_code)
+std::string GetWin32ErrorString(const DWORD error_code)
 {
   wchar_t error_message[BUFFER_SIZE];
 

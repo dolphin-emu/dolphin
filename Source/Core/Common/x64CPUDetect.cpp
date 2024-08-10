@@ -56,7 +56,7 @@ static u64 xgetbv(u32 index)
 
 constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
 
-static u64 xgetbv(u32 index)
+static u64 xgetbv(const u32 index)
 {
   return _xgetbv(index);
 }
@@ -71,7 +71,7 @@ static void WarnIfRunningUnderEmulation()
     // Possibly we are running on version of windows which doesn't support ProcessMachineTypeInfo.
     return;
   }
-  if (info.MachineAttributes & MACHINE_ATTRIBUTES::KernelEnabled)
+  if (info.MachineAttributes & KernelEnabled)
   {
     // KernelEnabled will be set if process arch matches the kernel arch - how we want people to run
     // dolphin.
@@ -92,7 +92,7 @@ struct CPUIDResult
 };
 static_assert(sizeof(CPUIDResult) == sizeof(u32) * 4);
 
-static inline CPUIDResult cpuid(int function_id, int subfunction_id = 0)
+static inline CPUIDResult cpuid(const int function_id, const int subfunction_id = 0)
 {
   CPUIDResult info;
   __cpuidex((int*)&info, function_id, subfunction_id);
@@ -240,7 +240,7 @@ void CPUInfo::Detect()
   cpu_id = ReplaceAll(cpu_id, ",", "_");
 }
 
-std::string CPUInfo::Summarize()
+std::string CPUInfo::Summarize() const
 {
   std::vector<std::string> sum;
   sum.push_back(model_name);

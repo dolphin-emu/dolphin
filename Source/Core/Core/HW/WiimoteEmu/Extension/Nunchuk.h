@@ -68,17 +68,17 @@ public:
     u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb; }
     auto GetAccel() const { return AccelData{AccelType{GetAccelX(), GetAccelY(), GetAccelZ()}}; }
 
-    void SetAccelX(u16 val)
+    void SetAccelX(const u16 val)
     {
       ax = val >> 2;
       bt.acc_x_lsb = val & 0b11;
     }
-    void SetAccelY(u16 val)
+    void SetAccelY(const u16 val)
     {
       ay = val >> 2;
       bt.acc_y_lsb = val & 0b11;
     }
-    void SetAccelZ(u16 val)
+    void SetAccelZ(const u16 val)
     {
       az = val >> 2;
       bt.acc_z_lsb = val & 0b11;
@@ -95,7 +95,7 @@ public:
       // 0 == pressed.
       return ~bt.hex & (BUTTON_C | BUTTON_Z);
     }
-    void SetButtons(u8 value)
+    void SetButtons(const u8 value)
     {
       // 0 == pressed.
       bt.hex |= (BUTTON_C | BUTTON_Z);
@@ -156,7 +156,7 @@ public:
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
-  ControllerEmu::ControlGroup* GetGroup(NunchukGroup group);
+  ControllerEmu::ControlGroup* GetGroup(NunchukGroup group) const;
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
@@ -172,12 +172,12 @@ public:
   static constexpr u8 STICK_RADIUS = 0x7F;
   static constexpr u8 STICK_RANGE = 0xFF;
 
-  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
-  static constexpr const char* STICK_GROUP = _trans("Stick");
-  static constexpr const char* ACCELEROMETER_GROUP = "IMUAccelerometer";
+  static constexpr auto BUTTONS_GROUP = _trans("Buttons");
+  static constexpr auto STICK_GROUP = _trans("Stick");
+  static constexpr auto ACCELEROMETER_GROUP = "IMUAccelerometer";
 
-  static constexpr const char* C_BUTTON = "C";
-  static constexpr const char* Z_BUTTON = "Z";
+  static constexpr auto C_BUTTON = "C";
+  static constexpr auto Z_BUTTON = "Z";
 
 private:
   ControllerEmu::Tilt* m_tilt;

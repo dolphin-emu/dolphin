@@ -10,7 +10,6 @@
 #include <QComboBox>
 #include <QCompleter>
 #include <QDialogButtonBox>
-#include <QEvent>
 #include <QGroupBox>
 #include <QKeyEvent>
 #include <QKeySequence>
@@ -20,10 +19,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QStackedWidget>
 #include <QString>
 #include <QStringConverter>
-#include <QStringList>
 #include <QThread>
 #include <QVBoxLayout>
 
@@ -56,24 +53,24 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 
   installEventFilter(this);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 
   connect(m_skylander_list, &QListWidget::itemSelectionChanged, this,
           &SkylanderPortalWindow::UpdateCurrentIDs);
 
   QDir skylanders_folder;
   // skylanders folder in user directory
-  QString user_path =
+  const QString user_path =
       QString::fromStdString(File::GetUserPath(D_USER_IDX)) + QStringLiteral("Skylanders");
   // first time initialize path in config
-  if (Config::Get(Config::MAIN_SKYLANDERS_PATH).empty())
+  if (Get(Config::MAIN_SKYLANDERS_PATH).empty())
   {
-    Config::SetBase(Config::MAIN_SKYLANDERS_PATH, user_path.toStdString());
+    SetBase(Config::MAIN_SKYLANDERS_PATH, user_path.toStdString());
     skylanders_folder = QDir(user_path);
   }
   else
   {
-    skylanders_folder = QDir(QString::fromStdString(Config::Get(Config::MAIN_SKYLANDERS_PATH)));
+    skylanders_folder = QDir(QString::fromStdString(Get(Config::MAIN_SKYLANDERS_PATH)));
   }
   if (!skylanders_folder.exists())
     skylanders_folder.mkdir(skylanders_folder.path());
@@ -142,8 +139,8 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
   // WIDGET: Portal Enable Checkbox
   auto* checkbox_layout = new QVBoxLayout();
   m_enabled_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
-  m_enabled_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
-  m_emulating = Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL);
+  m_enabled_checkbox->setChecked(Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
+  m_emulating = Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL);
   connect(m_enabled_checkbox, &QCheckBox::toggled, this, &SkylanderPortalWindow::EmulatePortal);
   checkbox_layout->addWidget(m_enabled_checkbox);
   slot_layout->addLayout(checkbox_layout);
@@ -176,7 +173,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
     m_edit_skylanders[i] = new QLineEdit();
     m_edit_skylanders[i]->setEnabled(false);
 
-    QRadioButton* button = new QRadioButton;
+    auto button = new QRadioButton;
     m_slot_radios[i] = button;
     button->setProperty("id", i);
     hbox_skylander->addWidget(button);
@@ -192,7 +189,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
   scroll_area->setWidget(m_group_skylanders);
   scroll_area->setWidgetResizable(true);
   scroll_area->setFrameStyle(QFrame::NoFrame);
-  m_group_skylanders->setVisible(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
+  m_group_skylanders->setVisible(Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
   portal_slots_layout->addWidget(scroll_area);
   portal_slots_group->setLayout(portal_slots_layout);
   slot_layout->addWidget(portal_slots_group);
@@ -251,7 +248,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
 
   for (size_t i = 0; i < m_game_filters.size(); ++i)
   {
-    QCheckBox* checkbox = new QCheckBox(this);
+    auto checkbox = new QCheckBox(this);
     checkbox->setChecked(true);
     connect(checkbox, &QCheckBox::toggled, this, &SkylanderPortalWindow::RefreshList);
     m_game_filters[i] = checkbox;
@@ -297,7 +294,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   auto* radio_layout_right = new QVBoxLayout();
   for (int i = 0; i < NUM_SKYLANDER_ELEMENTS_RADIO; i++)
   {
-    QRadioButton* radio = new QRadioButton(this);
+    auto radio = new QRadioButton(this);
     radio->setProperty("id", i);
     if (i == 0)
     {
@@ -377,7 +374,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   auto* radio_type_layout_right = new QVBoxLayout();
   for (int i = 0; i < NUM_SKYLANDER_TYPES; i++)
   {
-    QRadioButton* radio = new QRadioButton(this);
+    auto radio = new QRadioButton(this);
     radio->setProperty("id", i);
     if (i == 0)
     {
@@ -470,9 +467,9 @@ void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
 }
 
 // UI
-void SkylanderPortalWindow::EmulatePortal(bool emulate)
+void SkylanderPortalWindow::EmulatePortal(const bool emulate)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
+  SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
   m_command_buttons->setVisible(emulate);
   m_emulating = emulate;
@@ -488,7 +485,7 @@ void SkylanderPortalWindow::SelectCollectionPath()
     m_path_edit->setText(dir);
     m_collection_path = dir;
   }
-  Config::SetBase(Config::MAIN_SKYLANDERS_PATH, dir.toStdString());
+  SetBase(Config::MAIN_SKYLANDERS_PATH, dir.toStdString());
 
   if (m_only_show_collection->isChecked())
     RefreshList();
@@ -568,7 +565,7 @@ void SkylanderPortalWindow::LoadFromFile()
 
 void SkylanderPortalWindow::CreateSkylanderAdvanced()
 {
-  QDialog* create_window = new QDialog;
+  auto create_window = new QDialog;
 
   auto* layout = new QVBoxLayout;
 
@@ -577,7 +574,7 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
   auto* label_var = new QLabel(tr("Variant:"));
   auto* edit_id = new QLineEdit(tr("0"));
   auto* edit_var = new QLineEdit(tr("0"));
-  auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
+  const auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
   edit_id->setValidator(rxv);
   edit_var->setValidator(rxv);
   hbox_idvar->addWidget(label_id);
@@ -618,11 +615,11 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
     else
     {
       // i18n: This is used to create a file name. The string must end in ".sky".
-      QString str = tr("Unknown(%1 %2).sky");
+      const QString str = tr("Unknown(%1 %2).sky");
       predef_name += str.arg(m_sky_id, m_sky_var);
     }
 
-    QString file_path = DolphinFileDialog::getSaveFileName(
+    const QString file_path = DolphinFileDialog::getSaveFileName(
         this, tr("Create Skylander File"), predef_name, tr("Skylander (*.sky);;All Files (*)"));
     if (file_path.isEmpty())
     {
@@ -642,7 +639,7 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
 
 void SkylanderPortalWindow::ModifySkylander()
 {
-  if (auto sky_slot = m_sky_slots[GetCurrentSlot()])
+  if (const auto sky_slot = m_sky_slots[GetCurrentSlot()])
   {
     new SkylanderModifyDialog(this, sky_slot.value().portal_slot);
   }
@@ -654,10 +651,10 @@ void SkylanderPortalWindow::ModifySkylander()
   }
 }
 
-void SkylanderPortalWindow::ClearSlot(u8 slot)
+void SkylanderPortalWindow::ClearSlot(const u8 slot)
 {
-  auto& system = Core::System::GetInstance();
-  if (auto slot_infos = m_sky_slots[slot])
+  const auto& system = Core::System::GetInstance();
+  if (const auto slot_infos = m_sky_slots[slot])
   {
     if (!system.GetSkylanderPortal().RemoveSkylander(slot_infos->portal_slot))
     {
@@ -677,11 +674,11 @@ void SkylanderPortalWindow::ClearSlot(u8 slot)
 void SkylanderPortalWindow::OnCollectionPathChanged()
 {
   m_collection_path = m_path_edit->text();
-  Config::SetBase(Config::MAIN_SKYLANDERS_PATH, m_path_edit->text().toStdString());
+  SetBase(Config::MAIN_SKYLANDERS_PATH, m_path_edit->text().toStdString());
   RefreshList();
 }
 
-void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
+void SkylanderPortalWindow::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -698,7 +695,7 @@ void SkylanderPortalWindow::UpdateCurrentIDs()
   }
 }
 
-void SkylanderPortalWindow::RefreshList()
+void SkylanderPortalWindow::RefreshList() const
 {
   const bool is_dark_theme = Settings::Instance().IsThemeDark();
 
@@ -706,8 +703,8 @@ void SkylanderPortalWindow::RefreshList()
   m_skylander_list->clear();
   if (m_only_show_collection->isChecked())
   {
-    const QDir collection = QDir(m_collection_path);
-    auto& system = Core::System::GetInstance();
+    const auto collection = QDir(m_collection_path);
+    const auto& system = Core::System::GetInstance();
     for (const auto& file : collection.entryInfoList(
              QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
                            << QStringLiteral("*.dmp") << QStringLiteral("*.dump")))
@@ -726,7 +723,7 @@ void SkylanderPortalWindow::RefreshList()
       if (PassesFilter(file.baseName(), ids.first, ids.second))
       {
         const uint qvar = (ids.first << 16) | ids.second;
-        QListWidgetItem* skylander = new QListWidgetItem(file.baseName());
+        auto skylander = new QListWidgetItem(file.baseName());
         if (is_dark_theme)
         {
           skylander->setBackground(GetBaseColor(ids, true));
@@ -744,22 +741,22 @@ void SkylanderPortalWindow::RefreshList()
   }
   else
   {
-    for (const auto& entry : IOS::HLE::USB::list_skylanders)
+    for (const auto& [fst, snd] : IOS::HLE::USB::list_skylanders)
     {
-      int id = entry.first.first;
-      int var = entry.first.second;
-      if (PassesFilter(tr(entry.second.name), id, var))
+      const int id = fst.first;
+      const int var = fst.second;
+      if (PassesFilter(tr(snd.name), id, var))
       {
-        const uint qvar = (entry.first.first << 16) | entry.first.second;
-        QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second.name));
+        const uint qvar = (fst.first << 16) | fst.second;
+        auto skylander = new QListWidgetItem(tr(snd.name));
         if (is_dark_theme)
         {
-          skylander->setBackground(GetBaseColor(entry.first, true));
+          skylander->setBackground(GetBaseColor(fst, true));
           skylander->setForeground(QBrush(QColor(220, 220, 220)));
         }
         else
         {
-          skylander->setBackground(GetBaseColor(entry.first, false));
+          skylander->setBackground(GetBaseColor(fst, false));
           skylander->setForeground(QBrush(QColor(0, 0, 0)));
         }
         skylander->setData(1, qvar);
@@ -778,7 +775,7 @@ void SkylanderPortalWindow::RefreshList()
   }
 }
 
-void SkylanderPortalWindow::CreateSkyfile(const QString& path, bool load_after)
+void SkylanderPortalWindow::CreateSkyfile(const QString& path, const bool load_after)
 {
   {
     IOS::HLE::USB::SkylanderFigure figure(path.toStdString());
@@ -799,7 +796,7 @@ void SkylanderPortalWindow::CreateSkyfile(const QString& path, bool load_after)
     LoadSkyfilePath(GetCurrentSlot(), path);
 }
 
-void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
+void SkylanderPortalWindow::LoadSkyfilePath(const u8 slot, const QString& path)
 {
   File::IOFile sky_file(path.toStdString(), "r+b");
   if (!sky_file)
@@ -823,8 +820,8 @@ void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
 
   ClearSlot(slot);
 
-  auto& system = Core::System::GetInstance();
-  const std::pair<u16, u16> id_var = system.GetSkylanderPortal().CalculateIDs(file_data);
+  const auto& system = Core::System::GetInstance();
+  const auto [fst, snd] = system.GetSkylanderPortal().CalculateIDs(file_data);
   const u8 portal_slot = system.GetSkylanderPortal().LoadSkylander(
       std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)));
   if (portal_slot == 0xFF)
@@ -833,12 +830,12 @@ void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
                          tr("Failed to load the Skylander file:\n%1").arg(path), QMessageBox::Ok);
     return;
   }
-  m_sky_slots[slot] = {portal_slot, id_var.first, id_var.second};
+  m_sky_slots[slot] = {portal_slot, fst, snd};
   RefreshList();
   UpdateSlotNames();
 }
 
-void SkylanderPortalWindow::UpdateSlotNames()
+void SkylanderPortalWindow::UpdateSlotNames() const
 {
   for (auto i = 0; i < MAX_SKYLANDERS; i++)
   {
@@ -875,17 +872,14 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
   {
     return false;
   }
-  else
-  {
-    character = skypair->second;
-  }
+  character = skypair->second;
 
   bool pass = false;
 
   // Check against active game filters
   for (size_t i = 0; i < NUM_SKYLANDER_GAMES; i++)
   {
-    if (m_game_filters[i]->isChecked() && character.game == (Game)i)
+    if (m_game_filters[i]->isChecked() && character.game == static_cast<Game>(i))
     {
       pass = true;
     }
@@ -898,20 +892,20 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
     return false;
 
   // Check against active element filter
-  if ((Element)GetElementRadio() != character.element && GetElementRadio() != 0)
+  if (static_cast<Element>(GetElementRadio()) != character.element && GetElementRadio() != 0)
     return false;
 
   // Check against active type filter
-  if ((Type)GetTypeRadio() != character.type && GetTypeRadio() != 0)
+  if (static_cast<Type>(GetTypeRadio()) != character.type && GetTypeRadio() != 0)
     return false;
 
   return true;
 }
 
-QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var) const
+QString SkylanderPortalWindow::GetFilePath(const u16 id, const u16 var) const
 {
-  const QDir collection = QDir(m_collection_path);
-  auto& system = Core::System::GetInstance();
+  const auto collection = QDir(m_collection_path);
+  const auto& system = Core::System::GetInstance();
   for (const auto& file : collection.entryInfoList(
            QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
                          << QStringLiteral("*.dmp") << QStringLiteral("*.dump")))
@@ -926,8 +920,8 @@ QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var) const
     {
       continue;
     }
-    auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
-    if (ids.first == id && ids.second == var)
+    const auto [fst, snd] = system.GetSkylanderPortal().CalculateIDs(file_data);
+    if (fst == id && snd == var)
     {
       return file.filePath();
     }
@@ -971,9 +965,9 @@ int SkylanderPortalWindow::GetTypeRadio() const
   return -1;
 }
 
-QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme)
+QBrush SkylanderPortalWindow::GetBaseColor(const std::pair<const u16, const u16> ids, const bool dark_theme)
 {
-  auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
+  const auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
 
   if (skylander == IOS::HLE::USB::list_skylanders.end())
     return QBrush(dark_theme ? QColor(32, 32, 32) : QColor(255, 255, 255));
@@ -997,15 +991,15 @@ QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, 
 
 int SkylanderPortalWindow::GetGameID(Game game)
 {
-  return (int)game;
+  return static_cast<int>(game);
 }
 
 int SkylanderPortalWindow::GetElementID(Element elem)
 {
-  return (int)elem;
+  return static_cast<int>(elem);
 }
 
 int SkylanderPortalWindow::GetTypeID(Type type)
 {
-  return (int)type;
+  return static_cast<int>(type);
 }

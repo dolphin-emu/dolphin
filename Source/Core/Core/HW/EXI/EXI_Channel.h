@@ -30,7 +30,7 @@ public:
   ~CEXIChannel();
 
   // get device
-  IEXIDevice* GetDevice(u8 chip_select);
+  IEXIDevice* GetDevice(u8 chip_select) const;
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
@@ -83,7 +83,7 @@ private:
       u32 : 18;
     };
     UEXI_STATUS() = default;
-    explicit UEXI_STATUS(u32 hex) : Hex{hex} {}
+    explicit UEXI_STATUS(const u32 hex) : Hex{hex} {}
   };
 
   // EXI Control Register

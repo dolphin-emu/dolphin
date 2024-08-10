@@ -45,18 +45,18 @@ protected:
 
   // If needed, extract the updates related fields from a PB. We need to
   // reinject them afterwards so that the correct PB typs is written to RAM.
-  bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates, u32* updates_addr);
-  void ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr);
+  bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates, u32* updates_addr) const;
+  static void ReinjectUpdatesFields(AXPBWii& pb, const u16* num_updates, u32 updates_addr);
 
   // Convert a mixer_control bitfield to our internal representation for that
   // value. Required because that bitfield has a different meaning in some
   // versions of AX.
-  AXMixControl ConvertMixerControl(u32 mixer_control);
+  static AXMixControl ConvertMixerControl(u32 mixer_control);
 
   // Generate a volume ramp from vol1 to vol2, interpolating n volume values.
   // Uses floating point arithmetic, which isn't exactly what the UCode does,
   // but this gives better precision and nicer code.
-  void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
+  static void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
 
   void HandleCommandList() override;
 
@@ -65,9 +65,9 @@ protected:
   void AddSubToLR(u32 val_addr);
   void ProcessPBList(u32 pb_addr);
   void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume);
-  void UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume);
+  void UploadAUXMixLRSC(int aux_id, const u32* addresses, u16 volume);
   void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool upload_auxc);
-  void OutputWMSamples(u32* addresses);  // 4 addresses
+  void OutputWMSamples(const u32* addresses);  // 4 addresses
 
 private:
   enum CmdType

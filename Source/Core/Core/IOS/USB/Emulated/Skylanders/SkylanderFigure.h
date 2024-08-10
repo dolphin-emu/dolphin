@@ -71,7 +71,7 @@ public:
   void SetBlock(u8 block, const u8* buf);
   void DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const;
   FigureData GetData() const;
-  void SetData(FigureData* data);
+  void SetData(const FigureData* data);
 
 private:
   void PopulateSectorTrailers();

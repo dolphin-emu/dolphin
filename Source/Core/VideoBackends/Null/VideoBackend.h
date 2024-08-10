@@ -17,6 +17,6 @@ public:
   std::string GetDisplayName() const override;
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "Null";
+  static constexpr auto NAME = "Null";
 };
 }  // namespace Null

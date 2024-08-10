@@ -4,10 +4,8 @@
 #include "Core/HW/HW.h"
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/HW/AudioInterface.h"
@@ -47,10 +45,10 @@ void Init(Core::System& system, const Sram* override_sram)
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
   system.GetMemoryInterface().Init();
-  system.GetDSP().Init(Config::Get(Config::MAIN_DSP_HLE));
+  system.GetDSP().Init(Get(Config::MAIN_DSP_HLE));
   system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
-  system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
+  system.GetCPU().Init(Get(Config::MAIN_CPU_CORE));
   system.GetSystemTimers().Init();
 
   if (system.IsWii())
@@ -60,7 +58,7 @@ void Init(Core::System& system, const Sram* override_sram)
   }
 }
 
-void Shutdown(Core::System& system)
+void Shutdown(const Core::System& system)
 {
   // IOS should always be shut down regardless of IsWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown(system);  // Depends on Memory
@@ -82,7 +80,7 @@ void Shutdown(Core::System& system)
   system.GetCoreTiming().Shutdown();
 }
 
-void DoState(Core::System& system, PointerWrap& p)
+void DoState(const Core::System& system, PointerWrap& p)
 {
   system.GetMemory().DoState(p);
   p.DoMarker("Memory");

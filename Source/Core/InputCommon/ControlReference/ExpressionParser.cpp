@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <regex>
@@ -63,7 +62,7 @@ private:
 
   void RemoveSuppression(Device::Input* modifier, Device::Input* final_input)
   {
-    auto it = m_suppressions.find({final_input, modifier});
+    const auto it = m_suppressions.find({final_input, modifier});
     if (it != m_suppressions.end() && (--it->second) == 0)
       m_suppressions.erase(it);
   }
@@ -74,11 +73,11 @@ private:
 
 static HotkeySuppressions s_hotkey_suppressions;
 
-Token::Token(TokenType type_) : type(type_)
+Token::Token(const TokenType type_) : type(type_)
 {
 }
 
-Token::Token(TokenType type_, std::string data_) : type(type_), data(std::move(data_))
+Token::Token(const TokenType type_, std::string data_) : type(type_), data(std::move(data_))
 {
 }
 
@@ -94,7 +93,7 @@ Lexer::Lexer(std::string expr_) : expr(std::move(expr_))
 
 std::string Lexer::FetchDelimString(char delim)
 {
-  const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
+  const std::string result = FetchCharsWhile([delim](const char c) { return c != delim; });
   if (it != expr.end())
     ++it;
   return result;
@@ -102,7 +101,7 @@ std::string Lexer::FetchDelimString(char delim)
 
 std::string Lexer::FetchWordChars()
 {
-  return FetchCharsWhile([](char c) {
+  return FetchCharsWhile([](const char c) {
     return std::isalpha(c, std::locale::classic()) || std::isdigit(c, std::locale::classic()) ||
            c == '_';
   });
@@ -123,16 +122,16 @@ Token Lexer::GetFullyQualifiedControl()
   return Token(TOK_CONTROL, FetchDelimString('`'));
 }
 
-Token Lexer::GetBareword(char first_char)
+Token Lexer::GetBareword(const char first_char)
 {
   return Token(TOK_BAREWORD, first_char + FetchWordChars());
 }
 
-Token Lexer::GetRealLiteral(char first_char)
+Token Lexer::GetRealLiteral(const char first_char)
 {
   std::string value;
   value += first_char;
-  value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
+  value += FetchCharsWhile([](const char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
 
   static const std::regex re(R"(\d+(\.\d+)?)");
   if (std::regex_match(value, re))
@@ -154,7 +153,7 @@ Token Lexer::NextToken()
   if (it == expr.end())
     return Token(TOK_EOF);
 
-  char c = *it++;
+  const char c = *it++;
   switch (c)
   {
   case ' ':
@@ -203,10 +202,9 @@ Token Lexer::NextToken()
   default:
     if (isalpha(c, std::locale::classic()))
       return GetBareword(c);
-    else if (isdigit(c, std::locale::classic()))
+    if (isdigit(c, std::locale::classic()))
       return GetRealLiteral(c);
-    else
-      return Token(TOK_INVALID);
+    return Token(TOK_INVALID);
   }
 }
 
@@ -270,7 +268,7 @@ public:
 
     return std::max(0.0, m_input->GetState());
   }
-  void SetValue(ControlState value) override
+  void SetValue(const ControlState value) override
   {
     if (m_output)
       m_output->SetState(value);
@@ -297,11 +295,11 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
                                                        const Modifiers& ignore_modifiers) const
 {
   // Input is suppressed if it exists in the map with a modifier that we aren't ignoring.
-  auto it = m_suppressions.lower_bound({input, nullptr});
-  auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
+  const auto it = m_suppressions.lower_bound({input, nullptr});
+  const auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
 
   // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
-  const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2) {
+  const auto is_same_modifier = [](const Device::Input* i1, const Device::Input* i2) {
     return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1));
   };
 
@@ -338,7 +336,7 @@ public:
   std::unique_ptr<Expression> lhs;
   std::unique_ptr<Expression> rhs;
 
-  BinaryExpression(TokenType op_, std::unique_ptr<Expression>&& lhs_,
+  BinaryExpression(const TokenType op_, std::unique_ptr<Expression>&& lhs_,
                    std::unique_ptr<Expression>&& rhs_)
       : op(op_), lhs(std::move(lhs_)), rhs(std::move(rhs_))
   {
@@ -396,7 +394,7 @@ public:
     }
   }
 
-  void SetValue(ControlState value) override
+  void SetValue(const ControlState value) override
   {
     // Don't do anything special with the op we have.
     // Treat "A & B" the same as "A | B".
@@ -438,7 +436,7 @@ protected:
 class LiteralReal : public LiteralExpression
 {
 public:
-  explicit LiteralReal(ControlState value) : m_value(value) {}
+  explicit LiteralReal(const ControlState value) : m_value(value) {}
 
   ControlState GetValue() const override { return m_value; }
 
@@ -453,8 +451,7 @@ static ParseResult MakeLiteralExpression(const Token& token)
   ControlState val{};
   if (TryParse(token.data, &val))
     return ParseResult::MakeSuccessfulResult(std::make_unique<LiteralReal>(val));
-  else
-    return ParseResult::MakeErrorResult(token, Common::GetStringT("Invalid literal."));
+  return ParseResult::MakeErrorResult(token, Common::GetStringT("Invalid literal."));
 }
 
 class VariableExpression : public Expression
@@ -464,7 +461,7 @@ public:
 
   ControlState GetValue() const override { return m_variable_ptr ? *m_variable_ptr : 0; }
 
-  void SetValue(ControlState value) override
+  void SetValue(const ControlState value) override
   {
     if (m_variable_ptr)
       *m_variable_ptr = value;
@@ -495,10 +492,14 @@ public:
   ControlState GetValue() const override
   {
     // True if we have no modifiers
-    const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
-                                               [](const std::unique_ptr<ControlExpression>& input) {
-                                                 return input->GetValue() > CONDITION_THRESHOLD;
-                                               });
+    const bool modifiers_pressed =
+        std::ranges::all_of(
+            m_modifiers,
+            [](const std::unique_ptr<ControlExpression>&
+            input) {
+              return input->GetValue() >
+                     CONDITION_THRESHOLD;
+            });
 
     const auto final_input_state = m_final_input->GetValueIgnoringSuppression();
 
@@ -523,11 +524,8 @@ public:
       // Our modifiers are active. Pass through the final input.
       return final_input_state;
     }
-    else
-    {
-      m_suppressor = {};
-      m_is_blocked = final_input_state > CONDITION_THRESHOLD;
-    }
+    m_suppressor = {};
+    m_is_blocked = final_input_state > CONDITION_THRESHOLD;
 
     return 0;
   }
@@ -544,7 +542,7 @@ public:
 
   void UpdateReferences(ControlEnvironment& env) override
   {
-    for (auto& input : m_modifiers)
+    for (const auto& input : m_modifiers)
       input->UpdateReferences(env);
 
     m_final_input->UpdateReferences(env);
@@ -555,7 +553,7 @@ public:
   }
 
 private:
-  void EnableSuppression(bool force = false) const
+  void EnableSuppression(const bool force = false) const
   {
     if (!m_suppressor || force)
       m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
@@ -581,7 +579,7 @@ public:
   }
 
   ControlState GetValue() const override { return GetActiveChild()->GetValue(); }
-  void SetValue(ControlState value) override { GetActiveChild()->SetValue(value); }
+  void SetValue(const ControlState value) override { GetActiveChild()->SetValue(value); }
 
   int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
   void UpdateReferences(ControlEnvironment& env) override
@@ -604,8 +602,7 @@ std::shared_ptr<Device> ControlEnvironment::FindDevice(const ControlQualifier& q
 {
   if (qualifier.has_device)
     return container.FindDevice(qualifier.device_qualifier);
-  else
-    return container.FindDevice(default_device);
+  return container.FindDevice(default_device);
 }
 
 Device::Input* ControlEnvironment::FindInput(const ControlQualifier& qualifier) const
@@ -626,7 +623,7 @@ Device::Output* ControlEnvironment::FindOutput(const ControlQualifier& qualifier
   return device->FindOutput(qualifier.control_name);
 }
 
-std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::string& name)
+std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::string& name) const
 {
   // Do not accept an empty string as key, even if the expression parser already prevents this case.
   if (name.empty())
@@ -640,7 +637,7 @@ std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::stri
   return variable;
 }
 
-void ControlEnvironment::CleanUnusedVariables()
+void ControlEnvironment::CleanUnusedVariables() const
 {
   for (auto it = m_variables.begin(); it != m_variables.end();)
   {
@@ -705,11 +702,11 @@ private:
     return tok;
   }
 
-  Token Peek() { return *m_it; }
+  Token Peek() const { return *m_it; }
 
-  bool Expects(TokenType type)
+  bool Expects(const TokenType type)
   {
-    Token tok = Chew();
+    const Token tok = Chew();
     return tok.type == type;
   }
 
@@ -814,8 +811,7 @@ private:
     {
       if (tok.data.empty())
         return ParseResult::MakeErrorResult(tok, Common::GetStringT("Expected variable name."));
-      else
-        return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
+      return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
     }
     case TOK_LPAREN:
     {
@@ -844,7 +840,7 @@ private:
     }
   }
 
-  static int BinaryOperatorPrecedence(TokenType type)
+  static int BinaryOperatorPrecedence(const TokenType type)
   {
     switch (type)
     {
@@ -874,7 +870,7 @@ private:
     }
   }
 
-  ParseResult ParseBinary(int precedence = 999)
+  ParseResult ParseBinary(const int precedence = 999)
   {
     ParseResult lhs = ParseAtom(Chew());
 

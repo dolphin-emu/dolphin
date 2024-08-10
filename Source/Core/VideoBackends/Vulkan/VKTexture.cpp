@@ -26,9 +26,9 @@
 
 namespace Vulkan
 {
-VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
-                     std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
-                     ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
+VKTexture::VKTexture(const TextureConfig& tex_config, const VmaAllocation alloc, VkImage image,
+                     const std::string_view name, const VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
+                     const ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
     : AbstractTexture(tex_config), m_alloc(alloc), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
@@ -68,23 +68,23 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
   if (tex_config.IsComputeImage())
     usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
-  VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                  nullptr,
-                                  tex_config.type == AbstractTextureType::Texture_CubeMap ?
-                                      VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT :
-                                      static_cast<VkImageCreateFlags>(0),
-                                  VK_IMAGE_TYPE_2D,
-                                  GetVkFormatForHostTextureFormat(tex_config.format),
-                                  {tex_config.width, tex_config.height, 1},
-                                  tex_config.levels,
-                                  tex_config.layers,
-                                  static_cast<VkSampleCountFlagBits>(tex_config.samples),
-                                  VK_IMAGE_TILING_OPTIMAL,
-                                  usage,
-                                  VK_SHARING_MODE_EXCLUSIVE,
-                                  0,
-                                  nullptr,
-                                  VK_IMAGE_LAYOUT_UNDEFINED};
+  const VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                        nullptr,
+                                        tex_config.type == AbstractTextureType::Texture_CubeMap ?
+                                          VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT :
+                                          static_cast<VkImageCreateFlags>(0),
+                                        VK_IMAGE_TYPE_2D,
+                                        GetVkFormatForHostTextureFormat(tex_config.format),
+                                        {tex_config.width, tex_config.height, 1},
+                                        tex_config.levels,
+                                        tex_config.layers,
+                                        static_cast<VkSampleCountFlagBits>(tex_config.samples),
+                                        VK_IMAGE_TILING_OPTIMAL,
+                                        usage,
+                                        VK_SHARING_MODE_EXCLUSIVE,
+                                        0,
+                                        nullptr,
+                                        VK_IMAGE_LAYOUT_UNDEFINED};
 
   VmaAllocationCreateInfo alloc_create_info = {};
   alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
@@ -98,15 +98,15 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 
   VkImage image = VK_NULL_HANDLE;
   VmaAllocation alloc = VK_NULL_HANDLE;
-  VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info,
-                                &alloc_create_info, &image, &alloc, nullptr);
+  const VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info,
+                                      &alloc_create_info, &image, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
     return nullptr;
   }
 
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
+  auto texture = std::make_unique<VKTexture>(
       tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
 
   VkImageViewType image_view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
@@ -134,19 +134,19 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 }
 
 std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_config, VkImage image,
-                                                    VkImageViewType view_type, VkImageLayout layout)
+                                                    const VkImageViewType view_type, VkImageLayout layout)
 {
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
+  auto texture = std::make_unique<VKTexture>(
+      tex_config, static_cast<VmaAllocation>(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 
   return texture;
 }
 
-bool VKTexture::CreateView(VkImageViewType type)
+bool VKTexture::CreateView(const VkImageViewType type)
 {
-  VkImageViewCreateInfo view_info = {
+  const VkImageViewCreateInfo view_info = {
       VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       nullptr,
       0,
@@ -157,7 +157,7 @@ bool VKTexture::CreateView(VkImageViewType type)
        VK_COMPONENT_SWIZZLE_IDENTITY},
       {GetImageViewAspectForFormat(GetFormat()), 0, GetLevels(), 0, GetLayers()}};
 
-  VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
+  const VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
@@ -167,7 +167,7 @@ bool VKTexture::CreateView(VkImageViewType type)
   return true;
 }
 
-VkFormat VKTexture::GetLinearFormat(VkFormat format)
+VkFormat VKTexture::GetLinearFormat(const VkFormat format)
 {
   switch (format)
   {
@@ -188,7 +188,7 @@ VkFormat VKTexture::GetLinearFormat(VkFormat format)
   }
 }
 
-VkFormat VKTexture::GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
+VkFormat VKTexture::GetVkFormatForHostTextureFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -243,7 +243,7 @@ VkFormat VKTexture::GetVkFormatForHostTextureFormat(AbstractTextureFormat format
   }
 }
 
-VkImageAspectFlags VKTexture::GetImageAspectForFormat(AbstractTextureFormat format)
+VkImageAspectFlags VKTexture::GetImageAspectForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -260,7 +260,7 @@ VkImageAspectFlags VKTexture::GetImageAspectForFormat(AbstractTextureFormat form
   }
 }
 
-VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(AbstractTextureFormat format)
+VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -276,11 +276,11 @@ VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(AbstractTextureFormat 
 }
 
 void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                         u32 dst_layer, u32 dst_level)
+                                         const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                         const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         const u32 dst_layer, const u32 dst_level)
 {
-  const VKTexture* src_texture = static_cast<const VKTexture*>(src);
+  auto src_texture = static_cast<const VKTexture*>(src);
 
   ASSERT_MSG(VIDEO,
              static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
@@ -292,9 +292,9 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                  static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
              "Dest rect is too large for CopyRectangleFromTexture");
 
-  const u32 copy_layer_count = 1;
+  constexpr u32 copy_layer_count = 1;
 
-  VkImageCopy image_copy = {
+  const VkImageCopy image_copy = {
       {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, copy_layer_count},
       {src_rect.left, src_rect.top, 0},
       {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, copy_layer_count},
@@ -319,9 +319,9 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 }
 
 void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                                   u32 layer, u32 level)
+                                   const u32 layer, const u32 level)
 {
-  const VKTexture* srcentry = static_cast<const VKTexture*>(src);
+  auto srcentry = static_cast<const VKTexture*>(src);
   DEBUG_ASSERT(m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
                m_config.height == srcentry->m_config.height && srcentry->m_config.samples > 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
@@ -329,13 +329,13 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 
   // Resolving is considered to be a transfer operation.
   StateTracker::GetInstance()->EndRenderPass();
-  VkImageLayout old_src_layout = srcentry->m_layout;
+  const VkImageLayout old_src_layout = srcentry->m_layout;
   srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  VkImageResolve resolve = {
+  const VkImageResolve resolve = {
       {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // srcSubresource
       {rect.left, rect.top, 0},                                                   // srcOffset
       {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // dstSubresource
@@ -348,8 +348,8 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
   srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
 }
 
-void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size, u32 layer)
+void VKTexture::Load(const u32 level, u32 width, u32 height, const u32 row_length, const u8* buffer,
+                     size_t buffer_size, const u32 layer)
 {
   // Can't copy data larger than the texture extents.
   width = std::max(1u, std::min(width, GetWidth() >> level));
@@ -424,7 +424,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   }
 
   // Copy from the streaming buffer to the actual image.
-  VkBufferImageCopy image_copy = {
+  const VkBufferImageCopy image_copy = {
       upload_buffer_offset,                          // VkDeviceSize             bufferOffset
       row_length,                                    // uint32_t                 bufferRowLength
       0,                                             // uint32_t                 bufferImageHeight
@@ -456,12 +456,12 @@ void VKTexture::FinishedRendering()
                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void VKTexture::OverrideImageLayout(VkImageLayout new_layout)
+void VKTexture::OverrideImageLayout(const VkImageLayout new_layout) const
 {
   m_layout = new_layout;
 }
 
-void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const
+void VKTexture::TransitionToLayout(const VkCommandBuffer command_buffer, const VkImageLayout new_layout) const
 {
   if (m_layout == new_layout)
     return;
@@ -606,8 +606,8 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   m_layout = new_layout;
 }
 
-void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
-                                   ComputeImageLayout new_layout) const
+void VKTexture::TransitionToLayout(const VkCommandBuffer command_buffer,
+                                   const ComputeImageLayout new_layout) const
 {
   ASSERT(new_layout != ComputeImageLayout::Undefined);
   if (m_compute_layout == new_layout)
@@ -709,9 +709,9 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
                        &barrier);
 }
 
-VKStagingTexture::VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
-                                   std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
-                                   VmaAllocation linear_image_alloc)
+VKStagingTexture::VKStagingTexture(PrivateTag, const StagingTextureType type, const TextureConfig& config,
+                                   std::unique_ptr<StagingBuffer> buffer, const VkImage linear_image,
+                                   const VmaAllocation linear_image_alloc)
     : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer)),
       m_linear_image(linear_image), m_linear_image_alloc(linear_image_alloc)
 {
@@ -728,7 +728,7 @@ VKStagingTexture::~VKStagingTexture()
 std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType type,
                                                            const TextureConfig& config)
 {
-  size_t stride = config.GetStride();
+  const size_t stride = config.GetStride();
   size_t buffer_size = stride * static_cast<size_t>(config.height);
 
   STAGING_BUFFER_TYPE buffer_type;
@@ -761,15 +761,15 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   // Linear image
   VkImage linear_image = VK_NULL_HANDLE;
   VmaAllocation linear_image_alloc = VK_NULL_HANDLE;
-  if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
+  if (HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
       type == StagingTextureType::Readback && config.samples == 1)
   {
     std::tie(linear_image, linear_image_alloc) = CreateLinearImage(type, config);
   }
 
-  std::unique_ptr<StagingBuffer> staging_buffer =
+  auto staging_buffer =
       std::make_unique<StagingBuffer>(buffer_type, buffer, alloc, buffer_size, map_ptr);
-  std::unique_ptr<VKStagingTexture> staging_tex = std::make_unique<VKStagingTexture>(
+  auto staging_tex = std::make_unique<VKStagingTexture>(
       PrivateTag{}, type, config, std::move(staging_buffer), linear_image, linear_image_alloc);
 
   // Use persistent mapping.
@@ -784,21 +784,21 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
                                                                       const TextureConfig& config)
 {
   // Create a intermediate texture with linear tiling
-  VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                  nullptr,
-                                  0,
-                                  VK_IMAGE_TYPE_2D,
-                                  VKTexture::GetVkFormatForHostTextureFormat(config.format),
-                                  {config.width, config.height, 1},
-                                  1,
-                                  1,
-                                  VK_SAMPLE_COUNT_1_BIT,
-                                  VK_IMAGE_TILING_LINEAR,
-                                  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                                  VK_SHARING_MODE_EXCLUSIVE,
-                                  0,
-                                  nullptr,
-                                  VK_IMAGE_LAYOUT_UNDEFINED};
+  const VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                        nullptr,
+                                        0,
+                                        VK_IMAGE_TYPE_2D,
+                                        VKTexture::GetVkFormatForHostTextureFormat(config.format),
+                                        {config.width, config.height, 1},
+                                        1,
+                                        1,
+                                        VK_SAMPLE_COUNT_1_BIT,
+                                        VK_IMAGE_TILING_LINEAR,
+                                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                        VK_SHARING_MODE_EXCLUSIVE,
+                                        0,
+                                        nullptr,
+                                        VK_IMAGE_LAYOUT_UNDEFINED};
 
   VkImageFormatProperties format_properties;
   VkResult res = vkGetPhysicalDeviceImageFormatProperties(
@@ -832,10 +832,10 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
 }
 
 void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+                                       const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                       const u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  const VKTexture* src_tex = static_cast<const VKTexture*>(src);
+  auto src_tex = static_cast<const VKTexture*>(src);
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
@@ -846,7 +846,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
   StateTracker::GetInstance()->EndRenderPass();
 
-  VkImageLayout old_layout = src_tex->GetLayout();
+  const VkImageLayout old_layout = src_tex->GetLayout();
   src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
@@ -854,8 +854,8 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
   VkBufferImageCopy image_copy = {};
   const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(src_tex->GetFormat());
   image_copy.bufferOffset =
-      static_cast<VkDeviceSize>(static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
-                                static_cast<size_t>(dst_rect.left) * m_texel_size);
+      static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
+      static_cast<size_t>(dst_rect.left) * m_texel_size;
   image_copy.bufferRowLength = static_cast<u32>(m_config.width);
   image_copy.bufferImageHeight = 0;
   image_copy.imageSubresource = {aspect, src_level, src_layer, 1};
@@ -884,8 +884,8 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
 void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
                                                     const MathUtil::Rectangle<int>& src_rect,
-                                                    u32 src_layer, u32 src_level,
-                                                    const MathUtil::Rectangle<int>& dst_rect)
+                                                    const u32 src_layer, const u32 src_level,
+                                                    const MathUtil::Rectangle<int>& dst_rect) const
 {
   // The proprietary Qualcomm driver allocates a temporary image when copying from an image
   // with optimal tiling (VK_IMAGE_TILING_OPTIMAL) to a buffer.
@@ -913,8 +913,8 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
   blit.dstSubresource.mipLevel = 0;
   blit.dstSubresource.aspectMask = linear_image_barrier.subresourceRange.aspectMask;
   blit.srcOffsets[0] = {src_rect.left, src_rect.top, 0};
-  blit.srcOffsets[1] = {static_cast<s32>(blit.srcOffsets[0].x + src_rect.GetWidth()),
-                        static_cast<s32>(blit.srcOffsets[0].y + src_rect.GetHeight()), 1};
+  blit.srcOffsets[1] = {(blit.srcOffsets[0].x + src_rect.GetWidth()),
+                        (blit.srcOffsets[0].y + src_rect.GetHeight()), 1};
   blit.dstOffsets[0] = {0, 0, 0};
   blit.dstOffsets[1] = {dst_rect.GetWidth(), dst_rect.GetHeight(), 1u};
 
@@ -932,10 +932,10 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
 }
 
 void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                     u32 dst_level)
+                                     const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
+                                     const u32 dst_level)
 {
-  const VKTexture* dst_tex = static_cast<const VKTexture*>(dst);
+  auto dst_tex = static_cast<const VKTexture*>(dst);
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
@@ -948,15 +948,15 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   m_staging_buffer->FlushCPUCache();
   StateTracker::GetInstance()->EndRenderPass();
 
-  VkImageLayout old_layout = dst_tex->GetLayout();
+  const VkImageLayout old_layout = dst_tex->GetLayout();
   dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
   VkBufferImageCopy image_copy = {};
   image_copy.bufferOffset =
-      static_cast<VkDeviceSize>(static_cast<size_t>(src_rect.top) * m_config.GetStride() +
-                                static_cast<size_t>(src_rect.left) * m_texel_size);
+      static_cast<size_t>(src_rect.top) * m_config.GetStride() +
+      static_cast<size_t>(src_rect.left) * m_texel_size;
   image_copy.bufferRowLength = static_cast<u32>(m_config.width);
   image_copy.bufferImageHeight = 0;
   image_copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, 1};
@@ -1010,10 +1010,10 @@ void VKStagingTexture::Flush()
 }
 
 VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment,
-                             std::vector<AbstractTexture*> additional_color_attachments, u32 width,
-                             u32 height, u32 layers, u32 samples, VkFramebuffer fb,
-                             VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
-                             VkRenderPass clear_render_pass)
+                             std::vector<AbstractTexture*> additional_color_attachments, const u32 width,
+                             const u32 height, const u32 layers, const u32 samples, const VkFramebuffer fb,
+                             const VkRenderPass load_render_pass, const VkRenderPass discard_render_pass,
+                             const VkRenderPass clear_render_pass)
     : AbstractFramebuffer(
           color_attachment, depth_attachment, std::move(additional_color_attachments),
           color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined,
@@ -1073,18 +1073,18 @@ VKFramebuffer::Create(VKTexture* color_attachment, VKTexture* depth_attachment,
     return nullptr;
   }
 
-  VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                              nullptr,
-                                              0,
-                                              load_render_pass,
-                                              static_cast<uint32_t>(attachment_views.size()),
-                                              attachment_views.data(),
-                                              width,
-                                              height,
-                                              layers};
+  const VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                                    nullptr,
+                                                    0,
+                                                    load_render_pass,
+                                                    static_cast<uint32_t>(attachment_views.size()),
+                                                    attachment_views.data(),
+                                                    width,
+                                                    height,
+                                                    layers};
 
   VkFramebuffer fb;
-  VkResult res =
+  const VkResult res =
       vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr, &fb);
   if (res != VK_SUCCESS)
   {
@@ -1097,7 +1097,7 @@ VKFramebuffer::Create(VKTexture* color_attachment, VKTexture* depth_attachment,
       layers, samples, fb, load_render_pass, discard_render_pass, clear_render_pass);
 }
 
-void VKFramebuffer::Unbind()
+void VKFramebuffer::Unbind() const
 {
   if (m_color_attachment)
   {
@@ -1115,7 +1115,7 @@ void VKFramebuffer::Unbind()
   }
 }
 
-void VKFramebuffer::TransitionForRender()
+void VKFramebuffer::TransitionForRender() const
 {
   if (m_color_attachment)
   {
@@ -1139,7 +1139,7 @@ void VKFramebuffer::TransitionForRender()
 }
 
 void VKFramebuffer::SetAndClear(const VkRect2D& rect, const VkClearValue& color_value,
-                                const VkClearValue& depth_value)
+                                const VkClearValue& depth_value) const
 {
   std::vector<VkClearValue> clear_values;
   if (GetColorFormat() != AbstractTextureFormat::Undefined)

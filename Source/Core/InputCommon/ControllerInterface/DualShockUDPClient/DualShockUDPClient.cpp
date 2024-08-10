@@ -32,10 +32,10 @@ namespace Settings
 {
 const Config::Info<std::string> SERVER_ADDRESS{
     {Config::System::DualShockUDPClient, "Server", "IPAddress"}, ""};
-const Config::Info<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"}, 0};
+const Config::Info SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"}, 0};
 const Config::Info<std::string> SERVERS{{Config::System::DualShockUDPClient, "Server", "Entries"},
                                         ""};
-const Config::Info<bool> SERVERS_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
+const Config::Info SERVERS_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
                                          false};
 }  // namespace Settings
 
@@ -66,14 +66,14 @@ private:
   class AnalogInput : public Input
   {
   public:
-    AnalogInput(const char* name, const T& input, ControlState range, ControlState offset = 0)
+    AnalogInput(const char* name, const T& input, const ControlState range, const ControlState offset = 0)
         : m_name(name), m_input(input), m_range(range), m_offset(offset)
     {
     }
     std::string GetName() const final override { return m_name; }
     ControlState GetState() const final override
     {
-      return (ControlState(m_input) + m_offset) / m_range;
+      return (static_cast<ControlState>(m_input) + m_offset) / m_range;
     }
 
   private:
@@ -117,7 +117,7 @@ private:
       case BatteryState::Charged:
         return BATTERY_INPUT_MAX_VALUE;
       default:
-        return ControlState(m_battery) / ControlState(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
+        return static_cast<ControlState>(m_battery) / static_cast<ControlState>(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
       }
     }
 
@@ -172,7 +172,7 @@ constexpr u32 SERVER_ASKED_PADS = 4;
 
 struct Server
 {
-  Server(std::string description, std::string address, u16 port)
+  Server(std::string description, std::string address, const u16 port)
       : m_description{std::move(description)}, m_address{std::move(address)}, m_port{port}
   {
   }
@@ -242,7 +242,7 @@ void InputBackend::HotplugThreadFunc()
   Common::ScopeGuard thread_stop_guard{
       [] { INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread stopped"); }};
 
-  std::vector<bool> timed_out_servers(m_servers.size(), false);
+  std::vector timed_out_servers(m_servers.size(), false);
 
   while (m_hotplug_thread_running.IsSet())
   {
@@ -414,8 +414,8 @@ void InputBackend::Restart()
 
 void InputBackend::ConfigChanged()
 {
-  const bool servers_enabled = Config::Get(Settings::SERVERS_ENABLED);
-  const std::string servers_setting = Config::Get(Settings::SERVERS);
+  const bool servers_enabled = Get(Settings::SERVERS_ENABLED);
+  const std::string servers_setting = Get(Settings::SERVERS);
 
   std::string new_servers_setting;
   for (const auto& server : m_servers)
@@ -458,18 +458,18 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
     : ciface::InputBackend(controller_interface)
 {
   // The following is added for backwards compatibility
-  const auto server_address_setting = Config::Get(Settings::SERVER_ADDRESS);
-  const auto server_port_setting = Config::Get(Settings::SERVER_PORT);
+  const auto server_address_setting = Get(Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Get(Settings::SERVER_PORT);
 
   if (!server_address_setting.empty() && server_port_setting != 0)
   {
-    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+    const auto& servers_setting = Get(Settings::SERVERS);
+    SetBaseOrCurrent(Settings::SERVERS,
                              servers_setting + fmt::format("{}:{}:{};", "DS4",
                                                            server_address_setting,
                                                            server_port_setting));
-    Config::SetBase(Settings::SERVER_ADDRESS, "");
-    Config::SetBase(Settings::SERVER_PORT, 0);
+    SetBase(Settings::SERVER_ADDRESS, "");
+    SetBase(Settings::SERVER_PORT, 0);
   }
 
   m_config_change_callback_id =
@@ -499,8 +499,9 @@ void InputBackend::PopulateDevices()
   {
     for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
     {
-      const Proto::MessageType::PortInfo& port_info = server.m_port_info[port_index];
-      if (port_info.pad_state != Proto::DsState::Connected)
+      const auto& [_header, _message_type, _pad_id, pad_state, _model, _connection_type,
+        _pad_mac_address, _battery_status, _padding] = server.m_port_info[port_index];
+      if (pad_state != Proto::DsState::Connected)
         continue;
 
       GetControllerInterface().AddDevice(
@@ -512,30 +513,30 @@ void InputBackend::PopulateDevices()
 
 InputBackend::~InputBackend()
 {
-  Config::RemoveConfigChangedCallback(m_config_change_callback_id);
+  RemoveConfigChangedCallback(m_config_change_callback_id);
   StopHotplugThread();
 }
 
-Device::Device(std::string name, int index, std::string server_address, u16 server_port,
-               u32 client_uid)
+Device::Device(std::string name, const int index, std::string server_address, const u16 server_port,
+               const u32 client_uid)
     : m_name{std::move(name)}, m_index{index}, m_server_address{std::move(server_address)},
       m_server_port{server_port}, m_client_uid(client_uid)
 {
   m_socket.setBlocking(false);
 
-  AddInput(new AnalogInput<u8>("Pad W", m_pad_data.button_dpad_left_analog, 255));
-  AddInput(new AnalogInput<u8>("Pad S", m_pad_data.button_dpad_down_analog, 255));
-  AddInput(new AnalogInput<u8>("Pad E", m_pad_data.button_dpad_right_analog, 255));
-  AddInput(new AnalogInput<u8>("Pad N", m_pad_data.button_dpad_up_analog, 255));
-  AddInput(new AnalogInput<u8>("Square", m_pad_data.button_square_analog, 255));
-  AddInput(new AnalogInput<u8>("Cross", m_pad_data.button_cross_analog, 255));
-  AddInput(new AnalogInput<u8>("Circle", m_pad_data.button_circle_analog, 255));
-  AddInput(new AnalogInput<u8>("Triangle", m_pad_data.button_triangle_analog, 255));
-  AddInput(new AnalogInput<u8>("L1", m_pad_data.button_l1_analog, 255));
-  AddInput(new AnalogInput<u8>("R1", m_pad_data.button_r1_analog, 255));
+  AddInput(new AnalogInput("Pad W", m_pad_data.button_dpad_left_analog, 255));
+  AddInput(new AnalogInput("Pad S", m_pad_data.button_dpad_down_analog, 255));
+  AddInput(new AnalogInput("Pad E", m_pad_data.button_dpad_right_analog, 255));
+  AddInput(new AnalogInput("Pad N", m_pad_data.button_dpad_up_analog, 255));
+  AddInput(new AnalogInput("Square", m_pad_data.button_square_analog, 255));
+  AddInput(new AnalogInput("Cross", m_pad_data.button_cross_analog, 255));
+  AddInput(new AnalogInput("Circle", m_pad_data.button_circle_analog, 255));
+  AddInput(new AnalogInput("Triangle", m_pad_data.button_triangle_analog, 255));
+  AddInput(new AnalogInput("L1", m_pad_data.button_l1_analog, 255));
+  AddInput(new AnalogInput("R1", m_pad_data.button_r1_analog, 255));
 
-  AddInput(new AnalogInput<u8>("L2", m_pad_data.trigger_l2, 255));
-  AddInput(new AnalogInput<u8>("R2", m_pad_data.trigger_r2, 255));
+  AddInput(new AnalogInput("L2", m_pad_data.trigger_l2, 255));
+  AddInput(new AnalogInput("R2", m_pad_data.trigger_r2, 255));
 
   AddInput(new Button<u8>("L3", m_pad_data.button_states1, 0x2));
   AddInput(new Button<u8>("R3", m_pad_data.button_states1, 0x4));
@@ -544,14 +545,14 @@ Device::Device(std::string name, int index, std::string server_address, u16 serv
   AddInput(new Button<u8>("PS", m_pad_data.button_ps, 0x1));
   AddInput(new Button<u8>("Touch Button", m_pad_data.button_touch, 0x1));
 
-  AddInput(new AnalogInput<u8>("Left X-", m_pad_data.left_stick_x, -128, -128));
-  AddInput(new AnalogInput<u8>("Left X+", m_pad_data.left_stick_x, 127, -128));
-  AddInput(new AnalogInput<u8>("Left Y-", m_pad_data.left_stick_y_inverted, -128, -128));
-  AddInput(new AnalogInput<u8>("Left Y+", m_pad_data.left_stick_y_inverted, 127, -128));
-  AddInput(new AnalogInput<u8>("Right X-", m_pad_data.right_stick_x, -128, -128));
-  AddInput(new AnalogInput<u8>("Right X+", m_pad_data.right_stick_x, 127, -128));
-  AddInput(new AnalogInput<u8>("Right Y-", m_pad_data.right_stick_y_inverted, -128, -128));
-  AddInput(new AnalogInput<u8>("Right Y+", m_pad_data.right_stick_y_inverted, 127, -128));
+  AddInput(new AnalogInput("Left X-", m_pad_data.left_stick_x, -128, -128));
+  AddInput(new AnalogInput("Left X+", m_pad_data.left_stick_x, 127, -128));
+  AddInput(new AnalogInput("Left Y-", m_pad_data.left_stick_y_inverted, -128, -128));
+  AddInput(new AnalogInput("Left Y+", m_pad_data.left_stick_y_inverted, 127, -128));
+  AddInput(new AnalogInput("Right X-", m_pad_data.right_stick_x, -128, -128));
+  AddInput(new AnalogInput("Right X+", m_pad_data.right_stick_x, 127, -128));
+  AddInput(new AnalogInput("Right Y-", m_pad_data.right_stick_y_inverted, -128, -128));
+  AddInput(new AnalogInput("Right Y+", m_pad_data.right_stick_y_inverted, 127, -128));
 
   AddInput(new TouchInput("Touch X-", m_touch_x, -TOUCH_X_AXIS_MAX));
   AddInput(new TouchInput("Touch X+", m_touch_x, TOUCH_X_AXIS_MAX));

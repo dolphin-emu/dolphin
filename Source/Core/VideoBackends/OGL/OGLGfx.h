@@ -78,23 +78,23 @@ public:
   bool IsGLES() const;
 
   // Invalidates a cached texture binding. Required for texel buffers when they borrow the units.
-  void InvalidateTextureBinding(u32 index) { m_bound_textures[index] = nullptr; }
+  void InvalidateTextureBinding(const u32 index) { m_bound_textures[index] = nullptr; }
 
   // The shared framebuffer exists for copying textures when extensions are not available. It is
   // slower, but the only way to do these things otherwise.
   u32 GetSharedReadFramebuffer() const { return m_shared_read_framebuffer; }
   u32 GetSharedDrawFramebuffer() const { return m_shared_draw_framebuffer; }
-  void BindSharedReadFramebuffer();
-  void BindSharedDrawFramebuffer();
+  void BindSharedReadFramebuffer() const;
+  void BindSharedDrawFramebuffer() const;
 
   // Restores FBO binding after it's been changed.
-  void RestoreFramebufferBinding();
+  void RestoreFramebufferBinding() const;
 
   SurfaceInfo GetSurfaceInfo() const override;
 
 private:
-  void CheckForSurfaceChange();
-  void CheckForSurfaceResize();
+  void CheckForSurfaceChange() const;
+  void CheckForSurfaceResize() const;
 
   void ApplyRasterizationState(const RasterizationState state);
   void ApplyDepthState(const DepthState state);

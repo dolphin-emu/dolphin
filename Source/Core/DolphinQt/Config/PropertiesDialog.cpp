@@ -6,7 +6,6 @@
 #include <memory>
 
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -35,17 +34,17 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
                           QString::fromStdString(game.GetLongName())));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout();
 
-  QTabWidget* tab_widget = new QTabWidget(this);
-  InfoWidget* info = new InfoWidget(game);
+  auto tab_widget = new QTabWidget(this);
+  auto info = new InfoWidget(game);
 
-  ARCodeWidget* ar = new ARCodeWidget(game.GetGameID(), game.GetRevision());
-  GeckoCodeWidget* gecko =
+  auto ar = new ARCodeWidget(game.GetGameID(), game.GetRevision());
+  auto gecko =
       new GeckoCodeWidget(game.GetGameID(), game.GetGameTDBID(), game.GetRevision());
-  PatchesWidget* patches = new PatchesWidget(game);
-  GameConfigWidget* game_config = new GameConfigWidget(game);
-  GraphicsModListWidget* graphics_mod_list = new GraphicsModListWidget(game);
+  auto patches = new PatchesWidget(game);
+  auto game_config = new GameConfigWidget(game);
+  auto graphics_mod_list = new GraphicsModListWidget(game);
 
   connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
           &PropertiesDialog::OpenGeneralSettings);
@@ -63,8 +62,8 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   connect(graphics_mod_list, &GraphicsModListWidget::OpenGraphicsSettings, this,
           &PropertiesDialog::OpenGraphicsSettings);
 
-  const int padding_width = 120;
-  const int padding_height = 100;
+  constexpr int padding_width = 120;
+  constexpr int padding_height = 100;
   tab_widget->addTab(GetWrappedWidget(game_config, this, padding_width, padding_height),
                      tr("Game Config"));
   tab_widget->addTab(GetWrappedWidget(patches, this, padding_width, padding_height), tr("Patches"));
@@ -77,16 +76,16 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
   {
-    std::shared_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(game.GetFilePath());
+    const std::shared_ptr volume = DiscIO::CreateVolume(game.GetFilePath());
     if (volume)
     {
-      VerifyWidget* verify = new VerifyWidget(volume);
+      auto verify = new VerifyWidget(volume);
       tab_widget->addTab(GetWrappedWidget(verify, this, padding_width, padding_height),
                          tr("Verify"));
 
-      if (DiscIO::IsDisc(game.GetPlatform()))
+      if (IsDisc(game.GetPlatform()))
       {
-        FilesystemWidget* filesystem = new FilesystemWidget(volume);
+        auto filesystem = new FilesystemWidget(volume);
         tab_widget->addTab(GetWrappedWidget(filesystem, this, padding_width, padding_height),
                            tr("Filesystem"));
       }
@@ -95,7 +94,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   layout->addWidget(tab_widget);
 
-  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  auto close_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(close_box, &QDialogButtonBox::rejected, graphics_mod_list,

@@ -25,14 +25,14 @@
 // Decodes all known GameCube/Wii texture formats.
 // by ector
 
-static inline u32 DecodePixel_IA8(u16 val)
+static inline u32 DecodePixel_IA8(const u16 val)
 {
-  int a = val & 0xFF;
-  int i = val >> 8;
+  const int a = val & 0xFF;
+  const int i = val >> 8;
   return i | (i << 8) | (i << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_RGB565(u16 val)
+static inline u32 DecodePixel_RGB565(const u16 val)
 {
   int r, g, b, a;
   r = Convert5To8((val >> 11) & 0x1f);
@@ -42,7 +42,7 @@ static inline u32 DecodePixel_RGB565(u16 val)
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_RGB5A3(u16 val)
+static inline u32 DecodePixel_RGB5A3(const u16 val)
 {
   int r, g, b, a;
   if ((val & 0x8000))
@@ -67,7 +67,7 @@ static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_IA8(tlut[val >> 4]);
     *dst++ = DecodePixel_IA8(tlut[val & 0xF]);
   }
@@ -78,7 +78,7 @@ static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val >> 4]));
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val & 0xF]));
   }
@@ -89,7 +89,7 @@ static inline void DecodeBytes_C4_RGB5A3(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val >> 4]));
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val & 0xF]));
   }
@@ -109,7 +109,7 @@ static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 8; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val]));
   }
 }
@@ -119,7 +119,7 @@ static inline void DecodeBytes_C8_RGB5A3(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 8; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val]));
   }
 }
@@ -129,7 +129,7 @@ static inline void DecodeBytes_C14X2_IA8(u32* dst, const u16* src, const u8* tlu
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u16 val = Common::swap16(src[x]);
+    const u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_IA8(tlut[(val & 0x3FFF)]);
   }
 }
@@ -139,7 +139,7 @@ static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* 
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u16 val = Common::swap16(src[x]);
+    const u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[(val & 0x3FFF)]));
   }
 }
@@ -149,7 +149,7 @@ static inline void DecodeBytes_C14X2_RGB5A3(u32* dst, const u16* src, const u8* 
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u16 val = Common::swap16(src[x]);
+    const u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[(val & 0x3FFF)]));
   }
 }
@@ -159,8 +159,8 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
   for (int x = 0; x < 8; x++)
   {
     const u8 val = src[x];
-    u8 a = Convert4To8(val >> 4);
-    u8 l = Convert4To8(val & 0xF);
+    const u8 a = Convert4To8(val >> 4);
+    const u8 l = Convert4To8(val & 0xF);
     dst[x] = (a << 24) | l << 16 | l << 8 | l;
   }
 }
@@ -216,9 +216,9 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 // free to make the assumption that addresses are multiples of 16 in the aligned case.
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
-static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int height,
-                                     TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                     int Wsteps4, int Wsteps8)
+static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, const int width, const int height,
+                                     TextureFormat texformat, const u8* tlut, const TLUTFormat tlutfmt,
+                                     int Wsteps4, const int Wsteps8)
 {
   switch (tlutfmt)
   {
@@ -395,9 +395,9 @@ static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int hei
 }
 
 FUNCTION_TARGET_SSSE3
-static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, const int width, const int height,
                                            TextureFormat texformat, const u8* tlut,
-                                           TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
+                                           TLUTFormat tlutfmt, int Wsteps4, const int Wsteps8)
 {
   // xsacha optimized with SSSE3 intrinsics
   // Produces a ~10% speed improvement over SSE2 implementation
@@ -525,9 +525,9 @@ static void TexDecoder_DecodeImpl_I8(u32* dst, const u8* src, int width, int hei
   }
 }
 
-static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int height,
-                                     TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                     int Wsteps4, int Wsteps8)
+static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, const int width, const int height,
+                                     TextureFormat texformat, const u8* tlut, const TLUTFormat tlutfmt,
+                                     int Wsteps4, const int Wsteps8)
 {
   switch (tlutfmt)
   {
@@ -536,7 +536,7 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-          DecodeBytes_C8_RGB5A3((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlut);
+          DecodeBytes_C8_RGB5A3(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
   break;
 
@@ -563,9 +563,9 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   }
 }
 
-static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, const int width, const int height,
                                       TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                      int Wsteps4, int Wsteps8)
+                                      int Wsteps4, const int Wsteps8)
 {
   for (int y = 0; y < height; y += 4)
   {
@@ -580,9 +580,9 @@ static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int he
 }
 
 FUNCTION_TARGET_SSSE3
-static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, const int width, const int height,
                                             TextureFormat texformat, const u8* tlut,
-                                            TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
+                                            TLUTFormat tlutfmt, const int Wsteps4, int Wsteps8)
 {
   // xsacha optimized with SSSE3 intrinsics.
   // Produces an ~50% speed improvement over SSE2 implementation.
@@ -665,9 +665,9 @@ static void TexDecoder_DecodeImpl_IA8(u32* dst, const u8* src, int width, int he
   }
 }
 
-static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int height,
-                                        TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                        int Wsteps4, int Wsteps8)
+static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, const int width, const int height,
+                                        TextureFormat texformat, const u8* tlut, const TLUTFormat tlutfmt,
+                                        const int Wsteps4, int Wsteps8)
 {
   switch (tlutfmt)
   {
@@ -720,7 +720,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
-        __m128i* dxtsrc = (__m128i*)(src + 8 * xStep);
+        auto dxtsrc = (__m128i*)(src + 8 * xStep);
         // Load 4x 16-bit colors: (0000 0000 hgfe dcba)
         // where hg, fe, ba, and dc are 16-bit colors in big-endian order
         const __m128i rgb565x4 = _mm_loadl_epi64(dxtsrc);
@@ -767,7 +767,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
             _mm_or_si128(_mm_or_si128(_mm_or_si128(r0, r1), _mm_or_si128(g0, g1)),
                          _mm_or_si128(_mm_or_si128(b0, b1), kAlpha));
 
-        __m128i* ptr = (__m128i*)(dst + (y + iy) * width + x);
+        auto ptr = (__m128i*)(dst + (y + iy) * width + x);
         _mm_storeu_si128(ptr, abgr888x4);
       }
     }
@@ -852,7 +852,7 @@ static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int widt
         else
         {
           // TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-          u32* vals = (u32*)&valV;
+          auto vals = (u32*)&valV;
           int r, g, b, a;
           for (int i = 0; i < 4; ++i)
           {
@@ -901,7 +901,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
         u32* newdst = dst + (y + iy) * width + x;
-        const u16* newsrc = (const u16*)(src + 8 * xStep);
+        auto newsrc = (const u16*)(src + 8 * xStep);
 
         // TODO: weak point
         const u16 val0 = Common::swap16(newsrc[0]);
@@ -972,7 +972,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
         else
         {
           // TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-          u32* vals = (u32*)&valV;
+          auto vals = (u32*)&valV;
           int r, g, b, a;
           for (int i = 0; i < 4; ++i)
           {
@@ -1002,9 +1002,9 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
 }
 
 FUNCTION_TARGET_SSSE3
-static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, const int width, const int height,
                                               TextureFormat texformat, const u8* tlut,
-                                              TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
+                                              TLUTFormat tlutfmt, const int Wsteps4, int Wsteps8)
 {
   // xsacha optimized with SSSE3 instrinsics
   // Produces a ~30% speed improvement over SSE2 implementation
@@ -1024,7 +1024,7 @@ static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width
       const __m128i rgba10 = _mm_shuffle_epi8(_mm_unpacklo_epi8(ar1, gb1), mask0312);
       const __m128i rgba11 = _mm_shuffle_epi8(_mm_unpackhi_epi8(ar1, gb1), mask0312);
 
-      __m128i* dst128 = (__m128i*)(dst + (y + 0) * width + x);
+      auto dst128 = (__m128i*)(dst + (y + 0) * width + x);
       _mm_storeu_si128(dst128, rgba00);
       dst128 = (__m128i*)(dst + (y + 1) * width + x);
       _mm_storeu_si128(dst128, rgba01);
@@ -1145,7 +1145,7 @@ static void TexDecoder_DecodeImpl_RGBA8(u32* dst, const u8* src, int width, int 
       rgba10 = _mm_or_si128(r__a10, _gb_10);
       rgba11 = _mm_or_si128(r__a11, _gb_11);
       // Write em out!
-      __m128i* dst128 = (__m128i*)(dst + (y + 0) * width + x);
+      auto dst128 = (__m128i*)(dst + (y + 0) * width + x);
       _mm_storeu_si128(dst128, rgba00);
       dst128 = (__m128i*)(dst + (y + 1) * width + x);
       _mm_storeu_si128(dst128, rgba01);
@@ -1413,11 +1413,11 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
   }
 }
 
-void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, TextureFormat texformat,
-                            const u8* tlut, TLUTFormat tlutfmt)
+void _TexDecoder_DecodeImpl(u32* dst, const u8* src, const int width, const int height, const TextureFormat texformat,
+                            const u8* tlut, const TLUTFormat tlutfmt)
 {
-  int Wsteps4 = (width + 3) / 4;
-  int Wsteps8 = (width + 7) / 8;
+  const int Wsteps4 = (width + 3) / 4;
+  const int Wsteps8 = (width + 7) / 8;
 
   switch (texformat)
   {

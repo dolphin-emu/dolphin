@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
@@ -22,7 +21,6 @@
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
-#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -88,7 +86,7 @@ union AXBuffers
 };
 
 // Determines if this version of the UCode has a PBLowPassFilter in its AXPB layout.
-bool HasLpf(u32 crc)
+bool HasLpf(const u32 crc)
 {
   switch (crc)
   {
@@ -100,11 +98,11 @@ bool HasLpf(u32 crc)
 }
 
 // Read a PB from MRAM/ARAM
-void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
+void ReadPB(const Memory::MemoryManager& memory, const u32 addr, PB_TYPE& pb, const u32 crc)
 {
   if (HasLpf(crc))
   {
-    u16* dst = (u16*)&pb;
+    auto dst = (u16*)&pb;
     memory.CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
   }
   else
@@ -112,7 +110,7 @@ void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
     // The below is a terrible hack in order to support two different AXPB layouts.
     // We skip lpf in this layout.
 
-    char* dst = (char*)&pb;
+    auto dst = (char*)&pb;
 
     constexpr size_t lpf_off = offsetof(AXPB, lpf);
     constexpr size_t lc_off = offsetof(AXPB, loop_counter);
@@ -124,11 +122,11 @@ void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
 }
 
 // Write a PB back to MRAM/ARAM
-void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc)
+void WritePB(Memory::MemoryManager& memory, const u32 addr, const PB_TYPE& pb, const u32 crc)
 {
   if (HasLpf(crc))
   {
-    const u16* src = (const u16*)&pb;
+    auto src = (const u16*)&pb;
     memory.CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
   }
   else
@@ -136,7 +134,7 @@ void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc
     // The below is a terrible hack in order to support two different AXPB layouts.
     // We skip lpf in this layout.
 
-    const char* src = (const char*)&pb;
+    auto src = (const char*)&pb;
 
     constexpr size_t lpf_off = offsetof(AXPB, lpf);
     constexpr size_t lc_off = offsetof(AXPB, loop_counter);
@@ -150,7 +148,7 @@ void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc
 class HLEAccelerator final : public Accelerator
 {
 public:
-  explicit HLEAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp) {}
+  explicit HLEAccelerator(DSPManager& dsp) : m_dsp(dsp) {}
   HLEAccelerator(const HLEAccelerator&) = delete;
   HLEAccelerator(HLEAccelerator&&) = delete;
   HLEAccelerator& operator=(const HLEAccelerator&) = delete;
@@ -189,12 +187,12 @@ protected:
     }
   }
 
-  u8 ReadMemory(u32 address) override { return m_dsp.ReadARAM(address); }
+  u8 ReadMemory(const u32 address) override { return m_dsp.ReadARAM(address); }
 
-  void WriteMemory(u32 address, u8 value) override { m_dsp.WriteARAM(value, address); }
+  void WriteMemory(const u32 address, const u8 value) override { m_dsp.WriteARAM(value, address); }
 
 private:
-  DSP::DSPManager& m_dsp;
+  DSPManager& m_dsp;
 };
 
 // Sets up the simulated accelerator.
@@ -238,8 +236,8 @@ u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 // We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
 // avoids discontinuities in the audio stream, especially with very low ratios
 // which interpolate a lot of values between two "real" samples.
-u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count, s16* last_samples,
-                  u32 curr_pos, u32 ratio, int srctype, const s16* coeffs)
+u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, const u32 count, s16* last_samples,
+                  u32 curr_pos, const u32 ratio, const int srctype, const s16* coeffs)
 {
   int read_samples_count = 0;
 
@@ -263,15 +261,15 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
         curr_pos -= 0x10000;
       }
 
-      u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
+      const u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
       const s16* c = &coeffs[curr_pos_frac];
 
-      s64 t0 = temp[idx++ & 3];
-      s64 t1 = temp[idx++ & 3];
-      s64 t2 = temp[idx++ & 3];
-      s64 t3 = temp[idx++ & 3];
+      const s64 t0 = temp[idx++ & 3];
+      const s64 t1 = temp[idx++ & 3];
+      const s64 t2 = temp[idx++ & 3];
+      const s64 t3 = temp[idx++ & 3];
 
-      s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
+      const s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
       output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
@@ -308,16 +306,16 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
       // Get our current fractional position, used to know how much of
       // curr0 and how much of curr1 the output sample should be.
-      u16 curr_frac = curr_pos & 0xFFFF;
-      u16 inv_curr_frac = -curr_frac;
+      const u16 curr_frac = curr_pos & 0xFFFF;
+      const u16 inv_curr_frac = -curr_frac;
 
       // Interpolate! If curr_frac is 0, we can simply take the last
       // sample without any multiplying.
       s16 sample;
       if (curr_frac)
       {
-        s32 s0 = temp[idx++ & 3];
-        s32 s1 = temp[idx++ & 3];
+        const s32 s0 = temp[idx++ & 3];
+        const s32 s1 = temp[idx++ & 3];
 
         sample = ((s0 * inv_curr_frac) + (s1 * curr_frac)) >> 16;
         idx += 2;
@@ -352,16 +350,16 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
 // Read <count> input samples from ARAM, decoding and converting rate
 // if required.
-void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16 count,
+void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, const u16 count,
                      const s16* coeffs)
 {
   AcceleratorSetup(accelerator, &pb);
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
-  u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
-                               samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
-                               HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
+  const u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
+                                     samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
+                                     HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
   // Update current position, YN1, YN2 and pred scale in the PB.
@@ -373,7 +371,7 @@ void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
+void MixAdd(int* out, const s16* input, const u32 count, VolumeData* vd, s16* dpop, const bool ramp)
 {
   u16& volume = vd->volume;
   u16 volume_delta = vd->volume_delta;
@@ -389,28 +387,28 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
     s64 sample = input[i];
     sample *= volume;
     sample >>= 15;
-    sample = std::clamp((s32)sample, -32767, 32767);  // -32768 ?
+    sample = std::clamp(static_cast<s32>(sample), -32767, 32767);  // -32768 ?
 
-    out[i] += (s16)sample;
+    out[i] += static_cast<s16>(sample);
     volume += volume_delta;
 
-    *dpop = (s16)sample;
+    *dpop = static_cast<s16>(sample);
   }
 }
 
 // Execute a low pass filter on the samples using one history value. Returns
 // the new history value.
-s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
+s16 LowPassFilter(s16* samples, const u32 count, s16 yn1, const u16 a0, const u16 b0)
 {
   for (u32 i = 0; i < count; ++i)
-    yn1 = samples[i] = (a0 * (s32)samples[i] + b0 * (s32)yn1) >> 15;
+    yn1 = samples[i] = (a0 * static_cast<s32>(samples[i]) + b0 * static_cast<s32>(yn1)) >> 15;
   return yn1;
 }
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
-                  AXMixControl mctrl, const s16* coeffs)
+void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, const u16 count,
+                  const AXMixControl mctrl, const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
   if (pb.running != 1)
@@ -425,12 +423,12 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   {
 #ifdef AX_GC
     // signed on GameCube
-    const s32 volume = (s16)pb.vol_env.cur_volume;
+    const s32 volume = pb.vol_env.cur_volume;
 #else
     // unsigned on Wii
-    const s32 volume = (u16)pb.vol_env.cur_volume;
+    const s32 volume = static_cast<u16>(pb.vol_env.cur_volume);
 #endif
-    const s32 sample = ((s32)samples[i] * volume) >> 15;
+    const s32 sample = (static_cast<s32>(samples[i]) * volume) >> 15;
     samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
@@ -528,14 +526,14 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   if (pb.remote)
   {
     // Old AXWii versions process ms per ms.
-    u16 wm_count = count == 96 ? 18 : 6;
+    const u16 wm_count = count == 96 ? 18 : 6;
 
     // Interpolate at most 18 samples from the 96 samples we read before.
     s16 wm_samples[18];
 
     // We use ratio 0x55555 == (5 * 65536 + 21845) / 65536 == 5.3333 which
     // is the nearest we can get to 96/18
-    u32 curr_pos = ResampleAudio([&samples](u32 i) { return samples[i]; }, wm_samples, wm_count,
+    u32 curr_pos = ResampleAudio([&samples](const u32 i) { return samples[i]; }, wm_samples, wm_count,
                                  pb.remote_src.last_samples, pb.remote_src.cur_addr_frac, 0x55555,
                                  SRCTYPE_POLYPHASE, coeffs);
     pb.remote_src.cur_addr_frac = curr_pos & 0xFFFF;

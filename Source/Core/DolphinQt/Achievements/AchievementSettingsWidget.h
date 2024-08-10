@@ -18,7 +18,7 @@ class AchievementSettingsWidget final : public QWidget
   Q_OBJECT
 public:
   explicit AchievementSettingsWidget(QWidget* parent);
-  void UpdateData();
+  void UpdateData() const;
 
 private:
   void OnControllerInterfaceConfigure();
@@ -26,18 +26,18 @@ private:
   void CreateLayout();
   void ConnectWidgets();
 
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
-  void ToggleRAIntegration();
-  void Login();
-  void Logout();
-  void ToggleHardcore();
-  void ToggleUnofficial();
-  void ToggleEncore();
-  void ToggleSpectator();
-  void ToggleDiscordPresence();
-  void ToggleProgress();
+  void ToggleRAIntegration() const;
+  void Login() const;
+  void Logout() const;
+  void ToggleHardcore() const;
+  void ToggleUnofficial() const;
+  void ToggleEncore() const;
+  void ToggleSpectator() const;
+  void ToggleDiscordPresence() const;
+  void ToggleProgress() const;
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;

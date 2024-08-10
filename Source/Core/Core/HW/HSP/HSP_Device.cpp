@@ -10,7 +10,7 @@
 
 namespace HSP
 {
-IHSPDevice::IHSPDevice(HSPDeviceType device_type) : m_device_type(device_type)
+IHSPDevice::IHSPDevice(const HSPDeviceType device_type) : m_device_type(device_type)
 {
 }
 

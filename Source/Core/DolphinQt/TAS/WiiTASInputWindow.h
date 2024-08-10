@@ -35,9 +35,9 @@ public:
   void showEvent(QShowEvent* event) override;
 
 private:
-  WiimoteEmu::Wiimote* GetWiimote();
-  ControllerEmu::Attachments* GetAttachments();
-  WiimoteEmu::Extension* GetExtension();
+  WiimoteEmu::Wiimote* GetWiimote() const;
+  ControllerEmu::Attachments* GetAttachments() const;
+  WiimoteEmu::Extension* GetExtension() const;
 
   void UpdateExt();
 

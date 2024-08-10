@@ -83,7 +83,7 @@ struct Request
   u32 address = 0;
   IPCCommandType command = IPC_CMD_OPEN;
   u32 fd = 0;
-  Request(Core::System& system, u32 address);
+  Request(const Core::System& system, u32 address);
   virtual ~Request() = default;
 };
 
@@ -103,14 +103,14 @@ struct OpenRequest final : Request
   // but they are set after they reach IOS and are dispatched to the appropriate module.
   u32 uid = 0;
   u16 gid = 0;
-  OpenRequest(Core::System& system, u32 address);
+  OpenRequest(const Core::System& system, u32 address);
 };
 
 struct ReadWriteRequest final : Request
 {
   u32 buffer = 0;
   u32 size = 0;
-  ReadWriteRequest(Core::System& system, u32 address);
+  ReadWriteRequest(const Core::System& system, u32 address);
 };
 
 enum SeekMode : s32
@@ -124,7 +124,7 @@ struct SeekRequest final : Request
 {
   u32 offset = 0;
   SeekMode mode = IOS_SEEK_SET;
-  SeekRequest(Core::System& system, u32 address);
+  SeekRequest(const Core::System& system, u32 address);
 };
 
 struct IOCtlRequest final : Request
@@ -135,13 +135,13 @@ struct IOCtlRequest final : Request
   // Contrary to the name, the output buffer can also be used for input.
   u32 buffer_out = 0;
   u32 buffer_out_size = 0;
-  IOCtlRequest(Core::System& system, u32 address);
+  IOCtlRequest(const Core::System& system, u32 address);
   void Log(std::string_view description, Common::Log::LogType type = Common::Log::LogType::IOS,
            Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
-  void Dump(Core::System& system, const std::string& description,
+  void Dump(const Core::System& system, const std::string& description,
             Common::Log::LogType type = Common::Log::LogType::IOS,
             Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
-  void DumpUnknown(Core::System& system, const std::string& description,
+  void DumpUnknown(const Core::System& system, const std::string& description,
                    Common::Log::LogType type = Common::Log::LogType::IOS,
                    Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
 };
@@ -166,12 +166,12 @@ struct IOCtlVRequest final : Request
   /// Returns the specified vector or nullptr if the index is out of bounds.
   const IOVector* GetVector(size_t index) const;
 
-  IOCtlVRequest(Core::System& system, u32 address);
+  IOCtlVRequest(const Core::System& system, u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
-  void Dump(Core::System& system, std::string_view description,
+  void Dump(const Core::System& system, std::string_view description,
             Common::Log::LogType type = Common::Log::LogType::IOS,
             Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
-  void DumpUnknown(Core::System& system, const std::string& description,
+  void DumpUnknown(const Core::System& system, const std::string& description,
                    Common::Log::LogType type = Common::Log::LogType::IOS,
                    Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
 };
@@ -220,7 +220,7 @@ protected:
   bool m_is_active = false;
 
 private:
-  std::optional<IPCReply> Unsupported(const Request& request);
+  std::optional<IPCReply> Unsupported(const Request& request) const;
 };
 
 // Helper class for Devices that we know are only ever instantiated under an EmulationKernel.
@@ -230,7 +230,7 @@ class EmulationDevice : public Device
 {
 public:
   EmulationDevice(EmulationKernel& ios, const std::string& device_name,
-                  DeviceType type = DeviceType::Static)
+                  const DeviceType type = DeviceType::Static)
       : Device(ios, device_name, type)
   {
   }

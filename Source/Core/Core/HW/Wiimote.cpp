@@ -10,19 +10,15 @@
 #include "Common/Config/Config.h"
 
 #include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
@@ -33,12 +29,12 @@ namespace
 static std::array<std::atomic<WiimoteSource>, MAX_BBMOTES> s_wiimote_sources;
 static std::optional<Config::ConfigChangedCallbackID> s_config_callback_id = std::nullopt;
 
-WiimoteSource GetSource(unsigned int index)
+WiimoteSource GetSource(const unsigned int index)
 {
   return s_wiimote_sources[index];
 }
 
-void OnSourceChanged(unsigned int index, WiimoteSource source)
+void OnSourceChanged(const unsigned int index, const WiimoteSource source)
 {
   const WiimoteSource previous_source = s_wiimote_sources[index].exchange(source);
 
@@ -57,14 +53,14 @@ void OnSourceChanged(unsigned int index, WiimoteSource source)
 void RefreshConfig()
 {
   for (int i = 0; i < MAX_BBMOTES; ++i)
-    OnSourceChanged(i, Config::Get(Config::GetInfoForWiimoteSource(i)));
+    OnSourceChanged(i, Get(Config::GetInfoForWiimoteSource(i)));
 }
 
 }  // namespace
 
 namespace WiimoteCommon
 {
-void UpdateSource(unsigned int index)
+void UpdateSource(const unsigned int index)
 {
   const auto bluetooth = WiiUtils::GetBluetoothEmuDevice();
   if (bluetooth == nullptr)
@@ -73,14 +69,14 @@ void UpdateSource(unsigned int index)
   bluetooth->AccessWiimoteByIndex(index)->SetSource(GetHIDWiimoteSource(index));
 }
 
-HIDWiimote* GetHIDWiimoteSource(unsigned int index)
+HIDWiimote* GetHIDWiimoteSource(const unsigned int index)
 {
   HIDWiimote* hid_source = nullptr;
 
   switch (GetSource(index))
   {
   case WiimoteSource::Emulated:
-    hid_source = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
+    hid_source = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(index));
     break;
 
   case WiimoteSource::Real:
@@ -105,56 +101,56 @@ InputConfig* GetConfig()
   return &s_config;
 }
 
-ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group)
+ControllerEmu::ControlGroup* GetWiimoteGroup(const int number, const WiimoteEmu::WiimoteGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group)
+ControllerEmu::ControlGroup* GetNunchukGroup(const int number, const WiimoteEmu::NunchukGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetNunchukGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetClassicGroup(int number, WiimoteEmu::ClassicGroup group)
+ControllerEmu::ControlGroup* GetClassicGroup(const int number, const WiimoteEmu::ClassicGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetClassicGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetGuitarGroup(int number, WiimoteEmu::GuitarGroup group)
+ControllerEmu::ControlGroup* GetGuitarGroup(const int number, const WiimoteEmu::GuitarGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetGuitarGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetDrumsGroup(int number, WiimoteEmu::DrumsGroup group)
+ControllerEmu::ControlGroup* GetDrumsGroup(const int number, const WiimoteEmu::DrumsGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetDrumsGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::TurntableGroup group)
+ControllerEmu::ControlGroup* GetTurntableGroup(const int number, const WiimoteEmu::TurntableGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetTurntableGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group)
+ControllerEmu::ControlGroup* GetUDrawTabletGroup(const int number, const WiimoteEmu::UDrawTabletGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetUDrawTabletGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
-                                                    WiimoteEmu::DrawsomeTabletGroup group)
+ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(const int number,
+                                                    const WiimoteEmu::DrawsomeTabletGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetDrawsomeTabletGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group)
+ControllerEmu::ControlGroup* GetTaTaConGroup(const int number, const WiimoteEmu::TaTaConGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group)
+ControllerEmu::ControlGroup* GetShinkansenGroup(const int number, const WiimoteEmu::ShinkansenGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetShinkansenGroup(group);
@@ -170,12 +166,12 @@ void Shutdown()
 
   if (s_config_callback_id)
   {
-    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    RemoveConfigChangedCallback(*s_config_callback_id);
     s_config_callback_id = std::nullopt;
   }
 }
 
-void Initialize(InitializeMode init_mode)
+void Initialize(const InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -194,7 +190,7 @@ void Initialize(InitializeMode init_mode)
   WiimoteReal::Initialize(init_mode);
 
   // Reload Wiimotes with our settings
-  auto& movie = Core::System::GetInstance().GetMovie();
+  const auto& movie = Core::System::GetInstance().GetMovie();
   if (movie.IsMovieActive())
     movie.ChangeWiiPads();
 }
@@ -226,10 +222,10 @@ void DoState(PointerWrap& p)
   for (int i = 0; i < MAX_BBMOTES; ++i)
   {
     const WiimoteSource source = GetSource(i);
-    auto state_wiimote_source = u8(source);
+    auto state_wiimote_source = static_cast<u8>(source);
     p.Do(state_wiimote_source);
 
-    if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
+    if (static_cast<WiimoteSource>(state_wiimote_source) == WiimoteSource::Emulated)
     {
       // Sync complete state of emulated wiimotes.
       static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
@@ -239,7 +235,7 @@ void DoState(PointerWrap& p)
     {
       // If using a real wiimote or the save-state source does not match the current source,
       // then force a reconnection on load.
-      if (source == WiimoteSource::Real || source != WiimoteSource(state_wiimote_source))
+      if (source == WiimoteSource::Real || source != static_cast<WiimoteSource>(state_wiimote_source))
         WiimoteCommon::UpdateSource(i);
     }
   }

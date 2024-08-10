@@ -12,7 +12,6 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/VertexLoaderManager.h"
 
 // CP state
 CPState g_main_cp_state;
@@ -21,8 +20,8 @@ CPState g_preprocess_cp_state;
 void CopyPreprocessCPStateFromMain()
 {
   static_assert(std::is_trivially_copyable_v<CPState>);
-  std::memcpy(static_cast<void*>(&g_preprocess_cp_state),
-              static_cast<const void*>(&g_main_cp_state), sizeof(CPState));
+  std::memcpy(&g_preprocess_cp_state,
+              &g_main_cp_state, sizeof(CPState));
 }
 
 std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
@@ -89,7 +88,7 @@ CPState::CPState(const u32* memory) : CPState()
   }
 }
 
-void CPState::LoadCPReg(u8 sub_cmd, u32 value)
+void CPState::LoadCPReg(const u8 sub_cmd, const u32 value)
 {
   switch (sub_cmd & CP_COMMAND_MASK)
   {

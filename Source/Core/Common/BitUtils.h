@@ -6,7 +6,6 @@
 #include <array>
 #include <climits>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <initializer_list>
 #include <type_traits>
@@ -213,7 +212,7 @@ inline auto BitCastFromArray(const Container& array) noexcept -> T
 }
 
 template <typename T>
-void SetBit(T& value, size_t bit_number, bool bit_value)
+void SetBit(T& value, size_t bit_number, const bool bit_value)
 {
   static_assert(std::is_unsigned<T>(), "SetBit is only sane on unsigned types.");
 

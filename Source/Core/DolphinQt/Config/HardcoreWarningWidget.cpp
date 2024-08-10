@@ -11,8 +11,6 @@
 #include <QStyle>
 
 #include "Core/AchievementManager.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Settings.h"
 
@@ -30,7 +28,7 @@ void HardcoreWarningWidget::CreateWidgets()
 {
   const auto size = 1.5 * QFontMetrics(font()).height();
 
-  QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size);
+  const QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size);
 
   auto* icon = new QLabel;
   icon->setPixmap(warning_icon);

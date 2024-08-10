@@ -142,7 +142,7 @@ private:
     char file_header[sizeof(Header)];
 
     return (m_file.ReadArray(file_header, sizeof(Header)) &&
-            !memcmp((const char*)&m_header, file_header, sizeof(Header)));
+            !memcmp(static_cast<const char*>(&m_header), file_header, sizeof(Header)));
   }
 
   struct Header
@@ -151,8 +151,8 @@ private:
     {
       // Null-terminator is intentionally not copied.
       std::memcpy(&id, "DCAC", sizeof(u32));
-      std::memcpy(ver, Common::GetScmRevGitStr().c_str(),
-                  std::min(Common::GetScmRevGitStr().size(), sizeof(ver)));
+      std::memcpy(ver, GetScmRevGitStr().c_str(),
+                  std::min(GetScmRevGitStr().size(), sizeof(ver)));
     }
 
     u32 id = 0;

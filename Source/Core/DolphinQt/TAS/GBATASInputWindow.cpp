@@ -3,15 +3,10 @@
 
 #include "DolphinQt/TAS/GBATASInputWindow.h"
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-#include <QSpinBox>
-#include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GBAPadEmu.h"
@@ -21,7 +16,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
-GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
+GBATASInputWindow::GBATASInputWindow(QWidget* parent, const int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)
 {
   setWindowTitle(tr("GBA TAS Input %1").arg(controller_id + 1));
@@ -64,7 +59,7 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
 
   buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 4);
 
-  QGroupBox* buttons_box = new QGroupBox(tr("Buttons"));
+  auto buttons_box = new QGroupBox(tr("Buttons"));
   buttons_box->setLayout(buttons_layout);
 
   auto* layout = new QVBoxLayout;

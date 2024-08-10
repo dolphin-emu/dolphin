@@ -11,10 +11,10 @@
 
 namespace DX12
 {
-static DXGI_FORMAT VarToDXGIFormat(ComponentFormat t, u32 components, bool integer)
+static DXGI_FORMAT VarToDXGIFormat(const ComponentFormat t, const u32 components, const bool integer)
 {
   using ComponentArray = std::array<DXGI_FORMAT, 4>;
-  static constexpr auto f = [](ComponentArray a) { return a; };  // Deduction helper
+  static constexpr auto f = [](const ComponentArray a) { return a; };  // Deduction helper
 
   // NOTE: 3-component formats are not valid.
   static constexpr Common::EnumMap<ComponentArray, ComponentFormat::InvalidFloat7>
@@ -73,8 +73,8 @@ void DXVertexFormat::GetInputLayoutDesc(D3D12_INPUT_LAYOUT_DESC* desc) const
   desc->NumElements = m_num_attributes;
 }
 
-void DXVertexFormat::AddAttribute(const char* semantic_name, ShaderAttrib semantic_index, u32 slot,
-                                  DXGI_FORMAT format, u32 offset)
+void DXVertexFormat::AddAttribute(const char* semantic_name, ShaderAttrib semantic_index, const u32 slot,
+                                  const DXGI_FORMAT format, const u32 offset)
 {
   ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 

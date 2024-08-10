@@ -23,7 +23,7 @@ namespace
 using namespace Common::GekkoAssembler::detail;
 
 FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& operands,
-                               std::string_view inst_line)
+                               const std::string_view inst_line)
 {
   // Parser shouldn't allow this to pass
   ASSERT_MSG(COMMON, desc.operand_count == operands.count && !operands.overfill,
@@ -75,7 +75,7 @@ FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& oper
   return instruction;
 }
 
-void AdjustOperandsForGas(GekkoMnemonic mnemonic, OperandList& ops_list)
+void AdjustOperandsForGas(const GekkoMnemonic mnemonic, OperandList& ops_list)
 {
   switch (mnemonic)
   {
@@ -106,7 +106,7 @@ void AdjustOperandsForGas(GekkoMnemonic mnemonic, OperandList& ops_list)
 
 }  // namespace
 
-void CodeBlock::PushBigEndian(u32 val)
+void CodeBlock::PushBigEndian(const u32 val)
 {
   instructions.push_back((val >> 24) & 0xff);
   instructions.push_back((val >> 16) & 0xff);
@@ -117,8 +117,7 @@ void CodeBlock::PushBigEndian(u32 val)
 FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
                                            u32 current_instruction_address)
 {
-  FailureOr<detail::GekkoIR> parse_result =
-      detail::ParseToIR(instruction, current_instruction_address);
+  FailureOr<GekkoIR> parse_result = ParseToIR(instruction, current_instruction_address);
   if (IsFailure(parse_result))
   {
     return GetFailure(parse_result);
@@ -128,22 +127,23 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
   const auto& operands = GetT(parse_result).operand_pool;
   std::vector<CodeBlock> out_blocks;
 
-  for (const detail::IRBlock& parsed_block : parsed_blocks)
+  for (const IRBlock& parsed_block : parsed_blocks)
   {
     CodeBlock new_block(parsed_block.block_address);
-    for (const detail::ChunkVariant& chunk : parsed_block.chunks)
+    for (const ChunkVariant& chunk : parsed_block.chunks)
     {
-      if (std::holds_alternative<detail::InstChunk>(chunk))
+      if (std::holds_alternative<InstChunk>(chunk))
       {
-        for (const detail::GekkoInstruction& parsed_inst : std::get<detail::InstChunk>(chunk))
+        for (const auto& [mnemonic_index, op_interval, raw_text, line_number, is_extended] :
+             std::get<InstChunk>(chunk))
         {
           OperandList adjusted_ops;
-          ASSERT(parsed_inst.op_interval.len <= MAX_OPERANDS);
-          adjusted_ops.Copy(operands.begin() + parsed_inst.op_interval.begin,
-                            operands.begin() + parsed_inst.op_interval.End());
+          ASSERT(op_interval.len <= MAX_OPERANDS);
+          adjusted_ops.Copy(operands.begin() + op_interval.begin,
+                            operands.begin() + op_interval.End());
 
-          size_t idx = parsed_inst.mnemonic_index;
-          if (parsed_inst.is_extended)
+          size_t idx = mnemonic_index;
+          if (is_extended)
           {
             extended_mnemonics[idx].transform_operands(adjusted_ops);
             idx = extended_mnemonics[idx].mnemonic_index;
@@ -151,26 +151,26 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
 
           AdjustOperandsForGas(static_cast<GekkoMnemonic>(idx >> 2), adjusted_ops);
 
-          FailureOr<u32> inst = FillInstruction(mnemonics[idx], adjusted_ops, parsed_inst.raw_text);
+          FailureOr<u32> inst = FillInstruction(mnemonics[idx], adjusted_ops, raw_text);
           if (IsFailure(inst))
           {
-            GetFailure(inst).error_line = parsed_inst.raw_text;
-            GetFailure(inst).line = parsed_inst.line_number;
+            GetFailure(inst).error_line = raw_text;
+            GetFailure(inst).line = line_number;
             return GetFailure(inst);
           }
 
           new_block.PushBigEndian(GetT(inst));
         }
       }
-      else if (std::holds_alternative<detail::ByteChunk>(chunk))
+      else if (std::holds_alternative<ByteChunk>(chunk))
       {
-        detail::ByteChunk byte_arr = std::get<detail::ByteChunk>(chunk);
+        auto byte_arr = std::get<ByteChunk>(chunk);
         new_block.instructions.insert(new_block.instructions.end(), byte_arr.begin(),
                                       byte_arr.end());
       }
-      else if (std::holds_alternative<detail::PadChunk>(chunk))
+      else if (std::holds_alternative<PadChunk>(chunk))
       {
-        detail::PadChunk pad_len = std::get<detail::PadChunk>(chunk);
+        PadChunk pad_len = std::get<PadChunk>(chunk);
         new_block.instructions.insert(new_block.instructions.end(), pad_len, 0);
       }
       else

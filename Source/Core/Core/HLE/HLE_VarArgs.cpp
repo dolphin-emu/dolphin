@@ -10,17 +10,17 @@
 
 HLE::SystemVABI::VAList::~VAList() = default;
 
-u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
+u32 HLE::SystemVABI::VAList::GetGPR(const u32 gpr) const
 {
   return m_guard.GetSystem().GetPPCState().gpr[gpr];
 }
 
-double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
+double HLE::SystemVABI::VAList::GetFPR(const u32 fpr) const
 {
   return m_guard.GetSystem().GetPPCState().ps[fpr].PS0AsDouble();
 }
 
-HLE::SystemVABI::VAListStruct::VAListStruct(const Core::CPUThreadGuard& guard, u32 address)
+HLE::SystemVABI::VAListStruct::VAListStruct(const Core::CPUThreadGuard& guard, const u32 address)
     : VAList(guard, 0), m_va_list{PowerPC::MMU::HostRead_U8(guard, address),
                                   PowerPC::MMU::HostRead_U8(guard, address + 1),
                                   PowerPC::MMU::HostRead_U32(guard, address + 4),
@@ -42,7 +42,7 @@ u32 HLE::SystemVABI::VAListStruct::GetFPRArea() const
   return GetGPRArea() + 4 * 8;
 }
 
-u32 HLE::SystemVABI::VAListStruct::GetGPR(u32 gpr) const
+u32 HLE::SystemVABI::VAListStruct::GetGPR(const u32 gpr) const
 {
   if (gpr < 3 || gpr > 10)
   {
@@ -53,7 +53,7 @@ u32 HLE::SystemVABI::VAListStruct::GetGPR(u32 gpr) const
   return PowerPC::MMU::HostRead_U32(m_guard, gpr_address);
 }
 
-double HLE::SystemVABI::VAListStruct::GetFPR(u32 fpr) const
+double HLE::SystemVABI::VAListStruct::GetFPR(const u32 fpr) const
 {
   if (!m_has_fpr_area || fpr < 1 || fpr > 8)
   {

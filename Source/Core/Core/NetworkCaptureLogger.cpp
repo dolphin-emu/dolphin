@@ -6,7 +6,6 @@
 #include <array>
 #include <cerrno>
 #include <cstring>
-#include <iterator>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -55,18 +54,18 @@ NetworkCaptureType DummyNetworkCaptureLogger::GetCaptureType() const
   return NetworkCaptureType::None;
 }
 
-void BinarySSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
+void BinarySSLCaptureLogger::LogSSLRead(const void* data, const std::size_t length, s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
     return;
   const std::string filename =
       File::GetUserPath(D_DUMPSSL_IDX) + SConfig::GetInstance().GetGameID() + "_read.bin";
   File::IOFile(filename, "ab").WriteBytes(data, length);
 }
 
-void BinarySSLCaptureLogger::LogSSLWrite(const void* data, std::size_t length, s32 socket)
+void BinarySSLCaptureLogger::LogSSLWrite(const void* data, const std::size_t length, s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
     return;
   const std::string filename =
       File::GetUserPath(D_DUMPSSL_IDX) + SConfig::GetInstance().GetGameID() + "_write.bin";
@@ -89,39 +88,39 @@ PCAPSSLCaptureLogger::PCAPSSLCaptureLogger()
 
 PCAPSSLCaptureLogger::~PCAPSSLCaptureLogger() = default;
 
-void PCAPSSLCaptureLogger::OnNewSocket(s32 socket)
+void PCAPSSLCaptureLogger::OnNewSocket(const s32 socket)
 {
   m_read_sequence_number[socket] = 0;
   m_write_sequence_number[socket] = 0;
 }
 
-void PCAPSSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
+void PCAPSSLCaptureLogger::LogSSLRead(const void* data, const std::size_t length, const s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
     return;
   Log(LogType::Read, data, length, socket, nullptr);
 }
 
-void PCAPSSLCaptureLogger::LogSSLWrite(const void* data, std::size_t length, s32 socket)
+void PCAPSSLCaptureLogger::LogSSLWrite(const void* data, const std::size_t length, const s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
     return;
   Log(LogType::Write, data, length, socket, nullptr);
 }
 
-void PCAPSSLCaptureLogger::LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from)
+void PCAPSSLCaptureLogger::LogRead(const void* data, const std::size_t length, const s32 socket, sockaddr* from)
 {
   Log(LogType::Read, data, length, socket, from);
 }
 
-void PCAPSSLCaptureLogger::LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to)
+void PCAPSSLCaptureLogger::LogWrite(const void* data, const std::size_t length, const s32 socket, sockaddr* to)
 {
   Log(LogType::Write, data, length, socket, to);
 }
 
-void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
+void PCAPSSLCaptureLogger::LogBBA(const void* data, const std::size_t length)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_DUMP_BBA))
+  if (!Get(Config::MAIN_NETWORK_DUMP_BBA))
     return;
 
   // Concurrency between CEXIETHERNET's RecvHandlePacket and SendFromDirectFIFO
@@ -129,11 +128,11 @@ void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
   m_file->AddPacket(static_cast<const u8*>(data), length);
 }
 
-void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t length, s32 socket,
+void PCAPSSLCaptureLogger::Log(const LogType log_type, const void* data, const std::size_t length, const s32 socket,
                                sockaddr* other)
 {
   const auto state = Common::SaveNetworkErrorState();
-  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+  Common::ScopeGuard guard([&state] { RestoreNetworkErrorState(state); });
   sockaddr_in sock;
   sockaddr_in peer;
   sockaddr_in* from;
@@ -158,11 +157,11 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
     to = other ? reinterpret_cast<sockaddr_in*>(other) : &peer;
   }
 
-  LogIPv4(log_type, reinterpret_cast<const u8*>(data), static_cast<u16>(length), socket, *from,
+  LogIPv4(log_type, static_cast<const u8*>(data), static_cast<u16>(length), socket, *from,
           *to);
 }
 
-void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket,
+void PCAPSSLCaptureLogger::LogIPv4(const LogType log_type, const u8* data, const u16 length, const s32 socket,
                                    const sockaddr_in& from, const sockaddr_in& to)
 {
   int socket_type;
@@ -176,13 +175,13 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   }
 
   std::vector<u8> packet;
-  auto insert = [&](const auto* new_data, std::size_t size) {
-    const u8* begin = reinterpret_cast<const u8*>(new_data);
+  auto insert = [&](const auto* new_data, const std::size_t size) {
+    auto begin = reinterpret_cast<const u8*>(new_data);
     packet.insert(packet.end(), begin, begin + size);
   };
 
   Common::EthernetHeader ethernet_header(0x800);
-  auto mac = Common::StringToMacAddress(Config::Get(Config::MAIN_WIRELESS_MAC));
+  const auto mac = Common::StringToMacAddress(Get(Config::MAIN_WIRELESS_MAC));
   if (mac)
   {
     auto& mac_address =
@@ -195,16 +194,16 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   {
     u32& sequence_number = (log_type == LogType::Read) ? m_read_sequence_number[socket] :
                                                          m_write_sequence_number[socket];
-    Common::TCPHeader tcp_header(from, to, sequence_number, data, length);
+    const Common::TCPHeader tcp_header(from, to, sequence_number, data, length);
     sequence_number += static_cast<u32>(length);
-    Common::IPv4Header ip_header(tcp_header.Size() + length, tcp_header.IPProto(), from, to);
+    const Common::IPv4Header ip_header(tcp_header.Size() + length, tcp_header.IPProto(), from, to);
     insert(&ip_header, ip_header.Size());
     insert(&tcp_header, tcp_header.Size());
   }
   else if (socket_type == SOCK_DGRAM)
   {
-    Common::UDPHeader udp_header(from, to, length);
-    Common::IPv4Header ip_header(udp_header.Size() + length, udp_header.IPProto(), from, to);
+    const Common::UDPHeader udp_header(from, to, length);
+    const Common::IPv4Header ip_header(udp_header.Size() + length, udp_header.IPProto(), from, to);
     insert(&ip_header, ip_header.Size());
     insert(&udp_header, udp_header.Size());
   }

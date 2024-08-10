@@ -12,7 +12,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QRadioButton>
 #include <QVBoxLayout>
 
@@ -50,7 +49,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
   m_standard_address_space->setChecked(true);
   m_custom_address_space = new QRadioButton(tr("Custom Address Space"));
 
-  QLabel* label_standard_address_space =
+  auto label_standard_address_space =
       new QLabel(tr("Sets up the search using standard MEM1 and (on Wii) MEM2 mappings in virtual "
                     "address space. This will work for the vast majority of games."));
   label_standard_address_space->setWordWrap(true);
@@ -70,9 +69,9 @@ void CheatSearchFactoryWidget::CreateWidgets()
   custom_address_space_layout->addWidget(m_custom_physical_address_space);
   custom_address_space_layout->addWidget(m_custom_effective_address_space);
 
-  QLabel* label_range_start = new QLabel(tr("Range Start: "));
+  auto label_range_start = new QLabel(tr("Range Start: "));
   m_custom_address_start = new QLineEdit(QStringLiteral("0x80000000"));
-  QLabel* label_range_end = new QLabel(tr("Range End: "));
+  auto label_range_end = new QLabel(tr("Range End: "));
   m_custom_address_end = new QLineEdit(QStringLiteral("0x81800000"));
   custom_address_space_layout->addWidget(label_range_start);
   custom_address_space_layout->addWidget(m_custom_address_start);
@@ -137,9 +136,9 @@ void CheatSearchFactoryWidget::ConnectWidgets()
           &CheatSearchFactoryWidget::OnAddressSpaceRadioChanged);
 }
 
-void CheatSearchFactoryWidget::RefreshGui()
+void CheatSearchFactoryWidget::RefreshGui() const
 {
-  bool enable_custom = m_custom_address_space->isChecked();
+  const bool enable_custom = m_custom_address_space->isChecked();
   m_custom_virtual_address_space->setEnabled(enable_custom);
   m_custom_physical_address_space->setEnabled(enable_custom);
   m_custom_effective_address_space->setEnabled(enable_custom);
@@ -147,7 +146,7 @@ void CheatSearchFactoryWidget::RefreshGui()
   m_custom_address_end->setEnabled(enable_custom);
 }
 
-void CheatSearchFactoryWidget::OnAddressSpaceRadioChanged()
+void CheatSearchFactoryWidget::OnAddressSpaceRadioChanged() const
 {
   RefreshGui();
 }
@@ -158,8 +157,8 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   PowerPC::RequestedAddressSpace address_space;
   if (m_standard_address_space->isChecked())
   {
-    auto& system = Core::System::GetInstance();
-    const Core::State core_state = Core::GetState(system);
+    const auto& system = Core::System::GetInstance();
+    const Core::State core_state = GetState(system);
     if (core_state != Core::State::Running && core_state != Core::State::Paused)
     {
       ModalMessageBox::warning(
@@ -168,7 +167,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
       return;
     }
 
-    auto& memory = system.GetMemory();
+    const auto& memory = system.GetMemory();
     memory_ranges.emplace_back(0x80000000, memory.GetRamSizeReal());
     if (system.IsWii())
       memory_ranges.emplace_back(0x90000000, memory.GetExRamSizeReal());
@@ -196,9 +195,9 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
       address_space = PowerPC::RequestedAddressSpace::Effective;
   }
 
-  bool aligned = m_data_type_aligned->isChecked();
-  auto data_type = m_data_type_dropdown->currentData().value<Cheats::DataType>();
-  auto session = Cheats::MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
+  const bool aligned = m_data_type_aligned->isChecked();
+  const auto data_type = m_data_type_dropdown->currentData().value<Cheats::DataType>();
+  const auto session = MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
   if (session)
     emit NewSessionCreated(*session);
 }

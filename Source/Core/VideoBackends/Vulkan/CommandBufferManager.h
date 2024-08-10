@@ -4,20 +4,12 @@
 #pragma once
 
 #include <array>
-#include <cstddef>
-#include <deque>
 #include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
-#include <thread>
-#include <utility>
 #include <vector>
 
 #include <Common/WorkQueueThread.h>
-#include "Common/BlockingLoop.h"
 #include "Common/Flag.h"
-#include "Common/Semaphore.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
 
@@ -35,14 +27,18 @@ public:
   // is submitted, after that you should call these functions again.
   VkCommandBuffer GetCurrentInitCommandBuffer()
   {
-    CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
-    cmd_buffer_resources.init_command_buffer_used = true;
-    return cmd_buffer_resources.command_buffers[0];
+    auto& [_command_pool, _command_buffers, _fence, _semaphore, _fence_counter,
+      init_command_buffer_used, _semaphore_used, _waiting_for_submit, _frame_index,
+      _cleanup_resources] = GetCurrentCmdBufferResources();
+    init_command_buffer_used = true;
+    return _command_buffers[0];
   }
   VkCommandBuffer GetCurrentCommandBuffer() const
   {
-    const CmdBufferResources& cmd_buffer_resources = m_command_buffers[m_current_cmd_buffer];
-    return cmd_buffer_resources.command_buffers[1];
+    const auto& [_command_pool, command_buffers, _fence, _semaphore, _fence_counter,
+      _init_command_buffer_used, _semaphore_used, _waiting_for_submit, _frame_index,
+      _cleanup_resources] = m_command_buffers[m_current_cmd_buffer];
+    return command_buffers[1];
   }
   // Allocates a descriptors set from the pool reserved for the current frame.
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
@@ -57,17 +53,21 @@ public:
   // queued and executed. Do not wait for this fence before the buffer is executed.
   u64 GetCurrentFenceCounter() const
   {
-    auto& resources = m_command_buffers[m_current_cmd_buffer];
-    return resources.fence_counter;
+    const auto& [_command_pool, _command_buffers, _fence, _semaphore, fence_counter,
+      _init_command_buffer_used, _semaphore_used, _waiting_for_submit, _frame_index,
+      _cleanup_resources] = m_command_buffers[m_current_cmd_buffer];
+    return fence_counter;
   }
 
   // Returns the semaphore for the current command buffer, which can be used to ensure the
   // swap chain image is ready before the command buffer executes.
   VkSemaphore GetCurrentCommandBufferSemaphore()
   {
-    auto& resources = m_command_buffers[m_current_cmd_buffer];
-    resources.semaphore_used = true;
-    return resources.semaphore;
+    auto& [_command_pool, _command_buffers, _fence, semaphore, _fence_counter,
+      _init_command_buffer_used, semaphore_used, _waiting_for_submit, _frame_index,
+      _cleanup_resources] = m_command_buffers[m_current_cmd_buffer];
+    semaphore_used = true;
+    return semaphore;
   }
 
   // Ensure that the worker thread has submitted any previous command buffers and is idle.
@@ -105,7 +105,7 @@ private:
                            u32 present_image_index);
   void BeginCommandBuffer();
 
-  VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
+  static VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
 
   const u32 DESCRIPTOR_SETS_PER_POOL = 1024;
 

@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 
-#include "Core/Core.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/NANDImporter.h"
@@ -25,7 +24,7 @@
 
 namespace WiiUpdate
 {
-static void ShowResult(QWidget* parent, WiiUtils::UpdateResult result)
+static void ShowResult(QWidget* parent, const WiiUtils::UpdateResult result)
 {
   switch (result)
   {

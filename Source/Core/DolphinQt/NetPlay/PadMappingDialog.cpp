@@ -67,8 +67,8 @@ void PadMappingDialog::ConnectWidgets()
 
 int PadMappingDialog::exec()
 {
-  auto client = Settings::Instance().GetNetPlayClient();
-  auto server = Settings::Instance().GetNetPlayServer();
+  const auto client = Settings::Instance().GetNetPlayClient();
+  const auto server = Settings::Instance().GetNetPlayServer();
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();
@@ -87,7 +87,7 @@ int PadMappingDialog::exec()
 
   for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
-    bool gc = combo_group == m_gc_boxes;
+    const bool gc = combo_group == m_gc_boxes;
     for (size_t i = 0; i < combo_group.size(); i++)
     {
       auto& combo = combo_group[i];
@@ -112,7 +112,7 @@ int PadMappingDialog::exec()
   return QDialog::exec();
 }
 
-NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray()
+NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray() const
 {
   return m_pad_mapping;
 }
@@ -122,7 +122,7 @@ NetPlay::GBAConfigArray PadMappingDialog::GetGBAArray()
   return m_gba_config;
 }
 
-NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray()
+NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray() const
 {
   return m_wii_mapping;
 }
@@ -131,8 +131,8 @@ void PadMappingDialog::OnMappingChanged()
 {
   for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
   {
-    int gc_id = m_gc_boxes[i]->currentIndex();
-    int wii_id = m_wii_boxes[i]->currentIndex();
+    const int gc_id = m_gc_boxes[i]->currentIndex();
+    const int wii_id = m_wii_boxes[i]->currentIndex();
 
     m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
     m_gba_config[i].enabled = m_gba_boxes[i]->isChecked();

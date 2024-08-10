@@ -12,12 +12,12 @@ struct DXTBlock
   u8 lines[4];
 };
 
-constexpr u32 MakeRGBA(int r, int g, int b, int a)
+constexpr u32 MakeRGBA(const int r, const int g, const int b, const int a)
 {
   return (a << 24) | (b << 16) | (g << 8) | r;
 }
 
-constexpr int DXTBlend(int v1, int v2)
+constexpr int DXTBlend(const int v1, const int v2)
 {
   // 3/8 blend, which is close to 1/3
   return ((v1 * 3 + v2 * 5) >> 3);

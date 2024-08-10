@@ -19,7 +19,7 @@
 #include "Core/System.h"
 
 // dequantize table
-const float m_dequantizeTable[] = {
+constexpr float m_dequantizeTable[] = {
     1.0 / (1ULL << 0),  1.0 / (1ULL << 1),  1.0 / (1ULL << 2),  1.0 / (1ULL << 3),
     1.0 / (1ULL << 4),  1.0 / (1ULL << 5),  1.0 / (1ULL << 6),  1.0 / (1ULL << 7),
     1.0 / (1ULL << 8),  1.0 / (1ULL << 9),  1.0 / (1ULL << 10), 1.0 / (1ULL << 11),
@@ -39,7 +39,7 @@ const float m_dequantizeTable[] = {
 };
 
 // quantize table
-const float m_quantizeTable[] = {
+constexpr float m_quantizeTable[] = {
     (1ULL << 0),        (1ULL << 1),        (1ULL << 2),        (1ULL << 3),
     (1ULL << 4),        (1ULL << 5),        (1ULL << 6),        (1ULL << 7),
     (1ULL << 8),        (1ULL << 9),        (1ULL << 10),       (1ULL << 11),
@@ -59,11 +59,11 @@ const float m_quantizeTable[] = {
 };
 
 template <typename SType>
-SType ScaleAndClamp(double ps, u32 st_scale)
+SType ScaleAndClamp(const double ps, const u32 st_scale)
 {
-  const float conv_ps = float(ps) * m_quantizeTable[st_scale];
-  constexpr float min = float(std::numeric_limits<SType>::min());
-  constexpr float max = float(std::numeric_limits<SType>::max());
+  const float conv_ps = static_cast<float>(ps) * m_quantizeTable[st_scale];
+  constexpr float min = static_cast<float>(std::numeric_limits<SType>::min());
+  constexpr float max = static_cast<float>(std::numeric_limits<SType>::max());
 
   return SType(std::clamp(conv_ps, min, max));
 }
@@ -72,19 +72,19 @@ template <typename T>
 static T ReadUnpaired(PowerPC::MMU& mmu, u32 addr);
 
 template <>
-u8 ReadUnpaired<u8>(PowerPC::MMU& mmu, u32 addr)
+u8 ReadUnpaired<u8>(PowerPC::MMU& mmu, const u32 addr)
 {
   return mmu.Read_U8(addr);
 }
 
 template <>
-u16 ReadUnpaired<u16>(PowerPC::MMU& mmu, u32 addr)
+u16 ReadUnpaired<u16>(PowerPC::MMU& mmu, const u32 addr)
 {
   return mmu.Read_U16(addr);
 }
 
 template <>
-u32 ReadUnpaired<u32>(PowerPC::MMU& mmu, u32 addr)
+u32 ReadUnpaired<u32>(PowerPC::MMU& mmu, const u32 addr)
 {
   return mmu.Read_U32(addr);
 }
@@ -93,43 +93,43 @@ template <typename T>
 static std::pair<T, T> ReadPair(PowerPC::MMU& mmu, u32 addr);
 
 template <>
-std::pair<u8, u8> ReadPair<u8>(PowerPC::MMU& mmu, u32 addr)
+std::pair<u8, u8> ReadPair<u8>(PowerPC::MMU& mmu, const u32 addr)
 {
   const u16 val = mmu.Read_U16(addr);
-  return {u8(val >> 8), u8(val)};
+  return {static_cast<u8>(val >> 8), static_cast<u8>(val)};
 }
 
 template <>
-std::pair<u16, u16> ReadPair<u16>(PowerPC::MMU& mmu, u32 addr)
+std::pair<u16, u16> ReadPair<u16>(PowerPC::MMU& mmu, const u32 addr)
 {
   const u32 val = mmu.Read_U32(addr);
-  return {u16(val >> 16), u16(val)};
+  return {static_cast<u16>(val >> 16), static_cast<u16>(val)};
 }
 
 template <>
-std::pair<u32, u32> ReadPair<u32>(PowerPC::MMU& mmu, u32 addr)
+std::pair<u32, u32> ReadPair<u32>(PowerPC::MMU& mmu, const u32 addr)
 {
   const u64 val = mmu.Read_U64(addr);
-  return {u32(val >> 32), u32(val)};
+  return {static_cast<u32>(val >> 32), static_cast<u32>(val)};
 }
 
 template <typename T>
 static void WriteUnpaired(PowerPC::MMU& mmu, T val, u32 addr);
 
 template <>
-void WriteUnpaired<u8>(PowerPC::MMU& mmu, u8 val, u32 addr)
+void WriteUnpaired<u8>(PowerPC::MMU& mmu, const u8 val, const u32 addr)
 {
   mmu.Write_U8(val, addr);
 }
 
 template <>
-void WriteUnpaired<u16>(PowerPC::MMU& mmu, u16 val, u32 addr)
+void WriteUnpaired<u16>(PowerPC::MMU& mmu, const u16 val, const u32 addr)
 {
   mmu.Write_U16(val, addr);
 }
 
 template <>
-void WriteUnpaired<u32>(PowerPC::MMU& mmu, u32 val, u32 addr)
+void WriteUnpaired<u32>(PowerPC::MMU& mmu, const u32 val, const u32 addr)
 {
   mmu.Write_U32(val, addr);
 }
@@ -138,25 +138,25 @@ template <typename T>
 static void WritePair(PowerPC::MMU& mmu, T val1, T val2, u32 addr);
 
 template <>
-void WritePair<u8>(PowerPC::MMU& mmu, u8 val1, u8 val2, u32 addr)
+void WritePair<u8>(PowerPC::MMU& mmu, u8 val1, u8 val2, const u32 addr)
 {
   mmu.Write_U16((u16{val1} << 8) | u16{val2}, addr);
 }
 
 template <>
-void WritePair<u16>(PowerPC::MMU& mmu, u16 val1, u16 val2, u32 addr)
+void WritePair<u16>(PowerPC::MMU& mmu, u16 val1, u16 val2, const u32 addr)
 {
   mmu.Write_U32((u32{val1} << 16) | u32{val2}, addr);
 }
 
 template <>
-void WritePair<u32>(PowerPC::MMU& mmu, u32 val1, u32 val2, u32 addr)
+void WritePair<u32>(PowerPC::MMU& mmu, u32 val1, u32 val2, const u32 addr)
 {
   mmu.Write_U64((u64{val1} << 32) | u64{val2}, addr);
 }
 
 template <typename T>
-void QuantizeAndStore(PowerPC::MMU& mmu, double ps0, double ps1, u32 addr, u32 instW, u32 st_scale)
+void QuantizeAndStore(PowerPC::MMU& mmu, const double ps0, const double ps1, const u32 addr, const u32 instW, const u32 st_scale)
 {
   using U = std::make_unsigned_t<T>;
 
@@ -172,8 +172,8 @@ void QuantizeAndStore(PowerPC::MMU& mmu, double ps0, double ps1, u32 addr, u32 i
   }
 }
 
-static void Helper_Quantize(PowerPC::MMU& mmu, const PowerPC::PowerPCState* ppcs, u32 addr,
-                            u32 instI, u32 instRS, u32 instW)
+static void Helper_Quantize(PowerPC::MMU& mmu, const PowerPC::PowerPCState* ppcs, const u32 addr,
+                            const u32 instI, const u32 instRS, const u32 instW)
 {
   const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   const EQuantizeType st_type = gqr.st_type;
@@ -228,7 +228,7 @@ static void Helper_Quantize(PowerPC::MMU& mmu, const PowerPC::PowerPCState* ppcs
 }
 
 template <typename T>
-std::pair<double, double> LoadAndDequantize(PowerPC::MMU& mmu, u32 addr, u32 instW, u32 ld_scale)
+std::pair<double, double> LoadAndDequantize(PowerPC::MMU& mmu, const u32 addr, const u32 instW, const u32 ld_scale)
 {
   using U = std::make_unsigned_t<T>;
 
@@ -236,21 +236,21 @@ std::pair<double, double> LoadAndDequantize(PowerPC::MMU& mmu, u32 addr, u32 ins
   if (instW != 0)
   {
     const U value = ReadUnpaired<U>(mmu, addr);
-    ps0 = float(T(value)) * m_dequantizeTable[ld_scale];
+    ps0 = static_cast<float>(T(value)) * m_dequantizeTable[ld_scale];
     ps1 = 1.0f;
   }
   else
   {
     const auto [first, second] = ReadPair<U>(mmu, addr);
-    ps0 = float(T(first)) * m_dequantizeTable[ld_scale];
-    ps1 = float(T(second)) * m_dequantizeTable[ld_scale];
+    ps0 = static_cast<float>(T(first)) * m_dequantizeTable[ld_scale];
+    ps1 = static_cast<float>(T(second)) * m_dequantizeTable[ld_scale];
   }
   // ps0 and ps1 always contain finite and normal numbers. So we can just cast them to double
   return {static_cast<double>(ps0), static_cast<double>(ps1)};
 }
 
-static void Helper_Dequantize(PowerPC::MMU& mmu, PowerPC::PowerPCState* ppcs, u32 addr, u32 instI,
-                              u32 instRD, u32 instW)
+static void Helper_Dequantize(PowerPC::MMU& mmu, PowerPC::PowerPCState* ppcs, const u32 addr, const u32 instI,
+                              const u32 instRD, const u32 instW)
 {
   const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   const EQuantizeType ld_type = gqr.ld_type;
@@ -318,7 +318,7 @@ void Interpreter::psq_l(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
+  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + static_cast<u32>(inst.SIMM_12)) : static_cast<u32>(inst.SIMM_12);
   Helper_Dequantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RD, inst.W);
 }
 
@@ -331,7 +331,7 @@ void Interpreter::psq_lu(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 EA = ppc_state.gpr[inst.RA] + u32(inst.SIMM_12);
+  const u32 EA = ppc_state.gpr[inst.RA] + static_cast<u32>(inst.SIMM_12);
   Helper_Dequantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RD, inst.W);
 
   if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
@@ -351,7 +351,7 @@ void Interpreter::psq_st(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
+  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + static_cast<u32>(inst.SIMM_12)) : static_cast<u32>(inst.SIMM_12);
   Helper_Quantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RS, inst.W);
 }
 
@@ -364,7 +364,7 @@ void Interpreter::psq_stu(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 EA = ppc_state.gpr[inst.RA] + u32(inst.SIMM_12);
+  const u32 EA = ppc_state.gpr[inst.RA] + static_cast<u32>(inst.SIMM_12);
   Helper_Quantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RS, inst.W);
 
   if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)

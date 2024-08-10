@@ -20,15 +20,14 @@ template <class T>
 {
   if (count == std::dynamic_extent || offset > span.size())
     return span.subspan(std::min(offset, span.size()));
-  else
-    return span.subspan(offset, std::min(count, span.size() - offset));
+  return span.subspan(offset, std::min(count, span.size() - offset));
 }
 
 // Default-constructs an object of type T, then copies data into it from the specified offset in
 // the specified span. Out-of-bounds reads will be skipped, meaning that specifying a too large
 // offset results in the object partially or entirely remaining default constructed.
 template <class T>
-[[nodiscard]] T SafeSpanRead(std::span<const u8> span, size_t offset)
+[[nodiscard]] T SafeSpanRead(const std::span<const u8> span, const size_t offset)
 {
   static_assert(std::is_trivially_copyable<T>());
 

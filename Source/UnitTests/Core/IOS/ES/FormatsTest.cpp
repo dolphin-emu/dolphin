@@ -14,11 +14,11 @@ TEST(ESFormats, TitleType)
   EXPECT_TRUE(IOS::ES::IsTitleType(Titles::SYSTEM_MENU, IOS::ES::TitleType::System));
   EXPECT_FALSE(IOS::ES::IsDiscTitle(Titles::SYSTEM_MENU));
 
-  const u64 ios59_title_id = 0x000000010000003b;
+  constexpr u64 ios59_title_id = 0x000000010000003b;
   EXPECT_TRUE(IOS::ES::IsTitleType(ios59_title_id, IOS::ES::TitleType::System));
   EXPECT_FALSE(IOS::ES::IsDiscTitle(ios59_title_id));
 
-  const u64 ztp_title_id = 0x00010000525a4445;
+  constexpr u64 ztp_title_id = 0x00010000525a4445;
   EXPECT_TRUE(IOS::ES::IsTitleType(ztp_title_id, IOS::ES::TitleType::Game));
   EXPECT_TRUE(IOS::ES::IsDiscTitle(ztp_title_id));
 }
@@ -31,24 +31,24 @@ TEST(TMDReader, Validity)
   tmd = IOS::ES::TMDReader{{1, 2, 3}};
   EXPECT_FALSE(tmd.IsValid()) << "IsValid should be false when reading an invalid TMD";
 
-  tmd = IOS::ES::TMDReader{std::vector<u8>(soup01_tmd.cbegin(), soup01_tmd.cend() - 1)};
+  tmd = IOS::ES::TMDReader{std::vector(soup01_tmd.cbegin(), soup01_tmd.cend() - 1)};
   EXPECT_FALSE(tmd.IsValid()) << "IsValid should be false when reading an invalid TMD";
 
-  tmd = IOS::ES::TMDReader{std::vector<u8>(soup01_tmd.cbegin(), soup01_tmd.cend())};
+  tmd = IOS::ES::TMDReader{std::vector(soup01_tmd.cbegin(), soup01_tmd.cend())};
   EXPECT_TRUE(tmd.IsValid()) << "IsValid should be true when reading a valid TMD";
 
-  tmd = IOS::ES::TMDReader{std::vector<u8>(ios59_tmd.cbegin(), ios59_tmd.cend())};
+  tmd = IOS::ES::TMDReader{std::vector(ios59_tmd.cbegin(), ios59_tmd.cend())};
   EXPECT_TRUE(tmd.IsValid()) << "IsValid should be true when reading a valid TMD";
 }
 
-class TMDReaderTest : public ::testing::Test
+class TMDReaderTest : public testing::Test
 {
 protected:
   virtual void SetUp() = 0;
 
   // Common tests.
-  void TestGeneralInfo();
-  void TestRawTMDAndView();
+  void TestGeneralInfo() const;
+  void TestRawTMDAndView() const;
 
   // Expected data.
   virtual u64 GetTitleId() const = 0;
@@ -66,14 +66,14 @@ void TMDReaderTest::SetUp()
   ASSERT_TRUE(m_tmd.IsValid()) << "BUG: The test TMD should be valid.";
 }
 
-void TMDReaderTest::TestGeneralInfo()
+void TMDReaderTest::TestGeneralInfo() const
 {
   EXPECT_EQ(m_tmd.GetTitleId(), GetTitleId());
   EXPECT_EQ(m_tmd.GetIOSId(), GetIOSId());
   EXPECT_EQ(m_tmd.GetGameID(), GetGameID());
 }
 
-void TMDReaderTest::TestRawTMDAndView()
+void TMDReaderTest::TestRawTMDAndView() const
 {
   const std::vector<u8>& dolphin_tmd_bytes = m_tmd.GetBytes();
   // Separate check because gtest prints neither the size nor the full buffer.
@@ -91,7 +91,7 @@ class GameTMDReaderTest : public TMDReaderTest
 protected:
   void SetUp() override
   {
-    m_raw_tmd = std::vector<u8>(soup01_tmd.cbegin(), soup01_tmd.cend());
+    m_raw_tmd = std::vector(soup01_tmd.cbegin(), soup01_tmd.cend());
     TMDReaderTest::SetUp();
   }
   u64 GetTitleId() const override { return 0x00010000534f5550; }
@@ -99,7 +99,7 @@ protected:
   std::string GetGameID() const override { return "SOUP01"; }
   std::vector<u8> GetRawView() const override
   {
-    return std::vector<u8>(soup01_tmd_view.cbegin(), soup01_tmd_view.cend());
+    return std::vector(soup01_tmd_view.cbegin(), soup01_tmd_view.cend());
   }
 };
 
@@ -141,7 +141,7 @@ TEST_F(GameTMDReaderTest, ContentInfo)
   EXPECT_FALSE(m_tmd.GetContent(1, &content)) << "Content with index 1 should not exist";
 
   const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
-  ASSERT_EQ(contents.size(), size_t(1));
+  ASSERT_EQ(contents.size(), static_cast<size_t>(1));
   check_is_expected_content(contents.at(0));
 }
 
@@ -150,7 +150,7 @@ class IOSTMDReaderTest : public TMDReaderTest
 protected:
   void SetUp() override
   {
-    m_raw_tmd = std::vector<u8>(ios59_tmd.cbegin(), ios59_tmd.cend());
+    m_raw_tmd = std::vector(ios59_tmd.cbegin(), ios59_tmd.cend());
     TMDReaderTest::SetUp();
   }
   u64 GetTitleId() const override { return 0x000000010000003b; }
@@ -158,7 +158,7 @@ protected:
   std::string GetGameID() const override { return "000000010000003b"; }
   std::vector<u8> GetRawView() const override
   {
-    return std::vector<u8>(ios59_tmd_view.cbegin(), ios59_tmd_view.cend());
+    return std::vector(ios59_tmd_view.cbegin(), ios59_tmd_view.cend());
   }
 };
 
@@ -205,7 +205,7 @@ TEST_F(IOSTMDReaderTest, ContentInfo)
   };
 
   const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
-  ASSERT_EQ(contents.size(), size_t(23));
+  ASSERT_EQ(contents.size(), static_cast<size_t>(23));
 
   IOS::ES::Content content;
 

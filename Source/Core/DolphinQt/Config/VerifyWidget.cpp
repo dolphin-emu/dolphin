@@ -13,7 +13,6 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
-#include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
@@ -26,7 +25,7 @@
 
 VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(std::move(volume))
 {
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   CreateWidgets();
   ConnectWidgets();
@@ -45,10 +44,10 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &VerifyWidget::OnEmulationStateChanged);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 }
 
-void VerifyWidget::OnEmulationStateChanged(Core::State state)
+void VerifyWidget::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -76,13 +75,13 @@ void VerifyWidget::CreateWidgets()
   std::tie(m_md5_checkbox, m_md5_line_edit) = AddHashLine(m_hash_layout, tr("MD5:"));
   std::tie(m_sha1_checkbox, m_sha1_line_edit) = AddHashLine(m_hash_layout, tr("SHA-1:"));
 
-  const auto default_to_calculate = DiscIO::VolumeVerifier::GetDefaultHashesToCalculate();
-  m_crc32_checkbox->setChecked(default_to_calculate.crc32);
-  m_md5_checkbox->setChecked(default_to_calculate.md5);
-  m_sha1_checkbox->setChecked(default_to_calculate.sha1);
+  const auto [crc32, md5, sha1] = DiscIO::VolumeVerifier::GetDefaultHashesToCalculate();
+  m_crc32_checkbox->setChecked(crc32);
+  m_md5_checkbox->setChecked(md5);
+  m_sha1_checkbox->setChecked(sha1);
 
   m_redump_layout = new QFormLayout;
-  if (DiscIO::IsDisc(m_volume->GetVolumeType()))
+  if (IsDisc(m_volume->GetVolumeType()))
   {
     std::tie(m_redump_checkbox, m_redump_line_edit) =
         AddHashLine(m_redump_layout, tr("Redump.org Status:"));
@@ -102,13 +101,13 @@ void VerifyWidget::CreateWidgets()
   m_verify_button = new QPushButton(tr("Verify Integrity"), this);
 }
 
-std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout, QString text)
+std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout, const QString& text)
 {
-  QLineEdit* line_edit = new QLineEdit(this);
+  auto line_edit = new QLineEdit(this);
   line_edit->setReadOnly(true);
-  QCheckBox* checkbox = new QCheckBox(tr("Calculate"), this);
+  auto checkbox = new QCheckBox(tr("Calculate"), this);
 
-  QHBoxLayout* hbox_layout = new QHBoxLayout;
+  auto hbox_layout = new QHBoxLayout;
   hbox_layout->addWidget(line_edit);
   hbox_layout->addWidget(checkbox);
 
@@ -138,7 +137,7 @@ bool VerifyWidget::CanVerifyRedump() const
   return m_md5_checkbox->isChecked() || m_sha1_checkbox->isChecked();
 }
 
-void VerifyWidget::UpdateRedumpEnabled()
+void VerifyWidget::UpdateRedumpEnabled() const
 {
   if (m_redump_checkbox)
     m_redump_checkbox->setEnabled(CanVerifyRedump());
@@ -185,7 +184,7 @@ void VerifyWidget::Verify()
   SetQWidgetWindowDecorations(progress.GetRaw());
   progress.GetRaw()->exec();
 
-  std::optional<DiscIO::VolumeVerifier::Result> result = future.get();
+  const std::optional<DiscIO::VolumeVerifier::Result> result = future.get();
   if (!result)
     return;
 
@@ -194,10 +193,10 @@ void VerifyWidget::Verify()
   m_problems->setRowCount(static_cast<int>(result->problems.size()));
   for (int i = 0; i < m_problems->rowCount(); ++i)
   {
-    const DiscIO::VolumeVerifier::Problem problem = result->problems[i];
+    const auto [problem_severity, text] = result->problems[i];
 
     QString severity;
-    switch (problem.severity)
+    switch (problem_severity)
     {
     case DiscIO::VolumeVerifier::Severity::Low:
       severity = tr("Low");
@@ -212,7 +211,7 @@ void VerifyWidget::Verify()
       break;
     }
 
-    SetProblemCellText(i, 0, QString::fromStdString(problem.text));
+    SetProblemCellText(i, 0, QString::fromStdString(text));
     SetProblemCellText(i, 1, severity);
   }
 
@@ -224,9 +223,9 @@ void VerifyWidget::Verify()
     m_redump_line_edit->setText(QString::fromStdString(result->redump.message));
 }
 
-void VerifyWidget::SetProblemCellText(int row, int column, QString text)
+void VerifyWidget::SetProblemCellText(const int row, const int column, const QString& text) const
 {
-  QLabel* label = new QLabel(text);
+  auto label = new QLabel(text);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);
   label->setWordWrap(true);
   label->setMargin(4);

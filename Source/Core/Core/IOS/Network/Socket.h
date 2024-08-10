@@ -281,13 +281,13 @@ public:
   s32 ShutdownSocket(s32 wii_fd, u32 how);
   s32 DeleteSocket(s32 wii_fd);
   s32 GetLastNetError() const { return errno_last; }
-  void SetLastNetError(s32 error) { errno_last = error; }
+  void SetLastNetError(const s32 error) { errno_last = error; }
   void Clean() { WiiSockets.clear(); }
   void EnqueueIPCReply(const Request& request, s32 return_value) const;
   template <typename T>
   void DoSock(s32 sock, const Request& request, T type)
   {
-    auto socket_entry = WiiSockets.find(sock);
+    const auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
       ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,

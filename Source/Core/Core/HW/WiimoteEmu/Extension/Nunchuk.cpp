@@ -3,12 +3,10 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
-#include <algorithm>
 #include <array>
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -43,7 +41,7 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
   m_buttons->AddInput(Translatability::DoNotTranslate, Z_BUTTON);
 
   // stick
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  constexpr auto gate_radius = static_cast<ControlState>(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_stick = new ControllerEmu::OctagonAnalogStick(STICK_GROUP, gate_radius));
 
   // Shake
@@ -108,7 +106,7 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   Common::Vec3 accel =
       transformation *
       (m_swing_state.acceleration +
-       m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, float(GRAVITY_ACCELERATION))));
+       m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, GRAVITY_ACCELERATION)));
 
   // shake
   accel += m_shake_state.acceleration;
@@ -166,7 +164,7 @@ void Nunchuk::Reset()
   UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
-ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
+ControllerEmu::ControlGroup* Nunchuk::GetGroup(const NunchukGroup group) const
 {
   switch (group)
   {

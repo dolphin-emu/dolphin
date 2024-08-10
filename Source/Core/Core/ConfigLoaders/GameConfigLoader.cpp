@@ -32,7 +32,7 @@
 namespace ConfigLoaders
 {
 // Returns all possible filenames in ascending order of priority
-std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optional<u16> revision)
+std::vector<std::string> GetGameIniFilenames(const std::string& id, const std::optional<u16> revision)
 {
   std::vector<std::string> filenames;
 
@@ -147,27 +147,27 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
 static std::pair<std::string, std::string> GetINILocationFromConfig(const Location& location)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
-  const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
-                               [&location](const auto& entry) { return entry.second == location; });
+  const auto it = std::ranges::find_if(ini_to_location, [&location](const auto& entry) {
+    return entry.second == location;
+  });
   if (it != ini_to_location.end())
     return it->first;
 
   static const INIToSectionMap& ini_to_section = GetINIToSectionMap();
-  const auto it2 =
-      std::find_if(ini_to_section.begin(), ini_to_section.end(), [&location](const auto& entry) {
-        return entry.second.first == location.system && entry.second.second == location.section;
-      });
+  const auto it2 = std::ranges::find_if(ini_to_section, [&location](const auto& entry) {
+    return entry.second.first == location.system && entry.second.second == location.section;
+  });
   if (it2 != ini_to_section.end())
     return {it2->first, location.key};
 
-  return {Config::GetSystemName(location.system) + "." + location.section, location.key};
+  return {GetSystemName(location.system) + "." + location.section, location.key};
 }
 
 // INI Game layer configuration loader
 class INIGameConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
-  INIGameConfigLayerLoader(const std::string& id, u16 revision, bool global)
+  INIGameConfigLayerLoader(const std::string& id, const u16 revision, const bool global)
       : ConfigLayerLoader(global ? Config::LayerType::GlobalGame : Config::LayerType::LocalGame),
         m_id(id), m_revision(revision)
   {
@@ -203,7 +203,7 @@ private:
   void LoadControllerConfig(Config::Layer* layer) const
   {
     // Game INIs can have controller profiles embedded in to them
-    static const std::array<char, 4> nums = {{'1', '2', '3', '4'}};
+    static constexpr std::array<char, 4> nums = {{'1', '2', '3', '4'}};
 
     if (m_id == "00000000")
       return;
@@ -240,27 +240,26 @@ private:
 
           const auto* ini_section = profile_ini.GetOrCreateSection("Profile");
           const auto& section_map = ini_section->GetValues();
-          for (const auto& value : section_map)
+          for (const auto& [fst, snd] : section_map)
           {
-            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num,
-                                      value.first};
-            layer->Set(location, value.second);
+            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num, fst};
+            layer->Set(location, snd);
           }
         }
       }
     }
   }
 
-  void LoadFromSystemSection(Config::Layer* layer, const Common::IniFile::Section& section) const
+  static void LoadFromSystemSection(Config::Layer* layer, const Common::IniFile::Section& section)
   {
     const std::string section_name = section.GetName();
 
     // Regular key,value pairs
     const auto& section_map = section.GetValues();
 
-    for (const auto& value : section_map)
+    for (const auto& [fst, snd] : section_map)
     {
-      const auto location = MapINIToRealLocation(section_name, value.first);
+      const auto location = MapINIToRealLocation(section_name, fst);
 
       if (location.section.empty() && location.key.empty())
         continue;
@@ -268,7 +267,7 @@ private:
       if (location.system == Config::System::Session)
         continue;
 
-      layer->Set(location, value.second);
+      layer->Set(location, snd);
     }
   }
 
@@ -285,26 +284,23 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
     ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
 
-  for (const auto& config : layer->GetLayerMap())
+  for (const auto& [location, value] : layer->GetLayerMap())
   {
-    const Config::Location& location = config.first;
-    const std::optional<std::string>& value = config.second;
-
     if (!IsSettingSaveable(location) || location.system == Config::System::Session)
       continue;
 
-    const auto ini_location = GetINILocationFromConfig(location);
-    if (ini_location.first.empty() && ini_location.second.empty())
+    const auto [fst, snd] = GetINILocationFromConfig(location);
+    if (fst.empty() && snd.empty())
       continue;
 
     if (value)
     {
-      auto* ini_section = ini.GetOrCreateSection(ini_location.first);
-      ini_section->Set(ini_location.second, *value);
+      auto* ini_section = ini.GetOrCreateSection(fst);
+      ini_section->Set(snd, *value);
     }
     else
     {
-      ini.DeleteKey(ini_location.first, ini_location.second);
+      ini.DeleteKey(fst, snd);
     }
   }
 

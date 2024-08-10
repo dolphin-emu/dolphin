@@ -36,13 +36,13 @@ void PerformanceMetrics::CountVBlank()
   m_vps_counter.Count();
 }
 
-void PerformanceMetrics::CountThrottleSleep(DT sleep)
+void PerformanceMetrics::CountThrottleSleep(const DT sleep)
 {
   std::unique_lock lock(m_time_lock);
   m_time_sleeping += sleep;
 }
 
-void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
+void PerformanceMetrics::CountPerformanceMarker(const Core::System& system, const s64 cyclesLate)
 {
   std::unique_lock lock(m_time_lock);
   m_speed_counter.Count();
@@ -70,8 +70,8 @@ double PerformanceMetrics::GetSpeed() const
 double PerformanceMetrics::GetMaxSpeed() const
 {
   std::shared_lock lock(m_time_lock);
-  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
-         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
+  return DT_s(m_cpu_times[static_cast<u8>(m_time_index - 1)] - m_cpu_times[m_time_index]) /
+         DT_s(m_real_times[static_cast<u8>(m_time_index - 1)] - m_real_times[m_time_index]);
 }
 
 double PerformanceMetrics::GetLastSpeedDenominator() const
@@ -82,11 +82,11 @@ double PerformanceMetrics::GetLastSpeedDenominator() const
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
-  const float bg_alpha = 0.7f;
-  const auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
+  constexpr float bg_alpha = 0.7f;
+  constexpr auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                               ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                               ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
 
   const double fps = GetFPS();
   const double vps = GetVPS();
@@ -127,7 +127,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     if (ImGui::Begin("PerformanceGraphs", nullptr, imgui_flags))
     {
       static constexpr std::size_t num_ticks = 17;
-      static constexpr std::array<double, num_ticks> tick_marks = {0.0,
+      static constexpr std::array tick_marks = {0.0,
                                                                    1000.0 / 360.0,
                                                                    1000.0 / 240.0,
                                                                    1000.0 / 180.0,
@@ -190,7 +190,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   if (g_ActiveConfig.bShowSpeed)
   {
     // Position in the top-right corner of the screen.
-    float window_height = 47.f * backbuffer_scale;
+    const float window_height = 47.f * backbuffer_scale;
 
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
@@ -211,8 +211,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
   if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowFTimes)
   {
-    int count = g_ActiveConfig.bShowFPS + 2 * g_ActiveConfig.bShowFTimes;
-    float window_height = (12.f + 17.f * count) * backbuffer_scale;
+    const int count = g_ActiveConfig.bShowFPS + 2 * g_ActiveConfig.bShowFTimes;
+    const float window_height = (12.f + 17.f * count) * backbuffer_scale;
 
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
@@ -241,8 +241,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
   if (g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes)
   {
-    int count = g_ActiveConfig.bShowVPS + 2 * g_ActiveConfig.bShowVTimes;
-    float window_height = (12.f + 17.f * count) * backbuffer_scale;
+    const int count = g_ActiveConfig.bShowVPS + 2 * g_ActiveConfig.bShowVTimes;
+    const float window_height = (12.f + 17.f * count) * backbuffer_scale;
 
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));

@@ -4,7 +4,6 @@
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 
 #include <optional>
-#include <sstream>
 #include <string>
 
 #include <picojson.h>
@@ -151,7 +150,7 @@ bool Configuration::GenerateTexture(const Common::IniFile& file,
 
         for (const auto& rect : rects)
         {
-          InputCommon::ImagePixelData pixel_data;
+          ImagePixelData pixel_data;
           if (host_key_image->width == rect.GetWidth() &&
               host_key_image->height == rect.GetHeight())
           {

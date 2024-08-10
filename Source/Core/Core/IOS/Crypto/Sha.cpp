@@ -3,17 +3,13 @@
 
 #include "Core/IOS/Crypto/Sha.h"
 
-#include <algorithm>
 #include <array>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include <vector>
 
 #include <mbedtls/sha1.h>
 
-#include "Common/Assert.h"
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
@@ -33,25 +29,25 @@ std::optional<IPCReply> ShaDevice::Open(const OpenRequest& request)
 
 static void ConvertContext(const ShaDevice::ShaContext& src, mbedtls_sha1_context* dest)
 {
-  std::copy(std::begin(src.length), std::end(src.length), std::begin(dest->total));
-  std::copy(std::begin(src.states), std::end(src.states), std::begin(dest->state));
+  std::ranges::copy(src.length, std::begin(dest->total));
+  std::ranges::copy(src.states, std::begin(dest->state));
 }
 
 static void ConvertContext(const mbedtls_sha1_context& src, ShaDevice::ShaContext* dest)
 {
-  std::copy(std::begin(src.total), std::end(src.total), std::begin(dest->length));
-  std::copy(std::begin(src.state), std::end(src.state), std::begin(dest->states));
+  std::ranges::copy(src.total, std::begin(dest->length));
+  std::ranges::copy(src.state, std::begin(dest->states));
 }
 
-HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request)
+ReturnCode ShaDevice::ProcessShaCommand(const ShaIoctlv command, const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   auto ret = 0;
   std::array<u8, 20> output_hash{};
   mbedtls_sha1_context context;
-  ShaDevice::ShaContext engine_context;
-  memory.CopyFromEmu(&engine_context, request.io_vectors[0].address, sizeof(ShaDevice::ShaContext));
+  ShaContext engine_context;
+  memory.CopyFromEmu(&engine_context, request.io_vectors[0].address, sizeof(ShaContext));
   ConvertContext(engine_context, &context);
 
   // reset the context
@@ -71,18 +67,18 @@ HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequ
   }
 
   ConvertContext(context, &engine_context);
-  memory.CopyToEmu(request.io_vectors[0].address, &engine_context, sizeof(ShaDevice::ShaContext));
+  memory.CopyToEmu(request.io_vectors[0].address, &engine_context, sizeof(ShaContext));
   if (!ret && command == ShaIoctlv::FinalizeState)
     memory.CopyToEmu(request.io_vectors[1].address, output_hash.data(), output_hash.size());
 
   mbedtls_sha1_free(&context);
-  return ret ? HLE::ReturnCode::IPC_EACCES : HLE::ReturnCode::IPC_SUCCESS;
+  return ret ? IPC_EACCES : IPC_SUCCESS;
 }
 
 std::optional<IPCReply> ShaDevice::IOCtlV(const IOCtlVRequest& request)
 {
-  HLE::ReturnCode return_code = IPC_EINVAL;
-  ShaIoctlv command = static_cast<ShaIoctlv>(request.request);
+  ReturnCode return_code = IPC_EINVAL;
+  const auto command = static_cast<ShaIoctlv>(request.request);
 
   switch (command)
   {

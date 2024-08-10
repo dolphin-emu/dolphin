@@ -14,7 +14,6 @@
 #include <array>
 #include <memory>
 #include <mutex>
-#include <span>
 #include <tuple>
 
 class AbstractTexture;
@@ -44,7 +43,7 @@ public:
 
   bool Initialize();
 
-  void ConfigChanged(u32 changed_bits);
+  void ConfigChanged(u32 changed_bits) const;
 
   // Window resolution (display resolution if fullscreen)
   int GetBackbufferWidth() const { return m_backbuffer_width; }
@@ -65,11 +64,11 @@ public:
   // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
   // rectangle if it is greater. Works even if the source and target rectangles don't have a
   // 1:1 pixel mapping, scaling as appropriate.
-  void AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
-                                   MathUtil::Rectangle<int>* source_rect, int fb_width,
-                                   int fb_height);
+  static void AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
+                                          MathUtil::Rectangle<int>* source_rect, int fb_width,
+                                          int fb_height);
 
-  void ReleaseXFBContentLock();
+  void ReleaseXFBContentLock() const;
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
@@ -77,7 +76,7 @@ public:
                                  const AbstractTexture* source_texture,
                                  const MathUtil::Rectangle<int>& source_rc);
 
-  VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
+  PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
@@ -86,11 +85,11 @@ public:
   bool SurfaceChangedTestAndClear() { return m_surface_changed.TestAndClear(); }
   void* GetNewSurfaceHandle();
 
-  void SetKeyMap(const DolphinKeyMap& key_map);
+  void SetKeyMap(const DolphinKeyMap& key_map) const;
 
-  void SetKey(u32 key, bool is_down, const char* chars);
-  void SetMousePos(float x, float y);
-  void SetMousePress(u32 button_mask);
+  void SetKey(u32 key, bool is_down, const char* chars) const;
+  void SetMousePos(float x, float y) const;
+  void SetMousePress(u32 button_mask) const;
 
   int FrameCount() const { return m_frame_count; }
 
@@ -111,8 +110,8 @@ private:
   // also accounting for crop and other minor adjustments
   std::tuple<int, int> CalculateOutputDimensions(int width, int height,
                                                  bool allow_stretch = true) const;
-  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
-                                                   bool allow_stretch = true) const;
+  static std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
+                                                          bool allow_stretch = true);
   // Scales a raw XFB resolution to the target (display) aspect ratio
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
                                                      bool allow_stretch = true) const;
@@ -151,8 +150,8 @@ private:
   int m_last_window_request_width = 0;
   int m_last_window_request_height = 0;
 
-  std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
-  std::unique_ptr<VideoCommon::OnScreenUI> m_onscreen_ui;
+  std::unique_ptr<PostProcessing> m_post_processor;
+  std::unique_ptr<OnScreenUI> m_onscreen_ui;
 
   u64 m_frame_count = 0;
   u64 m_present_count = 0;

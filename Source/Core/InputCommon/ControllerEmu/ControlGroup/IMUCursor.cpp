@@ -3,15 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 
-#include <memory>
 #include <string>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 
 namespace ControllerEmu
 {
@@ -23,7 +20,7 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
           // touch controls from being used for pointing, and touch controls generally work better
           ControlGroup::DefaultValue::Disabled)
 #else
-          ControlGroup::DefaultValue::Enabled)
+          DefaultValue::Enabled)
 #endif
 {
   AddInput(Translatability::Translate, _trans("Recenter"));

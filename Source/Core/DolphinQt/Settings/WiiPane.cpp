@@ -9,16 +9,13 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDir>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QSlider>
-#include <QSpacerItem>
 #include <QStringList>
 
 #include "Common/Config/Config.h"
@@ -28,7 +25,6 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/System.h"
 
@@ -47,7 +43,7 @@
 // the other order in the GUI so that Top will be above Bottom,
 // matching the respective physical placements of the sensor bar.
 // This also matches the layout of the settings in the Wii Menu.
-static int TranslateSensorBarPosition(int position)
+static int TranslateSensorBarPosition(const int position)
 {
   if (position == 0)
     return 1;
@@ -64,11 +60,11 @@ struct SDSizeComboEntry
   u64 size;
   const char* name;
 };
-static constexpr u64 MebibytesToBytes(u64 mebibytes)
+static constexpr u64 MebibytesToBytes(const u64 mebibytes)
 {
   return mebibytes * 1024u * 1024u;
 }
-static constexpr u64 GibibytesToBytes(u64 gibibytes)
+static constexpr u64 GibibytesToBytes(const u64 gibibytes)
 {
   return MebibytesToBytes(gibibytes * 1024u);
 }
@@ -93,7 +89,7 @@ WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
   LoadConfig();
   ConnectLayout();
   ValidateSelectionState();
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()) !=
                           Core::State::Uninitialized);
 }
 
@@ -144,7 +140,7 @@ void WiiPane::ConnectLayout()
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 }
@@ -223,7 +219,7 @@ void WiiPane::CreateSDCard()
   ++row;
 
   {
-    QHBoxLayout* hlayout = new QHBoxLayout;
+    auto hlayout = new QHBoxLayout;
     m_sd_raw_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX)));
     connect(m_sd_raw_edit, &QLineEdit::editingFinished,
             [this] { SetSDRaw(m_sd_raw_edit->text()); });
@@ -244,7 +240,7 @@ void WiiPane::CreateSDCard()
   ++row;
 
   {
-    QHBoxLayout* hlayout = new QHBoxLayout;
+    auto hlayout = new QHBoxLayout;
     m_sd_sync_folder_edit =
         new QLineEdit(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)));
     connect(m_sd_sync_folder_edit, &QLineEdit::editingFinished,
@@ -269,7 +265,7 @@ void WiiPane::CreateSDCard()
   m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
   m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
   connect(m_sd_pack_button, &QPushButton::clicked, [this] {
-    auto result = ModalMessageBox::warning(
+    const auto result = ModalMessageBox::warning(
         this, tr("Convert Folder to File Now"),
         tr("You are about to convert the content of the folder at %1 into the file at %2. All "
            "current content of the file will be deleted. Are you sure you want to continue?")
@@ -294,7 +290,7 @@ void WiiPane::CreateSDCard()
     }
   });
   connect(m_sd_unpack_button, &QPushButton::clicked, [this] {
-    auto result = ModalMessageBox::warning(
+    const auto result = ModalMessageBox::warning(
         this, tr("Convert File to Folder Now"),
         tr("You are about to convert the content of the file at %2 into the folder at %1. All "
            "current content of the folder will be deleted. Are you sure you want to continue?")
@@ -329,12 +325,12 @@ void WiiPane::CreateWhitelistedUSBPassthroughDevices()
   m_whitelist_usb_add_button = new NonDefaultQPushButton(tr("Add..."));
   m_whitelist_usb_remove_button = new NonDefaultQPushButton(tr("Remove"));
 
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   hlayout->addStretch();
   hlayout->addWidget(m_whitelist_usb_add_button);
   hlayout->addWidget(m_whitelist_usb_remove_button);
 
-  QVBoxLayout* vlayout = new QVBoxLayout;
+  auto vlayout = new QVBoxLayout;
   vlayout->addWidget(m_whitelist_usb_list);
   vlayout->addLayout(hlayout);
 
@@ -381,7 +377,7 @@ void WiiPane::CreateWiiRemoteSettings()
   wii_remote_settings_group_layout->addWidget(m_wiimote_motor, 3, 0, 1, -1);
 }
 
-void WiiPane::OnEmulationStateChanged(bool running)
+void WiiPane::OnEmulationStateChanged(const bool running) const
 {
   m_screensaver_checkbox->setEnabled(!running);
   m_pal60_mode_checkbox->setEnabled(!running);
@@ -397,21 +393,21 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_wiilink_checkbox->setEnabled(!running);
 }
 
-void WiiPane::LoadConfig()
+void WiiPane::LoadConfig() const
 {
-  m_screensaver_checkbox->setChecked(Config::Get(Config::SYSCONF_SCREENSAVER));
-  m_pal60_mode_checkbox->setChecked(Config::Get(Config::SYSCONF_PAL60));
+  m_screensaver_checkbox->setChecked(Get(Config::SYSCONF_SCREENSAVER));
+  m_pal60_mode_checkbox->setChecked(Get(Config::SYSCONF_PAL60));
   m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
-  m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
-  m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
-  m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
-  m_wiilink_checkbox->setChecked(Config::Get(Config::MAIN_WII_WIILINK_ENABLE));
+  m_aspect_ratio_choice->setCurrentIndex(Get(Config::SYSCONF_WIDESCREEN));
+  m_system_language_choice->setCurrentIndex(Get(Config::SYSCONF_LANGUAGE));
+  m_sound_mode_choice->setCurrentIndex(Get(Config::SYSCONF_SOUND_MODE));
+  m_wiilink_checkbox->setChecked(Get(Config::MAIN_WII_WIILINK_ENABLE));
 
   m_sd_card_checkbox->setChecked(Settings::Instance().IsSDCardInserted());
-  m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
-  m_sync_sd_folder_checkbox->setChecked(Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC));
+  m_allow_sd_writes_checkbox->setChecked(Get(Config::MAIN_ALLOW_SD_WRITES));
+  m_sync_sd_folder_checkbox->setChecked(Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC));
 
-  const u64 sd_card_size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
+  const u64 sd_card_size = Get(Config::MAIN_WII_SD_CARD_FILESIZE);
   for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
   {
     if (sd_size_combo_entries[i].size == sd_card_size)
@@ -421,19 +417,21 @@ void WiiPane::LoadConfig()
   PopulateUSBPassthroughListWidget();
 
   m_wiimote_ir_sensor_position->setCurrentIndex(
-      TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
-  m_wiimote_ir_sensitivity->setValue(Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
-  m_wiimote_speaker_volume->setValue(Config::Get(Config::SYSCONF_SPEAKER_VOLUME));
-  m_wiimote_motor->setChecked(Config::Get(Config::SYSCONF_WIIMOTE_MOTOR));
+      TranslateSensorBarPosition(Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
+  m_wiimote_ir_sensitivity->setValue(Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
+  m_wiimote_speaker_volume->setValue(Get(Config::SYSCONF_SPEAKER_VOLUME));
+  m_wiimote_motor->setChecked(Get(Config::SYSCONF_WIIMOTE_MOTOR));
 }
 
-void WiiPane::OnSaveConfig()
+void WiiPane::OnSaveConfig() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
-  Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
-  Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
+  SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
+  SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
+  m_connect_keyboard_checkbox->isChecked() ?
+    Settings::Instance().ConnectUSBKeyboard() :
+    Settings::Instance().DisconnectUSBKeyboard();
 
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
                        TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
@@ -442,24 +440,26 @@ void WiiPane::OnSaveConfig()
   Config::SetBase<u32>(Config::SYSCONF_LANGUAGE, m_system_language_choice->currentIndex());
   Config::SetBase<bool>(Config::SYSCONF_WIDESCREEN, m_aspect_ratio_choice->currentIndex());
   Config::SetBase<u32>(Config::SYSCONF_SOUND_MODE, m_sound_mode_choice->currentIndex());
-  Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
-  Config::SetBase(Config::MAIN_WII_WIILINK_ENABLE, m_wiilink_checkbox->isChecked());
+  SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
+  SetBase(Config::MAIN_WII_WIILINK_ENABLE, m_wiilink_checkbox->isChecked());
 
-  Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
-  Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
-  Config::SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
+  m_sd_card_checkbox->isChecked() ?
+    Settings::Instance().InsertSDCard() :
+    Settings::Instance().EjectSDCard();
+  SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
+  SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
                   m_sync_sd_folder_checkbox->isChecked());
 
   const int sd_card_size_index = m_sd_card_size_combo->currentIndex();
   if (sd_card_size_index >= 0 &&
       static_cast<size_t>(sd_card_size_index) < sd_size_combo_entries.size())
   {
-    Config::SetBase(Config::MAIN_WII_SD_CARD_FILESIZE,
+    SetBase(Config::MAIN_WII_SD_CARD_FILESIZE,
                     sd_size_combo_entries[sd_card_size_index].size);
   }
 }
 
-void WiiPane::ValidateSelectionState()
+void WiiPane::ValidateSelectionState() const
 {
   m_whitelist_usb_remove_button->setEnabled(m_whitelist_usb_list->currentIndex().isValid());
 }
@@ -473,12 +473,12 @@ void WiiPane::OnUSBWhitelistAddButton()
   usb_whitelist_dialog.exec();
 }
 
-void WiiPane::OnUSBWhitelistRemoveButton()
+void WiiPane::OnUSBWhitelistRemoveButton() const
 {
-  QString device = m_whitelist_usb_list->currentItem()->text().left(9);
+  const QString device = m_whitelist_usb_list->currentItem()->text().left(9);
   QStringList split = device.split(QString::fromStdString(":"));
-  QString vid = QString(split[0]);
-  QString pid = QString(split[1]);
+  const auto vid = QString(split[0]);
+  const auto pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
   auto whitelist = Config::GetUSBDeviceWhitelist();
@@ -487,13 +487,13 @@ void WiiPane::OnUSBWhitelistRemoveButton()
   PopulateUSBPassthroughListWidget();
 }
 
-void WiiPane::PopulateUSBPassthroughListWidget()
+void WiiPane::PopulateUSBPassthroughListWidget() const
 {
   m_whitelist_usb_list->clear();
-  auto whitelist = Config::GetUSBDeviceWhitelist();
+  const auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : whitelist)
   {
-    QListWidgetItem* usb_lwi =
+    auto usb_lwi =
         new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));
     m_whitelist_usb_list->addItem(usb_lwi);
   }
@@ -502,32 +502,31 @@ void WiiPane::PopulateUSBPassthroughListWidget()
 
 void WiiPane::BrowseSDRaw()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+  const QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select SD Card Image"),
-      QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)),
-      tr("SD Card Image (*.raw);;"
-         "All Files (*)")));
+      QString::fromStdString(Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)), tr("SD Card Image (*.raw);;"
+          "All Files (*)")));
   if (!file.isEmpty())
     SetSDRaw(file);
 }
 
-void WiiPane::SetSDRaw(const QString& path)
+void WiiPane::SetSDRaw(const QString& path) const
 {
-  Config::SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, path.toStdString());
+  SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, path.toStdString());
   SignalBlocking(m_sd_raw_edit)->setText(path);
 }
 
 void WiiPane::BrowseSDSyncFolder()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+  const QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select a Folder to Sync with the SD Card Image"),
-      QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH))));
+      QString::fromStdString(Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH))));
   if (!file.isEmpty())
     SetSDSyncFolder(file);
 }
 
-void WiiPane::SetSDSyncFolder(const QString& path)
+void WiiPane::SetSDSyncFolder(const QString& path) const
 {
-  Config::SetBase(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH, path.toStdString());
+  SetBase(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH, path.toStdString());
   SignalBlocking(m_sd_sync_folder_edit)->setText(path);
 }

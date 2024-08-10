@@ -18,7 +18,7 @@
 
 namespace TextureConversionShaderTiled
 {
-u16 GetEncodedSampleCount(EFBCopyFormat format)
+u16 GetEncodedSampleCount(const EFBCopyFormat format)
 {
   switch (format)
   {
@@ -99,7 +99,7 @@ static void WriteHeader(ShaderCode& code, APIType api_type)
              "}}\n");
 }
 
-static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, APIType api_type)
+static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, const APIType api_type)
 {
   code.Write("uint4 SampleEFB0(float2 uv, float2 pixel_size, float x_offset, float y_offset) {{\n"
              "  float4 tex_sample = texture(samp0, float3(uv.x + x_offset * pixel_size.x, ");
@@ -191,7 +191,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
 
 // Block dimensions   : widthStride, heightStride
 // Texture dimensions : width, height, x offset, y offset
-static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, APIType api_type)
+static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, const APIType api_type)
 {
   code.Write("void main()\n"
              "{{\n"
@@ -256,7 +256,7 @@ static void WriteToBitDepth(ShaderCode& code, u8 depth, std::string_view src, st
   code.Write("  {} = floor({} * 255.0 / exp2(8.0 - {}.0));\n", dest, src, depth);
 }
 
-static void WriteRGB565Encoder(ShaderCode& code, APIType api_type, const EFBCopyParams& params)
+static void WriteRGB565Encoder(ShaderCode& code, const APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  float3 texSample0;\n"
              "  float3 texSample1;\n");
@@ -279,7 +279,7 @@ static void WriteRGB565Encoder(ShaderCode& code, APIType api_type, const EFBCopy
   code.Write("  ocol0 = ocol0 / 255.0;\n");
 }
 
-static void WriteRGB5A3Encoder(ShaderCode& code, APIType api_type, const EFBCopyParams& params)
+static void WriteRGB5A3Encoder(ShaderCode& code, const APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  float4 texSample;\n"
              "  float color0;\n"
@@ -340,7 +340,7 @@ static void WriteRGB5A3Encoder(ShaderCode& code, APIType api_type, const EFBCopy
   code.Write("  ocol0 = ocol0 / 255.0;\n");
 }
 
-static void WriteRGBA8Encoder(ShaderCode& code, APIType api_type, const EFBCopyParams& params)
+static void WriteRGBA8Encoder(ShaderCode& code, const APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  float4 texSample;\n"
              "  float4 color0;\n"
@@ -361,7 +361,7 @@ static void WriteRGBA8Encoder(ShaderCode& code, APIType api_type, const EFBCopyP
   code.Write("  ocol0 = first ? color0 : color1;\n");
 }
 
-static void WriteC4Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
+static void WriteC4Encoder(ShaderCode& code, const std::string_view comp, const APIType api_type,
                            const EFBCopyParams& params)
 {
   code.Write("  float4 color0;\n"
@@ -382,7 +382,7 @@ static void WriteC4Encoder(ShaderCode& code, std::string_view comp, APIType api_
   code.Write("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 }
 
-static void WriteC8Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
+static void WriteC8Encoder(ShaderCode& code, const std::string_view comp, const APIType api_type,
                            const EFBCopyParams& params)
 {
   WriteSampleColor(code, comp, "ocol0.b", 0, api_type, params);
@@ -391,7 +391,7 @@ static void WriteC8Encoder(ShaderCode& code, std::string_view comp, APIType api_
   WriteSampleColor(code, comp, "ocol0.a", 3, api_type, params);
 }
 
-static void WriteCC4Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
+static void WriteCC4Encoder(ShaderCode& code, const std::string_view comp, const APIType api_type,
                             const EFBCopyParams& params)
 {
   code.Write("  float2 texSample;\n"
@@ -420,14 +420,14 @@ static void WriteCC4Encoder(ShaderCode& code, std::string_view comp, APIType api
   code.Write("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 }
 
-static void WriteCC8Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
+static void WriteCC8Encoder(ShaderCode& code, const std::string_view comp, const APIType api_type,
                             const EFBCopyParams& params)
 {
   WriteSampleColor(code, comp, "ocol0.bg", 0, api_type, params);
   WriteSampleColor(code, comp, "ocol0.ra", 1, api_type, params);
 }
 
-static void WriteXFBEncoder(ShaderCode& code, APIType api_type, const EFBCopyParams& params)
+static void WriteXFBEncoder(ShaderCode& code, const APIType api_type, const EFBCopyParams& params)
 {
   code.Write("float4 color0 = float4(0, 0, 0, 1), color1 = float4(0, 0, 0, 1);\n");
   WriteSampleColor(code, "rgb", "color0.rgb", 0, api_type, params);
@@ -446,7 +446,7 @@ static void WriteXFBEncoder(ShaderCode& code, APIType api_type, const EFBCopyPar
              "  ocol0.a = round(dot(average, v_const)) / 256.0;\n");
 }
 
-std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type)
+std::string GenerateEncodingShader(const EFBCopyParams& params, const APIType api_type)
 {
   ShaderCode code;
 
@@ -507,7 +507,7 @@ std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
 }
 
 // NOTE: In these uniforms, a row refers to a row of blocks, not texels.
-static const char decoding_shader_header[] = R"(
+static constexpr char decoding_shader_header[] = R"(
 #if defined(PALETTE_FORMAT_IA8) || defined(PALETTE_FORMAT_RGB565) || defined(PALETTE_FORMAT_RGB5A3)
 #define HAS_PALETTE 1
 #endif
@@ -1034,13 +1034,13 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
       )"}}};
 
-const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format)
+const DecodingShaderInfo* GetDecodingShaderInfo(const TextureFormat format)
 {
-  auto iter = s_decoding_shader_info.find(format);
+  const auto iter = s_decoding_shader_info.find(format);
   return iter != s_decoding_shader_info.end() ? &iter->second : nullptr;
 }
 
-std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, u32 height)
+std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, const u32 width, const u32 height)
 {
   // Flatten to a single dimension?
   if (info->group_flatten)
@@ -1050,7 +1050,7 @@ std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, 
           (height + (info->group_size_y - 1)) / info->group_size_y};
 }
 
-std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTFormat> palette_format,
+std::string GenerateDecodingShader(const TextureFormat format, const std::optional<TLUTFormat> palette_format,
                                    APIType api_type)
 {
   const DecodingShaderInfo* info = GetDecodingShaderInfo(format);
@@ -1099,7 +1099,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
   return ss.str();
 }
 
-std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
+std::string GeneratePaletteConversionShader(const TLUTFormat palette_format, const APIType api_type)
 {
   std::ostringstream ss;
 

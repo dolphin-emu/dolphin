@@ -22,8 +22,7 @@ private:
     // Optional 2nd argument for clearing state:
     if (args.size() == 1 || args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"toggle_state_input, [clear_state_input]"};
+    return ExpectedArguments{"toggle_state_input, [clear_state_input]"};
   }
 
   ControlState GetValue() const override
@@ -61,12 +60,11 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
-  void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
+  void SetValue(const ControlState value) override { GetArg(0).SetValue(1.0 - value); }
 };
 
 // usage: abs(expression)
@@ -78,8 +76,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::abs(GetArg(0).GetValue()); }
@@ -94,8 +91,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
@@ -110,8 +106,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::cos(GetArg(0).GetValue()); }
@@ -126,8 +121,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::tan(GetArg(0).GetValue()); }
@@ -142,8 +136,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::asin(GetArg(0).GetValue()); }
@@ -158,8 +151,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::acos(GetArg(0).GetValue()); }
@@ -174,8 +166,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::atan(GetArg(0).GetValue()); }
@@ -190,8 +181,7 @@ private:
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"y, x"};
+    return ExpectedArguments{"y, x"};
   }
 
   ControlState GetValue() const override
@@ -209,8 +199,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::sqrt(GetArg(0).GetValue()); }
@@ -225,8 +214,7 @@ private:
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"base, exponent"};
+    return ExpectedArguments{"base, exponent"};
   }
 
   ControlState GetValue() const override
@@ -244,8 +232,7 @@ private:
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"a, b"};
+    return ExpectedArguments{"a, b"};
   }
 
   ControlState GetValue() const override
@@ -263,8 +250,7 @@ private:
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"a, b"};
+    return ExpectedArguments{"a, b"};
   }
 
   ControlState GetValue() const override
@@ -282,8 +268,7 @@ private:
   {
     if (args.size() == 3)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"value, min, max"};
+    return ExpectedArguments{"value, min, max"};
   }
 
   ControlState GetValue() const override
@@ -301,8 +286,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"seconds"};
+    return ExpectedArguments{"seconds"};
   }
 
   ControlState GetValue() const override
@@ -344,8 +328,7 @@ private:
   {
     if (args.size() == 3)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"condition, true_expression, false_expression"};
+    return ExpectedArguments{"condition, true_expression, false_expression"};
   }
 
   ControlState GetValue() const override
@@ -364,8 +347,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override
@@ -384,8 +366,7 @@ private:
   {
     if (args.size() == 1)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"expression"};
+    return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return GetArg(0).GetValue(); }
@@ -399,8 +380,7 @@ class DeadzoneExpression : public FunctionExpression
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"input, amount"};
+    return ExpectedArguments{"input, amount"};
   }
 
   ControlState GetValue() const override
@@ -420,8 +400,7 @@ class SmoothExpression : public FunctionExpression
   {
     if (args.size() == 2 || args.size() == 3)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"input, seconds_up, seconds_down = seconds_up"};
+    return ExpectedArguments{"input, seconds_up, seconds_down = seconds_up"};
   }
 
   ControlState GetValue() const override
@@ -464,8 +443,7 @@ class HoldExpression : public FunctionExpression
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"input, seconds"};
+    return ExpectedArguments{"input, seconds"};
   }
 
   ControlState GetValue() const override
@@ -503,8 +481,7 @@ class TapExpression : public FunctionExpression
   {
     if (args.size() == 2 || args.size() == 3)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"input, seconds, taps = 2"};
+    return ExpectedArguments{"input, seconds, taps = 2"};
   }
 
   ControlState GetValue() const override
@@ -518,7 +495,7 @@ class TapExpression : public FunctionExpression
 
     const bool is_time_up = elapsed > seconds;
 
-    const u32 desired_taps = GetArgCount() == 3 ? u32(GetArg(2).GetValue() + 0.5) : 2;
+    const u32 desired_taps = GetArgCount() == 3 ? static_cast<u32>(GetArg(2).GetValue() + 0.5) : 2;
 
     if (input < CONDITION_THRESHOLD)
     {
@@ -563,8 +540,7 @@ class RelativeExpression : public FunctionExpression
   {
     if (args.size() >= 2 && args.size() <= 4)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"input, speed, [max_abs_value, [shared_state]]"};
+    return ExpectedArguments{"input, speed, [max_abs_value, [shared_state]]"};
   }
 
   ControlState GetValue() const override
@@ -622,8 +598,7 @@ class PulseExpression : public FunctionExpression
   {
     if (args.size() == 2)
       return ArgumentsAreValid{};
-    else
-      return ExpectedArguments{"input, seconds"};
+    return ExpectedArguments{"input, seconds"};
   }
 
   ControlState GetValue() const override
@@ -667,7 +642,7 @@ private:
   mutable Clock::time_point m_release_time = Clock::now();
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(const std::string_view name)
 {
   if (name == "not")
     return std::make_unique<NotExpression>();
@@ -735,7 +710,7 @@ int FunctionExpression::CountNumControls() const
 
 void FunctionExpression::UpdateReferences(ControlEnvironment& env)
 {
-  for (auto& arg : m_args)
+  for (const auto& arg : m_args)
     arg->UpdateReferences(env);
 }
 
@@ -747,19 +722,19 @@ FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args
   return ValidateArguments(m_args);
 }
 
-Expression& FunctionExpression::GetArg(u32 number)
+Expression& FunctionExpression::GetArg(const u32 number)
 {
   return *m_args[number];
 }
 
-const Expression& FunctionExpression::GetArg(u32 number) const
+const Expression& FunctionExpression::GetArg(const u32 number) const
 {
   return *m_args[number];
 }
 
 u32 FunctionExpression::GetArgCount() const
 {
-  return u32(m_args.size());
+  return static_cast<u32>(m_args.size());
 }
 
 void FunctionExpression::SetValue(ControlState)

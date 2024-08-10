@@ -19,7 +19,7 @@ namespace BPFunctions
 struct ScissorRange
 {
   constexpr ScissorRange() = default;
-  constexpr ScissorRange(int offset_, int start_, int end_)
+  constexpr ScissorRange(const int offset_, const int start_, const int end_)
       : offset(offset_), start(start_), end(end_)
   {
   }
@@ -30,7 +30,7 @@ struct ScissorRange
 
 struct ScissorRect
 {
-  constexpr ScissorRect(ScissorRange x_range, ScissorRange y_range)
+  constexpr ScissorRect(const ScissorRange x_range, const ScissorRange y_range)
       :  // Rectangle ctor takes x0, y0, x1, y1.
         rect(x_range.start, y_range.start, x_range.end, y_range.end), x_off(x_range.offset),
         y_off(y_range.offset)
@@ -136,7 +136,7 @@ struct ScissorResult
     return viewport_left == other.viewport_left && viewport_right == other.viewport_right &&
            viewport_top == other.viewport_top && viewport_bottom == other.viewport_bottom;
   }
-  bool Matches(const ScissorResult& other, bool compare_scissor, bool compare_viewport) const
+  bool Matches(const ScissorResult& other, const bool compare_scissor, const bool compare_viewport) const
   {
     if (compare_scissor && !ScissorMatches(other))
       return false;

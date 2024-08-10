@@ -2165,7 +2165,7 @@ static void InitExtensionList21()
     s_extension_list[tmp] = true;
 }
 
-static void InitExtensionList(GLContext* context)
+static void InitExtensionList(const GLContext* context)
 {
   s_extension_list.clear();
   if (context->IsGLES())
@@ -2198,7 +2198,7 @@ static void InitExtensionList(GLContext* context)
     default:
     case 450:
     {
-      static const char* const gl450exts[] = {
+      static constexpr char* const gl450exts[] = {
           "GL_ARB_ES3_1_compatibility",
           "GL_ARB_clip_control",
           "GL_ARB_conditional_render_inverted",
@@ -2211,12 +2211,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_texture_barrier",
           "VERSION_4_5",
       };
-      for (auto it : gl450exts)
+      for (const auto it : gl450exts)
         s_extension_list[it] = true;
     }
     case 440:
     {
-      static const char* const gl440exts[] = {
+      static constexpr char* const gl440exts[] = {
           "GL_ARB_buffer_storage",
           "GL_ARB_clear_texture",
           "GL_ARB_enhanced_layouts",
@@ -2227,12 +2227,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_vertex_type_10f_11f_11f_rev",
           "VERSION_4_4",
       };
-      for (auto it : gl440exts)
+      for (const auto it : gl440exts)
         s_extension_list[it] = true;
     }
     case 430:
     {
-      static const char* const gl430exts[] = {
+      static constexpr char* const gl430exts[] = {
           "GL_ARB_ES3_compatibility",
           "GL_ARB_arrays_of_arrays",
           "GL_ARB_clear_buffer_object",
@@ -2255,12 +2255,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_vertex_attrib_binding",
           "VERSION_4_3",
       };
-      for (auto it : gl430exts)
+      for (const auto it : gl430exts)
         s_extension_list[it] = true;
     }
     case 420:
     {
-      static const char* const gl420exts[] = {
+      static constexpr char* const gl420exts[] = {
           "GL_ARB_base_instance",
           "GL_ARB_compressed_texture_pixel_storage",
           "GL_ARB_conservative_depth",
@@ -2275,12 +2275,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_transform_feedback_instanced",
           "VERSION_4_2",
       };
-      for (auto it : gl420exts)
+      for (const auto it : gl420exts)
         s_extension_list[it] = true;
     }
     case 410:
     {
-      static const char* const gl410exts[] = {
+      static constexpr char* const gl410exts[] = {
           "GL_ARB_ES2_compatibility",
           "GL_ARB_get_program_binary",
           "GL_ARB_separate_shader_objects",
@@ -2289,12 +2289,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_viewport_array",
           "VERSION_4_1",
       };
-      for (auto it : gl410exts)
+      for (const auto it : gl410exts)
         s_extension_list[it] = true;
     }
     case 400:
     {
-      static const char* const gl400exts[] = {
+      static constexpr char* const gl400exts[] = {
           "GL_ARB_draw_indirect",
           "GL_ARB_gpu_shader5",
           "GL_ARB_gpu_shader_fp64",
@@ -2309,12 +2309,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_transform_feedback3",
           "VERSION_4_0",
       };
-      for (auto it : gl400exts)
+      for (const auto it : gl400exts)
         s_extension_list[it] = true;
     }
     case 330:
     {
-      static const char* const gl330exts[] = {
+      static constexpr char* const gl330exts[] = {
           "GL_ARB_shader_bit_encoding",
           "GL_ARB_blend_func_extended",
           "GL_ARB_explicit_attrib_location",
@@ -2327,12 +2327,12 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_vertex_type_2_10_10_10_rev",
           "VERSION_3_3",
       };
-      for (auto it : gl330exts)
+      for (const auto it : gl330exts)
         s_extension_list[it] = true;
     }
     case 320:
     {
-      static const char* const gl320exts[] = {
+      static constexpr char* const gl320exts[] = {
           "GL_ARB_geometry_shader4",
           "GL_ARB_sync",
           "GL_ARB_vertex_array_bgra",
@@ -2344,13 +2344,13 @@ static void InitExtensionList(GLContext* context)
           "GL_ARB_depth_clamp",
           "VERSION_3_2",
       };
-      for (auto it : gl320exts)
+      for (const auto it : gl320exts)
         s_extension_list[it] = true;
     }
     case 310:
     {
       // Can't add NV_primitive_restart since function name changed
-      static const char* const gl310exts[] = {
+      static constexpr char* const gl310exts[] = {
           "GL_ARB_draw_instanced",
           "GL_ARB_copy_buffer",
           "GL_ARB_texture_buffer_object",
@@ -2359,14 +2359,14 @@ static void InitExtensionList(GLContext* context)
           //"GL_NV_primitive_restart",
           "VERSION_3_1",
       };
-      for (auto it : gl310exts)
+      for (const auto it : gl310exts)
         s_extension_list[it] = true;
     }
     case 300:
     {
       // Quite a lot of these had their names changed when merged in to core
       // Disable the ones that have
-      static const char* const gl300exts[] = {
+      static constexpr char* const gl300exts[] = {
           "GL_ARB_map_buffer_range",
           "GL_ARB_color_buffer_float",
           "GL_ARB_texture_float",
@@ -2390,7 +2390,7 @@ static void InitExtensionList(GLContext* context)
           //"GL_NV_conditional_render",
           "VERSION_3_0",
       };
-      for (auto it : gl300exts)
+      for (const auto it : gl300exts)
         s_extension_list[it] = true;
     }
     case 210:
@@ -2500,9 +2500,9 @@ static bool HasFeatures(const std::string& extensions)
 bool InitFunctionPointers(GLContext* context)
 {
   bool result = true;
-  for (const auto& it : gl_function_array)
-    if (HasFeatures(it.requirements))
-      result &= !!GetFuncAddress(context, it.function_name, it.function_ptr);
+  for (const auto& [function_ptr, function_name, requirements] : gl_function_array)
+    if (HasFeatures(requirements))
+      result &= !!GetFuncAddress(context, function_name, function_ptr);
   return result;
 }
 }  // namespace GLExtensions

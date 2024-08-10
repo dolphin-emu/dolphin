@@ -43,10 +43,10 @@ struct ReadResult
   // the actual value that was read
   T value;
 
-  ReadResult(bool translated_, T&& value_) : translated(translated_), value(std::forward<T>(value_))
+  ReadResult(const bool translated_, T&& value_) : translated(translated_), value(std::forward<T>(value_))
   {
   }
-  ReadResult(bool translated_, const T& value_) : translated(translated_), value(value_) {}
+  ReadResult(const bool translated_, const T& value_) : translated(translated_), value(value_) {}
 };
 
 struct WriteResult
@@ -55,7 +55,7 @@ struct WriteResult
   // address was treated as physical)
   bool translated;
 
-  explicit WriteResult(bool translated_) : translated(translated_) {}
+  explicit WriteResult(const bool translated_) : translated(translated_) {}
 };
 
 constexpr int BAT_INDEX_SHIFT = 17;
@@ -90,8 +90,8 @@ struct TranslateResult
   u32 address = 0;
 
   TranslateResult() = default;
-  explicit TranslateResult(u32 address_) : valid(true), address(address_) {}
-  TranslateResult(bool from_bat_, u32 address_)
+  explicit TranslateResult(const u32 address_) : valid(true), address(address_) {}
+  TranslateResult(const bool from_bat_, const u32 address_)
       : valid(true), translated(true), from_bat(from_bat_), address(address_)
   {
   }
@@ -109,7 +109,7 @@ enum class XCheckTLBFlag
 class MMU
 {
 public:
-  MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCManager& power_pc);
+  MMU(Core::System& system, Memory::MemoryManager& memory, PowerPCManager& power_pc);
   MMU(const MMU& other) = delete;
   MMU(MMU&& other) = delete;
   MMU& operator=(const MMU& other) = delete;
@@ -227,8 +227,8 @@ public:
   void Write_U32_Swap(u32 var, u32 address);
   void Write_U64_Swap(u64 var, u32 address);
 
-  void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks);
-  void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks);
+  void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks) const;
+  void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks) const;
 
   void ClearDCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
   void StoreDCacheLine(u32 address);
@@ -237,8 +237,8 @@ public:
   void TouchDCacheLine(u32 address, bool store);
 
   // TLB functions
-  void SDRUpdated();
-  void InvalidateTLBEntry(u32 address);
+  void SDRUpdated() const;
+  void InvalidateTLBEntry(u32 address) const;
   void DBATUpdated();
   void IBATUpdated();
 
@@ -271,7 +271,7 @@ private:
     TranslateAddressResultEnum result;
     bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
 
-    TranslateAddressResult(TranslateAddressResultEnum result_, u32 address_, bool wi_ = false)
+    TranslateAddressResult(const TranslateAddressResultEnum result_, const u32 address_, const bool wi_ = false)
         : address(address_), result(result_), wi(wi_)
     {
     }
@@ -288,7 +288,7 @@ private:
     u32 Hex = 0;
 
     EffectiveAddress() = default;
-    explicit EffectiveAddress(u32 address) : Hex{address} {}
+    explicit EffectiveAddress(const u32 address) : Hex{address} {}
   };
 
   template <const XCheckTLBFlag flag>
@@ -297,13 +297,13 @@ private:
   template <const XCheckTLBFlag flag>
   TranslateAddressResult TranslatePageAddress(const EffectiveAddress address, bool* wi);
 
-  void GenerateDSIException(u32 effective_address, bool write);
-  void GenerateISIException(u32 effective_address);
+  void GenerateDSIException(u32 effective_address, bool write) const;
+  void GenerateISIException(u32 effective_address) const;
 
-  void Memcheck(u32 address, u64 var, bool write, size_t size);
+  void Memcheck(u32 address, u64 var, bool write, size_t size) const;
 
-  void UpdateBATs(BatTable& bat_table, u32 base_spr);
-  void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
+  void UpdateBATs(BatTable& bat_table, u32 base_spr) const;
+  void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr) const;
 
   template <XCheckTLBFlag flag, typename T, bool never_translate = false>
   T ReadFromHardware(u32 em_address);
@@ -321,8 +321,8 @@ private:
 
   Core::System& m_system;
   Memory::MemoryManager& m_memory;
-  PowerPC::PowerPCManager& m_power_pc;
-  PowerPC::PowerPCState& m_ppc_state;
+  PowerPCManager& m_power_pc;
+  PowerPCState& m_ppc_state;
 
   BatTable m_ibat_table;
   BatTable m_dbat_table;

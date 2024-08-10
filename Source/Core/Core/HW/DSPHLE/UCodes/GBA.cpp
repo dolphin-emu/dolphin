@@ -15,7 +15,7 @@
 
 namespace DSP::HLE
 {
-void ProcessGBACrypto(Memory::MemoryManager& memory, u32 address)
+void ProcessGBACrypto(Memory::MemoryManager& memory, const u32 address)
 {
   // Nonce challenge (first read from GBA, hence already little-endian)
   const u32 challenge = HLEMemory_Read_U32LE(memory, address);
@@ -71,7 +71,7 @@ void ProcessGBACrypto(Memory::MemoryManager& memory, u32 address)
                 address, challenge, length, dest_addr, logo_palette, logo_speed_32, key, t3);
 }
 
-GBAUCode::GBAUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+GBAUCode::GBAUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
 
@@ -85,11 +85,11 @@ void GBAUCode::Update()
   // check if we have something to send
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
-void GBAUCode::HandleMail(u32 mail)
+void GBAUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {

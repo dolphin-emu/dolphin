@@ -26,7 +26,6 @@
 #pragma comment(lib, "libittnotify.lib")
 #endif
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
@@ -45,18 +44,18 @@ int CurrentThreadId()
 
 #ifdef _WIN32
 
-void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
+void SetThreadAffinity(const std::thread::native_handle_type thread, const u32 mask)
 {
   SetThreadAffinityMask(thread, mask);
 }
 
-void SetCurrentThreadAffinity(u32 mask)
+void SetCurrentThreadAffinity(const u32 mask)
 {
   SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
 // Supporting functions
-void SleepCurrentThread(int ms)
+void SleepCurrentThread(const int ms)
 {
   Sleep(ms);
 }
@@ -71,7 +70,7 @@ void SwitchCurrentThread()
 // https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
 static void SetCurrentThreadNameViaException(const char* name)
 {
-  static const DWORD MS_VC_EXCEPTION = 0x406D1388;
+  static constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push, 8)
   struct THREADNAME_INFO

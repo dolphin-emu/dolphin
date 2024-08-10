@@ -8,7 +8,6 @@
 #include <fmt/format.h>
 
 #include <QGridLayout>
-#include <QGroupBox>
 #include <QGuiApplication>
 #include <QLabel>
 #include <QLineEdit>
@@ -16,7 +15,6 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStyleHints>
-#include <QTableWidget>
 #include <QWidget>
 
 #include "Common/Event.h"
@@ -32,7 +30,7 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
-static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
+static const auto BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
     "margin-right: 10px; }");
 
@@ -49,7 +47,7 @@ CodeWidget::CodeWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -57,16 +55,16 @@ CodeWidget::CodeWidget(QWidget* parent)
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
 
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (Core::GetState(m_system) == Core::State::Paused)
+    if (GetState(m_system) == Core::State::Paused)
       SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
 
@@ -90,7 +88,7 @@ CodeWidget::~CodeWidget()
 
 void CodeWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetCodeVisible(false);
+  Settings::Instance().HideCode();
 }
 
 void CodeWidget::showEvent(QShowEvent* event)
@@ -153,7 +151,7 @@ void CodeWidget::CreateWidgets()
   layout->addWidget(m_branch_watch, 0, 2);
   layout->addWidget(m_code_splitter, 1, 0, -1, -1);
 
-  QWidget* widget = new QWidget(this);
+  auto widget = new QWidget(this);
   widget->setLayout(layout);
   setWidget(widget);
 }
@@ -212,7 +210,7 @@ void CodeWidget::OnBranchWatchDialog()
   m_branch_watch_dialog->activateWindow();
 }
 
-void CodeWidget::OnPPCSymbolsChanged()
+void CodeWidget::OnPPCSymbolsChanged() const
 {
   UpdateSymbols();
   UpdateCallstack();
@@ -223,10 +221,10 @@ void CodeWidget::OnPPCSymbolsChanged()
   }
 }
 
-void CodeWidget::OnSearchAddress()
+void CodeWidget::OnSearchAddress() const
 {
   bool good = true;
-  u32 address = m_search_address->text().toUInt(&good, 16);
+  const u32 address = m_search_address->text().toUInt(&good, 16);
 
   QPalette palette;
   QFont font;
@@ -254,7 +252,7 @@ void CodeWidget::OnSearchSymbols()
   UpdateSymbols();
 }
 
-void CodeWidget::OnSelectSymbol()
+void CodeWidget::OnSelectSymbol() const
 {
   const auto items = m_symbols_list->selectedItems();
   if (items.isEmpty())
@@ -271,7 +269,7 @@ void CodeWidget::OnSelectSymbol()
   m_code_view->setFocus();
 }
 
-void CodeWidget::OnSelectCallstack()
+void CodeWidget::OnSelectCallstack() const
 {
   const auto items = m_callstack_list->selectedItems();
   if (items.isEmpty())
@@ -282,7 +280,7 @@ void CodeWidget::OnSelectCallstack()
   Update();
 }
 
-void CodeWidget::OnSelectFunctionCalls()
+void CodeWidget::OnSelectFunctionCalls() const
 {
   const auto items = m_function_calls_list->selectedItems();
   if (items.isEmpty())
@@ -293,7 +291,7 @@ void CodeWidget::OnSelectFunctionCalls()
   Update();
 }
 
-void CodeWidget::OnSelectFunctionCallers()
+void CodeWidget::OnSelectFunctionCallers() const
 {
   const auto items = m_function_callers_list->selectedItems();
   if (items.isEmpty())
@@ -304,20 +302,20 @@ void CodeWidget::OnSelectFunctionCallers()
   Update();
 }
 
-void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update)
+void CodeWidget::SetAddress(const u32 address, const CodeViewWidget::SetAddressUpdate update)
 {
   m_code_view->SetAddress(address, update);
 
   if (update == CodeViewWidget::SetAddressUpdate::WithUpdate ||
       update == CodeViewWidget::SetAddressUpdate::WithDetailedUpdate)
   {
-    Settings::Instance().SetCodeVisible(true);
+    Settings::Instance().ShowCode();
     raise();
     m_code_view->setFocus();
   }
 }
 
-void CodeWidget::Update()
+void CodeWidget::Update() const
 {
   if (!isVisible())
     return;
@@ -336,15 +334,15 @@ void CodeWidget::Update()
   UpdateFunctionCallers(symbol);
 }
 
-void CodeWidget::UpdateCallstack()
+void CodeWidget::UpdateCallstack() const
 {
   m_callstack_list->clear();
 
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
     return;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
-  if (!Dolphin_Debugger::GetCallstack(Core::CPUThreadGuard{m_system}, stack))
+  if (!GetCallstack(Core::CPUThreadGuard{m_system}, stack))
   {
     m_callstack_list->addItem(tr("Invalid callstack"));
     return;
@@ -352,39 +350,39 @@ void CodeWidget::UpdateCallstack()
 
   const QString filter = m_search_callstack->text();
 
-  for (const auto& frame : stack)
+  for (const auto& [Name, vAddress] : stack)
   {
-    const QString name = QString::fromStdString(frame.Name.substr(0, frame.Name.length() - 1));
+    const QString name = QString::fromStdString(Name.substr(0, Name.length() - 1));
 
     if (!name.contains(filter, Qt::CaseInsensitive))
       continue;
 
     auto* item = new QListWidgetItem(name);
-    item->setData(Qt::UserRole, frame.vAddress);
+    item->setData(Qt::UserRole, vAddress);
     m_callstack_list->addItem(item);
   }
 }
 
-void CodeWidget::UpdateSymbols()
+void CodeWidget::UpdateSymbols() const
 {
   const QString selection = m_symbols_list->selectedItems().isEmpty() ?
                                 QString{} :
                                 m_symbols_list->selectedItems()[0]->text();
   m_symbols_list->clear();
 
-  for (const auto& symbol : m_ppc_symbol_db.Symbols())
+  for (const auto& val : m_ppc_symbol_db.Symbols() | std::views::values)
   {
-    QString name = QString::fromStdString(symbol.second.name);
+    QString name = QString::fromStdString(val.name);
 
     auto* item = new QListWidgetItem(name);
     if (name == selection)
       item->setSelected(true);
 
     // Disable non-function symbols as you can't do anything with them.
-    if (symbol.second.type != Common::Symbol::Type::Function)
+    if (val.type != Common::Symbol::Type::Function)
       item->setFlags(Qt::NoItemFlags);
 
-    item->setData(Qt::UserRole, symbol.second.address);
+    item->setData(Qt::UserRole, val.address);
 
     if (name.contains(m_symbol_filter, Qt::CaseInsensitive))
       m_symbols_list->addItem(item);
@@ -393,7 +391,7 @@ void CodeWidget::UpdateSymbols()
   m_symbols_list->sortItems();
 }
 
-void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
+void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol) const
 {
   m_function_calls_list->clear();
   const QString filter = m_search_calls->text();
@@ -418,7 +416,7 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
   }
 }
 
-void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
+void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol) const
 {
   m_function_callers_list->clear();
   const QString filter = m_search_callers->text();
@@ -443,7 +441,7 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
   }
 }
 
-void CodeWidget::Step()
+void CodeWidget::Step() const
 {
   auto& cpu = m_system.GetCPU();
 
@@ -453,7 +451,7 @@ void CodeWidget::Step()
   Common::Event sync_event;
 
   auto& power_pc = m_system.GetPowerPC();
-  PowerPC::CoreMode old_mode = power_pc.GetMode();
+  const PowerPC::CoreMode old_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
   cpu.StepOpcode(&sync_event);
   sync_event.WaitFor(std::chrono::milliseconds(20));
@@ -466,7 +464,7 @@ void CodeWidget::Step()
     m_branch_watch_dialog->Update();
 }
 
-void CodeWidget::StepOver()
+void CodeWidget::StepOver() const
 {
   auto& cpu = m_system.GetCPU();
 
@@ -474,7 +472,7 @@ void CodeWidget::StepOver()
     return;
 
   const UGeckoInstruction inst = [&] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return PowerPC::MMU::HostRead_Instruction(guard, m_system.GetPPCState().pc);
   }();
 
@@ -504,7 +502,7 @@ static bool WillInstructionReturn(Core::System& system, UGeckoInstruction inst)
   return isBclr && counter && condition && !inst.LK_3;
 }
 
-void CodeWidget::StepOut()
+void CodeWidget::StepOut() const
 {
   auto& cpu = m_system.GetCPU();
 
@@ -516,7 +514,10 @@ void CodeWidget::StepOut()
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
+  auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr , _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = power_pc.GetPPCState();
   {
     Core::CPUThreadGuard guard(m_system);
 
@@ -526,7 +527,7 @@ void CodeWidget::StepOut()
     // Loop until either the current instruction is a return instruction with no Link flag
     // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
     // on a breakpoint, skip it.
-    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
+    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, pc);
     do
     {
       if (WillInstructionReturn(m_system, inst))
@@ -538,18 +539,18 @@ void CodeWidget::StepOut()
       if (inst.LK)
       {
         // Step over branches
-        u32 next_pc = ppc_state.pc + 4;
+        u32 next_pc = pc + 4;
         do
         {
           power_pc.SingleStep();
-        } while (ppc_state.pc != next_pc && clock::now() < timeout && !power_pc.CheckBreakPoints());
+        } while (pc != next_pc && clock::now() < timeout && !power_pc.CheckBreakPoints());
       }
       else
       {
         power_pc.SingleStep();
       }
 
-      inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
+      inst = PowerPC::MMU::HostRead_Instruction(guard, pc);
     } while (clock::now() < timeout && !power_pc.CheckBreakPoints());
 
     power_pc.SetMode(old_mode);
@@ -565,30 +566,30 @@ void CodeWidget::StepOut()
     Core::DisplayMessage(tr("Step out successful!").toStdString(), 2000);
 }
 
-void CodeWidget::Skip()
+void CodeWidget::Skip() const
 {
   m_system.GetPPCState().pc += 4;
   ShowPC();
 }
 
-void CodeWidget::ShowPC()
+void CodeWidget::ShowPC() const
 {
   m_code_view->SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 
-void CodeWidget::SetPC()
+void CodeWidget::SetPC() const
 {
   m_system.GetPPCState().pc = m_code_view->GetAddress();
   Update();
 }
 
-void CodeWidget::ToggleBreakpoint()
+void CodeWidget::ToggleBreakpoint() const
 {
   m_code_view->ToggleBreakpoint();
 }
 
-void CodeWidget::AddBreakpoint()
+void CodeWidget::AddBreakpoint() const
 {
   m_code_view->AddBreakpoint();
 }

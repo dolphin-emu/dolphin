@@ -35,11 +35,11 @@ void NetPlayChatUI::Display()
   }
 
   ImGui::BeginChild("Scrolling", ImVec2(0, -30 * scale), true, ImGuiWindowFlags_None);
-  for (const auto& msg : m_messages)
+  for (const auto& [fst, snd] : m_messages)
   {
-    auto c = msg.second;
+    auto c = snd;
     ImGui::PushTextWrapPos(0.0f);
-    ImGui::TextColored(ImVec4(c[0], c[1], c[2], 1.0f), "%s", msg.first.c_str());
+    ImGui::TextColored(ImVec4(c[0], c[1], c[2], 1.0f), "%s", fst.c_str());
     ImGui::PopTextWrapPos();
   }
 

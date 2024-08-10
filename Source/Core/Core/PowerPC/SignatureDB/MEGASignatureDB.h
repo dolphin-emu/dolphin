@@ -18,7 +18,7 @@ class PPCSymbolDB;
 
 struct MEGASignatureReference
 {
-  MEGASignatureReference(u32 ref_offset, std::string ref_name)
+  MEGASignatureReference(const u32 ref_offset, std::string ref_name)
       : offset(ref_offset), name(std::move(ref_name))
   {
   }

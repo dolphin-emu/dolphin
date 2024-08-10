@@ -4,7 +4,6 @@
 #include "Common/FileUtil.h"
 
 #include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -35,11 +34,8 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <Shlwapi.h>
-#include <commdlg.h>  // for GetSaveFileName
-#include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
-#include <shellapi.h>
 #else
 #include <dirent.h>
 #include <errno.h>
@@ -105,11 +101,11 @@ FileInfo::FileInfo(const char* path)
   {
     const auto fs_path = StringToPath(path);
     std::error_code error;
-    m_status = fs::status(fs_path, error);
-    m_size = fs::file_size(fs_path, error);
+    m_status = status(fs_path, error);
+    m_size = file_size(fs_path, error);
     if (error)
       m_size = 0;
-    m_exists = fs::exists(m_status);
+    m_exists = exists(m_status);
   }
 }
 
@@ -120,12 +116,12 @@ bool FileInfo::Exists() const
 
 bool FileInfo::IsDirectory() const
 {
-  return fs::is_directory(m_status);
+  return is_directory(m_status);
 }
 
 bool FileInfo::IsFile() const
 {
-  return Exists() ? !fs::is_directory(m_status) : false;
+  return Exists() ? !is_directory(m_status) : false;
 }
 
 u64 FileInfo::GetSize() const
@@ -155,7 +151,7 @@ bool IsFile(const std::string& path)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename, IfAbsentBehavior behavior)
+bool Delete(const std::string& filename, const IfAbsentBehavior behavior)
 {
   DEBUG_LOG_FMT(COMMON, "{}: file {}", __func__, filename);
 
@@ -169,12 +165,12 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
   }
 #endif
 
-  auto native_path = StringToPath(filename);
+  const auto native_path = StringToPath(filename);
   std::error_code error;
-  auto status = fs::status(native_path, error);
+  const auto status = fs::status(native_path, error);
 
   // Return true because we care about the file not being there, not the actual delete.
-  if (!fs::exists(status))
+  if (!exists(status))
   {
     if (behavior == IfAbsentBehavior::ConsoleWarning)
     {
@@ -184,7 +180,7 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
   }
 
   // fs::remove can only delete an empty directory. Legacy dolphin behavior is just to bail.
-  if (fs::is_directory(status))
+  if (is_directory(status))
   {
     WARN_LOG_FMT(COMMON, "{} failed: {} is a directory", __func__, filename);
     return false;
@@ -204,43 +200,43 @@ bool CreateDir(const std::string& path)
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, path);
 
   std::error_code error;
-  auto native_path = StringToPath(path);
-  bool success = fs::create_directory(native_path, error);
+  const auto native_path = StringToPath(path);
+  bool success = create_directory(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   std::error_code error_ignored;
-  if (!success && fs::is_directory(native_path, error_ignored))
+  if (!success && is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
   return success;
 }
 
-bool CreateDirs(std::string_view path)
+bool CreateDirs(const std::string_view path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, path);
 
   std::error_code error;
-  auto native_path = StringToPath(path);
-  bool success = fs::create_directories(native_path, error);
+  const auto native_path = StringToPath(path);
+  bool success = create_directories(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   std::error_code error_ignored;
-  if (!success && fs::is_directory(native_path, error_ignored))
+  if (!success && is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
   return success;
 }
 
-bool CreateFullPath(std::string_view fullPath)
+bool CreateFullPath(const std::string_view fullPath)
 {
   DEBUG_LOG_FMT(COMMON, "{}: path {}", __func__, fullPath);
 
   std::error_code error;
-  auto native_path = StringToPath(fullPath).parent_path();
-  bool success = fs::create_directories(native_path, error);
+  const auto native_path = StringToPath(fullPath).parent_path();
+  bool success = create_directories(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   std::error_code error_ignored;
-  if (!success && fs::is_directory(native_path, error_ignored))
+  if (!success && is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, fullPath, error.message());
@@ -248,16 +244,16 @@ bool CreateFullPath(std::string_view fullPath)
 }
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
+bool DeleteDir(const std::string& filename, const IfAbsentBehavior behavior)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, filename);
 
-  auto native_path = StringToPath(filename);
+  const auto native_path = StringToPath(filename);
   std::error_code error;
-  auto status = fs::status(native_path, error);
+  const auto status = fs::status(native_path, error);
 
   // Return true because we care about the directory not being there, not the actual delete.
-  if (!fs::exists(status))
+  if (!exists(status))
   {
     if (behavior == IfAbsentBehavior::ConsoleWarning)
     {
@@ -267,7 +263,7 @@ bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
   }
 
   // check if a directory
-  if (!fs::is_directory(status))
+  if (!is_directory(status))
   {
     ERROR_LOG_FMT(COMMON, "{}: Not a directory {}", __func__, filename);
     return false;
@@ -315,8 +311,8 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
 #ifdef _WIN32
   int fd = -1;
   // XXX is this really needed?
-  errno_t err = _wsopen_s(&fd, UTF8ToWString(srcFilename).c_str(), _O_RDONLY, _SH_DENYNO,
-                          _S_IREAD | _S_IWRITE);
+  const errno_t err = _wsopen_s(&fd, UTF8ToWString(srcFilename).c_str(), _O_RDONLY, _SH_DENYNO,
+                                _S_IREAD | _S_IWRITE);
   if (!err && fd >= 0)
   {
     if (_commit(fd) != 0)
@@ -335,14 +331,14 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
   return true;
 }
 
-bool CopyRegularFile(std::string_view source_path, std::string_view destination_path)
+bool CopyRegularFile(const std::string_view source_path, const std::string_view destination_path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, destination_path);
 
-  auto src_path = StringToPath(source_path);
-  auto dst_path = StringToPath(destination_path);
+  const auto src_path = StringToPath(source_path);
+  const auto dst_path = StringToPath(destination_path);
   std::error_code error;
-  bool copied = fs::copy_file(src_path, dst_path, fs::copy_options::overwrite_existing, error);
+  const bool copied = copy_file(src_path, dst_path, fs::copy_options::overwrite_existing, error);
   if (!copied)
   {
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, destination_path,
@@ -383,7 +379,7 @@ bool CreateEmptyFile(const std::string& filename)
 {
   DEBUG_LOG_FMT(COMMON, "CreateEmptyFile: {}", filename);
 
-  if (!File::IOFile(filename, "wb"))
+  if (!IOFile(filename, "wb"))
   {
     ERROR_LOG_FMT(COMMON, "CreateEmptyFile: failed {}: {}", filename, Common::LastStrerrorString());
     return false;
@@ -446,7 +442,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     // about with directory separators (for host paths - emulated paths may require it) and instead
     // use fs::path to interact with them.
     auto wpath = path.wstring();
-    std::replace(wpath.begin(), wpath.end(), L'\\', L'/');
+    std::ranges::replace(wpath, L'\\', L'/');
     return WStringToUTF8(wpath);
 #else
     return PathToString(path);
@@ -464,16 +460,16 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 
   auto calc_dir_size = [](FSTEntry* dir) {
     dir->size += dir->children.size();
-    for (auto& child : dir->children)
-      if (child.isDirectory)
-        dir->size += child.size;
+    for (const auto& [isDirectory, size, _physicalName, _virtualName, _children] : dir->children)
+      if (isDirectory)
+        dir->size += size;
   };
 
   const auto directory_path = StringToPath(directory);
 
   FSTEntry parent_entry;
   parent_entry.physicalName = path_to_physical_name(directory_path);
-  parent_entry.isDirectory = fs::is_directory(directory_path);
+  parent_entry.isDirectory = is_directory(directory_path);
   parent_entry.size = 0;
 
   std::error_code error;
@@ -532,20 +528,21 @@ bool DeleteDirRecursively(const std::string& directory)
   DEBUG_LOG_FMT(COMMON, "{}: {}", __func__, directory);
 
   std::error_code error;
-  const std::uintmax_t num_removed = std::filesystem::remove_all(StringToPath(directory), error);
+  const std::uintmax_t num_removed = remove_all(StringToPath(directory), error);
   const bool success = num_removed != 0 && !error;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: {} failed {}", __func__, directory, error.message());
   return success;
 }
 
-bool Copy(std::string_view source_path, std::string_view dest_path, bool overwrite_existing)
+bool Copy(const std::string_view source_path, const std::string_view dest_path,
+          const bool overwrite_existing)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {} ({})", __func__, source_path, dest_path,
                 overwrite_existing ? "overwrite" : "preserve");
 
-  auto src_path = StringToPath(source_path);
-  auto dst_path = StringToPath(dest_path);
+  const auto src_path = StringToPath(source_path);
+  const auto dst_path = StringToPath(dest_path);
   std::error_code error;
   auto options = fs::copy_options::recursive;
   if (overwrite_existing)
@@ -554,7 +551,7 @@ bool Copy(std::string_view source_path, std::string_view dest_path, bool overwri
   if (error)
   {
     std::error_code error_ignored;
-    if (fs::equivalent(src_path, dst_path, error_ignored))
+    if (equivalent(src_path, dst_path, error_ignored))
       return true;
 
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {} ({}): {}", __func__, source_path, dest_path,
@@ -573,10 +570,10 @@ static bool MoveWithOverwrite(const std::filesystem::path& src, const std::files
 
   // rename failed, try fallbacks
 
-  if (!fs::is_directory(src))
+  if (!is_directory(src))
   {
     // src is not a directory (ie, probably a file), try to copy file + delete
-    if (!fs::copy_file(src, dst, fs::copy_options::overwrite_existing, error))
+    if (!copy_file(src, dst, fs::copy_options::overwrite_existing, error))
       return false;
     if (!fs::remove(src, error))
       return false;
@@ -602,11 +599,11 @@ static bool MoveWithOverwrite(const std::filesystem::path& src, const std::files
   return true;
 }
 
-bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path)
+bool MoveWithOverwrite(const std::string_view source_path, const std::string_view dest_path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, dest_path);
-  auto src_path = StringToPath(source_path);
-  auto dst_path = StringToPath(dest_path);
+  const auto src_path = StringToPath(source_path);
+  const auto dst_path = StringToPath(dest_path);
   std::error_code error;
   if (!MoveWithOverwrite(src_path, dst_path, error))
   {
@@ -633,7 +630,7 @@ std::string GetCurrentDir()
 bool SetCurrentDir(const std::string& directory)
 {
   std::error_code error;
-  fs::current_path(StringToPath(directory), error);
+  current_path(StringToPath(directory), error);
   if (error)
   {
     ERROR_LOG_FMT(COMMON, "{} failed: {}", __func__, error.message());
@@ -676,7 +673,7 @@ std::string CreateTempDir()
 std::string GetTempFilenameForAtomicWrite(std::string path)
 {
   std::error_code error;
-  auto absolute_path = fs::absolute(StringToPath(path), error);
+  const auto absolute_path = absolute(StringToPath(path), error);
   if (!error)
     path = PathToString(absolute_path);
   return std::move(path) + ".xxx";
@@ -732,11 +729,11 @@ std::string GetBundleDirectory()
 std::string GetExePath()
 {
 #ifdef _WIN32
-  auto exe_path = Common::GetModuleName(nullptr);
+  const auto exe_path = Common::GetModuleName(nullptr);
   if (!exe_path)
     return {};
   std::error_code error;
-  auto exe_path_absolute = fs::absolute(exe_path.value(), error);
+  const auto exe_path_absolute = fs::absolute(exe_path.value(), error);
   if (error)
     return {};
   return PathToString(exe_path_absolute);
@@ -842,7 +839,7 @@ const std::string GetGpuDriverDirectory(unsigned int dir_index)
 #endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];
-static void RebuildUserDirectories(unsigned int dir_index)
+static void RebuildUserDirectories(const unsigned int dir_index)
 {
   switch (dir_index)
   {
@@ -920,7 +917,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
-    File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
+    DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
     break;
 
   case D_CONFIG_IDX:
@@ -983,14 +980,14 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
 // Gets a set user directory path
 // Don't call prior to setting the base user directory
-const std::string& GetUserPath(unsigned int dir_index)
+const std::string& GetUserPath(const unsigned int dir_index)
 {
   return s_user_paths[dir_index];
 }
 
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, std::string path)
+void SetUserPath(const unsigned int dir_index, std::string path)
 {
   if (path.empty())
     return;
@@ -1020,7 +1017,7 @@ void SetUserPath(unsigned int dir_index, std::string path)
 
 std::string GetThemeDir(const std::string& theme_name)
 {
-  std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+  std::string dir = GetUserPath(D_THEMES_IDX) + theme_name + "/";
   if (Exists(dir))
     return dir;
 
@@ -1033,14 +1030,14 @@ std::string GetThemeDir(const std::string& theme_name)
   return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
-bool WriteStringToFile(const std::string& filename, std::string_view str)
+bool WriteStringToFile(const std::string& filename, const std::string_view str)
 {
-  return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
+  return IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
 
 bool ReadFileToString(const std::string& filename, std::string& str)
 {
-  File::IOFile file(filename, "rb");
+  IOFile file(filename, "rb");
 
   if (!file)
     return false;

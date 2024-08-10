@@ -13,13 +13,13 @@ FPURegCache::FPURegCache(Jit64& jit) : RegCache{jit}
 {
 }
 
-void FPURegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
+void FPURegCache::StoreRegister(const preg_t preg, const OpArg& new_loc)
 {
   ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - {}", preg);
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location()->GetSimpleReg());
 }
 
-void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
+void FPURegCache::LoadRegister(const preg_t preg, const X64Reg new_loc)
 {
   ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location().value());
@@ -32,7 +32,7 @@ std::span<const X64Reg> FPURegCache::GetAllocationOrder() const
   return allocation_order;
 }
 
-OpArg FPURegCache::GetDefaultLocation(preg_t preg) const
+OpArg FPURegCache::GetDefaultLocation(const preg_t preg) const
 {
   return PPCSTATE_PS0(preg);
 }
@@ -42,7 +42,7 @@ BitSet32 FPURegCache::GetRegUtilization() const
   return m_jit.js.op->fprInXmm;
 }
 
-BitSet32 FPURegCache::CountRegsIn(preg_t preg, u32 lookahead) const
+BitSet32 FPURegCache::CountRegsIn(const preg_t preg, const u32 lookahead) const
 {
   BitSet32 regs_used;
 

@@ -20,7 +20,7 @@ void Interpreter::bx(Interpreter& interpreter, UGeckoInstruction inst)
   if (inst.LK)
     LR(ppc_state) = ppc_state.pc + 4;
 
-  u32 destination_addr = u32(SignExt26(inst.LI << 2));
+  u32 destination_addr = static_cast<u32>(SignExt26(inst.LI << 2));
   if (!inst.AA)
     destination_addr += ppc_state.pc;
   ppc_state.npc = destination_addr;
@@ -45,14 +45,14 @@ void Interpreter::bcx(Interpreter& interpreter, UGeckoInstruction inst)
   const bool only_condition_check = ((inst.BO >> 2) & 1) != 0;
   const u32 ctr_check = ((CTR(ppc_state) != 0) ^ (inst.BO >> 1)) & 1;
   const bool counter = only_condition_check || ctr_check != 0;
-  const bool condition = only_counter_check || (ppc_state.cr.GetBit(inst.BI) == u32(true_false));
+  const bool condition = only_counter_check || (ppc_state.cr.GetBit(inst.BI) == static_cast<u32>(true_false));
 
   if (counter && condition)
   {
     if (inst.LK)
       LR(ppc_state) = ppc_state.pc + 4;
 
-    u32 destination_addr = u32(SignExt16(s16(inst.BD << 2)));
+    u32 destination_addr = static_cast<u32>(SignExt16(static_cast<s16>(inst.BD << 2)));
     if (!inst.AA)
       destination_addr += ppc_state.pc;
     ppc_state.npc = destination_addr;
@@ -149,7 +149,7 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
 
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
-  const u32 mask = 0x87C0FFFF;
+  constexpr u32 mask = 0x87C0FFFF;
   ppc_state.msr.Hex = (ppc_state.msr.Hex & ~mask) | (SRR1(ppc_state) & mask);
   // MSR[13] is set to 0.
   ppc_state.msr.Hex &= 0xFFFBFFFF;
@@ -161,7 +161,7 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
   // set NPC to saved offset and resume
   ppc_state.npc = SRR0(ppc_state);
 
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 
   interpreter.m_end_block = true;
 }
@@ -171,9 +171,13 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
 // We do it anyway, though :P
 void Interpreter::sc(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = interpreter.m_ppc_state;
 
-  ppc_state.Exceptions |= EXCEPTION_SYSCALL;
+  Exceptions |= EXCEPTION_SYSCALL;
   interpreter.m_system.GetPowerPC().CheckExceptions();
   interpreter.m_end_block = true;
 }

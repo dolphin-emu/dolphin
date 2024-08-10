@@ -71,7 +71,7 @@ void DolphinAnalytics::ReloadConfig()
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
+  if (Get(Config::MAIN_ANALYTICS_ENABLED))
   {
 #if defined(ANDROID)
     new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
@@ -82,7 +82,7 @@ void DolphinAnalytics::ReloadConfig()
   m_reporter.SetBackend(std::move(new_backend));
 
   // Load the unique ID or generate it if needed.
-  m_unique_id = Config::Get(Config::MAIN_ANALYTICS_ID);
+  m_unique_id = Get(Config::MAIN_ANALYTICS_ID);
   if (m_unique_id.empty())
   {
     GenerateNewIdentity();
@@ -96,11 +96,11 @@ void DolphinAnalytics::GenerateNewIdentity()
   m_unique_id = fmt::format("{:016x}{:016x}", id_high, id_low);
 
   // Save the new id in the configuration.
-  Config::SetBase(Config::MAIN_ANALYTICS_ID, m_unique_id);
+  SetBase(Config::MAIN_ANALYTICS_ID, m_unique_id);
   Config::Save();
 }
 
-std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
+std::string DolphinAnalytics::MakeUniqueId(const std::string_view data) const
 {
   const auto input = std::string{m_unique_id}.append(data);
   const auto digest = Common::SHA1::CalculateDigest(input);
@@ -114,7 +114,7 @@ std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
   return out;
 }
 
-void DolphinAnalytics::ReportDolphinStart(std::string_view ui_type)
+void DolphinAnalytics::ReportDolphinStart(const std::string_view ui_type)
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
   builder.AddData("type", "dolphin-start");
@@ -137,7 +137,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 32> GAME_QUIRKS_NAMES{
+constexpr std::array GAME_QUIRKS_NAMES{
     "directly-reads-wiimote-input",
     "uses-DVDLowStopLaser",
     "uses-DVDLowOffset",
@@ -176,7 +176,7 @@ static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 {
-  u32 quirk_idx = static_cast<u32>(quirk);
+  const u32 quirk_idx = static_cast<u32>(quirk);
 
   // Only report once per run.
   if (m_reported_quirks[quirk_idx])
@@ -234,7 +234,7 @@ void DolphinAnalytics::InitializePerformanceSampling()
   m_performance_samples.clear();
   m_sampling_performance_info = false;
 
-  u64 wait_us =
+  const u64 wait_us =
       PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
   m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
@@ -245,7 +245,7 @@ bool DolphinAnalytics::ShouldStartPerformanceSampling()
   if (Common::Timer::NowUs() < m_sampling_next_start_us)
     return false;
 
-  u64 wait_us =
+  const u64 wait_us =
       PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
   m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
@@ -263,7 +263,7 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("version-dist", Common::GetScmDistributorStr());
 
   // Auto-Update information.
-  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
+  builder.AddData("update-track", Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());
@@ -272,10 +272,10 @@ void DolphinAnalytics::MakeBaseBuilder()
 #if defined(_WIN32)
   builder.AddData("os-type", "windows");
 
-  const auto winver = WindowsRegistry::GetOSVersion();
-  builder.AddData("win-ver-major", static_cast<u32>(winver.dwMajorVersion));
-  builder.AddData("win-ver-minor", static_cast<u32>(winver.dwMinorVersion));
-  builder.AddData("win-ver-build", static_cast<u32>(winver.dwBuildNumber));
+  const auto [_dwOSVersionInfoSize, dwMajorVersion, dwMinorVersion, dwBuildNumber, _dwPlatformId, _szCSDVersion] = WindowsRegistry::GetOSVersion();
+  builder.AddData("win-ver-major", static_cast<u32>(dwMajorVersion));
+  builder.AddData("win-ver-minor", static_cast<u32>(dwMinorVersion));
+  builder.AddData("win-ver-build", static_cast<u32>(dwBuildNumber));
 #elif defined(ANDROID)
   builder.AddData("os-type", "android");
   builder.AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
@@ -354,16 +354,16 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
   // Configuration.
-  builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
-  builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));
-  builder.AddData("cfg-dsp-thread", Config::Get(Config::MAIN_DSP_THREAD));
-  builder.AddData("cfg-cpu-thread", Config::Get(Config::MAIN_CPU_THREAD));
-  builder.AddData("cfg-fastmem", Config::Get(Config::MAIN_FASTMEM));
-  builder.AddData("cfg-syncgpu", Config::Get(Config::MAIN_SYNC_GPU));
-  builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
-  builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
-  builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
-  builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
+  builder.AddData("cfg-dsp-hle", Get(Config::MAIN_DSP_HLE));
+  builder.AddData("cfg-dsp-jit", Get(Config::MAIN_DSP_JIT));
+  builder.AddData("cfg-dsp-thread", Get(Config::MAIN_DSP_THREAD));
+  builder.AddData("cfg-cpu-thread", Get(Config::MAIN_CPU_THREAD));
+  builder.AddData("cfg-fastmem", Get(Config::MAIN_FASTMEM));
+  builder.AddData("cfg-syncgpu", Get(Config::MAIN_SYNC_GPU));
+  builder.AddData("cfg-audio-backend", Get(Config::MAIN_AUDIO_BACKEND));
+  builder.AddData("cfg-oc-enable", Get(Config::MAIN_OVERCLOCK_ENABLE));
+  builder.AddData("cfg-oc-factor", Get(Config::MAIN_OVERCLOCK));
+  builder.AddData("cfg-render-to-main", Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
     builder.AddData("cfg-video-backend", g_video_backend->GetName());

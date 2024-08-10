@@ -24,7 +24,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
 {
   bool should_show = true;
 
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   IOS::HLE::USB::Skylander* skylander =
       Core::System::GetInstance().GetSkylanderPortal().GetSkylander(slot);
@@ -33,7 +33,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   m_figure_data = m_figure->GetData();
 
   auto* hbox_name = new QHBoxLayout;
-  QString name = QString();
+  auto name = QString();
 
   if ((m_figure_data.skylander_data.nickname[0] != 0x00 &&
        m_figure_data.normalized_type == IOS::HLE::USB::Type::Skylander))
@@ -265,7 +265,7 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
                           .month = static_cast<u8>(edit_last_placed->date().month()),
                           .year = static_cast<u16>(edit_last_placed->date().year())}};
 
-      std::u16string nickname = edit_nick->text().toStdU16String();
+      const std::u16string nickname = edit_nick->text().toStdU16String();
       nickname.copy(reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data()),
                     nickname.length());
 

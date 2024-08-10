@@ -15,82 +15,82 @@
 
 namespace Common
 {
-std::string RootUserPath(FromWhichRoot from)
+std::string RootUserPath(const FromWhichRoot from)
 {
-  int idx = from == FromWhichRoot::Configured ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
+  const int idx = from == FromWhichRoot::Configured ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
   std::string dir = File::GetUserPath(idx);
   dir.pop_back();  // remove trailing path separator
   return dir;
 }
 
-static std::string RootUserPath(std::optional<FromWhichRoot> from)
+static std::string RootUserPath(const std::optional<FromWhichRoot> from)
 {
   return from ? RootUserPath(*from) : "";
 }
 
-std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetImportTitlePath(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return RootUserPath(from) + fmt::format("/import/{:08x}/{:08x}", static_cast<u32>(title_id >> 32),
                                           static_cast<u32>(title_id));
 }
 
-std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetTicketFileName(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return fmt::format("{}/ticket/{:08x}/{:08x}.tik", RootUserPath(from),
                      static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetV1TicketFileName(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetV1TicketFileName(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return fmt::format("{}/ticket/{:08x}/{:08x}.tv1", RootUserPath(from),
                      static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetTitlePath(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return fmt::format("{}/title/{:08x}/{:08x}", RootUserPath(from), static_cast<u32>(title_id >> 32),
                      static_cast<u32>(title_id));
 }
 
-std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetTitleDataPath(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return GetTitlePath(title_id, from) + "/data";
 }
 
-std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetTitleContentPath(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return GetTitlePath(title_id, from) + "/content";
 }
 
-std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from)
+std::string GetTMDFileName(const u64 title_id, const std::optional<FromWhichRoot> from)
 {
   return GetTitleContentPath(title_id, from) + "/title.tmd";
 }
 
-std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from)
+std::string GetMiiDatabasePath(const std::optional<FromWhichRoot> from)
 {
   return fmt::format("{}/shared2/menu/FaceLib/RFL_DB.dat", RootUserPath(from));
 }
 
-bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64* title_id)
+bool IsTitlePath(const std::string& path, const std::optional<FromWhichRoot> from, u64* title_id)
 {
-  std::string expected_prefix = RootUserPath(from) + "/title/";
+  const std::string expected_prefix = RootUserPath(from) + "/title/";
   if (!path.starts_with(expected_prefix))
   {
     return false;
   }
 
   // Try to find a title ID in the remaining path.
-  std::string subdirectory = path.substr(expected_prefix.size());
-  std::vector<std::string> components = SplitString(subdirectory, '/');
+  const std::string subdirectory = path.substr(expected_prefix.size());
+  const std::vector<std::string> components = SplitString(subdirectory, '/');
   if (components.size() < 2)
   {
     return false;
   }
 
   u32 title_id_high, title_id_low;
-  if (Common::FromChars(components[0], title_id_high, 16).ec != std::errc{} ||
-      Common::FromChars(components[1], title_id_low, 16).ec != std::errc{})
+  if (FromChars(components[0], title_id_high, 16).ec != std::errc{} ||
+      FromChars(components[1], title_id_low, 16).ec != std::errc{})
   {
     return false;
   }
@@ -102,21 +102,22 @@ bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64
   return true;
 }
 
-static bool IsIllegalCharacter(char c)
+static bool IsIllegalCharacter(const char c)
 {
   static constexpr auto illegal_chars = {'\"', '*', '/', ':', '<', '>', '?', '\\', '|', '\x7f'};
-  return static_cast<unsigned char>(c) <= 0x1F ||
-         std::find(illegal_chars.begin(), illegal_chars.end(), c) != illegal_chars.end();
+  return
+      static_cast<unsigned char>(c) <= 0x1F ||
+      std::ranges::find(illegal_chars, c) != illegal_chars.end();
 }
 
 std::string EscapeFileName(const std::string& filename)
 {
   // Prevent paths from containing special names like ., .., ..., ...., and so on
-  if (std::all_of(filename.begin(), filename.end(), [](char c) { return c == '.'; }))
+  if (std::ranges::all_of(filename, [](const char c) { return c == '.'; }))
     return ReplaceAll(filename, ".", "__2e__");
 
   // Escape all double underscores since we will use double underscores for our escape sequences
-  std::string filename_with_escaped_double_underscores = ReplaceAll(filename, "__", "__5f____5f__");
+  const std::string filename_with_escaped_double_underscores = ReplaceAll(filename, "__", "__5f____5f__");
 
   // Escape all other characters that need to be escaped
   std::string result;
@@ -155,7 +156,7 @@ std::string UnescapeFileName(const std::string& filename)
   {
     u32 character;
     if (pos + 6 <= result.size() && result[pos + 4] == '_' && result[pos + 5] == '_')
-      if (Common::FromChars(std::string_view{result}.substr(pos + 2, 2), character, 16).ec ==
+      if (FromChars(std::string_view{result}.substr(pos + 2, 2), character, 16).ec ==
           std::errc{})
       {
         result.replace(pos, 6, {static_cast<char>(character)});
@@ -170,7 +171,7 @@ std::string UnescapeFileName(const std::string& filename)
 bool IsFileNameSafe(const std::string_view filename)
 {
   return !filename.empty() &&
-         !std::all_of(filename.begin(), filename.end(), [](char c) { return c == '.'; }) &&
-         std::none_of(filename.begin(), filename.end(), IsIllegalCharacter);
+         !std::ranges::all_of(filename, [](const char c) { return c == '.'; }) &&
+         std::ranges::none_of(filename, IsIllegalCharacter);
 }
 }  // namespace Common

@@ -33,7 +33,7 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   //    - The Beatles: Rock Band (saving doesn't work)
 
   // Check if the file has already been opened.
-  auto search = m_open_files.find(host_path);
+  const auto search = m_open_files.find(host_path);
   if (search != m_open_files.end())
   {
     // Lock a shared pointer to use.
@@ -60,7 +60,7 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   }
 
   // This code will be called when all references to the shared pointer below have been removed.
-  auto deleter = [this, host_path](File::IOFile* ptr) {
+  auto deleter = [this, host_path](const File::IOFile* ptr) {
     delete ptr;                     // IOFile's deconstructor closes the file.
     m_open_files.erase(host_path);  // erase the weak pointer from the list of open files.
   };
@@ -69,12 +69,12 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   std::shared_ptr<File::IOFile> file_ptr(new File::IOFile(std::move(file)), deleter);
 
   // Store a weak pointer to our newly opened file in the cache.
-  m_open_files[host_path] = std::weak_ptr<File::IOFile>(file_ptr);
+  m_open_files[host_path] = std::weak_ptr(file_ptr);
 
   return file_ptr;
 }
 
-Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, Mode mode)
+Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, const Mode mode)
 {
   Handle* handle = AssignFreeHandle();
   if (!handle)
@@ -106,7 +106,7 @@ Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, M
   return FileHandle{this, ConvertHandleToFd(handle)};
 }
 
-ResultCode HostFileSystem::Close(Fd fd)
+ResultCode HostFileSystem::Close(const Fd fd)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle)
@@ -118,13 +118,13 @@ ResultCode HostFileSystem::Close(Fd fd)
   return ResultCode::Success;
 }
 
-Result<u32> HostFileSystem::ReadBytesFromFile(Fd fd, u8* ptr, u32 count)
+Result<u32> HostFileSystem::ReadBytesFromFile(const Fd fd, u8* ptr, u32 count)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
     return ResultCode::Invalid;
 
-  if ((u8(handle->mode) & u8(Mode::Read)) == 0)
+  if ((static_cast<u8>(handle->mode) & static_cast<u8>(Mode::Read)) == 0)
     return ResultCode::AccessDenied;
 
   const u32 file_size = static_cast<u32>(handle->host_file->GetSize());
@@ -145,13 +145,13 @@ Result<u32> HostFileSystem::ReadBytesFromFile(Fd fd, u8* ptr, u32 count)
   return actually_read;
 }
 
-Result<u32> HostFileSystem::WriteBytesToFile(Fd fd, const u8* ptr, u32 count)
+Result<u32> HostFileSystem::WriteBytesToFile(const Fd fd, const u8* ptr, u32 count)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
     return ResultCode::Invalid;
 
-  if ((u8(handle->mode) & u8(Mode::Write)) == 0)
+  if ((static_cast<u8>(handle->mode) & static_cast<u8>(Mode::Write)) == 0)
     return ResultCode::AccessDenied;
 
   // File might be opened twice, need to seek before we read
@@ -163,7 +163,7 @@ Result<u32> HostFileSystem::WriteBytesToFile(Fd fd, const u8* ptr, u32 count)
   return count;
 }
 
-Result<u32> HostFileSystem::SeekFile(Fd fd, std::uint32_t offset, SeekMode mode)
+Result<u32> HostFileSystem::SeekFile(const Fd fd, const std::uint32_t offset, const SeekMode mode)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
@@ -193,7 +193,7 @@ Result<u32> HostFileSystem::SeekFile(Fd fd, std::uint32_t offset, SeekMode mode)
   return handle->file_offset;
 }
 
-Result<FileStatus> HostFileSystem::GetFileStatus(Fd fd)
+Result<FileStatus> HostFileSystem::GetFileStatus(const Fd fd)
 {
   const Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
@@ -207,8 +207,9 @@ Result<FileStatus> HostFileSystem::GetFileStatus(Fd fd)
 
 HostFileSystem::Handle* HostFileSystem::AssignFreeHandle()
 {
-  const auto it = std::find_if(m_handles.begin(), m_handles.end(),
-                               [](const Handle& handle) { return !handle.opened; });
+  const auto it = std::ranges::find_if(m_handles, [](const Handle& handle) {
+    return !handle.opened;
+  });
   if (it == m_handles.end())
     return nullptr;
 
@@ -217,7 +218,7 @@ HostFileSystem::Handle* HostFileSystem::AssignFreeHandle()
   return &*it;
 }
 
-HostFileSystem::Handle* HostFileSystem::GetHandleFromFd(Fd fd)
+HostFileSystem::Handle* HostFileSystem::GetHandleFromFd(const Fd fd)
 {
   if (fd >= m_handles.size() || !m_handles[fd].opened)
     return nullptr;

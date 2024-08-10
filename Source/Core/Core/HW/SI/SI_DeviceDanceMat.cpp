@@ -11,12 +11,12 @@
 
 namespace SerialInterface
 {
-CSIDevice_DanceMat::CSIDevice_DanceMat(Core::System& system, SIDevices device, int device_number)
+CSIDevice_DanceMat::CSIDevice_DanceMat(Core::System& system, const SIDevices device, const int device_number)
     : CSIDevice_GCController(system, device, device_number)
 {
 }
 
-int CSIDevice_DanceMat::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_DanceMat::RunBuffer(u8* buffer, const int request_length)
 {
   // Read the command
   const auto command = static_cast<EBufferCommands>(buffer[0]);
@@ -24,7 +24,7 @@ int CSIDevice_DanceMat::RunBuffer(u8* buffer, int request_length)
   {
     ISIDevice::RunBuffer(buffer, request_length);
 
-    u32 id = Common::swap32(SI_DANCEMAT);
+    const u32 id = Common::swap32(SI_DANCEMAT);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -57,7 +57,7 @@ u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
   if (pad_status.button & PAD_BUTTON_START)
     map |= 0x1000;
 
-  return (u32)(map << 16) | 0x8080;
+  return static_cast<u32>(map << 16) | 0x8080;
 }
 
 bool CSIDevice_DanceMat::GetData(u32& hi, u32& low)

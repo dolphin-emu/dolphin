@@ -4,16 +4,9 @@
 #include "DolphinQt/MainWindow.h"
 
 #include <QApplication>
-#include <QCloseEvent>
-#include <QDateTime>
 #include <QDesktopServices>
-#include <QDir>
 #include <QDragEnterEvent>
-#include <QDropEvent>
-#include <QFileInfo>
-#include <QIcon>
 #include <QMimeData>
-#include <QStackedWidget>
 #include <QStyleHints>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -56,7 +49,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -70,7 +62,6 @@
 
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
-#include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Achievements/AchievementsWindow.h"
@@ -108,7 +99,6 @@
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -126,12 +116,10 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/ResourcePack/Manager.h"
-#include "UICommon/ResourcePack/Manifest.h"
 #include "UICommon/ResourcePack/ResourcePack.h"
 
 #include "UICommon/UICommon.h"
@@ -165,16 +153,16 @@ static void InstallSignalHandler()
 static WindowSystemType GetWindowSystemType()
 {
   // Determine WSI type based on Qt platform.
-  QString platform_name = QGuiApplication::platformName();
+  const QString platform_name = QGuiApplication::platformName();
   if (platform_name == QStringLiteral("windows"))
     return WindowSystemType::Windows;
-  else if (platform_name == QStringLiteral("cocoa"))
+  if (platform_name == QStringLiteral("cocoa"))
     return WindowSystemType::MacOS;
-  else if (platform_name == QStringLiteral("xcb"))
+  if (platform_name == QStringLiteral("xcb"))
     return WindowSystemType::X11;
-  else if (platform_name == QStringLiteral("wayland"))
+  if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
-  else if (platform_name == QStringLiteral("haiku"))
+   if (platform_name == QStringLiteral("haiku"))
     return WindowSystemType::Haiku;
 
   ModalMessageBox::critical(
@@ -399,7 +387,7 @@ void MainWindow::InitControllers()
   FreeLook::GetInputConfig()->SaveConfig();
 }
 
-void MainWindow::ShutdownControllers()
+void MainWindow::ShutdownControllers() const
 {
   m_hotkey_scheduler->Stop();
 
@@ -412,7 +400,7 @@ void MainWindow::ShutdownControllers()
 
 void MainWindow::InitCoreCallbacks()
 {
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (state == Core::State::Uninitialized)
       OnStopComplete();
 
@@ -426,7 +414,7 @@ void MainWindow::InitCoreCallbacks()
   m_render_widget->installEventFilter(this);
 
   // Handle file open events
-  auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
+  const auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
   connect(filter, &FileOpenEventFilter::fileOpened, this, [this](const QString& file_name) {
     StartGame(BootParameters::GenerateFromFile(file_name.toStdString()));
   });
@@ -472,15 +460,15 @@ void MainWindow::CreateComponents()
   m_cheats_manager = new CheatsManager(Core::System::GetInstance(), this);
   m_assembler_widget = new AssemblerWidget(this);
 
-  const auto request_watch = [this](QString name, u32 addr) {
+  const auto request_watch = [this](const QString& name, const u32 addr) {
     m_watch_widget->AddWatch(name, addr);
   };
-  const auto request_breakpoint = [this](u32 addr) { m_breakpoint_widget->AddBP(addr); };
-  const auto request_memory_breakpoint = [this](u32 addr) {
+  const auto request_breakpoint = [this](const u32 addr) { m_breakpoint_widget->AddBP(addr); };
+  const auto request_memory_breakpoint = [this](const u32 addr) {
     m_breakpoint_widget->AddAddressMBP(addr);
   };
-  const auto request_view_in_memory = [this](u32 addr) { m_memory_widget->SetAddress(addr); };
-  const auto request_view_in_code = [this](u32 addr) {
+  const auto request_view_in_memory = [this](const u32 addr) { m_memory_widget->SetAddress(addr); };
+  const auto request_view_in_code = [this](const u32 addr) {
     m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   };
 
@@ -502,7 +490,7 @@ void MainWindow::CreateComponents()
   connect(m_code_widget, &CodeWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
-  connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
+  connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](const u32 address) {
     m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
   connect(m_memory_widget, &MemoryWidget::RequestWatch, request_watch);
@@ -511,8 +499,8 @@ void MainWindow::CreateComponents()
           &CodeWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
           &MemoryWidget::Update);
-  connect(m_breakpoint_widget, &BreakpointWidget::ShowCode, [this](u32 address) {
-    if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+  connect(m_breakpoint_widget, &BreakpointWidget::ShowCode, [this](const u32 address) {
+    if (GetState(Core::System::GetInstance()) == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
   connect(m_breakpoint_widget, &BreakpointWidget::ShowMemory, m_memory_widget,
@@ -654,7 +642,7 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
     auto& movie = Core::System::GetInstance().GetMovie();
-    bool read_only = !movie.IsReadOnly();
+    const bool read_only = !movie.IsReadOnly();
     movie.SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
@@ -722,7 +710,7 @@ void MainWindow::ConnectRenderWidget()
   m_rendering_to_main = false;
   m_render_widget->hide();
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-  connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
+  connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](const bool focus) {
     if (m_render_widget->isFullScreen())
       SetFullScreenResolution(focus);
   });
@@ -749,7 +737,7 @@ void MainWindow::ConnectStack()
 
   setCentralWidget(m_stack);
 
-  setDockOptions(DockOption::AllowNestedDocks | DockOption::AllowTabbedDocks);
+  setDockOptions(AllowNestedDocks | AllowTabbedDocks);
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
   addDockWidget(Qt::LeftDockWidgetArea, m_log_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_log_config_widget);
@@ -803,7 +791,7 @@ QStringList MainWindow::PromptFileNames()
 
 void MainWindow::ChangeDisc()
 {
-  std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
+  const std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
 
   if (paths.empty())
     return;
@@ -820,15 +808,15 @@ void MainWindow::EjectDisc()
 
 void MainWindow::OpenUserFolder()
 {
-  std::string path = File::GetUserPath(D_USER_IDX);
+  const std::string path = File::GetUserPath(D_USER_IDX);
 
-  QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
+  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
   QDesktopServices::openUrl(url);
 }
 
 void MainWindow::Open()
 {
-  QStringList files = PromptFileNames();
+  const QStringList files = PromptFileNames();
   if (!files.isEmpty())
     StartGame(StringListToStdVector(files));
 }
@@ -840,13 +828,13 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   // Otherwise, play the default game.
   // Otherwise, play the last played game, if there is one.
   // Otherwise, prompt for a new game.
-  if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+  if (GetState(Core::System::GetInstance()) == Core::State::Paused)
   {
-    Core::SetState(Core::System::GetInstance(), Core::State::Running);
+    SetState(Core::System::GetInstance(), Core::State::Running);
   }
   else
   {
-    std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
+    const std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
       StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
@@ -854,7 +842,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     }
     else
     {
-      const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
+      const QString default_path = QString::fromStdString(Get(Config::MAIN_DEFAULT_ISO));
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, ScanForSecondDisc::Yes,
@@ -870,12 +858,12 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
 
 void MainWindow::Pause()
 {
-  Core::SetState(Core::System::GetInstance(), Core::State::Paused);
+  SetState(Core::System::GetInstance(), Core::State::Paused);
 }
 
 void MainWindow::TogglePause()
 {
-  if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+  if (GetState(Core::System::GetInstance()) == Core::State::Paused)
   {
     Play();
   }
@@ -918,7 +906,7 @@ void MainWindow::OnStopComplete()
 
 bool MainWindow::RequestStop()
 {
-  if (!Core::IsRunning(Core::System::GetInstance()))
+  if (!IsRunning(Core::System::GetInstance()))
   {
     Core::QueueHostJob([this](Core::System&) { OnStopComplete(); }, true);
     return true;
@@ -936,20 +924,20 @@ bool MainWindow::RequestStop()
   else
     FullScreen();
 
-  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
+  if (Get(Config::MAIN_CONFIRM_ON_STOP))
   {
     if (std::exchange(m_stop_confirm_showing, true))
       return true;
 
     Common::ScopeGuard confirm_lock([this] { m_stop_confirm_showing = false; });
 
-    const Core::State state = Core::GetState(Core::System::GetInstance());
+    const Core::State state = GetState(Core::System::GetInstance());
 
     // Only pause the game, if NetPlay is not running
-    bool pause = !Settings::Instance().GetNetPlayClient();
+    const bool pause = !Settings::Instance().GetNetPlayClient();
 
     if (pause)
-      Core::SetState(Core::System::GetInstance(), Core::State::Paused);
+      SetState(Core::System::GetInstance(), Core::State::Paused);
 
     if (rendered_widget_was_active)
     {
@@ -961,7 +949,7 @@ bool MainWindow::RequestStop()
     // This is to avoid any "race conditions" between the "Window Activate" message and the
     // message box returning, which could break cursor locking depending on the order
     m_render_widget->SetWaitingForMessageBox(true);
-    auto confirm = ModalMessageBox::question(
+    const auto confirm = ModalMessageBox::question(
         confirm_parent, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
@@ -979,16 +967,13 @@ bool MainWindow::RequestStop()
       m_render_widget->SetWaitingForMessageBox(false);
 
       if (pause)
-        Core::SetState(Core::System::GetInstance(), state);
+        SetState(Core::System::GetInstance(), state);
 
       return false;
     }
-    else
-    {
-      m_render_widget->SetCursorLockedOnNextActivation(false);
-      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
-      m_render_widget->SetWaitingForMessageBox(false);
-    }
+    m_ender_widget->SetCursorLockedOnNextActivation(false);
+    // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
+    m_render_widget->SetWaitingForMessageBox(false);
   }
 
   OnStopRecording();
@@ -1000,8 +985,8 @@ bool MainWindow::RequestStop()
 
     // Unpause because gracefully shutting down needs the game to actually request a shutdown.
     // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
-    if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
-      Core::SetState(Core::System::GetInstance(), Core::State::Running);
+    if (GetState(Core::System::GetInstance()) == Core::State::Paused)
+      SetState(Core::System::GetInstance(), Core::State::Running);
 
     // Tell NetPlay about the power event
     if (NetPlay::IsNetPlayRunning())
@@ -1020,12 +1005,12 @@ bool MainWindow::RequestStop()
 
 void MainWindow::ForceStop()
 {
-  Core::Stop(Core::System::GetInstance());
+  Stop(Core::System::GetInstance());
 }
 
 void MainWindow::Reset()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
   if (movie.IsRecordingInput())
     movie.SetReset(true);
@@ -1034,7 +1019,7 @@ void MainWindow::Reset()
 
 void MainWindow::FrameAdvance()
 {
-  Core::DoFrameStep(Core::System::GetInstance());
+  DoFrameStep(Core::System::GetInstance());
 }
 
 void MainWindow::FullScreen()
@@ -1042,7 +1027,7 @@ void MainWindow::FullScreen()
   // If the render widget is fullscreen we want to reset it to whatever is in
   // settings. If it's set to be fullscreen then it just remakes the window,
   // which probably isn't ideal.
-  bool was_fullscreen = m_render_widget->isFullScreen();
+  const bool was_fullscreen = m_render_widget->isFullScreen();
 
   if (!was_fullscreen)
     m_render_widget_geometry = m_render_widget->saveGeometry();
@@ -1060,7 +1045,7 @@ void MainWindow::FullScreen()
   }
 }
 
-void MainWindow::UnlockCursor()
+void MainWindow::UnlockCursor() const
 {
   if (!m_render_widget->isFullScreen())
     m_render_widget->SetCursorLocked(false);
@@ -1074,27 +1059,27 @@ void MainWindow::ScreenShot()
 void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
                                                std::unique_ptr<BootSessionData> boot_session_data)
 {
-  auto second_game = m_game_list->FindSecondDisc(game);
+  const auto second_game = m_game_list->FindSecondDisc(game);
 
-  std::vector<std::string> paths = {game.GetFilePath()};
+  std::vector paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
 
   StartGame(paths, std::move(boot_session_data));
 }
 
-void MainWindow::StartGame(const QString& path, ScanForSecondDisc scan,
+void MainWindow::StartGame(const QString& path, const ScanForSecondDisc scan,
                            std::unique_ptr<BootSessionData> boot_session_data)
 {
   StartGame(path.toStdString(), scan, std::move(boot_session_data));
 }
 
-void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
+void MainWindow::StartGame(const std::string& path, const ScanForSecondDisc scan,
                            std::unique_ptr<BootSessionData> boot_session_data)
 {
   if (scan == ScanForSecondDisc::Yes)
   {
-    std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
+    const std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
     if (game != nullptr)
     {
       ScanForSecondDiscAndStartGame(*game, std::move(boot_session_data));
@@ -1107,7 +1092,7 @@ void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
 }
 
 void MainWindow::StartGame(const std::vector<std::string>& paths,
-                           std::unique_ptr<BootSessionData> boot_session_data)
+                           const std::unique_ptr<BootSessionData>& boot_session_data)
 {
   StartGame(BootParameters::GenerateFromFile(
       paths, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
@@ -1125,7 +1110,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   }
 
   // If we're running, only start a new game once we've stopped the last.
-  if (Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized)
+  if (GetState(Core::System::GetInstance()) != Core::State::Uninitialized)
   {
     if (!RequestStop())
       return;
@@ -1152,13 +1137,13 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     Discord::UpdateDiscordPresence();
 #endif
 
-  if (Config::Get(Config::MAIN_FULLSCREEN))
+  if (Get(Config::MAIN_FULLSCREEN))
     m_fullscreen_requested = true;
 }
 
 void MainWindow::SetFullScreenResolution(bool fullscreen)
 {
-  if (Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES) == "Auto")
+  if (Get(Config::MAIN_FULLSCREEN_DISPLAY_RES) == "Auto")
     return;
 #ifdef _WIN32
 
@@ -1171,7 +1156,7 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
   DEVMODE screen_settings;
   memset(&screen_settings, 0, sizeof(screen_settings));
   screen_settings.dmSize = sizeof(screen_settings);
-  sscanf(Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES).c_str(), "%dx%d",
+  sscanf(Get(Config::MAIN_FULLSCREEN_DISPLAY_RES).c_str(), "%dx%d",
          &screen_settings.dmPelsWidth, &screen_settings.dmPelsHeight);
   screen_settings.dmBitsPerPel = 32;
   screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
@@ -1189,7 +1174,7 @@ void MainWindow::ShowRenderWidget()
   SetFullScreenResolution(false);
   Host::GetInstance()->SetRenderFullscreen(false);
 
-  if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
+  if (Get(Config::MAIN_RENDER_TO_MAIN))
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
     m_rendering_to_main = true;
@@ -1211,7 +1196,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
+void MainWindow::HideRenderWidget(const bool reinit, const bool is_exit)
 {
   if (m_rendering_to_main)
   {
@@ -1240,7 +1225,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 
     m_render_widget->installEventFilter(this);
     connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
+    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](const bool focus) {
       if (m_render_widget->isFullScreen())
         SetFullScreenResolution(focus);
     });
@@ -1357,7 +1342,7 @@ void MainWindow::ShowGraphicsWindow()
   m_graphics_window->activateWindow();
 }
 
-void MainWindow::ShowNetPlaySetupDialog()
+void MainWindow::ShowNetPlaySetupDialog() const
 {
   SetQWidgetWindowDecorations(m_netplay_setup_dialog);
   m_netplay_setup_dialog->show();
@@ -1418,49 +1403,49 @@ void MainWindow::ShowInfinityBase()
 
 void MainWindow::StateLoad()
 {
-  QString dialog_path = (Config::Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
+  const QString dialog_path = (Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
                             QDir::currentPath() :
-                            QString::fromStdString(Config::Get(Config::MAIN_CURRENT_STATE_PATH));
-  QString path = DolphinFileDialog::getOpenFileName(
+                            QString::fromStdString(Get(Config::MAIN_CURRENT_STATE_PATH));
+  const QString path = DolphinFileDialog::getOpenFileName(
       this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
-  Config::SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
+  SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
     State::LoadAs(Core::System::GetInstance(), path.toStdString());
 }
 
 void MainWindow::StateSave()
 {
-  QString dialog_path = (Config::Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
+  const QString dialog_path = (Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
                             QDir::currentPath() :
-                            QString::fromStdString(Config::Get(Config::MAIN_CURRENT_STATE_PATH));
-  QString path = DolphinFileDialog::getSaveFileName(
+                            QString::fromStdString(Get(Config::MAIN_CURRENT_STATE_PATH));
+  const QString path = DolphinFileDialog::getSaveFileName(
       this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
-  Config::SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
+  SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
     State::SaveAs(Core::System::GetInstance(), path.toStdString());
 }
 
-void MainWindow::StateLoadSlot()
+void MainWindow::StateLoadSlot() const
 {
   State::Load(Core::System::GetInstance(), m_state_slot);
 }
 
-void MainWindow::StateSaveSlot()
+void MainWindow::StateSaveSlot() const
 {
   State::Save(Core::System::GetInstance(), m_state_slot);
 }
 
-void MainWindow::StateLoadSlotAt(int slot)
+void MainWindow::StateLoadSlotAt(const int slot)
 {
   State::Load(Core::System::GetInstance(), slot);
 }
 
-void MainWindow::StateLoadLastSavedAt(int slot)
+void MainWindow::StateLoadLastSavedAt(const int slot)
 {
   State::LoadLastSaved(Core::System::GetInstance(), slot);
 }
 
-void MainWindow::StateSaveSlotAt(int slot)
+void MainWindow::StateSaveSlotAt(const int slot)
 {
   State::Save(Core::System::GetInstance(), slot);
 }
@@ -1480,7 +1465,7 @@ void MainWindow::StateSaveOldest()
   State::SaveFirstSaved(Core::System::GetInstance());
 }
 
-void MainWindow::SetStateSlot(int slot)
+void MainWindow::SetStateSlot(const int slot)
 {
   Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
@@ -1490,7 +1475,7 @@ void MainWindow::SetStateSlot(int slot)
                        2500);
 }
 
-void MainWindow::IncrementSelectedStateSlot()
+void MainWindow::IncrementSelectedStateSlot() const
 {
   u32 state_slot = m_state_slot + 1;
   if (state_slot > State::NUM_STATES)
@@ -1498,7 +1483,7 @@ void MainWindow::IncrementSelectedStateSlot()
   m_menu_bar->SetStateSlot(state_slot);
 }
 
-void MainWindow::DecrementSelectedStateSlot()
+void MainWindow::DecrementSelectedStateSlot() const
 {
   u32 state_slot = m_state_slot - 1;
   if (state_slot < 1)
@@ -1538,7 +1523,7 @@ void MainWindow::NetPlayInit()
 #ifdef USE_DISCORD_PRESENCE
   connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
 
-  Discord::InitNetPlayFunctionality(*m_netplay_discord);
+  InitNetPlayFunctionality(*m_netplay_discord);
   m_netplay_discord->Start();
 #endif
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
@@ -1549,7 +1534,7 @@ void MainWindow::NetPlayInit()
 
 bool MainWindow::NetPlayJoin()
 {
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (IsRunning(Core::System::GetInstance()))
   {
     ModalMessageBox::critical(nullptr, tr("Error"),
                               tr("Can't start a NetPlay Session while a game is still running!"));
@@ -1563,10 +1548,10 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
-  auto server = Settings::Instance().GetNetPlayServer();
+  const auto server = Settings::Instance().GetNetPlayServer();
 
   // Settings
-  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
   const bool is_traversal = traversal_choice == "traversal";
 
   std::string host_ip;
@@ -1578,21 +1563,21 @@ bool MainWindow::NetPlayJoin()
   }
   else
   {
-    host_ip = is_traversal ? Config::Get(Config::NETPLAY_HOST_CODE) :
-                             Config::Get(Config::NETPLAY_ADDRESS);
-    host_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
+    host_ip = is_traversal ? Get(Config::NETPLAY_HOST_CODE) :
+                             Get(Config::NETPLAY_ADDRESS);
+    host_port = Get(Config::NETPLAY_CONNECT_PORT);
   }
 
-  const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
-  const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
-  const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
+  const std::string traversal_host = Get(Config::NETPLAY_TRAVERSAL_SERVER);
+  const u16 traversal_port = Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const std::string nickname = Get(Config::NETPLAY_NICKNAME);
+  const std::string network_mode = Get(Config::NETPLAY_NETWORK_MODE);
   const bool host_input_authority = network_mode == "hostinputauthority" || network_mode == "golf";
 
   if (server)
   {
     server->SetHostInputAuthority(host_input_authority);
-    server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
+    server->AdjustPadBufferSize(Get(Config::NETPLAY_BUFFER_SIZE));
   }
 
   // Create Client
@@ -1616,7 +1601,7 @@ bool MainWindow::NetPlayJoin()
 
 bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (IsRunning(Core::System::GetInstance()))
   {
     ModalMessageBox::critical(nullptr, tr("Error"),
                               tr("Can't start a NetPlay Session while a game is still running!"));
@@ -1631,17 +1616,17 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
   }
 
   // Settings
-  u16 host_port = Config::Get(Config::NETPLAY_HOST_PORT);
-  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  u16 host_port = Get(Config::NETPLAY_HOST_PORT);
+  const std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
   const bool is_traversal = traversal_choice == "traversal";
-  const bool use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
+  const bool use_upnp = Get(Config::NETPLAY_USE_UPNP);
 
-  const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
-  const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  const u16 traversal_port_alt = Config::Get(Config::NETPLAY_TRAVERSAL_PORT_ALT);
+  const std::string traversal_host = Get(Config::NETPLAY_TRAVERSAL_SERVER);
+  const u16 traversal_port = Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const u16 traversal_port_alt = Get(Config::NETPLAY_TRAVERSAL_PORT_ALT);
 
   if (is_traversal)
-    host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
+    host_port = Get(Config::NETPLAY_LISTEN_PORT);
 
   // Create Server
   Settings::Instance().ResetNetPlayServer(
@@ -1677,8 +1662,8 @@ void MainWindow::NetPlayQuit()
 
 void MainWindow::UpdateScreenSaverInhibition()
 {
-  const bool inhibit = Config::Get(Config::MAIN_DISABLE_SCREENSAVER) &&
-                       (Core::GetState(Core::System::GetInstance()) == Core::State::Running);
+  const bool inhibit = Get(Config::MAIN_DISABLE_SCREENSAVER) &&
+                       (GetState(Core::System::GetInstance()) == Core::State::Running);
 
   if (inhibit == m_is_screensaver_inhibited)
     return;
@@ -1700,7 +1685,7 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
     if (RequestStop() && object == this)
       m_exit_requested = true;
 
-    static_cast<QCloseEvent*>(event)->ignore();
+    event->ignore();
     return true;
   }
 
@@ -1775,7 +1760,7 @@ QSize MainWindow::sizeHint() const
 #ifdef _WIN32
 bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
 {
-  auto* msg = reinterpret_cast<MSG*>(message);
+  const auto* msg = static_cast<MSG*>(message);
   if (msg && msg->message == WM_SETTINGCHANGE && msg->lParam != NULL &&
       std::wstring_view(L"ImmersiveColorSet")
               .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
@@ -1802,14 +1787,14 @@ bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr
 }
 #endif
 
-void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
+void MainWindow::OnBootGameCubeIPL(const DiscIO::Region region)
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
 }
 
 void MainWindow::OnImportNANDBackup()
 {
-  auto response = ModalMessageBox::question(
+  const auto response = ModalMessageBox::question(
       this, tr("Question"),
       tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
          "and savegames that already exist. This process is not reversible, so it is "
@@ -1819,10 +1804,10 @@ void MainWindow::OnImportNANDBackup()
   if (response == QMessageBox::No)
     return;
 
-  QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"), QDir::currentPath(),
-                                         tr("BootMii NAND backup file (*.bin);;"
-                                            "All Files (*)"));
+  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"),
+                                                          QDir::currentPath(), tr(
+                                                              "BootMii NAND backup file (*.bin);;"
+                                                              "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1835,7 +1820,7 @@ void MainWindow::OnImportNANDBackup()
 
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-  std::future<void> result = std::async(std::launch::async, [&] {
+  const std::future<void> result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(
         file.toStdString(),
         [&dialog, beginning] {
@@ -1844,7 +1829,7 @@ void MainWindow::OnImportNANDBackup()
                   .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
         },
         [this] {
-          std::optional<std::string> keys_file = RunOnObject(this, [this] {
+          const std::optional<std::string> keys_file = RunOnObject(this, [this] {
             return DolphinFileDialog::getOpenFileName(
                        this, tr("Select Keys File (OTP/SEEPROM Dump)"), QDir::currentPath(),
                        tr("BootMii keys file (*.bin);;"
@@ -1863,12 +1848,12 @@ void MainWindow::OnImportNANDBackup()
 
   result.wait();
 
-  m_menu_bar->UpdateToolsMenu(Core::IsRunning(Core::System::GetInstance()));
+  m_menu_bar->UpdateToolsMenu(IsRunning(Core::System::GetInstance()));
 }
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = DolphinFileDialog::getOpenFileName(
+  const QString dtm_file = DolphinFileDialog::getOpenFileName(
       this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
@@ -1895,7 +1880,7 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
+  if (GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;
@@ -1913,21 +1898,21 @@ void MainWindow::OnStartRecording()
 
   for (int i = 0; i < 4; i++)
   {
-    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    const SerialInterface::SIDevices si_device = Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
       controllers[i] = Movie::ControllerType::GBA;
-    else if (SerialInterface::SIDevice_IsGCController(si_device))
+    else if (SIDevice_IsGCController(si_device))
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    wiimotes[i] = Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   if (movie.BeginRecordingInput(controllers, wiimotes))
   {
     emit RecordingStatusChanged(true);
 
-    if (!Core::IsRunning(system))
+    if (!IsRunning(system))
       Play();
   }
 }
@@ -1947,7 +1932,7 @@ void MainWindow::OnExportRecording()
   auto& system = Core::System::GetInstance();
   const Core::CPUThreadGuard guard(system);
 
-  QString dtm_file = DolphinFileDialog::getSaveFileName(
+  const QString dtm_file = DolphinFileDialog::getSaveFileName(
       this, tr("Save Recording File As"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
   if (!dtm_file.isEmpty())
     system.GetMovie().SaveRecording(dtm_file.toStdString());
@@ -1961,16 +1946,16 @@ void MainWindow::OnActivateChat()
 
 void MainWindow::OnRequestGolfControl()
 {
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (client)
     client->RequestGolfControl();
 }
 
-void MainWindow::ShowTASInput()
+void MainWindow::ShowTASInput() const
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {
-    const auto si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    const auto si_device = Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
     {
       SetQWidgetWindowDecorations(m_gba_tas_input_windows[i]);
@@ -1991,8 +1976,8 @@ void MainWindow::ShowTASInput()
   auto& system = Core::System::GetInstance();
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
-        (!Core::IsRunning(system) || system.IsWii()))
+    if (Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
+        (!IsRunning(system) || system.IsWii()))
     {
       SetQWidgetWindowDecorations(m_wii_tas_input_windows[i]);
       m_wii_tas_input_windows[i]->show();
@@ -2002,7 +1987,7 @@ void MainWindow::ShowTASInput()
   }
 }
 
-void MainWindow::OnConnectWiiRemote(int id)
+void MainWindow::OnConnectWiiRemote(const int id)
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (const auto bt = WiiUtils::GetBluetoothEmuDevice())
@@ -2050,7 +2035,7 @@ void MainWindow::ShowResourcePackManager()
   manager.exec();
 }
 
-void MainWindow::ShowCheatsManager()
+void MainWindow::ShowCheatsManager() const
 {
   SetQWidgetWindowDecorations(m_cheats_manager);
   m_cheats_manager->show();
@@ -2058,8 +2043,8 @@ void MainWindow::ShowCheatsManager()
 
 void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 {
-  auto second_game = m_game_list->FindSecondDisc(game);
-  std::vector<std::string> paths = {game.GetFilePath()};
+  const auto second_game = m_game_list->FindSecondDisc(game);
+  std::vector paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
   std::unique_ptr<BootParameters> boot_params = BootParameters::GenerateFromFile(paths);
@@ -2068,9 +2053,10 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
     return;
 
-  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
-  RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
-                          disc.volume->GetDiscNumber(), game.GetFilePath(), this);
+  const auto& [_path, volume, _auto_disc_change_paths] =
+    std::get<BootParameters::Disc>(boot_params->parameters);
+  RiivolutionBootWidget w(volume->GetGameID(), volume->GetRevision(),
+                          volume->GetDiscNumber(), game.GetFilePath(), this);
   SetQWidgetWindowDecorations(&w);
 
 #ifdef USE_RETRO_ACHIEVEMENTS

@@ -51,22 +51,22 @@ struct Cache
   std::vector<u8> lookup_table_ex{};
   std::vector<u8> lookup_table_vmem{};
 
-  void Store(Memory::MemoryManager& memory, u32 addr);
-  void Invalidate(Memory::MemoryManager& memory, u32 addr);
-  void Flush(Memory::MemoryManager& memory, u32 addr);
-  void Touch(Memory::MemoryManager& memory, u32 addr, bool store);
+  void Store(const Memory::MemoryManager& memory, u32 addr);
+  void Invalidate(const Memory::MemoryManager& memory, u32 addr);
+  void Flush(const Memory::MemoryManager& memory, u32 addr);
+  void Touch(const Memory::MemoryManager& memory, u32 addr, bool store);
 
-  void FlushAll(Memory::MemoryManager& memory);
+  void FlushAll(const Memory::MemoryManager& memory);
 
-  std::pair<u32, u32> GetCache(Memory::MemoryManager& memory, u32 addr, bool locked);
+  std::pair<u32, u32> GetCache(const Memory::MemoryManager& memory, u32 addr, bool locked);
 
-  void Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, bool locked);
-  void Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, bool locked);
+  void Read(const Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, bool locked);
+  void Write(const Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, bool locked);
 
-  void Init(Memory::MemoryManager& memory);
+  void Init(const Memory::MemoryManager& memory);
   void Reset();
 
-  void DoState(Memory::MemoryManager& memory, PointerWrap& p);
+  void DoState(const Memory::MemoryManager& memory, PointerWrap& p);
 };
 
 struct InstructionCache : public Cache
@@ -77,10 +77,10 @@ struct InstructionCache : public Cache
 
   InstructionCache() = default;
   ~InstructionCache();
-  u32 ReadInstruction(Memory::MemoryManager& memory, PowerPC::PowerPCState& ppc_state, u32 addr);
-  void Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface, u32 addr);
-  void Init(Memory::MemoryManager& memory);
-  void Reset(JitInterface& jit_interface);
+  u32 ReadInstruction(const Memory::MemoryManager& memory, PowerPCState& ppc_state, u32 addr);
+  void Invalidate(const Memory::MemoryManager& memory, const JitInterface& jit_interface, u32 addr);
+  void Init(const Memory::MemoryManager& memory);
+  void Reset(const JitInterface& jit_interface);
   void RefreshConfig();
 };
 }  // namespace PowerPC

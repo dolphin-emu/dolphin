@@ -24,7 +24,7 @@ constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 class CombinedInput final : public Device::Input
 {
 public:
-  using Inputs = std::pair<Device::Input*, Device::Input*>;
+  using Inputs = std::pair<Input*, Input*>;
 
   CombinedInput(std::string name, const Inputs& inputs) : m_name(std::move(name)), m_inputs(inputs)
   {
@@ -50,17 +50,17 @@ public:
 
 private:
   const std::string m_name;
-  const std::pair<Device::Input*, Device::Input*> m_inputs;
+  const std::pair<Input*, Input*> m_inputs;
 };
 
 Device::~Device()
 {
   // delete inputs
-  for (Device::Input* input : m_inputs)
+  for (const Input* input : m_inputs)
     delete input;
 
   // delete outputs
-  for (Device::Output* output : m_outputs)
+  for (const Output* output : m_outputs)
     delete output;
 }
 
@@ -69,12 +69,12 @@ std::optional<int> Device::GetPreferredId() const
   return {};
 }
 
-void Device::AddInput(Device::Input* const i)
+void Device::AddInput(Input* const i)
 {
   m_inputs.push_back(i);
 }
 
-void Device::AddOutput(Device::Output* const o)
+void Device::AddOutput(Output* const o)
 {
   m_outputs.push_back(o);
 }
@@ -98,7 +98,7 @@ auto Device::GetParentMostInput(Input* child) const -> Input*
   return child;
 }
 
-Device::Input* Device::FindInput(std::string_view name) const
+Device::Input* Device::FindInput(const std::string_view name) const
 {
   for (Input* input : m_inputs)
   {
@@ -109,7 +109,7 @@ Device::Input* Device::FindInput(std::string_view name) const
   return nullptr;
 }
 
-Device::Output* Device::FindOutput(std::string_view name) const
+Device::Output* Device::FindOutput(const std::string_view name) const
 {
   for (Output* output : m_outputs)
   {
@@ -120,7 +120,7 @@ Device::Output* Device::FindOutput(std::string_view name) const
   return nullptr;
 }
 
-bool Device::Control::IsMatchingName(std::string_view name) const
+bool Device::Control::IsMatchingName(const std::string_view name) const
 {
   return GetName() == name;
 }
@@ -151,7 +151,7 @@ bool Device::FullAnalogSurface::IsHidden() const
   return m_low.IsHidden() && m_high.IsHidden();
 }
 
-bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
+bool Device::FullAnalogSurface::IsMatchingName(const std::string_view name) const
 {
   if (Control::IsMatchingName(name))
     return true;
@@ -181,8 +181,7 @@ std::string DeviceQualifier::ToString() const
 
   if (cid > -1)
     return fmt::format("{}/{}/{}", source, cid, name);
-  else
-    return fmt::format("{}//{}", source, name);
+  return fmt::format("{}//{}", source, name);
 }
 
 //
@@ -301,7 +300,7 @@ std::string DeviceContainer::GetDefaultDeviceString() const
   return device_qualifier.ToString();
 }
 
-Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* def_dev) const
+Device::Input* DeviceContainer::FindInput(const std::string_view name, const Device* def_dev) const
 {
   if (def_dev)
   {
@@ -322,7 +321,7 @@ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* d
   return nullptr;
 }
 
-Device::Output* DeviceContainer::FindOutput(std::string_view name, const Device* def_dev) const
+Device::Output* DeviceContainer::FindOutput(const std::string_view name, const Device* def_dev)
 {
   return def_dev->FindOutput(name);
 }
@@ -339,16 +338,16 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
 // and also properly handles detection when using "FullAnalogSurface" inputs.
 // Multiple detections are returned until the various timeouts have been reached.
 auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings,
-                                  std::chrono::milliseconds initial_wait,
-                                  std::chrono::milliseconds confirmation_wait,
-                                  std::chrono::milliseconds maximum_wait) const
+                                  const std::chrono::milliseconds initial_wait,
+                                  const std::chrono::milliseconds confirmation_wait,
+                                  const std::chrono::milliseconds maximum_wait) const
     -> std::vector<InputDetection>
 {
   struct InputState
   {
-    InputState(ciface::Core::Device::Input* input_) : input{input_} { stats.Push(0.0); }
+    InputState(Device::Input* input_) : input{input_} { stats.Push(0.0); }
 
-    ciface::Core::Device::Input* input;
+    Device::Input* input;
     ControlState initial_state = input->GetState();
     ControlState last_state = initial_state;
     MathUtil::RunningVariance<ControlState> stats;
@@ -372,7 +371,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
       last_state = new_state;
     }
 
-    bool IsPressed()
+    bool IsPressed() const
     {
       if (!is_ready)
         return false;
@@ -438,11 +437,11 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
 
     Common::SleepCurrentThread(10);
 
-    for (auto& device_state : device_states)
+    for (auto& [device, input_states] : device_states)
     {
-      for (std::size_t i = 0; i != device_state.input_states.size(); ++i)
+      for (std::size_t i = 0; i != input_states.size(); ++i)
       {
-        auto& input_state = device_state.input_states[i];
+        auto& input_state = input_states[i];
         input_state.Update();
 
         if (input_state.IsPressed())
@@ -455,7 +454,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
               1 / std::sqrt(input_state.stats.Variance() / input_state.stats.Mean());
 
           InputDetection new_detection;
-          new_detection.device = device_state.device;
+          new_detection.device = device;
           new_detection.input = input_state.input;
           new_detection.press_time = Clock::now();
           new_detection.smoothness = smoothness;
@@ -467,10 +466,10 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     }
 
     // Check for any releases of our detected inputs.
-    for (auto& d : detections)
+    for (auto& [_device, input, _press_time, release_time, _smoothness] : detections)
     {
-      if (!d.release_time.has_value() && d.input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
-        d.release_time = Clock::now();
+      if (!release_time.has_value() && input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+        release_time = Clock::now();
     }
   }
 

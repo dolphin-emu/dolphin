@@ -4,6 +4,7 @@
 #include "Core/CPUThreadConfigCallback.h"
 
 #include <atomic>
+#include <ranges>
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
@@ -11,7 +12,7 @@
 
 namespace
 {
-std::atomic<bool> s_should_run_callbacks = false;
+std::atomic s_should_run_callbacks = false;
 
 static std::vector<
     std::pair<CPUThreadConfigCallback::ConfigChangedCallbackID, Config::ConfigChangedCallback>>
@@ -21,8 +22,8 @@ static size_t s_next_callback_id = 0;
 
 void RunCallbacks()
 {
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  for (const auto& val : s_callbacks | std::views::values)
+    val();
 }
 
 void OnConfigChanged()
@@ -53,7 +54,7 @@ ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback f
   return callback_id;
 }
 
-void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
+void RemoveConfigChangedCallback(const ConfigChangedCallbackID callback_id)
 {
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {

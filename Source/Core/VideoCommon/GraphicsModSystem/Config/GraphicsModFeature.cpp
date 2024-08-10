@@ -14,7 +14,7 @@ void GraphicsModFeatureConfig::SerializeToConfig(picojson::object& json_obj) con
 
 bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj)
 {
-  if (auto group_iter = obj.find("group"); group_iter != obj.end())
+  if (const auto group_iter = obj.find("group"); group_iter != obj.end())
   {
     if (!group_iter->second.is<std::string>())
     {
@@ -26,7 +26,7 @@ bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj
     m_group = group_iter->second.get<std::string>();
   }
 
-  if (auto action_iter = obj.find("action"); action_iter != obj.end())
+  if (const auto action_iter = obj.find("action"); action_iter != obj.end())
   {
     if (!action_iter->second.is<std::string>())
     {
@@ -38,7 +38,7 @@ bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj
     m_action = action_iter->second.get<std::string>();
   }
 
-  if (auto action_data_iter = obj.find("action_data"); action_data_iter != obj.end())
+  if (const auto action_data_iter = obj.find("action_data"); action_data_iter != obj.end())
   {
     m_action_data = action_data_iter->second;
   }
@@ -46,7 +46,7 @@ bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj
   return true;
 }
 
-void GraphicsModFeatureConfig::SerializeToProfile(picojson::object*) const
+void GraphicsModFeatureConfig::SerializeToProfile(picojson::object*)
 {
 }
 

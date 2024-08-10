@@ -12,14 +12,10 @@
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
-#include "Common/LinearDiskCache.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
 
-#include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/VertexShaderGen.h"
 
 namespace Vulkan
 {
@@ -36,16 +32,16 @@ public:
 
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
-  void Shutdown();
+  void Shutdown() const;
 
   // Descriptor set layout accessor. Used for allocating descriptor sets.
-  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT layout) const
+  VkDescriptorSetLayout GetDescriptorSetLayout(const DESCRIPTOR_SET_LAYOUT layout) const
   {
     return m_descriptor_set_layouts[layout];
   }
 
   // Pipeline layout accessor. Used to fill in required field in PipelineInfo.
-  VkPipelineLayout GetPipelineLayout(PIPELINE_LAYOUT layout) const
+  VkPipelineLayout GetPipelineLayout(const PIPELINE_LAYOUT layout) const
   {
     return m_pipeline_layouts[layout];
   }
@@ -70,22 +66,22 @@ public:
   void ClearSamplerCache();
 
   // Saves the pipeline cache to disk. Call when shutting down.
-  void SavePipelineCache();
+  void SavePipelineCache() const;
 
   // Reload pipeline cache. Call when host config changes.
   void ReloadPipelineCache();
 
 private:
   bool CreateDescriptorSetLayouts();
-  void DestroyDescriptorSetLayouts();
+  void DestroyDescriptorSetLayouts() const;
   bool CreatePipelineLayouts();
-  void DestroyPipelineLayouts();
+  void DestroyPipelineLayouts() const;
   bool CreateStaticSamplers();
   void DestroySamplers();
   void DestroyRenderPassCache();
   bool CreatePipelineCache();
   bool LoadPipelineCache();
-  bool ValidatePipelineCache(const u8* data, size_t data_length);
+  static bool ValidatePipelineCache(const u8* data, size_t data_length);
   void DestroyPipelineCache();
 
   std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SET_LAYOUTS> m_descriptor_set_layouts = {};

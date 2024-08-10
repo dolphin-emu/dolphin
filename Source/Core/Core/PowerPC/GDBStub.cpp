@@ -29,7 +29,6 @@ typedef SSIZE_T ssize_t;
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
-#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -66,7 +65,7 @@ constexpr u32 NUM_BREAKPOINT_TYPES = 4;
 constexpr int MACH_O_POWERPC = 18;
 constexpr int MACH_O_POWERPC_750 = 9;
 
-const s64 GDB_UPDATE_CYCLES = 100000;
+constexpr s64 GDB_UPDATE_CYCLES = 100000;
 
 static bool s_has_control = false;
 static bool s_just_connected = false;
@@ -85,13 +84,13 @@ static const char* CommandBufferAsString()
 }
 
 // private helpers
-static u8 Hex2char(u8 hex)
+static u8 Hex2char(const u8 hex)
 {
   if (hex >= '0' && hex <= '9')
     return hex - '0';
-  else if (hex >= 'a' && hex <= 'f')
+  if (hex >= 'a' && hex <= 'f')
     return hex - 'a' + 0xa;
-  else if (hex >= 'A' && hex <= 'F')
+   if (hex >= 'A' && hex <= 'F')
     return hex - 'A' + 0xa;
 
   ERROR_LOG_FMT(GDB_STUB, "Invalid nibble: {} ({:02x})", static_cast<char>(hex), hex);
@@ -103,11 +102,10 @@ static u8 Nibble2hex(u8 n)
   n &= 0xf;
   if (n < 0xa)
     return '0' + n;
-  else
-    return 'A' + n - 0xa;
+  return 'A' + n - 0xa;
 }
 
-static void Mem2hex(u8* dst, u8* src, u32 len)
+static void Mem2hex(u8* dst, const u8* src, u32 len)
 {
   while (len-- > 0)
   {
@@ -117,7 +115,7 @@ static void Mem2hex(u8* dst, u8* src, u32 len)
   }
 }
 
-static void Hex2mem(u8* dst, u8* src, u32 len)
+static void Hex2mem(u8* dst, const u8* src, u32 len)
 {
   while (len-- > 0)
   {
@@ -150,7 +148,7 @@ static u8 ReadByte()
 static u8 CalculateChecksum()
 {
   u32 len = s_cmd_len;
-  u8* ptr = s_cmd_bfr;
+  const u8* ptr = s_cmd_bfr;
   u8 c = 0;
 
   while (len-- > 0)
@@ -159,7 +157,7 @@ static u8 CalculateChecksum()
   return c;
 }
 
-static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
+static void RemoveBreakpoint(const BreakpointType type, const u32 addr, const u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
@@ -182,7 +180,7 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
 
 static void Nack()
 {
-  const char nak = GDB_STUB_NAK;
+  constexpr char nak = GDB_STUB_NAK;
   const ssize_t res = send(s_sock, &nak, 1, 0);
 
   if (res != 1)
@@ -191,7 +189,7 @@ static void Nack()
 
 static void Ack()
 {
-  const char ack = GDB_STUB_ACK;
+  constexpr char ack = GDB_STUB_ACK;
   const ssize_t res = send(s_sock, &ack, 1, 0);
 
   if (res != 1)
@@ -209,16 +207,16 @@ static void ReadCommand()
     // ignore ack
     return;
   }
-  else if (c == 0x03)
+  if (c == 0x03)
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     system.GetCPU().Break();
     SendSignal(Signal::Sigtrap);
     s_has_control = true;
     INFO_LOG_FMT(GDB_STUB, "gdb: CPU::Break due to break command");
     return;
   }
-  else if (c != GDB_STUB_START)
+   if (c != GDB_STUB_START)
   {
     WARN_LOG_FMT(GDB_STUB, "gdb: read invalid byte {:02x}", c);
     return;
@@ -285,7 +283,7 @@ static void SendReply(const char* reply)
 
   memset(s_cmd_bfr, 0, sizeof s_cmd_bfr);
 
-  s_cmd_len = (u32)strlen(reply);
+  s_cmd_len = static_cast<u32>(strlen(reply));
   if (s_cmd_len + 4 > sizeof s_cmd_bfr)
     ERROR_LOG_FMT(GDB_STUB, "cmd_bfr overflow in gdb_reply");
 
@@ -301,7 +299,7 @@ static void SendReply(const char* reply)
 
   DEBUG_LOG_FMT(GDB_STUB, "gdb: reply (len: {}): {}", s_cmd_len, CommandBufferAsString());
 
-  const char* ptr = (const char*)s_cmd_bfr;
+  auto ptr = (const char*)s_cmd_bfr;
   u32 left = s_cmd_len + 4;
   while (left > 0)
   {
@@ -334,13 +332,13 @@ static void HandleQuery()
     return SendReply("QC1");
   if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
     return SendReply("m1");
-  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+  if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
     return SendReply("l");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+  if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
     return SendReply("00");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+  if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
     return WriteHostInfo();
-  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
+  if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
     return SendReply("swbreak+;hwbreak+");
 
   SendReply("");
@@ -362,21 +360,21 @@ static void HandleIsThreadAlive()
   SendReply("E01");
 }
 
-static void wbe32hex(u8* p, u32 v)
+static void wbe32hex(u8* p, const u32 v)
 {
   u32 i;
   for (i = 0; i < 8; i++)
     p[i] = Nibble2hex(v >> (28 - 4 * i));
 }
 
-static void wbe64hex(u8* p, u64 v)
+static void wbe64hex(u8* p, const u64 v)
 {
   u32 i;
   for (i = 0; i < 16; i++)
     p[i] = Nibble2hex(v >> (60 - 4 * i));
 }
 
-static u32 re32hex(u8* p)
+static u32 re32hex(const u8* p)
 {
   u32 i;
   u32 res = 0;
@@ -387,7 +385,7 @@ static u32 re32hex(u8* p)
   return res;
 }
 
-static u64 re64hex(u8* p)
+static u64 re64hex(const u8* p)
 {
   u32 i;
   u64 res = 0;
@@ -400,8 +398,8 @@ static u64 re64hex(u8* p)
 
 static void ReadRegister()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = Core::System::GetInstance();
+  const auto& ppc_state = system.GetPPCState();
 
   static u8 reply[64];
   u32 id;
@@ -583,8 +581,12 @@ static void ReadRegister()
 
 static void ReadRegisters()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = Core::System::GetInstance();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   static u8 bfr[GDB_BFR_MAX - 4];
   u8* bufptr = bfr;
@@ -594,7 +596,7 @@ static void ReadRegisters()
 
   for (i = 0; i < 32; i++)
   {
-    wbe32hex(bufptr + i * 8, ppc_state.gpr[i]);
+    wbe32hex(bufptr + i * 8, gpr[i]);
   }
   bufptr += 32 * 8;
 
@@ -603,15 +605,18 @@ static void ReadRegisters()
 
 static void WriteRegisters()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = Core::System::GetInstance();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
 
   u32 i;
-  u8* bufptr = s_cmd_bfr;
+  const u8* bufptr = s_cmd_bfr;
 
   for (i = 0; i < 32; i++)
   {
-    ppc_state.gpr[i] = re32hex(bufptr + i * 8);
+    gpr[i] = re32hex(bufptr + i * 8);
   }
   bufptr += 32 * 8;
 
@@ -620,12 +625,12 @@ static void WriteRegisters()
 
 static void WriteRegister()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
   u32 id;
 
-  u8* bufptr = s_cmd_bfr + 3;
+  const u8* bufptr = s_cmd_bfr + 3;
 
   id = Hex2char(s_cmd_bfr[1]);
   if (s_cmd_bfr[2] != '=')
@@ -660,7 +665,7 @@ static void WriteRegister()
       break;
     case 65:
       ppc_state.msr.Hex = re32hex(bufptr);
-      PowerPC::MSRUpdated(ppc_state);
+      MSRUpdated(ppc_state);
       break;
     case 66:
       ppc_state.cr.Set(re32hex(bufptr));
@@ -760,7 +765,7 @@ static void WriteRegister()
       break;
     case 131:
       ppc_state.spr[SPR_MMCR0] = re32hex(bufptr);
-      PowerPC::MMCRUpdated(ppc_state);
+      MMCRUpdated(ppc_state);
       break;
     case 132:
       ppc_state.spr[SPR_PMC1] = re32hex(bufptr);
@@ -773,7 +778,7 @@ static void WriteRegister()
       break;
     case 135:
       ppc_state.spr[SPR_MMCR1] = re32hex(bufptr);
-      PowerPC::MMCRUpdated(ppc_state);
+      MMCRUpdated(ppc_state);
       break;
     case 136:
       ppc_state.spr[SPR_PMC3] = re32hex(bufptr);
@@ -828,9 +833,9 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
   if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  u8* data = memory.GetPointerForRange(addr, len);
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
+  const u8* data = memory.GetPointerForRange(addr, len);
   Mem2hex(reply, data, len);
   reply[len * 2] = '\0';
   SendReply((char*)reply);
@@ -855,8 +860,8 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
   if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   u8* dst = memory.GetPointerForRange(addr, len);
   Hex2mem(dst, s_cmd_bfr + i + 1, len);
   SendReply("OK");
@@ -864,12 +869,12 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
 
 static void Step()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetCPU().SetStepping(true);
-  Core::CallOnStateChangedCallbacks(Core::State::Paused);
+  CallOnStateChangedCallbacks(Core::State::Paused);
 }
 
-static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
+static bool AddBreakpoint(BreakpointType type, const u32 addr, const u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
@@ -944,7 +949,7 @@ static void HandleRemoveBreakpoint()
   SendReply("OK");
 }
 
-void ProcessCommands(bool loop_until_continue)
+void ProcessCommands(const bool loop_until_continue)
 {
   s_just_connected = false;
   auto& system = Core::System::GetInstance();
@@ -962,10 +967,9 @@ void ProcessCommands(bool loop_until_continue)
     {
       if (loop_until_continue)
         continue;
-      else
-        return;
+      return;
     }
-    ReadCommand();
+   ReadCommand();
     // No more commands
     if (s_cmd_len == 0)
       continue;
@@ -1014,9 +1018,13 @@ void ProcessCommands(bool loop_until_continue)
       Core::CPUThreadGuard guard(system);
 
       WriteMemory(guard);
-      auto& ppc_state = system.GetPPCState();
+      auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+        _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+        _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+        _pagetable_base, _pagetable_hashmask, iCache, _m_enable_dcache, _dCache, _reserve,
+        _reserve_address] = system.GetPPCState();
       auto& jit_interface = system.GetJitInterface();
-      ppc_state.iCache.Reset(jit_interface);
+      iCache.Reset(jit_interface);
       Host_UpdateDisasmDialog();
       break;
     }
@@ -1059,7 +1067,7 @@ void InitLocal(const char* socket)
 }
 #endif
 
-void Init(u32 port)
+void Init(const u32 port)
 {
   sockaddr_in saddr_server = {};
   sockaddr_in saddr_client;
@@ -1076,7 +1084,7 @@ void Init(u32 port)
   saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
 }
 
-static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
+static void InitGeneric(const int domain, const sockaddr* server_addr, const socklen_t server_addrlen,
                         sockaddr* client_addr, socklen_t* client_addrlen)
 {
   s_socket_context.emplace();
@@ -1085,7 +1093,7 @@ static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t serve
   if (s_tmpsock == -1)
     ERROR_LOG_FMT(GDB_STUB, "Failed to create gdb socket");
 
-  int on = 1;
+  constexpr int on = 1;
   if (setsockopt(s_tmpsock, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof on) < 0)
     ERROR_LOG_FMT(GDB_STUB, "Failed to setsockopt");
 
@@ -1110,7 +1118,7 @@ static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t serve
 #endif
   s_tmpsock = -1;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   s_update_event = core_timing.RegisterEvent("GDBStubUpdate", UpdateCallback);
   core_timing.ScheduleEvent(GDB_UPDATE_CYCLES, s_update_event);
@@ -1156,12 +1164,16 @@ bool JustConnected()
 
 void SendSignal(Signal signal)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = Core::System::GetInstance();
+  const auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   char bfr[128] = {};
-  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64,
-                 ppc_state.pc, 1, ppc_state.gpr[1]);
+  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64, pc, 1,
+                 gpr[1]);
   SendReply(bfr);
 }
 }  // namespace GDBStub

@@ -20,9 +20,9 @@
 
 namespace DiscIO
 {
-static const u64 WII_SECTOR_SIZE = 0x8000;
-static const u64 WII_SECTOR_COUNT = 143432 * 2;
-static const u64 WII_DISC_HEADER_SIZE = 256;
+static constexpr u64 WII_SECTOR_SIZE = 0x8000;
+static constexpr u64 WII_SECTOR_COUNT = 143432 * 2;
+static constexpr u64 WII_DISC_HEADER_SIZE = 256;
 
 WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
     : m_size(0), m_good(false)
@@ -149,14 +149,14 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   return true;
 }
 
-File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
+File::IOFile& WbfsFileReader::SeekToCluster(const u64 offset, u64* available)
 {
-  u64 base_cluster = (offset >> m_header.wbfs_sector_shift);
+  const u64 base_cluster = (offset >> m_header.wbfs_sector_shift);
   if (base_cluster < m_blocks_per_disc)
   {
-    u64 cluster_address = m_wbfs_sector_size * m_wlba_table[base_cluster];
-    u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
-    u64 final_address = cluster_address + cluster_offset;
+    const u64 cluster_address = m_wbfs_sector_size * m_wlba_table[base_cluster];
+    const u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
+    const u64 final_address = cluster_address + cluster_offset;
 
     for (FileEntry& file_entry : m_files)
     {
@@ -165,8 +165,8 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
         file_entry.file.Seek(final_address - file_entry.base_address, File::SeekOrigin::Begin);
         if (available)
         {
-          u64 till_end_of_file = file_entry.size - (final_address - file_entry.base_address);
-          u64 till_end_of_sector = m_wbfs_sector_size - cluster_offset;
+          const u64 till_end_of_file = file_entry.size - (final_address - file_entry.base_address);
+          const u64 till_end_of_sector = m_wbfs_sector_size - cluster_offset;
           *available = std::min(till_end_of_file, till_end_of_sector);
         }
 

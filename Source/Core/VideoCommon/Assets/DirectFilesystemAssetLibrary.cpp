@@ -4,6 +4,7 @@
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
 #include <algorithm>
+#include <ranges>
 #include <vector>
 
 #include <fmt/std.h>
@@ -40,11 +41,11 @@ std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_ti
 std::size_t GetAssetSize(const CustomTextureData& data)
 {
   std::size_t total = 0;
-  for (const auto& slice : data.m_slices)
+  for (const auto& [m_levels] : data.m_slices)
   {
-    for (const auto& level : slice.m_levels)
+    for (const auto& [data, _format, _width, _height, _row_length] : m_levels)
     {
-      total += level.data.size();
+      total += data.size();
     }
   }
   return total;
@@ -54,15 +55,15 @@ CustomAssetLibrary::TimeType
 DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
 {
   std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
+  if (const auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
     const auto& asset_map_path = iter->second;
-    CustomAssetLibrary::TimeType max_entry;
-    for (const auto& [key, value] : asset_map_path)
+    TimeType max_entry;
+    for (const auto& value : asset_map_path | std::views::values)
     {
       std::error_code ec;
-      const auto tp = std::filesystem::last_write_time(value, ec);
+      const auto tp = last_write_time(value, ec);
       if (ec)
         continue;
       auto tp_sys = FileTimeToSysTime(tp);
@@ -104,7 +105,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
   std::size_t metadata_size;
   {
     std::error_code ec;
-    metadata_size = std::filesystem::file_size(metadata->second, ec);
+    metadata_size = file_size(metadata->second, ec);
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
@@ -116,7 +117,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
   std::size_t shader_size;
   {
     std::error_code ec;
-    shader_size = std::filesystem::file_size(shader->second, ec);
+    shader_size = file_size(shader->second, ec);
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
@@ -177,7 +178,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
   std::size_t metadata_size;
   {
     std::error_code ec;
-    metadata_size = std::filesystem::file_size(asset_path, ec);
+    metadata_size = file_size(asset_path, ec);
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get material file size with error '{}'!",
@@ -248,7 +249,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   std::size_t metadata_size;
   {
     std::error_code ec;
-    metadata_size = std::filesystem::file_size(metadata->second, ec);
+    metadata_size = file_size(metadata->second, ec);
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
@@ -260,7 +261,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   std::size_t mesh_size;
   {
     std::error_code ec;
-    mesh_size = std::filesystem::file_size(mesh->second, ec);
+    mesh_size = file_size(mesh->second, ec);
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get mesh file size with error '{}'!",
@@ -340,7 +341,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   if (metadata != asset_map.end())
   {
     std::error_code ec;
-    metadata_size = std::filesystem::file_size(metadata->second, ec);
+    metadata_size = file_size(metadata->second, ec);
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
@@ -397,7 +398,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 
     return LoadInfo{GetAssetSize(data->m_texture) + metadata_size, GetLastAssetWriteTime(asset_id)};
   }
-  else if (ext == ".png")
+  if (ext == ".png")
   {
     // PNG could support more complicated texture types in the future
     // but for now just error
@@ -463,7 +464,7 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
     if (!File::Exists(full_path))
       return true;
 
-    VideoCommon::CustomTextureData::ArraySlice::Level level;
+    CustomTextureData::ArraySlice::Level level;
     if (extension_lower == ".dds")
     {
       if (!LoadDDSTexture(&level, full_path, mip_level))
@@ -496,7 +497,7 @@ DirectFilesystemAssetLibrary::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
   std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
+  if (const auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
     return iter->second;

@@ -10,9 +10,9 @@
 
 TEST(BitSet, Basics)
 {
-  BitSet32 bs;
-  BitSet64 bs2(1);
-  BitSet64 bs3(2);
+  constexpr BitSet32 bs;
+  constexpr BitSet64 bs2(1);
+  constexpr BitSet64 bs3(2);
   EXPECT_TRUE(!!bs2);
   EXPECT_FALSE(!!bs);
   EXPECT_EQ(bs2, bs2);
@@ -27,7 +27,7 @@ TEST(BitSet, BitGetSet)
   bs[3] = bs[8] = bs[11] = true;
   EXPECT_TRUE(bs[3]);
   EXPECT_FALSE(bs[4]);
-  EXPECT_EQ((u32)((1 << 3) | (1 << 8) | (1 << 11)), bs.m_val);
+  EXPECT_EQ(static_cast<u32>((1 << 3) | (1 << 8) | (1 << 11)), bs.m_val);
 }
 
 TEST(BitSet, Count)
@@ -70,7 +70,8 @@ TEST(BitSet, Count)
 
 TEST(BitSet, BitOps)
 {
-  BitSet32 a(3), b(5), c;
+  constexpr constexpr BitSet32 a(3), b(5);
+  BitSet32 c;
   EXPECT_EQ(BitSet32(7), a | b);
   EXPECT_EQ(BitSet32(6), a ^ b);
   EXPECT_EQ(BitSet32(1), a & b);
@@ -88,8 +89,8 @@ TEST(BitSet, BitOps)
 
 TEST(BitSet, InitializerListsAndIteration)
 {
-  std::vector<int> bits{1, 10, 15, 17, 20, 30};
-  BitSet32 bs{1, 10, 15, 17, 20, 30};
+  std::vector bits{1, 10, 15, 17, 20, 30};
+  constexpr BitSet32 bs{1, 10, 15, 17, 20, 30};
   auto vit = bits.begin();
   for (auto i : bs)
   {

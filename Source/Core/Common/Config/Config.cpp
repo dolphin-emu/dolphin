@@ -7,6 +7,7 @@
 #include <atomic>
 #include <map>
 #include <mutex>
+#include <ranges>
 #include <shared_mutex>
 #include <utility>
 #include <vector>
@@ -31,7 +32,7 @@ static void AddLayerInternal(std::shared_ptr<Layer> layer)
   {
     WriteLock lock(s_layers_rw_lock);
 
-    const Config::LayerType layer_type = layer->GetLayer();
+    const LayerType layer_type = layer->GetLayer();
     s_layers.insert_or_assign(layer_type, std::move(layer));
   }
   OnConfigChanged();
@@ -42,7 +43,7 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
   AddLayerInternal(std::make_shared<Layer>(std::move(loader)));
 }
 
-std::shared_ptr<Layer> GetLayer(LayerType layer)
+std::shared_ptr<Layer> GetLayer(const LayerType layer)
 {
   ReadLock lock(s_layers_rw_lock);
 
@@ -55,7 +56,7 @@ std::shared_ptr<Layer> GetLayer(LayerType layer)
   return result;
 }
 
-void RemoveLayer(LayerType layer)
+void RemoveLayer(const LayerType layer)
 {
   {
     WriteLock lock(s_layers_rw_lock);
@@ -73,7 +74,7 @@ ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func)
   return callback_id;
 }
 
-void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
+void RemoveConfigChangedCallback(const ConfigChangedCallbackID callback_id)
 {
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {
@@ -95,8 +96,8 @@ void OnConfigChanged()
   if (s_callback_guards)
     return;
 
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  for (const auto& val : s_callbacks | std::views::values)
+    val();
 }
 
 u64 GetConfigVersion()
@@ -110,8 +111,8 @@ void Load()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (auto& layer : s_layers)
-      layer.second->Load();
+    for (const auto& val : s_layers | std::views::values)
+      val->Load();
   }
   OnConfigChanged();
 }
@@ -121,8 +122,8 @@ void Save()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (auto& layer : s_layers)
-      layer.second->Save();
+    for (const auto& val : s_layers | std::views::values)
+      val->Save();
   }
   OnConfigChanged();
 }
@@ -161,22 +162,23 @@ static const std::map<System, std::string> system_to_name = {
     {System::GameSettingsOnly, "GameSettingsOnly"},
     {System::Achievements, "Achievements"}};
 
-const std::string& GetSystemName(System system)
+const std::string& GetSystemName(const System system)
 {
   return system_to_name.at(system);
 }
 
 std::optional<System> GetSystemFromName(const std::string& name)
 {
-  const auto system = std::find_if(system_to_name.begin(), system_to_name.end(),
-                                   [&name](const auto& entry) { return entry.second == name; });
+  const auto system = std::ranges::find_if(system_to_name, [&name](const auto& entry) {
+    return entry.second == name;
+  });
   if (system != system_to_name.end())
     return system->first;
 
   return {};
 }
 
-const std::string& GetLayerName(LayerType layer)
+const std::string& GetLayerName(const LayerType layer)
 {
   static const std::map<LayerType, std::string> layer_to_name = {
       {LayerType::Base, "Base"},

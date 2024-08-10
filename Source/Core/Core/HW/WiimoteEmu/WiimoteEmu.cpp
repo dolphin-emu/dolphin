@@ -40,7 +40,6 @@
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -57,15 +56,15 @@ namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
 
-static const u16 button_bitmasks[] = {
+static constexpr u16 button_bitmasks[] = {
     Wiimote::BUTTON_A,     Wiimote::BUTTON_B,    Wiimote::BUTTON_ONE, Wiimote::BUTTON_TWO,
     Wiimote::BUTTON_MINUS, Wiimote::BUTTON_PLUS, Wiimote::BUTTON_HOME};
 
-static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote::PAD_LEFT,
-                                    Wiimote::PAD_RIGHT};
+static constexpr u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote::PAD_LEFT,
+                                        Wiimote::PAD_RIGHT};
 
-static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
-                                             Wiimote::PAD_DOWN};
+static constexpr u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
+                                                 Wiimote::PAD_DOWN};
 
 void Wiimote::Reset()
 {
@@ -139,7 +138,7 @@ void Wiimote::Reset()
 
     // Accel calibration:
     // Last byte is a checksum.
-    std::array<u8, 10> accel_calibration = {
+    std::array accel_calibration = {
         ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
     };
     UpdateCalibrationDataChecksum(accel_calibration, 1);
@@ -174,7 +173,7 @@ void Wiimote::Reset()
 
   // Reset extension connections to NONE:
   m_is_motion_plus_attached = false;
-  m_active_extension = ExtensionNumber::NONE;
+  m_active_extension = NONE;
   m_extension_port.AttachExtension(GetNoneExtension());
   m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
 
@@ -270,16 +269,16 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
 
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Classic>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Guitar>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
+  m_attachments->AddAttachment(std::make_unique<None>());
+  m_attachments->AddAttachment(std::make_unique<Nunchuk>());
+  m_attachments->AddAttachment(std::make_unique<Classic>());
+  m_attachments->AddAttachment(std::make_unique<Guitar>());
+  m_attachments->AddAttachment(std::make_unique<Drums>());
+  m_attachments->AddAttachment(std::make_unique<Turntable>());
+  m_attachments->AddAttachment(std::make_unique<UDrawTablet>());
+  m_attachments->AddAttachment(std::make_unique<DrawsomeTablet>());
+  m_attachments->AddAttachment(std::make_unique<TaTaCon>());
+  m_attachments->AddAttachment(std::make_unique<Shinkansen>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
@@ -318,7 +317,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
 
 Wiimote::~Wiimote()
 {
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+  RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 std::string Wiimote::GetName() const
@@ -333,7 +332,7 @@ InputConfig* Wiimote::GetConfig() const
   return ::Wiimote::GetConfig();
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(const WiimoteGroup group) const
 {
   switch (group)
   {
@@ -371,61 +370,61 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
   }
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(const NunchukGroup group) const
 {
-  return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[ExtensionNumber::NUNCHUK].get())
+  return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[NUNCHUK].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(const ClassicGroup group) const
 {
-  return static_cast<Classic*>(m_attachments->GetAttachmentList()[ExtensionNumber::CLASSIC].get())
+  return static_cast<Classic*>(m_attachments->GetAttachmentList()[CLASSIC].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(const GuitarGroup group) const
 {
-  return static_cast<Guitar*>(m_attachments->GetAttachmentList()[ExtensionNumber::GUITAR].get())
+  return static_cast<Guitar*>(m_attachments->GetAttachmentList()[GUITAR].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(const DrumsGroup group) const
 {
-  return static_cast<Drums*>(m_attachments->GetAttachmentList()[ExtensionNumber::DRUMS].get())
+  return static_cast<Drums*>(m_attachments->GetAttachmentList()[DRUMS].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(const TurntableGroup group) const
 {
   return static_cast<Turntable*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::TURNTABLE].get())
+             m_attachments->GetAttachmentList()[TURNTABLE].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(const UDrawTabletGroup group) const
 {
   return static_cast<UDrawTablet*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::UDRAW_TABLET].get())
+             m_attachments->GetAttachmentList()[UDRAW_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(const DrawsomeTabletGroup group) const
 {
   return static_cast<DrawsomeTablet*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::DRAWSOME_TABLET].get())
+             m_attachments->GetAttachmentList()[DRAWSOME_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(const TaTaConGroup group) const
 {
-  return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
+  return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[TATACON].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(const ShinkansenGroup group) const
 {
   return static_cast<Shinkansen*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::SHINKANSEN].get())
+             m_attachments->GetAttachmentList()[SHINKANSEN].get())
       ->GetGroup(group);
 }
 
@@ -453,7 +452,7 @@ void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
 }
 
 static std::array<CameraPoint, CameraLogic::NUM_POINTS>
-GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
+GetPassthroughCameraPoints(const ControllerEmu::IRPassthrough* ir_passthrough)
 {
   std::array<CameraPoint, CameraLogic::NUM_POINTS> camera_points;
   for (size_t i = 0; i < camera_points.size(); ++i)
@@ -466,21 +465,21 @@ GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
     const ControlState y = ir_passthrough->GetObjectPositionY(i);
 
     camera_points[i].position.x =
-        std::clamp(std::lround(x * ControlState(CameraLogic::CAMERA_RES_X - 1)), long(0),
-                   long(CameraLogic::CAMERA_RES_X - 1));
+        std::clamp(std::lround(x * static_cast<ControlState>(CameraLogic::CAMERA_RES_X - 1)), static_cast<long>(0),
+                   static_cast<long>(CameraLogic::CAMERA_RES_X - 1));
     camera_points[i].position.y =
-        std::clamp(std::lround(y * ControlState(CameraLogic::CAMERA_RES_Y - 1)), long(0),
-                   long(CameraLogic::CAMERA_RES_Y - 1));
+        std::clamp(std::lround(y * static_cast<ControlState>(CameraLogic::CAMERA_RES_Y - 1)), static_cast<long>(0),
+                   static_cast<long>(CameraLogic::CAMERA_RES_Y - 1));
     camera_points[i].size =
-        std::clamp(std::lround(size * ControlState(CameraLogic::MAX_POINT_SIZE)), long(0),
-                   long(CameraLogic::MAX_POINT_SIZE));
+        std::clamp(std::lround(size * static_cast<ControlState>(CameraLogic::MAX_POINT_SIZE)), static_cast<long>(0),
+                   static_cast<long>(CameraLogic::MAX_POINT_SIZE));
   }
 
   return camera_points;
 }
 
 void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
-                                       SensorBarState sensor_bar_state)
+                                       const SensorBarState sensor_bar_state)
 {
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -511,7 +510,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
     target_state->camera_points = CameraLogic::GetCameraPoints(
         GetTotalTransformation(),
         Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
-            float(MathUtil::TAU));
+            static_cast<float>(MathUtil::TAU));
   }
   else
   {
@@ -538,20 +537,20 @@ u8 Wiimote::GetWiimoteDeviceIndex() const
   return m_bt_device_index;
 }
 
-void Wiimote::SetWiimoteDeviceIndex(u8 index)
+void Wiimote::SetWiimoteDeviceIndex(const u8 index)
 {
   m_bt_device_index = index;
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
-                           SensorBarState sensor_bar_state)
+void Wiimote::PrepareInput(DesiredWiimoteState* target_state,
+                           const SensorBarState sensor_bar_state)
 {
   const auto lock = GetStateLock();
   BuildDesiredWiimoteState(target_state, sensor_bar_state);
 }
 
-void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
+void Wiimote::Update(const DesiredWiimoteState& target_state)
 {
   // Update buttons in the status struct which is sent in 99% of input reports.
   UpdateButtonsStatus(target_state);
@@ -645,7 +644,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
       {
         // This happens when IR reporting is enabled but the camera hardware is disabled.
         // It commonly occurs when changing IR sensitivity.
-        std::fill_n(ir_data, ir_size, u8(0xff));
+        std::fill_n(ir_data, ir_size, static_cast<u8>(0xff));
       }
     }
 
@@ -672,7 +671,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
                                         ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
       {
         // Real wiimote seems to fill with 0xff on failed bus read
-        std::fill_n(ext_data, ext_size, u8(0xff));
+        std::fill_n(ext_data, ext_size, static_cast<u8>(0xff));
       }
     }
   }
@@ -807,14 +806,14 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Enable Nunchuk:
-  constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
+  constexpr ExtensionNumber DEFAULT_EXT = NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
 }
 
 Extension* Wiimote::GetNoneExtension() const
 {
-  return static_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
+  return static_cast<Extension*>(m_attachments->GetAttachmentList()[NONE].get());
 }
 
 Extension* Wiimote::GetActiveExtension() const
@@ -824,7 +823,7 @@ Extension* Wiimote::GetActiveExtension() const
 
 EncryptionKey Wiimote::GetExtensionEncryptionKey() const
 {
-  if (ExtensionNumber::NONE == GetActiveExtensionNumber())
+  if (NONE == GetActiveExtensionNumber())
     return {};
 
   return static_cast<EncryptedExtension*>(GetActiveExtension())->ext_key;
@@ -844,7 +843,7 @@ bool Wiimote::IsUpright() const
   return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 
-void Wiimote::SetRumble(bool on)
+void Wiimote::SetRumble(const bool on) const
 {
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);
@@ -852,7 +851,9 @@ void Wiimote::SetRumble(bool on)
 
 void Wiimote::RefreshConfig()
 {
-  m_speaker_logic.SetSpeakerEnabled(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+  Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER) ?
+    m_speaker_logic.EnableSpeaker() :
+    m_speaker_logic.DisableSpeaker();
 }
 
 void Wiimote::StepDynamics()
@@ -865,7 +866,7 @@ void Wiimote::StepDynamics()
                    1.f / ::Wiimote::UPDATE_FREQ);
 }
 
-Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
+Common::Vec3 Wiimote::GetAcceleration(const Common::Vec3 extra_acceleration) const
 {
   Common::Vec3 accel = GetOrientation() * GetTransformation().Transform(
                                               m_swing_state.acceleration + extra_acceleration, 0);
@@ -876,7 +877,7 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
   return accel;
 }
 
-Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
+Common::Vec3 Wiimote::GetAngularVelocity(const Common::Vec3 extra_angular_velocity) const
 {
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
                              m_point_state.angular_velocity + extra_angular_velocity);
@@ -897,12 +898,12 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
 
 Common::Quaternion Wiimote::GetOrientation() const
 {
-  return Common::Quaternion::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
-         Common::Quaternion::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
+  return Common::Quaternion::RotateZ(static_cast<float>(MathUtil::TAU / -4 * IsSideways())) *
+         Common::Quaternion::RotateX(static_cast<float>(MathUtil::TAU / 4 * IsUpright()));
 }
 
 std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                                  std::optional<Common::Vec3> optional_vec) const
+                                                  const std::optional<Common::Vec3> optional_vec) const
 {
   bool has_value = optional_vec.has_value();
   Common::Vec3 vec = has_value ? *optional_vec : Common::Vec3{};
@@ -935,7 +936,7 @@ std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGr
 }
 
 Common::Vec3 Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                   Common::Vec3 vec) const
+                                   const Common::Vec3 vec) const
 {
   return OverrideVec3(control_group, vec, m_input_override_function);
 }
@@ -970,7 +971,7 @@ Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::
 
 Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  const Common::Vec3 default_accel = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION));
+  constexpr auto default_accel = Common::Vec3(0, 0, GRAVITY_ACCELERATION);
   const Common::Vec3 accel = m_imu_accelerometer->GetState().value_or(default_accel);
 
   return OverrideVec3(m_imu_accelerometer, GetAcceleration(accel));

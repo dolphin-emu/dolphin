@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include <QWidget>
 
 #include "Core/CheatSearch.h"
@@ -29,9 +27,9 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  void RefreshGui();
+  void RefreshGui() const;
 
-  void OnAddressSpaceRadioChanged();
+  void OnAddressSpaceRadioChanged() const;
   void OnNewSearchClicked();
 
   QRadioButton* m_standard_address_space;

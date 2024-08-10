@@ -15,7 +15,7 @@
 
 namespace DSP::Interpreter
 {
-static bool IsSameMemArea(u16 a, u16 b)
+static bool IsSameMemArea(const u16 a, const u16 b)
 {
   // LM: tested on Wii
   return (a >> 10) == (b >> 10);

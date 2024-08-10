@@ -6,14 +6,11 @@
 #include <OptionParser.h>
 #include <cstddef>
 #include <cstdio>
-#include <cstring>
 #include <signal.h>
 #include <string>
 #include <vector>
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
+#ifdef _WIN32
 #include <Windows.h>
 #endif
 
@@ -32,15 +29,13 @@
 #endif
 #include "UICommon/UICommon.h"
 
-#include "InputCommon/GCAdapter.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 
 static std::unique_ptr<Platform> s_platform;
 
 static void signal_handler(int)
 {
-  const char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
+  constexpr char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
 #ifdef _WIN32
   puts(message);
 #else
@@ -71,7 +66,7 @@ bool Host_UIBlocksControllerState()
 }
 
 static Common::Event s_update_main_frame_event;
-void Host_Message(HostMessageID id)
+void Host_Message(const HostMessageID id)
 {
   if (id == HostMessageID::WMUserStop)
     s_platform->Stop();
@@ -158,7 +153,7 @@ std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core
 
 static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 {
-  std::string platform_name = static_cast<const char*>(options.get("platform"));
+  std::string platform_name = options.get("platform");
 
 #if HAVE_X11
   if (platform_name == "x11" || platform_name.empty())
@@ -189,11 +184,11 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 #define main app_main
 #endif
 
-int main(int argc, char* argv[])
+int main(const int argc, char* argv[])
 {
   Core::DeclareAsHostThread();
 
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
+  const auto parser = CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   parser->add_option("-p", "--platform")
       .action("store")
       .help("Window platform to use [%choices]")
@@ -239,7 +234,7 @@ int main(int argc, char* argv[])
   }
   else if (options.is_set("nand_title"))
   {
-    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    const std::string hex_string = options.get("nand_title");
     if (hex_string.length() != 16)
     {
       fprintf(stderr, "Invalid title ID\n");
@@ -264,7 +259,7 @@ int main(int argc, char* argv[])
 
   std::string user_directory;
   if (options.is_set("user"))
-    user_directory = static_cast<const char*>(options.get("user"));
+    user_directory = options.get("user");
 
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
@@ -290,7 +285,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  Core::AddOnStateChangedCallback([](Core::State state) {
+  Core::AddOnStateChangedCallback([](const Core::State state) {
     if (state == Core::State::Uninitialized)
       s_platform->Stop();
   });
@@ -321,9 +316,9 @@ int main(int argc, char* argv[])
 #endif
 
   s_platform->MainLoop();
-  Core::Stop(Core::System::GetInstance());
+  Stop(Core::System::GetInstance());
 
-  Core::Shutdown(Core::System::GetInstance());
+  Shutdown(Core::System::GetInstance());
   s_platform.reset();
 
   return 0;

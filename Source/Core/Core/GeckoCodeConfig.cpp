@@ -3,7 +3,6 @@
 
 #include "Core/GeckoCodeConfig.h"
 
-#include <algorithm>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -227,9 +226,9 @@ static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcod
   lines.push_back(MakeGeckoCodeTitle(gcode));
 
   // save all the code lines
-  for (const GeckoCode::Code& code : gcode.codes)
+  for (const auto& [_address, _data, original_line] : gcode.codes)
   {
-    lines.push_back(code.original_line);
+    lines.push_back(original_line);
   }
 
   // save the notes
@@ -258,7 +257,7 @@ void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 
 std::optional<GeckoCode::Code> DeserializeLine(const std::string& line)
 {
-  std::vector<std::string> items = SplitString(line, ' ');
+  const std::vector<std::string> items = SplitString(line, ' ');
 
   GeckoCode::Code code;
   code.original_line = line;

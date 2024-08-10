@@ -47,27 +47,27 @@ typedef NTSTATUS(NTAPI* LdrRegisterDllNotification_t)(
 
 typedef NTSTATUS(NTAPI* LdrUnregisterDllNotification_t)(_In_ PVOID Cookie);
 
-static void LdrObserverRun(const LdrObserver& observer, PCUNICODE_STRING module_name,
-                           uintptr_t base_address)
+static void LdrObserverRun(const LdrObserver& observer, const PCUNICODE_STRING module_name,
+                           const uintptr_t base_address)
 {
   for (auto& needle : observer.module_names)
   {
     // Like RtlCompareUnicodeString, but saves dynamically resolving it.
     // NOTE: Does not compare null terminator.
-    auto compare_length = module_name->Length / sizeof(wchar_t);
+    const auto compare_length = module_name->Length / sizeof(wchar_t);
     if (!_wcsnicmp(needle.c_str(), module_name->Buffer, compare_length))
       observer.action({needle, base_address});
   }
 }
 
-static VOID DllNotificationCallback(ULONG NotificationReason,
-                                    PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
+static VOID DllNotificationCallback(const ULONG NotificationReason,
+                                    const PCLDR_DLL_NOTIFICATION_DATA NotificationData, const PVOID Context)
 {
   if (NotificationReason != LDR_DLL_NOTIFICATION_REASON_LOADED)
     return;
-  auto& data = NotificationData->Loaded;
-  auto observer = static_cast<const LdrObserver*>(Context);
-  LdrObserverRun(*observer, data.BaseDllName, reinterpret_cast<uintptr_t>(data.DllBase));
+  const auto& [_Flags, _FullDllName, BaseDllName, DllBase, _SizeOfImage] = NotificationData->Loaded;
+  const auto observer = static_cast<const LdrObserver*>(Context);
+  LdrObserverRun(*observer, BaseDllName, reinterpret_cast<uintptr_t>(DllBase));
 }
 
 // This only works on Vista+. On lower platforms, it will be a no-op.
@@ -79,8 +79,8 @@ public:
     static LdrDllNotifier notifier;
     return notifier;
   };
-  void Install(LdrObserver* observer);
-  void Uninstall(LdrObserver* observer);
+  void Install(LdrObserver* observer) const;
+  void Uninstall(LdrObserver* observer) const;
 
 private:
   LdrDllNotifier();
@@ -97,7 +97,7 @@ LdrDllNotifier::LdrDllNotifier()
 
 bool LdrDllNotifier::Init()
 {
-  auto ntdll = GetModuleHandleW(L"ntdll");
+  const auto ntdll = GetModuleHandleW(L"ntdll");
   if (!ntdll)
     return false;
   LdrRegisterDllNotification = reinterpret_cast<decltype(LdrRegisterDllNotification)>(
@@ -111,7 +111,7 @@ bool LdrDllNotifier::Init()
   return true;
 }
 
-void LdrDllNotifier::Install(LdrObserver* observer)
+void LdrDllNotifier::Install(LdrObserver* observer) const
 {
   if (!initialized)
     return;
@@ -123,7 +123,7 @@ void LdrDllNotifier::Install(LdrObserver* observer)
   return;
 }
 
-void LdrDllNotifier::Uninstall(LdrObserver* observer)
+void LdrDllNotifier::Uninstall(LdrObserver* observer) const
 {
   if (!initialized)
     return;
@@ -144,7 +144,7 @@ bool LdrWatcher::InjectCurrentModules(const LdrObserver& observer)
 {
   // Use TlHelp32 instead of psapi functions to reduce dolphin's dependency on psapi
   // (revisit this when Win7 support is dropped).
-  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
+  const HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
   if (snapshot == INVALID_HANDLE_VALUE)
     return false;
   MODULEENTRY32 entry;

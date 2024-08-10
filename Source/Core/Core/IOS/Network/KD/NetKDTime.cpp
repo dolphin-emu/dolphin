@@ -33,12 +33,12 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   };
 
   s32 result = 0;
-  u32 common_result = 0;
+  constexpr u32 common_result = 0;
   // TODO Writes stuff to /shared2/nwc24/misc.bin
   u32 update_misc = 0;
 
   auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   switch (request.request)
   {
@@ -101,10 +101,10 @@ u64 NetKDTimeDevice::GetAdjustedUTC() const
   if (gm_time.tm_isdst == 1)
     dst_diff = 3600;
 
-  return u64(s64(emulated_time) + utcdiff - dst_diff);
+  return static_cast<u64>(static_cast<s64>(emulated_time) + utcdiff - dst_diff);
 }
 
-void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
+void NetKDTimeDevice::SetAdjustedUTC(const u64 wii_utc)
 {
   using namespace ExpansionInterface;
 
@@ -116,6 +116,6 @@ void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
   if (gm_time.tm_isdst == 1)
     dst_diff = 3600;
 
-  utcdiff = s64(emulated_time - wii_utc - dst_diff);
+  utcdiff = static_cast<s64>(emulated_time - wii_utc - dst_diff);
 }
 }  // namespace IOS::HLE

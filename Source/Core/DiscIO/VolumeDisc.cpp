@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
@@ -39,12 +38,12 @@ Country VolumeDisc::GetCountry(const Partition& partition) const
   return CountryCodeToCountry(country_byte, GetVolumeType(), region, revision);
 }
 
-Region VolumeDisc::RegionCodeToRegion(std::optional<u32> region_code) const
+Region VolumeDisc::RegionCodeToRegion(const std::optional<u32> region_code)
 {
   if (!region_code)
     return Region::Unknown;
 
-  const Region region = static_cast<Region>(*region_code);
+  const auto region = static_cast<Region>(*region_code);
   return region <= Region::NTSC_K ? region : Region::Unknown;
 }
 
@@ -60,7 +59,7 @@ std::string VolumeDisc::GetMakerID(const Partition& partition) const
 
 std::optional<u16> VolumeDisc::GetRevision(const Partition& partition) const
 {
-  std::optional<u8> revision = ReadSwapped<u8>(7, partition);
+  const std::optional<u8> revision = ReadSwapped<u8>(7, partition);
   return revision ? *revision : std::optional<u16>();
 }
 
@@ -119,7 +118,7 @@ void VolumeDisc::AddGamePartitionToSyncHash(Common::SHA1::Context* context) cons
   const FileSystem* file_system = GetFileSystem(partition);
   if (file_system)
   {
-    std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
+    const std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
     if (file_info && !file_info->IsDirectory())
       ReadAndAddToSyncHash(context, file_info->GetOffset(), file_info->GetSize(), partition);
   }

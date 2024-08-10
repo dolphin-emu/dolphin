@@ -6,7 +6,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFont>
-#include <QFontDatabase>
 #include <QGridLayout>
 #include <QPlainTextEdit>
 #include <QPushButton>
@@ -24,7 +23,7 @@ constexpr size_t MAX_LOG_LINES_TO_UPDATE = 200;
 constexpr size_t TIMESTAMP_LENGTH = 10;
 
 // A helper function to construct QString from std::string_view in one line
-static QString QStringFromStringView(std::string_view str)
+static QString QStringFromStringView(const std::string_view str)
 {
   return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
 }
@@ -43,7 +42,7 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
   ConnectWidgets();
 
   connect(m_timer, &QTimer::timeout, this, &LogWidget::UpdateLog);
-  connect(this, &QDockWidget::visibilityChanged, [this](bool visible) {
+  connect(this, &QDockWidget::visibilityChanged, [this](const bool visible) {
     if (visible)
       m_timer->start(UPDATE_LOG_DELAY);
     else
@@ -52,14 +51,14 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
-  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
+  Common::Log::LogManager::GetInstance()->RegisterListener(LOG_WINDOW_LISTENER, this);
 }
 
 LogWidget::~LogWidget()
 {
   SaveSettings();
 
-  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER,
+  Common::Log::LogManager::GetInstance()->RegisterListener(LOG_WINDOW_LISTENER,
                                                            nullptr);
 }
 
@@ -79,7 +78,7 @@ void LogWidget::UpdateLog()
 
   for (auto& line : elements_to_push)
   {
-    const char* color = "white";
+    auto color = "white";
     switch (std::get<Common::Log::LogLevel>(line))
     {
     case Common::Log::LogLevel::LERROR:
@@ -109,7 +108,7 @@ void LogWidget::UpdateLog()
   }
 }
 
-void LogWidget::UpdateFont()
+void LogWidget::UpdateFont() const
 {
   QFont f;
 
@@ -143,7 +142,7 @@ void LogWidget::CreateWidgets()
   log_layout->addWidget(m_log_clear, 0, 2);
   log_layout->addWidget(m_log_text, 1, 0, 1, -1);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(log_layout);
 
   setWidget(widget);
@@ -170,7 +169,7 @@ void LogWidget::ConnectWidgets()
 
 void LogWidget::LoadSettings()
 {
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("logwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("logwidget/floating")).toBool());
@@ -188,7 +187,7 @@ void LogWidget::LoadSettings()
   UpdateFont();
 }
 
-void LogWidget::SaveSettings()
+void LogWidget::SaveSettings() const
 {
   auto& settings = Settings::GetQSettings();
 
@@ -220,5 +219,5 @@ void LogWidget::Log(Common::Log::LogLevel level, const char* text)
 
 void LogWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetLogVisible(false);
+  Settings::Instance().HideLog();
 }

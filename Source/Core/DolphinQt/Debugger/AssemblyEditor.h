@@ -19,14 +19,14 @@ class AsmEditor : public QPlainTextEdit
 
 public:
   AsmEditor(const QString& file_path, int editor_num, bool dark_scheme, QWidget* parent = nullptr);
-  void LineNumberAreaPaintEvent(QPaintEvent* event);
-  int LineNumberAreaWidth();
+  void LineNumberAreaPaintEvent(const QPaintEvent* event) const;
+  int LineNumberAreaWidth() const;
   const QString& Path() const { return m_path; }
   const QString& FileName() const { return m_filename; }
   const QString& EditorTitle() const { return m_title_ambiguous ? Path() : FileName(); }
   const QString& BaseAddress() const { return m_base_address; }
   void SetBaseAddress(const QString& ba);
-  void SetAmbiguous(bool b) { m_title_ambiguous = b; }
+  void SetAmbiguous(const bool b) { m_title_ambiguous = b; }
   int EditorNum() const { return m_editor_num; }
   bool LoadFromPath();
   bool IsDirty() const { return m_dirty; }

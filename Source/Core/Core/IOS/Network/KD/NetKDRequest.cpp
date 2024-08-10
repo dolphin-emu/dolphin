@@ -62,8 +62,9 @@ u8 GetAreaCode(std::string_view area)
       {"CHN", 6},
   }};
 
-  const auto entry_pos = std::find_if(regions.cbegin(), regions.cend(),
-                                      [&area](const auto& entry) { return entry.first == area; });
+  const auto entry_pos = std::ranges::find_if(regions, [&area](const auto& entry) {
+    return entry.first == area;
+  });
   if (entry_pos != regions.end())
     return entry_pos->second;
 
@@ -79,8 +80,9 @@ HardwareModel GetHardwareModel(std::string_view model)
       {"RVD", HardwareModel::RVD},
   }};
 
-  const auto entry_pos = std::find_if(models.cbegin(), models.cend(),
-                                      [&model](const auto& entry) { return entry.first == model; });
+  const auto entry_pos = std::ranges::find_if(models, [&model](const auto& entry) {
+    return entry.first == model;
+  });
   if (entry_pos != models.cend())
     return entry_pos->second;
 
@@ -97,15 +99,15 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
       0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3, 0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5,
   };
 
-  constexpr auto u64_get_byte = [](u64 value, u32 shift) -> u8 { return u8(value >> (shift * 8)); };
+  constexpr auto u64_get_byte = [](const u64 value, const u32 shift) -> u8 { return static_cast<u8>(value >> (shift * 8)); };
 
-  constexpr auto u64_insert_byte = [](u64 value, u32 shift, u8 byte) -> u64 {
+  constexpr auto u64_insert_byte = [](const u64 value, const u32 shift, u8 byte) -> u64 {
     const u64 mask = 0x00000000000000FFULL << (shift * 8);
     const u64 inst = u64{byte} << (shift * 8);
     return (value & ~mask) | inst;
   };
 
-  u64 mix_id = (u64{area_code} << 50) | (u64(hardware_model) << 47) | (u64{hollywood_id} << 15) |
+  u64 mix_id = (u64{area_code} << 50) | (static_cast<u64>(hardware_model) << 47) | (u64{hollywood_id} << 15) |
                (u64{id_ctr} << 10);
   const u64 mix_id_copy1 = mix_id;
 
@@ -126,7 +128,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
   for (ctr = 0; ctr <= 5; ctr++)
   {
     const u8 ret = u64_get_byte(mix_id, ctr);
-    const u8 foobar = u8((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
+    const u8 foobar = static_cast<u8>((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
     mix_id = u64_insert_byte(mix_id, ctr, foobar & 0xff);
   }
 
@@ -178,7 +180,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
+  const auto socket_manager = GetEmulationKernel().GetSocketManager();
   if (socket_manager)
     socket_manager->Clean();
 
@@ -201,8 +203,8 @@ void NetKDRequestDevice::Update()
     std::lock_guard lg(m_async_reply_lock);
     while (!m_async_replies.empty())
     {
-      const auto& reply = m_async_replies.front();
-      GetEmulationKernel().EnqueueIPCReply(reply.request, reply.return_value);
+      const auto& [request, return_value] = m_async_replies.front();
+      GetEmulationKernel().EnqueueIPCReply(request, return_value);
       m_async_replies.pop();
     }
   }
@@ -304,7 +306,7 @@ std::string NetKDRequestDevice::GetValueFromCGIResponse(const std::string& respo
   return {};
 }
 
-void NetKDRequestDevice::LogError(ErrorType error_type, s32 error_code)
+void NetKDRequestDevice::LogError(const ErrorType error_type, const s32 error_code)
 {
   s32 new_code{};
   switch (error_type)
@@ -397,7 +399,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* mail_flag, u32* interval)
   std::array<u8, 20> hashed{};
   Common::HMAC::HMACWithSHA1(
       MAIL_CHECK_KEY,
-      std::span<const u8>(reinterpret_cast<const u8*>(hmac_message.data()), hmac_message.size()),
+      std::span(reinterpret_cast<const u8*>(hmac_message.data()), hmac_message.size()),
       hashed.data());
 
   // On a real Wii, strncmp is used to compare both hashes. This means that it is a case-sensitive
@@ -467,7 +469,7 @@ NWC24::ErrorCode NetKDRequestDevice::DetermineDownloadTask(u16* entry_index,
     {
       if (m_dl_list.HasSubtask(i))
       {
-        NWC24::ErrorCode code = DetermineSubtask(i, subtask_id);
+        const NWC24::ErrorCode code = DetermineSubtask(i, subtask_id);
         if (code != NWC24::WC24_OK)
         {
           // No valid subtask found or downloading is disabled.
@@ -487,7 +489,7 @@ NWC24::ErrorCode NetKDRequestDevice::DetermineDownloadTask(u16* entry_index,
   return NWC24::WC24_OK;
 }
 
-NWC24::ErrorCode NetKDRequestDevice::DetermineSubtask(u16 entry_index,
+NWC24::ErrorCode NetKDRequestDevice::DetermineSubtask(const u16 entry_index,
                                                       std::optional<u8>* subtask_id) const
 {
   // Before we do anything, determine if this task wants to be downloaded
@@ -610,7 +612,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
   {
     const u32 entry_id = m_send_list.GetEntryId(*it);
     Common::ScopeGuard delete_guard([&] {
-      NWC24::ErrorCode res = m_send_list.DeleteMessage(*it);
+      const NWC24::ErrorCode res = m_send_list.DeleteMessage(*it);
       if (res != NWC24::WC24_OK)
       {
         LogError(ErrorType::SendMail, res);
@@ -686,7 +688,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   }
 
   if (std::optional<std::string> patch =
-          WC24PatchEngine::GetNetworkPatch(parts[2], WC24PatchEngine::IsKD{true}))
+          GetNetworkPatch(parts[2], WC24PatchEngine::IsKD{true}))
   {
     const size_t index = url.find(parts[2]);
     url.replace(index, parts[2].size(), patch.value());
@@ -738,7 +740,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     NWC24::WC24File wc24_file;
     std::memcpy(&wc24_file, response->data(), sizeof(NWC24::WC24File));
 
-    std::vector<u8> temp_buffer(response->begin() + 320, response->end());
+    std::vector temp_buffer(response->begin() + 320, response->end());
 
     if (m_dl_list.IsEncrypted(entry_index))
     {
@@ -761,7 +763,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     }
   }
 
-  NWC24::ErrorCode reply = IOS::HLE::NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
+  NWC24::ErrorCode reply = NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
                                                        content_name, m_ios.GetFS(), file_data);
 
   if (reply != NWC24::WC24_OK)
@@ -776,7 +778,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
 IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   if (!m_handle_mail)
@@ -807,7 +809,7 @@ IPCReply NetKDRequestDevice::HandleNWC24SendMailNow(const IOCtlRequest& request)
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   if (m_dl_list.IsDisabled() || !m_dl_list.ReadDlList())
@@ -875,7 +877,7 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRequest& request)
+IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOCtlRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -1022,7 +1024,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
   };
 
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
   s32 return_value = 0;
   switch (request.request)
@@ -1088,7 +1090,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
       if (!area.empty() && !model.empty())
       {
         const u8 area_code = GetAreaCode(area);
-        const u8 id_ctr = u8(m_config.IdGen());
+        const u8 id_ctr = static_cast<u8>(m_config.IdGen());
         const HardwareModel hardware_model = GetHardwareModel(model);
 
         const u32 hollywood_id = m_ios.GetIOSC().GetDeviceId();
@@ -1119,7 +1121,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
       WriteReturnValue(memory, NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     }
     memory.Write_U64(m_config.Id(), request.buffer_out + 4);
-    memory.Write_U32(u32(m_config.CreationStage()), request.buffer_out + 0xC);
+    memory.Write_U32(static_cast<u32>(m_config.CreationStage()), request.buffer_out + 0xC);
     break;
 
   case IOCTL_NWC24_GET_SCHEDULER_STAT:

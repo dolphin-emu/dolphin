@@ -8,7 +8,6 @@
 #include <queue>
 #include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
@@ -41,13 +40,13 @@ public:
 private:
   struct AsyncTask
   {
-    IOS::HLE::Request request;
+    Request request;
     std::function<IPCReply()> handler;
   };
 
   struct AsyncReply
   {
-    IOS::HLE::Request request;
+    Request request;
     s32 return_value;
   };
 

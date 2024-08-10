@@ -3,8 +3,6 @@
 
 #include "VideoCommon/VideoState.h"
 
-#include <cstring>
-
 #include "Common/ChunkFile.h"
 #include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
@@ -65,7 +63,7 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("TMEM");
 
   // FIFO
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().DoState(p);
   p.DoMarker("Fifo");
 

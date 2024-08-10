@@ -134,11 +134,11 @@ public:
 
   // Converts an upper-left to lower-left if required by the backend, optionally
   // clamping to the framebuffer size.
-  MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                                       u32 fb_width, u32 fb_height) const;
-  MathUtil::Rectangle<int>
+  static MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
+                                                              u32 fb_width, u32 fb_height);
+  static MathUtil::Rectangle<int>
   ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                              const AbstractFramebuffer* framebuffer) const;
+                              const AbstractFramebuffer* framebuffer);
 
   virtual void Flush() {}
   virtual void WaitForGPUIdle() {}
@@ -161,7 +161,7 @@ public:
 
   // Returns true if a layer-expanding geometry shader should be used when rendering
   // the user interface on the output buffer.
-  bool UseGeometryShaderForUI() const;
+  static bool UseGeometryShaderForUI();
 
   // Returns info about the main surface (aka backbuffer)
   virtual SurfaceInfo GetSurfaceInfo() const = 0;

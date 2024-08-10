@@ -28,7 +28,7 @@ void LaggedFibonacciGenerator::SetSeed(const u8 seed[SEED_SIZE * sizeof(u32)])
   Initialize(false);
 }
 
-size_t LaggedFibonacciGenerator::GetSeed(const u8* data, size_t size, size_t data_offset,
+size_t LaggedFibonacciGenerator::GetSeed(const u8* data, const size_t size, const size_t data_offset,
                                          u32 seed_out[SEED_SIZE])
 {
   if ((reinterpret_cast<uintptr_t>(data) - data_offset) % alignof(u32) != 0)
@@ -41,7 +41,7 @@ size_t LaggedFibonacciGenerator::GetSeed(const u8* data, size_t size, size_t dat
   // possible to get rid of this restriction and use a few additional bytes, but it's probably more
   // effort than it's worth considering that junk data often starts or ends on 4-byte offsets.
   const size_t bytes_to_skip = Common::AlignUp(data_offset, sizeof(u32)) - data_offset;
-  const u32* u32_data = reinterpret_cast<const u32*>(data + bytes_to_skip);
+  auto u32_data = reinterpret_cast<const u32*>(data + bytes_to_skip);
   const size_t u32_size = (size - bytes_to_skip) / sizeof(u32);
   const size_t u32_data_offset = (data_offset + bytes_to_skip) / sizeof(u32);
 
@@ -61,14 +61,14 @@ size_t LaggedFibonacciGenerator::GetSeed(const u8* data, size_t size, size_t dat
   return reconstructed_bytes;
 }
 
-bool LaggedFibonacciGenerator::GetSeed(const u32* data, size_t size, size_t data_offset,
+bool LaggedFibonacciGenerator::GetSeed(const u32* data, const size_t size, const size_t data_offset,
                                        LaggedFibonacciGenerator* lfg, u32 seed_out[SEED_SIZE])
 {
   if (size < LFG_K)
     return false;
 
   // If the data doesn't look like something we can regenerate, return early to save time
-  if (!std::all_of(data, data + LFG_K, [](u32 x) {
+  if (!std::all_of(data, data + LFG_K, [](const u32 x) {
         return (Common::swap32(x) & 0x00C00000) == (Common::swap32(x) >> 2 & 0x00C00000);
       }))
   {
@@ -130,7 +130,7 @@ u8 LaggedFibonacciGenerator::GetByte()
   return result;
 }
 
-void LaggedFibonacciGenerator::Forward(size_t count)
+void LaggedFibonacciGenerator::Forward(const size_t count)
 {
   m_position_bytes += count;
   while (m_position_bytes >= LFG_K * sizeof(u32))
@@ -149,7 +149,7 @@ void LaggedFibonacciGenerator::Forward()
     m_buffer[i] ^= m_buffer[i - LFG_J];
 }
 
-void LaggedFibonacciGenerator::Backward(size_t start_word, size_t end_word)
+void LaggedFibonacciGenerator::Backward(const size_t start_word, const size_t end_word)
 {
   const size_t loop_end = std::max(LFG_J, start_word);
   for (size_t i = std::min(end_word, LFG_K); i > loop_end; --i)
@@ -182,7 +182,7 @@ bool LaggedFibonacciGenerator::Reinitialize(u32 seed_out[SEED_SIZE])
   return Initialize(true);
 }
 
-bool LaggedFibonacciGenerator::Initialize(bool check_existing_data)
+bool LaggedFibonacciGenerator::Initialize(const bool check_existing_data)
 {
   for (size_t i = SEED_SIZE; i < LFG_K; ++i)
   {

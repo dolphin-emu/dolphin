@@ -76,42 +76,42 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
 }
 
 static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
-                             const picojson::value& json_value, std::string_view code_name,
-                             std::string_view type, ShaderProperty::Value* value)
+                             const picojson::value& json_value, const std::string_view code_name,
+                             const std::string_view type, ShaderProperty::Value* value)
 {
   if (type == "int")
   {
     return ParseNumeric<s32, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int2")
+  if (type == "int2")
   {
     return ParseNumeric<s32, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int3")
+  if (type == "int3")
   {
     return ParseNumeric<s32, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int4")
+  if (type == "int4")
   {
     return ParseNumeric<s32, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float")
+  if (type == "float")
   {
     return ParseNumeric<float, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float2")
+  if (type == "float2")
   {
     return ParseNumeric<float, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float3")
+  if (type == "float3")
   {
     return ParseNumeric<float, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float4")
+  if (type == "float4")
   {
     return ParseNumeric<float, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "rgb")
+  if (type == "rgb")
   {
     ShaderProperty::RGB rgb;
     if (!ParseNumeric<float, 3>(asset_id, json_value, code_name, &rgb.value))
@@ -119,7 +119,7 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     *value = std::move(rgb);
     return true;
   }
-  else if (type == "rgba")
+  if (type == "rgba")
   {
     ShaderProperty::RGBA rgba;
     if (!ParseNumeric<float, 4>(asset_id, json_value, code_name, &rgba.value))
@@ -127,7 +127,7 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     *value = std::move(rgba);
     return true;
   }
-  else if (type == "bool")
+  if (type == "bool")
   {
     if (json_value.is<bool>())
     {
@@ -172,16 +172,16 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
 }
 
 static bool
-ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+ParseShaderProperties(const CustomAssetLibrary::AssetID& asset_id,
                       const picojson::array& properties_data,
-                      std::map<std::string, VideoCommon::ShaderProperty>* shader_properties)
+                      std::map<std::string, ShaderProperty>* shader_properties)
 {
   if (!shader_properties) [[unlikely]]
     return false;
 
   for (const auto& property_data : properties_data)
   {
-    VideoCommon::ShaderProperty property;
+    ShaderProperty property;
     if (!property_data.is<picojson::object>())
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, property is not the right json type",
@@ -258,7 +258,7 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 
-bool PixelShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+bool PixelShaderData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                                const picojson::object& json, PixelShaderData* data)
 {
   const auto properties_iter = json.find("properties");
@@ -314,7 +314,7 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
                             json_property.emplace("type", "samplercube");
                             json_property.emplace("default", default_value.value);
                           },
-                          [&](s32 default_value) {
+                          [&](const s32 default_value) {
                             json_property.emplace("type", "int");
                             json_property.emplace("default", static_cast<double>(default_value));
                           },
@@ -330,7 +330,7 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
                             json_property.emplace("type", "int4");
                             json_property.emplace("default", ToJsonArray(default_value));
                           },
-                          [&](float default_value) {
+                          [&](const float default_value) {
                             json_property.emplace("type", "float");
                             json_property.emplace("default", static_cast<double>(default_value));
                           },
@@ -374,61 +374,61 @@ std::span<const std::string_view> ShaderProperty::GetValueTypeNames()
   return values;
 }
 
-ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_view name)
+ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(const std::string_view name)
 {
   if (name == "sampler2d")
   {
     return Sampler2D{};
   }
-  else if (name == "sampler2darray")
+  if (name == "sampler2darray")
   {
     return Sampler2DArray{};
   }
-  else if (name == "samplercube")
+  if (name == "samplercube")
   {
     return SamplerCube{};
   }
-  else if (name == "int")
+  if (name == "int")
   {
     return 0;
   }
-  else if (name == "int2")
+  if (name == "int2")
   {
     return std::array<s32, 2>{};
   }
-  else if (name == "int3")
+  if (name == "int3")
   {
     return std::array<s32, 3>{};
   }
-  else if (name == "int4")
+  if (name == "int4")
   {
     return std::array<s32, 4>{};
   }
-  else if (name == "float")
+  if (name == "float")
   {
     return 0.0f;
   }
-  else if (name == "float2")
+  if (name == "float2")
   {
     return std::array<float, 2>{};
   }
-  else if (name == "float3")
+  if (name == "float3")
   {
     return std::array<float, 3>{};
   }
-  else if (name == "float4")
+  if (name == "float4")
   {
     return std::array<float, 4>{};
   }
-  else if (name == "rgb")
+  if (name == "rgb")
   {
     return RGB{};
   }
-  else if (name == "rgba")
+  if (name == "rgba")
   {
     return RGBA{};
   }
-  else if (name == "bool")
+  if (name == "bool")
   {
     return false;
   }

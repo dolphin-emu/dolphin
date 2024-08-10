@@ -62,15 +62,15 @@ public:
   const std::string& GetName(const Core::TitleDatabase& title_database) const;
   const std::string& GetName(Variant variant) const;
   const std::string& GetMaker(Variant variant) const;
-  const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
+  const std::string& GetShortName(const DiscIO::Language l) const { return Lookup(l, m_short_names); }
   const std::string& GetShortName() const { return LookupUsingConfigLanguage(m_short_names); }
-  const std::string& GetLongName(DiscIO::Language l) const { return Lookup(l, m_long_names); }
+  const std::string& GetLongName(const DiscIO::Language l) const { return Lookup(l, m_long_names); }
   const std::string& GetLongName() const { return LookupUsingConfigLanguage(m_long_names); }
-  const std::string& GetShortMaker(DiscIO::Language l) const { return Lookup(l, m_short_makers); }
+  const std::string& GetShortMaker(const DiscIO::Language l) const { return Lookup(l, m_short_makers); }
   const std::string& GetShortMaker() const { return LookupUsingConfigLanguage(m_short_makers); }
-  const std::string& GetLongMaker(DiscIO::Language l) const { return Lookup(l, m_long_makers); }
+  const std::string& GetLongMaker(const DiscIO::Language l) const { return Lookup(l, m_long_makers); }
   const std::string& GetLongMaker() const { return LookupUsingConfigLanguage(m_long_makers); }
-  const std::string& GetDescription(DiscIO::Language l) const { return Lookup(l, m_descriptions); }
+  const std::string& GetDescription(const DiscIO::Language l) const { return Lookup(l, m_descriptions); }
   const std::string& GetDescription(Variant variant) const;
   std::vector<DiscIO::Language> GetLanguages() const;
   const std::string& GetInternalName() const { return m_internal_name; }
@@ -135,7 +135,7 @@ private:
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
   bool TryLoadGameModDescriptorBanner();
-  bool CheckIfTwoDiscGame(const std::string& game_id) const;
+  static bool CheckIfTwoDiscGame(const std::string& game_id);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and

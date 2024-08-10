@@ -5,7 +5,6 @@
 
 #include <array>
 #include <span>
-#include <tuple>
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -48,13 +47,13 @@ struct fmt::formatter<TextureFormat> : EnumFormatter<TextureFormat::CMPR>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-static inline bool IsColorIndexed(TextureFormat format)
+static inline bool IsColorIndexed(const TextureFormat format)
 {
   return format == TextureFormat::C4 || format == TextureFormat::C8 ||
          format == TextureFormat::C14X2;
 }
 
-static inline bool IsValidTextureFormat(TextureFormat format)
+static inline bool IsValidTextureFormat(const TextureFormat format)
 {
   return format <= TextureFormat::RGBA8 || IsColorIndexed(format) || format == TextureFormat::CMPR;
 }
@@ -128,13 +127,13 @@ struct fmt::formatter<TLUTFormat> : EnumFormatter<TLUTFormat::RGB5A3>
   constexpr formatter() : EnumFormatter({"IA8", "RGB565", "RGB5A3"}) {}
 };
 
-static inline bool IsValidTLUTFormat(TLUTFormat tlutfmt)
+static inline bool IsValidTLUTFormat(const TLUTFormat tlutfmt)
 {
   return tlutfmt == TLUTFormat::IA8 || tlutfmt == TLUTFormat::RGB565 ||
          tlutfmt == TLUTFormat::RGB5A3;
 }
 
-static inline bool IsCompatibleTextureFormat(TextureFormat from_format, TextureFormat to_format)
+static inline bool IsCompatibleTextureFormat(const TextureFormat from_format, const TextureFormat to_format)
 {
   if (from_format == to_format)
     return true;
@@ -155,7 +154,7 @@ static inline bool IsCompatibleTextureFormat(TextureFormat from_format, TextureF
   }
 }
 
-static inline bool CanReinterpretTextureOnGPU(TextureFormat from_format, TextureFormat to_format)
+static inline bool CanReinterpretTextureOnGPU(const TextureFormat from_format, const TextureFormat to_format)
 {
   // Currently, we can only reinterpret textures of the same width.
   switch (from_format)
@@ -175,7 +174,7 @@ static inline bool CanReinterpretTextureOnGPU(TextureFormat from_format, Texture
   }
 }
 
-inline std::span<u8> TexDecoder_GetTmemSpan(size_t offset = 0)
+inline std::span<u8> TexDecoder_GetTmemSpan(const size_t offset = 0)
 {
   return Common::SafeSubspan(std::span<u8>(s_tex_mem), offset);
 }

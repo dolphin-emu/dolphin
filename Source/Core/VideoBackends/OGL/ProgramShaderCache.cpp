@@ -57,7 +57,7 @@ static thread_local bool s_is_shared_context = false;
 
 static std::string GetGLSLVersionString()
 {
-  GlslVersion v = g_ogl_config.eSupportedGLSLVersion;
+  const GlslVersion v = g_ogl_config.eSupportedGLSLVersion;
   switch (v)
   {
   case GlslEs300:
@@ -86,7 +86,7 @@ static std::string GetGLSLVersionString()
   }
 }
 
-void SHADER::SetProgramVariables()
+void SHADER::SetProgramVariables() const
 {
   if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
     return;
@@ -96,10 +96,10 @@ void SHADER::SetProgramVariables()
   glUseProgram(glprogid);
 
   // Bind UBO and texture samplers
-  GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
-  GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
-  GLint GSBlock_id = glGetUniformBlockIndex(glprogid, "GSBlock");
-  GLint UBERBlock_id = glGetUniformBlockIndex(glprogid, "UBERBlock");
+  const GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
+  const GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
+  const GLint GSBlock_id = glGetUniformBlockIndex(glprogid, "GSBlock");
+  const GLint UBERBlock_id = glGetUniformBlockIndex(glprogid, "UBERBlock");
   if (PSBlock_id != -1)
     glUniformBlockBinding(glprogid, PSBlock_id, 1);
   if (VSBlock_id != -1)
@@ -124,7 +124,7 @@ void SHADER::SetProgramVariables()
   glUseProgram(CurrentProgram);
 }
 
-void SHADER::SetProgramBindings(bool is_compute)
+void SHADER::SetProgramBindings(const bool is_compute) const
 {
   if (g_ogl_config.bSupportsExplicitLayoutInShader)
   {
@@ -211,7 +211,7 @@ bool PipelineProgramKey::operator<(const PipelineProgramKey& rhs) const
 std::size_t PipelineProgramKeyHash::operator()(const PipelineProgramKey& key) const
 {
   // We would really want std::hash_combine for this..
-  std::hash<u64> hasher;
+  constexpr std::hash<u64> hasher;
   return hasher(key.vertex_shader_id) + hasher(key.geometry_shader_id) +
          hasher(key.pixel_shader_id);
 }
@@ -228,7 +228,7 @@ u32 ProgramShaderCache::GetUniformBufferAlignment()
 
 void ProgramShaderCache::UploadConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
@@ -237,41 +237,41 @@ void ProgramShaderCache::UploadConstants()
   {
     const u32 custom_constants_size = static_cast<u32>(
         Common::AlignUp(pixel_shader_manager.custom_constants.size(), s_ubo_align));
-    auto buffer = s_buffer->Map(s_ubo_buffer_size + custom_constants_size, s_ubo_align);
+    const auto [fst, snd] = s_buffer->Map(s_ubo_buffer_size + custom_constants_size, s_ubo_align);
 
-    memcpy(buffer.first, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
+    memcpy(fst, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
 
     u64 size = Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align);
 
-    memcpy(buffer.first + size, &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
+    memcpy(fst + size, &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
     size += Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align);
 
     if (!pixel_shader_manager.custom_constants.empty())
     {
-      memcpy(buffer.first + size, pixel_shader_manager.custom_constants.data(),
+      memcpy(fst + size, pixel_shader_manager.custom_constants.data(),
              pixel_shader_manager.custom_constants.size());
       size += custom_constants_size;
     }
 
-    memcpy(buffer.first + size, &geometry_shader_manager.constants,
+    memcpy(fst + size, &geometry_shader_manager.constants,
            sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size + custom_constants_size);
 
-    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, snd,
                       sizeof(PixelShaderConstants));
     size = Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, buffer.second + size,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, snd + size,
                       sizeof(VertexShaderConstants));
     size += Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align);
 
     if (!pixel_shader_manager.custom_constants.empty())
     {
-      glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer, buffer.second + size,
+      glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer, snd + size,
                         pixel_shader_manager.custom_constants.size());
       size += Common::AlignUp(pixel_shader_manager.custom_constants.size(), s_ubo_align);
     }
-    glBindBufferRange(GL_UNIFORM_BUFFER, 4, s_buffer->m_buffer, buffer.second + size,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 4, s_buffer->m_buffer, snd + size,
                       sizeof(GeometryShaderConstants));
 
     pixel_shader_manager.dirty = false;
@@ -283,22 +283,22 @@ void ProgramShaderCache::UploadConstants()
   }
 }
 
-void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
+void ProgramShaderCache::UploadConstants(const void* data, const u32 data_size)
 {
   // allocate and copy
   const u32 alloc_size = Common::AlignUp(data_size, s_ubo_align);
-  auto buffer = s_buffer->Map(alloc_size, s_ubo_align);
-  std::memcpy(buffer.first, data, data_size);
+  const auto [fst, snd] = s_buffer->Map(alloc_size, s_ubo_align);
+  std::memcpy(fst, data, data_size);
   s_buffer->Unmap(alloc_size);
 
   // bind the same sub-buffer to all stages
   for (u32 index = 1; index <= 4; index++)
-    glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
+    glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, snd, data_size);
 
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
-bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)
+bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string_view code)
 {
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
   // but not GLSL 4.3. Mesa is one example.
@@ -332,7 +332,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view c
   return true;
 }
 
-GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)
+GLuint ProgramShaderCache::CompileSingleShader(const GLenum type, std::string_view code)
 {
   const GLuint result = glCreateShader(type);
 
@@ -341,7 +341,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
       s_glsl_header.data(),
       code.data(),
   };
-  const std::array<GLint, num_strings> src_sizes{
+  const std::array src_sizes{
       static_cast<GLint>(s_glsl_header.size()),
       static_cast<GLint>(code.size()),
   };
@@ -359,7 +359,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
   return result;
 }
 
-bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)
+bool ProgramShaderCache::CheckShaderCompileResult(const GLuint id, const GLenum type, const std::string_view code)
 {
   GLint compileStatus;
   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
@@ -371,7 +371,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
     info_log.resize(length);
     glGetShaderInfoLog(id, length, &length, &info_log[0]);
 
-    const char* prefix = "";
+    auto prefix = "";
     switch (type)
     {
     case GL_VERTEX_SHADER:
@@ -392,7 +392,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
     {
       ERROR_LOG_FMT(VIDEO, "{} failed compilation:\n{}", prefix, info_log);
 
-      std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
+      const std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       file << s_glsl_header << code << info_log;
@@ -415,8 +415,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
   return true;
 }
 
-bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcode,
-                                                std::string_view pcode, std::string_view gcode)
+bool ProgramShaderCache::CheckProgramLinkResult(const GLuint id, const std::string_view vcode,
+                                                const std::string_view pcode, const std::string_view gcode)
 {
   GLint linkStatus;
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
@@ -430,7 +430,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
     if (linkStatus != GL_TRUE)
     {
       ERROR_LOG_FMT(VIDEO, "Program failed linking:\n{}", info_log);
-      std::string filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
+      const std::string filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       if (!vcode.empty())
@@ -519,7 +519,7 @@ void ProgramShaderCache::CreateAttributelessVAO()
 
 void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 {
-  u32 new_VAO = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
+  const u32 new_VAO = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
   if (s_last_VAO == new_VAO)
     return;
 
@@ -543,7 +543,7 @@ void ProgramShaderCache::InvalidateVertexFormat()
   s_last_VAO = 0;
 }
 
-void ProgramShaderCache::InvalidateVertexFormatIfBound(GLuint vao)
+void ProgramShaderCache::InvalidateVertexFormatIfBound(const GLuint vao)
 {
   if (s_last_VAO == vao)
     s_last_VAO = 0;
@@ -559,14 +559,14 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
                                                         const OGLShader* geometry_shader,
                                                         const OGLShader* pixel_shader,
                                                         const void* cache_data,
-                                                        size_t cache_data_size)
+                                                        const size_t cache_data_size)
 {
   PipelineProgramKey key = {vertex_shader ? vertex_shader->GetID() : 0,
                             geometry_shader ? geometry_shader->GetID() : 0,
                             pixel_shader ? pixel_shader->GetID() : 0};
   {
     std::lock_guard guard{s_pipeline_program_lock};
-    auto iter = s_pipeline_programs.find(key);
+    const auto iter = s_pipeline_programs.find(key);
     if (iter != s_pipeline_programs.end())
     {
       iter->second->reference_count++;
@@ -574,7 +574,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     }
   }
 
-  std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
+  auto prog = std::make_unique<PipelineProgram>();
   prog->key = key;
   prog->shader.glprogid = glCreateProgram();
 
@@ -584,7 +584,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
   {
     u32 program_binary_type;
     std::memcpy(&program_binary_type, cache_data, sizeof(u32));
-    glProgramBinary(prog->shader.glprogid, static_cast<GLenum>(program_binary_type),
+    glProgramBinary(prog->shader.glprogid, program_binary_type,
                     static_cast<const u8*>(cache_data) + sizeof(u32),
                     static_cast<GLsizei>(cache_data_size - sizeof(u32)));
 
@@ -606,7 +606,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
   {
     // We temporarily change the vertex array to the pipeline's vertex format.
     // This can prevent the NVIDIA OpenGL driver from recompiling on first use.
-    GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
+    const GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
     if (s_is_shared_context || vao != s_last_VAO)
       glBindVertexArray(vao);
 
@@ -644,7 +644,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
 
   // Lock to insert. A duplicate program may have been created in the meantime.
   std::lock_guard guard{s_pipeline_program_lock};
-  auto iter = s_pipeline_programs.find(key);
+  const auto iter = s_pipeline_programs.find(key);
   if (iter != s_pipeline_programs.end())
   {
     // Destroy this program, and use the one which was created first.
@@ -662,8 +662,8 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
   if (s_is_shared_context)
     glFinish();
 
-  auto ip = s_pipeline_programs.emplace(key, std::move(prog));
-  return ip.first->second.get();
+  const auto [fst, _snd] = s_pipeline_programs.emplace(key, std::move(prog));
+  return fst->second.get();
 }
 
 void ProgramShaderCache::ReleasePipelineProgram(PipelineProgram* prog)
@@ -932,7 +932,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 {
-  GLContext* context = static_cast<GLContext*>(param);
+  auto context = static_cast<GLContext*>(param);
   if (!context->MakeCurrent())
     return false;
 
@@ -957,7 +957,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 
 void SharedContextAsyncShaderCompiler::WorkerThreadExit(void* param)
 {
-  GLContext* context = static_cast<GLContext*>(param);
+  auto context = static_cast<GLContext*>(param);
   context->ClearCurrent();
   delete context;
 }

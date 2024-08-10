@@ -14,21 +14,21 @@ ConfigChoice::ConfigChoice(const QStringList& options, const Config::Info<int>& 
 {
   addItems(options);
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigChoice::Update);
-  setCurrentIndex(Config::Get(m_setting));
+  setCurrentIndex(Get(m_setting));
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    setCurrentIndex(Config::Get(m_setting));
+    setCurrentIndex(Get(m_setting));
   });
 }
 
-void ConfigChoice::Update(int choice)
+void ConfigChoice::Update(const int choice) const
 {
-  Config::SetBaseOrCurrent(m_setting, choice);
+  SetBaseOrCurrent(m_setting, choice);
 }
 
 ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
@@ -57,7 +57,7 @@ void ConfigStringChoice::Connect()
 {
   const auto on_config_changed = [this]() {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     Load();
@@ -67,21 +67,21 @@ void ConfigStringChoice::Connect()
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
-void ConfigStringChoice::Update(int index)
+void ConfigStringChoice::Update(const int index) const
 {
   if (m_text_is_data)
   {
-    Config::SetBaseOrCurrent(m_setting, itemText(index).toStdString());
+    SetBaseOrCurrent(m_setting, itemText(index).toStdString());
   }
   else
   {
-    Config::SetBaseOrCurrent(m_setting, itemData(index).toString().toStdString());
+    SetBaseOrCurrent(m_setting, itemData(index).toString().toStdString());
   }
 }
 
 void ConfigStringChoice::Load()
 {
-  const QString setting_value = QString::fromStdString(Config::Get(m_setting));
+  const QString setting_value = QString::fromStdString(Get(m_setting));
 
   const int index = m_text_is_data ? findText(setting_value) : findData(setting_value);
   const QSignalBlocker blocker(this);

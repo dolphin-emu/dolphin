@@ -36,7 +36,7 @@ public:
   u32 GetSamples() const { return m_config.samples; }
   AbstractTextureFormat GetFormat() const { return m_config.format; }
   MathUtil::Rectangle<int> GetRect() const { return m_config.GetRect(); }
-  MathUtil::Rectangle<int> GetMipRect(u32 level) const { return m_config.GetMipRect(level); }
+  MathUtil::Rectangle<int> GetMipRect(const u32 level) const { return m_config.GetMipRect(level); }
   bool IsMultisampled() const { return m_config.IsMultisampled(); }
   bool Save(const std::string& filename, unsigned int level, int compression = 6) const;
 

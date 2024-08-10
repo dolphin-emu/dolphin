@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
@@ -58,7 +56,7 @@ public:
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 
-  bool HasHookInstalled() const;
+  static bool HasHookInstalled();
   void ResetButton() const;
   void PowerButton() const;
 

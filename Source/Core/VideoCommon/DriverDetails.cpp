@@ -45,7 +45,7 @@ constexpr u32 m_os = OS_ALL | OS_HAIKU;
 static API m_api = API_OPENGL;
 static Vendor m_vendor = VENDOR_UNKNOWN;
 static Driver m_driver = DRIVER_UNKNOWN;
-static Family m_family = Family::UNKNOWN;
+static auto m_family = Family::UNKNOWN;
 static double m_version = 0.0;
 static std::string m_name;
 
@@ -162,7 +162,7 @@ constexpr BugInfo m_known_bugs[] = {
 
 static std::map<Bug, BugInfo> m_bugs;
 
-void Init(API api, Vendor vendor, Driver driver, const double version, const Family family,
+void Init(const API api, const Vendor vendor, const Driver driver, const double version, const Family family,
           std::string name)
 {
   m_api = api;
@@ -214,7 +214,7 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
   }
 }
 
-bool HasBug(Bug bug)
+bool HasBug(const Bug bug)
 {
   const auto it = m_bugs.find(bug);
   if (it == m_bugs.end())
@@ -230,7 +230,7 @@ bool HasBug(Bug bug)
 
 // clang-format off
 
-static const char* to_string(API api)
+static const char* to_string(const API api)
 {
   switch (api)
   {
@@ -241,7 +241,7 @@ static const char* to_string(API api)
   return "Unknown";
 }
 
-static const char* to_string(Driver driver)
+static const char* to_string(const Driver driver)
 {
   switch (driver)
   {
@@ -265,7 +265,7 @@ static const char* to_string(Driver driver)
   return "Unknown";
 }
 
-static const char* to_string(Bug bug)
+static const char* to_string(const Bug bug)
 {
   switch (bug)
   {
@@ -303,7 +303,7 @@ static const char* to_string(Bug bug)
 
 // clang-format on
 
-void OverrideBug(Bug bug, bool new_value)
+void OverrideBug(const Bug bug, const bool new_value)
 {
   const auto [it, added] = m_bugs.try_emplace(
       bug, BugInfo{m_api, m_os, m_vendor, m_driver, m_family, bug, -1, -1, false});

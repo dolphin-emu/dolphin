@@ -242,12 +242,12 @@ std::array<JITFunction, 256> s_ext_op_table;
 bool s_tables_initialized = false;
 }  // Anonymous namespace
 
-JITFunction GetOp(UDSPInstruction inst)
+JITFunction GetOp(const UDSPInstruction inst)
 {
   return s_op_table[inst];
 }
 
-JITFunction GetExtOp(UDSPInstruction inst)
+JITFunction GetExtOp(const UDSPInstruction inst)
 {
   const bool has_seven_bit_extension = (inst >> 12) == 0x3;
 

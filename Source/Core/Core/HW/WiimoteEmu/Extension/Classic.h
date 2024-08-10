@@ -6,7 +6,6 @@
 #include <limits>
 
 #include "Common/Matrix.h"
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -92,13 +91,13 @@ public:
     }
     // 5-bit values (0-31)
     auto GetLeftTrigger() const { return TriggerRawValue(lt1 | lt2 << 3); }
-    void SetLeftTrigger(TriggerType value)
+    void SetLeftTrigger(const TriggerType value)
     {
       lt1 = value & 0b111;
       lt2 = (value >> 3) & 0b11;
     }
     auto GetRightTrigger() const { return TriggerRawValue(rt); }
-    void SetRightTrigger(TriggerType value) { rt = value; }
+    void SetRightTrigger(const TriggerType value) { rt = value; }
 
     u16 GetButtons() const
     {
@@ -106,7 +105,7 @@ public:
       return ~bt.hex;
     }
 
-    void SetButtons(u16 value)
+    void SetButtons(const u16 value)
     {
       // 0 == pressed.
       bt.hex = ~value;
@@ -182,7 +181,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(ClassicGroup group);
+  ControllerEmu::ControlGroup* GetGroup(ClassicGroup group) const;
 
   static constexpr u16 PAD_RIGHT = 0x80;
   static constexpr u16 PAD_DOWN = 0x40;
@@ -216,30 +215,30 @@ public:
 
   static constexpr u8 TRIGGER_RANGE = 0x1F;
 
-  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
-  static constexpr const char* LEFT_STICK_GROUP = _trans("Left Stick");
-  static constexpr const char* RIGHT_STICK_GROUP = _trans("Right Stick");
-  static constexpr const char* TRIGGERS_GROUP = _trans("Triggers");
-  static constexpr const char* DPAD_GROUP = _trans("D-Pad");
+  static constexpr auto BUTTONS_GROUP = _trans("Buttons");
+  static constexpr auto LEFT_STICK_GROUP = _trans("Left Stick");
+  static constexpr auto RIGHT_STICK_GROUP = _trans("Right Stick");
+  static constexpr auto TRIGGERS_GROUP = _trans("Triggers");
+  static constexpr auto DPAD_GROUP = _trans("D-Pad");
 
-  static constexpr const char* A_BUTTON = "A";
-  static constexpr const char* B_BUTTON = "B";
-  static constexpr const char* X_BUTTON = "X";
-  static constexpr const char* Y_BUTTON = "Y";
-  static constexpr const char* ZL_BUTTON = "ZL";
-  static constexpr const char* ZR_BUTTON = "ZR";
-  static constexpr const char* MINUS_BUTTON = "-";
-  static constexpr const char* PLUS_BUTTON = "+";
-  static constexpr const char* HOME_BUTTON = "Home";
+  static constexpr auto A_BUTTON = "A";
+  static constexpr auto B_BUTTON = "B";
+  static constexpr auto X_BUTTON = "X";
+  static constexpr auto Y_BUTTON = "Y";
+  static constexpr auto ZL_BUTTON = "ZL";
+  static constexpr auto ZR_BUTTON = "ZR";
+  static constexpr auto MINUS_BUTTON = "-";
+  static constexpr auto PLUS_BUTTON = "+";
+  static constexpr auto HOME_BUTTON = "Home";
 
   // i18n: The left trigger button (labeled L on real controllers)
-  static constexpr const char* L_DIGITAL = _trans("L");
+  static constexpr auto L_DIGITAL = _trans("L");
   // i18n: The right trigger button (labeled R on real controllers)
-  static constexpr const char* R_DIGITAL = _trans("R");
+  static constexpr auto R_DIGITAL = _trans("R");
   // i18n: The left trigger button (labeled L on real controllers) used as an analog input
-  static constexpr const char* L_ANALOG = _trans("L-Analog");
+  static constexpr auto L_ANALOG = _trans("L-Analog");
   // i18n: The right trigger button (labeled R on real controllers) used as an analog input
-  static constexpr const char* R_ANALOG = _trans("R-Analog");
+  static constexpr auto R_ANALOG = _trans("R-Analog");
 
 private:
   ControllerEmu::Buttons* m_buttons;

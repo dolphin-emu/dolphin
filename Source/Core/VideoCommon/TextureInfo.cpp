@@ -17,31 +17,32 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 
-TextureInfo TextureInfo::FromStage(u32 stage)
+TextureInfo TextureInfo::FromStage(const u32 stage)
 {
-  const auto tex = bpmem.tex.GetUnit(stage);
+  const auto [texMode0, texMode1, texImage0, texImage1, texImage2, texImage3, texTlut, _unknown] =
+    bpmem.tex.GetUnit(stage);
 
-  const auto texture_format = tex.texImage0.format;
-  const auto tlut_format = tex.texTlut.tlut_format;
+  const auto texture_format = texImage0.format;
+  const auto tlut_format = texTlut.tlut_format;
 
-  const auto width = tex.texImage0.width + 1;
-  const auto height = tex.texImage0.height + 1;
+  const auto width = texImage0.width + 1;
+  const auto height = texImage0.height + 1;
 
-  const u32 address = (tex.texImage3.image_base /* & 0x1FFFFF*/) << 5;
+  const u32 address = (texImage3.image_base /* & 0x1FFFFF*/) << 5;
 
-  const u32 tlutaddr = tex.texTlut.tmem_offset << 9;
-  std::span<const u8> tlut_data = TexDecoder_GetTmemSpan(tlutaddr);
+  const u32 tlutaddr = texTlut.tmem_offset << 9;
+  const std::span<const u8> tlut_data = TexDecoder_GetTmemSpan(tlutaddr);
 
   std::optional<u32> mip_count;
-  const bool has_mipmaps = tex.texMode0.mipmap_filter != MipMode::None;
+  const bool has_mipmaps = texMode0.mipmap_filter != MipMode::None;
   if (has_mipmaps)
   {
-    mip_count = (tex.texMode1.max_lod + 0xf) / 0x10;
+    mip_count = (texMode1.max_lod + 0xf) / 0x10;
   }
 
-  const bool from_tmem = tex.texImage1.cache_manually_managed != 0;
-  const u32 tmem_address_even = from_tmem ? tex.texImage1.tmem_even * TMEM_LINE_SIZE : 0;
-  const u32 tmem_address_odd = from_tmem ? tex.texImage2.tmem_odd * TMEM_LINE_SIZE : 0;
+  const bool from_tmem = texImage1.cache_manually_managed != 0;
+  const u32 tmem_address_even = from_tmem ? texImage1.tmem_even * TMEM_LINE_SIZE : 0;
+  const u32 tmem_address_odd = from_tmem ? texImage2.tmem_odd * TMEM_LINE_SIZE : 0;
 
   if (from_tmem)
   {
@@ -51,8 +52,8 @@ TextureInfo TextureInfo::FromStage(u32 stage)
                        TexDecoder_GetTmemSpan(tmem_address_even), mip_count);
   }
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   return TextureInfo(stage, memory.GetSpanForAddress(address), tlut_data, address, texture_format,
                      tlut_format, width, height, false, {}, {}, mip_count);
 }
@@ -288,7 +289,7 @@ u32 TextureInfo::GetLevelCount() const
   return static_cast<u32>(m_mip_levels.size()) + 1;
 }
 
-const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(u32 level) const
+const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(const u32 level) const
 {
   if (level < m_mip_levels.size())
     return &m_mip_levels[level];
@@ -296,7 +297,7 @@ const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(u32 level) const
   return nullptr;
 }
 
-TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_tmem,
+TextureInfo::MipLevel::MipLevel(const u32 level, const TextureInfo& parent, const bool from_tmem,
                                 std::span<const u8>* src_data, std::span<const u8>* tmem_even,
                                 std::span<const u8>* tmem_odd)
 {

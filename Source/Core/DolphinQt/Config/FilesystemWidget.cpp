@@ -5,7 +5,6 @@
 
 #include <QApplication>
 #include <QCoreApplication>
-#include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
 #include <QStandardItemModel>
@@ -124,12 +123,12 @@ void FilesystemWidget::PopulateView()
     PopulateDirectory(-1, disc, DiscIO::PARTITION_NONE);
 }
 
-void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
+void FilesystemWidget::PopulateDirectory(const int partition_id, QStandardItem* root,
                                          const DiscIO::Partition& partition)
 {
-  auto partition_type = m_volume->GetPartitionType(partition);
-  auto game_id = m_volume->GetGameID(partition);
-  auto title_id = m_volume->GetTitleID(partition);
+  const auto partition_type = m_volume->GetPartitionType(partition);
+  const auto game_id = m_volume->GetGameID(partition);
+  const auto title_id = m_volume->GetTitleID(partition);
 
   QString text = root->text();
 
@@ -168,7 +167,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
     text += QStringLiteral(" - %1 (").arg(title_id.value(), 16, 16, QLatin1Char('0'));
     for (u32 i = 0; i < 4; i++)
     {
-      char c = static_cast<char>(title_id.value() >> 8 * (3 - i));
+      const char c = static_cast<char>(title_id.value() >> 8 * (3 - i));
       if (Common::IsPrintableCharacter(c))
         text += QLatin1Char(c);
       else
@@ -184,7 +183,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
     PopulateDirectory(partition_id, root, file_system->GetRoot());
 }
 
-void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
+void FilesystemWidget::PopulateDirectory(const int partition_id, QStandardItem* root,
                                          const DiscIO::FileInfo& directory)
 {
   for (const auto& info : directory)
@@ -218,16 +217,16 @@ QString FilesystemWidget::SelectFolder()
 
 void FilesystemWidget::ShowContextMenu(const QPoint&)
 {
-  auto* selection = m_tree_view->selectionModel();
+  const auto* selection = m_tree_view->selectionModel();
   if (!selection->hasSelection())
     return;
 
-  auto* item = m_tree_model->itemFromIndex(selection->selectedIndexes()[0]);
+  const auto* item = m_tree_model->itemFromIndex(selection->selectedIndexes()[0]);
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
-  EntryType type = item->data(ENTRY_TYPE).value<EntryType>();
+  const EntryType type = item->data(ENTRY_TYPE).value<EntryType>();
 
   DiscIO::Partition partition = type == EntryType::Disc ?
                                     DiscIO::PARTITION_NONE :
@@ -240,7 +239,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   if (type == EntryType::Dir || is_filesystem_root)
   {
     menu->addAction(tr("Extract Files..."), this, [this, partition, path] {
-      auto folder = SelectFolder();
+      const auto folder = SelectFolder();
 
       if (!folder.isEmpty())
         ExtractDirectory(partition, path, folder);
@@ -250,7 +249,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   if (is_filesystem_root)
   {
     menu->addAction(tr("Extract System Data..."), this, [this, partition] {
-      auto folder = SelectFolder();
+      const auto folder = SelectFolder();
 
       if (folder.isEmpty())
         return;
@@ -267,7 +266,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   {
   case EntryType::Disc:
     menu->addAction(tr("Extract Entire Disc..."), this, [this, path] {
-      auto folder = SelectFolder();
+      const auto folder = SelectFolder();
 
       if (folder.isEmpty())
         return;
@@ -291,15 +290,15 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
     break;
   case EntryType::Partition:
     menu->addAction(tr("Extract Entire Partition..."), this, [this, partition] {
-      auto folder = SelectFolder();
+      const auto folder = SelectFolder();
       if (!folder.isEmpty())
         ExtractPartition(partition, folder);
     });
     break;
   case EntryType::File:
     menu->addAction(tr("Extract File..."), this, [this, partition, path] {
-      auto dest =
-          DolphinFileDialog::getSaveFileName(this, tr("Save File To"), QFileInfo(path).fileName());
+      const auto dest = DolphinFileDialog::getSaveFileName(this, tr("Save File To"),
+                                                           QFileInfo(path).fileName());
 
       if (!dest.isEmpty())
         ExtractFile(partition, path, dest);
@@ -313,7 +312,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   menu->exec(QCursor::pos());
 }
 
-DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id)
+DiscIO::Partition FilesystemWidget::GetPartitionFromID(const int id) const
 {
   return id == -1 ? DiscIO::PARTITION_NONE : m_volume->GetPartitions()[id];
 }
@@ -324,9 +323,9 @@ void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, cons
   ExtractSystemData(partition, out);
 }
 
-bool FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out)
+bool FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out) const
 {
-  return DiscIO::ExportSystemData(*m_volume, partition, out.toStdString());
+  return ExportSystemData(*m_volume, partition, out.toStdString());
 }
 
 void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
@@ -336,8 +335,8 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   if (!filesystem)
     return;
 
-  std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path.toStdString());
-  u32 size = info->GetTotalChildren();
+  const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path.toStdString());
+  const u32 size = info->GetTotalChildren();
 
   ParallelProgressDialog dialog(this);
   dialog.GetRaw()->setMinimum(0);
@@ -349,7 +348,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   std::future<void> future = std::async(std::launch::async, [&] {
     int progress = 0;
 
-    DiscIO::ExportDirectory(
+    ExportDirectory(
         *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
         [all, &dialog, &progress](const std::string& current) {
           dialog.SetLabelText(
@@ -377,7 +376,7 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
   if (!filesystem)
     return;
 
-  bool success = DiscIO::ExportFile(
+  const bool success = ExportFile(
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 
   if (success)

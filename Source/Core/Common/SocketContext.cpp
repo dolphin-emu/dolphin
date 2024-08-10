@@ -11,15 +11,17 @@ namespace Common
 #ifdef _WIN32
 SocketContext::SocketContext()
 {
-  std::lock_guard<std::mutex> g(s_lock);
+  std::lock_guard g(s_lock);
   if (s_num_objects == 0)
   {
     const int ret = WSAStartup(MAKEWORD(2, 2), &s_data);
     if (ret == 0)
     {
       INFO_LOG_FMT(COMMON, "WSAStartup succeeded, wVersion={}.{}, wHighVersion={}.{}",
-                   int(LOBYTE(s_data.wVersion)), int(HIBYTE(s_data.wVersion)),
-                   int(LOBYTE(s_data.wHighVersion)), int(HIBYTE(s_data.wHighVersion)));
+                   static_cast<int>(LOBYTE(s_data.wVersion)),
+                   static_cast<int>(HIBYTE(s_data.wVersion)),
+                   static_cast<int>(LOBYTE(s_data.wHighVersion)),
+                   static_cast<int>(HIBYTE(s_data.wHighVersion)));
     }
     else
     {
@@ -36,7 +38,7 @@ SocketContext::SocketContext()
 }
 SocketContext::~SocketContext()
 {
-  std::lock_guard<std::mutex> g(s_lock);
+  std::lock_guard g(s_lock);
   s_num_objects--;
   if (s_num_objects == 0)
   {

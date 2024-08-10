@@ -19,5 +19,5 @@ enum class GenerateActionReplayCodeErrorCode
 };
 
 Common::Result<GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
-GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, size_t index);
+GenerateActionReplayCode(const CheatSearchSessionBase& session, size_t index);
 }  // namespace Cheats

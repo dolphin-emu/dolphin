@@ -13,9 +13,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
-#include <QPushButton>
 #include <QTextEdit>
-#include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -34,8 +32,8 @@
 
 #include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
-                                 bool restart_required)
+GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, const u16 game_revision,
+                                 const bool restart_required)
     : m_game_id(std::move(game_id)), m_gametdb_id(std::move(gametdb_id)),
       m_game_revision(game_revision), m_restart_required(restart_required)
 {
@@ -72,7 +70,7 @@ void GeckoCodeWidget::CreateWidgets()
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  const QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   const auto line_height = QFontMetrics(font()).lineSpacing();
 
@@ -130,7 +128,7 @@ void GeckoCodeWidget::CreateWidgets()
   layout->addWidget(m_code_description);
   layout->addWidget(m_code_view);
 
-  QHBoxLayout* btn_layout = new QHBoxLayout;
+  auto btn_layout = new QHBoxLayout;
 
   btn_layout->addWidget(m_add_code);
   btn_layout->addWidget(m_edit_code);
@@ -164,7 +162,7 @@ void GeckoCodeWidget::ConnectWidgets()
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
-void GeckoCodeWidget::OnSelectionChanged()
+void GeckoCodeWidget::OnSelectionChanged() const
 {
   auto items = m_code_list->selectedItems();
 
@@ -176,7 +174,7 @@ void GeckoCodeWidget::OnSelectionChanged()
   if (items.empty())
     return;
 
-  auto selected = items[0];
+  const auto selected = items[0];
 
   const int index = selected->data(Qt::UserRole).toInt();
 
@@ -192,17 +190,17 @@ void GeckoCodeWidget::OnSelectionChanged()
 
   m_code_view->clear();
 
-  for (const auto& c : code.codes)
-    m_code_view->append(QString::fromStdString(c.original_line));
+  for (const auto& [_address, _data, original_line] : code.codes)
+    m_code_view->append(QString::fromStdString(original_line));
 }
 
-void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
+void GeckoCodeWidget::OnItemChanged(const QListWidgetItem* item)
 {
   const int index = item->data(Qt::UserRole).toInt();
   m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
-    Gecko::SetActiveCodes(m_gecko_codes);
+    SetActiveCodes(m_gecko_codes);
 
   SaveCodes();
 }
@@ -254,7 +252,7 @@ void GeckoCodeWidget::RemoveCode()
   SaveCodes();
 }
 
-void GeckoCodeWidget::SaveCodes()
+void GeckoCodeWidget::SaveCodes() const
 {
   if (m_game_id.empty())
     return;
@@ -287,7 +285,7 @@ void GeckoCodeWidget::SortAlphabetically()
 
 void GeckoCodeWidget::SortEnabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
+  std::ranges::stable_sort(m_gecko_codes, [](const auto& a, const auto& b) {
     return a.enabled && a.enabled != b.enabled;
   });
 
@@ -297,7 +295,7 @@ void GeckoCodeWidget::SortEnabledCodesFirst()
 
 void GeckoCodeWidget::SortDisabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
+  std::ranges::stable_sort(m_gecko_codes, [](const auto& a, const auto& b) {
     return !a.enabled && a.enabled != b.enabled;
   });
 
@@ -324,7 +322,7 @@ void GeckoCodeWidget::OnListReordered()
   SaveCodes();
 }
 
-void GeckoCodeWidget::UpdateList()
+void GeckoCodeWidget::UpdateList() const
 {
   m_code_list->clear();
 
@@ -351,7 +349,7 @@ void GeckoCodeWidget::DownloadCodes()
 {
   bool success;
 
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
+  const std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
 
   if (!success)
   {
@@ -369,7 +367,7 @@ void GeckoCodeWidget::DownloadCodes()
 
   for (const auto& code : codes)
   {
-    auto it = std::find(m_gecko_codes.begin(), m_gecko_codes.end(), code);
+    auto it = std::ranges::find(m_gecko_codes, code);
 
     if (it == m_gecko_codes.end())
     {

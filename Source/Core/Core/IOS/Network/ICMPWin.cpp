@@ -50,13 +50,13 @@ u16 cksum(const u16* buffer, int length)
   sum = (sum & 0xffff) + (sum >> 16);
   sum += sum >> 16;
 
-  return (u16)~sum;
+  return static_cast<u16>(~sum);
 }
 
 int icmp_echo_req(const u32 s, const sockaddr_in* addr, const u8* data, const u32 data_length)
 {
   memset(workspace, 0, sizeof(workspace));
-  icmp_hdr* header = (icmp_hdr*)workspace;
+  auto header = (icmp_hdr*)workspace;
   header->type = ICMP_ECHOREQ;
   header->code = 0;
   header->checksum = 0;
@@ -64,7 +64,7 @@ int icmp_echo_req(const u32 s, const sockaddr_in* addr, const u8* data, const u3
 
   header->checksum = cksum((u16*)header, ICMP_HDR_LEN + data_length);
 
-  int num_bytes = sendto((SOCKET)s, (LPSTR)header, ICMP_HDR_LEN + data_length, 0, (sockaddr*)addr,
+  int num_bytes = sendto(s, (LPSTR)header, ICMP_HDR_LEN + data_length, 0, (sockaddr*)addr,
                          sizeof(sockaddr));
 
   if (num_bytes >= ICMP_HDR_LEN)
@@ -87,7 +87,7 @@ int icmp_echo_rep(const u32 s, sockaddr_in* addr, const u32 timeout, const u32 d
   t.tv_sec = timeout / 1000;
   if (select(0, &read_fds, nullptr, nullptr, &t) > 0)
   {
-    num_bytes = recvfrom((SOCKET)s, (LPSTR)workspace, IP_HDR_LEN + ICMP_HDR_LEN + data_length, 0,
+    num_bytes = recvfrom(s, (LPSTR)workspace, IP_HDR_LEN + ICMP_HDR_LEN + data_length, 0,
                          (sockaddr*)addr, &addr_length);
 
     // TODO do we need to memcmp the data?

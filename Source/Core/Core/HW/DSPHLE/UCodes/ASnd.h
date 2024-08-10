@@ -73,7 +73,7 @@ public:
 
 private:
   void DMAInVoiceData();
-  void DMAOutVoiceData();
+  void DMAOutVoiceData() const;
   void DMAInSampleData();
   void DMAInSampleDataAssumeAligned();
   void ChangeBuffer();

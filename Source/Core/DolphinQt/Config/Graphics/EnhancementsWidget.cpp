@@ -8,7 +8,6 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -16,7 +15,6 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -31,7 +29,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(false)
+EnhancementsWidget::EnhancementsWidget(const GraphicsWindow* parent) : m_block_save(false)
 {
   CreateWidgets();
   LoadSettings();
@@ -83,7 +81,7 @@ void EnhancementsWidget::CreateWidgets()
   // If the current scale is greater than the max scale in the ini, add sufficient options so that
   // when the settings are saved we don't lose the user-modified value from the ini.
   const int max_efb_scale =
-      std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
+      std::max(Get(Config::GFX_EFB_SCALE), Get(Config::GFX_MAX_EFB_SCALE));
   for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
   {
     const QString scale_text = QString::number(scale);
@@ -252,7 +250,7 @@ void EnhancementsWidget::ConnectWidgets()
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 
-void EnhancementsWidget::LoadPPShaders()
+void EnhancementsWidget::LoadPPShaders() const
 {
   std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
   if (g_Config.stereo_mode == StereoMode::Anaglyph)
@@ -269,7 +267,7 @@ void EnhancementsWidget::LoadPPShaders()
   if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
     m_pp_effect->addItem(tr("(off)"));
 
-  auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  const auto selected_shader = Get(Config::GFX_ENHANCE_POST_SHADER);
 
   bool found = false;
 
@@ -311,16 +309,16 @@ void EnhancementsWidget::LoadPPShaders()
 void EnhancementsWidget::LoadSettings()
 {
   m_block_save = true;
-  m_texture_filtering_combo->setEnabled(Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
-  m_arbitrary_mipmap_detection->setEnabled(!Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
+  m_texture_filtering_combo->setEnabled(Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
+  m_arbitrary_mipmap_detection->setEnabled(!Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
 
   // Anti-Aliasing
 
-  const u32 aa_selection = Config::Get(Config::GFX_MSAA);
-  const bool ssaa = Config::Get(Config::GFX_SSAA);
-  const int aniso = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  const u32 aa_selection = Get(Config::GFX_MSAA);
+  const bool ssaa = Get(Config::GFX_SSAA);
+  const int aniso = Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   const TextureFilteringMode tex_filter_mode =
-      Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
+      Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
 
   m_aa_combo->clear();
 
@@ -371,7 +369,7 @@ void EnhancementsWidget::LoadSettings()
 
   // Resampling
   const OutputResamplingMode output_resampling_mode =
-      Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
+      Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
   m_output_resampling_combo->setCurrentIndex(
       m_output_resampling_combo->findData(static_cast<int>(output_resampling_mode)));
 
@@ -403,84 +401,84 @@ void EnhancementsWidget::SaveSettings()
   const u32 aa_value = static_cast<u32>(std::abs(m_aa_combo->currentData().toInt()));
   const bool is_ssaa = m_aa_combo->currentData().toInt() < 0;
 
-  Config::SetBaseOrCurrent(Config::GFX_MSAA, aa_value);
-  Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
+  SetBaseOrCurrent(Config::GFX_MSAA, aa_value);
+  SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
   const int texture_filtering_selection = m_texture_filtering_combo->currentData().toInt();
   switch (texture_filtering_selection)
   {
   case TEXTURE_FILTERING_DEFAULT:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_2X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_4X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_8X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_16X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_FORCE_NEAREST:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Nearest);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_2X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_4X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_8X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   }
 
   const int output_resampling_selection = m_output_resampling_combo->currentData().toInt();
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_OUTPUT_RESAMPLING,
+  SetBaseOrCurrent(Config::GFX_ENHANCE_OUTPUT_RESAMPLING,
                            static_cast<OutputResamplingMode>(output_resampling_selection));
 
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
+  SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
                            (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
                                "" :
                                m_pp_effect->currentText().toStdString());
 
   VideoCommon::PostProcessingConfiguration pp_shader;
-  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "")
+  if (Get(Config::GFX_ENHANCE_POST_SHADER) != "")
   {
-    pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
+    pp_shader.LoadShader(Get(Config::GFX_ENHANCE_POST_SHADER));
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
   else
@@ -491,29 +489,29 @@ void EnhancementsWidget::SaveSettings()
   LoadSettings();
 }
 
-void EnhancementsWidget::AddDescriptions()
+void EnhancementsWidget::AddDescriptions() const
 {
-  static const char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
+  static constexpr char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
       QT_TR_NOOP("Controls the rendering resolution.<br><br>A high resolution greatly improves "
                  "visual quality, but also greatly increases GPU load and can cause issues in "
                  "certain games. Generally speaking, the lower the internal resolution, the "
                  "better performance will be.<br><br><dolphin_emphasis>If unsure, "
                  "select Native.</dolphin_emphasis>");
-  static const char TR_ANTIALIAS_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_ANTIALIAS_DESCRIPTION[] = QT_TR_NOOP(
       "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
       "in smoother edges on objects. Increases GPU load and sometimes causes graphical "
       "issues.<br><br>SSAA is significantly more demanding than MSAA, but provides top quality "
       "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
       "effects, and textures.<br><br><dolphin_emphasis>If unsure, select "
       "None.</dolphin_emphasis>");
-  static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
       "Adjust the texture filtering. Anisotropic filtering enhances the visual quality of textures "
       "that are at oblique viewing angles. Force Nearest and Force Linear override the texture "
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br>This option is incompatible with Manual Texture Sampling.<br><br>"
       "<dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
+  static constexpr char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
       QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
                  "<br>The performance mostly depends on the number of samples each method uses."
                  "<br>Compared to SSAA, resampling is useful in case the output window"
@@ -544,63 +542,63 @@ void EnhancementsWidget::AddDescriptions()
                  "<br>Best for downscaling by more than 2x."
 
                  "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
+  static constexpr char TR_COLOR_CORRECTION_DESCRIPTION[] =
       QT_TR_NOOP("A group of features to make the colors more accurate, matching the color space "
                  "Wii and GC games were meant for.");
-  static const char TR_POSTPROCESSING_DESCRIPTION[] =
+  static constexpr char TR_POSTPROCESSING_DESCRIPTION[] =
       QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
                  "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
-  static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
+  static constexpr char TR_SCALED_EFB_COPY_DESCRIPTION[] =
       QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
                  "effects.<br><br>Slightly increases GPU load and causes relatively few graphical "
                  "issues. Raising the internal resolution will improve the effect of this setting. "
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
-  static const char TR_PER_PIXEL_LIGHTING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_PER_PIXEL_LIGHTING_DESCRIPTION[] = QT_TR_NOOP(
       "Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the "
       "appearance of lit polygons and making individual triangles less noticeable.<br><br "
       "/>Rarely "
       "causes slowdowns or graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
-  static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to output graphics at any aspect ratio by expanding the view frustum "
       "without stretching the image.<br>This is a hack, and its results will vary widely game "
       "to game (it often causes the UI to stretch).<br>"
       "Game-specific AR/Gecko-code aspect ratio patches are preferable over this if available."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_REMOVE_FOG_DESCRIPTION[] =
+  static constexpr char TR_REMOVE_FOG_DESCRIPTION[] =
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
                  "detail.<br><br>Disabling fog will break some games which rely on proper fog "
                  "emulation.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
       "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling "
       "of depth if the necessary hardware is present. Heavily decreases "
       "emulation speed and sometimes causes issues.<br><br>Side-by-Side and Top-and-Bottom are "
       "used by most 3D TVs.<br>Anaglyph is used for Red-Cyan colored glasses.<br>HDMI 3D is "
       "used when the monitor supports 3D display resolutions.<br>Passive is another type of 3D "
       "used by some TVs.<br><br><dolphin_emphasis>If unsure, select Off.</dolphin_emphasis>");
-  static const char TR_3D_DEPTH_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_DEPTH_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the separation distance between the virtual cameras.<br><br>A higher "
       "value creates a stronger feeling of depth while a lower value is more comfortable.");
-  static const char TR_3D_CONVERGENCE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_CONVERGENCE_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the distance of the convergence plane. This is the distance at which "
       "virtual objects will appear to be in front of the screen.<br><br>A higher value creates "
       "stronger out-of-screen effects while a lower value is more comfortable.");
-  static const char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
       "Swaps the left and right eye. Most useful in side-by-side stereoscopy "
       "mode.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_FORCE_24BIT_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_FORCE_24BIT_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to render the RGB color channels in 24-bit, thereby increasing "
       "quality by reducing color banding.<br><br>Has no impact on performance and causes "
       "few graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
-  static const char TR_DISABLE_COPY_FILTER_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_DISABLE_COPY_FILTER_DESCRIPTION[] = QT_TR_NOOP(
       "Disables the blending of adjacent rows when copying the EFB. This is known in "
       "some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the filter has no "
       "effect on performance, but may result in a sharper image. Causes few "
       "graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
-  static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Enables detection of arbitrary mipmaps, which some games use for special distance-based "
       "effects.<br><br>May have false positives that result in blurry textures at increased "
       "internal "
@@ -608,7 +606,7 @@ void EnhancementsWidget::AddDescriptions()
       "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
       " Fullscreen might be required."
       "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "
@@ -671,7 +669,7 @@ void EnhancementsWidget::ConfigureColorCorrection()
 
 void EnhancementsWidget::ConfigurePostProcessingShader()
 {
-  const std::string shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  const std::string shader = Get(Config::GFX_ENHANCE_POST_SHADER);
   PostProcessingConfigWindow dialog(this, shader);
   SetQWidgetWindowDecorations(&dialog);
   dialog.exec();

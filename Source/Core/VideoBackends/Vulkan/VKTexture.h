@@ -54,7 +54,7 @@ public:
   VkImageView GetView() const { return m_view; }
   VkImageLayout GetLayout() const { return m_layout; }
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
-  bool IsAdopted() const { return m_alloc != VmaAllocation(VK_NULL_HANDLE); }
+  bool IsAdopted() const { return m_alloc != static_cast<VmaAllocation>(VK_NULL_HANDLE); }
 
   static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name);
   static std::unique_ptr<VKTexture>
@@ -65,7 +65,7 @@ public:
   // Used when the render pass is changing the image layout, or to force it to
   // VK_IMAGE_LAYOUT_UNDEFINED, if the existing contents of the image is
   // irrelevant and will not be loaded.
-  void OverrideImageLayout(VkImageLayout new_layout);
+  void OverrideImageLayout(VkImageLayout new_layout) const;
 
   void TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const;
   void TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageLayout new_layout) const;
@@ -115,7 +115,7 @@ public:
 private:
   void CopyFromTextureToLinearImage(const VKTexture* src_tex,
                                     const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                    u32 src_level, const MathUtil::Rectangle<int>& dst_rect);
+                                    u32 src_level, const MathUtil::Rectangle<int>& dst_rect) const;
 
   std::unique_ptr<StagingBuffer> m_staging_buffer;
   VkImage m_linear_image = VK_NULL_HANDLE;
@@ -139,11 +139,11 @@ public:
   VkRenderPass GetDiscardRenderPass() const { return m_discard_render_pass; }
   VkRenderPass GetClearRenderPass() const { return m_clear_render_pass; }
 
-  void Unbind();
-  void TransitionForRender();
+  void Unbind() const;
+  void TransitionForRender() const;
 
   void SetAndClear(const VkRect2D& rect, const VkClearValue& color_value,
-                   const VkClearValue& depth_value);
+                   const VkClearValue& depth_value) const;
   std::size_t GetNumberOfAdditonalAttachments() const
   {
     return m_additional_color_attachments.size();

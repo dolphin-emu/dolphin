@@ -7,7 +7,6 @@
 #include <cstring>
 #include <type_traits>
 
-#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
@@ -61,7 +60,7 @@ MemoryInterfaceManager::~MemoryInterfaceManager() = default;
 void MemoryInterfaceManager::Init()
 {
   static_assert(std::is_trivially_copyable_v<MIMemStruct>);
-  std::memset(static_cast<void*>(&m_mi_mem), 0, sizeof(MIMemStruct));
+  std::memset(&m_mi_mem, 0, sizeof(MIMemStruct));
 }
 
 void MemoryInterfaceManager::Shutdown()
@@ -74,7 +73,7 @@ void MemoryInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_mi_mem);
 }
 
-void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   for (u32 i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
   {

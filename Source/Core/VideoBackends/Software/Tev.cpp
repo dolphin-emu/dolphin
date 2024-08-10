@@ -29,17 +29,17 @@
 #define ALLOW_TEV_DUMPS 0
 #endif
 
-static inline s16 Clamp255(s16 in)
+static inline s16 Clamp255(const s16 in)
 {
   return std::clamp<s16>(in, 0, 255);
 }
 
-static inline s16 Clamp1024(s16 in)
+static inline s16 Clamp1024(const s16 in)
 {
   return std::clamp<s16>(in, -1024, 1023);
 }
 
-void Tev::SetRasColor(RasColorChan colorChan, u32 swaptable)
+void Tev::SetRasColor(const RasColorChan colorChan, const u32 swaptable)
 {
   switch (colorChan)
   {
@@ -47,20 +47,20 @@ void Tev::SetRasColor(RasColorChan colorChan, u32 swaptable)
   {
     const u8* color = Color[0];
     const auto& swap = bpmem.tevksel.GetSwapTable(swaptable);
-    RasColor.r = color[u32(swap[ColorChannel::Red])];
-    RasColor.g = color[u32(swap[ColorChannel::Green])];
-    RasColor.b = color[u32(swap[ColorChannel::Blue])];
-    RasColor.a = color[u32(swap[ColorChannel::Alpha])];
+    RasColor.r = color[static_cast<u32>(swap[ColorChannel::Red])];
+    RasColor.g = color[static_cast<u32>(swap[ColorChannel::Green])];
+    RasColor.b = color[static_cast<u32>(swap[ColorChannel::Blue])];
+    RasColor.a = color[static_cast<u32>(swap[ColorChannel::Alpha])];
   }
   break;
   case RasColorChan::Color1:
   {
     const u8* color = Color[1];
     const auto& swap = bpmem.tevksel.GetSwapTable(swaptable);
-    RasColor.r = color[u32(swap[ColorChannel::Red])];
-    RasColor.g = color[u32(swap[ColorChannel::Green])];
-    RasColor.b = color[u32(swap[ColorChannel::Blue])];
-    RasColor.a = color[u32(swap[ColorChannel::Alpha])];
+    RasColor.r = color[static_cast<u32>(swap[ColorChannel::Red])];
+    RasColor.g = color[static_cast<u32>(swap[ColorChannel::Green])];
+    RasColor.b = color[static_cast<u32>(swap[ColorChannel::Blue])];
+    RasColor.a = color[static_cast<u32>(swap[ColorChannel::Alpha])];
   }
   break;
   case RasColorChan::AlphaBump:
@@ -89,17 +89,17 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
 {
   for (int i = BLU_C; i <= RED_C; i++)
   {
-    const InputRegType& InputReg = inputs[i];
+    const auto& [input_reg_a, input_reg_b, input_reg_c, input_reg_d] = inputs[i];
 
-    const u16 c = InputReg.c + (InputReg.c >> 7);
+    const u16 c = input_reg_c + (input_reg_c >> 7);
 
-    s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
+    s32 temp = input_reg_a * (256 - c) + (input_reg_b * c);
     temp <<= s_ScaleLShiftLUT[cc.scale];
     temp += (cc.scale == TevScale::Divide2) ? 0 : (cc.op == TevOp::Sub) ? 127 : 128;
     temp >>= 8;
     temp = cc.op == TevOp::Sub ? -temp : temp;
 
-    s32 result = ((InputReg.d + s_BiasLUT[cc.bias]) << s_ScaleLShiftLUT[cc.scale]) + temp;
+    s32 result = ((input_reg_d + s_BiasLUT[cc.bias]) << s_ScaleLShiftLUT[cc.scale]) + temp;
     result = result >> s_ScaleRShiftLUT[cc.scale];
 
     Reg[cc.dest][i] = result;
@@ -147,16 +147,16 @@ void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const Inpu
 
 void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
 {
-  const InputRegType& InputReg = inputs[ALP_C];
+  const auto& [a, b, InputReg_c, d] = inputs[ALP_C];
 
-  const u16 c = InputReg.c + (InputReg.c >> 7);
+  const u16 c = InputReg_c + (InputReg_c >> 7);
 
-  s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
+  s32 temp = a * (256 - c) + (b * c);
   temp <<= s_ScaleLShiftLUT[ac.scale];
   temp += (ac.scale == TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
   temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
-  s32 result = ((InputReg.d + s_BiasLUT[ac.bias]) << s_ScaleLShiftLUT[ac.scale]) + temp;
+  s32 result = ((d + s_BiasLUT[ac.bias]) << s_ScaleLShiftLUT[ac.scale]) + temp;
   result = result >> s_ScaleRShiftLUT[ac.scale];
 
   Reg[ac.dest].a = result;
@@ -198,7 +198,7 @@ void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const Inpu
     Reg[ac.dest].a = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 }
 
-static bool AlphaCompare(int alpha, int ref, CompareMode comp)
+static bool AlphaCompare(const int alpha, const int ref, const CompareMode comp)
 {
   switch (comp)
   {
@@ -224,7 +224,7 @@ static bool AlphaCompare(int alpha, int ref, CompareMode comp)
   }
 }
 
-static bool TevAlphaTest(int alpha)
+static bool TevAlphaTest(const int alpha)
 {
   const bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
   const bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
@@ -245,7 +245,7 @@ static bool TevAlphaTest(int alpha)
   }
 }
 
-static inline s32 WrapIndirectCoord(s32 coord, IndTexWrap wrapMode)
+static inline s32 WrapIndirectCoord(const s32 coord, const IndTexWrap wrapMode)
 {
   switch (wrapMode)
   {
@@ -269,7 +269,7 @@ static inline s32 WrapIndirectCoord(s32 coord, IndTexWrap wrapMode)
   }
 }
 
-void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
+void Tev::Indirect(const unsigned int stageNum, const s32 s, const s32 t)
 {
   const TevStageIndirect& indirect = bpmem.tevind[stageNum];
   const u8* indmap = IndirectTex[indirect.bt];
@@ -382,25 +382,25 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
   if (indirect.fb_addprev)
   {
-    TexCoord.s += (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
-    TexCoord.t += (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
+    TexCoord.s += WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
+    TexCoord.t += WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
   }
   else
   {
-    TexCoord.s = (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
-    TexCoord.t = (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
+    TexCoord.s = WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
+    TexCoord.t = WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
   }
 }
 
 void Tev::Draw()
 {
-  ASSERT(Position[0] >= 0 && Position[0] < s32(EFB_WIDTH));
-  ASSERT(Position[1] >= 0 && Position[1] < s32(EFB_HEIGHT));
+  ASSERT(Position[0] >= 0 && Position[0] < static_cast<s32>(EFB_WIDTH));
+  ASSERT(Position[1] >= 0 && Position[1] < static_cast<s32>(EFB_HEIGHT));
 
   INCSTAT(g_stats.this_frame.tev_pixels_in);
 
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   // initial color values
   for (int i = 0; i < 4; i++)
@@ -474,10 +474,10 @@ void Tev::Draw()
       }
 
       const auto& swap = bpmem.tevksel.GetSwapTable(ac.tswap);
-      TexColor.r = texel[u32(swap[ColorChannel::Red])];
-      TexColor.g = texel[u32(swap[ColorChannel::Green])];
-      TexColor.b = texel[u32(swap[ColorChannel::Blue])];
-      TexColor.a = texel[u32(swap[ColorChannel::Alpha])];
+      TexColor.r = texel[static_cast<u32>(swap[ColorChannel::Red])];
+      TexColor.g = texel[static_cast<u32>(swap[ColorChannel::Green])];
+      TexColor.b = texel[static_cast<u32>(swap[ColorChannel::Blue])];
+      TexColor.a = texel[static_cast<u32>(swap[ColorChannel::Alpha])];
     }
 
     // set konst for this stage
@@ -544,8 +544,8 @@ void Tev::Draw()
   // regardless of the used destination register - TODO: Verify!
   const auto& color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
   const auto& alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
-  u8 output[4] = {(u8)Reg[alpha_index].a, (u8)Reg[color_index].b, (u8)Reg[color_index].g,
-                  (u8)Reg[color_index].r};
+  u8 output[4] = {static_cast<u8>(Reg[alpha_index].a), static_cast<u8>(Reg[color_index].b), static_cast<u8>(Reg[color_index].g),
+                  static_cast<u8>(Reg[color_index].r)};
 
   if (!TevAlphaTest(output[ALP_C]))
     return;
@@ -606,7 +606,7 @@ void Tev::Draw()
       // First, calculate the offset from the viewport center (normalized to 0..1)
       const float offset =
           (Position[0] - (static_cast<s32>(bpmem.fogRange.Base.Center.Value()) - 342)) /
-          static_cast<float>(xfmem.viewport.wd);
+          xfmem.viewport.wd;
 
       // Based on that, choose the index such that points which are far away from the z-axis use the
       // 10th "k" value and such that central points use the first value.
@@ -614,7 +614,7 @@ void Tev::Draw()
       floatindex = std::clamp(floatindex, 0.f, 9.f);  // TODO: This shouldn't be necessary!
 
       // Get the two closest integer indices, look up the corresponding samples
-      const int indexlower = (int)floatindex;
+      const int indexlower = static_cast<int>(floatindex);
       const int indexupper = indexlower + 1;
       // Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog
       // is too strong without the factor)
@@ -655,7 +655,7 @@ void Tev::Draw()
     }
 
     // lerp from output to fog color
-    const u32 fogInt = (u32)(fog * 256);
+    const u32 fogInt = static_cast<u32>(fog * 256);
     const u32 invFog = 256 - fogInt;
 
     output[RED_C] = (output[RED_C] * invFog + fogInt * bpmem.fog.color.r) >> 8;
@@ -687,8 +687,8 @@ void Tev::Draw()
 
 void Tev::SetKonstColors()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   for (int i = 0; i < 4; i++)
   {

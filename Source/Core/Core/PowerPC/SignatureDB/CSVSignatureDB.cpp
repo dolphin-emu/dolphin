@@ -34,7 +34,7 @@ bool CSVSignatureDB::Load(const std::string& file_path)
     {
       if (std::getline(iss, symbol, '\t') && std::getline(iss, object_location, '\t'))
         std::getline(iss, object_name);
-      HashSignatureDB::DBFunc func;
+      DBFunc func;
       func.name = symbol;
       func.size = size;
       // Doesn't have an object location
@@ -67,13 +67,12 @@ bool CSVSignatureDB::Save(const std::string& file_path) const
     ERROR_LOG_FMT(SYMBOLS, "CSV database save failed");
     return false;
   }
-  for (const auto& func : m_database)
+  for (const auto& [fst, snd] : m_database)
   {
     // The object name/location are unused for the time being.
     // To be implemented.
-    f.WriteString(fmt::format("{0:08x}\t{1:08x}\t{2}\t{3}\t{4}\n", func.first, func.second.size,
-                              func.second.name, func.second.object_location,
-                              func.second.object_name));
+    f.WriteString(fmt::format("{0:08x}\t{1:08x}\t{2}\t{3}\t{4}\n", fst, snd.size, snd.name,
+                              snd.object_location, snd.object_name));
   }
 
   INFO_LOG_FMT(SYMBOLS, "CSV database save successful");

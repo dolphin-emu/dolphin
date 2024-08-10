@@ -18,14 +18,14 @@ namespace ciface::DInput
 // seconds). This is more or less equivalent and much faster.
 std::unordered_set<DWORD> GetXInputGUIDS()
 {
-  static const GUID s_GUID_devclass_HID = {
+  static constexpr GUID s_GUID_devclass_HID = {
       0x745a17a0, 0x74d3, 0x11d0, {0xb6, 0xfe, 0x00, 0xa0, 0xc9, 0x0f, 0x57, 0xda}};
   std::unordered_set<DWORD> guids;
 
   // Enumerate everything under the "Human Interface Devices" tree in the Device Manager
   // NOTE: Some devices show up multiple times due to sub-devices, we rely on the set to
   //   prevent duplicates.
-  HDEVINFO setup_enum = SetupDiGetClassDevsW(&s_GUID_devclass_HID, nullptr, nullptr, DIGCF_PRESENT);
+  const HDEVINFO setup_enum = SetupDiGetClassDevsW(&s_GUID_devclass_HID, nullptr, nullptr, DIGCF_PRESENT);
   if (setup_enum == INVALID_HANDLE_VALUE)
     return guids;
 
@@ -60,7 +60,7 @@ std::unordered_set<DWORD> GetXInputGUIDS()
       unsigned int pid = 0;
 
       // Extract Vendor and Product IDs for matching against DirectInput's device list.
-      wchar_t* pos = std::wcsstr(&buffer[j], L"VID_");
+      const wchar_t* pos = std::wcsstr(&buffer[j], L"VID_");
       if (!pos || !std::swscanf(pos, L"VID_%4X", &vid))
         continue;
       pos = std::wcsstr(&buffer[j], L"PID_");

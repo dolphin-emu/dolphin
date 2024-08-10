@@ -3,15 +3,10 @@
 
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-#include <QSpinBox>
-#include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
@@ -21,7 +16,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
-GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
+GCTASInputWindow::GCTASInputWindow(QWidget* parent, const int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)
 {
   setWindowTitle(tr("GameCube TAS Input %1").arg(controller_id + 1));

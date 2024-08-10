@@ -34,7 +34,7 @@ private:
   using Clock = std::chrono::steady_clock;
 
   bool AreInputsBound() const;
-  bool CanCalibrate() const;
+  static bool CanCalibrate();
   void RestartCalibration();
   void UpdateCalibration(const StateData&);
 

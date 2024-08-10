@@ -3,17 +3,11 @@
 
 #include "DolphinQt/RenderWidget.h"
 
-#include <array>
-
 #include <QApplication>
-#include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
-#include <QGuiApplication>
 #include <QIcon>
-#include <QKeyEvent>
 #include <QMimeData>
-#include <QMouseEvent>
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
@@ -52,8 +46,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setPalette(p);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
-  connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
-    if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
+  connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](const int w, const int h) {
+    if (!Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
       return;
 
     const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
@@ -61,7 +55,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
     resize(w / dpr, h / dpr);
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (state == Core::State::Running)
       SetPresenterKeyMap();
   });
@@ -116,9 +110,9 @@ void RenderWidget::dropEvent(QDropEvent* event)
     return;
 
   const auto& url = urls[0];
-  QFileInfo file_info(url.toLocalFile());
+  const QFileInfo file_info(url.toLocalFile());
 
-  auto path = file_info.filePath();
+  const auto path = file_info.filePath();
 
   if (!file_info.exists() || !file_info.isReadable())
   {
@@ -140,8 +134,8 @@ void RenderWidget::OnHandleChanged(void* handle)
   {
 #ifdef _WIN32
     // Remove rounded corners from the render window on Windows 11
-    const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
-    DwmSetWindowAttribute(reinterpret_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
+    constexpr DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+    DwmSetWindowAttribute(static_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
                           &corner_preference, sizeof(corner_preference));
 #endif
   }
@@ -170,7 +164,7 @@ void RenderWidget::UpdateCursor()
     const bool keep_on_top = (windowFlags() & Qt::WindowStaysOnTopHint) != 0;
     const bool should_hide =
         (Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) &&
-        (keep_on_top || Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
+        (keep_on_top || Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
     setCursor(should_hide ? Qt::BlankCursor : Qt::ArrowCursor);
   }
   else
@@ -182,7 +176,7 @@ void RenderWidget::UpdateCursor()
   }
 }
 
-void RenderWidget::OnKeepOnTopChanged(bool top)
+void RenderWidget::OnKeepOnTopChanged(const bool top)
 {
   const bool was_visible = isVisible();
 
@@ -212,7 +206,7 @@ void RenderWidget::showFullScreen()
 {
   QWidget::showFullScreen();
 
-  QScreen* screen = window()->windowHandle()->screen();
+  const QScreen* screen = window()->windowHandle()->screen();
 
   const auto dpr = screen->devicePixelRatio();
 
@@ -220,7 +214,7 @@ void RenderWidget::showFullScreen()
 }
 
 // Lock the cursor within the window/widget internal borders, including the aspect ratio if wanted
-void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
+void RenderWidget::SetCursorLocked(const bool locked, const bool follow_aspect_ratio)
 {
   // It seems like QT doesn't scale the window frame correctly with some DPIs
   // so it might happen that the locked cursor can be on the frame of the window,
@@ -232,8 +226,8 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   {
     render_rect.moveTopLeft(parentWidget()->mapToGlobal(render_rect.topLeft()));
   }
-  auto scale = devicePixelRatioF();  // Seems to always be rounded on Win. Should we round results?
-  QPoint screen_offset = QPoint(0, 0);
+  const auto scale = devicePixelRatioF();  // Seems to always be rounded on Win. Should we round results?
+  auto screen_offset = QPoint(0, 0);
   if (window()->windowHandle() && window()->windowHandle()->screen())
   {
     screen_offset = window()->windowHandle()->screen()->geometry().topLeft();
@@ -245,10 +239,10 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   {
     // TODO: SetCursorLocked() should be re-called every time this value is changed?
     // This might cause imprecisions of one pixel (but it won't cause the cursor to go over borders)
-    Common::Vec2 aspect_ratio = g_controller_interface.GetWindowInputScale();
+    const Common::Vec2 aspect_ratio = g_controller_interface.GetWindowInputScale();
     if (aspect_ratio.x > 1.f)
     {
-      const float new_half_width = float(render_rect.width()) / (aspect_ratio.x * 2.f);
+      const float new_half_width = static_cast<float>(render_rect.width()) / (aspect_ratio.x * 2.f);
       // Only ceil if it was >= 0.25
       const float ceiled_new_half_width = std::ceil(std::round(new_half_width * 2.f) / 2.f);
       const int x_center = render_rect.center().x();
@@ -333,7 +327,7 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   }
 }
 
-void RenderWidget::SetCursorLockedOnNextActivation(bool locked)
+void RenderWidget::SetCursorLockedOnNextActivation(const bool locked)
 {
   if (Settings::Instance().GetLockCursor())
   {
@@ -343,7 +337,7 @@ void RenderWidget::SetCursorLockedOnNextActivation(bool locked)
   m_lock_cursor_on_next_activation = false;
 }
 
-void RenderWidget::SetWaitingForMessageBox(bool waiting_for_message_box)
+void RenderWidget::SetWaitingForMessageBox(const bool waiting_for_message_box)
 {
   if (m_waiting_for_message_box == waiting_for_message_box)
   {
@@ -368,7 +362,7 @@ bool RenderWidget::event(QEvent* event)
   {
   case QEvent::KeyPress:
   {
-    QKeyEvent* ke = static_cast<QKeyEvent*>(event);
+    const QKeyEvent* ke = static_cast<QKeyEvent*>(event);
     if (ke->key() == Qt::Key_Escape)
       emit EscapePressed();
 
@@ -422,9 +416,9 @@ bool RenderWidget::event(QEvent* event)
   // it's the window that has keyboard and mouse focus
   case QEvent::WindowActivate:
     if (m_should_unpause_on_focus &&
-        Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+        GetState(Core::System::GetInstance()) == Core::State::Paused)
     {
-      Core::SetState(Core::System::GetInstance(), Core::State::Running);
+      SetState(Core::System::GetInstance(), Core::State::Running);
     }
 
     m_should_unpause_on_focus = false;
@@ -448,8 +442,8 @@ bool RenderWidget::event(QEvent* event)
 
     UpdateCursor();
 
-    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) &&
-        Core::GetState(Core::System::GetInstance()) == Core::State::Running)
+    if (Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) &&
+        GetState(Core::System::GetInstance()) == Core::State::Running)
     {
       // If we are declared as the CPU or GPU thread, it means that the real CPU or GPU thread
       // is waiting for us to finish showing a panic alert (with that panic alert likely being
@@ -457,7 +451,7 @@ bool RenderWidget::event(QEvent* event)
       if (!Core::IsCPUThread() && !Core::IsGPUThread())
       {
         m_should_unpause_on_focus = true;
-        Core::SetState(Core::System::GetInstance(), Core::State::Paused);
+        SetState(Core::System::GetInstance(), Core::State::Paused);
       }
     }
 
@@ -475,9 +469,9 @@ bool RenderWidget::event(QEvent* event)
     SetCursorLocked(m_cursor_locked);
 
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
-    QSize new_size = se->size();
+    const QSize new_size = se->size();
 
-    QScreen* screen = window()->windowHandle()->screen();
+    const QScreen* screen = window()->windowHandle()->screen();
 
     const float dpr = screen->devicePixelRatio();
     const int width = new_size.width() * dpr;
@@ -511,9 +505,9 @@ bool RenderWidget::event(QEvent* event)
   return QWidget::event(event);
 }
 
-void RenderWidget::PassEventToPresenter(const QEvent* event)
+void RenderWidget::PassEventToPresenter(const QEvent* event) const
 {
-  if (!Core::IsRunning(Core::System::GetInstance()))
+  if (!IsRunning(Core::System::GetInstance()))
     return;
 
   switch (event->type())
@@ -525,7 +519,7 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
     // we need to track (e.g. alt) are above this value, we mask the lower 9 bits.
     // Even masked, the key codes are still unique, so conflicts aren't an issue.
     // The actual text input goes through AddInputCharactersUTF8().
-    const QKeyEvent* key_event = static_cast<const QKeyEvent*>(event);
+    auto key_event = static_cast<const QKeyEvent*>(event);
     const bool is_down = event->type() == QEvent::KeyPress;
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
 
@@ -551,8 +545,8 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
     // coordinates (as if the screen was standard dpi). We need to update the mouse position in
     // native coordinates, as the UI (and game) is rendered at native resolution.
     const float scale = devicePixelRatio();
-    float x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
-    float y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
+    const float x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
+    const float y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
 
     g_presenter->SetMousePos(x, y);
   }
@@ -561,7 +555,7 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
   case QEvent::MouseButtonPress:
   case QEvent::MouseButtonRelease:
   {
-    const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
+    const u32 button_mask = static_cast<const QMouseEvent*>(event)->buttons();
     g_presenter->SetMousePress(button_mask);
   }
   break;

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
 
 #include "VideoCommon/BoundingBox.h"
 

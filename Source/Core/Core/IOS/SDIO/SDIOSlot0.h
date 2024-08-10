@@ -119,7 +119,7 @@ private:
 
   struct Event
   {
-    Event(EventType type_, Request request_) : type(type_), request(request_) {}
+    Event(const EventType type_, Request request_) : type(type_), request(request_) {}
     EventType type;
     Request request;
   };
@@ -129,12 +129,12 @@ private:
   void EventNotify();
 
   IPCReply WriteHCRegister(const IOCtlRequest& request);
-  IPCReply ReadHCRegister(const IOCtlRequest& request);
-  IPCReply ResetCard(const IOCtlRequest& request);
-  IPCReply SetClk(const IOCtlRequest& request);
+  IPCReply ReadHCRegister(const IOCtlRequest& request) const;
+  IPCReply ResetCard(const IOCtlRequest& request) const;
+  IPCReply SetClk(const IOCtlRequest& request) const;
   std::optional<IPCReply> SendCommand(const IOCtlRequest& request);
   IPCReply GetStatus(const IOCtlRequest& request);
-  IPCReply GetOCRegister(const IOCtlRequest& request);
+  IPCReply GetOCRegister(const IOCtlRequest& request) const;
 
   IPCReply SendCommand(const IOCtlVRequest& request);
 

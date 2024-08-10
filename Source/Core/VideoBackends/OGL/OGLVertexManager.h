@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 

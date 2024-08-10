@@ -26,7 +26,7 @@ std::unique_ptr<MoveAction> MoveAction::Create(const picojson::value& json_data)
   return std::make_unique<MoveAction>(position_offset);
 }
 
-MoveAction::MoveAction(Common::Vec3 position_offset) : m_position_offset(position_offset)
+MoveAction::MoveAction(const Common::Vec3 position_offset) : m_position_offset(position_offset)
 {
 }
 

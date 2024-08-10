@@ -86,7 +86,7 @@ static std::mutex s_lock;
 static std::vector<ARCode> s_active_codes;
 static std::vector<ARCode> s_synced_codes;
 static std::vector<std::string> s_internal_log;
-static std::atomic<bool> s_use_internal_log{false};
+static std::atomic s_use_internal_log{false};
 // pointer to the code currently being run, (used by log messages that include the code name)
 static const ARCode* s_current_code = nullptr;
 static bool s_disable_logging = false;
@@ -120,8 +120,8 @@ void ApplyCodes(std::span<const ARCode> codes)
   std::lock_guard guard(s_lock);
   s_disable_logging = false;
   s_active_codes.clear();
-  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-               [](const ARCode& code) { return code.enabled; });
+  std::ranges::copy_if(codes, std::back_inserter(s_active_codes),
+                       [](const ARCode& code) { return code.enabled; });
   s_active_codes.shrink_to_fit();
 }
 
@@ -136,8 +136,8 @@ void UpdateSyncedCodes(std::span<const ARCode> codes)
 {
   s_synced_codes.clear();
   s_synced_codes.reserve(codes.size());
-  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
-               [](const ARCode& code) { return code.enabled; });
+  std::ranges::copy_if(codes, std::back_inserter(s_synced_codes),
+                       [](const ARCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
@@ -148,8 +148,8 @@ std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes)
     std::lock_guard guard(s_lock);
     s_disable_logging = false;
     s_active_codes.clear();
-    std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-                 [](const ARCode& code) { return code.enabled; });
+    std::ranges::copy_if(codes, std::back_inserter(s_active_codes),
+                         [](const ARCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -241,29 +241,29 @@ std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::I
 
     if (ini == &global_ini)
     {
-      for (ARCode& code : codes)
-        code.default_enabled = code.enabled;
+      for (auto& [name, ops, enabled, default_enabled, user_defined] : codes)
+        default_enabled = enabled;
     }
   }
 
   return codes;
 }
 
-void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes)
+void SaveCodes(Common::IniFile* local_ini, const std::span<const ARCode> codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
   std::vector<std::string> disabled_lines;
 
-  for (const ActionReplay::ARCode& code : codes)
+  for (const auto& [name, ops, enabled, default_enabled, user_defined] : codes)
   {
-    if (code.enabled != code.default_enabled)
-      (code.enabled ? enabled_lines : disabled_lines).emplace_back('$' + code.name);
+    if (enabled != default_enabled)
+      (enabled ? enabled_lines : disabled_lines).emplace_back('$' + name);
 
-    if (code.user_defined)
+    if (user_defined)
     {
-      lines.emplace_back('$' + code.name);
-      for (const ActionReplay::AREntry& op : code.ops)
+      lines.emplace_back('$' + name);
+      for (const AREntry& op : ops)
       {
         lines.emplace_back(SerializeLine(op));
       }
@@ -283,8 +283,8 @@ std::variant<std::monostate, AREntry, EncryptedLine> DeserializeLine(const std::
   if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
   {
     AREntry op;
-    bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
-    bool success_val = TryParse(pieces[1], &op.value, 16);
+    const bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
+    const bool success_val = TryParse(pieces[1], &op.value, 16);
 
     if (success_addr && success_val)
       return op;
@@ -308,7 +308,7 @@ std::string SerializeLine(const AREntry& op)
   return fmt::format("{:08X} {:08X}", op.cmd_addr, op.value);
 }
 
-static void VLogInfo(std::string_view format, fmt::format_args args)
+static void VLogInfo(const std::string_view format, const fmt::format_args args)
 {
   if (s_disable_logging)
     return;
@@ -328,12 +328,12 @@ static void VLogInfo(std::string_view format, fmt::format_args args)
 }
 
 template <typename... Args>
-static void LogInfo(std::string_view format, const Args&... args)
+static void LogInfo(const std::string_view format, const Args&... args)
 {
   VLogInfo(format, fmt::make_format_args(args...));
 }
 
-void EnableSelfLogging(bool enable)
+void EnableSelfLogging(const bool enable)
 {
   s_use_internal_log.store(enable, std::memory_order_relaxed);
 }

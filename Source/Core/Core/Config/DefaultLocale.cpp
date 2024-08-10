@@ -38,8 +38,8 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
   // Special handling of Chinese due to its two writing systems
   if (split_locale[0] == "zh")
   {
-    const auto locale_contains = [&split_locale](std::string_view str) {
-      return std::find(split_locale.cbegin(), split_locale.cend(), str) != split_locale.cend();
+    const auto locale_contains = [&split_locale](const std::string_view str) {
+      return std::ranges::find(split_locale, str) != split_locale.cend();
     };
 
     if (locale_contains("Hans"))
@@ -50,8 +50,7 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
     // Mainland China and Singapore use simplified characters
     if (locale_contains("CN") || locale_contains("SG"))
       return DiscIO::Language::SimplifiedChinese;
-    else
-      return DiscIO::Language::TraditionalChinese;
+    return DiscIO::Language::TraditionalChinese;
   }
 
   // Same order as in Wii SYSCONF
@@ -59,7 +58,7 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
       "ja", "en", "de", "fr", "es", "it", "nl", "zh", "zh", "ko",
   };
 
-  const auto it = std::find(LANGUAGES.cbegin(), LANGUAGES.cend(), split_locale[0]);
+  const auto it = std::ranges::find(LANGUAGES, split_locale[0]);
   if (it == LANGUAGES.cend())
     return std::nullopt;
 
@@ -79,7 +78,7 @@ static DiscIO::Language ComputeDefaultLanguage()
 
 static std::optional<std::string> TryParseCountryCode(const std::string& locale)
 {
-  const auto is_upper = [](char c) { return std::isupper(c, std::locale::classic()); };
+  const auto is_upper = [](const char c) { return std::isupper(c, std::locale::classic()); };
 
   for (const std::string& part : SplitString(locale, '-'))
   {
@@ -96,7 +95,7 @@ static std::string ComputeDefaultCountryCode()
   // Windows codepath: Check the regional information.
   // More likely to match the user's physical location than locales are.
   // TODO: Can we use GetUserDefaultGeoName? (It was added in a Windows 10 update)
-  GEOID geo = GetUserGeoID(GEOCLASS_NATION);
+  const GEOID geo = GetUserGeoID(GEOCLASS_NATION);
   const int buffer_size = GetGeoInfoW(geo, GEO_ISO2, nullptr, 0, 0);
   std::vector<wchar_t> buffer(buffer_size);
   const int result = GetGeoInfoW(geo, GEO_ISO2, buffer.data(), buffer_size, 0);
@@ -142,7 +141,7 @@ static std::optional<u8> ComputeDefaultCountry()
   if (country == "BQ" || country == "CW" || country == "SX")
     country = "AN";
 
-  const auto it = std::find(COUNTRIES.cbegin(), COUNTRIES.cend(), country);
+  const auto it = std::ranges::find(COUNTRIES, country);
   if (it == COUNTRIES.cend())
     return std::nullopt;
 
@@ -151,7 +150,7 @@ static std::optional<u8> ComputeDefaultCountry()
 
 static DiscIO::Region ComputeDefaultRegion()
 {
-  const std::optional<u8> country = GetDefaultCountry();
+  const std::optional country = GetDefaultCountry();
 
   if (country)
   {

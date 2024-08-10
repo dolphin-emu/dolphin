@@ -29,7 +29,7 @@ mffsx: 80036650 (huh?)
 static void FPSCRUpdated(PowerPC::PowerPCState& ppc_state)
 {
   UpdateFPExceptionSummary(ppc_state);
-  PowerPC::RoundingModeUpdated(ppc_state);
+  RoundingModeUpdated(ppc_state);
 }
 
 void Interpreter::mtfsb0x(Interpreter& interpreter, UGeckoInstruction inst)
@@ -66,7 +66,7 @@ void Interpreter::mtfsfix(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 field = inst.CRFD;
-  const u32 pre_shifted_mask = 0xF0000000;
+  constexpr u32 pre_shifted_mask = 0xF0000000;
   const u32 mask = (pre_shifted_mask >> (4 * field));
   const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 
@@ -107,17 +107,23 @@ void Interpreter::mcrxr(Interpreter& interpreter, UGeckoInstruction inst)
 
 void Interpreter::mfcr(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RD] = ppc_state.cr.Get();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  gpr[inst.RD] = cr.Get();
 }
 
 void Interpreter::mtcrf(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,_above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = interpreter.m_ppc_state;
   const u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
-    ppc_state.cr.Set(ppc_state.gpr[inst.RS]);
+    cr.Set(gpr[inst.RS]);
   }
   else
   {
@@ -129,7 +135,7 @@ void Interpreter::mtcrf(Interpreter& interpreter, UGeckoInstruction inst)
         mask |= 0xFU << (i * 4);
     }
 
-    ppc_state.cr.Set((ppc_state.cr.Get() & ~mask) | (ppc_state.gpr[inst.RS] & mask));
+    cr.Set((cr.Get() & ~mask) | (gpr[inst.RS] & mask));
   }
 }
 
@@ -181,7 +187,7 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.msr.Hex = ppc_state.gpr[inst.RS];
 
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 
   // FE0/FE1 may have been set
   CheckFPExceptions(ppc_state);
@@ -533,81 +539,109 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
 
 void Interpreter::crand(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr,_feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,_above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, a & b);
+  cr.SetBit(inst.CRBD, a & b);
 }
 
 void Interpreter::crandc(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr,_feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,_above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, a & (1 ^ b));
+  cr.SetBit(inst.CRBD, a & (1 ^ b));
 }
 
 void Interpreter::creqv(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr,_feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, 1 ^ (a ^ b));
+  cr.SetBit(inst.CRBD, 1 ^ (a ^ b));
 }
 
 void Interpreter::crnand(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, 1 ^ (a & b));
+  cr.SetBit(inst.CRBD, 1 ^ (a & b));
 }
 
 void Interpreter::crnor(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, 1 ^ (a | b));
+  cr.SetBit(inst.CRBD, 1 ^ (a | b));
 }
 
 void Interpreter::cror(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, a | b);
+  cr.SetBit(inst.CRBD, a | b);
 }
 
 void Interpreter::crorc(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, a | (1 ^ b));
+  cr.SetBit(inst.CRBD, a | (1 ^ b));
 }
 
 void Interpreter::crxor(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.cr.GetBit(inst.CRBA);
-  const u32 b = ppc_state.cr.GetBit(inst.CRBB);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  const u32 a = cr.GetBit(inst.CRBA);
+  const u32 b = cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, a ^ b);
+  cr.SetBit(inst.CRBD, a ^ b);
 }
 
 void Interpreter::mcrf(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  const u32 cr_f = ppc_state.cr.GetField(inst.CRFS);
-  ppc_state.cr.SetField(inst.CRFD, cr_f);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = interpreter.m_ppc_state;
+  const u32 cr_f = cr.GetField(inst.CRFS);
+  cr.SetField(inst.CRFD, cr_f);
 }
 
 void Interpreter::isync(Interpreter& interpreter, UGeckoInstruction inst)

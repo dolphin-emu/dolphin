@@ -52,7 +52,7 @@ private:
   Mode m_mode;
 
 public:
-  PointerWrap(u8** ptr, size_t size, Mode mode)
+  PointerWrap(u8** ptr, const size_t size, const Mode mode)
       : m_ptr_current(ptr), m_ptr_end(*ptr + size), m_mode(mode)
   {
   }
@@ -67,7 +67,7 @@ public:
   template <typename K, class V>
   void Do(std::map<K, V>& x)
   {
-    u32 count = (u32)x.size();
+    u32 count = static_cast<u32>(x.size());
     Do(count);
 
     switch (m_mode)
@@ -97,7 +97,7 @@ public:
   template <typename V>
   void Do(std::set<V>& x)
   {
-    u32 count = (u32)x.size();
+    u32 count = static_cast<u32>(x.size());
     Do(count);
 
     switch (m_mode)
@@ -196,13 +196,13 @@ public:
   }
 
   template <typename T, typename std::enable_if_t<std::is_trivially_copyable_v<T>, int> = 0>
-  void DoArray(T* x, u32 count)
+  void DoArray(T* x, const u32 count)
   {
     DoVoid(x, count * sizeof(T));
   }
 
   template <typename T, typename std::enable_if_t<!std::is_trivially_copyable_v<T>, int> = 0>
-  void DoArray(T* x, u32 count)
+  void DoArray(T* x, const u32 count)
   {
     for (u32 i = 0; i < count; ++i)
       Do(x[i]);
@@ -240,7 +240,7 @@ public:
     return previous_pointer;
   }
 
-  u32 GetOffsetFromPreviousPosition(u8* previous_pointer)
+  u32 GetOffsetFromPreviousPosition(const u8* previous_pointer) const
   {
     return static_cast<u32>((*m_ptr_current) - previous_pointer);
   }
@@ -270,7 +270,7 @@ public:
     // Usually we can just use x = **ptr, etc.  However, this doesn't work
     // for unions containing BitFields (long story, stupid language rules)
     // or arrays.  This will get optimized anyway.
-    DoVoid((void*)&x, sizeof(x));
+    DoVoid(static_cast<void*>(&x), sizeof(x));
   }
 
   void Do(bool& x)
@@ -278,7 +278,7 @@ public:
     // bool's size can vary depending on platform, which can
     // cause breakages. This treats all bools as if they were
     // 8 bits in size.
-    u8 stable = static_cast<u8>(x);
+    u8 stable = x;
 
     Do(stable);
 
@@ -299,7 +299,7 @@ public:
     }
   }
 
-  void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
+  void DoMarker(const std::string& prevName, const u32 arbitraryNumber = 0x42)
   {
     u32 cookie = arbitraryNumber;
     Do(cookie);
@@ -343,7 +343,7 @@ private:
     DoEachElement(x, [](PointerWrap& p, typename T::value_type& elem) { p.Do(elem); });
   }
 
-  DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
+  DOLPHIN_FORCE_INLINE void DoVoid(void* data, const u32 size)
   {
     if (!IsMeasureMode() && (*m_ptr_current + size) > m_ptr_end)
     {

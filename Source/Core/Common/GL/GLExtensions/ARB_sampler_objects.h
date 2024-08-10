@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 typedef void(APIENTRYP PFNDOLGENSAMPLERSPROC)(GLsizei count, GLuint* samplers);
 typedef void(APIENTRYP PFNDOLDELETESAMPLERSPROC)(GLsizei count, const GLuint* samplers);
 typedef GLboolean(APIENTRYP PFNDOLISSAMPLERPROC)(GLuint sampler);

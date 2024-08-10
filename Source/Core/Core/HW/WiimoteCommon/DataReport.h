@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
@@ -82,8 +81,8 @@ public:
   void GetCoreData(CoreData*) const;
   void GetAccelData(AccelData*) const;
 
-  void SetCoreData(const CoreData&);
-  void SetAccelData(const AccelData&);
+  void SetCoreData(const CoreData&) const;
+  void SetAccelData(const AccelData&) const;
 
   u8* GetIRDataPtr();
   const u8* GetIRDataPtr() const;

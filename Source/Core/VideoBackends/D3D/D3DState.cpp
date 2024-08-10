@@ -37,7 +37,7 @@ void StateManager::Apply()
   {
     if (g_ActiveConfig.backend_info.bSupportsBBox)
     {
-      D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+      context->OMSetRenderTargetsAndUnorderedAccessViews(
           m_pending.framebuffer->GetNumRTVs(),
           m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
                                       m_pending.framebuffer->GetRTVArray(),
@@ -46,7 +46,7 @@ void StateManager::Apply()
     }
     else
     {
-      D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
+      context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
                                        m_pending.use_integer_rtv ?
                                            m_pending.framebuffer->GetIntegerRTVArray() :
                                            m_pending.framebuffer->GetRTVArray(),
@@ -77,7 +77,7 @@ void StateManager::Apply()
         count++;
       if (m_pending.pixelConstants[2])
         count++;
-      D3D::context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
+      context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
       m_current.pixelConstants[0] = m_pending.pixelConstants[0];
       m_current.pixelConstants[1] = m_pending.pixelConstants[1];
       m_current.pixelConstants[2] = m_pending.pixelConstants[2];
@@ -85,14 +85,14 @@ void StateManager::Apply()
 
     if (m_current.vertexConstants != m_pending.vertexConstants)
     {
-      D3D::context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
-      D3D::context->VSSetConstantBuffers(1, 1, &m_pending.vertexConstants);
+      context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
+      context->VSSetConstantBuffers(1, 1, &m_pending.vertexConstants);
       m_current.vertexConstants = m_pending.vertexConstants;
     }
 
     if (m_current.geometryConstants != m_pending.geometryConstants)
     {
-      D3D::context->GSSetConstantBuffers(0, 1, &m_pending.geometryConstants);
+      context->GSSetConstantBuffers(0, 1, &m_pending.geometryConstants);
       m_current.geometryConstants = m_pending.geometryConstants;
     }
   }
@@ -103,7 +103,7 @@ void StateManager::Apply()
         m_current.vertexBufferStride != m_pending.vertexBufferStride ||
         m_current.vertexBufferOffset != m_pending.vertexBufferOffset)
     {
-      D3D::context->IASetVertexBuffers(0, 1, &m_pending.vertexBuffer, &m_pending.vertexBufferStride,
+      context->IASetVertexBuffers(0, 1, &m_pending.vertexBuffer, &m_pending.vertexBufferStride,
                                        &m_pending.vertexBufferOffset);
       m_current.vertexBuffer = m_pending.vertexBuffer;
       m_current.vertexBufferStride = m_pending.vertexBufferStride;
@@ -112,19 +112,19 @@ void StateManager::Apply()
 
     if (m_current.indexBuffer != m_pending.indexBuffer)
     {
-      D3D::context->IASetIndexBuffer(m_pending.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+      context->IASetIndexBuffer(m_pending.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
       m_current.indexBuffer = m_pending.indexBuffer;
     }
 
     if (m_current.topology != m_pending.topology)
     {
-      D3D::context->IASetPrimitiveTopology(m_pending.topology);
+      context->IASetPrimitiveTopology(m_pending.topology);
       m_current.topology = m_pending.topology;
     }
 
     if (m_current.inputLayout != m_pending.inputLayout)
     {
-      D3D::context->IASetInputLayout(m_pending.inputLayout);
+      context->IASetInputLayout(m_pending.inputLayout);
       m_current.inputLayout = m_pending.inputLayout;
     }
   }
@@ -133,36 +133,36 @@ void StateManager::Apply()
   {
     if (m_current.pixelShader != m_pending.pixelShader)
     {
-      D3D::context->PSSetShader(m_pending.pixelShader, nullptr, 0);
+      context->PSSetShader(m_pending.pixelShader, nullptr, 0);
       m_current.pixelShader = m_pending.pixelShader;
     }
 
     if (m_current.vertexShader != m_pending.vertexShader)
     {
-      D3D::context->VSSetShader(m_pending.vertexShader, nullptr, 0);
+      context->VSSetShader(m_pending.vertexShader, nullptr, 0);
       m_current.vertexShader = m_pending.vertexShader;
     }
 
     if (m_current.geometryShader != m_pending.geometryShader)
     {
-      D3D::context->GSSetShader(m_pending.geometryShader, nullptr, 0);
+      context->GSSetShader(m_pending.geometryShader, nullptr, 0);
       m_current.geometryShader = m_pending.geometryShader;
     }
   }
 
   if (m_dirtyFlags.test(DirtyFlag_BlendState))
   {
-    D3D::context->OMSetBlendState(m_pending.blendState, nullptr, 0xFFFFFFFF);
+    context->OMSetBlendState(m_pending.blendState, nullptr, 0xFFFFFFFF);
     m_current.blendState = m_pending.blendState;
   }
   if (m_dirtyFlags.test(DirtyFlag_DepthState))
   {
-    D3D::context->OMSetDepthStencilState(m_pending.depthState, 0);
+    context->OMSetDepthStencilState(m_pending.depthState, 0);
     m_current.depthState = m_pending.depthState;
   }
   if (m_dirtyFlags.test(DirtyFlag_RasterizerState))
   {
-    D3D::context->RSSetState(m_pending.rasterizerState);
+    context->RSSetState(m_pending.rasterizerState);
     m_current.rasterizerState = m_pending.rasterizerState;
   }
 
@@ -180,7 +180,7 @@ void StateManager::ApplyTextures()
     {
       if (m_current.textures[i] != m_pending.textures[i])
       {
-        D3D::context->PSSetShaderResources(i, 1, &m_pending.textures[i]);
+        context->PSSetShaderResources(i, 1, &m_pending.textures[i]);
         m_current.textures[i] = m_pending.textures[i];
       }
       m_dirtyFlags.reset(flag);
@@ -194,7 +194,7 @@ void StateManager::ApplyTextures()
     {
       if (m_current.samplers[i] != m_pending.samplers[i])
       {
-        D3D::context->PSSetSamplers(i, 1, &m_pending.samplers[i]);
+        context->PSSetSamplers(i, 1, &m_pending.samplers[i]);
         m_current.samplers[i] = m_pending.samplers[i];
       }
       m_dirtyFlags.reset(flag);
@@ -202,7 +202,7 @@ void StateManager::ApplyTextures()
   }
 }
 
-u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
+u32 StateManager::UnsetTexture(const ID3D11ShaderResourceView* srv)
 {
   u32 mask = 0;
 
@@ -228,13 +228,13 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   }
 }
 
-void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
+void StateManager::SetComputeUAV(const u32 index, ID3D11UnorderedAccessView* uav)
 {
   if (m_compute_images[index] == uav)
     return;
 
   m_compute_images[index] = uav;
-  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
+  context->CSSetUnorderedAccessViews(0, m_compute_images.size(),
                                           m_compute_images.data(), nullptr);
 }
 
@@ -244,7 +244,7 @@ void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
     return;
 
   m_compute_shader = shader;
-  D3D::context->CSSetShader(shader, nullptr, 0);
+  context->CSSetShader(shader, nullptr, 0);
 }
 
 void StateManager::SyncComputeBindings()
@@ -252,7 +252,7 @@ void StateManager::SyncComputeBindings()
   if (m_compute_constants != m_pending.pixelConstants[0])
   {
     m_compute_constants = m_pending.pixelConstants[0];
-    D3D::context->CSSetConstantBuffers(0, 1, &m_compute_constants);
+    context->CSSetConstantBuffers(0, 1, &m_compute_constants);
   }
 
   for (u32 start = 0; start < static_cast<u32>(m_compute_textures.size());)
@@ -274,7 +274,7 @@ void StateManager::SyncComputeBindings()
       m_compute_textures[end] = m_pending.textures[end];
     }
 
-    D3D::context->CSSetShaderResources(start, end - start, &m_compute_textures[start]);
+    context->CSSetShaderResources(start, end - start, &m_compute_textures[start]);
     start = end;
   }
 
@@ -297,7 +297,7 @@ void StateManager::SyncComputeBindings()
       m_compute_samplers[end] = m_pending.samplers[end];
     }
 
-    D3D::context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
+    context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
     start = end;
   }
 }
@@ -307,8 +307,8 @@ StateCache::~StateCache() = default;
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
-  auto it = m_sampler.find(state);
+  std::lock_guard guard(m_lock);
+  const auto it = m_sampler.find(state);
   if (it != m_sampler.end())
     return it->second.Get();
 
@@ -351,29 +351,30 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   }
 
   ComPtr<ID3D11SamplerState> res;
-  HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D sampler state failed: {}", DX11HRWrap(hr));
   return m_sampler.emplace(state, std::move(res)).first->second.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendingState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
-  auto it = m_blend.find(state.hex);
+  std::lock_guard guard(m_lock);
+  const auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
     return it->second.Get();
 
   if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
-    D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];
+    auto& [_BlendEnable, LogicOpEnable, _SrcBlend, _DestBlend, _BlendOp, _SrcBlendAlpha,
+      _DestBlendAlpha, _BlendOpAlpha, LogicOp, RenderTargetWriteMask] = desc.RenderTarget[0];
     if (state.colorupdate)
-      tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
+      RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                     D3D11_COLOR_WRITE_ENABLE_BLUE;
     else
-      tdesc.RenderTargetWriteMask = 0;
+      RenderTargetWriteMask = 0;
     if (state.alphaupdate)
-      tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+      RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
     static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
         {D3D11_LOGIC_OP_CLEAR, D3D11_LOGIC_OP_AND, D3D11_LOGIC_OP_AND_REVERSE, D3D11_LOGIC_OP_COPY,
@@ -381,11 +382,11 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
          D3D11_LOGIC_OP_NOR, D3D11_LOGIC_OP_EQUIV, D3D11_LOGIC_OP_INVERT, D3D11_LOGIC_OP_OR_REVERSE,
          D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
          D3D11_LOGIC_OP_SET}};
-    tdesc.LogicOpEnable = TRUE;
-    tdesc.LogicOp = logic_ops[u32(state.logicmode.Value())];
+    LogicOpEnable = TRUE;
+    LogicOp = logic_ops[static_cast<u32>(state.logicmode.Value())];
 
     ComPtr<ID3D11BlendState1> res;
-    HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
+    const HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
     if (SUCCEEDED(hr))
     {
       return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
@@ -397,16 +398,17 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   desc.AlphaToCoverageEnable = FALSE;
   desc.IndependentBlendEnable = FALSE;
 
-  D3D11_RENDER_TARGET_BLEND_DESC& tdesc = desc.RenderTarget[0];
-  tdesc.BlendEnable = state.blendenable;
+  auto& [BlendEnable, SrcBlend, DestBlend, BlendOp, SrcBlendAlpha, DestBlendAlpha, BlendOpAlpha,
+    RenderTargetWriteMask] = desc.RenderTarget[0];
+  BlendEnable = state.blendenable;
 
   if (state.colorupdate)
-    tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
+    RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                   D3D11_COLOR_WRITE_ENABLE_BLUE;
   else
-    tdesc.RenderTargetWriteMask = 0;
+    RenderTargetWriteMask = 0;
   if (state.alphaupdate)
-    tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+    RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
   const bool use_dual_source = state.usedualsrc;
   const std::array<D3D11_BLEND, 8> src_factors = {
@@ -420,23 +422,23 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
        use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
        D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
-  tdesc.SrcBlend = src_factors[u32(state.srcfactor.Value())];
-  tdesc.SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
-  tdesc.DestBlend = dst_factors[u32(state.dstfactor.Value())];
-  tdesc.DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
-  tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
-  tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  SrcBlend = src_factors[static_cast<u32>(state.srcfactor.Value())];
+  SrcBlendAlpha = src_factors[static_cast<u32>(state.srcfactoralpha.Value())];
+  DestBlend = dst_factors[static_cast<u32>(state.dstfactor.Value())];
+  DestBlendAlpha = dst_factors[static_cast<u32>(state.dstfactoralpha.Value())];
+  BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ComPtr<ID3D11BlendState> res;
-  HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D blend state failed: {}", DX11HRWrap(hr));
   return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
 }
 
 ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
-  auto it = m_raster.find(state.hex);
+  std::lock_guard guard(m_lock);
+  const auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
     return it->second.Get();
 
@@ -445,19 +447,19 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 
   D3D11_RASTERIZER_DESC desc = {};
   desc.FillMode = D3D11_FILL_SOLID;
-  desc.CullMode = cull_modes[u32(state.cullmode.Value())];
+  desc.CullMode = cull_modes[static_cast<u32>(state.cullmode.Value())];
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
-  HRESULT hr = D3D::device->CreateRasterizerState(&desc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateRasterizerState(&desc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D rasterizer state failed: {}", DX11HRWrap(hr));
   return m_raster.emplace(state.hex, std::move(res)).first->second.Get();
 }
 
 ID3D11DepthStencilState* StateCache::Get(DepthState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
-  auto it = m_depth.find(state.hex);
+  std::lock_guard guard(m_lock);
+  const auto it = m_depth.find(state.hex);
   if (it != m_depth.end())
     return it->second.Get();
 
@@ -471,7 +473,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
   // Less/greater are swapped due to inverted depth.
-  const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
+  constexpr D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
       D3D11_COMPARISON_NEVER,         D3D11_COMPARISON_GREATER, D3D11_COMPARISON_EQUAL,
       D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
       D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS};
@@ -481,7 +483,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
     depthdc.DepthEnable = TRUE;
     depthdc.DepthWriteMask =
         state.updateenable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    depthdc.DepthFunc = d3dCmpFuncs[u32(state.func.Value())];
+    depthdc.DepthFunc = d3dCmpFuncs[static_cast<u32>(state.func.Value())];
   }
   else
   {
@@ -491,7 +493,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   }
 
   ComPtr<ID3D11DepthStencilState> res;
-  HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D depth stencil state failed: {}", DX11HRWrap(hr));
   return m_depth.emplace(state.hex, std::move(res)).first->second.Get();
 }

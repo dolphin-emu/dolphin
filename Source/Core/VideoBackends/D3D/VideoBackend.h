@@ -20,9 +20,9 @@ public:
 
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "D3D";
+  static constexpr auto NAME = "D3D";
 
 private:
-  void FillBackendInfo();
+  static void FillBackendInfo();
 };
 }  // namespace DX11

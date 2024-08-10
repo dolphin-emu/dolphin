@@ -90,7 +90,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(DrumsGroup group);
+  ControllerEmu::ControlGroup* GetGroup(DrumsGroup group) const;
 
   void DoState(PointerWrap& p) override;
 

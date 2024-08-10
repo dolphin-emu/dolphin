@@ -24,7 +24,7 @@ void AsmEditor::LineNumberArea::paintEvent(QPaintEvent* event)
   asm_editor->LineNumberAreaPaintEvent(event);
 }
 
-AsmEditor::AsmEditor(const QString& path, int editor_num, bool dark_scheme, QWidget* parent)
+AsmEditor::AsmEditor(const QString& path, const int editor_num, const bool dark_scheme, QWidget* parent)
     : QPlainTextEdit(parent), m_path(path), m_base_address(QStringLiteral("0")),
       m_editor_num(editor_num), m_dirty(false), m_dark_scheme(dark_scheme)
 {
@@ -56,7 +56,7 @@ AsmEditor::AsmEditor(const QString& path, int editor_num, bool dark_scheme, QWid
   });
 }
 
-int AsmEditor::LineNumberAreaWidth()
+int AsmEditor::LineNumberAreaWidth() const
 {
   int num_digits = 1;
   for (int max = qMax(1, blockCount()); max >= 10; max /= 10, ++num_digits)
@@ -92,15 +92,12 @@ bool AsmEditor::LoadFromPath()
     {
       continue;
     }
-    else if (base_addr_line[i] == '#')
+    if (base_addr_line[i] == '#')
     {
       base_address = base_addr_line.substr(i + 1);
       break;
     }
-    else
-    {
-      break;
-    }
+    break;
   }
 
   if (base_address.empty())
@@ -132,7 +129,7 @@ bool AsmEditor::PathsMatch(const QString& path) const
   return std::filesystem::path(m_path.toStdString()) == std::filesystem::path(path.toStdString());
 }
 
-void AsmEditor::Zoom(int amount)
+void AsmEditor::Zoom(const int amount)
 {
   if (amount > 0)
   {
@@ -181,7 +178,7 @@ void AsmEditor::UpdateLineNumberAreaWidth(int)
   setViewportMargins(LineNumberAreaWidth(), 0, 0, 0);
 }
 
-void AsmEditor::UpdateLineNumberArea(const QRect& rect, int dy)
+void AsmEditor::UpdateLineNumberArea(const QRect& rect, const int dy)
 {
   if (dy != 0)
   {
@@ -218,7 +215,7 @@ void AsmEditor::paintEvent(QPaintEvent* event)
   QPainter painter(viewport());
   QTextCursor tc(document());
 
-  QPen p = QPen(Qt::red);
+  auto p = QPen(Qt::red);
   p.setStyle(Qt::PenStyle::SolidLine);
   p.setWidth(1);
   painter.setPen(p);
@@ -231,7 +228,7 @@ void AsmEditor::paintEvent(QPaintEvent* event)
       continue;
     }
 
-    BlockInfo* info = static_cast<BlockInfo*>(blk.userData());
+    const BlockInfo* info = static_cast<BlockInfo*>(blk.userData());
     if (info->error_at_eol)
     {
       tc.setPosition(blk.position() + blk.length() - 1);
@@ -246,11 +243,11 @@ bool AsmEditor::event(QEvent* e)
 {
   if (e->type() == QEvent::ToolTip)
   {
-    QHelpEvent* he = static_cast<QHelpEvent*>(e);
+    const QHelpEvent* he = static_cast<QHelpEvent*>(e);
     QTextCursor hover_cursor = cursorForPosition(he->pos());
-    QTextBlock hover_block = hover_cursor.block();
+    const QTextBlock hover_block = hover_cursor.block();
 
-    BlockInfo* info = static_cast<BlockInfo*>(hover_block.userData());
+    const BlockInfo* info = static_cast<BlockInfo*>(hover_block.userData());
     if (info == nullptr || !info->error)
     {
       QToolTip::hideText();
@@ -307,7 +304,7 @@ void AsmEditor::wheelEvent(QWheelEvent* event)
 
   if (event->modifiers() & Qt::ControlModifier)
   {
-    auto delta = static_cast<int>(std::round((event->angleDelta().y() / 120.0)));
+    const auto delta = static_cast<int>(std::round((event->angleDelta().y() / 120.0)));
     if (delta != 0)
     {
       emit ZoomRequested(delta);
@@ -335,7 +332,7 @@ void AsmEditor::HighlightCurrentLine()
   blockSignals(old_state);
 }
 
-void AsmEditor::LineNumberAreaPaintEvent(QPaintEvent* event)
+void AsmEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const
 {
   QPainter painter(m_line_number_area);
   if (m_dark_scheme)

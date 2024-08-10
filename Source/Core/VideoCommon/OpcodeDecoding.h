@@ -94,7 +94,7 @@ public:
   // Called on any indexed XF load command.
   virtual void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) = 0;
   // Called on any primitive command.
-  virtual void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
+  virtual void OnPrimitiveCommand(Primitive primitive, u8 vat, u32 vertex_size,
                                   u16 num_vertices, const u8* vertex_data) = 0;
   // Called on a display list.
   virtual void OnDisplayList(u32 address, u32 size) = 0;
@@ -119,12 +119,12 @@ namespace detail
 {
 // Main logic; split so that the main RunCommand can call OnCommand with the returned size.
 template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
+static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, const u32 available, T& callback)
 {
   if (available < 1)
     return 0;
 
-  const Opcode cmd = static_cast<Opcode>(data[0]);
+  const auto cmd = static_cast<Opcode>(data[0]);
 
   switch (cmd)
   {
@@ -162,7 +162,7 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
     ASSERT_MSG(VIDEO, stream_size_temp < 16, "cmd2 = 0x{:08X}", cmd2);
     const u8 stream_size = (stream_size_temp & 0xf) + 1;
 
-    if (available < u32(5 + stream_size * 4))
+    if (available < static_cast<u32>(5 + stream_size * 4))
       return 0;
 
     callback.OnXF(base_address, stream_size, &data[5]);
@@ -227,9 +227,9 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
         return 0;
 
       const u8 cmdbyte = static_cast<u8>(cmd);
-      const OpcodeDecoder::Primitive primitive = static_cast<OpcodeDecoder::Primitive>(
-          (cmdbyte & OpcodeDecoder::GX_PRIMITIVE_MASK) >> OpcodeDecoder::GX_PRIMITIVE_SHIFT);
-      const u8 vat = cmdbyte & OpcodeDecoder::GX_VAT_MASK;
+      const auto primitive = static_cast<Primitive>(
+          (cmdbyte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT);
+      const u8 vat = cmdbyte & GX_VAT_MASK;
 
       const u32 vertex_size = callback.GetVertexSize(vat);
       const u16 num_vertices = Common::swap16(&data[1]);
@@ -260,7 +260,7 @@ DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
 }
 
 template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available, T& callback)
+DOLPHIN_FORCE_INLINE u32 Run(const u8* data, const u32 available, T& callback)
 {
   u32 size = 0;
   while (size < available)

@@ -15,7 +15,6 @@
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -24,13 +23,13 @@
 
 namespace Common::Log
 {
-const Config::Info<bool> LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
+const Config::Info LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
                                               false};
-const Config::Info<bool> LOGGER_WRITE_TO_CONSOLE{
+const Config::Info LOGGER_WRITE_TO_CONSOLE{
     {Config::System::Logger, "Options", "WriteToConsole"}, true};
-const Config::Info<bool> LOGGER_WRITE_TO_WINDOW{
+const Config::Info LOGGER_WRITE_TO_WINDOW{
     {Config::System::Logger, "Options", "WriteToWindow"}, true};
-const Config::Info<LogLevel> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"},
+const Config::Info LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"},
                                               LogLevel::LNOTICE};
 
 class FileLogListener : public LogListener
@@ -47,13 +46,13 @@ public:
     if (!IsEnabled() || !IsValid())
       return;
 
-    std::lock_guard<std::mutex> lk(m_log_lock);
+    std::lock_guard lk(m_log_lock);
     m_logfile << msg << std::flush;
   }
 
   bool IsValid() const { return m_logfile.good(); }
   bool IsEnabled() const { return m_enable; }
-  void SetEnable(bool enable) { m_enable = enable; }
+  void SetEnable(const bool enable) { m_enable = enable; }
 
 private:
   std::mutex m_log_lock;
@@ -61,10 +60,10 @@ private:
   bool m_enable;
 };
 
-void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
-                       fmt::string_view format, const fmt::format_args& args)
+void GenericLogFmtImpl(const LogLevel level, const LogType type, const char* file, const int line,
+                       const fmt::string_view format, const fmt::format_args& args)
 {
-  auto* instance = LogManager::GetInstance();
+  const auto* instance = LogManager::GetInstance();
   if (instance == nullptr)
     return;
 
@@ -77,12 +76,12 @@ void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
 
 static size_t DeterminePathCutOffPoint()
 {
-  constexpr const char* pattern = "/source/core/";
+  constexpr auto pattern = "/source/core/";
 #ifdef _WIN32
-  constexpr const char* pattern2 = "\\source\\core\\";
+  constexpr auto pattern2 = "\\source\\core\\";
 #endif
   std::string path = __FILE__;
-  Common::ToLower(&path);
+  ToLower(&path);
   size_t pos = path.find(pattern);
 #ifdef _WIN32
   if (pos == std::string::npos)
@@ -155,17 +154,17 @@ LogManager::LogManager()
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
   // Set up log listeners
-  LogLevel verbosity = Config::Get(LOGGER_VERBOSITY);
+  const LogLevel verbosity = Get(LOGGER_VERBOSITY);
 
   SetLogLevel(verbosity);
-  EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
-  EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
-  EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
+  EnableListener(LogListener::FILE_LISTENER, Get(LOGGER_WRITE_TO_FILE));
+  EnableListener(LogListener::CONSOLE_LISTENER, Get(LOGGER_WRITE_TO_CONSOLE));
+  EnableListener(LogListener::LOG_WINDOW_LISTENER, Get(LOGGER_WRITE_TO_WINDOW));
 
-  for (auto& container : m_log)
+  for (auto& [m_short_name, _m_full_name, m_enable] : m_log)
   {
-    container.m_enable = Config::Get(
-        Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
+    m_enable =
+      Get(Config::Info{{Config::System::Logger, "Logs", m_short_name}, false});
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
@@ -182,23 +181,23 @@ void LogManager::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
+  SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
+  SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
+  SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
                            IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
+  SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
 
-  for (const auto& container : m_log)
+  for (const auto& [m_short_name, _m_full_name, m_enable] : m_log)
   {
-    const Config::Info<bool> info{{Config::System::Logger, "Logs", container.m_short_name}, false};
-    Config::SetBaseOrCurrent(info, container.m_enable);
+    const Config::Info info{{Config::System::Logger, "Logs", m_short_name}, false};
+    SetBaseOrCurrent(info, m_enable);
   }
 
   Config::Save();
 }
 
-void LogManager::Log(LogLevel level, LogType type, const char* file, int line, const char* message)
+void LogManager::Log(const LogLevel level, const LogType type, const char* file, const int line, const char* message) const
 {
   if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
@@ -218,8 +217,8 @@ std::string LogManager::GetTimestamp()
   return fmt::format("{:%M:%S}:{:03}", now_s, (now_ms - now_s).count());
 }
 
-void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                                 const char* message)
+void LogManager::LogWithFullPath(LogLevel level, const LogType type, const char* file, int line,
+                                 const char* message) const
 {
   const std::string msg =
       fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,
@@ -237,17 +236,22 @@ LogLevel LogManager::GetLogLevel() const
   return m_level;
 }
 
-void LogManager::SetLogLevel(LogLevel level)
+void LogManager::SetLogLevel(const LogLevel level)
 {
   m_level = std::clamp(level, LogLevel::LNOTICE, MAX_LOGLEVEL);
 }
 
-void LogManager::SetEnable(LogType type, bool enable)
+void LogManager::Enable(const LogType type)
 {
-  m_log[type].m_enable = enable;
+  m_log[type].m_enable = true;
 }
 
-bool LogManager::IsEnabled(LogType type, LogLevel level) const
+void LogManager::Disable(const LogType type)
+{
+  m_log[type].m_enable = false;
+}
+
+bool LogManager::IsEnabled(const LogType type, const LogLevel level) const
 {
   return m_log[type].m_enable && GetLogLevel() >= level;
 }
@@ -256,33 +260,33 @@ std::map<std::string, std::string> LogManager::GetLogTypes()
 {
   std::map<std::string, std::string> log_types;
 
-  for (const auto& container : m_log)
-    log_types.emplace(container.m_short_name, container.m_full_name);
+  for (const auto& [m_short_name, m_full_name, _m_enable] : m_log)
+    log_types.emplace(m_short_name, m_full_name);
 
   return log_types;
 }
 
-const char* LogManager::GetShortName(LogType type) const
+const char* LogManager::GetShortName(const LogType type) const
 {
   return m_log[type].m_short_name;
 }
 
-const char* LogManager::GetFullName(LogType type) const
+const char* LogManager::GetFullName(const LogType type) const
 {
   return m_log[type].m_full_name;
 }
 
-void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listener)
+void LogManager::RegisterListener(const LogListener::LISTENER id, LogListener* listener)
 {
   m_listeners[id] = listener;
 }
 
-void LogManager::EnableListener(LogListener::LISTENER id, bool enable)
+void LogManager::EnableListener(const LogListener::LISTENER id, const bool enable)
 {
   m_listener_ids[id] = enable;
 }
 
-bool LogManager::IsListenerEnabled(LogListener::LISTENER id) const
+bool LogManager::IsListenerEnabled(const LogListener::LISTENER id) const
 {
   return m_listener_ids[id];
 }

@@ -34,9 +34,9 @@
 
 namespace VideoCommon
 {
-bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
+bool OnScreenUI::Initialize(const u32 width, const u32 height, const float scale)
 {
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  std::unique_lock imgui_lock(m_imgui_mutex);
 
   if (!IMGUI_CHECKVERSION())
   {
@@ -72,14 +72,14 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
 
   // Font texture(s).
   {
-    ImGuiIO& io = ImGui::GetIO();
+    const ImGuiIO& io = ImGui::GetIO();
     u8* font_tex_pixels;
     int font_tex_width, font_tex_height;
     io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
 
-    TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, 0,
-                                  AbstractTextureType::Texture_2DArray);
+    const TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
+                                        AbstractTextureFormat::RGBA8, 0,
+                                        AbstractTextureType::Texture_2DArray);
     std::unique_ptr<AbstractTexture> font_tex =
         g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
     if (!font_tex)
@@ -107,7 +107,7 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
 
 OnScreenUI::~OnScreenUI()
 {
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  std::unique_lock imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
   ImPlot::DestroyContext();
@@ -180,13 +180,13 @@ bool OnScreenUI::RecompileImGuiPipeline()
   return true;
 }
 
-void OnScreenUI::BeginImGuiFrame(u32 width, u32 height)
+void OnScreenUI::BeginImGuiFrame(const u32 width, const u32 height)
 {
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  std::unique_lock imgui_lock(m_imgui_mutex);
   BeginImGuiFrameUnlocked(width, height);
 }
 
-void OnScreenUI::BeginImGuiFrameUnlocked(u32 width, u32 height)
+void OnScreenUI::BeginImGuiFrameUnlocked(const u32 width, const u32 height)
 {
   m_backbuffer_width = width;
   m_backbuffer_height = height;
@@ -205,9 +205,9 @@ void OnScreenUI::BeginImGuiFrameUnlocked(u32 width, u32 height)
   ImGui::NewFrame();
 }
 
-void OnScreenUI::DrawImGui()
+void OnScreenUI::DrawImGui() const
 {
-  ImDrawData* draw_data = ImGui::GetDrawData();
+  const ImDrawData* draw_data = ImGui::GetDrawData();
   if (!draw_data)
     return;
 
@@ -220,7 +220,7 @@ void OnScreenUI::DrawImGui()
     float u_rcp_viewport_size_mul2[2];
     float padding[2];
   };
-  ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
+  const ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
 
   // Set up common state for drawing.
   g_gfx->SetPipeline(m_imgui_pipeline.get());
@@ -247,11 +247,11 @@ void OnScreenUI::DrawImGui()
       }
 
       g_gfx->SetScissorRect(g_gfx->ConvertFramebufferRectangle(
-          MathUtil::Rectangle<int>(
+          MathUtil::Rectangle(
               static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
               static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)),
           g_gfx->GetCurrentFramebuffer()));
-      g_gfx->SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.TextureId));
+      g_gfx->SetTexture(0, static_cast<const AbstractTexture*>(cmd.TextureId));
       g_gfx->DrawIndexed(base_index, cmd.ElemCount, base_vertex);
       base_index += cmd.ElemCount;
     }
@@ -268,12 +268,12 @@ void OnScreenUI::DrawImGui()
 }
 
 // Create On-Screen-Messages
-void OnScreenUI::DrawDebugText()
+void OnScreenUI::DrawDebugText() const
 {
   const bool show_movie_window =
-      Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_RTC) || Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
+      Get(Config::MAIN_SHOW_FRAME_COUNT) || Get(Config::MAIN_SHOW_LAG) ||
+      Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
+      Get(Config::MAIN_MOVIE_SHOW_RTC) || Get(Config::MAIN_MOVIE_SHOW_RERECORD);
   if (show_movie_window)
   {
     // Position under the FPS display.
@@ -293,19 +293,19 @@ void OnScreenUI::DrawDebugText()
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, movie.GetCurrentInputCount(),
                     movie.GetTotalInputCount());
       }
-      else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
+      else if (Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
         ImGui::Text("Frame: %" PRIu64, movie.GetCurrentFrame());
         if (movie.IsRecordingInput())
           ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
       }
-      if (Config::Get(Config::MAIN_SHOW_LAG))
+      if (Get(Config::MAIN_SHOW_LAG))
         ImGui::Text("Lag: %" PRIu64 "\n", movie.GetCurrentLagCount());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
+      if (Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
         ImGui::TextUnformatted(movie.GetInputDisplay().c_str());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_RTC))
+      if (Get(Config::MAIN_MOVIE_SHOW_RTC))
         ImGui::TextUnformatted(movie.GetRTCDisplay().c_str());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD))
+      if (Get(Config::MAIN_MOVIE_SHOW_RERECORD))
         ImGui::TextUnformatted(movie.GetRerecords().c_str());
     }
     ImGui::End();
@@ -317,7 +317,7 @@ void OnScreenUI::DrawDebugText()
   if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
     g_netplay_chat_ui->Display();
 
-  if (Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
+  if (Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
     g_netplay_golf_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
@@ -333,7 +333,7 @@ void OnScreenUI::DrawDebugText()
 
 void OnScreenUI::DrawChallengesAndLeaderboards()
 {
-  if (!Config::Get(Config::MAIN_OSD_MESSAGES))
+  if (!Get(Config::MAIN_OSD_MESSAGES))
     return;
 #ifdef USE_RETRO_ACHIEVEMENTS
   auto& instance = AchievementManager::GetInstance();
@@ -345,13 +345,15 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
     m_challenge_texture_map.clear();
     for (const auto& name : challenges)
     {
-      const auto& icon = instance.GetAchievementBadge(name, false);
-      const u32 width = icon.width;
-      const u32 height = icon.height;
+      const auto& [data, _format, icon_width, icon_height, _row_length] =
+        instance.GetAchievementBadge(name, false);
+      const u32 width = icon_width;
+      const u32 height = icon_height;
       TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
                                AbstractTextureType::Texture_2DArray);
-      auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
-      res.first->second->Load(0, width, height, width, icon.data.data(),
+      const auto [fst, _snd] =
+        m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
+      fst->second->Load(0, width, height, width, data.data(),
                               sizeof(u32) * width * height);
     }
   }
@@ -359,7 +361,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   float leaderboard_y = ImGui::GetIO().DisplaySize.y;
   if (!m_challenge_texture_map.empty())
   {
-    float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
+    const float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0,
                             ImVec2(1, 1));
@@ -413,10 +415,10 @@ void OnScreenUI::Finalize()
 
 std::unique_lock<std::mutex> OnScreenUI::GetImGuiLock()
 {
-  return std::unique_lock<std::mutex>(m_imgui_mutex);
+  return std::unique_lock(m_imgui_mutex);
 }
 
-void OnScreenUI::SetScale(float backbuffer_scale)
+void OnScreenUI::SetScale(const float backbuffer_scale)
 {
   ImGui::GetIO().DisplayFramebufferScale.x = backbuffer_scale;
   ImGui::GetIO().DisplayFramebufferScale.y = backbuffer_scale;
@@ -448,33 +450,33 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
   m_dolphin_to_imgui_map.clear();
   for (int dolphin_key = 0; dolphin_key <= static_cast<int>(DolphinKey::Z); dolphin_key++)
   {
-    const int imgui_key = dolphin_to_imgui_map[DolphinKey(dolphin_key)];
+    const int imgui_key = dolphin_to_imgui_map[static_cast<DolphinKey>(dolphin_key)];
     if (imgui_key >= 0)
     {
-      const int mapped_key = key_map[DolphinKey(dolphin_key)];
+      const int mapped_key = key_map[static_cast<DolphinKey>(dolphin_key)];
       m_dolphin_to_imgui_map[mapped_key & 0x1FF] = imgui_key;
     }
   }
 }
 
-void OnScreenUI::SetKey(u32 key, bool is_down, const char* chars)
+void OnScreenUI::SetKey(const u32 key, const bool is_down, const char* chars)
 {
   auto lock = GetImGuiLock();
-  if (auto iter = m_dolphin_to_imgui_map.find(key); iter != m_dolphin_to_imgui_map.end())
-    ImGui::GetIO().AddKeyEvent((ImGuiKey)iter->second, is_down);
+  if (const auto iter = m_dolphin_to_imgui_map.find(key); iter != m_dolphin_to_imgui_map.end())
+    ImGui::GetIO().AddKeyEvent(static_cast<ImGuiKey>(iter->second), is_down);
 
   if (chars)
     ImGui::GetIO().AddInputCharactersUTF8(chars);
 }
 
-void OnScreenUI::SetMousePos(float x, float y)
+void OnScreenUI::SetMousePos(const float x, const float y)
 {
   auto lock = GetImGuiLock();
 
   ImGui::GetIO().AddMousePosEvent(x, y);
 }
 
-void OnScreenUI::SetMousePress(u32 button_mask)
+void OnScreenUI::SetMousePress(const u32 button_mask)
 {
   auto lock = GetImGuiLock();
 

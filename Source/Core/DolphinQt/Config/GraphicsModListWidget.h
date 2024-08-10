@@ -8,7 +8,6 @@
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
 class GraphicsModWarningWidget;
@@ -50,13 +49,13 @@ private:
 
   void RefreshModList();
   void ModSelectionChanged();
-  void ModItemChanged(QListWidgetItem* item);
+  void ModItemChanged(const QListWidgetItem* item);
 
   void OnModChanged(const std::optional<std::string>& absolute_path);
 
   void SaveModList();
 
-  void OpenGraphicsModDir();
+  static void OpenGraphicsModDir();
 
   void CalculateGameRunning(Core::State state);
   bool m_loaded_game_is_running = false;

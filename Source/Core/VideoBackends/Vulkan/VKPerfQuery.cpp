@@ -43,7 +43,7 @@ bool PerfQuery::Initialize()
   return true;
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   // Block if there are no free slots.
   // Otherwise, try to keep half of them available.
@@ -57,13 +57,13 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
 
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
-    DEBUG_ASSERT(!entry.has_value);
-    entry.has_value = true;
-    entry.query_group = group;
+    auto& [_fence_counter, query_group, has_value] = m_query_buffer[m_query_next_pos];
+    DEBUG_ASSERT(!has_value);
+    has_value = true;
+    query_group = group;
 
     // Use precise queries if supported, otherwise boolean (which will be incorrect).
-    VkQueryControlFlags flags =
+    const VkQueryControlFlags flags =
         g_vulkan_context->SupportsPreciseOcclusionQueries() ? VK_QUERY_CONTROL_PRECISE_BIT : 0;
 
     // Ensure the query starts within a render pass.
@@ -73,13 +73,13 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos);
-    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
-    entry.fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+    auto& [fence_counter, _query_group, _has_value] = m_query_buffer[m_query_next_pos];
+    fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
 
     m_query_next_pos = (m_query_next_pos + 1) % PERF_QUERY_BUFFER_SIZE;
     m_query_count.fetch_add(1, std::memory_order_relaxed);
@@ -102,7 +102,7 @@ void PerfQuery::ResetQuery()
   std::memset(m_query_buffer.data(), 0, sizeof(ActiveQuery) * m_query_buffer.size());
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
   if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
@@ -141,7 +141,7 @@ bool PerfQuery::IsFlushed() const
 
 bool PerfQuery::CreateQueryPool()
 {
-  VkQueryPoolCreateInfo info = {
+  constexpr VkQueryPoolCreateInfo info = {
       VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,  // VkStructureType                  sType
       nullptr,                                   // const void*                      pNext
       0,                                         // VkQueryPoolCreateFlags           flags
@@ -150,7 +150,7 @@ bool PerfQuery::CreateQueryPool()
       0  // VkQueryPipelineStatisticFlags    pipelineStatistics;
   };
 
-  VkResult res = vkCreateQueryPool(g_vulkan_context->GetDevice(), &info, nullptr, &m_query_pool);
+  const VkResult res = vkCreateQueryPool(g_vulkan_context->GetDevice(), &info, nullptr, &m_query_pool);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateQueryPool failed: ");
@@ -169,9 +169,9 @@ void PerfQuery::ReadbackQueries()
   u32 readback_count = 0;
   for (u32 i = 0; i < outstanding_queries; i++)
   {
-    u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
-    const ActiveQuery& entry = m_query_buffer[index];
-    if (entry.fence_counter > completed_fence_counter)
+    const u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
+    const auto& [fence_counter, _query_group, _has_value] = m_query_buffer[index];
+    if (fence_counter > completed_fence_counter)
       break;
 
     // If this wrapped around, we need to flush the entries before the end of the buffer.
@@ -189,14 +189,14 @@ void PerfQuery::ReadbackQueries()
     ReadbackQueries(readback_count);
 }
 
-void PerfQuery::ReadbackQueries(u32 query_count)
+void PerfQuery::ReadbackQueries(const u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count.load(std::memory_order_relaxed) &&
          (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
 
   // Read back from the GPU.
-  VkResult res = vkGetQueryPoolResults(
+  const VkResult res = vkGetQueryPoolResults(
       g_vulkan_context->GetDevice(), m_query_pool, m_query_readback_pos, query_count,
       query_count * sizeof(PerfQueryDataType), m_query_result_buffer.data(),
       sizeof(PerfQueryDataType), VK_QUERY_RESULT_WAIT_BIT);
@@ -210,13 +210,13 @@ void PerfQuery::ReadbackQueries(u32 query_count)
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)
   {
-    u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
-    ActiveQuery& entry = m_query_buffer[index];
+    const u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
+    auto& [fence_counter, query_group, has_value] = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).
-    DEBUG_ASSERT(entry.fence_counter != 0);
-    entry.fence_counter = 0;
-    entry.has_value = false;
+    DEBUG_ASSERT(fence_counter != 0);
+    fence_counter = 0;
+    has_value = false;
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
     u64 native_res_result = static_cast<u64>(m_query_result_buffer[i]) * EFB_WIDTH /
@@ -224,7 +224,7 @@ void PerfQuery::ReadbackQueries(u32 query_count)
                             g_framebuffer_manager->GetEFBHeight();
     if (g_ActiveConfig.iMultisamples > 1)
       native_res_result /= g_ActiveConfig.iMultisamples;
-    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+    m_results[query_group].fetch_add(static_cast<u32>(native_res_result),
                                            std::memory_order_relaxed);
   }
 
@@ -232,7 +232,7 @@ void PerfQuery::ReadbackQueries(u32 query_count)
   m_query_count.fetch_sub(query_count, std::memory_order_relaxed);
 }
 
-void PerfQuery::PartialFlush(bool blocking)
+void PerfQuery::PartialFlush(const bool blocking)
 {
   // Submit a command buffer in the background if the front query is not bound to one.
   if (blocking || m_query_buffer[m_query_readback_pos].fence_counter ==

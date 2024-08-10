@@ -31,16 +31,16 @@ public:
   explicit SignatureDB(HandlerType handler);
   explicit SignatureDB(const std::string& file_path);
 
-  void Clear();
+  void Clear() const;
   // Does not clear. Remember to clear first if that's what you want.
-  bool Load(const std::string& file_path);
+  bool Load(const std::string& file_path) const;
   bool Save(const std::string& file_path) const;
   void List() const;
 
-  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "");
+  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") const;
   void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db) const;
 
-  bool Add(const Core::CPUThreadGuard& guard, u32 start_addr, u32 size, const std::string& name);
+  bool Add(const Core::CPUThreadGuard& guard, u32 start_addr, u32 size, const std::string& name) const;
 
 private:
   std::unique_ptr<SignatureDBFormatHandler> m_handler;

@@ -56,7 +56,7 @@ public:
 
   std::optional<u64> GetExternalFileSize(std::string_view external_relative_path) override;
   std::vector<u8> GetFileContents(std::string_view external_relative_path) override;
-  std::vector<FileDataLoader::Node>
+  std::vector<Node>
   GetFolderContents(std::string_view external_relative_path) override;
   BuilderContentSource MakeContentSource(std::string_view external_relative_path,
                                          u64 external_offset, u64 external_size,
@@ -65,7 +65,7 @@ public:
   ResolveSavegameRedirectPath(std::string_view external_relative_path) override;
 
 private:
-  std::optional<std::string> MakeAbsoluteFromRelative(std::string_view external_relative_path);
+  std::optional<std::string> MakeAbsoluteFromRelative(std::string_view external_relative_path) const;
 
   std::string m_sd_root;
   std::string m_patch_root;

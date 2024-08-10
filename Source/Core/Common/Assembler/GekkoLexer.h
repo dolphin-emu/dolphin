@@ -7,8 +7,6 @@
 #include <array>
 #include <deque>
 #include <optional>
-#include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "Common/Assembler/AssemblerShared.h"
@@ -100,7 +98,7 @@ public:
   };
 
 public:
-  explicit Lexer(std::string_view str)
+  explicit Lexer(const std::string_view str)
       : m_lex_string(str), m_match_rule(IdentifierMatchRule::Typical)
   {
   }
@@ -119,7 +117,7 @@ public:
   // Since there's only one place floats get lexed, it's 'okay' to have an explicit
   // "lex a float token" function
   AssemblerToken LookaheadFloat() const;
-  void Eat();
+  void Eat() const;
   void EatAndReset();
 
   template <size_t N>
@@ -150,7 +148,7 @@ public:
   }
 
   template <size_t N>
-  void EatN()
+  void EatN() const
   {
     size_t consumed = 0;
     while (m_lexed_tokens.size() > 0 && consumed < N)

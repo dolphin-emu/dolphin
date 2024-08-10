@@ -12,7 +12,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -36,19 +35,19 @@ NetPlaySetupDialog::NetPlaySetupDialog(const GameListModel& game_list_model, QWi
 
   CreateMainLayout();
 
-  bool use_index = Config::Get(Config::NETPLAY_USE_INDEX);
-  std::string index_region = Config::Get(Config::NETPLAY_INDEX_REGION);
-  std::string index_name = Config::Get(Config::NETPLAY_INDEX_NAME);
-  std::string index_password = Config::Get(Config::NETPLAY_INDEX_PASSWORD);
-  std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
-  std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  int connect_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
-  int host_port = Config::Get(Config::NETPLAY_HOST_PORT);
-  int host_listen_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
-  bool enable_chunked_upload_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
-  u32 chunked_upload_limit = Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
+  const bool use_index = Get(Config::NETPLAY_USE_INDEX);
+  const std::string index_region = Get(Config::NETPLAY_INDEX_REGION);
+  const std::string index_name = Get(Config::NETPLAY_INDEX_NAME);
+  const std::string index_password = Get(Config::NETPLAY_INDEX_PASSWORD);
+  const std::string nickname = Get(Config::NETPLAY_NICKNAME);
+  const std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const int connect_port = Get(Config::NETPLAY_CONNECT_PORT);
+  const int host_port = Get(Config::NETPLAY_HOST_PORT);
+  const int host_listen_port = Get(Config::NETPLAY_LISTEN_PORT);
+  const bool enable_chunked_upload_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+  const u32 chunked_upload_limit = Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
 #ifdef USE_UPNP
-  bool use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
+  const bool use_upnp = Get(Config::NETPLAY_USE_UPNP);
 
   m_host_upnp->setChecked(use_upnp);
 #endif
@@ -165,11 +164,11 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_server_password->setToolTip(tr("Password for joining your game (leave empty for none)"));
   m_host_server_password->setPlaceholderText(tr("Password"));
 
-  for (const auto& region : NetPlayIndex::GetRegions())
+  for (const auto& [fst, snd] : NetPlayIndex::GetRegions())
   {
     m_host_server_region->addItem(
-        tr("%1 (%2)").arg(tr(region.second.c_str())).arg(QString::fromStdString(region.first)),
-        QString::fromStdString(region.first));
+        tr("%1 (%2)").arg(tr(snd.c_str())).arg(QString::fromStdString(fst)),
+        QString::fromStdString(fst));
   }
 
   host_layout->addWidget(m_host_port_label, 0, 0);
@@ -219,7 +218,7 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_connect_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
   // Host widget
   connect(m_host_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
-  connect(m_host_games, &QListWidget::currentRowChanged, [this](int index) {
+  connect(m_host_games, &QListWidget::currentRowChanged, [this](const int index) {
     Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
                                       m_host_games->item(index)->text());
   });
@@ -227,8 +226,8 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
 
   connect(m_host_force_port_check, &QCheckBox::toggled,
-          [this](bool value) { m_host_force_port_box->setEnabled(value); });
-  connect(m_host_chunked_upload_limit_check, &QCheckBox::toggled, this, [this](bool value) {
+          [this](const bool value) { m_host_force_port_box->setEnabled(value); });
+  connect(m_host_chunked_upload_limit_check, &QCheckBox::toggled, this, [this](const bool value) {
     m_host_chunked_upload_limit_box->setEnabled(value);
     SaveSettings();
   });
@@ -239,7 +238,7 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_server_name, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_host_server_password, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_host_server_region,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+          &QComboBox::currentIndexChanged, this,
           &NetPlaySetupDialog::SaveSettings);
 
 #ifdef USE_UPNP
@@ -251,46 +250,46 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_reset_traversal_button, &QPushButton::clicked, this,
           &NetPlaySetupDialog::ResetTraversalHost);
-  connect(m_host_server_browser, &QCheckBox::toggled, this, [this](bool value) {
+  connect(m_host_server_browser, &QCheckBox::toggled, this, [this](const bool value) {
     m_host_server_region->setEnabled(value);
     m_host_server_name->setEnabled(value);
     m_host_server_password->setEnabled(value);
   });
 }
 
-void NetPlaySetupDialog::SaveSettings()
+void NetPlaySetupDialog::SaveSettings() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
-  Config::SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
+  SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
+  SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
                                                                     Config::NETPLAY_HOST_CODE,
                            m_ip_edit->text().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT,
+  SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT,
                            static_cast<u16>(m_connect_port_box->value()));
-  Config::SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(m_host_port_box->value()));
+  SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(m_host_port_box->value()));
 #ifdef USE_UPNP
-  Config::SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, m_host_upnp->isChecked());
+  SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, m_host_upnp->isChecked());
 #endif
 
   if (m_host_force_port_check->isChecked())
-    Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT,
+    SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT,
                              static_cast<u16>(m_host_force_port_box->value()));
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT,
+  SetBaseOrCurrent(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT,
                            m_host_chunked_upload_limit_check->isChecked());
-  Config::SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
+  SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
                            m_host_chunked_upload_limit_box->value());
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, m_host_server_browser->isChecked());
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION,
+  SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, m_host_server_browser->isChecked());
+  SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION,
                            m_host_server_region->currentData().toString().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_host_server_name->text().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD,
+  SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_host_server_name->text().toStdString());
+  SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD,
                            m_host_server_password->text().toStdString());
 }
 
-void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
+void NetPlaySetupDialog::OnConnectionTypeChanged(const int index) const
 {
   m_connect_port_box->setHidden(index != 0);
   m_connect_port_label->setHidden(index != 0);
@@ -305,13 +304,13 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
 
   m_reset_traversal_button->setHidden(index == 0);
 
-  std::string address =
-      index == 0 ? Config::Get(Config::NETPLAY_ADDRESS) : Config::Get(Config::NETPLAY_HOST_CODE);
+  const std::string address =
+      index == 0 ? Get(Config::NETPLAY_ADDRESS) : Get(Config::NETPLAY_HOST_CODE);
 
   m_ip_label->setText(index == 0 ? tr("IP Address:") : tr("Host Code:"));
   m_ip_edit->setText(QString::fromStdString(address));
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE,
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE,
                            std::string(index == 0 ? "direct" : "traversal"));
 }
 
@@ -355,7 +354,7 @@ void NetPlaySetupDialog::accept()
   }
 }
 
-void NetPlaySetupDialog::PopulateGameList()
+void NetPlaySetupDialog::PopulateGameList() const
 {
   QSignalBlocker blocker(m_host_games);
 
@@ -382,9 +381,9 @@ void NetPlaySetupDialog::PopulateGameList()
 
 void NetPlaySetupDialog::ResetTraversalHost()
 {
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_SERVER,
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_SERVER,
                            Config::NETPLAY_TRAVERSAL_SERVER.GetDefaultValue());
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
                            Config::NETPLAY_TRAVERSAL_PORT.GetDefaultValue());
 
   ModalMessageBox::information(

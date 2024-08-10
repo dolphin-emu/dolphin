@@ -33,7 +33,7 @@
 
 namespace
 {
-QTableWidgetItem* GetSocketDomain(s32 host_fd)
+QTableWidgetItem* GetSocketDomain(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -55,7 +55,7 @@ QTableWidgetItem* GetSocketDomain(s32 host_fd)
   }
 }
 
-QTableWidgetItem* GetSocketType(s32 host_fd)
+QTableWidgetItem* GetSocketType(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -78,7 +78,7 @@ QTableWidgetItem* GetSocketType(s32 host_fd)
   }
 }
 
-QTableWidgetItem* GetSocketState(s32 host_fd)
+QTableWidgetItem* GetSocketState(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -97,7 +97,7 @@ QTableWidgetItem* GetSocketState(s32 host_fd)
   return new QTableWidgetItem(QTableWidget::tr("Unbound"));
 }
 
-static QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_manager, s32 wii_fd)
+static QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_manager, const s32 wii_fd)
 {
   if (socket_manager.GetHostSocket(wii_fd) < 0)
     return new QTableWidgetItem();
@@ -115,7 +115,7 @@ static QString GetAddressAndPort(const sockaddr_in& addr)
   return QStringLiteral("%1:%2").arg(QString::fromLatin1(addr_str)).arg(ntohs(addr.sin_port));
 }
 
-QTableWidgetItem* GetSocketName(s32 host_fd)
+QTableWidgetItem* GetSocketName(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -153,7 +153,7 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("networkwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -165,9 +165,9 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &NetworkWidget::Update);
 
   connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsNetworkVisible());
   });
 }
@@ -182,7 +182,7 @@ NetworkWidget::~NetworkWidget()
 
 void NetworkWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetNetworkVisible(false);
+  Settings::Instance().HideNetwork();
 }
 
 void NetworkWidget::showEvent(QShowEvent* event)
@@ -209,23 +209,23 @@ void NetworkWidget::ConnectWidgets()
 {
   connect(m_dump_format_combo, &QComboBox::currentIndexChanged, this,
           &NetworkWidget::OnDumpFormatComboChanged);
-  connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
+  connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](const int state) {
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
   });
-  connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
+  connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](const int state) {
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
   });
-  connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
+  connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](const int state) {
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
   });
-  connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
+  connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](const int state) {
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
   });
-  connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
+  connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](const int state) {
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
   });
-  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
+  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](const int state) {
+    SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
   connect(m_open_dump_folder, &QPushButton::clicked, [] {
     const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
@@ -234,13 +234,13 @@ void NetworkWidget::ConnectWidgets()
   });
 }
 
-void NetworkWidget::Update()
+void NetworkWidget::Update() const
 {
   if (!isVisible())
     return;
 
   auto& system = Core::System::GetInstance();
-  if (Core::GetState(system) != Core::State::Paused)
+  if (GetState(system) != Core::State::Paused)
   {
     m_socket_table->setDisabled(true);
     m_ssl_table->setDisabled(true);
@@ -257,7 +257,7 @@ void NetworkWidget::Update()
   if (!ios)
     return;
 
-  auto socket_manager = ios->GetSocketManager();
+  const auto socket_manager = ios->GetSocketManager();
   if (!socket_manager)
     return;
 
@@ -282,9 +282,10 @@ void NetworkWidget::Update()
     s32 host_fd = -1;
     if (IOS::HLE::IsSSLIDValid(ssl_id))
     {
-      const auto& ssl = IOS::HLE::NetSSLDevice::_SSL[ssl_id];
-      host_fd = ssl.hostfd;
-      m_ssl_table->setItem(ssl_id, 5, new QTableWidgetItem(QString::fromStdString(ssl.hostname)));
+      const auto& [_ctx, _config, _session, _entropy, _ctr_drbg, _cacert, _clicert, _pk, _sockfd,
+        hostfd, hostname, _active] = IOS::HLE::NetSSLDevice::_SSL[ssl_id];
+      host_fd = hostfd;
+      m_ssl_table->setItem(ssl_id, 5, new QTableWidgetItem(QString::fromStdString(hostname)));
     }
     m_ssl_table->setItem(ssl_id, 0, new QTableWidgetItem(QString::number(ssl_id)));
     m_ssl_table->setItem(ssl_id, 1, GetSocketDomain(host_fd));
@@ -294,41 +295,40 @@ void NetworkWidget::Update()
   }
   m_ssl_table->resizeColumnsToContents();
 
-  const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
-  const bool is_ssl_read = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ);
-  const bool is_ssl_write = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
+  const bool is_pcap = Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
+  const bool is_ssl_read = Get(Config::MAIN_NETWORK_SSL_DUMP_READ);
+  const bool is_ssl_write = Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
 
   m_dump_ssl_read_checkbox->setChecked(is_ssl_read);
   m_dump_ssl_write_checkbox->setChecked(is_ssl_write);
-  m_dump_root_ca_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA));
-  m_dump_peer_cert_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT));
+  m_dump_root_ca_checkbox->setChecked(Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA));
+  m_dump_peer_cert_checkbox->setChecked(Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT));
   m_verify_certificates_checkbox->setChecked(
-      Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES));
+      Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES));
 
-  const int combo_index = int([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
+  const int combo_index = static_cast<int>([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
     if (is_pcap)
       return FormatComboId::PCAP;
-    else if (is_ssl_read && is_ssl_write)
+    if (is_ssl_read && is_ssl_write)
       return FormatComboId::BinarySSL;
-    else if (is_ssl_read)
+    if (is_ssl_read)
       return FormatComboId::BinarySSLRead;
-    else if (is_ssl_write)
+    if (is_ssl_write)
       return FormatComboId::BinarySSLWrite;
-    else
-      return FormatComboId::None;
+    return FormatComboId::None;
   }());
   m_dump_format_combo->setCurrentIndex(combo_index);
 }
 
 QGroupBox* NetworkWidget::CreateSocketTableGroup()
 {
-  QGroupBox* socket_table_group = new QGroupBox(tr("Socket table"));
-  QGridLayout* socket_table_layout = new QGridLayout;
+  auto socket_table_group = new QGroupBox(tr("Socket table"));
+  auto socket_table_layout = new QGridLayout;
   socket_table_group->setLayout(socket_table_layout);
 
   m_socket_table = new QTableWidget();
   // i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
-  QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
+  const QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
   m_socket_table->setColumnCount(static_cast<int>(header.size()));
 
   m_socket_table->setHorizontalHeaderLabels(header);
@@ -345,12 +345,12 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
 
 QGroupBox* NetworkWidget::CreateSSLContextGroup()
 {
-  QGroupBox* ssl_context_group = new QGroupBox(tr("SSL context"));
-  QGridLayout* ssl_context_layout = new QGridLayout;
+  auto ssl_context_group = new QGroupBox(tr("SSL context"));
+  auto ssl_context_layout = new QGridLayout;
   ssl_context_group->setLayout(ssl_context_layout);
 
   m_ssl_table = new QTableWidget();
-  QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
+  const QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
   m_ssl_table->setColumnCount(static_cast<int>(header.size()));
 
   m_ssl_table->setHorizontalHeaderLabels(header);
@@ -421,17 +421,17 @@ QComboBox* NetworkWidget::CreateDumpFormatCombo()
 {
   auto* combo = new QComboBox();
 
-  combo->insertItem(int(FormatComboId::None), tr("None"));
+  combo->insertItem(static_cast<int>(FormatComboId::None), tr("None"));
   // i18n: PCAP is a file format
-  combo->insertItem(int(FormatComboId::PCAP), tr("PCAP"));
-  combo->insertItem(int(FormatComboId::BinarySSL), tr("Binary SSL"));
-  combo->insertItem(int(FormatComboId::BinarySSLRead), tr("Binary SSL (read)"));
-  combo->insertItem(int(FormatComboId::BinarySSLWrite), tr("Binary SSL (write)"));
+  combo->insertItem(static_cast<int>(FormatComboId::PCAP), tr("PCAP"));
+  combo->insertItem(static_cast<int>(FormatComboId::BinarySSL), tr("Binary SSL"));
+  combo->insertItem(static_cast<int>(FormatComboId::BinarySSLRead), tr("Binary SSL (read)"));
+  combo->insertItem(static_cast<int>(FormatComboId::BinarySSLWrite), tr("Binary SSL (write)"));
 
   return combo;
 }
 
-void NetworkWidget::OnDumpFormatComboChanged(int index)
+void NetworkWidget::OnDumpFormatComboChanged(int index) const
 {
   const auto combo_id = static_cast<FormatComboId>(index);
 
@@ -465,5 +465,5 @@ void NetworkWidget::OnDumpFormatComboChanged(int index)
   m_dump_ssl_read_checkbox->setEnabled(is_pcap);
   m_dump_ssl_write_checkbox->setEnabled(is_pcap);
   m_dump_bba_checkbox->setEnabled(is_pcap);
-  Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_AS_PCAP, is_pcap);
+  SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_AS_PCAP, is_pcap);
 }

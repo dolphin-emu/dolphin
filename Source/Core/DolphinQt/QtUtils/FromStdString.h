@@ -4,19 +4,18 @@
 #pragma once
 
 #include <QString>
-#include <string_view>
 
 namespace QtUtils
 {
-inline QString FromStdString(std::string_view s)
+inline QString FromStdString(const std::string_view s)
 {
   return QString::fromUtf8(s.data(), s.size());
 }
-inline QString FromStdString(std::u8string_view s)
+inline QString FromStdString(const std::u8string_view s)
 {
   return QString::fromUtf8(s.data(), s.size());
 }
-inline QString FromStdString(std::u16string_view s)
+inline QString FromStdString(const std::u16string_view s)
 {
   return QString::fromUtf16(s.data(), s.size());
 }

@@ -76,30 +76,30 @@ enum
 static inline int CalcClipMask(const OutputVertexData* v)
 {
   int cmask = 0;
-  Vec4 pos = v->projectedPosition;
+  const auto [x, y, z, w] = v->projectedPosition;
 
-  if (pos.w - pos.x < 0)
+  if (w - x < 0)
     cmask |= CLIP_POS_X_BIT;
 
-  if (pos.x + pos.w < 0)
+  if (x + w < 0)
     cmask |= CLIP_NEG_X_BIT;
 
-  if (pos.w - pos.y < 0)
+  if (w - y < 0)
     cmask |= CLIP_POS_Y_BIT;
 
-  if (pos.y + pos.w < 0)
+  if (y + w < 0)
     cmask |= CLIP_NEG_Y_BIT;
 
-  if (pos.w * pos.z > 0)
+  if (w * z > 0)
     cmask |= CLIP_POS_Z_BIT;
 
-  if (pos.z + pos.w < 0)
+  if (z + w < 0)
     cmask |= CLIP_NEG_Z_BIT;
 
   return cmask;
 }
 
-static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
+static inline void AddInterpolatedVertex(const float t, const int out, const int in, int* numVertices)
 {
   Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
 }
@@ -297,7 +297,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     return;
   }
 
-  bool backface = IsBackface(v0, v1, v2);
+  const bool backface = IsBackface(v0, v1, v2);
 
   if (!backface)
   {
@@ -383,8 +383,8 @@ constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
     0, 1 / 16.f, 1 / 8.f, 1 / 4.f, 1 / 2.f, 1, 1, 1,
 };
 
-static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, int px, int py,
-                           bool apply_line_offset)
+static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, const int px, const int py,
+                           const bool apply_line_offset)
 {
   const float line_half_width = bpmem.lineptwidth.linesize / 12.0f;
 
@@ -463,7 +463,7 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
   }
 }
 
-static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, bool px, bool py)
+static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, const bool px, const bool py)
 {
   const float point_radius = bpmem.lineptwidth.pointsize / 12.0f;
 
@@ -482,13 +482,13 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   {
     for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
     {
-      const auto coord_info = bpmem.texcoords[coord_num];
-      if (coord_info.s.point_offset)
+      const auto [s, t] = bpmem.texcoords[coord_num];
+      if (s.point_offset)
       {
         if (px)
-          dst->texCoords[coord_num].x += (coord_info.s.scale_minus_1 + 1) * point_offset;
+          dst->texCoords[coord_num].x += (s.scale_minus_1 + 1) * point_offset;
         if (py)
-          dst->texCoords[coord_num].y += (coord_info.t.scale_minus_1 + 1) * point_offset;
+          dst->texCoords[coord_num].y += (t.scale_minus_1 + 1) * point_offset;
       }
     }
   }
@@ -522,17 +522,17 @@ bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
 
 bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
 {
-  float x0 = v0->projectedPosition.x;
-  float x1 = v1->projectedPosition.x;
-  float x2 = v2->projectedPosition.x;
-  float y1 = v1->projectedPosition.y;
-  float y0 = v0->projectedPosition.y;
-  float y2 = v2->projectedPosition.y;
-  float w0 = v0->projectedPosition.w;
-  float w1 = v1->projectedPosition.w;
-  float w2 = v2->projectedPosition.w;
+  const float x0 = v0->projectedPosition.x;
+  const float x1 = v1->projectedPosition.x;
+  const float x2 = v2->projectedPosition.x;
+  const float y1 = v1->projectedPosition.y;
+  const float y0 = v0->projectedPosition.y;
+  const float y2 = v2->projectedPosition.y;
+  const float w0 = v0->projectedPosition.w;
+  const float w1 = v1->projectedPosition.w;
+  const float w2 = v2->projectedPosition.w;
 
-  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
+  const float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
 
   bool backface = normalZDir <= 0.0f;
   // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
@@ -546,12 +546,12 @@ bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const Ou
 
 void PerspectiveDivide(OutputVertexData* vertex)
 {
-  Vec4& projected = vertex->projectedPosition;
+  const auto& [x, y, z, w] = vertex->projectedPosition;
   Vec3& screen = vertex->screenPosition;
 
-  float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
-  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
+  const float wInverse = 1.0f / w;
+  screen.x = x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
+  screen.y = y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
+  screen.z = z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper

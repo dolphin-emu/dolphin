@@ -33,14 +33,14 @@ DSPEmitter::DSPEmitter(DSPCore& dsp)
     : m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}, m_blocks(MAX_BLOCKS),
       m_block_size(MAX_BLOCKS), m_block_links(MAX_BLOCKS), m_dsp_core{dsp}
 {
-  x64::InitInstructionTables();
+  InitInstructionTables();
   AllocCodeSpace(COMPILED_CODE_SIZE);
 
   CompileDispatcher();
   m_stub_entry_point = CompileStub();
 
   // Clear all of the block references
-  std::fill(m_blocks.begin(), m_blocks.end(), (DSPCompiledCode)m_stub_entry_point);
+  std::ranges::fill(m_blocks, (DSPCompiledCode)m_stub_entry_point);
 }
 
 DSPEmitter::~DSPEmitter()
@@ -48,7 +48,7 @@ DSPEmitter::~DSPEmitter()
   FreeCodeSpace();
 }
 
-u16 DSPEmitter::RunCycles(u16 cycles)
+u16 DSPEmitter::RunCycles(const u16 cycles)
 {
   if (m_dsp_core.DSPState().external_interrupt_waiting.exchange(false, std::memory_order_acquire))
   {
@@ -57,7 +57,7 @@ u16 DSPEmitter::RunCycles(u16 cycles)
   }
 
   m_cycles_left = cycles;
-  auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
+  const auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
   exec_addr();
 
   if (m_dsp_core.DSPState().reset_dspjit_codespace)
@@ -105,11 +105,11 @@ static void CheckExceptionsThunk(DSPCore& dsp)
 }
 
 // Must go out of block if exception is detected
-void DSPEmitter::checkExceptions(u32 retval)
+void DSPEmitter::checkExceptions(const u32 retval)
 {
   // Check for interrupts and exceptions
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
-  FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
+  const FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
 
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
 
@@ -131,12 +131,12 @@ bool DSPEmitter::FlagsNeeded() const
   return !analyzer.IsStartOfInstruction(m_compile_pc) || analyzer.IsUpdateSR(m_compile_pc);
 }
 
-static void FallbackThunk(Interpreter::Interpreter& interpreter, UDSPInstruction inst)
+static void FallbackThunk(Interpreter::Interpreter& interpreter, const UDSPInstruction inst)
 {
   (interpreter.*Interpreter::GetOp(inst))(inst);
 }
 
-void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
+void DSPEmitter::FallBackToInterpreter(const UDSPInstruction inst)
 {
   const DSPOPCTemplate* const op_template = GetOpTemplate(inst);
 
@@ -158,7 +158,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   m_gpr.PopRegs();
 }
 
-static void FallbackExtThunk(Interpreter::Interpreter& interpreter, UDSPInstruction inst)
+static void FallbackExtThunk(Interpreter::Interpreter& interpreter, const UDSPInstruction inst)
 {
   (interpreter.*Interpreter::GetExtOp(inst))(inst);
 }
@@ -168,7 +168,7 @@ static void ApplyWriteBackLogThunk(Interpreter::Interpreter& interpreter)
   interpreter.ApplyWriteBackLog();
 }
 
-void DSPEmitter::EmitInstruction(UDSPInstruction inst)
+void DSPEmitter::EmitInstruction(const UDSPInstruction inst)
 {
   const DSPOPCTemplate* const op_template = GetOpTemplate(inst);
   bool ext_is_jit = false;
@@ -224,7 +224,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
   }
 }
 
-void DSPEmitter::Compile(u16 start_addr)
+void DSPEmitter::Compile(const u16 start_addr)
 {
   // Remember the current block address for later
   m_start_address = start_addr;
@@ -240,7 +240,7 @@ void DSPEmitter::Compile(u16 start_addr)
   bool fixup_pc = false;
   m_block_size[start_addr] = 0;
 
-  auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
+  const auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
   while (m_compile_pc < start_addr + MAX_BLOCK_SIZE)
   {
     if (analyzer.IsCheckExceptions(m_compile_pc))
@@ -359,7 +359,7 @@ void DSPEmitter::Compile(u16 start_addr)
       if (!m_unresolved_jumps[i].empty())
       {
         // Check if there were any blocks waiting for this block to be linkable
-        size_t size = m_unresolved_jumps[i].size();
+        const size_t size = m_unresolved_jumps[i].size();
         m_unresolved_jumps[i].remove(start_addr);
         if (m_unresolved_jumps[i].size() < size)
         {
@@ -428,7 +428,7 @@ void DSPEmitter::CompileDispatcher()
 {
   m_enter_dispatcher = AlignCode16();
   // We don't use floating point (high 16 bits).
-  BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
+  constexpr BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
   ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
   MOV(64, R(R15), ImmPtr(&m_dsp_core.DSPState()));
@@ -444,7 +444,7 @@ void DSPEmitter::CompileDispatcher()
 
   // Check for DSP halt
   TEST(8, M_SDSP_control_reg(), Imm8(CR_HALT));
-  FixupBranch _halt = J_CC(CC_NE);
+  const FixupBranch _halt = J_CC(CC_NE);
 
   // Execute block. Cycles executed returned in EAX.
   MOVZX(64, 16, ECX, M_SDSP_pc());
@@ -474,22 +474,22 @@ void DSPEmitter::CompileDispatcher()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
-Gen::OpArg DSPEmitter::M_SDSP_pc()
+OpArg DSPEmitter::M_SDSP_pc()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, pc)));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_exceptions()
+OpArg DSPEmitter::M_SDSP_exceptions()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, exceptions)));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_control_reg()
+OpArg DSPEmitter::M_SDSP_control_reg()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, control_reg)));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
+OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
 {
   static_assert(decltype(SDSP::external_interrupt_waiting)::is_always_lock_free &&
                 sizeof(SDSP::external_interrupt_waiting) == sizeof(u8));
@@ -497,12 +497,12 @@ Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
   return MDisp(R15, static_cast<int>(offsetof(SDSP, external_interrupt_waiting)));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
+OpArg DSPEmitter::M_SDSP_r_st(const size_t index)
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st) + sizeof(SDSP::r.st[0]) * index));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
+OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(const size_t index)
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
                                      sizeof(SDSP::reg_stack_ptrs[0]) * index));

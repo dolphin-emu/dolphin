@@ -104,7 +104,7 @@ void NewPatchDialog::AddEntry()
 static u32 OnTextEdited(QLineEdit* edit, const QString& text)
 {
   bool okay = false;
-  u32 value = text.toUInt(&okay, 16);
+  const u32 value = text.toUInt(&okay, 16);
 
   QFont font;
   QPalette palette;
@@ -122,7 +122,7 @@ static u32 OnTextEdited(QLineEdit* edit, const QString& text)
 
 QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
 {
-  QGroupBox* box = new QGroupBox();
+  auto box = new QGroupBox();
 
   auto* type = new QGroupBox(tr("Type"));
   auto* type_layout = new QHBoxLayout;
@@ -181,22 +181,23 @@ QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
       m_entry_layout->removeWidget(box);
       box->deleteLater();
 
-      m_entries.erase(std::find_if(m_entries.begin(), m_entries.end(),
-                                   [new_entry](const auto& e) { return e.get() == new_entry; }));
+      m_entries.erase(std::ranges::find_if(m_entries, [new_entry](const auto& e) {
+        return e.get() == new_entry;
+      }));
     }
   });
 
-  connect(byte, &QRadioButton::toggled, [new_entry](bool checked) {
+  connect(byte, &QRadioButton::toggled, [new_entry](const bool checked) {
     if (checked)
       new_entry->entry.type = PatchEngine::PatchType::Patch8Bit;
   });
 
-  connect(word, &QRadioButton::toggled, [new_entry](bool checked) {
+  connect(word, &QRadioButton::toggled, [new_entry](const bool checked) {
     if (checked)
       new_entry->entry.type = PatchEngine::PatchType::Patch16Bit;
   });
 
-  connect(dword, &QRadioButton::toggled, [new_entry](bool checked) {
+  connect(dword, &QRadioButton::toggled, [new_entry](const bool checked) {
     if (checked)
       new_entry->entry.type = PatchEngine::PatchType::Patch32Bit;
   });
@@ -205,7 +206,7 @@ QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
   word->setChecked(entry.type == PatchEngine::PatchType::Patch16Bit);
   dword->setChecked(entry.type == PatchEngine::PatchType::Patch32Bit);
 
-  connect(conditional, &QCheckBox::toggled, [new_entry, comparand_label, comparand](bool checked) {
+  connect(conditional, &QCheckBox::toggled, [new_entry, comparand_label, comparand](const bool checked) {
     new_entry->entry.conditional = checked;
     comparand_label->setVisible(checked);
     comparand->setVisible(checked);

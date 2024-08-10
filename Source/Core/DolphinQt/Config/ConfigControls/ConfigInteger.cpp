@@ -9,27 +9,28 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, int step)
+ConfigInteger::ConfigInteger(const int minimum, const int maximum, const Config::Info<int>& setting,
+                             const int step)
     : ToolTipSpinBox(), m_setting(setting)
 {
   setMinimum(minimum);
   setMaximum(maximum);
   setSingleStep(step);
 
-  setValue(Config::Get(setting));
+  setValue(Get(setting));
 
   connect(this, &ConfigInteger::valueChanged, this, &ConfigInteger::Update);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    setValue(Config::Get(m_setting));
+    setValue(Get(m_setting));
   });
 }
 
-void ConfigInteger::Update(int value)
+void ConfigInteger::Update(const int value) const
 {
-  Config::SetBaseOrCurrent(m_setting, value);
+  SetBaseOrCurrent(m_setting, value);
 }

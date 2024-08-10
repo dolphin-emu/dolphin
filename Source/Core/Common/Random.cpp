@@ -28,7 +28,7 @@ public:
     mbedtls_entropy_free(&m_entropy);
   }
 
-  void Generate(void* buffer, std::size_t size)
+  void Generate(void* buffer, const std::size_t size)
   {
     const int ret = mbedtls_hmac_drbg_random(&m_context, static_cast<u8*>(buffer), size);
     ASSERT(ret == 0);
@@ -41,7 +41,7 @@ private:
 
 static thread_local EntropySeededPRNG s_esprng;
 
-void Generate(void* buffer, std::size_t size)
+void Generate(void* buffer, const std::size_t size)
 {
   s_esprng.Generate(buffer, size);
 }

@@ -23,7 +23,7 @@
 
 namespace DiscIO
 {
-static u32 LZMA2DictionarySize(u8 p)
+static u32 LZMA2DictionarySize(const u8 p)
 {
   return (static_cast<u32>(2) | (p & 1)) << (p / 2 + 11);
 }
@@ -45,7 +45,7 @@ bool NoneDecompressor::Decompress(const DecompressionBuffer& in, DecompressionBu
   return true;
 }
 
-PurgeDecompressor::PurgeDecompressor(u64 decompressed_size) : m_decompressed_size(decompressed_size)
+PurgeDecompressor::PurgeDecompressor(const u64 decompressed_size) : m_decompressed_size(decompressed_size)
 {
 }
 
@@ -163,11 +163,11 @@ bool Bzip2Decompressor::Decompress(const DecompressionBuffer& in, DecompressionB
     m_started = true;
   }
 
-  char* const in_ptr = reinterpret_cast<char*>(const_cast<u8*>(in.data.data() + *in_bytes_read));
+  const auto in_ptr = reinterpret_cast<char*>(const_cast<u8*>(in.data.data() + *in_bytes_read));
   m_stream.next_in = in_ptr;
   m_stream.avail_in = MathUtil::SaturatingCast<u32>(in.bytes_written - *in_bytes_read);
 
-  char* const out_ptr = reinterpret_cast<char*>(out->data.data() + out->bytes_written);
+  const auto out_ptr = reinterpret_cast<char*>(out->data.data() + out->bytes_written);
   m_stream.next_out = out_ptr;
   m_stream.avail_out = MathUtil::SaturatingCast<u32>(out->data.size() - out->bytes_written);
 
@@ -180,7 +180,7 @@ bool Bzip2Decompressor::Decompress(const DecompressionBuffer& in, DecompressionB
   return result == BZ_OK || result == BZ_STREAM_END;
 }
 
-LZMADecompressor::LZMADecompressor(bool lzma2, const u8* filter_options, size_t filter_options_size)
+LZMADecompressor::LZMADecompressor(const bool lzma2, const u8* filter_options, const size_t filter_options_size)
 {
   m_options.preset_dict = nullptr;
 
@@ -285,15 +285,15 @@ bool ZstdDecompressor::Decompress(const DecompressionBuffer& in, DecompressionBu
 }
 
 RVZPackDecompressor::RVZPackDecompressor(std::unique_ptr<Decompressor> decompressor,
-                                         DecompressionBuffer decompressed, u64 data_offset,
-                                         u32 rvz_packed_size)
+                                         DecompressionBuffer decompressed, const u64 data_offset,
+                                         const u32 rvz_packed_size)
     : m_decompressor(std::move(decompressor)), m_decompressed(std::move(decompressed)),
       m_data_offset(data_offset), m_rvz_packed_size(rvz_packed_size)
 {
   m_bytes_read = m_decompressed.bytes_written;
 }
 
-bool RVZPackDecompressor::IncrementBytesRead(size_t x)
+bool RVZPackDecompressor::IncrementBytesRead(const size_t x)
 {
   m_bytes_read += x;
   return m_bytes_read <= m_rvz_packed_size;
@@ -301,8 +301,8 @@ bool RVZPackDecompressor::IncrementBytesRead(size_t x)
 
 std::optional<bool> RVZPackDecompressor::ReadToDecompressed(const DecompressionBuffer& in,
                                                             size_t* in_bytes_read,
-                                                            size_t decompressed_bytes_read,
-                                                            size_t bytes_to_read)
+                                                            const size_t decompressed_bytes_read,
+                                                            const size_t bytes_to_read)
 {
   if (m_decompressed.data.size() < decompressed_bytes_read + bytes_to_read)
     m_decompressed.data.resize(decompressed_bytes_read + bytes_to_read);
@@ -446,13 +446,13 @@ bool PurgeCompressor::Start(std::optional<u64> size)
   return true;
 }
 
-bool PurgeCompressor::AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size)
+bool PurgeCompressor::AddPrecedingDataOnlyForPurgeHashing(const u8* data, const size_t size)
 {
   m_sha1_context->Update(data, size);
   return true;
 }
 
-bool PurgeCompressor::Compress(const u8* data, size_t size)
+bool PurgeCompressor::Compress(const u8* data, const size_t size)
 {
   // We could add support for calling this twice if we're fine with
   // making the code more complicated, but there's no need to support it
@@ -466,7 +466,7 @@ bool PurgeCompressor::Compress(const u8* data, size_t size)
   while (true)
   {
     const auto first_non_zero =
-        std::find_if(data + bytes_read, data + size, [](u8 x) { return x != 0; });
+        std::find_if(data + bytes_read, data + size, [](const u8 x) { return x != 0; });
 
     const u32 non_zero_data_start = static_cast<u32>(first_non_zero - data);
     if (non_zero_data_start == size)
@@ -533,7 +533,7 @@ size_t PurgeCompressor::GetSize() const
   return m_bytes_written;
 }
 
-Bzip2Compressor::Bzip2Compressor(int compression_level) : m_compression_level(compression_level)
+Bzip2Compressor::Bzip2Compressor(const int compression_level) : m_compression_level(compression_level)
 {
 }
 
@@ -553,7 +553,7 @@ bool Bzip2Compressor::Start(std::optional<u64> size)
   return BZ2_bzCompressInit(&m_stream, m_compression_level, 0, 0) == BZ_OK;
 }
 
-bool Bzip2Compressor::Compress(const u8* data, size_t size)
+bool Bzip2Compressor::Compress(const u8* data, const size_t size)
 {
   m_stream.next_in = reinterpret_cast<char*>(const_cast<u8*>(data));
   m_stream.avail_in = static_cast<unsigned int>(size);
@@ -594,7 +594,7 @@ bool Bzip2Compressor::End()
   return success;
 }
 
-void Bzip2Compressor::ExpandBuffer(size_t bytes_to_add)
+void Bzip2Compressor::ExpandBuffer(const size_t bytes_to_add)
 {
   const size_t bytes_written = GetSize();
   m_buffer.resize(m_buffer.size() + bytes_to_add);
@@ -612,7 +612,7 @@ size_t Bzip2Compressor::GetSize() const
   return static_cast<size_t>(reinterpret_cast<u8*>(m_stream.next_out) - m_buffer.data());
 }
 
-LZMACompressor::LZMACompressor(bool lzma2, int compression_level, u8 compressor_data_out[7],
+LZMACompressor::LZMACompressor(const bool lzma2, const int compression_level, u8 compressor_data_out[7],
                                u8* compressor_data_size_out)
 {
   // lzma_lzma_preset returns false on success for some reason
@@ -677,7 +677,7 @@ bool LZMACompressor::Start(std::optional<u64> size)
   return lzma_raw_encoder(&m_stream, m_filters) == LZMA_OK;
 }
 
-bool LZMACompressor::Compress(const u8* data, size_t size)
+bool LZMACompressor::Compress(const u8* data, const size_t size)
 {
   m_stream.next_in = data;
   m_stream.avail_in = size;
@@ -715,7 +715,7 @@ bool LZMACompressor::End()
   }
 }
 
-void LZMACompressor::ExpandBuffer(size_t bytes_to_add)
+void LZMACompressor::ExpandBuffer(const size_t bytes_to_add)
 {
   const size_t bytes_written = GetSize();
   m_buffer.resize(m_buffer.size() + bytes_to_add);
@@ -733,7 +733,7 @@ size_t LZMACompressor::GetSize() const
   return static_cast<size_t>(m_stream.next_out - m_buffer.data());
 }
 
-ZstdCompressor::ZstdCompressor(int compression_level)
+ZstdCompressor::ZstdCompressor(const int compression_level)
 {
   m_stream = ZSTD_createCStream();
 
@@ -749,7 +749,7 @@ ZstdCompressor::~ZstdCompressor()
   ZSTD_freeCStream(m_stream);
 }
 
-bool ZstdCompressor::Start(std::optional<u64> size)
+bool ZstdCompressor::Start(const std::optional<u64> size)
 {
   if (!m_stream)
     return false;
@@ -769,7 +769,7 @@ bool ZstdCompressor::Start(std::optional<u64> size)
   return true;
 }
 
-bool ZstdCompressor::Compress(const u8* data, size_t size)
+bool ZstdCompressor::Compress(const u8* data, const size_t size)
 {
   ZSTD_inBuffer in_buffer{data, size, 0};
 
@@ -802,7 +802,7 @@ bool ZstdCompressor::End()
   }
 }
 
-void ZstdCompressor::ExpandBuffer(size_t bytes_to_add)
+void ZstdCompressor::ExpandBuffer(const size_t bytes_to_add)
 {
   m_buffer.resize(m_buffer.size() + bytes_to_add);
 

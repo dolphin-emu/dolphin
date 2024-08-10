@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include <QByteArray>
 #include <QDockWidget>
 
@@ -51,30 +49,30 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
-  void OnAddressSpaceChanged();
-  void OnDisplayChanged();
-  void OnBPLogChanged();
-  void OnBPTypeChanged();
+  void OnAddressSpaceChanged() const;
+  void OnDisplayChanged() const;
+  void OnBPLogChanged() const;
+  void OnBPTypeChanged() const;
 
-  void OnSearchAddress();
-  void OnFindNextValue();
-  void OnFindPreviousValue();
+  void OnSearchAddress() const;
+  void OnFindNextValue() const;
+  void OnFindPreviousValue() const;
 
   void OnSetValue();
   void OnSetValueFromFile();
 
-  void OnDumpMRAM();
-  void OnDumpExRAM();
-  void OnDumpARAM();
-  void OnDumpFakeVMEM();
+  static void OnDumpMRAM();
+  static void OnDumpExRAM();
+  static void OnDumpARAM();
+  static void OnDumpFakeVMEM();
 
-  void ValidateAndPreviewInputValue();
+  void ValidateAndPreviewInputValue() const;
   QByteArray GetInputData() const;
   TargetAddress GetTargetAddress() const;
-  void FindValue(bool next);
+  void FindValue(bool next) const;
 
   void closeEvent(QCloseEvent*) override;
   void showEvent(QShowEvent* event) override;

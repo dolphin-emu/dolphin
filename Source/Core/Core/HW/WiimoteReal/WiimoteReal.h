@@ -10,7 +10,6 @@
 #include <thread>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -194,7 +193,7 @@ public:
 
 private:
   void ThreadFunc();
-  void PoolThreadFunc();
+  void PoolThreadFunc() const;
 
   std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
   mutable std::mutex m_backends_mutex;

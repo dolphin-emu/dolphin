@@ -31,7 +31,7 @@ void InitDriverInfo()
   const std::string_view sversion(g_ogl_config.gl_version);
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
   DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
-  DriverDetails::Family family = DriverDetails::Family::UNKNOWN;
+  auto family = DriverDetails::Family::UNKNOWN;
   double version = 0.0;
 
   // Get the vendor first
@@ -211,11 +211,11 @@ void InitDriverInfo()
   default:
     break;
   }
-  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family,
+  Init(DriverDetails::API_OPENGL, vendor, driver, version, family,
                       std::string(srenderer));
 }
 
-bool PopulateConfig(GLContext* m_main_gl_context)
+bool PopulateConfig(const GLContext* m_main_gl_context)
 {
   bool bSuccess = true;
   bool supports_glsl_cache = false;
@@ -261,7 +261,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
                      "GPU: Does your video card support OpenGL 3.1?");
       bSuccess = false;
     }
-    else if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UBO))
+    else if (HasBug(DriverDetails::BUG_BROKEN_UBO))
     {
       PanicAlertFmtT(
           "Buggy GPU driver detected.\n"
@@ -286,14 +286,14 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
        GLExtensions::Supports("GL_EXT_blend_func_extended"));
   g_Config.backend_info.bSupportsPrimitiveRestart =
-      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
+      !HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
                                         GLExtensions::Supports("GL_ARB_sample_shading");
   g_Config.backend_info.bSupportsGeometryShaders =
       GLExtensions::Version() >= 320 &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_GEOMETRY_SHADERS);
+      !HasBug(DriverDetails::BUG_BROKEN_GEOMETRY_SHADERS);
   g_Config.backend_info.bSupportsPaletteConversion =
       GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
       GLExtensions::Supports("GL_OES_texture_buffer") ||
@@ -303,7 +303,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
        GLExtensions::Supports("GL_EXT_copy_image") ||
        GLExtensions::Supports("GL_OES_copy_image")) &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
+      !HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
   g_ogl_config.bSupportsTextureSubImage = GLExtensions::Supports("ARB_get_texture_sub_image");
 
   // Desktop OpenGL supports the binding layout if it supports 420pack
@@ -556,7 +556,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_Config.backend_info.AAModes.clear();
   if (g_ogl_config.bSupportsMSAA)
   {
-    bool supportsGetInternalFormat =
+    const bool supportsGetInternalFormat =
         GLExtensions::Supports("VERSION_4_2") || GLExtensions::Supports("VERSION_GLES_3");
     if (supportsGetInternalFormat)
     {
@@ -565,7 +565,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
       std::vector<int> color_aa_modes;
       {
-        GLenum colorInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
+        const GLenum colorInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
             FramebufferManager::GetEFBColorFormat(), true);
         GLint num_color_sample_counts = 0;
         glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat,
@@ -582,7 +582,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
           static_assert(sizeof(GLint) == sizeof(u32));
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat, GL_SAMPLES,
                                 num_color_sample_counts,
-                                reinterpret_cast<GLint*>(color_aa_modes.data()));
+                                color_aa_modes.data());
           ASSERT_MSG(VIDEO, std::is_sorted(color_aa_modes.rbegin(), color_aa_modes.rend()),
                      "GPU driver didn't return sorted color AA modes: [{}]",
                      fmt::join(color_aa_modes, ", "));
@@ -594,7 +594,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
       std::vector<int> depth_aa_modes;
       {
-        GLenum depthInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
+        const GLenum depthInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
             FramebufferManager::GetEFBColorFormat(), true);
         GLint num_depth_sample_counts = 0;
         glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat,
@@ -611,7 +611,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
           static_assert(sizeof(GLint) == sizeof(u32));
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat, GL_SAMPLES,
                                 num_depth_sample_counts,
-                                reinterpret_cast<GLint*>(depth_aa_modes.data()));
+                                depth_aa_modes.data());
           ASSERT_MSG(VIDEO, std::is_sorted(depth_aa_modes.rbegin(), depth_aa_modes.rend()),
                      "GPU driver didn't return sorted depth AA modes: [{}]",
                      fmt::join(depth_aa_modes, ", "));
@@ -658,7 +658,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       }
       g_Config.backend_info.AAModes.push_back(1);
       // The UI wants ascending order
-      std::reverse(g_Config.backend_info.AAModes.begin(), g_Config.backend_info.AAModes.end());
+      std::ranges::reverse(g_Config.backend_info.AAModes);
     }
   }
   else
@@ -693,7 +693,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
   // Background compiling is supported only when shared contexts aren't broken.
   g_Config.backend_info.bSupportsBackgroundCompiling =
-      !DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
+      !HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
 
   // Program binaries are supported on GL4.1+, ARB_get_program_binary, or ES3.
   if (supports_glsl_cache)

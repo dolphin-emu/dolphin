@@ -117,20 +117,17 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
     {
       return EnumFormatter::format(e, ctx);
     }
-    else
+    // Special-case None since it has a fixed ID (0xff) that is much larger than the rest; we
+    // don't need 200 nullptr entries in names.  We also want to format it specially in the UI.
+    switch (format_type)
     {
-      // Special-case None since it has a fixed ID (0xff) that is much larger than the rest; we
-      // don't need 200 nullptr entries in names.  We also want to format it specially in the UI.
-      switch (format_type)
-      {
-      default:
-      case 'u':
-        return fmt::format_to(ctx.out(), "None");
-      case 's':
-        return fmt::format_to(ctx.out(), "0xffu /* None */");
-      case 'n':
-        return fmt::format_to(ctx.out(), _trans("<Nothing>"));
-      }
+    default:
+    case 'u':
+      return fmt::format_to(ctx.out(), "None");
+    case 's':
+      return fmt::format_to(ctx.out(), "0xffu /* None */");
+    case 'n':
+      return fmt::format_to(ctx.out(), _trans("<Nothing>"));
     }
   }
 };

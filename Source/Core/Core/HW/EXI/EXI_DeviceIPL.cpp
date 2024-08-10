@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/Timer.h"
@@ -37,18 +36,18 @@ namespace ExpansionInterface
 // We should provide an option to choose from the above, or figure out the checksum (the algo in
 // yagcd seems wrong) so that people can change default language.
 
-static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
+static constexpr char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                      "(C) 1999 ArtX Inc.  All rights reserved."
                                      "PAL  Revision 1.0  ";
 
-static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
+static constexpr char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                       "(C) 1999 ArtX Inc.  All rights reserved.";
 
 Common::Flags<RTCFlag> g_rtc_flags;
 
 // bootrom descrambler reversed by segher
 // Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
-void CEXIIPL::Descrambler(u8* data, u32 size)
+void CEXIIPL::Descrambler(u8* data, const u32 size)
 {
   u8 acc = 0;
   u8 nacc = 0;
@@ -61,11 +60,11 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
 
   for (u32 it = 0; it < size;)
   {
-    int t0 = t & 1;
-    int t1 = (t >> 1) & 1;
-    int u0 = u & 1;
-    int u1 = (u >> 1) & 1;
-    int v0 = v & 1;
+    const int t0 = t & 1;
+    const int t1 = (t >> 1) & 1;
+    const int u0 = u & 1;
+    const int u1 = (u >> 1) & 1;
+    const int v0 = v & 1;
 
     x ^= t1 ^ v0;
     x ^= (u0 | u1);
@@ -106,7 +105,7 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
 
   // Load whole ROM dump
   // Note: The Wii doesn't have a copy of the IPL, only fonts.
-  if (!system.IsWii() && Config::Get(Config::SESSION_LOAD_IPL_DUMP) &&
+  if (!system.IsWii() && Get(Config::SESSION_LOAD_IPL_DUMP) &&
       LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
   {
     // Descramble the encrypted section (contains BS1 and BS2)
@@ -121,7 +120,7 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
     // If we are in Wii mode or if loading the GC IPL fails, we should still try to load fonts.
 
     // Copy header
-    if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
+    if (IsNTSC(SConfig::GetInstance().m_region))
       memcpy(&m_rom[0], iplverNTSC, sizeof(iplverNTSC));
     else
       memcpy(&m_rom[0], iplverPAL, sizeof(iplverPAL));
@@ -138,7 +137,7 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
-  sram.settings.language = Config::Get(Config::MAIN_GC_LANGUAGE);
+  sram.settings.language = Get(Config::MAIN_GC_LANGUAGE);
   sram.settings.rtc_bias = 0;
   FixSRAMChecksums(&sram);
 }
@@ -158,7 +157,7 @@ void CEXIIPL::DoState(PointerWrap& p)
   p.Do(m_fonts_loaded);
 }
 
-bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
+bool CEXIIPL::LoadFileToIPL(const std::string& filename, const u32 offset)
 {
   if (offset >= ROM_SIZE)
     return false;
@@ -200,14 +199,14 @@ bool CEXIIPL::HasIPLDump()
   return !ipl_rom_path.empty();
 }
 
-void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
+void CEXIIPL::LoadFontFile(const std::string& filename, const u32 offset)
 {
   // Official IPL fonts are copyrighted. Dolphin ships with a set of free font alternatives but
   // unfortunately the bundled fonts have different padding, causing issues with misplaced text
   // in some titles. This function check if the user has IPL dumps available and load the fonts
   // from those dumps instead of loading the bundled fonts
 
-  if (!Config::Get(Config::SESSION_LOAD_IPL_DUMP))
+  if (!Get(Config::SESSION_LOAD_IPL_DUMP))
   {
     // IPL loading disabled, load bundled font instead
     LoadFileToIPL(filename, offset);
@@ -246,7 +245,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   m_fonts_loaded = true;
 }
 
-void CEXIIPL::SetCS(int cs)
+void CEXIIPL::SetCS(const int cs)
 {
   if (cs)
   {
@@ -255,10 +254,10 @@ void CEXIIPL::SetCS(int cs)
   }
 }
 
-void CEXIIPL::UpdateRTC()
+void CEXIIPL::UpdateRTC() const
 {
-  auto& sram = m_system.GetSRAM();
-  sram.rtc = GetEmulatedTime(m_system, GC_EPOCH);
+  auto& [rtc, _settings, _settings_ex] = m_system.GetSRAM();
+  rtc = GetEmulatedTime(m_system, GC_EPOCH);
 }
 
 bool CEXIIPL::IsPresent() const
@@ -399,11 +398,11 @@ void CEXIIPL::TransferByte(u8& data)
   }
 }
 
-u32 CEXIIPL::GetEmulatedTime(Core::System& system, u32 epoch)
+u32 CEXIIPL::GetEmulatedTime(const Core::System& system, const u32 epoch)
 {
   u64 ltime = 0;
 
-  auto& movie = system.GetMovie();
+  const auto& movie = system.GetMovie();
   if (movie.IsMovieActive())
   {
     ltime = movie.GetRecordingStartTime();

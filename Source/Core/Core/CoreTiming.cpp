@@ -27,7 +27,6 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace CoreTiming
@@ -59,17 +58,17 @@ CoreTimingManager::CoreTimingManager(Core::System& system) : m_system(system)
 //
 // Technically it might be more accurate to call this changing the IPC instead of the CPU speed,
 // but the effect is largely the same.
-int CoreTimingManager::DowncountToCycles(int downcount) const
+int CoreTimingManager::DowncountToCycles(const int downcount) const
 {
   return static_cast<int>(downcount * m_globals.last_OC_factor_inverted);
 }
 
-int CoreTimingManager::CyclesToDowncount(int cycles) const
+int CoreTimingManager::CyclesToDowncount(const int cycles) const
 {
   return static_cast<int>(cycles * m_last_oc_factor);
 }
 
-EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallback callback)
+EventType* CoreTimingManager::RegisterEvent(const std::string& name, const TimedCallback callback)
 {
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
@@ -78,9 +77,9 @@ EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallba
              "during Init to avoid breaking save states.",
              name);
 
-  auto info = m_event_types.emplace(name, EventType{callback, nullptr});
-  EventType* event_type = &info.first->second;
-  event_type->name = &info.first->first;
+  const auto [fst, _snd] = m_event_types.emplace(name, EventType{callback, nullptr});
+  EventType* event_type = &fst->second;
+  event_type->name = &fst->first;
   return event_type;
 }
 
@@ -122,32 +121,32 @@ void CoreTimingManager::Shutdown()
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
 void CoreTimingManager::RefreshConfig()
 {
   m_config_oc_factor =
-      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
+      Get(Config::MAIN_OVERCLOCK_ENABLE) ? Get(Config::MAIN_OVERCLOCK) : 1.0f;
   m_config_oc_inv_factor = 1.0f / m_config_oc_factor;
-  m_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  m_config_sync_on_skip_idle = Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
 
   // A maximum fallback is used to prevent the system from sleeping for
   // too long or going full speed in an attempt to catch up to timings.
-  m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
+  m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Get(Config::MAIN_MAX_FALLBACK)));
 
-  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Get(Config::MAIN_TIMING_VARIANCE)));
 
   if (AchievementManager::GetInstance().IsHardcoreModeActive() &&
-      Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
-      Config::Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
+      Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
+      Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
   {
-    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     m_emulation_speed = 1.0f;
     OSD::AddMessage("Minimum speed is 100% in Hardcore Mode");
   }
 
-  m_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  m_emulation_speed = Get(Config::MAIN_EMULATION_SPEED);
 }
 
 void CoreTimingManager::DoState(PointerWrap& p)
@@ -184,7 +183,7 @@ void CoreTimingManager::DoState(PointerWrap& p)
     pw.Do(name);
     if (pw.IsReadMode())
     {
-      auto itr = m_event_types.find(name);
+      const auto itr = m_event_types.find(name);
       if (itr != m_event_types.end())
       {
         ev.type = &itr->second;
@@ -205,7 +204,7 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // When loading from a save state, we must assume the Event order is random and meaningless.
     // The exact layout of the heap in memory is implementation defined, therefore it is platform
     // and library version specific.
-    std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::make_heap(m_event_queue, std::greater<Event>());
 
     // The stave state has changed the time, so our previous Throttle targets are invalid.
     // Especially when global_time goes down; So we create a fake throttle update.
@@ -220,7 +219,7 @@ u64 CoreTimingManager::GetTicks() const
   u64 ticks = static_cast<u64>(m_globals.global_timer);
   if (!m_is_global_timer_sane)
   {
-    int downcount = DowncountToCycles(m_system.GetPPCState().downcount);
+    const int downcount = DowncountToCycles(m_system.GetPPCState().downcount);
     ticks += m_globals.slice_length - downcount;
   }
   return ticks;
@@ -236,8 +235,8 @@ void CoreTimingManager::ClearPendingEvents()
   m_event_queue.clear();
 }
 
-void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata,
-                                      FromThread from)
+void CoreTimingManager::ScheduleEvent(const s64 cycles_into_future, EventType* event_type, const u64 userdata,
+                                      const FromThread from)
 {
   ASSERT_MSG(POWERPC, event_type, "Event type is nullptr, will crash now.");
 
@@ -256,14 +255,14 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
 
   if (from_cpu_thread)
   {
-    s64 timeout = GetTicks() + cycles_into_future;
+    const s64 timeout = GetTicks() + cycles_into_future;
 
     // If this event needs to be scheduled before the next advance(), force one early
     if (!m_is_global_timer_sane)
       ForceExceptionCheck(cycles_into_future);
 
     m_event_queue.emplace_back(Event{timeout, m_event_fifo_id++, userdata, event_type});
-    std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::push_heap(m_event_queue, std::greater<Event>());
   }
   else
   {
@@ -280,7 +279,7 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
   }
 }
 
-void CoreTimingManager::RemoveEvent(EventType* event_type)
+void CoreTimingManager::RemoveEvent(const EventType* event_type)
 {
   const size_t erased =
       std::erase_if(m_event_queue, [&](const Event& e) { return e.type == event_type; });
@@ -288,11 +287,11 @@ void CoreTimingManager::RemoveEvent(EventType* event_type)
   // Removing random items breaks the invariant so we have to re-establish it.
   if (erased != 0)
   {
-    std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::make_heap(m_event_queue, std::greater<Event>());
   }
 }
 
-void CoreTimingManager::RemoveAllEvents(EventType* event_type)
+void CoreTimingManager::RemoveAllEvents(const EventType* event_type)
 {
   MoveEvents();
   RemoveEvent(event_type);
@@ -301,13 +300,17 @@ void CoreTimingManager::RemoveAllEvents(EventType* event_type)
 void CoreTimingManager::ForceExceptionCheck(s64 cycles)
 {
   cycles = std::max<s64>(0, cycles);
-  auto& ppc_state = m_system.GetPPCState();
-  if (DowncountToCycles(ppc_state.downcount) > cycles)
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = m_system.GetPPCState();
+  if (DowncountToCycles(downcount) > cycles)
   {
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int here.
     // Account for cycles already executed by adjusting the m_globals.slice_length
-    m_globals.slice_length -= DowncountToCycles(ppc_state.downcount) - static_cast<int>(cycles);
-    ppc_state.downcount = CyclesToDowncount(static_cast<int>(cycles));
+    m_globals.slice_length -= DowncountToCycles(downcount) - static_cast<int>(cycles);
+    downcount = CyclesToDowncount(static_cast<int>(cycles));
   }
 }
 
@@ -317,7 +320,7 @@ void CoreTimingManager::MoveEvents()
   {
     ev.fifo_order = m_event_fifo_id++;
     m_event_queue.emplace_back(std::move(ev));
-    std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::push_heap(m_event_queue, std::greater<Event>());
   }
 }
 
@@ -328,9 +331,13 @@ void CoreTimingManager::Advance()
   MoveEvents();
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = power_pc.GetPPCState();
 
-  int cyclesExecuted = m_globals.slice_length - DowncountToCycles(ppc_state.downcount);
+  const int cyclesExecuted = m_globals.slice_length - DowncountToCycles(downcount);
   m_globals.global_timer += cyclesExecuted;
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
@@ -340,12 +347,12 @@ void CoreTimingManager::Advance()
 
   while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
-    Event evt = std::move(m_event_queue.front());
-    std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    const auto [time, _fifo_order, userdata, type] = std::move(m_event_queue.front());
+    std::ranges::pop_heap(m_event_queue, std::greater<Event>());
     m_event_queue.pop_back();
 
-    Throttle(evt.time);
-    evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
+    Throttle(time);
+    type->callback(m_system, userdata, m_globals.global_timer - time);
   }
 
   m_is_global_timer_sane = false;
@@ -357,7 +364,7 @@ void CoreTimingManager::Advance()
         std::min<s64>(m_event_queue.front().time - m_globals.global_timer, MAX_SLICE_LENGTH));
   }
 
-  ppc_state.downcount = CyclesToDowncount(m_globals.slice_length);
+  downcount = CyclesToDowncount(m_globals.slice_length);
 
   // Check for any external exceptions.
   // It's important to do this after processing events otherwise any exceptions will be delayed
@@ -415,13 +422,13 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   }
 }
 
-void CoreTimingManager::ResetThrottle(s64 cycle)
+void CoreTimingManager::ResetThrottle(const s64 cycle)
 {
   m_throttle_last_cycle = cycle;
   m_throttle_deadline = Clock::now();
 }
 
-TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
+TimePoint CoreTimingManager::GetCPUTimePoint(const s64 cyclesLate) const
 {
   return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
                                                   m_throttle_clock_per_sec));
@@ -441,23 +448,23 @@ void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;
   std::sort(clone.begin(), clone.end());
-  for (const Event& ev : clone)
+  for (const auto& [time, _fifo_order, _userdata, type] : clone)
   {
-    INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, ev.time,
-                 *ev.type->name);
+    INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, time,
+                 *type->name);
   }
 }
 
 // Should only be called from the CPU thread after the PPC clock has changed
-void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
+void CoreTimingManager::AdjustEventQueueTimes(const u32 new_ppc_clock, const u32 old_ppc_clock)
 {
   m_throttle_clock_per_sec = new_ppc_clock;
   m_throttle_min_clock_per_sleep = new_ppc_clock / 1200;
 
-  for (Event& ev : m_event_queue)
+  for (auto& [time, _fifo_order, _userdata, _type] : m_event_queue)
   {
-    const s64 ticks = (ev.time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;
-    ev.time = m_globals.global_timer + ticks;
+    const s64 ticks = (time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;
+    time = m_globals.global_timer + ticks;
   }
 }
 
@@ -472,7 +479,7 @@ void CoreTimingManager::Idle()
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  PowerPC::UpdatePerformanceMonitor(ppc_state.downcount, 0, 0, ppc_state);
+  UpdatePerformanceMonitor(ppc_state.downcount, 0, 0, ppc_state);
   m_idled_cycles += DowncountToCycles(ppc_state.downcount);
   ppc_state.downcount = 0;
 }
@@ -484,9 +491,9 @@ std::string CoreTimingManager::GetScheduledEventsSummary() const
 
   auto clone = m_event_queue;
   std::sort(clone.begin(), clone.end());
-  for (const Event& ev : clone)
+  for (const auto& [time, _fifo_order, userdata, type] : clone)
   {
-    text += fmt::format("{} : {} {:016x}\n", *ev.type->name, ev.time, ev.userdata);
+    text += fmt::format("{} : {} {:016x}\n", *type->name, time, userdata);
   }
   return text;
 }
@@ -496,7 +503,7 @@ u32 CoreTimingManager::GetFakeDecStartValue() const
   return m_fake_dec_start_value;
 }
 
-void CoreTimingManager::SetFakeDecStartValue(u32 val)
+void CoreTimingManager::SetFakeDecStartValue(const u32 val)
 {
   m_fake_dec_start_value = val;
 }
@@ -506,7 +513,7 @@ u64 CoreTimingManager::GetFakeDecStartTicks() const
   return m_fake_dec_start_ticks;
 }
 
-void CoreTimingManager::SetFakeDecStartTicks(u64 val)
+void CoreTimingManager::SetFakeDecStartTicks(const u64 val)
 {
   m_fake_dec_start_ticks = val;
 }
@@ -516,7 +523,7 @@ u64 CoreTimingManager::GetFakeTBStartValue() const
   return m_globals.fake_TB_start_value;
 }
 
-void CoreTimingManager::SetFakeTBStartValue(u64 val)
+void CoreTimingManager::SetFakeTBStartValue(const u64 val)
 {
   m_globals.fake_TB_start_value = val;
 }
@@ -526,7 +533,7 @@ u64 CoreTimingManager::GetFakeTBStartTicks() const
   return m_globals.fake_TB_start_ticks;
 }
 
-void CoreTimingManager::SetFakeTBStartTicks(u64 val)
+void CoreTimingManager::SetFakeTBStartTicks(const u64 val)
 {
   m_globals.fake_TB_start_ticks = val;
 }

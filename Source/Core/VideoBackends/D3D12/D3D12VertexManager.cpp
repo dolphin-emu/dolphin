@@ -49,19 +49,19 @@ bool VertexManager::Initialize()
           {TEXEL_BUFFER_FORMAT_RGBA8_UINT, DXGI_FORMAT_R8G8B8A8_UINT},
           {TEXEL_BUFFER_FORMAT_R32G32_UINT, DXGI_FORMAT_R32G32_UINT},
       }};
-  for (const auto& it : format_mapping)
+  for (const auto& [fst, snd] : format_mapping)
   {
-    DescriptorHandle& dh = m_texel_buffer_views[it.first];
+    DescriptorHandle& dh = m_texel_buffer_views[fst];
     if (!g_dx_context->GetDescriptorHeapManager().Allocate(&dh))
     {
       PanicAlertFmt("Failed to allocate descriptor for texel buffer");
       return false;
     }
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {it.second, D3D12_SRV_DIMENSION_BUFFER,
+    D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {snd, D3D12_SRV_DIMENSION_BUFFER,
                                                 D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
     srv_desc.Buffer.NumElements =
-        m_texel_stream_buffer.GetSize() / GetTexelBufferElementSize(it.first);
+        m_texel_stream_buffer.GetSize() / GetTexelBufferElementSize(fst);
     g_dx_context->GetDevice()->CreateShaderResourceView(m_texel_stream_buffer.GetBuffer(),
                                                         &srv_desc, dh.cpu_handle);
   }
@@ -82,7 +82,7 @@ bool VertexManager::Initialize()
   return true;
 }
 
-void VertexManager::ResetBuffer(u32 vertex_stride)
+void VertexManager::ResetBuffer(const u32 vertex_stride)
 {
   // Attempt to allocate from buffers
   bool has_vbuffer_allocation = m_vertex_stream_buffer.ReserveMemory(MAXVBUFFERSIZE, vertex_stride);
@@ -113,7 +113,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(reinterpret_cast<u16*>(m_index_stream_buffer.GetCurrentHostPointer()));
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride, const u32 num_indices,
                                  u32* out_base_vertex, u32* out_base_index)
 {
   const u32 vertex_data_size = num_vertices * vertex_stride;
@@ -145,7 +145,7 @@ void VertexManager::UploadUniforms()
 
 void VertexManager::UpdateVertexShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
 
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
@@ -161,7 +161,7 @@ void VertexManager::UpdateVertexShaderConstants()
 
 void VertexManager::UpdateGeometryShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
 
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
@@ -177,7 +177,7 @@ void VertexManager::UpdateGeometryShaderConstants()
 
 void VertexManager::UpdatePixelShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   if (!ReserveConstantStorage())
@@ -207,12 +207,12 @@ void VertexManager::UpdatePixelShaderConstants()
 
 bool VertexManager::ReserveConstantStorage()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   static constexpr u32 reserve_size =
-      static_cast<u32>(std::max({sizeof(PixelShaderConstants), sizeof(VertexShaderConstants),
-                                 sizeof(GeometryShaderConstants)}));
+      std::max({sizeof(PixelShaderConstants), sizeof(VertexShaderConstants),
+                sizeof(GeometryShaderConstants)});
   const u32 custom_constants_size = static_cast<u32>(pixel_shader_manager.custom_constants.size());
   if (m_uniform_stream_buffer.ReserveMemory(reserve_size + custom_constants_size,
                                             D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT))
@@ -232,11 +232,11 @@ bool VertexManager::ReserveConstantStorage()
 
 void VertexManager::UploadAllConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   // We are free to re-use parts of the buffer now since we're uploading all constants.
-  const u32 pixel_constants_offset = 0;
+  constexpr u32 pixel_constants_offset = 0;
   constexpr u32 vertex_constants_offset =
       Common::AlignUp(pixel_constants_offset + sizeof(PixelShaderConstants),
                       D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -295,7 +295,7 @@ void VertexManager::UploadAllConstants()
   pixel_shader_manager.dirty = false;
 }
 
-void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
+void VertexManager::UploadUtilityUniforms(const void* data, const u32 data_size)
 {
   InvalidateConstants();
   if (!m_uniform_stream_buffer.ReserveMemory(data_size,
@@ -313,7 +313,7 @@ void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
                                       u32* out_offset)
 {
   if (data_size > m_texel_stream_buffer.GetSize())
@@ -333,16 +333,16 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   }
 
   std::memcpy(m_texel_stream_buffer.GetCurrentHostPointer(), data, data_size);
-  *out_offset = static_cast<u32>(m_texel_stream_buffer.GetCurrentOffset()) / elem_size;
+  *out_offset = m_texel_stream_buffer.GetCurrentOffset() / elem_size;
   m_texel_stream_buffer.CommitMemory(data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
   Gfx::GetInstance()->SetTextureDescriptor(0, m_texel_buffer_views[format].cpu_handle);
   return true;
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset, const void* palette_data, u32 palette_size,
-                                      TexelBufferFormat palette_format, u32* out_palette_offset)
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
+                                      u32* out_offset, const void* palette_data, const u32 palette_size,
+                                      const TexelBufferFormat palette_format, u32* out_palette_offset)
 {
   const u32 elem_size = GetTexelBufferElementSize(format);
   const u32 palette_elem_size = GetTexelBufferElementSize(palette_format);
@@ -366,9 +366,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   std::memcpy(m_texel_stream_buffer.GetCurrentHostPointer(), data, data_size);
   std::memcpy(m_texel_stream_buffer.GetCurrentHostPointer() + palette_byte_offset, palette_data,
               palette_size);
-  *out_offset = static_cast<u32>(m_texel_stream_buffer.GetCurrentOffset()) / elem_size;
+  *out_offset = m_texel_stream_buffer.GetCurrentOffset() / elem_size;
   *out_palette_offset =
-      (static_cast<u32>(m_texel_stream_buffer.GetCurrentOffset()) + palette_byte_offset) /
+      (m_texel_stream_buffer.GetCurrentOffset() + palette_byte_offset) /
       palette_elem_size;
 
   m_texel_stream_buffer.CommitMemory(palette_byte_offset + palette_size);

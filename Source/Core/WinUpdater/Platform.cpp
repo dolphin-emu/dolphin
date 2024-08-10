@@ -26,7 +26,7 @@ struct BuildVersion
   auto operator<=>(BuildVersion const& rhs) const = default;
   static std::optional<BuildVersion> from_string(const std::string& str)
   {
-    auto components = SplitString(str, '.');
+    const auto components = SplitString(str, '.');
     // Allow variable number of components (truncating after "build"), but not
     // empty.
     if (components.size() == 0)
@@ -73,7 +73,7 @@ public:
 
   std::optional<std::string> GetString(const std::string& name) const
   {
-    auto it = map.find(name);
+    const auto it = map.find(name);
     if (it == map.end() || it->second.size() == 0)
       return {};
     return it->second;
@@ -81,7 +81,7 @@ public:
 
   std::optional<BuildVersion> GetVersion(const std::string& name) const
   {
-    auto str = GetString(name);
+    const auto str = GetString(name);
     if (!str.has_value())
       return {};
     return BuildVersion::from_string(str.value());
@@ -103,9 +103,9 @@ private:
       auto key_it = map.find(key);
       if (key_it == map.end())
         continue;
-      auto val_start = equals_index + 1;
-      auto eol = line.find('\r', val_start);
-      auto val_size = (eol == line.npos) ? line.npos : eol - val_start;
+      const auto val_start = equals_index + 1;
+      const auto eol = line.find('\r', val_start);
+      const auto val_size = (eol == line.npos) ? line.npos : eol - val_start;
       key_it->second = line.substr(val_start, val_size);
     }
   }
@@ -120,7 +120,7 @@ struct BuildInfos
 
 // This default value should be kept in sync with the value of VCToolsUpdateURL in
 // build_info.txt.in
-static const char* VCToolsUpdateURLDefault = "https://aka.ms/vs/17/release/vc_redist.x64.exe";
+static auto VCToolsUpdateURLDefault = "https://aka.ms/vs/17/release/vc_redist.x64.exe";
 #define VC_RUNTIME_REGKEY R"(SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\)"
 
 static const char* VCRuntimeRegistrySubkey()
@@ -161,7 +161,7 @@ static VersionCheckResult VCRuntimeVersionCheck(const BuildInfos& build_infos)
   result.current_version = GetInstalledVCRuntimeVersion();
   result.target_version = build_infos.next.GetVersion("VCToolsVersion");
 
-  auto existing_version = build_infos.current.GetVersion("VCToolsVersion");
+  const auto existing_version = build_infos.current.GetVersion("VCToolsVersion");
 
   if (!result.target_version.has_value())
     result.status = VersionCheckStatus::UpdateOptional;
@@ -180,15 +180,15 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 {
   UI::SetDescription("Updating VC++ Redist, please wait...");
 
-  Common::HttpRequest req;
+  const Common::HttpRequest req;
   req.FollowRedirects(10);
-  auto resp = req.Get(build_info.GetString("VCToolsUpdateURL").value_or(VCToolsUpdateURLDefault));
+  const auto resp = req.Get(build_info.GetString("VCToolsUpdateURL").value_or(VCToolsUpdateURLDefault));
   if (!resp)
     return false;
 
   // Write it to current working directory.
-  auto redist_path = std::filesystem::current_path() / L"vc_redist.x64.exe";
-  auto redist_path_u8 = WStringToUTF8(redist_path.wstring());
+  const auto redist_path = std::filesystem::current_path() / L"vc_redist.x64.exe";
+  const auto redist_path_u8 = WStringToUTF8(redist_path.wstring());
   File::IOFile redist_file;
   redist_file.Open(redist_path_u8, "wb");
   if (!redist_file.WriteBytes(resp->data(), resp->size()))
@@ -215,7 +215,7 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
   // Wait for it to run
   WaitForSingleObject(process_info.hProcess, INFINITE);
   DWORD exit_code;
-  bool has_exit_code = GetExitCodeProcess(process_info.hProcess, &exit_code);
+  const bool has_exit_code = GetExitCodeProcess(process_info.hProcess, &exit_code);
   CloseHandle(process_info.hProcess);
   // NOTE: Some nonzero exit codes can still be considered success (e.g. if installation was
   // bypassed because the same version already installed).
@@ -225,8 +225,9 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 
 static BuildVersion CurrentOSVersion()
 {
-  OSVERSIONINFOW info = WindowsRegistry::GetOSVersion();
-  return {.major = info.dwMajorVersion, .minor = info.dwMinorVersion, .build = info.dwBuildNumber};
+  const auto [_dwOSVersionInfoSize, dwMajorVersion, dwMinorVersion, dwBuildNumber, _dwPlatformId,
+    _szCSDVersion] = WindowsRegistry::GetOSVersion();
+  return {.major = dwMajorVersion, .minor = dwMinorVersion, .build = dwBuildNumber};
 }
 
 static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
@@ -250,31 +251,32 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
                                          const std::string& install_base_path,
                                          const std::string& temp_dir)
 {
-  const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
-                                  [&](const auto& op) { return op.filename == "build_info.txt"; });
+  const auto op_it = std::ranges::find_if(to_update, [&](const auto& op) {
+    return op.filename == "build_info.txt";
+  });
   if (op_it == to_update.cend())
     return {};
 
-  const auto op = *op_it;
+  const auto [_filename, old_hash, new_hash] = *op_it;
   std::string build_info_path =
-      temp_dir + DIR_SEP + HexEncode(op.new_hash.data(), op.new_hash.size());
+      temp_dir + DIR_SEP + HexEncode(new_hash.data(), new_hash.size());
   std::string build_info_content;
   if (!File::ReadFileToString(build_info_path, build_info_content) ||
-      op.new_hash != ComputeHash(build_info_content))
+      new_hash != ComputeHash(build_info_content))
   {
     LogToFile("Failed to read %s\n.", build_info_path.c_str());
     return {};
   }
   BuildInfos build_infos;
-  build_infos.next = Platform::BuildInfo(build_info_content);
+  build_infos.next = BuildInfo(build_info_content);
 
   build_info_path = install_base_path + DIR_SEP + "build_info.txt";
-  build_infos.current = Platform::BuildInfo();
+  build_infos.current = BuildInfo();
   if (File::ReadFileToString(build_info_path, build_info_content))
   {
-    if (op.old_hash != ComputeHash(build_info_content))
+    if (old_hash != ComputeHash(build_info_content))
       LogToFile("Using modified existing BuildInfo %s.\n", build_info_path.c_str());
-    build_infos.current = Platform::BuildInfo(build_info_content);
+    build_infos.current = BuildInfo(build_info_content);
   }
   return build_infos;
 }
@@ -284,8 +286,8 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
   // The existing BuildInfo may have been modified. Be careful not to overly trust its contents!
 
   // If the binary requires more recent OS, inform the user.
-  auto os_check = OSVersionCheck(build_infos.next);
-  if (os_check.status == VersionCheckStatus::UpdateRequired)
+  const auto [status, _current_version, _target_version] = OSVersionCheck(build_infos.next);
+  if (status == VersionCheckStatus::UpdateRequired)
   {
     UI::Error("Please update Windows in order to update Dolphin.");
     return false;
@@ -297,7 +299,7 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
   const auto is_test_mode = UI::IsTestMode();
   if (vc_check.status != VersionCheckStatus::NothingToDo || is_test_mode)
   {
-    auto update_ok = VCRuntimeUpdate(build_infos.next);
+    const auto update_ok = VCRuntimeUpdate(build_infos.next);
     if (!update_ok && is_test_mode)
     {
       // For now, only check return value when test automation is running.
@@ -319,7 +321,7 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
 bool VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
                   const std::string& install_base_path, const std::string& temp_dir)
 {
-  auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir);
+  const auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir);
   // If there's no build info, it means the check should be skipped.
   if (!build_infos.has_value())
   {

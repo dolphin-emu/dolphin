@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 
-#include <QEvent>
 #include <QFont>
 #include <QSignalBlocker>
 
@@ -11,23 +10,23 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigBool::ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
+ConfigBool::ConfigBool(const QString& label, const Config::Info<bool>& setting, const bool reverse)
     : ToolTipCheckBox(label), m_setting(setting), m_reverse(reverse)
 {
   connect(this, &QCheckBox::toggled, this, &ConfigBool::Update);
-  setChecked(Config::Get(m_setting) ^ reverse);
+  setChecked(Get(m_setting) ^ reverse);
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    setChecked(Config::Get(m_setting) ^ m_reverse);
+    setChecked(Get(m_setting) ^ m_reverse);
   });
 }
 
-void ConfigBool::Update()
+void ConfigBool::Update() const
 {
-  Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
+  SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }

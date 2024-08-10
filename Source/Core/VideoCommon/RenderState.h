@@ -125,8 +125,8 @@ union BlendingState
   // HACK: Replaces logical operations with blend operations.
   // Will not be bit-correct, and in some cases not even remotely in the same ballpark.
   void ApproximateLogicOpWithBlending();
-  bool LogicOpApproximationIsExact();
-  bool LogicOpApproximationWantsShaderHelp();
+  bool LogicOpApproximationIsExact() const;
+  bool LogicOpApproximationWantsShaderHelp() const;
 
   BlendingState() = default;
   BlendingState(const BlendingState&) = default;

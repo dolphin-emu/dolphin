@@ -170,8 +170,9 @@ bool ResourcePack::Install(const std::string& path)
       continue;
     const std::string texture_name = texture_zip_path.substr(texture_zip_path_prefix.size());
 
-    auto texture_it = std::find_if(
-        m_textures.cbegin(), m_textures.cend(), [&texture_name](const std::string& texture) {
+    auto texture_it = std::ranges::find_if(
+        std::as_const(m_textures),
+        [&texture_name](const std::string& texture) {
           return mz_path_compare_wc(texture.c_str(), texture_name.c_str(), 1) == MZ_OK;
         });
     if (texture_it == m_textures.cend())
@@ -182,8 +183,7 @@ bool ResourcePack::Install(const std::string& path)
     bool provided_by_other_pack = false;
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
-      if (std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
-          pack->GetTextures().end())
+      if (std::ranges::find(pack->GetTextures(), texture) != pack->GetTextures().end())
       {
         provided_by_other_pack = true;
         break;
@@ -203,7 +203,7 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    const size_t data_size = static_cast<size_t>(texture_info.uncompressed_size);
+    const size_t data_size = texture_info.uncompressed_size;
     auto data = std::make_unique<u8[]>(data_size);
     if (!Common::ReadFileFromZip(file, data.get(), data_size))
     {
@@ -236,7 +236,7 @@ bool ResourcePack::Uninstall(const std::string& path)
     return false;
   }
 
-  auto lower = GetLowerPriorityPacks(*this);
+  const auto lower = GetLowerPriorityPacks(*this);
 
   SetInstalled(*this, false);
 
@@ -247,9 +247,8 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Check if a higher priority pack already provides a given texture, don't delete it
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
-      if (::ResourcePack::IsInstalled(*pack) &&
-          std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
-              pack->GetTextures().end())
+      if (IsInstalled(*pack) &&
+          std::ranges::find(pack->GetTextures(), texture) != pack->GetTextures().end())
       {
         provided_by_other_pack = true;
         break;
@@ -260,9 +259,9 @@ bool ResourcePack::Uninstall(const std::string& path)
       continue;
 
     // Check if a lower priority pack provides a given texture - if so, install it.
-    for (auto& pack : lower)
+    for (const auto& pack : lower)
     {
-      if (::ResourcePack::IsInstalled(*pack) &&
+      if (IsInstalled(*pack) &&
           std::find(pack->GetTextures().rbegin(), pack->GetTextures().rend(), texture) !=
               pack->GetTextures().rend())
       {
@@ -290,7 +289,7 @@ bool ResourcePack::Uninstall(const std::string& path)
 
     while (dir.length() > (path + TEXTURE_PATH).length())
     {
-      auto is_empty = Common::DoFileSearch({dir}).empty();
+      const auto is_empty = Common::DoFileSearch({dir}).empty();
 
       if (is_empty)
         File::DeleteDir(dir);

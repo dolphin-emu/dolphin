@@ -21,10 +21,10 @@ public:
 
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "OGL";
+  static constexpr auto NAME = "OGL";
 
 private:
-  bool InitializeGLExtensions(GLContext* context);
-  bool FillBackendInfo(GLContext* context);
+  static bool InitializeGLExtensions(GLContext* context);
+  static bool FillBackendInfo(GLContext* context);
 };
 }  // namespace OGL

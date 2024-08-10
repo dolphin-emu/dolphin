@@ -37,11 +37,11 @@ signals:
 private:
   void CreateWidgets();
   void ConnectWidgets();
-  void SavePatches();
-  void Update();
-  void UpdateActions();
+  void SavePatches() const;
+  void Update() const;
+  void UpdateActions() const;
 
-  void OnItemChanged(QListWidgetItem*);
+  void OnItemChanged(const QListWidgetItem*);
   void OnAdd();
   void OnRemove();
   void OnEdit();

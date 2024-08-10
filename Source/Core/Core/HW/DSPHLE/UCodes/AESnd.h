@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
@@ -22,7 +21,7 @@ class DSPHLE;
 class AESndAccelerator final : public Accelerator
 {
 public:
-  explicit AESndAccelerator(DSP::DSPManager& dsp);
+  explicit AESndAccelerator(DSPManager& dsp);
   AESndAccelerator(const AESndAccelerator&) = delete;
   AESndAccelerator(AESndAccelerator&&) = delete;
   AESndAccelerator& operator=(const AESndAccelerator&) = delete;
@@ -35,7 +34,7 @@ protected:
   void WriteMemory(u32 address, u8 value) override;
 
 private:
-  DSP::DSPManager& m_dsp;
+  DSPManager& m_dsp;
 };
 
 class AESndUCode final : public UCodeInterface
@@ -81,7 +80,7 @@ public:
 
 private:
   void DMAInParameterBlock();
-  void DMAOutParameterBlock();
+  void DMAOutParameterBlock() const;
   void SetUpAccelerator(u16 format, u16 gain);
   void DoMixing();
 

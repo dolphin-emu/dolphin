@@ -49,7 +49,7 @@ bool IsPairedSingleInstruction(UGeckoInstruction inst)
 // Paired single instructions are illegal to execute if HID2.PSE is not set.
 // It's also illegal to execute psq_l, psq_lu, psq_st, and psq_stu if HID2.PSE is enabled,
 // but HID2.LSQE is not set.
-bool Interpreter::IsInvalidPairedSingleExecution(UGeckoInstruction inst)
+bool Interpreter::IsInvalidPairedSingleExecution(UGeckoInstruction inst) const
 {
   if (!HID2(m_ppc_state).PSE && IsPairedSingleInstruction(inst))
     return true;
@@ -82,7 +82,7 @@ void Interpreter::Shutdown()
 {
 }
 
-void Interpreter::Trace(const UGeckoInstruction& inst)
+void Interpreter::Trace(const UGeckoInstruction& inst) const
 {
   std::string regs;
   for (size_t i = 0; i < std::size(m_ppc_state.gpr); i++)
@@ -106,7 +106,7 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
                 ppc_inst);
 }
 
-bool Interpreter::HandleFunctionHooking(u32 address)
+bool Interpreter::HandleFunctionHooking(const u32 address)
 {
   const auto result =
       HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::Interpreter);
@@ -191,7 +191,7 @@ int Interpreter::SingleStepInner()
 
   UpdatePC();
 
-  PowerPC::UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
+  UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
                                     (opinfo->flags & FL_USE_FPU) != 0, m_ppc_state);
   return opinfo->num_cycles;
 }
@@ -199,7 +199,8 @@ int Interpreter::SingleStepInner()
 void Interpreter::SingleStep()
 {
   auto& core_timing = m_system.GetCoreTiming();
-  auto& core_timing_globals = core_timing.GetGlobals();
+  auto& [_global_timer, slice_length, _fake_TB_start_value, _fake_TB_start_ticks,
+    _last_OC_factor_inverted] = core_timing.GetGlobals();
 
   // Declare start of new slice
   core_timing.Advance();
@@ -207,7 +208,7 @@ void Interpreter::SingleStep()
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  core_timing_globals.slice_length = 1;
+  slice_length = 1;
   m_ppc_state.downcount = 0;
 
   if (m_ppc_state.Exceptions != 0)
@@ -229,7 +230,7 @@ constexpr u32 s_show_steps = 300;
 void Interpreter::Run()
 {
   auto& core_timing = m_system.GetCoreTiming();
-  auto& cpu = m_system.GetCPU();
+  const auto& cpu = m_system.GetCPU();
   auto& power_pc = m_system.GetPowerPC();
   while (cpu.GetState() == CPU::State::Running)
   {

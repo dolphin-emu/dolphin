@@ -87,23 +87,23 @@ public:
     return WriteArray(elements.data(), elements.size());
   }
 
-  bool ReadBytes(void* data, size_t length)
+  bool ReadBytes(void* data, const size_t length)
   {
-    return ReadArray(reinterpret_cast<char*>(data), length);
+    return ReadArray(static_cast<char*>(data), length);
   }
 
-  bool WriteBytes(const void* data, size_t length)
+  bool WriteBytes(const void* data, const size_t length)
   {
-    return WriteArray(reinterpret_cast<const char*>(data), length);
+    return WriteArray(static_cast<const char*>(data), length);
   }
 
-  bool WriteString(std::string_view str) { return WriteBytes(str.data(), str.size()); }
+  bool WriteString(const std::string_view str) { return WriteBytes(str.data(), str.size()); }
 
   bool IsOpen() const { return nullptr != m_file; }
   // m_good is set to false when a read, write or other function fails
   bool IsGood() const { return m_good; }
   explicit operator bool() const { return IsGood() && IsOpen(); }
-  std::FILE* GetHandle() { return m_file; }
+  std::FILE* GetHandle() const { return m_file; }
   void SetHandle(std::FILE* file);
 
   bool Seek(s64 offset, SeekOrigin origin);

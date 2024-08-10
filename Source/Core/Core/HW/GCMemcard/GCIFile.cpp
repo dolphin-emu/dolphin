@@ -75,7 +75,7 @@ bool GCIFile::HasCopyProtection() const
   return false;
 }
 
-int GCIFile::UsesBlock(u16 block_num)
+int GCIFile::UsesBlock(const u16 block_num) const
 {
   for (u16 i = 0; i < m_used_blocks.size(); ++i)
   {

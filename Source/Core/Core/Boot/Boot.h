@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstdlib>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -13,7 +12,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/IOSC.h"
-#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/VolumeDisc.h"
@@ -173,19 +171,19 @@ public:
   static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db);
 
 private:
-  static bool DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
+  static bool DVDRead(const Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
                       u32 output_address, u32 length, const DiscIO::Partition& partition);
-  static bool DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc,
+  static bool DVDReadDiscID(const Core::System& system, const DiscIO::VolumeDisc& disc,
                             u32 output_address);
-  static void RunFunction(Core::System& system, u32 address);
+  static void RunFunction(const Core::System& system, u32 address);
 
   static bool Boot_WiiWAD(Core::System& system, const DiscIO::VolumeWAD& wad);
   static bool BootNANDTitle(Core::System& system, u64 title_id);
 
   static void SetupMSR(PowerPC::PowerPCState& ppc_state);
   static void SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii);
-  static void SetupBAT(Core::System& system, bool is_wii);
-  static bool RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
+  static void SetupBAT(const Core::System& system, bool is_wii);
+  static bool RunApploader(const Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
                            const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& guard,
@@ -197,9 +195,9 @@ private:
   static bool EmulatedBS2(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
                           const DiscIO::VolumeDisc& volume,
                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool Load_BS2(Core::System& system, const std::string& boot_rom_filename);
+  static bool Load_BS2(const Core::System& system, const std::string& boot_rom_filename);
 
-  static void SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guard);
+  static void SetupGCMemory(const Core::System& system, const Core::CPUThreadGuard& guard);
   static bool SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType console_type);
 };
 

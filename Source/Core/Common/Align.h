@@ -16,7 +16,7 @@ constexpr T AlignDown(T value, size_t size)
 }
 
 template <typename T>
-constexpr T AlignUp(T value, size_t size)
+constexpr T AlignUp(T value, const size_t size)
 {
   static_assert(std::is_unsigned<T>(), "T must be an unsigned value.");
   return AlignDown<T>(static_cast<T>(value + (size - 1)), size);

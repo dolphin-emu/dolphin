@@ -12,7 +12,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
 InputBackend::~InputBackend() = default;
 
-void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove)
+void InputBackend::UpdateInput(std::vector<std::weak_ptr<Core::Device>>& devices_to_remove)
 {
 }
 
@@ -20,7 +20,7 @@ void InputBackend::HandleWindowChange()
 {
 }
 
-ControllerInterface& InputBackend::GetControllerInterface()
+ControllerInterface& InputBackend::GetControllerInterface() const
 {
   return m_controller_interface;
 }

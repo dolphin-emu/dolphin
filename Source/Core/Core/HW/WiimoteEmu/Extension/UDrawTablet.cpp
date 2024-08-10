@@ -90,8 +90,8 @@ void UDrawTablet::BuildDesiredExtensionState(DesiredExtensionState* target_state
 
   if (!is_stylus_lifted)
   {
-    stylus_x = u16(center_x + stylus_state.x * (max_x - center_x));
-    stylus_y = u16(center_y + stylus_state.y * (max_y - center_y));
+    stylus_x = static_cast<u16>(center_x + stylus_state.x * (max_x - center_x));
+    stylus_y = static_cast<u16>(center_y + stylus_state.y * (max_y - center_y));
   }
 
   tablet_data.stylus_x1 = stylus_x & 0xff;
@@ -127,7 +127,7 @@ void UDrawTablet::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-ControllerEmu::ControlGroup* UDrawTablet::GetGroup(UDrawTabletGroup group)
+ControllerEmu::ControlGroup* UDrawTablet::GetGroup(const UDrawTabletGroup group) const
 {
   switch (group)
   {

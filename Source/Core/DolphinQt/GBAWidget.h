@@ -7,8 +7,6 @@
 #include <optional>
 #include <span>
 #include <string>
-#include <string_view>
-#include <vector>
 
 #include <QImage>
 #include <QPoint>
@@ -43,14 +41,14 @@ public:
   void SetVolume(int volume);
   void VolumeDown();
   void VolumeUp();
-  bool IsMuted();
+  bool IsMuted() const;
   void ToggleMute();
   void ToggleDisconnect();
 
   void LoadROM();
   void UnloadROM();
   void PromptForEReaderCards();
-  void ResetCore();
+  void ResetCore() const;
   void DoState(bool export_state);
   void ImportExportSave(bool export_save);
   void Resize(int scale);
@@ -67,10 +65,10 @@ private:
 
   static Qt::WindowFlags LoadWindowFlags(int device_number);
   void LoadSettings();
-  void SaveSettings();
+  void SaveSettings() const;
 
   bool CanControlCore();
-  bool CanResetCore();
+  bool CanResetCore() const;
 
   void closeEvent(QCloseEvent* event) override;
   void contextMenuEvent(QContextMenuEvent* event) override;
@@ -106,8 +104,8 @@ public:
   ~GBAWidgetController() override;
 
   void Create(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info);
-  void GameChanged(const HW::GBA::CoreInfo& info);
-  void FrameEnded(std::span<const u32> video_buffer);
+  void GameChanged(const HW::GBA::CoreInfo& info) const;
+  void FrameEnded(std::span<const u32> video_buffer) const;
 
 private:
   GBAWidget* m_widget{};

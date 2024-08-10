@@ -20,7 +20,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/GCPadStatus.h"
 
 // clang-format off
 constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
@@ -192,7 +191,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Volume Down"),
     _trans("Volume Up"),
     _trans("Volume Toggle Mute"),
-      
+
     _trans("1x"),
     _trans("2x"),
     _trans("3x"),
@@ -217,7 +216,7 @@ InputConfig* GetConfig()
   return &s_config;
 }
 
-void GetStatus(bool ignore_focus)
+void GetStatus(const bool ignore_focus)
 {
   // Get input
   static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey, ignore_focus);
@@ -228,15 +227,15 @@ bool IsEnabled()
   return s_enabled;
 }
 
-void Enable(bool enable_toggle)
+void Enable(const bool enable_toggle)
 {
   s_enabled = enable_toggle;
 }
 
-bool IsPressed(int id, bool held)
+bool IsPressed(const int id, const bool held)
 {
-  unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
-  unsigned int group_key =
+  const unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
+  const unsigned int group_key =
       static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
   if (s_hotkey.button[group] & (1 << group_key))
   {
@@ -262,7 +261,7 @@ static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
   {
     if (!inifile.Exists("Hotkeys") && inifile.Exists("Hotkeys1"))
     {
-      auto sec = inifile.GetOrCreateSection("Hotkeys1");
+      const auto sec = inifile.GetOrCreateSection("Hotkeys1");
 
       {
         std::string defdev;
@@ -270,9 +269,9 @@ static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
         controller->SetDefaultDevice(defdev);
       }
 
-      for (auto& group : controller->groups)
+      for (const auto& group : controller->groups)
       {
-        for (auto& control : group->controls)
+        for (const auto& control : group->controls)
         {
           std::string key("Keys/" + control->name);
 
@@ -311,7 +310,7 @@ void LoadConfig()
   LoadLegacyConfig(s_config.GetController(0));
 }
 
-ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
+ControllerEmu::ControlGroup* GetHotkeyGroup(const HotkeyGroup group)
 {
   return static_cast<HotkeyManager*>(s_config.GetController(0))->GetHotkeyGroup(group);
 }
@@ -395,7 +394,7 @@ InputConfig* HotkeyManager::GetConfig() const
   return HotkeyManagerEmu::GetConfig();
 }
 
-void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
+void HotkeyManager::GetInput(HotkeyStatus* kb, const bool ignore_focus) const
 {
   const auto lock = GetStateLock();
   for (std::size_t group = 0; group < s_groups_info.size(); group++)
@@ -413,20 +412,21 @@ void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
   }
 }
 
-ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(HotkeyGroup group) const
+ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(const HotkeyGroup group) const
 {
   return m_hotkey_groups[group];
 }
 
-int HotkeyManager::FindGroupByID(int id) const
+int HotkeyManager::FindGroupByID(int id)
 {
-  const auto i = std::find_if(s_groups_info.begin(), s_groups_info.end(),
-                              [id](const auto& entry) { return entry.last >= id; });
+  const auto i = std::ranges::find_if(s_groups_info, [id](const auto& entry) {
+    return entry.last >= id;
+  });
 
   return static_cast<int>(std::distance(s_groups_info.begin(), i));
 }
 
-int HotkeyManager::GetIndexForGroup(int group, int id) const
+int HotkeyManager::GetIndexForGroup(const int group, const int id)
 {
   return id - s_groups_info[group].first;
 }
@@ -435,7 +435,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-  auto set_key_expression = [this](int index, const std::string& expression) {
+  auto set_key_expression = [this](const int index, const std::string& expression) {
     m_keys[FindGroupByID(index)]
         ->controls[GetIndexForGroup(FindGroupByID(index), index)]
         ->control_ref->SetExpression(expression);

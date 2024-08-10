@@ -4,8 +4,6 @@
 #include "DolphinQt/Config/InfoWidget.h"
 
 #include <QComboBox>
-#include <QCryptographicHash>
-#include <QDir>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -15,7 +13,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
@@ -28,7 +25,7 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {
   m_volume = DiscIO::CreateVolume(m_game.GetFilePath());
 
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout();
 
   layout->addWidget(CreateFileDetails());
   layout->addWidget(CreateGameDetails());
@@ -43,12 +40,12 @@ InfoWidget::~InfoWidget() = default;
 
 QGroupBox* InfoWidget::CreateFileDetails()
 {
-  QGroupBox* group = new QGroupBox(tr("File Details"));
-  QFormLayout* layout = new QFormLayout;
+  auto group = new QGroupBox(tr("File Details"));
+  auto layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  QString path = QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath()));
+  const QString path = QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath()));
   layout->addRow(tr("Path:"), CreateValueDisplay(path));
 
   const std::string file_size = UICommon::FormatSize(m_game.GetFileSize());
@@ -84,15 +81,15 @@ QGroupBox* InfoWidget::CreateGameDetails()
 {
   const QString UNKNOWN_NAME = tr("Unknown");
 
-  QGroupBox* group = new QGroupBox(tr("Game Details"));
-  QFormLayout* layout = new QFormLayout;
+  auto group = new QGroupBox(tr("Game Details"));
+  auto layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   const QString game_name = QString::fromStdString(m_game.GetInternalName());
 
-  bool is_disc_based = m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc ||
-                       m_game.GetPlatform() == DiscIO::Platform::WiiDisc;
+  const bool is_disc_based = m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc ||
+                             m_game.GetPlatform() == DiscIO::Platform::WiiDisc;
 
   QLineEdit* internal_name =
       CreateValueDisplay(is_disc_based ? tr("%1 (Disc %2, Revision %3)")
@@ -110,7 +107,7 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
 
-  QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
+  QLineEdit* country = CreateValueDisplay(GetName(m_game.GetCountry(), true));
 
   const std::string game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
 
@@ -143,8 +140,8 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
 QGroupBox* InfoWidget::CreateBannerDetails()
 {
-  QGroupBox* group = new QGroupBox(tr("Banner Details"));
-  QFormLayout* layout = new QFormLayout;
+  auto group = new QGroupBox(tr("Banner Details"));
+  auto layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
@@ -158,14 +155,14 @@ QGroupBox* InfoWidget::CreateBannerDetails()
     layout->addRow(tr("Description:"), m_description = new QTextEdit());
     m_description->setReadOnly(true);
   }
-  else if (DiscIO::IsWii(m_game.GetPlatform()))
+  else if (IsWii(m_game.GetPlatform()))
   {
     layout->addRow(tr("Name:"), m_name = CreateValueDisplay());
   }
 
   ChangeLanguage();
 
-  QPixmap banner = ToQPixmap(m_game.GetBannerImage());
+  const QPixmap banner = ToQPixmap(m_game.GetBannerImage());
   if (!banner.isNull())
     layout->addRow(tr("Banner:"), CreateBannerGraphic(banner));
 
@@ -175,12 +172,12 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
 QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 {
-  QWidget* widget = new QWidget();
-  QHBoxLayout* layout = new QHBoxLayout();
+  auto widget = new QWidget();
+  auto layout = new QHBoxLayout();
 
-  QLabel* banner = new QLabel();
+  auto banner = new QLabel();
   banner->setPixmap(image);
-  QPushButton* save = new QPushButton(tr("Save as..."));
+  auto save = new QPushButton(tr("Save as..."));
   connect(save, &QPushButton::clicked, this, &InfoWidget::SaveBanner);
 
   layout->addWidget(banner);
@@ -191,14 +188,14 @@ QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 
 void InfoWidget::SaveBanner()
 {
-  QString path = DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                                    tr("PNG image file (*.png);; All Files (*)"));
+  const QString path = DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                                          tr("PNG image file (*.png);; All Files (*)"));
   ToQPixmap(m_game.GetBannerImage()).save(path, "PNG");
 }
 
 QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
 {
-  QLineEdit* value_display = new QLineEdit(value, this);
+  auto value_display = new QLineEdit(value, this);
   value_display->setReadOnly(true);
   value_display->setCursorPosition(0);
   return value_display;
@@ -211,13 +208,13 @@ QLineEdit* InfoWidget::CreateValueDisplay(const std::string& value)
 
 void InfoWidget::CreateLanguageSelector()
 {
-  const bool is_wii = DiscIO::IsWii(m_game.GetPlatform());
+  const bool is_wii = IsWii(m_game.GetPlatform());
   const DiscIO::Language preferred_language = SConfig::GetInstance().GetCurrentLanguage(is_wii);
 
   m_language_selector = new QComboBox();
   for (DiscIO::Language language : m_game.GetLanguages())
   {
-    m_language_selector->addItem(QString::fromStdString(DiscIO::GetName(language, true)),
+    m_language_selector->addItem(QString::fromStdString(GetName(language, true)),
                                  static_cast<int>(language));
     if (language == preferred_language)
       m_language_selector->setCurrentIndex(m_language_selector->count() - 1);
@@ -228,9 +225,9 @@ void InfoWidget::CreateLanguageSelector()
   connect(m_language_selector, &QComboBox::currentIndexChanged, this, &InfoWidget::ChangeLanguage);
 }
 
-void InfoWidget::ChangeLanguage()
+void InfoWidget::ChangeLanguage() const
 {
-  DiscIO::Language language =
+  const auto language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
 
   if (m_name)

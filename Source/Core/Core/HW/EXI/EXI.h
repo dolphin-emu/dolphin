@@ -51,7 +51,7 @@ constexpr std::initializer_list<Slot> SLOTS = {Slot::A, Slot::B, Slot::SP1};
 constexpr auto MAX_SLOT = Slot::SP1;
 constexpr std::initializer_list<Slot> MEMCARD_SLOTS = {Slot::A, Slot::B};
 constexpr auto MAX_MEMCARD_SLOT = Slot::B;
-constexpr bool IsMemcardSlot(Slot slot)
+constexpr bool IsMemcardSlot(const Slot slot)
 {
   return slot == Slot::A || slot == Slot::B;
 }
@@ -71,26 +71,26 @@ public:
 
   void Init(const Sram* override_sram);
   void Shutdown();
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) const;
 
-  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base) const;
 
-  void UpdateInterrupts();
-  void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
+  void UpdateInterrupts() const;
+  void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late) const;
 
   void ChangeDevice(Slot slot, EXIDeviceType device_type,
-                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU) const;
   void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
-                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU) const;
 
-  CEXIChannel* GetChannel(u32 index);
-  IEXIDevice* GetDevice(Slot slot);
+  CEXIChannel* GetChannel(u32 index) const;
+  IEXIDevice* GetDevice(Slot slot) const;
 
 private:
-  void AddMemoryCard(Slot slot);
+  void AddMemoryCard(Slot slot) const;
 
-  static void ChangeDeviceCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void ChangeDeviceCallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void UpdateInterruptsCallback(const Core::System& system, u64 userdata, s64 cycles_late);
 
   CoreTiming::EventType* m_event_type_change_device = nullptr;
   CoreTiming::EventType* m_event_type_update_interrupts = nullptr;

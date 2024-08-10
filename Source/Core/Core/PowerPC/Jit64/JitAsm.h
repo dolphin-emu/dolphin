@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
 namespace Gen
@@ -37,7 +36,7 @@ public:
   void Init();
   void Regenerate();
 
-  void ResetStack(Gen::X64CodeBlock& emitter);
+  static void ResetStack(X64CodeBlock& emitter);
 
 private:
   void Generate();

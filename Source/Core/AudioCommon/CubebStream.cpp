@@ -10,7 +10,6 @@
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
 
 #ifdef _WIN32
@@ -21,9 +20,9 @@
 constexpr u32 BUFFER_SAMPLES = 512;
 
 long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
-                               void* output_buffer, long num_frames)
+                               void* output_buffer, const long num_frames)
 {
-  auto* self = static_cast<CubebStream*>(user_data);
+  const auto* self = static_cast<CubebStream*>(user_data);
 
   if (self->m_stereo)
     self->m_mixer->Mix(static_cast<short*>(output_buffer), num_frames);
@@ -44,7 +43,7 @@ CubebStream::CubebStream()
   Common::Event sync_event;
   m_work_queue.EmplaceItem([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-    auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    const auto result = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
     m_should_couninit = result == S_OK || result == S_FALSE;
   });

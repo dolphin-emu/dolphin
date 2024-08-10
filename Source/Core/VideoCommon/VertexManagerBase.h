@@ -108,7 +108,7 @@ public:
 
   PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
   void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
-  bool AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
+  bool AreAllVerticesCulled(const VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
                             const u8* src, u32 count);
   virtual DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
                                               u32 stride, bool cullall);
@@ -134,7 +134,7 @@ public:
     m_current_pipeline_object = nullptr;
     m_pipeline_config_changed = true;
   }
-  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config);
+  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config) const;
 
   // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
   virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
@@ -191,10 +191,10 @@ protected:
   u32 GetRemainingSize() const;
   u32 GetRemainingIndices(OpcodeDecoder::Primitive primitive) const;
 
-  void CalculateZSlope(NativeVertexFormat* format);
-  void CalculateBinormals(NativeVertexFormat* format);
+  void CalculateZSlope(const NativeVertexFormat* format);
+  static void CalculateBinormals(const NativeVertexFormat* format);
 
-  BitSet32 UsedTextures() const;
+  static BitSet32 UsedTextures();
 
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;

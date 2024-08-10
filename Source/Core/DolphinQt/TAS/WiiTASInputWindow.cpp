@@ -5,13 +5,10 @@
 
 #include <cmath>
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-#include <QSpinBox>
-#include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -41,10 +38,10 @@
 
 using namespace WiimoteCommon;
 
-WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
+WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, const int num) : TASInputWindow(parent), m_num(num)
 {
-  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
-  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
+  const auto ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
+  const auto ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
 
   m_ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
                                .arg(tr("IR"),
@@ -348,7 +345,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   setLayout(layout);
 
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (IsRunning(Core::System::GetInstance()))
   {
     m_active_extension = GetWiimote()->GetActiveExtensionNumber();
     m_is_motion_plus_attached = GetWiimote()->IsMotionPlusAttached();
@@ -375,18 +372,18 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   UpdateExt();
 }
 
-WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote()
+WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote() const
 {
   return static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(m_num));
 }
 
-ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments()
+ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments() const
 {
   return static_cast<ControllerEmu::Attachments*>(
       GetWiimote()->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments));
 }
 
-WiimoteEmu::Extension* WiiTASInputWindow::GetExtension()
+WiimoteEmu::Extension* WiiTASInputWindow::GetExtension() const
 {
   return static_cast<WiimoteEmu::Extension*>(
       GetAttachments()->GetAttachmentList()[m_active_extension].get());

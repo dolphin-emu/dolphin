@@ -20,7 +20,7 @@ public:
   bool LoadSaveBlocks();
   bool HasCopyProtection() const;
   void DoState(PointerWrap& p);
-  int UsesBlock(u16 blocknum);
+  int UsesBlock(u16 blocknum) const;
 
   DEntry m_gci_header;
   std::vector<GCMBlock> m_save_data;

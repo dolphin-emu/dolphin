@@ -4,8 +4,6 @@
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 
 #include <QApplication>
-#include <QFontMetrics>
-#include <QMouseEvent>
 #include <QString>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
@@ -15,14 +13,13 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 constexpr int SLIDER_TICK_COUNT = 100;
 
 // Escape ampersands and simplify the text for a short preview
-static QString RefToDisplayString(ControlReference* ref)
+static QString RefToDisplayString(const ControlReference* ref)
 {
   const bool expression_valid =
       ref->GetParseStatus() != ciface::ExpressionParser::ParseStatus::SyntaxError;
@@ -73,7 +70,7 @@ bool MappingButton::IsInput() const
   return m_reference->IsInput();
 }
 
-MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, const bool indicator)
     : ElidedButton(RefToDisplayString(ref)), m_parent(parent), m_reference(ref)
 {
   if (IsInput())

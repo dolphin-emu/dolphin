@@ -4,7 +4,6 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 
 #include <algorithm>
-#include <array>
 #include <optional>
 
 #include <fmt/format.h>
@@ -12,7 +11,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/VariantUtil.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
@@ -31,14 +29,14 @@ std::unique_ptr<CustomPipelineAction>
 CustomPipelineAction::Create(const picojson::value& json_data,
                              std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
-  std::vector<CustomPipelineAction::PipelinePassPassDescription> pipeline_passes;
+  std::vector<PipelinePassPassDescription> pipeline_passes;
 
   const auto& passes_json = json_data.get("passes");
   if (passes_json.is<picojson::array>())
   {
     for (const auto& passes_json_val : passes_json.get<picojson::array>())
     {
-      CustomPipelineAction::PipelinePassPassDescription pipeline_pass;
+      PipelinePassPassDescription pipeline_pass;
       if (!passes_json_val.is<picojson::object>())
       {
         ERROR_LOG_FMT(VIDEO,
@@ -112,11 +110,10 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   auto& loader = Core::System::GetInstance().GetCustomAssetLoader();
 
   // For now assume a single pass
-  const auto& pass_config = m_passes_config[0];
+  const auto& [m_pixel_material_asset] = m_passes_config[0];
   auto& pass = m_pipeline_passes[0];
 
-  pass.UpdatePixelData(loader, m_library, draw_started->texture_units,
-                       pass_config.m_pixel_material_asset);
+  pass.UpdatePixelData(loader, m_library, draw_started->texture_units, m_pixel_material_asset);
   CustomPixelShader custom_pixel_shader;
   custom_pixel_shader.custom_shader = pass.m_last_generated_shader_code.GetBuffer();
   custom_pixel_shader.material_uniform_block = pass.m_last_generated_material_code.GetBuffer();

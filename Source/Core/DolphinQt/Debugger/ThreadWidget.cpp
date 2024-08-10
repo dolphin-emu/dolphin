@@ -32,7 +32,7 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("threadwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -44,9 +44,9 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &ThreadWidget::Update);
 
   connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsThreadsVisible());
   });
 }
@@ -61,7 +61,7 @@ ThreadWidget::~ThreadWidget()
 
 void ThreadWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetThreadsVisible(false);
+  Settings::Instance().HideThreads();
 }
 
 void ThreadWidget::showEvent(QShowEvent* event)
@@ -108,9 +108,9 @@ void ThreadWidget::ConnectWidgets()
           [this] { ShowContextMenu(m_callstack_table); });
 }
 
-void ThreadWidget::ShowContextMenu(QTableWidget* table)
+void ThreadWidget::ShowContextMenu(const QTableWidget* table)
 {
-  const auto* item = static_cast<QTableWidgetItem*>(table->currentItem());
+  const auto* item = table->currentItem();
   if (item == nullptr)
     return;
 
@@ -119,7 +119,7 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
   if (!ok)
     return;
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   const QString watch_name = QStringLiteral("thread_context_%1").arg(addr, 8, 16, QLatin1Char('0'));
@@ -133,9 +133,9 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
   menu->exec(QCursor::pos());
 }
 
-QLineEdit* ThreadWidget::CreateLineEdit() const
+QLineEdit* ThreadWidget::CreateLineEdit()
 {
-  QLineEdit* line_edit = new QLineEdit(QStringLiteral("00000000"));
+  auto line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);
   line_edit->setFixedWidth(
       line_edit->fontMetrics().boundingRect(QStringLiteral(" 00000000 ")).width());
@@ -144,8 +144,8 @@ QLineEdit* ThreadWidget::CreateLineEdit() const
 
 QGroupBox* ThreadWidget::CreateContextGroup()
 {
-  QGroupBox* context_group = new QGroupBox(tr("Thread context"));
-  QGridLayout* context_layout = new QGridLayout;
+  auto context_group = new QGroupBox(tr("Thread context"));
+  auto context_layout = new QGridLayout;
   context_group->setLayout(context_layout);
   context_layout->addWidget(new QLabel(tr("Current context")), 0, 0);
   m_current_context = CreateLineEdit();
@@ -162,7 +162,7 @@ QGroupBox* ThreadWidget::CreateContextGroup()
 
 QGroupBox* ThreadWidget::CreateActiveThreadQueueGroup()
 {
-  QGroupBox* thread_queue_group = new QGroupBox(tr("Active thread queue"));
+  auto thread_queue_group = new QGroupBox(tr("Active thread queue"));
   auto* thread_queue_layout = new QGridLayout;
   thread_queue_group->setLayout(thread_queue_layout);
   thread_queue_layout->addWidget(new QLabel(tr("Head")), 0, 0);
@@ -177,19 +177,19 @@ QGroupBox* ThreadWidget::CreateActiveThreadQueueGroup()
 
 QGroupBox* ThreadWidget::CreateThreadGroup()
 {
-  QGroupBox* thread_group = new QGroupBox(tr("Active threads"));
-  QGridLayout* thread_layout = new QGridLayout;
+  auto thread_group = new QGroupBox(tr("Active threads"));
+  auto thread_layout = new QGridLayout;
   thread_group->setLayout(thread_layout);
 
   m_thread_table = new QTableWidget();
-  QStringList header{tr("Address"),
-                     tr("State"),
-                     tr("Detached"),
-                     tr("Suspended"),
-                     QStringLiteral("%1\n(%2)").arg(tr("Base priority"), tr("Effective priority")),
-                     QStringLiteral("%1\n%2").arg(tr("Stack end"), tr("Stack start")),
-                     tr("errno"),
-                     tr("Specific")};
+  const QStringList header{tr("Address"),
+                           tr("State"),
+                           tr("Detached"),
+                           tr("Suspended"),
+                           QStringLiteral("%1\n(%2)").arg(tr("Base priority"), tr("Effective priority")),
+                           QStringLiteral("%1\n%2").arg(tr("Stack end"), tr("Stack start")),
+                           tr("errno"),
+                           tr("Specific")};
   m_thread_table->setColumnCount(header.size());
 
   m_thread_table->setHorizontalHeaderLabels(header);
@@ -207,8 +207,8 @@ QGroupBox* ThreadWidget::CreateThreadGroup()
 
 QGroupBox* ThreadWidget::CreateThreadContextGroup()
 {
-  QGroupBox* thread_context_group = new QGroupBox(tr("Selected thread context"));
-  QGridLayout* thread_context_layout = new QGridLayout;
+  auto thread_context_group = new QGroupBox(tr("Selected thread context"));
+  auto thread_context_layout = new QGridLayout;
   thread_context_group->setLayout(thread_context_layout);
 
   m_context_table = new QTableWidget();
@@ -229,12 +229,12 @@ QGroupBox* ThreadWidget::CreateThreadContextGroup()
 
 QGroupBox* ThreadWidget::CreateThreadCallstackGroup()
 {
-  QGroupBox* thread_callstack_group = new QGroupBox(tr("Selected thread callstack"));
-  QGridLayout* thread_callstack_layout = new QGridLayout;
+  auto thread_callstack_group = new QGroupBox(tr("Selected thread callstack"));
+  auto thread_callstack_layout = new QGridLayout;
   thread_callstack_group->setLayout(thread_callstack_layout);
 
   m_callstack_table = new QTableWidget();
-  QStringList header{tr("Address"), tr("Back Chain"), tr("LR Save"), tr("Description")};
+  const QStringList header{tr("Address"), tr("Back Chain"), tr("LR Save"), tr("Description")};
   m_callstack_table->setColumnCount(header.size());
 
   m_callstack_table->setHorizontalHeaderLabels(header);
@@ -257,7 +257,7 @@ void ThreadWidget::Update()
     return;
 
   auto& system = Core::System::GetInstance();
-  const auto emu_state = Core::GetState(system);
+  const auto emu_state = GetState(system);
   if (emu_state == Core::State::Stopping)
   {
     m_thread_table->setRowCount(0);
@@ -269,7 +269,7 @@ void ThreadWidget::Update()
   if (emu_state != Core::State::Paused)
     return;
 
-  const auto format_hex = [](u32 value) {
+  const auto format_hex = [](const u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   };
   const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr) {
@@ -277,7 +277,7 @@ void ThreadWidget::Update()
         PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead_U32(guard, addr) : 0;
     return format_hex(addr);
   };
-  const auto get_state = [](u16 thread_state) {
+  const auto get_state = [](const u16 thread_state) {
     QString state_name;
     switch (thread_state)
     {
@@ -298,10 +298,10 @@ void ThreadWidget::Update()
     }
     return QStringLiteral("%1 (%2)").arg(QString::number(thread_state), state_name);
   };
-  const auto get_priority = [](u16 base, u16 effective) {
+  const auto get_priority = [](const u16 base, const u16 effective) {
     return QStringLiteral("%1 (%2)").arg(QString::number(base), QString::number(effective));
   };
-  const auto get_stack = [](u32 end, u32 start) {
+  const auto get_stack = [](const u32 end, const u32 start) {
     return QStringLiteral("%1\n%2")
         .arg(end, 8, 16, QLatin1Char('0'))
         .arg(start, 8, 16, QLatin1Char('0'));
@@ -349,7 +349,7 @@ void ThreadWidget::Update()
   UpdateThreadContext({});
 }
 
-void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& context)
+void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& context) const
 {
   const auto format_hex = [](const std::optional<u32>& value) {
     if (!value)
@@ -440,14 +440,14 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
 }
 
 void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
-                                         const Common::Debug::PartialContext& context)
+                                         const Common::Debug::PartialContext& context) const
 {
   m_callstack_table->setRowCount(0);
 
   if (!context.gpr)
     return;
 
-  const auto format_hex = [](u32 value) {
+  const auto format_hex = [](const u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   };
 
@@ -476,12 +476,12 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
   }
 }
 
-void ThreadWidget::OnSelectionChanged(int row)
+void ThreadWidget::OnSelectionChanged(const int row) const
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
   Common::Debug::PartialContext context;
 
-  if (row >= 0 && size_t(row) < m_threads.size())
+  if (row >= 0 && static_cast<size_t>(row) < m_threads.size())
     context = m_threads[row]->GetContext(guard);
 
   UpdateThreadContext(context);

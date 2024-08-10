@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
 
 class StickWidget : public QWidget
@@ -25,7 +23,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
-  void handleMouseEvent(QMouseEvent* event);
+  void handleMouseEvent(const QMouseEvent* event);
 
 private:
   u16 m_max_x;

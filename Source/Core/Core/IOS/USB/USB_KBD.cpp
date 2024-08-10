@@ -176,7 +176,7 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 #endif
 }  // Anonymous namespace
 
-USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers_, PressedKeyData pressed_keys_)
+USB_KBD::MessageData::MessageData(MessageType type, const u8 modifiers_, const PressedKeyData pressed_keys_)
     : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{modifiers_}, pressed_keys{
                                                                                    pressed_keys_}
 {
@@ -212,18 +212,18 @@ std::optional<IPCReply> USB_KBD::Write(const ReadWriteRequest& request)
 
 std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
+  if (Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::GetInputGate() && !m_message_queue.empty())
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
     m_message_queue.pop();
   }
   return IPCReply(IPC_SUCCESS);
 }
 
-bool USB_KBD::IsKeyPressed(int key) const
+bool USB_KBD::IsKeyPressed(const int key)
 {
 #ifdef _WIN32
   return (GetAsyncKeyState(key) & 0x8000) != 0;
@@ -235,7 +235,7 @@ bool USB_KBD::IsKeyPressed(int key) const
 
 void USB_KBD::Update()
 {
-  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
+  if (!Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
     return;
 
   u8 modifiers = 0x00;

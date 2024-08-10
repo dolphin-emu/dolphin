@@ -25,7 +25,6 @@
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/System.h"
 
 namespace SerialInterface
 {
@@ -34,7 +33,7 @@ constexpr u64 GBA_BITS_PER_SECOND = 250000;
 constexpr u64 GC_STOP_BIT_NS = 6500;
 constexpr u64 GBA_STOP_BIT_NS = 14000;
 
-std::ostream& operator<<(std::ostream& stream, SIDevices device)
+std::ostream& operator<<(std::ostream& stream, const SIDevices device)
 {
   stream << static_cast<std::underlying_type_t<SIDevices>>(device);
   return stream;
@@ -50,13 +49,13 @@ std::istream& operator>>(std::istream& stream, SIDevices& device)
   }
   else
   {
-    device = SIDevices::SIDEVICE_NONE;
+    device = SIDEVICE_NONE;
   }
 
   return stream;
 }
 
-ISIDevice::ISIDevice(Core::System& system, SIDevices device_type, int device_number)
+ISIDevice::ISIDevice(Core::System& system, const SIDevices device_type, const int device_number)
     : m_system(system), m_device_number(device_number), m_device_type(device_type)
 {
 }
@@ -73,7 +72,7 @@ SIDevices ISIDevice::GetDeviceType() const
   return m_device_type;
 }
 
-int ISIDevice::RunBuffer(u8* buffer, int request_length)
+int ISIDevice::RunBuffer(u8* buffer, const int request_length)
 {
 #ifdef _DEBUG
   DEBUG_LOG_FMT(SERIALINTERFACE, "Send Data Device({}) - Length({})   ", m_device_number,
@@ -113,11 +112,11 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 }
 
 int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
-                                EBufferCommands cmd)
+                                const EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
-  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
+  constexpr u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
 
   switch (cmd)
   {
@@ -155,7 +154,7 @@ int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
 // The goal of this function is to avoid special casing a long list of
 // device types when there is no "real" input device, e.g. when playing
 // a TAS movie, or netplay input.
-bool SIDevice_IsGCController(SIDevices type)
+bool SIDevice_IsGCController(const SIDevices type)
 {
   switch (type)
   {

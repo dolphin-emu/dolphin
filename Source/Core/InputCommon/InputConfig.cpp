@@ -15,7 +15,6 @@
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputProfile.h"
 
@@ -106,28 +105,25 @@ bool InputConfig::LoadConfig()
     m_dynamic_input_tex_config_manager.GenerateTextures(inifile, controller_names);
     return true;
   }
-  else
+  // Only load the default profile for the first controller and clear the others,
+  // otherwise they would all share the same mappings on the same (default) device
+  if (m_controllers.size() > 0)
   {
-    // Only load the default profile for the first controller and clear the others,
-    // otherwise they would all share the same mappings on the same (default) device
-    if (m_controllers.size() > 0)
-    {
-      m_controllers[0]->LoadDefaults(g_controller_interface);
-      m_controllers[0]->UpdateReferences(g_controller_interface);
-    }
-    for (size_t i = 1; i < m_controllers.size(); ++i)
-    {
-      // Calling the base version just clears all settings without overwriting them with a default
-      m_controllers[i]->EmulatedController::LoadDefaults(g_controller_interface);
-      m_controllers[i]->UpdateReferences(g_controller_interface);
-    }
-    return false;
+    m_controllers[0]->LoadDefaults(g_controller_interface);
+    m_controllers[0]->UpdateReferences(g_controller_interface);
   }
+  for (size_t i = 1; i < m_controllers.size(); ++i)
+  {
+    // Calling the base version just clears all settings without overwriting them with a default
+    m_controllers[i]->EmulatedController::LoadDefaults(g_controller_interface);
+    m_controllers[i]->UpdateReferences(g_controller_interface);
+  }
+  return false;
 }
 
-void InputConfig::SaveConfig()
+void InputConfig::SaveConfig() const
 {
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
+  const std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
 
   Common::IniFile inifile;
   inifile.Load(ini_filename);
@@ -144,7 +140,7 @@ void InputConfig::SaveConfig()
   inifile.Save(ini_filename);
 }
 
-ControllerEmu::EmulatedController* InputConfig::GetController(int index) const
+ControllerEmu::EmulatedController* InputConfig::GetController(const int index) const
 {
   return m_controllers.at(index).get();
 }
@@ -179,17 +175,17 @@ void InputConfig::RegisterHotplugCallback()
   // Update control references on all controllers
   // as configured devices may have been added or removed.
   m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
-    for (auto& controller : m_controllers)
+    for (const auto& controller : m_controllers)
       controller->UpdateReferences(g_controller_interface);
   });
 }
 
-void InputConfig::UnregisterHotplugCallback()
+void InputConfig::UnregisterHotplugCallback() const
 {
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }
 
-bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
+bool InputConfig::IsControllerControlledByGamepadDevice(const int index) const
 {
   if (static_cast<size_t>(index) >= m_controllers.size())
     return false;
@@ -208,10 +204,10 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
                controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
 }
 
-void InputConfig::GenerateControllerTextures(const Common::IniFile& file)
+void InputConfig::GenerateControllerTextures(const Common::IniFile& file) const
 {
   std::vector<std::string> controller_names;
-  for (auto& controller : m_controllers)
+  for (const auto& controller : m_controllers)
   {
     controller_names.push_back(controller->GetName());
   }

@@ -43,11 +43,11 @@ public:
 
   explicit MenuBar(QWidget* parent = nullptr);
 
-  void UpdateToolsMenu(bool emulation_started);
+  void UpdateToolsMenu(bool emulation_started) const;
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
-  void InstallUpdateManually();
+  void InstallUpdateManually() const;
 
 signals:
   // File
@@ -148,7 +148,7 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
 
-  void UpdateStateSlotMenu();
+  void UpdateStateSlotMenu() const;
 
   void InstallWAD();
   void ImportWiiSave();
@@ -159,11 +159,11 @@ private:
 
   // Debugging UI
   void ClearSymbols();
-  void GenerateSymbolsFromAddress();
+  static void GenerateSymbolsFromAddress();
   void GenerateSymbolsFromSignatureDB();
   void GenerateSymbolsFromRSO();
   void GenerateSymbolsFromRSOAuto();
-  RSOVector DetectRSOModules(ParallelProgressDialog& progress);
+  static RSOVector DetectRSOModules(ParallelProgressDialog& progress);
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
   void LoadBadSymbolMap();
@@ -176,18 +176,18 @@ private:
   void AppendSignatureFile();
   void ApplySignatureFile();
   void CombineSignatureFiles();
-  void PatchHLEFunctions();
-  void ClearCache();
-  void LogInstructions();
+  static void PatchHLEFunctions();
+  static void ClearCache();
+  static void LogInstructions();
   void SearchInstruction();
 
-  void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
-  void OnRecordingStatusChanged(bool recording);
-  void OnReadOnlyModeChanged(bool read_only);
+  void OnSelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file);
+  void OnRecordingStatusChanged(bool recording) const;
+  void OnReadOnlyModeChanged(bool read_only) const;
   void OnDebugModeToggled(bool enabled);
   void OnWriteJitBlockLogDump();
 
-  QString GetSignatureSelector() const;
+  static QString GetSignatureSelector();
 
   static QPointer<MenuBar> s_menu_bar;
 

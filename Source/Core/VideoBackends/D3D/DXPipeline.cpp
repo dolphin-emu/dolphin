@@ -20,7 +20,7 @@ DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D11InputLayout* 
                        ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
                        ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
                        ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
-                       D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op)
+                       const D3D11_PRIMITIVE_TOPOLOGY primitive_topology, const bool use_logic_op)
     : AbstractPipeline(config), m_input_layout(input_layout), m_vertex_shader(vertex_shader),
       m_geometry_shader(geometry_shader), m_pixel_shader(pixel_shader),
       m_rasterizer_state(rasterizer_state), m_depth_state(depth_state), m_blend_state(blend_state),
@@ -41,9 +41,9 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   if (!rasterizer_state || !depth_state || !blend_state)
     return nullptr;
 
-  const DXShader* vertex_shader = static_cast<const DXShader*>(config.vertex_shader);
-  const DXShader* geometry_shader = static_cast<const DXShader*>(config.geometry_shader);
-  const DXShader* pixel_shader = static_cast<const DXShader*>(config.pixel_shader);
+  auto vertex_shader = static_cast<const DXShader*>(config.vertex_shader);
+  auto geometry_shader = static_cast<const DXShader*>(config.geometry_shader);
+  auto pixel_shader = static_cast<const DXShader*>(config.pixel_shader);
   ASSERT(vertex_shader != nullptr && pixel_shader != nullptr);
 
   ID3D11InputLayout* input_layout =

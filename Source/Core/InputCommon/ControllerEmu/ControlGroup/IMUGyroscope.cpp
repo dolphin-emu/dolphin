@@ -90,8 +90,9 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
     // Check for required calibration update frequency
     // and if current data is within deadzone distance of mean stable value.
     if (calibration_freq < WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY ||
-        std::any_of(current_difference.data.begin(), current_difference.data.end(),
-                    [&](auto c) { return std::abs(c) > deadzone; }))
+        std::ranges::any_of(current_difference.data, [&](auto c) {
+          return std::abs(c) > deadzone;
+        }))
     {
       RestartCalibration();
     }
@@ -123,17 +124,18 @@ auto IMUGyroscope::GetRawState() const -> StateData
 
 bool IMUGyroscope::AreInputsBound() const
 {
-  return std::all_of(controls.begin(), controls.end(),
-                     [](const auto& control) { return control->control_ref->BoundCount() > 0; });
+  return std::ranges::all_of(controls, [](const auto& control) {
+    return control->control_ref->BoundCount() > 0;
+  });
 }
 
-bool IMUGyroscope::CanCalibrate() const
+bool IMUGyroscope::CanCalibrate()
 {
   // If the input gate is disabled, miscalibration to zero values would occur.
   return ControlReference::GetInputGate();
 }
 
-std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)
+std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(const bool update)
 {
   if (!AreInputsBound())
   {

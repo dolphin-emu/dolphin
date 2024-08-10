@@ -20,12 +20,12 @@
 
 static u32 Helper_Get_EA(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
-  return inst.RA ? (ppcs.gpr[inst.RA] + u32(inst.SIMM_16)) : u32(inst.SIMM_16);
+  return inst.RA ? (ppcs.gpr[inst.RA] + static_cast<u32>(inst.SIMM_16)) : static_cast<u32>(inst.SIMM_16);
 }
 
 static u32 Helper_Get_EA_U(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
-  return (ppcs.gpr[inst.RA] + u32(inst.SIMM_16));
+  return (ppcs.gpr[inst.RA] + static_cast<u32>(inst.SIMM_16));
 }
 
 static u32 Helper_Get_EA_X(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
@@ -219,7 +219,8 @@ void Interpreter::lfsx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lha(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = u32(s32(s16(interpreter.m_mmu.Read_U16(Helper_Get_EA(ppc_state, inst)))));
+  const u32 temp = static_cast<u32>(static_cast<s32>(static_cast<s16>(interpreter.m_mmu.Read_U16(
+      Helper_Get_EA(ppc_state, inst)))));
 
   if (!(ppc_state.Exceptions & EXCEPTION_DSI))
   {
@@ -231,7 +232,8 @@ void Interpreter::lhau(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
-  const u32 temp = u32(s32(s16(interpreter.m_mmu.Read_U16(address))));
+  const u32 temp = static_cast<u32>(static_cast<s32>(static_cast<s16>(interpreter.m_mmu.
+    Read_U16(address))));
 
   if (!(ppc_state.Exceptions & EXCEPTION_DSI))
   {
@@ -286,10 +288,7 @@ void Interpreter::lmw(Interpreter& interpreter, UGeckoInstruction inst)
       NOTICE_LOG_FMT(POWERPC, "DSI exception in lmw");
       return;
     }
-    else
-    {
-      ppc_state.gpr[i] = temp_reg;
-    }
+    ppc_state.gpr[i] = temp_reg;
   }
 }
 
@@ -547,7 +546,7 @@ void Interpreter::dcbz(Interpreter& interpreter, UGeckoInstruction inst)
     // Hack to stop dcbz/dcbi over low MEM1 trashing memory. This is not needed if data cache
     // emulation is enabled.
     if ((dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000) &&
-        Config::Get(Config::MAIN_LOW_DCBZ_HACK))
+        Get(Config::MAIN_LOW_DCBZ_HACK))
     {
       return;
     }
@@ -664,11 +663,11 @@ void Interpreter::lhaux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
-  const s32 temp = s32{s16(interpreter.m_mmu.Read_U16(address))};
+  const s32 temp = s32{static_cast<s16>(interpreter.m_mmu.Read_U16(address))};
 
   if (!(ppc_state.Exceptions & EXCEPTION_DSI))
   {
-    ppc_state.gpr[inst.RD] = u32(temp);
+    ppc_state.gpr[inst.RD] = static_cast<u32>(temp);
     ppc_state.gpr[inst.RA] = address;
   }
 }
@@ -676,11 +675,11 @@ void Interpreter::lhaux(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lhax(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const s32 temp = s32{s16(interpreter.m_mmu.Read_U16(Helper_Get_EA_X(ppc_state, inst)))};
+  const s32 temp = s32{static_cast<s16>(interpreter.m_mmu.Read_U16(Helper_Get_EA_X(ppc_state, inst)))};
 
   if (!(ppc_state.Exceptions & EXCEPTION_DSI))
   {
-    ppc_state.gpr[inst.RD] = u32(temp);
+    ppc_state.gpr[inst.RD] = static_cast<u32>(temp);
   }
 }
 
@@ -1012,7 +1011,7 @@ void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  u32 n = u8(ppc_state.xer_stringctrl);
+  u32 n = static_cast<u8>(ppc_state.xer_stringctrl);
   u32 r = inst.RS;
   u32 i = 0;
 

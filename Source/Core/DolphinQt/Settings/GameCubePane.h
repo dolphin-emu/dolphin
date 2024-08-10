@@ -5,7 +5,6 @@
 
 #include <array>
 #include <string>
-#include <string_view>
 
 #include <QWidget>
 
@@ -36,7 +35,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void OnEmulationStateChanged();
+  void OnEmulationStateChanged() const;
 
   void UpdateButton(ExpansionInterface::Slot slot);
   void OnConfigPressed(ExpansionInterface::Slot slot);

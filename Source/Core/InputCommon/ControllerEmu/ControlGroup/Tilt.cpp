@@ -10,7 +10,6 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
@@ -41,7 +40,7 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
              7, 1, 50);
 }
 
-Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted) const
+Tilt::ReshapeData Tilt::GetReshapableState(const bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -58,13 +57,13 @@ Tilt::StateData Tilt::GetState() const
   return GetReshapableState(true);
 }
 
-ControlState Tilt::GetGateRadiusAtAngle(double ang) const
+ControlState Tilt::GetGateRadiusAtAngle(const double ang) const
 {
   const ControlState max_tilt_angle = m_max_angle_setting.GetValue() / 180;
   return SquareStickGate(max_tilt_angle).GetRadiusAtAngle(ang);
 }
 
-ControlState Tilt::GetDefaultInputRadiusAtAngle(double ang) const
+ControlState Tilt::GetDefaultInputRadiusAtAngle(const double ang) const
 {
   return SquareStickGate(1.0).GetRadiusAtAngle(ang);
 }

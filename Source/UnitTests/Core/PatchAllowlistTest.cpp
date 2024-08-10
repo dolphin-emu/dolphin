@@ -15,7 +15,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
 #include "Core/CheatCodes.h"
@@ -45,30 +44,30 @@ TEST(PatchAllowlist, VerifyHashes)
   // Parse allowlist - Map<game id, Map<hash, name>
   ASSERT_TRUE(json_tree.is<picojson::object>());
   std::map<std::string /*ID*/, GameHashes> allow_list;
-  for (const auto& entry : json_tree.get<picojson::object>())
+  for (const auto& [fst, snd] : json_tree.get<picojson::object>())
   {
-    ASSERT_TRUE(entry.second.is<picojson::object>());
-    GameHashes& game_entry = allow_list[entry.first];
-    for (const auto& line : entry.second.get<picojson::object>())
+    ASSERT_TRUE(snd.is<picojson::object>());
+    auto& [game_title, hashes] = allow_list[fst];
+    for (const auto& [fst, snd] : snd.get<picojson::object>())
     {
-      ASSERT_TRUE(line.second.is<std::string>());
-      if (line.first == "title")
-        game_entry.game_title = line.second.get<std::string>();
+      ASSERT_TRUE(snd.is<std::string>());
+      if (fst == "title")
+        game_title = snd.get<std::string>();
       else
-        game_entry.hashes[line.first] = line.second.get<std::string>();
+        hashes[fst] = snd.get<std::string>();
     }
   }
   // Iterate over GameSettings directory
-  auto directory =
+  auto [_isDirectory, _size, _physicalName, _virtualName, children] =
       File::ScanDirectoryTree(fmt::format("{}{}GameSettings", sys_directory, DIR_SEP), false);
-  for (const auto& file : directory.children)
+  for (const auto& [_isDirectory, _size, physicalName, virtualName, _children] : children)
   {
     // Load ini file
     Common::IniFile ini_file;
-    ini_file.Load(file.physicalName, true);
-    std::string game_id = file.virtualName.substr(0, file.virtualName.find_first_of('.'));
+    ini_file.Load(physicalName, true);
+    std::string game_id = virtualName.substr(0, virtualName.find_first_of('.'));
     std::vector<PatchEngine::Patch> patches;
-    PatchEngine::LoadPatchSection("OnFrame", &patches, ini_file, Common::IniFile());
+    LoadPatchSection("OnFrame", &patches, ini_file, Common::IniFile());
     // Filter patches for RetroAchievements approved
     ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "OnFrame", false, &patches);
     ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "Patches_RetroAchievements_Verified", true,
@@ -76,14 +75,14 @@ TEST(PatchAllowlist, VerifyHashes)
     // Get game section from allow list
     auto game_itr = allow_list.find(game_id);
     // Iterate over approved patches
-    for (const auto& patch : patches)
+    for (const auto& [name, entries, enabled, _default_enabled, _user_defined] : patches)
     {
-      if (!patch.enabled)
+      if (!enabled)
         continue;
       // Hash patch
       auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch.entries.size())));
-      for (const auto& entry : patch.entries)
+      context->Update(Common::BitCastToArray<u8>(entries.size()));
+      for (const auto& entry : entries)
       {
         context->Update(Common::BitCastToArray<u8>(entry.type));
         context->Update(Common::BitCastToArray<u8>(entry.address));
@@ -99,7 +98,7 @@ TEST(PatchAllowlist, VerifyHashes)
         // Report: no patches in game found in list
         ADD_FAILURE() << "Approved hash missing from list." << std::endl
                       << "Game ID: " << game_id << std::endl
-                      << "Patch: \"" << hash << "\" : \"" << patch.name << "\"";
+                      << "Patch: \"" << hash << "\" : \"" << name << "\"";
         continue;
       }
       auto hash_itr = game_itr->second.hashes.find(hash);
@@ -108,7 +107,7 @@ TEST(PatchAllowlist, VerifyHashes)
         // Report: patch not found in list
         ADD_FAILURE() << "Approved hash missing from list." << std::endl
                       << "Game ID: " << game_id << ":" << game_itr->second.game_title << std::endl
-                      << "Patch: \"" << hash << "\" : \"" << patch.name << "\"";
+                      << "Patch: \"" << hash << "\" : \"" << name << "\"";
       }
       else
       {
@@ -119,20 +118,20 @@ TEST(PatchAllowlist, VerifyHashes)
     // Report missing patches in map
     if (game_itr == allow_list.end())
       continue;
-    for (auto& remaining_hashes : game_itr->second.hashes)
+    for (auto& [fst, snd] : game_itr->second.hashes)
     {
       ADD_FAILURE() << "Hash in list not approved in ini." << std::endl
                     << "Game ID: " << game_id << ":" << game_itr->second.game_title << std::endl
-                    << "Patch: " << remaining_hashes.second << ":" << remaining_hashes.first;
+                    << "Patch: " << snd << ":" << fst;
     }
     //    Remove section from map
     allow_list.erase(game_itr);
   }
   //  Report remaining sections in map
-  for (auto& remaining_games : allow_list)
+  for (auto& [fst, snd] : allow_list)
   {
     ADD_FAILURE() << "Game in list has no ini file." << std::endl
-                  << "Game ID: " << remaining_games.first << ":"
-                  << remaining_games.second.game_title;
+                  << "Game ID: " << fst << ":"
+                  << snd.game_title;
   }
 }

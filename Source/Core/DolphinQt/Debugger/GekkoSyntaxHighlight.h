@@ -42,12 +42,12 @@ class GekkoSyntaxHighlight : public QSyntaxHighlighter
   Q_OBJECT;
 
 public:
-  explicit GekkoSyntaxHighlight(QTextDocument* document, QTextCharFormat base_format,
+  explicit GekkoSyntaxHighlight(QTextDocument* document, const QTextCharFormat& base_format,
                                 bool dark_scheme);
 
   void HighlightSubstr(int start, int len, HighlightFormat format);
-  void SetMode(int mode) { m_mode = mode; }
-  void SetCursorLoc(int loc) { m_cursor_loc = loc; }
+  void SetMode(const int mode) { m_mode = mode; }
+  void SetCursorLoc(const int loc) { m_cursor_loc = loc; }
 
 protected:
   void highlightBlock(const QString& line) override;

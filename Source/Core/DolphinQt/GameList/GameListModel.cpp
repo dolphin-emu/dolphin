@@ -19,7 +19,7 @@
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
-const QSize GAMECUBE_BANNER_SIZE(96, 32);
+constexpr QSize GAMECUBE_BANNER_SIZE(96, 32);
 
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
@@ -45,13 +45,13 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutChanged();
   });
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   m_tag_list = settings.value(QStringLiteral("gamelist/tags")).toStringList();
   m_game_tags = settings.value(QStringLiteral("gamelist/game_tags")).toMap();
 }
 
-QVariant GameListModel::data(const QModelIndex& index, int role) const
+QVariant GameListModel::data(const QModelIndex& index, const int role) const
 {
   if (!index.isValid())
     return QVariant();
@@ -168,7 +168,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       return QString::fromStdString(str);
     }
     if (role == SORT_ROLE)
-      return static_cast<quint64>(game.GetFileSize());
+      return game.GetFileSize();
     break;
   case Column::FileFormat:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
@@ -178,7 +178,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole)
       return QString::fromStdString(UICommon::FormatSize(game.GetBlockSize()));
     if (role == SORT_ROLE)
-      return static_cast<quint64>(game.GetBlockSize());
+      return game.GetBlockSize();
     break;
   case Column::Compression:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
@@ -203,7 +203,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   return QVariant();
 }
 
-QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant GameListModel::headerData(int section, const Qt::Orientation orientation, const int role) const
 {
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
@@ -254,7 +254,7 @@ int GameListModel::columnCount(const QModelIndex& parent) const
   return static_cast<int>(Column::Count);
 }
 
-bool GameListModel::ShouldDisplayGameListItem(int index) const
+bool GameListModel::ShouldDisplayGameListItem(const int index) const
 {
   const UICommon::GameFile& game = *m_games[index];
 
@@ -262,7 +262,7 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   {
     const bool matches_title = QString::fromStdString(game.GetName(m_title_database))
                                    .contains(m_term, Qt::CaseInsensitive);
-    const bool filename_visible = Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME);
+    const bool filename_visible = Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME);
     const bool list_view_selected = Settings::Instance().GetPreferredView();
     const bool matches_filename =
         filename_visible && list_view_selected &&
@@ -277,13 +277,13 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
     switch (game.GetPlatform())
     {
     case DiscIO::Platform::GameCubeDisc:
-      return Config::Get(Config::MAIN_GAMELIST_LIST_GC);
+      return Get(Config::MAIN_GAMELIST_LIST_GC);
     case DiscIO::Platform::WiiDisc:
-      return Config::Get(Config::MAIN_GAMELIST_LIST_WII);
+      return Get(Config::MAIN_GAMELIST_LIST_WII);
     case DiscIO::Platform::WiiWAD:
-      return Config::Get(Config::MAIN_GAMELIST_LIST_WAD);
+      return Get(Config::MAIN_GAMELIST_LIST_WAD);
     case DiscIO::Platform::ELFOrDOL:
-      return Config::Get(Config::MAIN_GAMELIST_LIST_ELF_DOL);
+      return Get(Config::MAIN_GAMELIST_LIST_ELF_DOL);
     default:
       return false;
     }
@@ -295,38 +295,38 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   switch (game.GetCountry())
   {
   case DiscIO::Country::Australia:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_AUSTRALIA);
+    return Get(Config::MAIN_GAMELIST_LIST_AUSTRALIA);
   case DiscIO::Country::Europe:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_PAL);
+    return Get(Config::MAIN_GAMELIST_LIST_PAL);
   case DiscIO::Country::France:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_FRANCE);
+    return Get(Config::MAIN_GAMELIST_LIST_FRANCE);
   case DiscIO::Country::Germany:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_GERMANY);
+    return Get(Config::MAIN_GAMELIST_LIST_GERMANY);
   case DiscIO::Country::Italy:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_ITALY);
+    return Get(Config::MAIN_GAMELIST_LIST_ITALY);
   case DiscIO::Country::Japan:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_JPN);
+    return Get(Config::MAIN_GAMELIST_LIST_JPN);
   case DiscIO::Country::Korea:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_KOREA);
+    return Get(Config::MAIN_GAMELIST_LIST_KOREA);
   case DiscIO::Country::Netherlands:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_NETHERLANDS);
+    return Get(Config::MAIN_GAMELIST_LIST_NETHERLANDS);
   case DiscIO::Country::Russia:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_RUSSIA);
+    return Get(Config::MAIN_GAMELIST_LIST_RUSSIA);
   case DiscIO::Country::Spain:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_SPAIN);
+    return Get(Config::MAIN_GAMELIST_LIST_SPAIN);
   case DiscIO::Country::Taiwan:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_TAIWAN);
+    return Get(Config::MAIN_GAMELIST_LIST_TAIWAN);
   case DiscIO::Country::USA:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_USA);
+    return Get(Config::MAIN_GAMELIST_LIST_USA);
   case DiscIO::Country::World:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_WORLD);
+    return Get(Config::MAIN_GAMELIST_LIST_WORLD);
   case DiscIO::Country::Unknown:
   default:
-    return Config::Get(Config::MAIN_GAMELIST_LIST_UNKNOWN);
+    return Get(Config::MAIN_GAMELIST_LIST_UNKNOWN);
   }
 }
 
-std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) const
+std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(const int index) const
 {
   return m_games[index];
 }
@@ -345,7 +345,7 @@ void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& gam
 
 void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
-  int index = FindGameIndex(game->GetFilePath());
+  const int index = FindGameIndex(game->GetFilePath());
   if (index < 0)
   {
     AddGame(game);
@@ -359,7 +359,7 @@ void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& 
 
 void GameListModel::RemoveGame(const std::string& path)
 {
-  int entry = FindGameIndex(path);
+  const int entry = FindGameIndex(path);
   if (entry < 0)
     return;
 
@@ -389,7 +389,7 @@ GameListModel::FindSecondDisc(const UICommon::GameFile& game) const
 {
   std::shared_ptr<const UICommon::GameFile> match_without_revision = nullptr;
 
-  if (DiscIO::IsDisc(game.GetPlatform()))
+  if (IsDisc(game.GetPlatform()))
   {
     for (auto& other_game : m_games)
     {
@@ -398,8 +398,7 @@ GameListModel::FindSecondDisc(const UICommon::GameFile& game) const
       {
         if (game.GetRevision() == other_game->GetRevision())
           return other_game;
-        else
-          match_without_revision = other_game;
+        match_without_revision = other_game;
       }
     }
   }
@@ -412,7 +411,7 @@ void GameListModel::SetSearchTerm(const QString& term)
   m_term = term;
 }
 
-void GameListModel::SetScale(float scale)
+void GameListModel::SetScale(const float scale)
 {
   m_scale = scale;
 }

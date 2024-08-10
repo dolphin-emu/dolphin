@@ -3,7 +3,6 @@
 
 #include "UICommon/ResourcePack/Manager.h"
 
-#include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -53,9 +52,9 @@ bool Init()
     pack_list_order.emplace_back(OrderHelper{i, std::move(manifest_id)});
   }
 
-  std::sort(
-      pack_list_order.begin(), pack_list_order.end(),
-      [](const OrderHelper& a, const OrderHelper& b) { return a.manifest_id < b.manifest_id; });
+  std::ranges::sort(pack_list_order, [](const OrderHelper& a, const OrderHelper& b) {
+    return a.manifest_id < b.manifest_id;
+  });
 
   bool error = false;
   for (size_t i = 0; i < pack_list_order.size(); ++i)
@@ -69,7 +68,7 @@ bool Init()
       continue;
     }
 
-    order->Set(pack->GetManifest()->GetID(), static_cast<u64>(i));
+    order->Set(pack->GetManifest()->GetID(), i);
   }
 
   file.Save(packs_path);
@@ -85,7 +84,7 @@ std::vector<ResourcePack>& GetPacks()
 std::vector<ResourcePack*> GetLowerPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
-  for (auto it = std::find(packs.begin(), packs.end(), pack) + 1; it != packs.end(); ++it)
+  for (auto it = std::ranges::find(packs, pack) + 1; it != packs.end(); ++it)
   {
     auto& entry = *it;
     if (!IsInstalled(pack))
@@ -100,7 +99,7 @@ std::vector<ResourcePack*> GetLowerPriorityPacks(const ResourcePack& pack)
 std::vector<ResourcePack*> GetHigherPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
-  auto end = std::find(packs.begin(), packs.end(), pack);
+  const auto end = std::ranges::find(packs, pack);
 
   for (auto it = packs.begin(); it != end; ++it)
   {
@@ -134,7 +133,7 @@ ResourcePack* Add(const std::string& path, int offset)
 
   file.Save(packs_path);
 
-  auto it = packs.insert(packs.begin() + offset, std::move(pack));
+  const auto it = packs.insert(packs.begin() + offset, std::move(pack));
   return &*it;
 }
 
@@ -145,7 +144,7 @@ bool Remove(ResourcePack& pack)
   if (!result)
     return false;
 
-  auto pack_iterator = std::find(packs.begin(), packs.end(), pack);
+  const auto pack_iterator = std::ranges::find(packs, pack);
 
   if (pack_iterator == packs.end())
     return false;
@@ -156,7 +155,7 @@ bool Remove(ResourcePack& pack)
 
   order->Delete(pack.GetManifest()->GetID());
 
-  int offset = pack_iterator - packs.begin();
+  const int offset = pack_iterator - packs.begin();
 
   for (int i = offset + 1; i < static_cast<int>(packs.size()); i++)
     order->Set(packs[i].GetManifest()->GetID(), i - 1);
@@ -186,7 +185,7 @@ bool IsInstalled(const ResourcePack& pack)
 {
   Common::IniFile file = GetPackConfig();
 
-  auto* install = file.GetOrCreateSection("Installed");
+  const auto* install = file.GetOrCreateSection("Installed");
 
   bool installed;
 

@@ -372,8 +372,9 @@ s32 WFSSRVDevice::Rename(std::string source, std::string dest) const
 
   INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_RENAME: {} to {}", source, dest);
 
-  const bool opened = std::any_of(m_fds.begin(), m_fds.end(),
-                                  [&](const auto& fd) { return fd.in_use && fd.path == source; });
+  const bool opened = std::ranges::any_of(m_fds, [&](const auto& fd) {
+    return fd.in_use && fd.path == source;
+  });
 
   if (opened)
     return WFS_FILE_IS_OPENED;
@@ -406,7 +407,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
     expanded = path;
   }
 
-  std::vector<std::string> components = SplitString(expanded, '/');
+  const std::vector<std::string> components = SplitString(expanded, '/');
   std::vector<std::string> normalized_components;
   for (const auto& component : components)
   {
@@ -414,7 +415,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
     {
       continue;
     }
-    else if (component == ".." && !normalized_components.empty())
+    if (component == ".." && !normalized_components.empty())
     {
       normalized_components.pop_back();
     }
@@ -426,7 +427,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
   return "/" + JoinStrings(normalized_components, "/");
 }
 
-WFSSRVDevice::FileDescriptor* WFSSRVDevice::FindFileDescriptor(u16 fd)
+WFSSRVDevice::FileDescriptor* WFSSRVDevice::FindFileDescriptor(const u16 fd)
 {
   if (fd >= m_fds.size() || !m_fds[fd].in_use)
   {
@@ -448,7 +449,7 @@ u16 WFSSRVDevice::GetNewFileDescriptor()
   return static_cast<u16>(m_fds.size() - 1);
 }
 
-void WFSSRVDevice::ReleaseFileDescriptor(u16 fd)
+void WFSSRVDevice::ReleaseFileDescriptor(const u16 fd)
 {
   FileDescriptor* fd_obj = FindFileDescriptor(fd);
   if (!fd_obj)

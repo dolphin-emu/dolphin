@@ -36,20 +36,20 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  QLineEdit* CreateLineEdit() const;
+  static QLineEdit* CreateLineEdit();
   QGroupBox* CreateContextGroup();
   QGroupBox* CreateActiveThreadQueueGroup();
   QGroupBox* CreateThreadGroup();
   QGroupBox* CreateThreadContextGroup();
   QGroupBox* CreateThreadCallstackGroup();
 
-  void ShowContextMenu(QTableWidget* table);
+  void ShowContextMenu(const QTableWidget* table);
 
   void Update();
-  void UpdateThreadContext(const Common::Debug::PartialContext& context);
+  void UpdateThreadContext(const Common::Debug::PartialContext& context) const;
   void UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
-                             const Common::Debug::PartialContext& context);
-  void OnSelectionChanged(int row);
+                             const Common::Debug::PartialContext& context) const;
+  void OnSelectionChanged(int row) const;
 
   QGroupBox* m_state;
   QLineEdit* m_current_context;

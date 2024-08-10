@@ -64,7 +64,7 @@ void RedumpVerifier::Start(const Volume& volume)
   m_disc_number = volume.GetDiscNumber().value_or(0);
   m_size = volume.GetDataSize();
 
-  const DiscIO::Platform platform = volume.GetVolumeType();
+  const Platform platform = volume.GetVolumeType();
 
   m_future = std::async(std::launch::async, [this, platform]() -> std::vector<PotentialMatch> {
     std::string system;
@@ -117,12 +117,12 @@ static std::string GetPathForSystem(const std::string& system)
 }
 
 RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string& system,
-                                                               DownloadStatus old_status)
+                                                               const DownloadStatus old_status)
 {
   if (old_status == DownloadStatus::Success || old_status == DownloadStatus::SystemNotAvailable)
     return old_status;
 
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
 
   const std::optional<std::vector<u8>> result =
       request.Get("http://redump.org/datfile/" + system + "/serial,version",
@@ -145,9 +145,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
     const std::string system_not_available_message = "System \"" + system + "\" doesn't exist.";
     const bool system_not_available_match =
-        result->end() != std::search(result->begin(), result->end(),
-                                     system_not_available_message.begin(),
-                                     system_not_available_message.end());
+        result->end() != std::ranges::search(*result, system_not_available_message).begin();
     return system_not_available_match ? DownloadStatus::SystemNotAvailable : DownloadStatus::Fail;
   }
 
@@ -159,7 +157,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
 std::vector<u8> RedumpVerifier::ReadDatfile(const std::string& system)
 {
-  unzFile file = unzOpen(GetPathForSystem(system).c_str());
+  const unzFile file = unzOpen(GetPathForSystem(system).c_str());
   if (!file)
     return {};
 
@@ -297,12 +295,12 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
         continue;
     }
 
-    PotentialMatch& potential_match = potential_matches.emplace_back();
+    auto& [size, hashes] = potential_matches.emplace_back();
     const pugi::xml_node rom = game.child("rom");
-    potential_match.size = rom.attribute("size").as_ullong();
-    potential_match.hashes.crc32 = ParseHash(rom.attribute("crc").value());
-    potential_match.hashes.md5 = ParseHash(rom.attribute("md5").value());
-    potential_match.hashes.sha1 = ParseHash(rom.attribute("sha1").value());
+    size = rom.attribute("size").as_ullong();
+    hashes.crc32 = ParseHash(rom.attribute("crc").value());
+    hashes.md5 = ParseHash(rom.attribute("md5").value());
+    hashes.sha1 = ParseHash(rom.attribute("sha1").value());
   }
 
   if (!serials_exist || !versions_exist)
@@ -337,10 +335,10 @@ RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& has
     return m_result;
 
   const std::vector<PotentialMatch> potential_matches = m_future.get();
-  for (PotentialMatch p : potential_matches)
+  for (auto [size, hashes] : potential_matches)
   {
-    if (HashesMatch(hashes.crc32, p.hashes.crc32) && HashesMatch(hashes.md5, p.hashes.md5) &&
-        HashesMatch(hashes.sha1, p.hashes.sha1) && m_size == p.size)
+    if (HashesMatch(hashes.crc32, hashes.crc32) && HashesMatch(hashes.md5, hashes.md5) &&
+        HashesMatch(hashes.sha1, hashes.sha1) && m_size == size)
     {
       return {Status::GoodDump, Common::GetStringT("Good dump")};
     }
@@ -359,8 +357,8 @@ RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& has
 
 constexpr u64 DEFAULT_READ_SIZE = 0x20000;  // Arbitrary value
 
-VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
-                               Hashes<bool> hashes_to_calculate)
+VolumeVerifier::VolumeVerifier(const Volume& volume, const bool redump_verification,
+                               const Hashes<bool> hashes_to_calculate)
     : m_volume(volume), m_redump_verification(redump_verification),
       m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
@@ -378,7 +376,7 @@ VolumeVerifier::~VolumeVerifier()
 
 Hashes<bool> VolumeVerifier::GetDefaultHashesToCalculate()
 {
-  Hashes<bool> hashes_to_calculate{.crc32 = true, .md5 = true, .sha1 = true};
+  Hashes hashes_to_calculate{.crc32 = true, .md5 = true, .sha1 = true};
   // If the system can compute certain hashes faster than others, only default-enable the fast ones.
   const bool sha1_hw_accel = Common::SHA1::CreateContext()->HwAccelerated();
   // For crc32, we assume zlib-ng will be fast if cpu supports crc32
@@ -434,7 +432,7 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
     return {m_volume.GetGamePartition()};
   }
 
-  std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
+  const std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
   if (partitions_in_first_table && *partitions_in_first_table > 8)
   {
     // Not sure if 8 actually is the limit, but there certainly aren't any discs
@@ -453,27 +451,27 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
       types.emplace_back(*type);
   }
 
-  if (std::find(types.cbegin(), types.cend(), PARTITION_UPDATE) == types.cend())
+  if (std::ranges::find(std::as_const(types), PARTITION_UPDATE) == types.cend())
     AddProblem(Severity::Low, Common::GetStringT("The update partition is missing."));
 
   const bool has_data_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_DATA) != types.cend();
+      std::ranges::find(std::as_const(types), PARTITION_DATA) != types.cend();
   if (!m_is_datel && !has_data_partition)
     AddProblem(Severity::High, Common::GetStringT("The data partition is missing."));
 
   const bool has_channel_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_CHANNEL) != types.cend();
+      std::ranges::find(std::as_const(types), PARTITION_CHANNEL) != types.cend();
   if (ShouldHaveChannelPartition() && !has_channel_partition)
     AddProblem(Severity::Medium, Common::GetStringT("The channel partition is missing."));
 
   const bool has_install_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_INSTALL) != types.cend();
+      std::ranges::find(std::as_const(types), PARTITION_INSTALL) != types.cend();
   if (ShouldHaveInstallPartition() && !has_install_partition)
     AddProblem(Severity::High, Common::GetStringT("The install partition is missing."));
 
   if (ShouldHaveMasterpiecePartitions() &&
       types.cend() ==
-          std::find_if(types.cbegin(), types.cend(), [](u32 type) { return type >= 0xFF; }))
+          std::ranges::find_if(std::as_const(types), [](const u32 type) { return type >= 0xFF; }))
   {
     // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
     // where you play demos of NES/SNES/N64 games. Official translations:
@@ -524,7 +522,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     return false;
   }
 
-  Severity severity = Severity::Medium;
+  auto severity = Severity::Medium;
   if (*type == PARTITION_DATA || *type == PARTITION_INSTALL)
     severity = Severity::High;
   else if (*type == PARTITION_UPDATE)
@@ -606,7 +604,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   {
     const u64 data_size =
         m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE).value_or(0);
-    const size_t blocks = static_cast<size_t>(data_size / VolumeWii::BLOCK_TOTAL_SIZE);
+    const size_t blocks = data_size / VolumeWii::BLOCK_TOTAL_SIZE;
 
     if (data_size % VolumeWii::BLOCK_TOTAL_SIZE != 0)
     {
@@ -630,7 +628,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   if (blank_contents)
     return false;
 
-  const DiscIO::FileSystem* filesystem = m_volume.GetFileSystem(partition);
+  const FileSystem* filesystem = m_volume.GetFileSystem(partition);
   if (!filesystem)
   {
     if (m_is_datel)
@@ -688,7 +686,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   return true;
 }
 
-std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
+std::string VolumeVerifier::GetPartitionName(const std::optional<u32> type) const
 {
   if (!type)
     return "???";
@@ -720,10 +718,9 @@ bool VolumeVerifier::ShouldHaveChannelPartition() const
       "RFNE01", "RFNJ01", "RFNK01", "RFNP01", "RFNW01", "RFPE01", "RFPJ01", "RFPK01", "RFPP01",
       "RFPW01", "RGWE41", "RGWJ41", "RGWP41", "RGWX41", "RMCE01", "RMCJ01", "RMCK01", "RMCP01",
   };
-  DEBUG_ASSERT(std::is_sorted(channel_discs.cbegin(), channel_discs.cend()));
+  DEBUG_ASSERT(std::ranges::is_sorted(channel_discs));
 
-  return std::binary_search(channel_discs.cbegin(), channel_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(channel_discs, std::string_view(m_volume.GetGameID()));
 }
 
 bool VolumeVerifier::ShouldHaveInstallPartition() const
@@ -731,16 +728,16 @@ bool VolumeVerifier::ShouldHaveInstallPartition() const
   static constexpr std::array<std::string_view, 4> dragon_quest_x = {"S4MJGD", "S4SJGD", "S6TJGD",
                                                                      "SDQJGD"};
   const std::string& game_id = m_volume.GetGameID();
-  return std::any_of(dragon_quest_x.cbegin(), dragon_quest_x.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+  return std::ranges::any_of(dragon_quest_x, [&game_id](const std::string_view x) {
+    return x == game_id;
+  });
 }
 
 bool VolumeVerifier::ShouldHaveMasterpiecePartitions() const
 {
   static constexpr std::array<std::string_view, 4> ssbb = {"RSBE01", "RSBJ01", "RSBK01", "RSBP01"};
   const std::string& game_id = m_volume.GetGameID();
-  return std::any_of(ssbb.cbegin(), ssbb.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+  return std::ranges::any_of(ssbb, [&game_id](const std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldBeDualLayer() const
@@ -753,10 +750,9 @@ bool VolumeVerifier::ShouldBeDualLayer() const
       "SLSEXJ", "SLSP01", "SQIE4Q", "SQIP4Q", "SQIY4Q", "SR5E41", "SR5P41", "SUOE41", "SUOP41",
       "SVXX52", "SVXY52", "SX4E01", "SX4P01", "SZ3EGT", "SZ3PGT",
   };
-  DEBUG_ASSERT(std::is_sorted(dual_layer_discs.cbegin(), dual_layer_discs.cend()));
+  DEBUG_ASSERT(std::ranges::is_sorted(dual_layer_discs));
 
-  return std::binary_search(dual_layer_discs.cbegin(), dual_layer_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(dual_layer_discs, std::string_view(m_volume.GetGameID()));
 }
 
 void VolumeVerifier::CheckVolumeSize()
@@ -764,7 +760,7 @@ void VolumeVerifier::CheckVolumeSize()
   u64 volume_size = m_volume.GetDataSize();
   const bool is_disc = IsDisc(m_volume.GetVolumeType());
   const bool should_be_dual_layer = is_disc && ShouldBeDualLayer();
-  bool volume_size_roughly_known = m_data_size_type != DiscIO::DataSizeType::UpperBound;
+  bool volume_size_roughly_known = m_data_size_type != DataSizeType::UpperBound;
 
   if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
@@ -775,7 +771,7 @@ void VolumeVerifier::CheckVolumeSize()
                    "This problem generally only exists in illegal copies of games."));
   }
 
-  if (m_data_size_type != DiscIO::DataSizeType::Accurate)
+  if (m_data_size_type != DataSizeType::Accurate)
   {
     AddProblem(Severity::Low,
                Common::GetStringT("The format that the disc image is saved in does not "
@@ -808,7 +804,7 @@ void VolumeVerifier::CheckVolumeSize()
   // The reason why this condition is checking for m_data_size_type != UpperBound instead of
   // m_data_size_type == Accurate is because we want to show the warning about input recordings and
   // NetPlay for NFS disc images (which are the only disc images that have it set to LowerBound).
-  if (is_disc && m_data_size_type != DiscIO::DataSizeType::UpperBound && !m_is_tgc)
+  if (is_disc && m_data_size_type != DataSizeType::UpperBound && !m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
     const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
@@ -981,8 +977,8 @@ void VolumeVerifier::CheckMisc()
 
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
-    IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
-    auto& es = ios.GetESCore();
+    const IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
+    const auto& es = ios.GetESCore();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 
     if (IOS::HLE::IPC_SUCCESS !=
@@ -1027,12 +1023,12 @@ void VolumeVerifier::CheckSuperPaperMario()
   // bytes are zeroes like in good dumps, the game works correctly, but otherwise it can freeze
   // (depending on the exact values of the extra bytes). https://bugs.dolphin-emu.org/issues/11900
 
-  const DiscIO::Partition partition = m_volume.GetGamePartition();
+  const Partition partition = m_volume.GetGamePartition();
   const FileSystem* fs = m_volume.GetFileSystem(partition);
   if (!fs)
     return;
 
-  std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
+  const std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
   if (!file_info)
     return;
 
@@ -1042,7 +1038,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   if (!m_volume.Read(offset, length, data.data(), partition))
     return;
 
-  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  if (std::ranges::any_of(std::as_const(data), [](const u8 x) { return x != 0; }))
   {
     AddProblem(Severity::High,
                Common::GetStringT("Some padding data that should be zero is not zero. "
@@ -1062,8 +1058,9 @@ void VolumeVerifier::SetUpHashing()
     m_scrubber.SetupScrub(m_volume);
   }
 
-  std::sort(m_groups.begin(), m_groups.end(),
-            [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
+  std::ranges::sort(m_groups, [](const GroupToVerify& a, const GroupToVerify& b) {
+    return a.offset < b.offset;
+  });
 
   if (m_hashes_to_calculate.crc32)
     m_crc32_context = Common::StartCRC32();
@@ -1206,8 +1203,7 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.crc32)
     {
       m_crc32_future = std::async(std::launch::async, [this, byte_increment] {
-        m_crc32_context = Common::UpdateCRC32(m_crc32_context, m_data.data(),
-                                              static_cast<size_t>(byte_increment));
+        m_crc32_context = Common::UpdateCRC32(m_crc32_context, m_data.data(), byte_increment);
       });
     }
 
@@ -1242,15 +1238,15 @@ void VolumeVerifier::Process()
   {
     m_group_future = std::async(std::launch::async, [this, read_failed,
                                                      group_index = m_group_index] {
-      const GroupToVerify& group = m_groups[group_index];
+      const auto& [partition, offset, block_index_start, block_index_end] = m_groups[group_index];
       u64 offset_in_group = 0;
-      for (u64 block_index = group.block_index_start; block_index < group.block_index_end;
+      for (u64 block_index = block_index_start; block_index < block_index_end;
            ++block_index, offset_in_group += VolumeWii::BLOCK_TOTAL_SIZE)
       {
-        const u64 block_offset = group.offset + offset_in_group;
+        const u64 block_offset = offset + offset_in_group;
 
         if (!read_failed && m_volume.CheckBlockIntegrity(
-                                block_index, m_data.data() + offset_in_group, group.partition))
+                                block_index, m_data.data() + offset_in_group, partition))
         {
           m_biggest_verified_offset =
               std::max(m_biggest_verified_offset, block_offset + VolumeWii::BLOCK_TOTAL_SIZE);
@@ -1260,12 +1256,12 @@ void VolumeVerifier::Process()
           if (m_scrubber.CanBlockBeScrubbed(block_offset))
           {
             WARN_LOG_FMT(DISCIO, "Integrity check failed for unused block at {:#x}", block_offset);
-            m_unused_block_errors[group.partition]++;
+            m_unused_block_errors[partition]++;
           }
           else
           {
             WARN_LOG_FMT(DISCIO, "Integrity check failed for block at {:#x}", block_offset);
-            m_block_errors[group.partition]++;
+            m_block_errors[partition]++;
           }
         }
       }
@@ -1301,7 +1297,7 @@ void VolumeVerifier::Finish()
     {
       m_result.hashes.crc32 = std::vector<u8>(4);
       const u32 crc32_be = Common::swap32(m_crc32_context);
-      const u8* crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
+      auto crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
       std::copy(crc32_be_ptr, crc32_be_ptr + 4, m_result.hashes.crc32.begin());
     }
 
@@ -1314,7 +1310,7 @@ void VolumeVerifier::Finish()
     if (m_hashes_to_calculate.sha1)
     {
       const auto digest = m_sha1_context->Finish();
-      m_result.hashes.sha1 = std::vector<u8>(digest.begin(), digest.end());
+      m_result.hashes.sha1 = std::vector(digest.begin(), digest.end());
     }
   }
 
@@ -1346,8 +1342,9 @@ void VolumeVerifier::Finish()
   }
 
   // Show the most serious problems at the top
-  std::stable_sort(m_result.problems.begin(), m_result.problems.end(),
-                   [](const Problem& p1, const Problem& p2) { return p1.severity > p2.severity; });
+  std::ranges::stable_sort(m_result.problems, [](const Problem& p1, const Problem& p2) {
+    return p1.severity > p2.severity;
+  });
   const Severity highest_severity =
       m_result.problems.empty() ? Severity::None : m_result.problems[0].severity;
 
@@ -1470,7 +1467,7 @@ const VolumeVerifier::Result& VolumeVerifier::GetResult() const
   return m_result;
 }
 
-void VolumeVerifier::AddProblem(Severity severity, std::string text)
+void VolumeVerifier::AddProblem(const Severity severity, std::string text)
 {
   m_result.problems.emplace_back(Problem{severity, std::move(text)});
 }

@@ -11,7 +11,7 @@
 namespace
 {
 template <typename T, std::enable_if_t<std::is_base_of_v<FBTarget, T>, int> = 0>
-std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, std::string_view prefix)
+std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, const std::string_view prefix)
 {
   T fb;
   const auto texture_filename_iter = obj.find("texture_filename");
@@ -124,10 +124,10 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
         "Failed to load mod configuration file, option 'texture_filename' is not a string type");
     return std::nullopt;
   }
-  std::string texture_info = texture_filename_iter->second.get<std::string>();
+  auto texture_info = texture_filename_iter->second.get<std::string>();
 
   const auto handle_fb_texture =
-      [&texture_info](std::string_view type) -> std::optional<std::string> {
+      [&texture_info](const std::string_view type) -> std::optional<std::string> {
     const auto letter_n_pos = texture_info.find("_n");
     if (letter_n_pos == std::string::npos)
     {
@@ -141,13 +141,12 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
     const auto post_underscore = texture_info.find_first_of('_', letter_n_pos + 2);
     if (post_underscore == std::string::npos)
       return texture_info.erase(letter_n_pos, texture_info.size() - letter_n_pos);
-    else
-      return texture_info.erase(letter_n_pos, post_underscore - letter_n_pos);
+    return texture_info.erase(letter_n_pos, post_underscore - letter_n_pos);
   };
 
   if (texture_info.starts_with(EFB_DUMP_PREFIX))
     return handle_fb_texture("an efb");
-  else if (texture_info.starts_with(XFB_DUMP_PREFIX))
+  if (texture_info.starts_with(XFB_DUMP_PREFIX))
     return handle_fb_texture("a xfb");
   return texture_info;
 }
@@ -183,7 +182,7 @@ void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetCon
                                                 static_cast<int>(the_target.m_texture_format)));
                  },
                  [&](const ProjectionTarget& the_target) {
-                   const char* type_name = "3d";
+                   auto type_name = "3d";
                    if (the_target.m_projection_type == ProjectionType::Orthographic)
                      type_name = "2d";
 
@@ -223,7 +222,7 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
-  else if (type == "load_texture")
+  if (type == "load_texture")
   {
     std::optional<std::string> texture_info = ExtractTextureFilenameForConfig(obj);
     if (!texture_info.has_value())
@@ -233,7 +232,7 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
-  else if (type == "create_texture")
+  if (type == "create_texture")
   {
     std::optional<std::string> texture_info = ExtractTextureFilenameForConfig(obj);
     if (!texture_info.has_value())
@@ -243,15 +242,15 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
-  else if (type == "efb")
+  if (type == "efb")
   {
     return DeserializeFBTargetFromConfig<EFBTarget>(obj, EFB_DUMP_PREFIX);
   }
-  else if (type == "xfb")
+  if (type == "xfb")
   {
     return DeserializeFBTargetFromConfig<XFBTarget>(obj, EFB_DUMP_PREFIX);
   }
-  else if (type == "projection")
+  if (type == "projection")
   {
     ProjectionTarget target;
     const auto texture_iter = obj.find("texture_filename");
@@ -286,16 +285,12 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     else
     {
       ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, option 'value' is not a valid "
-                           "value, valid values are: 2d, 3d");
+                    "value, valid values are: 2d, 3d");
       return std::nullopt;
     }
     return target;
   }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, option 'type' is not a valid value");
-  }
+  ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, option 'type' is not a valid value");
   return std::nullopt;
 }
 

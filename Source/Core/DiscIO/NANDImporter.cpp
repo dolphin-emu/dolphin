@@ -123,7 +123,7 @@ bool NANDImporter::FindSuperblock()
 
 std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& parent_path)
 {
-  std::string name(entry.name, strnlen(entry.name, sizeof(NANDFSTEntry::name)));
+  const std::string name(entry.name, strnlen(entry.name, sizeof(NANDFSTEntry::name)));
 
   if (name.front() == '/' || parent_path.back() == '/')
     return parent_path + name;
@@ -147,7 +147,7 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
     INFO_LOG_FMT(DISCIO, "Entry: {} Path: {}", entry, path);
     m_update_callback();
 
-    Type type = static_cast<Type>(entry.mode & 3);
+    const auto type = static_cast<Type>(entry.mode & 3);
     if (type == Type::File)
     {
       std::vector<u8> data = GetEntryData(entry);
@@ -168,7 +168,7 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
   }
 }
 
-std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
+std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry) const
 {
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
 
@@ -177,7 +177,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
   std::vector<u8> data{};
   data.reserve(remaining_bytes);
 
-  auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
+  const auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
   while (remaining_bytes > 0)
   {
     if (sub >= m_superblock->fat.size())
@@ -188,7 +188,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
 
     m_aes_ctx->CryptIvZero(&m_nand[NAND_FAT_BLOCK_SIZE * sub], block.get(), NAND_FAT_BLOCK_SIZE);
 
-    size_t size = std::min(remaining_bytes, NAND_FAT_BLOCK_SIZE);
+    const size_t size = std::min(remaining_bytes, NAND_FAT_BLOCK_SIZE);
     data.insert(data.end(), block.get(), block.get() + size);
     remaining_bytes -= size;
 
@@ -198,7 +198,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
   return data;
 }
 
-bool NANDImporter::ExtractCertificates()
+bool NANDImporter::ExtractCertificates() const
 {
   const std::string content_dir = m_nand_root + "/title/00000001/0000000d/content/";
 
@@ -210,7 +210,7 @@ bool NANDImporter::ExtractCertificates()
     return false;
   }
 
-  IOS::ES::TMDReader tmd(std::move(tmd_bytes));
+  const IOS::ES::TMDReader tmd(std::move(tmd_bytes));
   IOS::ES::Content content_metadata;
   if (!tmd.GetContent(tmd.GetBootIndex(), &content_metadata))
   {
@@ -238,20 +238,19 @@ bool NANDImporter::ExtractCertificates()
       {"/rootca.pem", {{0x30, 0x82, 0x03, 0x7D}}},
   }};
 
-  for (const PEMCertificate& certificate : certificates)
+  for (const auto& [filename, search_bytes] : certificates)
   {
     const auto search_result =
-        std::search(content_bytes.begin(), content_bytes.end(), certificate.search_bytes.begin(),
-                    certificate.search_bytes.end());
+        std::ranges::search(content_bytes, search_bytes).begin();
 
     if (search_result == content_bytes.end())
     {
       ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not find offset for certficate '{}'",
-                    certificate.filename);
+                    filename);
       return false;
     }
 
-    const std::string pem_file_path = m_nand_root + std::string(certificate.filename);
+    const std::string pem_file_path = m_nand_root + std::string(filename);
     const ptrdiff_t certificate_offset = std::distance(content_bytes.begin(), search_result);
     constexpr int min_offset = 2;
     if (certificate_offset < min_offset)
@@ -273,7 +272,7 @@ bool NANDImporter::ExtractCertificates()
       return false;
     }
     INFO_LOG_FMT(DISCIO, "ExtractCertificates: '{}' offset: {:#x} size: {:#x}",
-                 certificate.filename, certificate_offset, certificate_size);
+                 filename, certificate_offset, certificate_size);
 
     File::IOFile pem_file(pem_file_path, "wb");
     if (!pem_file.WriteBytes(&content_bytes[certificate_offset], certificate_size))

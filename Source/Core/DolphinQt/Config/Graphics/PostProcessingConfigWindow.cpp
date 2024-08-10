@@ -64,10 +64,10 @@ void PostProcessingConfigWindow::PopulateGroups()
       m_post_processor->GetOptions();
 
   auto config_groups = std::vector<std::unique_ptr<ConfigGroup>>();
-  for (const auto& it : config_map)
+  for (const auto& [fst, snd] : config_map)
   {
-    auto config_group = std::make_unique<ConfigGroup>(&it.second);
-    m_config_map[it.first] = config_group.get();
+    auto config_group = std::make_unique<ConfigGroup>(&snd);
+    m_config_map[fst] = config_group.get();
     config_groups.push_back(std::move(config_group));
   }
 
@@ -147,43 +147,47 @@ PostProcessingConfigWindow::CreateDependentTab(const std::unique_ptr<ConfigGroup
   return tab;
 }
 
-void PostProcessingConfigWindow::UpdateBool(ConfigGroup* const config_group, const bool state)
+void PostProcessingConfigWindow::UpdateBool(const ConfigGroup* const config_group, const bool state) const
 {
   m_post_processor->SetOptionb(config_group->GetOptionName(), state);
 
   config_group->EnableSuboptions(state);
 }
 
-void PostProcessingConfigWindow::UpdateInteger(ConfigGroup* const config_group, const int value)
+void PostProcessingConfigWindow::UpdateInteger(const ConfigGroup* const config_group, const int value) const
 {
-  const ConfigurationOption& config_option =
+  const auto& [_m_bool_value, _m_float_values, m_integer_values, _m_float_min_values,
+        m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+        m_integer_step_values, _m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty] =
       m_post_processor->GetOption(config_group->GetOptionName());
 
-  const size_t vector_size = config_option.m_integer_values.size();
+  const size_t vector_size = m_integer_values.size();
 
   for (size_t i = 0; i < vector_size; ++i)
   {
     const int current_step = config_group->GetSliderValue(i);
-    const s32 current_value = config_option.m_integer_step_values[i] * current_step +
-                              config_option.m_integer_min_values[i];
-    m_post_processor->SetOptioni(config_option.m_option_name, static_cast<int>(i), current_value);
+    const s32 current_value = m_integer_step_values[i] * current_step +
+                              m_integer_min_values[i];
+    m_post_processor->SetOptioni(m_option_name, static_cast<int>(i), current_value);
     config_group->SetSliderText(i, QString::number(current_value));
   }
 }
 
-void PostProcessingConfigWindow::UpdateFloat(ConfigGroup* const config_group, const int value)
+void PostProcessingConfigWindow::UpdateFloat(const ConfigGroup* const config_group, const int value) const
 {
-  const ConfigurationOption& config_option =
-      m_post_processor->GetOption(config_group->GetOptionName());
+  const auto& [_m_bool_value, m_float_values, _m_integer_values, m_float_min_values,
+        _m_integer_min_values, _m_float_max_values, _m_integer_max_values, m_float_step_values,
+        _m_integer_step_values, _m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty]
+      = m_post_processor->GetOption(config_group->GetOptionName());
 
-  const size_t vector_size = config_option.m_float_values.size();
+  const size_t vector_size = m_float_values.size();
 
   for (size_t i = 0; i < vector_size; ++i)
   {
     const int current_step = config_group->GetSliderValue(static_cast<unsigned int>(i));
     const float current_value =
-        config_option.m_float_step_values[i] * current_step + config_option.m_float_min_values[i];
-    m_post_processor->SetOptionf(config_option.m_option_name, static_cast<int>(i), current_value);
+        m_float_step_values[i] * current_step + m_float_min_values[i];
+    m_post_processor->SetOptionf(m_option_name, static_cast<int>(i), current_value);
     config_group->SetSliderText(i, QString::asprintf("%f", current_value));
   }
 }
@@ -255,8 +259,8 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddBool(PostProcessingConfigWindow*
 {
   m_checkbox = new QCheckBox();
   m_checkbox->setChecked(m_config_option->m_bool_value);
-  QObject::connect(m_checkbox, &QCheckBox::toggled,
-                   [this, parent](bool checked) { parent->UpdateBool(this, checked); });
+  connect(m_checkbox, &QCheckBox::toggled,
+                   [this, parent](const bool checked) { parent->UpdateBool(this, checked); });
   grid->addWidget(m_checkbox, row, 2);
 
   return row + 1;
@@ -286,8 +290,8 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
     slider->setMaximum(steps);
     slider->setValue(current_value);
     slider->setTickInterval(range / steps);
-    QObject::connect(slider, &QSlider::valueChanged,
-                     [this, parent](int value) { parent->UpdateInteger(this, value); });
+    connect(slider, &QSlider::valueChanged,
+                     [this, parent](const int value) { parent->UpdateInteger(this, value); });
 
     auto* const value_box = new QLineEdit(QString::number(m_config_option->m_integer_values[i]));
     value_box->setEnabled(false);
@@ -325,8 +329,8 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
     slider->setMaximum(steps);
     slider->setValue(current_value);
     slider->setTickInterval(range / steps);
-    QObject::connect(slider, &QSlider::valueChanged,
-                     [this, parent](int value) { parent->UpdateFloat(this, value); });
+    connect(slider, &QSlider::valueChanged,
+                     [this, parent](const int value) { parent->UpdateFloat(this, value); });
 
     auto* const value_box =
         new QLineEdit(QString::asprintf("%f", m_config_option->m_float_values[i]));
@@ -346,9 +350,9 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
   return row + 1;
 }
 
-void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state)
+void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state) const
 {
-  for (auto& it : m_subgroups)
+  for (const auto& it : m_subgroups)
   {
     if (it->m_config_option->m_type == OptionType::Bool)
     {
@@ -356,7 +360,7 @@ void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state)
     }
     else
     {
-      for (auto& slider : it->m_sliders)
+      for (const auto& slider : it->m_sliders)
       {
         slider->setEnabled(state);
       }
@@ -370,12 +374,12 @@ int PostProcessingConfigWindow::ConfigGroup::GetCheckboxValue() const
   return m_checkbox->isChecked();
 }
 
-int PostProcessingConfigWindow::ConfigGroup::GetSliderValue(size_t index) const
+int PostProcessingConfigWindow::ConfigGroup::GetSliderValue(const size_t index) const
 {
   return m_sliders[index]->value();
 }
 
-void PostProcessingConfigWindow::ConfigGroup::SetSliderText(size_t index, const QString& text)
+void PostProcessingConfigWindow::ConfigGroup::SetSliderText(const size_t index, const QString& text) const
 {
   m_value_boxes[index]->setText(text);
 }

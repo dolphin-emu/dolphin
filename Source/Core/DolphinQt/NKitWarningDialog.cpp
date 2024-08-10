@@ -10,7 +10,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QStyle>
-#include <QVBoxLayout>
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
@@ -19,12 +18,12 @@
 
 bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
 {
-  if (Config::Get(Config::MAIN_SKIP_NKIT_WARNING))
+  if (Get(Config::MAIN_SKIP_NKIT_WARNING))
     return true;
 
   NKitWarningDialog dialog(parent);
   SetQWidgetWindowDecorations(&dialog);
-  return dialog.exec() == QDialog::Accepted;
+  return dialog.exec() == Accepted;
 }
 
 NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
@@ -33,9 +32,9 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
-  QVBoxLayout* main_layout = new QVBoxLayout;
+  auto main_layout = new QVBoxLayout;
 
-  QLabel* warning = new QLabel(
+  auto warning = new QLabel(
       tr("You are about to run an NKit disc image. NKit disc images cause problems that don't "
          "happen with normal disc images. These problems include:\n"
          "\n"
@@ -50,23 +49,23 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
   warning->setWordWrap(true);
   main_layout->addWidget(warning);
 
-  QCheckBox* checkbox_accept = new QCheckBox(tr("I am aware of the risks and want to continue"));
+  auto checkbox_accept = new QCheckBox(tr("I am aware of the risks and want to continue"));
   main_layout->addWidget(checkbox_accept);
 
-  QCheckBox* checkbox_skip = new QCheckBox(tr("Don't show this again"));
+  auto checkbox_skip = new QCheckBox(tr("Don't show this again"));
   main_layout->addWidget(checkbox_skip);
 
-  QHBoxLayout* button_layout = new QHBoxLayout;
-  QPushButton* ok = new QPushButton(tr("OK"));
+  auto button_layout = new QHBoxLayout;
+  auto ok = new QPushButton(tr("OK"));
   button_layout->addWidget(ok);
-  QPushButton* cancel = new QPushButton(tr("Cancel"));
+  auto cancel = new QPushButton(tr("Cancel"));
   button_layout->addWidget(cancel);
   main_layout->addLayout(button_layout);
 
-  QHBoxLayout* top_layout = new QHBoxLayout;
+  auto top_layout = new QHBoxLayout;
 
-  QIcon icon = QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning);
-  QLabel* icon_label = new QLabel;
+  const QIcon icon = QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning);
+  auto icon_label = new QLabel;
   icon_label->setPixmap(icon.pixmap(100));
   icon_label->setAlignment(Qt::AlignTop);
   top_layout->addWidget(icon_label);
@@ -81,9 +80,9 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
 
   ok->setEnabled(false);
   connect(checkbox_accept, &QCheckBox::stateChanged,
-          [ok](int state) { ok->setEnabled(state == Qt::Checked); });
+          [ok](const int state) { ok->setEnabled(state == Qt::Checked); });
 
   connect(this, &QDialog::accepted, [checkbox_skip] {
-    Config::SetBase(Config::MAIN_SKIP_NKIT_WARNING, checkbox_skip->isChecked());
+    SetBase(Config::MAIN_SKIP_NKIT_WARNING, checkbox_skip->isChecked());
   });
 }

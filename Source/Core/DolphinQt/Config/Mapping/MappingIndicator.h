@@ -34,14 +34,14 @@ public:
   QBrush GetBBoxBrush() const;
   QColor GetRawInputColor() const;
   QPen GetInputShapePen() const;
-  QColor GetCenterColor() const;
-  QColor GetAdjustedInputColor() const;
+  static QColor GetCenterColor();
+  static QColor GetAdjustedInputColor();
   QColor GetDeadZoneColor() const;
   QPen GetDeadZonePen() const;
-  QBrush GetDeadZoneBrush(QPainter&) const;
+  QBrush GetDeadZoneBrush(const QPainter&) const;
   QColor GetTextColor() const;
   QColor GetAltTextColor() const;
-  void AdjustGateColor(QColor*);
+  void AdjustGateColor(QColor*) const;
 
 protected:
   virtual void Draw() {}
@@ -56,8 +56,8 @@ protected:
   SquareIndicator();
 
   qreal GetContentsScale() const;
-  void DrawBoundingBox(QPainter&);
-  void TransformPainter(QPainter&);
+  void DrawBoundingBox(QPainter&) const;
+  void TransformPainter(QPainter&) const;
 };
 
 class ReshapableInputIndicator : public SquareIndicator
@@ -67,14 +67,14 @@ public:
 
 protected:
   void DrawReshapableInput(ControllerEmu::ReshapableInput& group, QColor gate_color,
-                           std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
+                           const std::optional<ControllerEmu::ReshapableInput::ReshapeData>& adj_coord);
 
   virtual void DrawUnderGate(QPainter&) {}
 
   bool IsCalibrating() const;
 
-  void DrawCalibration(QPainter& p, Common::DVec2 point);
-  void UpdateCalibrationWidget(Common::DVec2 point);
+  void DrawCalibration(QPainter& p, Common::DVec2 point) const;
+  void UpdateCalibrationWidget(Common::DVec2 point) const;
 
 private:
   CalibrationWidget* m_calibration_widget{};

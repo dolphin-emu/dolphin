@@ -58,34 +58,36 @@ namespace WiimoteEmu
 Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationBlocks& blocks) const
 {
   // Each axis may be using either slow or fast calibration.
-  const auto calibration = blocks.GetRelevantCalibration(is_slow);
+  const auto [value, degrees] = blocks.GetRelevantCalibration(is_slow);
 
   // It seems M+ calibration data does not follow the "right-hand rule".
-  const auto sign_fix = Common::Vec3(-1, +1, -1);
+  constexpr auto sign_fix = Common::Vec3(-1, +1, -1);
 
   // Adjust deg/s to rad/s.
-  constexpr auto scalar = float(MathUtil::TAU / 360);
+  constexpr auto scalar = static_cast<float>(MathUtil::TAU / 360);
 
-  return gyro.GetNormalizedValue(calibration.value) * sign_fix * Common::Vec3(calibration.degrees) *
-         scalar;
+  return gyro.GetNormalizedValue(value) * sign_fix * Common::Vec3(degrees) * scalar;
 }
 
-auto MotionPlus::CalibrationBlocks::GetRelevantCalibration(SlowType is_slow) const
+auto MotionPlus::CalibrationBlocks::GetRelevantCalibration(const SlowType is_slow) const
     -> RelevantCalibration
 {
   RelevantCalibration result;
 
-  const auto& pitch_block = is_slow.x ? slow : fast;
-  const auto& roll_block = is_slow.y ? slow : fast;
-  const auto& yaw_block = is_slow.z ? slow : fast;
+  const auto& [_pitch_yaw_zero, _pitch_roll_zero, pitch_zero, _pitch_yaw_scale, _pitch_roll_scale,
+    pitch_scale, pitch_degrees_div_6] = is_slow.x ? slow : fast;
+  const auto& [_roll_yaw_zero, roll_zero, _roll_pitch_zero, _roll_yaw_scale, roll_scale,
+    _roll_pitch_scale, roll_degrees_div_6] = is_slow.y ? slow : fast;
+  const auto& [yaw_zero, _yaw_roll_zero, _yaw_pitch_zero, yaw_scale, _yaw_roll_scale,
+    _yaw_pitch_scale, yaw_degrees_div_6] = is_slow.z ? slow : fast;
 
-  result.value.max = {pitch_block.pitch_scale, roll_block.roll_scale, yaw_block.yaw_scale};
+  result.value.max = {pitch_scale, roll_scale, yaw_scale};
 
-  result.value.zero = {pitch_block.pitch_zero, roll_block.roll_zero, yaw_block.yaw_zero};
+  result.value.zero = {pitch_zero, roll_zero, yaw_zero};
 
-  result.degrees.x = pitch_block.degrees_div_6 * 6;
-  result.degrees.y = roll_block.degrees_div_6 * 6;
-  result.degrees.z = yaw_block.degrees_div_6 * 6;
+  result.degrees.x = pitch_degrees_div_6 * 6;
+  result.degrees.y = roll_degrees_div_6 * 6;
+  result.degrees.z = yaw_degrees_div_6 * 6;
 
   return result;
 }
@@ -105,7 +107,7 @@ void MotionPlus::Reset()
   constexpr u8 IS_INTEGRATED = 0x00;
 
   // FYI: This ID changes on activation/deactivation
-  constexpr std::array<u8, 6> initial_id = {IS_INTEGRATED, 0x00, 0xA6, 0x20, 0x00, 0x05};
+  constexpr std::array initial_id = {IS_INTEGRATED, 0x00, 0xA6, 0x20, 0x00, 0x05};
   m_reg_data.ext_identifier = initial_id;
 
   // Build calibration data.
@@ -151,8 +153,8 @@ void MotionPlus::CalibrationData::UpdateChecksum()
   crc_result = Common::UpdateCRC32(crc_result, reinterpret_cast<const u8*>(this), 0xe);
   crc_result = Common::UpdateCRC32(crc_result, reinterpret_cast<const u8*>(this) + 0x10, 0xe);
 
-  crc32_lsb = u16(crc_result);
-  crc32_msb = u16(crc_result >> 16);
+  crc32_lsb = static_cast<u16>(crc_result);
+  crc32_msb = static_cast<u16>(crc_result >> 16);
 }
 
 void MotionPlus::DoState(PointerWrap& p)
@@ -167,16 +169,11 @@ MotionPlus::ActivationStatus MotionPlus::GetActivationStatus() const
   {
     if (ChallengeState::Activating == m_reg_data.challenge_state)
       return ActivationStatus::Activating;
-    else
-      return ActivationStatus::Active;
+    return ActivationStatus::Active;
   }
-  else
-  {
-    if (m_progress_timer != 0)
-      return ActivationStatus::Deactivating;
-    else
-      return ActivationStatus::Inactive;
-  }
+  if (m_progress_timer != 0)
+    return ActivationStatus::Deactivating;
+  return ActivationStatus::Inactive;
 }
 
 MotionPlus::PassthroughMode MotionPlus::GetPassthroughMode() const
@@ -189,7 +186,7 @@ ExtensionPort& MotionPlus::GetExtPort()
   return m_extension_port;
 }
 
-int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int MotionPlus::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   switch (GetActivationStatus())
   {
@@ -222,7 +219,7 @@ int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   }
 }
 
-int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int MotionPlus::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   switch (GetActivationStatus())
   {
@@ -280,14 +277,14 @@ int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
         {
           // Preparing y0 on the real M+ is almost instant (30ms maybe).
           constexpr int PREPARE_Y0_MS = 30;
-          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
+          m_progress_timer = Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
         }
         else
         {
           // A real M+ takes about 1200ms to prepare y1.
           // Games seem to not care that we don't take that long.
           constexpr int PREPARE_Y1_MS = 500;
-          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
+          m_progress_timer = Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
         }
 
         // Games give the M+ a bit of time to compute the value.
@@ -355,7 +352,7 @@ void MotionPlus::Activate()
   // M+ takes a bit of time to activate. During which it is completely unresponsive.
   // This also affects the device detect pin which results in wiimote status reports.
   constexpr int ACTIVATION_MS = 20;
-  m_progress_timer = ::Wiimote::UPDATE_FREQ * ACTIVATION_MS / 1000;
+  m_progress_timer = Wiimote::UPDATE_FREQ * ACTIVATION_MS / 1000;
 }
 
 void MotionPlus::Deactivate()
@@ -367,7 +364,7 @@ void MotionPlus::Deactivate()
   // M+ takes a bit of time to deactivate. During which it is completely unresponsive.
   // This also affects the device detect pin which results in wiimote status reports.
   constexpr int DEACTIVATION_MS = 20;
-  m_progress_timer = ::Wiimote::UPDATE_FREQ * DEACTIVATION_MS / 1000;
+  m_progress_timer = Wiimote::UPDATE_FREQ * DEACTIVATION_MS / 1000;
 }
 
 bool MotionPlus::ReadDeviceDetectPin() const
@@ -410,7 +407,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
     // So we must use at least a small delay.
     // Note: This does not delay game start. The challenge takes place in the background.
     constexpr int PREPARE_X_MS = 500;
-    m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_X_MS / 1000;
+    m_progress_timer = Wiimote::UPDATE_FREQ * PREPARE_X_MS / 1000;
   }
 
   if (ActivationStatus::Active != GetActivationStatus())
@@ -436,15 +433,15 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       // Disable encryption
       {
         constexpr u8 INIT_OFFSET = offsetof(Register, init_trigger);
-        std::array<u8, 1> enc_data = {0x55};
-        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, int(enc_data.size()), enc_data.data());
+        constexpr std::array<u8, 1> enc_data = {0x55};
+        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, enc_data.size(), enc_data.data());
       }
 
       // Read identifier
       {
         constexpr u8 ID_OFFSET = offsetof(Register, ext_identifier);
         std::array<u8, 6> id_data = {};
-        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, int(id_data.size()), id_data.data());
+        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, id_data.size(), id_data.data());
         m_reg_data.passthrough_ext_id_0 = id_data[0];
         m_reg_data.passthrough_ext_id_4 = id_data[4];
         m_reg_data.passthrough_ext_id_5 = id_data[5];
@@ -454,7 +451,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       {
         constexpr u8 CAL_OFFSET = offsetof(Register, calibration_data);
         m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, CAL_OFFSET,
-                          int(m_reg_data.passthrough_ext_calib.size()),
+                          m_reg_data.passthrough_ext_calib.size(),
                           m_reg_data.passthrough_ext_calib.data());
       }
     }
@@ -543,29 +540,28 @@ MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& an
   const bool pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
   const s32 pitch_value = pitch * (pitch_slow ? SLOW_SCALE : FAST_SCALE);
 
-  const u16 clamped_yaw_value = u16(std::llround(std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE)));
+  const u16 clamped_yaw_value = static_cast<u16>(std::llround(std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE)));
   const u16 clamped_roll_value =
-      u16(std::llround(std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE)));
+      static_cast<u16>(std::llround(std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE)));
   const u16 clamped_pitch_value =
-      u16(std::llround(std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE)));
+      static_cast<u16>(std::llround(std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE)));
 
-  return MotionPlus::DataFormat::Data{
-      MotionPlus::DataFormat::GyroRawValue{MotionPlus::DataFormat::GyroType(
+  return DataFormat::Data{
+      DataFormat::GyroRawValue{DataFormat::GyroType(
           clamped_pitch_value, clamped_roll_value, clamped_yaw_value)},
-      MotionPlus::DataFormat::SlowType(pitch_slow, roll_slow, yaw_slow)};
+      DataFormat::SlowType(pitch_slow, roll_slow, yaw_slow)};
 }
 
 MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
 {
-  return MotionPlus::DataFormat::Data{
-      MotionPlus::DataFormat::GyroRawValue{
-          MotionPlus::DataFormat::GyroType(u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE))},
-      MotionPlus::DataFormat::SlowType(true, true, true)};
+  return DataFormat::Data{
+      DataFormat::GyroRawValue{DataFormat::GyroType(ZERO_VALUE, ZERO_VALUE, ZERO_VALUE)},
+      DataFormat::SlowType(true, true, true)};
 }
 
 // This is something that is triggered by a read of 0x00 on real hardware.
 // But we do it here for determinism reasons.
-void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data)
+void MotionPlus::PrepareInput(const DataFormat::Data& gyroscope_data)
 {
   if (GetActivationStatus() != ActivationStatus::Active)
     return;
@@ -640,19 +636,19 @@ void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data
     const u16 roll_value = gyroscope_data.gyro.value.y;
     const u16 yaw_value = gyroscope_data.gyro.value.z;
 
-    mplus_data.yaw_slow = u8(yaw_slow);
-    mplus_data.roll_slow = u8(roll_slow);
-    mplus_data.pitch_slow = u8(pitch_slow);
+    mplus_data.yaw_slow = static_cast<u8>(yaw_slow);
+    mplus_data.roll_slow = static_cast<u8>(roll_slow);
+    mplus_data.pitch_slow = static_cast<u8>(pitch_slow);
 
     // Bits 0-7
-    mplus_data.yaw1 = u8(yaw_value);
-    mplus_data.roll1 = u8(roll_value);
-    mplus_data.pitch1 = u8(pitch_value);
+    mplus_data.yaw1 = static_cast<u8>(yaw_value);
+    mplus_data.roll1 = static_cast<u8>(roll_value);
+    mplus_data.pitch1 = static_cast<u8>(pitch_value);
 
     // Bits 8-13
-    mplus_data.yaw2 = u8(yaw_value >> 8);
-    mplus_data.roll2 = u8(roll_value >> 8);
-    mplus_data.pitch2 = u8(pitch_value >> 8);
+    mplus_data.yaw2 = static_cast<u8>(yaw_value >> 8);
+    mplus_data.roll2 = static_cast<u8>(roll_value >> 8);
+    mplus_data.pitch2 = static_cast<u8>(pitch_value >> 8);
   }
 
   mplus_data.extension_connected = is_ext_connected;
@@ -661,7 +657,7 @@ void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data
   Common::BitCastPtr<DataFormat>(data) = mplus_data;
 }
 
-void MotionPlus::ApplyPassthroughModifications(PassthroughMode mode, u8* data)
+void MotionPlus::ApplyPassthroughModifications(const PassthroughMode mode, u8* data)
 {
   if (mode == PassthroughMode::Nunchuk)
   {
@@ -691,7 +687,7 @@ void MotionPlus::ApplyPassthroughModifications(PassthroughMode mode, u8* data)
   }
 }
 
-void MotionPlus::ReversePassthroughModifications(PassthroughMode mode, u8* data)
+void MotionPlus::ReversePassthroughModifications(const PassthroughMode mode, u8* data)
 {
   if (mode == PassthroughMode::Nunchuk)
   {
@@ -719,7 +715,7 @@ void MotionPlus::ReversePassthroughModifications(PassthroughMode mode, u8* data)
 
     // This is an overwritten unused button bit on the Classic Controller.
     // Note it's a significant bit on the DJ Hero Turntable. (passthrough not feasible)
-    Common::SetBit<0>(data[4], 1);
+    Common::SetBit<0>(data[4], true);
   }
 }
 

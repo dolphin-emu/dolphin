@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <QString>
 #include <QWidget>
 
@@ -52,11 +49,11 @@ protected:
 
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
-  QGroupBox* CreateControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
+  QGroupBox* CreateControlsBox(const QString& name, const ControllerEmu::ControlGroup* group,
                                int columns);
   void CreateControl(const ControllerEmu::Control* control, QFormLayout* layout, bool indicator);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
-  void AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
+  void AddSettingWidgets(QFormLayout* layout, const ControllerEmu::ControlGroup* group,
                          ControllerEmu::SettingVisibility visibility);
   void ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* group);
 

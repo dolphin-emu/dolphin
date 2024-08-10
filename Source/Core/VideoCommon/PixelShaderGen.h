@@ -72,7 +72,7 @@ struct pixel_shader_uid_data
   u32 tevindref_bi3 : 3;
   u32 tevindref_bc3 : 3;
 
-  void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
+  void SetTevindrefValues(const int index, const u32 texcoord, const u32 texmap)
   {
     if (index == 0)
     {
@@ -96,28 +96,28 @@ struct pixel_shader_uid_data
     }
   }
 
-  u32 GetTevindirefCoord(int index) const
+  u32 GetTevindirefCoord(const int index) const
   {
     if (index == 0)
       return tevindref_bc0;
-    else if (index == 1)
+    if (index == 1)
       return tevindref_bc1;
-    else if (index == 2)
+    if (index == 2)
       return tevindref_bc2;
-    else if (index == 3)
+    if (index == 3)
       return tevindref_bc3;
     return 0;
   }
 
-  u32 GetTevindirefMap(int index) const
+  u32 GetTevindirefMap(const int index) const
   {
     if (index == 0)
       return tevindref_bi0;
-    else if (index == 1)
+    if (index == 1)
       return tevindref_bi1;
-    else if (index == 2)
+    if (index == 2)
       return tevindref_bi2;
-    else if (index == 3)
+    if (index == 3)
       return tevindref_bi3;
     return 0;
   }

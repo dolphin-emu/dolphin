@@ -69,7 +69,7 @@ void SWGfx::BindBackbuffer(const ClearColor& clear_color)
 class SWShader final : public AbstractShader
 {
 public:
-  explicit SWShader(ShaderStage stage) : AbstractShader(stage) {}
+  explicit SWShader(const ShaderStage stage) : AbstractShader(stage) {}
   ~SWShader() = default;
 
   BinaryData GetBinary() const override { return {}; }
@@ -134,7 +134,7 @@ void SWGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 
 SurfaceInfo SWGfx::GetSurfaceInfo() const
 {
-  GLContext* context = m_window->GetContext();
+  const GLContext* context = m_window->GetContext();
   return {std::max(context->GetBackBufferWidth(), 1u), std::max(context->GetBackBufferHeight(), 1u),
           1.0f, AbstractTextureFormat::RGBA8};
 }

@@ -53,7 +53,7 @@ private:
   std::array<bool, 256> m_old_key_buffer{};
   u8 m_old_modifiers = 0;
 
-  bool IsKeyPressed(int key) const;
+  static bool IsKeyPressed(int key);
 
   // This stuff should probably die
   enum

@@ -13,8 +13,8 @@
 class VertexLoader_TextCoord
 {
 public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                                          TexComponentCount elements)
+  static DOLPHIN_FORCE_INLINE u32 GetSize(const VertexComponentFormat type, const ComponentFormat format,
+                                          const TexComponentCount elements)
   {
     return s_table_size[type][format][elements];
   }

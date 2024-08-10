@@ -52,7 +52,7 @@ TEST(SettingsHandlerTest, EncryptSingleSetting)
 
 TEST(SettingsHandlerTest, DecryptSingleSetting)
 {
-  Common::SettingsHandler handler(BUFFER_A);
+  const Common::SettingsHandler handler(BUFFER_A);
   EXPECT_EQ(handler.GetValue("key"), "val");
 }
 
@@ -69,7 +69,7 @@ TEST(SettingsHandlerTest, EncryptMultipleSettings)
 
 TEST(SettingsHandlerTest, DecryptMultipleSettings)
 {
-  Common::SettingsHandler handler(BUFFER_B);
+  const Common::SettingsHandler handler(BUFFER_B);
   EXPECT_EQ(handler.GetValue("key1"), "val1");
   EXPECT_EQ(handler.GetValue("key2"), "val2");
   EXPECT_EQ(handler.GetValue("foo"), "bar");
@@ -102,12 +102,12 @@ TEST(SettingsHandlerTest, EncryptAddsLFOnNullCharTwice)
 
 TEST(SettingsHandlerTest, DecryptSingleAddedLF)
 {
-  Common::SettingsHandler handler(BUFFER_C);
+  const Common::SettingsHandler handler(BUFFER_C);
   EXPECT_EQ(handler.GetValue("\xFA"), "a");
 }
 
 TEST(SettingsHandlerTest, DecryptTwoAddedLFs)
 {
-  Common::SettingsHandler handler(BUFFER_D);
+  const Common::SettingsHandler handler(BUFFER_D);
   EXPECT_EQ(handler.GetValue("\xFA\xE9"), "a");
 }

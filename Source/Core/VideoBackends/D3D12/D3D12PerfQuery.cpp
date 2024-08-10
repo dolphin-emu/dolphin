@@ -3,8 +3,6 @@
 
 #include "VideoBackends/D3D12/D3D12PerfQuery.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
@@ -50,7 +48,7 @@ bool PerfQuery::Initialize()
   return true;
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   // Block if there are no free slots.
   // Otherwise, try to keep half of them available.
@@ -70,17 +68,17 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
 
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
-    ASSERT(!entry.has_value && !entry.resolved);
-    entry.has_value = true;
-    entry.query_group = group;
+    auto& [_fence_value, query_group, has_value, resolved] = m_query_buffer[m_query_next_pos];
+    ASSERT(!has_value && !resolved);
+    has_value = true;
+    query_group = group;
 
     g_dx_context->GetCommandList()->BeginQuery(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
                                                m_query_next_pos);
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
@@ -101,15 +99,15 @@ void PerfQuery::ResetQuery()
   m_query_next_pos = 0;
   for (size_t i = 0; i < m_results.size(); ++i)
     m_results[i].store(0, std::memory_order_relaxed);
-  for (auto& entry : m_query_buffer)
+  for (auto& [fence_value, _query_group, has_value, resolved] : m_query_buffer)
   {
-    entry.fence_value = 0;
-    entry.resolved = false;
-    entry.has_value = false;
+    fence_value = 0;
+    resolved = false;
+    has_value = false;
   }
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
   if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
@@ -153,7 +151,7 @@ void PerfQuery::ResolveQueries()
   ResolveQueries(m_unresolved_queries);
 }
 
-void PerfQuery::ResolveQueries(u32 query_count)
+void PerfQuery::ResolveQueries(const u32 query_count)
 {
   DEBUG_ASSERT(m_unresolved_queries >= query_count &&
                (m_query_resolve_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
@@ -165,16 +163,17 @@ void PerfQuery::ResolveQueries(u32 query_count)
   // Flag all queries as available, but with a fence that has to be completed first
   for (u32 i = 0; i < query_count; i++)
   {
-    ActiveQuery& entry = m_query_buffer[m_query_resolve_pos + i];
-    DEBUG_ASSERT(entry.has_value && !entry.resolved);
-    entry.fence_value = g_dx_context->GetCurrentFenceValue();
-    entry.resolved = true;
+    auto& [fence_value, _query_group, has_value, resolved] =
+      m_query_buffer[m_query_resolve_pos + i];
+    DEBUG_ASSERT(has_value && !resolved);
+    fence_value = g_dx_context->GetCurrentFenceValue();
+    resolved = true;
   }
   m_query_resolve_pos = (m_query_resolve_pos + query_count) % PERF_QUERY_BUFFER_SIZE;
   m_unresolved_queries -= query_count;
 }
 
-void PerfQuery::ReadbackQueries(bool blocking)
+void PerfQuery::ReadbackQueries(const bool blocking)
 {
   u64 completed_fence_counter = g_dx_context->GetCompletedFenceValue();
 
@@ -183,19 +182,19 @@ void PerfQuery::ReadbackQueries(bool blocking)
   u32 readback_count = 0;
   for (u32 i = 0; i < outstanding_queries; i++)
   {
-    u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
-    const ActiveQuery& entry = m_query_buffer[index];
-    if (!entry.resolved)
+    const u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
+    const auto& [fence_value, _query_group, _has_value, resolved] = m_query_buffer[index];
+    if (!resolved)
       break;
 
-    if (entry.fence_value > completed_fence_counter)
+    if (fence_value > completed_fence_counter)
     {
       // Query result isn't ready yet. Wait if blocking, otherwise we can't do any more yet.
       if (!blocking)
         break;
 
-      ASSERT(entry.fence_value != g_dx_context->GetCurrentFenceValue());
-      g_dx_context->WaitForFence(entry.fence_value);
+      ASSERT(fence_value != g_dx_context->GetCurrentFenceValue());
+      g_dx_context->WaitForFence(fence_value);
       completed_fence_counter = g_dx_context->GetCompletedFenceValue();
     }
 
@@ -214,7 +213,7 @@ void PerfQuery::ReadbackQueries(bool blocking)
     AccumulateQueriesFromBuffer(readback_count);
 }
 
-void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
+void PerfQuery::AccumulateQueriesFromBuffer(const u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count.load(std::memory_order_relaxed) &&
@@ -223,7 +222,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
   const D3D12_RANGE read_range = {m_query_readback_pos * sizeof(PerfQueryDataType),
                                   (m_query_readback_pos + query_count) * sizeof(PerfQueryDataType)};
   u8* mapped_ptr;
-  HRESULT hr = m_query_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_ptr));
+  const HRESULT hr = m_query_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_ptr));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map query readback buffer: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return;
@@ -231,26 +230,26 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)
   {
-    u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
-    ActiveQuery& entry = m_query_buffer[index];
+    const u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
+    auto& [fence_value, query_group, has_value, resolved] = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).
-    ASSERT(entry.fence_value != 0);
-    entry.fence_value = 0;
-    entry.resolved = false;
-    entry.has_value = false;
+    ASSERT(fence_value != 0);
+    fence_value = 0;
+    resolved = false;
+    has_value = false;
 
     // Grab result from readback buffer, it will already have been invalidated.
     PerfQueryDataType result;
     std::memcpy(&result, mapped_ptr + (index * sizeof(PerfQueryDataType)), sizeof(result));
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
-    u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /
+    u64 native_res_result = result * EFB_WIDTH /
                             g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
                             g_framebuffer_manager->GetEFBHeight();
     if (g_ActiveConfig.iMultisamples > 1)
       native_res_result /= g_ActiveConfig.iMultisamples;
-    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+    m_results[query_group].fetch_add(static_cast<u32>(native_res_result),
                                            std::memory_order_relaxed);
   }
 
@@ -261,7 +260,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
   m_query_count.fetch_sub(query_count, std::memory_order_relaxed);
 }
 
-void PerfQuery::PartialFlush(bool resolve, bool blocking)
+void PerfQuery::PartialFlush(const bool resolve, const bool blocking)
 {
   // Submit a command buffer if there are unresolved queries (to write them to the buffer).
   if (resolve && m_unresolved_queries > 0)

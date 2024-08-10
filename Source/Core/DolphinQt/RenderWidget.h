@@ -34,14 +34,14 @@ signals:
 
 private:
   void HandleCursorTimer();
-  void OnHandleChanged(void* handle);
+  static void OnHandleChanged(void* handle);
   void OnHideCursorChanged();
   void OnNeverHideCursorChanged();
   void OnLockCursorChanged();
   void OnKeepOnTopChanged(bool top);
   void UpdateCursor();
-  void PassEventToPresenter(const QEvent* event);
-  void SetPresenterKeyMap();
+  void PassEventToPresenter(const QEvent* event) const;
+  static void SetPresenterKeyMap();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 

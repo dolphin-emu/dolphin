@@ -31,21 +31,20 @@ Updater::Updater(QWidget* parent, std::string update_track, std::string hash_ove
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
-                                    AutoUpdateChecker::CheckType::Automatic);
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override, CheckType::Automatic);
 }
 
 void Updater::CheckForUpdate()
 {
   AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
-                                    AutoUpdateChecker::CheckType::Manual);
+                                    CheckType::Manual);
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   if (std::getenv("DOLPHIN_UPDATE_SERVER_URL"))
   {
-    TriggerUpdate(info, AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    TriggerUpdate(info, RestartMode::RESTART_AFTER_UPDATE);
     RunOnObject(m_parent, [this] {
       m_parent->close();
       return 0;
@@ -55,8 +54,8 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
   bool later = false;
 
-  std::optional<int> choice = RunOnObject(m_parent, [&] {
-    QDialog* dialog = new QDialog(m_parent);
+  const std::optional<int> choice = RunOnObject(m_parent, [&] {
+    auto dialog = new QDialog(m_parent);
     dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     dialog->setWindowTitle(tr("Update available"));
     dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -77,11 +76,11 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
     auto* update_later_check = new QCheckBox(tr("Update after closing Dolphin"));
 
-    connect(update_later_check, &QCheckBox::toggled, [&](bool checked) { later = checked; });
+    connect(update_later_check, &QCheckBox::toggled, [&](const bool checked) { later = checked; });
 
     auto* buttons = new QDialogButtonBox;
 
-    auto* never_btn =
+    const auto* never_btn =
         buttons->addButton(tr("Never Auto-Update"), QDialogButtonBox::DestructiveRole);
     buttons->addButton(tr("Remind Me Later"), QDialogButtonBox::RejectRole);
     buttons->addButton(tr("Install Update"), QDialogButtonBox::AcceptRole);
@@ -108,8 +107,8 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
   if (choice && *choice == QDialog::Accepted)
   {
-    TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
-                                AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    TriggerUpdate(info, later ? RestartMode::NO_RESTART_AFTER_UPDATE :
+                                RestartMode::RESTART_AFTER_UPDATE);
 
     if (!later)
     {

@@ -83,25 +83,26 @@ Drums::Drums() : Extension1stParty("Drums", _trans("Drum Kit"))
 
 void Drums::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  DesiredState& state = target_state->data.emplace<DesiredState>();
+  auto& [stick_x, stick_y, buttons, drum_pads, softness] =
+    target_state->data.emplace<DesiredState>();
 
   {
     const ControllerEmu::AnalogStick::StateData stick_state =
         m_stick->GetState(m_input_override_function);
 
-    state.stick_x = MapFloat<u8>(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
-    state.stick_y = MapFloat<u8>(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
-    state.stick_x = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
-    state.stick_y = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
+    stick_x = MapFloat<u8>(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
+    stick_y = MapFloat<u8>(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
+    stick_x = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
+    stick_y = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
   }
 
-  state.buttons = 0;
-  m_buttons->GetState(&state.buttons, drum_button_bitmasks.data(), m_input_override_function);
+  buttons = 0;
+  m_buttons->GetState(&buttons, drum_button_bitmasks.data(), m_input_override_function);
 
-  state.drum_pads = 0;
-  m_pads->GetState(&state.drum_pads, drum_pad_bitmasks.data(), m_input_override_function);
+  drum_pads = 0;
+  m_pads->GetState(&drum_pads, drum_pad_bitmasks.data(), m_input_override_function);
 
-  state.softness = u8(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
+  softness = static_cast<u8>(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
 }
 
 void Drums::Update(const DesiredExtensionState& target_state)
@@ -131,7 +132,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
   drum_data.unk5 = 0b11;
 
   // Send no velocity data by default.
-  drum_data.velocity_id = u8(VelocityID::None);
+  drum_data.velocity_id = static_cast<u8>(VelocityID::None);
   drum_data.no_velocity_data_1 = 1;
   drum_data.no_velocity_data_2 = 1;
   drum_data.softness = 7;
@@ -141,7 +142,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
   drum_data.buttons = desired_state.buttons;
 
   // Drum pads.
-  u8 current_pad_input = desired_state.drum_pads;
+  const u8 current_pad_input = desired_state.drum_pads;
   m_new_pad_hits |= ~m_prev_pad_input & current_pad_input;
   m_prev_pad_input = current_pad_input;
 
@@ -159,7 +160,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
       // Clear the bit so velocity data is not sent again until the next hit.
       m_new_pad_hits &= ~drum_pad;
 
-      drum_data.velocity_id = u8(drum_pad_velocity_ids[i]);
+      drum_data.velocity_id = static_cast<u8>(drum_pad_velocity_ids[i]);
 
       drum_data.no_velocity_data_1 = 0;
       drum_data.no_velocity_data_2 = 0;
@@ -220,7 +221,7 @@ void Drums::DoState(PointerWrap& p)
   p.Do(m_pad_remaining_frames);
 }
 
-ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
+ControllerEmu::ControlGroup* Drums::GetGroup(const DrumsGroup group) const
 {
   switch (group)
   {

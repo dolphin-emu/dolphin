@@ -5,7 +5,6 @@
 
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <thread>
 #include <utility>
@@ -151,7 +150,7 @@ DiscIO::Platform DVDThread::GetDiscType() const
   return m_disc->GetVolumeType();
 }
 
-u64 DVDThread::PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition)
+u64 DVDThread::PartitionOffsetToRawOffset(const u64 offset, const DiscIO::Partition& partition) const
 {
   // PartitionOffsetToRawOffset is thread-safe, so calling WaitUntilIdle isn't necessary.
   return m_disc->PartitionOffsetToRawOffset(offset, partition);
@@ -180,7 +179,7 @@ bool DVDThread::IsInsertedDiscRunning()
 }
 
 bool DVDThread::UpdateRunningGameMetadata(const DiscIO::Partition& partition,
-                                          std::optional<u64> title_id)
+                                          const std::optional<u64> title_id)
 {
   if (!m_disc)
     return false;
@@ -209,23 +208,23 @@ void DVDThread::WaitUntilIdle()
   StartDVDThread();
 }
 
-void DVDThread::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                          DVD::ReplyType reply_type, s64 ticks_until_completion)
+void DVDThread::StartRead(const u64 dvd_offset, const u32 length, const DiscIO::Partition& partition,
+                          const ReplyType reply_type, const s64 ticks_until_completion)
 {
   StartReadInternal(false, 0, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
-void DVDThread::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
+void DVDThread::StartReadToEmulatedRAM(const u32 output_address, const u64 dvd_offset, const u32 length,
                                        const DiscIO::Partition& partition,
-                                       DVD::ReplyType reply_type, s64 ticks_until_completion)
+                                       const ReplyType reply_type, const s64 ticks_until_completion)
 {
   StartReadInternal(true, output_address, dvd_offset, length, partition, reply_type,
                     ticks_until_completion);
 }
 
-void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                                  const DiscIO::Partition& partition, DVD::ReplyType reply_type,
-                                  s64 ticks_until_completion)
+void DVDThread::StartReadInternal(const bool copy_to_ram, const u32 output_address, const u64 dvd_offset, const u32 length,
+                                  const DiscIO::Partition& partition, const ReplyType reply_type,
+                                  const s64 ticks_until_completion)
 {
   ASSERT(Core::IsCPUThread());
 
@@ -240,7 +239,7 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
   request.partition = partition;
   request.reply_type = reply_type;
 
-  u64 id = m_next_id++;
+  const u64 id = m_next_id++;
   request.id = id;
 
   request.time_started_ticks = core_timing.GetTicks();
@@ -252,12 +251,12 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
   core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
 }
 
-void DVDThread::GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late)
+void DVDThread::GlobalFinishRead(const Core::System& system, const u64 id, const s64 cycles_late)
 {
   system.GetDVDThread().FinishRead(id, cycles_late);
 }
 
-void DVDThread::FinishRead(u64 id, s64 cycles_late)
+void DVDThread::FinishRead(const u64 id, const s64 cycles_late)
 {
   // We can't simply pop result_queue and always get the ReadResult
   // we want, because the DVD thread may add ReadResults to the queue
@@ -270,7 +269,7 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   // When this function is called again later, it will check the map for
   // the wanted ReadResult before it starts searching through the queue.
   ReadResult result;
-  auto it = m_result_map.find(id);
+  const auto it = m_result_map.find(id);
   if (it != m_result_map.end())
   {
     result = std::move(it->second);
@@ -285,47 +284,47 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
 
       if (result.first.id == id)
         break;
-      else
-        m_result_map.emplace(result.first.id, std::move(result));
+      m_result_map.emplace(result.first.id, std::move(result));
     }
   }
   // We have now obtained the right ReadResult.
 
-  const ReadRequest& request = result.first;
+  const auto& [copy_to_ram, output_address, dvd_offset, length, _partition, reply_type, _id,
+    time_started_ticks, realtime_started_us, realtime_done_us] = result.first;
   const std::vector<u8>& buffer = result.second;
 
   DEBUG_LOG_FMT(DVDINTERFACE,
                 "Disc has been read. Real time: {} us. "
                 "Real time including delay: {} us. "
                 "Emulated time including delay: {} us.",
-                request.realtime_done_us - request.realtime_started_us,
-                Common::Timer::NowUs() - request.realtime_started_us,
-                (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
+                realtime_done_us - realtime_started_us,
+                Common::Timer::NowUs() - realtime_started_us,
+                (m_system.GetCoreTiming().GetTicks() - time_started_ticks) /
                     (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
   auto& dvd_interface = m_system.GetDVDInterface();
-  DVD::DIInterruptType interrupt;
-  if (buffer.size() != request.length)
+  DIInterruptType interrupt;
+  if (buffer.size() != length)
   {
-    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
-                   request.dvd_offset + request.length);
+    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", dvd_offset,
+                   dvd_offset + length);
 
-    dvd_interface.SetDriveError(DVD::DriveError::ReadError);
-    interrupt = DVD::DIInterruptType::DEINT;
+    dvd_interface.SetDriveError(DriveError::ReadError);
+    interrupt = DIInterruptType::DEINT;
   }
   else
   {
-    if (request.copy_to_ram)
+    if (copy_to_ram)
     {
-      auto& memory = m_system.GetMemory();
+      const auto& memory = m_system.GetMemory();
       memory.CopyToEmu(request.output_address, buffer.data(), request.length);
     }
 
-    interrupt = DVD::DIInterruptType::TCINT;
+    interrupt = DIInterruptType::TCINT;
   }
 
   // Notify the emulated software that the command has been executed
-  dvd_interface.FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
+  dvd_interface.FinishExecutingCommand(reply_type, interrupt, cycles_late, buffer);
 }
 
 void DVDThread::DVDThreadMain()

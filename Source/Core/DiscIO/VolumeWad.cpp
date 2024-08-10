@@ -65,7 +65,7 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   Read(m_cert_chain_offset, m_cert_chain_size, m_cert_chain.data());
 }
 
-bool VolumeWAD::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
+bool VolumeWAD::Read(const u64 offset, const u64 length, u8* buffer, const Partition& partition) const
 {
   if (partition != PARTITION_NONE)
     return false;
@@ -118,13 +118,13 @@ const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition
   return m_cert_chain;
 }
 
-std::vector<u8> VolumeWAD::GetContent(u16 index) const
+std::vector<u8> VolumeWAD::GetContent(const u16 index) const
 {
   u64 offset = m_data_offset;
-  for (const IOS::ES::Content& content : m_tmd.GetContents())
+  for (const auto& [_id, content_index, _type, size, _sha1] : m_tmd.GetContents())
   {
-    const u64 aligned_size = Common::AlignUp(content.size, 0x40);
-    if (content.index == index)
+    const u64 aligned_size = Common::AlignUp(size, 0x40);
+    if (content_index == index)
     {
       std::vector<u8> data(aligned_size);
       if (!m_reader->Read(offset, aligned_size, data.data()))
@@ -142,10 +142,10 @@ std::vector<u64> VolumeWAD::GetContentOffsets() const
   std::vector<u64> content_offsets;
   content_offsets.reserve(contents.size());
   u64 offset = m_data_offset;
-  for (const IOS::ES::Content& content : contents)
+  for (const auto& [_id, _index, _type, size, _sha1] : contents)
   {
     content_offsets.emplace_back(offset);
-    offset += Common::AlignUp(content.size, 0x40);
+    offset += Common::AlignUp(size, 0x40);
   }
 
   return content_offsets;
@@ -158,7 +158,7 @@ bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
   if (encrypted_data.size() != Common::AlignUp(content.size, 0x40))
     return false;
 
-  auto context = Common::AES::CreateContextDecrypt(ticket.GetTitleKey().data());
+  const auto context = Common::AES::CreateContextDecrypt(ticket.GetTitleKey().data());
 
   std::array<u8, 16> iv{};
   iv[0] = static_cast<u8>(content.index >> 8);
@@ -176,7 +176,7 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
     return m_ticket;
 
   const std::vector<u8> sig = m_ticket.GetSignatureData();
-  if (!std::all_of(sig.cbegin(), sig.cend(), [](u8 a) { return a == 0; }))
+  if (!std::ranges::all_of(sig, [](const u8 a) { return a == 0; }))
   {
     // This does not look like a typical "invalid common key index" ticket, so let's assume
     // the index is correct. This saves some time when reading properly signed titles.
@@ -334,7 +334,7 @@ std::array<u8, 20> VolumeWAD::GetSyncHash() const
   // We can skip hashing the contents since the TMD contains hashes of the contents.
   // We specifically don't hash the ticket, since its console ID can differ without any problems.
 
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
 
   AddTMDToSyncHash(context.get(), PARTITION_NONE);
 

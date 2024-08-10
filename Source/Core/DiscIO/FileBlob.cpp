@@ -33,17 +33,14 @@ std::unique_ptr<BlobReader> PlainFileReader::CopyReader() const
   return Create(m_file.Duplicate("rb"));
 }
 
-bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
+bool PlainFileReader::Read(const u64 offset, const u64 nbytes, u8* out_ptr)
 {
   if (m_file.Seek(offset, File::SeekOrigin::Begin) && m_file.ReadBytes(out_ptr, nbytes))
   {
     return true;
   }
-  else
-  {
-    m_file.ClearError();
-    return false;
-  }
+  m_file.ClearError();
+  return false;
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
@@ -76,7 +73,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
 
   std::vector<u8> buffer(buffer_size);
   const u64 num_buffers = (infile->GetDataSize() + buffer_size - 1) / buffer_size;
-  int progress_monitor = std::max<int>(1, num_buffers / 100);
+  const int progress_monitor = std::max<int>(1, num_buffers / 100);
   bool success = true;
 
   for (u64 i = 0; i < num_buffers; i++)
@@ -84,7 +81,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     if (i % progress_monitor == 0)
     {
       const bool was_cancelled =
-          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers);
+          !callback(Common::GetStringT("Unpacking"), static_cast<float>(i) / static_cast<float>(num_buffers));
       if (was_cancelled)
       {
         success = false;

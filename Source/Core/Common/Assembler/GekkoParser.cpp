@@ -40,7 +40,7 @@ bool MatchOperandFirst(const AssemblerToken& tok)
 
 void ParseImm(ParseState* state)
 {
-  AssemblerToken tok = state->lexer.Lookahead();
+  const AssemblerToken tok = state->lexer.Lookahead();
   switch (tok.token_type)
   {
   case TokenType::HexadecimalLit:
@@ -68,7 +68,7 @@ void ParseImm(ParseState* state)
 
 void ParseId(ParseState* state)
 {
-  AssemblerToken tok = state->lexer.Lookahead();
+  const AssemblerToken tok = state->lexer.Lookahead();
   if (tok.token_type == TokenType::Identifier)
   {
     state->plugin.OnTerminal(Terminal::Id, tok);
@@ -101,7 +101,7 @@ void ParseIdLocation(ParseState* state)
       state->lexer.EatN<3>();
       return;
     }
-    else if (toks[2].token_val == "l")
+    if (toks[2].token_val == "l")
     {
       state->plugin.OnLoaddr(toks[0].token_val);
       if (state->error)
@@ -118,7 +118,7 @@ void ParseIdLocation(ParseState* state)
 
 void ParsePpcBuiltin(ParseState* state)
 {
-  AssemblerToken tok = state->lexer.Lookahead();
+  const AssemblerToken tok = state->lexer.Lookahead();
   switch (tok.token_type)
   {
   case TokenType::GPR:
@@ -159,7 +159,7 @@ void ParsePpcBuiltin(ParseState* state)
 
 void ParseBaseexpr(ParseState* state)
 {
-  TokenType tok = state->lexer.LookaheadType();
+  const TokenType tok = state->lexer.LookaheadType();
   switch (tok)
   {
   case TokenType::HexadecimalLit:
@@ -249,7 +249,7 @@ void ParseParen(ParseState* state)
 
 void ParseUnary(ParseState* state)
 {
-  TokenType tok = state->lexer.LookaheadType();
+  const TokenType tok = state->lexer.LookaheadType();
   if (tok == TokenType::Minus || tok == TokenType::Tilde)
   {
     state->lexer.Eat();
@@ -438,7 +438,7 @@ void ParseOperand(ParseState* state)
   state->plugin.OnOperandPost();
 }
 
-void ParseOperandList(ParseState* state, ParseAlg alg)
+void ParseOperandList(ParseState* state, const ParseAlg alg)
 {
   if (alg == ParseAlg::None)
   {
@@ -498,7 +498,7 @@ void ParseOperandList(ParseState* state, ParseAlg alg)
     return;
   }
 
-  for (ParseStep step : steps)
+  for (const ParseStep step : steps)
   {
     bool stop_parse = false;
     switch (step)
@@ -541,7 +541,7 @@ void ParseInstruction(ParseState* state)
 {
   state->lexer.SetIdentifierMatchRule(Lexer::IdentifierMatchRule::Mnemonic);
 
-  AssemblerToken mnemonic_token = state->lexer.Lookahead();
+  const AssemblerToken mnemonic_token = state->lexer.Lookahead();
   if (mnemonic_token.token_type != TokenType::Identifier)
   {
     state->lexer.SetIdentifierMatchRule(Lexer::IdentifierMatchRule::Typical);
@@ -575,7 +575,7 @@ void ParseInstruction(ParseState* state)
   state->plugin.OnInstructionPost(*parse_info, is_extended);
 }
 
-void ParseLabel(ParseState* state)
+void ParseLabel(const ParseState* state)
 {
   std::array<AssemblerToken, 2> tokens;
   state->lexer.LookaheadN(&tokens);
@@ -623,7 +623,7 @@ void ParseExpressionList(ParseState* state)
 
 void ParseFloat(ParseState* state)
 {
-  AssemblerToken flt_token = state->lexer.LookaheadFloat();
+  const AssemblerToken flt_token = state->lexer.LookaheadFloat();
   if (flt_token.token_type != TokenType::FloatLit)
   {
     state->EmitErrorHere("Invalid floating point literal");
@@ -654,7 +654,7 @@ void ParseFloatList(ParseState* state)
 
 void ParseDefvar(ParseState* state)
 {
-  AssemblerToken tok = state->lexer.Lookahead();
+  const AssemblerToken tok = state->lexer.Lookahead();
   if (tok.token_type == TokenType::Identifier)
   {
     state->plugin.OnVarDecl(tok.token_val);
@@ -680,7 +680,7 @@ void ParseDefvar(ParseState* state)
 
 void ParseString(ParseState* state)
 {
-  AssemblerToken tok = state->lexer.Lookahead();
+  const AssemblerToken tok = state->lexer.Lookahead();
   if (tok.token_type == TokenType::StringLit)
   {
     state->plugin.OnTerminal(Terminal::Str, tok);
@@ -696,7 +696,7 @@ void ParseDirective(ParseState* state)
 {
   // TODO: test directives
   state->lexer.SetIdentifierMatchRule(Lexer::IdentifierMatchRule::Directive);
-  AssemblerToken tok = state->lexer.Lookahead();
+  const AssemblerToken tok = state->lexer.Lookahead();
   if (tok.token_type != TokenType::Identifier)
   {
     state->EmitErrorHere(fmt::format("Unexpected token '{}' in directive type", tok.ValStr()));
@@ -814,19 +814,19 @@ void ParseProgram(ParseState* state)
 }
 }  // namespace
 
-ParseState::ParseState(std::string_view input_str, ParsePlugin& p)
+ParseState::ParseState(const std::string_view input_str, ParsePlugin& p)
     : lexer(input_str), plugin(p), eof(false)
 {
 }
 
-bool ParseState::HasToken(TokenType tp) const
+bool ParseState::HasToken(const TokenType tp) const
 {
   return lexer.LookaheadType() == tp;
 }
 
-void ParseState::ParseToken(TokenType tp)
+void ParseState::ParseToken(const TokenType tp)
 {
-  AssemblerToken tok = lexer.LookaheadRef();
+  const AssemblerToken tok = lexer.LookaheadRef();
   if (tok.token_type == tp)
   {
     lexer.Eat();
@@ -839,29 +839,22 @@ void ParseState::ParseToken(TokenType tp)
 
 void ParseState::EmitErrorHere(std::string&& message)
 {
-  AssemblerToken cur_token = lexer.Lookahead();
-  if (cur_token.token_type == TokenType::Invalid)
+  const auto [token_type, token_val, invalid_reason, invalid_region] = lexer.Lookahead();
+  if (token_type == TokenType::Invalid)
   {
-    error = AssemblerError{
-        std::string(cur_token.invalid_reason),
-        lexer.CurrentLine(),
-        lexer.LineNumber(),
-        lexer.ColNumber() + cur_token.invalid_region.begin,
-        cur_token.invalid_region.len,
-    };
+    error = AssemblerError{std::string(invalid_reason), lexer.CurrentLine(), lexer.LineNumber(),
+                           lexer.ColNumber() + invalid_region.begin, invalid_region.len};
   }
   else
   {
-    error = AssemblerError{
-        std::move(message), lexer.CurrentLine(),        lexer.LineNumber(),
-        lexer.ColNumber(),  cur_token.token_val.size(),
-    };
+    error = AssemblerError{std::move(message), lexer.CurrentLine(), lexer.LineNumber(),
+                           lexer.ColNumber(), token_val.size()};
   }
 }
 
-void ParseWithPlugin(ParsePlugin* plugin, std::string_view input)
+void ParseWithPlugin(ParsePlugin* plugin, const std::string_view input)
 {
-  ParseState parse_state = ParseState(input, *plugin);
+  auto parse_state = ParseState(input, *plugin);
   plugin->SetOwner(&parse_state);
   ParseProgram(&parse_state);
 

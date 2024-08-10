@@ -24,7 +24,7 @@ OGLGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<GLVertexFormat>(vtx_decl);
 }
 
-static inline GLuint VarToGL(ComponentFormat t)
+static inline GLuint VarToGL(const ComponentFormat t)
 {
   static constexpr Common::EnumMap<GLuint, ComponentFormat::InvalidFloat7> lookup = {
       GL_UNSIGNED_BYTE, GL_BYTE,  GL_UNSIGNED_SHORT, GL_SHORT,
@@ -33,7 +33,7 @@ static inline GLuint VarToGL(ComponentFormat t)
   return lookup[t];
 }
 
-static void SetPointer(ShaderAttrib attrib, u32 stride, const AttributeFormat& format)
+static void SetPointer(ShaderAttrib attrib, const u32 stride, const AttributeFormat& format)
 {
   if (!format.enable)
     return;
@@ -41,10 +41,10 @@ static void SetPointer(ShaderAttrib attrib, u32 stride, const AttributeFormat& f
   glEnableVertexAttribArray(static_cast<GLuint>(attrib));
   if (format.integer)
     glVertexAttribIPointer(static_cast<GLuint>(attrib), format.components, VarToGL(format.type),
-                           stride, (u8*)nullptr + format.offset);
+                           stride, static_cast<u8*>(nullptr) + format.offset);
   else
     glVertexAttribPointer(static_cast<GLuint>(attrib), format.components, VarToGL(format.type),
-                          true, stride, (u8*)nullptr + format.offset);
+                          true, stride, static_cast<u8*>(nullptr) + format.offset);
 }
 
 GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
@@ -56,7 +56,7 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
   if (vertex_stride & 3)
     PanicAlertFmt("Uneven vertex stride: {}", vertex_stride);
 
-  VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
+  const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
 
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);

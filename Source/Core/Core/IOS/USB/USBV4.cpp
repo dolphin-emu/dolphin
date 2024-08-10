@@ -49,8 +49,8 @@ struct HIDRequest
 V4CtrlMessage::V4CtrlMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
     : CtrlMessage(ios, ioctl, 0)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
 
   HIDRequest hid_request;
   memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
@@ -68,8 +68,8 @@ V4CtrlMessage::V4CtrlMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
 V4GetUSStringMessage::V4GetUSStringMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
     : CtrlMessage(ios, ioctl, 0)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
 
   HIDRequest hid_request;
   memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
@@ -81,13 +81,13 @@ V4GetUSStringMessage::V4GetUSStringMessage(EmulationKernel& ios, const IOCtlRequ
   data_address = Common::swap32(hid_request.data_addr);
 }
 
-void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
+void V4GetUSStringMessage::OnTransferComplete(const s32 return_value) const
 {
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::string message = memory.GetString(data_address);
-  std::replace_if(message.begin(), message.end(), std::not_fn(Common::IsPrintableCharacter), '?');
+  std::ranges::replace_if(message, std::not_fn(Common::IsPrintableCharacter), '?');
   memory.CopyToEmu(data_address, message.c_str(), message.size());
   TransferCommand::OnTransferComplete(return_value);
 }
@@ -95,8 +95,8 @@ void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
 V4IntrMessage::V4IntrMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
     : IntrMessage(ios, ioctl, 0)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
 
   HIDRequest hid_request;
   memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));

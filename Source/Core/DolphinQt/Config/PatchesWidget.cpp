@@ -26,10 +26,10 @@ PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
   Common::IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
-  Common::IniFile game_ini_default =
+  const Common::IniFile game_ini_default =
       SConfig::GetInstance().LoadDefaultGameIni(m_game_id, m_game_revision);
 
-  PatchEngine::LoadPatchSection("OnFrame", &m_patches, game_ini_default, game_ini_local);
+  LoadPatchSection("OnFrame", &m_patches, game_ini_default, game_ini_local);
 
   CreateWidgets();
   ConnectWidgets();
@@ -80,7 +80,7 @@ void PatchesWidget::ConnectWidgets()
   connect(m_edit_button, &QPushButton::clicked, this, &PatchesWidget::OnEdit);
 }
 
-void PatchesWidget::OnItemChanged(QListWidgetItem* item)
+void PatchesWidget::OnItemChanged(const QListWidgetItem* item)
 {
   m_patches[m_list->row(item)].enabled = (item->checkState() == Qt::Checked);
   SavePatches();
@@ -110,7 +110,7 @@ void PatchesWidget::OnEdit()
   if (m_list->selectedItems().isEmpty())
     return;
 
-  auto* item = m_list->selectedItems()[0];
+  const auto* item = m_list->selectedItems()[0];
 
   auto patch = m_patches[m_list->row(item)];
 
@@ -154,38 +154,38 @@ void PatchesWidget::OnRemove()
   Update();
 }
 
-void PatchesWidget::SavePatches()
+void PatchesWidget::SavePatches() const
 {
   const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
 
   Common::IniFile game_ini_local;
   game_ini_local.Load(ini_path);
-  PatchEngine::SavePatchSection(&game_ini_local, m_patches);
+  SavePatchSection(&game_ini_local, m_patches);
   game_ini_local.Save(ini_path);
 }
 
-void PatchesWidget::Update()
+void PatchesWidget::Update() const
 {
   m_list->clear();
 
-  for (const auto& patch : m_patches)
+  for (const auto& [name, _entries, enabled, _default_enabled, user_defined] : m_patches)
   {
-    auto* item = new QListWidgetItem(QString::fromStdString(patch.name));
+    auto* item = new QListWidgetItem(QString::fromStdString(name));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(patch.enabled ? Qt::Checked : Qt::Unchecked);
-    item->setData(Qt::UserRole, patch.user_defined);
+    item->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
+    item->setData(Qt::UserRole, user_defined);
 
     m_list->addItem(item);
   }
 }
 
-void PatchesWidget::UpdateActions()
+void PatchesWidget::UpdateActions() const
 {
-  bool selected = !m_list->selectedItems().isEmpty();
+  const bool selected = !m_list->selectedItems().isEmpty();
 
-  auto* item = selected ? m_list->selectedItems()[0] : nullptr;
+  const auto* item = selected ? m_list->selectedItems()[0] : nullptr;
 
-  bool user_defined = selected ? item->data(Qt::UserRole).toBool() : true;
+  const bool user_defined = selected ? item->data(Qt::UserRole).toBool() : true;
 
   m_edit_button->setEnabled(selected);
   m_edit_button->setText(user_defined ? tr("&Edit...") : tr("&Clone..."));

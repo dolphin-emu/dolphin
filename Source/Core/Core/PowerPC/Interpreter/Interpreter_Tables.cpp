@@ -342,10 +342,10 @@ constexpr std::array<Interpreter::Instruction, 64> s_interpreter_op_table = []()
 {
   std::array<Interpreter::Instruction, 64> table{};
   Common::Fill(table, Interpreter::unknown_instruction);
-  for (auto& tpl : s_primary_table)
+  for (const auto& [opcode, fn] : s_primary_table)
   {
-    ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == Interpreter::unknown_instruction);
+    table[opcode] = fn;
   };
   return table;
 }
@@ -358,30 +358,30 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = [
   for (u32 i = 0; i < 32; i++)
   {
     const u32 fill = i << 5;
-    for (const auto& tpl : s_table4_2)
+    for (const auto& [opcode, fn] : s_table4_2)
     {
-      const u32 op = fill + tpl.opcode;
+      const u32 op = fill + opcode;
       ASSERT(table[op] == Interpreter::unknown_instruction);
-      table[op] = tpl.fn;
+      table[op] = fn;
     }
   }
 
   for (u32 i = 0; i < 16; i++)
   {
     const u32 fill = i << 6;
-    for (const auto& tpl : s_table4_3)
+    for (const auto& [opcode, fn] : s_table4_3)
     {
-      const u32 op = fill + tpl.opcode;
+      const u32 op = fill + opcode;
       ASSERT(table[op] == Interpreter::unknown_instruction);
-      table[op] = tpl.fn;
+      table[op] = fn;
     }
   }
 
-  for (const auto& tpl : s_table4)
+  for (const auto& [opcode, fn] : s_table4)
   {
-    const u32 op = tpl.opcode;
+    const u32 op = opcode;
     ASSERT(table[op] == Interpreter::unknown_instruction);
-    table[op] = tpl.fn;
+    table[op] = fn;
   }
 
   return table;
@@ -391,10 +391,10 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table19 = 
 {
   std::array<Interpreter::Instruction, 1024> table{};
   Common::Fill(table, Interpreter::unknown_instruction);
-  for (auto& tpl : s_table19)
+  for (const auto& [opcode, fn] : s_table19)
   {
-    ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == Interpreter::unknown_instruction);
+    table[opcode] = fn;
   };
   return table;
 }
@@ -403,10 +403,10 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table31 = 
 {
   std::array<Interpreter::Instruction, 1024> table{};
   Common::Fill(table, Interpreter::unknown_instruction);
-  for (auto& tpl : s_table31)
+  for (const auto& [opcode, fn] : s_table31)
   {
-    ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == Interpreter::unknown_instruction);
+    table[opcode] = fn;
   };
   return table;
 }
@@ -415,10 +415,10 @@ constexpr std::array<Interpreter::Instruction, 32> s_interpreter_op_table59 = []
 {
   std::array<Interpreter::Instruction, 32> table{};
   Common::Fill(table, Interpreter::unknown_instruction);
-  for (auto& tpl : s_table59)
+  for (const auto& [opcode, fn] : s_table59)
   {
-    ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == Interpreter::unknown_instruction);
+    table[opcode] = fn;
   };
   return table;
 }
@@ -427,20 +427,20 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table63 = 
 {
   std::array<Interpreter::Instruction, 1024> table{};
   Common::Fill(table, Interpreter::unknown_instruction);
-  for (auto& tpl : s_table63)
+  for (const auto& [opcode, fn] : s_table63)
   {
-    ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == Interpreter::unknown_instruction);
+    table[opcode] = fn;
   };
 
   for (u32 i = 0; i < 32; i++)
   {
     const u32 fill = i << 5;
-    for (const auto& tpl : s_table63_2)
+    for (const auto& [opcode, fn] : s_table63_2)
     {
-      const u32 op = fill + tpl.opcode;
+      const u32 op = fill + opcode;
       ASSERT(table[op] == Interpreter::unknown_instruction);
-      table[op] = tpl.fn;
+      table[op] = fn;
     }
   }
 
@@ -453,19 +453,18 @@ Interpreter::Instruction Interpreter::GetInterpreterOp(UGeckoInstruction inst)
   // Check for the appropriate subtable ahead of time.
   // (This is used by the cached interpreter and JIT, and called once per instruction, so spending a
   // bit of extra time to optimise is worthwhile)
-  Interpreter::Instruction result = s_interpreter_op_table[inst.OPCD];
-  if (result == Interpreter::RunTable4)
+  Instruction result = s_interpreter_op_table[inst.OPCD];
+  if (result == RunTable4)
     return s_interpreter_op_table4[inst.SUBOP10];
-  else if (result == Interpreter::RunTable19)
+  if (result == RunTable19)
     return s_interpreter_op_table19[inst.SUBOP10];
-  else if (result == Interpreter::RunTable31)
+  if (result == RunTable31)
     return s_interpreter_op_table31[inst.SUBOP10];
-  else if (result == Interpreter::RunTable59)
+  if (result == RunTable59)
     return s_interpreter_op_table59[inst.SUBOP5];
-  else if (result == Interpreter::RunTable63)
+  if (result == RunTable63)
     return s_interpreter_op_table63[inst.SUBOP10];
-  else
-    return result;
+  return result;
 }
 
 void Interpreter::RunInterpreterOp(Interpreter& interpreter, UGeckoInstruction inst)

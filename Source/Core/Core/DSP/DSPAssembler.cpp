@@ -29,7 +29,7 @@
 template <>
 struct fmt::formatter<DSP::DSPAssembler::LocationContext>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DSP::DSPAssembler::LocationContext& loc, FormatContext& ctx) const
   {
@@ -273,7 +273,7 @@ s32 DSPAssembler::ParseValue(const char* str)
 //
 char* DSPAssembler::FindBrackets(char* src, char* dst)
 {
-  s32 len = (s32)strlen(src);
+  const s32 len = static_cast<s32>(strlen(src));
   s32 first = -1;
   s32 count = 0;
   s32 i, j;
@@ -301,10 +301,7 @@ char* DSPAssembler::FindBrackets(char* src, char* dst)
         dst[j] = 0;
         return &src[i + 1];
       }
-      else
-      {
-        dst[j++] = src[i];
-      }
+      dst[j++] = src[i];
     }
     else
     {
@@ -323,8 +320,8 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   char* pbuf;
   s32 val = 0;
 
-  char* d_buffer = (char*)malloc(1024);
-  char* s_buffer = (char*)malloc(1024);
+  auto d_buffer = static_cast<char*>(malloc(1024));
+  auto s_buffer = static_cast<char*>(malloc(1024));
   strcpy(s_buffer, ptr);
 
   while ((pbuf = FindBrackets(s_buffer, d_buffer)) != nullptr)
@@ -335,14 +332,14 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   }
 
   int j = 0;
-  for (int i = 0; i < ((s32)strlen(s_buffer) + 1); i++)
+  for (int i = 0; i < (static_cast<s32>(strlen(s_buffer)) + 1); i++)
   {
-    char c = s_buffer[i];
+    const char c = s_buffer[i];
     if (c != ' ')
       d_buffer[j++] = c;
   }
 
-  for (int i = 0; i < ((s32)strlen(d_buffer) + 1); i++)
+  for (int i = 0; i < (static_cast<s32>(strlen(d_buffer)) + 1); i++)
   {
     char c = d_buffer[i];
     if (c == '-')
@@ -474,7 +471,7 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
+const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, const size_t par_count, const OpcodeType type)
 {
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
@@ -511,7 +508,7 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count,
+bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, const size_t count,
                                 OpcodeType type)
 {
   for (size_t i = 0; i < count; i++)
@@ -536,22 +533,22 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
         case P_REG1A:
         case P_REG1C:
         {
-          int value = (opc->params[i].type >> 8) & 0x1f;
-          if ((int)par[i].val < value ||
-              (int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
+          const int value = (opc->params[i].type >> 8) & 0x1f;
+          if (static_cast<int>(par[i].val) < value ||
+              static_cast<int>(par[i].val) > value + get_mask_shifted_down(opc->params[i].mask))
           {
             ShowError(AssemblerError::InvalidRegister);
           }
           break;
         }
         case P_PRG:
-          if ((int)par[i].val < DSP_REG_AR0 || (int)par[i].val > DSP_REG_AR3)
+          if (static_cast<int>(par[i].val) < DSP_REG_AR0 || static_cast<int>(par[i].val) > DSP_REG_AR3)
           {
             ShowError(AssemblerError::InvalidRegister);
           }
           break;
         case P_ACC:
-          if ((int)par[i].val < DSP_REG_ACC0_FULL || (int)par[i].val > DSP_REG_ACC1_FULL)
+          if (static_cast<int>(par[i].val) < DSP_REG_ACC0_FULL || static_cast<int>(par[i].val) > DSP_REG_ACC1_FULL)
           {
             if (par[i].val >= DSP_REG_ACM0 && par[i].val <= DSP_REG_ACM1)
             {
@@ -568,7 +565,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           }
           break;
         case P_ACCM:
-          if ((int)par[i].val < DSP_REG_ACM0 || (int)par[i].val > DSP_REG_ACM1)
+          if (static_cast<int>(par[i].val) < DSP_REG_ACM0 || static_cast<int>(par[i].val) > DSP_REG_ACM1)
           {
             if (par[i].val >= DSP_REG_ACL0 && par[i].val <= DSP_REG_ACL1)
             {
@@ -585,7 +582,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           }
           break;
         case P_ACCL:
-          if ((int)par[i].val < DSP_REG_ACL0 || (int)par[i].val > DSP_REG_ACL1)
+          if (static_cast<int>(par[i].val) < DSP_REG_ACL0 || static_cast<int>(par[i].val) > DSP_REG_ACL1)
           {
             if (par[i].val >= DSP_REG_ACM0 && par[i].val <= DSP_REG_ACM1)
             {
@@ -625,17 +622,17 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
       ShowError(AssemblerError::WrongParameter);
       break;
     }
-    else if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
+    if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
     {
       // modified by Hermes: test NUMBER range
       int value = get_mask_shifted_down(opc->params[i].mask);
       unsigned int valueu = 0xffff & ~(value >> 1);
-      if ((int)par[i].val < 0)
+      if (static_cast<int>(par[i].val) < 0)
       {
         if (value == 7)  // value 7 for sbclr/sbset
         {
           ShowError(AssemblerError::NumberOutOfRange, "Value must be from 0x0 to {:#x}, was {:#x}",
-                    value, (int)par[i].val);
+                    value, static_cast<int>(par[i].val));
         }
         else if (opc->params[i].type == P_MEM)
         {
@@ -643,27 +640,27 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           {
             ShowError(AssemblerError::NumberOutOfRange,
                       "Address value must be from {:#x} to {:#x}, was {:#x}", valueu, (value >> 1),
-                      (int)par[i].val);
+                      static_cast<int>(par[i].val));
           }
           else
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Address value must be from 0x0 to {:#x}, was {:#x}", value, (int)par[i].val);
+                      "Address value must be from 0x0 to {:#x}, was {:#x}", value, static_cast<int>(par[i].val));
           }
         }
-        else if ((int)par[i].val < -((value >> 1) + 1))
+        else if (static_cast<int>(par[i].val) < -((value >> 1) + 1))
         {
           if (value < 128)
           {
             ShowError(AssemblerError::NumberOutOfRange,
                       "Value must be from {:#x} to {:#x}, was {:#x}", -((value >> 1) + 1),
-                      value >> 1, (int)par[i].val);
+                      value >> 1, static_cast<int>(par[i].val));
           }
           else
           {
             ShowError(AssemblerError::NumberOutOfRange,
                       "Value must be from {:#x} to {:#x} or 0x0 to {:#x}, was {:#x}",
-                      -((value >> 1) + 1), value >> 1, value, (int)par[i].val);
+                      -((value >> 1) + 1), value >> 1, value, static_cast<int>(par[i].val));
           }
         }
       }
@@ -671,7 +668,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
       {
         if (value == 7)  // value 7 for sbclr/sbset
         {
-          if (par[i].val > (unsigned)value)
+          if (par[i].val > static_cast<unsigned>(value))
           {
             ShowError(AssemblerError::NumberOutOfRange,
                       "Value must be from {:#x} to {:#x}, was {:#x}\n", valueu, value, par[i].val);
@@ -681,8 +678,8 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
         {
           if (value < 256)
             value >>= 1;  // addressing 8 bit with sign
-          if (par[i].val > (unsigned)value &&
-              (par[i].val < valueu || par[i].val > (unsigned)0xffff))
+          if (par[i].val > static_cast<unsigned>(value) &&
+              (par[i].val < valueu || par[i].val > static_cast<unsigned>(0xffff)))
           {
             if (value < 256)
             {
@@ -702,7 +699,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
         {
           if (value < 128)
             value >>= 1;  // special case ASL/ASR/LSL/LSR
-          if (par[i].val > (unsigned)value)
+          if (par[i].val > static_cast<unsigned>(value))
           {
             if (value < 64)
             {
@@ -726,7 +723,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
 }
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_count, u16* outbuf)
+void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, const param_t* par, const u32 par_count, u16* outbuf) const
 {
   outbuf[m_cur_addr] |= opc->opcode;
   for (u32 i = 0; i < par_count; i++)
@@ -734,7 +731,7 @@ void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_co
     // Ignore the "reverse" parameters since they are implicit.
     if (opc->params[i].type != P_ACC_D && opc->params[i].type != P_ACCM_D)
     {
-      u16 t16 = outbuf[m_cur_addr + opc->params[i].loc];
+      const u16 t16 = outbuf[m_cur_addr + opc->params[i].loc];
       u16 v16 = par[i].val;
       if (opc->params[i].lshift > 0)
         v16 <<= opc->params[i].lshift;
@@ -746,7 +743,7 @@ void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_co
   }
 }
 
-void DSPAssembler::InitPass(int pass)
+void DSPAssembler::InitPass(const int pass)
 {
   m_failed = false;
   if (pass == 1)
@@ -821,7 +818,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       }
 
       // turn text into spaces if disable_text is on (in a comment).
-      if (disable_text && ((unsigned char)c) > ' ')
+      if (disable_text && static_cast<unsigned char>(c) > ' ')
         c = ' ';
 
       if (c == '\r' || c == '\n' || c == ';')
@@ -845,7 +842,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     {
       bool valid = true;
 
-      for (int j = 0; j < (int)col_pos; j++)
+      for (int j = 0; j < static_cast<int>(col_pos); j++)
       {
         if (j == 0)
           if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))

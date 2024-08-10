@@ -7,7 +7,6 @@
 
 #include <QApplication>
 #include <QPushButton>
-#include <QRegularExpression>
 #include <QString>
 #include <QTimer>
 
@@ -25,10 +24,10 @@ constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
 
 constexpr auto OUTPUT_TEST_TIME = std::chrono::seconds(2);
 
-QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+QString DetectExpression(QPushButton* button, const ciface::Core::DeviceContainer& device_container,
                          const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device,
-                         ciface::MappingCommon::Quote quote)
+                         const ciface::MappingCommon::Quote quote)
 {
   const auto filter = new BlockUserInputFilter(button);
 

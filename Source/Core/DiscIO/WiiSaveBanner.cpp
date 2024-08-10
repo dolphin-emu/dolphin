@@ -23,8 +23,8 @@ constexpr u32 ICON_WIDTH = 48;
 constexpr u32 ICON_HEIGHT = 48;
 constexpr u32 ICON_SIZE = ICON_WIDTH * ICON_HEIGHT * 2;
 
-WiiSaveBanner::WiiSaveBanner(u64 title_id)
-    : WiiSaveBanner(Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Configured) +
+WiiSaveBanner::WiiSaveBanner(const u64 title_id)
+    : WiiSaveBanner(GetTitleDataPath(title_id, Common::FromWhichRoot::Configured) +
                     "/banner.bin")
 {
 }

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -31,7 +30,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(DrawsomeTabletGroup group);
+  ControllerEmu::ControlGroup* GetGroup(DrawsomeTabletGroup group) const;
 
   struct DataFormat
   {

@@ -16,7 +16,7 @@ public:
   explicit NetPlayGolfUI(std::shared_ptr<NetPlay::NetPlayClient> netplay_client);
   ~NetPlayGolfUI();
 
-  void Display();
+  void Display() const;
 
 private:
   std::weak_ptr<NetPlay::NetPlayClient> m_netplay_client;

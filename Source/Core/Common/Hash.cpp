@@ -9,7 +9,6 @@
 
 #include <zlib.h>
 
-#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
@@ -24,7 +23,7 @@
 
 namespace Common
 {
-u32 HashAdler32(const u8* data, size_t len)
+u32 HashAdler32(const u8* data, const size_t len)
 {
   // Use fast implementation from zlib-ng
   return adler32_z(1, data, len);
@@ -32,7 +31,7 @@ u32 HashAdler32(const u8* data, size_t len)
 
 // Stupid hash - but can't go back now :)
 // Don't use for new things. At least it's reasonably fast.
-u32 HashEctor(const u8* data, size_t len)
+u32 HashEctor(const u8* data, const size_t len)
 {
   u32 crc = 0;
 
@@ -51,7 +50,7 @@ u32 HashEctor(const u8* data, size_t len)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-static u64 getblock(const u64* p, int i)
+static u64 getblock(const u64* p, const int i)
 {
   return p[i];
 }
@@ -96,9 +95,9 @@ static u64 fmix64(u64 k)
   return k;
 }
 
-static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
+static u64 GetMurmurHash3(const u8* src, const u32 len, u32 samples)
 {
-  const u8* data = (const u8*)src;
+  const u8* data = src;
   const int nblocks = len / 16;
   u32 Step = (len / 8);
   if (samples == 0)
@@ -116,7 +115,7 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
   //----------
   // body
 
-  const u64* blocks = (const u64*)(data);
+  auto blocks = (const u64*)(data);
 
   for (int i = 0; i < nblocks; i += Step)
   {
@@ -129,7 +128,7 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
   //----------
   // tail
 
-  const u8* tail = (const u8*)(data + nblocks * 16);
+  const u8* tail = data + nblocks * 16;
 
   u64 k1 = 0;
   u64 k2 = 0;
@@ -137,36 +136,36 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
   switch (len & 15)
   {
   case 15:
-    k2 ^= u64(tail[14]) << 48;
+    k2 ^= static_cast<u64>(tail[14]) << 48;
   case 14:
-    k2 ^= u64(tail[13]) << 40;
+    k2 ^= static_cast<u64>(tail[13]) << 40;
   case 13:
-    k2 ^= u64(tail[12]) << 32;
+    k2 ^= static_cast<u64>(tail[12]) << 32;
   case 12:
-    k2 ^= u64(tail[11]) << 24;
+    k2 ^= static_cast<u64>(tail[11]) << 24;
   case 11:
-    k2 ^= u64(tail[10]) << 16;
+    k2 ^= static_cast<u64>(tail[10]) << 16;
   case 10:
-    k2 ^= u64(tail[9]) << 8;
+    k2 ^= static_cast<u64>(tail[9]) << 8;
   case 9:
-    k2 ^= u64(tail[8]) << 0;
+    k2 ^= static_cast<u64>(tail[8]) << 0;
 
   case 8:
-    k1 ^= u64(tail[7]) << 56;
+    k1 ^= static_cast<u64>(tail[7]) << 56;
   case 7:
-    k1 ^= u64(tail[6]) << 48;
+    k1 ^= static_cast<u64>(tail[6]) << 48;
   case 6:
-    k1 ^= u64(tail[5]) << 40;
+    k1 ^= static_cast<u64>(tail[5]) << 40;
   case 5:
-    k1 ^= u64(tail[4]) << 32;
+    k1 ^= static_cast<u64>(tail[4]) << 32;
   case 4:
-    k1 ^= u64(tail[3]) << 24;
+    k1 ^= static_cast<u64>(tail[3]) << 24;
   case 3:
-    k1 ^= u64(tail[2]) << 16;
+    k1 ^= static_cast<u64>(tail[2]) << 16;
   case 2:
-    k1 ^= u64(tail[1]) << 8;
+    k1 ^= static_cast<u64>(tail[1]) << 8;
   case 1:
-    k1 ^= u64(tail[0]) << 0;
+    k1 ^= static_cast<u64>(tail[0]) << 0;
     bmix64(h1, h2, k1, k2, c1, c2);
   };
 
@@ -321,11 +320,11 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 #if defined(_M_X86_64)
 
 FUNCTION_TARGET_SSE42
-static u64 GetHash64_SSE42_CRC32(const u8* src, u32 len, u32 samples)
+static u64 GetHash64_SSE42_CRC32(const u8* src, const u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
   u32 Step = (len / 8);
-  const u64* data = (const u64*)src;
+  auto data = (const u64*)src;
   const u64* end = data + Step;
   if (samples == 0)
     samples = std::max(Step, 1u);
@@ -405,7 +404,7 @@ using TextureHashFunction = u64 (*)(const u8* src, u32 len, u32 samples);
 static u64 SetHash64Function(const u8* src, u32 len, u32 samples);
 static TextureHashFunction s_texture_hash_func = SetHash64Function;
 
-static u64 SetHash64Function(const u8* src, u32 len, u32 samples)
+static u64 SetHash64Function(const u8* src, const u32 len, const u32 samples)
 {
   if (cpu_info.bCRC32)
   {
@@ -422,7 +421,7 @@ static u64 SetHash64Function(const u8* src, u32 len, u32 samples)
   return s_texture_hash_func(src, len, samples);
 }
 
-u64 GetHash64(const u8* src, u32 len, u32 samples)
+u64 GetHash64(const u8* src, const u32 len, const u32 samples)
 {
   return s_texture_hash_func(src, len, samples);
 }
@@ -432,17 +431,17 @@ u32 StartCRC32()
   return crc32_z(0L, Z_NULL, 0);
 }
 
-u32 UpdateCRC32(u32 crc, const u8* data, size_t len)
+u32 UpdateCRC32(const u32 crc, const u8* data, const size_t len)
 {
   return crc32_z(crc, data, len);
 }
 
-u32 ComputeCRC32(const u8* data, size_t len)
+u32 ComputeCRC32(const u8* data, const size_t len)
 {
   return UpdateCRC32(StartCRC32(), data, len);
 }
 
-u32 ComputeCRC32(std::string_view data)
+u32 ComputeCRC32(const std::string_view data)
 {
   return ComputeCRC32(reinterpret_cast<const u8*>(data.data()), data.size());
 }

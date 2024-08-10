@@ -5,8 +5,6 @@
 
 #include <QDockWidget>
 
-#include "Common/CommonTypes.h"
-
 class QCheckBox;
 class QCloseEvent;
 class QComboBox;
@@ -31,15 +29,15 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  void Update();
+  void Update() const;
 
   QGroupBox* CreateSocketTableGroup();
   QGroupBox* CreateSSLContextGroup();
   QGroupBox* CreateDumpOptionsGroup();
   QGroupBox* CreateSecurityOptionsGroup();
-  QComboBox* CreateDumpFormatCombo();
+  static QComboBox* CreateDumpFormatCombo();
 
-  void OnDumpFormatComboChanged(int index);
+  void OnDumpFormatComboChanged(int index) const;
 
   enum class FormatComboId : int
   {

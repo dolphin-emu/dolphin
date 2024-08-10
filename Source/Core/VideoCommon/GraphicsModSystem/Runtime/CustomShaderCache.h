@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <array>
 #include <list>
 #include <map>
 #include <memory>
 #include <optional>
-#include <string>
-#include <string_view>
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -41,7 +38,7 @@ public:
   void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config.bits = host_config.bits; }
 
   // Retrieves all pending shaders/pipelines from the async compiler.
-  void RetrieveAsyncShaders();
+  void RetrieveAsyncShaders() const;
 
   // Reloads/recreates all shaders and pipelines.
   void Reload();
@@ -120,20 +117,20 @@ private:
   using UberPixelShaderIterator =
       Cache<UberShader::PixelShaderUid, AbstractShader>::CacheList::iterator;
 
-  void NotifyPipelineFinished(PipelineIterator iterator,
-                              std::unique_ptr<AbstractPipeline> pipeline);
-  void NotifyPipelineFinished(UberPipelineIterator iterator,
-                              std::unique_ptr<AbstractPipeline> pipeline);
+  static void NotifyPipelineFinished(PipelineIterator iterator,
+                                     std::unique_ptr<AbstractPipeline> pipeline);
+  static void NotifyPipelineFinished(UberPipelineIterator iterator,
+                                     std::unique_ptr<AbstractPipeline> pipeline);
 
   std::unique_ptr<AbstractShader>
   CompilePixelShader(const PixelShaderUid& uid, const CustomShaderInstance& custom_shaders) const;
-  void NotifyPixelShaderFinished(PixelShaderIterator iterator,
-                                 std::unique_ptr<AbstractShader> shader);
+  static void NotifyPixelShaderFinished(PixelShaderIterator iterator,
+                                        std::unique_ptr<AbstractShader> shader);
   std::unique_ptr<AbstractShader>
   CompilePixelShader(const UberShader::PixelShaderUid& uid,
                      const CustomShaderInstance& custom_shaders) const;
-  void NotifyPixelShaderFinished(UberPixelShaderIterator iterator,
-                                 std::unique_ptr<AbstractShader> shader);
+  static void NotifyPixelShaderFinished(UberPixelShaderIterator iterator,
+                                        std::unique_ptr<AbstractShader> shader);
 
   void QueuePixelShaderCompile(const PixelShaderUid& uid,
                                const CustomShaderInstance& custom_shaders);

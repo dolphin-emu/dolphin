@@ -18,8 +18,8 @@ static std::unique_ptr<IOCtlRequest> s_event_hook_request;
 
 std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -27,7 +27,7 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_STM_IDLE:
   case IOCTL_STM_SHUTDOWN:
     NOTICE_LOG_FMT(IOS_STM, "IOCTL_STM_IDLE or IOCTL_STM_SHUTDOWN received, shutting down");
-    Core::QueueHostJob(&Core::Stop, false);
+    QueueHostJob(&Core::Stop, false);
     break;
 
   case IOCTL_STM_RELEASE_EH:
@@ -111,7 +111,7 @@ void STMEventHookDevice::DoState(PointerWrap& p)
   }
 }
 
-bool STMEventHookDevice::HasHookInstalled() const
+bool STMEventHookDevice::HasHookInstalled()
 {
   return s_event_hook_request != nullptr;
 }
@@ -122,8 +122,8 @@ void STMEventHookDevice::TriggerEvent(const u32 event) const
   if (!m_is_active || !s_event_hook_request)
     return;
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(event, s_event_hook_request->buffer_out);
   GetEmulationKernel().EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
   s_event_hook_request.reset();

@@ -12,7 +12,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -30,12 +29,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Common/TimeUtil.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -49,7 +46,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-#include "VideoCommon/FrameDumpFFMpeg.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -60,10 +56,10 @@ static const u32 IN_LEN = 8 * 1024u;
 #elif defined(LZO_ARCH_I086) && !defined(LZO_HAVE_MM_HUGE_ARRAY)
 static const u32 IN_LEN = 60 * 1024u;
 #else
-static const u32 IN_LEN = 128 * 1024u;
+static constexpr u32 IN_LEN = 128 * 1024u;
 #endif
 
-static const u32 OUT_LEN = IN_LEN + (IN_LEN / 16) + 64 + 3;
+static constexpr u32 OUT_LEN = IN_LEN + (IN_LEN / 16) + 64 + 3;
 
 static unsigned char __LZO_MMODEL out[OUT_LEN];
 
@@ -133,12 +129,12 @@ enum
 
 static bool s_use_compression = true;
 
-void EnableCompression(bool compression)
+void EnableCompression(const bool compression)
 {
   s_use_compression = compression;
 }
 
-static void DoState(Core::System& system, PointerWrap& p)
+static void DoState(const Core::System& system, PointerWrap& p)
 {
   bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
@@ -153,7 +149,7 @@ static void DoState(Core::System& system, PointerWrap& p)
   }
 
   // Check to make sure the emulated memory sizes are the same as the savestate
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   u32 state_mem1_size = memory.GetRamSizeReal();
   u32 state_mem2_size = memory.GetExRamSizeReal();
   p.Do(state_mem1_size);
@@ -218,7 +214,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
     return;
   }
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         u8* ptr = buffer.data();
@@ -230,7 +226,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
 
 void SaveToBuffer(Core::System& system, std::vector<u8>& buffer)
 {
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         u8* ptr = nullptr;
@@ -259,10 +255,11 @@ struct SlotWithTimestamp
 // returns first slot number not in the vector, or -1 if all are in the vector
 static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 {
-  for (int i = 1; i <= (int)NUM_STATES; i++)
+  for (int i = 1; i <= static_cast<int>(NUM_STATES); i++)
   {
-    const auto it = std::find_if(used_slots.begin(), used_slots.end(),
-                                 [i](const SlotWithTimestamp& slot) { return slot.slot == i; });
+    const auto it = std::ranges::find_if(used_slots, [i](const SlotWithTimestamp& slot) {
+      return slot.slot == i;
+    });
     if (it == used_slots.end())
       return i;
   }
@@ -281,7 +278,7 @@ static double GetSystemTimeAsDouble()
   return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
 }
 
-static std::string SystemTimeAsDoubleToString(double time)
+static std::string SystemTimeAsDoubleToString(const double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
@@ -299,7 +296,7 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
 {
   std::vector<SlotWithTimestamp> result;
   StateHeader header;
-  for (int i = 1; i <= (int)NUM_STATES; i++)
+  for (int i = 1; i <= static_cast<int>(NUM_STATES); i++)
   {
     std::string filename = MakeStateFilename(i);
     if (File::Exists(filename))
@@ -318,7 +315,7 @@ static bool CompareTimestamp(const SlotWithTimestamp& lhs, const SlotWithTimesta
   return lhs.timestamp < rhs.timestamp;
 }
 
-static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f)
+static void CompressBufferToFile(const u8* raw_buffer, const u64 size, File::IOFile& f)
 {
   u64 total_bytes_compressed = 0;
 
@@ -326,9 +323,9 @@ static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f
   {
     u64 bytes_left_to_compress = size - total_bytes_compressed;
 
-    int bytes_to_compress =
+    const int bytes_to_compress =
         static_cast<int>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), bytes_left_to_compress));
-    int compressed_buffer_size = LZ4_compressBound(bytes_to_compress);
+    const int compressed_buffer_size = LZ4_compressBound(bytes_to_compress);
     auto compressed_buffer = std::make_unique<char[]>(compressed_buffer_size);
     s32 compressed_len =
         LZ4_compress_default(reinterpret_cast<const char*>(raw_buffer) + total_bytes_compressed,
@@ -350,19 +347,20 @@ static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f
   }
 }
 
-static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t uncompressed_size)
+static void CreateExtendedHeader(StateExtendedHeader& extended_header, const size_t uncompressed_size)
 {
-  StateExtendedBaseHeader& base_header = extended_header.base_header;
-  base_header.header_version = EXTENDED_HEADER_VERSION;
-  base_header.compression_type =
-      s_use_compression ? CompressionType::LZ4 : CompressionType::Uncompressed;
-  base_header.payload_offset = COMPRESSED_DATA_OFFSET;
-  base_header.uncompressed_size = uncompressed_size;
+  auto& [header_version, compression_type, payload_offset, base_header_uncompressed_size] =
+    extended_header.base_header;
+  header_version = EXTENDED_HEADER_VERSION;
+  compression_type =
+      s_use_compression ? LZ4 : Uncompressed;
+  payload_offset = COMPRESSED_DATA_OFFSET;
+  base_header_uncompressed_size = uncompressed_size;
 
   // If more fields are added to StateExtendedHeader, set them here.
 }
 
-static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
+static void WriteHeadersToFile(const size_t uncompressed_size, File::IOFile& f)
 {
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.legacy_header.game_id,
@@ -384,7 +382,7 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
   // If StateExtendedHeader is amended to include more than the base, add WriteBytes() calls here.
 }
 
-static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args& save_args)
+static void CompressAndDumpState(const Core::System& system, const CompressAndDumpState_args& save_args)
 {
   const u8* const buffer_data = save_args.buffer_vector.data();
   const size_t buffer_size = save_args.buffer_vector.size();
@@ -444,7 +442,7 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
       }
     }
 
-    auto& movie = system.GetMovie();
+    const auto& movie = system.GetMovie();
     if ((movie.IsMovieActive()) && !movie.IsJustStartingRecordingInputFromSaveState())
       movie.SaveRecording(dtmname);
     else if (!movie.IsMovieActive())
@@ -470,13 +468,13 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
   Host_UpdateMainFrame();
 }
 
-void SaveAs(Core::System& system, const std::string& filename, bool wait)
+void SaveAs(Core::System& system, const std::string& filename, const bool wait)
 {
-  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  const std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
   if (!lk)
     return;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         {
@@ -569,7 +567,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   // Read in the string
   if (buffer.size() >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
   {
-    auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
+    const auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
     memcpy(version_buffer.get(), buffer.data() + sizeof(StateHeaderVersion),
            header.version_header.version_string_length);
     header.version_string =
@@ -586,7 +584,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
 }
 
 static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
-                                    bool get_version_header = true)
+                                    const bool get_version_header = true)
 {
   if (!f.IsOpen())
   {
@@ -619,7 +617,7 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
       return false;
     }
 
-    auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
+    const auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
     if (!f.ReadBytes(version_buffer.get(), header.version_header.version_string_length))
     {
       Core::DisplayMessage("Failed to read state version string", 2000);
@@ -639,26 +637,26 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   std::lock_guard lk(s_save_thread_mutex);
 
   File::IOFile f(filename, "rb");
-  bool get_version_header = false;
+  constexpr bool get_version_header = false;
   return ReadStateHeaderFromFile(header, f, get_version_header);
 }
 
-std::string GetInfoStringOfSlot(int slot, bool translate)
+std::string GetInfoStringOfSlot(const int slot, const bool translate)
 {
-  std::string filename = MakeStateFilename(slot);
+  const std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
     return translate ? Common::GetStringT("Empty") : "Empty";
 
-  State::StateHeader header;
+  StateHeader header;
   if (!ReadHeader(filename, header))
     return translate ? Common::GetStringT("Unknown") : "Unknown";
 
   return SystemTimeAsDoubleToString(header.legacy_header.time);
 }
 
-u64 GetUnixTimeOfSlot(int slot)
+u64 GetUnixTimeOfSlot(const int slot)
 {
-  State::StateHeader header;
+  StateHeader header;
   if (!ReadHeader(MakeStateFilename(slot), header))
     return 0;
 
@@ -667,7 +665,7 @@ u64 GetUnixTimeOfSlot(int slot)
          (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
-static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f)
+static bool DecompressLZ4(std::vector<u8>& raw_buffer, const u64 size, File::IOFile& f)
 {
   raw_buffer.resize(size);
 
@@ -694,10 +692,10 @@ static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f
       return false;
     }
 
-    u32 max_decompress_size =
-        static_cast<u32>(std::min((u64)LZ4_MAX_INPUT_SIZE, size - total_bytes_read));
+    const u32 max_decompress_size =
+        static_cast<u32>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), size - total_bytes_read));
 
-    int bytes_read = LZ4_decompress_safe(
+    const int bytes_read = LZ4_decompress_safe(
         compressed_data.get(), reinterpret_cast<char*>(raw_buffer.data()) + total_bytes_read,
         compressed_data_len, max_decompress_size);
 
@@ -714,7 +712,7 @@ static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f
     {
       return true;
     }
-    else if (total_bytes_read > size)
+    if (total_bytes_read > size)
     {
       PanicAlertFmtT("Internal LZ4 Error - payload size mismatch ({0} / {1}))", total_bytes_read,
                      size);
@@ -742,14 +740,12 @@ static bool ValidateHeaders(const StateHeader& header)
   std::string loaded_str = header.version_string;
   const u32 loaded_version = header.version_header.version_cookie - COOKIE_BASE;
 
-  if (s_old_versions.count(loaded_version))
+  if (s_old_versions.contains(loaded_version))
   {
     // This is a REALLY old version, before we started writing the version string to file
     success = false;
 
-    std::pair<std::string, std::string> version_range = s_old_versions.find(loaded_version)->second;
-    std::string oldest_version = version_range.first;
-    std::string newest_version = version_range.second;
+    const auto [oldest_version, newest_version] = s_old_versions.find(loaded_version)->second;
 
     loaded_str = "Dolphin " + oldest_version + " - " + newest_version;
   }
@@ -812,7 +808,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
   switch (extended_header.base_header.compression_type)
   {
-  case CompressionType::LZ4:
+  case LZ4:
   {
     Core::DisplayMessage("Decompressing State...", 500);
     if (!DecompressLZ4(buffer, extended_header.base_header.uncompressed_size, f))
@@ -820,20 +816,20 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
     break;
   }
-  case CompressionType::Uncompressed:
+  case Uncompressed:
   {
-    u64 header_len = sizeof(StateHeaderLegacy) + sizeof(StateHeaderVersion) +
-                     header.version_header.version_string_length + sizeof(StateExtendedBaseHeader) +
-                     extended_header.base_header.payload_offset;
+    const u64 header_len = sizeof(StateHeaderLegacy) + sizeof(StateHeaderVersion) +
+                           header.version_header.version_string_length + sizeof(StateExtendedBaseHeader) +
+                           extended_header.base_header.payload_offset;
 
-    u64 file_size = f.GetSize();
+    const u64 file_size = f.GetSize();
     if (file_size < header_len)
     {
       PanicAlertFmt("State header length corrupted");
       return;
     }
 
-    const auto size = static_cast<size_t>(file_size - header_len);
+    const auto size = file_size - header_len;
     buffer.resize(size);
 
     if (!f.ReadBytes(buffer.data(), size))
@@ -854,7 +850,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 void LoadAs(Core::System& system, const std::string& filename)
 {
-  if (!Core::IsRunningOrStarting(system))
+  if (!IsRunningOrStarting(system))
     return;
 
   if (NetPlay::IsNetPlayRunning())
@@ -869,11 +865,11 @@ void LoadAs(Core::System& system, const std::string& filename)
     return;
   }
 
-  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  const std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
   if (!lk)
     return;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         // Save temp buffer for undo load state
@@ -911,7 +907,7 @@ void LoadAs(Core::System& system, const std::string& filename)
         {
           if (loadedSuccessfully)
           {
-            std::filesystem::path tempfilename(filename);
+            const std::filesystem::path tempfilename(filename);
             Core::DisplayMessage(
                 fmt::format("Loaded State from {}", tempfilename.filename().string()), 2000);
             if (File::Exists(filename + ".dtm"))
@@ -975,17 +971,17 @@ static std::string MakeStateFilename(int number)
                      SConfig::GetInstance().GetGameID(), number);
 }
 
-void Save(Core::System& system, int slot, bool wait)
+void Save(Core::System& system, const int slot, const bool wait)
 {
   SaveAs(system, MakeStateFilename(slot), wait);
 }
 
-void Load(Core::System& system, int slot)
+void Load(Core::System& system, const int slot)
 {
   LoadAs(system, MakeStateFilename(slot));
 }
 
-void LoadLastSaved(Core::System& system, int i)
+void LoadLastSaved(Core::System& system, const int i)
 {
   if (i <= 0)
   {
@@ -1000,7 +996,7 @@ void LoadLastSaved(Core::System& system, int i)
     return;
   }
 
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, CompareTimestamp);
   Load(system, (used_slots.end() - i)->slot);
 }
 
@@ -1016,7 +1012,7 @@ void SaveFirstSaved(Core::System& system)
   }
 
   // overwrite the oldest state
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, CompareTimestamp);
   Save(system, used_slots.front().slot, true);
 }
 

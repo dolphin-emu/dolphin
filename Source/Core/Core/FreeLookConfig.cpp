@@ -7,7 +7,6 @@
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 namespace FreeLook
@@ -45,8 +44,8 @@ void Config::Refresh()
     s_has_registered_callback = true;
   }
 
-  camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
-  enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED) &&
+  camera_config.control_type = Get(::Config::FL1_CONTROL_TYPE);
+  enabled = Get(::Config::FREE_LOOK_ENABLED) &&
             !AchievementManager::GetInstance().IsHardcoreModeActive();
 }
 }  // namespace FreeLook

@@ -35,6 +35,6 @@ private:
 
   u32 m_next_parameter;
 
-  void BootUCode();
+  void BootUCode() const;
 };
 }  // namespace DSP::HLE

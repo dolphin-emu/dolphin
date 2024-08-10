@@ -16,33 +16,33 @@ namespace Core::Debug
 //  - OSDumpContext
 //  - OSClearContext
 //  - OSExceptionVector
-void OSContext::Read(const Core::CPUThreadGuard& guard, u32 addr)
+void OSContext::Read(const CPUThreadGuard& guard, const u32 addr)
 {
   for (std::size_t i = 0; i < gpr.size(); i++)
-    gpr[i] = PowerPC::MMU::HostRead_U32(guard, addr + u32(i * sizeof(int)));
+    gpr[i] = PowerPC::MMU::HostRead_U32(guard, addr + static_cast<u32>(i * sizeof(int)));
   cr = PowerPC::MMU::HostRead_U32(guard, addr + 0x80);
   lr = PowerPC::MMU::HostRead_U32(guard, addr + 0x84);
   ctr = PowerPC::MMU::HostRead_U32(guard, addr + 0x88);
   xer = PowerPC::MMU::HostRead_U32(guard, addr + 0x8C);
   for (std::size_t i = 0; i < fpr.size(); i++)
-    fpr[i] = PowerPC::MMU::HostRead_F64(guard, addr + 0x90 + u32(i * sizeof(double)));
+    fpr[i] = PowerPC::MMU::HostRead_F64(guard, addr + 0x90 + static_cast<u32>(i * sizeof(double)));
   fpscr = PowerPC::MMU::HostRead_U64(guard, addr + 0x190);
   srr0 = PowerPC::MMU::HostRead_U32(guard, addr + 0x198);
   srr1 = PowerPC::MMU::HostRead_U32(guard, addr + 0x19c);
   dummy = PowerPC::MMU::HostRead_U16(guard, addr + 0x1a0);
-  state = static_cast<OSContext::State>(PowerPC::MMU::HostRead_U16(guard, addr + 0x1a2));
+  state = static_cast<State>(PowerPC::MMU::HostRead_U16(guard, addr + 0x1a2));
   for (std::size_t i = 0; i < gqr.size(); i++)
-    gqr[i] = PowerPC::MMU::HostRead_U32(guard, addr + 0x1a4 + u32(i * sizeof(int)));
+    gqr[i] = PowerPC::MMU::HostRead_U32(guard, addr + 0x1a4 + static_cast<u32>(i * sizeof(int)));
   psf_padding = 0;
   for (std::size_t i = 0; i < psf.size(); i++)
-    psf[i] = PowerPC::MMU::HostRead_F64(guard, addr + 0x1c8 + u32(i * sizeof(double)));
+    psf[i] = PowerPC::MMU::HostRead_F64(guard, addr + 0x1c8 + static_cast<u32>(i * sizeof(double)));
 }
 
 // Mutex offsets based on the following functions:
 //  - OSInitMutex
 //  - OSLockMutex
 //  - __OSUnlockAllMutex
-void OSMutex::Read(const Core::CPUThreadGuard& guard, u32 addr)
+void OSMutex::Read(const CPUThreadGuard& guard, const u32 addr)
 {
   thread_queue.head = PowerPC::MMU::HostRead_U32(guard, addr);
   thread_queue.tail = PowerPC::MMU::HostRead_U32(guard, addr + 0x4);
@@ -64,7 +64,7 @@ void OSMutex::Read(const Core::CPUThreadGuard& guard, u32 addr)
 //  - __OSThreadInit
 //  - OSSetThreadSpecific
 //  - SOInit (for errno)
-void OSThread::Read(const Core::CPUThreadGuard& guard, u32 addr)
+void OSThread::Read(const CPUThreadGuard& guard, const u32 addr)
 {
   context.Read(guard, addr);
   state = PowerPC::MMU::HostRead_U16(guard, addr + 0x2c8);
@@ -95,13 +95,13 @@ void OSThread::Read(const Core::CPUThreadGuard& guard, u32 addr)
   specific[1] = PowerPC::MMU::HostRead_U32(guard, addr + 0x314);
 }
 
-bool OSThread::IsValid(const Core::CPUThreadGuard& guard) const
+bool OSThread::IsValid(const CPUThreadGuard& guard) const
 {
   return PowerPC::MMU::HostIsRAMAddress(guard, stack_end) &&
          PowerPC::MMU::HostRead_U32(guard, stack_end) == STACK_MAGIC;
 }
 
-OSThreadView::OSThreadView(const Core::CPUThreadGuard& guard, u32 addr)
+OSThreadView::OSThreadView(const CPUThreadGuard& guard, const u32 addr)
 {
   m_address = addr;
   m_thread.Read(guard, addr);
@@ -112,7 +112,7 @@ const OSThread& OSThreadView::Data() const
   return m_thread;
 }
 
-Common::Debug::PartialContext OSThreadView::GetContext(const Core::CPUThreadGuard& guard) const
+Common::Debug::PartialContext OSThreadView::GetContext(const CPUThreadGuard& guard) const
 {
   Common::Debug::PartialContext context;
 
@@ -186,7 +186,7 @@ s32 OSThreadView::GetErrno() const
   return m_thread.error;
 }
 
-std::string OSThreadView::GetSpecific(const Core::CPUThreadGuard& guard) const
+std::string OSThreadView::GetSpecific(const CPUThreadGuard& guard) const
 {
   std::string specific;
 
@@ -200,7 +200,7 @@ std::string OSThreadView::GetSpecific(const Core::CPUThreadGuard& guard) const
   return specific;
 }
 
-bool OSThreadView::IsValid(const Core::CPUThreadGuard& guard) const
+bool OSThreadView::IsValid(const CPUThreadGuard& guard) const
 {
   return m_thread.IsValid(guard);
 }

@@ -20,7 +20,7 @@ static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
 {
-  auto* instance = Common::Log::LogManager::GetInstance();
+  const auto* instance = Common::Log::LogManager::GetInstance();
   if (instance == nullptr)
     return;
 
@@ -58,7 +58,7 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   if (shared)
     return shared;
 
-  const char* filename = __FILE__;
+  auto filename = __FILE__;
   const char* match_point = strstr(filename, DIR_SEP "Source" DIR_SEP "Core" DIR_SEP);
   if (!match_point)
     match_point = strstr(filename, R"(\Source\Core\)");

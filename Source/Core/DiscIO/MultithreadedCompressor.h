@@ -9,7 +9,6 @@
 #include <thread>
 #include <utility>
 #include <variant>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/Event.h"
@@ -85,12 +84,12 @@ public:
       m_current_index -= m_threads;
   }
 
-  void SetError(ConversionResultCode result)
+  void SetError(const ConversionResultCode result)
   {
     ASSERT(result != ConversionResultCode::Success);
 
     // If we already have an error, don't overwrite it
-    ConversionResultCode expected = ConversionResultCode::Success;
+    auto expected = ConversionResultCode::Success;
     m_result.compare_exchange_strong(expected, result);
   }
 
@@ -137,7 +136,7 @@ private:
   {
     CompressThreadState compress_thread_state;
 
-    ConversionResultCode setup_result = m_set_up_compress_thread_state(&compress_thread_state);
+    const ConversionResultCode setup_result = m_set_up_compress_thread_state(&compress_thread_state);
     if (setup_result != ConversionResultCode::Success)
       SetError(setup_result);
 

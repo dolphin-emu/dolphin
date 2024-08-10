@@ -3,7 +3,6 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 
-#include <algorithm>
 #include <array>
 
 #include "Common/CommonTypes.h"
@@ -11,7 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
@@ -31,13 +29,13 @@ D3D_FEATURE_LEVEL feature_level;
 
 static ComPtr<ID3D11Debug> s_debug;
 
-constexpr std::array<D3D_FEATURE_LEVEL, 3> s_supported_feature_levels{
+constexpr std::array s_supported_feature_levels{
     D3D_FEATURE_LEVEL_11_0,
     D3D_FEATURE_LEVEL_10_1,
     D3D_FEATURE_LEVEL_10_0,
 };
 
-bool Create(u32 adapter_index, bool enable_debug_layer)
+bool Create(const u32 adapter_index, const bool enable_debug_layer)
 {
   PFN_D3D11_CREATE_DEVICE d3d11_create_device;
   if (!s_d3d11_library.Open("d3d11.dll") ||
@@ -168,7 +166,7 @@ void Destroy()
   s_d3d11_library.Close();
 }
 
-std::vector<u32> GetAAModes(u32 adapter_index)
+std::vector<u32> GetAAModes(const u32 adapter_index)
 {
   // Use temporary device if we don't have one already.
   Common::DynamicLibrary temp_lib;
@@ -176,7 +174,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
   D3D_FEATURE_LEVEL temp_feature_level = feature_level;
   if (!temp_device)
   {
-    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    const ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return {};
 
@@ -190,7 +188,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
       return {};
     }
 
-    HRESULT hr = d3d11_create_device(
+    const HRESULT hr = d3d11_create_device(
         adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
         static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
         temp_device.GetAddressOf(), &temp_feature_level, nullptr);
@@ -220,7 +218,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
   return aa_modes;
 }
 
-bool SupportsTextureFormat(DXGI_FORMAT format)
+bool SupportsTextureFormat(const DXGI_FORMAT format)
 {
   UINT support;
   if (FAILED(device->CheckFormatSupport(format, &support)))
@@ -229,7 +227,7 @@ bool SupportsTextureFormat(DXGI_FORMAT format)
   return (support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
 }
 
-bool SupportsLogicOp(u32 adapter_index)
+bool SupportsLogicOp(const u32 adapter_index)
 {
   // Use temporary device if we don't have one already.
   Common::DynamicLibrary temp_lib;
@@ -238,7 +236,7 @@ bool SupportsLogicOp(u32 adapter_index)
   {
     ComPtr<ID3D11Device> temp_device;
 
-    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    const ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return false;
 
@@ -252,7 +250,7 @@ bool SupportsLogicOp(u32 adapter_index)
       return false;
     }
 
-    HRESULT hr = d3d11_create_device(
+    const HRESULT hr = d3d11_create_device(
         adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
         static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
         temp_device.GetAddressOf(), nullptr, nullptr);

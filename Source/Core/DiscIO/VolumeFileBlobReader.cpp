@@ -4,7 +4,6 @@
 #include "DiscIO/VolumeFileBlobReader.h"
 
 #include <memory>
-#include <string_view>
 
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -13,7 +12,7 @@ namespace DiscIO
 {
 std::unique_ptr<VolumeFileBlobReader> VolumeFileBlobReader::Create(const Volume& volume,
                                                                    const Partition& partition,
-                                                                   std::string_view file_path)
+                                                                   const std::string_view file_path)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
   if (!file_system)
@@ -69,7 +68,7 @@ std::optional<int> VolumeFileBlobReader::GetCompressionLevel() const
   return m_volume.GetBlobReader().GetCompressionLevel();
 }
 
-bool VolumeFileBlobReader::Read(u64 offset, u64 length, u8* out_ptr)
+bool VolumeFileBlobReader::Read(const u64 offset, const u64 length, u8* out_ptr)
 {
   if (offset + length > m_file_info->GetSize())
     return false;

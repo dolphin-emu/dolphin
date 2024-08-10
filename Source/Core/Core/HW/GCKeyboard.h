@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-
 class InputConfig;
 enum class KeyboardGroup;
 struct KeyboardStatus;

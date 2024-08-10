@@ -14,10 +14,10 @@
 
 namespace Vulkan
 {
-static VkFormat VarToVkFormat(ComponentFormat t, uint32_t components, bool integer)
+static VkFormat VarToVkFormat(const ComponentFormat t, const uint32_t components, const bool integer)
 {
   using ComponentArray = std::array<VkFormat, 4>;
-  static constexpr auto f = [](ComponentArray a) { return a; };  // Deduction helper
+  static constexpr auto f = [](const ComponentArray a) { return a; };  // Deduction helper
 
   static constexpr Common::EnumMap<ComponentArray, ComponentFormat::InvalidFloat7>
       float_type_lookup = {
@@ -132,8 +132,8 @@ void VertexFormat::SetupInputState()
   m_input_state_info.pVertexAttributeDescriptions = m_attribute_descriptions.data();
 }
 
-void VertexFormat::AddAttribute(ShaderAttrib location, uint32_t binding, VkFormat format,
-                                uint32_t offset)
+void VertexFormat::AddAttribute(ShaderAttrib location, const uint32_t binding, const VkFormat format,
+                                const uint32_t offset)
 {
   ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 

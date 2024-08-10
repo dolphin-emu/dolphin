@@ -33,12 +33,12 @@ GPFifoManager::GPFifoManager(Core::System& system) : m_system(system)
 // Both of these should actually work! Only problem is that we have to decide at run time,
 // the same function could use both methods. Compile 2 different versions of each such block?
 
-size_t GPFifoManager::GetGatherPipeCount()
+size_t GPFifoManager::GetGatherPipeCount() const
 {
   return m_system.GetPPCState().gather_pipe_ptr - m_gather_pipe;
 }
 
-void GPFifoManager::SetGatherPipeCount(size_t size)
+void GPFifoManager::SetGatherPipeCount(const size_t size)
 {
   m_system.GetPPCState().gather_pipe_ptr = m_gather_pipe + size;
 }
@@ -58,7 +58,7 @@ void GPFifoManager::Init()
   memset(m_gather_pipe, 0, sizeof(m_gather_pipe));
 }
 
-bool GPFifoManager::IsBNE() const
+bool GPFifoManager::IsBNE()
 {
   // TODO: It's not clear exactly when the BNE (buffer not empty) bit is set.
   // The PPC 750cl manual says in section 2.1.2.12 "Write Pipe Address Register (WPAR)" (page 78):
@@ -84,8 +84,8 @@ void GPFifoManager::ResetGatherPipe()
 
 void GPFifoManager::UpdateGatherPipe()
 {
-  auto& system = m_system;
-  auto& memory = system.GetMemory();
+  const auto& system = m_system;
+  const auto& memory = system.GetMemory();
   auto& processor_interface = system.GetProcessorInterface();
 
   size_t pipe_count = GetGatherPipeCount();
@@ -154,35 +154,47 @@ void GPFifoManager::Write64(const u64 value)
   CheckGatherPipe();
 }
 
-void GPFifoManager::FastWrite8(const u8 value)
+void GPFifoManager::FastWrite8(const u8 value) const
 {
-  auto& ppc_state = m_system.GetPPCState();
-  *ppc_state.gather_pipe_ptr = value;
-  ppc_state.gather_pipe_ptr += sizeof(u8);
+  auto& [_pc, _npc, gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
+  *gather_pipe_ptr = value;
+  gather_pipe_ptr += sizeof(u8);
 }
 
-void GPFifoManager::FastWrite16(u16 value)
+void GPFifoManager::FastWrite16(u16 value) const
 {
   value = Common::swap16(value);
-  auto& ppc_state = m_system.GetPPCState();
-  std::memcpy(ppc_state.gather_pipe_ptr, &value, sizeof(u16));
-  ppc_state.gather_pipe_ptr += sizeof(u16);
+  auto& [_pc, _npc, gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
+  std::memcpy(gather_pipe_ptr, &value, sizeof(u16));
+  gather_pipe_ptr += sizeof(u16);
 }
 
-void GPFifoManager::FastWrite32(u32 value)
+void GPFifoManager::FastWrite32(u32 value) const
 {
   value = Common::swap32(value);
-  auto& ppc_state = m_system.GetPPCState();
-  std::memcpy(ppc_state.gather_pipe_ptr, &value, sizeof(u32));
-  ppc_state.gather_pipe_ptr += sizeof(u32);
+  auto& [_pc, _npc, gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
+  std::memcpy(gather_pipe_ptr, &value, sizeof(u32));
+  gather_pipe_ptr += sizeof(u32);
 }
 
-void GPFifoManager::FastWrite64(u64 value)
+void GPFifoManager::FastWrite64(u64 value) const
 {
   value = Common::swap64(value);
-  auto& ppc_state = m_system.GetPPCState();
-  std::memcpy(ppc_state.gather_pipe_ptr, &value, sizeof(u64));
-  ppc_state.gather_pipe_ptr += sizeof(u64);
+  auto& [_pc, _npc, gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
+  std::memcpy(gather_pipe_ptr, &value, sizeof(u64));
+  gather_pipe_ptr += sizeof(u64);
 }
 
 void UpdateGatherPipe(GPFifoManager& gpfifo)

@@ -6,7 +6,6 @@
 #include <array>
 #include <atomic>
 #include <memory>
-#include <vector>
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/NativeVertexFormat.h"

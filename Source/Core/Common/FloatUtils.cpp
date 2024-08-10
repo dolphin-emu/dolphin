@@ -8,7 +8,7 @@
 
 namespace Common
 {
-u32 ClassifyDouble(double dvalue)
+u32 ClassifyDouble(const double dvalue)
 {
   const u64 ivalue = std::bit_cast<u64>(dvalue);
   const u64 sign = ivalue & DOUBLE_SIGN;
@@ -40,7 +40,7 @@ u32 ClassifyDouble(double dvalue)
   return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 }
 
-u32 ClassifyFloat(float fvalue)
+u32 ClassifyFloat(const float fvalue)
 {
   const u32 ivalue = std::bit_cast<u32>(fvalue);
   const u32 sign = ivalue & FLOAT_SIGN;
@@ -83,7 +83,7 @@ const std::array<BaseAndDec, 32> frsqrte_expected = {{
     {0x20c1000, -0x35e}, {0x1f12000, -0x332}, {0x1d79000, -0x30a}, {0x1bf4000, -0x2e6},
 }};
 
-double ApproximateReciprocalSquareRoot(double val)
+double ApproximateReciprocalSquareRoot(const double val)
 {
   s64 integral = std::bit_cast<s64>(val);
   s64 mantissa = integral & ((1LL << 52) - 1);
@@ -132,8 +132,8 @@ double ApproximateReciprocalSquareRoot(double val)
   integral = sign | exponent;
 
   const int i = static_cast<int>((exponent_lsb | mantissa) >> 37);
-  const auto& entry = frsqrte_expected[i / 2048];
-  integral |= static_cast<s64>(entry.m_base + entry.m_dec * (i % 2048)) << 26;
+  const auto& [m_base, m_dec] = frsqrte_expected[i / 2048];
+  integral |= static_cast<s64>(m_base + m_dec * (i % 2048)) << 26;
 
   return std::bit_cast<double>(integral);
 }
@@ -149,7 +149,7 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 }};
 
 // Used by fres and ps_res.
-double ApproximateReciprocal(double val)
+double ApproximateReciprocal(const double val)
 {
   s64 integral = std::bit_cast<s64>(val);
   const s64 mantissa = integral & ((1LL << 52) - 1);
@@ -179,9 +179,9 @@ double ApproximateReciprocal(double val)
   exponent = (0x7FDLL << 52) - exponent;
 
   const int i = static_cast<int>(mantissa >> 37);
-  const auto& entry = fres_expected[i / 1024];
+  const auto& [m_base, m_dec] = fres_expected[i / 1024];
   integral = sign | exponent;
-  integral |= static_cast<s64>(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
+  integral |= static_cast<s64>(m_base - (m_dec * (i % 1024) + 1) / 2) << 29;
 
   return std::bit_cast<double>(integral);
 }

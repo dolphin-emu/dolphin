@@ -68,7 +68,7 @@ bool ASndUCode::UseNewFlagMasks() const
          m_crc == HASH_2024_PAD;
 }
 
-ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+ASndUCode::ASndUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
 
@@ -82,11 +82,11 @@ void ASndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
-void ASndUCode::HandleMail(u32 mail)
+void ASndUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {
@@ -207,7 +207,7 @@ void ASndUCode::DMAInVoiceData()
   auto& memory = m_dsphle->GetSystem().GetMemory();
   m_current_voice.out_buf = HLEMemory_Read_U32(memory, m_voice_addr);
   m_current_voice.delay_samples = HLEMemory_Read_U32(memory, m_voice_addr + 4);
-  u32 new_flags = HLEMemory_Read_U32(memory, m_voice_addr + 8);
+  const u32 new_flags = HLEMemory_Read_U32(memory, m_voice_addr + 8);
   if (m_current_voice.flags != new_flags)
     DEBUG_LOG_FMT(DSPHLE, "ASndUCode - flags: {:08x}", new_flags);
   m_current_voice.flags = new_flags;
@@ -229,7 +229,7 @@ void ASndUCode::DMAInVoiceData()
   m_current_voice._pad = HLEMemory_Read_U32(memory, m_voice_addr + 60);
 }
 
-void ASndUCode::DMAOutVoiceData()
+void ASndUCode::DMAOutVoiceData() const
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   HLEMemory_Write_U32(memory, m_voice_addr, m_current_voice.out_buf);
@@ -268,7 +268,7 @@ void ASndUCode::DoMixing(u32 return_mail)
       (m_current_voice.flags & FLAGS_SAMPLE_FORMAT_BYTES_MASK) >> FLAGS_SAMPLE_FORMAT_BYTES_SHIFT;
 
   // sample_selector jump table
-  static constexpr std::array<std::pair<s16, s16> (ASndUCode::*)() const, 8> sample_selector{
+  static constexpr std::array sample_selector{
       &ASndUCode::ReadSampleMono8Bits,           &ASndUCode::ReadSampleMono16Bits,
       &ASndUCode::ReadSampleStereo8Bits,         &ASndUCode::ReadSampleStereo16Bits,
       &ASndUCode::ReadSampleMono8BitsUnsigned,   &ASndUCode::ReadSampleMono16BitsLittleEndian,
@@ -545,7 +545,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo8BitsUnsigned() const
 {
   // stereo_8bits_unsigned
   const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
-  u16 sample = m_input_sample_buffer[index] ^ 0x8080;
+  const u16 sample = m_input_sample_buffer[index] ^ 0x8080;
   const s16 right = sample & 0xff00;
   const s16 left = sample << 8;
   return {right, left};

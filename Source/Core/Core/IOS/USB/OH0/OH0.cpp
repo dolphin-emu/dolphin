@@ -5,8 +5,7 @@
 
 #include <algorithm>
 #include <cstring>
-#include <istream>
-#include <sstream>
+#include <ranges>
 #include <tuple>
 #include <utility>
 
@@ -93,8 +92,8 @@ IPCReply OH0::CancelInsertionHook(const IOCtlRequest& request)
   if (!request.buffer_in || request.buffer_in_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // IOS assigns random IDs, but ours are simply the VID + PID (see RegisterInsertionHookWithID)
   TriggerHook(m_insertion_hooks,
@@ -108,8 +107,8 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(2, 2))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u8 max_entries_count = memory.Read_U8(request.in_vectors[0].address);
   if (request.io_vectors[1].size != max_entries_count * sizeof(DeviceEntry))
@@ -118,17 +117,17 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
   const u8 interface_class = memory.Read_U8(request.in_vectors[1].address);
   u8 entries_count = 0;
   std::lock_guard lk(m_devices_mutex);
-  for (const auto& device : m_devices)
+  for (const auto& val : m_devices | std::views::values)
   {
     if (entries_count >= max_entries_count)
       break;
-    if (!device.second->HasClass(interface_class))
+    if (!val->HasClass(interface_class))
       continue;
 
     DeviceEntry entry;
     entry.unknown = 0;
-    entry.vid = Common::swap16(device.second->GetVid());
-    entry.pid = Common::swap16(device.second->GetPid());
+    entry.vid = Common::swap16(val->GetVid());
+    entry.pid = Common::swap16(val->GetPid());
     memory.CopyToEmu(request.io_vectors[1].address + 8 * entries_count++, &entry, 8);
   }
   memory.Write_U8(entries_count, request.io_vectors[0].address);
@@ -140,8 +139,8 @@ IPCReply OH0::GetRhDesca(const IOCtlRequest& request) const
   if (!request.buffer_out || request.buffer_out_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // Based on a hardware test, this ioctl seems to return a constant value
   memory.Write_U32(0x02000302, request.buffer_out);
@@ -161,7 +160,7 @@ IPCReply OH0::GetRhPortStatus(const IOCtlVRequest& request) const
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request)
+IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(IPC_EINVAL);
@@ -176,7 +175,7 @@ std::optional<IPCReply> OH0::RegisterRemovalHook(const u64 device_id, const IOCt
 {
   std::lock_guard lock{m_hooks_mutex};
   // IOS only allows a single device removal hook.
-  if (m_removal_hooks.find(device_id) != m_removal_hooks.end())
+  if (m_removal_hooks.contains(device_id))
     return IPCReply(IPC_EEXIST);
   m_removal_hooks.insert({device_id, request.address});
   return std::nullopt;
@@ -187,8 +186,8 @@ std::optional<IPCReply> OH0::RegisterInsertionHook(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u16 vid = memory.Read_U16(request.in_vectors[0].address);
   const u16 pid = memory.Read_U16(request.in_vectors[1].address);
@@ -206,8 +205,8 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   if (!request.HasNumberOfValidVectors(3, 1))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::lock_guard lock{m_hooks_mutex};
   const u16 vid = memory.Read_U16(request.in_vectors[0].address);
@@ -222,7 +221,7 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   return std::nullopt;
 }
 
-std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& request)
+std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
@@ -234,12 +233,12 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
 
 bool OH0::HasDeviceWithVidPid(const u16 vid, const u16 pid) const
 {
-  return std::any_of(m_devices.begin(), m_devices.end(), [=](const auto& device) {
+  return std::ranges::any_of(m_devices, [=](const auto& device) {
     return device.second->GetVid() == vid && device.second->GetPid() == pid;
   });
 }
 
-void OH0::OnDeviceChange(const ChangeEvent event, std::shared_ptr<USB::Device> device)
+void OH0::OnDeviceChange(const ChangeEvent event, const std::shared_ptr<USB::Device> device)
 {
   std::lock_guard lk(m_devices_mutex);
   if (event == ChangeEvent::Inserted)
@@ -265,20 +264,20 @@ std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
   std::lock_guard lk(m_devices_mutex);
 
   bool has_device_with_vid_pid = false;
-  for (const auto& device : m_devices)
+  for (const auto& val : m_devices | std::views::values)
   {
-    if (device.second->GetVid() != vid || device.second->GetPid() != pid)
+    if (val->GetVid() != vid || val->GetPid() != pid)
       continue;
     has_device_with_vid_pid = true;
 
-    if (m_opened_devices.find(device.second->GetId()) != m_opened_devices.cend() ||
-        !device.second->Attach())
+    if (m_opened_devices.contains(val->GetId()) ||
+        !val->Attach())
     {
       continue;
     }
 
-    m_opened_devices.emplace(device.second->GetId());
-    return {IPC_SUCCESS, device.second->GetId()};
+    m_opened_devices.emplace(val->GetId());
+    return {IPC_SUCCESS, val->GetId()};
   }
   // IOS doesn't allow opening the same device more than once (IPC_EEXIST)
   return {has_device_with_vid_pid ? IPC_EEXIST : IPC_ENOENT, 0};
@@ -312,7 +311,7 @@ std::optional<IPCReply> OH0::DeviceIOCtl(const u64 device_id, const IOCtlRequest
   }
 }
 
-std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVRequest& request)
+std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVRequest& request) const
 {
   const auto device = GetDeviceById(device_id);
   if (!device)
@@ -335,10 +334,10 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
   }
 }
 
-s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
+s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   switch (ioctlv.request)
   {

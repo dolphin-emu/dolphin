@@ -81,7 +81,7 @@ union UCommand
     u32 : 8;
   };
   UCommand() = default;
-  UCommand(u32 value) : hex{value} {}
+  UCommand(const u32 value) : hex{value} {}
 };
 
 // For configuration use, since some devices can have the same SI Device ID

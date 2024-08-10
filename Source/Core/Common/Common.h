@@ -22,7 +22,7 @@
 // Data: <Master Log      > 4D 61 73 74 65 72 20 4C 6F 67 00 00 00 00 00 00
 struct CrtDebugBreak
 {
-  CrtDebugBreak(int spot) { _CrtSetBreakAlloc(spot); }
+  CrtDebugBreak(const int spot) { _CrtSetBreakAlloc(spot); }
 };
 // CrtDebugBreak breakAt(614);
 #endif  // end DEBUG/FAST

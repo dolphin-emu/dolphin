@@ -41,7 +41,7 @@ public:
     ASSERT(!mbedtls_sha1_starts_ret(&ctx));
   }
   ~ContextMbed() { mbedtls_sha1_free(&ctx); }
-  virtual void Update(const u8* msg, size_t len) override
+  virtual void Update(const u8* msg, const size_t len) override
   {
     ASSERT(!mbedtls_sha1_update_ret(&ctx, msg, len));
   }
@@ -77,7 +77,7 @@ protected:
     {
       if (block_used + len >= block.size())
       {
-        size_t rem = block.size() - block_used;
+        const size_t rem = block.size() - block_used;
         std::memcpy(&block[block_used], msg, rem);
         ProcessBlock(&block[0]);
         block_used = 0;
@@ -125,7 +125,7 @@ protected:
       std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
     }
 
-    Common::BigEndianValue<u64> msg_bitlen(msg_len * 8);
+    const BigEndianValue msg_bitlen(msg_len * 8);
     std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
 
     ProcessBlock(&block[0]);
@@ -142,9 +142,9 @@ template <typename ValueType, size_t Size>
 class CyclicArray
 {
 public:
-  inline ValueType operator[](size_t i) const { return data[i % Size]; }
-  inline ValueType& operator[](size_t i) { return data[i % Size]; }
-  constexpr size_t size() { return Size; }
+  inline ValueType operator[](const size_t i) const { return data[i % Size]; }
+  inline ValueType& operator[](const size_t i) { return data[i % Size]; }
+  static constexpr size_t size() { return Size; }
 
 private:
   std::array<ValueType, Size> data;
@@ -182,7 +182,7 @@ private:
   using WorkBlock = CyclicArray<XmmReg, 4>;
 
   ATTRIBUTE_TARGET("ssse3")
-  static inline __m128i byterev_16B(__m128i x)
+  static inline __m128i byterev_16B(const __m128i x)
   {
     return _mm_shuffle_epi8(x, _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
   }
@@ -208,7 +208,7 @@ private:
     // active state in just 0x40 bytes.
     // see FIPS 180-4 6.1.3 Alternate Method for Computing a SHA-1 Message Digest
     WorkBlock w;
-    auto msg_block = (const __m128i*)msg;
+    const auto msg_block = (const __m128i*)msg;
     for (size_t i = 0; i < w.size(); i++)
       w[i] = byterev_16B(_mm_loadu_si128(&msg_block[i]));
 
@@ -250,7 +250,7 @@ private:
   {
     Digest digest;
     _mm_storeu_si128((__m128i*)&digest[0], byterev_16B(state[0]));
-    u32 hi = _mm_cvtsi128_si32(byterev_16B(state[1]));
+    const u32 hi = _mm_cvtsi128_si32(byterev_16B(state[1]));
     std::memcpy(&digest[sizeof(__m128i)], &hi, sizeof(hi));
     return digest;
   }
@@ -379,17 +379,17 @@ std::unique_ptr<Context> CreateContext()
   return std::make_unique<ContextMbed>();
 }
 
-Digest CalculateDigest(const u8* msg, size_t len)
+Digest CalculateDigest(const u8* msg, const size_t len)
 {
-  auto ctx = CreateContext();
+  const auto ctx = CreateContext();
   ctx->Update(msg, len);
   return ctx->Finish();
 }
 
 std::string DigestToString(const Digest& digest)
 {
-  static constexpr std::array<char, 16> lookup = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                                  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+  static constexpr std::array lookup = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B',
+                                        'C', 'D', 'E', 'F'};
   std::string hash;
   hash.reserve(digest.size() * 2);
   for (size_t i = 0; i < digest.size(); ++i)

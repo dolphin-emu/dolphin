@@ -4,23 +4,17 @@
 #include "VideoCommon/FreeLookCamera.h"
 
 #include <algorithm>
-#include <math.h>
 
 #include <fmt/format.h>
 
-#include "Common/MathUtil.h"
-
 #include "Common/ChunkFile.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
-
-#include "VideoCommon/VideoCommon.h"
 
 FreeLookCamera g_freelook_camera;
 
 namespace
 {
-std::string to_string(FreeLook::ControlType type)
+std::string to_string(const FreeLook::ControlType type)
 {
   switch (type)
   {
@@ -42,17 +36,17 @@ public:
 
   Common::Matrix44 GetView() const override { return m_mat; }
 
-  void MoveVertical(float amt) override
+  void MoveVertical(const float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, amt, 0}) * m_mat;
   }
 
-  void MoveHorizontal(float amt) override
+  void MoveHorizontal(const float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{amt, 0, 0}) * m_mat;
   }
 
-  void MoveForward(float amt) override
+  void MoveForward(const float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
   }
@@ -89,19 +83,19 @@ public:
            Common::Matrix44::Translate(m_position);
   }
 
-  void MoveVertical(float amt) override
+  void MoveVertical(const float amt) override
   {
     const Common::Vec3 up = m_rotate_quat.Conjugate() * Common::Vec3{0, 1, 0};
     m_position += up * amt;
   }
 
-  void MoveHorizontal(float amt) override
+  void MoveHorizontal(const float amt) override
   {
     const Common::Vec3 right = m_rotate_quat.Conjugate() * Common::Vec3{1, 0, 0};
     m_position += right * amt;
   }
 
-  void MoveForward(float amt) override
+  void MoveForward(const float amt) override
   {
     const Common::Vec3 forward = m_rotate_quat.Conjugate() * Common::Vec3{0, 0, 1};
     m_position += forward * amt;
@@ -121,7 +115,7 @@ public:
 
   void Rotate(const Common::Quaternion& quat) override
   {
-    Rotate(Common::FromQuaternionToEuler(quat));
+    Rotate(FromQuaternionToEuler(quat));
   }
 
   void Reset() override
@@ -159,7 +153,7 @@ public:
 
   void MoveHorizontal(float) override {}
 
-  void MoveForward(float amt) override
+  void MoveForward(const float amt) override
   {
     m_distance += -1 * amt;
     m_distance = std::max(m_distance, MIN_DISTANCE);
@@ -179,7 +173,7 @@ public:
 
   void Rotate(const Common::Quaternion& quat) override
   {
-    Rotate(Common::FromQuaternionToEuler(quat));
+    Rotate(FromQuaternionToEuler(quat));
   }
 
   void Reset() override
@@ -218,19 +212,19 @@ void CameraControllerInput::DoState(PointerWrap& p)
   p.Do(m_fov_y_multiplier);
 }
 
-void CameraControllerInput::IncreaseFovX(float fov)
+void CameraControllerInput::IncreaseFovX(const float fov)
 {
   m_fov_x_multiplier += fov;
   m_fov_x_multiplier = std::max(m_fov_x_multiplier, MIN_FOV_MULTIPLIER);
 }
 
-void CameraControllerInput::IncreaseFovY(float fov)
+void CameraControllerInput::IncreaseFovY(const float fov)
 {
   m_fov_y_multiplier += fov;
   m_fov_y_multiplier = std::max(m_fov_y_multiplier, MIN_FOV_MULTIPLIER);
 }
 
-float CameraControllerInput::GetFovStepSize() const
+float CameraControllerInput::GetFovStepSize()
 {
   return 1.5f;
 }
@@ -242,7 +236,7 @@ void CameraControllerInput::Reset()
   m_dirty = true;
 }
 
-void CameraControllerInput::ModifySpeed(float amt)
+void CameraControllerInput::ModifySpeed(const float amt)
 {
   m_speed += amt;
   m_speed = std::max(m_speed, 0.0f);
@@ -328,7 +322,7 @@ void FreeLookCamera::DoState(PointerWrap& p)
   }
 }
 
-bool FreeLookCamera::IsActive() const
+bool FreeLookCamera::IsActive()
 {
   return FreeLook::GetActiveConfig().enabled;
 }

@@ -45,7 +45,7 @@ const char UPDATER_CONTENT_PATH[] = "/Contents/MacOS/Dolphin Updater";
 
 #ifdef OS_SUPPORTS_UPDATER
 
-const char UPDATER_LOG_FILE[] = "Updater.log";
+constexpr char UPDATER_LOG_FILE[] = "Updater.log";
 
 std::string UpdaterPath(bool relocated = false)
 {
@@ -69,9 +69,9 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
 
   cmdline += " ";
 
-  for (const auto& pair : flags)
+  for (const auto& [fst, snd] : flags)
   {
-    std::string value = "--" + pair.first + "=" + pair.second;
+    std::string value = "--" + fst + "=" + snd;
     value = ReplaceAll(value, "\"", "\\\"");  // Escape double quotes.
     value = "\"" + value + "\" ";
     cmdline += value;
@@ -98,7 +98,7 @@ std::string GenerateChangelog(const picojson::array& versions)
   {
     if (!ver.is<picojson::object>())
       continue;
-    picojson::object ver_obj = ver.get<picojson::object>();
+    auto ver_obj = ver.get<picojson::object>();
 
     if (ver_obj["changelog_html"].is<picojson::null>())
     {
@@ -162,7 +162,7 @@ static std::string GetPlatformID()
 
 static std::string GetUpdateServerUrl()
 {
-  auto server_url = std::getenv("DOLPHIN_UPDATE_SERVER_URL");
+  const auto server_url = std::getenv("DOLPHIN_UPDATE_SERVER_URL");
   if (server_url)
     return server_url;
   return "https://dolphin-emu.org";
@@ -206,13 +206,13 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   INFO_LOG_FMT(COMMON, "Auto-update JSON response: {}", contents);
 
   picojson::value json;
-  const std::string err = picojson::parse(json, contents);
+  const std::string err = parse(json, contents);
   if (!err.empty())
   {
     CriticalAlertFmtT("Invalid JSON received from auto-update service : {0}", err);
     return;
   }
-  picojson::object obj = json.get<picojson::object>();
+  auto obj = json.get<picojson::object>();
 
   if (obj["status"].get<std::string>() != "outdated")
   {
@@ -243,8 +243,8 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   }
 }
 
-void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
-                                      const AutoUpdateChecker::RestartMode restart_mode)
+void AutoUpdateChecker::TriggerUpdate(const NewVersionInformation& info,
+                                      const RestartMode restart_mode)
 {
   // Check to make sure we don't already have an update triggered
   if (s_update_triggered)

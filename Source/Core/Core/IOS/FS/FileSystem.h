@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #ifdef _WIN32
@@ -325,7 +324,7 @@ std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session
                                            std::vector<NandRedirect> nand_redirects = {});
 
 /// Convert a FS result code to an IOS error code.
-IOS::HLE::ReturnCode ConvertResult(ResultCode code);
+ReturnCode ConvertResult(ResultCode code);
 
 }  // namespace FS
 }  // namespace IOS::HLE

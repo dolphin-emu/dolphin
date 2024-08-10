@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/InputConfig.h"
 
 namespace ControllerEmu
 {
@@ -234,12 +233,12 @@ public:
   HotkeyManager();
   ~HotkeyManager();
 
-  void GetInput(HotkeyStatus* hk, bool ignore_focus);
+  void GetInput(HotkeyStatus* hk, bool ignore_focus) const;
   std::string GetName() const override;
   InputConfig* GetConfig() const override;
   ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;
-  int FindGroupByID(int id) const;
-  int GetIndexForGroup(int group, int id) const;
+  static int FindGroupByID(int id);
+  static int GetIndexForGroup(int group, int id);
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:

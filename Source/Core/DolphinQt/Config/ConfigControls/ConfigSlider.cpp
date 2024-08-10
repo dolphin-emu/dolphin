@@ -9,28 +9,28 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
+ConfigSlider::ConfigSlider(const int minimum, const int maximum, const Config::Info<int>& setting, const int tick)
     : ToolTipSlider(Qt::Horizontal), m_setting(setting)
 {
   setMinimum(minimum);
   setMaximum(maximum);
   setTickInterval(tick);
 
-  setValue(Config::Get(setting));
+  setValue(Get(setting));
 
   connect(this, &ConfigSlider::valueChanged, this, &ConfigSlider::Update);
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    setValue(Config::Get(m_setting));
+    setValue(Get(m_setting));
   });
 }
 
-void ConfigSlider::Update(int value)
+void ConfigSlider::Update(const int value) const
 {
-  Config::SetBaseOrCurrent(m_setting, value);
+  SetBaseOrCurrent(m_setting, value);
 }

@@ -9,12 +9,10 @@
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
-#include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
@@ -88,7 +86,7 @@ const u8* JitBase::Dispatch(JitBase& jit)
   return jit.GetBlockCache()->Dispatch();
 }
 
-void JitTrampoline(JitBase& jit, u32 em_address)
+void JitTrampoline(JitBase& jit, const u32 em_address)
 {
   jit.Jit(em_address);
 }
@@ -107,12 +105,12 @@ JitBase::JitBase(Core::System& system)
 
 JitBase::~JitBase()
 {
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
 bool JitBase::DoesConfigNeedRefresh()
 {
-  return std::any_of(JIT_SETTINGS.begin(), JIT_SETTINGS.end(), [this](const auto& pair) {
+  return std::ranges::any_of(JIT_SETTINGS, [this](const auto& pair) {
     return this->*pair.first != Config::Get(*pair.second);
   });
 }
@@ -120,7 +118,7 @@ bool JitBase::DoesConfigNeedRefresh()
 void JitBase::RefreshConfig()
 {
   for (const auto& [member, config_info] : JIT_SETTINGS)
-    this->*member = Config::Get(*config_info);
+    this->*member = Get(*config_info);
 
   if (m_accurate_cpu_cache_enabled)
   {
@@ -129,12 +127,14 @@ void JitBase::RefreshConfig()
     m_low_dcbz_hack = false;
   }
 
-  analyzer.SetDebuggingEnabled(m_enable_debugging);
-  analyzer.SetBranchFollowingEnabled(m_enable_branch_following);
-  analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
-  analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
+  m_enable_debugging ? analyzer.EnableDebugging() : analyzer.DisableDebugging();
+  m_enable_branch_following ? analyzer.EnableBranchFollowing() : analyzer.DisableBranchFollowing();
+  m_enable_float_exceptions ? analyzer.EnableFloatExceptions() : analyzer.DisableFloatExceptions();
+  m_enable_div_by_zero_exceptions ?
+    analyzer.EnableDivByZeroExceptions() :
+    analyzer.DisableDivByZeroExceptions();
 
-  bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
+  const bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&
                EMM::IsExceptionHandlerSupported();
   jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
@@ -145,7 +145,7 @@ void JitBase::RefreshConfig()
 void JitBase::InitFastmemArena()
 {
   auto& memory = m_system.GetMemory();
-  jo.fastmem_arena = Config::Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
+  jo.fastmem_arena = Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
 }
 
 void JitBase::InitBLROptimization()
@@ -260,7 +260,7 @@ void JitBase::CleanUpAfterStackFault()
   }
 }
 
-bool JitBase::CanMergeNextInstructions(int count) const
+bool JitBase::CanMergeNextInstructions(const int count) const
 {
   if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
@@ -276,12 +276,11 @@ bool JitBase::CanMergeNextInstructions(int count) const
   return true;
 }
 
-bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)
+bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const
 {
   if (jo.fp_exceptions)
     return (op->opinfo->flags & FL_FLOAT_EXCEPTION) != 0;
-  else if (jo.div_by_zero_exceptions)
+  if (jo.div_by_zero_exceptions)
     return (op->opinfo->flags & FL_FLOAT_DIV) != 0;
-  else
-    return false;
+  return false;
 }

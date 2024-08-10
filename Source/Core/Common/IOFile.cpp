@@ -35,7 +35,7 @@ IOFile::IOFile(std::FILE* file) : m_file(file), m_good(true)
 {
 }
 
-IOFile::IOFile(const std::string& filename, const char openmode[], SharedAccess sh)
+IOFile::IOFile(const std::string& filename, const char openmode[], const SharedAccess sh)
     : m_file(nullptr), m_good(true)
 {
   Open(filename, openmode, sh);
@@ -64,7 +64,7 @@ void IOFile::Swap(IOFile& other) noexcept
 }
 
 bool IOFile::Open(const std::string& filename, const char openmode[],
-                  [[maybe_unused]] SharedAccess sh)
+                  [[maybe_unused]] const SharedAccess sh)
 {
   Close();
 
@@ -121,11 +121,10 @@ u64 IOFile::GetSize() const
 {
   if (IsOpen())
     return File::GetSize(m_file);
-  else
-    return 0;
+  return 0;
 }
 
-bool IOFile::Seek(s64 offset, SeekOrigin origin)
+bool IOFile::Seek(const s64 offset, const SeekOrigin origin)
 {
   int fseek_origin;
   switch (origin)
@@ -153,8 +152,7 @@ u64 IOFile::Tell() const
 {
   if (IsOpen())
     return ftello(m_file);
-  else
-    return UINT64_MAX;
+  return UINT64_MAX;
 }
 
 bool IOFile::Flush()

@@ -30,7 +30,7 @@ CustomShaderCache::~CustomShaderCache()
     m_async_uber_shader_compiler->StopWorkerThreads();
 }
 
-void CustomShaderCache::RetrieveAsyncShaders()
+void CustomShaderCache::RetrieveAsyncShaders() const
 {
   m_async_shader_compiler->RetrieveWorkItems();
   m_async_uber_shader_compiler->RetrieveWorkItems();
@@ -60,7 +60,7 @@ CustomShaderCache::GetPipelineAsync(const VideoCommon::GXPipelineUid& uid,
                                     const CustomShaderInstance& custom_shaders,
                                     const AbstractPipelineConfig& pipeline_config)
 {
-  if (auto holder = m_pipeline_cache.GetHolder(uid, custom_shaders))
+  if (const auto holder = m_pipeline_cache.GetHolder(uid, custom_shaders))
   {
     if (holder->pending)
       return std::nullopt;
@@ -75,7 +75,7 @@ CustomShaderCache::GetPipelineAsync(const VideoCommon::GXUberPipelineUid& uid,
                                     const CustomShaderInstance& custom_shaders,
                                     const AbstractPipelineConfig& pipeline_config)
 {
-  if (auto holder = m_uber_pipeline_cache.GetHolder(uid, custom_shaders))
+  if (const auto holder = m_uber_pipeline_cache.GetHolder(uid, custom_shaders))
   {
     if (holder->pending)
       return std::nullopt;
@@ -110,7 +110,7 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXPipelineUid& ui
       ClearUnusedPixelShaderUidBits(m_shader_cache->m_api_type, m_shader_cache->m_host_config,
                                     &ps_uid);
 
-      if (auto holder = m_shader_cache->m_ps_cache.GetHolder(ps_uid, m_custom_shaders))
+      if (const auto holder = m_shader_cache->m_ps_cache.GetHolder(ps_uid, m_custom_shaders))
       {
         // If the pixel shader is no longer pending compilation
         // and the shader compilation succeeded, set
@@ -194,7 +194,7 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXUberPipelineUid
       ClearUnusedPixelShaderUidBits(m_shader_cache->m_api_type, m_shader_cache->m_host_config,
                                     &ps_uid);
 
-      if (auto holder = m_shader_cache->m_uber_ps_cache.GetHolder(ps_uid, m_custom_shaders))
+      if (const auto holder = m_shader_cache->m_uber_ps_cache.GetHolder(ps_uid, m_custom_shaders))
       {
         if (!holder->pending && holder->value.get())
         {

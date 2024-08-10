@@ -11,7 +11,7 @@
 
 namespace DSP::HLE
 {
-INITUCode::INITUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+INITUCode::INITUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
   INFO_LOG_FMT(DSPHLE, "INITUCode - initialized");
 }

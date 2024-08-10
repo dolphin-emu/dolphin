@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Common/Crypto/AES.h"
 #include "Core/IOS/Device.h"
 
 namespace IOS::HLE

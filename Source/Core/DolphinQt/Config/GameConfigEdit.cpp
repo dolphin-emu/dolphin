@@ -7,13 +7,11 @@
 #include <QCompleter>
 #include <QDesktopServices>
 #include <QFile>
-#include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QStringListModel>
-#include <QTextCursor>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWhatsThis>
@@ -21,7 +19,7 @@
 #include "DolphinQt/Config/GameConfigHighlighter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, bool read_only)
+GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, const bool read_only)
     : QWidget{parent}, m_path(std::move(path)), m_read_only(read_only)
 {
   CreateWidgets();
@@ -103,7 +101,7 @@ void GameConfigEdit::AddDescription(const QString& keyword, const QString& descr
   m_completions << keyword;
 }
 
-void GameConfigEdit::LoadFile()
+void GameConfigEdit::LoadFile() const
 {
   QFile file(m_path);
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -158,7 +156,7 @@ void GameConfigEdit::AddBoolOption(QMenu* menu, const QString& name, const QStri
                     [this, section, key] { SetOption(section, key, QStringLiteral("False")); });
 }
 
-void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value)
+void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value) const
 {
   auto section_cursor =
       m_edit->document()->find(QRegularExpression(QStringLiteral("^\\[%1\\]").arg(section)), 0);
@@ -188,7 +186,7 @@ void GameConfigEdit::SetOption(const QString& section, const QString& key, const
   }
 }
 
-QString GameConfigEdit::GetTextUnderCursor()
+QString GameConfigEdit::GetTextUnderCursor() const
 {
   QTextCursor tc = m_edit->textCursor();
   tc.select(QTextCursor::WordUnderCursor);
@@ -237,10 +235,10 @@ void GameConfigEdit::AddMenubarOptions()
   }
 }
 
-void GameConfigEdit::OnAutoComplete(const QString& completion)
+void GameConfigEdit::OnAutoComplete(const QString& completion) const
 {
   QTextCursor cursor = m_edit->textCursor();
-  int extra = completion.length() - m_completer->completionPrefix().length();
+  const int extra = completion.length() - m_completer->completionPrefix().length();
   cursor.movePosition(QTextCursor::Left);
   cursor.movePosition(QTextCursor::EndOfWord);
   cursor.insertText(completion.right(extra));
@@ -289,9 +287,9 @@ void GameConfigEdit::keyPressEvent(QKeyEvent* e)
 
   QWidget::keyPressEvent(e);
 
-  const static QString end_of_word = QStringLiteral("~!@#$%^&*()_+{}|:\"<>?,./;'\\-=");
+  const static auto end_of_word = QStringLiteral("~!@#$%^&*()_+{}|:\"<>?,./;'\\-=");
 
-  QString completion_prefix = GetTextUnderCursor();
+  const QString completion_prefix = GetTextUnderCursor();
 
   if (e->text().isEmpty() || completion_prefix.length() < 2 ||
       end_of_word.contains(e->text().right(1)))

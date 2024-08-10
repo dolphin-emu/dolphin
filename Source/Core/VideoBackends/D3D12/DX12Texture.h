@@ -13,7 +13,6 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace DX12
 {
@@ -39,7 +38,7 @@ public:
   const DescriptorHandle& GetSRVDescriptor() const { return m_srv_descriptor; }
   const DescriptorHandle& GetUAVDescriptor() const { return m_uav_descriptor; }
   D3D12_RESOURCE_STATES GetState() const { return m_state; }
-  u32 CalcSubresource(u32 level, u32 layer) const { return level + layer * m_config.levels; }
+  u32 CalcSubresource(const u32 level, const u32 layer) const { return level + layer * m_config.levels; }
 
   void TransitionToState(D3D12_RESOURCE_STATES state) const;
 
@@ -81,7 +80,7 @@ public:
     return m_depth_attachment ? &m_dsv_descriptor.cpu_handle : nullptr;
   }
 
-  void Unbind();
+  void Unbind() const;
   void ClearRenderTargets(const ClearColor& color_value, const D3D12_RECT* rectangle) const;
   void ClearDepth(float depth_value, const D3D12_RECT* rectangle) const;
   void TransitionRenderTargets() const;

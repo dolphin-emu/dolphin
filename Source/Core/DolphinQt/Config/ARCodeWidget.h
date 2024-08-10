@@ -40,13 +40,13 @@ signals:
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 private:
-  void OnSelectionChanged();
-  void OnItemChanged(QListWidgetItem* item);
+  void OnSelectionChanged() const;
+  void OnItemChanged(const QListWidgetItem* item);
   void OnContextMenuRequested();
 
   void CreateWidgets();
   void ConnectWidgets();
-  void UpdateList();
+  void UpdateList() const;
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();

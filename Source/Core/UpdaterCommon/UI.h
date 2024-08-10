@@ -21,14 +21,15 @@ void SetCurrentMarquee(bool marquee);
 void ResetCurrentProgress();
 void SetCurrentProgress(int current, int total);
 
-void SetVisible(bool visible);
+void Show();
+void Hide();
 
 void Stop();
 
 void Init();
 void Sleep(int seconds);
 void WaitForPID(u32 pid);
-void LaunchApplication(std::string path);
+void LaunchApplication(const std::string& path);
 
 bool IsTestMode();
-}  // namespace UI
+} // namespace UI

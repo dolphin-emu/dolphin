@@ -85,7 +85,7 @@ constexpr std::string_view COMPUTE_SHADER_HEADER = R"(
   #define API_D3D 1
 )";
 
-std::optional<std::string> GetHLSLFromSPIRV(SPIRV::CodeVector spv, D3D_FEATURE_LEVEL feature_level)
+std::optional<std::string> GetHLSLFromSPIRV(SPIRV::CodeVector spv, const D3D_FEATURE_LEVEL feature_level)
 {
   spirv_cross::CompilerHLSL::Options options;
   switch (feature_level)
@@ -107,7 +107,7 @@ std::optional<std::string> GetHLSLFromSPIRV(SPIRV::CodeVector spv, D3D_FEATURE_L
   return compiler.compile();
 }
 
-std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view source)
+std::optional<SPIRV::CodeVector> GetSpirv(const ShaderStage stage, std::string_view source)
 {
   switch (stage)
   {
@@ -139,14 +139,14 @@ std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view so
   return std::nullopt;
 }
 
-std::optional<std::string> GetHLSL(D3D_FEATURE_LEVEL feature_level, ShaderStage stage,
-                                   std::string_view source)
+std::optional<std::string> GetHLSL(const D3D_FEATURE_LEVEL feature_level, const ShaderStage stage,
+                                   const std::string_view source)
 {
   if (stage == ShaderStage::Geometry)
   {
     return std::string{source};
   }
-  else if (const auto spirv = GetSpirv(stage, source))
+  if (const auto spirv = GetSpirv(stage, source))
   {
     return GetHLSLFromSPIRV(std::move(*spirv), feature_level);
   }
@@ -157,7 +157,7 @@ std::optional<std::string> GetHLSL(D3D_FEATURE_LEVEL feature_level, ShaderStage 
 
 namespace D3DCommon
 {
-Shader::Shader(ShaderStage stage, BinaryData bytecode)
+Shader::Shader(const ShaderStage stage, BinaryData bytecode)
     : AbstractShader(stage), m_bytecode(std::move(bytecode))
 {
 }
@@ -169,7 +169,7 @@ AbstractShader::BinaryData Shader::GetBinary() const
   return m_bytecode;
 }
 
-static const char* GetCompileTarget(D3D_FEATURE_LEVEL feature_level, ShaderStage stage)
+static const char* GetCompileTarget(const D3D_FEATURE_LEVEL feature_level, const ShaderStage stage)
 {
   switch (stage)
   {
@@ -230,8 +230,8 @@ static const char* GetCompileTarget(D3D_FEATURE_LEVEL feature_level, ShaderStage
   }
 }
 
-std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL feature_level,
-                                                        ShaderStage stage, std::string_view source)
+std::optional<Shader::BinaryData> Shader::CompileShader(const D3D_FEATURE_LEVEL feature_level,
+                                                        const ShaderStage stage, const std::string_view source)
 {
   const auto hlsl = GetHLSL(feature_level, stage, source);
   if (!hlsl)
@@ -245,12 +245,12 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
 
   Microsoft::WRL::ComPtr<ID3DBlob> code;
   Microsoft::WRL::ComPtr<ID3DBlob> errors;
-  HRESULT hr = d3d_compile(hlsl->data(), hlsl->size(), nullptr, macros, nullptr, "main", target,
-                           flags, 0, &code, &errors);
+  const HRESULT hr = d3d_compile(hlsl->data(), hlsl->size(), nullptr, macros, nullptr, "main", target,
+                                 flags, 0, &code, &errors);
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = VideoBackendBase::BadShaderFilename(target, num_failures++);
+    const std::string filename = VideoBackendBase::BadShaderFilename(target, num_failures++);
     std::ofstream file;
     File::OpenFStream(file, filename, std::ios_base::out);
     file.write(hlsl->data(), hlsl->size());
@@ -283,7 +283,7 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
   return CreateByteCode(code->GetBufferPointer(), code->GetBufferSize());
 }
 
-AbstractShader::BinaryData Shader::CreateByteCode(const void* data, size_t length)
+AbstractShader::BinaryData Shader::CreateByteCode(const void* data, const size_t length)
 {
   const auto* const begin = static_cast<const u8*>(data);
   const auto* const end = begin + length;

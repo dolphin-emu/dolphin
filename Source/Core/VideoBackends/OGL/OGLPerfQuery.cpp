@@ -8,21 +8,19 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
-std::unique_ptr<PerfQueryBase> GetPerfQuery(bool is_gles)
+std::unique_ptr<PerfQueryBase> GetPerfQuery(const bool is_gles)
 {
   if (is_gles && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
-  else if (is_gles)
+  if (is_gles)
     return std::make_unique<PerfQueryGL>(GL_ANY_SAMPLES_PASSED);
-  else
-    return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
+  return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
 }
 
 PerfQuery::PerfQuery() : m_query_read_pos()
@@ -30,12 +28,12 @@ PerfQuery::PerfQuery() : m_query_read_pos()
   ResetQuery();
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   m_query->EnableQuery(group);
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   m_query->DisableQuery(group);
 }
@@ -58,7 +56,7 @@ void PerfQuery::ResetQuery()
     m_results[i].store(0, std::memory_order_relaxed);
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
 
@@ -84,19 +82,19 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 }
 
 // Implementations
-PerfQueryGL::PerfQueryGL(GLenum query_type) : m_query_type(query_type)
+PerfQueryGL::PerfQueryGL(const GLenum query_type) : m_query_type(query_type)
 {
-  for (ActiveQuery& query : m_query_buffer)
-    glGenQueries(1, &query.query_id);
+  for (auto& [query_id, _query_group] : m_query_buffer)
+    glGenQueries(1, &query_id);
 }
 
 PerfQueryGL::~PerfQueryGL()
 {
-  for (ActiveQuery& query : m_query_buffer)
-    glDeleteQueries(1, &query.query_id);
+  for (auto& [query_id, _query_group] : m_query_buffer)
+    glDeleteQueries(1, &query_id);
 }
 
-void PerfQueryGL::EnableQuery(PerfQueryGroup group)
+void PerfQueryGL::EnableQuery(const PerfQueryGroup group)
 {
   u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
@@ -117,15 +115,16 @@ void PerfQueryGL::EnableQuery(PerfQueryGroup group)
   // start query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    auto& entry = m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
+    auto& [query_id, query_group] =
+      m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
 
-    glBeginQuery(m_query_type, entry.query_id);
-    entry.query_group = group;
+    glBeginQuery(m_query_type, query_id);
+    query_group = group;
 
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
 }
-void PerfQueryGL::DisableQuery(PerfQueryGroup group)
+void PerfQueryGL::DisableQuery(const PerfQueryGroup group)
 {
   // stop query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
@@ -138,10 +137,10 @@ void PerfQueryGL::WeakFlush()
 {
   while (!IsFlushed())
   {
-    auto& entry = m_query_buffer[m_query_read_pos];
+    const auto& [query_id, _query_group] = m_query_buffer[m_query_read_pos];
 
     GLuint result = GL_FALSE;
-    glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT_AVAILABLE, &result);
+    glGetQueryObjectuiv(query_id, GL_QUERY_RESULT_AVAILABLE, &result);
 
     if (GL_TRUE == result)
     {
@@ -156,10 +155,10 @@ void PerfQueryGL::WeakFlush()
 
 void PerfQueryGL::FlushOne()
 {
-  auto& entry = m_query_buffer[m_query_read_pos];
+  const auto& [query_id, query_group] = m_query_buffer[m_query_read_pos];
 
   GLuint result = 0;
-  glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
+  glGetQueryObjectuiv(query_id, GL_QUERY_RESULT, &result);
 
   // NOTE: Reported pixel metrics should be referenced to native resolution
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
@@ -171,7 +170,7 @@ void PerfQueryGL::FlushOne()
   if (g_ActiveConfig.iMultisamples > 1)
     result /= g_ActiveConfig.iMultisamples;
 
-  m_results[entry.query_group].fetch_add(result, std::memory_order_relaxed);
+  m_results[query_group].fetch_add(result, std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
   m_query_count.fetch_sub(1, std::memory_order_relaxed);
@@ -186,17 +185,17 @@ void PerfQueryGL::FlushResults()
 
 PerfQueryGLESNV::PerfQueryGLESNV()
 {
-  for (ActiveQuery& query : m_query_buffer)
-    glGenOcclusionQueriesNV(1, &query.query_id);
+  for (auto& [query_id, _query_group] : m_query_buffer)
+    glGenOcclusionQueriesNV(1, &query_id);
 }
 
 PerfQueryGLESNV::~PerfQueryGLESNV()
 {
-  for (ActiveQuery& query : m_query_buffer)
-    glDeleteOcclusionQueriesNV(1, &query.query_id);
+  for (auto& [query_id, _query_group] : m_query_buffer)
+    glDeleteOcclusionQueriesNV(1, &query_id);
 }
 
-void PerfQueryGLESNV::EnableQuery(PerfQueryGroup group)
+void PerfQueryGLESNV::EnableQuery(const PerfQueryGroup group)
 {
   u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
@@ -217,15 +216,15 @@ void PerfQueryGLESNV::EnableQuery(PerfQueryGroup group)
   // start query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    auto& entry = m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
+    auto& [query_id, query_group] = m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
 
-    glBeginOcclusionQueryNV(entry.query_id);
-    entry.query_group = group;
+    glBeginOcclusionQueryNV(query_id);
+    query_group = group;
 
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
 }
-void PerfQueryGLESNV::DisableQuery(PerfQueryGroup group)
+void PerfQueryGLESNV::DisableQuery(const PerfQueryGroup group)
 {
   // stop query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
@@ -238,10 +237,10 @@ void PerfQueryGLESNV::WeakFlush()
 {
   while (!IsFlushed())
   {
-    auto& entry = m_query_buffer[m_query_read_pos];
+    const auto& [query_id, _query_group] = m_query_buffer[m_query_read_pos];
 
     GLuint result = GL_FALSE;
-    glGetOcclusionQueryuivNV(entry.query_id, GL_PIXEL_COUNT_AVAILABLE_NV, &result);
+    glGetOcclusionQueryuivNV(query_id, GL_PIXEL_COUNT_AVAILABLE_NV, &result);
 
     if (GL_TRUE == result)
     {
@@ -256,10 +255,10 @@ void PerfQueryGLESNV::WeakFlush()
 
 void PerfQueryGLESNV::FlushOne()
 {
-  auto& entry = m_query_buffer[m_query_read_pos];
+  const auto& [query_id, query_group] = m_query_buffer[m_query_read_pos];
 
   GLuint result = 0;
-  glGetOcclusionQueryuivNV(entry.query_id, GL_OCCLUSION_TEST_RESULT_HP, &result);
+  glGetOcclusionQueryuivNV(query_id, GL_OCCLUSION_TEST_RESULT_HP, &result);
 
   // NOTE: Reported pixel metrics should be referenced to native resolution
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
@@ -267,7 +266,7 @@ void PerfQueryGLESNV::FlushOne()
   const u64 native_res_result =
       static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
       (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
-  m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+  m_results[query_group].fetch_add(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();

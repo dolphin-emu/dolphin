@@ -63,10 +63,10 @@ public:
   bool IsDiscarded() const { return !location.has_value(); }
   bool IsBound() const { return GetLocationType() == LocationType::Bound; }
 
-  void SetBoundTo(Gen::X64Reg xreg)
+  void SetBoundTo(const Gen::X64Reg xreg)
   {
     away = true;
-    location = Gen::R(xreg);
+    location = R(xreg);
   }
 
   void SetDiscarded()
@@ -83,7 +83,7 @@ public:
     location = default_location;
   }
 
-  void SetToImm32(u32 imm32, bool dirty = true)
+  void SetToImm32(const u32 imm32, const bool dirty = true)
   {
     away |= dirty;
     location = Gen::Imm32(imm32);
@@ -128,7 +128,7 @@ class X64CachedReg
 public:
   preg_t Contents() const { return ppcReg; }
 
-  void SetBoundTo(preg_t ppcReg_, bool dirty_)
+  void SetBoundTo(const preg_t ppcReg_, const bool dirty_)
   {
     free = false;
     ppcReg = ppcReg_;
@@ -185,7 +185,7 @@ public:
     Mem,
   };
 
-  void Realized(RealizedLoc loc)
+  void Realized(const RealizedLoc loc)
   {
     realized = loc;
     ASSERT(IsRealized());
@@ -199,14 +199,14 @@ public:
     Any,
   };
 
-  void AddUse(RCMode mode) { AddConstraint(mode, ConstraintLoc::Any, false); }
-  void AddUseNoImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrMem, false); }
-  void AddBindOrImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrImm, false); }
-  void AddBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, false); }
-  void AddRevertableBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, true); }
+  void AddUse(const RCMode mode) { AddConstraint(mode, ConstraintLoc::Any, false); }
+  void AddUseNoImm(const RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrMem, false); }
+  void AddBindOrImm(const RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrImm, false); }
+  void AddBind(const RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, false); }
+  void AddRevertableBind(const RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, true); }
 
 private:
-  void AddConstraint(RCMode mode, ConstraintLoc loc, bool should_revertable)
+  void AddConstraint(const RCMode mode, const ConstraintLoc loc, const bool should_revertable)
   {
     if (IsRealized())
     {
@@ -248,7 +248,7 @@ private:
     }
   }
 
-  bool IsCompatible(RCMode mode, ConstraintLoc loc, bool should_revertable) const
+  bool IsCompatible(const RCMode mode, const ConstraintLoc loc, const bool should_revertable) const
   {
     if (should_revertable && !revertable)
     {

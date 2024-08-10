@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <type_traits>
 #include <utility>
 
 #include "Common/CommonTypes.h"
@@ -60,7 +59,7 @@ public:
   std::string GetCompressionMethod() const override;
   std::optional<int> GetCompressionLevel() const override
   {
-    return static_cast<int>(static_cast<s32>(Common::swap32(m_header_2.compression_level)));
+    return static_cast<s32>(Common::swap32(m_header_2.compression_level));
   }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
@@ -173,11 +172,11 @@ private:
     bool is_partition;
     u8 partition_data_index;
 
-    DataEntry(size_t index_)
+    DataEntry(const size_t index_)
         : index(static_cast<u32>(index_)), is_partition(false), partition_data_index(0)
     {
     }
-    DataEntry(size_t index_, size_t partition_data_index_)
+    DataEntry(const size_t index_, const size_t partition_data_index_)
         : index(static_cast<u32>(index_)), is_partition(true),
           partition_data_index(static_cast<u8>(partition_data_index_))
     {

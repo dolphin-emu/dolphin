@@ -4,10 +4,8 @@
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 
 #include <array>
-#include <string_view>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
@@ -65,7 +63,7 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   m_buttons->AddInput(Translatability::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // sticks
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RADIUS;
+  constexpr auto gate_radius = static_cast<ControlState>(STICK_GATE_RADIUS) / CAL_STICK_RADIUS;
   groups.emplace_back(m_left_stick =
                           new ControllerEmu::OctagonAnalogStick(LEFT_STICK_GROUP, gate_radius));
   groups.emplace_back(m_right_stick =
@@ -177,7 +175,7 @@ void Classic::Reset()
   UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
-ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
+ControllerEmu::ControlGroup* Classic::GetGroup(const ClassicGroup group) const
 {
   switch (group)
   {

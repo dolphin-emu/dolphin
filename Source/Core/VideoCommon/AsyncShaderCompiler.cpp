@@ -35,7 +35,7 @@ void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item, u32 priority)
   }
   else
   {
-    std::lock_guard<std::mutex> guard(m_pending_work_lock);
+    std::lock_guard guard(m_pending_work_lock);
     m_pending_work.emplace(priority, std::move(item));
     m_worker_thread_wake.notify_one();
   }
@@ -45,7 +45,7 @@ void AsyncShaderCompiler::RetrieveWorkItems()
 {
   std::deque<WorkItemPtr> completed_work;
   {
-    std::lock_guard<std::mutex> guard(m_completed_work_lock);
+    std::lock_guard guard(m_completed_work_lock);
     m_completed_work.swap(completed_work);
   }
 
@@ -58,13 +58,13 @@ void AsyncShaderCompiler::RetrieveWorkItems()
 
 bool AsyncShaderCompiler::HasPendingWork()
 {
-  std::lock_guard<std::mutex> guard(m_pending_work_lock);
+  std::lock_guard guard(m_pending_work_lock);
   return !m_pending_work.empty() || m_busy_workers.load() != 0;
 }
 
 bool AsyncShaderCompiler::HasCompletedWork()
 {
-  std::lock_guard<std::mutex> guard(m_completed_work_lock);
+  std::lock_guard guard(m_completed_work_lock);
   return !m_completed_work.empty();
 }
 
@@ -89,20 +89,20 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   size_t total_items;
   {
     // Safe to hold both locks here, since nowhere else does.
-    std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
-    std::lock_guard<std::mutex> completed_guard(m_completed_work_lock);
+    std::lock_guard pending_guard(m_pending_work_lock);
+    std::lock_guard completed_guard(m_completed_work_lock);
     total_items = m_completed_work.size() + m_pending_work.size() + m_busy_workers.load() + 1;
   }
 
   // Update progress while the compiles complete.
   for (;;)
   {
-    if (Core::GetState(Core::System::GetInstance()) == Core::State::Stopping)
+    if (GetState(Core::System::GetInstance()) == Core::State::Stopping)
       return false;
 
     size_t remaining_items;
     {
-      std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
+      std::lock_guard pending_guard(m_pending_work_lock);
       if (m_pending_work.empty() && !m_busy_workers.load())
         break;
       remaining_items = m_pending_work.size();
@@ -114,7 +114,7 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   return true;
 }
 
-bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
+bool AsyncShaderCompiler::StartWorkerThreads(const u32 num_worker_threads)
 {
   if (num_worker_threads == 0)
     return true;
@@ -146,7 +146,7 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
   return HasWorkerThreads();
 }
 
-bool AsyncShaderCompiler::ResizeWorkerThreads(u32 num_worker_threads)
+bool AsyncShaderCompiler::ResizeWorkerThreads(const u32 num_worker_threads)
 {
   if (m_worker_threads.size() == num_worker_threads)
     return true;
@@ -167,7 +167,7 @@ void AsyncShaderCompiler::StopWorkerThreads()
 
   // Signal worker threads to stop, and wake all of them.
   {
-    std::lock_guard<std::mutex> guard(m_pending_work_lock);
+    std::lock_guard guard(m_pending_work_lock);
     m_exit_flag.Set();
     m_worker_thread_wake.notify_all();
   }
@@ -216,7 +216,7 @@ void AsyncShaderCompiler::WorkerThreadEntryPoint(void* param)
 
 void AsyncShaderCompiler::WorkerThreadRun()
 {
-  std::unique_lock<std::mutex> pending_lock(m_pending_work_lock);
+  std::unique_lock pending_lock(m_pending_work_lock);
   while (!m_exit_flag.IsSet())
   {
     m_worker_thread_wake.wait(pending_lock);
@@ -224,14 +224,14 @@ void AsyncShaderCompiler::WorkerThreadRun()
     while (!m_pending_work.empty() && !m_exit_flag.IsSet())
     {
       m_busy_workers++;
-      auto iter = m_pending_work.begin();
+      const auto iter = m_pending_work.begin();
       WorkItemPtr item(std::move(iter->second));
       m_pending_work.erase(iter);
       pending_lock.unlock();
 
       if (item->Compile())
       {
-        std::lock_guard<std::mutex> completed_guard(m_completed_work_lock);
+        std::lock_guard completed_guard(m_completed_work_lock);
         m_completed_work.push_back(std::move(item));
       }
 

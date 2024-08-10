@@ -41,7 +41,6 @@ Make AA apply instantly during gameplay if possible
 
 #include "Common/Common.h"
 #include "Common/GL/GLContext.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -70,15 +69,14 @@ std::string VideoBackend::GetDisplayName() const
 {
   if (g_ogl_config.bIsES)
     return _trans("OpenGL ES");
-  else
-    return _trans("OpenGL");
+  return _trans("OpenGL");
 }
 
 void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
-  std::unique_ptr<GLContext> temp_gl_context =
+  const std::unique_ptr<GLContext> temp_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
-                        Config::Get(Config::GFX_PREFER_GLES));
+                        Get(Config::GFX_PREFER_GLES));
 
   if (!temp_gl_context)
     return;
@@ -197,7 +195,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   std::unique_ptr<GLContext> main_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
-                        Config::Get(Config::GFX_PREFER_GLES));
+                        Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
     return false;
 

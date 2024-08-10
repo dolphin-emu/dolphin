@@ -3,6 +3,7 @@
 
 #include "VideoCommon/PostProcessing.h"
 
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -33,11 +34,11 @@
 
 namespace VideoCommon
 {
-static const char s_empty_pixel_shader[] = "void main() { SetOutput(Sample()); }\n";
-static const char s_default_pixel_shader_name[] = "default_pre_post_process";
+static constexpr char s_empty_pixel_shader[] = "void main() { SetOutput(Sample()); }\n";
+static constexpr char s_default_pixel_shader_name[] = "default_pre_post_process";
 // Keep the highest quality possible to avoid losing quality on subtle gamma conversions.
 // RGBA16F should have enough quality even if we store colors in gamma space on it.
-static const AbstractTextureFormat s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
+static constexpr auto s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
 
 static bool LoadShaderFromFile(const std::string& shader, const std::string& sub_dir,
                                std::string& out_code)
@@ -179,54 +180,54 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
     }
   }
 
-  for (const auto& it : option_strings)
+  for (const auto& [m_type, it_options] : option_strings)
   {
     ConfigurationOption option;
     option.m_dirty = true;
 
-    if (it.m_type == "OptionBool")
+    if (m_type == "OptionBool")
       option.m_type = ConfigurationOption::OptionType::Bool;
-    else if (it.m_type == "OptionRangeFloat")
+    else if (m_type == "OptionRangeFloat")
       option.m_type = ConfigurationOption::OptionType::Float;
-    else if (it.m_type == "OptionRangeInteger")
+    else if (m_type == "OptionRangeInteger")
       option.m_type = ConfigurationOption::OptionType::Integer;
 
-    for (const auto& string_option : it.m_options)
+    for (const auto& [fst, snd] : it_options)
     {
-      if (string_option.first == "GUIName")
+      if (fst == "GUIName")
       {
-        option.m_gui_name = string_option.second;
+        option.m_gui_name = snd;
       }
-      else if (string_option.first == "OptionName")
+      else if (fst == "OptionName")
       {
-        option.m_option_name = string_option.second;
+        option.m_option_name = snd;
       }
-      else if (string_option.first == "DependentOption")
+      else if (fst == "DependentOption")
       {
-        option.m_dependent_option = string_option.second;
+        option.m_dependent_option = snd;
       }
-      else if (string_option.first == "MinValue" || string_option.first == "MaxValue" ||
-               string_option.first == "DefaultValue" || string_option.first == "StepAmount")
+      else if (fst == "MinValue" || fst == "MaxValue" ||
+               fst == "DefaultValue" || fst == "StepAmount")
       {
         std::vector<s32>* output_integer = nullptr;
         std::vector<float>* output_float = nullptr;
 
-        if (string_option.first == "MinValue")
+        if (fst == "MinValue")
         {
           output_integer = &option.m_integer_min_values;
           output_float = &option.m_float_min_values;
         }
-        else if (string_option.first == "MaxValue")
+        else if (fst == "MaxValue")
         {
           output_integer = &option.m_integer_max_values;
           output_float = &option.m_float_max_values;
         }
-        else if (string_option.first == "DefaultValue")
+        else if (fst == "DefaultValue")
         {
           output_integer = &option.m_integer_values;
           output_float = &option.m_float_values;
         }
-        else if (string_option.first == "StepAmount")
+        else if (fst == "StepAmount")
         {
           output_integer = &option.m_integer_step_values;
           output_float = &option.m_float_step_values;
@@ -234,17 +235,17 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
 
         if (option.m_type == ConfigurationOption::OptionType::Bool)
         {
-          TryParse(string_option.second, &option.m_bool_value);
+          TryParse(snd, &option.m_bool_value);
         }
         else if (option.m_type == ConfigurationOption::OptionType::Integer)
         {
-          TryParseVector(string_option.second, output_integer);
+          TryParseVector(snd, output_integer);
           if (output_integer->size() > 4)
             output_integer->erase(output_integer->begin() + 4, output_integer->end());
         }
         else if (option.m_type == ConfigurationOption::OptionType::Float)
         {
-          TryParseVector(string_option.second, output_float);
+          TryParseVector(snd, output_float);
           if (output_float->size() > 4)
             output_float->erase(output_float->begin() + 4, output_float->end());
         }
@@ -258,27 +259,29 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  std::string section = m_current_shader + "-options";
+  const std::string section = m_current_shader + "-options";
 
   // We already expect all the options to be marked as "dirty" when we reach here
-  for (auto& it : m_options)
+  for (auto& [m_bool_value, m_float_values, m_integer_values, _m_float_min_values,
+         _m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+         _m_integer_step_values, m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty]
+       : m_options | std::views::values)
   {
-    switch (it.second.m_type)
+    switch (m_type)
     {
     case ConfigurationOption::OptionType::Bool:
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &it.second.m_bool_value,
-                                           it.second.m_bool_value);
+      ini.GetOrCreateSection(section)->Get(m_option_name, &m_bool_value, m_bool_value);
       break;
     case ConfigurationOption::OptionType::Integer:
     {
       std::string value;
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
+      ini.GetOrCreateSection(section)->Get(m_option_name, &value);
       if (!value.empty())
       {
-        auto integer_values = it.second.m_integer_values;
+        auto integer_values = m_integer_values;
         if (TryParseVector(value, &integer_values))
         {
-          it.second.m_integer_values = integer_values;
+          m_integer_values = integer_values;
         }
       }
     }
@@ -286,13 +289,13 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
     case ConfigurationOption::OptionType::Float:
     {
       std::string value;
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
+      ini.GetOrCreateSection(section)->Get(m_option_name, &value);
       if (!value.empty())
       {
-        auto float_values = it.second.m_float_values;
+        auto float_values = m_float_values;
         if (TryParseVector(value, &float_values))
         {
-          it.second.m_float_values = float_values;
+          m_float_values = float_values;
         }
       }
     }
@@ -305,26 +308,29 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  std::string section = m_current_shader + "-options";
+  const std::string section = m_current_shader + "-options";
 
-  for (auto& it : m_options)
+  for (auto& [m_bool_value, m_float_values, m_integer_values, _m_float_min_values,
+         _m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+         _m_integer_step_values, m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty] :
+       m_options | std::views::values)
   {
-    switch (it.second.m_type)
+    switch (m_type)
     {
     case ConfigurationOption::OptionType::Bool:
     {
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, it.second.m_bool_value);
+      ini.GetOrCreateSection(section)->Set(m_option_name, m_bool_value);
     }
     break;
     case ConfigurationOption::OptionType::Integer:
     {
       std::string value;
-      for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
+      for (size_t i = 0; i < m_integer_values.size(); ++i)
       {
-        value += fmt::format("{}{}", it.second.m_integer_values[i],
-                             i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
+        value += fmt::format("{}{}", m_integer_values[i],
+                             i == (m_integer_values.size() - 1) ? "" : ", ");
       }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
+      ini.GetOrCreateSection(section)->Set(m_option_name, value);
     }
     break;
     case ConfigurationOption::OptionType::Float:
@@ -332,13 +338,13 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
       std::ostringstream value;
       value.imbue(std::locale("C"));
 
-      for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
+      for (size_t i = 0; i < m_float_values.size(); ++i)
       {
-        value << it.second.m_float_values[i];
-        if (i != (it.second.m_float_values.size() - 1))
+        value << m_float_values[i];
+        if (i != (m_float_values.size() - 1))
           value << ", ";
       }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
+      ini.GetOrCreateSection(section)->Set(m_option_name, value.str());
     }
     break;
     }
@@ -346,27 +352,27 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
-void PostProcessingConfiguration::SetOptionf(const std::string& option, int index, float value)
+void PostProcessingConfiguration::SetOptionf(const std::string& option, const int index, const float value)
 {
-  auto it = m_options.find(option);
+  const auto it = m_options.find(option);
 
   it->second.m_float_values[index] = value;
   it->second.m_dirty = true;
   m_any_options_dirty = true;
 }
 
-void PostProcessingConfiguration::SetOptioni(const std::string& option, int index, s32 value)
+void PostProcessingConfiguration::SetOptioni(const std::string& option, const int index, const s32 value)
 {
-  auto it = m_options.find(option);
+  const auto it = m_options.find(option);
 
   it->second.m_integer_values[index] = value;
   it->second.m_dirty = true;
   m_any_options_dirty = true;
 }
 
-void PostProcessingConfiguration::SetOptionb(const std::string& option, bool value)
+void PostProcessingConfiguration::SetOptionb(const std::string& option, const bool value)
 {
-  auto it = m_options.find(option);
+  const auto it = m_options.find(option);
 
   it->second.m_bool_value = value;
   it->second.m_dirty = true;
@@ -385,7 +391,7 @@ PostProcessing::~PostProcessing()
 
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
-  std::vector<std::string> paths =
+  const std::vector<std::string> paths =
       Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
                             File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
                            {".glsl"});
@@ -416,7 +422,7 @@ std::vector<std::string> PostProcessing::GetPassiveShaderList()
   return GetShaders(PASSIVE_DIR DIR_SEP);
 }
 
-bool PostProcessing::Initialize(AbstractTextureFormat format)
+bool PostProcessing::Initialize(const AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
   // CompilePixelShader() must be run first if configuration options are used.
@@ -605,7 +611,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   }
 }
 
-std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
+std::string PostProcessing::GetUniformBufferHeader(const bool user_post_process) const
 {
   std::ostringstream ss;
   u32 unused_counter = 1;
@@ -642,34 +648,34 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   {
     ss << "\n";
     // Custom options/uniforms
-    for (const auto& it : m_config.GetOptions())
+    for (const auto& [fst, snd] : m_config.GetOptions())
     {
-      if (it.second.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
+      if (snd.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
       {
-        ss << fmt::format("  int {};\n", it.first);
+        ss << fmt::format("  int {};\n", fst);
         for (u32 i = 0; i < 3; i++)
           ss << "  int ubo_align_" << unused_counter++ << "_;\n";
       }
-      else if (it.second.m_type ==
+      else if (snd.m_type ==
                PostProcessingConfiguration::ConfigurationOption::OptionType::Integer)
       {
-        u32 count = static_cast<u32>(it.second.m_integer_values.size());
+        u32 count = static_cast<u32>(snd.m_integer_values.size());
         if (count == 1)
-          ss << fmt::format("  int {};\n", it.first);
+          ss << fmt::format("  int {};\n", fst);
         else
-          ss << fmt::format("  int{} {};\n", count, it.first);
+          ss << fmt::format("  int{} {};\n", count, fst);
 
         for (u32 i = count; i < 4; i++)
           ss << "  int ubo_align_" << unused_counter++ << "_;\n";
       }
-      else if (it.second.m_type ==
+      else if (snd.m_type ==
                PostProcessingConfiguration::ConfigurationOption::OptionType::Float)
       {
-        u32 count = static_cast<u32>(it.second.m_float_values.size());
+        u32 count = static_cast<u32>(snd.m_float_values.size());
         if (count == 1)
-          ss << fmt::format("  float {};\n", it.first);
+          ss << fmt::format("  float {};\n", fst);
         else
-          ss << fmt::format("  float{} {};\n", count, it.first);
+          ss << fmt::format("  float{} {};\n", count, fst);
 
         for (u32 i = count; i < 4; i++)
           ss << "  float ubo_align_" << unused_counter++ << "_;\n";
@@ -681,7 +687,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   return ss.str();
 }
 
-std::string PostProcessing::GetHeader(bool user_post_process) const
+std::string PostProcessing::GetHeader(const bool user_post_process) const
 {
   std::ostringstream ss;
   ss << GetUniformBufferHeader(user_post_process);
@@ -765,7 +771,7 @@ void SetOutput(float4 color)
   return ss.str();
 }
 
-std::string PostProcessing::GetFooter() const
+std::string PostProcessing::GetFooter()
 {
   return {};
 }
@@ -858,7 +864,7 @@ struct BuiltinUniforms
   float hdr_sdr_white_nits;
 };
 
-size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
+size_t PostProcessing::CalculateUniformsSize(const bool user_post_process) const
 {
   // Allocate a vec4 for each uniform to simplify allocation.
   return sizeof(BuiltinUniforms) +
@@ -866,10 +872,10 @@ size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
 }
 
 void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
-                                       const AbstractTexture* src_tex, int src_layer,
+                                       const AbstractTexture* src_tex, const int src_layer,
                                        const MathUtil::Rectangle<int>& dst,
                                        const MathUtil::Rectangle<int>& wnd, u8* buffer,
-                                       bool user_post_process, bool intermediary_buffer)
+                                       const bool user_post_process, const bool intermediary_buffer)
 {
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
@@ -921,7 +927,10 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   if (!user_post_process)
     return;
 
-  for (auto& it : m_config.GetOptions())
+  for (auto& [m_bool_value, m_float_values, m_integer_values, _m_float_min_values,
+         _m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+         _m_integer_step_values, m_type, _m_gui_name, _m_option_name, _m_dependent_option, m_dirty] :
+       m_config.GetOptions() | std::views::values)
   {
     union
     {
@@ -930,26 +939,24 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       float as_float[4];
     } value = {};
 
-    switch (it.second.m_type)
+    switch (m_type)
     {
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Bool:
-      value.as_bool[0] = it.second.m_bool_value ? 1 : 0;
+      value.as_bool[0] = m_bool_value ? 1 : 0;
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Integer:
-      ASSERT(it.second.m_integer_values.size() <= 4);
-      std::copy_n(it.second.m_integer_values.begin(), it.second.m_integer_values.size(),
-                  value.as_int);
+      ASSERT(m_integer_values.size() <= 4);
+      std::copy_n(m_integer_values.begin(), m_integer_values.size(), value.as_int);
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Float:
-      ASSERT(it.second.m_float_values.size() <= 4);
-      std::copy_n(it.second.m_float_values.begin(), it.second.m_float_values.size(),
-                  value.as_float);
+      ASSERT(m_float_values.size() <= 4);
+      std::copy_n(m_float_values.begin(), m_float_values.size(), value.as_float);
       break;
     }
 
-    it.second.m_dirty = false;
+    m_dirty = false;
 
     std::memcpy(buffer, &value, sizeof(value));
     buffer += sizeof(value);
@@ -1003,7 +1010,7 @@ bool PostProcessing::CompilePixelShader()
   return true;
 }
 
-static bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
+static bool UseGeometryShaderForPostProcess(const bool is_intermediary_buffer)
 {
   // We only return true on stereo modes that need to copy
   // both source texture layers into the target texture layers.

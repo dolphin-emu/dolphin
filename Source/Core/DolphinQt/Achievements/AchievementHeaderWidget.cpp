@@ -15,7 +15,6 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/QtUtils/FromStdString.h"
 #include "DolphinQt/Settings.h"
@@ -40,24 +39,24 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_progress_label->setStyleSheet(QStringLiteral("background-color:transparent;"));
   m_progress_label->setAlignment(Qt::AlignCenter);
 
-  QVBoxLayout* icon_col = new QVBoxLayout();
+  auto icon_col = new QVBoxLayout();
   icon_col->addWidget(m_user_icon);
   icon_col->addWidget(m_game_icon);
-  QVBoxLayout* text_col = new QVBoxLayout();
+  auto text_col = new QVBoxLayout();
   text_col->addWidget(m_name);
   text_col->addWidget(m_points);
   text_col->addWidget(m_game_progress);
   text_col->addWidget(m_rich_presence);
-  QVBoxLayout* prog_layout = new QVBoxLayout(m_game_progress);
+  auto prog_layout = new QVBoxLayout(m_game_progress);
   prog_layout->setContentsMargins(0, 0, 0, 0);
   prog_layout->addWidget(m_progress_label);
-  QHBoxLayout* header_layout = new QHBoxLayout();
+  auto header_layout = new QHBoxLayout();
   header_layout->addLayout(icon_col);
   header_layout->addLayout(text_col);
   m_header_box = new QGroupBox();
   m_header_box->setLayout(header_layout);
 
-  QVBoxLayout* m_total = new QVBoxLayout();
+  auto m_total = new QVBoxLayout();
   m_total->addWidget(m_header_box);
 
   m_total->setContentsMargins(0, 0, 0, 0);
@@ -65,31 +64,33 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   setLayout(m_total);
 }
 
-void AchievementHeaderWidget::UpdateData()
+void AchievementHeaderWidget::UpdateData() const
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  auto& instance = AchievementManager::GetInstance();
-  if (!Config::Get(Config::RA_ENABLED) || !instance.HasAPIToken())
+  const auto& instance = AchievementManager::GetInstance();
+  if (!Get(Config::RA_ENABLED) || !instance.HasAPIToken())
   {
     m_header_box->setVisible(false);
     return;
   }
   m_header_box->setVisible(true);
 
-  QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
-  QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
-  const AchievementManager::Badge& player_badge = instance.GetPlayerBadge();
-  const AchievementManager::Badge& game_badge = instance.GetGameBadge();
+  const QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
+  const QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
+  const auto& [player_badge_data, _player_badge_format, player_badge_width, player_badge_height,
+    _player_badge_row_length] = instance.GetPlayerBadge();
+  const auto& [game_badge_data, _game_badge_format, game_badge_width, game_badge_height,
+    _game_badge_row_length] = instance.GetGameBadge();
 
   m_user_icon->setVisible(false);
   m_user_icon->clear();
   m_user_icon->setText({});
-  if (!player_badge.data.empty())
+  if (!player_badge_data.empty())
   {
-    QImage i_user_icon(player_badge.data.data(), player_badge.width, player_badge.height,
-                       QImage::Format_RGBA8888);
+    const QImage i_user_icon(player_badge_data.data(), player_badge_width, player_badge_height,
+                             QImage::Format_RGBA8888);
     m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
-                               .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+      .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   }
   m_user_icon->adjustSize();
   m_user_icon->setStyleSheet(QStringLiteral("border: 4px solid transparent"));
@@ -103,10 +104,10 @@ void AchievementHeaderWidget::UpdateData()
   {
     rc_client_user_game_summary_t game_summary;
     rc_client_get_user_game_summary(instance.GetClient(), &game_summary);
-    if (game_badge.data.empty())
+    if (game_badge_data.empty())
     {
-      QImage i_game_icon(game_badge.data.data(), game_badge.width, game_badge.height,
-                         QImage::Format_RGBA8888);
+      const QImage i_game_icon(game_badge_data.data(), game_badge_width, game_badge_height,
+                               QImage::Format_RGBA8888);
       m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
                                  .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }

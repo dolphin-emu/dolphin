@@ -18,14 +18,14 @@ public:
   ~GCPadWiiUConfigDialog();
 
 private:
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
   void CreateLayout();
   void ConnectWidgets();
 
 private:
-  void UpdateAdapterStatus();
+  void UpdateAdapterStatus() const;
 
   int m_port;
 

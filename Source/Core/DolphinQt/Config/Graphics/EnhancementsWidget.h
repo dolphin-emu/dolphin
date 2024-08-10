@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include <QWidget>
 
 class ConfigBool;
@@ -22,7 +20,7 @@ class EnhancementsWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit EnhancementsWidget(GraphicsWindow* parent);
+  explicit EnhancementsWidget(const GraphicsWindow* parent);
 
 private:
   void LoadSettings();
@@ -30,10 +28,10 @@ private:
 
   void CreateWidgets();
   void ConnectWidgets();
-  void AddDescriptions();
+  void AddDescriptions() const;
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
-  void LoadPPShaders();
+  void LoadPPShaders() const;
 
   // Enhancements
   ConfigChoice* m_ir_combo;

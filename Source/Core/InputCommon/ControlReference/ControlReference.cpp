@@ -7,7 +7,7 @@ using namespace ciface::ExpressionParser;
 
 static thread_local bool tls_input_gate = true;
 
-void ControlReference::SetInputGate(bool enable)
+void ControlReference::SetInputGate(const bool enable)
 {
   tls_input_gate = enable;
 }
@@ -23,7 +23,7 @@ bool ControlReference::GetInputGate()
 // Updates a controlreference's binded devices/controls
 // need to call this to re-bind a control reference after changing its expression
 //
-void ControlReference::UpdateReference(ciface::ExpressionParser::ControlEnvironment& env)
+void ControlReference::UpdateReference(ControlEnvironment& env) const
 {
   if (m_parsed_expression)
   {
@@ -35,8 +35,7 @@ int ControlReference::BoundCount() const
 {
   if (m_parsed_expression)
     return m_parsed_expression->CountNumControls();
-  else
-    return 0;
+  return 0;
 }
 
 ParseStatus ControlReference::GetParseStatus() const

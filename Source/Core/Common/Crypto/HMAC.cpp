@@ -8,10 +8,10 @@
 
 namespace Common::HMAC
 {
-bool HMACWithSHA1(std::span<const u8> key, std::span<const u8> msg, u8* out)
+bool HMACWithSHA1(const std::span<const u8> key, const std::span<const u8> msg, u8* out)
 {
   mbedtls_md_context_t ctx;
-  Common::ScopeGuard guard{[&ctx] { mbedtls_md_free(&ctx); }};
+  ScopeGuard guard{[&ctx] { mbedtls_md_free(&ctx); }};
   mbedtls_md_init(&ctx);
   if (mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 1))
     return false;

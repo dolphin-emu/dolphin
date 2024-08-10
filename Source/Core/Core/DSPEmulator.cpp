@@ -10,7 +10,7 @@
 
 DSPEmulator::~DSPEmulator() = default;
 
-std::unique_ptr<DSPEmulator> CreateDSPEmulator(Core::System& system, bool hle)
+std::unique_ptr<DSPEmulator> CreateDSPEmulator(Core::System& system, const bool hle)
 {
   if (hle)
     return std::make_unique<DSP::HLE::DSPHLE>(system);

@@ -13,14 +13,14 @@
 namespace Common
 {
 // Reads all of the current file. destination must be big enough to fit the whole file.
-inline bool ReadFileFromZip(unzFile file, u8* destination, u64 len)
+inline bool ReadFileFromZip(const unzFile file, u8* destination, const u64 len)
 {
-  const u64 MAX_BUFFER_SIZE = 65535;
+  constexpr u64 MAX_BUFFER_SIZE = 65535;
 
   if (unzOpenCurrentFile(file) != UNZ_OK)
     return false;
 
-  Common::ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
+  ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
 
   u64 bytes_to_go = len;
   while (bytes_to_go > 0)
@@ -41,7 +41,7 @@ inline bool ReadFileFromZip(unzFile file, u8* destination, u64 len)
 }
 
 template <typename ContiguousContainer>
-bool ReadFileFromZip(unzFile file, ContiguousContainer* destination)
+bool ReadFileFromZip(const unzFile file, ContiguousContainer* destination)
 {
   return ReadFileFromZip(file, reinterpret_cast<u8*>(destination->data()), destination->size());
 }

@@ -28,13 +28,13 @@
 using namespace Gen;
 using namespace JitCommon;
 
-void Jit64::GenerateConstantOverflow(s64 val)
+void Jit64::GenerateConstantOverflow(const s64 val)
 {
   GenerateConstantOverflow(val > std::numeric_limits<s32>::max() ||
                            val < std::numeric_limits<s32>::min());
 }
 
-void Jit64::GenerateConstantOverflow(bool overflow)
+void Jit64::GenerateConstantOverflow(const bool overflow)
 {
   if (overflow)
   {
@@ -49,18 +49,18 @@ void Jit64::GenerateConstantOverflow(bool overflow)
 }
 
 // We could do overflow branchlessly, but unlike carry it seems to be quite a bit rarer.
-void Jit64::GenerateOverflow(Gen::CCFlags cond)
+void Jit64::GenerateOverflow(const CCFlags cond)
 {
-  FixupBranch jno = J_CC(cond);
+  const FixupBranch jno = J_CC(cond);
   // XER[OV/SO] = 1
   MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
-  FixupBranch exit = J();
+  const FixupBranch exit = J();
   SetJumpTarget(jno);
   // XER[OV] = 0
   // We need to do this without modifying flags so as not to break stuff that assumes flags
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
-  static const std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
+  static constexpr std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
   MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
   LEA(64, RSCRATCH2, MConst(ovtable));
   MOV(8, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
@@ -68,7 +68,7 @@ void Jit64::GenerateOverflow(Gen::CCFlags cond)
   SetJumpTarget(exit);
 }
 
-void Jit64::FinalizeCarry(CCFlags cond)
+void Jit64::FinalizeCarry(const CCFlags cond)
 {
   js.carryFlag = CarryFlag::InPPCState;
   if (js.op->wantsCA)
@@ -102,7 +102,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
 }
 
 // Unconditional version
-void Jit64::FinalizeCarry(bool ca)
+void Jit64::FinalizeCarry(const bool ca)
 {
   js.carryFlag = CarryFlag::InPPCState;
   if (js.op->wantsCA)
@@ -127,7 +127,7 @@ void Jit64::FinalizeCarry(bool ca)
   }
 }
 
-void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
+void Jit64::FinalizeCarryOverflow(const bool oe, const bool inv)
 {
   if (oe)
   {
@@ -143,7 +143,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // branches, only EQ.
 // The flags from any instruction that may set OF (such as ADD/SUB) can not be used for
 // LT/GT either.
-void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
+void Jit64::ComputeRC(const preg_t preg, const bool needs_test, const bool needs_sext)
 {
   RCOpArg arg = gpr.Use(preg, RCMode::Read);
   RegCache::Realize(arg);
@@ -166,7 +166,7 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
   {
     if (arg.IsImm())
     {
-      s32 offset = arg.SImm32();
+      const s32 offset = arg.SImm32();
       arg.Unlock();
       DoMergedBranchImmediate(offset);
     }
@@ -193,7 +193,7 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
 // we can't do this optimization in the emitter because MOVZX and AND have different effects on
 // flags.
-void Jit64::AndWithMask(X64Reg reg, u32 mask)
+void Jit64::AndWithMask(const X64Reg reg, const u32 mask)
 {
   if (mask == 0xffffffff)
     return;
@@ -208,7 +208,7 @@ void Jit64::AndWithMask(X64Reg reg, u32 mask)
     AND(32, R(reg), Imm32(mask));
 }
 
-void Jit64::RotateLeft(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)
+void Jit64::RotateLeft(const int bits, const X64Reg regOp, const OpArg& arg, const u8 rotate)
 {
   const bool is_same_reg = arg.IsSimpleReg(regOp);
 
@@ -230,30 +230,30 @@ void Jit64::RotateLeft(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)
 }
 
 // Following static functions are used in conjunction with regimmop
-static u32 Add(u32 a, u32 b)
+static u32 Add(const u32 a, const u32 b)
 {
   return a + b;
 }
 
-static u32 Or(u32 a, u32 b)
+static u32 Or(const u32 a, const u32 b)
 {
   return a | b;
 }
 
-static u32 And(u32 a, u32 b)
+static u32 And(const u32 a, const u32 b)
 {
   return a & b;
 }
 
-static u32 Xor(u32 a, u32 b)
+static u32 Xor(const u32 a, const u32 b)
 {
   return a ^ b;
 }
 
-void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
-                     void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
+void Jit64::regimmop(const int d, const int a, const bool binary, const u32 value, const Operation doop,
+                     void (XEmitter::*op)(int, const OpArg&, const OpArg&), const bool Rc, bool carry)
 {
-  bool needs_test = doop == Add;
+  const bool needs_test = doop == Add;
   // Be careful; addic treats r0 as r0, but addi treats r0 as zero.
   if (a || binary || carry)
   {
@@ -305,7 +305,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     // occasionally used as MOV - emulate, with immediate propagation
     if (a != 0 && d != a && gpr.IsImm(a))
     {
-      gpr.SetImmediate32(d, gpr.Imm32(a) + (u32)(s32)inst.SIMM_16);
+      gpr.SetImmediate32(d, gpr.Imm32(a) + static_cast<u32>(inst.SIMM_16));
     }
     else if (a != 0 && d != a && inst.SIMM_16 == 0)
     {
@@ -316,11 +316,11 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     }
     else
     {
-      regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD);  // addi
+      regimmop(d, a, false, static_cast<u32>(inst.SIMM_16), Add, &XEmitter::ADD);  // addi
     }
     break;
   case 15:  // addis
-    regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
+    regimmop(d, a, false, static_cast<u32>(inst.SIMM_16) << 16, Add, &XEmitter::ADD);
     break;
   case 24:  // ori
   case 25:  // oris
@@ -358,17 +358,17 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     break;
   }
   case 12:  // addic
-    regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true);
+    regimmop(d, a, false, static_cast<u32>(inst.SIMM_16), Add, &XEmitter::ADD, false, true);
     break;
   case 13:  // addic_rc
-    regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, true, true);
+    regimmop(d, a, true, static_cast<u32>(inst.SIMM_16), Add, &XEmitter::ADD, true, true);
     break;
   default:
     FALLBACK_IF(true);
   }
 }
 
-bool Jit64::CheckMergedBranch(u32 crf) const
+bool Jit64::CheckMergedBranch(const u32 crf) const
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
@@ -377,11 +377,10 @@ bool Jit64::CheckMergedBranch(u32 crf) const
     return false;
 
   const UGeckoInstruction& next = js.op[1].inst;
-  return (((next.OPCD == 16 /* bcx */) ||
-           ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
-           ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
-          (next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
-          static_cast<u32>(next.BI >> 2) == crf);
+  return (((next.OPCD == 16 /* bcx */) || ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */)
+           || ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) && (
+            next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
+            next.BI >> 2 == crf);
 }
 
 void Jit64::DoMergedBranch()
@@ -454,8 +453,8 @@ void Jit64::DoMergedBranchCondition()
   js.downcountAmount++;
   js.skipInstructions = 1;
   const UGeckoInstruction& next = js.op[1].inst;
-  int test_bit = 3 - (next.BI & 3);
-  bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
+  const int test_bit = 3 - (next.BI & 3);
+  const bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
   ASSERT(gpr.IsAllUnlocked());
@@ -511,13 +510,13 @@ void Jit64::DoMergedBranchCondition()
   }
 }
 
-void Jit64::DoMergedBranchImmediate(s64 val)
+void Jit64::DoMergedBranchImmediate(const s64 val)
 {
   js.downcountAmount++;
   js.skipInstructions = 1;
   const UGeckoInstruction& next = js.op[1].inst;
-  int test_bit = 3 - (next.BI & 3);
-  bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
+  const int test_bit = 3 - (next.BI & 3);
+  const bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
   ASSERT(gpr.IsAllUnlocked());
@@ -587,13 +586,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   // cmpli
   case 10:
     signedCompare = false;
-    comparand = RCOpArg::Imm32((u32)inst.UIMM);
+    comparand = RCOpArg::Imm32(inst.UIMM);
     break;
 
   // cmpi
   case 11:
     signedCompare = true;
-    comparand = RCOpArg::Imm32((u32)(s32)(s16)inst.UIMM);
+    comparand = RCOpArg::Imm32(static_cast<u32>((s32)(s16)inst.UIMM));
     break;
 
   default:
@@ -604,11 +603,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   if (gpr.IsImm(a) && comparand.IsImm())
   {
     // Both registers contain immediate values, so we can pre-compile the compare result
-    s64 compareResult = signedCompare ? (s64)gpr.SImm32(a) - (s64)comparand.SImm32() :
-                                        (u64)gpr.Imm32(a) - (u64)comparand.Imm32();
-    if (compareResult == (s32)compareResult)
+    s64 compareResult = signedCompare ? static_cast<s64>(gpr.SImm32(a)) - static_cast<s64>(comparand.SImm32()) :
+                                        static_cast<u64>(gpr.Imm32(a)) - static_cast<u64>(comparand.Imm32());
+    if (compareResult == static_cast<s32>(compareResult))
     {
-      MOV(64, PPCSTATE_CR(crf), Imm32((u32)compareResult));
+      MOV(64, PPCSTATE_CR(crf), Imm32(static_cast<u32>(compareResult)));
     }
     else
     {
@@ -640,7 +639,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     return;
   }
 
-  const X64Reg input = RSCRATCH;
+  constexpr X64Reg input = RSCRATCH;
   if (gpr.IsImm(a))
   {
     if (signedCompare)
@@ -767,7 +766,7 @@ void Jit64::boolX(UGeckoInstruction inst)
       {
         XOR(32, Ra, Imm32(imm));
       }
-      else if (s32(imm) >= -128 && s32(imm) <= 127)
+      else if (static_cast<s32>(imm) >= -128 && static_cast<s32>(imm) <= 127)
       {
         MOV(32, Ra, Rj);
         XOR(32, Ra, Imm32(imm));
@@ -811,7 +810,7 @@ void Jit64::boolX(UGeckoInstruction inst)
           {
             AND(32, Ra, Imm32(imm));
           }
-          else if (s32(imm) >= -128 && s32(imm) <= 127)
+          else if (static_cast<s32>(imm) >= -128 && static_cast<s32>(imm) <= 127)
           {
             MOV(32, Ra, Rj);
             AND(32, Ra, Imm32(imm));
@@ -857,7 +856,7 @@ void Jit64::boolX(UGeckoInstruction inst)
         {
           OR(32, Ra, Imm32(imm));
         }
-        else if (s32(imm) >= -128 && s32(imm) <= 127)
+        else if (static_cast<s32>(imm) >= -128 && static_cast<s32>(imm) <= 127)
         {
           MOV(32, Ra, Rj);
           OR(32, Ra, Imm32(imm));
@@ -1081,7 +1080,7 @@ void Jit64::extsXx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
-    gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s)));
+    gpr.SetImmediate32(a, static_cast<u32>((size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s))));
   }
   else
   {
@@ -1168,9 +1167,9 @@ void Jit64::subfx(UGeckoInstruction inst)
     s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
     gpr.SetImmediate32(d, i - j);
     if (carry)
-      FinalizeCarry(j == 0 || Interpreter::Helper_Carry((u32)i, 0u - (u32)j));
+      FinalizeCarry(j == 0 || Interpreter::Helper_Carry(static_cast<u32>(i), 0u - static_cast<u32>(j)));
     if (inst.OE)
-      GenerateConstantOverflow((s64)i - (s64)j);
+      GenerateConstantOverflow(static_cast<s64>(i) - static_cast<s64>(j));
   }
   else if (gpr.IsImm(a))
   {
@@ -1253,7 +1252,7 @@ void Jit64::subfx(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
+void Jit64::MultiplyImmediate(const u32 imm, const int a, const int d, const bool overflow)
 {
   RCOpArg Ra = gpr.Use(a, RCMode::Read);
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
@@ -1266,7 +1265,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     return;
   }
 
-  if (imm == (u32)-1)
+  if (imm == static_cast<u32>(-1))
   {
     if (d != a)
       MOV(32, Rd, Ra);
@@ -1280,7 +1279,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     // power of 2; just a shift
     if (MathUtil::IsPow2(imm))
     {
-      u32 shift = MathUtil::IntLog2(imm);
+      const u32 shift = MathUtil::IntLog2(imm);
       // use LEA if it saves an op
       if (d != a && shift <= 3 && shift >= 1 && Ra.IsSimpleReg())
       {
@@ -1341,7 +1340,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
     s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
     gpr.SetImmediate32(d, i * j);
     if (inst.OE)
-      GenerateConstantOverflow((s64)i * (s64)j);
+      GenerateConstantOverflow(static_cast<s64>(i) * static_cast<s64>(j));
   }
   else if (gpr.IsImm(a) || gpr.IsImm(b))
   {
@@ -1388,9 +1387,9 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
   if (gpr.IsImm(a, b))
   {
     if (sign)
-      gpr.SetImmediate32(d, (u32)((u64)(((s64)gpr.SImm32(a) * (s64)gpr.SImm32(b))) >> 32));
+      gpr.SetImmediate32(d, static_cast<u32>((u64)(((s64)gpr.SImm32(a) * (s64)gpr.SImm32(b))) >> 32));
     else
-      gpr.SetImmediate32(d, (u32)(((u64)gpr.Imm32(a) * (u64)gpr.Imm32(b)) >> 32));
+      gpr.SetImmediate32(d, static_cast<u32>(((u64)gpr.Imm32(a) * (u64)gpr.Imm32(b)) >> 32));
   }
   else if (sign)
   {
@@ -1473,22 +1472,22 @@ void Jit64::divwux(UGeckoInstruction inst)
       }
       else
       {
-        UnsignedMagic m = UnsignedDivisionConstants(divisor);
+        auto [multiplier, shift, fast] = UnsignedDivisionConstants(divisor);
 
         // Test for failure in round-up method
-        if (!m.fast)
+        if (!fast)
         {
           // If failed, use slower round-down method
           RCOpArg Ra = gpr.Use(a, RCMode::Read);
           RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
           RegCache::Realize(Ra, Rd);
 
-          MOV(32, R(RSCRATCH), Imm32(m.multiplier));
+          MOV(32, R(RSCRATCH), Imm32(multiplier));
           if (d != a)
             MOV(32, Rd, Ra);
           IMUL(64, Rd, R(RSCRATCH));
           ADD(64, Rd, R(RSCRATCH));
-          SHR(64, Rd, Imm8(m.shift + 32));
+          SHR(64, Rd, Imm8(shift + 32));
         }
         else
         {
@@ -1499,21 +1498,21 @@ void Jit64::divwux(UGeckoInstruction inst)
 
           // Three-operand IMUL sign extends the immediate to 64 bits, so we may only
           // use it when the magic number has its most significant bit set to 0
-          if ((m.multiplier & 0x80000000) == 0)
+          if ((multiplier & 0x80000000) == 0)
           {
-            IMUL(64, Rd, Ra, Imm32(m.multiplier));
+            IMUL(64, Rd, Ra, Imm32(multiplier));
           }
           else if (d == a)
           {
-            MOV(32, R(RSCRATCH), Imm32(m.multiplier));
+            MOV(32, R(RSCRATCH), Imm32(multiplier));
             IMUL(64, Rd, R(RSCRATCH));
           }
           else
           {
-            MOV(32, Rd, Imm32(m.multiplier));
+            MOV(32, Rd, Imm32(multiplier));
             IMUL(64, Rd, Ra);
           }
-          SHR(64, Rd, Imm8(m.shift + 32));
+          SHR(64, Rd, Imm8(shift + 32));
         }
       }
       if (inst.OE)
@@ -1562,7 +1561,7 @@ void Jit64::divwx(UGeckoInstruction inst)
   if (gpr.IsImm(a, b))
   {
     s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
-    if (j == 0 || (i == (s32)0x80000000 && j == -1))
+    if (j == 0 || (i == static_cast<s32>(0x80000000) && j == -1))
     {
       const u32 result = i < 0 ? 0xFFFFFFFF : 0x00000000;
       gpr.SetImmediate32(d, result);
@@ -1786,39 +1785,39 @@ void Jit64::divwx(UGeckoInstruction inst)
     else
     {
       // Optimize signed 32-bit integer division by a constant
-      SignedMagic m = SignedDivisionConstants(divisor);
+      auto [multiplier, shift] = SignedDivisionConstants(divisor);
 
       MOVSX(64, 32, RSCRATCH, Ra);
 
-      if (divisor > 0 && m.multiplier < 0)
+      if (divisor > 0 && multiplier < 0)
       {
-        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, Rd, R(RSCRATCH), Imm32(multiplier));
         SHR(64, Rd, Imm8(32));
         ADD(32, Rd, R(RSCRATCH));
         SHR(32, R(RSCRATCH), Imm8(31));
-        SAR(32, Rd, Imm8(m.shift));
+        SAR(32, Rd, Imm8(shift));
       }
-      else if (divisor < 0 && m.multiplier > 0)
+      else if (divisor < 0 && multiplier > 0)
       {
-        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, Rd, R(RSCRATCH), Imm32(multiplier));
         SHR(64, R(RSCRATCH), Imm8(32));
         SUB(32, R(RSCRATCH), Rd);
         MOV(32, Rd, R(RSCRATCH));
         SHR(32, Rd, Imm8(31));
-        SAR(32, R(RSCRATCH), Imm8(m.shift));
+        SAR(32, R(RSCRATCH), Imm8(shift));
       }
-      else if (m.multiplier > 0)
+      else if (multiplier > 0)
       {
-        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, Rd, R(RSCRATCH), Imm32(multiplier));
         SHR(32, R(RSCRATCH), Imm8(31));
-        SAR(64, R(Rd), Imm8(32 + m.shift));
+        SAR(64, R(Rd), Imm8(32 + shift));
       }
       else
       {
-        IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(multiplier));
         MOV(64, Rd, R(RSCRATCH));
         SHR(64, R(RSCRATCH), Imm8(63));
-        SAR(64, R(Rd), Imm8(32 + m.shift));
+        SAR(64, R(Rd), Imm8(32 + shift));
       }
 
       ADD(32, Rd, R(RSCRATCH));
@@ -1886,7 +1885,7 @@ void Jit64::addx(UGeckoInstruction inst)
     if (carry)
       FinalizeCarry(Interpreter::Helper_Carry(i, j));
     if (inst.OE)
-      GenerateConstantOverflow((s64)i + (s64)j);
+      GenerateConstantOverflow(static_cast<s64>(i) + static_cast<s64>(j));
   }
   else if (gpr.IsImm(a) || gpr.IsImm(b))
   {
@@ -2544,7 +2543,7 @@ void Jit64::srawx(UGeckoInstruction inst)
     {
       amount &= 0x1F;
       gpr.SetImmediate32(a, i >> amount);
-      FinalizeCarry(amount != 0 && i < 0 && (u32(i) << (32 - amount)));
+      FinalizeCarry(amount != 0 && i < 0 && (static_cast<u32>(i) << (32 - amount)));
     }
   }
   else if (gpr.IsImm(b))
@@ -2656,7 +2655,7 @@ void Jit64::srawix(UGeckoInstruction inst)
   {
     s32 imm = gpr.SImm32(s);
     gpr.SetImmediate32(a, imm >> amount);
-    FinalizeCarry(amount != 0 && imm < 0 && (u32(imm) << (32 - amount)));
+    FinalizeCarry(amount != 0 && imm < 0 && (static_cast<u32>(imm) << (32 - amount)));
   }
   else if (amount != 0)
   {
@@ -2756,7 +2755,7 @@ void Jit64::twX(UGeckoInstruction inst)
   {
     RCOpArg Ra = gpr.UseNoImm(a, RCMode::Read);
     RegCache::Realize(Ra);
-    CMP(32, Ra, Imm32((s32)(s16)inst.SIMM_16));
+    CMP(32, Ra, Imm32(static_cast<s16>(inst.SIMM_16)));
   }
   else  // tw
   {

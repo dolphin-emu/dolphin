@@ -6,9 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <list>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -29,7 +27,7 @@ namespace UICommon
 static constexpr u32 CACHE_REVISION = 25;  // Last changed in PR 12702
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
-                                          bool recursive_scan)
+                                          const bool recursive_scan)
 {
   static const std::vector<std::string> search_extensions = {
       ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia",
@@ -54,7 +52,7 @@ size_t GameFileCache::GetSize() const
   return m_cached_files.size();
 }
 
-void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
+void GameFileCache::Clear(const DeleteOnDisk delete_on_disk)
 {
   if (delete_on_disk != DeleteOnDisk::No)
     File::Delete(m_path);
@@ -65,13 +63,14 @@ void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
 std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
                                                         bool* cache_changed)
 {
-  auto it = std::find_if(
-      m_cached_files.begin(), m_cached_files.end(),
-      [&path](const std::shared_ptr<GameFile>& file) { return file->GetFilePath() == path; });
+  const auto it = std::ranges::find_if(m_cached_files,
+                                       [&path](const std::shared_ptr<GameFile>& file) {
+                                         return file->GetFilePath() == path;
+                                       });
   const bool found = it != m_cached_files.cend();
   if (!found)
   {
-    std::shared_ptr<UICommon::GameFile> game = std::make_shared<GameFile>(path);
+    auto game = std::make_shared<GameFile>(path);
     if (!game->IsValid())
       return nullptr;
     m_cached_files.emplace_back(std::move(game));
@@ -83,7 +82,7 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
   return result;
 }
 
-bool GameFileCache::Update(std::span<const std::string> all_game_paths,
+bool GameFileCache::Update(const std::span<const std::string> all_game_paths,
                            const GameAddedToCacheFn& game_added_to_cache,
                            const GameRemovedFromCacheFn& game_removed_from_cache,
                            const std::atomic_bool& processing_halted)
@@ -189,7 +188,7 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   // If a cached file needs an update, apply the updates to a copy and delete the original.
   // This makes the usage of cached files in other threads safe.
 
-  std::shared_ptr<GameFile> copy = std::make_shared<GameFile>(**game_file);
+  auto copy = std::make_shared<GameFile>(**game_file);
   if (xml_metadata_changed)
     copy->XMLMetadataCommit();
   if (wii_banner_changed)
@@ -216,7 +215,7 @@ bool GameFileCache::Save()
   return SyncCacheFile(true);
 }
 
-bool GameFileCache::SyncCacheFile(bool save)
+bool GameFileCache::SyncCacheFile(const bool save)
 {
   const char* open_mode = save ? "wb" : "rb";
   File::IOFile f(m_path, open_mode);
@@ -260,7 +259,7 @@ bool GameFileCache::SyncCacheFile(bool save)
   return success;
 }
 
-void GameFileCache::DoState(PointerWrap* p, u64 size)
+void GameFileCache::DoState(PointerWrap* p, const u64 size)
 {
   struct
   {

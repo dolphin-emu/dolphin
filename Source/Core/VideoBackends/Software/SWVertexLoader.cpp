@@ -14,7 +14,6 @@
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
@@ -23,9 +22,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -35,8 +32,8 @@ SWVertexLoader::SWVertexLoader() = default;
 
 SWVertexLoader::~SWVertexLoader() = default;
 
-DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
-                                                    u32 stride, bool cullall)
+DataReader SWVertexLoader::PrepareForAdditionalData(const OpcodeDecoder::Primitive primitive, const u32 count,
+                                                    const u32 stride, bool cullall)
 {
   // The software renderer needs cullall to be false for zfreeze to work
   return VertexManagerBase::PrepareForAdditionalData(primitive, count, stride, false);
@@ -45,7 +42,7 @@ DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive pri
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   using OpcodeDecoder::Primitive;
-  Primitive primitive_type = Primitive::GX_DRAW_QUADS;
+  auto primitive_type = Primitive::GX_DRAW_QUADS;
   switch (m_current_primitive_type)
   {
   case PrimitiveType::Points:
@@ -72,7 +69,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
   {
     const u16 index = m_cpu_index_buffer[i];
-    memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
+    memset(&m_vertex, 0, sizeof(m_vertex));
 
     // parse the videocommon format to our own struct format (m_vertex)
     SetFormat();
@@ -112,18 +109,18 @@ void SWVertexLoader::SetFormat()
 template <typename T, typename I>
 static T ReadNormalized(I value)
 {
-  T casted = (T)value;
+  T casted = static_cast<T>(value);
   if (!std::numeric_limits<T>::is_integer && std::numeric_limits<I>::is_integer)
   {
     // normalize if non-float is converted to a float
-    casted *= (T)(1.0 / std::numeric_limits<I>::max());
+    casted *= static_cast<T>(1.0 / std::numeric_limits<I>::max());
   }
   return casted;
 }
 
 template <typename T, bool swap = false>
 static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format,
-                                int base_component, int components, bool reverse)
+                                const int base_component, const int components, const bool reverse)
 {
   if (format.enable)
   {
@@ -167,7 +164,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
   }
 }
 
-static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
+static void ParseColorAttributes(InputVertexData* dst, const DataReader& src,
                                  const PortableVertexDeclaration& vdec)
 {
   const auto set_default_color = [](std::array<u8, 4>& color) {
@@ -197,7 +194,7 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
   }
 }
 
-void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int index)
+void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, const int index)
 {
   DataReader src(m_cpu_vertex_buffer.data(),
                  m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());
@@ -211,16 +208,16 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
   }
   if (!vdec.normals[1].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    const auto& system = Core::System::GetInstance();
+    const auto& vertex_shader_manager = system.GetVertexShaderManager();
     m_vertex.normal[1][0] = vertex_shader_manager.constants.cached_tangent[0];
     m_vertex.normal[1][1] = vertex_shader_manager.constants.cached_tangent[1];
     m_vertex.normal[1][2] = vertex_shader_manager.constants.cached_tangent[2];
   }
   if (!vdec.normals[2].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    const auto& system = Core::System::GetInstance();
+    const auto& vertex_shader_manager = system.GetVertexShaderManager();
     m_vertex.normal[2][0] = vertex_shader_manager.constants.cached_binormal[0];
     m_vertex.normal[2][1] = vertex_shader_manager.constants.cached_binormal[1];
     m_vertex.normal[2][2] = vertex_shader_manager.constants.cached_binormal[2];

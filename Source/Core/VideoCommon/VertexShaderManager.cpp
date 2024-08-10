@@ -14,9 +14,6 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -25,7 +22,6 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -132,8 +128,8 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
   if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
     xf_state_manager.ResetProjection();
-    auto corrected_matrix = LoadProjectionMatrix();
-    memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
+    const auto [data] = LoadProjectionMatrix();
+    memcpy(constants.projection.data(), data.data(), 4 * sizeof(float4));
   }
 }
 
@@ -177,8 +173,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       xf_state_manager.GetPerVertexTransformMatrixChanges();
   if (per_vertex_transform_matrix_changes[0] >= 0)
   {
-    int startn = per_vertex_transform_matrix_changes[0] / 4;
-    int endn = (per_vertex_transform_matrix_changes[1] + 3) / 4;
+    const int startn = per_vertex_transform_matrix_changes[0] / 4;
+    const int endn = (per_vertex_transform_matrix_changes[1] + 3) / 4;
     memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
@@ -189,8 +185,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       xf_state_manager.GetPerVertexNormalMatrixChanges();
   if (per_vertex_normal_matrices_changed[0] >= 0)
   {
-    int startn = per_vertex_normal_matrices_changed[0] / 3;
-    int endn = (per_vertex_normal_matrices_changed[1] + 2) / 3;
+    const int startn = per_vertex_normal_matrices_changed[0] / 3;
+    const int endn = (per_vertex_normal_matrices_changed[1] + 2) / 3;
     for (int i = startn; i < endn; i++)
     {
       memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
@@ -202,8 +198,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   const auto post_transform_matrices_changed = xf_state_manager.GetPostTransformMatrixChanges();
   if (post_transform_matrices_changed[0] >= 0)
   {
-    int startn = post_transform_matrices_changed[0] / 4;
-    int endn = (post_transform_matrices_changed[1] + 3) / 4;
+    const int startn = post_transform_matrices_changed[0] / 4;
+    const int endn = (post_transform_matrices_changed[1] + 3) / 4;
     memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
@@ -221,60 +217,59 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     for (int i = istart; i < iend; ++i)
     {
       const Light& light = xfmem.lights[i];
-      VertexShaderConstants::Light& dstlight = constants.lights[i];
+      auto& [color, cosatt, distatt, pos, dir] = constants.lights[i];
 
       // xfmem.light.color is packed as abgr in u8[4], so we have to swap the order
-      dstlight.color[0] = light.color[3];
-      dstlight.color[1] = light.color[2];
-      dstlight.color[2] = light.color[1];
-      dstlight.color[3] = light.color[0];
+      color[0] = light.color[3];
+      color[1] = light.color[2];
+      color[2] = light.color[1];
+      color[3] = light.color[0];
 
-      dstlight.cosatt[0] = light.cosatt[0];
-      dstlight.cosatt[1] = light.cosatt[1];
-      dstlight.cosatt[2] = light.cosatt[2];
+      cosatt[0] = light.cosatt[0];
+      cosatt[1] = light.cosatt[1];
+      cosatt[2] = light.cosatt[2];
 
       if (fabs(light.distatt[0]) < 0.00001f && fabs(light.distatt[1]) < 0.00001f &&
           fabs(light.distatt[2]) < 0.00001f)
       {
         // dist attenuation, make sure not equal to 0!!!
-        dstlight.distatt[0] = .00001f;
+        distatt[0] = .00001f;
       }
       else
       {
-        dstlight.distatt[0] = light.distatt[0];
+        distatt[0] = light.distatt[0];
       }
-      dstlight.distatt[1] = light.distatt[1];
-      dstlight.distatt[2] = light.distatt[2];
+      distatt[1] = light.distatt[1];
+      distatt[2] = light.distatt[2];
 
-      dstlight.pos[0] = light.dpos[0];
-      dstlight.pos[1] = light.dpos[1];
-      dstlight.pos[2] = light.dpos[2];
+      pos[0] = light.dpos[0];
+      pos[1] = light.dpos[1];
+      pos[2] = light.dpos[2];
 
       // TODO: Hardware testing is needed to confirm that this normalization is correct
-      auto sanitize = [](float f) {
+      auto sanitize = [](const float f) {
         if (std::isnan(f))
           return 0.0f;
-        else if (std::isinf(f))
+        if (std::isinf(f))
           return f > 0.0f ? 1.0f : -1.0f;
-        else
-          return f;
+        return f;
       };
-      double norm = double(light.ddir[0]) * double(light.ddir[0]) +
-                    double(light.ddir[1]) * double(light.ddir[1]) +
-                    double(light.ddir[2]) * double(light.ddir[2]);
+      double norm = static_cast<double>(light.ddir[0]) * static_cast<double>(light.ddir[0]) +
+                    static_cast<double>(light.ddir[1]) * static_cast<double>(light.ddir[1]) +
+                    static_cast<double>(light.ddir[2]) * static_cast<double>(light.ddir[2]);
       norm = 1.0 / sqrt(norm);
-      dstlight.dir[0] = sanitize(static_cast<float>(light.ddir[0] * norm));
-      dstlight.dir[1] = sanitize(static_cast<float>(light.ddir[1] * norm));
-      dstlight.dir[2] = sanitize(static_cast<float>(light.ddir[2] * norm));
+      dir[0] = sanitize(static_cast<float>(light.ddir[0] * norm));
+      dir[1] = sanitize(static_cast<float>(light.ddir[1] * norm));
+      dir[2] = sanitize(static_cast<float>(light.ddir[2] * norm));
     }
     dirty = true;
 
     xf_state_manager.ResetLightsChanged();
   }
 
-  for (int i : xf_state_manager.GetMaterialChanges())
+  for (const int i : xf_state_manager.GetMaterialChanges())
   {
-    u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
+    const u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
     constants.materials[i][0] = (data >> 24) & 0xFF;
     constants.materials[i][1] = (data >> 16) & 0xFF;
     constants.materials[i][2] = (data >> 8) & 0xFF;
@@ -340,7 +335,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     // in VertexShaderGen.cpp for details.
     // NOTE: If we ever emulate antialiasing, the sample locations set by
     // BP registers 0x01-0x04 need to be considered here.
-    const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
+    constexpr float pixel_center_correction = 7.0f / 12.0f - 0.5f;
     const bool bUseVertexRounding = g_ActiveConfig.UseVertexRounding();
     const float viewport_width = bUseVertexRounding ?
                                      (2.f * xfmem.viewport.wd) :
@@ -451,7 +446,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   }
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
+void VertexShaderManager::TransformToClipSpace(const float* data, float* out, const u32 MtxIdx) const
 {
   const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
 

@@ -26,18 +26,18 @@ private:
   void ConnectWidgets();
   void AddMenubarOptions();
 
-  void LoadFile();
+  void LoadFile() const;
   void SaveFile();
 
   void OnSelectionChanged();
-  void OnAutoComplete(const QString& completion);
+  void OnAutoComplete(const QString& completion) const;
   void OpenExternalEditor();
 
-  QString GetTextUnderCursor();
+  QString GetTextUnderCursor() const;
 
   void AddBoolOption(QMenu* menu, const QString& name, const QString& section, const QString& key);
 
-  void SetOption(const QString& section, const QString& key, const QString& value);
+  void SetOption(const QString& section, const QString& key, const QString& value) const;
 
   void AddDescription(const QString& keyword, const QString& description);
 

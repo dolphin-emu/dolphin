@@ -81,7 +81,7 @@ private:
                                  const WriteBrokenBlockNPCOperands& operands);
   static s32 CheckFPU(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
   static s32 CheckBreakpoint(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
-  static s32 CheckIdle(PowerPC::PowerPCState& ppc_state, const CheckIdleOperands& operands);
+  static s32 CheckIdle(const PowerPC::PowerPCState& ppc_state, const CheckIdleOperands& operands);
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges;
   CachedInterpreterBlockCache m_block_cache;

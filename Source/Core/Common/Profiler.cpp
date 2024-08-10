@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
-#include <cstring>
 #include <iomanip>
 #include <ios>
 #include <sstream>
@@ -15,9 +13,9 @@
 
 namespace Common
 {
-static const u32 PROFILER_FIELD_LENGTH = 8;
-static const u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH + 3;
-static const int PROFILER_LAZY_DELAY = 60;  // in frames
+static constexpr u32 PROFILER_FIELD_LENGTH = 8;
+static constexpr u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH + 3;
+static constexpr int PROFILER_LAZY_DELAY = 60;  // in frames
 
 std::list<Profiler*> Profiler::s_all_profilers;
 std::mutex Profiler::s_mutex;
@@ -32,16 +30,16 @@ Profiler::Profiler(const std::string& name)
     : m_name(name), m_usecs(0), m_usecs_min(UINT64_MAX), m_usecs_max(0), m_usecs_quad(0),
       m_calls(0), m_depth(0)
 {
-  m_time = Common::Timer::NowUs();
-  s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
+  m_time = Timer::NowUs();
+  s_max_length = std::max<u32>(s_max_length, static_cast<u32>(m_name.length()));
 
-  std::lock_guard<std::mutex> lk(s_mutex);
+  std::lock_guard lk(s_mutex);
   s_all_profilers.push_back(this);
 }
 
 Profiler::~Profiler()
 {
-  std::lock_guard<std::mutex> lk(s_mutex);
+  std::lock_guard lk(s_mutex);
   s_all_profilers.remove(this);
 }
 
@@ -60,11 +58,11 @@ std::string Profiler::ToString()
   s_lazy_delay = PROFILER_LAZY_DELAY - 1;
 
   // don't write anything if no profilation is enabled
-  std::lock_guard<std::mutex> lk(s_mutex);
+  std::lock_guard lk(s_mutex);
   if (s_all_profilers.empty())
     return "";
 
-  u64 end = Common::Timer::NowUs();
+  const u64 end = Timer::NowUs();
   s_usecs_frame = end - s_frame_time;
   s_frame_time = end;
 
@@ -87,9 +85,9 @@ std::string Profiler::ToString()
          << " ";
   buffer << "/ usec" << std::endl;
 
-  s_all_profilers.sort([](Profiler* a, Profiler* b) { return *b < *a; });
+  s_all_profilers.sort([](const Profiler* a, const Profiler* b) { return *b < *a; });
 
-  for (auto profiler : s_all_profilers)
+  for (const auto profiler : s_all_profilers)
   {
     buffer << profiler->Read() << std::endl;
   }
@@ -101,7 +99,7 @@ void Profiler::Start()
 {
   if (!m_depth++)
   {
-    m_time = Common::Timer::NowUs();
+    m_time = Timer::NowUs();
   }
 }
 
@@ -109,9 +107,9 @@ void Profiler::Stop()
 {
   if (!--m_depth)
   {
-    u64 end = Common::Timer::NowUs();
+    const u64 end = Timer::NowUs();
 
-    u64 diff = end - m_time;
+    const u64 diff = end - m_time;
 
     m_usecs += diff;
     m_usecs_min = std::min(m_usecs_min, diff);
@@ -128,8 +126,8 @@ std::string Profiler::Read()
   double time_rel = 0;
   if (m_calls)
   {
-    avg = double(m_usecs) / m_calls;
-    stdev = std::sqrt(double(m_usecs_quad) / m_calls - avg * avg);
+    avg = static_cast<double>(m_usecs) / m_calls;
+    stdev = std::sqrt(static_cast<double>(m_usecs_quad) / m_calls - avg * avg);
   }
   else
   {
@@ -137,7 +135,7 @@ std::string Profiler::Read()
   }
   if (s_usecs_frame)
   {
-    time_rel = double(m_usecs) * 100 / s_usecs_frame;
+    time_rel = static_cast<double>(m_usecs) * 100 / s_usecs_frame;
   }
 
   std::ostringstream buffer;

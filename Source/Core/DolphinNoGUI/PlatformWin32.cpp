@@ -3,16 +3,13 @@
 
 #include "DolphinNoGUI/Platform.h"
 
-#include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/State.h"
 #include "Core/System.h"
 
 #include <Windows.h>
 #include <climits>
-#include <cstdio>
 #include <dwmapi.h>
 
 #include "VideoCommon/Present.h"
@@ -36,17 +33,17 @@ private:
 
   static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-  bool RegisterRenderWindowClass();
+  static bool RegisterRenderWindowClass();
   bool CreateRenderWindow();
   void UpdateWindowPosition();
-  void ProcessEvents();
+  void ProcessEvents() const;
 
   HWND m_hwnd{};
 
-  int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
-  int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
-  int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
-  int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
+  int m_window_x = Get(Config::MAIN_RENDER_WINDOW_XPOS);
+  int m_window_y = Get(Config::MAIN_RENDER_WINDOW_YPOS);
+  int m_window_width = Get(Config::MAIN_RENDER_WINDOW_WIDTH);
+  int m_window_height = Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
 };
 
 PlatformWin32::~PlatformWin32()
@@ -103,12 +100,12 @@ bool PlatformWin32::Init()
     return false;
 
   // TODO: Enter fullscreen if enabled.
-  if (Config::Get(Config::MAIN_FULLSCREEN))
+  if (Get(Config::MAIN_FULLSCREEN))
   {
     ProcessEvents();
   }
 
-  if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
+  if (Get(Config::MAIN_DISABLE_SCREENSAVER))
     SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
   UpdateWindowPosition();
@@ -125,7 +122,7 @@ void PlatformWin32::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs(Core::System::GetInstance());
+    HostDispatchJobs(Core::System::GetInstance());
     ProcessEvents();
     UpdateWindowPosition();
 
@@ -158,7 +155,7 @@ void PlatformWin32::UpdateWindowPosition()
   m_window_height = rc.bottom - rc.top;
 }
 
-void PlatformWin32::ProcessEvents()
+void PlatformWin32::ProcessEvents() const
 {
   MSG msg;
   while (PeekMessage(&msg, m_hwnd, 0, 0, PM_REMOVE))
@@ -168,15 +165,15 @@ void PlatformWin32::ProcessEvents()
   }
 }
 
-LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
-  PlatformWin32* platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+  auto platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
   switch (msg)
   {
   case WM_NCCREATE:
   {
     platform =
-        reinterpret_cast<PlatformWin32*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
+        static_cast<PlatformWin32*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(platform));
     return DefWindowProc(hwnd, msg, wParam, lParam);
   }
@@ -186,7 +183,7 @@ LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     if (hwnd)
     {
       // Remove rounded corners from the render window on Windows 11
-      const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+      constexpr DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
       DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner_preference,
                             sizeof(corner_preference));
     }

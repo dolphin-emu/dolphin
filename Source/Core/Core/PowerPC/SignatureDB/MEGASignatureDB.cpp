@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -101,7 +102,7 @@ bool GetRefs(MEGASignature* sig, std::istringstream* iss)
   return true;
 }
 
-bool Compare(const Core::CPUThreadGuard& guard, u32 address, u32 size, const MEGASignature& sig)
+bool Compare(const Core::CPUThreadGuard& guard, const u32 address, const u32 size, const MEGASignature& sig)
 {
   if (size != sig.code.size() * sizeof(u32))
     return false;
@@ -160,9 +161,8 @@ bool MEGASignatureDB::Save(const std::string& file_path) const
 
 void MEGASignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
-  for (auto& it : symbol_db->AccessSymbols())
+  for (auto& symbol : symbol_db->AccessSymbols() | std::views::values)
   {
-    auto& symbol = it.second;
     for (const auto& sig : m_signatures)
     {
       if (Compare(guard, symbol.address, symbol.size, sig))
@@ -191,9 +191,9 @@ bool MEGASignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 
 
 void MEGASignatureDB::List() const
 {
-  for (const auto& entry : m_signatures)
+  for (const auto& [code, name, _refs] : m_signatures)
   {
-    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes", entry.name, entry.code.size() * sizeof(u32));
+    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes", name, code.size() * sizeof(u32));
   }
   INFO_LOG_FMT(SYMBOLS, "{} functions known in current MEGA database.", m_signatures.size());
 }

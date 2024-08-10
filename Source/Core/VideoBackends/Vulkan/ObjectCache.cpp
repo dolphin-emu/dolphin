@@ -7,19 +7,13 @@
 #include <array>
 #include <type_traits>
 
-#include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/ConfigManager.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/VideoCommon.h"
@@ -73,7 +67,7 @@ bool ObjectCache::Initialize()
   return true;
 }
 
-void ObjectCache::Shutdown()
+void ObjectCache::Shutdown() const
 {
   if (g_ActiveConfig.bShaderCache && m_pipeline_cache != VK_NULL_HANDLE)
     SavePipelineCache();
@@ -110,7 +104,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
-  static const std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
@@ -126,7 +120,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       1 + (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS - MAX_PIXEL_SAMPLER_ARRAY_SIZE);
   static_assert(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS == 16, "Update descriptor sampler bindings");
 
-  static const std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
+  static constexpr std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
       standard_sampler_bindings{{
           {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_PIXEL_SAMPLER_ARRAY_SIZE,
            VK_SHADER_STAGE_FRAGMENT_BIT},
@@ -141,18 +135,18 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       }};
 
   // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
-  static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
   // Utility samplers aren't dynamically indexed.
-  static const std::array<VkDescriptorSetLayoutBinding, 9> utility_sampler_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 9> utility_sampler_bindings{{
       {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
@@ -164,7 +158,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {8, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 19> compute_set_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 19> compute_set_bindings{{
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_COMPUTE_BIT},
       {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
       {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
@@ -222,8 +216,8 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
   for (size_t i = 0; i < create_infos.size(); i++)
   {
-    VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
-                                               nullptr, &m_descriptor_set_layouts[i]);
+    const VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
+                                                     nullptr, &m_descriptor_set_layouts[i]);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
@@ -234,9 +228,9 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   return true;
 }
 
-void ObjectCache::DestroyDescriptorSetLayouts()
+void ObjectCache::DestroyDescriptorSetLayouts() const
 {
-  for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
+  for (const VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
     if (layout != VK_NULL_HANDLE)
       vkDestroyDescriptorSetLayout(g_vulkan_context->GetDevice(), layout, nullptr);
@@ -248,21 +242,21 @@ bool ObjectCache::CreatePipelineLayouts()
   // Descriptor sets for each pipeline layout.
   // In the standard set, the SSBO must be the last descriptor, as we do not include it
   // when fragment stores and atomics are not supported by the device.
-  const std::array<VkDescriptorSetLayout, 3> standard_sets{
+  const std::array standard_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
   };
-  const std::array<VkDescriptorSetLayout, 3> uber_sets{
+  const std::array uber_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
   };
-  const std::array<VkDescriptorSetLayout, 2> utility_sets{
+  const std::array utility_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_UNIFORM_BUFFER],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_SAMPLERS],
   };
-  const std::array<VkDescriptorSetLayout, 1> compute_sets{
+  const std::array compute_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_COMPUTE],
   };
 
@@ -309,9 +303,9 @@ bool ObjectCache::CreatePipelineLayouts()
   return true;
 }
 
-void ObjectCache::DestroyPipelineLayouts()
+void ObjectCache::DestroyPipelineLayouts() const
 {
-  for (VkPipelineLayout layout : m_pipeline_layouts)
+  for (const VkPipelineLayout layout : m_pipeline_layouts)
   {
     if (layout != VK_NULL_HANDLE)
       vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), layout, nullptr);
@@ -365,7 +359,7 @@ bool ObjectCache::CreateStaticSamplers()
 
 VkSampler ObjectCache::GetSampler(const SamplerState& info)
 {
-  auto iter = m_sampler_cache.find(info);
+  const auto iter = m_sampler_cache.find(info);
   if (iter != m_sampler_cache.end())
     return iter->second;
 
@@ -380,11 +374,11 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,              // VkStructureType         sType
       nullptr,                                            // const void*             pNext
       0,                                                  // VkSamplerCreateFlags    flags
-      filters[u32(info.tm0.mag_filter.Value())],          // VkFilter                magFilter
-      filters[u32(info.tm0.min_filter.Value())],          // VkFilter                minFilter
-      mipmap_modes[u32(info.tm0.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
-      address_modes[u32(info.tm0.wrap_u.Value())],        // VkSamplerAddressMode    addressModeU
-      address_modes[u32(info.tm0.wrap_v.Value())],        // VkSamplerAddressMode    addressModeV
+      filters[static_cast<u32>(info.tm0.mag_filter.Value())],          // VkFilter                magFilter
+      filters[static_cast<u32>(info.tm0.min_filter.Value())],          // VkFilter                minFilter
+      mipmap_modes[static_cast<u32>(info.tm0.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
+      address_modes[static_cast<u32>(info.tm0.wrap_u.Value())],        // VkSamplerAddressMode    addressModeU
+      address_modes[static_cast<u32>(info.tm0.wrap_v.Value())],        // VkSamplerAddressMode    addressModeV
       VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,              // VkSamplerAddressMode    addressModeW
       info.tm0.lod_bias / 256.0f,                         // float                   mipLodBias
       VK_FALSE,                                 // VkBool32                anisotropyEnable
@@ -407,7 +401,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   }
 
   VkSampler sampler = VK_NULL_HANDLE;
-  VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);
+  const VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
 
@@ -422,7 +416,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 {
   auto key =
       std::tie(color_format, depth_format, multisamples, load_op, additional_attachment_count);
-  auto it = m_render_pass_cache.find(key);
+  const auto it = m_render_pass_cache.find(key);
   if (it != m_render_pass_cache.end())
     return it->second;
 
@@ -478,18 +472,18 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
       depth_reference_ptr,
       0,
       nullptr};
-  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                      nullptr,
-                                      0,
-                                      static_cast<uint32_t>(attachments.size()),
-                                      attachments.data(),
-                                      1,
-                                      &subpass,
-                                      0,
-                                      nullptr};
+  const VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                            nullptr,
+                                            0,
+                                            static_cast<uint32_t>(attachments.size()),
+                                            attachments.data(),
+                                            1,
+                                            &subpass,
+                                            0,
+                                            nullptr};
 
   VkRenderPass pass;
-  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
+  const VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
@@ -502,7 +496,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 
 void ObjectCache::DestroyRenderPassCache()
 {
-  for (auto& it : m_render_pass_cache)
+  for (const auto& it : m_render_pass_cache)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
   m_render_pass_cache.clear();
 }
@@ -511,7 +505,7 @@ class PipelineCacheReadCallback : public Common::LinearDiskCacheReader<u32, u8>
 {
 public:
   PipelineCacheReadCallback(std::vector<u8>* data) : m_data(data) {}
-  void Read(const u32& key, const u8* value, u32 value_size) override
+  void Read(const u32& key, const u8* value, const u32 value_size) override
   {
     m_data->resize(value_size);
     if (value_size > 0)
@@ -535,7 +529,7 @@ bool ObjectCache::CreatePipelineCache()
   // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
   m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
-  VkPipelineCacheCreateInfo info = {
+  constexpr VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                       // const void*                pNext
       0,                                             // VkPipelineCacheCreateFlags flags
@@ -543,7 +537,7 @@ bool ObjectCache::CreatePipelineCache()
       nullptr                                        // const void*                pInitialData
   };
 
-  VkResult res =
+  const VkResult res =
       vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
@@ -571,7 +565,7 @@ bool ObjectCache::LoadPipelineCache()
     return CreatePipelineCache();
   }
 
-  VkPipelineCacheCreateInfo info = {
+  const VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                       // const void*                pNext
       0,                                             // VkPipelineCacheCreateFlags flags
@@ -579,7 +573,7 @@ bool ObjectCache::LoadPipelineCache()
       disk_data.data()                               // const void*                pInitialData
   };
 
-  VkResult res =
+  const VkResult res =
       vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
@@ -605,7 +599,7 @@ struct VK_PIPELINE_CACHE_HEADER
 static_assert(std::is_trivially_copyable<VK_PIPELINE_CACHE_HEADER>::value,
               "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
 
-bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
+bool ObjectCache::ValidatePipelineCache(const u8* data, const size_t data_length)
 {
   if (data_length < sizeof(VK_PIPELINE_CACHE_HEADER))
   {
@@ -659,7 +653,7 @@ void ObjectCache::DestroyPipelineCache()
   m_pipeline_cache = VK_NULL_HANDLE;
 }
 
-void ObjectCache::SavePipelineCache()
+void ObjectCache::SavePipelineCache() const
 {
   size_t data_size;
   VkResult res =

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
@@ -310,9 +308,9 @@ private:
                                            double a, double b);
 
   void UpdatePC();
-  bool IsInvalidPairedSingleExecution(UGeckoInstruction inst);
+  bool IsInvalidPairedSingleExecution(UGeckoInstruction inst) const;
 
-  void Trace(const UGeckoInstruction& inst);
+  void Trace(const UGeckoInstruction& inst) const;
 
   Core::System& m_system;
   PowerPC::PowerPCState& m_ppc_state;

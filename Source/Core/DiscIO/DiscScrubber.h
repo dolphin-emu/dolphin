@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <array>
-#include <string>
 #include <vector>
 #include "Common/CommonTypes.h"
 
@@ -39,8 +37,8 @@ private:
   void MarkAsUsed(u64 offset, u64 size);
   void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
   u64 ToClusterOffset(u64 offset) const;
-  bool ReadFromVolume(const Volume& disc, u64 offset, u32& buffer, const Partition& partition);
-  bool ReadFromVolume(const Volume& disc, u64 offset, u64& buffer, const Partition& partition);
+  static bool ReadFromVolume(const Volume& disc, u64 offset, u32& buffer, const Partition& partition);
+  static bool ReadFromVolume(const Volume& disc, u64 offset, u64& buffer, const Partition& partition);
   bool ParseDisc(const Volume& disc);
   bool ParsePartitionData(const Volume& disc, const Partition& partition);
   void ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory);

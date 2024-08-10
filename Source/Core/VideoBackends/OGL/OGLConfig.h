@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-
 class GLContext;
 
 namespace OGL
@@ -85,7 +83,7 @@ struct VideoConfig
 };
 
 void InitDriverInfo();
-bool PopulateConfig(GLContext* main_gl_context);
+bool PopulateConfig(const GLContext* main_gl_context);
 
 extern VideoConfig g_ogl_config;
 

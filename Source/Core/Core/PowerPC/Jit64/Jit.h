@@ -70,12 +70,12 @@ public:
   bool SetEmitterStateToFreeCodeRegion();
 
   BitSet32 CallerSavedRegistersInUse() const;
-  BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
+  static BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&);
 
   void IntializeSpeculativeConstants();
 
   JitBlockCache* GetBlockCache() override { return &blocks; }
-  void Trace();
+  void Trace() const;
 
   void ClearCache() override;
 
@@ -147,7 +147,7 @@ public:
 
   typedef u32 (*Operation)(u32 a, u32 b);
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
-                void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
+                void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
                 bool Rc = false, bool carry = false);
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();
@@ -155,7 +155,7 @@ public:
   // OPCODES
   using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
   void FallBackToInterpreter(UGeckoInstruction _inst);
-  void DoNothing(UGeckoInstruction _inst);
+  static void DoNothing(UGeckoInstruction _inst);
   void HLEFunction(u32 hook_index);
 
   void DynaRunTable4(UGeckoInstruction inst);
@@ -262,7 +262,7 @@ public:
   void eieio(UGeckoInstruction inst);
 
 private:
-  void CompileInstruction(PPCAnalyst::CodeOp& op);
+  void CompileInstruction(const PPCAnalyst::CodeOp& op);
 
   bool HandleFunctionHooking(u32 address);
 

@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <mutex>
+#include <ranges>
 #include <string>
 #include <utility>
 
@@ -35,7 +36,7 @@ EmulatedController::~EmulatedController() = default;
 // This is a recursive mutex because UpdateReferences is recursive.
 std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 {
-  std::unique_lock<std::recursive_mutex> lock(s_get_state_mutex);
+  std::unique_lock lock(s_get_state_mutex);
   return lock;
 }
 
@@ -52,16 +53,16 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
   env.CleanUnusedVariables();
 }
 
-void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
+void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env) const
 {
   const auto lock = GetStateLock();
 
   for (auto& ctrlGroup : groups)
   {
-    for (auto& control : ctrlGroup->controls)
+    for (const auto& control : ctrlGroup->controls)
       control->control_ref->UpdateReference(env);
 
-    for (auto& setting : ctrlGroup->numeric_settings)
+    for (const auto& setting : ctrlGroup->numeric_settings)
       setting->GetInputReference().UpdateReference(env);
 
     // Attachments:
@@ -78,7 +79,7 @@ void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvir
 }
 
 void EmulatedController::UpdateSingleControlReference(const ControllerInterface& devi,
-                                                      ControlReference* ref)
+                                                      const ControlReference* ref)
 {
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
 
@@ -94,13 +95,13 @@ EmulatedController::GetExpressionVariables() const
   return m_expression_vars;
 }
 
-void EmulatedController::ResetExpressionVariables()
+void EmulatedController::ResetExpressionVariables() const
 {
-  for (auto& var : m_expression_vars)
+  for (auto& val : m_expression_vars | std::views::values)
   {
-    if (var.second)
+    if (val)
     {
-      *var.second = 0;
+      *val = 0;
     }
   }
 }
@@ -149,7 +150,7 @@ void EmulatedController::LoadConfig(Common::IniFile::Section* sec, const std::st
     SetDefaultDevice(defdev);
   }
 
-  for (auto& cg : groups)
+  for (const auto& cg : groups)
     cg->LoadConfig(sec, defdev, base);
 }
 
@@ -160,7 +161,7 @@ void EmulatedController::SaveConfig(Common::IniFile::Section* sec, const std::st
   if (base.empty())
     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
 
-  for (auto& ctrlGroup : groups)
+  for (const auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);
 }
 

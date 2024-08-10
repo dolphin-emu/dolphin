@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <variant>
 
 #include "Common/BitUtils.h"
@@ -31,33 +30,33 @@ struct DesiredExtensionState
   ExtensionData data = std::monostate();
 
   static_assert(std::is_same_v<std::monostate,
-                               std::variant_alternative_t<ExtensionNumber::NONE, ExtensionData>>);
+                               std::variant_alternative_t<NONE, ExtensionData>>);
   static_assert(
       std::is_same_v<Nunchuk::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::NUNCHUK, ExtensionData>>);
+                     std::variant_alternative_t<NUNCHUK, ExtensionData>>);
   static_assert(
       std::is_same_v<Classic::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::CLASSIC, ExtensionData>>);
+                     std::variant_alternative_t<CLASSIC, ExtensionData>>);
   static_assert(std::is_same_v<Guitar::DataFormat,
-                               std::variant_alternative_t<ExtensionNumber::GUITAR, ExtensionData>>);
+                               std::variant_alternative_t<GUITAR, ExtensionData>>);
   static_assert(std::is_same_v<Drums::DesiredState,
-                               std::variant_alternative_t<ExtensionNumber::DRUMS, ExtensionData>>);
+                               std::variant_alternative_t<DRUMS, ExtensionData>>);
   static_assert(
       std::is_same_v<Turntable::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::TURNTABLE, ExtensionData>>);
+                     std::variant_alternative_t<TURNTABLE, ExtensionData>>);
   static_assert(
       std::is_same_v<UDrawTablet::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::UDRAW_TABLET, ExtensionData>>);
+                     std::variant_alternative_t<UDRAW_TABLET, ExtensionData>>);
   static_assert(
       std::is_same_v<DrawsomeTablet::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::DRAWSOME_TABLET, ExtensionData>>);
+                     std::variant_alternative_t<DRAWSOME_TABLET, ExtensionData>>);
   static_assert(
       std::is_same_v<TaTaCon::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::TATACON, ExtensionData>>);
+                     std::variant_alternative_t<TATACON, ExtensionData>>);
   static_assert(
       std::is_same_v<Shinkansen::DesiredState,
-                     std::variant_alternative_t<ExtensionNumber::SHINKANSEN, ExtensionData>>);
-  static_assert(std::variant_size_v<DesiredExtensionState::ExtensionData> == ExtensionNumber::MAX);
+                     std::variant_alternative_t<SHINKANSEN, ExtensionData>>);
+  static_assert(std::variant_size_v<ExtensionData> == MAX);
 };
 
 template <typename T>

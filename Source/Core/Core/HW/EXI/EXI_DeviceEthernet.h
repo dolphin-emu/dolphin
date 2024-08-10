@@ -17,7 +17,6 @@
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
-#include "Common/SocketContext.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -291,20 +290,20 @@ private:
 
   inline u16 page_ptr(int const index) const
   {
-    return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
+    return (static_cast<u16>(mBbaMem[index + 1]) << 8) | mBbaMem[index];
   }
 
-  bool IsMXCommand(u32 const data);
-  bool IsWriteCommand(u32 const data);
+  static bool IsMXCommand(u32 const data);
+  static bool IsWriteCommand(u32 const data);
   const char* GetRegisterName() const;
   void MXHardReset();
   void MXCommandHandler(u32 data, u32 size);
   void DirectFIFOWrite(const u8* data, u32 size);
   void SendFromDirectFIFO();
-  void SendFromPacketBuffer();
+  static void SendFromPacketBuffer();
   void SendComplete();
   void SendCompleteBack();
-  u8 HashIndex(const u8* dest_eth_addr);
+  static u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
   void set_rwp(u16 value);
@@ -381,14 +380,14 @@ private:
   private:
     TAPServerConnection m_tapserver_if;
 
-    void HandleReceivedFrame(std::string&& data);
+    void HandleReceivedFrame(std::string&& data) const;
   };
 
   class XLinkNetworkInterface : public NetworkInterface
   {
   public:
-    XLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
-                          std::string identifier, bool chat_osd_enabled)
+    XLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, const int dest_port,
+                          std::string identifier, const bool chat_osd_enabled)
         : NetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
           m_client_identifier(identifier), m_chat_osd_enabled(chat_osd_enabled)
     {

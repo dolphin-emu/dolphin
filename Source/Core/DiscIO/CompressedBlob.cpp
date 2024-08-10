@@ -26,7 +26,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscScrubber.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"
 
@@ -80,22 +79,21 @@ std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 }
 
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
-u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
+u64 CompressedBlobReader::GetBlockCompressedSize(const u64 block_num) const
 {
-  u64 start = m_block_pointers[block_num];
+  const u64 start = m_block_pointers[block_num];
   if (block_num < m_header.num_blocks - 1)
     return m_block_pointers[block_num + 1] - start;
-  else if (block_num == m_header.num_blocks - 1)
+  if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
-  else
-    ERROR_LOG_FMT(DISCIO, "{} - illegal block number {}", __func__, block_num);
+  ERROR_LOG_FMT(DISCIO, "{} - illegal block number {}", __func__, block_num);
   return 0;
 }
 
-bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
+bool CompressedBlobReader::GetBlock(const u64 block_num, u8* out_ptr)
 {
   bool uncompressed = false;
-  u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
+  const u32 comp_block_size = static_cast<u32>(GetBlockCompressedSize(block_num));
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
   if (offset & (1ULL << 63))
@@ -144,8 +142,8 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     z.next_out = out_ptr;
     z.avail_out = m_header.block_size;
     inflateInit(&z);
-    int status = inflate(&z, Z_FULL_FLUSH);
-    u32 uncomp_size = m_header.block_size - z.avail_out;
+    const int status = inflate(&z, Z_FULL_FLUSH);
+    const u32 uncomp_size = m_header.block_size - z.avail_out;
     if (status != Z_STREAM_END)
     {
       // this seem to fire wrongly from time to time
@@ -199,13 +197,13 @@ static ConversionResultCode SetUpCompressThreadState(CompressThreadState* state)
 }
 
 static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
-                                                   CompressParameters parameters, int block_size,
+                                                   CompressParameters parameters, const int block_size,
                                                    std::vector<u32>* hashes, int* num_stored,
                                                    int* num_compressed)
 {
   state->compressed_buffer.resize(block_size);
 
-  int retval = deflateReset(&state->z);
+  const int retval = deflateReset(&state->z);
   state->z.next_in = parameters.data.data();
   state->z.avail_in = block_size;
   state->z.next_out = state->compressed_buffer.data();
@@ -244,7 +242,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 }
 
 static ConversionResultCode Output(OutputParameters parameters, File::IOFile* outfile,
-                                   u64* position, std::vector<u64>* offsets, int progress_monitor,
+                                   u64* position, std::vector<u64>* offsets, const int progress_monitor,
                                    u32 num_blocks, CompressCB callback)
 {
   u64 offset = *position;
@@ -275,7 +273,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
 };
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, u32 sub_type, int block_size,
+                  const std::string& outfile_path, const u32 sub_type, const int block_size,
                   CompressCB callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
@@ -300,7 +298,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   header.data_size = infile->GetDataSize();
 
   // round upwards!
-  header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
+  header.num_blocks = static_cast<u32>((header.data_size + (block_size - 1)) / block_size);
 
   std::vector<u64> offsets(header.num_blocks);
   std::vector<u32> hashes(header.num_blocks);
@@ -315,7 +313,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   u64 position = 0;
   int num_compressed = 0;
   int num_stored = 0;
-  int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
+  const int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
 
   const auto compress = [&](CompressThreadState* state, CompressParameters parameters) {
     return Compress(state, std::move(parameters), block_size, &hashes, &num_stored,
@@ -393,7 +391,7 @@ bool IsGCZBlob(File::IOFile& file)
   if (!file.Seek(0, File::SeekOrigin::Begin))
     return false;
   CompressedBlobHeader header;
-  bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
+  const bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
   file.Seek(position, File::SeekOrigin::Begin);
   return is_gcz;
 }

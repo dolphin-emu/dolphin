@@ -4,7 +4,6 @@
 #include "DolphinTool/ExtractCommand.h"
 
 #include <filesystem>
-#include <future>
 #include <iostream>
 
 #include <fmt/format.h>
@@ -91,7 +90,7 @@ static bool ExtractSystemData(const DiscIO::Volume& disc_volume, const DiscIO::P
 }
 
 static void ExtractPartition(const DiscIO::Volume& disc_volume, const DiscIO::Partition& partition,
-                             const std::string& out, bool quiet)
+                             const std::string& out, const bool quiet)
 {
   ExtractDirectory(disc_volume, partition, "", out + "/files", quiet);
   ExtractSystemData(disc_volume, partition, out);
@@ -176,8 +175,10 @@ static bool ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
 }
 
 static bool HandleExtractPartition(const std::string& output, const std::string& single_file_path,
-                                   const std::string& partition_name, DiscIO::Volume& disc_volume,
-                                   const DiscIO::Partition& partition, bool quiet, bool single)
+                                   const std::string& partition_name,
+                                   const DiscIO::Volume& disc_volume,
+                                   const DiscIO::Partition& partition, const bool quiet,
+                                   const bool single)
 {
   std::string file;
   file.append(output).append("/");
@@ -188,7 +189,7 @@ static bool HandleExtractPartition(const std::string& output, const std::string&
     return true;
   }
 
-  if (auto file_info = GetFileInfo(disc_volume, partition, single_file_path); file_info != nullptr)
+  if (const auto file_info = GetFileInfo(disc_volume, partition, single_file_path); file_info != nullptr)
   {
     file.append("files/").append(single_file_path);
     File::CreateFullPath(file);

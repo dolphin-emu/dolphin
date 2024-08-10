@@ -133,7 +133,7 @@ public:
 
   void Init();
   void ResetDrive(bool spinup);
-  void Shutdown();
+  void Shutdown() const;
   void DoState(PointerWrap& p);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
@@ -141,7 +141,7 @@ public:
   void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
                std::optional<std::vector<std::string>> auto_disc_change_paths);
   bool IsDiscInside() const;
-  void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause);
+  void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause) const;
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::vector<std::string>& paths);
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::string& new_path);
   bool AutoChangeDisc(const Core::CPUThreadGuard& guard);
@@ -150,7 +150,7 @@ public:
   // if both of the following conditions are true:
   // - A disc is inserted
   // - The title_id argument doesn't contain a value, or its value matches the disc's title ID
-  bool UpdateRunningGameMetadata(std::optional<u64> title_id = {});
+  bool UpdateRunningGameMetadata(std::optional<u64> title_id = {}) const;
 
   // Direct access to DI for IOS HLE (simpler to implement than how real IOS accesses DI,
   // and lets us skip encrypting/decrypting in some cases)
@@ -174,6 +174,8 @@ public:
 
   // Used by IOS HLE
   void SetInterruptEnabled(DIInterruptType interrupt, bool enabled);
+  void EnableInterrupt(const DIInterruptType interrupt);
+  void DisableInterrupt(const DIInterruptType interrupt);
   void ClearInterrupt(DIInterruptType interrupt);
 
 private:
@@ -184,7 +186,7 @@ private:
   u32 AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process);
 
   void SetLidOpen();
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
   void GenerateDIInterrupt(DIInterruptType dvd_interrupt);
 
   bool CheckReadPreconditions();
@@ -195,9 +197,9 @@ private:
                      ReplyType reply_type);
 
   static void AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void FinishExecutingCommandCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void EjectDiscCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
+  static void InsertDiscCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
+  static void FinishExecutingCommandCallback(const Core::System& system, u64 userdata, s64 cycles_late);
 
   // DI Status Register
   union UDISR
@@ -228,7 +230,7 @@ private:
     BitField<3, 29, u32> reserved;
 
     UDICVR() = default;
-    explicit UDICVR(u32 hex) : Hex{hex} {}
+    explicit UDICVR(const u32 hex) : Hex{hex} {}
   };
 
   // DI DMA Control Register
@@ -252,7 +254,7 @@ private:
     BitField<8, 24, u32> reserved;
 
     UDICFG() = default;
-    explicit UDICFG(u32 hex) : Hex{hex} {}
+    explicit UDICFG(const u32 hex) : Hex{hex} {}
   };
 
   // Hardware registers

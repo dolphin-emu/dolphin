@@ -11,10 +11,6 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <concrt.h>
-#endif
-
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -39,7 +35,7 @@ public:
 
         // Unlocking before notification is a micro-optimization to prevent
         // the notified thread from immediately blocking on the mutex.
-        std::lock_guard<std::mutex> lk(m_mutex);
+        std::lock_guard lk(m_mutex);
       }
 
       m_condvar.notify_one();
@@ -51,7 +47,7 @@ public:
     if (m_flag.TestAndClear())
       return;
 
-    std::unique_lock<std::mutex> lk(m_mutex);
+    std::unique_lock lk(m_mutex);
     m_condvar.wait(lk, [&] { return m_flag.TestAndClear(); });
   }
 
@@ -61,8 +57,8 @@ public:
     if (m_flag.TestAndClear())
       return true;
 
-    std::unique_lock<std::mutex> lk(m_mutex);
-    bool signaled = m_condvar.wait_for(lk, rel_time, [&] { return m_flag.TestAndClear(); });
+    std::unique_lock lk(m_mutex);
+    const bool signaled = m_condvar.wait_for(lk, rel_time, [&] { return m_flag.TestAndClear(); });
 
     return signaled;
   }

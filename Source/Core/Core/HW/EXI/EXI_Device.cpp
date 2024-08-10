@@ -53,7 +53,7 @@ void IEXIDevice::ImmReadWrite(u32& data, u32 size)
 
 void IEXIDevice::DMAWrite(u32 address, u32 size)
 {
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   while (size--)
   {
     u8 byte = memory.Read_U8(address++);
@@ -63,7 +63,7 @@ void IEXIDevice::DMAWrite(u32 address, u32 size)
 
 void IEXIDevice::DMARead(u32 address, u32 size)
 {
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   while (size--)
   {
     u8 byte = 0;
@@ -107,7 +107,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
   std::unique_ptr<IEXIDevice> result;
   // XXX This computation isn't necessarily right (it holds for A/B, but not SP1)
   // However, the devices that care about slots currently only go in A/B.
-  const Slot slot = static_cast<Slot>(channel_num);
+  const auto slot = static_cast<Slot>(channel_num);
 
   switch (device_type)
   {

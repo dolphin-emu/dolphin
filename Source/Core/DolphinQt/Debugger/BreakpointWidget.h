@@ -39,8 +39,8 @@ public:
                      bool do_break = true, const QString& condition = {});
   void AddRangedMBP(u32 from, u32 to, bool do_read = true, bool do_write = true, bool do_log = true,
                     bool do_break = true, const QString& condition = {});
-  void UpdateButtonsEnabled();
-  void Update();
+  void UpdateButtonsEnabled() const;
+  void Update() const;
 
 signals:
   void BreakpointsChanged();
@@ -54,18 +54,18 @@ protected:
 private:
   void CreateWidgets();
 
-  void EditBreakpoint(u32 address, int edit, std::optional<QString> = std::nullopt);
-  void EditMBP(u32 address, int edit, std::optional<QString> = std::nullopt);
+  void EditBreakpoint(u32 address, int edit, const std::optional<QString>& = std::nullopt);
+  void EditMBP(u32 address, int edit, const std::optional<QString>& = std::nullopt);
 
   void OnClear();
-  void OnClicked(QTableWidgetItem* item);
+  void OnClicked(const QTableWidgetItem* item);
   void OnNewBreakpoint();
   void OnEditBreakpoint(u32 address, bool is_instruction_bp);
   void OnLoad();
-  void OnSave();
+  void OnSave() const;
   void OnContextMenu(const QPoint& pos);
-  void OnItemChanged(QTableWidgetItem* item);
-  void UpdateIcons();
+  void OnItemChanged(const QTableWidgetItem* item);
+  void UpdateIcons() const;
 
   Core::System& m_system;
 

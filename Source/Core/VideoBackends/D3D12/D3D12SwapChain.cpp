@@ -20,7 +20,7 @@ SwapChain::~SwapChain() = default;
 
 std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi)
 {
-  std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(
+  auto swap_chain = std::make_unique<SwapChain>(
       wsi, g_dx_context->GetDXGIFactory(), g_dx_context->GetCommandQueue());
   if (!swap_chain->CreateSwapChain(WantsStereo(), WantsHDR()))
     return nullptr;
@@ -33,7 +33,7 @@ bool SwapChain::CreateSwapChainBuffers()
   for (u32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
   {
     ComPtr<ID3D12Resource> resource;
-    HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));
+    const HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer {}: {}", i, DX12HRWrap(hr));
 
     BufferResources buffer;
@@ -59,11 +59,11 @@ void SwapChain::DestroySwapChainBuffers()
 {
   // Swap chain textures must be released before it can be resized, therefore we need to destroy all
   // of them immediately, and not place them onto the deferred desturction queue.
-  for (BufferResources& res : m_buffers)
+  for (auto& [texture, framebuffer] : m_buffers)
   {
-    res.framebuffer.reset();
-    res.texture->DestroyResource();
-    res.texture.release();
+    framebuffer.reset();
+    texture->DestroyResource();
+    texture.release();
   }
   m_buffers.clear();
 }

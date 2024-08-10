@@ -76,7 +76,7 @@ static bool InitLibrary()
 
   if (!InitFunctions())
   {
-    ::FreeLibrary(s_openal_dll);
+    FreeLibrary(s_openal_dll);
     s_openal_dll = nullptr;
     return false;
   }
@@ -145,15 +145,15 @@ OpenALStream::~OpenALStream()
   palcCloseDevice(device);
 }
 
-void OpenALStream::SetVolume(int volume)
+void OpenALStream::SetVolume(const int volume)
 {
-  m_volume = (float)volume / 100.0f;
+  m_volume = static_cast<float>(volume) / 100.0f;
 
   if (m_source)
     palSourcef(m_source, AL_GAIN, m_volume);
 }
 
-bool OpenALStream::SetRunning(bool running)
+bool OpenALStream::SetRunning(const bool running)
 {
   if (running)
   {
@@ -168,7 +168,7 @@ bool OpenALStream::SetRunning(bool running)
 
 static ALenum CheckALError(const char* desc)
 {
-  ALenum err = palGetError();
+  const ALenum err = palGetError();
 
   if (err != AL_NO_ERROR)
   {
@@ -211,22 +211,22 @@ void OpenALStream::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - openal");
 
-  bool float32_capable = palIsExtensionPresent("AL_EXT_float32") != 0;
-  bool surround_capable = palIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
+  const bool float32_capable = palIsExtensionPresent("AL_EXT_float32") != 0;
+  const bool surround_capable = palIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
   bool use_surround = Config::ShouldUseDPL2Decoder() && surround_capable;
 
   // As there is no extension to check for 32-bit fixed point support
   // and we know that only a X-Fi with hardware OpenAL supports it,
   // we just check if one is being used.
-  bool fixed32_capable = IsCreativeXFi();
+  const bool fixed32_capable = IsCreativeXFi();
 
-  u32 frequency = m_mixer->GetSampleRate();
+  const u32 frequency = m_mixer->GetSampleRate();
 
   u32 frames_per_buffer;
   // Can't have zero samples per buffer
-  if (Config::Get(Config::MAIN_AUDIO_LATENCY) > 0)
+  if (Get(Config::MAIN_AUDIO_LATENCY) > 0)
   {
-    frames_per_buffer = frequency / 1000 * Config::Get(Config::MAIN_AUDIO_LATENCY) / OAL_BUFFERS;
+    frames_per_buffer = frequency / 1000 * Get(Config::MAIN_AUDIO_LATENCY) / OAL_BUFFERS;
   }
   else
   {
@@ -250,7 +250,7 @@ void OpenALStream::SoundLoop()
   ALenum err = palGetError();
 
   // Generate some AL Buffers for streaming
-  palGenBuffers(OAL_BUFFERS, (ALuint*)m_buffers.data());
+  palGenBuffers(OAL_BUFFERS, m_buffers.data());
   err = CheckALError("generating buffers");
 
   // Generate a Source to playback the Buffers
@@ -288,12 +288,12 @@ void OpenALStream::SoundLoop()
       num_buffers_queued -= num_buffers_processed;
     }
 
-    unsigned int min_frames = frames_per_buffer;
+    const unsigned int min_frames = frames_per_buffer;
 
     if (use_surround)
     {
       std::array<float, OAL_MAX_FRAMES * SURROUND_CHANNELS> dpl2;
-      u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
+      const u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
 
       if (rendered_frames < min_frames)
         continue;
@@ -351,7 +351,7 @@ void OpenALStream::SoundLoop()
     }
     else
     {
-      u32 rendered_frames = m_mixer->Mix(m_realtime_buffer.data(), min_frames);
+      const u32 rendered_frames = m_mixer->Mix(m_realtime_buffer.data(), min_frames);
 
       if (!rendered_frames)
         continue;

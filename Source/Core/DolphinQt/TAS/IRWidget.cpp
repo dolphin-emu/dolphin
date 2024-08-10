@@ -23,14 +23,14 @@ IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
   setMinimumSize(QSize(64, 48));
 }
 
-void IRWidget::SetX(u16 x)
+void IRWidget::SetX(const u16 x)
 {
   m_x = std::min(ir_max_x, x);
 
   update();
 }
 
-void IRWidget::SetY(u16 y)
+void IRWidget::SetY(const u16 y)
 {
   m_y = std::min(ir_max_y, y);
 
@@ -54,14 +54,14 @@ void IRWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING + w / 2, PADDING, PADDING + w / 2, PADDING + h);
 
   // convert from value space to widget space
-  u16 x = PADDING + ((m_x * w) / ir_max_x);
-  u16 y = PADDING + (h - (m_y * h) / ir_max_y);
+  const u16 x = PADDING + ((m_x * w) / ir_max_x);
+  const u16 y = PADDING + (h - (m_y * h) / ir_max_y);
 
   painter.drawLine(PADDING + w / 2, PADDING + h / 2, x, y);
 
   painter.setBrush(Qt::blue);
-  int wh_avg = (w + h) / 2;
-  int radius = wh_avg / 30;
+  const int wh_avg = (w + h) / 2;
+  const int radius = wh_avg / 30;
   painter.drawEllipse(x - radius, y - radius, radius * 2, radius * 2);
 }
 
@@ -77,10 +77,10 @@ void IRWidget::mouseMoveEvent(QMouseEvent* event)
     handleMouseEvent(event);
 }
 
-void IRWidget::handleMouseEvent(QMouseEvent* event)
+void IRWidget::handleMouseEvent(const QMouseEvent* event)
 {
-  u16 prev_x = m_x;
-  u16 prev_y = m_y;
+  const u16 prev_x = m_x;
+  const u16 prev_y = m_y;
 
   if (event->button() == Qt::RightButton)
   {
@@ -90,8 +90,8 @@ void IRWidget::handleMouseEvent(QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = (event->pos().x() * ir_max_x) / width();
-    int new_y = ir_max_y - (event->pos().y() * ir_max_y) / height();
+    const int new_x = (event->pos().x() * ir_max_x) / width();
+    const int new_y = ir_max_y - (event->pos().y() * ir_max_y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
     m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));

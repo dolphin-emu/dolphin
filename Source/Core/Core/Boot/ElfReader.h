@@ -29,36 +29,35 @@ public:
   explicit ElfReader(File::IOFile file);
   explicit ElfReader(std::vector<u8> buffer);
   ~ElfReader();
-  u32 Read32(int off) const { return base32[off >> 2]; }
+  u32 Read32(const int off) const { return base32[off >> 2]; }
   // Quick accessors
-  ElfType GetType() const { return (ElfType)(header->e_type); }
-  ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
+  ElfType GetType() const { return static_cast<ElfType>(header->e_type); }
+  ElfMachine GetMachine() const { return static_cast<ElfMachine>(header->e_machine); }
   u32 GetEntryPoint() const override { return entryPoint; }
-  u32 GetFlags() const { return (u32)(header->e_flags); }
+  u32 GetFlags() const { return header->e_flags; }
   bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;
   bool LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db) const override;
   // TODO: actually check for validity.
   bool IsValid() const override { return true; }
   bool IsWii() const override;
 
-  int GetNumSegments() const { return (int)(header->e_phnum); }
-  int GetNumSections() const { return (int)(header->e_shnum); }
-  const u8* GetPtr(int offset) const { return (u8*)base + offset; }
+  int GetNumSegments() const { return header->e_phnum; }
+  int GetNumSections() const { return header->e_shnum; }
+  const u8* GetPtr(const int offset) const { return (u8*)base + offset; }
   const char* GetSectionName(int section) const;
-  const u8* GetSectionDataPtr(int section) const
+  const u8* GetSectionDataPtr(const int section) const
   {
     if (section < 0 || section >= header->e_shnum)
       return nullptr;
     if (sections[section].sh_type != SHT_NOBITS)
       return GetPtr(sections[section].sh_offset);
-    else
-      return nullptr;
+    return nullptr;
   }
-  bool IsCodeSegment(int segment) const { return segments[segment].p_flags & PF_X; }
-  const u8* GetSegmentPtr(int segment) const { return GetPtr(segments[segment].p_offset); }
-  int GetSegmentSize(int segment) const { return segments[segment].p_filesz; }
-  u32 GetSectionAddr(SectionID section) const { return sectionAddrs[section]; }
-  int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
+  bool IsCodeSegment(const int segment) const { return segments[segment].p_flags & PF_X; }
+  const u8* GetSegmentPtr(const int segment) const { return GetPtr(segments[segment].p_offset); }
+  int GetSegmentSize(const int segment) const { return segments[segment].p_filesz; }
+  u32 GetSectionAddr(const SectionID section) const { return sectionAddrs[section]; }
+  int GetSectionSize(const SectionID section) const { return sections[section].sh_size; }
   SectionID GetSectionByName(const char* name, int firstSection = 0) const;  //-1 for not found
 
   bool DidRelocate() const { return bRelocate; }

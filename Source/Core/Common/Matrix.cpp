@@ -3,7 +3,6 @@
 
 #include "Common/Matrix.h"
 
-#include <algorithm>
 #include <cmath>
 
 #include "Common/MathUtil.h"
@@ -42,17 +41,17 @@ Quaternion Quaternion::Identity()
   return Quaternion(1, 0, 0, 0);
 }
 
-Quaternion Quaternion::RotateX(float rad)
+Quaternion Quaternion::RotateX(const float rad)
 {
   return Rotate(rad, Vec3(1, 0, 0));
 }
 
-Quaternion Quaternion::RotateY(float rad)
+Quaternion Quaternion::RotateY(const float rad)
 {
   return Rotate(rad, Vec3(0, 1, 0));
 }
 
-Quaternion Quaternion::RotateZ(float rad)
+Quaternion Quaternion::RotateZ(const float rad)
 {
   return Rotate(rad, Vec3(0, 0, 1));
 }
@@ -60,11 +59,11 @@ Quaternion Quaternion::RotateZ(float rad)
 Quaternion Quaternion::RotateXYZ(const Vec3& rads)
 {
   const auto length = rads.Length();
-  return length ? Common::Quaternion::Rotate(length, rads / length) :
-                  Common::Quaternion::Identity();
+  return length ? Rotate(length, rads / length) :
+                  Identity();
 }
 
-Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
+Quaternion Quaternion::Rotate(const float rad, const Vec3& axis)
 {
   const auto sin_angle_2 = std::sin(rad / 2);
 
@@ -72,7 +71,7 @@ Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
                     axis.z * sin_angle_2);
 }
 
-Quaternion::Quaternion(float w, float x, float y, float z) : data(x, y, z, w)
+Quaternion::Quaternion(const float w, const float x, const float y, const float z) : data(x, y, z, w)
 {
 }
 
@@ -100,7 +99,7 @@ Quaternion Quaternion::Inverted() const
 
 Quaternion& Quaternion::operator*=(const Quaternion& rhs)
 {
-  auto& a = data;
+  const auto& a = data;
   auto& b = rhs.data;
 
   data = Vec4{a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
@@ -171,7 +170,7 @@ Matrix33 Matrix33::FromQuaternion(const Quaternion& q)
   };
 }
 
-Matrix33 Matrix33::RotateX(float rad)
+Matrix33 Matrix33::RotateX(const float rad)
 {
   const float s = std::sin(rad);
   const float c = std::cos(rad);
@@ -184,7 +183,7 @@ Matrix33 Matrix33::RotateX(float rad)
   return mtx;
 }
 
-Matrix33 Matrix33::RotateY(float rad)
+Matrix33 Matrix33::RotateY(const float rad)
 {
   const float s = std::sin(rad);
   const float c = std::cos(rad);
@@ -197,7 +196,7 @@ Matrix33 Matrix33::RotateY(float rad)
   return mtx;
 }
 
-Matrix33 Matrix33::RotateZ(float rad)
+Matrix33 Matrix33::RotateZ(const float rad)
 {
   const float s = std::sin(rad);
   const float c = std::cos(rad);
@@ -210,7 +209,7 @@ Matrix33 Matrix33::RotateZ(float rad)
   return mtx;
 }
 
-Matrix33 Matrix33::Rotate(float rad, const Vec3& axis)
+Matrix33 Matrix33::Rotate(const float rad, const Vec3& axis)
 {
   const float s = std::sin(rad);
   const float c = std::cos(rad);
@@ -248,13 +247,13 @@ void Matrix33::Multiply(const Matrix33& a, const Vec3& vec, Vec3* result)
 
 Matrix33 Matrix33::Inverted() const
 {
-  const auto m = [this](int x, int y) { return data[y + x * 3]; };
+  const auto m = [this](const int x, const int y) { return data[y + x * 3]; };
 
   const auto invdet = 1 / Determinant();
 
   Matrix33 result;
 
-  const auto minv = [&result](int x, int y) -> auto& { return result.data[y + x * 3]; };
+  const auto minv = [&result](const int x, const int y) -> auto& { return result.data[y + x * 3]; };
 
   minv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
   minv(0, 1) = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * invdet;
@@ -271,7 +270,7 @@ Matrix33 Matrix33::Inverted() const
 
 float Matrix33::Determinant() const
 {
-  const auto m = [this](int x, int y) { return data[y + x * 3]; };
+  const auto m = [this](const int x, const int y) { return data[y + x * 3]; };
 
   return m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
          m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
@@ -322,7 +321,7 @@ Matrix44 Matrix44::FromArray(const std::array<float, 16>& arr)
 
 Matrix44 Matrix44::Translate(const Vec3& vec)
 {
-  Matrix44 mtx = Matrix44::Identity();
+  Matrix44 mtx = Identity();
   mtx.data[3] = vec.x;
   mtx.data[7] = vec.y;
   mtx.data[11] = vec.z;
@@ -331,13 +330,13 @@ Matrix44 Matrix44::Translate(const Vec3& vec)
 
 Matrix44 Matrix44::Shear(const float a, const float b)
 {
-  Matrix44 mtx = Matrix44::Identity();
+  Matrix44 mtx = Identity();
   mtx.data[2] = a;
   mtx.data[6] = b;
   return mtx;
 }
 
-Matrix44 Matrix44::Perspective(float fov_y, float aspect_ratio, float z_near, float z_far)
+Matrix44 Matrix44::Perspective(const float fov_y, const float aspect_ratio, const float z_near, const float z_far)
 {
   Matrix44 mtx{};
   const float tan_half_fov_y = std::tan(fov_y / 2);
@@ -354,7 +353,7 @@ void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44* result)
   result->data = MatrixMultiply<4, 4, 4>(a.data, b.data);
 }
 
-Vec3 Matrix44::Transform(const Vec3& v, float w) const
+Vec3 Matrix44::Transform(const Vec3& v, const float w) const
 {
   const auto result = MatrixMultiply<4, 4, 1>(data, {v.x, v.y, v.z, w});
   return Vec3{result[0], result[1], result[2]};

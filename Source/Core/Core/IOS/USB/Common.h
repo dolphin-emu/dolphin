@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cstddef>
-#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,7 +33,7 @@ enum ControlRequestTypes
   REC_INTERFACE = 1,
 };
 
-constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
+constexpr u16 USBHDR(const u8 dir, const u8 type, const u8 recipient, const u8 request)
 {
   return static_cast<u16>(((dir << 7 | type << 5 | recipient) << 8) | request);
 }
@@ -73,7 +72,7 @@ struct ConfigDescriptor
 
 struct InterfaceDescriptor
 {
-  void Swap();
+  static void Swap();
   u8 bLength;
   u8 bDescriptorType;
   u8 bInterfaceNumber;
@@ -101,7 +100,7 @@ struct TransferCommand
   Request ios_request;
   u32 data_address = 0;
 
-  TransferCommand(EmulationKernel& ios, const Request& ios_request_, u32 data_address_)
+  TransferCommand(EmulationKernel& ios, const Request& ios_request_, const u32 data_address_)
       : ios_request(ios_request_), data_address(data_address_), m_ios(ios)
   {
   }

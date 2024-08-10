@@ -37,7 +37,7 @@ void GeometryShaderManager::Dirty()
   dirty = true;
 }
 
-void GeometryShaderManager::SetVSExpand(VSExpand expand)
+void GeometryShaderManager::SetVSExpand(const VSExpand expand)
 {
   if (constants.vs_expand != expand)
   {
@@ -46,7 +46,7 @@ void GeometryShaderManager::SetVSExpand(VSExpand expand)
   }
 }
 
-void GeometryShaderManager::SetConstants(PrimitiveType prim)
+void GeometryShaderManager::SetConstants(const PrimitiveType prim)
 {
   if (m_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
   {
@@ -54,8 +54,8 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
 
     if (xfmem.projection.type == ProjectionType::Perspective)
     {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
-                     (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+      const float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
+                           (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
       constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
       constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
     }
@@ -64,8 +64,8 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
       constants.stereoparams[0] = constants.stereoparams[1] = 0;
     }
 
-    constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
-                                        (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
+    constants.stereoparams[2] = g_ActiveConfig.iStereoConvergence *
+                                (g_ActiveConfig.iStereoConvergencePercentage / 100.0f);
 
     dirty = true;
   }
@@ -110,14 +110,14 @@ void GeometryShaderManager::SetLinePtWidthChanged()
   dirty = true;
 }
 
-void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
+void GeometryShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
-  TCoordInfo& tc = bpmem.texcoords[texmapid];
-  int bitmask = 1 << texmapid;
+  const auto& [s, t] = bpmem.texcoords[texmapid];
+  const int bitmask = 1 << texmapid;
   constants.texoffset[0] &= ~bitmask;
-  constants.texoffset[0] |= tc.s.line_offset << texmapid;
+  constants.texoffset[0] |= s.line_offset << texmapid;
   constants.texoffset[1] &= ~bitmask;
-  constants.texoffset[1] |= tc.s.point_offset << texmapid;
+  constants.texoffset[1] |= s.point_offset << texmapid;
   dirty = true;
 }
 

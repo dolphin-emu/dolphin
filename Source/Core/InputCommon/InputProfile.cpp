@@ -53,7 +53,7 @@ std::vector<std::string> GetProfilesFromSetting(const std::string& setting, cons
   return result;
 }
 
-std::vector<std::string> ProfileCycler::GetProfilesForDevice(InputConfig* device_configuration)
+std::vector<std::string> ProfileCycler::GetProfilesForDevice(const InputConfig* device_configuration)
 {
   const std::string device_profile_root_location(
       device_configuration->GetUserProfileDirectoryPath());
@@ -64,7 +64,7 @@ std::string ProfileCycler::GetProfile(CycleDirection cycle_direction, int& profi
                                       const std::vector<std::string>& profiles)
 {
   // update the index and bind it to the number of available strings
-  auto positive_modulo = [](int& i, int n) { i = (i % n + n) % n; };
+  auto positive_modulo = [](int& i, const int n) { i = (i % n + n) % n; };
   profile_index += static_cast<int>(cycle_direction);
   positive_modulo(profile_index, static_cast<int>(profiles.size()));
 
@@ -73,7 +73,7 @@ std::string ProfileCycler::GetProfile(CycleDirection cycle_direction, int& profi
 
 void ProfileCycler::UpdateToProfile(const std::string& profile_filename,
                                     ControllerEmu::EmulatedController* controller,
-                                    InputConfig* device_configuration)
+                                    const InputConfig* device_configuration)
 {
   std::string base;
   SplitPath(profile_filename, nullptr, &base, nullptr);
@@ -99,7 +99,7 @@ void ProfileCycler::UpdateToProfile(const std::string& profile_filename,
 std::vector<std::string>
 ProfileCycler::GetMatchingProfilesFromSetting(const std::string& setting,
                                               const std::vector<std::string>& profiles,
-                                              InputConfig* device_configuration)
+                                              const InputConfig* device_configuration)
 {
   const std::string device_profile_root_location(
       device_configuration->GetUserProfileDirectoryPath());
@@ -111,13 +111,12 @@ ProfileCycler::GetMatchingProfilesFromSetting(const std::string& setting,
   }
 
   std::vector<std::string> result;
-  std::set_intersection(profiles.begin(), profiles.end(), profiles_from_setting.begin(),
-                        profiles_from_setting.end(), std::back_inserter(result));
+  std::ranges::set_intersection(profiles, profiles_from_setting, std::back_inserter(result));
   return result;
 }
 
-void ProfileCycler::CycleProfile(CycleDirection cycle_direction, InputConfig* device_configuration,
-                                 int& profile_index, int controller_index)
+void ProfileCycler::CycleProfile(const CycleDirection cycle_direction, const InputConfig* device_configuration,
+                                 int& profile_index, const int controller_index)
 {
   const auto& profiles = GetProfilesForDevice(device_configuration);
   if (profiles.empty())
@@ -139,9 +138,9 @@ void ProfileCycler::CycleProfile(CycleDirection cycle_direction, InputConfig* de
   }
 }
 
-void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
-                                        InputConfig* device_configuration, int& profile_index,
-                                        const std::string& setting, int controller_index)
+void ProfileCycler::CycleProfileForGame(const CycleDirection cycle_direction,
+                                        const InputConfig* device_configuration, int& profile_index,
+                                        const std::string& setting, const int controller_index)
 {
   const auto& profiles = GetProfilesForDevice(device_configuration);
   if (profiles.empty())
@@ -178,7 +177,7 @@ void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
   }
 }
 
-std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
+std::string ProfileCycler::GetWiimoteInputProfilesForGame(const int controller_index)
 {
   Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
   const auto* const control_section = game_ini.GetOrCreateSection("Controls");
@@ -188,25 +187,25 @@ std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
   return result;
 }
 
-void ProfileCycler::NextWiimoteProfile(int controller_index)
+void ProfileCycler::NextWiimoteProfile(const int controller_index)
 {
   CycleProfile(CycleDirection::Forward, Wiimote::GetConfig(), m_wiimote_profile_index,
                controller_index);
 }
 
-void ProfileCycler::PreviousWiimoteProfile(int controller_index)
+void ProfileCycler::PreviousWiimoteProfile(const int controller_index)
 {
   CycleProfile(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index,
                controller_index);
 }
 
-void ProfileCycler::NextWiimoteProfileForGame(int controller_index)
+void ProfileCycler::NextWiimoteProfileForGame(const int controller_index)
 {
   CycleProfileForGame(CycleDirection::Forward, Wiimote::GetConfig(), m_wiimote_profile_index,
                       GetWiimoteInputProfilesForGame(controller_index), controller_index);
 }
 
-void ProfileCycler::PreviousWiimoteProfileForGame(int controller_index)
+void ProfileCycler::PreviousWiimoteProfileForGame(const int controller_index)
 {
   CycleProfileForGame(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index,
                       GetWiimoteInputProfilesForGame(controller_index), controller_index);

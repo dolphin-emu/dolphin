@@ -51,7 +51,7 @@ public:
   using pointer = value_type;
   using reference = value_type;
 
-  explicit MoIterator(const char* data, u32 table_offset, u32 index = 0)
+  explicit MoIterator(const char* data, const u32 table_offset, const u32 index = 0)
       : m_data{data}, m_table_offset{table_offset}, m_index{index}
   {
   }
@@ -59,14 +59,14 @@ public:
   // This is the actual underlying logic of accessing a Mo file. Patterned after the
   // boost::iterator_facade library, which nicely separates out application logic from
   // iterator-concept logic.
-  void advance(difference_type n) { m_index += n; }
+  void advance(const difference_type n) { m_index += n; }
   difference_type distance_to(const MoIterator& other) const
   {
     return static_cast<difference_type>(other.m_index) - m_index;
   }
   reference dereference() const
   {
-    u32 offset = ReadU32(&m_data[m_table_offset + m_index * 8 + 4]);
+    const u32 offset = ReadU32(&m_data[m_table_offset + m_index * 8 + 4]);
     return &m_data[offset];
   }
 
@@ -84,7 +84,7 @@ public:
   pointer operator->() const { return dereference(); }
   MoIterator operator++(int)
   {
-    MoIterator tmp(*this);
+    const MoIterator tmp(*this);
     advance(1);
     return tmp;
   }
@@ -97,7 +97,7 @@ public:
   }
   MoIterator operator--(int)
   {
-    MoIterator tmp(*this);
+    const MoIterator tmp(*this);
     advance(-1);
     return tmp;
   }
@@ -107,27 +107,27 @@ public:
   bool operator<=(const MoIterator& other) const { return distance_to(other) >= 0; }
   bool operator>(const MoIterator& other) const { return distance_to(other) < 0; }
   bool operator>=(const MoIterator& other) const { return distance_to(other) <= 0; }
-  reference operator[](difference_type n) const { return *(*this + n); }
-  MoIterator& operator+=(difference_type n)
+  reference operator[](const difference_type n) const { return *(*this + n); }
+  MoIterator& operator+=(const difference_type n)
   {
     advance(n);
     return *this;
   }
-  MoIterator& operator-=(difference_type n)
+  MoIterator& operator-=(const difference_type n)
   {
     advance(-n);
     return *this;
   }
-  friend MoIterator operator+(difference_type n, const MoIterator& it) { return it + n; }
-  friend MoIterator operator+(const MoIterator& it, difference_type n)
+  friend MoIterator operator+(const difference_type n, const MoIterator& it) { return it + n; }
+  friend MoIterator operator+(const MoIterator& it, const difference_type n)
   {
     MoIterator tmp(it);
     tmp += n;
     return tmp;
   }
   difference_type operator-(const MoIterator& other) const { return other.distance_to(*this); }
-  friend MoIterator operator-(difference_type n, const MoIterator& it) { return it - n; }
-  friend MoIterator operator-(const MoIterator& it, difference_type n)
+  friend MoIterator operator-(const difference_type n, const MoIterator& it) { return it - n; }
+  friend MoIterator operator-(const MoIterator& it, const difference_type n)
   {
     MoIterator tmp(it);
     tmp -= n;
@@ -184,13 +184,13 @@ public:
   {
     const MoIterator begin(m_data.data(), m_offset_original_table);
     const MoIterator end(m_data.data(), m_offset_original_table, m_number_of_strings);
-    auto iter = std::lower_bound(begin, end, original_string,
-                                 [](const char* a, const char* b) { return strcmp(a, b) < 0; });
+    const auto iter = std::lower_bound(begin, end, original_string,
+                                       [](const char* a, const char* b) { return strcmp(a, b) < 0; });
 
     if (iter == end || strcmp(*iter, original_string) != 0)
       return nullptr;
 
-    u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
+    const u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
     return &m_data[offset];
   }
 
@@ -312,7 +312,7 @@ void Translation::Initialize()
       [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
-  std::string configured_language = Config::Get(Config::MAIN_INTERFACE_LANGUAGE);
+  const std::string configured_language = Get(Config::MAIN_INTERFACE_LANGUAGE);
   if (!configured_language.empty())
   {
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
@@ -321,7 +321,7 @@ void Translation::Initialize()
     ModalMessageBox::warning(
         nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
-    Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
+    SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
   }
 
   for (const auto& lang : QLocale::system().uiLanguages())

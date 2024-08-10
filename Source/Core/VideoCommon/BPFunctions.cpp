@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <string_view>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -17,7 +16,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -48,11 +46,11 @@ int ScissorRect::GetArea() const
 
 int ScissorResult::GetViewportArea(const ScissorRect& rect) const
 {
-  int x0 = std::clamp<int>(rect.rect.left + rect.x_off, viewport_left, viewport_right);
-  int x1 = std::clamp<int>(rect.rect.right + rect.x_off, viewport_left, viewport_right);
+  const int x0 = std::clamp<int>(rect.rect.left + rect.x_off, viewport_left, viewport_right);
+  const int x1 = std::clamp<int>(rect.rect.right + rect.x_off, viewport_left, viewport_right);
 
-  int y0 = std::clamp<int>(rect.rect.top + rect.y_off, viewport_top, viewport_bottom);
-  int y1 = std::clamp<int>(rect.rect.bottom + rect.y_off, viewport_top, viewport_bottom);
+  const int y0 = std::clamp<int>(rect.rect.top + rect.y_off, viewport_top, viewport_bottom);
+  const int y1 = std::clamp<int>(rect.rect.bottom + rect.y_off, viewport_top, viewport_bottom);
 
   return (x1 - x0) * (y1 - y0);
 }
@@ -65,8 +63,8 @@ int ScissorResult::GetViewportArea(const ScissorRect& rect) const
 bool ScissorResult::IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) const
 {
   // First, penalize any rect that is not in the viewport
-  int lhs_area = GetViewportArea(lhs);
-  int rhs_area = GetViewportArea(rhs);
+  const int lhs_area = GetViewportArea(lhs);
+  const int rhs_area = GetViewportArea(rhs);
 
   if (lhs_area != rhs_area)
     return lhs_area < rhs_area;
@@ -79,7 +77,7 @@ namespace
 {
 using RangeList = Common::SmallVector<ScissorRange, 9>;
 
-static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_dim)
+static RangeList ComputeScissorRanges(const int start, const int end, const int offset, const int efb_dim)
 {
   RangeList ranges;
 
@@ -106,8 +104,8 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
                                 xfmemory.viewport.yOrig + xfmemory.viewport.ht))
 {
 }
-ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
-                             std::pair<float, float> viewport_y)
+ScissorResult::ScissorResult(const BPMemory& bpmemory, const std::pair<float, float> viewport_x,
+                             const std::pair<float, float> viewport_y)
     : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
       scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
       viewport_right(viewport_x.second), viewport_top(viewport_y.first),
@@ -151,7 +149,7 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> v
   }
 
   auto cmp = [&](const ScissorRect& lhs, const ScissorRect& rhs) { return IsWorse(lhs, rhs); };
-  std::sort(m_result.begin(), m_result.end(), cmp);
+  std::ranges::sort(m_result, cmp);
 }
 
 ScissorRect ScissorResult::Best() const
@@ -163,13 +161,10 @@ ScissorRect ScissorResult::Best() const
   {
     return m_result.back();
   }
-  else
-  {
-    // But if we have no rectangles, use a bogus one that's out of bounds.
-    // Ideally, all backends will support multiple scissor rects, in which case this won't be
-    // needed.
-    return ScissorRect(ScissorRange{0, 1000, 1001}, ScissorRange{0, 1000, 1001});
-  }
+  // But if we have no rectangles, use a bogus one that's out of bounds.
+  // Ideally, all backends will support multiple scissor rects, in which case this won't be
+  // needed.
+  return ScissorRect(ScissorRange{0, 1000, 1001}, ScissorRange{0, 1000, 1001});
 }
 
 ScissorResult ComputeScissorRects()
@@ -179,10 +174,10 @@ ScissorResult ComputeScissorRects()
 
 void SetScissorAndViewport()
 {
-  auto native_rc = ComputeScissorRects().Best();
+  const auto native_rc = ComputeScissorRects().Best();
 
-  auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
-  auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
+  const auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
+  const auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
   g_gfx->SetScissorRect(converted_rc);
 
   float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
@@ -298,10 +293,10 @@ void SetBlendMode()
 */
 void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
-  bool colorEnable = (bpmem.blendmode.colorupdate != 0);
+  const bool colorEnable = (bpmem.blendmode.colorupdate != 0);
   bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
-  bool zEnable = (bpmem.zmode.updateenable != 0);
-  auto pixel_format = bpmem.zcontrol.pixel_format;
+  const bool zEnable = (bpmem.zmode.updateenable != 0);
+  const auto pixel_format = bpmem.zcontrol.pixel_format;
 
   // (1): Disable unused color channels
   if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||
@@ -372,7 +367,7 @@ void OnPixelFormatChange()
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
       return;
     }
-    else if (new_format == PixelFormat::RGB565_Z16)
+    if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
       return;
@@ -387,7 +382,7 @@ void OnPixelFormatChange()
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
       return;
     }
-    else if (new_format == PixelFormat::RGB565_Z16)
+    if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
       return;
@@ -402,7 +397,7 @@ void OnPixelFormatChange()
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
       return;
     }
-    else if (new_format == PixelFormat::RGBA6_Z24)
+    if (new_format == PixelFormat::RGBA6_Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
       return;

@@ -18,10 +18,10 @@
 
 #include "DolphinQt/Settings.h"
 
-static QString GetPlayerNameFromPID(int pid)
+static QString GetPlayerNameFromPID(const int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return player_name;
 
@@ -70,16 +70,16 @@ void GameDigestDialog::show(const QString& title)
 {
   m_progress_box->setTitle(title);
 
-  for (auto& pair : m_progress_bars)
+  for (const auto& val : m_progress_bars | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
-  for (auto& pair : m_status_labels)
+  for (const auto& val : m_status_labels | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
   m_progress_bars.clear();
@@ -87,7 +87,7 @@ void GameDigestDialog::show(const QString& title)
   m_results.clear();
   m_check_label->setText(QString::fromStdString(""));
 
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return;
 
@@ -118,11 +118,11 @@ void GameDigestDialog::show(const QString& title)
   QDialog::show();
 }
 
-void GameDigestDialog::SetProgress(int pid, int progress)
+void GameDigestDialog::SetProgress(const int pid, const int progress)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
-  if (!m_status_labels.count(pid))
+  if (!m_status_labels.contains(pid))
     return;
 
   m_status_labels[pid]->setText(
@@ -130,11 +130,11 @@ void GameDigestDialog::SetProgress(int pid, int progress)
   m_progress_bars[pid]->setValue(progress);
 }
 
-void GameDigestDialog::SetResult(int pid, const std::string& result)
+void GameDigestDialog::SetResult(const int pid, const std::string& result)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
-  if (!m_status_labels.count(pid))
+  if (!m_status_labels.contains(pid))
     return;
 
   m_status_labels[pid]->setText(
@@ -142,11 +142,10 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
 
   m_results.push_back(result);
 
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (client && m_results.size() >= client->GetPlayers().size())
   {
-    if (std::adjacent_find(m_results.begin(), m_results.end(), std::not_equal_to<>()) ==
-        m_results.end())
+    if (std::ranges::adjacent_find(m_results, std::not_equal_to()) == m_results.end())
     {
       m_check_label->setText(tr("The hashes match!"));
     }
@@ -164,7 +163,7 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
 
 void GameDigestDialog::reject()
 {
-  auto server = Settings::Instance().GetNetPlayServer();
+  const auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortGameDigest();

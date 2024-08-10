@@ -24,7 +24,7 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 {
 }
 
-bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text)
+bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text) const
 {
   if (code.size() > std::numeric_limits<u16>::max())
   {
@@ -34,7 +34,7 @@ bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& tex
 
   for (u16 pc = 0; pc < code.size();)
   {
-    bool failed = !DisassembleOpcode(code, &pc, text);
+    const bool failed = !DisassembleOpcode(code, &pc, text);
     text.append("\n");
     if (failed)
       return false;
@@ -42,7 +42,7 @@ bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& tex
   return true;
 }
 
-std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u16 op1, u16 op2)
+std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, const u16 op1, const u16 op2) const
 {
   std::string buf;
 
@@ -109,7 +109,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
         {
           // Left and right shifts function essentially as a single shift by a 7-bit signed value,
           // but are split into two intructions for clarity.
-          buf += fmt::format("#{}", (val & 0x20) != 0 ? (int(val) - 64) : int(val));
+          buf += fmt::format("#{}", (val & 0x20) != 0 ? (static_cast<int>(val) - 64) : static_cast<int>(val));
         }
         else
         {
@@ -124,7 +124,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
 
     case P_MEM:
       if (opc.params[j].size != 2)
-        val = (u16)(s16)(s8)val;
+        val = static_cast<u16>((s16)(s8)val);
 
       if (settings_.decode_names)
         buf += fmt::format("@{}", pdname(val));
@@ -142,13 +142,13 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
   return buf;
 }
 
-bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, std::string& dest)
+bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, std::string& dest) const
 {
   return DisassembleOpcode(code.data(), code.size(), pc, dest);
 }
 
-bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, size_t binbuf_size, u16* pc,
-                                        std::string& dest)
+bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, const size_t binbuf_size, u16* pc,
+                                        std::string& dest) const
 {
   const u16 wrapped_pc = (*pc & 0x7fff);
   if (wrapped_pc >= binbuf_size)

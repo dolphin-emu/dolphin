@@ -49,7 +49,7 @@ InfinityBaseWindow::InfinityBaseWindow(QWidget* parent) : QWidget(parent)
 
   installEventFilter(this);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 };
 
 InfinityBaseWindow::~InfinityBaseWindow() = default;
@@ -62,7 +62,7 @@ void InfinityBaseWindow::CreateMainWindow()
   auto* checkbox_layout = new QHBoxLayout();
   checkbox_layout->setAlignment(Qt::AlignHCenter);
   m_checkbox = new QCheckBox(tr("Emulate Infinity Base"), this);
-  m_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE));
+  m_checkbox->setChecked(Get(Config::MAIN_EMULATE_INFINITY_BASE));
   connect(m_checkbox, &QCheckBox::toggled, this, &InfinityBaseWindow::EmulateBase);
   checkbox_layout->addWidget(m_checkbox);
   checkbox_group->setLayout(checkbox_layout);
@@ -100,12 +100,12 @@ void InfinityBaseWindow::CreateMainWindow()
   m_group_figures->setLayout(vbox_group);
   scroll_area->setWidget(m_group_figures);
   scroll_area->setWidgetResizable(true);
-  m_group_figures->setVisible(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE));
+  m_group_figures->setVisible(Get(Config::MAIN_EMULATE_INFINITY_BASE));
   main_layout->addWidget(scroll_area);
   setLayout(main_layout);
 }
 
-void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, FigureUIPosition slot)
+void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, const QString& name, FigureUIPosition slot)
 {
   auto* hbox_infinity = new QHBoxLayout();
 
@@ -131,15 +131,15 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, Fi
   vbox_group->addLayout(hbox_infinity);
 }
 
-void InfinityBaseWindow::ClearFigure(FigureUIPosition slot)
+void InfinityBaseWindow::ClearFigure(FigureUIPosition slot) const
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   m_edit_figures[static_cast<u8>(slot)]->setText(tr("None"));
 
   system.GetInfinityBase().RemoveFigure(slot);
 }
 
-void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
+void InfinityBaseWindow::LoadFigure(const FigureUIPosition slot)
 {
   const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Figure File"), s_last_figure_path,
@@ -154,7 +154,7 @@ void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
   LoadFigurePath(slot, file_path);
 }
 
-void InfinityBaseWindow::CreateFigure(FigureUIPosition slot)
+void InfinityBaseWindow::CreateFigure(const FigureUIPosition slot)
 {
   CreateFigureDialog create_dlg(this, slot);
   SetQWidgetWindowDecorations(&create_dlg);
@@ -186,14 +186,14 @@ void InfinityBaseWindow::LoadFigurePath(FigureUIPosition slot, const QString& pa
     return;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
   system.GetInfinityBase().RemoveFigure(slot);
   m_edit_figures[static_cast<u8>(slot)]->setText(QString::fromStdString(
       system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file), slot)));
 }
 
-CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) : QDialog(parent)
+CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition slot) : QDialog(parent)
 {
   setWindowTitle(tr("Infinity Figure Creator"));
   setObjectName(QStringLiteral("infinity_creator"));
@@ -203,9 +203,9 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
   auto* combo_figlist = new QComboBox();
   QStringList filterlist;
   u32 first_entry = 0;
-  for (const auto& entry : IOS::HLE::USB::InfinityBase::GetFigureList())
+  for (const auto& [fst, snd] : IOS::HLE::USB::InfinityBase::GetFigureList())
   {
-    const auto figure = entry.second;
+    const auto figure = snd;
     // Only display entry if it is a piece appropriate for the slot
     if ((slot == FigureUIPosition::HexagonDiscOne &&
          ((figure > 0x1E8480 && figure < 0x2DC6BF) || (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
@@ -217,7 +217,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
           slot == FigureUIPosition::P2AbilityOne || slot == FigureUIPosition::P2AbilityTwo) &&
          (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
-      const auto figure_name = QString::fromStdString(entry.first);
+      const auto figure_name = QString::fromStdString(fst);
       combo_figlist->addItem(figure_name, QVariant(figure));
       filterlist << figure_name;
       if (first_entry == 0)
@@ -246,7 +246,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
   auto* hbox_idvar = new QHBoxLayout();
   auto* label_id = new QLabel(tr("Figure Number:"));
   auto* edit_num = new QLineEdit(QString::number(first_entry));
-  auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
+  const auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
   edit_num->setValidator(rxv);
   hbox_idvar->addWidget(label_id);
   hbox_idvar->addWidget(edit_num);
@@ -258,7 +258,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
 
   setLayout(layout);
 
-  connect(combo_figlist, &QComboBox::currentIndexChanged, [=](int index) {
+  connect(combo_figlist, &QComboBox::currentIndexChanged, [=](const int index) {
     const u32 char_info = combo_figlist->itemData(index).toUInt();
     if (char_info != 0xFFFFFFFF)
     {
@@ -278,7 +278,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
 
     QString predef_name = s_last_figure_path;
 
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     const auto found_fig = system.GetInfinityBase().FindFigure(char_number);
     if (!found_fig.empty())
     {
@@ -287,7 +287,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
     else
     {
       // i18n: This is used to create a file name. The string must end in ".bin".
-      QString str = tr("Unknown(%1).bin");
+      const QString str = tr("Unknown(%1).bin");
       predef_name += str.arg(char_number);
     }
 
@@ -325,13 +325,13 @@ QString CreateFigureDialog::GetFilePath() const
   return m_file_path;
 }
 
-void InfinityBaseWindow::EmulateBase(bool emulate)
+void InfinityBaseWindow::EmulateBase(const bool emulate) const
 {
-  Config::SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
+  SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
   m_group_figures->setVisible(emulate);
 }
 
-void InfinityBaseWindow::OnEmulationStateChanged(Core::State state)
+void InfinityBaseWindow::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 

@@ -81,7 +81,7 @@ private:
   void ReadDataFromFifoOnCPU(u32 read_ptr);
   int RunGpuOnCpu(int ticks);
   int WaitForGpuThread(int ticks);
-  static void SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLate);
+  static void SyncGPUCallback(const Core::System& system, u64 ticks, s64 cyclesLate);
 
   static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
 
@@ -131,5 +131,5 @@ private:
   Core::System& m_system;
 };
 
-bool AtBreakpoint(Core::System& system);
+bool AtBreakpoint(const Core::System& system);
 }  // namespace Fifo

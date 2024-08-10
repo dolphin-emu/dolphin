@@ -6,10 +6,8 @@
 #include <algorithm>
 #include <clocale>
 #include <cmath>
-#include <iomanip>
 #include <locale>
 #include <memory>
-#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 
@@ -22,7 +20,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -48,7 +45,6 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
-#include "UICommon/USBUtils.h"
 
 #ifdef HAVE_X11
 #include "UICommon/X11Utils.h"
@@ -103,39 +99,39 @@ static void CreateWFSPath(const std::string& path)
 
 static void InitCustomPaths()
 {
-  File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
-  CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
-  CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
-  CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
-  CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));
-  File::SetUserPath(F_WIISDCARDIMAGE_IDX, Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
+  File::SetUserPath(D_WIIROOT_IDX, Get(Config::MAIN_FS_PATH));
+  CreateLoadPath(Get(Config::MAIN_LOAD_PATH));
+  CreateDumpPath(Get(Config::MAIN_DUMP_PATH));
+  CreateResourcePackPath(Get(Config::MAIN_RESOURCEPACK_PATH));
+  CreateWFSPath(Get(Config::MAIN_WFS_PATH));
+  File::SetUserPath(F_WIISDCARDIMAGE_IDX, Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
   File::SetUserPath(D_WIISDCARDSYNCFOLDER_IDX,
-                    Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH));
+                    Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH));
   File::CreateFullPath(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX));
 #ifdef HAS_LIBMGBA
-  File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
-  File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+  File::SetUserPath(F_GBABIOS_IDX, Get(Config::MAIN_GBA_BIOS_PATH));
+  File::SetUserPath(D_GBASAVES_IDX, Get(Config::MAIN_GBA_SAVES_PATH));
   File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
 #endif
 }
 
 static void RefreshConfig()
 {
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
-  Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
+  Get(Config::MAIN_USE_PANIC_HANDLERS) ? Common::EnableAlert() : Common::DisableAlert();
+  Common::SetAbortOnPanicAlert(Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
 }
 
 void Init()
 {
-  Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
+  RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
 
   Config::Init();
   Config::AddConfigChangedCallback(InitCustomPaths);
-  Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
+  AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  VideoBackendBase::ActivateBackend(Get(Config::MAIN_GFX_BACKEND));
 
   s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
   RefreshConfig();
@@ -143,7 +139,7 @@ void Init()
 
 void Shutdown()
 {
-  Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
+  RemoveConfigChangedCallback(s_config_changed_callback_id);
 
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
@@ -171,7 +167,7 @@ void InitControllers(const WindowSystemInfo& wsi)
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   HotkeyManagerEmu::Initialize();
   FreeLook::Initialize();
 }
@@ -225,7 +221,7 @@ void SetLocale(std::string locale_name)
   if (locale_name == "en")
     locale_name = "en_GB";
 
-  std::replace(locale_name.begin(), locale_name.end(), OTHER_SEPARATOR, PREFERRED_SEPARATOR);
+  std::ranges::replace(locale_name, OTHER_SEPARATOR, PREFERRED_SEPARATOR);
 
   // Use the specified locale if supported.
   if (set_locale(locale_name))
@@ -351,7 +347,7 @@ void SetUserDirectory(std::string custom_path)
 
   // Attempt to check if the old User directory exists in Documents.
   wil::unique_cotaskmem_string documents;
-  bool documents_found = SUCCEEDED(
+  const bool documents_found = SUCCEEDED(
       SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, documents.put()));
 
   std::optional<std::string> old_user_folder;
@@ -380,7 +376,7 @@ void SetUserDirectory(std::string custom_path)
     // builds, which will look for the default User directory in Documents. If we set this key,
     // they will use this as the User directory instead.
     // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
-    std::wstring wstr_path = UTF8ToWString(user_path);
+    const std::wstring wstr_path = UTF8ToWString(user_path);
     RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
                     REG_SZ, wstr_path.c_str(),
                     static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));
@@ -546,11 +542,11 @@ void InhibitScreenSaver(bool inhibit)
 #endif
 }
 
-std::string FormatSize(u64 bytes, int decimals)
+std::string FormatSize(const u64 bytes, int decimals)
 {
   // i18n: The symbol for the unit "bytes"
-  const char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
-                                      _trans("TiB"), _trans("PiB"), _trans("EiB")};
+  constexpr char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
+                                          _trans("TiB"), _trans("PiB"), _trans("EiB")};
 
   // Find largest power of 2 less than size.
   // div 10 to get largest named unit less than size

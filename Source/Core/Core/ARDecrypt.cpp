@@ -69,7 +69,7 @@ constexpr std::array<u32, 0x40> table0{
     0x01010404, 0x00010004, 0x01010000, 0x01000404, 0x01000004, 0x00000404, 0x00010404, 0x01010400,
     0x00000404, 0x01000400, 0x01000400, 0x00000000, 0x00010004, 0x00010400, 0x00000000, 0x01010004,
 };
-constexpr std::array<u32, 0x40> table1{
+constexpr std::array table1{
     0x80108020, 0x80008000, 0x00008000, 0x00108020, 0x00100000, 0x00000020, 0x80100020, 0x80008020,
     0x80000020, 0x80108020, 0x80108000, 0x80000000, 0x80008000, 0x00100000, 0x00000020, 0x80100020,
     0x00108000, 0x00100020, 0x80008020, 0x00000000, 0x80000000, 0x00008000, 0x00108020, 0x80100000,
@@ -150,8 +150,8 @@ constexpr Seeds genseeds = [] {
 
   for (size_t i = 0; i < array0.size(); ++i)
   {
-    const auto tmp = u8(gentable0[i] - 1);
-    array0[i] = (u32(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
+    const auto tmp = static_cast<u8>(gentable0[i] - 1);
+    array0[i] = (static_cast<u32>(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
   }
 
   for (int i = 0; i < 0x10; ++i)
@@ -163,7 +163,7 @@ constexpr Seeds genseeds = [] {
 
     for (u32 j = 0; j < 0x38; j++)
     {
-      auto tmp = u8(tmp2 + j);
+      auto tmp = static_cast<u8>(tmp2 + j);
 
       if (j > 0x1B)
       {
@@ -215,13 +215,13 @@ static void getcode(const u32* src, u32* addr, u32* val)
   *val = Common::swap32(src[1]);
 }
 
-static void setcode(u32* dst, u32 addr, u32 val)
+static void setcode(u32* dst, const u32 addr, const u32 val)
 {
   dst[0] = Common::swap32(addr);
   dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(const u32* codes, u16 size)
+static u16 gencrc16(const u32* codes, const u16 size)
 {
   u16 ret = 0;
 
@@ -231,7 +231,7 @@ static u16 gencrc16(const u32* codes, u16 size)
     {
       for (int i = 0; i < 4; ++i)
       {
-        u8 tmp2 = ((codes[tmp] >> (i << 3)) ^ ret);
+        const u8 tmp2 = ((codes[tmp] >> (i << 3)) ^ ret);
         ret = ((crctable0[(tmp2 >> 4) & 0x0F] ^ crctable1[tmp2 & 0x0F]) ^ (ret >> 8));
       }
     }
@@ -239,9 +239,9 @@ static u16 gencrc16(const u32* codes, u16 size)
   return ret;
 }
 
-static u8 verifycode(const u32* codes, u16 size)
+static u8 verifycode(const u32* codes, const u16 size)
 {
-  u16 tmp = gencrc16(codes, size);
+  const u16 tmp = gencrc16(codes, size);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
 }
 
@@ -348,7 +348,7 @@ static bool getbitstring(u32* ctrl, u32* out, u8 len)
   return true;
 }
 
-static bool batchdecrypt(u32* codes, u16 size)
+static bool batchdecrypt(u32* codes, const u16 size)
 {
   u32* ptr = codes;
   std::array<u32, 4> tmparray{};
@@ -392,9 +392,9 @@ static bool batchdecrypt(u32* codes, u16 size)
   // Unfinished (so says Parasyte :p )
 }
 
-static int GetVal(const char* flt, char chr)
+static int GetVal(const char* flt, const char chr)
 {
-  int ret = (int)(strchr(flt, chr) - flt);
+  int ret = static_cast<int>(strchr(flt, chr) - flt);
   switch (ret)
   {
   case 32:  // 'I'
@@ -415,7 +415,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
 {
   int j = 0;
   int ret = 0;
-  int org = size + 1;
+  const int org = size + 1;
   u32 bin[2];
   u8 parity;
 
@@ -466,7 +466,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     Common::ToUpper(&s);
   }
 
-  const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size());
+  const u32 ret = alphatobin(uCodes.data(), vCodes, static_cast<int>(vCodes.size()));
   if (ret)
   {
     // Return value is index + 1, 0 being the success flag value.
@@ -474,7 +474,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
         "Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n{0}",
         vCodes[ret - 1]);
   }
-  else if (!batchdecrypt(uCodes.data(), (u16)vCodes.size() << 1))
+  else if (!batchdecrypt(uCodes.data(), static_cast<u16>(vCodes.size()) << 1))
   {
     // Commented out since we just send the code anyways and hope for the best XD
     // PanicAlertFmt("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"

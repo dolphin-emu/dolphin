@@ -31,7 +31,7 @@ enum class Mode
   Unknown6 = 6,
 };
 
-constexpr bool IsValidMode(Mode mode)
+constexpr bool IsValidMode(const Mode mode)
 {
   return mode >= Mode::DSCommunications && mode <= Mode::Unknown6;
 }
@@ -148,7 +148,7 @@ private:
     ScanningForAOSSAccessPoint,
     ScanningForDS,
   };
-  friend struct fmt::formatter<IOS::HLE::NetWDCommandDevice::Status>;
+  friend struct fmt::formatter<Status>;
 
   void ProcessRecvRequests();
   void HandleStateChange();
@@ -156,7 +156,7 @@ private:
 
   IPCReply SetLinkState(const IOCtlVRequest& request);
   IPCReply GetLinkState(const IOCtlVRequest& request) const;
-  IPCReply Disassociate(const IOCtlVRequest& request);
+  IPCReply Disassociate(const IOCtlVRequest& request) const;
   IPCReply GetInfo(const IOCtlVRequest& request) const;
 
   s32 m_ipc_owner_fd = -1;

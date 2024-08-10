@@ -4,7 +4,6 @@
 #include "Core/DSP/DSPCodeUtil.h"
 
 #include <algorithm>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -23,7 +22,7 @@
 
 namespace DSP
 {
-bool Assemble(const std::string& text, std::vector<u16>& code, bool force)
+bool Assemble(const std::string& text, std::vector<u16>& code, const bool force)
 {
   AssemblerSettings settings;
   // settings.pc = 0;
@@ -38,7 +37,7 @@ bool Assemble(const std::string& text, std::vector<u16>& code, bool force)
   return assembler.Assemble(text, code);
 }
 
-bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& text)
+bool Disassemble(const std::vector<u16>& code, const bool line_numbers, std::string& text)
 {
   if (code.empty())
     return false;
@@ -52,8 +51,8 @@ bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& t
   settings.decode_names = true;
   settings.decode_registers = true;
 
-  DSPDisassembler disasm(settings);
-  bool success = disasm.Disassemble(code, text);
+  const DSPDisassembler disasm(settings);
+  const bool success = disasm.Disassemble(code, text);
   return success;
 }
 
@@ -66,8 +65,8 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   u32 count_equal = 0;
   const u16 min_size = static_cast<u16>(std::min(code1.size(), code2.size()));
 
-  AssemblerSettings settings;
-  DSPDisassembler disassembler(settings);
+  constexpr AssemblerSettings settings;
+  const DSPDisassembler disassembler(settings);
   for (u16 i = 0; i < min_size; i++)
   {
     if (code1[i] == code2[i])
@@ -141,7 +140,7 @@ std::vector<u16> BinaryStringBEToCode(const std::string& str)
 
   for (size_t i = 0; i < code.size(); i++)
   {
-    code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
+    code[i] = (static_cast<u16>((u8)str[i * 2 + 0]) << 8) | static_cast<u16>((u8)str[i * 2 + 1]);
   }
 
   return code;
@@ -163,7 +162,7 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
   return File::WriteStringToFile(filename, buffer);
 }
 
-bool DumpDSPCode(const u8* code_be, size_t size_in_bytes, u32 crc)
+bool DumpDSPCode(const u8* code_be, const size_t size_in_bytes, u32 crc)
 {
   const std::string root_name =
       File::GetUserPath(D_DUMPDSP_IDX) + fmt::format("DSP_UC_{:08X}", crc);

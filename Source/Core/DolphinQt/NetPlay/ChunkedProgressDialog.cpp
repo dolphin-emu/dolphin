@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
 
 #include <fmt/format.h>
 
@@ -21,10 +20,10 @@
 
 #include "DolphinQt/Settings.h"
 
-static QString GetPlayerNameFromPID(int pid)
+static QString GetPlayerNameFromPID(const int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return player_name;
 
@@ -72,22 +71,22 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   m_progress_box->setTitle(title);
   m_data_size = data_size;
 
-  for (auto& pair : m_progress_bars)
+  for (const auto& val : m_progress_bars | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
-  for (auto& pair : m_status_labels)
+  for (const auto& val : m_status_labels | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
   m_progress_bars.clear();
   m_status_labels.clear();
 
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return;
 
@@ -108,7 +107,7 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
 
   for (const auto* player : client->GetPlayers())
   {
-    if (std::find(players.begin(), players.end(), player->pid) == players.end())
+    if (std::ranges::find(players, player->pid) == players.end())
       continue;
 
     m_progress_bars[player->pid] = new QProgressBar;
@@ -125,7 +124,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
-  if (!m_status_labels.count(pid))
+  if (!m_status_labels.contains(pid))
     return;
 
   const float acquired = progress / 1024.0f / 1024.0f;
@@ -141,7 +140,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 
 void ChunkedProgressDialog::reject()
 {
-  auto server = Settings::Instance().GetNetPlayServer();
+  const auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortGameStart();

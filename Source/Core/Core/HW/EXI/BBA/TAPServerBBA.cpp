@@ -50,7 +50,7 @@ void CEXIETHERNET::TAPServerNetworkInterface::RecvStop()
   m_tapserver_if.RecvStop();
 }
 
-bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, const u32 size)
 {
   const bool ret = m_tapserver_if.SendFrame(frame, size);
   if (ret)
@@ -58,7 +58,7 @@ bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 siz
   return ret;
 }
 
-void CEXIETHERNET::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data)
+void CEXIETHERNET::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data) const
 {
   if (data.size() > BBA_RECV_SIZE)
   {

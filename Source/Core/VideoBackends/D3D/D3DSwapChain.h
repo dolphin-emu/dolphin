@@ -6,13 +6,9 @@
 #include <d3d11.h>
 #include <dxgi.h>
 #include <memory>
-#include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3DCommon/SwapChain.h"
-#include "VideoCommon/TextureConfig.h"
 
 namespace DX11
 {

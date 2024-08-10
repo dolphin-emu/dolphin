@@ -5,13 +5,12 @@
 
 #include <QFrame>
 #include <QLayout>
-#include <QPalette>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWidget>
 
-QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margin_width,
-                          int margin_height)
+QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, const int margin_width,
+                          const int margin_height)
 {
   auto* scroll = new QScrollArea;
   scroll->setWidget(wrapped_widget);
@@ -21,9 +20,9 @@ QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margi
   if (to_resize != nullptr)
   {
     // For some reason width() is bigger than it needs to be.
-    auto min_size = wrapped_widget->minimumSizeHint();
-    int recommended_width = min_size.width() + margin_width;
-    int recommended_height = min_size.height() + margin_height;
+    const auto min_size = wrapped_widget->minimumSizeHint();
+    const int recommended_width = min_size.width() + margin_width;
+    const int recommended_height = min_size.height() + margin_height;
 
     to_resize->resize(std::max(recommended_width, to_resize->width()),
                       std::max(recommended_height, to_resize->height()));

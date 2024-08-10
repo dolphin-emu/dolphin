@@ -4,7 +4,6 @@
 #include "Core/HW/GBAPad.h"
 
 #include "Core/HW/GBAPadEmu.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -47,17 +46,17 @@ bool IsGBAInitialized()
   return !s_config.ControllersNeedToBeCreated();
 }
 
-GCPadStatus GetGBAStatus(int pad_num)
+GCPadStatus GetGBAStatus(const int pad_num)
 {
   return static_cast<GBAPad*>(s_config.GetController(pad_num))->GetInput();
 }
 
-void SetGBAReset(int pad_num, bool reset)
+void SetGBAReset(const int pad_num, const bool reset)
 {
   static_cast<GBAPad*>(s_config.GetController(pad_num))->SetReset(reset);
 }
 
-ControllerEmu::ControlGroup* GetGBAGroup(int pad_num, GBAPadGroup group)
+ControllerEmu::ControlGroup* GetGBAGroup(const int pad_num, const GBAPadGroup group)
 {
   return static_cast<GBAPad*>(s_config.GetController(pad_num))->GetGroup(group);
 }

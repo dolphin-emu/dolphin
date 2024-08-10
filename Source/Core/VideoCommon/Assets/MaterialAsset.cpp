@@ -84,42 +84,42 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
   return true;
 }
 bool ParsePropertyValue(const CustomAssetLibrary::AssetID& asset_id,
-                        const picojson::value& json_value, std::string_view code_name,
-                        std::string_view type, MaterialProperty::Value* value)
+                        const picojson::value& json_value, const std::string_view code_name,
+                        const std::string_view type, MaterialProperty::Value* value)
 {
   if (type == "int")
   {
     return ParseNumeric<s32, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int2")
+  if (type == "int2")
   {
     return ParseNumeric<s32, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int3")
+  if (type == "int3")
   {
     return ParseNumeric<s32, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int4")
+  if (type == "int4")
   {
     return ParseNumeric<s32, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float")
+  if (type == "float")
   {
     return ParseNumeric<float, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float2")
+  if (type == "float2")
   {
     return ParseNumeric<float, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float3")
+  if (type == "float3")
   {
     return ParseNumeric<float, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float4")
+  if (type == "float4")
   {
     return ParseNumeric<float, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "bool")
+  if (type == "bool")
   {
     if (json_value.is<bool>())
     {
@@ -147,7 +147,7 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
 {
   for (const auto& value_data : values_data)
   {
-    VideoCommon::MaterialProperty property;
+    MaterialProperty property;
     if (!value_data.is<picojson::object>())
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse the json, value is not the right json type",
@@ -212,7 +212,7 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
 
 void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& property)
 {
-  const auto write_memory = [&](const void* raw_value, std::size_t data_size) {
+  const auto write_memory = [&](const void* raw_value, const std::size_t data_size) {
     std::memcpy(buffer, raw_value, data_size);
     std::memset(buffer + data_size, 0, MemorySize - data_size);
     buffer += MemorySize;
@@ -220,15 +220,15 @@ void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& proper
   std::visit(
       overloaded{
           [&](const CustomAssetLibrary::AssetID&) {},
-          [&](s32 value) { write_memory(&value, sizeof(s32)); },
+          [&](const s32 value) { write_memory(&value, sizeof(s32)); },
           [&](const std::array<s32, 2>& value) { write_memory(value.data(), sizeof(s32) * 2); },
           [&](const std::array<s32, 3>& value) { write_memory(value.data(), sizeof(s32) * 3); },
           [&](const std::array<s32, 4>& value) { write_memory(value.data(), sizeof(s32) * 4); },
-          [&](float value) { write_memory(&value, sizeof(float)); },
+          [&](const float value) { write_memory(&value, sizeof(float)); },
           [&](const std::array<float, 2>& value) { write_memory(value.data(), sizeof(float) * 2); },
           [&](const std::array<float, 3>& value) { write_memory(value.data(), sizeof(float) * 3); },
           [&](const std::array<float, 4>& value) { write_memory(value.data(), sizeof(float) * 4); },
-          [&](bool value) { write_memory(&value, sizeof(bool)); }},
+          [&](const bool value) { write_memory(&value, sizeof(bool)); }},
       property.m_value);
 }
 
@@ -327,16 +327,16 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
   auto& json_obj = *obj;
 
   picojson::array json_properties;
-  for (const auto& property : data.properties)
+  for (const auto& [m_code_name, m_value] : data.properties)
   {
     picojson::object json_property;
-    json_property["code_name"] = picojson::value{property.m_code_name};
+    json_property["code_name"] = picojson::value{m_code_name};
 
     std::visit(overloaded{[&](const CustomAssetLibrary::AssetID& value) {
                             json_property["type"] = picojson::value{"texture_asset"};
                             json_property["value"] = picojson::value{value};
                           },
-                          [&](s32 value) {
+                          [&](const s32 value) {
                             json_property["type"] = picojson::value{"int"};
                             json_property["value"] = picojson::value{static_cast<double>(value)};
                           },
@@ -352,7 +352,7 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
                             json_property["type"] = picojson::value{"int4"};
                             json_property["value"] = picojson::value{ToJsonArray(value)};
                           },
-                          [&](float value) {
+                          [&](const float value) {
                             json_property["type"] = picojson::value{"float"};
                             json_property["value"] = picojson::value{static_cast<double>(value)};
                           },
@@ -368,11 +368,11 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
                             json_property["type"] = picojson::value{"float4"};
                             json_property["value"] = picojson::value{ToJsonArray(value)};
                           },
-                          [&](bool value) {
+                          [&](const bool value) {
                             json_property["type"] = picojson::value{"bool"};
                             json_property["value"] = picojson::value{value};
                           }},
-               property.m_value);
+               m_value);
 
     json_properties.emplace_back(std::move(json_property));
   }

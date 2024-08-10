@@ -3,15 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
-#include <cmath>
 #include <optional>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -32,7 +29,7 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
   AddInput(Translatability::Translate, _trans("Modifier"));
 }
 
-AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted) const
+AnalogStick::ReshapeData AnalogStick::GetReshapableState(const bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -77,7 +74,7 @@ AnalogStick::StateData AnalogStick::GetState(const InputOverrideFunction& overri
   return state;
 }
 
-ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const
+ControlState AnalogStick::GetGateRadiusAtAngle(const double ang) const
 {
   return m_stick_gate->GetRadiusAtAngle(ang);
 }
@@ -87,14 +84,14 @@ Control* AnalogStick::GetModifierInput() const
   return controls[4].get();
 }
 
-OctagonAnalogStick::OctagonAnalogStick(const char* name_, ControlState gate_radius)
+OctagonAnalogStick::OctagonAnalogStick(const char* name_, const ControlState gate_radius)
     : OctagonAnalogStick(name_, name_, gate_radius)
 {
 }
 
 OctagonAnalogStick::OctagonAnalogStick(const char* name_, const char* ui_name_,
-                                       ControlState gate_radius)
-    : AnalogStick(name_, ui_name_, std::make_unique<ControllerEmu::OctagonStickGate>(1.0))
+                                       const ControlState gate_radius)
+    : AnalogStick(name_, ui_name_, std::make_unique<OctagonStickGate>(1.0))
 {
   AddVirtualNotchSetting(&m_virtual_notch_setting, 45);
 
@@ -114,7 +111,7 @@ ControlState OctagonAnalogStick::GetVirtualNotchSize() const
   return m_virtual_notch_setting.GetValue() * MathUtil::TAU / 360;
 }
 
-ControlState OctagonAnalogStick::GetGateRadiusAtAngle(double ang) const
+ControlState OctagonAnalogStick::GetGateRadiusAtAngle(const double ang) const
 {
   return AnalogStick::GetGateRadiusAtAngle(ang) * m_gate_size_setting.GetValue() / 100;
 }

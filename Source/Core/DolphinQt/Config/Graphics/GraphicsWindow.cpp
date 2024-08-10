@@ -5,14 +5,11 @@
 
 #include <QDialogButtonBox>
 #include <QEvent>
-#include <QGroupBox>
-#include <QLabel>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
@@ -31,7 +28,7 @@ GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_win
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  OnBackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void GraphicsWindow::CreateMainLayout()

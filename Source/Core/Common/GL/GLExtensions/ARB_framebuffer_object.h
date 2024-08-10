@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 typedef void(APIENTRYP PFNDOLBINDFRAMEBUFFERPROC)(GLenum target, GLuint framebuffer);
 typedef void(APIENTRYP PFNDOLBINDRENDERBUFFERPROC)(GLenum target, GLuint renderbuffer);
 typedef void(APIENTRYP PFNDOLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1,

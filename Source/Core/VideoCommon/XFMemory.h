@@ -261,7 +261,7 @@ union LitChannel
 template <>
 struct fmt::formatter<LitChannel>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const LitChannel& chan, FormatContext& ctx) const
   {
@@ -284,7 +284,7 @@ union ClipDisable
 template <>
 struct fmt::formatter<ClipDisable>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ClipDisable& cd, FormatContext& ctx) const
   {
@@ -308,7 +308,7 @@ union INVTXSPEC
 template <>
 struct fmt::formatter<INVTXSPEC>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const INVTXSPEC& spec, FormatContext& ctx) const
   {
@@ -332,7 +332,7 @@ union TexMtxInfo
 template <>
 struct fmt::formatter<TexMtxInfo>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexMtxInfo& i, FormatContext& ctx) const
   {
@@ -355,7 +355,7 @@ union PostMtxInfo
 template <>
 struct fmt::formatter<PostMtxInfo>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const PostMtxInfo& i, FormatContext& ctx) const
   {

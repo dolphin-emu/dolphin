@@ -23,11 +23,11 @@ std::optional<WrapMode> ReadWrapModeFromJSON(const picojson::object& json, const
   {
     return WrapMode::Clamp;
   }
-  else if (uv_mode == "repeat")
+  if (uv_mode == "repeat")
   {
     return WrapMode::Repeat;
   }
-  else if (uv_mode == "mirror")
+  if (uv_mode == "mirror")
   {
     return WrapMode::Mirror;
   }
@@ -45,7 +45,7 @@ std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
   {
     return FilterMode::Linear;
   }
-  else if (filter_mode == "near")
+  if (filter_mode == "near")
   {
     return FilterMode::Near;
   }
@@ -53,7 +53,7 @@ std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
   return std::nullopt;
 }
 
-bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+bool ParseSampler(const CustomAssetLibrary::AssetID& asset_id,
                   const picojson::object& json, SamplerState* sampler)
 {
   if (!sampler) [[unlikely]]
@@ -176,7 +176,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
 
   if (type == "texture2d")
   {
-    data->m_type = TextureData::Type::Type_Texture2D;
+    data->m_type = Type::Type_Texture2D;
 
     if (!ParseSampler(asset_id, json, &data->m_sampler))
     {
@@ -185,7 +185,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   }
   else if (type == "texturecube")
   {
-    data->m_type = TextureData::Type::Type_TextureCube;
+    data->m_type = Type::Type_TextureCube;
   }
   else
   {
@@ -207,17 +207,17 @@ void TextureData::ToJson(picojson::object* obj, const TextureData& data)
   auto& json_obj = *obj;
   switch (data.m_type)
   {
-  case TextureData::Type::Type_Texture2D:
+  case Type::Type_Texture2D:
     json_obj.emplace("type", "texture2d");
     break;
-  case TextureData::Type::Type_TextureCube:
+  case Type::Type_TextureCube:
     json_obj.emplace("type", "texturecube");
     break;
-  case TextureData::Type::Type_Undefined:
+  case Type::Type_Undefined:
     break;
   };
 
-  auto wrap_mode_to_string = [](WrapMode mode) {
+  auto wrap_mode_to_string = [](const WrapMode mode) {
     switch (mode)
     {
     case WrapMode::Clamp:
@@ -230,7 +230,7 @@ void TextureData::ToJson(picojson::object* obj, const TextureData& data)
 
     return "";
   };
-  auto filter_mode_to_string = [](FilterMode mode) {
+  auto filter_mode_to_string = [](const FilterMode mode) {
     switch (mode)
     {
     case FilterMode::Linear:
@@ -268,7 +268,7 @@ CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary
   return loaded_info;
 }
 
-bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
+bool GameTextureAsset::Validate(const u32 native_width, const u32 native_height) const
 {
   std::lock_guard lk(m_data_lock);
 
@@ -297,8 +297,8 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  const auto& slice = m_data->m_texture.m_slices[0];
-  if (slice.m_levels.empty())
+  const auto& [m_levels] = m_data->m_texture.m_slices[0];
+  if (m_levels.empty())
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -309,8 +309,8 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
 
   // Verify that the aspect ratio of the texture hasn't changed, as this could have
   // side-effects.
-  const VideoCommon::CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
-  if (first_mip.width * native_height != first_mip.height * native_width)
+  const auto& [_data, _format, width, height, _row_length] = m_levels[0];
+  if (width * native_height != height * native_width)
   {
     // Note: this feels like this should return an error but
     // for legacy reasons this is only a notice that something *could*
@@ -319,12 +319,12 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
         VIDEO,
         "Invalid custom texture size {}x{} for game texture asset '{}'. The aspect differs "
         "from the native size {}x{}.",
-        first_mip.width, first_mip.height, GetAssetId(), native_width, native_height);
+        width, height, GetAssetId(), native_width, native_height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
   if (native_width != 0 && native_height != 0 &&
-      (first_mip.width % native_width || first_mip.height % native_height))
+      (width % native_width || height % native_height))
   {
     // Note: this feels like this should return an error but
     // for legacy reasons this is only a notice that something *could*
@@ -333,7 +333,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
         VIDEO,
         "Invalid custom texture size {}x{} for game texture asset '{}'. Please use an integer "
         "upscaling factor based on the native size {}x{}.",
-        first_mip.width, first_mip.height, GetAssetId(), native_width, native_height);
+        width, height, GetAssetId(), native_width, native_height);
   }
 
   return true;

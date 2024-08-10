@@ -8,7 +8,6 @@
 #endif
 
 #include <array>
-#include <sstream>
 #include <string>
 
 #include <fmt/chrono.h>
@@ -66,11 +65,11 @@ namespace
 {
 AVRational GetTimeBaseForCurrentRefreshRate()
 {
-  auto& vi = Core::System::GetInstance().GetVideoInterface();
+  const auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
-  av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
-            int(vi.GetTargetRefreshRateNumerator()), std::numeric_limits<int>::max());
+  av_reduce(&num, &den, static_cast<int>(vi.GetTargetRefreshRateDenominator()),
+            static_cast<int>(vi.GetTargetRefreshRateNumerator()), std::numeric_limits<int>::max());
   return AVRational{num, den};
 }
 
@@ -80,7 +79,7 @@ void InitAVCodec()
   if (first_run)
   {
     av_log_set_level(AV_LOG_DEBUG);
-    av_log_set_callback([](void* ptr, int level, const char* fmt, va_list vl) {
+    av_log_set_callback([](void* ptr, int level, const char* fmt, const va_list vl) {
       if (level < 0)
         level = AV_LOG_DEBUG;
       if (level >= 0)
@@ -101,7 +100,7 @@ void InitAVCodec()
         log_level = Common::Log::LogLevel::LINFO;
 
       // Don't perform this formatting if the log level is disabled
-      auto* log_manager = Common::Log::LogManager::GetInstance();
+      const auto* log_manager = Common::Log::LogManager::GetInstance();
       if (log_manager != nullptr &&
           log_manager->IsEnabled(Common::Log::LogType::FRAMEDUMP, log_level))
       {
@@ -120,7 +119,7 @@ void InitAVCodec()
   }
 }
 
-std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index)
+std::string GetDumpPath(const std::string& extension, const std::time_t time, u32 index)
 {
   if (!g_Config.sDumpPath.empty())
     return g_Config.sDumpPath;
@@ -136,7 +135,7 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   // Ask to delete file.
   if (File::Exists(path))
   {
-    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
+    if (Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", path))
     {
       File::Delete(path);
@@ -151,16 +150,16 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   return path;
 }
 
-std::string AVErrorString(int error)
+std::string AVErrorString(const int error)
 {
   std::array<char, AV_ERROR_MAX_STRING_SIZE> msg;
   av_make_error_string(&msg[0], msg.size(), error);
-  return fmt::format("{:8x} {}", (u32)error, &msg[0]);
+  return fmt::format("{:8x} {}", static_cast<u32>(error), &msg[0]);
 }
 
 }  // namespace
 
-bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
+bool FFMpegFrameDump::Start(const int w, const int h, const u64 start_ticks)
 {
   if (IsStarted())
     return true;
@@ -172,7 +171,7 @@ bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
   return PrepareEncoding(w, h, start_ticks, m_savestate_index);
 }
 
-bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index)
+bool FFMpegFrameDump::PrepareEncoding(const int w, const int h, const u64 start_ticks, const u32 savestate_index)
 {
   m_context = std::make_unique<FrameDumpContext>();
 
@@ -192,7 +191,7 @@ bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savesta
   return success;
 }
 
-bool FFMpegFrameDump::CreateVideoFile()
+bool FFMpegFrameDump::CreateVideoFile() const
 {
   const std::string& format = g_Config.sDumpFormat;
 
@@ -358,7 +357,7 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   // Calculate presentation timestamp from ticks since start.
   const s64 pts = av_rescale_q(
       frame.state.ticks - m_context->start_ticks,
-      AVRational{1, int(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
+      AVRational{1, static_cast<int>(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
       m_context->codec->time_base);
 
   if (!IsFirstFrameInCurrentFile())
@@ -368,10 +367,10 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
       WARN_LOG_FMT(FRAMEDUMP, "PTS delta < 1. Current frame will not be dumped.");
       return;
     }
-    else if (pts > m_context->last_pts + 1 && !m_context->gave_vfr_warning)
+    if (pts > m_context->last_pts + 1 && !m_context->gave_vfr_warning)
     {
       WARN_LOG_FMT(FRAMEDUMP, "PTS delta > 1. Resulting file will have variable frame rate. "
-                              "Subsequent occurrences will not be reported.");
+                   "Subsequent occurrences will not be reported.");
       m_context->gave_vfr_warning = true;
     }
   }
@@ -406,9 +405,9 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   ProcessPackets();
 }
 
-void FFMpegFrameDump::ProcessPackets()
+void FFMpegFrameDump::ProcessPackets() const
 {
-  auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
+  const auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
       av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });
 
   if (!pkt)
@@ -484,7 +483,7 @@ void FFMpegFrameDump::CloseVideoFile()
   m_context.reset();
 }
 
-void FFMpegFrameDump::DoState(PointerWrap& p)
+void FFMpegFrameDump::DoState(const PointerWrap& p)
 {
   if (p.IsReadMode())
     ++m_savestate_index;
@@ -528,16 +527,16 @@ void FFMpegFrameDump::CheckForConfigChange(const FrameData& frame)
   }
 }
 
-FrameState FFMpegFrameDump::FetchState(u64 ticks, int frame_number) const
+FrameState FFMpegFrameDump::FetchState(const u64 ticks, const int frame_number) const
 {
   FrameState state;
   state.ticks = ticks;
   state.frame_number = frame_number;
   state.savestate_index = m_savestate_index;
 
-  const auto time_base = GetTimeBaseForCurrentRefreshRate();
-  state.refresh_rate_num = time_base.den;
-  state.refresh_rate_den = time_base.num;
+  const auto [num, den] = GetTimeBaseForCurrentRefreshRate();
+  state.refresh_rate_num = den;
+  state.refresh_rate_den = num;
   return state;
 }
 

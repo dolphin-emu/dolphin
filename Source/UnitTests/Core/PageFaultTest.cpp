@@ -6,7 +6,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -62,7 +61,7 @@ public:
 
 static void ASAN_DISABLE perform_invalid_access(void* data)
 {
-  *(volatile int*)data = 5;
+  *static_cast<volatile int*>(data) = 5;
 }
 
 TEST(PageFault, PageFault)
@@ -84,9 +83,9 @@ TEST(PageFault, PageFault)
   system.GetJitInterface().SetJit(std::move(unique_pfjit));
   pfjit.m_data = data;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  const auto start = std::chrono::high_resolution_clock::now();
   perform_invalid_access(data);
-  auto end = std::chrono::high_resolution_clock::now();
+  const auto end = std::chrono::high_resolution_clock::now();
 
   auto difference_in_nanoseconds = [](auto start, auto end) {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();

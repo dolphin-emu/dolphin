@@ -18,18 +18,16 @@
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
 #include <algorithm>
-#include <string_view>
 
 namespace OGL
 {
 VideoConfig g_ogl_config;
 
-static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+static void APIENTRY ErrorCallback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity,
                                    GLsizei length, const char* message, const void* userParam)
 {
   const char* s_source;
@@ -109,16 +107,16 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
 }
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-static void APIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void APIENTRY DepthRangef(const GLfloat neardepth, const GLfloat fardepth)
 {
   glDepthRange(neardepth, fardepth);
 }
-static void APIENTRY ClearDepthf(GLfloat depthval)
+static void APIENTRY ClearDepthf(const GLfloat depthval)
 {
   glClearDepth(depthval);
 }
 
-OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
+OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, const float backbuffer_scale)
     : m_main_gl_context(std::move(main_gl_context)),
       m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
       m_current_depth_state(RenderState::GetInvalidDepthState()),
@@ -174,7 +172,7 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
   }
 
   // Handle VSync on/off
-  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
+  if (!HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
   if (g_ActiveConfig.backend_info.bSupportsClipControl)
@@ -215,7 +213,7 @@ std::unique_ptr<AbstractTexture> OGLGfx::CreateTexture(const TextureConfig& conf
   return std::make_unique<OGLTexture>(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> OGLGfx::CreateStagingTexture(StagingTextureType type,
+std::unique_ptr<AbstractStagingTexture> OGLGfx::CreateStagingTexture(const StagingTextureType type,
                                                                      const TextureConfig& config)
 {
   return OGLStagingTexture::Create(type, config);
@@ -231,7 +229,7 @@ OGLGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* de
 }
 
 std::unique_ptr<AbstractShader>
-OGLGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+OGLGfx::CreateShaderFromSource(const ShaderStage stage, const std::string_view source, const std::string_view name)
 {
   return OGLShader::CreateFromSource(stage, source, name);
 }
@@ -245,7 +243,7 @@ OGLGfx::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t lengt
 
 std::unique_ptr<AbstractPipeline> OGLGfx::CreatePipeline(const AbstractPipelineConfig& config,
                                                          const void* cache_data,
-                                                         size_t cache_data_length)
+                                                         const size_t cache_data_length)
 {
   return OGLPipeline::Create(config, cache_data, cache_data_length);
 }
@@ -255,8 +253,8 @@ void OGLGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-void OGLGfx::SetViewport(float x, float y, float width, float height, float near_depth,
-                         float far_depth)
+void OGLGfx::SetViewport(const float x, const float y, const float width, const float height, const float near_depth,
+                         const float far_depth)
 {
   if (g_ogl_config.bSupportViewportFloat)
   {
@@ -264,20 +262,20 @@ void OGLGfx::SetViewport(float x, float y, float width, float height, float near
   }
   else
   {
-    auto iceilf = [](float f) { return static_cast<GLint>(std::ceil(f)); };
+    auto iceilf = [](const float f) { return static_cast<GLint>(std::ceil(f)); };
     glViewport(iceilf(x), iceilf(y), iceilf(width), iceilf(height));
   }
 
   glDepthRangef(near_depth, far_depth);
 }
 
-void OGLGfx::Draw(u32 base_vertex, u32 num_vertices)
+void OGLGfx::Draw(const u32 base_vertex, const u32 num_vertices)
 {
   glDrawArrays(static_cast<const OGLPipeline*>(m_current_pipeline)->GetGLPrimitive(), base_vertex,
                num_vertices);
 }
 
-void OGLGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void OGLGfx::DrawIndexed(const u32 base_index, const u32 num_indices, const u32 base_vertex)
 {
   if (g_ogl_config.bSupportsGLBaseVertex)
   {
@@ -293,7 +291,7 @@ void OGLGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 }
 
 void OGLGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                   u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
+                                   u32 groupsize_z, const u32 groups_x, const u32 groups_y, const u32 groups_z)
 {
   glUseProgram(static_cast<const OGLShader*>(shader)->GetGLComputeProgramID());
   glDispatchCompute(groups_x, groups_y, groups_z);
@@ -304,8 +302,7 @@ void OGLGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x
     static_cast<const OGLPipeline*>(m_current_pipeline)->GetProgram()->shader.Bind();
 
   // Barrier to texture can be used for reads.
-  if (std::any_of(m_bound_image_textures.begin(), m_bound_image_textures.end(),
-                  [](auto image) { return image != nullptr; }))
+  if (std::ranges::any_of(m_bound_image_textures, [](auto image) { return image != nullptr; }))
   {
     glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
   }
@@ -342,7 +339,7 @@ void OGLGfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 }
 
 void OGLGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
-                                    float depth_value)
+                                    const float depth_value)
 {
   SetFramebuffer(framebuffer);
 
@@ -373,21 +370,21 @@ void OGLGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const Clea
     glDepthMask(m_current_depth_state.updateenable);
 }
 
-void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
-                         bool alphaEnable, bool zEnable, u32 color, u32 z)
+void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, const bool colorEnable,
+                         const bool alphaEnable, const bool zEnable, const u32 color, const u32 z)
 {
   u32 clear_mask = 0;
   if (colorEnable || alphaEnable)
   {
     glColorMask(colorEnable, colorEnable, colorEnable, alphaEnable);
-    glClearColor(float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
-                 float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
+    glClearColor(static_cast<float>((color >> 16) & 0xFF) / 255.0f, static_cast<float>((color >> 8) & 0xFF) / 255.0f,
+                 static_cast<float>((color >> 0) & 0xFF) / 255.0f, static_cast<float>((color >> 24) & 0xFF) / 255.0f);
     clear_mask = GL_COLOR_BUFFER_BIT;
   }
   if (zEnable)
   {
     glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
-    glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+    glClearDepthf(static_cast<float>(z & 0xFFFFFF) / 16777216.0f);
     clear_mask |= GL_DEPTH_BUFFER_BIT;
   }
 
@@ -433,11 +430,11 @@ void OGLGfx::PresentBackbuffer()
   m_main_gl_context->Swap();
 }
 
-void OGLGfx::OnConfigChanged(u32 bits)
+void OGLGfx::OnConfigChanged(const u32 bits)
 {
   AbstractGfx::OnConfigChanged(bits);
 
-  if (bits & CONFIG_CHANGE_BIT_VSYNC && !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
+  if (bits & CONFIG_CHANGE_BIT_VSYNC && !HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
   if (bits & CONFIG_CHANGE_BIT_ANISOTROPY)
@@ -456,29 +453,29 @@ void OGLGfx::WaitForGPUIdle()
   glFinish();
 }
 
-void OGLGfx::CheckForSurfaceChange()
+void OGLGfx::CheckForSurfaceChange() const
 {
   if (!g_presenter->SurfaceChangedTestAndClear())
     return;
 
   m_main_gl_context->UpdateSurface(g_presenter->GetNewSurfaceHandle());
 
-  u32 width = m_main_gl_context->GetBackBufferWidth();
-  u32 height = m_main_gl_context->GetBackBufferHeight();
+  const u32 width = m_main_gl_context->GetBackBufferWidth();
+  const u32 height = m_main_gl_context->GetBackBufferHeight();
 
   // With a surface change, the window likely has new dimensions.
   g_presenter->SetBackbuffer(width, height);
   m_system_framebuffer->UpdateDimensions(width, height);
 }
 
-void OGLGfx::CheckForSurfaceResize()
+void OGLGfx::CheckForSurfaceResize() const
 {
   if (!g_presenter->SurfaceResizedTestAndClear())
     return;
 
   m_main_gl_context->Update();
-  u32 width = m_main_gl_context->GetBackBufferWidth();
-  u32 height = m_main_gl_context->GetBackBufferHeight();
+  const u32 width = m_main_gl_context->GetBackBufferWidth();
+  const u32 height = m_main_gl_context->GetBackBufferHeight();
   g_presenter->SetBackbuffer(width, height);
   m_system_framebuffer->UpdateDimensions(width, height);
 }
@@ -535,7 +532,7 @@ void OGLGfx::ApplyDepthState(const DepthState state)
   {
     glEnable(GL_DEPTH_TEST);
     glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[u32(state.func.Value())]);
+    glDepthFunc(glCmpFuncs[static_cast<u32>(state.func.Value())]);
   }
   else
   {
@@ -554,24 +551,24 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   if (m_current_blend_state == state)
     return;
 
-  bool useDualSource = state.usedualsrc;
+  const bool useDualSource = state.usedualsrc;
 
   const GLenum src_factors[8] = {GL_ZERO,
                                  GL_ONE,
                                  GL_DST_COLOR,
                                  GL_ONE_MINUS_DST_COLOR,
-                                 useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                 useDualSource ? GL_SRC1_ALPHA : static_cast<GLenum>(GL_SRC_ALPHA),
                                  useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                 (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                                 static_cast<GLenum>(GL_ONE_MINUS_SRC_ALPHA),
                                  GL_DST_ALPHA,
                                  GL_ONE_MINUS_DST_ALPHA};
   const GLenum dst_factors[8] = {GL_ZERO,
                                  GL_ONE,
                                  GL_SRC_COLOR,
                                  GL_ONE_MINUS_SRC_COLOR,
-                                 useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                 useDualSource ? GL_SRC1_ALPHA : static_cast<GLenum>(GL_SRC_ALPHA),
                                  useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                 (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                                 static_cast<GLenum>(GL_ONE_MINUS_SRC_ALPHA),
                                  GL_DST_ALPHA,
                                  GL_ONE_MINUS_DST_ALPHA};
 
@@ -584,13 +581,13 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   // GL_BLEND is disabled, as a workaround for some bugs (possibly graphics
   // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
   // Adventure 2 Battle: graphics crash when loading first Dark level"
-  GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-  GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  const GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  const GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
   glBlendEquationSeparate(equation, equationAlpha);
-  glBlendFuncSeparate(src_factors[u32(state.srcfactor.Value())],
-                      dst_factors[u32(state.dstfactor.Value())],
-                      src_factors[u32(state.srcfactoralpha.Value())],
-                      dst_factors[u32(state.dstfactoralpha.Value())]);
+  glBlendFuncSeparate(src_factors[static_cast<u32>(state.srcfactor.Value())],
+                      dst_factors[static_cast<u32>(state.dstfactor.Value())],
+                      src_factors[static_cast<u32>(state.srcfactoralpha.Value())],
+                      dst_factors[static_cast<u32>(state.dstfactoralpha.Value())]);
 
   const GLenum logic_op_codes[16] = {
       GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
@@ -603,7 +600,7 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
     if (state.logicopenable)
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[u32(state.logicmode.Value())]);
+      glLogicOp(logic_op_codes[static_cast<u32>(state.logicmode.Value())]);
     }
     else
     {
@@ -637,9 +634,9 @@ void OGLGfx::SetPipeline(const AbstractPipeline* pipeline)
   m_current_pipeline = pipeline;
 }
 
-void OGLGfx::SetTexture(u32 index, const AbstractTexture* texture)
+void OGLGfx::SetTexture(const u32 index, const AbstractTexture* texture)
 {
-  const OGLTexture* gl_texture = static_cast<const OGLTexture*>(texture);
+  auto gl_texture = static_cast<const OGLTexture*>(texture);
   if (m_bound_textures[index] == gl_texture)
     return;
 
@@ -651,12 +648,12 @@ void OGLGfx::SetTexture(u32 index, const AbstractTexture* texture)
   m_bound_textures[index] = gl_texture;
 }
 
-void OGLGfx::SetSamplerState(u32 index, const SamplerState& state)
+void OGLGfx::SetSamplerState(const u32 index, const SamplerState& state)
 {
   g_sampler_cache->SetSamplerState(index, state);
 }
 
-void OGLGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
+void OGLGfx::SetComputeImageTexture(const u32 index, AbstractTexture* texture, const bool read, const bool write)
 {
   if (m_bound_image_textures[index] == texture)
     return;
@@ -707,17 +704,17 @@ bool OGLGfx::IsGLES() const
   return m_main_gl_context->IsGLES();
 }
 
-void OGLGfx::BindSharedReadFramebuffer()
+void OGLGfx::BindSharedReadFramebuffer() const
 {
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_shared_read_framebuffer);
 }
 
-void OGLGfx::BindSharedDrawFramebuffer()
+void OGLGfx::BindSharedDrawFramebuffer() const
 {
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_shared_draw_framebuffer);
 }
 
-void OGLGfx::RestoreFramebufferBinding()
+void OGLGfx::RestoreFramebufferBinding() const
 {
   glBindFramebuffer(
       GL_FRAMEBUFFER,

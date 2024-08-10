@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
 
 class IRWidget : public QWidget
@@ -25,7 +23,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
-  void handleMouseEvent(QMouseEvent* event);
+  void handleMouseEvent(const QMouseEvent* event);
 
 private:
   u16 m_x = 0;
@@ -34,7 +32,7 @@ private:
 };
 
 // Should be part of class but fails to compile on mac os
-static const u16 ir_min_x = 0;
-static const u16 ir_min_y = 0;
-static const u16 ir_max_x = 1023;
-static const u16 ir_max_y = 767;
+static constexpr u16 ir_min_x = 0;
+static constexpr u16 ir_min_y = 0;
+static constexpr u16 ir_max_x = 1023;
+static constexpr u16 ir_max_y = 767;

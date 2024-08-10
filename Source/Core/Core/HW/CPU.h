@@ -56,7 +56,7 @@ public:
   void Stop();
 
   // Reset [NOT IMPLEMENTED]
-  void Reset();
+  static void Reset();
 
   // StepOpcode (Steps one Opcode)
   void StepOpcode(Common::Event* event = nullptr);
@@ -102,7 +102,7 @@ public:
 private:
   void FlushStepSyncEventLocked();
   void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock);
-  void RunAdjacentSystems(bool running);
+  void RunAdjacentSystems(bool running) const;
   bool SetStateLocked(State s);
 
   // CPU Thread execution state.

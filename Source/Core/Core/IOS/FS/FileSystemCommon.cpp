@@ -12,12 +12,12 @@
 
 namespace IOS::HLE::FS
 {
-bool IsValidPath(std::string_view path)
+bool IsValidPath(const std::string_view path)
 {
   return path == "/" || IsValidNonRootPath(path);
 }
 
-bool IsValidNonRootPath(std::string_view path)
+bool IsValidNonRootPath(const std::string_view path)
 {
   return path.length() > 1 && path.length() <= MaxPathLength && path[0] == '/' &&
          path.back() != '/';
@@ -26,17 +26,17 @@ bool IsValidNonRootPath(std::string_view path)
 bool IsValidFilename(std::string_view filename)
 {
   return filename.length() <= MaxFilenameLength &&
-         !std::any_of(filename.begin(), filename.end(), [](char c) { return c == '/'; });
+    !std::ranges::any_of(filename, [](const char c) { return c == '/'; });
 }
 
-SplitPathResult SplitPathAndBasename(std::string_view path)
+SplitPathResult SplitPathAndBasename(const std::string_view path)
 {
   const auto last_separator = path.rfind('/');
   return {std::string(path.substr(0, std::max<size_t>(1, last_separator))),
           std::string(path.substr(last_separator + 1))};
 }
 
-std::unique_ptr<FileSystem> MakeFileSystem(Location location,
+std::unique_ptr<FileSystem> MakeFileSystem(const Location location,
                                            std::vector<NandRedirect> nand_redirects)
 {
   const std::string nand_root =
@@ -44,7 +44,7 @@ std::unique_ptr<FileSystem> MakeFileSystem(Location location,
   return std::make_unique<HostFileSystem>(nand_root, std::move(nand_redirects));
 }
 
-IOS::HLE::ReturnCode ConvertResult(ResultCode code)
+ReturnCode ConvertResult(ResultCode code)
 {
   if (code == ResultCode::Success)
     return IPC_SUCCESS;
@@ -82,7 +82,7 @@ Fd FileHandle::Release()
   return fd;
 }
 
-Result<u32> FileHandle::Seek(u32 offset, SeekMode mode) const
+Result<u32> FileHandle::Seek(const u32 offset, const SeekMode mode) const
 {
   return m_fs->SeekFile(*m_fd, offset, mode);
 }
@@ -92,8 +92,8 @@ Result<FileStatus> FileHandle::GetStatus() const
   return m_fs->GetFileStatus(*m_fd);
 }
 
-Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
-                                                 Modes modes)
+Result<FileHandle> FileSystem::CreateAndOpenFile(const Uid uid, const Gid gid, const std::string& path,
+                                                 const Modes modes)
 {
   Result<FileHandle> file = OpenFile(uid, gid, path, Mode::ReadWrite);
   if (file.Succeeded())
@@ -106,8 +106,8 @@ Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::st
   return OpenFile(uid, gid, path, Mode::ReadWrite);
 }
 
-ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
-                                      FileAttribute attribute, Modes modes)
+ResultCode FileSystem::CreateFullPath(const Uid uid, const Gid gid, const std::string& path,
+                                      const FileAttribute attribute, const Modes modes)
 {
   std::string::size_type position = 1;
   while (true)

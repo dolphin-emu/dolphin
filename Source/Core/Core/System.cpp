@@ -108,9 +108,9 @@ System::~System() = default;
 
 void System::Initialize()
 {
-  m_separate_cpu_and_gpu_threads = Config::Get(Config::MAIN_CPU_THREAD);
-  m_mmu_enabled = Config::Get(Config::MAIN_MMU);
-  m_pause_on_panic_enabled = Config::Get(Config::MAIN_PAUSE_ON_PANIC);
+  m_separate_cpu_and_gpu_threads = Get(Config::MAIN_CPU_THREAD);
+  m_mmu_enabled = Get(Config::MAIN_MMU);
+  m_pause_on_panic_enabled = Get(Config::MAIN_PAUSE_ON_PANIC);
 }
 
 SoundStream* System::GetSoundStream() const
@@ -118,7 +118,7 @@ SoundStream* System::GetSoundStream() const
   return m_impl->m_sound_stream.get();
 }
 
-void System::SetSoundStream(std::unique_ptr<SoundStream> sound_stream)
+void System::SetSoundStream(std::unique_ptr<SoundStream> sound_stream) const
 {
   m_impl->m_sound_stream = std::move(sound_stream);
 }
@@ -128,7 +128,7 @@ bool System::IsSoundStreamRunning() const
   return m_impl->m_sound_stream_running;
 }
 
-void System::SetSoundStreamRunning(bool running)
+void System::SetSoundStreamRunning(const bool running) const
 {
   m_impl->m_sound_stream_running = running;
 }
@@ -138,7 +138,7 @@ bool System::IsAudioDumpStarted() const
   return m_impl->m_audio_dump_started;
 }
 
-void System::SetAudioDumpStarted(bool started)
+void System::SetAudioDumpStarted(const bool started) const
 {
   m_impl->m_audio_dump_started = started;
 }
@@ -148,7 +148,7 @@ IOS::HLE::EmulationKernel* System::GetIOS() const
   return m_impl->m_ios.get();
 }
 
-void System::SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios)
+void System::SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios) const
 {
   m_impl->m_ios = std::move(ios);
 }

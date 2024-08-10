@@ -12,7 +12,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -29,7 +28,6 @@
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -41,7 +39,6 @@
 #include "Core/TitleDatabase.h"
 
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/Volume.h"
@@ -60,20 +57,20 @@ bool UseGameCovers()
   // It's best if we disable the C++ cover code on Android to avoid duplicated data and such.
   return false;
 #else
-  return Config::Get(Config::MAIN_USE_GAME_COVERS);
+  return Get(Config::MAIN_USE_GAME_COVERS);
 #endif
 }
 }  // Anonymous namespace
 
 DiscIO::Language GameFile::GetConfigLanguage() const
 {
-  return SConfig::GetInstance().GetLanguageAdjustedForRegion(DiscIO::IsWii(m_platform), m_region);
+  return SConfig::GetInstance().GetLanguageAdjustedForRegion(IsWii(m_platform), m_region);
 }
 
-const std::string& GameFile::Lookup(DiscIO::Language language,
+const std::string& GameFile::Lookup(const DiscIO::Language language,
                                     const std::map<DiscIO::Language, std::string>& strings)
 {
-  auto end = strings.end();
+  const auto end = strings.end();
   auto it = strings.find(language);
   if (it != end)
     return it->second;
@@ -106,7 +103,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
   m_file_name = PathToFileName(m_file_path);
 
   {
-    std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(m_file_path));
+    const std::unique_ptr volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
     {
       m_platform = volume->GetVolumeType();
@@ -161,7 +158,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
     if (descriptor)
     {
-      GameFile proxy(descriptor->base_file);
+      const GameFile proxy(descriptor->base_file);
       if (proxy.IsValid())
       {
         m_valid = true;
@@ -238,9 +235,9 @@ void GameFile::DownloadDefaultCover()
     return;
 
   const std::string region_code =
-      SConfig::GetInstance().GetGameTDBImageRegionCode(DiscIO::IsWii(GetPlatform()), m_region);
+      SConfig::GetInstance().GetGameTDBImageRegionCode(IsWii(GetPlatform()), m_region);
 
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
   static constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
   const auto response = request.Get(fmt::format(cover_url, region_code, m_gametdb_id));
 
@@ -408,7 +405,7 @@ bool GameFile::WiiBannerChanged()
 
   if (!m_volume_banner.empty())
     return false;
-  if (!DiscIO::IsWii(m_platform))
+  if (!IsWii(m_platform))
     return false;
 
   m_pending.volume_banner.buffer =
@@ -435,17 +432,17 @@ bool GameFile::ReadPNGBanner(const std::string& path)
   if (!file.ReadBytes(png_data.data(), png_data.size()))
     return false;
 
-  GameBanner& banner = m_pending.custom_banner;
+  auto& [buffer, width, height] = m_pending.custom_banner;
   std::vector<u8> data_out;
-  if (!Common::LoadPNG(png_data, &data_out, &banner.width, &banner.height))
+  if (!Common::LoadPNG(png_data, &data_out, &width, &height))
     return false;
 
   // Make an ARGB copy of the RGBA data
-  banner.buffer.resize(data_out.size() / sizeof(u32));
-  for (size_t i = 0; i < banner.buffer.size(); i++)
+  buffer.resize(data_out.size() / sizeof(u32));
+  for (size_t i = 0; i < buffer.size(); i++)
   {
     const size_t j = i * sizeof(u32);
-    banner.buffer[i] = (Common::swap32(data_out.data() + j) >> 8) + (data_out[j] << 24);
+    buffer[i] = (Common::swap32(data_out.data() + j) >> 8) + (data_out[j] << 24);
   }
 
   return true;
@@ -456,7 +453,7 @@ bool GameFile::TryLoadGameModDescriptorBanner()
   if (m_blob_type != DiscIO::BlobType::MOD_DESCRIPTOR)
     return false;
 
-  auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+  const auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
   if (!descriptor)
     return false;
 
@@ -503,7 +500,7 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
-const std::string& GameFile::GetName(Variant variant) const
+const std::string& GameFile::GetName(const Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_name.empty())
     return m_custom_name;
@@ -516,7 +513,7 @@ const std::string& GameFile::GetName(Variant variant) const
   return m_file_name;
 }
 
-const std::string& GameFile::GetMaker(Variant variant) const
+const std::string& GameFile::GetMaker(const Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
     return m_custom_maker;
@@ -532,7 +529,7 @@ const std::string& GameFile::GetMaker(Variant variant) const
   return EMPTY_STRING;
 }
 
-const std::string& GameFile::GetDescription(Variant variant) const
+const std::string& GameFile::GetDescription(const Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_description.empty())
     return m_custom_description;
@@ -544,12 +541,12 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 {
   std::vector<DiscIO::Language> languages;
   // TODO: What if some languages don't have long names but have other strings?
-  for (const auto& name : m_long_names)
-    languages.push_back(name.first);
+  for (const auto& [fst, _snd] : m_long_names)
+    languages.push_back(fst);
   return languages;
 }
 
-bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
+bool GameFile::CheckIfTwoDiscGame(const std::string& game_id)
 {
   constexpr size_t GAME_ID_PREFIX_SIZE = 3;
   if (game_id.size() < GAME_ID_PREFIX_SIZE)
@@ -613,11 +610,10 @@ bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
       "S6T",
       "SDQ",
   };
-  static_assert(std::is_sorted(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end()));
+  static_assert(std::ranges::is_sorted(two_disc_game_id_prefixes));
 
-  std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
-  return std::binary_search(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end(),
-                            game_id_prefix);
+  const std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
+  return std::ranges::binary_search(two_disc_game_id_prefixes, game_id_prefix);
 }
 
 std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) const
@@ -638,7 +634,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
       lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
       lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
   {
-    std::string disc_text = "Disc ";
+    const std::string disc_text = "Disc ";
     info.push_back(disc_text + std::to_string(disc_number));
   }
   if (info.empty())
@@ -649,13 +645,13 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   return name + " (" + ss.str() + ")";
 }
 
-static Common::SHA1::Digest GetHash(u32 value)
+static Common::SHA1::Digest GetHash(const u32 value)
 {
-  auto data = Common::BitCastToArray<u8>(value);
+  const auto data = Common::BitCastToArray<u8>(value);
   return Common::SHA1::CalculateDigest(data);
 }
 
-static Common::SHA1::Digest GetHash(std::string_view str)
+static Common::SHA1::Digest GetHash(const std::string_view str)
 {
   return Common::SHA1::CalculateDigest(str);
 }
@@ -691,25 +687,25 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
   }
   else if (m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR)
   {
-    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    const auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
     if (descriptor)
     {
-      GameFile proxy(descriptor->base_file);
+      const GameFile proxy(descriptor->base_file);
       if (proxy.IsValid())
         hash = proxy.GetSyncHash();
 
       // add patches to hash if they're enabled
       if (descriptor->riivolution)
       {
-        for (const auto& patch : descriptor->riivolution->patches)
+        for (const auto& [xml, _root, options] : descriptor->riivolution->patches)
         {
-          hash = MixHash(hash, GetFileHash(patch.xml));
-          for (const auto& option : patch.options)
+          hash = MixHash(hash, GetFileHash(xml));
+          for (const auto& [section_name, option_id, option_name, choice] : options)
           {
-            hash = MixHash(hash, GetHash(option.section_name));
-            hash = MixHash(hash, GetHash(option.option_id));
-            hash = MixHash(hash, GetHash(option.option_name));
-            hash = MixHash(hash, GetHash(option.choice));
+            hash = MixHash(hash, GetHash(section_name));
+            hash = MixHash(hash, GetHash(option_id));
+            hash = MixHash(hash, GetHash(option_name));
+            hash = MixHash(hash, GetHash(choice));
           }
         }
       }
@@ -717,7 +713,7 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
   }
   else
   {
-    if (std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_file_path))
+    if (const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_file_path))
       hash = volume->GetSyncHash();
   }
 
@@ -784,8 +780,7 @@ GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) 
     // So if the hash differs, then it's probably a different game even if the game ID matches.
     if (m_is_datel_disc)
       return NetPlay::SyncIdentifierComparison::DifferentGame;
-    else
-      return NetPlay::SyncIdentifierComparison::DifferentHash;
+    return NetPlay::SyncIdentifierComparison::DifferentHash;
   }
 
   return NetPlay::SyncIdentifierComparison::SameGame;
@@ -794,7 +789,7 @@ GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) 
 std::string GameFile::GetWiiFSPath() const
 {
   ASSERT(DiscIO::IsWii(m_platform));
-  return Common::GetTitleDataPath(m_title_id, Common::FromWhichRoot::Configured);
+  return GetTitleDataPath(m_title_id, Common::FromWhichRoot::Configured);
 }
 
 bool GameFile::ShouldShowFileFormatDetails() const
@@ -849,7 +844,7 @@ std::string GameFile::GetFileFormatName() const
 
 bool GameFile::ShouldAllowConversion() const
 {
-  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
+  return IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
 }
 
 bool GameFile::IsModDescriptor() const

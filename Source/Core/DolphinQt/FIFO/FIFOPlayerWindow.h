@@ -30,25 +30,25 @@ signals:
 
 private:
   void CreateWidgets();
-  void LoadSettings();
+  void LoadSettings() const;
   void ConnectWidgets();
-  void AddDescriptions();
+  void AddDescriptions() const;
 
   void LoadRecording();
   void SaveRecording();
   void StartRecording();
-  void StopRecording();
+  void StopRecording() const;
 
-  void OnEmulationStarted();
-  void OnEmulationStopped();
-  void OnLimitsChanged();
-  void OnRecordingDone();
-  void OnFIFOLoaded();
-  void OnConfigChanged();
+  void OnEmulationStarted() const;
+  void OnEmulationStopped() const;
+  void OnLimitsChanged() const;
+  void OnRecordingDone() const;
+  void OnFIFOLoaded() const;
+  void OnConfigChanged() const;
 
-  void UpdateControls();
-  void UpdateInfo();
-  void UpdateLimits();
+  void UpdateControls() const;
+  void UpdateInfo() const;
+  void UpdateLimits() const;
 
   bool eventFilter(QObject* object, QEvent* event) final override;
 

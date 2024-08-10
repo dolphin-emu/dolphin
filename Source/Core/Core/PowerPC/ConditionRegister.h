@@ -45,40 +45,40 @@ struct ConditionRegister
   u64 fields[8];
 
   // Convert between PPC and internal representation of CR.
-  static constexpr u64 PPCToInternal(u8 value)
+  static constexpr u64 PPCToInternal(const u8 value)
   {
     u64 cr_val = 0x100000000;
-    cr_val |= (u64) !!(value & CR_SO) << CR_EMU_SO_BIT;
-    cr_val |= (u64) !(value & CR_EQ);
-    cr_val |= (u64) !(value & CR_GT) << 63;
-    cr_val |= (u64) !!(value & CR_LT) << CR_EMU_LT_BIT;
+    cr_val |= static_cast<u64>(!!(value & CR_SO)) << CR_EMU_SO_BIT;
+    cr_val |= static_cast<u64>(!(value & CR_EQ));
+    cr_val |= static_cast<u64>(!(value & CR_GT)) << 63;
+    cr_val |= static_cast<u64>(!!(value & CR_LT)) << CR_EMU_LT_BIT;
 
     return cr_val;
   }
 
   // Warning: these CR operations are fairly slow since they need to convert from
   // PowerPC format (4 bit) to our internal 64 bit format.
-  void SetField(u32 cr_field, u32 value) { fields[cr_field] = s_crTable[value]; }
+  void SetField(const u32 cr_field, const u32 value) { fields[cr_field] = s_crTable[value]; }
 
-  u32 GetField(u32 cr_field) const
+  u32 GetField(const u32 cr_field) const
   {
     const u64 cr_val = fields[cr_field];
     u32 ppc_cr = 0;
 
     // LT/SO
     static_assert(CR_EMU_LT_BIT - CR_EMU_SO_BIT == CR_LT_BIT - CR_SO_BIT);
-    ppc_cr |= (cr_val >> CR_EMU_SO_BIT) & (PowerPC::CR_LT | PowerPC::CR_SO);
+    ppc_cr |= (cr_val >> CR_EMU_SO_BIT) & (CR_LT | CR_SO);
     // EQ
-    ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << PowerPC::CR_EQ_BIT;
+    ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << CR_EQ_BIT;
     // GT
-    ppc_cr |= (static_cast<s64>(cr_val) > 0) << PowerPC::CR_GT_BIT;
+    ppc_cr |= (static_cast<s64>(cr_val) > 0) << CR_GT_BIT;
 
     return ppc_cr;
   }
 
-  u32 GetBit(u32 bit) const { return (GetField(bit >> 2) >> (3 - (bit & 3))) & 1; }
+  u32 GetBit(const u32 bit) const { return (GetField(bit >> 2) >> (3 - (bit & 3))) & 1; }
 
-  void SetBit(u32 bit, u32 value)
+  void SetBit(const u32 bit, const u32 value)
   {
     if (value & 1)
       SetField(bit >> 2, GetField(bit >> 2) | (0x8 >> (bit & 3)));

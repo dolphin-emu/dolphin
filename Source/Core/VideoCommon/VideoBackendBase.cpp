@@ -13,12 +13,10 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
@@ -51,8 +49,6 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
-#include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
@@ -92,17 +88,17 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 
 void VideoBackendBase::Video_ExitLoop()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().ExitGpuLoop();
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                       u64 ticks)
+void VideoBackendBase::Video_OutputXFB(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height,
+                                       const u64 ticks) const
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
     AsyncRequests::Event e;
@@ -136,29 +132,26 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data
     AsyncRequests::GetInstance()->PushEvent(e, false);
     return 0;
   }
-  else
-  {
-    AsyncRequests::Event e;
-    u32 result;
-    e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
-                                                AsyncRequests::Event::EFB_PEEK_Z;
-    e.time = 0;
-    e.efb_peek.x = x;
-    e.efb_peek.y = y;
-    e.efb_peek.data = &result;
-    AsyncRequests::GetInstance()->PushEvent(e, true);
-    return result;
-  }
+  AsyncRequests::Event e;
+  u32 result;
+  e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
+             AsyncRequests::Event::EFB_PEEK_Z;
+  e.time = 0;
+  e.efb_peek.x = x;
+  e.efb_peek.y = y;
+  e.efb_peek.data = &result;
+  AsyncRequests::GetInstance()->PushEvent(e, true);
+  return result;
 }
 
-u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
+u32 VideoBackendBase::Video_GetQueryResult(const PerfQueryType type)
 {
   if (!g_perf_query->ShouldEmulate())
   {
     return 0;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::PerfQuery);
 
   AsyncRequests::Event e;
@@ -171,7 +164,7 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
   return g_perf_query->GetQueryResult(type);
 }
 
-u16 VideoBackendBase::Video_GetBoundingBox(int index)
+u16 VideoBackendBase::Video_GetBoundingBox(const int index)
 {
   DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::READS_BOUNDING_BOX);
 
@@ -199,7 +192,7 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     warn_once = false;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::BBox);
 
   AsyncRequests::Event e;
@@ -223,7 +216,7 @@ static VideoBackendBase* GetDefaultVideoBackend()
 
 std::string VideoBackendBase::GetDefaultBackendName()
 {
-  auto* default_backend = GetDefaultVideoBackend();
+  const auto* default_backend = GetDefaultVideoBackend();
   return default_backend ? default_backend->GetName() : "";
 }
 
@@ -271,7 +264,7 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
     g_video_backend = GetDefaultVideoBackend();
 
   const auto& backends = GetAvailableBackends();
-  const auto iter = std::find_if(backends.begin(), backends.end(), [&name](const auto& backend) {
+  const auto iter = std::ranges::find_if(backends, [&name](const auto& backend) {
     return name == backend->GetName();
   });
 
@@ -287,7 +280,7 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
   // a value from the previously used renderer
   g_Config.backend_info = {};
-  ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  ActivateBackend(Get(Config::MAIN_GFX_BACKEND));
   g_Config.backend_info.DisplayName = g_video_backend->GetDisplayName();
   g_video_backend->InitBackendInfo(wsi);
   // We validate the config after initializing the backend info, as system-specific settings
@@ -299,13 +292,13 @@ void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
 {
   // If the core is running, the backend info will have been populated already.
   // If we did it here, the UI thread can race with the with the GPU thread.
-  if (!Core::IsRunning(Core::System::GetInstance()))
+  if (!IsRunning(Core::System::GetInstance()))
     PopulateBackendInfo(wsi);
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (!system.IsDualCoreMode())
   {
     VideoCommon_DoState(p);
@@ -342,8 +335,8 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
                                         std::unique_ptr<Renderer> renderer,
                                         std::unique_ptr<TextureCacheBase> texture_cache)
 {
-  memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
-  memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
+  memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
+  memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
   s_tex_mem.fill(0);
 
   // do not initialize again for the config window
@@ -376,7 +369,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
     return false;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init();
   system.GetFifo().Init();
@@ -421,7 +414,7 @@ void VideoBackendBase::ShutdownShared()
 
   m_initialized = false;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   VertexLoaderManager::Clear();
   system.GetFifo().Shutdown();
 }

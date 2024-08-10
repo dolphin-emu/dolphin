@@ -25,7 +25,7 @@ public:
   StateData GetState() const;
   StateData GetState(const InputOverrideFunction& override_func) const;
 
-  static constexpr const char* X_INPUT_OVERRIDE = "X";
+  static constexpr auto X_INPUT_OVERRIDE = "X";
 
 private:
   SettingValue<double> m_deadzone_setting;

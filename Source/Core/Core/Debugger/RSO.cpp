@@ -14,7 +14,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-void RSOHeaderView::Load(const Core::CPUThreadGuard& guard, u32 address)
+void RSOHeaderView::Load(const Core::CPUThreadGuard& guard, const u32 address)
 {
   m_address = address;
   m_header.entry.next_entry = PowerPC::MMU::HostRead_U32(guard, address);
@@ -175,7 +175,7 @@ u32 RSOHeaderView::GetImportsNameTable() const
   return m_header.symbol_tables.imports_name_table;
 }
 
-void RSOSectionsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count)
+void RSOSectionsView::Load(const Core::CPUThreadGuard& guard, u32 address, const std::size_t count)
 {
   m_address = address;
   for (std::size_t i = 0; i < count; ++i)
@@ -193,7 +193,7 @@ size_t RSOSectionsView::Count() const
   return m_sections.size();
 }
 
-const RSOSection& RSOSectionsView::GetSection(std::size_t index) const
+const RSOSection& RSOSectionsView::GetSection(const std::size_t index) const
 {
   return m_sections.at(index);
 }
@@ -203,7 +203,7 @@ const std::vector<RSOSection>& RSOSectionsView::GetSections() const
   return m_sections;
 }
 
-void RSOImportsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count)
+void RSOImportsView::Load(const Core::CPUThreadGuard& guard, u32 address, const std::size_t count)
 {
   m_address = address;
   for (std::size_t i = 0; i < count; ++i)
@@ -222,7 +222,7 @@ std::size_t RSOImportsView::Count() const
   return m_imports.size();
 }
 
-const RSOImport& RSOImportsView::GetImport(std::size_t index) const
+const RSOImport& RSOImportsView::GetImport(const std::size_t index) const
 {
   return m_imports.at(index);
 }
@@ -232,7 +232,7 @@ const std::vector<RSOImport>& RSOImportsView::GetImports() const
   return m_imports;
 }
 
-void RSOExportsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count)
+void RSOExportsView::Load(const Core::CPUThreadGuard& guard, u32 address, const std::size_t count)
 {
   m_address = address;
   for (std::size_t i = 0; i < count; ++i)
@@ -252,7 +252,7 @@ std::size_t RSOExportsView::Count() const
   return m_exports.size();
 }
 
-const RSOExport& RSOExportsView::GetExport(std::size_t index) const
+const RSOExport& RSOExportsView::GetExport(const std::size_t index) const
 {
   return m_exports.at(index);
 }
@@ -262,7 +262,7 @@ const std::vector<RSOExport>& RSOExportsView::GetExports() const
   return m_exports;
 }
 
-void RSOInternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count)
+void RSOInternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, const std::size_t count)
 {
   m_address = address;
   for (std::size_t i = 0; i < count; ++i)
@@ -281,7 +281,7 @@ std::size_t RSOInternalsView::Count() const
   return m_entries.size();
 }
 
-const RSOInternalsEntry& RSOInternalsView::GetEntry(std::size_t index) const
+const RSOInternalsEntry& RSOInternalsView::GetEntry(const std::size_t index) const
 {
   return m_entries.at(index);
 }
@@ -291,7 +291,7 @@ const std::vector<RSOInternalsEntry>& RSOInternalsView::GetEntries() const
   return m_entries;
 }
 
-void RSOExternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count)
+void RSOExternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, const std::size_t count)
 {
   m_address = address;
   for (std::size_t i = 0; i < count; ++i)
@@ -310,7 +310,7 @@ std::size_t RSOExternalsView::Count() const
   return m_entries.size();
 }
 
-const RSOExternalsEntry& RSOExternalsView::GetEntry(std::size_t index) const
+const RSOExternalsEntry& RSOExternalsView::GetEntry(const std::size_t index) const
 {
   return m_entries.at(index);
 }
@@ -320,7 +320,7 @@ const std::vector<RSOExternalsEntry>& RSOExternalsView::GetEntries() const
   return m_entries;
 }
 
-void RSOView::LoadHeader(const Core::CPUThreadGuard& guard, u32 address)
+void RSOView::LoadHeader(const Core::CPUThreadGuard& guard, const u32 address)
 {
   m_address = address;
   m_header.Load(guard, address);
@@ -363,7 +363,7 @@ void RSOView::LoadExternals(const Core::CPUThreadGuard& guard)
   m_imports.Load(guard, m_header.GetExternalsOffset(), size / sizeof(RSOExternalsEntry));
 }
 
-void RSOView::LoadAll(const Core::CPUThreadGuard& guard, u32 address)
+void RSOView::LoadAll(const Core::CPUThreadGuard& guard, const u32 address)
 {
   LoadHeader(guard, address);
   LoadSections(guard);
@@ -377,7 +377,7 @@ void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) c
 {
   for (const RSOExport& rso_export : GetExports())
   {
-    u32 address = GetExportAddress(rso_export);
+    const u32 address = GetExportAddress(rso_export);
     if (address != 0)
     {
       Common::Symbol* symbol = symbol_db->AddFunction(guard, address);
@@ -425,7 +425,7 @@ std::size_t RSOView::GetSectionCount() const
   return m_sections.Count();
 }
 
-const RSOSection& RSOView::GetSection(std::size_t index) const
+const RSOSection& RSOView::GetSection(const std::size_t index) const
 {
   return m_sections.GetSection(index);
 }
@@ -440,7 +440,7 @@ std::size_t RSOView::GetImportsCount() const
   return m_imports.Count();
 }
 
-const RSOImport& RSOView::GetImport(std::size_t index) const
+const RSOImport& RSOView::GetImport(const std::size_t index) const
 {
   return m_imports.GetImport(index);
 }
@@ -462,7 +462,7 @@ std::size_t RSOView::GetExportsCount() const
   return m_exports.Count();
 }
 
-const RSOExport& RSOView::GetExport(std::size_t index) const
+const RSOExport& RSOView::GetExport(const std::size_t index) const
 {
   return m_exports.GetExport(index);
 }
@@ -494,7 +494,7 @@ std::size_t RSOView::GetInternalsCount() const
   return m_internals.Count();
 }
 
-const RSOInternalsEntry& RSOView::GetInternalsEntry(std::size_t index) const
+const RSOInternalsEntry& RSOView::GetInternalsEntry(const std::size_t index) const
 {
   return m_internals.GetEntry(index);
 }
@@ -509,7 +509,7 @@ std::size_t RSOView::GetExternalsCount() const
   return m_externals.Count();
 }
 
-const RSOExternalsEntry& RSOView::GetExternalsEntry(std::size_t index) const
+const RSOExternalsEntry& RSOView::GetExternalsEntry(const std::size_t index) const
 {
   return m_externals.GetEntry(index);
 }
@@ -570,7 +570,7 @@ u32 RSOView::GetUnresolved() const
   return 0;
 }
 
-bool RSOChainView::Load(const Core::CPUThreadGuard& guard, u32 address)
+bool RSOChainView::Load(const Core::CPUThreadGuard& guard, const u32 address)
 {
   // Load node
   RSOView node;

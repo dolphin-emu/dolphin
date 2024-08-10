@@ -4,12 +4,10 @@
 #include "Core/FreeLookManager.h"
 
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/ScopeGuard.h"
 
 #include "Core/Config/FreeLookSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookConfig.h"
 
@@ -19,7 +17,6 @@
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/OnScreenDisplay.h"
 
 namespace
 {
@@ -115,7 +112,7 @@ FreeLookController::FreeLookController(const unsigned int index) : m_index(index
 
 std::string FreeLookController::GetName() const
 {
-  return std::string("FreeLook") + char('1' + m_index);
+  return std::string("FreeLook") + static_cast<char>('1' + m_index);
 }
 
 InputConfig* FreeLookController::GetConfig() const
@@ -205,7 +202,7 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
 #endif
 }
 
-ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) const
+ControllerEmu::ControlGroup* FreeLookController::GetGroup(const FreeLookGroup group) const
 {
   switch (group)
   {
@@ -243,7 +240,7 @@ void FreeLookController::UpdateInput(CameraControllerInput* camera_controller)
   const auto old_gate = ControlReference::GetInputGate();
   Common::ScopeGuard gate_guard{[old_gate] { ControlReference::SetInputGate(old_gate); }};
   // Switch to the free look focus gate
-  Core::UpdateInputGate(!Config::Get(Config::FREE_LOOK_BACKGROUND_INPUT));
+  Core::UpdateInputGate(!Get(Config::FREE_LOOK_BACKGROUND_INPUT));
 
   float dt = 1.0;
   if (m_last_free_look_rotate_time)
@@ -335,7 +332,7 @@ void Initialize()
 
   s_config.RegisterHotplugCallback();
 
-  FreeLook::GetConfig().Refresh();
+  GetConfig().Refresh();
 
   s_config.LoadConfig();
 }
@@ -350,7 +347,7 @@ bool IsInitialized()
   return !s_config.ControllersNeedToBeCreated();
 }
 
-ControllerEmu::ControlGroup* GetInputGroup(int pad_num, FreeLookGroup group)
+ControllerEmu::ControlGroup* GetInputGroup(const int pad_num, const FreeLookGroup group)
 {
   return static_cast<FreeLookController*>(s_config.GetController(pad_num))->GetGroup(group);
 }

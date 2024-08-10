@@ -4,8 +4,6 @@
 #include "DiscIO/Blob.h"
 
 #include <algorithm>
-#include <cstddef>
-#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -26,7 +24,7 @@
 
 namespace DiscIO
 {
-std::string GetName(BlobType blob_type, bool translate)
+std::string GetName(const BlobType blob_type, bool translate)
 {
   const auto translate_str = [translate](const std::string& str) {
     return translate ? Common::GetStringT(str.c_str()) : str;
@@ -61,7 +59,7 @@ std::string GetName(BlobType blob_type, bool translate)
   }
 }
 
-void SectorReader::SetSectorSize(int blocksize)
+void SectorReader::SetSectorSize(const int blocksize)
 {
   m_block_size = std::max(blocksize, 0);
   for (auto& cache_entry : m_cache)
@@ -71,7 +69,7 @@ void SectorReader::SetSectorSize(int blocksize)
   }
 }
 
-void SectorReader::SetChunkSize(int block_cnt)
+void SectorReader::SetChunkSize(const int block_cnt)
 {
   m_chunk_blocks = std::max(block_cnt, 1);
   // Clear cache and resize the data arrays
@@ -82,10 +80,11 @@ SectorReader::~SectorReader()
 {
 }
 
-const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
+const SectorReader::Cache* SectorReader::FindCacheLine(const u64 block_num)
 {
-  auto itr = std::find_if(m_cache.begin(), m_cache.end(),
-                          [&](const Cache& entry) { return entry.Contains(block_num); });
+  const auto itr = std::ranges::find_if(m_cache, [&](const Cache& entry) {
+    return entry.Contains(block_num);
+  });
   if (itr == m_cache.end())
     return nullptr;
 
@@ -110,16 +109,16 @@ SectorReader::Cache* SectorReader::GetEmptyCacheLine()
   return oldest;
 }
 
-const SectorReader::Cache* SectorReader::GetCacheLine(u64 block_num)
+const SectorReader::Cache* SectorReader::GetCacheLine(const u64 block_num)
 {
-  if (auto entry = FindCacheLine(block_num))
+  if (const auto entry = FindCacheLine(block_num))
     return entry;
 
   // Cache miss. Fault in the missing entry.
   Cache* cache = GetEmptyCacheLine();
   // We only read aligned chunks, this avoids duplicate overlapping entries.
-  u64 chunk_idx = block_num / m_chunk_blocks;
-  u32 blocks_read = ReadChunk(cache->data.data(), chunk_idx);
+  const u64 chunk_idx = block_num / m_chunk_blocks;
+  const u32 blocks_read = ReadChunk(cache->data.data(), chunk_idx);
   if (!blocks_read)
     return nullptr;
   cache->Fill(chunk_idx * m_chunk_blocks, blocks_read);
@@ -131,7 +130,7 @@ const SectorReader::Cache* SectorReader::GetCacheLine(u64 block_num)
   return cache->Contains(block_num) ? cache : nullptr;
 }
 
-bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
+bool SectorReader::Read(u64 offset, const u64 size, u8* out_ptr)
 {
   if (offset + size > GetDataSize())
     return false;
@@ -149,9 +148,9 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
       return false;
 
     // Cache entries are aligned chunks, we may not want to read from the start
-    u32 read_offset = static_cast<u32>(block - cache->block_idx) * m_block_size + position_in_block;
-    u32 can_read = m_block_size * cache->num_blocks - read_offset;
-    u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
+    const u32 read_offset = static_cast<u32>(block - cache->block_idx) * m_block_size + position_in_block;
+    const u32 can_read = m_block_size * cache->num_blocks - read_offset;
+    const u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
 
     std::copy(cache->data.begin() + read_offset, cache->data.begin() + read_offset + was_read,
               out_ptr);
@@ -165,7 +164,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 }
 
 // Crap default implementation if not overridden.
-bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 cnt_blocks, u8* out_ptr)
+bool SectorReader::ReadMultipleAlignedBlocks(const u64 block_num, const u64 cnt_blocks, u8* out_ptr)
 {
   for (u64 i = 0; i < cnt_blocks; ++i)
   {
@@ -176,14 +175,14 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 cnt_blocks, u8* 
   return true;
 }
 
-u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
+u32 SectorReader::ReadChunk(u8* buffer, const u64 chunk_num)
 {
-  u64 block_num = chunk_num * m_chunk_blocks;
+  const u64 block_num = chunk_num * m_chunk_blocks;
   u32 cnt_blocks = m_chunk_blocks;
 
   // If we are reading the end of a disk, there may not be enough blocks to
   // read a whole chunk. We need to clamp down in that case.
-  u64 end_block = (GetDataSize() + m_block_size - 1) / m_block_size;
+  const u64 end_block = (GetDataSize() + m_block_size - 1) / m_block_size;
   if (end_block)
     cnt_blocks = static_cast<u32>(std::min<u64>(m_chunk_blocks, end_block - block_num));
 

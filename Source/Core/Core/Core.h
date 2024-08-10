@@ -30,7 +30,7 @@ void SetIsThrottlerTempDisabled(bool disable);
 double GetActualEmulationSpeed();
 
 void Callback_FramePresented(double actual_emulation_speed = 1.0);
-void Callback_NewField(Core::System& system);
+void Callback_NewField(const System& system);
 
 enum class State
 {
@@ -105,7 +105,7 @@ enum class ConsoleType : u32
 class CPUThreadGuard final
 {
 public:
-  explicit CPUThreadGuard(Core::System& system);
+  explicit CPUThreadGuard(System& system);
   ~CPUThreadGuard();
 
   CPUThreadGuard(const CPUThreadGuard&) = delete;
@@ -113,17 +113,17 @@ public:
   CPUThreadGuard& operator=(const CPUThreadGuard&) = delete;
   CPUThreadGuard& operator=(CPUThreadGuard&&) = delete;
 
-  Core::System& GetSystem() const { return m_system; }
+  System& GetSystem() const { return m_system; }
 
 private:
-  Core::System& m_system;
+  System& m_system;
   const bool m_was_cpu_thread;
   bool m_was_unpaused = false;
 };
 
-bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
-void Stop(Core::System& system);
-void Shutdown(Core::System& system);
+bool Init(System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
+void Stop(System& system);
+void Shutdown(System& system);
 
 void DeclareAsCPUThread();
 void UndeclareAsCPUThread();
@@ -134,8 +134,8 @@ void UndeclareAsHostThread();
 
 std::string StopMessage(bool main_thread, std::string_view message);
 
-bool IsRunning(Core::System& system);
-bool IsRunningOrStarting(Core::System& system);
+bool IsRunning(System& system);
+bool IsRunningOrStarting(System& system);
 bool IsCPUThread();  // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 bool IsHostThread();
@@ -143,9 +143,9 @@ bool IsHostThread();
 bool WantsDeterminism();
 
 // [NOT THREADSAFE] For use by Host only
-void SetState(Core::System& system, State state, bool report_state_change = true,
+void SetState(const System& system, State state, bool report_state_change = true,
               bool initial_execution_state = false);
-State GetState(Core::System& system);
+State GetState(const System& system);
 
 void SaveScreenShot();
 void SaveScreenShot(std::string_view name);
@@ -154,22 +154,22 @@ void SaveScreenShot(std::string_view name);
 void DisplayMessage(std::string message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
-void OnFrameEnd(Core::System& system);
+void OnFrameEnd(System& system);
 
 // Run a function on the CPU thread, asynchronously.
 // This is only valid to call from the host thread, since it uses PauseAndLock() internally.
-void RunOnCPUThread(Core::System& system, std::function<void()> function, bool wait_for_completion);
+void RunOnCPUThread(System& system, std::function<void()> function, bool wait_for_completion);
 
 // for calling back into UI code without introducing a dependency on it in core
-using StateChangedCallbackFunc = std::function<void(Core::State)>;
+using StateChangedCallbackFunc = std::function<void(State)>;
 // Returns a handle
 int AddOnStateChangedCallback(StateChangedCallbackFunc callback);
 // Also invalidates the handle
 bool RemoveOnStateChangedCallback(int* handle);
-void CallOnStateChangedCallbacks(Core::State state);
+void CallOnStateChangedCallbacks(State state);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
-void UpdateWantDeterminism(Core::System& system, bool initial = false);
+void UpdateWantDeterminism(System& system, bool initial = false);
 
 // Queue an arbitrary function to asynchronously run once on the Host thread later.
 // Threadsafe. Can be called by any thread, including the Host itself.
@@ -180,16 +180,16 @@ void UpdateWantDeterminism(Core::System& system, bool initial = false);
 // NOTE: Make sure the jobs check the global state instead of assuming everything is
 //   still the same as when the job was queued.
 // NOTE: Jobs that are not set to run during stop will be discarded instead.
-void QueueHostJob(std::function<void(Core::System&)> job, bool run_during_stop = false);
+void QueueHostJob(std::function<void(System&)> job, bool run_during_stop = false);
 
 // Should be called periodically by the Host to run pending jobs.
 // WMUserJobDispatch will be sent when something is added to the queue.
-void HostDispatchJobs(Core::System& system);
+void HostDispatchJobs(System& system);
 
-void DoFrameStep(Core::System& system);
+void DoFrameStep(const System& system);
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
-void UpdateTitle(Core::System& system);
+void UpdateTitle(const System& system);
 
 }  // namespace Core

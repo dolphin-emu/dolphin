@@ -5,7 +5,6 @@
 
 #include <QDialog>
 
-#include "Common/CommonTypes.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -39,8 +38,8 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  void OnBPTypeChanged();
-  void OnAddressTypeChanged();
+  void OnBPTypeChanged() const;
+  void OnAddressTypeChanged() const;
   void ShowConditionHelp();
 
   // Instruction BPs

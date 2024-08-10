@@ -5,13 +5,11 @@
 
 #include <fmt/core.h>
 
-#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
@@ -53,8 +51,8 @@ QGroupBox* MappingWidget::CreateGroupBox(ControllerEmu::ControlGroup* group)
 
 QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group)
 {
-  QGroupBox* group_box = new QGroupBox(name);
-  QFormLayout* form_layout = new QFormLayout();
+  auto group_box = new QGroupBox(name);
+  auto form_layout = new QFormLayout();
 
   group_box->setLayout(form_layout);
 
@@ -135,8 +133,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
   {
-    QLabel* group_enable_label = new QLabel(tr("Enable"));
-    QCheckBox* group_enable_checkbox = new QCheckBox();
+    auto group_enable_label = new QLabel(tr("Enable"));
+    auto group_enable_checkbox = new QCheckBox();
     group_enable_checkbox->setChecked(group->enabled);
     form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
     auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
@@ -155,10 +153,12 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
             [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
 
-  const auto advanced_setting_count = std::count_if(
-      group->numeric_settings.begin(), group->numeric_settings.end(), [](auto& setting) {
-        return setting->GetVisibility() == ControllerEmu::SettingVisibility::Advanced;
-      });
+  const auto advanced_setting_count =
+      std::ranges::count_if(group->numeric_settings,
+                            [](auto& setting) {
+                              return setting->GetVisibility() ==
+                                     ControllerEmu::SettingVisibility::Advanced;
+                            });
 
   if (advanced_setting_count != 0)
   {
@@ -170,7 +170,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   if (group->type == ControllerEmu::GroupType::Cursor)
   {
-    QPushButton* mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
+    auto mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
     form_layout->insertRow(2, mouse_button);
 
     using ControllerEmu::Cursor;
@@ -196,8 +196,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   return group_box;
 }
 
-void MappingWidget::AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
-                                      ControllerEmu::SettingVisibility visibility)
+void MappingWidget::AddSettingWidgets(QFormLayout* layout, const ControllerEmu::ControlGroup* group,
+                                      const ControllerEmu::SettingVisibility visibility)
 {
   for (auto& setting : group->numeric_settings)
   {
@@ -242,7 +242,7 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
 
   const auto group_box = new QGroupBox(tr("Advanced Settings"));
 
-  QFormLayout* form_layout = new QFormLayout();
+  auto form_layout = new QFormLayout();
 
   AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Advanced);
 
@@ -250,7 +250,7 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
   form_layout->addRow(reset_button);
 
   connect(reset_button, &QPushButton::clicked, [this, group] {
-    for (auto& setting : group->numeric_settings)
+    for (const auto& setting : group->numeric_settings)
     {
       if (setting->GetVisibility() != ControllerEmu::SettingVisibility::Advanced)
         continue;
@@ -286,8 +286,8 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
   dialog.exec();
 }
 
-QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
-                                            int columns)
+QGroupBox* MappingWidget::CreateControlsBox(const QString& name, const ControllerEmu::ControlGroup* group,
+                                            const int columns)
 {
   auto* group_box = new QGroupBox(name);
   auto* hbox_layout = new QHBoxLayout();
@@ -310,7 +310,7 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 }
 
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
-                                  bool indicator)
+                                  const bool indicator)
 {
   auto* button = new MappingButton(this, control->control_ref.get(), indicator);
 

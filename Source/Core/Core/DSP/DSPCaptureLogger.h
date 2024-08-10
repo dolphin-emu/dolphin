@@ -61,15 +61,15 @@ public:
   PCAPDSPCaptureLogger(Common::PCAP* pcap);
   PCAPDSPCaptureLogger(std::unique_ptr<Common::PCAP>&& pcap);
 
-  void LogIFXRead(u16 address, u16 read_value) override { LogIFXAccess(true, address, read_value); }
-  void LogIFXWrite(u16 address, u16 written_value) override
+  void LogIFXRead(const u16 address, const u16 read_value) override { LogIFXAccess(true, address, read_value); }
+  void LogIFXWrite(const u16 address, const u16 written_value) override
   {
     LogIFXAccess(false, address, written_value);
   }
   void LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length, const u8* data) override;
 
 private:
-  void LogIFXAccess(bool read, u16 address, u16 value);
+  void LogIFXAccess(bool read, u16 address, u16 value) const;
 
   std::unique_ptr<Common::PCAP> m_pcap;
 };

@@ -10,8 +10,6 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMenu>
-#include <QPushButton>
-#include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -28,7 +26,7 @@
 
 #include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
+ARCodeWidget::ARCodeWidget(std::string game_id, const u16 game_revision, const bool restart_required)
     : m_game_id(std::move(game_id)), m_game_revision(game_revision),
       m_restart_required(restart_required)
 {
@@ -78,7 +76,7 @@ void ARCodeWidget::CreateWidgets()
   button_layout->addWidget(m_code_edit);
   button_layout->addWidget(m_code_remove);
 
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   layout->addWidget(m_warning);
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -111,12 +109,12 @@ void ARCodeWidget::ConnectWidgets()
   connect(m_code_remove, &QPushButton::clicked, this, &ARCodeWidget::OnCodeRemoveClicked);
 }
 
-void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
+void ARCodeWidget::OnItemChanged(const QListWidgetItem* item)
 {
   m_ar_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
-    ActionReplay::ApplyCodes(m_ar_codes);
+    ApplyCodes(m_ar_codes);
 
   UpdateList();
   SaveCodes();
@@ -141,7 +139,7 @@ void ARCodeWidget::SortAlphabetically()
 
 void ARCodeWidget::SortEnabledCodesFirst()
 {
-  std::stable_sort(m_ar_codes.begin(), m_ar_codes.end(), [](const auto& a, const auto& b) {
+  std::ranges::stable_sort(m_ar_codes, [](const auto& a, const auto& b) {
     return a.enabled && a.enabled != b.enabled;
   });
 
@@ -151,7 +149,7 @@ void ARCodeWidget::SortEnabledCodesFirst()
 
 void ARCodeWidget::SortDisabledCodesFirst()
 {
-  std::stable_sort(m_ar_codes.begin(), m_ar_codes.end(), [](const auto& a, const auto& b) {
+  std::ranges::stable_sort(m_ar_codes, [](const auto& a, const auto& b) {
     return !a.enabled && a.enabled != b.enabled;
   });
 
@@ -177,7 +175,7 @@ void ARCodeWidget::OnListReordered()
   SaveCodes();
 }
 
-void ARCodeWidget::OnSelectionChanged()
+void ARCodeWidget::OnSelectionChanged() const
 {
   auto items = m_code_list->selectedItems();
 
@@ -186,26 +184,26 @@ void ARCodeWidget::OnSelectionChanged()
 
   const auto* selected = items[0];
 
-  bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
+  const bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
 
   m_code_remove->setEnabled(user_defined);
   m_code_edit->setText(user_defined ? tr("&Edit Code...") : tr("Clone and &Edit Code..."));
 }
 
-void ARCodeWidget::UpdateList()
+void ARCodeWidget::UpdateList() const
 {
   m_code_list->clear();
 
   for (size_t i = 0; i < m_ar_codes.size(); i++)
   {
-    const auto& ar = m_ar_codes[i];
-    auto* item = new QListWidgetItem(QString::fromStdString(ar.name)
+    const auto& [name, _ops, enabled, _default_enabled, _user_defined] = m_ar_codes[i];
+    auto* item = new QListWidgetItem(QString::fromStdString(name)
                                          .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
                                          .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>')));
 
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
                    Qt::ItemIsDragEnabled);
-    item->setCheckState(ar.enabled ? Qt::Checked : Qt::Unchecked);
+    item->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);

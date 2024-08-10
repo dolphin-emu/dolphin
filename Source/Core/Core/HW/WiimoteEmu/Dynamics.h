@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
@@ -79,13 +77,13 @@ void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& target
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, float max_accel,
                             float time_elapsed);
 
-void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
-void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
-void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
+void EmulateShake(PositionalState* state, const ControllerEmu::Shake* shake_group, float time_elapsed);
+void EmulateTilt(RotationalState* state, const ControllerEmu::Tilt* tilt_group, float time_elapsed);
+void EmulateSwing(MotionState* state, const ControllerEmu::Force* swing_group, float time_elapsed);
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
                   const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed);
-void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
-                      ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
+void EmulateIMUCursor(IMUCursorState* state, const ControllerEmu::IMUCursor* imu_ir_group,
+                      const ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);
 
 // Convert m/s/s acceleration data to the format used by Wiimote/Nunchuk (10-bit unsigned integers).

@@ -38,7 +38,7 @@ QString HtmlFormatErrorLine(const Common::GekkoAssembler::AssemblerError& err)
 }
 }  // namespace
 
-AssembleInstructionDialog::AssembleInstructionDialog(QWidget* parent, u32 address, u32 value)
+AssembleInstructionDialog::AssembleInstructionDialog(QWidget* parent, const u32 address, const u32 value)
     : QDialog(parent), m_code(value), m_address(address)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

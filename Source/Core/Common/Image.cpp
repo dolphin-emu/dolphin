@@ -23,7 +23,7 @@ static void spng_free(spng_ctx* ctx)
     spng_ctx_free(ctx);
 }
 
-static auto make_spng_ctx(int flags)
+static auto make_spng_ctx(const int flags)
 {
   return std::unique_ptr<spng_ctx, decltype(&spng_free)>(spng_ctx_new(flags), spng_free);
 }
@@ -31,7 +31,7 @@ static auto make_spng_ctx(int flags)
 bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width_out,
              u32* height_out)
 {
-  auto ctx = make_spng_ctx(0);
+  const auto ctx = make_spng_ctx(0);
   if (!ctx)
     return false;
 
@@ -42,7 +42,7 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
   if (spng_get_ihdr(ctx.get(), &ihdr))
     return false;
 
-  const int format = SPNG_FMT_RGBA8;
+  constexpr int format = SPNG_FMT_RGBA8;
   size_t decoded_len = 0;
   if (spng_decoded_image_size(ctx.get(), format, &decoded_len))
     return false;
@@ -56,10 +56,10 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
   return true;
 }
 
-bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
-             u32 height, u32 stride, int level)
+bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, const u32 width,
+             const u32 height, const u32 stride, const int level)
 {
-  Common::Timer timer;
+  Timer timer;
   timer.Start();
 
   spng_color_type color_type;
@@ -76,11 +76,11 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     return false;
   }
 
-  auto ctx = make_spng_ctx(SPNG_CTX_ENCODER);
+  const auto ctx = make_spng_ctx(SPNG_CTX_ENCODER);
   if (!ctx)
     return false;
 
-  auto outfile = File::IOFile(path, "wb");
+  const auto outfile = File::IOFile(path, "wb");
   if (spng_set_png_file(ctx.get(), outfile.GetHandle()))
     return false;
 
@@ -120,7 +120,7 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   return true;
 }
 
-static std::vector<u8> RGBAToRGB(const u8* input, u32 width, u32 height, u32 row_stride)
+static std::vector<u8> RGBAToRGB(const u8* input, const u32 width, const u32 height, const u32 row_stride)
 {
   std::vector<u8> buffer;
   buffer.reserve(width * height * 3);
@@ -138,8 +138,8 @@ static std::vector<u8> RGBAToRGB(const u8* input, u32 width, u32 height, u32 row
   return buffer;
 }
 
-bool ConvertRGBAToRGBAndSavePNG(const std::string& path, const u8* input, u32 width, u32 height,
-                                u32 stride, int level)
+bool ConvertRGBAToRGBAndSavePNG(const std::string& path, const u8* input, const u32 width, const u32 height,
+                                const u32 stride, const int level)
 {
   const std::vector<u8> data = RGBAToRGB(input, width, height, stride);
   return SavePNG(path, data.data(), ImageByteFormat::RGB, width, height, width * 3, level);

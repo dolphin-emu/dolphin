@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <bitset>
 #include <limits>
@@ -13,7 +12,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "Common/Swap.h"
-#include "Common/Timer.h"
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
@@ -140,7 +138,7 @@ constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 // each palette entry is 16 bits in RGB5A3 format
 constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
 
-constexpr u32 MbitToFreeBlocks(u16 size_mb)
+constexpr u32 MbitToFreeBlocks(const u16 size_mb)
 {
   return size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
 }
@@ -429,7 +427,7 @@ public:
 
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
-  bool Save();
+  bool Save() const;
   bool Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
               u32 sram_language, u64 format_time);
   static bool Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,

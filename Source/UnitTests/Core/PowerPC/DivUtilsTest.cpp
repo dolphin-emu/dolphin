@@ -9,53 +9,53 @@ using namespace JitCommon;
 
 TEST(DivUtils, Signed)
 {
-  SignedMagic m3 = SignedDivisionConstants(3);
-  SignedMagic m5 = SignedDivisionConstants(5);
-  SignedMagic m7 = SignedDivisionConstants(7);
-  SignedMagic minus3 = SignedDivisionConstants(-3);
-  SignedMagic minus5 = SignedDivisionConstants(-5);
-  SignedMagic minus7 = SignedDivisionConstants(-7);
+  const auto [multiplier_m3, shift_m3] = SignedDivisionConstants(3);
+  const auto [multiplier_m5, shift_m5] = SignedDivisionConstants(5);
+  const auto [multiplier_m7, shift_m7] = SignedDivisionConstants(7);
+  const auto [multiplier_minus3, shift_minus3] = SignedDivisionConstants(-3);
+  const auto [multiplier_minus5, shift_minus5] = SignedDivisionConstants(-5);
+  const auto [multiplier_minus7, shift_minus7] = SignedDivisionConstants(-7);
 
-  EXPECT_EQ(0x55555556, m3.multiplier);
-  EXPECT_EQ(0, m3.shift);
-  EXPECT_EQ(0x66666667, m5.multiplier);
-  EXPECT_EQ(1, m5.shift);
-  EXPECT_EQ(-0x6DB6DB6D, m7.multiplier);
-  EXPECT_EQ(2, m7.shift);
+  EXPECT_EQ(0x55555556, multiplier_m3);
+  EXPECT_EQ(0, shift_m3);
+  EXPECT_EQ(0x66666667, multiplier_m5);
+  EXPECT_EQ(1, shift_m5);
+  EXPECT_EQ(-0x6DB6DB6D, multiplier_m7);
+  EXPECT_EQ(2, shift_m7);
 
-  EXPECT_EQ(-0x55555556, minus3.multiplier);
-  EXPECT_EQ(0, minus3.shift);
-  EXPECT_EQ(-0x66666667, minus5.multiplier);
-  EXPECT_EQ(1, minus5.shift);
-  EXPECT_EQ(0x6DB6DB6D, minus7.multiplier);
-  EXPECT_EQ(2, minus7.shift);
+  EXPECT_EQ(-0x55555556, multiplier_minus3);
+  EXPECT_EQ(0, shift_minus3);
+  EXPECT_EQ(-0x66666667, multiplier_minus5);
+  EXPECT_EQ(1, shift_minus5);
+  EXPECT_EQ(0x6DB6DB6D, multiplier_minus7);
+  EXPECT_EQ(2, shift_minus7);
 }
 
 TEST(DivUtils, Unsigned)
 {
-  UnsignedMagic m3 = UnsignedDivisionConstants(3);
-  UnsignedMagic m5 = UnsignedDivisionConstants(5);
-  UnsignedMagic m7 = UnsignedDivisionConstants(7);
-  UnsignedMagic m9 = UnsignedDivisionConstants(9);
-  UnsignedMagic m19 = UnsignedDivisionConstants(19);
+  const auto [multiplier_m3, shift_m3, fast_m3] = UnsignedDivisionConstants(3);
+  const auto [multiplier_m5, shift_m5, fast_m5] = UnsignedDivisionConstants(5);
+  const auto [multiplier_m7, shift_m7, fast_m7] = UnsignedDivisionConstants(7);
+  const auto [multiplier_m9, shift_m9, fast_m9] = UnsignedDivisionConstants(9);
+  const auto [multiplier_m19, shift_m19, fast_m19] = UnsignedDivisionConstants(19);
 
-  EXPECT_EQ(0xAAAAAAABU, m3.multiplier);
-  EXPECT_EQ(1, m3.shift);
-  EXPECT_TRUE(m3.fast);
+  EXPECT_EQ(0xAAAAAAABU, multiplier_m3);
+  EXPECT_EQ(1, shift_m3);
+  EXPECT_TRUE(fast_m3);
 
-  EXPECT_EQ(0xCCCCCCCDU, m5.multiplier);
-  EXPECT_EQ(2, m5.shift);
-  EXPECT_TRUE(m5.fast);
+  EXPECT_EQ(0xCCCCCCCDU, multiplier_m5);
+  EXPECT_EQ(2, shift_m5);
+  EXPECT_TRUE(fast_m5);
 
-  EXPECT_EQ(0x92492492U, m7.multiplier);
-  EXPECT_EQ(2, m7.shift);
-  EXPECT_FALSE(m7.fast);
+  EXPECT_EQ(0x92492492U, multiplier_m7);
+  EXPECT_EQ(2, shift_m7);
+  EXPECT_FALSE(fast_m7);
 
-  EXPECT_EQ(0x38E38E39U, m9.multiplier);
-  EXPECT_EQ(1, m9.shift);
-  EXPECT_TRUE(m9.fast);
+  EXPECT_EQ(0x38E38E39U, multiplier_m9);
+  EXPECT_EQ(1, shift_m9);
+  EXPECT_TRUE(fast_m9);
 
-  EXPECT_EQ(0xD79435E5U, m19.multiplier);
-  EXPECT_EQ(4, m19.shift);
-  EXPECT_FALSE(m19.fast);
+  EXPECT_EQ(0xD79435E5U, multiplier_m19);
+  EXPECT_EQ(4, shift_m19);
+  EXPECT_FALSE(fast_m19);
 }

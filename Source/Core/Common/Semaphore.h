@@ -12,14 +12,14 @@ namespace Common
 class Semaphore
 {
 public:
-  Semaphore(int initial_count, int maximum_count)
+  Semaphore(const int initial_count, const int maximum_count)
   {
     m_handle = CreateSemaphoreA(nullptr, initial_count, maximum_count, nullptr);
   }
 
   ~Semaphore() { CloseHandle(m_handle); }
-  void Wait() { WaitForSingleObject(m_handle, INFINITE); }
-  void Post() { ReleaseSemaphore(m_handle, 1, nullptr); }
+  void Wait() const { WaitForSingleObject(m_handle, INFINITE); }
+  void Post() const { ReleaseSemaphore(m_handle, 1, nullptr); }
 
 private:
   HANDLE m_handle;

@@ -20,7 +20,7 @@
 
 namespace WC24PatchEngine
 {
-static constexpr std::array<u64, 15> s_wc24_channels{
+static constexpr std::array s_wc24_channels{
     Titles::NINTENDO_CHANNEL_NTSC_U,
     Titles::NINTENDO_CHANNEL_NTSC_J,
     Titles::NINTENDO_CHANNEL_PAL,
@@ -86,8 +86,7 @@ static void LoadPatchSection(const Common::IniFile& ini)
 static bool IsWC24Channel()
 {
   const auto& sconfig = SConfig::GetInstance();
-  const auto found =
-      std::find(s_wc24_channels.begin(), s_wc24_channels.end(), sconfig.GetTitleID());
+  const auto found = std::ranges::find(s_wc24_channels, sconfig.GetTitleID());
 
   return found != s_wc24_channels.end();
 }
@@ -101,7 +100,7 @@ static void LoadPatches()
 
   Common::IniFile ini;
   // If WiiLink is enabled then we load the Default Ini as that has the WiiLink URLs.
-  if (Config::Get(Config::MAIN_WII_WIILINK_ENABLE))
+  if (Get(Config::MAIN_WII_WIILINK_ENABLE))
     ini = sconfig.LoadDefaultGameIni();
   else
     ini = sconfig.LoadLocalGameIni();
@@ -117,10 +116,9 @@ void Reload()
 
 std::optional<std::string> GetNetworkPatch(std::string_view source, IsKD is_kd)
 {
-  const auto patch =
-      std::find_if(s_patches.begin(), s_patches.end(), [&source, &is_kd](const NetworkPatch& p) {
-        return p.source == source && p.is_kd == is_kd && p.enabled;
-      });
+  const auto patch = std::ranges::find_if(s_patches, [&source, &is_kd](const NetworkPatch& p) {
+    return p.source == source && p.is_kd == is_kd && p.enabled;
+  });
   if (patch == s_patches.end())
     return std::nullopt;
 
@@ -140,11 +138,11 @@ std::optional<std::string> GetNetworkPatchByPayload(std::string_view source)
       const std::string_view domain =
           source.substr(pos + 6, end_of_line == std::string_view::npos ? std::string_view::npos :
                                                                          (end_of_line - pos - 6));
-      for (const WC24PatchEngine::NetworkPatch& patch : s_patches)
+      for (const auto& [_name, source, replacement, enabled, is_kd] : s_patches)
       {
-        if (patch.is_kd != WC24PatchEngine::IsKD{true} && domain == patch.source && patch.enabled)
+        if (is_kd != IsKD{true} && domain == source && enabled)
         {
-          return fmt::format("{}Host: {}{}", source.substr(0, pos), patch.replacement,
+          return fmt::format("{}Host: {}{}", source.substr(0, pos), replacement,
                              end_of_line == std::string_view::npos ? "" :
                                                                      source.substr(end_of_line));
         }

@@ -75,7 +75,7 @@ bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs)
   return true;
 }
 
-bool HasDuplicateIdentity(std::span<const Savefile> savefiles)
+bool HasDuplicateIdentity(const std::span<const Savefile> savefiles)
 {
   for (size_t i = 0; i < savefiles.size(); ++i)
   {
@@ -91,7 +91,7 @@ bool HasDuplicateIdentity(std::span<const Savefile> savefiles)
 static void ByteswapDEntrySavHeader(std::array<u8, DENTRY_SIZE>& entry)
 {
   // several bytes in SAV are swapped compared to the internal memory card format
-  for (size_t p : {0x06, 0x2C, 0x2E, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3A, 0x3C, 0x3E})
+  for (const size_t p : {0x06, 0x2C, 0x2E, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3A, 0x3C, 0x3E})
     std::swap(entry[p], entry[p + 1]);
 }
 
@@ -116,7 +116,7 @@ static void InjectDEntryToSavHeader(std::array<u8, SAV_HEADER_SIZE>& sav_header,
 }
 
 static bool ReadBlocksFromIOFile(File::IOFile& file, std::vector<GCMBlock>& blocks,
-                                 size_t block_count)
+                                 const size_t block_count)
 {
   blocks.reserve(block_count);
   for (size_t i = 0; i < block_count; ++i)
@@ -129,7 +129,7 @@ static bool ReadBlocksFromIOFile(File::IOFile& file, std::vector<GCMBlock>& bloc
 }
 
 static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalGCI(File::IOFile& file,
-                                                                             u64 filesize)
+                                                                             const u64 filesize)
 {
   Savefile savefile;
   if (!file.ReadBytes(&savefile.dir_entry, DENTRY_SIZE))
@@ -147,7 +147,7 @@ static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalGCI(Fil
 }
 
 static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalGCS(File::IOFile& file,
-                                                                             u64 filesize)
+                                                                             const u64 filesize)
 {
   std::array<u8, GCS_HEADER_SIZE> gcs_header;
   if (!file.ReadBytes(gcs_header.data(), gcs_header.size()))
@@ -180,7 +180,7 @@ static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalGCS(Fil
 }
 
 static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalSAV(File::IOFile& file,
-                                                                             u64 filesize)
+                                                                             const u64 filesize)
 {
   std::array<u8, SAV_HEADER_SIZE> sav_header;
   if (!file.ReadBytes(sav_header.data(), sav_header.size()))
@@ -283,7 +283,7 @@ static bool WriteSavefileInternalSAV(File::IOFile& file, const Savefile& savefil
   return file.IsGood();
 }
 
-bool WriteSavefile(const std::string& filename, const Savefile& savefile, SavefileFormat format)
+bool WriteSavefile(const std::string& filename, const Savefile& savefile, const SavefileFormat format)
 {
   File::IOFile file(filename, "wb");
   if (!file)
@@ -304,10 +304,10 @@ bool WriteSavefile(const std::string& filename, const Savefile& savefile, Savefi
 
 std::string GenerateFilename(const DEntry& entry)
 {
-  std::string maker(reinterpret_cast<const char*>(entry.m_makercode.data()),
-                    entry.m_makercode.size());
-  std::string gamecode(reinterpret_cast<const char*>(entry.m_gamecode.data()),
-                       entry.m_gamecode.size());
+  const std::string maker(reinterpret_cast<const char*>(entry.m_makercode.data()),
+                          entry.m_makercode.size());
+  const std::string gamecode(reinterpret_cast<const char*>(entry.m_gamecode.data()),
+                             entry.m_gamecode.size());
 
   // prevent going out of bounds when all bytes of m_filename are non-null
   size_t length = 0;
@@ -317,12 +317,12 @@ std::string GenerateFilename(const DEntry& entry)
       break;
     ++length;
   }
-  std::string filename(reinterpret_cast<const char*>(entry.m_filename.data()), length);
+  const std::string filename(reinterpret_cast<const char*>(entry.m_filename.data()), length);
 
   return Common::EscapeFileName(maker + '-' + gamecode + '-' + filename);
 }
 
-std::string GetDefaultExtension(SavefileFormat format)
+std::string GetDefaultExtension(const SavefileFormat format)
 {
   switch (format)
   {
@@ -338,7 +338,7 @@ std::string GetDefaultExtension(SavefileFormat format)
   }
 }
 
-std::vector<Savefile> GetSavefiles(const GCMemcard& card, std::span<const u8> file_indices)
+std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::span<const u8> file_indices)
 {
   std::vector<Savefile> files;
   files.reserve(file_indices.size());
@@ -352,11 +352,11 @@ std::vector<Savefile> GetSavefiles(const GCMemcard& card, std::span<const u8> fi
   return files;
 }
 
-size_t GetBlockCount(std::span<const Savefile> savefiles)
+size_t GetBlockCount(const std::span<const Savefile> savefiles)
 {
   size_t block_count = 0;
-  for (const Savefile& savefile : savefiles)
-    block_count += savefile.blocks.size();
+  for (const auto& [_dir_entry, blocks] : savefiles)
+    block_count += blocks.size();
   return block_count;
 }
 }  // namespace Memcard

@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <mutex>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,8 +35,8 @@ USB_HIDv4::~USB_HIDv4()
 
 std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
@@ -72,15 +73,15 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
   }
 }
 
-IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request)
+IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request) const
 {
   if (request.buffer_in == 0 || request.buffer_in_size != 8)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in));
+  const auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in));
   if (!device)
     return IPCReply(IPC_ENOENT);
   device->CancelTransfer(memory.Read_U8(request.buffer_in + 4));
@@ -109,8 +110,8 @@ IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request != nullptr)
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     memory.Write_U32(0xffffffff, m_devicechange_hook_request->buffer_out);
     GetEmulationKernel().EnqueueIPCReply(*m_devicechange_hook_request, -1);
     m_devicechange_hook_request.reset();
@@ -118,7 +119,7 @@ IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
+s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request) const
 {
   switch (request.request)
   {
@@ -166,20 +167,20 @@ std::shared_ptr<USB::Device> USB_HIDv4::GetDeviceByIOSID(const s32 ios_id) const
   return GetDeviceById(iterator->second);
 }
 
-void USB_HIDv4::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> device)
+void USB_HIDv4::OnDeviceChange(const ChangeEvent event, const std::shared_ptr<USB::Device> device)
 {
   {
     std::lock_guard id_map_lock{m_id_map_mutex};
     if (event == ChangeEvent::Inserted)
     {
       s32 new_id = 0;
-      while (m_ios_ids.find(new_id) != m_ios_ids.cend())
+      while (m_ios_ids.contains(new_id))
         ++new_id;
       m_ios_ids[new_id] = device->GetId();
       m_device_ids[device->GetId()] = new_id;
     }
     else if (event == ChangeEvent::Removed &&
-             m_device_ids.find(device->GetId()) != m_device_ids.cend())
+             m_device_ids.contains(device->GetId()))
     {
       m_ios_ids.erase(m_device_ids.at(device->GetId()));
       m_device_ids.erase(device->GetId());
@@ -205,16 +206,16 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     return;
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   {
     std::lock_guard lk(m_devices_mutex);
     const u32 dest = m_devicechange_hook_request->buffer_out;
     u32 offset = 0;
-    for (const auto& device : m_devices)
+    for (const auto& val : m_devices | std::views::values)
     {
-      const std::vector<u8> device_section = GetDeviceEntry(*device.second.get());
+      const std::vector<u8> device_section = GetDeviceEntry(*val.get());
       if (offset + device_section.size() > m_devicechange_hook_request->buffer_out_size - 1)
       {
         WARN_LOG_FMT(IOS_USB, "Too many devices connected, skipping");

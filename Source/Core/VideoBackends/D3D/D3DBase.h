@@ -5,7 +5,6 @@
 
 #include <d3d11.h>
 #include <d3d11_1.h>
-#include <d3dcompiler.h>
 #include <dxgi1_5.h>
 #include <fmt/format.h>
 #include <vector>
@@ -46,7 +45,7 @@ bool SupportsLogicOp(u32 adapter_index);
 // Unlike the version in Common, this variant also knows to call GetDeviceRemovedReason if needed.
 struct DX11HRWrap
 {
-  constexpr explicit DX11HRWrap(HRESULT hr) : m_hr(hr) {}
+  constexpr explicit DX11HRWrap(const HRESULT hr) : m_hr(hr) {}
   const HRESULT m_hr;
 };
 
@@ -55,7 +54,7 @@ struct DX11HRWrap
 template <>
 struct fmt::formatter<DX11::DX11HRWrap>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DX11::DX11HRWrap& hr, FormatContext& ctx) const
   {
@@ -64,9 +63,6 @@ struct fmt::formatter<DX11::DX11HRWrap>
       return fmt::format_to(ctx.out(), "{}\nDevice removal reason: {}", Common::HRWrap(hr.m_hr),
                             Common::HRWrap(DX11::D3D::device->GetDeviceRemovedReason()));
     }
-    else
-    {
-      return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
-    }
+    return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
   }
 };

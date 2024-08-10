@@ -46,11 +46,11 @@ bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
 }
 
 // return true if a code exists
-bool GeckoCode::Exist(u32 address, u32 data) const
+bool GeckoCode::Exist(const u32 address, const u32 data) const
 {
-  return std::find_if(codes.begin(), codes.end(), [&](const Code& code) {
-           return code.address == address && code.data == data;
-         }) != codes.end();
+  return std::ranges::find_if(codes, [&](const Code& code) {
+    return code.address == address && code.data == data;
+  }) != codes.end();
 }
 
 enum class Installation
@@ -60,7 +60,7 @@ enum class Installation
   Failed
 };
 
-static Installation s_code_handler_installed = Installation::Uninstalled;
+static auto s_code_handler_installed = Installation::Uninstalled;
 // the currently active codes
 static std::vector<GeckoCode> s_active_codes;
 static std::vector<GeckoCode> s_synced_codes;
@@ -74,8 +74,8 @@ void SetActiveCodes(std::span<const GeckoCode> gcodes)
   if (Config::AreCheatsEnabled())
   {
     s_active_codes.reserve(gcodes.size());
-    std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [](const GeckoCode& code) { return code.enabled; });
+    std::ranges::copy_if(gcodes, std::back_inserter(s_active_codes),
+                         [](const GeckoCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -93,8 +93,8 @@ void UpdateSyncedCodes(std::span<const GeckoCode> gcodes)
 {
   s_synced_codes.clear();
   s_synced_codes.reserve(gcodes.size());
-  std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_synced_codes),
-               [](const GeckoCode& code) { return code.enabled; });
+  std::ranges::copy_if(gcodes, std::back_inserter(s_synced_codes),
+                       [](const GeckoCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
@@ -106,8 +106,8 @@ std::vector<GeckoCode> SetAndReturnActiveCodes(std::span<const GeckoCode> gcodes
   if (Config::AreCheatsEnabled())
   {
     s_active_codes.reserve(gcodes.size());
-    std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [](const GeckoCode& code) { return code.enabled; });
+    std::ranges::copy_if(gcodes, std::back_inserter(s_active_codes),
+                         [](const GeckoCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -158,7 +158,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   const u32 codelist_base_address =
       INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
-  const u32 codelist_end_address = INSTALLER_END_ADDRESS;
+  constexpr u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
   // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
@@ -170,7 +170,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   // Each code is 8 bytes (2 words) wide. There is a starter code and an end code.
   const u32 start_address = codelist_base_address + CODE_SIZE;
-  const u32 end_address = codelist_end_address - CODE_SIZE;
+  constexpr u32 end_address = codelist_end_address - CODE_SIZE;
   u32 next_address = start_address;
 
   // NOTE: Only active codes are in the list
@@ -187,10 +187,10 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
       continue;
     }
 
-    for (const GeckoCode::Code& code : active_code.codes)
+    for (const auto& [address, data, _original_line] : active_code.codes)
     {
-      PowerPC::MMU::HostWrite_U32(guard, code.address, next_address);
-      PowerPC::MMU::HostWrite_U32(guard, code.data, next_address + 4);
+      PowerPC::MMU::HostWrite_U32(guard, address, next_address);
+      PowerPC::MMU::HostWrite_U32(guard, data, next_address + 4);
       next_address += CODE_SIZE;
     }
   }
@@ -207,12 +207,16 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   PowerPC::MMU::HostWrite_U8(guard, 1, INSTALLER_BASE_ADDRESS + 7);
 
   // Invalidate the icache and any asm codes
-  auto& ppc_state = guard.GetSystem().GetPPCState();
-  auto& memory = guard.GetSystem().GetMemory();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = guard.GetSystem().GetPPCState();
+  const auto& memory = guard.GetSystem().GetMemory();
   auto& jit_interface = guard.GetSystem().GetJitInterface();
   for (u32 j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
-    ppc_state.iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
+    iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
   }
   return Installation::Installed;
 }
@@ -266,13 +270,13 @@ void RunCodeHandler(const Core::CPUThreadGuard& guard)
   // The codehandler will STMW all of the GPR registers, but we need to fix the Stack's Red
   // Zone, the LR, PC (return address) and the volatile floating point registers.
   // Build a function call stack frame.
-  u32 SFP = ppc_state.gpr[1];                     // Stack Frame Pointer
+  const u32 SFP = ppc_state.gpr[1];                     // Stack Frame Pointer
   ppc_state.gpr[1] -= 256;                        // Stack's Red Zone
   ppc_state.gpr[1] -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame
                                                   // (HLE_Misc::GeckoReturnTrampoline)
-  ppc_state.gpr[1] -= 8;                          // Fake stack frame for codehandler
-  ppc_state.gpr[1] &= 0xFFFFFFF0;                 // Align stack to 16bytes
-  u32 SP = ppc_state.gpr[1];                      // Stack Pointer
+  ppc_state.gpr[1] -= 8;           // Fake stack frame for codehandler
+  ppc_state.gpr[1] &= 0xFFFFFFF0;  // Align stack to 16bytes
+  const u32 SP = ppc_state.gpr[1]; // Stack Pointer
   PowerPC::MMU::HostWrite_U32(guard, SP + 8, SP);
   // SP + 4 is reserved for the codehandler to save LR to the stack.
   PowerPC::MMU::HostWrite_U32(guard, SFP, SP + 8);  // Real stack frame

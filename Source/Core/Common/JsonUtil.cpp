@@ -43,7 +43,7 @@ std::optional<bool> ReadBoolFromJson(const picojson::object& obj, const std::str
   return it->second.get<bool>();
 }
 
-bool JsonToFile(const std::string& filename, const picojson::value& root, bool prettify)
+bool JsonToFile(const std::string& filename, const picojson::value& root, const bool prettify)
 {
   std::ofstream json_stream;
   File::OpenFStream(json_stream, filename, std::ios_base::out);
@@ -63,6 +63,6 @@ bool JsonFromFile(const std::string& filename, picojson::value* root, std::strin
     return false;
   }
 
-  *error = picojson::parse(*root, json_data);
+  *error = parse(*root, json_data);
   return error->empty();
 }

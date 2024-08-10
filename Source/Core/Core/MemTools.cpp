@@ -45,38 +45,36 @@ namespace EMM
 
 static PVOID s_veh_handle;
 
-static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
+static LONG NTAPI Handler(const PEXCEPTION_POINTERS pPtrs)
 {
   switch (pPtrs->ExceptionRecord->ExceptionCode)
   {
   case EXCEPTION_ACCESS_VIOLATION:
   {
-    ULONG_PTR access_type = pPtrs->ExceptionRecord->ExceptionInformation[0];
+    const ULONG_PTR access_type = pPtrs->ExceptionRecord->ExceptionInformation[0];
     if (access_type == 8)  // Rule out DEP
     {
       return EXCEPTION_CONTINUE_SEARCH;
     }
 
     // virtual address of the inaccessible data
-    uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
+    const uintptr_t fault_address = pPtrs->ExceptionRecord->ExceptionInformation[1];
     SContext* ctx = pPtrs->ContextRecord;
 
     if (Core::System::GetInstance().GetJitInterface().HandleFault(fault_address, ctx))
     {
       return EXCEPTION_CONTINUE_EXECUTION;
     }
-    else
-    {
-      // Let's not prevent debugging.
-      return EXCEPTION_CONTINUE_SEARCH;
-    }
+    // Let's not prevent debugging.
+    return EXCEPTION_CONTINUE_SEARCH;
   }
 
   case EXCEPTION_STACK_OVERFLOW:
+  {
     if (Core::System::GetInstance().GetJitInterface().HandleStackFault())
       return EXCEPTION_CONTINUE_EXECUTION;
-    else
-      return EXCEPTION_CONTINUE_SEARCH;
+    return EXCEPTION_CONTINUE_SEARCH;
+  }
 
   case EXCEPTION_ILLEGAL_INSTRUCTION:
     // No SSE support? Or simply bad codegen?
@@ -108,7 +106,7 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler()
 {
-  ULONG status = RemoveVectoredExceptionHandler(s_veh_handle);
+  const ULONG status = RemoveVectoredExceptionHandler(s_veh_handle);
   ASSERT(status);
   if (status)
     s_veh_handle = nullptr;

@@ -59,16 +59,15 @@ std::vector<NFSLBARange> NFSFileReader::GetLBARanges(const NFSHeader& header)
 
   for (size_t i = 0; i < lba_range_count; ++i)
   {
-    const NFSLBARange& unswapped_lba_range = header.lba_ranges[i];
-    lba_ranges.push_back(NFSLBARange{Common::swap32(unswapped_lba_range.start_block),
-                                     Common::swap32(unswapped_lba_range.num_blocks)});
+    const auto& [start_block, num_blocks] = header.lba_ranges[i];
+    lba_ranges.push_back(NFSLBARange{Common::swap32(start_block), Common::swap32(num_blocks)});
   }
 
   return lba_ranges;
 }
 
 std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
-                                                   File::IOFile first_file, u64 expected_raw_size,
+                                                   File::IOFile first_file, const u64 expected_raw_size,
                                                    u64* raw_size_out)
 {
   const u64 file_count = Common::AlignUp(expected_raw_size, MAX_FILE_SIZE) / MAX_FILE_SIZE;
@@ -108,8 +107,8 @@ std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
 u64 NFSFileReader::CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_ranges)
 {
   u64 total_blocks = 0;
-  for (const NFSLBARange& range : lba_ranges)
-    total_blocks += range.num_blocks;
+  for (const auto& [_start_block, num_blocks] : lba_ranges)
+    total_blocks += num_blocks;
 
   return sizeof(NFSHeader) + total_blocks * BLOCK_SIZE;
 }
@@ -117,10 +116,10 @@ u64 NFSFileReader::CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_
 u64 NFSFileReader::CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba_ranges)
 {
   u32 greatest_block_index = 0;
-  for (const NFSLBARange& range : lba_ranges)
-    greatest_block_index = std::max(greatest_block_index, range.start_block + range.num_blocks);
+  for (const auto& [start_block, num_blocks] : lba_ranges)
+    greatest_block_index = std::max(greatest_block_index, start_block + num_blocks);
 
-  return u64(greatest_block_index) * BLOCK_SIZE;
+  return static_cast<u64>(greatest_block_index) * BLOCK_SIZE;
 }
 
 std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
@@ -158,7 +157,7 @@ std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
 }
 
 NFSFileReader::NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files,
-                             Key key, u64 raw_size)
+                             const Key key, const u64 raw_size)
     : m_lba_ranges(std::move(lba_ranges)), m_files(std::move(files)),
       m_aes_context(Common::AES::CreateContextDecrypt(key.data())), m_raw_size(raw_size), m_key(key)
 {
@@ -184,25 +183,25 @@ u64 NFSFileReader::GetRawSize() const
   return m_raw_size;
 }
 
-u64 NFSFileReader::ToPhysicalBlockIndex(u64 logical_block_index)
+u64 NFSFileReader::ToPhysicalBlockIndex(const u64 logical_block_index) const
 {
   u64 physical_blocks_so_far = 0;
 
-  for (const NFSLBARange& range : m_lba_ranges)
+  for (const auto& [start_block, num_blocks] : m_lba_ranges)
   {
-    if (logical_block_index >= range.start_block &&
-        logical_block_index < range.start_block + range.num_blocks)
+    if (logical_block_index >= start_block &&
+        logical_block_index < start_block + num_blocks)
     {
-      return physical_blocks_so_far + (logical_block_index - range.start_block);
+      return physical_blocks_so_far + (logical_block_index - start_block);
     }
 
-    physical_blocks_so_far += range.num_blocks;
+    physical_blocks_so_far += num_blocks;
   }
 
   return std::numeric_limits<u64>::max();
 }
 
-bool NFSFileReader::ReadEncryptedBlock(u64 physical_block_index)
+bool NFSFileReader::ReadEncryptedBlock(const u64 physical_block_index)
 {
   constexpr u64 BLOCKS_PER_FILE = MAX_FILE_SIZE / BLOCK_SIZE;
 
@@ -251,7 +250,7 @@ bool NFSFileReader::ReadEncryptedBlock(u64 physical_block_index)
   return true;
 }
 
-void NFSFileReader::DecryptBlock(u64 logical_block_index)
+void NFSFileReader::DecryptBlock(const u64 logical_block_index)
 {
   std::array<u8, 16> iv{};
   const u64 swapped_block_index = Common::swap64(logical_block_index);
@@ -262,7 +261,7 @@ void NFSFileReader::DecryptBlock(u64 logical_block_index)
                        m_current_block_decrypted.data(), BLOCK_SIZE);
 }
 
-bool NFSFileReader::ReadAndDecryptBlock(u64 logical_block_index)
+bool NFSFileReader::ReadAndDecryptBlock(const u64 logical_block_index)
 {
   const u64 physical_block_index = ToPhysicalBlockIndex(logical_block_index);
 

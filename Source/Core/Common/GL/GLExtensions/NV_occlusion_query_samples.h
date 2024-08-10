@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_PIXEL_COUNTER_BITS_NV 0x8864
 #define GL_CURRENT_OCCLUSION_QUERY_ID_NV 0x8865
 #define GL_PIXEL_COUNT_NV 0x8866

@@ -35,7 +35,7 @@ public:
 
 private:
   // Loads additional mip levels into the texture structure until _mip<N> texture is not found
-  bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArraySlice* data);
+  static bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArraySlice* data);
 
   // Gets the asset map given an asset id
   AssetMap GetAssetMapForID(const AssetID& asset_id) const;

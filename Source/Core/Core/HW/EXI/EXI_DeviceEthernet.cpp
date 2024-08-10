@@ -3,7 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
-#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -27,20 +26,20 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevice(system)
+CEXIETHERNET::CEXIETHERNET(Core::System& system, const BBADeviceType type) : IEXIDevice(system)
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string mac_addr_setting = Config::Get(Config::MAIN_BBA_MAC);
+  std::string mac_addr_setting = Get(Config::MAIN_BBA_MAC);
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
   Common::ToLower(&mac_addr_setting);
 
   if (!mac_addr)
   {
-    mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+    mac_addr = GenerateMacAddress(Common::MACConsumer::BBA);
     mac_addr_setting = Common::MacAddressToString(mac_addr.value());
-    Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, mac_addr_setting);
+    SetBaseOrCurrent(Config::MAIN_BBA_MAC, mac_addr_setting);
     Config::Save();
   }
 
@@ -52,12 +51,12 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     break;
   case BBADeviceType::TAPSERVER:
     m_network_interface = std::make_unique<TAPServerNetworkInterface>(
-        this, Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
+        this, Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
     INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
   case BBADeviceType::BuiltIn:
     m_network_interface = std::make_unique<BuiltInBBAInterface>(
-        this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS), Config::Get(Config::MAIN_BBA_BUILTIN_IP));
+        this, Get(Config::MAIN_BBA_BUILTIN_DNS), Get(Config::MAIN_BBA_BUILTIN_IP));
     INFO_LOG_FMT(SP1, "Created Built in network interface.");
     break;
   case BBADeviceType::XLINK:
@@ -77,9 +76,9 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
     // perspective so lets use "dolphin<bba mac>"
     m_network_interface =
-        std::make_unique<XLinkNetworkInterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
-                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
-                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
+        std::make_unique<XLinkNetworkInterface>(this, Get(Config::MAIN_BBA_XLINK_IP), 34523,
+                                                "dolphin" + Get(Config::MAIN_BBA_MAC),
+                                                Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
                  Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
@@ -103,7 +102,7 @@ CEXIETHERNET::~CEXIETHERNET()
   m_network_interface->Deactivate();
 }
 
-void CEXIETHERNET::SetCS(int cs)
+void CEXIETHERNET::SetCS(const int cs)
 {
   if (cs)
   {
@@ -122,7 +121,7 @@ bool CEXIETHERNET::IsInterruptSet()
   return !!(exi_status.interrupt & exi_status.interrupt_mask);
 }
 
-void CEXIETHERNET::ImmWrite(u32 data, u32 size)
+void CEXIETHERNET::ImmWrite(u32 data, const u32 size)
 {
   data >>= (4 - size) * 8;
 
@@ -183,7 +182,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
   }
 }
 
-u32 CEXIETHERNET::ImmRead(u32 size)
+u32 CEXIETHERNET::ImmRead(const u32 size)
 {
   u32 ret = 0;
 
@@ -223,14 +222,14 @@ u32 CEXIETHERNET::ImmRead(u32 size)
   return ret;
 }
 
-void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
+void CEXIETHERNET::DMAWrite(const u32 addr, const u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA write: {:08x} {:x}", addr, size);
 
   if (transfer.region == transfer.MX && transfer.direction == transfer.WRITE &&
       transfer.address == BBA_WRTXFIFOD)
   {
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     DirectFIFOWrite(memory.GetPointerForRange(addr, size), size);
   }
   else
@@ -241,10 +240,10 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   }
 }
 
-void CEXIETHERNET::DMARead(u32 addr, u32 size)
+void CEXIETHERNET::DMARead(const u32 addr, const u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA read: {:08x} {:x}", addr, size);
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   memory.CopyToEmu(addr, &mBbaMem[transfer.address], size);
   transfer.address += size;
 }
@@ -289,55 +288,51 @@ const char* CEXIETHERNET::GetRegisterName() const
       return "unknown";
     }
   }
-  else
+  switch (transfer.address)
   {
-    switch (transfer.address)
-    {
-      STR_RETURN(BBA_NCRA)
-      STR_RETURN(BBA_NCRB)
-      STR_RETURN(BBA_LTPS)
-      STR_RETURN(BBA_LRPS)
-      STR_RETURN(BBA_IMR)
-      STR_RETURN(BBA_IR)
-      STR_RETURN(BBA_BP)
-      STR_RETURN(BBA_TLBP)
-      STR_RETURN(BBA_TWP)
-      STR_RETURN(BBA_IOB)
-      STR_RETURN(BBA_TRP)
-      STR_RETURN(BBA_RWP)
-      STR_RETURN(BBA_RRP)
-      STR_RETURN(BBA_RHBP)
-      STR_RETURN(BBA_RXINTT)
-      STR_RETURN(BBA_NAFR_PAR0)
-      STR_RETURN(BBA_NAFR_PAR1)
-      STR_RETURN(BBA_NAFR_PAR2)
-      STR_RETURN(BBA_NAFR_PAR3)
-      STR_RETURN(BBA_NAFR_PAR4)
-      STR_RETURN(BBA_NAFR_PAR5)
-      STR_RETURN(BBA_NAFR_MAR0)
-      STR_RETURN(BBA_NAFR_MAR1)
-      STR_RETURN(BBA_NAFR_MAR2)
-      STR_RETURN(BBA_NAFR_MAR3)
-      STR_RETURN(BBA_NAFR_MAR4)
-      STR_RETURN(BBA_NAFR_MAR5)
-      STR_RETURN(BBA_NAFR_MAR6)
-      STR_RETURN(BBA_NAFR_MAR7)
-      STR_RETURN(BBA_NWAYC)
-      STR_RETURN(BBA_NWAYS)
-      STR_RETURN(BBA_GCA)
-      STR_RETURN(BBA_MISC)
-      STR_RETURN(BBA_TXFIFOCNT)
-      STR_RETURN(BBA_WRTXFIFOD)
-      STR_RETURN(BBA_MISC2)
-      STR_RETURN(BBA_SI_ACTRL)
-      STR_RETURN(BBA_SI_STATUS)
-      STR_RETURN(BBA_SI_ACTRL2)
-    default:
-      if (transfer.address >= 0x100 && transfer.address <= 0xfff)
-        return "packet buffer";
-      else
-        return "unknown";
-    }
+  STR_RETURN(BBA_NCRA)
+  STR_RETURN(BBA_NCRB)
+  STR_RETURN(BBA_LTPS)
+  STR_RETURN(BBA_LRPS)
+  STR_RETURN(BBA_IMR)
+  STR_RETURN(BBA_IR)
+  STR_RETURN(BBA_BP)
+  STR_RETURN(BBA_TLBP)
+  STR_RETURN(BBA_TWP)
+  STR_RETURN(BBA_IOB)
+  STR_RETURN(BBA_TRP)
+  STR_RETURN(BBA_RWP)
+  STR_RETURN(BBA_RRP)
+  STR_RETURN(BBA_RHBP)
+  STR_RETURN(BBA_RXINTT)
+  STR_RETURN(BBA_NAFR_PAR0)
+  STR_RETURN(BBA_NAFR_PAR1)
+  STR_RETURN(BBA_NAFR_PAR2)
+  STR_RETURN(BBA_NAFR_PAR3)
+  STR_RETURN(BBA_NAFR_PAR4)
+  STR_RETURN(BBA_NAFR_PAR5)
+  STR_RETURN(BBA_NAFR_MAR0)
+  STR_RETURN(BBA_NAFR_MAR1)
+  STR_RETURN(BBA_NAFR_MAR2)
+  STR_RETURN(BBA_NAFR_MAR3)
+  STR_RETURN(BBA_NAFR_MAR4)
+  STR_RETURN(BBA_NAFR_MAR5)
+  STR_RETURN(BBA_NAFR_MAR6)
+  STR_RETURN(BBA_NAFR_MAR7)
+  STR_RETURN(BBA_NWAYC)
+  STR_RETURN(BBA_NWAYS)
+  STR_RETURN(BBA_GCA)
+  STR_RETURN(BBA_MISC)
+  STR_RETURN(BBA_TXFIFOCNT)
+  STR_RETURN(BBA_WRTXFIFOD)
+  STR_RETURN(BBA_MISC2)
+  STR_RETURN(BBA_SI_ACTRL)
+  STR_RETURN(BBA_SI_STATUS)
+  STR_RETURN(BBA_SI_ACTRL2)
+  default:
+    if (transfer.address >= 0x100 && transfer.address <= 0xfff)
+      return "packet buffer";
+    return "unknown";
   }
 
 #undef STR_RETURN
@@ -352,7 +347,7 @@ void CEXIETHERNET::MXHardReset()
   mBbaMem[BBA_MISC] = MISC1_TPF | MISC1_TPH | MISC1_TXF | MISC1_TXH;
 }
 
-void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
+void CEXIETHERNET::MXCommandHandler(u32 data, const u32 size)
 {
   switch (transfer.address)
   {
@@ -425,11 +420,11 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   }
 }
 
-void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
+void CEXIETHERNET::DirectFIFOWrite(const u8* data, const u32 size)
 {
   // In direct mode, the hardware handles creating the state required by the
   // GMAC instead of finagling with packet descriptors and such
-  u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
+  auto tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
 
   memcpy(tx_fifo.get() + *tx_fifo_count, data, size);
 
@@ -479,7 +474,7 @@ inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
     u8 cur_byte = dest_eth_addr[byte_num];
     for (size_t bit = 0; bit < 8; ++bit)
     {
-      u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
+      const u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
       crc <<= 1;
       cur_byte >>= 1;
       if (carry)
@@ -504,27 +499,24 @@ inline bool CEXIETHERNET::RecvMACFilter()
   {
     return memcmp(mRecvBuffer.get(), &mBbaMem[BBA_NAFR_PAR0], 6) == 0;
   }
-  else if (memcmp(mRecvBuffer.get(), broadcast, 6) == 0)
+  if (memcmp(mRecvBuffer.get(), broadcast, 6) == 0)
   {
     // Accept broadcast?
     return !!(mBbaMem[BBA_NCRB] & NCRB_AB);
   }
-  else if (mBbaMem[BBA_NCRB] & NCRB_PM)
+  if (mBbaMem[BBA_NCRB] & NCRB_PM)
   {
     // Accept all multicast
     return true;
   }
-  else
-  {
-    // Lookup the dest eth address in the hashmap
-    u16 index = HashIndex(mRecvBuffer.get());
-    return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
-  }
+  // Lookup the dest eth address in the hashmap
+  const u16 index = HashIndex(mRecvBuffer.get());
+  return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
 }
 
 inline void CEXIETHERNET::inc_rwp()
 {
-  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
+  auto rwp = (u16*)&mBbaMem[BBA_RWP];
 
   if (*rwp == page_ptr(BBA_RHBP))
     *rwp = page_ptr(BBA_BP);
@@ -532,9 +524,9 @@ inline void CEXIETHERNET::inc_rwp()
     (*rwp)++;
 }
 
-inline void CEXIETHERNET::set_rwp(u16 value)
+inline void CEXIETHERNET::set_rwp(const u16 value)
 {
-  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
+  auto rwp = (u16*)&mBbaMem[BBA_RWP];
   *rwp = value;
 }
 
@@ -545,7 +537,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   u8* write_ptr;
   Descriptor* descriptor;
   u32 status = 0;
-  u16 rwp_initial = page_ptr(BBA_RWP);
+  const u16 rwp_initial = page_ptr(BBA_RWP);
   u16 current_rwp = 0;
   u32 off = 4;
   if (!RecvMACFilter())

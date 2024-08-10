@@ -9,9 +9,9 @@
 
 namespace DX11
 {
-DXShader::DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader,
-                   std::string_view name)
-    : D3DCommon::Shader(stage, std::move(bytecode)), m_shader(shader), m_name(name)
+DXShader::DXShader(const ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader,
+                   const std::string_view name)
+    : Shader(stage, std::move(bytecode)), m_shader(shader), m_name(name)
 {
   if (!m_name.empty())
   {
@@ -46,7 +46,7 @@ ID3D11ComputeShader* DXShader::GetD3DComputeShader() const
   return static_cast<ID3D11ComputeShader*>(m_shader.Get());
 }
 
-std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, BinaryData bytecode,
+std::unique_ptr<DXShader> DXShader::CreateFromBytecode(const ShaderStage stage, BinaryData bytecode,
                                                        std::string_view name)
 {
   switch (stage)
@@ -54,7 +54,7 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
   case ShaderStage::Vertex:
   {
     ComPtr<ID3D11VertexShader> vs;
-    HRESULT hr = D3D::device->CreateVertexShader(bytecode.data(), bytecode.size(), nullptr, &vs);
+    const HRESULT hr = D3D::device->CreateVertexShader(bytecode.data(), bytecode.size(), nullptr, &vs);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create vertex shader: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;
@@ -65,7 +65,7 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
   case ShaderStage::Geometry:
   {
     ComPtr<ID3D11GeometryShader> gs;
-    HRESULT hr = D3D::device->CreateGeometryShader(bytecode.data(), bytecode.size(), nullptr, &gs);
+    const HRESULT hr = D3D::device->CreateGeometryShader(bytecode.data(), bytecode.size(), nullptr, &gs);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create geometry shader: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;
@@ -77,7 +77,7 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
   case ShaderStage::Pixel:
   {
     ComPtr<ID3D11PixelShader> ps;
-    HRESULT hr = D3D::device->CreatePixelShader(bytecode.data(), bytecode.size(), nullptr, &ps);
+    const HRESULT hr = D3D::device->CreatePixelShader(bytecode.data(), bytecode.size(), nullptr, &ps);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create pixel shader: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;
@@ -89,7 +89,7 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
   case ShaderStage::Compute:
   {
     ComPtr<ID3D11ComputeShader> cs;
-    HRESULT hr = D3D::device->CreateComputeShader(bytecode.data(), bytecode.size(), nullptr, &cs);
+    const HRESULT hr = D3D::device->CreateComputeShader(bytecode.data(), bytecode.size(), nullptr, &cs);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create compute shader: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;

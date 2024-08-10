@@ -16,7 +16,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -113,9 +112,9 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
         func.flags |= Common::FFLAG_STRAIGHT;
       return true;
     }
-    const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
-    if (read_result.valid && PPCTables::IsValidInstruction(instr, addr))
+    const auto [valid, _from_bat, hex, _physical_address] = mmu.TryReadInstruction(addr);
+    const UGeckoInstruction instr = hex;
+    if (valid && PPCTables::IsValidInstruction(instr, addr))
     {
       // BLR or RFI
       // 4e800021 is blrl, not the end of a function
@@ -135,7 +134,7 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
           func.flags |= Common::FFLAG_STRAIGHT;
         return true;
       }
-      else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
+      if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
       {
         func.flags &= ~Common::FFLAG_LEAF;
         func.flags |= Common::FFLAG_EVIL;
@@ -176,8 +175,8 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
   }
 }
 
-bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
-                       u32 max_size)
+bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, const u32 start_addr, Common::Symbol& func,
+                       const u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
@@ -191,7 +190,7 @@ static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [&](const auto& call) {
+  const bool nonleafcall = std::ranges::any_of(func->calls, [&](const auto& call) {
     const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
     return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
   });
@@ -223,13 +222,13 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
-  u64 a_flags = a_info->flags;
-  u64 b_flags = b_info->flags;
+  const u64 a_flags = a_info->flags;
+  const u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
   if (m_is_debugging_enabled)
   {
-    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    const auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
     if (breakpoints.IsAddressBreakPoint(a.address) || breakpoints.IsAddressBreakPoint(b.address))
       return false;
   }
@@ -285,10 +284,10 @@ static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 sta
   auto& mmu = guard.GetSystem().GetMMU();
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
+    const auto [valid, _from_bat, hex, _physical_address] = mmu.TryReadInstruction(addr);
+    const UGeckoInstruction instr = hex;
 
-    if (read_result.valid && PPCTables::IsValidInstruction(instr, addr))
+    if (valid && PPCTables::IsValidInstruction(instr, addr))
     {
       switch (instr.OPCD)
       {
@@ -334,16 +333,16 @@ static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymb
       {0x80001700, "thermal_management_interrupt_exception_handler"}};
 
   auto& mmu = guard.GetSystem().GetMMU();
-  for (const auto& entry : handlers)
+  for (const auto& [fst, snd] : handlers)
   {
-    const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(entry.first);
-    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, entry.first))
+    const auto [valid, _from_bat, hex, _physical_address] = mmu.TryReadInstruction(fst);
+    if (valid && PPCTables::IsValidInstruction(hex, fst))
     {
       // Check if this function is already mapped
-      Common::Symbol* f = func_db->AddFunction(guard, entry.first);
+      Common::Symbol* f = func_db->AddFunction(guard, fst);
       if (!f)
         continue;
-      f->Rename(entry.second);
+      f->Rename(snd);
     }
   }
 }
@@ -353,8 +352,8 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
 {
   std::vector<u32> funcAddrs;
 
-  for (const auto& func : func_db->Symbols())
-    funcAddrs.push_back(func.second.address + func.second.size);
+  for (const auto& val : func_db->Symbols() | std::views::values)
+    funcAddrs.push_back(val.address + val.size);
 
   auto& mmu = guard.GetSystem().GetMMU();
   for (u32& location : funcAddrs)
@@ -374,11 +373,10 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
       if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, location))
       {
         // check if this function is already mapped
-        Common::Symbol* f = func_db->AddFunction(guard, location);
+        const Common::Symbol* f = func_db->AddFunction(guard, location);
         if (!f)
           break;
-        else
-          location += f->size;
+        location += f->size;
       }
       else
         break;
@@ -386,7 +384,7 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
   }
 }
 
-void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
+void FindFunctions(const Core::CPUThreadGuard& guard, const u32 startAddr, const u32 endAddr,
                    PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
@@ -401,15 +399,15 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
   int numLeafs = 0, numNice = 0, numUnNice = 0;
   int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
   int leafSize = 0, niceSize = 0, unniceSize = 0;
-  for (auto& func : func_db->AccessSymbols())
+  for (auto& val : func_db->AccessSymbols() | std::views::values)
   {
-    if (func.second.address == 4)
+    if (val.address == 4)
     {
       WARN_LOG_FMT(SYMBOLS, "Weird function");
       continue;
     }
-    AnalyzeFunction2(func_db, &(func.second));
-    Common::Symbol& f = func.second;
+    AnalyzeFunction2(func_db, &(val));
+    Common::Symbol& f = val;
     if (f.name.substr(0, 3) == "zzz")
     {
       if (f.flags & Common::FFLAG_LEAF)
@@ -474,8 +472,8 @@ static bool isCror(const CodeOp& a)
   return a.inst.OPCD == 19 && a.inst.SUBOP10 == 449;
 }
 
-void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
-                                          ReorderType type) const
+void PPCAnalyzer::ReorderInstructionsCore(const u32 instructions, CodeOp* code, const bool reverse,
+                                          const ReorderType type) const
 {
   // Instruction Reordering Pass
   // Carry pass: bubble carry-using instructions as close to each other as possible, so we can avoid
@@ -548,7 +546,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
   }
 }
 
-void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
+void PPCAnalyzer::ReorderInstructions(const u32 instructions, CodeOp* code) const
 {
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
@@ -569,7 +567,7 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
+void PPCAnalyzer::SetInstructionStats(const CodeBlock* block, CodeOp* code,
                                       const GekkoOPInfo* opinfo) const
 {
   bool first_fpu_instruction = false;
@@ -731,7 +729,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   }
 }
 
-bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const
+bool PPCAnalyzer::IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, const size_t instructions)
 {
   // Very basic algorithm to detect busy wait loops:
   //   * It loops to itself and does not contain any other branches.
@@ -763,7 +761,7 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
     }
     else
     {
-      for (int reg : code[i].regsIn)
+      for (const int reg : code[i].regsIn)
       {
         if (reg == -1)
           continue;
@@ -771,7 +769,7 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
           continue;
         write_disallowed_regs[reg] = true;
       }
-      for (int reg : code[i].regsOut)
+      for (const int reg : code[i].regsOut)
       {
         if (reg == -1)
           continue;
@@ -828,8 +826,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   auto& mmu = system.GetMMU();
   for (std::size_t i = 0; i < block_size; ++i)
   {
-    auto result = mmu.TryReadInstruction(address);
-    if (!result.valid)
+    auto [valid, _from_bat, hex, physical_address] = mmu.TryReadInstruction(address);
+    if (!valid)
     {
       if (i == 0)
         block->m_memory_exception = true;
@@ -838,7 +836,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     num_inst++;
 
-    const UGeckoInstruction inst = result.hex;
+    const UGeckoInstruction inst = hex;
     const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst, address);
     code[i] = {};
     code[i].opinfo = opinfo;
@@ -846,7 +844,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     code[i].inst = inst;
     code[i].skip = false;
     block->m_stats->numCycles += opinfo->num_cycles;
-    block->m_physical_addresses.insert(result.physical_address);
+    block->m_physical_addresses.insert(physical_address);
 
     SetInstructionStats(block, &code[i], opinfo);
 
@@ -1062,52 +1060,53 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   BitSet8 gqrUsed, gqrModified;
   for (u32 i = 0; i < block->m_num_instructions; i++)
   {
-    CodeOp& op = code[i];
+    auto& [inst, opinfo, _address, _branchTo, _regsIn, _regsOut, _fregsIn, fregOut, _crIn, _crOut,
+      _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA, _wantsCAInFlags, _outputCR,
+      _outputFPRF, _outputCA, _canEndBlock, _canCauseException, _skipLRStack, _skip, _crInUse,
+      _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable, _fprDiscardable, _fprInXmm,
+      _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst, fprIsStoreSafeAfterInst] = code[i];
 
-    op.fprIsSingle = fprIsSingle;
-    op.fprIsDuplicated = fprIsDuplicated;
-    op.fprIsStoreSafeBeforeInst = fprIsStoreSafe;
-    if (op.fregOut >= 0)
+    if (fregOut >= 0)
     {
       BitSet32 bitexact_inputs;
-      if (op.opinfo->flags &
+      if (opinfo->flags &
           (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
       {
-        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
-          bitexact_inputs[op.inst.FA] = true;
-        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
-          bitexact_inputs[op.inst.FB] = true;
-        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
-          bitexact_inputs[op.inst.FC] = true;
+        if (opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
+          bitexact_inputs[inst.FA] = true;
+        if (opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
+          bitexact_inputs[inst.FB] = true;
+        if (opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
+          bitexact_inputs[inst.FC] = true;
       }
 
-      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
+      if (opinfo->type == OpType::SingleFP || !strncmp(opinfo->opname, "frsp", 4))
       {
-        fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = true;
+        fprIsSingle[fregOut] = true;
+        fprIsDuplicated[fregOut] = true;
       }
-      else if (!strncmp(op.opinfo->opname, "lfs", 3))
+      else if (!strncmp(opinfo->opname, "lfs", 3))
       {
-        fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = true;
+        fprIsSingle[fregOut] = true;
+        fprIsDuplicated[fregOut] = true;
       }
       else if (bitexact_inputs)
       {
-        fprIsSingle[op.fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
-        fprIsDuplicated[op.fregOut] = false;
+        fprIsSingle[fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
+        fprIsDuplicated[fregOut] = false;
       }
-      else if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
+      else if (opinfo->type == OpType::PS || opinfo->type == OpType::LoadPS)
       {
-        fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = false;
+        fprIsSingle[fregOut] = true;
+        fprIsDuplicated[fregOut] = false;
       }
       else
       {
-        fprIsSingle[op.fregOut] = false;
-        fprIsDuplicated[op.fregOut] = false;
+        fprIsSingle[fregOut] = false;
+        fprIsDuplicated[fregOut] = false;
       }
 
-      if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      if (!strncmp(opinfo->opname, "mtfs", 4))
       {
         // Careful: changing the float mode in a block breaks the store-safe optimization,
         // since a previous float op might have had FTZ off while the later store has FTZ on.
@@ -1118,7 +1117,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       {
         // If the instruction copies bits between registers (without flushing denormals to zero
         // or turning SNaN into QNaN), the output is store-safe if the inputs are.
-        fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
+        fprIsStoreSafe[fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
       }
       else
       {
@@ -1129,22 +1128,22 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
         // TODO: if we go directly from a load to a float instruction, and the value isn't used
         // for anything else, we can use fast single -> double conversion after the load.
 
-        fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
-                                     op.opinfo->type == OpType::PS ||
-                                     !strncmp(op.opinfo->opname, "frsp", 4);
+        fprIsStoreSafe[fregOut] = opinfo->type == OpType::SingleFP ||
+                                     opinfo->type == OpType::PS ||
+                                     !strncmp(opinfo->opname, "frsp", 4);
       }
     }
-    op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
+    fprIsStoreSafeAfterInst = fprIsStoreSafe;
 
-    if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
+    if (opinfo->type == OpType::StorePS || opinfo->type == OpType::LoadPS)
     {
-      const int gqr = op.inst.OPCD == 4 ? op.inst.Ix : op.inst.I;
+      const int gqr = inst.OPCD == 4 ? inst.Ix : inst.I;
       gqrUsed[gqr] = true;
     }
 
-    if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 467)  // mtspr
+    if (inst.OPCD == 31 && inst.SUBOP10 == 467)  // mtspr
     {
-      const int gqr = ((op.inst.SPRU << 5) | op.inst.SPRL) - SPR_GQR0;
+      const int gqr = ((inst.SPRU << 5) | inst.SPRL) - SPR_GQR0;
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }

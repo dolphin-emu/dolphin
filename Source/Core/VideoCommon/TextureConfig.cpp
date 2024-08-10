@@ -23,7 +23,7 @@ MathUtil::Rectangle<int> TextureConfig::GetRect() const
   return {0, 0, static_cast<int>(width), static_cast<int>(height)};
 }
 
-MathUtil::Rectangle<int> TextureConfig::GetMipRect(u32 level) const
+MathUtil::Rectangle<int> TextureConfig::GetMipRect(const u32 level) const
 {
   return {0, 0, static_cast<int>(std::max(width >> level, 1u)),
           static_cast<int>(std::max(height >> level, 1u))};
@@ -34,7 +34,7 @@ size_t TextureConfig::GetStride() const
   return AbstractTexture::CalculateStrideForFormat(format, width);
 }
 
-size_t TextureConfig::GetMipStride(u32 level) const
+size_t TextureConfig::GetMipStride(const u32 level) const
 {
   return AbstractTexture::CalculateStrideForFormat(format, std::max(width >> level, 1u));
 }

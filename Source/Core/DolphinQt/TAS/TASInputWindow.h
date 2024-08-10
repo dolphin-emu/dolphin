@@ -5,12 +5,9 @@
 
 #include <map>
 #include <optional>
-#include <string_view>
 #include <utility>
 
 #include <QDialog>
-
-#include "Common/CommonTypes.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -62,12 +59,12 @@ protected:
   TASSpinBox* CreateSliderValuePair(std::string_view group_name, std::string_view control_name,
                                     InputOverrider* overrider, QBoxLayout* layout, int zero,
                                     int default_, int min, int max,
-                                    QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
+                                    const QKeySequence& shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget,
                                     std::optional<ControlState> scale = {});
-  TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
-                                    QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
-                                    QWidget* shortcut_widget);
+  static TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
+                                           const QKeySequence& shortcut_key_sequence, Qt::Orientation orientation,
+                                           QWidget* shortcut_widget);
 
   void changeEvent(QEvent* event) override;
 
@@ -77,9 +74,9 @@ protected:
   QSpinBox* m_turbo_release_frames;
 
 private:
-  std::optional<ControlState> GetButton(TASCheckBox* checkbox, ControlState controller_state);
+  std::optional<ControlState> GetButton(TASCheckBox* checkbox, ControlState controller_state) const;
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, int min, int max,
-                                         ControlState controller_state);
+                                         ControlState controller_state) const;
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, ControlState controller_state,
-                                         ControlState scale);
+                                         ControlState scale) const;
 };

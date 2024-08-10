@@ -63,7 +63,7 @@ void Jit64AsmRoutineManager::Generate()
   MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
 
   // something that can't pass the BLR test
-  MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
+  MOV(64, MDisp(RSP, 8), Imm32(static_cast<u32>(-1)));
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
@@ -76,7 +76,7 @@ void Jit64AsmRoutineManager::Generate()
   MOV(64, R(RMEM), PPCSTATE(mem_ptr));
 
   // skip the sync and compare first time
-  FixupBranch skipToRealDispatch = J(enable_debugging ? Jump::Near : Jump::Short);
+  const FixupBranch skipToRealDispatch = J(enable_debugging ? Jump::Near : Jump::Short);
 
   dispatcher_mispredicted_blr = GetCodePtr();
   AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
@@ -96,11 +96,11 @@ void Jit64AsmRoutineManager::Generate()
 
   // Expected result of SUB(32, PPCSTATE(downcount), Imm32(block_cycles)) is in RFLAGS.
   // Branch if downcount is <= 0 (signed).
-  FixupBranch bail = J_CC(CC_LE, Jump::Near);
+  const FixupBranch bail = J_CC(CC_LE, Jump::Near);
 
   dispatcher_no_timing_check = GetCodePtr();
 
-  auto& system = m_jit.m_system;
+  const auto& system = m_jit.m_system;
 
   FixupBranch dbg_exit;
   if (enable_debugging)
@@ -115,7 +115,7 @@ void Jit64AsmRoutineManager::Generate()
   dispatcher_no_check = GetCodePtr();
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
-  const bool assembly_dispatcher = true;
+  constexpr bool assembly_dispatcher = true;
   if (assembly_dispatcher)
   {
     if (m_jit.GetBlockCache()->GetEntryPoints())
@@ -126,7 +126,7 @@ void Jit64AsmRoutineManager::Generate()
       MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
       OR(64, R(RSCRATCH_EXTRA), R(RSCRATCH2));
 
-      u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetEntryPoints());
+      const u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetEntryPoints());
       MOV(64, R(RSCRATCH2), Imm64(icache));
       // The entry points map is indexed by ((feature_flags << 30) | (pc >> 2)).
       // The map contains 8-byte pointers and that means we need to shift feature_flags
@@ -140,7 +140,7 @@ void Jit64AsmRoutineManager::Generate()
       MOV(32, R(RSCRATCH), PPCSTATE(pc));
       // Keep a copy for later.
       MOV(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
-      u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMapFallback());
+      const u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMapFallback());
       AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 2));
       if (icache <= INT_MAX)
       {
@@ -155,7 +155,7 @@ void Jit64AsmRoutineManager::Generate()
 
     // Check if we found a block.
     TEST(64, R(RSCRATCH), R(RSCRATCH));
-    FixupBranch not_found = J_CC(CC_Z);
+    const FixupBranch not_found = J_CC(CC_Z);
     FixupBranch state_mismatch;
 
     if (!m_jit.GetBlockCache()->GetEntryPoints())
@@ -202,7 +202,7 @@ void Jit64AsmRoutineManager::Generate()
     ABI_PopRegistersAndAdjustStack({}, 0);
 
     TEST(64, R(ABI_RETURN), R(ABI_RETURN));
-    FixupBranch no_block_available = J_CC(CC_Z);
+    const FixupBranch no_block_available = J_CC(CC_Z);
 
     // Jump to the block
     JMPptr(R(ABI_RETURN));

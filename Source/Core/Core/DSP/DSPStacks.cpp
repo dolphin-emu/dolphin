@@ -11,7 +11,7 @@
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 namespace DSP
 {
-void SDSP::StoreStack(StackRegister stack_reg, u16 val)
+void SDSP::StoreStack(StackRegister stack_reg, const u16 val)
 {
   const auto reg_index = static_cast<size_t>(stack_reg);
 

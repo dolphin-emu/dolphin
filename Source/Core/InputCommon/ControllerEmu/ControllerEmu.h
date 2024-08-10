@@ -21,10 +21,10 @@
 class ControllerInterface;
 class InputConfig;
 
-constexpr const char* DIRECTION_UP = _trans("Up");
-constexpr const char* DIRECTION_DOWN = _trans("Down");
-constexpr const char* DIRECTION_LEFT = _trans("Left");
-constexpr const char* DIRECTION_RIGHT = _trans("Right");
+constexpr auto DIRECTION_UP = _trans("Up");
+constexpr auto DIRECTION_DOWN = _trans("Down");
+constexpr auto DIRECTION_LEFT = _trans("Left");
+constexpr auto DIRECTION_RIGHT = _trans("Right");
 
 constexpr const char* named_directions[] = {DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT,
                                             DIRECTION_RIGHT};
@@ -54,7 +54,7 @@ struct TwoPointCalibration
     else
     {
       return std::equal(std::begin(max.data), std::end(max.data), std::begin(zero.data),
-                        std::not_equal_to<>());
+                        std::not_equal_to());
     }
   }
 
@@ -123,10 +123,10 @@ struct RawValue
   auto GetNormalizedValue(const TwoPointCalibration<OtherT, OtherBits>& calibration) const
   {
     const auto value_expansion =
-        std::max(0, int(calibration.BITS_OF_PRECISION) - int(BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(calibration.BITS_OF_PRECISION) - static_cast<int>(BITS_OF_PRECISION));
 
     const auto calibration_expansion =
-        std::max(0, int(BITS_OF_PRECISION) - int(calibration.BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(BITS_OF_PRECISION) - static_cast<int>(calibration.BITS_OF_PRECISION));
 
     const auto calibration_zero = ExpandValue(calibration.zero, calibration_expansion) * 1.f;
     const auto calibration_max = ExpandValue(calibration.max, calibration_expansion) * 1.f;
@@ -140,10 +140,10 @@ struct RawValue
   auto GetNormalizedValue(const ThreePointCalibration<OtherT, OtherBits>& calibration) const
   {
     const auto value_expansion =
-        std::max(0, int(calibration.BITS_OF_PRECISION) - int(BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(calibration.BITS_OF_PRECISION) - static_cast<int>(BITS_OF_PRECISION));
 
     const auto calibration_expansion =
-        std::max(0, int(BITS_OF_PRECISION) - int(calibration.BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(BITS_OF_PRECISION) - static_cast<int>(calibration.BITS_OF_PRECISION));
 
     const auto calibration_min = ExpandValue(calibration.min, calibration_expansion) * 1.f;
     const auto calibration_zero = ExpandValue(calibration.zero, calibration_expansion) * 1.f;
@@ -197,7 +197,7 @@ public:
   void ClearInputOverrideFunction();
 
   void UpdateReferences(const ControllerInterface& devi);
-  void UpdateSingleControlReference(const ControllerInterface& devi, ControlReference* ref);
+  void UpdateSingleControlReference(const ControllerInterface& devi, const ControlReference* ref);
 
   // This returns a lock that should be held before calling State() on any control
   // references and GetState(), by extension. This prevents a race condition
@@ -208,7 +208,7 @@ public:
   GetExpressionVariables() const;
 
   // Resets the values while keeping the list.
-  void ResetExpressionVariables();
+  void ResetExpressionVariables() const;
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
@@ -231,8 +231,7 @@ public:
 
     if (input_value > 0)
       return T(std::llround((pos_1_value - zero_value) * input_value + zero_value));
-    else
-      return T(std::llround((zero_value - neg_1_value) * input_value + zero_value));
+    return T(std::llround((zero_value - neg_1_value) * input_value + zero_value));
   }
 
   // The inverse of the function above.
@@ -246,8 +245,7 @@ public:
 
     if (input_value >= zero_value)
       return F(input_value - zero_value) / F(pos_1_value - zero_value);
-    else
-      return -F(zero_value - input_value) / F(zero_value - neg_1_value);
+    return -F(zero_value - input_value) / F(zero_value - neg_1_value);
   }
 
 protected:
@@ -257,7 +255,7 @@ protected:
 
   InputOverrideFunction m_input_override_function;
 
-  void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);
+  void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env) const;
 
 private:
   ciface::Core::DeviceQualifier m_default_device;

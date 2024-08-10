@@ -22,8 +22,8 @@ namespace USB
 V5CtrlMessage::V5CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : CtrlMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   request_type = memory.Read_U8(ioctlv.in_vectors[0].address + 8);
   request = memory.Read_U8(ioctlv.in_vectors[0].address + 9);
   value = memory.Read_U16(ioctlv.in_vectors[0].address + 10);
@@ -34,8 +34,8 @@ V5CtrlMessage::V5CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V5BulkMessage::V5BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : BulkMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 18);
 }
@@ -43,8 +43,8 @@ V5BulkMessage::V5BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V5IntrMessage::V5IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IntrMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 14);
 }
@@ -52,8 +52,8 @@ V5IntrMessage::V5IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V5IsoMessage::V5IsoMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IsoMessage(ios, ioctlv, ioctlv.GetVector(2)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   num_packets = memory.Read_U8(ioctlv.in_vectors[0].address + 16);
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 17);
   packet_sizes_addr = ioctlv.GetVector(1)->address;
@@ -110,10 +110,10 @@ void USBV5ResourceManager::DoState(PointerWrap& p)
   USBHost::DoState(p);
 }
 
-USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(u32 in_buffer)
+USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(const u32 in_buffer)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u8 index = memory.Read_U8(in_buffer + offsetof(DeviceID, index));
   const u16 number = memory.Read_U16(in_buffer + offsetof(DeviceID, number));
 
@@ -144,14 +144,14 @@ std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest
   return std::nullopt;
 }
 
-IPCReply USBV5ResourceManager::SetAlternateSetting(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SetAlternateSetting(const USBV5Device& device, const IOCtlRequest& request) const
 {
   const auto host_device = GetDeviceById(device.host_id);
   if (!host_device->AttachAndChangeInterface(device.interface_number))
     return IPCReply(-1);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u8 alt_setting = memory.Read_U8(request.buffer_in + 2 * sizeof(s32));
 
   const bool success = host_device->SetAltSetting(alt_setting) == 0;
@@ -175,10 +175,10 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SuspendResume(const USBV5Device& device, const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const auto host_device = GetDeviceById(device.host_id);
   const s32 resumed = memory.Read_U32(request.buffer_in + 8);
@@ -204,15 +204,17 @@ std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlReque
 }
 
 void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
-                                          std::shared_ptr<USB::Device> device)
+                                          const std::shared_ptr<USB::Device> device)
 {
   std::lock_guard lock{m_usbv5_devices_mutex};
   const u64 host_device_id = device->GetId();
   if (event == ChangeEvent::Inserted)
   {
-    for (const auto& interface : device->GetInterfaces(0))
+    for (const auto& [_bLength, _bDescriptorType, bInterfaceNumber, bAlternateSetting,
+      _bNumEndpoints, _bInterfaceClass, _bInterfaceSubClass, _bInterfaceProtocol, _iInterface] :
+      device->GetInterfaces(0))
     {
-      if (interface.bAlternateSetting != 0)
+      if (bAlternateSetting != 0)
         continue;
 
       auto it = std::find_if(m_usbv5_devices.rbegin(), m_usbv5_devices.rend(),
@@ -221,17 +223,17 @@ void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
         return;
 
       it->in_use = true;
-      it->interface_number = interface.bInterfaceNumber;
+      it->interface_number = bInterfaceNumber;
       it->number = m_current_device_number;
       it->host_id = host_device_id;
     }
   }
   else if (event == ChangeEvent::Removed)
   {
-    for (USBV5Device& entry : m_usbv5_devices)
+    for (auto& [in_use, _interface_number, _number, host_id] : m_usbv5_devices)
     {
-      if (entry.host_id == host_device_id)
-        entry.in_use = false;
+      if (host_id == host_device_id)
+        in_use = false;
     }
   }
 }
@@ -252,25 +254,25 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     return;
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::lock_guard lock{m_usbv5_devices_mutex};
   u8 num_devices = 0;
   for (auto it = m_usbv5_devices.crbegin(); it != m_usbv5_devices.crend(); ++it)
   {
-    const USBV5Device& usbv5_device = *it;
-    if (!usbv5_device.in_use)
+    const auto& [in_use, interface_number, number, host_id] = *it;
+    if (!in_use)
       continue;
 
-    const auto device = GetDeviceById(usbv5_device.host_id);
+    const auto device = GetDeviceById(host_id);
     if (!device)
       continue;
 
     DeviceEntry entry;
     if (HasInterfaceNumberInIDs())
     {
-      entry.id.reserved = usbv5_device.interface_number;
+      entry.id.reserved = interface_number;
     }
     else
     {
@@ -280,11 +282,11 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
       entry.id.reserved = 0xe7;
     }
     entry.id.index = static_cast<u8>(std::distance(m_usbv5_devices.cbegin(), it.base()) - 1);
-    entry.id.number = Common::swap16(usbv5_device.number);
+    entry.id.number = Common::swap16(number);
     entry.vid = Common::swap16(device->GetVid());
     entry.pid = Common::swap16(device->GetPid());
-    entry.number = Common::swap16(usbv5_device.number);
-    entry.interface_number = usbv5_device.interface_number;
+    entry.number = Common::swap16(number);
+    entry.interface_number = interface_number;
     entry.num_altsettings = device->GetNumberOfAltSettings(entry.interface_number);
 
     memory.CopyToEmu(m_devicechange_hook_request->buffer_out + sizeof(entry) * num_devices, &entry,

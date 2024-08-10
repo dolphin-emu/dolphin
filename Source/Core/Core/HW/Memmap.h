@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Common/MemArena.h"
 #include "Common/Swap.h"
 #include "Core/PowerPC/MMU.h"
@@ -86,7 +85,7 @@ public:
   // FIXME: these should not return their address, but AddressSpace wants that
   u8*& GetRAM() { return m_ram; }
   u8*& GetEXRAM() { return m_exram; }
-  u8* GetL1Cache() { return m_l1_cache; }
+  u8* GetL1Cache() const { return m_l1_cache; }
   u8*& GetFakeVMEM() { return m_fake_vmem; }
 
   MMIO::Mapping* GetMMIOMapping() const { return m_mmio_mapping.get(); }
@@ -97,15 +96,15 @@ public:
   void Shutdown();
   bool InitFastmemArena();
   void ShutdownFastmemArena();
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) const;
 
   void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
 
-  void Clear();
+  void Clear() const;
 
   // Routines to access physically addressed memory, designed for use by
   // emulated hardware outside the CPU. Use "Device_" prefix.
-  std::string GetString(u32 em_address, size_t size = 0);
+  std::string GetString(u32 em_address, size_t size = 0) const;
 
   // If the specified guest address is within a valid memory region, returns a span starting at the
   // host address corresponding to the specified address and ending where the memory region ends.
@@ -117,22 +116,22 @@ public:
   u8* GetPointerForRange(u32 address, size_t size) const;
 
   void CopyFromEmu(void* data, u32 address, size_t size) const;
-  void CopyToEmu(u32 address, const void* data, size_t size);
-  void Memset(u32 address, u8 value, size_t size);
+  void CopyToEmu(u32 address, const void* data, size_t size) const;
+  void Memset(u32 address, u8 value, size_t size) const;
   u8 Read_U8(u32 address) const;
   u16 Read_U16(u32 address) const;
   u32 Read_U32(u32 address) const;
   u64 Read_U64(u32 address) const;
-  void Write_U8(u8 var, u32 address);
-  void Write_U16(u16 var, u32 address);
-  void Write_U32(u32 var, u32 address);
-  void Write_U64(u64 var, u32 address);
-  void Write_U32_Swap(u32 var, u32 address);
-  void Write_U64_Swap(u64 var, u32 address);
+  void Write_U8(u8 var, u32 address) const;
+  void Write_U16(u16 var, u32 address) const;
+  void Write_U32(u32 var, u32 address) const;
+  void Write_U64(u64 var, u32 address) const;
+  void Write_U32_Swap(u32 var, u32 address) const;
+  void Write_U64_Swap(u64 var, u32 address) const;
 
   // Templated functions for byteswapped copies.
   template <typename T>
-  void CopyFromEmuSwapped(T* data, u32 address, size_t size) const
+  void CopyFromEmuSwapped(T* data, const u32 address, const size_t size) const
   {
     const T* src = reinterpret_cast<T*>(GetPointerForRange(address, size));
 
@@ -144,7 +143,7 @@ public:
   }
 
   template <typename T>
-  void CopyToEmuSwapped(u32 address, const T* data, size_t size)
+  void CopyToEmuSwapped(const u32 address, const T* data, const size_t size)
   {
     T* dest = reinterpret_cast<T*>(GetPointerForRange(address, size));
 

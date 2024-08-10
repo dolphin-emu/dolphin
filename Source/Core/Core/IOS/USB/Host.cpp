@@ -26,7 +26,6 @@
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
-#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -72,7 +71,7 @@ void USBHost::DoState(PointerWrap& p)
 bool USBHost::AddDevice(std::unique_ptr<USB::Device> device)
 {
   std::lock_guard lk(m_devices_mutex);
-  if (m_devices.find(device->GetId()) != m_devices.end())
+  if (m_devices.contains(device->GetId()))
     return false;
 
   m_devices[device->GetId()] = std::move(device);
@@ -127,7 +126,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 #ifdef __LIBUSB__
   if (!Core::WantsDeterminism())
   {
-    auto whitelist = Config::GetUSBDeviceWhitelist();
+    const auto whitelist = Config::GetUSBDeviceWhitelist();
     if (whitelist.empty())
       return true;
 
@@ -136,7 +135,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
       const int ret = m_context.GetDeviceList([&](libusb_device* device) {
         libusb_device_descriptor descriptor;
         libusb_get_device_descriptor(device, &descriptor);
-        if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
+        if (!whitelist.contains({descriptor.idVendor, descriptor.idProduct}))
           return true;
 
         auto usb_device =
@@ -157,7 +156,7 @@ void USBHost::DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceC
   std::lock_guard lk(m_devices_mutex);
   for (auto it = m_devices.begin(); it != m_devices.end();)
   {
-    if (plugged_devices.find(it->second->GetId()) == plugged_devices.end())
+    if (!plugged_devices.contains(it->second->GetId()))
     {
       hooks.emplace(it->second, ChangeEvent::Removed);
       it = m_devices.erase(it);
@@ -171,27 +170,26 @@ void USBHost::DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceC
 
 void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 {
-  for (const auto& hook : hooks)
+  for (const auto& [fst, snd] : hooks)
   {
     INFO_LOG_FMT(IOS_USB, "{} - {} device: {:04x}:{:04x}", GetDeviceName(),
-                 hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
-                 hook.first->GetPid());
-    OnDeviceChange(hook.second, hook.first);
+                 snd == ChangeEvent::Inserted ? "New" : "Removed", fst->GetVid(), fst->GetPid());
+    OnDeviceChange(snd, fst);
   }
   if (!hooks.empty())
     OnDeviceChangeEnd();
 }
 
 void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
-                                 bool always_add_hooks)
+                                 const bool always_add_hooks)
 {
-  if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
+  if (Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
     auto skylanderportal =
         std::make_unique<USB::SkylanderUSB>(GetEmulationKernel(), "Skylander Portal");
     CheckAndAddDevice(std::move(skylanderportal), new_devices, hooks, always_add_hooks);
   }
-  if (Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
+  if (Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
   {
     auto infinity_base = std::make_unique<USB::InfinityUSB>(GetEmulationKernel(), "Infinity Base");
     CheckAndAddDevice(std::move(infinity_base), new_devices, hooks, always_add_hooks);
@@ -199,7 +197,7 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
 }
 
 void USBHost::CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
-                                DeviceChangeHooks& hooks, bool always_add_hooks)
+                                DeviceChangeHooks& hooks, const bool always_add_hooks)
 {
   if (ShouldAddDevice(*device))
   {
@@ -257,8 +255,8 @@ void USBHost::ScanThread::Stop()
   m_host->DispatchHooks(hooks);
 }
 
-std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                                std::function<s32()> submit) const
+std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, const u32 request,
+                                                std::function<s32()> submit)
 {
   if (!device)
     return IPCReply(IPC_ENOENT);

@@ -21,7 +21,7 @@ class System;
 namespace State
 {
 // number of states
-static const u32 NUM_STATES = 10;
+static constexpr u32 NUM_STATES = 10;
 
 struct StateHeaderLegacy
 {

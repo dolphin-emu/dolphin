@@ -4,18 +4,15 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
 #include <map>
-#include <sstream>
 #include <string>
 
 #include <picojson.h>
 
 #include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Constants.h"
@@ -85,13 +82,13 @@ void GraphicsModGroupConfig::Load()
   }
 
   const auto try_add_mod = [&known_paths, this](const std::string& dir,
-                                                GraphicsModConfig::Source source) {
+                                                const GraphicsModConfig::Source source) {
     auto file = dir + DIR_SEP + "metadata.json";
     UnifyPathSeparators(file);
     if (known_paths.contains(file))
       return;
 
-    if (auto mod = GraphicsModConfig::Create(file, source))
+    if (const auto mod = GraphicsModConfig::Create(file, source))
       m_graphics_mods.push_back(std::move(*mod));
   };
 
@@ -145,7 +142,7 @@ void GraphicsModGroupConfig::Save() const
   json_stream << output;
 }
 
-void GraphicsModGroupConfig::SetChangeCount(u32 change_count)
+void GraphicsModGroupConfig::SetChangeCount(const u32 change_count)
 {
   m_change_count = change_count;
 }
@@ -165,7 +162,7 @@ std::vector<GraphicsModConfig>& GraphicsModGroupConfig::GetMods()
   return m_graphics_mods;
 }
 
-GraphicsModConfig* GraphicsModGroupConfig::GetMod(std::string_view absolute_path) const
+GraphicsModConfig* GraphicsModGroupConfig::GetMod(const std::string_view absolute_path) const
 {
   if (const auto iter = m_path_to_graphics_mod.find(absolute_path);
       iter != m_path_to_graphics_mod.end())

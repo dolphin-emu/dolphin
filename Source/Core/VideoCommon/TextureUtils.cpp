@@ -16,7 +16,7 @@
 
 namespace
 {
-std::string BuildDumpTextureFilename(std::string basename, u32 level, bool is_arbitrary)
+std::string BuildDumpTextureFilename(std::string basename, u32 level, const bool is_arbitrary)
 {
   if (is_arbitrary)
     basename += "_arb";
@@ -29,8 +29,8 @@ std::string BuildDumpTextureFilename(std::string basename, u32 level, bool is_ar
 }  // namespace
 namespace VideoCommon::TextureUtils
 {
-void DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 level,
-                 bool is_arbitrary)
+void DumpTexture(const AbstractTexture& texture, std::string basename, const u32 level,
+                 const bool is_arbitrary)
 {
   const std::string dump_dir =
       File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
@@ -44,11 +44,11 @@ void DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 lev
   if (File::Exists(filename))
     return;
 
-  texture.Save(filename, level, Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
+  texture.Save(filename, level, Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 
-void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 level,
-                                bool is_arbitrary)
+void TextureDumper::DumpTexture(const AbstractTexture& texture, std::string basename, const u32 level,
+                                const bool is_arbitrary)
 {
   const std::string dump_dir =
       File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
@@ -75,6 +75,6 @@ void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string ba
     return;
 
   texture.Save(fmt::format("{}/{}.png", dump_dir, name), level,
-               Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
+               Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 }  // namespace VideoCommon::TextureUtils

@@ -3,8 +3,6 @@
 
 #include "VideoBackends/OGL/OGLPipeline.h"
 
-#include "Common/Assert.h"
-
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -12,7 +10,7 @@
 
 namespace OGL
 {
-static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
+static GLenum MapToGLPrimitive(const PrimitiveType primitive_type)
 {
   switch (primitive_type)
   {
@@ -31,7 +29,7 @@ static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
 OGLPipeline::OGLPipeline(const AbstractPipelineConfig& config, const GLVertexFormat* vertex_format,
                          const RasterizationState& rasterization_state,
                          const DepthState& depth_state, const BlendingState& blending_state,
-                         PipelineProgram* program, GLuint gl_primitive)
+                         PipelineProgram* program, const GLuint gl_primitive)
     : AbstractPipeline(config), m_vertex_format(vertex_format),
       m_rasterization_state(rasterization_state), m_depth_state(depth_state),
       m_blending_state(blending_state), m_program(program), m_gl_primitive(gl_primitive)
@@ -70,7 +68,7 @@ AbstractPipeline::CacheData OGLPipeline::GetCacheData() const
   if (glGetError() != GL_NO_ERROR || data_size == 0)
     return {};
 
-  u32 program_format_u32 = static_cast<u32>(program_format);
+  const u32 program_format_u32 = program_format;
   std::memcpy(&data[0], &program_format_u32, sizeof(u32));
   data.resize(data_size + sizeof(u32));
   m_program->binary_retrieved = true;
@@ -78,7 +76,7 @@ AbstractPipeline::CacheData OGLPipeline::GetCacheData() const
 }
 
 std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& config,
-                                                 const void* cache_data, size_t cache_data_size)
+                                                 const void* cache_data, const size_t cache_data_size)
 {
   PipelineProgram* program = ProgramShaderCache::GetPipelineProgram(
       static_cast<const GLVertexFormat*>(config.vertex_format),
@@ -88,7 +86,7 @@ std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& c
   if (!program)
     return nullptr;
 
-  const GLVertexFormat* vertex_format = static_cast<const GLVertexFormat*>(config.vertex_format);
+  auto vertex_format = static_cast<const GLVertexFormat*>(config.vertex_format);
   GLenum gl_primitive = MapToGLPrimitive(config.rasterization_state.primitive);
   return std::make_unique<OGLPipeline>(config, vertex_format, config.rasterization_state,
                                        config.depth_state, config.blending_state, program,

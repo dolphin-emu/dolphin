@@ -5,16 +5,13 @@
 
 #include <functional>
 #include <memory>
-#include <set>
 #include <string>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/Config/Config.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/OpcodeDecoding.h"
 
 class FifoDataFile;
 struct MemoryUpdate;
@@ -67,7 +64,7 @@ enum class FramePartType
 
 struct FramePart
 {
-  constexpr FramePart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
+  constexpr FramePart(const FramePartType type, const u32 start, const u32 end, const CPState& cpmem)
       : m_type(type), m_start(start), m_end(end), m_cpmem(cpmem)
   {
   }
@@ -119,7 +116,7 @@ public:
   u32 GetFrameObjectCount(u32 frame) const;
   u32 GetCurrentFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
-  const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
+  const AnalyzedFrameInfo& GetAnalyzedFrameInfo(const u32 frame) const { return m_FrameInfo[frame]; }
   // Frame range
   u32 GetFrameRangeStart() const { return m_FrameRangeStart; }
   void SetFrameRangeStart(u32 start);
@@ -129,9 +126,9 @@ public:
 
   // Object range
   u32 GetObjectRangeStart() const { return m_ObjectRangeStart; }
-  void SetObjectRangeStart(u32 start) { m_ObjectRangeStart = start; }
+  void SetObjectRangeStart(const u32 start) { m_ObjectRangeStart = start; }
   u32 GetObjectRangeEnd() const { return m_ObjectRangeEnd; }
-  void SetObjectRangeEnd(u32 end) { m_ObjectRangeEnd = end; }
+  void SetObjectRangeEnd(const u32 end) { m_ObjectRangeEnd = end; }
 
   // Callbacks
   void SetFileLoadedCallback(CallbackFunc callback);
@@ -148,33 +145,33 @@ private:
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
   void WriteFramePart(const FramePart& part, u32* next_mem_update, const FifoFrameInfo& frame);
 
-  void WriteAllMemoryUpdates();
-  void WriteMemory(const MemoryUpdate& memUpdate);
+  void WriteAllMemoryUpdates() const;
+  void WriteMemory(const MemoryUpdate& memUpdate) const;
 
   // writes a range of data to the fifo
   // start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
   void WriteFifo(const u8* data, u32 start, u32 end);
 
-  void SetupFifo();
+  void SetupFifo() const;
 
   void LoadMemory();
   void LoadRegisters();
-  void LoadTextureMemory();
-  void ClearEfb();
+  void LoadTextureMemory() const;
+  void ClearEfb() const;
 
-  void WriteCP(u32 address, u16 value);
-  void WritePI(u32 address, u32 value);
+  void WriteCP(u32 address, u16 value) const;
+  void WritePI(u32 address, u32 value) const;
 
-  void FlushWGP();
-  void WaitForGPUInactive();
+  void FlushWGP() const;
+  void WaitForGPUInactive() const;
 
-  void LoadBPReg(u8 reg, u32 value);
-  void LoadCPReg(u8 reg, u32 value);
-  void LoadXFReg(u16 reg, u32 value);
-  void LoadXFMem16(u16 address, const u32* data);
+  void LoadBPReg(u8 reg, u32 value) const;
+  void LoadCPReg(u8 reg, u32 value) const;
+  void LoadXFReg(u16 reg, u32 value) const;
+  void LoadXFMem16(u16 address, const u32* data) const;
 
-  bool ShouldLoadBP(u8 address);
-  bool ShouldLoadXF(u8 address);
+  static bool ShouldLoadBP(u8 address);
+  static bool ShouldLoadXF(u8 address);
 
   bool IsIdleSet() const;
   bool IsHighWatermarkSet() const;

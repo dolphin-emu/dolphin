@@ -125,7 +125,7 @@ public:
   virtual ~Device();
 
   int GetId() const { return m_id; }
-  void SetId(int id) { m_id = id; }
+  void SetId(const int id) { m_id = id; }
   virtual std::string GetName() const = 0;
   virtual std::string GetSource() const = 0;
   std::string GetQualifiedName() const;
@@ -238,7 +238,7 @@ public:
   };
 
   Device::Input* FindInput(std::string_view name, const Device* def_dev) const;
-  Device::Output* FindOutput(std::string_view name, const Device* def_dev) const;
+  static Device::Output* FindOutput(std::string_view name, const Device* def_dev);
 
   std::vector<std::shared_ptr<Device>> GetAllDevices() const;
   std::vector<std::string> GetAllDeviceStrings() const;

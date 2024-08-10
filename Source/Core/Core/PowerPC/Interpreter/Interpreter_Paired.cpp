@@ -5,7 +5,6 @@
 
 #include <cmath>
 
-#include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -161,7 +160,7 @@ void Interpreter::ps_res(Interpreter& interpreter, UGeckoInstruction inst)
   const double ps1 = Common::ApproximateReciprocal(b);
 
   ppc_state.ps[inst.FD].SetBoth(ps0, ps1);
-  ppc_state.UpdateFPRFSingle(float(ps0));
+  ppc_state.UpdateFPRFSingle(static_cast<float>(ps0));
 
   if (inst.Rc)
     ppc_state.UpdateCR1();

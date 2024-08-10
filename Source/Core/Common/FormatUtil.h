@@ -4,11 +4,10 @@
 #pragma once
 
 #include <cstddef>
-#include <string_view>
 
 namespace Common
 {
-constexpr std::size_t CountFmtReplacementFields(std::string_view s)
+constexpr std::size_t CountFmtReplacementFields(const std::string_view s)
 {
   std::size_t count = 0;
   for (std::size_t i = 0; i < s.size(); ++i)
@@ -38,7 +37,7 @@ static_assert(CountFmtReplacementFields("") == 0);
 static_assert(CountFmtReplacementFields("{} test {:x}") == 2);
 static_assert(CountFmtReplacementFields("{} {{}} test {{{}}}") == 2);
 
-constexpr bool ContainsNonPositionalArguments(std::string_view s)
+constexpr bool ContainsNonPositionalArguments(const std::string_view s)
 {
   for (std::size_t i = 0; i < s.size(); ++i)
   {

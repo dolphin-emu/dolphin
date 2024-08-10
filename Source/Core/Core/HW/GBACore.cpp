@@ -15,7 +15,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
@@ -25,7 +24,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
@@ -44,12 +42,12 @@ constexpr auto SAMPLES = 512;
 constexpr auto SAMPLE_RATE = 48000;
 
 // libmGBA does not return the correct frequency for some GB models
-static u32 GetCoreFrequency(mCore* core)
+static u32 GetCoreFrequency(const mCore* core)
 {
   if (core->platform(core) != mPLATFORM_GB)
     return static_cast<u32>(core->frequency(core));
 
-  switch (static_cast<::GB*>(core->board)->model)
+  switch (static_cast<GB*>(core->board)->model)
   {
   case GB_MODEL_CGB:
   case GB_MODEL_SCGB:
@@ -72,7 +70,7 @@ static VFile* OpenROM_Archive(const char* path)
       VDirFindFirst(archive, [](VFile* vf_) { return mCoreIsCompatible(vf_) != mPLATFORM_NONE; });
   if (vf_archive)
   {
-    size_t size = static_cast<size_t>(vf_archive->size(vf_archive));
+    const size_t size = static_cast<size_t>(vf_archive->size(vf_archive));
 
     std::vector<u8> buffer(size);
     vf_archive->seek(vf_archive, 0, SEEK_SET);
@@ -88,7 +86,7 @@ static VFile* OpenROM_Archive(const char* path)
 static VFile* OpenROM_Zip(const char* path)
 {
   VFile* vf{};
-  unzFile zip = unzOpen(path);
+  const unzFile zip = unzOpen(path);
   if (!zip)
     return nullptr;
   do
@@ -140,8 +138,8 @@ static VFile* OpenROM(const char* rom_path)
 
 static std::array<u8, 20> GetROMHash(VFile* rom)
 {
-  size_t size = rom->size(rom);
-  u8* buffer = static_cast<u8*>(rom->map(rom, size, MAP_READ));
+  const size_t size = rom->size(rom);
+  auto buffer = static_cast<u8*>(rom->map(rom, size, MAP_READ));
 
   const auto digest = Common::SHA1::CalculateDigest(buffer, size);
   rom->unmap(rom, buffer, size);
@@ -149,7 +147,7 @@ static std::array<u8, 20> GetROMHash(VFile* rom)
   return digest;
 }
 
-Core::Core(::Core::System& system, int device_number)
+Core::Core(::Core::System& system, const int device_number)
     : m_device_number(device_number), m_system(system)
 {
   mLogSetDefaultLogger(&s_stub_logger);
@@ -160,7 +158,7 @@ Core::~Core()
   Stop();
 }
 
-bool Core::Start(u64 gc_ticks)
+bool Core::Start(const u64 gc_ticks)
 {
   if (IsStarted())
     return false;
@@ -173,7 +171,7 @@ bool Core::Start(u64 gc_ticks)
       rom->close(rom);
   }};
 
-  m_rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[m_device_number]);
+  m_rom_path = Get(Config::MAIN_GBA_ROM_PATHS[m_device_number]);
   if (!m_rom_path.empty())
   {
     rom = OpenROM(m_rom_path.c_str());
@@ -242,7 +240,7 @@ bool Core::Start(u64 gc_ticks)
   // Notify the host and handle a dimension change if that happened after reset()
   SetVideoBuffer();
 
-  if (Config::Get(Config::MAIN_GBA_THREADS))
+  if (Get(Config::MAIN_GBA_THREADS))
   {
     m_idle = true;
     m_exit_loop = false;
@@ -259,7 +257,7 @@ void Core::Stop()
     Flush();
     m_exit_loop = true;
     {
-      std::lock_guard<std::mutex> lock(m_queue_mutex);
+      std::lock_guard lock(m_queue_mutex);
       m_command_cv.notify_one();
     }
     m_thread->join();
@@ -302,7 +300,7 @@ CoreInfo Core::GetCoreInfo() const
   if (!IsStarted())
     return info;
 
-  info.is_gba = m_core->platform(m_core) == mPlatform::mPLATFORM_GBA;
+  info.is_gba = m_core->platform(m_core) == mPLATFORM_GBA;
   info.has_rom = !m_rom_path.empty();
   info.has_ereader =
       info.is_gba && static_cast<::GBA*>(m_core->board)->memory.hw.devices & HW_EREADER;
@@ -316,12 +314,12 @@ void Core::SetHost(std::weak_ptr<GBAHostInterface> host)
   m_host = std::move(host);
 }
 
-void Core::SetForceDisconnect(bool force_disconnect)
+void Core::SetForceDisconnect(const bool force_disconnect)
 {
   m_force_disconnect = force_disconnect;
 }
 
-void Core::EReaderQueueCard(std::string_view card_path)
+void Core::EReaderQueueCard(const std::string_view card_path)
 {
   Flush();
   if (!GetCoreInfo().has_ereader)
@@ -333,7 +331,7 @@ void Core::EReaderQueueCard(std::string_view card_path)
   GBACartEReaderQueueCard(static_cast<::GBA*>(m_core->board), core_state.data(), core_state.size());
 }
 
-bool Core::LoadBIOS(const char* bios_path)
+bool Core::LoadBIOS(const char* bios_path) const
 {
   VFile* vf = VFileOpen(bios_path, O_RDONLY);
   if (!vf)
@@ -352,7 +350,7 @@ bool Core::LoadBIOS(const char* bios_path)
   return true;
 }
 
-bool Core::LoadSave(const char* save_path)
+bool Core::LoadSave(const char* save_path) const
 {
   VFile* vf = VFileOpen(save_path, O_CREAT | O_RDWR);
   if (!vf)
@@ -396,17 +394,17 @@ void Core::SetVideoBuffer()
   m_core->currentVideoSize(m_core, &width, &height);
   m_video_buffer.resize(width * height);
   m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
-  if (auto host = m_host.lock())
+  if (const auto host = m_host.lock())
     host->GameChanged();
 }
 
-void Core::SetSampleRates()
+void Core::SetSampleRates() const
 {
   m_core->setAudioBufferSize(m_core, SAMPLES);
   blip_set_rates(m_core->getAudioChannel(m_core, 0), m_core->frequency(m_core), SAMPLE_RATE);
   blip_set_rates(m_core->getAudioChannel(m_core, 1), m_core->frequency(m_core), SAMPLE_RATE);
 
-  SoundStream* sound_stream = m_system.GetSoundStream();
+  const SoundStream* sound_stream = m_system.GetSoundStream();
   sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
       m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / SAMPLE_RATE);
 }
@@ -416,12 +414,12 @@ void Core::AddCallbacks()
   mCoreCallbacks callbacks{};
   callbacks.context = this;
   callbacks.keysRead = [](void* context) {
-    auto core = static_cast<Core*>(context);
+    const auto core = static_cast<Core*>(context);
     core->m_core->setKeys(core->m_core, core->m_keys);
   };
   callbacks.videoFrameEnded = [](void* context) {
-    auto core = static_cast<Core*>(context);
-    if (auto host = core->m_host.lock())
+    const auto core = static_cast<Core*>(context);
+    if (const auto host = core->m_host.lock())
       host->FrameEnded(core->m_video_buffer);
   };
   m_core->addCoreCallbacks(m_core, &callbacks);
@@ -432,16 +430,16 @@ void Core::SetAVStream()
   m_stream = {};
   m_stream.core = this;
   m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned width, unsigned height) {
-    auto core = static_cast<AVStream*>(stream)->core;
+    const auto core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
   m_stream.postAudioBuffer = [](mAVStream* stream, blip_t* left, blip_t* right) {
-    auto core = static_cast<AVStream*>(stream)->core;
+    const auto core = static_cast<AVStream*>(stream)->core;
     std::vector<s16> buffer(SAMPLES * 2);
     blip_read_samples(left, &buffer[0], SAMPLES, 1);
     blip_read_samples(right, &buffer[1], SAMPLES, 1);
 
-    SoundStream* sound_stream = core->m_system.GetSoundStream();
+    const SoundStream* sound_stream = core->m_system.GetSoundStream();
     sound_stream->GetMixer()->PushGBASamples(core->m_device_number, &buffer[0], SAMPLES);
   };
   m_core->setAVStream(m_core, &m_stream);
@@ -452,17 +450,17 @@ void Core::SetupEvent()
   m_event.context = this;
   m_event.name = "Dolphin Sync";
   m_event.callback = [](mTiming* timing, void* context, u32 cycles_late) {
-    Core* core = static_cast<Core*>(context);
+    auto core = static_cast<Core*>(context);
     if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
       static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
     else if (core->m_core->platform(core->m_core) == mPLATFORM_GB)
-      static_cast<::GB*>(core->m_core->board)->earlyExit = true;
+      static_cast<GB*>(core->m_core->board)->earlyExit = true;
     core->m_waiting_for_event = false;
   };
   m_event.priority = 0x80;
 }
 
-void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys)
+void Core::SendJoybusCommand(const u64 gc_ticks, const int transfer_time, u8* buffer, const u16 keys)
 {
   if (!IsStarted())
     return;
@@ -477,7 +475,7 @@ void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 ke
 
   if (m_thread)
   {
-    std::lock_guard<std::mutex> lock(m_queue_mutex);
+    std::lock_guard lock(m_queue_mutex);
     m_command_queue.push(command);
     m_idle = false;
     m_command_cv.notify_one();
@@ -495,7 +493,7 @@ std::vector<u8> Core::GetJoybusResponse()
 
   if (m_thread)
   {
-    std::unique_lock<std::mutex> lock(m_response_mutex);
+    std::unique_lock lock(m_response_mutex);
     m_response_cv.wait(lock, [&] { return m_response_ready; });
   }
   m_response_ready = false;
@@ -506,14 +504,14 @@ void Core::Flush()
 {
   if (!IsStarted() || !m_thread)
     return;
-  std::unique_lock<std::mutex> lock(m_queue_mutex);
+  std::unique_lock lock(m_queue_mutex);
   m_response_cv.wait(lock, [&] { return m_idle; });
 }
 
 void Core::ThreadLoop()
 {
   Common::SetCurrentThreadName(fmt::format("GBA{}", m_device_number + 1).c_str());
-  std::unique_lock<std::mutex> queue_lock(m_queue_mutex);
+  std::unique_lock queue_lock(m_queue_mutex);
   while (true)
   {
     m_command_cv.wait(queue_lock, [&] { return !m_command_queue.empty() || m_exit_loop; });
@@ -541,7 +539,7 @@ void Core::RunCommand(Command& command)
     m_response.clear();
     if (m_link_enabled && !m_force_disconnect)
     {
-      int recvd = GBASIOJOYSendCommand(
+      const int recvd = GBASIOJOYSendCommand(
           &m_sio_driver, static_cast<GBASIOJOYCommand>(command.buffer[0]), &command.buffer[1]);
       std::copy(command.buffer.begin() + 1, command.buffer.begin() + 1 + recvd,
                 std::back_inserter(m_response));
@@ -549,7 +547,7 @@ void Core::RunCommand(Command& command)
 
     if (m_thread && !m_response_ready)
     {
-      std::lock_guard<std::mutex> response_lock(m_response_mutex);
+      std::lock_guard response_lock(m_response_mutex);
       m_response_ready = true;
       m_response_cv.notify_one();
     }
@@ -562,7 +560,7 @@ void Core::RunCommand(Command& command)
     RunFor(command.transfer_time);
 }
 
-void Core::RunUntil(u64 gc_ticks)
+void Core::RunUntil(const u64 gc_ticks)
 {
   if (static_cast<s64>(gc_ticks - m_last_gc_ticks) <= 0)
     return;
@@ -574,22 +572,22 @@ void Core::RunUntil(u64 gc_ticks)
                   static_cast<s32>((gc_ticks - m_last_gc_ticks) * core_frequency / gc_frequency));
   m_waiting_for_event = true;
 
-  s32 begin_time = mTimingCurrentTime(m_core->timing);
+  const s32 begin_time = mTimingCurrentTime(m_core->timing);
   while (m_waiting_for_event)
     m_core->runLoop(m_core);
-  s32 end_time = mTimingCurrentTime(m_core->timing);
+  const s32 end_time = mTimingCurrentTime(m_core->timing);
 
-  u64 d = (static_cast<u64>(end_time - begin_time) * gc_frequency) + m_gc_ticks_remainder;
+  const u64 d = (static_cast<u64>(end_time - begin_time) * gc_frequency) + m_gc_ticks_remainder;
   m_last_gc_ticks += d / core_frequency;
   m_gc_ticks_remainder = d % core_frequency;
 }
 
-void Core::RunFor(u64 gc_ticks)
+void Core::RunFor(const u64 gc_ticks)
 {
   RunUntil(m_last_gc_ticks + gc_ticks);
 }
 
-void Core::ImportState(std::string_view state_path)
+void Core::ImportState(const std::string_view state_path)
 {
   Flush();
   if (!IsStarted())
@@ -604,7 +602,7 @@ void Core::ImportState(std::string_view state_path)
   m_core->loadState(m_core, core_state.data());
 }
 
-void Core::ExportState(std::string_view state_path)
+void Core::ExportState(const std::string_view state_path)
 {
   Flush();
   if (!IsStarted())
@@ -617,7 +615,7 @@ void Core::ExportState(std::string_view state_path)
   file.WriteBytes(core_state.data(), core_state.size());
 }
 
-void Core::ImportSave(std::string_view save_path)
+void Core::ImportSave(const std::string_view save_path)
 {
   Flush();
   if (!IsStarted())
@@ -632,7 +630,7 @@ void Core::ImportSave(std::string_view save_path)
   m_core->reset(m_core);
 }
 
-void Core::ExportSave(std::string_view save_path)
+void Core::ExportSave(const std::string_view save_path)
 {
   Flush();
   if (!IsStarted())
@@ -641,7 +639,7 @@ void Core::ExportSave(std::string_view save_path)
   File::IOFile file(std::string(save_path), "wb");
 
   void* sram = nullptr;
-  size_t size = m_core->savedataClone(m_core, &sram);
+  const size_t size = m_core->savedataClone(m_core, &sram);
   if (!sram)
     return;
 
@@ -662,9 +660,9 @@ void Core::DoState(PointerWrap& p)
 
   bool has_rom = !m_rom_path.empty();
   p.Do(has_rom);
-  auto old_hash = m_rom_hash;
+  const auto old_hash = m_rom_hash;
   p.Do(m_rom_hash);
-  auto old_title = m_game_title;
+  const auto old_title = m_game_title;
   p.Do(m_game_title);
 
   if (p.IsReadMode() && (has_rom != !m_rom_path.empty() ||
@@ -698,7 +696,7 @@ void Core::DoState(PointerWrap& p)
   if (p.IsReadMode() && m_core->stateSize(m_core) == core_state.size())
   {
     m_core->loadState(m_core, core_state.data());
-    if (auto host = m_host.lock())
+    if (const auto host = m_host.lock())
       host->FrameEnded(m_video_buffer);
   }
 }
@@ -732,12 +730,12 @@ bool Core::GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::strin
   return true;
 }
 
-std::string Core::GetSavePath(std::string_view rom_path, int device_number)
+std::string Core::GetSavePath(const std::string_view rom_path, const int device_number)
 {
   std::string save_path =
       fmt::format("{}-{}.sav", rom_path.substr(0, rom_path.find_last_of('.')), device_number + 1);
 
-  if (!Config::Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH))
+  if (!Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH))
   {
     save_path =
         File::GetUserPath(D_GBASAVES_IDX) + save_path.substr(save_path.find_last_of("\\/") + 1);

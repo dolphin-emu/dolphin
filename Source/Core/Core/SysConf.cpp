@@ -7,18 +7,15 @@
 #include <array>
 #include <cstdio>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-#include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
 constexpr size_t SYSCONF_SIZE = 0x4000;
 
-static size_t GetNonArrayEntrySize(SysConf::Entry::Type type)
+static size_t GetNonArrayEntrySize(const SysConf::Entry::Type type)
 {
   switch (type)
   {
@@ -85,7 +82,7 @@ bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
     // Metadata
     u8 description = 0;
     file.Read(&description, 1);
-    const Entry::Type type = static_cast<Entry::Type>((description & 0xe0) >> 5);
+    const auto type = static_cast<Entry::Type>((description & 0xe0) >> 5);
     const u8 name_length = (description & 0x1f) + 1;
     std::string name(name_length, '\0');
     file.Read(&name[0], name.size());
@@ -192,7 +189,7 @@ bool SysConf::Save() const
   // Make sure the buffer size is 0x4000 bytes now and write the footer.
   buffer.resize(SYSCONF_SIZE);
   constexpr std::array<u8, 4> footer = {{'S', 'C', 'e', 'd'}};
-  std::copy(footer.cbegin(), footer.cend(), buffer.end() - footer.size());
+  std::ranges::copy(footer, buffer.end() - footer.size());
 
   // Write the new data.
   const std::string temp_file = "/tmp/SYSCONF";
@@ -210,13 +207,13 @@ bool SysConf::Save() const
   return result == IOS::HLE::FS::ResultCode::Success;
 }
 
-SysConf::Entry::Entry(Type type_, std::string name_) : type(type_), name(std::move(name_))
+SysConf::Entry::Entry(const Type type_, std::string name_) : type(type_), name(std::move(name_))
 {
-  if (type != Type::SmallArray && type != Type::BigArray)
+  if (type != SmallArray && type != BigArray)
     bytes.resize(GetNonArrayEntrySize(type));
 }
 
-SysConf::Entry::Entry(Type type_, std::string name_, std::vector<u8> bytes_)
+SysConf::Entry::Entry(const Type type_, std::string name_, std::vector<u8> bytes_)
     : type(type_), name(std::move(name_)), bytes(std::move(bytes_))
 {
 }
@@ -228,19 +225,21 @@ SysConf::Entry& SysConf::AddEntry(Entry&& entry)
 
 SysConf::Entry* SysConf::GetEntry(std::string_view key)
 {
-  const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
-                                     [&key](const auto& entry) { return entry.name == key; });
+  const auto iterator = std::ranges::find_if(m_entries, [&key](const auto& entry) {
+    return entry.name == key;
+  });
   return iterator != m_entries.end() ? &*iterator : nullptr;
 }
 
 const SysConf::Entry* SysConf::GetEntry(std::string_view key) const
 {
-  const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
-                                     [&key](const auto& entry) { return entry.name == key; });
+  const auto iterator = std::ranges::find_if(m_entries, [&key](const auto& entry) {
+    return entry.name == key;
+  });
   return iterator != m_entries.end() ? &*iterator : nullptr;
 }
 
-SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
+SysConf::Entry* SysConf::GetOrAddEntry(const std::string_view key, Entry::Type type)
 {
   if (Entry* entry = GetEntry(key))
     return entry;

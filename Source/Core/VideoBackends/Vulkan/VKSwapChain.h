@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan
@@ -65,7 +64,7 @@ public:
   // Retrieves the "next" fullscreen state. Safe to call off-thread.
   bool GetCurrentFullscreenState() const { return m_current_fullscreen_state; }
   bool GetNextFullscreenState() const { return m_next_fullscreen_state; }
-  void SetNextFullscreenState(bool state) { m_next_fullscreen_state = state; }
+  void SetNextFullscreenState(const bool state) { m_next_fullscreen_state = state; }
 
   // Updates the fullscreen state. Must call on-thread.
   bool SetFullscreenState(bool state);

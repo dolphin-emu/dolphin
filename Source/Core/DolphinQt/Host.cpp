@@ -15,8 +15,6 @@
 #include <windows.h>
 #endif
 
-#include "Common/Common.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -54,13 +52,13 @@ Host::~Host()
 
 Host* Host::GetInstance()
 {
-  static Host* s_instance = new Host();
+  static auto s_instance = new Host();
   return s_instance;
 }
 
 void Host::SetRenderHandle(void* handle)
 {
-  m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+  m_render_to_main = Get(Config::MAIN_RENDER_TO_MAIN);
 
   if (m_render_handle == handle)
     return;
@@ -78,7 +76,7 @@ void Host::SetMainWindowHandle(void* handle)
   m_main_window_handle = handle;
 }
 
-static void RunWithGPUThreadInactive(std::function<void()> f)
+static void RunWithGPUThreadInactive(const std::function<void()>& f)
 {
   // Potentially any thread which shows panic alerts can be blocked on this returning.
   // This means that, in order to avoid deadlocks, we need to be careful with how we
@@ -103,8 +101,8 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     // (Note that this case cannot be reached in single core mode, because in single core mode,
     // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
 
-    auto& system = Core::System::GetInstance();
-    const bool was_running = Core::GetState(system) == Core::State::Running;
+    const auto& system = Core::System::GetInstance();
+    const bool was_running = GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
     fifo.PauseAndLock(true, was_running);
     f();
@@ -118,14 +116,14 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
   }
 }
 
-bool Host::GetRenderFocus()
+bool Host::GetRenderFocus() const
 {
 #ifdef _WIN32
   // Unfortunately Qt calls SetRenderFocus() with a slight delay compared to what we actually need
   // to avoid inputs that cause a focus loss to be processed by the emulation
   if (m_render_to_main && !m_render_fullscreen)
-    return GetForegroundWindow() == (HWND)m_main_window_handle.load();
-  return GetForegroundWindow() == (HWND)m_render_handle.load();
+    return GetForegroundWindow() == static_cast<HWND>(m_main_window_handle.load());
+  return GetForegroundWindow() == static_cast<HWND>(m_render_handle.load());
 #else
   return m_render_focus;
 #endif
@@ -142,13 +140,13 @@ void Host::SetRenderFocus(bool focus)
   if (g_gfx && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
   {
     RunWithGPUThreadInactive([focus] {
-      if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
+      if (!Get(Config::MAIN_RENDER_TO_MAIN))
         g_gfx->SetFullscreen(focus);
     });
   }
 }
 
-void Host::SetRenderFullFocus(bool focus)
+void Host::SetRenderFullFocus(const bool focus)
 {
   m_render_full_focus = focus;
 }
@@ -204,7 +202,7 @@ std::vector<std::string> Host_GetPreferredLocales()
   return converted_languages;
 }
 
-void Host_Message(HostMessageID id)
+void Host_Message(const HostMessageID id)
 {
   if (id == HostMessageID::WMUserStop)
   {
@@ -268,7 +266,7 @@ void Host_UpdateMainFrame()
 {
 }
 
-void Host_RequestRenderWindowSize(int w, int h)
+void Host_RequestRenderWindowSize(const int w, const int h)
 {
   emit Host::GetInstance()->RequestRenderSize(w, h);
 }

@@ -38,7 +38,7 @@ static void AddToSyncHash(Common::SHA1::Context* context, const T& data)
   context->Update(reinterpret_cast<const u8*>(&data), sizeof(data));
 }
 
-void Volume::ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
+void Volume::ReadAndAddToSyncHash(Common::SHA1::Context* context, const u64 offset, const u64 length,
                                   const Partition& partition) const
 {
   std::vector<u8> buffer(length);
@@ -117,7 +117,7 @@ static std::unique_ptr<VolumeWAD> TryCreateWAD(std::unique_ptr<BlobReader>& read
   // Check for WAD
   // 0x206962 for boot2 wads
   const std::optional<u32> wad_magic = reader->ReadSwapped<u32>(0x02);
-  if (wad_magic == u32(0x00204973) || wad_magic == u32(0x00206962))
+  if (wad_magic == static_cast<u32>(0x00204973) || wad_magic == static_cast<u32>(0x00206962))
     return std::make_unique<VolumeWAD>(std::move(reader));
 
   // No known magic words found

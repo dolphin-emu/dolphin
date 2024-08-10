@@ -3,7 +3,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <optional>
@@ -15,7 +14,6 @@
 #include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
@@ -24,17 +22,17 @@
 
 using namespace Gen;
 
-alignas(16) static const u64 psSignBits[2] = {0x8000000000000000ULL, 0x0000000000000000ULL};
-alignas(16) static const u64 psSignBits2[2] = {0x8000000000000000ULL, 0x8000000000000000ULL};
-alignas(16) static const u64 psAbsMask[2] = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
-alignas(16) static const u64 psAbsMask2[2] = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-alignas(16) static const u64 psGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
-alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000};
+alignas(16) static constexpr u64 psSignBits[2] = {0x8000000000000000ULL, 0x0000000000000000ULL};
+alignas(16) static constexpr u64 psSignBits2[2] = {0x8000000000000000ULL, 0x8000000000000000ULL};
+alignas(16) static constexpr u64 psAbsMask[2] = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+alignas(16) static constexpr u64 psAbsMask2[2] = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+alignas(16) static constexpr u64 psGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
+alignas(16) static constexpr double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000};
 
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
 // not calculate it.
-void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
+void Jit64::SetFPRFIfNeeded(const OpArg& input, const bool single)
 {
   // As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
@@ -51,7 +49,7 @@ void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
   SetFPRF(xmm, single);
 }
 
-void Jit64::FinalizeSingleResult(X64Reg output, const OpArg& input, bool packed, bool duplicate)
+void Jit64::FinalizeSingleResult(const X64Reg output, const OpArg& input, const bool packed, const bool duplicate)
 {
   // Most games don't need these. Zelda requires it though - some platforms get stuck without them.
   if (jo.accurateSinglePrecision)
@@ -85,7 +83,7 @@ void Jit64::FinalizeSingleResult(X64Reg output, const OpArg& input, bool packed,
   }
 }
 
-void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
+void Jit64::FinalizeDoubleResult(const X64Reg output, const OpArg& input)
 {
   if (!input.IsSimpleReg(output))
     MOVSD(output, input);
@@ -282,7 +280,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  X64Reg dest = X64Reg(Rd);
+  X64Reg dest = Rd;
   if (preserve_inputs && (a == d || arg2 == d))
     dest = XMM1;
   if (round_rhs)
@@ -365,7 +363,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   // There is one circumstance where the software FMA path does get used: when an input recording
   // is created on a CPU that has FMA instructions and then gets played back on a CPU that doesn't.
   // (Or if the user just really wants to override the setting and knows how to do so.)
-  const bool use_fma = Config::Get(Config::SESSION_USE_FMA);
+  const bool use_fma = Get(Config::SESSION_USE_FMA);
   const bool software_fma = use_fma && !cpu_info.bFMA;
 
   int a = inst.FA;
@@ -408,12 +406,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     {
       result_xmm_guard = fpr.Scratch();
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard, result_xmm_guard);
-      result_xmm = Gen::X64Reg(result_xmm_guard);
+      result_xmm = static_cast<X64Reg>(result_xmm_guard);
     }
     else
     {
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard);
-      result_xmm = packed ? Gen::X64Reg(Rd) : XMM0;
+      result_xmm = packed ? static_cast<X64Reg>(Rd) : XMM0;
     }
   }
   else
@@ -733,8 +731,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   UGeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
       CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
-      static_cast<u32>(next.CRBA >> 2) == crf && static_cast<u32>(next.CRBB >> 2) == crf &&
-      static_cast<u32>(next.CRBD >> 2) == crf)
+      next.CRBA >> 2 == crf && next.CRBB >> 2 == crf && next.CRBD >> 2 == crf)
   {
     js.skipInstructions = 1;
     js.downcountAmount++;

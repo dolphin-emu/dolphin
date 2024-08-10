@@ -15,7 +15,6 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/VideoState.h"
 
 AsyncRequests AsyncRequests::s_singleton;
@@ -28,7 +27,7 @@ void AsyncRequests::PullEventsInternal()
   // So just flush the pipeline to get accurate results.
   g_vertex_manager->Flush();
 
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_empty.Set();
 
   while (!m_queue.empty())
@@ -40,7 +39,7 @@ void AsyncRequests::PullEventsInternal()
     if ((e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z))
     {
       m_merged_efb_pokes.clear();
-      Event first_event = m_queue.front();
+      const Event first_event = m_queue.front();
       const auto t = first_event.type == Event::EFB_POKE_COLOR ? EFBAccessType::PokeColor :
                                                                  EFBAccessType::PokeZ;
 
@@ -77,9 +76,9 @@ void AsyncRequests::PullEventsInternal()
   }
 }
 
-void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
+void AsyncRequests::PushEvent(const Event& event, const bool blocking)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
 
   if (m_passthrough)
   {
@@ -95,7 +94,7 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
 
   m_queue.push(event);
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().RunGpu();
   if (blocking)
   {
@@ -105,13 +104,13 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
 
 void AsyncRequests::WaitForEmptyQueue()
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_cond.wait(lock, [this] { return m_queue.empty(); });
 }
 
-void AsyncRequests::SetEnable(bool enable)
+void AsyncRequests::SetEnable(const bool enable)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_enable = enable;
 
   if (!enable)
@@ -124,14 +123,14 @@ void AsyncRequests::SetEnable(bool enable)
   }
 }
 
-void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
+void AsyncRequests::HandleEvent(const Event& e)
 {
   switch (e.type)
   {
   case Event::EFB_POKE_COLOR:
   {
     INCSTAT(g_stats.this_frame.num_efb_pokes);
-    EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
+    const EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(EFBAccessType::PokeColor, &poke, 1);
   }
   break;
@@ -139,7 +138,7 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::EFB_POKE_Z:
   {
     INCSTAT(g_stats.this_frame.num_efb_pokes);
-    EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
+    const EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(EFBAccessType::PokeZ, &poke, 1);
   }
   break;
@@ -178,8 +177,8 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   }
 }
 
-void AsyncRequests::SetPassthrough(bool enable)
+void AsyncRequests::SetPassthrough(const bool enable)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_passthrough = enable;
 }

@@ -17,7 +17,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -59,7 +58,7 @@ SerialInterfaceManager::SerialInterfaceManager(Core::System& system) : m_system(
 
 SerialInterfaceManager::~SerialInterfaceManager() = default;
 
-void SerialInterfaceManager::SetNoResponse(u32 channel)
+void SerialInterfaceManager::SetNoResponse(const u32 channel)
 {
   // raise the NO RESPONSE error
   switch (channel)
@@ -79,7 +78,7 @@ void SerialInterfaceManager::SetNoResponse(u32 channel)
   }
 }
 
-void SerialInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 user_data,
+void SerialInterfaceManager::ChangeDeviceCallback(const Core::System& system, const u64 user_data,
                                                   s64 cycles_late)
 {
   // The purpose of this callback is to simply re-enable device changes.
@@ -107,7 +106,7 @@ void SerialInterfaceManager::UpdateInterrupts()
                                                 generate_interrupt);
 }
 
-void SerialInterfaceManager::GenerateSIInterrupt(SIInterruptType type)
+void SerialInterfaceManager::GenerateSIInterrupt(const SIInterruptType type)
 {
   switch (type)
   {
@@ -125,23 +124,23 @@ void SerialInterfaceManager::GenerateSIInterrupt(SIInterruptType type)
 constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
 
 // Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
-constexpr s32 ConvertSILengthField(u32 field)
+constexpr s32 ConvertSILengthField(const u32 field)
 {
   return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
 }
 
-void SerialInterfaceManager::GlobalRunSIBuffer(Core::System& system, u64 user_data, s64 cycles_late)
+void SerialInterfaceManager::GlobalRunSIBuffer(const Core::System& system, const u64 user_data, const s64 cycles_late)
 {
   system.GetSerialInterface().RunSIBuffer(user_data, cycles_late);
 }
 
-void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
+void SerialInterfaceManager::RunSIBuffer(u64 user_data, const s64 cycles_late)
 {
   if (m_com_csr.TSTART)
   {
     const s32 request_length = ConvertSILengthField(m_com_csr.OUTLNGTH);
     const s32 expected_response_length = ConvertSILengthField(m_com_csr.INLNGTH);
-    const std::vector<u8> request_copy(m_si_buffer.data(), m_si_buffer.data() + request_length);
+    const std::vector request_copy(m_si_buffer.data(), m_si_buffer.data() + request_length);
 
     const std::unique_ptr<ISIDevice>& device = m_channel[m_com_csr.CHANNEL].device;
     const s32 actual_response_length = device->RunBuffer(m_si_buffer.data(), request_length);
@@ -154,9 +153,9 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
     if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
       std::ostringstream ss;
-      for (u8 b : request_copy)
+      for (const u8 b : request_copy)
       {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b) << ' ';
       }
       DEBUG_LOG_FMT(
           SERIALINTERFACE,
@@ -197,7 +196,7 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
     p.Do(m_channel[i].out.hex);
     p.Do(m_channel[i].has_recent_device_change);
 
-    std::unique_ptr<ISIDevice>& device = m_channel[i].device;
+    const std::unique_ptr<ISIDevice>& device = m_channel[i].device;
     SIDevices type = device->GetDeviceType();
     p.Do(type);
 
@@ -217,9 +216,9 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
 }
 
 template <int device_number>
-void SerialInterfaceManager::DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SerialInterfaceManager::DeviceEventCallback(Core::System& system, const u64 userdata, const s64 cyclesLate)
 {
-  auto& si = system.GetSerialInterface();
+  const auto& si = system.GetSerialInterface();
   si.m_channel[device_number].device->OnEvent(userdata, cyclesLate);
 }
 
@@ -229,7 +228,7 @@ void SerialInterfaceManager::RegisterEvents()
   m_event_type_change_device = core_timing.RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
   m_event_type_tranfer_pending = core_timing.RegisterEvent("SITransferPending", GlobalRunSIBuffer);
 
-  constexpr std::array<CoreTiming::TimedCallback, MAX_SI_CHANNELS> event_callbacks = {
+  constexpr std::array event_callbacks = {
       DeviceEventCallback<0>,
       DeviceEventCallback<1>,
       DeviceEventCallback<2>,
@@ -242,13 +241,13 @@ void SerialInterfaceManager::RegisterEvents()
   }
 }
 
-void SerialInterfaceManager::ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata)
+void SerialInterfaceManager::ScheduleEvent(const int device_number, const s64 cycles_into_future, const u64 userdata) const
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(cycles_into_future, m_event_types_device[device_number], userdata);
 }
 
-void SerialInterfaceManager::RemoveEvent(int device_number)
+void SerialInterfaceManager::RemoveEvent(const int device_number) const
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.RemoveEvent(m_event_types_device[device_number]);
@@ -276,7 +275,7 @@ void SerialInterfaceManager::Init()
       }
       else if (movie.IsUsingPad(i))
       {
-        SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
+        const SIDevices current = Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
         if (movie.IsUsingBongo(i))
           m_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
@@ -288,7 +287,7 @@ void SerialInterfaceManager::Init()
     }
     else if (!NetPlay::IsNetPlayRunning())
     {
-      m_desired_device_types[i] = Config::Get(Config::GetInfoForSIDevice(i));
+      m_desired_device_types[i] = Get(Config::GetInfoForSIDevice(i));
     }
 
     AddDevice(m_desired_device_types[i], i);
@@ -316,7 +315,7 @@ void SerialInterfaceManager::Shutdown()
   GBAConnectionWaiter_Shutdown();
 }
 
-void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   // Register SI buffer direct accesses.
   const u32 io_buffer_base = base | SI_IO_BUFFER;
@@ -324,13 +323,13 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
-    mmio->Register(address, MMIO::ComplexRead<u32>([i](Core::System& system, u32) {
-                     auto& si = system.GetSerialInterface();
+    mmio->Register(address, MMIO::ComplexRead<u32>([i](const Core::System& system, u32) {
+                     const auto& si = system.GetSerialInterface();
                      u32 val;
                      std::memcpy(&val, &si.m_si_buffer[i], sizeof(val));
                      return Common::swap32(val);
                    }),
-                   MMIO::ComplexWrite<u32>([i](Core::System& system, u32, u32 val) {
+                   MMIO::ComplexWrite<u32>([i](const Core::System& system, u32, u32 val) {
                      auto& si = system.GetSerialInterface();
                      val = Common::swap32(val);
                      std::memcpy(&si.m_si_buffer[i], &val, sizeof(val));
@@ -340,13 +339,13 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
-    mmio->Register(address, MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
-                     auto& si = system.GetSerialInterface();
+    mmio->Register(address, MMIO::ComplexRead<u16>([i](const Core::System& system, u32) {
+                     const auto& si = system.GetSerialInterface();
                      u16 val;
                      std::memcpy(&val, &si.m_si_buffer[i], sizeof(val));
                      return Common::swap16(val);
                    }),
-                   MMIO::ComplexWrite<u16>([i](Core::System& system, u32, u16 val) {
+                   MMIO::ComplexWrite<u16>([i](const Core::System& system, u32, u16 val) {
                      auto& si = system.GetSerialInterface();
                      val = Common::swap16(val);
                      std::memcpy(&si.m_si_buffer[i], &val, sizeof(val));
@@ -354,7 +353,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   // In and out for the 4 SI channels.
-  for (u32 i = 0; i < u32(MAX_SI_CHANNELS); ++i)
+  for (u32 i = 0; i < static_cast<u32>(MAX_SI_CHANNELS); ++i)
   {
     // We need to clear the RDST bit for the SI channel when reading.
     // CH0 -> Bit 24 + 5
@@ -367,7 +366,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    MMIO::DirectRead<u32>(&m_channel[i].out.hex),
                    MMIO::DirectWrite<u32>(&m_channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
-                   MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
+                   MMIO::ComplexRead<u32>([i, rdst_bit](const Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
                      si.m_status_reg.hex &= ~(1U << rdst_bit);
                      si.UpdateInterrupts();
@@ -375,7 +374,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    }),
                    MMIO::DirectWrite<u32>(&m_channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
-                   MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
+                   MMIO::ComplexRead<u32>([i, rdst_bit](const Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
                      si.m_status_reg.hex &= ~(1U << rdst_bit);
                      si.UpdateInterrupts();
@@ -388,7 +387,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&m_poll.hex));
 
   mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&m_com_csr.hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& si = system.GetSerialInterface();
                    const USIComCSR tmp_com_csr(val);
 
@@ -417,7 +416,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&m_status_reg.hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& si = system.GetSerialInterface();
                    const USIStatusReg tmp_status(val);
 
@@ -478,14 +477,14 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&m_exi_clock_count.hex));
 }
 
-void SerialInterfaceManager::RemoveDevice(int device_number)
+void SerialInterfaceManager::RemoveDevice(const int device_number)
 {
   m_channel.at(device_number).device.reset();
 }
 
 void SerialInterfaceManager::AddDevice(std::unique_ptr<ISIDevice> device)
 {
-  int device_number = device->GetDeviceNumber();
+  const int device_number = device->GetDeviceNumber();
 
   // Delete the old device
   RemoveDevice(device_number);
@@ -494,18 +493,18 @@ void SerialInterfaceManager::AddDevice(std::unique_ptr<ISIDevice> device)
   m_channel.at(device_number).device = std::move(device);
 }
 
-void SerialInterfaceManager::AddDevice(const SIDevices device, int device_number)
+void SerialInterfaceManager::AddDevice(const SIDevices device, const int device_number)
 {
   AddDevice(SIDevice_Create(m_system, device, device_number));
 }
 
-void SerialInterfaceManager::ChangeDevice(SIDevices device, int channel)
+void SerialInterfaceManager::ChangeDevice(const SIDevices device, const int channel)
 {
   // Actual device change will happen in UpdateDevices.
   m_desired_device_types[channel] = device;
 }
 
-void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int channel)
+void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, const int channel)
 {
   if (m_channel[channel].has_recent_device_change)
     return;
@@ -569,7 +568,7 @@ void SerialInterfaceManager::UpdateDevices()
   NetPlay::SetSIPollBatching(false);
 }
 
-SIDevices SerialInterfaceManager::GetDeviceType(int channel) const
+SIDevices SerialInterfaceManager::GetDeviceType(const int channel) const
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS || !m_channel[channel].device)
     return SIDEVICE_NONE;
@@ -577,7 +576,7 @@ SIDevices SerialInterfaceManager::GetDeviceType(int channel) const
   return m_channel[channel].device->GetDeviceType();
 }
 
-u32 SerialInterfaceManager::GetPollXLines()
+u32 SerialInterfaceManager::GetPollXLines() const
 {
   return m_poll.X;
 }

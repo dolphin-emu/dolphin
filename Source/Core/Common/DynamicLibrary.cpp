@@ -3,8 +3,6 @@
 
 #include "Common/DynamicLibrary.h"
 
-#include <cstring>
-
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
@@ -56,10 +54,9 @@ std::string DynamicLibrary::GetVersionedFilename(const char* libname, int major,
 #if defined(_WIN32)
   if (major >= 0 && minor >= 0)
     return fmt::format("{}-{}-{}.dll", libname, major, minor);
-  else if (major >= 0)
+  if (major >= 0)
     return fmt::format("{}-{}.dll", libname, major);
-  else
-    return fmt::format("{}.dll", libname);
+  return fmt::format("{}.dll", libname);
 #elif defined(__APPLE__)
   const char* prefix = std::strncmp(libname, "lib", 3) ? "lib" : "";
   if (major >= 0 && minor >= 0)
@@ -95,7 +92,7 @@ void DynamicLibrary::Close()
     return;
 
 #ifdef _WIN32
-  FreeLibrary(reinterpret_cast<HMODULE>(m_handle));
+  FreeLibrary(static_cast<HMODULE>(m_handle));
 #else
   dlclose(m_handle);
 #endif
@@ -105,7 +102,7 @@ void DynamicLibrary::Close()
 void* DynamicLibrary::GetSymbolAddress(const char* name) const
 {
 #ifdef _WIN32
-  return reinterpret_cast<void*>(GetProcAddress(reinterpret_cast<HMODULE>(m_handle), name));
+  return reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(m_handle), name));
 #else
   return reinterpret_cast<void*>(dlsym(m_handle, name));
 #endif

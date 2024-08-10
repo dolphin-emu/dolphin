@@ -16,7 +16,6 @@
 #include <thread>
 #include <upnpcommands.h>
 #include <upnperrors.h>
-#include <vector>
 
 static UPNPUrls s_urls;
 static IGDdatas s_data;
@@ -83,7 +82,7 @@ static bool InitUPnP()
                                             static_cast<int>(s_our_ip.size()), 0, &statusCode)));
 #else
     desc_xml.reset(static_cast<char*>(miniwget_getaddr(
-        dev->descURL, &desc_xml_size, s_our_ip.data(), static_cast<int>(s_our_ip.size()), 0)));
+        dev->descURL, &desc_xml_size, s_our_ip.data(), s_our_ip.size(), 0)));
 #endif
     if (desc_xml && statusCode == 200)
     {
@@ -94,10 +93,7 @@ static bool InitUPnP()
       NOTICE_LOG_FMT(NETPLAY, "Got info from IGD at {}.", dev->descURL);
       break;
     }
-    else
-    {
-      WARN_LOG_FMT(NETPLAY, "Error getting info from IGD at {}.", dev->descURL);
-    }
+    WARN_LOG_FMT(NETPLAY, "Error getting info from IGD at {}.", dev->descURL);
   }
 
   if (!found_valid_igd)
@@ -118,7 +114,7 @@ static bool InitUPnP()
 // --
 static bool UnmapPort(const u16 port)
 {
-  std::string port_str = std::to_string(port);
+  const std::string port_str = std::to_string(port);
   UPNP_DeletePortMapping(s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), "UDP",
                          nullptr);
 
@@ -132,8 +128,8 @@ static bool MapPort(const char* addr, const u16 port)
   if (s_mapped > 0)
     UnmapPort(s_mapped);
 
-  std::string port_str = std::to_string(port);
-  int result = UPNP_AddPortMapping(
+  const std::string port_str = std::to_string(port);
+  const int result = UPNP_AddPortMapping(
       s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), port_str.c_str(), addr,
       (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
 

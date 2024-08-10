@@ -19,7 +19,7 @@ namespace UberShader
 {
 namespace
 {
-void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, bool per_pixel_lighting)
+void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, const bool per_pixel_lighting)
 {
   out->Write("\tCustomShaderData custom_data;\n");
   if (per_pixel_lighting)
@@ -109,8 +109,8 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, bool per_pixel
     out->Write("\t\tss.order = bpmem_tevorder(stage>>1);\n");
     out->Write("\t\tif ((stage & 1u) == 1u)\n");
     out->Write("\t\t\tss.order = ss.order >> {};\n\n",
-               int(TwoTevStageOrders().enable_tex_odd.StartBit() -
-                   TwoTevStageOrders().enable_tex_even.StartBit()));
+               static_cast<int>(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                                TwoTevStageOrders().enable_tex_even.StartBit()));
     out->Write("\t\tuint texmap = {};\n",
                BitfieldExtract<&TwoTevStageOrders::texcoord_even>("ss.order"));
     // Shader compilation is weird, shader arrays can't use indexing by variable
@@ -293,7 +293,7 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
+void ClearUnusedPixelShaderUidBits(const APIType api_type, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid)
 {
   pixel_ubershader_uid_data* const uid_data = uid->GetUidData();
@@ -302,7 +302,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   if (host_config.backend_shader_framebuffer_fetch || !host_config.backend_dual_source_blend)
     uid_data->no_dual_src = 1;
   // Dual source is always enabled in the shader if this bug is not present
-  else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
+  else if (!HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
     uid_data->no_dual_src = 0;
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
@@ -337,8 +337,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   WriteCustomShaderStructDef(&out, numTexgen);
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {
-    const auto& shader_details = custom_details.shaders[i];
-    out.Write(fmt::runtime(shader_details.custom_shader), i);
+    const auto& [custom_shader, _material_uniform_block] = custom_details.shaders[i];
+    out.Write(fmt::runtime(custom_shader), i);
   }
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -880,8 +880,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             BitfieldExtract<&GenMode::numtevstages>("bpmem_genmode"));
 
   bool has_custom_shader_details = false;
-  if (std::any_of(custom_details.shaders.begin(), custom_details.shaders.end(),
-                  [](const std::optional<CustomPixelShader>& ps) { return ps.has_value(); }))
+  if (std::ranges::any_of(custom_details.shaders, [](const std::optional<CustomPixelShader>& ps) {
+    return ps.has_value();
+  }))
   {
     WriteCustomShaderStructImpl(&out, numTexgen, per_pixel_lighting);
     has_custom_shader_details = true;
@@ -925,7 +926,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   for (int i = 0; i < 4; i++)
     out.Write("  s.Reg[{}] = " I_COLORS "[{}];\n", i, i);
 
-  const char* color_input_prefix = "";
+  auto color_input_prefix = "";
   if (per_pixel_lighting)
   {
     out.Write("  float4 lit_colors_0 = colors_0;\n"
@@ -956,8 +957,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    ss.order = bpmem_tevorder(stage>>1);\n"
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable_tex_odd.StartBit() -
-                TwoTevStageOrders().enable_tex_even.StartBit()));
+            static_cast<int>(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                             TwoTevStageOrders().enable_tex_even.StartBit()));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
@@ -1390,7 +1391,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  // Alpha Test\n");
 
-  if (early_depth && DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  if (early_depth && HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
   {
     // Instead of using discard, fetch the framebuffer's color value and use it as the output
     // for this fragment.
@@ -1508,9 +1509,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {
-    const auto& shader_details = custom_details.shaders[i];
+    const auto& [custom_shader, _material_uniform_block] = custom_details.shaders[i];
 
-    if (!shader_details.custom_shader.empty())
+    if (!custom_shader.empty())
     {
       out.Write("\t{{\n");
       out.Write("\t\tcustom_data.final_color = float4(TevResult.r / 255.0, TevResult.g / 255.0, "
@@ -1526,7 +1527,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   if (use_framebuffer_fetch)
   {
-    static constexpr std::array<const char*, 16> logic_op_mode{
+    static constexpr std::array logic_op_mode{
         "int4(0, 0, 0, 0)",          // CLEAR
         "TevResult & fb_value",      // AND
         "TevResult & ~fb_value",     // AND_REVERSE

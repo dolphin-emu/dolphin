@@ -22,7 +22,7 @@ class CommandLineConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
   CommandLineConfigLayerLoader(const std::list<std::string>& args, const std::string& video_backend,
-                               const std::string& audio_backend, bool batch, bool debugger)
+                               const std::string& audio_backend, const bool batch, const bool debugger)
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (!video_backend.empty())
@@ -78,7 +78,7 @@ private:
   std::list<std::tuple<Config::Location, std::string>> m_values;
 };
 
-std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
+std::unique_ptr<optparse::OptionParser> CreateParser(const ParserOptions options)
 {
   auto parser = std::make_unique<optparse::OptionParser>();
   parser->usage("usage: %prog [options]... [FILE]...").version(Common::GetScmRevStr());
@@ -134,13 +134,13 @@ static void AddConfigLayer(const optparse::Values& options)
   if (options.is_set_by_user("config"))
     config_args = options.all("config");
 
-  Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
+  AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
       std::move(config_args), static_cast<const char*>(options.get("video_backend")),
       static_cast<const char*>(options.get("audio_emulation")),
       static_cast<bool>(options.get("batch")), static_cast<bool>(options.get("debugger"))));
 }
 
-optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+optparse::Values& ParseArguments(optparse::OptionParser* parser, const int argc, char** argv)
 {
   optparse::Values& options = parser->parse_args(argc, argv);
   AddConfigLayer(options);

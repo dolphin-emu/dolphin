@@ -18,7 +18,7 @@ public:
   ConfigChoice(const QStringList& options, const Config::Info<int>& setting);
 
 private:
-  void Update(int choice);
+  void Update(int choice) const;
 
   Config::Info<int> m_setting;
 };
@@ -34,7 +34,7 @@ public:
 
 private:
   void Connect();
-  void Update(int index);
+  void Update(int index) const;
   void Load();
 
   Config::Info<std::string> m_setting;

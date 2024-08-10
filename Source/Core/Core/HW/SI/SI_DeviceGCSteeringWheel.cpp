@@ -14,13 +14,13 @@
 
 namespace SerialInterface
 {
-CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(Core::System& system, SIDevices device,
-                                                     int device_number)
+CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(Core::System& system, const SIDevices device,
+                                                     const int device_number)
     : CSIDevice_GCController(system, device, device_number)
 {
 }
 
-int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, const int request_length)
 {
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
@@ -34,7 +34,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_STEERING);
+    const u32 id = Common::swap32(SI_GC_STEERING);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -47,14 +47,14 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 {
   if (m_mode == 6)
   {
-    GCPadStatus pad_status = GetPadStatus();
+    const GCPadStatus pad_status = GetPadStatus();
 
-    hi = (u32)((u8)pad_status.stickX);  // Steering
+    hi = static_cast<u32>((u8)pad_status.stickX);  // Steering
     hi |= 0x800;                        // Pedal connected flag
-    hi |= (u32)((u16)(pad_status.button | PAD_USE_ORIGIN) << 16);
+    hi |= static_cast<u32>((u16)(pad_status.button | PAD_USE_ORIGIN) << 16);
 
-    low = (u8)pad_status.triggerRight;              // All 8 bits
-    low |= (u32)((u8)pad_status.triggerLeft << 8);  // All 8 bits
+    low = (u8)pad_status.triggerRight;                        // All 8 bits
+    low |= static_cast<u32>((u8)pad_status.triggerLeft << 8); // All 8 bits
 
     // The GC Steering Wheel has 8 bit values for both the accelerator/brake.
     // Our mapping UI and GCPadEmu class weren't really designed to provide
@@ -83,10 +83,10 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
     // but we'll have to redesign our GameCube controller input to fix that.
 
     // All 8 bits (Accelerate)
-    low |= u32(std::clamp(accel_value * 2, 0, 0xff)) << 24;
+    low |= static_cast<u32>(std::clamp(accel_value * 2, 0, 0xff)) << 24;
 
     // All 8 bits (Brake)
-    low |= u32(std::clamp(brake_value * 2, 0, 0xff)) << 16;
+    low |= static_cast<u32>(std::clamp(brake_value * 2, 0, 0xff)) << 16;
 
     HandleButtonCombos(pad_status);
   }
@@ -98,7 +98,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCSteeringWheel::SendCommand(const u32 command, const u8 poll)
 {
   UCommand wheel_command(command);
 
@@ -110,7 +110,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
     if (pad_num < 4)
     {
       // Lowest bit is the high bit of the strength field.
-      const auto type = ForceCommandType(wheel_command.parameter2 >> 1);
+      const auto type = static_cast<ForceCommandType>(wheel_command.parameter2 >> 1);
 
       // Strength is a 9 bit value from 0 to 256.
       // 0 = left strong, 256 = right strong
@@ -129,7 +129,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
         Pad::Rumble(pad_num, 0);
         break;
       default:
-        WARN_LOG_FMT(SERIALINTERFACE, "Unknown CMD_FORCE type {}", int(type));
+        WARN_LOG_FMT(SERIALINTERFACE, "Unknown CMD_FORCE type {}", static_cast<int>(type));
         break;
       }
     }

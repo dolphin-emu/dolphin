@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT 0x00000001
 #define GL_ELEMENT_ARRAY_BARRIER_BIT 0x00000002
 #define GL_UNIFORM_BARRIER_BIT 0x00000004

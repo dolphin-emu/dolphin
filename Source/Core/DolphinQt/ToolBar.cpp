@@ -34,39 +34,40 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   UpdateIcons();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { OnEmulationStateChanged(state); });
+          [this](const Core::State state) { OnEmulationStateChanged(state); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
-          [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
+          [this] { OnEmulationStateChanged(GetState(Core::System::GetInstance())); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
 
   connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
-  connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::SetToolBarVisible);
+  connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::ShowToolBar);
+  connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::HideToolBar);
 
   connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
-          [this](bool locked) { setMovable(!locked); });
+          [this](const bool locked) { setMovable(!locked); });
 
   connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
           [this] { m_refresh_action->setEnabled(false); });
   connect(&Settings::Instance(), &Settings::GameListRefreshStarted, this,
           [this] { m_refresh_action->setEnabled(true); });
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
 }
 
-void ToolBar::OnEmulationStateChanged(Core::State state)
+void ToolBar::OnEmulationStateChanged(const Core::State state)
 {
-  bool running = state != Core::State::Uninitialized;
+  const bool running = state != Core::State::Uninitialized;
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
 
-  bool playing = running && state != Core::State::Paused;
+  const bool playing = running && state != Core::State::Paused;
   UpdatePausePlayButtonState(playing);
 
-  const bool paused = Core::GetState(Core::System::GetInstance()) == Core::State::Paused;
+  const bool paused = GetState(Core::System::GetInstance()) == Core::State::Paused;
   m_step_action->setEnabled(paused);
   m_step_over_action->setEnabled(paused);
   m_step_out_action->setEnabled(paused);
@@ -76,10 +77,10 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
 
 void ToolBar::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetToolBarVisible(false);
+  Settings::Instance().HideToolBar();
 }
 
-void ToolBar::OnDebugModeToggled(bool enabled)
+void ToolBar::OnDebugModeToggled(const bool enabled) const
 {
   m_step_action->setVisible(enabled);
   m_step_over_action->setVisible(enabled);
@@ -88,7 +89,7 @@ void ToolBar::OnDebugModeToggled(bool enabled)
   m_show_pc_action->setVisible(enabled);
   m_set_pc_action->setVisible(enabled);
 
-  const bool paused = Core::GetState(Core::System::GetInstance()) == Core::State::Paused;
+  const bool paused = GetState(Core::System::GetInstance()) == Core::State::Paused;
   m_step_action->setEnabled(paused);
   m_step_over_action->setEnabled(paused);
   m_step_out_action->setEnabled(paused);
@@ -143,10 +144,11 @@ void ToolBar::MakeActions()
   }
 
   std::vector<int> widths;
-  std::transform(items.begin(), items.end(), std::back_inserter(widths),
-                 [](QWidget* item) { return item->sizeHint().width(); });
+  std::ranges::transform(items, std::back_inserter(widths), [](const QWidget* item) {
+    return item->sizeHint().width();
+  });
 
-  const int min_width = *std::max_element(widths.begin(), widths.end()) * 0.85;
+  const int min_width = *std::ranges::max_element(widths) * 0.85;
   for (QWidget* widget : items)
     widget->setMinimumWidth(min_width);
 }
@@ -169,7 +171,7 @@ void ToolBar::UpdatePausePlayButtonState(const bool playing_state)
   }
 }
 
-void ToolBar::UpdateIcons()
+void ToolBar::UpdateIcons() const
 {
   m_step_action->setIcon(Resources::GetThemeIcon("debugger_step_in"));
   m_step_over_action->setIcon(Resources::GetThemeIcon("debugger_step_over"));
@@ -181,7 +183,7 @@ void ToolBar::UpdateIcons()
   m_open_action->setIcon(Resources::GetThemeIcon("open"));
   m_refresh_action->setIcon(Resources::GetThemeIcon("refresh"));
 
-  const Core::State state = Core::GetState(Core::System::GetInstance());
+  const Core::State state = GetState(Core::System::GetInstance());
   const bool playing = state != Core::State::Uninitialized && state != Core::State::Paused;
   if (!playing)
     m_pause_play_action->setIcon(Resources::GetThemeIcon("play"));

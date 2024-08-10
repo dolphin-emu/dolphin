@@ -106,9 +106,9 @@ public:
   const ReshapeData& GetCenter() const;
   void SetCenter(ReshapeData center);
 
-  static constexpr const char* X_INPUT_OVERRIDE = "X";
-  static constexpr const char* Y_INPUT_OVERRIDE = "Y";
-  static constexpr const char* Z_INPUT_OVERRIDE = "Z";
+  static constexpr auto X_INPUT_OVERRIDE = "X";
+  static constexpr auto Y_INPUT_OVERRIDE = "Y";
+  static constexpr auto Z_INPUT_OVERRIDE = "Z";
 
 protected:
   ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0,

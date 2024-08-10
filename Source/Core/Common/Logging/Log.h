@@ -5,8 +5,6 @@
 
 #include <cstddef>
 #include <fmt/format.h>
-#include <string_view>
-#include "Common/FormatUtil.h"
 
 namespace Common::Log
 {
@@ -69,7 +67,7 @@ enum class LogType : int
   NUMBER_OF_LOGS  // Must be last
 };
 
-constexpr LogType LAST_LOG_TYPE =
+constexpr auto LAST_LOG_TYPE =
     static_cast<LogType>(static_cast<int>(LogType::NUMBER_OF_LOGS) - 1);
 
 enum class LogLevel : int
@@ -82,12 +80,12 @@ enum class LogLevel : int
 };
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LDEBUG;
+constexpr auto MAX_LOGLEVEL = LogLevel::LDEBUG;
 #else
 constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LINFO;
 #endif  // logging
 
-static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
+static constexpr char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args);

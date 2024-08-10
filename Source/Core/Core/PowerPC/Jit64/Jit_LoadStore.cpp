@@ -17,7 +17,6 @@
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -147,7 +146,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     }
     else
     {
-      opAddress = RCOpArg::Imm32((u32)(s32)inst.SIMM_16);
+      opAddress = RCOpArg::Imm32(static_cast<u32>(inst.SIMM_16));
     }
   }
   else if (update && ((a == 0) || (d == a)))
@@ -177,7 +176,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
       s32 offset = 0;
       if (use_constant_offset)
-        offset = indexed ? gpr.SImm32(b) : (s32)inst.SIMM_16;
+        offset = indexed ? gpr.SImm32(b) : inst.SIMM_16;
 
       RCOpArg Rb = use_constant_offset ? RCOpArg{} : gpr.Use(b, RCMode::Read);
 
@@ -191,7 +190,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
         if (!use_constant_offset)
           ADD(32, opAddress, Rb);
         else if (update)
-          ADD(32, opAddress, Imm32((u32)offset));
+          ADD(32, opAddress, Imm32(static_cast<u32>(offset)));
         else
           loadOffset = offset;
       }
@@ -204,7 +203,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
         RegCache::Realize(opAddress, Ra, Rb);
 
         if (use_constant_offset)
-          MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)offset));
+          MOV_sum(32, RSCRATCH2, Ra, Imm32(static_cast<u32>(offset)));
         else
           MOV_sum(32, RSCRATCH2, Ra, Rb);
       }
@@ -265,7 +264,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
     RegCache::Realize(reg_cycle_count, reg_downcount, loop_counter);
 
     // This must be true in order for us to pick up the DIV results and not trash any data.
-    static_assert(RSCRATCH == Gen::EAX && RSCRATCH2 == Gen::EDX);
+    static_assert(RSCRATCH == EAX && RSCRATCH2 == EDX);
 
     // Alright, now figure out how many loops we want to do.
     const u8 cycle_count_per_loop =
@@ -306,7 +305,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
     {
       const X64Reg bw_reg_a = reg_cycle_count, bw_reg_b = reg_downcount;
       const BitSet32 bw_caller_save = (CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}) &
-                                      ~BitSet32{int(bw_reg_a), int(bw_reg_b)};
+                                      ~BitSet32{static_cast<int>(bw_reg_a), static_cast<int>(bw_reg_b)};
 
       MOV(64, R(bw_reg_a), ImmPtr(&m_branch_watch));
       MOVZX(32, 8, bw_reg_b, MDisp(bw_reg_a, Core::BranchWatch::GetOffsetOfRecordingActive()));
@@ -324,9 +323,14 @@ void Jit64::dcbx(UGeckoInstruction inst)
       // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
       // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
       MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
-      const PPCAnalyst::CodeOp& op = js.op[2];
-      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}));
-      MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
+      const auto& [inst, _opinfo, address, branchTo, _regsIn, _regsOut, _fregsIn, _fregOut, _crIn,
+            _crOut, _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA,
+            _wantsCAInFlags, _outputCR, _outputFPRF, _outputCA, _canEndBlock, _canCauseException,
+            _skipLRStack, _skip, _crInUse, _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable,
+            _fprDiscardable, _fprInXmm, _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst,
+            _fprIsStoreSafeAfterInst] = js.op[2];
+      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{address, branchTo}));
+      MOV(32, R(ABI_PARAM3), Imm32(inst.hex));
       ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
                                             &Core::BranchWatch::HitPhysicalTrue_fk_n);
       ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
@@ -388,10 +392,10 @@ void Jit64::dcbx(UGeckoInstruction inst)
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
-  registersInUse[X64Reg(tmp)] = false;
-  registersInUse[X64Reg(effective_address)] = false;
+  registersInUse[tmp] = false;
+  registersInUse[static_cast<X64Reg>(effective_address)] = false;
   if (make_loop)
-    registersInUse[X64Reg(loop_counter)] = false;
+    registersInUse[static_cast<X64Reg>(loop_counter)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   if (make_loop)
   {
@@ -501,7 +505,7 @@ void Jit64::stX(UGeckoInstruction inst)
 
   int s = inst.RS;
   int a = inst.RA;
-  s32 offset = (s32)(s16)inst.SIMM_16;
+  s32 offset = static_cast<s16>(inst.SIMM_16);
   bool update = (inst.OPCD & 1) && offset;
 
   if (!a && update)
@@ -568,7 +572,7 @@ void Jit64::stX(UGeckoInstruction inst)
                       SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 
     if (update)
-      ADD(32, Ra, Imm32((u32)offset));
+      ADD(32, Ra, Imm32(static_cast<u32>(offset)));
   }
 }
 
@@ -638,7 +642,7 @@ void Jit64::lmw(UGeckoInstruction inst)
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RegCache::Realize(Ra);
-    MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)(s32)inst.SIMM_16));
+    MOV_sum(32, RSCRATCH2, Ra, Imm32(static_cast<u32>(inst.SIMM_16)));
   }
   for (int i = d; i < 32; i++)
   {
@@ -673,7 +677,7 @@ void Jit64::stmw(UGeckoInstruction inst)
       MOV(32, R(RSCRATCH2), Ri);
       Ri = RCOpArg::R(RSCRATCH2);
     }
-    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16,
+    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + static_cast<u32>(inst.SIMM_16),
                       CallerSavedRegistersInUse());
   }
 }

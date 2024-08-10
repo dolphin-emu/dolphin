@@ -43,11 +43,11 @@ private:
 
   void Refresh();
   void RefreshLoop();
-  void UpdateList();
+  void UpdateList() const;
 
-  void OnSelectionChanged();
+  void OnSelectionChanged() const;
 
-  void OnUpdateStatusRequested(const QString& status);
+  void OnUpdateStatusRequested(const QString& status) const;
   void OnUpdateListRequested(std::vector<NetPlaySession> sessions);
 
   void SaveSettings() const;

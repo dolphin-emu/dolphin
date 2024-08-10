@@ -7,7 +7,6 @@
 #include <bit>
 #include <cstring>
 #include <type_traits>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -43,17 +42,17 @@ double PairedSingle::PS1AsDouble() const
   return std::bit_cast<double>(ps1);
 }
 
-void PairedSingle::SetPS0(double value)
+void PairedSingle::SetPS0(const double value)
 {
   ps0 = std::bit_cast<u64>(value);
 }
 
-void PairedSingle::SetPS1(double value)
+void PairedSingle::SetPS1(const double value)
 {
   ps1 = std::bit_cast<u64>(value);
 }
 
-static void InvalidateCacheThreadSafe(Core::System& system, u64 userdata, s64 cyclesLate)
+static void InvalidateCacheThreadSafe(const Core::System& system, const u64 userdata, s64 cyclesLate)
 {
   system.GetPPCState().iCache.Invalidate(system.GetMemory(), system.GetJitInterface(),
                                          static_cast<u32>(userdata));
@@ -128,10 +127,10 @@ void PowerPCManager::DoState(PointerWrap& p)
 
 void PowerPCManager::ResetRegisters()
 {
-  std::fill(std::begin(m_ppc_state.ps), std::end(m_ppc_state.ps), PairedSingle{});
-  std::fill(std::begin(m_ppc_state.sr), std::end(m_ppc_state.sr), 0U);
-  std::fill(std::begin(m_ppc_state.gpr), std::end(m_ppc_state.gpr), 0U);
-  std::fill(std::begin(m_ppc_state.spr), std::end(m_ppc_state.spr), 0U);
+  std::ranges::fill(m_ppc_state.ps, PairedSingle{});
+  std::ranges::fill(m_ppc_state.sr, 0U);
+  std::ranges::fill(m_ppc_state.gpr, 0U);
+  std::ranges::fill(m_ppc_state.spr, 0U);
 
   // Gamecube:
   // 0x00080200 = lonestar 2.0
@@ -175,7 +174,7 @@ void PowerPCManager::ResetRegisters()
   mmu.DBATUpdated();
   mmu.IBATUpdated();
 
-  auto& system_timers = m_system.GetSystemTimers();
+  const auto& system_timers = m_system.GetSystemTimers();
   TL(m_ppc_state) = 0;
   TU(m_ppc_state) = 0;
   system_timers.TimeBaseSet();
@@ -246,7 +245,7 @@ void PowerPCManager::RefreshConfig()
 {
   const bool old_enable_dcache = m_ppc_state.m_enable_dcache;
 
-  m_ppc_state.m_enable_dcache = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
+  m_ppc_state.m_enable_dcache = Get(Config::MAIN_ACCURATE_CPU_CACHE);
 
   if (old_enable_dcache && !m_ppc_state.m_enable_dcache)
   {
@@ -255,7 +254,7 @@ void PowerPCManager::RefreshConfig()
   }
 }
 
-void PowerPCManager::Init(CPUCore cpu_core)
+void PowerPCManager::Init(const CPUCore cpu_core)
 {
   m_registered_config_callback_id =
       CPUThreadConfigCallback::AddConfigChangedCallback([this] { RefreshConfig(); });
@@ -283,9 +282,9 @@ void PowerPCManager::Reset()
   m_ppc_state.dCache.Reset();
 }
 
-void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
+void PowerPCManager::ScheduleInvalidateCacheThreadSafe(const u32 address)
 {
-  auto& cpu = m_system.GetCPU();
+  const auto& cpu = m_system.GetCPU();
 
   if (cpu.GetState() == CPU::State::Running && !Core::IsCPUThread())
   {
@@ -294,14 +293,13 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
   }
   else
   {
-    m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(),
-                                  static_cast<u32>(address));
+    m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(), address);
   }
 }
 
 void PowerPCManager::Shutdown()
 {
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  RemoveConfigChangedCallback(m_registered_config_callback_id);
   InjectExternalCPUCore(nullptr);
   m_system.GetJitInterface().Shutdown();
   m_system.GetInterpreter().Shutdown();
@@ -332,7 +330,7 @@ void PowerPCManager::ApplyMode()
   }
 }
 
-void PowerPCManager::SetMode(CoreMode new_mode)
+void PowerPCManager::SetMode(const CoreMode new_mode)
 {
   if (new_mode == m_mode)
     return;  // We don't need to do anything.
@@ -373,12 +371,12 @@ void PowerPCManager::InjectExternalCPUCore(CPUCoreBase* new_cpu)
   m_cpu_core_base_is_injected = true;
 }
 
-void PowerPCManager::SingleStep()
+void PowerPCManager::SingleStep() const
 {
   m_cpu_core_base->SingleStep();
 }
 
-void PowerPCManager::RunLoop()
+void PowerPCManager::RunLoop() const
 {
   m_cpu_core_base->Run();
   Host_UpdateDisasmDialog();
@@ -391,12 +389,12 @@ u64 PowerPCManager::ReadFullTimeBaseValue() const
   return value;
 }
 
-void PowerPCManager::WriteFullTimeBaseValue(u64 value)
+void PowerPCManager::WriteFullTimeBaseValue(const u64 value)
 {
   std::memcpy(&TL(m_ppc_state), &value, sizeof(value));
 }
 
-void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
+void UpdatePerformanceMonitor(const u32 cycles, const u32 num_load_stores, const u32 num_fp_inst,
                               PowerPCState& ppc_state)
 {
   switch (MMCR0(ppc_state).PMC1SELECT)
@@ -460,7 +458,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
 
 void PowerPCManager::CheckExceptions()
 {
-  u32 exceptions = m_ppc_state.Exceptions;
+  const u32 exceptions = m_ppc_state.Exceptions;
 
   // Example procedure:
   // Set SRR0 to either PC or NPC
@@ -572,7 +570,7 @@ void PowerPCManager::CheckExceptions()
 
 void PowerPCManager::CheckExternalExceptions()
 {
-  u32 exceptions = m_ppc_state.Exceptions;
+  const u32 exceptions = m_ppc_state.Exceptions;
 
   // EXTERNAL INTERRUPT
   // Handling is delayed until MSR.EE=1.
@@ -660,7 +658,7 @@ bool PowerPCManager::CheckAndHandleBreakPoints()
   return false;
 }
 
-void PowerPCState::SetSR(u32 index, u32 value)
+void PowerPCState::SetSR(const u32 index, const u32 value)
 {
   DEBUG_LOG_FMT(POWERPC, "{:08x}: MMU: Segment register {} set to {:08x}", pc, index, value);
   sr[index] = value;
@@ -668,22 +666,22 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 // FPSCR update functions
 
-void PowerPCState::UpdateFPRFDouble(double dvalue)
+void PowerPCState::UpdateFPRFDouble(const double dvalue)
 {
   fpscr.FPRF = Common::ClassifyDouble(dvalue);
 }
 
-void PowerPCState::UpdateFPRFSingle(float fvalue)
+void PowerPCState::UpdateFPRFSingle(const float fvalue)
 {
   fpscr.FPRF = Common::ClassifyFloat(fvalue);
 }
 
-void RoundingModeUpdated(PowerPCState& ppc_state)
+void RoundingModeUpdated(const PowerPCState& ppc_state)
 {
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  Common::FPU::SetSIMDMode(ppc_state.fpscr.RN, ppc_state.fpscr.NI);
+  SetSIMDMode(ppc_state.fpscr.RN, ppc_state.fpscr.NI);
 }
 
 void MSRUpdated(PowerPCState& ppc_state)

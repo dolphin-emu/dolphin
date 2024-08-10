@@ -5,15 +5,12 @@
 
 #include <set>
 
-#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 #include "VideoCommon/HiresTextures.h"
-#include "VideoCommon/TextureCacheBase.h"
 
 namespace InputCommon
 {
@@ -39,8 +36,8 @@ void DynamicInputTextureManager::Load()
   }
 }
 
-void DynamicInputTextureManager::GenerateTextures(const Common::IniFile& file,
-                                                  const std::vector<std::string>& controller_names)
+void DynamicInputTextureManager::GenerateTextures(
+    const Common::IniFile& file, const std::vector<std::string>& controller_names) const
 {
   for (const auto& configuration : m_configuration)
   {

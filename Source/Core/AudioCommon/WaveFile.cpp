@@ -16,7 +16,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
 
@@ -29,12 +28,12 @@ WaveFileWriter::~WaveFileWriter()
   Stop();
 }
 
-bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
+bool WaveFileWriter::Start(const std::string& filename, const u32 sample_rate_divisor)
 {
   // Ask to delete file
   if (File::Exists(filename))
   {
-    if (Config::Get(Config::MAIN_DUMP_AUDIO_SILENT) ||
+    if (Get(Config::MAIN_DUMP_AUDIO_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", filename))
     {
       File::Delete(filename);
@@ -107,7 +106,7 @@ void WaveFileWriter::Stop()
   file.Close();
 }
 
-void WaveFileWriter::Write(u32 value)
+void WaveFileWriter::Write(const u32 value)
 {
   file.WriteArray(&value, 1);
 }
@@ -117,8 +116,9 @@ void WaveFileWriter::Write4(const char* ptr)
   file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
-                                        u32 sample_rate_divisor, int l_volume, int r_volume)
+void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, const u32 count,
+                                        const u32 sample_rate_divisor, const int l_volume,
+                                        const int r_volume)
 {
   if (!file)
   {
@@ -149,8 +149,8 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
   for (u32 i = 0; i < count; i++)
   {
     // Flip the audio channels from RL to LR
-    conv_buffer[2 * i] = Common::swap16((u16)sample_data[2 * i + 1]);
-    conv_buffer[2 * i + 1] = Common::swap16((u16)sample_data[2 * i]);
+    conv_buffer[2 * i] = Common::swap16(static_cast<u16>(sample_data[2 * i + 1]));
+    conv_buffer[2 * i + 1] = Common::swap16(static_cast<u16>(sample_data[2 * i]));
 
     // Apply volume (volume ranges from 0 to 256)
     conv_buffer[2 * i] = conv_buffer[2 * i] * l_volume / 256;

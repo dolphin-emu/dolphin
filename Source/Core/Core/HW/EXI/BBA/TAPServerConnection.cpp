@@ -39,8 +39,8 @@ using ws_ssize_t = ssize_t;
 #endif
 
 TAPServerConnection::TAPServerConnection(const std::string& destination,
-                                         std::function<void(std::string&&)> recv_cb,
-                                         std::size_t max_frame_size)
+                                         const std::function<void(std::string&&)> recv_cb,
+                                         const std::size_t max_frame_size)
     : m_destination(destination), m_recv_cb(recv_cb), m_max_frame_size(max_frame_size)
 {
 }
@@ -66,7 +66,7 @@ static int ConnectToDestination(const std::string& destination)
       return -1;
     }
 
-    sockaddr_in* sin = reinterpret_cast<sockaddr_in*>(&ss);
+    auto sin = reinterpret_cast<sockaddr_in*>(&ss);
     const sf::IpAddress dest_ip(destination.substr(0, colon_offset));
     if (dest_ip == sf::IpAddress::None || dest_ip == sf::IpAddress::Any)
     {
@@ -156,7 +156,7 @@ void TAPServerConnection::Deactivate()
   m_fd = -1;
 }
 
-bool TAPServerConnection::IsActivated()
+bool TAPServerConnection::IsActivated() const
 {
   return (m_fd >= 0);
 }
@@ -177,7 +177,7 @@ void TAPServerConnection::RecvStop()
   m_read_enabled.Clear();
 }
 
-bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
+bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf) const
 {
   while (!send_buf->empty())
   {
@@ -202,7 +202,7 @@ bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
     }
     const int written_bytes =
         send(m_fd, send_buf->data() + start_offset, static_cast<int>(size), SEND_FLAGS);
-    if (u32(written_bytes) != size)
+    if (static_cast<u32>(written_bytes) != size)
     {
       ERROR_LOG_FMT(SP1,
                     "SendAndRemoveAllHDLCFrames(): expected to write {} bytes, instead wrote {}",
@@ -214,7 +214,7 @@ bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
   return true;
 }
 
-bool TAPServerConnection::SendFrame(const u8* frame, u32 size)
+bool TAPServerConnection::SendFrame(const u8* frame, const u32 size) const
 {
   INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
@@ -229,7 +229,7 @@ bool TAPServerConnection::SendFrame(const u8* frame, u32 size)
   }
   const int written_bytes =
       send(m_fd, reinterpret_cast<const char*>(frame), static_cast<ws_ssize_t>(size), SEND_FLAGS);
-  if (u32(written_bytes) != size)
+  if (static_cast<u32>(written_bytes) != size)
   {
     ERROR_LOG_FMT(SP1, "SendFrame(): expected to write {} bytes, instead wrote {}", size,
                   written_bytes);
@@ -238,7 +238,7 @@ bool TAPServerConnection::SendFrame(const u8* frame, u32 size)
   return true;
 }
 
-void TAPServerConnection::ReadThreadHandler()
+void TAPServerConnection::ReadThreadHandler() const
 {
   enum class ReadState
   {
@@ -247,7 +247,7 @@ void TAPServerConnection::ReadThreadHandler()
     DATA,
     SKIP,
   };
-  ReadState read_state = ReadState::SIZE;
+  auto read_state = ReadState::SIZE;
 
   std::size_t frame_bytes_received = 0;
   std::size_t frame_bytes_expected = 0;
@@ -262,7 +262,7 @@ void TAPServerConnection::ReadThreadHandler()
     timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 50000;
-    int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
+    const int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
     if (select_res < 0)
     {
       ERROR_LOG_FMT(SP1, "Can\'t poll tapserver fd: {}", Common::StrNetworkError());

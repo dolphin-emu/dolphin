@@ -7,10 +7,8 @@
 #include <QGroupBox>
 #include <QListWidget>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QVBoxLayout>
 
-#include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -89,7 +87,7 @@ void LogConfigWidget::CreateWidgets()
   types_layout->addWidget(m_types_toggle);
   types_layout->addWidget(m_types_list);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(layout);
 
   setWidget(widget);
@@ -125,7 +123,7 @@ void LogConfigWidget::ConnectWidgets()
   connect(m_types_list, &QListWidget::itemChanged, this, &LogConfigWidget::SaveSettings);
 
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 }
 
 void LogConfigWidget::LoadSettings()
@@ -164,7 +162,7 @@ void LogConfigWidget::LoadSettings()
   }
 }
 
-void LogConfigWidget::SaveSettings()
+void LogConfigWidget::SaveSettings() const
 {
   if (m_block_save)
     return;
@@ -211,11 +209,11 @@ void LogConfigWidget::SaveSettings()
     const bool was_enabled = log_manager->IsEnabled(type);
 
     if (enabled != was_enabled)
-      log_manager->SetEnable(type, enabled);
+      enabled ? log_manager->Enable(type) : log_manager->Disable(type);
   }
 }
 
 void LogConfigWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetLogConfigVisible(false);
+  Settings::Instance().HideLogConfig();
 }

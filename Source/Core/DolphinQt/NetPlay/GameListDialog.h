@@ -28,7 +28,7 @@ public:
 private:
   void CreateWidgets();
   void ConnectWidgets();
-  void PopulateGameList();
+  void PopulateGameList() const;
 
   const GameListModel& m_game_list_model;
   QVBoxLayout* m_main_layout;

@@ -42,13 +42,13 @@ void JitInterface::SetJit(std::unique_ptr<JitBase> jit)
   m_jit = std::move(jit);
 }
 
-void JitInterface::DoState(PointerWrap& p)
+void JitInterface::DoState(const PointerWrap& p) const
 {
   if (m_jit && p.IsReadMode())
     m_jit->ClearCache();
 }
 
-CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
+CPUCoreBase* JitInterface::InitJitCore(const PowerPC::CPUCore core)
 {
   switch (core)
   {
@@ -81,27 +81,30 @@ CPUCoreBase* JitInterface::GetCore() const
   return m_jit.get();
 }
 
-void JitInterface::UpdateMembase()
+void JitInterface::UpdateMembase() const
 {
   if (!m_jit)
     return;
 
-  auto& ppc_state = m_system.GetPPCState();
-  auto& memory = m_system.GetMemory();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
+  const auto& memory = m_system.GetMemory();
 #ifdef _M_ARM_64
   // JitArm64 is currently using the no fastmem arena code path even when only fastmem is off.
   const bool fastmem_arena = m_jit->jo.fastmem;
 #else
   const bool fastmem_arena = m_jit->jo.fastmem_arena;
 #endif
-  if (ppc_state.msr.DR)
+  if (msr.DR)
   {
-    ppc_state.mem_ptr =
+    mem_ptr =
         fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase();
   }
   else
   {
-    ppc_state.mem_ptr =
+    mem_ptr =
         fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase();
   }
 }
@@ -183,22 +186,25 @@ void JitInterface::JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE*
 }
 
 std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>
-JitInterface::GetHostCode(u32 address) const
+JitInterface::GetHostCode(const u32 address) const
 {
   if (!m_jit)
   {
     return GetHostCodeError::NoJitActive;
   }
 
-  auto& ppc_state = m_system.GetPPCState();
-  JitBlock* block =
-      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.feature_flags);
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = m_system.GetPPCState();
+  const JitBlock* block =
+      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, feature_flags);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
-                                                               ppc_state.feature_flags);
+      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, feature_flags);
       if (block)
         break;
     }
@@ -224,7 +230,7 @@ JitInterface::GetHostCode(u32 address) const
   return result;
 }
 
-bool JitInterface::HandleFault(uintptr_t access_address, SContext* ctx)
+bool JitInterface::HandleFault(const uintptr_t access_address, SContext* ctx) const
 {
   // Prevent nullptr dereference on a crash with no JIT present
   if (!m_jit)
@@ -235,7 +241,7 @@ bool JitInterface::HandleFault(uintptr_t access_address, SContext* ctx)
   return m_jit->HandleFault(access_address, ctx);
 }
 
-bool JitInterface::HandleStackFault()
+bool JitInterface::HandleStackFault() const
 {
   if (!m_jit)
   {
@@ -245,31 +251,31 @@ bool JitInterface::HandleStackFault()
   return m_jit->HandleStackFault();
 }
 
-void JitInterface::ClearCache(const Core::CPUThreadGuard&)
+void JitInterface::ClearCache(const Core::CPUThreadGuard&) const
 {
   if (m_jit)
     m_jit->ClearCache();
 }
 
-void JitInterface::ClearSafe()
+void JitInterface::ClearSafe() const
 {
   if (m_jit)
     m_jit->GetBlockCache()->Clear();
 }
 
-void JitInterface::InvalidateICache(u32 address, u32 size, bool forced)
+void JitInterface::InvalidateICache(const u32 address, const u32 size, const bool forced) const
 {
   if (m_jit)
     m_jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
-void JitInterface::InvalidateICacheLine(u32 address)
+void JitInterface::InvalidateICacheLine(const u32 address) const
 {
   if (m_jit)
     m_jit->GetBlockCache()->InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLines(u32 address, u32 count)
+void JitInterface::InvalidateICacheLines(const u32 address, const u32 count) const
 {
   // This corresponds to a PPC code loop that:
   // - calls some form of dcb* instruction on 'address'
@@ -285,17 +291,17 @@ void JitInterface::InvalidateICacheLines(u32 address, u32 count)
     InvalidateICache(address & ~0x1f, 32 * count, false);
 }
 
-void JitInterface::InvalidateICacheLineFromJIT(JitInterface& jit_interface, u32 address)
+void JitInterface::InvalidateICacheLineFromJIT(const JitInterface& jit_interface, const u32 address)
 {
   jit_interface.InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLinesFromJIT(JitInterface& jit_interface, u32 address, u32 count)
+void JitInterface::InvalidateICacheLinesFromJIT(const JitInterface& jit_interface, const u32 address, const u32 count)
 {
   jit_interface.InvalidateICacheLines(address, count);
 }
 
-void JitInterface::CompileExceptionCheck(ExceptionType type)
+void JitInterface::CompileExceptionCheck(const ExceptionType type) const
 {
   if (!m_jit)
     return;
@@ -315,30 +321,34 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
     break;
   }
 
-  auto& ppc_state = m_system.GetPPCState();
-  if (ppc_state.pc != 0 &&
-      (exception_addresses->find(ppc_state.pc)) == (exception_addresses->end()))
+  const auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = m_system.GetPPCState();
+  if (pc != 0 &&
+      (!exception_addresses->contains(pc)))
   {
     if (type == ExceptionType::FIFOWrite)
     {
       ASSERT(Core::IsCPUThread());
-      Core::CPUThreadGuard guard(m_system);
+      const Core::CPUThreadGuard guard(m_system);
 
       // Check in case the code has been replaced since: do we need to do this?
       const OpType optype =
-          PPCTables::GetOpInfo(PowerPC::MMU::HostRead_U32(guard, ppc_state.pc), ppc_state.pc)->type;
+          PPCTables::GetOpInfo(PowerPC::MMU::HostRead_U32(guard, pc), pc)->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(ppc_state.pc);
+    exception_addresses->insert(pc);
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    m_jit->GetBlockCache()->InvalidateICache(ppc_state.pc, 4, true);
+    m_jit->GetBlockCache()->InvalidateICache(pc, 4, true);
   }
 }
 
-void JitInterface::CompileExceptionCheckFromJIT(JitInterface& jit_interface, ExceptionType type)
+void JitInterface::CompileExceptionCheckFromJIT(const JitInterface& jit_interface, const ExceptionType type)
 {
   jit_interface.CompileExceptionCheck(type);
 }

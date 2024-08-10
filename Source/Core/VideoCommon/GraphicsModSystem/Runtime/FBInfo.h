@@ -20,6 +20,6 @@ struct FBInfoHasher
 {
   std::size_t operator()(const FBInfo& fb_info) const noexcept
   {
-    return static_cast<std::size_t>(fb_info.CalculateHash());
+    return fb_info.CalculateHash();
   }
 };

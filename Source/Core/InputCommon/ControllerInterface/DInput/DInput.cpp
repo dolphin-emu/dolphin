@@ -18,15 +18,15 @@ namespace ciface::DInput
 {
 static IDirectInput8* s_idi8 = nullptr;
 
-BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
+BOOL CALLBACK DIEnumDeviceObjectsCallback(const LPCDIDEVICEOBJECTINSTANCE lpddoi, const LPVOID pvRef)
 {
-  ((std::list<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back(*lpddoi);
+  static_cast<std::list<DIDEVICEOBJECTINSTANCE>*>(pvRef)->push_back(*lpddoi);
   return DIENUM_CONTINUE;
 }
 
-BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
+BOOL CALLBACK DIEnumDevicesCallback(const LPCDIDEVICEINSTANCE lpddi, const LPVOID pvRef)
 {
-  ((std::list<DIDEVICEINSTANCE>*)pvRef)->push_back(*lpddi);
+  static_cast<std::list<DIDEVICEINSTANCE>*>(pvRef)->push_back(*lpddi);
   return DIENUM_CONTINUE;
 }
 
@@ -38,7 +38,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
   str.diph.dwHow = DIPH_DEVICE;
 
   std::string result;
-  HRESULT hr = device->GetProperty(DIPROP_PRODUCTNAME, &str.diph);
+  const HRESULT hr = device->GetProperty(DIPROP_PRODUCTNAME, &str.diph);
   if (SUCCEEDED(hr))
   {
     result = StripWhitespace(WStringToUTF8(str.wsz));
@@ -53,12 +53,12 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 }
 
 // Assumes hwnd had not changed from the previous call
-void PopulateDevices(HWND hwnd)
+void PopulateDevices(const HWND hwnd)
 {
   if (!s_idi8)
   {
-    HRESULT hr = DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION,
-                                    IID_IDirectInput8, (LPVOID*)&s_idi8, nullptr);
+    const HRESULT hr = DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION,
+                                          IID_IDirectInput8, (LPVOID*)&s_idi8, nullptr);
     if (FAILED(hr))
     {
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "DirectInput8Create failed: {}", Common::HRWrap(hr));
@@ -78,7 +78,7 @@ void PopulateDevices(HWND hwnd)
   InitJoystick(s_idi8, hwnd);
 }
 
-void ChangeWindow(HWND hwnd)
+void ChangeWindow(const HWND hwnd)
 {
   if (s_idi8)  // Has init? Ignore if called before the first PopulateDevices()
   {

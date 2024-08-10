@@ -3,11 +3,9 @@
 
 #include "VideoBackends/D3DCommon/SwapChain.h"
 
-#include <algorithm>
 #include <cstdint>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -62,7 +60,7 @@ u32 SwapChain::GetSwapChainFlags() const
   return m_allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 }
 
-bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
+bool SwapChain::CreateSwapChain(const bool stereo, bool hdr)
 {
   RECT client_rc;
   if (GetClientRect(static_cast<HWND>(m_wsi.render_surface), &client_rc))
@@ -229,7 +227,7 @@ bool SwapChain::ResizeSwapChain()
   return CreateSwapChainBuffers();
 }
 
-void SwapChain::SetStereo(bool stereo)
+void SwapChain::SetStereo(const bool stereo)
 {
   if (m_stereo == stereo)
     return;
@@ -243,7 +241,7 @@ void SwapChain::SetStereo(bool stereo)
   }
 }
 
-void SwapChain::SetHDR(bool hdr)
+void SwapChain::SetHDR(const bool hdr)
 {
   if (m_hdr == hdr)
     return;
@@ -265,7 +263,7 @@ bool SwapChain::GetFullscreen() const
   return GetFullscreenState(m_swap_chain.Get());
 }
 
-void SwapChain::SetFullscreen(bool request)
+void SwapChain::SetFullscreen(const bool request) const
 {
   m_swap_chain->SetFullscreenState(request, nullptr);
 }
@@ -274,7 +272,7 @@ bool SwapChain::CheckForFullscreenChange()
 {
   if (m_fullscreen_request != m_has_fullscreen)
   {
-    HRESULT hr = m_swap_chain->SetFullscreenState(m_fullscreen_request, nullptr);
+    const HRESULT hr = m_swap_chain->SetFullscreenState(m_fullscreen_request, nullptr);
     if (SUCCEEDED(hr))
     {
       m_has_fullscreen = m_fullscreen_request;
@@ -302,7 +300,7 @@ bool SwapChain::Present()
   if (m_allow_tearing_supported && !g_ActiveConfig.bVSyncActive && !m_has_fullscreen)
     present_flags |= DXGI_PRESENT_ALLOW_TEARING;
 
-  HRESULT hr = m_swap_chain->Present(static_cast<UINT>(g_ActiveConfig.bVSyncActive), present_flags);
+  const HRESULT hr = m_swap_chain->Present(g_ActiveConfig.bVSyncActive, present_flags);
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "Swap chain present failed: {}", Common::HRWrap(hr));

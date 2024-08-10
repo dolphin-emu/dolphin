@@ -30,13 +30,13 @@ enum class ParameterType : bool
   VariableArgumentList = true
 };
 
-static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
+static std::string GetStringVA(const Core::System& system, const Core::CPUThreadGuard& guard,
                                u32 str_reg = 3,
                                ParameterType parameter_type = ParameterType::ParameterList);
 
 void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   std::string error = GetStringVA(system, guard);
@@ -53,9 +53,9 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 }
 
 // Generalized function for printing formatted string.
-static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   std::string report_message;
@@ -111,7 +111,7 @@ void HLE_GeneralDebugVPrint(const Core::CPUThreadGuard& guard)
 // __write_console(int fd, const void* buffer, const u32* size)
 void HLE_write_console(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   std::string report_message = GetStringVA(system, guard, 4);
@@ -137,9 +137,9 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
-static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   if (ppc_state.gpr[3] != 1 && ppc_state.gpr[3] != 2)
@@ -166,9 +166,9 @@ void HLE_LogVDPrint(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)fprintf message if FILE is stdout or stderr
-static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   // The structure FILE is implementation defined.
@@ -221,13 +221,13 @@ public:
   u32 GetU32() override { return m_va_list->GetArgT<u32>(); }
   u64 GetU64() override { return m_va_list->GetArgT<u64>(); }
   double GetF64() override { return m_va_list->GetArgT<double>(); }
-  std::string GetString(std::optional<u32> max_length) override
+  std::string GetString(const std::optional<u32> max_length) override
   {
     return max_length == 0u ? std::string() :
                               PowerPC::MMU::HostGetString(m_guard, m_va_list->GetArgT<u32>(),
                                                           max_length.value_or(0u));
   }
-  std::u16string GetU16String(std::optional<u32> max_length) override
+  std::u16string GetU16String(const std::optional<u32> max_length) override
   {
     return max_length == 0u ? std::u16string() :
                               PowerPC::MMU::HostGetU16String(m_guard, m_va_list->GetArgT<u32>(),
@@ -240,16 +240,19 @@ private:
 };
 }  // namespace
 
-static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
-                               ParameterType parameter_type)
+static std::string GetStringVA(const Core::System& system, const Core::CPUThreadGuard& guard, const u32 str_reg,
+                               const ParameterType parameter_type)
 {
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
 
-  std::string string = PowerPC::MMU::HostGetString(guard, ppc_state.gpr[str_reg]);
-  std::unique_ptr<HLE::SystemVABI::VAList> ap =
+  const std::string string = PowerPC::MMU::HostGetString(guard, gpr[str_reg]);
+  const std::unique_ptr<HLE::SystemVABI::VAList> ap =
       parameter_type == ParameterType::VariableArgumentList ?
-          std::make_unique<HLE::SystemVABI::VAListStruct>(guard, ppc_state.gpr[str_reg + 1]) :
-          std::make_unique<HLE::SystemVABI::VAList>(guard, ppc_state.gpr[1] + 0x8, str_reg + 1);
+          std::make_unique<HLE::SystemVABI::VAListStruct>(guard, gpr[str_reg + 1]) :
+          std::make_unique<HLE::SystemVABI::VAList>(guard, gpr[1] + 0x8, str_reg + 1);
 
   HLEPrintArgsVAList args(guard, ap.get());
   return GetStringVA(&args, string);

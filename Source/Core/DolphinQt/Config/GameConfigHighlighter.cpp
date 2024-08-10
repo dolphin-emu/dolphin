@@ -69,13 +69,13 @@ GameConfigHighlighter::GameConfigHighlighter(QTextDocument* parent) : QSyntaxHig
 
 void GameConfigHighlighter::highlightBlock(const QString& text)
 {
-  for (const auto& rule : m_rules)
+  for (const auto& [pattern, format] : m_rules)
   {
-    auto it = rule.pattern.globalMatch(text);
+    auto it = pattern.globalMatch(text);
     while (it.hasNext())
     {
       auto match = it.next();
-      setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+      setFormat(match.capturedStart(), match.capturedLength(), format);
     }
   }
 }

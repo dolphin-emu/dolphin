@@ -20,7 +20,7 @@
 
 namespace TextureSampler
 {
-static inline void WrapCoord(int* coordp, WrapMode wrap_mode, int image_size)
+static inline void WrapCoord(int* coordp, const WrapMode wrap_mode, const int image_size)
 {
   int coord = *coordp;
   switch (wrap_mode)
@@ -54,7 +54,7 @@ static inline void WrapCoord(int* coordp, WrapMode wrap_mode, int image_size)
   *coordp = coord;
 }
 
-static inline void SetTexel(const u8* inTexel, u32* outTexel, u32 fract)
+static inline void SetTexel(const u8* inTexel, u32* outTexel, const u32 fract)
 {
   outTexel[0] = inTexel[0] * fract;
   outTexel[1] = inTexel[1] * fract;
@@ -62,7 +62,7 @@ static inline void SetTexel(const u8* inTexel, u32* outTexel, u32 fract)
   outTexel[3] = inTexel[3] * fract;
 }
 
-static inline void AddTexel(const u8* inTexel, u32* outTexel, u32 fract)
+static inline void AddTexel(const u8* inTexel, u32* outTexel, const u32 fract)
 {
   outTexel[0] += inTexel[0] * fract;
   outTexel[1] += inTexel[1] * fract;
@@ -70,14 +70,14 @@ static inline void AddTexel(const u8* inTexel, u32* outTexel, u32 fract)
   outTexel[3] += inTexel[3] * fract;
 }
 
-void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
+void Sample(const s32 s, const s32 t, const s32 lod, const bool linear, const u8 texmap, u8* sample)
 {
   int baseMip = 0;
   bool mipLinear = false;
 
 #if (ALLOW_MIPMAP)
-  auto texUnit = bpmem.tex.GetUnit(texmap);
-  const TexMode0& tm0 = texUnit.texMode0;
+  const auto [tm0, _texMode1, _texImage0, _texImage1, _texImage2, _texImage3, _texTlut, _unknown] =
+    bpmem.tex.GetUnit(texmap);
 
   const s32 lodFract = lod & 0xf;
 
@@ -103,10 +103,10 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
     SampleMip(s, t, baseMip + 1, linear, texmap, sampledTex);
     AddTexel(sampledTex, texel, lodFract);
 
-    sample[0] = (u8)(texel[0] >> 4);
-    sample[1] = (u8)(texel[1] >> 4);
-    sample[2] = (u8)(texel[2] >> 4);
-    sample[3] = (u8)(texel[3] >> 4);
+    sample[0] = static_cast<u8>(texel[0] >> 4);
+    sample[1] = static_cast<u8>(texel[1] >> 4);
+    sample[2] = static_cast<u8>(texel[2] >> 4);
+    sample[3] = static_cast<u8>(texel[3] >> 4);
   }
   else
 #endif
@@ -117,28 +117,26 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
 
 void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 {
-  auto texUnit = bpmem.tex.GetUnit(texmap);
+  auto [tm0, _texMode1, ti0, texImage1, texImage2, texImage3, texTlut, _unknown] =
+    bpmem.tex.GetUnit(texmap);
 
-  const TexMode0& tm0 = texUnit.texMode0;
-  const TexImage0& ti0 = texUnit.texImage0;
-  const TexTLUT& texTlut = texUnit.texTlut;
   const TextureFormat texfmt = ti0.format;
   const TLUTFormat tlutfmt = texTlut.tlut_format;
 
   std::span<const u8> image_src;
   std::span<const u8> image_src_odd;
-  if (texUnit.texImage1.cache_manually_managed)
+  if (texImage1.cache_manually_managed)
   {
-    image_src = TexDecoder_GetTmemSpan(texUnit.texImage1.tmem_even * TMEM_LINE_SIZE);
+    image_src = TexDecoder_GetTmemSpan(texImage1.tmem_even * TMEM_LINE_SIZE);
     if (texfmt == TextureFormat::RGBA8)
-      image_src_odd = TexDecoder_GetTmemSpan(texUnit.texImage2.tmem_odd * TMEM_LINE_SIZE);
+      image_src_odd = TexDecoder_GetTmemSpan(texImage2.tmem_odd * TMEM_LINE_SIZE);
   }
   else
   {
     auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
 
-    const u32 imageBase = texUnit.texImage3.image_base << 5;
+    const u32 imageBase = texImage3.image_base << 5;
     image_src = memory.GetSpanForAddress(imageBase);
   }
 
@@ -202,7 +200,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageSPlus1, tm0.wrap_s, image_width_minus_1 + 1);
     WrapCoord(&imageTPlus1, tm0.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texImage1.cache_manually_managed))
     {
       TexDecoder_DecodeTexel(sampledTex, image_src, imageS, imageT, image_width_minus_1, texfmt,
                              tlut, tlutfmt);
@@ -239,10 +237,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
       AddTexel(sampledTex, texel, (fractS) * (fractT));
     }
 
-    sample[0] = (u8)(texel[0] >> 14);
-    sample[1] = (u8)(texel[1] >> 14);
-    sample[2] = (u8)(texel[2] >> 14);
-    sample[3] = (u8)(texel[3] >> 14);
+    sample[0] = static_cast<u8>(texel[0] >> 14);
+    sample[1] = static_cast<u8>(texel[1] >> 14);
+    sample[2] = static_cast<u8>(texel[2] >> 14);
+    sample[3] = static_cast<u8>(texel[3] >> 14);
   }
   else
   {
@@ -254,7 +252,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
     WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texImage1.cache_manually_managed))
     {
       TexDecoder_DecodeTexel(sample, image_src, imageS, imageT, image_width_minus_1, texfmt, tlut,
                              tlutfmt);

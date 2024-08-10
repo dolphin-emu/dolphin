@@ -8,14 +8,12 @@
 #include <algorithm>
 #include <cstring>
 #include <memory>
-#include <optional>
 #include <string>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Network.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
@@ -27,19 +25,19 @@
 namespace ExpansionInterface
 {
 
-CEXIModem::CEXIModem(Core::System& system, ModemDeviceType type) : IEXIDevice(system)
+CEXIModem::CEXIModem(Core::System& system, const ModemDeviceType type) : IEXIDevice(system)
 {
   switch (type)
   {
   case ModemDeviceType::TAPSERVER:
     m_network_interface = std::make_unique<TAPServerNetworkInterface>(
-        this, Config::Get(Config::MAIN_MODEM_TAPSERVER_DESTINATION));
+        this, Get(Config::MAIN_MODEM_TAPSERVER_DESTINATION));
     INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
   }
 
-  m_regs[Register::DEVICE_TYPE] = 0x02;
-  m_regs[Register::INTERRUPT_MASK] = 0x02;
+  m_regs[DEVICE_TYPE] = 0x02;
+  m_regs[INTERRUPT_MASK] = 0x02;
 }
 
 CEXIModem::~CEXIModem()
@@ -60,7 +58,7 @@ void CEXIModem::SetCS(int cs)
 
 bool CEXIModem::IsInterruptSet()
 {
-  return !!(m_regs[Register::INTERRUPT_MASK] & m_regs[Register::PENDING_INTERRUPT_MASK]);
+  return !!(m_regs[INTERRUPT_MASK] & m_regs[PENDING_INTERRUPT_MASK]);
 }
 
 void CEXIModem::ImmWrite(u32 data, u32 size)
@@ -93,7 +91,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
     for (; size && reg_num < m_regs.size(); size--)
     {
       should_update_interrupts |=
-          ((reg_num == Register::INTERRUPT_MASK) || (reg_num == Register::PENDING_INTERRUPT_MASK));
+          ((reg_num == INTERRUPT_MASK) || (reg_num == PENDING_INTERRUPT_MASK));
       m_regs[reg_num++] = (data >> 24);
       data <<= 8;
     }
@@ -105,7 +103,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
   }
 }
 
-void CEXIModem::DMAWrite(u32 addr, u32 size)
+void CEXIModem::DMAWrite(const u32 addr, const u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
@@ -126,54 +124,51 @@ void CEXIModem::DMAWrite(u32 addr, u32 size)
   }
   else
   {
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     HandleWriteModemTransfer(memory.GetPointerForRange(addr, size), size);
   }
 }
 
-u32 CEXIModem::ImmRead(u32 size)
+u32 CEXIModem::ImmRead(const u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
     ERROR_LOG_FMT(SP1, "Received EXI IMM read ({} bytes) with no pending transfer", size);
     return 0;
   }
-  else if (IsWriteTransfer(m_transfer_descriptor))
+  if (IsWriteTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI IMM read ({} bytes) after write command {:x}", size,
                   m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
     return 0;
   }
-  else if (IsModemTransfer(m_transfer_descriptor))
+  if (IsModemTransfer(m_transfer_descriptor))
   {
     u32 be_data = 0;
     HandleReadModemTransfer(&be_data, size);
     return ntohl(be_data);
   }
-  else
+  // Read device register
+  const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+  if (reg_num == 0)
   {
-    // Read device register
-    const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
-    if (reg_num == 0)
-    {
-      return 0x02020000;  // Device ID (modem)
-    }
-    u32 ret = 0;
-    for (u8 z = 0; z < size; z++)
-    {
-      if (reg_num + z >= m_regs.size())
-      {
-        break;
-      }
-      ret |= (m_regs[reg_num + z] << ((3 - z) * 8));
-    }
-    m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
-    return ret;
+    return 0x02020000;  // Device ID (modem)
   }
+  u32 ret = 0;
+  for (u8 z = 0; z < size; z++)
+  {
+    if (reg_num + z >= m_regs.size())
+    {
+      break;
+    }
+    ret |= (m_regs[reg_num + z] << ((3 - z) * 8));
+  }
+  m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
+  return ret;
 }
 
-void CEXIModem::DMARead(u32 addr, u32 size)
+void CEXIModem::DMARead(const u32 addr, const u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
@@ -194,7 +189,7 @@ void CEXIModem::DMARead(u32 addr, u32 size)
   }
   else
   {
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     HandleReadModemTransfer(memory.GetPointerForRange(addr, size), size);
   }
 }
@@ -216,13 +211,13 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_at_reply_data.size());
     std::memcpy(data, m_at_reply_data.data(), bytes_to_copy);
     m_at_reply_data = m_at_reply_data.substr(bytes_to_copy);
-    m_regs[Register::AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
-    SetInterruptFlag(Interrupt::AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
+    m_regs[AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
+    SetInterruptFlag(AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
   }
   else if ((m_transfer_descriptor & 0x0F000000) == 0x08000000)
   {
     // Packet receive buffer
-    std::lock_guard<std::mutex> g(m_receive_buffer_lock);
+    std::lock_guard g(m_receive_buffer_lock);
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_receive_buffer.size());
     std::memcpy(data, m_receive_buffer.data(), bytes_to_copy);
     m_receive_buffer = m_receive_buffer.substr(bytes_to_copy);
@@ -239,7 +234,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
           SetModemTransferSize(m_transfer_descriptor, bytes_requested_after_read);
 }
 
-void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
+void CEXIModem::HandleWriteModemTransfer(const void* data, const u32 size)
 {
   const u16 bytes_expected = GetModemTransferSize(m_transfer_descriptor);
   if (size > bytes_expected)
@@ -252,18 +247,18 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
 
   if ((m_transfer_descriptor & 0x0F000000) == 0x03000000)
   {  // AT command buffer
-    m_at_command_data.append(reinterpret_cast<const char*>(data), size);
+    m_at_command_data.append(static_cast<const char*>(data), size);
     RunAllPendingATCommands();
-    m_regs[Register::AT_COMMAND_SIZE] = static_cast<u8>(m_at_command_data.size());
+    m_regs[AT_COMMAND_SIZE] = static_cast<u8>(m_at_command_data.size());
   }
   else if ((m_transfer_descriptor & 0x0F000000) == 0x08000000)
   {  // Packet send buffer
-    m_send_buffer.append(reinterpret_cast<const char*>(data), size);
+    m_send_buffer.append(static_cast<const char*>(data), size);
     // A more accurate implementation would only set this interrupt if the send
     // FIFO has enough space; however, we can clear the send FIFO "instantly"
     // from the emulated program's perspective, so we always tell it the send
     // FIFO is empty.
-    SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
+    SetInterruptFlag(SEND_BUFFER_BELOW_THRESHOLD, true, true);
     m_network_interface->SendAndRemoveAllHDLCFrames(&m_send_buffer);
   }
   else
@@ -288,36 +283,36 @@ void CEXIModem::DoState(PointerWrap& p)
 
 u16 CEXIModem::GetTxThreshold() const
 {
-  return (m_regs[Register::TX_THRESHOLD_HIGH] << 8) | m_regs[Register::TX_THRESHOLD_LOW];
+  return (m_regs[TX_THRESHOLD_HIGH] << 8) | m_regs[TX_THRESHOLD_LOW];
 }
 
 u16 CEXIModem::GetRxThreshold() const
 {
-  return (m_regs[Register::RX_THRESHOLD_HIGH] << 8) | m_regs[Register::RX_THRESHOLD_LOW];
+  return (m_regs[RX_THRESHOLD_HIGH] << 8) | m_regs[RX_THRESHOLD_LOW];
 }
 
-void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
+void CEXIModem::SetInterruptFlag(const u8 what, const bool enabled, const bool from_cpu)
 {
   if (enabled)
   {
-    m_regs[Register::PENDING_INTERRUPT_MASK] |= what;
+    m_regs[PENDING_INTERRUPT_MASK] |= what;
   }
   else
   {
-    m_regs[Register::PENDING_INTERRUPT_MASK] &= (~what);
+    m_regs[PENDING_INTERRUPT_MASK] &= (~what);
   }
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(
       from_cpu ? CoreTiming::FromThread::CPU : CoreTiming::FromThread::NON_CPU, 0);
 }
 
-void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
+void CEXIModem::OnReceiveBufferSizeChangedLocked(const bool from_cpu)
 {
   // The caller is expected to hold m_receive_buffer_lock when calling this.
   const u16 bytes_available =
       static_cast<u16>(std::min<std::size_t>(m_receive_buffer.size(), 0x200));
-  m_regs[Register::BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
-  m_regs[Register::BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
-  SetInterruptFlag(Interrupt::RECEIVE_BUFFER_ABOVE_THRESHOLD,
+  m_regs[BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
+  m_regs[BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
+  SetInterruptFlag(RECEIVE_BUFFER_ABOVE_THRESHOLD,
                    m_receive_buffer.size() >= GetRxThreshold(), from_cpu);
   // TODO: There is a second interrupt here, which the GameCube modem library
   // expects to be used when large frames are received. However, the correct
@@ -331,12 +326,12 @@ void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
 void CEXIModem::SendComplete()
 {
   // See comment in HandleWriteModemTransfer about why this is always true.
-  SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
+  SetInterruptFlag(SEND_BUFFER_BELOW_THRESHOLD, true, true);
 }
 
 void CEXIModem::AddToReceiveBuffer(std::string&& data)
 {
-  std::lock_guard<std::mutex> g(m_receive_buffer_lock);
+  std::lock_guard g(m_receive_buffer_lock);
   if (m_receive_buffer.empty())
   {
     m_receive_buffer = std::move(data);
@@ -351,8 +346,8 @@ void CEXIModem::AddToReceiveBuffer(std::string&& data)
 void CEXIModem::AddATReply(const std::string& data)
 {
   m_at_reply_data += data;
-  m_regs[Register::AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
-  SetInterruptFlag(Interrupt::AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
+  m_regs[AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
+  SetInterruptFlag(AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
 }
 
 void CEXIModem::RunAllPendingATCommands()

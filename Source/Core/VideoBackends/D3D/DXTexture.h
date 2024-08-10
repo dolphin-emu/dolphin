@@ -15,7 +15,6 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace DX11
 {
@@ -95,8 +94,8 @@ public:
   UINT GetNumRTVs() const { return static_cast<UINT>(m_render_targets_raw.size()); }
   ID3D11DepthStencilView* GetDSV() const { return m_dsv.Get(); }
 
-  void Unbind();
-  void Clear(const ClearColor& color_value, float depth_value);
+  void Unbind() const;
+  void Clear(const ClearColor& color_value, float depth_value) const;
 
   static std::unique_ptr<DXFramebuffer>
   Create(DXTexture* color_attachment, DXTexture* depth_attachment,

@@ -42,8 +42,8 @@ private:
   void OpenXML();
   void MakeGUIForParsedFile(std::string path, std::string root,
                             DiscIO::Riivolution::Disc input_disc);
-  std::optional<DiscIO::Riivolution::Config> LoadConfigXML(const std::string& root_directory);
-  void SaveConfigXMLs();
+  std::optional<DiscIO::Riivolution::Config> LoadConfigXML(const std::string& root_directory) const;
+  void SaveConfigXMLs() const;
   void BootGame();
   void SaveAsPreset();
 

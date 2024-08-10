@@ -3,8 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceModem.h"
 
-#include "Common/Logging/Log.h"
-
 namespace ExpansionInterface
 {
 
@@ -57,7 +55,7 @@ void CEXIModem::TAPServerNetworkInterface::RecvStop()
   m_tapserver_if.RecvStop();
 }
 
-void CEXIModem::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data)
+void CEXIModem::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data) const
 {
   m_modem_ref->AddToReceiveBuffer(std::move(data));
 }

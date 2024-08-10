@@ -85,7 +85,7 @@ Guitar::Guitar() : Extension1stParty(_trans("Guitar"))
   m_buttons->AddInput(Translatability::DoNotTranslate, "+");
 
   // stick
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  constexpr auto gate_radius = static_cast<ControlState>(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_stick =
                           new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
@@ -114,10 +114,9 @@ void Guitar::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   if (m_slider_bar->controls[0]->control_ref->BoundCount() &&
       m_slider_bar->controls[1]->control_ref->BoundCount())
   {
-    const ControllerEmu::Slider::StateData slider_data =
-        m_slider_bar->GetState(m_input_override_function);
+    const auto [value] = m_slider_bar->GetState(m_input_override_function);
 
-    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_data.value)->second;
+    guitar_data.sb = s_slider_bar_control_codes.lower_bound(value)->second;
   }
   else
   {
@@ -159,7 +158,7 @@ void Guitar::Reset()
   // TODO: Is there calibration data?
 }
 
-ControllerEmu::ControlGroup* Guitar::GetGroup(GuitarGroup group)
+ControllerEmu::ControlGroup* Guitar::GetGroup(const GuitarGroup group) const
 {
   switch (group)
   {

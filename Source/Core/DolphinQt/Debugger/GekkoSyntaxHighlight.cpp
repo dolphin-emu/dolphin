@@ -5,7 +5,6 @@
 
 #include "Common/Assembler/GekkoParser.h"
 
-#include <QLabel>
 #include <QPalette>
 
 namespace
@@ -31,7 +30,7 @@ public:
     HighlightCurToken(HighlightFormat::Mnemonic);
   }
 
-  void OnTerminal(Terminal type, const AssemblerToken& val) override
+  void OnTerminal(const Terminal type, const AssemblerToken& val) override
   {
     switch (type)
     {
@@ -87,7 +86,7 @@ public:
                               static_cast<int>(ha_tok.token_val.length()), HighlightFormat::HaLa);
   }
 
-  void OnLoaddr(std::string_view id) override { OnHiaddr(id); }
+  void OnLoaddr(const std::string_view id) override { OnHiaddr(id); }
 
   void OnOpenParen(ParenType type) override
   {
@@ -119,7 +118,7 @@ public:
     m_formatting.emplace_back(len, off, HighlightFormat::Symbol);
   }
 
-  void OnVarDecl(std::string_view name) override { OnLabelDecl(name); }
+  void OnVarDecl(const std::string_view name) override { OnLabelDecl(name); }
 
 private:
   std::vector<int> m_paren_stack;
@@ -137,14 +136,14 @@ private:
 
 void GekkoSyntaxHighlight::highlightBlock(const QString& text)
 {
-  BlockInfo* info = static_cast<BlockInfo*>(currentBlockUserData());
+  auto info = static_cast<BlockInfo*>(currentBlockUserData());
   if (info == nullptr)
   {
     info = new BlockInfo;
     setCurrentBlockUserData(info);
   }
 
-  qsizetype comment_idx = text.indexOf(QLatin1Char('#'));
+  const qsizetype comment_idx = text.indexOf(QLatin1Char('#'));
   if (comment_idx != -1)
   {
     HighlightSubstr(comment_idx, text.length() - comment_idx, HighlightFormat::Comment);
@@ -162,10 +161,9 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
   }
   else if (m_mode == 1)
   {
-    auto paren_it = std::find_if(info->parens.begin(), info->parens.end(),
-                                 [this](const std::pair<int, int>& p) {
-                                   return p.first == m_cursor_loc || p.second == m_cursor_loc;
-                                 });
+    const auto paren_it = std::ranges::find_if(info->parens, [this](const std::pair<int, int>& p) {
+      return p.first == m_cursor_loc || p.second == m_cursor_loc;
+    });
     if (paren_it != info->parens.end())
     {
       HighlightSubstr(paren_it->first, 1, HighlightFormat::Paren);
@@ -179,33 +177,33 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
   }
 }
 
-GekkoSyntaxHighlight::GekkoSyntaxHighlight(QTextDocument* document, QTextCharFormat base_format,
-                                           bool dark_scheme)
+GekkoSyntaxHighlight::GekkoSyntaxHighlight(QTextDocument* document, const QTextCharFormat& base_format,
+                                           const bool dark_scheme)
     : QSyntaxHighlighter(document), m_base_format(base_format)
 {
   QPalette base_scheme;
   m_theme_idx = dark_scheme ? 1 : 0;
 }
 
-void GekkoSyntaxHighlight::HighlightSubstr(int start, int len, HighlightFormat format)
+void GekkoSyntaxHighlight::HighlightSubstr(const int start, const int len, const HighlightFormat format)
 {
   QTextCharFormat hl_format = m_base_format;
-  const QColor DIRECTIVE_COLOR[2] = {QColor(0x9d, 0x00, 0x06),
-                                     QColor(0xfb, 0x49, 0x34)};  // Gruvbox darkred
-  const QColor MNEMONIC_COLOR[2] = {QColor(0x79, 0x74, 0x0e),
-                                    QColor(0xb8, 0xbb, 0x26)};  // Gruvbox darkgreen
-  const QColor IMM_COLOR[2] = {QColor(0xb5, 0x76, 0x14),
-                               QColor(0xfa, 0xbd, 0x2f)};  // Gruvbox darkyellow
-  const QColor BUILTIN_COLOR[2] = {QColor(0x07, 0x66, 0x78),
-                                   QColor(0x83, 0xa5, 0x98)};  // Gruvbox darkblue
-  const QColor HA_LA_COLOR[2] = {QColor(0xaf, 0x3a, 0x03),
-                                 QColor(0xfe, 0x80, 0x19)};  // Gruvbox darkorange
-  const QColor HOVER_BG_COLOR[2] = {QColor(0xd5, 0xc4, 0xa1),
-                                    QColor(0x50, 0x49, 0x45)};  // Gruvbox bg2
-  const QColor STRING_COLOR[2] = {QColor(0x98, 0x97, 0x1a),
-                                  QColor(0x98, 0x97, 0x1a)};  // Gruvbox green
-  const QColor COMMENT_COLOR[2] = {QColor(0x68, 0x9d, 0x6a),
-                                   QColor(0x68, 0x9d, 0x6a)};  // Gruvbox aqua
+  constexpr QColor DIRECTIVE_COLOR[2] = {QColor(0x9d, 0x00, 0x06),
+                                         QColor(0xfb, 0x49, 0x34)};  // Gruvbox darkred
+  constexpr QColor MNEMONIC_COLOR[2] = {QColor(0x79, 0x74, 0x0e),
+                                        QColor(0xb8, 0xbb, 0x26)};  // Gruvbox darkgreen
+  constexpr QColor IMM_COLOR[2] = {QColor(0xb5, 0x76, 0x14),
+                                   QColor(0xfa, 0xbd, 0x2f)};  // Gruvbox darkyellow
+  constexpr QColor BUILTIN_COLOR[2] = {QColor(0x07, 0x66, 0x78),
+                                       QColor(0x83, 0xa5, 0x98)};  // Gruvbox darkblue
+  constexpr QColor HA_LA_COLOR[2] = {QColor(0xaf, 0x3a, 0x03),
+                                     QColor(0xfe, 0x80, 0x19)};  // Gruvbox darkorange
+  constexpr QColor HOVER_BG_COLOR[2] = {QColor(0xd5, 0xc4, 0xa1),
+                                        QColor(0x50, 0x49, 0x45)};  // Gruvbox bg2
+  constexpr QColor STRING_COLOR[2] = {QColor(0x98, 0x97, 0x1a),
+                                      QColor(0x98, 0x97, 0x1a)};  // Gruvbox green
+  constexpr QColor COMMENT_COLOR[2] = {QColor(0x68, 0x9d, 0x6a),
+                                       QColor(0x68, 0x9d, 0x6a)};  // Gruvbox aqua
 
   switch (format)
   {

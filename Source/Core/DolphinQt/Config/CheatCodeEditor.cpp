@@ -35,7 +35,7 @@ void CheatCodeEditor::SetARCode(ActionReplay::ARCode* code)
   m_code_edit->clear();
 
   for (ActionReplay::AREntry& e : code->ops)
-    m_code_edit->append(QString::fromStdString(ActionReplay::SerializeLine(e)));
+    m_code_edit->append(QString::fromStdString(SerializeLine(e)));
 
   m_creator_label->setHidden(true);
   m_creator_edit->setHidden(true);
@@ -53,8 +53,8 @@ void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
 
   m_code_edit->clear();
 
-  for (const auto& c : code->codes)
-    m_code_edit->append(QString::fromStdString(c.original_line));
+  for (const auto& [_address, _data, original_line] : code->codes)
+    m_code_edit->append(QString::fromStdString(original_line));
 
   QString notes_string;
   for (const auto& line : code->notes)
@@ -82,7 +82,7 @@ void CheatCodeEditor::CreateWidgets()
   m_creator_label = new QLabel(tr("Creator:"));
   m_notes_label = new QLabel(tr("Notes:"));
 
-  QGridLayout* grid_layout = new QGridLayout;
+  auto grid_layout = new QGridLayout;
 
   grid_layout->addWidget(new QLabel(tr("Name:")), 0, 0);
   grid_layout->addWidget(m_name_edit, 0, 1);
@@ -94,7 +94,7 @@ void CheatCodeEditor::CreateWidgets()
   grid_layout->addWidget(m_code_edit, 3, 1);
   grid_layout->addWidget(m_button_box, 4, 1);
 
-  QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  const QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   m_code_edit->setFont(monospace);
 
@@ -145,7 +145,7 @@ bool CheatCodeEditor::AcceptAR()
     }
     else
     {
-      auto result = ModalMessageBox::warning(
+      const auto result = ModalMessageBox::warning(
           this, tr("Parsing Error"),
           tr("Unable to parse line %1 of the entered AR code as a valid "
              "encrypted or decrypted code. Make sure you typed it correctly.\n\n"
@@ -162,7 +162,7 @@ bool CheatCodeEditor::AcceptAR()
   {
     if (!entries.empty())
     {
-      auto result = ModalMessageBox::warning(
+      const auto result = ModalMessageBox::warning(
           this, tr("Invalid Mixed Code"),
           tr("This Action Replay code contains both encrypted and unencrypted lines; "
              "you should check that you have entered it correctly.\n\n"
@@ -186,7 +186,7 @@ bool CheatCodeEditor::AcceptAR()
         break;
       }
     }
-    ActionReplay::DecryptARCode(encrypted_lines, &entries);
+    DecryptARCode(encrypted_lines, &entries);
   }
 
   if (entries.empty())
@@ -232,7 +232,7 @@ bool CheatCodeEditor::AcceptGecko()
     }
     else
     {
-      auto result = ModalMessageBox::warning(
+      const auto result = ModalMessageBox::warning(
           this, tr("Parsing Error"),
           tr("Unable to parse line %1 of the entered Gecko code as a valid "
              "code. Make sure you typed it correctly.\n\n"
@@ -262,7 +262,7 @@ bool CheatCodeEditor::AcceptGecko()
 
 void CheatCodeEditor::accept()
 {
-  bool success = m_gecko_code != nullptr ? AcceptGecko() : AcceptAR();
+  const bool success = m_gecko_code != nullptr ? AcceptGecko() : AcceptAR();
 
   if (success)
     QDialog::accept();

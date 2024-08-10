@@ -48,12 +48,10 @@
 #endif
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
-#include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -66,7 +64,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -155,7 +152,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
     {
-      m_server->mtu = std::min(m_server->mtu, NetPlay::MAX_ENET_MTU);
+      m_server->mtu = std::min(m_server->mtu, MAX_ENET_MTU);
       m_server->intercept = Common::ENet::InterceptCallback;
     }
 
@@ -176,7 +173,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   }
 }
 
-static PlayerId* PeerPlayerId(ENetPeer* peer)
+static PlayerId* PeerPlayerId(const ENetPeer* peer)
 {
   return static_cast<PlayerId*>(peer->data);
 }
@@ -192,17 +189,17 @@ static void ClearPeerPlayerId(ENetPeer* peer)
 
 void NetPlayServer::SetupIndex()
 {
-  if (!Config::Get(Config::NETPLAY_USE_INDEX) || Config::Get(Config::NETPLAY_INDEX_NAME).empty() ||
-      Config::Get(Config::NETPLAY_INDEX_REGION).empty())
+  if (!Get(Config::NETPLAY_USE_INDEX) || Get(Config::NETPLAY_INDEX_NAME).empty() ||
+      Get(Config::NETPLAY_INDEX_REGION).empty())
   {
     return;
   }
 
   NetPlaySession session;
 
-  session.name = Config::Get(Config::NETPLAY_INDEX_NAME);
-  session.region = Config::Get(Config::NETPLAY_INDEX_REGION);
-  session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
+  session.name = Get(Config::NETPLAY_INDEX_NAME);
+  session.region = Get(Config::NETPLAY_INDEX_REGION);
+  session.has_password = !Get(Config::NETPLAY_INDEX_PASSWORD).empty();
   session.method = m_traversal_client ? "traversal" : "direct";
   session.game_id = m_selected_game_name.empty() ? "UNKNOWN" : m_selected_game_name;
   session.player_count = static_cast<int>(m_players.size());
@@ -218,7 +215,7 @@ void NetPlayServer::SetupIndex()
   }
   else
   {
-    Common::HttpRequest request;
+    const Common::HttpRequest request;
     // ENet does not support IPv6, so IPv4 has to be used
     request.UseIPv4();
     Common::HttpRequest::Response response =
@@ -230,9 +227,9 @@ void NetPlayServer::SetupIndex()
     session.server_id = std::string(response->begin(), response->end());
   }
 
-  session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
+  session.EncryptID(Get(Config::NETPLAY_INDEX_PASSWORD));
 
-  bool success = m_index.Add(session);
+  const bool success = m_index.Add(session);
   if (m_dialog != nullptr)
     m_dialog->OnIndexAdded(success, success ? "" : m_index.GetLastError());
 
@@ -280,15 +277,15 @@ void NetPlayServer::ThreadFunc()
       {
         std::lock_guard lkp(m_crit.players);
         INFO_LOG_FMT(NETPLAY, "Locked player mutex.");
-        auto& e = m_async_queue.Front();
-        if (e.target_mode == TargetMode::Only)
+        auto& [packet, target_pid, target_mode, channel_id] = m_async_queue.Front();
+        if (target_mode == TargetMode::Only)
         {
-          if (m_players.find(e.target_pid) != m_players.end())
-            Send(m_players.at(e.target_pid).socket, e.packet, e.channel_id);
+          if (m_players.contains(target_pid))
+            Send(m_players.at(target_pid).socket, packet, channel_id);
         }
         else
         {
-          SendToClients(e.packet, e.target_pid, e.channel_id);
+          SendToClients(packet, target_pid, channel_id);
         }
       }
       INFO_LOG_FMT(NETPLAY, "Processing async queue event done.");
@@ -326,7 +323,7 @@ void NetPlayServer::ThreadFunc()
 
           if (error != ConnectionError::NoError)
           {
-            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", u8(error),
+            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", static_cast<u8>(error),
                          netEvent.peer->address.host, netEvent.peer->address.port);
 
             sf::Packet spac;
@@ -340,7 +337,7 @@ void NetPlayServer::ThreadFunc()
         }
         else
         {
-          auto it = m_players.find(*PeerPlayerId(netEvent.peer));
+          const auto it = m_players.find(*PeerPlayerId(netEvent.peer));
           Client& client = it->second;
           if (OnData(rpac, client) != 0)
           {
@@ -391,7 +388,7 @@ void NetPlayServer::ThreadFunc()
         if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
           INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
         else
-          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", static_cast<int>(netEvent.type));
         break;
       }
     }
@@ -408,10 +405,11 @@ void NetPlayServer::ThreadFunc()
   INFO_LOG_FMT(NETPLAY, "NetPlayServer shutting down.");
 
   // close listening socket and client sockets
-  for (auto& player_entry : m_players)
+  for (const auto& [_pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma, socket,
+    _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    ClearPeerPlayerId(player_entry.second.socket);
-    enet_peer_disconnect(player_entry.second.socket, 0);
+    ClearPeerPlayerId(socket);
+    enet_peer_disconnect(socket, 0);
   }
   m_players.clear();
 }
@@ -419,7 +417,7 @@ void NetPlayServer::ThreadFunc()
 static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
 {
   // We cast here due to a potential long vs long long mismatch
-  spac << static_cast<sf::Uint64>(sync_identifier.dol_elf_size);
+  spac << sync_identifier.dol_elf_size;
 
   spac << sync_identifier.game_id;
   spac << sync_identifier.revision;
@@ -485,16 +483,15 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
 
   SendResponseToPlayer(new_player, MessageID::HostInputAuthority, m_host_input_authority);
 
-  for (const auto& existing_player : m_players)
+  for (const auto& [pid, name, revision, game_status, _has_ipl_dump, _has_hardware_fma, _socket,
+    _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    SendResponseToPlayer(new_player, MessageID::PlayerJoin, existing_player.second.pid,
-                         existing_player.second.name, existing_player.second.revision);
+    SendResponseToPlayer(new_player, MessageID::PlayerJoin, pid, name, revision);
 
-    SendResponseToPlayer(new_player, MessageID::GameStatus, existing_player.second.pid,
-                         static_cast<u8>(existing_player.second.game_status));
+    SendResponseToPlayer(new_player, MessageID::GameStatus, pid, static_cast<u8>(game_status));
   }
 
-  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
+  if (Get(Config::NETPLAY_ENABLE_QOS))
     new_player.qos_session = Common::QoSSession(new_player.socket);
 
   {
@@ -517,7 +514,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
 
   if (m_is_running)
   {
-    for (PlayerId& mapping : m_pad_map)
+    for (const PlayerId& mapping : m_pad_map)
     {
       if (mapping == pid && pid != 1)
       {
@@ -547,7 +544,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
   enet_peer_disconnect(player.socket, 0);
 
   std::lock_guard lkp(m_crit.players);
-  auto it = m_players.find(player.pid);
+  const auto it = m_players.find(player.pid);
   if (it != m_players.end())
     m_players.erase(it);
 
@@ -601,7 +598,7 @@ void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, bool update_rom)
+void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, const bool update_rom)
 {
 #ifdef HAS_LIBMGBA
   m_gba_config = mappings;
@@ -609,11 +606,11 @@ void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, bool update_rom
   {
     for (size_t i = 0; i < m_gba_config.size(); ++i)
     {
-      auto& config = m_gba_config[i];
-      if (!config.enabled)
+      auto& [enabled, has_rom, title, hash] = m_gba_config[i];
+      if (!enabled)
         continue;
-      std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[i]);
-      config.has_rom = HW::GBA::Core::GetRomInfo(rom_path.c_str(), config.hash, config.title);
+      std::string rom_path = Get(Config::MAIN_GBA_ROM_PATHS[i]);
+      has_rom = HW::GBA::Core::GetRomInfo(rom_path.c_str(), hash, title);
     }
   }
 #endif
@@ -632,7 +629,7 @@ void NetPlayServer::UpdatePadMapping()
 {
   sf::Packet spac;
   spac << MessageID::PadMapping;
-  for (PlayerId mapping : m_pad_map)
+  for (const PlayerId mapping : m_pad_map)
   {
     spac << mapping;
   }
@@ -644,10 +641,10 @@ void NetPlayServer::UpdateGBAConfig()
 {
   sf::Packet spac;
   spac << MessageID::GBAConfig;
-  for (const auto& config : m_gba_config)
+  for (const auto& [enabled, has_rom, title, hash] : m_gba_config)
   {
-    spac << config.enabled << config.has_rom << config.title;
-    for (auto& data : config.hash)
+    spac << enabled << has_rom << title;
+    for (auto& data : hash)
       spac << data;
   }
   SendToClients(spac);
@@ -658,7 +655,7 @@ void NetPlayServer::UpdateWiimoteMapping()
 {
   sf::Packet spac;
   spac << MessageID::WiimoteMapping;
-  for (PlayerId mapping : m_wiimote_map)
+  for (const PlayerId mapping : m_wiimote_map)
   {
     spac << mapping;
   }
@@ -666,7 +663,7 @@ void NetPlayServer::UpdateWiimoteMapping()
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread
-void NetPlayServer::AdjustPadBufferSize(unsigned int size)
+void NetPlayServer::AdjustPadBufferSize(const unsigned int size)
 {
   std::lock_guard lkg(m_crit.game);
 
@@ -787,7 +784,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 cid;
     packet >> cid;
 
-    if (m_chunked_data_complete_count.find(cid) != m_chunked_data_complete_count.end())
+    if (m_chunked_data_complete_count.contains(cid))
     {
       m_chunked_data_complete_count[cid]++;
       m_chunked_data_complete_event.Set();
@@ -832,7 +829,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_host_input_authority)
     {
       // Prevent crash before game stop if the golfer disconnects
-      if (m_current_golfer != 0 && m_players.find(m_current_golfer) != m_players.end())
+      if (m_current_golfer != 0 && m_players.contains(m_current_golfer))
         Send(m_players.at(m_current_golfer).socket, spac);
     }
     else
@@ -917,7 +914,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     packet >> pid;
 
     // Check if player ID is valid and sender isn't a spectator
-    if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
+    if (!m_players.contains(pid) || !PlayerHasControllerMapped(player.pid))
       break;
 
     if (m_host_input_authority && m_settings.golf_mode && m_pending_golfer == 0 &&
@@ -1058,19 +1055,19 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       // we have all records for this frame
 
-      if (!std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> pair) {
+      if (!std::ranges::all_of(timebases, [&](const std::pair<PlayerId, u64> pair) {
             return pair.second == timebases[0].second;
           }))
       {
         int pid_to_blame = 0;
-        for (auto pair : timebases)
+        for (auto [fst, snd] : timebases)
         {
-          if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
-                return other.first == pair.first || other.second != pair.second;
+          if (std::ranges::all_of(timebases, [&](const std::pair<PlayerId, u64> other) {
+                return other.first == fst || other.second != snd;
               }))
           {
             // we are the only outlier
-            pid_to_blame = pair.first;
+            pid_to_blame = fst;
             break;
           }
         }
@@ -1135,7 +1132,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SyncSaveDataID sub_id;
     packet >> sub_id;
 
-    INFO_LOG_FMT(NETPLAY, "Got client SyncSaveData message: {:x} from client {}", u8(sub_id),
+    INFO_LOG_FMT(NETPLAY, "Got client SyncSaveData message: {:x} from client {}", static_cast<u8>(sub_id),
                  player.pid);
 
     switch (sub_id)
@@ -1192,7 +1189,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SyncCodeID sub_id;
     packet >> sub_id;
 
-    INFO_LOG_FMT(NETPLAY, "Got client SyncCodes message: {:x} from client {}", u8(sub_id),
+    INFO_LOG_FMT(NETPLAY, "Got client SyncCodes message: {:x} from client {}", static_cast<u8>(sub_id),
                  player.pid);
 
     // Check If Code Sync was successful or not
@@ -1269,7 +1266,7 @@ void NetPlayServer::OnTraversalStateChanged()
   m_dialog->OnTraversalStateChanged(state);
 }
 
-void NetPlayServer::OnTtlDetermined(u8 ttl)
+void NetPlayServer::OnTtlDetermined(const u8 ttl)
 {
   m_dialog->OnTtlDetermined(ttl);
 }
@@ -1345,31 +1342,31 @@ bool NetPlayServer::SetupNetSettings()
   INFO_LOG_FMT(NETPLAY, "Loading game settings for {:02x}.",
                fmt::join(m_selected_game_identifier.sync_hash, ""));
 
-  NetPlay::NetSettings settings;
+  NetSettings settings;
 
   // Load GameINI so we can sync the settings from it
-  Config::AddLayer(
+  AddLayer(
       ConfigLoaders::GenerateGlobalGameConfigLoader(game->GetGameID(), game->GetRevision()));
-  Config::AddLayer(
+  AddLayer(
       ConfigLoaders::GenerateLocalGameConfigLoader(game->GetGameID(), game->GetRevision()));
 
   // Copy all relevant settings
-  settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
-  settings.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
+  settings.cpu_thread = Get(Config::MAIN_CPU_THREAD);
+  settings.cpu_core = Get(Config::MAIN_CPU_CORE);
   settings.enable_cheats = Config::AreCheatsEnabled();
-  settings.selected_language = Config::Get(Config::MAIN_GC_LANGUAGE);
-  settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
-  settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);
-  settings.dsp_enable_jit = Config::Get(Config::MAIN_DSP_JIT);
-  settings.ram_override_enable = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  settings.mem1_size = Config::Get(Config::MAIN_MEM1_SIZE);
-  settings.mem2_size = Config::Get(Config::MAIN_MEM2_SIZE);
-  settings.fallback_region = Config::Get(Config::MAIN_FALLBACK_REGION);
-  settings.allow_sd_writes = Config::Get(Config::MAIN_ALLOW_SD_WRITES);
-  settings.oc_enable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
-  settings.oc_factor = Config::Get(Config::MAIN_OVERCLOCK);
+  settings.selected_language = Get(Config::MAIN_GC_LANGUAGE);
+  settings.override_region_settings = Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
+  settings.dsp_hle = Get(Config::MAIN_DSP_HLE);
+  settings.dsp_enable_jit = Get(Config::MAIN_DSP_JIT);
+  settings.ram_override_enable = Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
+  settings.mem1_size = Get(Config::MAIN_MEM1_SIZE);
+  settings.mem2_size = Get(Config::MAIN_MEM2_SIZE);
+  settings.fallback_region = Get(Config::MAIN_FALLBACK_REGION);
+  settings.allow_sd_writes = Get(Config::MAIN_ALLOW_SD_WRITES);
+  settings.oc_enable = Get(Config::MAIN_OVERCLOCK_ENABLE);
+  settings.oc_factor = Get(Config::MAIN_OVERCLOCK);
 
-  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  for (const ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
     ExpansionInterface::EXIDeviceType device;
     if (slot == ExpansionInterface::Slot::SP1)
@@ -1379,12 +1376,12 @@ bool NetPlayServer::SetupNetSettings()
     }
     else
     {
-      device = Config::Get(Config::GetInfoForEXIDevice(slot));
+      device = Get(Config::GetInfoForEXIDevice(slot));
     }
     settings.exi_device[slot] = device;
   }
 
-  settings.memcard_size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+  settings.memcard_size_override = Get(Config::MAIN_MEMORY_CARD_SIZE);
 
   for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
   {
@@ -1396,66 +1393,66 @@ bool NetPlayServer::SetupNetSettings()
         Config::SYSCONF_SETTINGS[i].config_info);
   }
 
-  settings.efb_access_enable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  settings.bbox_enable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
-  settings.force_progressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
-  settings.efb_to_texture_enable = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  settings.xfb_to_texture_enable = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  settings.disable_copy_to_vram = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
-  settings.immediate_xfb_enable = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
-  settings.efb_emulate_format_changes = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  settings.efb_access_enable = Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  settings.bbox_enable = Get(Config::GFX_HACK_BBOX_ENABLE);
+  settings.force_progressive = Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+  settings.efb_to_texture_enable = Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  settings.xfb_to_texture_enable = Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  settings.disable_copy_to_vram = Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+  settings.immediate_xfb_enable = Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  settings.efb_emulate_format_changes = Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   settings.safe_texture_cache_color_samples =
-      Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-  settings.perf_queries_enable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
-  settings.float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
-  settings.divide_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
-  settings.fprf = Config::Get(Config::MAIN_FPRF);
-  settings.accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
-  settings.disable_icache = Config::Get(Config::MAIN_DISABLE_ICACHE);
-  settings.sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
-  settings.sync_gpu = Config::Get(Config::MAIN_SYNC_GPU);
-  settings.sync_gpu_max_distance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
-  settings.sync_gpu_min_distance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
-  settings.sync_gpu_overclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
-  settings.jit_follow_branch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
-  settings.fast_disc_speed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
-  settings.mmu = Config::Get(Config::MAIN_MMU);
-  settings.fastmem = Config::Get(Config::MAIN_FASTMEM);
-  settings.skip_ipl = Config::Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
-  settings.load_ipl_dump = Config::Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
-  settings.vertex_rounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
-  settings.internal_resolution = Config::Get(Config::GFX_EFB_SCALE);
-  settings.efb_scaled_copy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
-  settings.fast_depth_calc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
-  settings.enable_pixel_lighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
-  settings.widescreen_hack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  settings.force_texture_filtering = Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
-  settings.max_anisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
-  settings.force_true_color = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
-  settings.disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  settings.disable_fog = Config::Get(Config::GFX_DISABLE_FOG);
-  settings.arbitrary_mipmap_detection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+      Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  settings.perf_queries_enable = Get(Config::GFX_PERF_QUERIES_ENABLE);
+  settings.float_exceptions = Get(Config::MAIN_FLOAT_EXCEPTIONS);
+  settings.divide_by_zero_exceptions = Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
+  settings.fprf = Get(Config::MAIN_FPRF);
+  settings.accurate_nans = Get(Config::MAIN_ACCURATE_NANS);
+  settings.disable_icache = Get(Config::MAIN_DISABLE_ICACHE);
+  settings.sync_on_skip_idle = Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  settings.sync_gpu = Get(Config::MAIN_SYNC_GPU);
+  settings.sync_gpu_max_distance = Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  settings.sync_gpu_min_distance = Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  settings.sync_gpu_overclock = Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+  settings.jit_follow_branch = Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+  settings.fast_disc_speed = Get(Config::MAIN_FAST_DISC_SPEED);
+  settings.mmu = Get(Config::MAIN_MMU);
+  settings.fastmem = Get(Config::MAIN_FASTMEM);
+  settings.skip_ipl = Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
+  settings.load_ipl_dump = Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
+  settings.vertex_rounding = Get(Config::GFX_HACK_VERTEX_ROUNDING);
+  settings.internal_resolution = Get(Config::GFX_EFB_SCALE);
+  settings.efb_scaled_copy = Get(Config::GFX_HACK_COPY_EFB_SCALED);
+  settings.fast_depth_calc = Get(Config::GFX_FAST_DEPTH_CALC);
+  settings.enable_pixel_lighting = Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
+  settings.widescreen_hack = Get(Config::GFX_WIDESCREEN_HACK);
+  settings.force_texture_filtering = Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
+  settings.max_anisotropy = Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  settings.force_true_color = Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  settings.disable_copy_filter = Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  settings.disable_fog = Get(Config::GFX_DISABLE_FOG);
+  settings.arbitrary_mipmap_detection = Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
   settings.arbitrary_mipmap_detection_threshold =
-      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
-  settings.enable_gpu_texture_decoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
-  settings.defer_efb_copies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
-  settings.efb_access_tile_size = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
-  settings.efb_access_defer_invalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+      Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
+  settings.enable_gpu_texture_decoding = Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  settings.defer_efb_copies = Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  settings.efb_access_tile_size = Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
+  settings.efb_access_defer_invalidation = Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
 
-  settings.savedata_load = Config::Get(Config::NETPLAY_SAVEDATA_LOAD);
-  settings.savedata_write = settings.savedata_load && Config::Get(Config::NETPLAY_SAVEDATA_WRITE);
+  settings.savedata_load = Get(Config::NETPLAY_SAVEDATA_LOAD);
+  settings.savedata_write = settings.savedata_load && Get(Config::NETPLAY_SAVEDATA_WRITE);
   settings.savedata_sync_all_wii =
-      settings.savedata_load && Config::Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
+      settings.savedata_load && Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
 
-  settings.strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
-  settings.sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
-  settings.golf_mode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
+  settings.strict_settings_sync = Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
+  settings.sync_codes = Get(Config::NETPLAY_SYNC_CODES);
+  settings.golf_mode = Get(Config::NETPLAY_NETWORK_MODE) == "golf";
   settings.use_fma = DoAllPlayersHaveHardwareFMA();
-  settings.hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  settings.hide_remote_gbas = Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
   // Unload GameINI to restore things to normal
-  Config::RemoveLayer(Config::LayerType::GlobalGame);
-  Config::RemoveLayer(Config::LayerType::LocalGame);
+  RemoveLayer(Config::LayerType::GlobalGame);
+  RemoveLayer(Config::LayerType::LocalGame);
 
   m_settings = settings;
 
@@ -1464,14 +1461,12 @@ bool NetPlayServer::SetupNetSettings()
 
 bool NetPlayServer::DoAllPlayersHaveIPLDump() const
 {
-  return std::all_of(m_players.begin(), m_players.end(),
-                     [](const auto& p) { return p.second.has_ipl_dump; });
+  return std::ranges::all_of(m_players, [](const auto& p) { return p.second.has_ipl_dump; });
 }
 
 bool NetPlayServer::DoAllPlayersHaveHardwareFMA() const
 {
-  return std::all_of(m_players.begin(), m_players.end(),
-                     [](const auto& p) { return p.second.has_hardware_fma; });
+  return std::ranges::all_of(m_players, [](const auto& p) { return p.second.has_hardware_fma; });
 }
 
 struct SaveSyncInfo
@@ -1597,12 +1592,12 @@ bool NetPlayServer::StartGame()
   spac << m_settings.oc_enable;
   spac << m_settings.oc_factor;
 
-  for (auto slot : ExpansionInterface::SLOTS)
+  for (const auto slot : ExpansionInterface::SLOTS)
     spac << static_cast<int>(m_settings.exi_device[slot]);
 
   spac << m_settings.memcard_size_override;
 
-  for (u32 value : m_settings.sysconf_settings)
+  for (const u32 value : m_settings.sysconf_settings)
     spac << value;
 
   spac << m_settings.efb_access_enable;
@@ -1701,7 +1696,7 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
       INFO_LOG_FMT(NETPLAY, "Adding memory card (raw) in slot {}.", slot);
       ++sync_info.save_count;
     }
-    else if (Config::Get(Config::GetInfoForEXIDevice(slot)) ==
+    else if (Get(Config::GetInfoForEXIDevice(slot)) ==
              ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       INFO_LOG_FMT(NETPLAY, "Adding memory card (folder) in slot {}.", slot);
@@ -1726,7 +1721,7 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
     sync_info.has_wii_save = true;
     ++sync_info.save_count;
 
-    sync_info.configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+    sync_info.configured_fs = MakeFileSystem(IOS::HLE::FS::Location::Configured);
     if (m_settings.savedata_sync_all_wii)
     {
       IOS::HLE::Kernel ios;
@@ -1770,15 +1765,15 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
       if (boot_params)
       {
         sync_info.redirected_save =
-            DiscIO::Riivolution::ExtractSavegameRedirect(boot_params->riivolution_patches);
+            ExtractSavegameRedirect(boot_params->riivolution_patches);
       }
     }
   }
 
   for (size_t i = 0; i < m_gba_config.size(); ++i)
   {
-    const auto& config = m_gba_config[i];
-    if (config.enabled && config.has_rom)
+    const auto& [enabled, has_rom, _title, _hash] = m_gba_config[i];
+    if (enabled && has_rom)
     {
       INFO_LOG_FMT(NETPLAY, "Adding GBA save in slot {}.", i);
       ++sync_info.save_count;
@@ -1851,7 +1846,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
       SendChunkedToClients(std::move(pac), 1,
                            fmt::format("Memory Card {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
-    else if (Config::Get(Config::GetInfoForEXIDevice(slot)) ==
+    else if (Get(Config::GetInfoForEXIDevice(slot)) ==
              ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       const std::string path = Config::GetGCIFolderPath(slot, gamecube_region);
@@ -1955,16 +1950,16 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
           pac << byte;
 
         // Files
-        for (const WiiSave::Storage::SaveFile& file : *files)
+        for (const auto& [mode, attributes, type, path, file_data] : *files)
         {
           INFO_LOG_FMT(NETPLAY, "Sending Wii save data of type {} at {}",
-                       static_cast<u8>(file.type), file.path);
+                       static_cast<u8>(type), path);
 
-          pac << file.mode << file.attributes << file.type << file.path;
+          pac << mode << attributes << type << path;
 
-          if (file.type == WiiSave::Storage::SaveFile::Type::File)
+          if (type == WiiSave::Storage::SaveFile::Type::File)
           {
-            const std::optional<std::vector<u8>>& data = *file.data;
+            const std::optional<std::vector<u8>>& data = *file_data;
             if (!data || !CompressBufferIntoPacket(*data, pac))
               return false;
           }
@@ -2005,7 +2000,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
       std::string path;
 #ifdef HAS_LIBMGBA
-      path = HW::GBA::Core::GetSavePath(Config::Get(Config::MAIN_GBA_ROM_PATHS[i]),
+      path = HW::GBA::Core::GetSavePath(Get(Config::MAIN_GBA_ROM_PATHS[i]),
                                         static_cast<int>(i));
 #endif
       if (File::Exists(path))
@@ -2068,16 +2063,16 @@ bool NetPlayServer::SyncCodes()
   {
     // Create a Gecko Code Vector with just the active codes
     std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+        SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
 
     // Determine Codelist Size
     u16 codelines = 0;
     for (const Gecko::GeckoCode& active_code : s_active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
-      for (const Gecko::GeckoCode::Code& code : active_code.codes)
+      for (const auto& [address, data, _original_line] : active_code.codes)
       {
-        INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
+        INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", address, data);
         codelines++;
       }
     }
@@ -2103,11 +2098,11 @@ bool NetPlayServer::SyncCodes()
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
-        for (const Gecko::GeckoCode::Code& code : active_code.codes)
+        for (const auto& [address, data, _original_line] : active_code.codes)
         {
-          INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
-          pac << code.address;
-          pac << code.data;
+          INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", address, data);
+          pac << address;
+          pac << data;
         }
       }
       SendAsyncToClients(std::move(pac));
@@ -2118,14 +2113,14 @@ bool NetPlayServer::SyncCodes()
   {
     // Create an AR Code Vector with just the active codes
     std::vector<ActionReplay::ARCode> s_active_codes =
-        ActionReplay::ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
+        ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const ActionReplay::ARCode& active_code : s_active_codes)
+    for (const auto& [name, ops, _enabled, _default_enabled, _user_defined] : s_active_codes)
     {
-      INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
-      for (const ActionReplay::AREntry& op : active_code.ops)
+      INFO_LOG_FMT(NETPLAY, "Indexing {}", name);
+      for (const ActionReplay::AREntry& op : ops)
       {
         INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
         codelines++;
@@ -2150,10 +2145,10 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
-      for (const ActionReplay::ARCode& active_code : s_active_codes)
+      for (const auto& [name, ops, _enabled, _default_enabled, _user_defined] : s_active_codes)
       {
-        INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
-        for (const ActionReplay::AREntry& op : active_code.ops)
+        INFO_LOG_FMT(NETPLAY, "Sending {}", name);
+        for (const ActionReplay::AREntry& op : ops)
         {
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
@@ -2180,10 +2175,10 @@ void NetPlayServer::CheckSyncAndStartGame()
   }
 }
 
-u64 NetPlayServer::GetInitialNetPlayRTC() const
+u64 NetPlayServer::GetInitialNetPlayRTC()
 {
-  if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
-    return Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
+  if (Get(Config::MAIN_CUSTOM_RTC_ENABLE))
+    return Get(Config::MAIN_CUSTOM_RTC_VALUE);
 
   return Common::Timer::GetLocalTimeSinceJan1970();
 }
@@ -2192,11 +2187,12 @@ u64 NetPlayServer::GetInitialNetPlayRTC() const
 void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
                                   const u8 channel_id)
 {
-  for (auto& p : m_players)
+  for (const auto& [pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma, socket,
+         _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    if (p.second.pid && p.second.pid != skip_pid)
+    if (pid && pid != skip_pid)
     {
-      Send(p.second.socket, packet, channel_id);
+      Send(socket, packet, channel_id);
     }
   }
 }
@@ -2206,13 +2202,14 @@ void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 ch
   Common::ENet::SendPacket(socket, packet, channel_id);
 }
 
-void NetPlayServer::KickPlayer(PlayerId player)
+void NetPlayServer::KickPlayer(const PlayerId player) const
 {
-  for (auto& current_player : m_players)
+  for (const auto& [pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma, socket,
+         _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    if (current_player.second.pid == player)
+    if (pid == player)
     {
-      enet_peer_disconnect(current_player.second.socket, 0);
+      enet_peer_disconnect(socket, 0);
       return;
     }
   }
@@ -2222,8 +2219,8 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 {
   const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
 
-  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
-         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+  return std::ranges::any_of(m_pad_map, mapping_matches_player_id) ||
+         std::ranges::any_of(m_wiimote_map, mapping_matches_player_id);
 }
 
 void NetPlayServer::AssignNewUserAPad(const Client& player)
@@ -2283,11 +2280,11 @@ u16 NetPlayServer::GetPort() const
 }
 
 // called from ---GUI--- thread
-std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
+std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 {
   std::unordered_set<std::string> result;
-  for (const auto& list_entry : GetInterfaceListInternal())
-    result.emplace(list_entry.first);
+  for (const auto& [fst, _snd] : GetInterfaceListInternal())
+    result.emplace(fst);
   return result;
 }
 
@@ -2297,19 +2294,19 @@ std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
   char buf[16]{};
   fmt::format_to_n(buf, sizeof(buf) - 1, ":{}", GetPort());
 
-  auto lst = GetInterfaceListInternal();
-  for (const auto& list_entry : lst)
+  const auto lst = GetInterfaceListInternal();
+  for (const auto& [fst, snd] : lst)
   {
-    if (list_entry.first == inter)
+    if (fst == inter)
     {
-      return list_entry.second + buf;
+      return snd + buf;
     }
   }
   return "?";
 }
 
 // called from ---GUI--- thread
-std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal() const
+std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal()
 {
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)
@@ -2370,23 +2367,24 @@ void NetPlayServer::ChunkedDataThreadFunc()
         return;
       if (m_abort_chunked_data)
         break;
-      auto& e = m_chunked_data_queue.Front();
+      auto& [packet, target_pid, target_mode, title] = m_chunked_data_queue.Front();
       const u32 id = m_next_chunked_data_id++;
 
       m_chunked_data_complete_count[id] = 0;
       size_t player_count;
       {
         std::vector<int> players;
-        if (e.target_mode == TargetMode::Only)
+        if (target_mode == TargetMode::Only)
         {
-          players.push_back(e.target_pid);
+          players.push_back(target_pid);
         }
         else
         {
-          for (auto& pl : m_players)
+          for (const auto& [pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma,
+                 _socket, _ping, _current_game, _qos_session] : m_players | std::views::values)
           {
-            if (pl.second.pid != e.target_pid)
-              players.push_back(pl.second.pid);
+            if (pid != target_pid)
+              players.push_back(pid);
           }
         }
         player_count = players.size();
@@ -2396,17 +2394,17 @@ void NetPlayServer::ChunkedDataThreadFunc()
 
         sf::Packet pac;
         pac << MessageID::ChunkedDataStart;
-        pac << id << e.title << sf::Uint64{e.packet.getDataSize()};
+        pac << id << title << sf::Uint64{packet.getDataSize()};
 
-        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        ChunkedDataSend(std::move(pac), target_pid, target_mode);
 
-        if (e.target_mode == TargetMode::AllExcept && e.target_pid == 1)
-          m_dialog->ShowChunkedProgressDialog(e.title, e.packet.getDataSize(), players);
+        if (target_mode == TargetMode::AllExcept && target_pid == 1)
+          m_dialog->ShowChunkedProgressDialog(title, packet.getDataSize(), players);
       }
 
-      const bool enable_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+      const bool enable_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
       const float bytes_per_second =
-          (std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
+          (std::max(Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
       const std::chrono::duration<double> send_interval(CHUNKED_DATA_UNIT_SIZE / bytes_per_second);
       bool skip_wait = false;
       size_t index = 0;
@@ -2421,12 +2419,12 @@ void NetPlayServer::ChunkedDataThreadFunc()
           sf::Packet pac;
           pac << MessageID::ChunkedDataAbort;
           pac << id;
-          ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+          ChunkedDataSend(std::move(pac), target_pid, target_mode);
           break;
         }
-        if (e.target_mode == TargetMode::Only)
+        if (target_mode == TargetMode::Only)
         {
-          if (m_players.find(e.target_pid) == m_players.end())
+          if (!m_players.contains(target_pid))
           {
             skip_wait = true;
             break;
@@ -2438,13 +2436,13 @@ void NetPlayServer::ChunkedDataThreadFunc()
         sf::Packet pac;
         pac << MessageID::ChunkedDataPayload;
         pac << id;
-        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, e.packet.getDataSize() - index);
-        pac.append(static_cast<const u8*>(e.packet.getData()) + index, len);
+        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, packet.getDataSize() - index);
+        pac.append(static_cast<const u8*>(packet.getData()) + index, len);
 
         INFO_LOG_FMT(NETPLAY, "Sending data chunk of {} ({} bytes at {}/{}).", id, len, index,
-                     e.packet.getDataSize());
+                     packet.getDataSize());
 
-        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        ChunkedDataSend(std::move(pac), target_pid, target_mode);
         index += CHUNKED_DATA_UNIT_SIZE;
 
         if (enable_limit)
@@ -2452,7 +2450,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
           std::chrono::duration<double> delta = std::chrono::steady_clock::now() - start;
           std::this_thread::sleep_for(send_interval - delta);
         }
-      } while (index < e.packet.getDataSize());
+      } while (index < packet.getDataSize());
 
       if (!m_abort_chunked_data)
       {
@@ -2461,7 +2459,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         sf::Packet pac;
         pac << MessageID::ChunkedDataEnd;
         pac << id;
-        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        ChunkedDataSend(std::move(pac), target_pid, target_mode);
       }
 
       while (m_chunked_data_complete_count[id] < player_count && m_do_loop &&

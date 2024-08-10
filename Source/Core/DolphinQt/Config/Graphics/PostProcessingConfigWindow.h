@@ -45,10 +45,10 @@ private:
     GetConfigurationOption() const noexcept;
     const std::vector<std::unique_ptr<ConfigGroup>>& GetSubGroups() const noexcept;
     u32 AddWidgets(PostProcessingConfigWindow* parent, QGridLayout* grid, u32 row);
-    void EnableSuboptions(bool state);
+    void EnableSuboptions(bool state) const;
     int GetCheckboxValue() const;
     int GetSliderValue(size_t index) const;
-    void SetSliderText(size_t index, const QString& text);
+    void SetSliderText(size_t index, const QString& text) const;
 
   private:
     u32 AddBool(PostProcessingConfigWindow* parent, QGridLayout* grid, u32 row);
@@ -66,9 +66,9 @@ private:
   void ConnectWidgets();
   QWidget* CreateDependentTab(const std::unique_ptr<ConfigGroup>& config_group);
   void PopulateGroups();
-  void UpdateBool(ConfigGroup* config_group, bool state);
-  void UpdateInteger(ConfigGroup* config_group, int value);
-  void UpdateFloat(ConfigGroup* config_group, int value);
+  void UpdateBool(const ConfigGroup* config_group, bool state) const;
+  void UpdateInteger(const ConfigGroup* config_group, int value) const;
+  void UpdateFloat(const ConfigGroup* config_group, int value) const;
 
   QTabWidget* m_tabs;
   QDialogButtonBox* m_buttons;

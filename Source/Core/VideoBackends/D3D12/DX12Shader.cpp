@@ -11,15 +11,15 @@
 
 namespace DX12
 {
-DXShader::DXShader(ShaderStage stage, BinaryData bytecode, std::string_view name)
-    : D3DCommon::Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
+DXShader::DXShader(const ShaderStage stage, BinaryData bytecode, const std::string_view name)
+    : Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
 {
 }
 
 DXShader::~DXShader() = default;
 
-std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, BinaryData bytecode,
-                                                       std::string_view name)
+std::unique_ptr<DXShader> DXShader::CreateFromBytecode(const ShaderStage stage, BinaryData bytecode,
+                                                       const std::string_view name)
 {
   std::unique_ptr<DXShader> shader(new DXShader(stage, std::move(bytecode), name));
   if (stage == ShaderStage::Compute && !shader->CreateComputePipeline())
@@ -28,10 +28,10 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
   return shader;
 }
 
-std::unique_ptr<DXShader> DXShader::CreateFromSource(ShaderStage stage, std::string_view source,
-                                                     std::string_view name)
+std::unique_ptr<DXShader> DXShader::CreateFromSource(const ShaderStage stage, const std::string_view source,
+                                                     const std::string_view name)
 {
-  auto bytecode = CompileShader(g_dx_context->GetFeatureLevel(), stage, source);
+  const auto bytecode = CompileShader(g_dx_context->GetFeatureLevel(), stage, source);
   if (!bytecode)
     return nullptr;
 
@@ -50,7 +50,7 @@ bool DXShader::CreateComputePipeline()
   desc.CS = GetD3DByteCode();
   desc.NodeMask = 1;
 
-  HRESULT hr = g_dx_context->GetDevice()->CreateComputePipelineState(
+  const HRESULT hr = g_dx_context->GetDevice()->CreateComputePipelineState(
       &desc, IID_PPV_ARGS(&m_compute_pipeline));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating compute pipeline failed: {}", DX12HRWrap(hr));
 

@@ -61,11 +61,11 @@ protected:
     ResetPointers();
   }
 
-  void CreateAndCheckSizes(size_t input_size, size_t output_size)
+  void CreateAndCheckSizes(const size_t input_size, const size_t output_size)
   {
     m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
     ASSERT_EQ(input_size, m_loader->m_vertex_size);
-    ASSERT_EQ((int)output_size, m_loader->m_native_vtx_decl.stride);
+    ASSERT_EQ(static_cast<int>(output_size), m_loader->m_native_vtx_decl.stride);
   }
 
   template <typename T>
@@ -75,7 +75,7 @@ protected:
     m_src.Write<T, true>(val);
   }
 
-  void ExpectOut(float expected)
+  void ExpectOut(const float expected)
   {
     // Read unswapped.
     const float actual = m_dst.Read<float, false>();
@@ -86,12 +86,12 @@ protected:
       EXPECT_EQ(expected, actual);
   }
 
-  void RunVertices(int count, int expected_count = -1)
+  void RunVertices(const int count, int expected_count = -1)
   {
     if (expected_count == -1)
       expected_count = count;
     ResetPointers();
-    int actual_count = m_loader->RunVertices(m_src.GetPointer(), m_dst.GetPointer(), count);
+    const int actual_count = m_loader->RunVertices(m_src.GetPointer(), m_dst.GetPointer(), count);
     EXPECT_EQ(actual_count, expected_count);
   }
 
@@ -111,7 +111,7 @@ protected:
 
 class VertexLoaderParamTest
     : public VertexLoaderTest,
-      public ::testing::WithParamInterface<
+      public testing::WithParamInterface<
           std::tuple<VertexComponentFormat, ComponentFormat, CoordComponentCount, int>>
 {
 };
@@ -130,11 +130,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderParamTest, PositionAll)
 {
-  VertexComponentFormat addr;
-  ComponentFormat format;
-  CoordComponentCount elements;
-  int frac;
-  std::tie(addr, format, elements, frac) = GetParam();
+  auto [addr, format, elements, frac] = GetParam();
   this->m_vtx_desc.low.Position = addr;
   this->m_vtx_attr.g0.PosFormat = format;
   this->m_vtx_attr.g0.PosElements = elements;
@@ -166,7 +162,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   ASSERT_EQ(0u, values.size() % 2);
   ASSERT_EQ(0u, values.size() % 3);
 
-  int count = (int)values.size() / elem_count;
+  const int count = static_cast<int>(values.size()) / elem_count;
   size_t input_size = elem_count * elem_size;
   if (IsIndexed(addr))
   {
@@ -182,7 +178,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     g_main_cp_state.array_strides[CPArray::Position] = elem_count * elem_size;
   }
   CreateAndCheckSizes(input_size, elem_count * sizeof(float));
-  for (float value : values)
+  for (const float value : values)
   {
     switch (format)
     {
@@ -209,7 +205,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 
   RunVertices(count);
 
-  float scale = 1.f / (1u << (format >= ComponentFormat::Float ? 0 : frac));
+  const float scale = 1.f / (1u << (format >= ComponentFormat::Float ? 0 : frac));
   for (auto iter = values.begin(); iter != values.end();)
   {
     float f, g;
@@ -266,7 +262,7 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 }
 
 class VertexLoaderSpeedTest : public VertexLoaderTest,
-                              public ::testing::WithParamInterface<std::tuple<ComponentFormat, int>>
+                              public testing::WithParamInterface<std::tuple<ComponentFormat, int>>
 {
 };
 INSTANTIATE_TEST_SUITE_P(
@@ -278,10 +274,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 {
-  ComponentFormat format;
-  int elements_i;
-  std::tie(format, elements_i) = GetParam();
-  CoordComponentCount elements = static_cast<CoordComponentCount>(elements_i);
+  auto [format, elements_i] = GetParam();
+  auto elements = static_cast<CoordComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
@@ -295,10 +289,8 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 
 TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 {
-  ComponentFormat format;
-  int elements_i;
-  std::tie(format, elements_i) = GetParam();
-  TexComponentCount elements = static_cast<TexComponentCount>(elements_i);
+  auto [format, elements_i] = GetParam();
+  auto elements = static_cast<TexComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == TexComponentCount::S ? 1 : 2;
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
@@ -316,15 +308,15 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 {
   // Enables most attributes in floating point indexed mode to test speed.
-  m_vtx_desc.low.PosMatIdx = 1;
-  m_vtx_desc.low.Tex0MatIdx = 1;
-  m_vtx_desc.low.Tex1MatIdx = 1;
-  m_vtx_desc.low.Tex2MatIdx = 1;
-  m_vtx_desc.low.Tex3MatIdx = 1;
-  m_vtx_desc.low.Tex4MatIdx = 1;
-  m_vtx_desc.low.Tex5MatIdx = 1;
-  m_vtx_desc.low.Tex6MatIdx = 1;
-  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.PosMatIdx = true;
+  m_vtx_desc.low.Tex0MatIdx = true;
+  m_vtx_desc.low.Tex1MatIdx = true;
+  m_vtx_desc.low.Tex2MatIdx = true;
+  m_vtx_desc.low.Tex3MatIdx = true;
+  m_vtx_desc.low.Tex4MatIdx = true;
+  m_vtx_desc.low.Tex5MatIdx = true;
+  m_vtx_desc.low.Tex6MatIdx = true;
+  m_vtx_desc.low.Tex7MatIdx = true;
   m_vtx_desc.low.Position = VertexComponentFormat::Index16;
   m_vtx_desc.low.Normal = VertexComponentFormat::Index16;
   m_vtx_desc.low.Color0 = VertexComponentFormat::Index16;
@@ -379,15 +371,15 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
 TEST_F(VertexLoaderTest, DirectAllComponents)
 {
-  m_vtx_desc.low.PosMatIdx = 1;
-  m_vtx_desc.low.Tex0MatIdx = 1;
-  m_vtx_desc.low.Tex1MatIdx = 1;
-  m_vtx_desc.low.Tex2MatIdx = 1;
-  m_vtx_desc.low.Tex3MatIdx = 1;
-  m_vtx_desc.low.Tex4MatIdx = 1;
-  m_vtx_desc.low.Tex5MatIdx = 1;
-  m_vtx_desc.low.Tex6MatIdx = 1;
-  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.PosMatIdx = true;
+  m_vtx_desc.low.Tex0MatIdx = true;
+  m_vtx_desc.low.Tex1MatIdx = true;
+  m_vtx_desc.low.Tex2MatIdx = true;
+  m_vtx_desc.low.Tex3MatIdx = true;
+  m_vtx_desc.low.Tex4MatIdx = true;
+  m_vtx_desc.low.Tex5MatIdx = true;
+  m_vtx_desc.low.Tex6MatIdx = true;
+  m_vtx_desc.low.Tex7MatIdx = true;
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
   m_vtx_desc.low.Normal = VertexComponentFormat::Direct;
   m_vtx_desc.low.Color0 = VertexComponentFormat::Direct;
@@ -543,7 +535,7 @@ TEST_F(VertexLoaderTest, DirectAllComponents)
 
 class VertexLoaderNormalTest
     : public VertexLoaderTest,
-      public ::testing::WithParamInterface<
+      public testing::WithParamInterface<
           std::tuple<VertexComponentFormat, ComponentFormat, NormalComponentCount, bool>>
 {
 };
@@ -561,11 +553,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderNormalTest, NormalAll)
 {
-  VertexComponentFormat addr;
-  ComponentFormat format;
-  NormalComponentCount elements;
-  bool index3;
-  std::tie(addr, format, elements, index3) = GetParam();
+  auto [addr, format, elements, index3] = GetParam();
 
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
   m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
@@ -585,15 +573,11 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
       const u32 base_size = (addr == VertexComponentFormat::Index8) ? 1 : 2;
       if (elements == NormalComponentCount::NTB)
         return (index3 ? 3 : 1) * base_size;
-      else
-        return 1 * base_size;
+      return 1 * base_size;
     }
-    else
-    {
-      const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
-      const u32 base_size = GetElementSize(format);
-      return base_count * base_size;
-    }
+    const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+    const u32 base_size = GetElementSize(format);
+    return base_count * base_size;
   }();
   const u32 out_size = [&]() -> u32 {
     if (addr == VertexComponentFormat::NotPresent)
@@ -605,7 +589,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
 
   CreateAndCheckSizes(2 * sizeof(float) + in_size, 2 * sizeof(float) + out_size);
 
-  auto input_with_expected_type = [&](float value) {
+  auto input_with_expected_type = [&](const float value) {
     switch (format)
     {
     case ComponentFormat::UByte:
@@ -629,7 +613,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
   };
 
-  auto create_normal = [&](int counter_base) {
+  auto create_normal = [&](const int counter_base) {
     if (addr == VertexComponentFormat::Direct)
     {
       input_with_expected_type(counter_base / 32.f);
@@ -647,7 +631,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
     // Do nothing for NotPresent
   };
-  auto create_tangent_and_binormal = [&](int counter_base) {
+  auto create_tangent_and_binormal = [&](const int counter_base) {
     if (IsIndexed(addr))
     {
       // With NormalIndex3, specifying the same index 3 times should give the same result
@@ -774,7 +758,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
 }
 
 class VertexLoaderSkippedColorsTest : public VertexLoaderTest,
-                                      public ::testing::WithParamInterface<std::tuple<bool, bool>>
+                                      public testing::WithParamInterface<std::tuple<bool, bool>>
 {
 };
 INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedColorsTest,
@@ -783,8 +767,7 @@ INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedColorsTest,
 
 TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
 {
-  bool enable_color_0, enable_color_1;
-  std::tie(enable_color_0, enable_color_1) = GetParam();
+  auto [enable_color_0, enable_color_1] = GetParam();
 
   size_t input_size = 1;
   size_t output_size = 3 * sizeof(float);
@@ -886,7 +869,7 @@ TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
 }
 
 class VertexLoaderSkippedTexCoordsTest : public VertexLoaderTest,
-                                         public ::testing::WithParamInterface<u32>
+                                         public testing::WithParamInterface<u32>
 {
 public:
   static constexpr u32 NUM_COMPONENTS_TO_TEST = 3;
@@ -963,7 +946,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
   {
     if (enable_matrix[i])
-      Input<u8>(u8(20 + i));
+      Input<u8>(static_cast<u8>(20 + i));
   }
   Input<u8>(1);  // Position
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
@@ -975,7 +958,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
   {
     if (enable_matrix[i])
-      Input<u8>(u8(10 + i));
+      Input<u8>(static_cast<u8>(10 + i));
   }
   Input<u8>(0);  // Position
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)

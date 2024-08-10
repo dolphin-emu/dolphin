@@ -3,7 +3,6 @@
 
 #include "Core/HLE/HLE_Misc.h"
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -19,7 +18,7 @@ namespace HLE_Misc
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
   ppc_state.npc = LR(ppc_state);
 }
@@ -27,15 +26,18 @@ void UnimplementedFunction(const Core::CPUThreadGuard& guard)
 void HBReload(const Core::CPUThreadGuard& guard)
 {
   // There isn't much we can do. Just stop cleanly.
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   system.GetCPU().Break();
   Host_Message(HostMessageID::WMUserStop);
 }
 
 void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = guard.GetSystem();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps
+    , _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
   auto& jit_interface = system.GetJitInterface();
 
   // Work around the codehandler not properly invalidating the icache, but
@@ -49,13 +51,13 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
   {
     return;
   }
-  else if (gch_gameid - Gecko::MAGIC_GAMEID > 5)
+  if (gch_gameid - Gecko::MAGIC_GAMEID > 5)
   {
     gch_gameid = Gecko::MAGIC_GAMEID;
   }
   PowerPC::MMU::HostWrite_U32(guard, gch_gameid + 1, Gecko::INSTALLER_BASE_ADDRESS);
 
-  ppc_state.iCache.Reset(jit_interface);
+  iCache.Reset(jit_interface);
 }
 
 // Because Dolphin messes around with the CPU state instead of patching the game binary, we
@@ -64,7 +66,7 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 // and PC before the magic, invisible BL instruction happened.
 void GeckoReturnTrampoline(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.

@@ -7,14 +7,11 @@
 #include <array>
 #include <atomic>
 #include <chrono>
-#include <ctime>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
-#include <string_view>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -26,8 +23,6 @@
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/HttpRequest.h"
 #include "Common/JsonUtil.h"
 #include "Common/Lazy.h"
 #include "Common/WorkQueueThread.h"
@@ -104,8 +99,8 @@ public:
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
-  void Login(const std::string& password);
-  bool HasAPIToken() const;
+  void Login(const std::string& password) const;
+  static bool HasAPIToken();
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
@@ -115,21 +110,21 @@ public:
 
   void DoFrame();
 
-  bool CanPause();
-  void DoIdle();
+  bool CanPause() const;
+  void DoIdle() const;
 
-  std::recursive_mutex& GetLock();
-  void SetHardcoreMode();
+  std::recursive_mutex& GetLock() const;
+  void SetHardcoreMode() const;
   bool IsHardcoreModeActive() const;
   void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
   void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                              const std::string& game_ini_id) const;
-  void SetSpectatorMode();
+  void SetSpectatorMode() const;
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
   const Badge& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
-  rc_client_t* GetClient();
+  rc_client_t* GetClient() const;
   rc_api_fetch_game_data_response_t* GetGameData();
   const Badge& GetGameBadge() const;
   const Badge& GetAchievementBadge(AchievementId id, bool locked) const;
@@ -140,7 +135,7 @@ public:
   const std::unordered_set<AchievementId>& GetActiveChallenges() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) const;
 
   void CloseGame();
   void Logout();
@@ -179,7 +174,7 @@ private:
   void DisplayWelcomeMessage();
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
-                                         rc_client_leaderboard_entry_list_t* list,
+                                         const rc_client_leaderboard_entry_list_t* list,
                                          rc_client_t* client, void* userdata);
 
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
@@ -192,7 +187,7 @@ private:
   static void HandleAchievementChallengeIndicatorShowEvent(const rc_client_event_t* client_event);
   static void HandleAchievementChallengeIndicatorHideEvent(const rc_client_event_t* client_event);
   static void HandleAchievementProgressIndicatorShowEvent(const rc_client_event_t* client_event);
-  static void HandleGameCompletedEvent(const rc_client_event_t* client_event, rc_client_t* client);
+  static void HandleGameCompletedEvent(const rc_client_event_t* client_event, const rc_client_t* client);
   static void HandleResetEvent(const rc_client_event_t* client_event);
   static void HandleServerErrorEvent(const rc_client_event_t* client_event);
 
@@ -202,7 +197,7 @@ private:
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
                   const UpdatedItems callback_data);
-  static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
+  static void EventHandler(const rc_client_event_t* event, const rc_client_t* client);
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};

@@ -23,12 +23,12 @@ Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<D3DVertexFormat>(vtx_decl);
 }
 
-DXGI_FORMAT VarToD3D(ComponentFormat t, int size, bool integer)
+DXGI_FORMAT VarToD3D(const ComponentFormat t, const int size, const bool integer)
 {
   using FormatMap = Common::EnumMap<DXGI_FORMAT, ComponentFormat::InvalidFloat7>;
   static constexpr auto f = [](FormatMap a) { return a; };  // Deduction helper
 
-  static constexpr std::array<FormatMap, 4> d3d_float_format_lookup = {
+  static constexpr std::array d3d_float_format_lookup = {
       f({
           DXGI_FORMAT_R8_UNORM,
           DXGI_FORMAT_R8_SNORM,
@@ -71,7 +71,7 @@ DXGI_FORMAT VarToD3D(ComponentFormat t, int size, bool integer)
       }),
   };
 
-  static constexpr std::array<FormatMap, 4> d3d_integer_format_lookup = {
+  static constexpr std::array d3d_integer_format_lookup = {
       f({
           DXGI_FORMAT_R8_UINT,
           DXGI_FORMAT_R8_SINT,
@@ -114,7 +114,7 @@ DXGI_FORMAT VarToD3D(ComponentFormat t, int size, bool integer)
       }),
   };
 
-  DXGI_FORMAT retval =
+  const DXGI_FORMAT retval =
       integer ? d3d_integer_format_lookup[size - 1][t] : d3d_float_format_lookup[size - 1][t];
   if (retval == DXGI_FORMAT_UNKNOWN)
   {
@@ -148,7 +148,7 @@ D3DVertexFormat::~D3DVertexFormat()
     layout->Release();
 }
 
-ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size_t vs_bytecode_size)
+ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, const size_t vs_bytecode_size)
 {
   // CreateInputLayout requires a shader input, but it only looks at the signature of the shader,
   // so we don't need to recompute it if the shader changes.
@@ -156,8 +156,8 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
   if (layout)
     return layout;
 
-  HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
-                                              vs_bytecode_size, &layout);
+  const HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
+                                                    vs_bytecode_size, &layout);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create input layout: {}", DX11HRWrap(hr));
 
   // This method can be called from multiple threads, so ensure that only one thread sets the

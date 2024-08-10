@@ -45,7 +45,7 @@ VolumeGC::~VolumeGC()
 {
 }
 
-bool VolumeGC::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
+bool VolumeGC::Read(const u64 offset, const u64 length, u8* buffer, const Partition& partition) const
 {
   if (partition != PARTITION_NONE)
     return false;
@@ -151,7 +151,7 @@ bool VolumeGC::IsDatelDisc() const
 
 std::array<u8, 20> VolumeGC::GetSyncHash() const
 {
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
 
   AddGamePartitionToSyncHash(context.get());
 
@@ -196,7 +196,7 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   ConvertedGCBanner banner;
 
   u32 number_of_languages = 0;
-  Language start_language = Language::Unknown;
+  auto start_language = Language::Unknown;
 
   if (is_bnr1)  // NTSC
   {
@@ -217,26 +217,27 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
 
   for (u32 i = 0; i < number_of_languages; ++i)
   {
-    const GCBannerInformation& info = banner_file.information[i];
-    Language language = static_cast<Language>(static_cast<int>(start_language) + i);
+    const auto& [info_short_name, info_short_maker, info_long_name, info_long_maker,
+      info_description] = banner_file.information[i];
+    auto language = static_cast<Language>(static_cast<int>(start_language) + i);
 
-    std::string description = DecodeString(info.description);
+    std::string description = DecodeString(info_description);
     if (!description.empty())
       banner.descriptions.emplace(language, description);
 
-    std::string short_name = DecodeString(info.short_name);
+    std::string short_name = DecodeString(info_short_name);
     if (!short_name.empty())
       banner.short_names.emplace(language, short_name);
 
-    std::string long_name = DecodeString(info.long_name);
+    std::string long_name = DecodeString(info_long_name);
     if (!long_name.empty())
       banner.long_names.emplace(language, long_name);
 
-    std::string short_maker = DecodeString(info.short_maker);
+    std::string short_maker = DecodeString(info_short_maker);
     if (!short_maker.empty())
       banner.short_makers.emplace(language, short_maker);
 
-    std::string long_maker = DecodeString(info.long_maker);
+    std::string long_maker = DecodeString(info_long_maker);
     if (!long_maker.empty())
       banner.long_makers.emplace(language, long_maker);
   }

@@ -7,9 +7,6 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
 MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSetting<double>* setting)
     : QDoubleSpinBox(parent), m_setting(*setting)
 {
@@ -18,7 +15,7 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
   if (const auto ui_description = m_setting.GetUIDescription())
     setToolTip(tr(ui_description));
 
-  connect(this, &QDoubleSpinBox::valueChanged, this, [this, parent](double value) {
+  connect(this, &QDoubleSpinBox::valueChanged, this, [this, parent](const double value) {
     m_setting.SetValue(value);
     ConfigChanged();
     parent->SaveSettings();
@@ -46,13 +43,13 @@ void MappingDouble::ConfigChanged()
   if (m_setting.IsSimpleValue())
   {
     setRange(m_setting.GetMinValue(), m_setting.GetMaxValue());
-    setButtonSymbols(ButtonSymbols::UpDownArrows);
+    setButtonSymbols(UpDownArrows);
   }
   else
   {
     constexpr auto inf = std::numeric_limits<double>::infinity();
     setRange(-inf, inf);
-    setButtonSymbols(ButtonSymbols::NoButtons);
+    setButtonSymbols(NoButtons);
     suffix += QString::fromUtf8(" 🎮");
   }
 
@@ -76,7 +73,7 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
   if (const auto ui_description = m_setting.GetUIDescription())
     setToolTip(tr(ui_description));
 
-  connect(this, &QCheckBox::stateChanged, this, [this, parent](int value) {
+  connect(this, &QCheckBox::stateChanged, this, [this, parent](const int value) {
     m_setting.SetValue(value != 0);
     ConfigChanged();
     parent->SaveSettings();

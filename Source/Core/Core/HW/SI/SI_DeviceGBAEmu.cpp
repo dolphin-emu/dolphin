@@ -27,7 +27,7 @@ static s64 GetSyncInterval(const SystemTimers::SystemTimersManager& timers)
   return timers.GetTicksPerSecond() / 1000;
 }
 
-CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, SIDevices device, int device_number)
+CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, const SIDevices device, const int device_number)
     : ISIDevice(system, device, device_number)
 {
   m_core = std::make_shared<HW::GBA::Core>(system, m_device_number);
@@ -60,7 +60,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     m_timestamp_sent = m_system.GetCoreTiming().GetTicks();
     m_core->SendJoybusCommand(m_timestamp_sent, TransferInterval(), buffer, m_keys);
 
-    auto& si = m_system.GetSerialInterface();
+    const auto& si = m_system.GetSerialInterface();
     si.RemoveEvent(m_device_number);
     si.ScheduleEvent(m_device_number,
                      TransferInterval() + GetSyncInterval(m_system.GetSystemTimers()));
@@ -78,7 +78,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
+    const int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (TransferInterval() > elapsed_time)
       return 0;
@@ -93,7 +93,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     std::vector<u8> response = m_core->GetJoybusResponse();
     if (response.empty())
       return -1;
-    std::copy(response.begin(), response.end(), buffer);
+    std::ranges::copy(response, buffer);
 
 #ifdef _DEBUG
     const Common::Log::LogLevel log_level =
@@ -125,20 +125,20 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   GCPadStatus pad_status{};
   if (!NetPlay::IsNetPlayRunning())
     pad_status = Pad::GetGBAStatus(m_device_number);
-  SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
+  CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
                                                                 m_device_number, &pad_status);
 
-  static constexpr std::array<PadButton, 10> buttons_map = {
-      PadButton::PAD_BUTTON_A,      // A
-      PadButton::PAD_BUTTON_B,      // B
-      PadButton::PAD_TRIGGER_Z,     // Select
-      PadButton::PAD_BUTTON_START,  // Start
-      PadButton::PAD_BUTTON_RIGHT,  // Right
-      PadButton::PAD_BUTTON_LEFT,   // Left
-      PadButton::PAD_BUTTON_UP,     // Up
-      PadButton::PAD_BUTTON_DOWN,   // Down
-      PadButton::PAD_TRIGGER_R,     // R
-      PadButton::PAD_TRIGGER_L,     // L
+  static constexpr std::array buttons_map = {
+      PAD_BUTTON_A,      // A
+      PAD_BUTTON_B,      // B
+      PAD_TRIGGER_Z,     // Select
+      PAD_BUTTON_START,  // Start
+      PAD_BUTTON_RIGHT,  // Right
+      PAD_BUTTON_LEFT,   // Left
+      PAD_BUTTON_UP,     // Up
+      PAD_BUTTON_DOWN,   // Down
+      PAD_TRIGGER_R,     // R
+      PAD_TRIGGER_L,     // L
   };
 
   m_keys = 0;
@@ -146,7 +146,7 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
     m_keys |= static_cast<u16>(static_cast<bool>((pad_status.button & buttons_map[i]))) << i;
 
   // Use X button as a reset signal for NetPlay/Movies
-  if (pad_status.button & PadButton::PAD_BUTTON_X)
+  if (pad_status.button & PAD_BUTTON_X)
     m_core->Reset();
 
   return false;
@@ -165,7 +165,7 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
   m_core->DoState(p);
 }
 
-void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
+void CSIDevice_GBAEmu::OnEvent(const u64 userdata, s64 cycles_late)
 {
   m_core->SendJoybusCommand(m_system.GetCoreTiming().GetTicks() + userdata, 0, nullptr, m_keys);
 

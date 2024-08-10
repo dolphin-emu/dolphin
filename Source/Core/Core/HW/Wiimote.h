@@ -3,11 +3,7 @@
 
 #pragma once
 
-#include <array>
 #include <atomic>
-
-#include "Common/Common.h"
-#include "Common/CommonTypes.h"
 
 class InputConfig;
 class PointerWrap;
@@ -98,7 +94,7 @@ ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::Shinkans
 
 namespace WiimoteReal
 {
-void Initialize(::Wiimote::InitializeMode init_mode);
+void Initialize(Wiimote::InitializeMode init_mode);
 void Stop();
 void Shutdown();
 void Resume();

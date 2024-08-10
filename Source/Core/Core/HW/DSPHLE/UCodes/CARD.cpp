@@ -13,7 +13,7 @@
 
 namespace DSP::HLE
 {
-CARDUCode::CARDUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+CARDUCode::CARDUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
   INFO_LOG_FMT(DSPHLE, "CARDUCode - initialized");
 }
@@ -28,11 +28,11 @@ void CARDUCode::Update()
   // check if we have something to send
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
-void CARDUCode::HandleMail(u32 mail)
+void CARDUCode::HandleMail(const u32 mail)
 {
   if (mail == 0xFF000000)  // unlock card
   {

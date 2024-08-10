@@ -14,7 +14,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/XFStateManager.h"
 
 // We really want things like c.w * a.x - a.w * c.x to stay symmetric, so they cancel to zero on
 // degenerate triangles.  Make sure the compiler doesn't optimize in fmas where not requested.
@@ -36,12 +35,6 @@
 #define USE_NEON
 #else
 #define NO_SIMD
-#endif
-
-#if defined(USE_SSE)
-#include <immintrin.h>
-#elif defined(USE_NEON)
-#include <arm_neon.h>
 #endif
 
 #include "VideoCommon/CPUCullImpl.h"
@@ -76,14 +69,13 @@ static CPUCull::TransformFunction GetTransformFunction()
 #if defined(USE_SSE)
   if (MIN_SSE >= 51 || (cpu_info.bAVX && cpu_info.bFMA))
     return CPUCull_FMA::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else if (MIN_SSE >= 50 || cpu_info.bAVX)
+  if (MIN_SSE >= 50 || cpu_info.bAVX)
     return CPUCull_AVX::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else if (PositionHas3Elems && PerVertexPosMtx && (MIN_SSE >= 41 || cpu_info.bSSE4_1))
+  if (PositionHas3Elems && PerVertexPosMtx && (MIN_SSE >= 41 || cpu_info.bSSE4_1))
     return CPUCull_SSE41::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else if (PositionHas3Elems && (MIN_SSE >= 30 || cpu_info.bSSE3))
+  if (PositionHas3Elems && (MIN_SSE >= 30 || cpu_info.bSSE3))
     return CPUCull_SSE3::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else
-    return CPUCull_SSE::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
+  return CPUCull_SSE::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
 #elif defined(USE_NEON)
   return CPUCull_NEON::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
 #else
@@ -99,10 +91,9 @@ static CPUCull::CullFunction GetCullFunction0()
   // Sorry, MSVC + Sandy Bridge.  (Ivy+ and AMD see very little benefit thanks to mov elimination)
   if (MIN_SSE >= 50 || cpu_info.bAVX)
     return CPUCull_AVX::AreAllVerticesCulled<Primitive, Mode>;
-  else if (MIN_SSE >= 30 || cpu_info.bSSE3)
+  if (MIN_SSE >= 30 || cpu_info.bSSE3)
     return CPUCull_SSE3::AreAllVerticesCulled<Primitive, Mode>;
-  else
-    return CPUCull_SSE::AreAllVerticesCulled<Primitive, Mode>;
+  return CPUCull_SSE::AreAllVerticesCulled<Primitive, Mode>;
 #elif defined(USE_NEON)
   return CPUCull_NEON::AreAllVerticesCulled<Primitive, Mode>;
 #else
@@ -137,8 +128,8 @@ void CPUCull::Init()
   m_cull_table[Prim::GX_DRAW_TRIANGLE_FAN] = GetCullFunction1<Prim::GX_DRAW_TRIANGLE_FAN>();
 }
 
-bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
-                                   const u8* src, u32 count)
+bool CPUCull::AreAllVerticesCulled(const VertexLoaderBase* loader, const OpcodeDecoder::Primitive primitive,
+                                   const u8* src, const u32 count)
 {
   ASSERT_MSG(VIDEO, primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES,
              "CPUCull should not be called on lines or points");
@@ -147,14 +138,14 @@ bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Prim
   const bool perVertexPosMtx = loader->m_native_vtx_decl.posmtx.enable;
   if (m_transform_buffer_size < count) [[unlikely]]
   {
-    u32 new_size = MathUtil::NextPowerOf2(count);
+    const u32 new_size = MathUtil::NextPowerOf2(count);
     m_transform_buffer_size = new_size;
     m_transform_buffer.reset(static_cast<TransformedVertex*>(
         Common::AllocateAlignedMemory(new_size * sizeof(TransformedVertex), 32)));
   }
 
   // transform functions need the projection matrix to tranform to clip space
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetVertexShaderManager().SetProjectionMatrix(system.GetXFStateManager());
 
   static constexpr Common::EnumMap<CullMode, CullMode::All> cullmode_invert = {

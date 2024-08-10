@@ -2,7 +2,6 @@
 
 #include <Windows.h>
 #include <string>
-#include <type_traits>
 #include "Common/StringUtil.h"
 
 namespace WindowsRegistry
@@ -26,7 +25,7 @@ bool ReadValue(T* value, const std::string& subkey, const std::string& name)
 template <>
 bool ReadValue(std::string* value, const std::string& subkey, const std::string& name)
 {
-  const DWORD flags = RRF_RT_REG_SZ | RRF_NOEXPAND;
+  constexpr DWORD flags = RRF_RT_REG_SZ | RRF_NOEXPAND;
   DWORD value_len = 0;
   auto status = RegGetValueA(HKEY_LOCAL_MACHINE, subkey.c_str(), name.c_str(), flags, nullptr,
                              nullptr, &value_len);
@@ -50,7 +49,7 @@ OSVERSIONINFOW GetOSVersion()
 {
   // PEB may have faked data if the binary is launched with "compatibility mode" enabled.
   // Try to read real OS version from registry.
-  const char* subkey = R"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)";
+  auto subkey = R"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)";
   OSVERSIONINFOW info{.dwOSVersionInfoSize = sizeof(info)};
   std::string build_str;
   if (!ReadValue(&info.dwMajorVersion, subkey, "CurrentMajorVersionNumber") ||
@@ -60,7 +59,7 @@ OSVERSIONINFOW GetOSVersion()
   {
     // Fallback to version from PEB
     typedef DWORD(WINAPI * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
-    auto RtlGetVersion =
+    const auto RtlGetVersion =
         (RtlGetVersion_t)GetProcAddress(GetModuleHandle(TEXT("ntdll")), "RtlGetVersion");
     RtlGetVersion(&info);
     // Clear fields which would not be filled in by registry query

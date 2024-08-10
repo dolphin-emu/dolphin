@@ -129,7 +129,7 @@ private:
     void ProcessData(const DataReportManipulator& manipulator);
     bool IsFullyConfigured() const;
 
-    u32 current_sensitivity = u32(-1);
+    u32 current_sensitivity = static_cast<u32>(-1);
     bool enabled = false;
     bool mode_set = false;
 
@@ -158,7 +158,7 @@ private:
     template <typename R, typename T>
     void AddHandler(std::function<R(const T&)>);
 
-    HandlerResult TryToHandleReport(const WiimoteReal::Report& report);
+    HandlerResult TryToHandleReport(const WiimoteReal::Report& report) const;
 
     bool IsExpired() const;
 
@@ -170,7 +170,7 @@ private:
   using AckReportHandler = std::function<ReportHandler::HandlerResult(const InputReportAck& reply)>;
 
   static AckReportHandler MakeAckHandler(OutputReportID report_id,
-                                         std::function<void(WiimoteCommon::ErrorCode)> callback);
+                                         std::function<void(ErrorCode)> callback);
 
   // TODO: Make parameter const. (need to modify DataReportManipulator)
   void ProcessInputReport(WiimoteReal::Report& report);

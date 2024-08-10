@@ -40,7 +40,7 @@ struct fmt::formatter<EFBReinterpretType> : EnumFormatter<EFBReinterpretType::RG
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+inline bool AddressRangesOverlap(const u32 aLower, const u32 aUpper, const u32 bLower, const u32 bUpper)
 {
   return !((aLower >= bUpper) || (bLower >= aUpper));
 }
@@ -94,19 +94,19 @@ public:
   void RecompileShaders();
 
   // This is virtual, because D3D has both normalized and integer framebuffers.
-  void BindEFBFramebuffer();
+  void BindEFBFramebuffer() const;
 
   // Resolve color/depth textures to a non-msaa texture, and return it.
-  AbstractTexture* ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region);
+  AbstractTexture* ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region) const;
   AbstractTexture* ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
-                                          bool force_r32f = false);
+                                          bool force_r32f = false) const;
 
   // Reinterpret pixel format of EFB color texture.
   // Assumes no render pass is currently in progress.
   // Swaps EFB framebuffers, so re-bind afterwards.
   bool ReinterpretPixelData(EFBReinterpretType convtype);
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
-  void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
+  void StorePixelFormat(const PixelFormat new_format) { m_prev_efb_format = new_format; }
 
   // Clears the EFB using shaders.
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
@@ -184,15 +184,15 @@ protected:
   void PopulateEFBCache(bool depth, u32 tile_index, bool async = false);
 
   void CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z,
-                          u32 color);
+                          u32 color) const;
 
   void DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
-                        const AbstractPipeline* pipeline);
+                        const AbstractPipeline* pipeline) const;
 
   std::tuple<u32, u32> CalculateTargetSize();
 
   void DoLoadState(PointerWrap& p);
-  void DoSaveState(PointerWrap& p);
+  void DoSaveState(PointerWrap& p) const;
 
   float m_efb_scale = 1.0f;
   PixelFormat m_prev_efb_format;

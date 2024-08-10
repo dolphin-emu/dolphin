@@ -74,7 +74,7 @@ void UnloadLibraries()
   s_libraries_loaded = false;
 }
 
-Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
+Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(const bool debug_device)
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
 
@@ -87,7 +87,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
   }
 
   // Fallback to original version, without debug support.
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+  const HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
     PanicAlertFmt("CreateDXGIFactory() failed: {}", Common::HRWrap(hr));
@@ -100,7 +100,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
 std::vector<std::string> GetAdapterNames()
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
+  const HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
   if (FAILED(hr))
     return {};
 
@@ -120,7 +120,7 @@ std::vector<std::string> GetAdapterNames()
   return adapters;
 }
 
-DXGI_FORMAT GetDXGIFormatForAbstractFormat(AbstractTextureFormat format, bool typeless)
+DXGI_FORMAT GetDXGIFormatForAbstractFormat(const AbstractTextureFormat format, const bool typeless)
 {
   switch (format)
   {
@@ -157,7 +157,7 @@ DXGI_FORMAT GetDXGIFormatForAbstractFormat(AbstractTextureFormat format, bool ty
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   }
 }
-DXGI_FORMAT GetSRVFormatForAbstractFormat(AbstractTextureFormat format)
+DXGI_FORMAT GetSRVFormatForAbstractFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -195,7 +195,7 @@ DXGI_FORMAT GetSRVFormatForAbstractFormat(AbstractTextureFormat format)
   }
 }
 
-DXGI_FORMAT GetRTVFormatForAbstractFormat(AbstractTextureFormat format, bool integer)
+DXGI_FORMAT GetRTVFormatForAbstractFormat(const AbstractTextureFormat format, const bool integer)
 {
   switch (format)
   {
@@ -216,7 +216,7 @@ DXGI_FORMAT GetRTVFormatForAbstractFormat(AbstractTextureFormat format, bool int
     return DXGI_FORMAT_UNKNOWN;
   }
 }
-DXGI_FORMAT GetDSVFormatForAbstractFormat(AbstractTextureFormat format)
+DXGI_FORMAT GetDSVFormatForAbstractFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -234,7 +234,7 @@ DXGI_FORMAT GetDSVFormatForAbstractFormat(AbstractTextureFormat format)
   }
 }
 
-AbstractTextureFormat GetAbstractFormatForDXGIFormat(DXGI_FORMAT format)
+AbstractTextureFormat GetAbstractFormatForDXGIFormat(const DXGI_FORMAT format)
 {
   switch (format)
   {
@@ -290,7 +290,7 @@ AbstractTextureFormat GetAbstractFormatForDXGIFormat(DXGI_FORMAT format)
   }
 }
 
-void SetDebugObjectName(IUnknown* resource, std::string_view name)
+void SetDebugObjectName(IUnknown* resource, const std::string_view name)
 {
   if (!g_ActiveConfig.bEnableValidationLayer)
     return;

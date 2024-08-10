@@ -8,30 +8,29 @@
 #include <variant>
 
 #include "Common/Logging/Log.h"
-#include "Common/VariantUtil.h"
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 
 namespace
 {
-bool IsQualifier(std::string_view value)
+bool IsQualifier(const std::string_view value)
 {
   static constexpr std::array<std::string_view, 7> qualifiers = {
       "attribute", "const", "highp", "lowp", "mediump", "uniform", "varying",
   };
-  return std::find(qualifiers.begin(), qualifiers.end(), value) != qualifiers.end();
+  return std::ranges::find(qualifiers, value) != qualifiers.end();
 }
 
-bool IsBuiltInMacro(std::string_view value)
+bool IsBuiltInMacro(const std::string_view value)
 {
   static constexpr std::array<std::string_view, 5> built_in = {
       "__LINE__", "__FILE__", "__VERSION__", "GL_core_profile", "GL_compatibility_profile",
   };
-  return std::find(built_in.begin(), built_in.end(), value) != built_in.end();
+  return std::ranges::find(built_in, value) != built_in.end();
 }
 
-std::vector<std::string> GlobalConflicts(std::string_view source)
+std::vector<std::string> GlobalConflicts(const std::string_view source)
 {
   std::string_view last_identifier = "";
   std::vector<std::string> global_result;
@@ -60,7 +59,7 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
         if (!Common::IsAlpha(source[i]) && source[i] != '_' && !std::isdigit(source[i]))
           break;
       }
-      u32 end = i;
+      const u32 end = i;
       i--;  // unwind
       return source.substr(start, end - start);
     };
@@ -164,10 +163,9 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
   // Sort the conflicts from largest to smallest string
   // this way we can ensure smaller strings that are a substring
   // of the larger string are able to be replaced appropriately
-  std::sort(global_result.begin(), global_result.end(),
-            [](const std::string& first, const std::string& second) {
-              return first.size() > second.size();
-            });
+  std::ranges::sort(global_result, [](const std::string& first, const std::string& second) {
+    return first.size() > second.size();
+  });
   return global_result;
 }
 
@@ -267,7 +265,7 @@ void CustomPipeline::UpdatePixelData(
             texture_asset = CachedTextureAsset{};
           }
           const auto loaded_time = asset->GetLastLoadedTime();
-          texture_asset->m_cached_asset = VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
+          texture_asset->m_cached_asset = VideoCommon::CachedAsset{
               std::move(asset), loaded_time};
           texture_asset->m_texture.reset();
 
@@ -310,7 +308,7 @@ void CustomPipeline::UpdatePixelData(
         }
         else
         {
-          AbstractTextureType texture_type = AbstractTextureType::Texture_2DArray;
+          auto texture_type = AbstractTextureType::Texture_2DArray;
           if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
                   shader_it->second.m_default))
           {
@@ -328,12 +326,12 @@ void CustomPipeline::UpdatePixelData(
             return;
           }
 
-          auto& first_slice = texture_data->m_texture.m_slices[0];
+          auto& [m_levels] = texture_data->m_texture.m_slices[0];
           const TextureConfig texture_config(
-              first_slice.m_levels[0].width, first_slice.m_levels[0].height,
-              static_cast<u32>(first_slice.m_levels.size()),
+              m_levels[0].width, m_levels[0].height,
+              static_cast<u32>(m_levels.size()),
               static_cast<u32>(texture_data->m_texture.m_slices.size()), 1,
-              first_slice.m_levels[0].format, 0, texture_type);
+              m_levels[0].format, 0, texture_type);
           texture_asset->m_texture = g_gfx->CreateTexture(
               texture_config, fmt::format("Custom shader texture '{}'", property.m_code_name));
           if (texture_asset->m_texture)
@@ -341,14 +339,14 @@ void CustomPipeline::UpdatePixelData(
             for (std::size_t slice_index = 0; slice_index < texture_data->m_texture.m_slices.size();
                  slice_index++)
             {
-              auto& slice = texture_data->m_texture.m_slices[slice_index];
-              for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size());
+              auto& [m_levels] = texture_data->m_texture.m_slices[slice_index];
+              for (u32 level_index = 0; level_index < static_cast<u32>(m_levels.size());
                    ++level_index)
               {
-                auto& level = slice.m_levels[level_index];
-                texture_asset->m_texture->Load(level_index, level.width, level.height,
-                                               level.row_length, level.data.data(),
-                                               level.data.size(), static_cast<u32>(slice_index));
+                auto& [data, _format, width, height, row_length] = m_levels[level_index];
+                texture_asset->m_texture->Load(level_index, width, height,
+                                               row_length, data.data(),
+                                               data.size(), static_cast<u32>(slice_index));
               }
             }
           }

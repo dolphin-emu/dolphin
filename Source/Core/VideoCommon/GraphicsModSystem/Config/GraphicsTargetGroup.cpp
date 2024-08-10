@@ -20,7 +20,7 @@ void GraphicsTargetGroupConfig::SerializeToConfig(picojson::object& json_obj) co
 
 bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& obj)
 {
-  if (auto name_iter = obj.find("name"); name_iter != obj.end())
+  if (const auto name_iter = obj.find("name"); name_iter != obj.end())
   {
     if (!name_iter->second.is<std::string>())
     {
@@ -31,7 +31,7 @@ bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& ob
     m_name = name_iter->second.get<std::string>();
   }
 
-  if (auto targets_iter = obj.find("targets"); targets_iter != obj.end())
+  if (const auto targets_iter = obj.find("targets"); targets_iter != obj.end())
   {
     if (!targets_iter->second.is<picojson::array>())
     {

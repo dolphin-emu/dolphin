@@ -25,7 +25,7 @@ void XFStateManager::Init()
   ResetPerVertexNormalMatrixChanges();
   ResetPostTransformMatrixChanges();
 
-  std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
+  std::memset(&xfmem, 0, sizeof(xfmem));
 }
 
 void XFStateManager::DoState(PointerWrap& p)
@@ -51,38 +51,38 @@ void XFStateManager::DoState(PointerWrap& p)
   }
 }
 
-void XFStateManager::InvalidateXFRange(int start, int end)
+void XFStateManager::InvalidateXFRange(const int start, const int end)
 {
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
-      ((u32)start >=
-           XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 &&
-       (u32)start < XFMEM_NORMALMATRICES +
-                        ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
+  if ((static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >=
+           XFMEM_NORMALMATRICES + (static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) & 31) * 3 &&
+       static_cast<u32>(start) < XFMEM_NORMALMATRICES +
+                        (static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) & 31) * 3 + 9))
   {
     m_pos_normal_matrix_changed = true;
   }
 
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 + 12))
+  if ((static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex0MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex0MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex1MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex1MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex2MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex2MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex3MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex3MtxIdx) * 4 + 12))
   {
     m_tex_matrices_changed[0] = true;
   }
 
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 + 12))
+  if ((static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex4MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex4MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex5MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex5MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex6MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex6MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex7MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex7MtxIdx) * 4 + 12))
   {
     m_tex_matrices_changed[1] = true;
   }
@@ -108,9 +108,9 @@ void XFStateManager::InvalidateXFRange(int start, int end)
 
   if (start < XFMEM_NORMALMATRICES_END && end > XFMEM_NORMALMATRICES)
   {
-    int _start = start < XFMEM_NORMALMATRICES ? 0 : start - XFMEM_NORMALMATRICES;
-    int _end = end < XFMEM_NORMALMATRICES_END ? end - XFMEM_NORMALMATRICES :
-                                                XFMEM_NORMALMATRICES_END - XFMEM_NORMALMATRICES;
+    const int _start = start < XFMEM_NORMALMATRICES ? 0 : start - XFMEM_NORMALMATRICES;
+    const int _end = end < XFMEM_NORMALMATRICES_END ? end - XFMEM_NORMALMATRICES :
+                       XFMEM_NORMALMATRICES_END - XFMEM_NORMALMATRICES;
 
     if (m_minmax_normal_matrices_changed[0] == -1)
     {
@@ -129,9 +129,9 @@ void XFStateManager::InvalidateXFRange(int start, int end)
 
   if (start < XFMEM_POSTMATRICES_END && end > XFMEM_POSTMATRICES)
   {
-    int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start - XFMEM_POSTMATRICES;
-    int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
-                                              XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
+    const int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start - XFMEM_POSTMATRICES;
+    const int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
+                       XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
 
     if (m_minmax_post_transform_matrices_changed[0] == -1)
     {
@@ -150,8 +150,8 @@ void XFStateManager::InvalidateXFRange(int start, int end)
 
   if (start < XFMEM_LIGHTS_END && end > XFMEM_LIGHTS)
   {
-    int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start - XFMEM_LIGHTS;
-    int _end = end < XFMEM_LIGHTS_END ? end - XFMEM_LIGHTS : XFMEM_LIGHTS_END - XFMEM_LIGHTS;
+    const int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start - XFMEM_LIGHTS;
+    const int _end = end < XFMEM_LIGHTS_END ? end - XFMEM_LIGHTS : XFMEM_LIGHTS_END - XFMEM_LIGHTS;
 
     if (m_minmax_lights_changed[0] == -1)
     {
@@ -169,7 +169,7 @@ void XFStateManager::InvalidateXFRange(int start, int end)
   }
 }
 
-void XFStateManager::SetTexMatrixChangedA(u32 Value)
+void XFStateManager::SetTexMatrixChangedA(const u32 Value)
 {
   if (g_main_cp_state.matrix_index_a.Hex != Value)
   {
@@ -186,7 +186,7 @@ void XFStateManager::ResetTexMatrixAChange()
   m_tex_matrices_changed[0] = false;
 }
 
-void XFStateManager::SetTexMatrixChangedB(u32 Value)
+void XFStateManager::SetTexMatrixChangedB(const u32 Value)
 {
   if (g_main_cp_state.matrix_index_b.Hex != Value)
   {
@@ -253,7 +253,7 @@ void XFStateManager::ResetLightsChanged()
   m_minmax_lights_changed.fill(-1);
 }
 
-void XFStateManager::SetMaterialColorChanged(int index)
+void XFStateManager::SetMaterialColorChanged(const int index)
 {
   m_materials_changed[index] = true;
 }

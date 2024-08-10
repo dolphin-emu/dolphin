@@ -6,7 +6,6 @@
 #include <array>
 #include <cstddef>
 #include <optional>
-#include <string_view>
 #include <vector>
 
 #include "Common/Assembler/AssemblerShared.h"
@@ -59,8 +58,8 @@ struct OperandList
   u32 count;
   bool overfill;
 
-  constexpr u32 operator[](size_t index) const { return ValueOf(list[index]); }
-  constexpr u32& operator[](size_t index) { return ValueOf(list[index]); }
+  constexpr u32 operator[](const size_t index) const { return ValueOf(list[index]); }
+  constexpr u32& operator[](const size_t index) { return ValueOf(list[index]); }
 
   void Insert(size_t before, u32 val);
 

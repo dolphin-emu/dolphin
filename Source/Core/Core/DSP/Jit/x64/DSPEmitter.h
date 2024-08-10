@@ -59,7 +59,7 @@ public:
   void dr(UDSPInstruction opc);
   void ir(UDSPInstruction opc);
   void nr(UDSPInstruction opc);
-  void nop(const UDSPInstruction opc) {}
+  static void nop(const UDSPInstruction opc) {}
   // Commands
   void dar(UDSPInstruction opc);
   void iar(UDSPInstruction opc);
@@ -71,7 +71,7 @@ public:
   void lri(UDSPInstruction opc);
   void lris(UDSPInstruction opc);
   void mrr(UDSPInstruction opc);
-  void nx(UDSPInstruction opc);
+  static void nx(UDSPInstruction opc);
 
   // Branch
   void jcc(UDSPInstruction opc);
@@ -197,8 +197,8 @@ private:
   // within the class itself to allow access to member variables.
   static void CompileCurrent(DSPEmitter& emitter);
 
-  static u16 ReadIFXRegisterHelper(DSPEmitter& emitter, u16 address);
-  static void WriteIFXRegisterHelper(DSPEmitter& emitter, u16 address, u16 value);
+  static u16 ReadIFXRegisterHelper(const DSPEmitter& emitter, u16 address);
+  static void WriteIFXRegisterHelper(const DSPEmitter& emitter, u16 address, u16 value);
 
   void EmitInstruction(UDSPInstruction inst);
   void ClearIRAMandDSPJITCodespaceReset();
@@ -249,11 +249,11 @@ private:
   void Update_SR_Register64(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
   void UpdateSR64AddSub(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch,
                         bool subtract);
-  void UpdateSR64Add(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch)
+  void UpdateSR64Add(const Gen::X64Reg val1, const Gen::X64Reg val2, const Gen::X64Reg result, const Gen::X64Reg scratch)
   {
     UpdateSR64AddSub(val1, val2, result, scratch, false);
   }
-  void UpdateSR64Sub(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch)
+  void UpdateSR64Sub(const Gen::X64Reg val1, const Gen::X64Reg val2, const Gen::X64Reg result, const Gen::X64Reg scratch)
   {
     UpdateSR64AddSub(val1, val2, result, scratch, true);
   }
@@ -290,12 +290,12 @@ private:
                        RegisterExtension extend = RegisterExtension::None);
 
   // SDSP memory offset helpers
-  Gen::OpArg M_SDSP_pc();
-  Gen::OpArg M_SDSP_exceptions();
-  Gen::OpArg M_SDSP_control_reg();
-  Gen::OpArg M_SDSP_external_interrupt_waiting();
-  Gen::OpArg M_SDSP_r_st(size_t index);
-  Gen::OpArg M_SDSP_reg_stack_ptrs(size_t index);
+  static Gen::OpArg M_SDSP_pc();
+  static Gen::OpArg M_SDSP_exceptions();
+  static Gen::OpArg M_SDSP_control_reg();
+  static Gen::OpArg M_SDSP_external_interrupt_waiting();
+  static Gen::OpArg M_SDSP_r_st(size_t index);
+  static Gen::OpArg M_SDSP_reg_stack_ptrs(size_t index);
 
   // Ext command helpers
   void popExtValueToReg();

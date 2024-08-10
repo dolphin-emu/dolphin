@@ -89,11 +89,11 @@ void AudioInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_aid_sample_rate_divisor);
   p.Do(m_cpu_cycles_per_sample);
 
-  SoundStream* sound_stream = m_system.GetSoundStream();
+  const SoundStream* sound_stream = m_system.GetSoundStream();
   sound_stream->GetMixer()->DoState(p);
 }
 
-void AudioInterfaceManager::UpdateInterrupts()
+void AudioInterfaceManager::UpdateInterrupts() const
 {
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_AI,
                                                 m_control.AIINT & m_control.AIINTMSK);
@@ -124,20 +124,20 @@ void AudioInterfaceManager::IncreaseSampleCount(const u32 amount)
 
 int AudioInterfaceManager::GetAIPeriod() const
 {
-  u64 period = m_cpu_cycles_per_sample * (m_interrupt_timing - m_sample_counter);
-  u64 s_period =
+  const u64 period = m_cpu_cycles_per_sample * (m_interrupt_timing - m_sample_counter);
+  const u64 s_period =
       m_cpu_cycles_per_sample * Mixer::FIXED_SAMPLE_RATE_DIVIDEND / m_ais_sample_rate_divisor;
   if (period == 0)
     return static_cast<int>(s_period);
   return static_cast<int>(std::min(period, s_period));
 }
 
-void AudioInterfaceManager::GlobalUpdate(Core::System& system, u64 userdata, s64 cycles_late)
+void AudioInterfaceManager::GlobalUpdate(const Core::System& system, const u64 userdata, const s64 cycles_late)
 {
   system.GetAudioInterface().Update(userdata, cycles_late);
 }
 
-void AudioInterfaceManager::Update(u64 userdata, s64 cycles_late)
+void AudioInterfaceManager::Update(u64 userdata, const s64 cycles_late)
 {
   if (!IsPlaying())
     return;
@@ -154,7 +154,7 @@ void AudioInterfaceManager::Update(u64 userdata, s64 cycles_late)
   core_timing.ScheduleEvent(GetAIPeriod() - cycles_late, m_event_type_ai);
 }
 
-void AudioInterfaceManager::SetAIDSampleRate(SampleRate sample_rate)
+void AudioInterfaceManager::SetAIDSampleRate(const SampleRate sample_rate)
 {
   if (sample_rate == SampleRate::AI32KHz)
   {
@@ -167,11 +167,11 @@ void AudioInterfaceManager::SetAIDSampleRate(SampleRate sample_rate)
     m_aid_sample_rate_divisor = Get48KHzSampleRateDivisor();
   }
 
-  SoundStream* sound_stream = m_system.GetSoundStream();
+  const SoundStream* sound_stream = m_system.GetSoundStream();
   sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(m_aid_sample_rate_divisor);
 }
 
-void AudioInterfaceManager::SetAISSampleRate(SampleRate sample_rate)
+void AudioInterfaceManager::SetAISSampleRate(const SampleRate sample_rate)
 {
   if (sample_rate == SampleRate::AI32KHz)
   {
@@ -186,7 +186,7 @@ void AudioInterfaceManager::SetAISSampleRate(SampleRate sample_rate)
 
   m_cpu_cycles_per_sample = static_cast<u64>(m_system.GetSystemTimers().GetTicksPerSecond()) *
                             m_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
-  SoundStream* sound_stream = m_system.GetSoundStream();
+  const SoundStream* sound_stream = m_system.GetSoundStream();
   sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(m_ais_sample_rate_divisor);
 }
 
@@ -208,11 +208,11 @@ void AudioInterfaceManager::Shutdown()
 {
 }
 
-void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base) const
 {
   mmio->Register(
       base | AI_CONTROL_REGISTER, MMIO::DirectRead<u32>(&m_control.hex),
-      MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+      MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
         const AICR tmp_ai_ctrl(val);
 
         auto& core_timing = system.GetCoreTiming();
@@ -278,23 +278,23 @@ void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
 
   mmio->Register(base | AI_VOLUME_REGISTER, MMIO::DirectRead<u32>(&m_volume.hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& ai = system.GetAudioInterface();
                    ai.m_volume.hex = val;
-                   SoundStream* sound_stream = system.GetSoundStream();
+                   const SoundStream* sound_stream = system.GetSoundStream();
                    sound_stream->GetMixer()->SetStreamingVolume(ai.m_volume.left,
                                                                 ai.m_volume.right);
                  }));
 
-  mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   auto& ai = system.GetAudioInterface();
+  mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
+                   const auto& ai = system.GetAudioInterface();
                    const u64 cycles_streamed =
                        ai.IsPlaying() ? (system.GetCoreTiming().GetTicks() - ai.m_last_cpu_time) :
                                         ai.m_last_cpu_time;
                    return ai.m_sample_counter +
                           static_cast<u32>(cycles_streamed / ai.m_cpu_cycles_per_sample);
                  }),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& core_timing = system.GetCoreTiming();
                    auto& ai = system.GetAudioInterface();
                    ai.m_sample_counter = val;
@@ -304,7 +304,7 @@ void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | AI_INTERRUPT_TIMING, MMIO::DirectRead<u32>(&m_interrupt_timing),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& core_timing = system.GetCoreTiming();
                    auto& ai = system.GetAudioInterface();
                    DEBUG_LOG_FMT(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING={:08x} at PC: {:08x}", val,

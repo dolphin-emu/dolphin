@@ -74,17 +74,18 @@ static void WriteData(u8* out, T data)
 static unsigned int get_serial_id()
 {
   const time_t now = std::time(nullptr);
-  const struct tm tm = std::gmtime(&now)[0];
+  const auto [tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, _tm_wday, _tm_yday, _tm_isdst] =
+    std::gmtime(&now)[0];
 
-  const u16 lo = static_cast<u16>(tm.tm_mday + ((tm.tm_mon + 1) << 8) + (tm.tm_sec << 8));
-  const u16 hi = static_cast<u16>(tm.tm_min + (tm.tm_hour << 8) + (tm.tm_year + 1900));
+  const u16 lo = static_cast<u16>(tm_mday + ((tm_mon + 1) << 8) + (tm_sec << 8));
+  const u16 hi = static_cast<u16>(tm_min + (tm_hour << 8) + (tm_year + 1900));
 
   return lo + (hi << 16);
 }
 
-static unsigned int get_sectors_per_cluster(u64 disk_size)
+static unsigned int get_sectors_per_cluster(const u64 disk_size)
 {
-  u64 disk_MB = disk_size / (1024 * 1024);
+  const u64 disk_MB = disk_size / (1024 * 1024);
 
   if (disk_MB < 260)
     return 1;
@@ -101,7 +102,7 @@ static unsigned int get_sectors_per_cluster(u64 disk_size)
   return 32;
 }
 
-static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
+static unsigned int get_sectors_per_fat(u64 disk_size, const u32 sectors_per_cluster)
 {
   /* Weird computation from MS - see fatgen103.doc for details */
   disk_size -= RESERVED_SECTORS * BYTES_PER_SECTOR; /* Don't count 32 reserved sectors */
@@ -111,7 +112,7 @@ static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
   return static_cast<u32>((disk_size + (divider - 1)) / divider);
 }
 
-static void boot_sector_init(u8* boot, u8* info, u64 disk_size, const char* label)
+static void boot_sector_init(u8* boot, u8* info, const u64 disk_size, const char* label)
 {
   const u32 sectors_per_cluster = get_sectors_per_cluster(disk_size);
   const u32 sectors_per_fat = get_sectors_per_fat(disk_size, sectors_per_cluster);

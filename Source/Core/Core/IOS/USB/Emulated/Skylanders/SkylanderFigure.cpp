@@ -28,8 +28,8 @@ namespace IOS::HLE::USB
 void SkylanderFigure::PopulateSectorTrailers()
 {
   // Set the sector permissions
-  u32 first_block = 0x690F0F0F;
-  u32 other_blocks = 0x69080F7F;
+  constexpr u32 first_block = 0x690F0F0F;
+  constexpr u32 other_blocks = 0x69080F7F;
   memcpy(&m_data[0x36], &first_block, sizeof(first_block));
   for (size_t index = 1; index < 0x10; index++)
   {
@@ -41,13 +41,13 @@ void SkylanderFigure::PopulateKeys()
 {
   for (u8 sector = 0; sector < 0x10; sector++)
   {
-    u16 key_offset = (sector * 64) + (3 * 16);
-    u64 key = CalculateKeyA(sector, std::span<u8, 4>(m_data.begin(), 4));
+    const u16 key_offset = (sector * 64) + (3 * 16);
+    const u64 key = CalculateKeyA(sector, std::span<u8, 4>(m_data.begin(), 4));
 
     for (u32 j = 0; j < 6; j++)
     {
-      u16 index = key_offset + (5 - j);
-      u8 byte = (key >> (j * 8)) & 0xFF;
+      const u16 index = key_offset + (5 - j);
+      const u8 byte = (key >> (j * 8)) & 0xFF;
       m_data[index] = byte;
     }
   }
@@ -81,7 +81,7 @@ void SkylanderFigure::GenerateIncompleteHashIn(u8* dest) const
 
   memcpy(dest, hash_in.data(), 0x56);
 }
-void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
+void SkylanderFigure::Encrypt(const std::span<const u8, FIGURE_SIZE> input)
 {
   std::array<u8, 0x56> hash_in = {};
 
@@ -128,8 +128,8 @@ SkylanderFigure::SkylanderFigure(File::IOFile file)
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
   m_sky_file.ReadBytes(m_data.data(), m_data.size());
 }
-bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
-                             std::optional<std::array<u8, 4>> requested_nuid)
+bool SkylanderFigure::Create(const u16 sky_id, const u16 sky_var,
+                             const std::optional<std::array<u8, 4>> requested_nuid)
 {
   if (!m_sky_file)
   {
@@ -174,7 +174,7 @@ void SkylanderFigure::Save()
   m_sky_file.WriteBytes(m_data.data(), FIGURE_SIZE);
 }
 
-void SkylanderFigure::GetBlock(u8 index, u8* dest) const
+void SkylanderFigure::GetBlock(const u8 index, u8* dest) const
 {
   memcpy(dest, m_data.data() + (index * BLOCK_SIZE), BLOCK_SIZE);
 }
@@ -185,11 +185,11 @@ FigureData SkylanderFigure::GetData() const
                             .variant_id = Common::BitCastPtr<u16>(m_data.data() + 0x1C)};
 
   auto filter = std::make_pair(figure_data.figure_id, figure_data.variant_id);
-  Type type = Type::Item;
-  if (IOS::HLE::USB::list_skylanders.count(filter) != 0)
+  auto type = Type::Item;
+  if (list_skylanders.contains(filter))
   {
-    auto found = IOS::HLE::USB::list_skylanders.at(filter);
-    type = found.type;
+    const auto [_name, _game, _element, found_type] = list_skylanders.at(filter);
+    type = found_type;
   }
 
   figure_data.normalized_type = NormalizeSkylanderType(type);
@@ -200,7 +200,7 @@ FigureData SkylanderFigure::GetData() const
     DecryptFigure(&decrypted);
 
     // Area with highest area counter is the newest
-    u16 area_offset = ((decrypted[0x89] + 1U) != decrypted[0x249]) ? 0x80 : 0x240;
+    const u16 area_offset = ((decrypted[0x89] + 1U) != decrypted[0x249]) ? 0x80 : 0x240;
 
     figure_data.skylander_data = {
         .money = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x3),
@@ -243,14 +243,14 @@ FigureData SkylanderFigure::GetData() const
     DecryptFigure(&decrypted);
 
     // Area with highest area counter is the newest
-    u16 area_offset = ((decrypted[0x89] + 1U) != decrypted[0x249]) ? 0x80 : 0x240;
+    const u16 area_offset = ((decrypted[0x89] + 1U) != decrypted[0x249]) ? 0x80 : 0x240;
 
     figure_data.trophy_data.unlocked_villains = *(decrypted.data() + area_offset + 0x14);
   }
 
   return figure_data;
 }
-void SkylanderFigure::SetData(FigureData* figure_data)
+void SkylanderFigure::SetData(const FigureData* figure_data)
 {
   std::array<u8, FIGURE_SIZE> decrypted = {};
 
@@ -412,7 +412,7 @@ void SkylanderFigure::Close()
 {
   m_sky_file.Close();
 }
-void SkylanderFigure::SetBlock(u8 block, const u8* buf)
+void SkylanderFigure::SetBlock(const u8 block, const u8* buf)
 {
   memcpy(m_data.data() + (block * BLOCK_SIZE), buf, BLOCK_SIZE);
 }

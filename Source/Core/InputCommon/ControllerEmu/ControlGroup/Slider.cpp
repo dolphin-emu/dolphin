@@ -3,14 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Slider.h"
 
-#include <cmath>
 #include <memory>
 #include <string>
 
 #include "Common/Common.h"
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace ControllerEmu
@@ -46,7 +43,7 @@ Slider::StateData Slider::GetState(const InputOverrideFunction& override_func) c
 
   state = ApplyDeadzone(state, deadzone);
 
-  if (std::optional<ControlState> state_override = override_func(name, X_INPUT_OVERRIDE, state))
+  if (const std::optional<ControlState> state_override = override_func(name, X_INPUT_OVERRIDE, state))
     state = *state_override;
 
   return {std::clamp(state, -1.0, 1.0)};

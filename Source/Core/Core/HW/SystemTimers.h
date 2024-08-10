@@ -44,7 +44,7 @@ enum
 struct TimeBaseTick
 {
   constexpr TimeBaseTick() = default;
-  constexpr explicit TimeBaseTick(u64 tb_ticks) : cpu_ticks(tb_ticks * TIMER_RATIO) {}
+  constexpr explicit TimeBaseTick(const u64 tb_ticks) : cpu_ticks(tb_ticks * TIMER_RATIO) {}
   constexpr operator u64() const { return cpu_ticks; }
 
   u64 cpu_ticks = 0;
@@ -73,10 +73,10 @@ public:
   void ChangePPCClock(Mode mode);
 
   // Notify timing system that somebody wrote to the decrementer
-  void DecrementerSet();
+  void DecrementerSet() const;
   u32 GetFakeDecrementer() const;
 
-  void TimeBaseSet();
+  void TimeBaseSet() const;
   u64 GetFakeTimeBase() const;
   // Custom RTC
   s64 GetLocalTimeRTCOffset() const;
@@ -87,16 +87,16 @@ public:
   // - 0.5: the emulator is running at 50% speed (falling behind).
   // - 1.0: the emulator is running at 100% speed.
   // - 2.0: the emulator is running at 200% speed (or 100% speed but sleeping half of the time).
-  double GetEstimatedEmulationPerformance() const;
+  static double GetEstimatedEmulationPerformance();
 
 private:
-  static void DSPCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void GPUSleepCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void VICallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void DecrementerCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void DSPCallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void AudioDMACallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void IPC_HLE_UpdateCallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void GPUSleepCallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void PerfTrackerCallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void VICallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void DecrementerCallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late);
 
   Core::System& m_system;
@@ -125,7 +125,7 @@ private:
 inline namespace SystemTimersLiterals
 {
 /// Converts timebase ticks to clock ticks.
-constexpr SystemTimers::TimeBaseTick operator""_tbticks(unsigned long long value)
+constexpr SystemTimers::TimeBaseTick operator""_tbticks(const unsigned long long value)
 {
   return SystemTimers::TimeBaseTick(value);
 }

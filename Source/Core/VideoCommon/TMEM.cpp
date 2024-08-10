@@ -102,12 +102,12 @@ static std::array<TextureUnitState, 8> s_unit;
 // On TMEM configuration changed:
 // 1. invalidate stage.
 
-void ConfigurationChanged(TexUnitAddress bp_addr, u32 config)
+void ConfigurationChanged(const TexUnitAddress bp_addr, const u32 config)
 {
-  TextureUnitState& unit_state = s_unit[bp_addr.GetUnitID()];
+  auto& [even_unit_state, odd_unit_state, state] = s_unit[bp_addr.GetUnitID()];
 
   // If anything has changed, we can't assume existing state is still valid.
-  unit_state.state = TextureUnitState::State::INVALID;
+  state = TextureUnitState::State::INVALID;
 
   // Note: BPStructs has already filtered out NOP changes before calling us
   switch (bp_addr.Reg)
@@ -115,15 +115,15 @@ void ConfigurationChanged(TexUnitAddress bp_addr, u32 config)
   case TexUnitAddress::Register::SETIMAGE1:
   {
     // Image Type and Even bank's Cache Height, Cache Width, TMEM Offset
-    TexImage1 even = {.hex = config};
-    unit_state.even = {even.cache_width, even.cache_height, even.tmem_even << 5, 0};
+    const TexImage1 even = {.hex = config};
+    even_unit_state = {even.cache_width, even.cache_height, even.tmem_even << 5, 0};
     break;
   }
   case TexUnitAddress::Register::SETIMAGE2:
   {
     // Odd bank's Cache Height, Cache Width, TMEM Offset
-    TexImage2 odd = {.hex = config};
-    unit_state.odd = {odd.cache_width, odd.cache_height, odd.tmem_odd << 5, 0};
+    const TexImage2 odd = {.hex = config};
+    odd_unit_state = {odd.cache_width, odd.cache_height, odd.tmem_odd << 5, 0};
     break;
   }
   default:
@@ -134,9 +134,9 @@ void ConfigurationChanged(TexUnitAddress bp_addr, u32 config)
 
 void InvalidateAll()
 {
-  for (auto& unit : s_unit)
+  for (auto& [_even, _odd, state] : s_unit)
   {
-    unit.state = TextureUnitState::State::INVALID;
+    state = TextureUnitState::State::INVALID;
   }
 }
 
@@ -157,28 +157,28 @@ void Invalidate([[maybe_unused]] u32 param)
 // 2. if texture size is small enough to fit in region mark as cached.
 //    otherwise, mark as valid
 
-void Bind(u32 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
+void Bind(const u32 unit, const int width, const int height, const bool is_mipmapped, const bool is_32_bit)
 {
-  TextureUnitState& unit_state = s_unit[unit];
+  auto& [even, odd, state] = s_unit[unit];
 
   // All textures use the even bank.
   // It holds the level 0 mipmap (and other even mipmap LODs, if mipmapping is enabled)
-  unit_state.even.size = CalculateUnitSize(unit_state.even);
+  even.size = CalculateUnitSize(even);
 
-  bool fits = (width * height * 32U) <= unit_state.even.size;
+  bool fits = (width * height * 32U) <= even.size;
 
   if (is_mipmapped || is_32_bit)
   {
     // And the odd bank is enabled when either mipmapping is enabled or the texture is 32 bit
     // It holds the Alpha and Red channels of 32 bit textures or the odd layers of a mipmapped
     // texture
-    unit_state.odd.size = CalculateUnitSize(unit_state.odd);
+    odd.size = CalculateUnitSize(odd);
 
-    fits = fits && (width * height * 32U) <= unit_state.odd.size;
+    fits = fits && (width * height * 32U) <= odd.size;
   }
   else
   {
-    unit_state.odd.size = 0;
+    odd.size = 0;
   }
 
   if (is_mipmapped)
@@ -189,22 +189,22 @@ void Bind(u32 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
 
     // When mipmapping is enabled, the even bank is doubled in size
     // The extended region holds the remaining even mipmap layers
-    unit_state.even.size *= 2;
+    even.size *= 2;
 
     if (is_32_bit)
     {
       // When a 32bit texture is mipmapped, the odd bank is also doubled in size
-      unit_state.odd.size *= 2;
+      odd.size *= 2;
     }
   }
 
-  unit_state.state = fits ? TextureUnitState::State::CACHED : TextureUnitState::State::VALID;
+  state = fits ? TextureUnitState::State::CACHED : TextureUnitState::State::VALID;
 }
 
-static u32 CalculateUnitSize(TextureUnitState::BankConfig bank_config)
+static u32 CalculateUnitSize(const TextureUnitState::BankConfig bank_config)
 {
-  u32 width = bank_config.width;
-  u32 height = bank_config.height;
+  const u32 width = bank_config.width;
+  const u32 height = bank_config.height;
 
   // These are the only cache sizes supported by the sdk
   if (width == height)
@@ -239,16 +239,16 @@ bool TextureUnitState::BankConfig::Overlaps(const BankConfig& other) const
 
 bool TextureUnitState::Overlaps(const TextureUnitState& other) const
 {
-  if (state == TextureUnitState::State::INVALID || other.state == TextureUnitState::State::INVALID)
+  if (state == State::INVALID || other.state == State::INVALID)
     return false;
   return even.Overlaps(other.even) || even.Overlaps(other.odd) || odd.Overlaps(other.even) ||
          odd.Overlaps(other.odd);
 }
 
 // Scans though active texture units checks for overlaps.
-void FinalizeBinds(BitSet32 used_textures)
+void FinalizeBinds(const BitSet32 used_textures)
 {
-  for (u32 i : used_textures)
+  for (const u32 i : used_textures)
   {
     if (s_unit[i].even.Overlaps(s_unit[i].odd))
     {  // Self-overlap
@@ -267,12 +267,12 @@ void FinalizeBinds(BitSet32 used_textures)
   }
 }
 
-bool IsCached(u32 unit)
+bool IsCached(const u32 unit)
 {
   return s_unit[unit].state == TextureUnitState::State::CACHED;
 }
 
-bool IsValid(u32 unit)
+bool IsValid(const u32 unit)
 {
   return s_unit[unit].state != TextureUnitState::State::INVALID;
 }

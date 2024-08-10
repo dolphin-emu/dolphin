@@ -21,7 +21,6 @@
 
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
-#include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
@@ -50,7 +49,7 @@ constexpr int SCROLLBAR_PAGESTEP = 250;
 constexpr int SCROLLBAR_MAXIMUM = 20000;
 constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
 
-const QString INVALID_MEMORY = QStringLiteral("-");
+const auto INVALID_MEMORY = QStringLiteral("-");
 
 class MemoryViewTable final : public QTableWidget
 {
@@ -115,7 +114,7 @@ public:
 
   void wheelEvent(QWheelEvent* event) override
   {
-    auto delta =
+    const auto delta =
         -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
     if (delta == 0)
@@ -130,7 +129,7 @@ public:
     if (event->button() != Qt::LeftButton)
       return;
 
-    auto* item = this->itemAt(event->pos());
+    const auto* item = this->itemAt(event->pos());
     if (!item)
       return;
 
@@ -146,16 +145,16 @@ public:
     }
   }
 
-  void OnItemChanged(QTableWidgetItem* item)
+  void OnItemChanged(const QTableWidgetItem* item) const
   {
-    QString text = item->text();
-    MemoryViewWidget::Type type =
+    const QString text = item->text();
+    const auto type =
         static_cast<MemoryViewWidget::Type>(item->data(USER_ROLE_VALUE_TYPE).toInt());
-    std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
+    const std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
 
     u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
-    u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
-    AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
+    const u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
+    AddressSpace::Accessors* accessors = GetAccessors(m_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_view->m_system);
 
@@ -221,7 +220,7 @@ void MemoryViewWidget::UpdateFont(const QFont& font)
   CreateTable();
 }
 
-constexpr int GetTypeSize(MemoryViewWidget::Type type)
+constexpr int GetTypeSize(const MemoryViewWidget::Type type)
 {
   switch (type)
   {
@@ -247,7 +246,7 @@ constexpr int GetTypeSize(MemoryViewWidget::Type type)
   }
 }
 
-constexpr int GetCharacterCount(MemoryViewWidget::Type type)
+constexpr int GetCharacterCount(const MemoryViewWidget::Type type)
 {
   // Max number of characters +1 for spacing between columns.
   switch (type)
@@ -435,7 +434,7 @@ void MemoryViewWidget::Update()
   update();
 }
 
-void MemoryViewWidget::UpdateColumns()
+void MemoryViewWidget::UpdateColumns() const
 {
   if (!isVisible())
     return;
@@ -444,7 +443,7 @@ void MemoryViewWidget::UpdateColumns()
   if (m_table->item(1, 1) == nullptr)
     return;
 
-  if (Core::GetState(m_system) == Core::State::Paused)
+  if (GetState(m_system) == Core::State::Paused)
   {
     const Core::CPUThreadGuard guard(m_system);
     UpdateColumns(&guard);
@@ -456,7 +455,7 @@ void MemoryViewWidget::UpdateColumns()
   }
 }
 
-void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
+void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard) const
 {
   // Check if table is created
   if (m_table->item(1, 1) == nullptr)
@@ -470,7 +469,7 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
     {
       auto* cell_item = m_table->item(i, c + MISC_COLUMNS);
       const u32 cell_address = cell_item->data(USER_ROLE_CELL_ADDRESS).toUInt();
-      const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
+      const auto type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
       cell_item->setText(guard ? ValueToString(*guard, cell_address, type) : INVALID_MEMORY);
 
@@ -482,9 +481,9 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
 }
 
 // May only be called if we have taken on the role of the CPU thread
-QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type)
+QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, const u32 address, const Type type) const
 {
-  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
+  const AddressSpace::Accessors* accessors = GetAccessors(m_address_space);
   if (!accessors->IsValidAddress(guard, address))
     return INVALID_MEMORY;
 
@@ -552,7 +551,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   }
 }
 
-void MemoryViewWidget::UpdateBreakpointTags()
+void MemoryViewWidget::UpdateBreakpointTags() const
 {
   for (int i = 0; i < m_table->rowCount(); i++)
   {
@@ -561,7 +560,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
     for (int c = 0; c < m_data_columns; c++)
     {
       // Pull address from cell itself, helpful for dual column view.
-      auto cell = m_table->item(i, c + MISC_COLUMNS);
+      const auto cell = m_table->item(i, c + MISC_COLUMNS);
       const u32 address = cell->data(USER_ROLE_CELL_ADDRESS).toUInt();
 
       if (address == 0)
@@ -596,7 +595,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
   }
 }
 
-void MemoryViewWidget::SetAddressSpace(AddressSpace::Type address_space)
+void MemoryViewWidget::SetAddressSpace(const AddressSpace::Type address_space)
 {
   if (m_address_space == address_space)
   {
@@ -612,7 +611,7 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
   return m_address_space;
 }
 
-std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView input_text) const
+std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStringView input_text)
 {
   if (type == Type::Null)
     return {};
@@ -640,7 +639,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     {
       const u32 value = std::bit_cast<u32>(float_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -652,7 +651,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     {
       const u64 value = std::bit_cast<u64>(double_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -664,7 +663,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap8(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -674,7 +673,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap16(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -684,7 +683,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -698,7 +697,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap8(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -711,7 +710,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap16(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -724,7 +723,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -734,7 +733,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -765,7 +764,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
   return {};
 }
 
-void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view)
+void MemoryViewWidget::SetDisplay(const Type type, const int bytes_per_row, const int alignment, const bool dual_view)
 {
   m_type = type;
   m_bytes_per_row = bytes_per_row;
@@ -778,12 +777,12 @@ void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, b
   CreateTable();
 }
 
-void MemoryViewWidget::SetBPType(BPType type)
+void MemoryViewWidget::SetBPType(const BPType type)
 {
   m_bp_type = type;
 }
 
-void MemoryViewWidget::SetAddress(u32 address)
+void MemoryViewWidget::SetAddress(const u32 address)
 {
   m_address_highlight = address;
   if (m_address == address)
@@ -794,12 +793,17 @@ void MemoryViewWidget::SetAddress(u32 address)
   Update();
 }
 
-void MemoryViewWidget::SetBPLoggingEnabled(bool enabled)
+void MemoryViewWidget::EnableBPLogging()
 {
-  m_do_log = enabled;
+  m_do_log = true;
 }
 
-void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
+void MemoryViewWidget::DisableBPLogging()
+{
+  m_do_log = false;
+}
+
+void MemoryViewWidget::ToggleBreakpoint(const u32 addr, const bool row)
 {
   if (m_address_space != AddressSpace::Type::Effective)
     return;
@@ -817,8 +821,8 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
 
   for (int i = 0; i < breaks; i++)
   {
-    u32 address = addr + length * i;
-    TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
+    const u32 address = addr + length * i;
+    const TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
 
     if (check_ptr == nullptr && !overlap)
     {
@@ -844,17 +848,17 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   Update();
 }
 
-void MemoryViewWidget::OnCopyAddress(u32 addr)
+void MemoryViewWidget::OnCopyAddress(const u32 addr)
 {
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
-void MemoryViewWidget::OnCopyHex(u32 addr)
+void MemoryViewWidget::OnCopyHex(const u32 addr) const
 {
   const auto length = GetTypeSize(m_type);
 
   const u64 value =
-      AddressSpace::GetAccessors(m_address_space)->ReadU64(Core::CPUThreadGuard{m_system}, addr);
+      GetAccessors(m_address_space)->ReadU64(Core::CPUThreadGuard{m_system}, addr);
 
   QApplication::clipboard()->setText(
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
@@ -872,7 +876,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
   const bool item_has_value =
       item_selected->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null) &&
-      AddressSpace::GetAccessors(m_address_space)
+      GetAccessors(m_address_space)
           ->IsValidAddress(Core::CPUThreadGuard{m_system}, addr);
 
   auto* menu = new QMenu(this);
@@ -936,7 +940,7 @@ void MemoryViewWidget::ScrollbarActionTriggered(int action)
   }
 }
 
-void MemoryViewWidget::ScrollbarSliderReleased()
+void MemoryViewWidget::ScrollbarSliderReleased() const
 {
   // Reset the draggable part of the bar back to the center.
   m_scrollbar->setValue(SCROLLBAR_CENTER);

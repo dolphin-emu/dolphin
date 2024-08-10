@@ -7,12 +7,10 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 #include <optional>
 #include <utility>
-#include <vector>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -66,10 +64,10 @@ GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          [this] { LoadSettings(Core::GetState(Core::System::GetInstance())); });
+          [this] { LoadSettings(GetState(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { LoadSettings(state); });
-  LoadSettings(Core::GetState(Core::System::GetInstance()));
+          [this](const Core::State state) { LoadSettings(state); });
+  LoadSettings(GetState(Core::System::GetInstance()));
 }
 
 void GamecubeControllersWidget::CreateLayout()
@@ -85,12 +83,12 @@ void GamecubeControllersWidget::CreateLayout()
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
     auto* gc_button = m_gc_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
-    for (const auto& item : s_gc_types)
+    for (const auto& val : s_gc_types | std::views::values)
     {
-      gc_box->addItem(tr(item.second));
+      gc_box->addItem(tr(val));
     }
 
-    int controller_row = m_gc_layout->rowCount();
+    const int controller_row = m_gc_layout->rowCount();
     m_gc_layout->addWidget(gc_label, controller_row, 0);
     m_gc_layout->addWidget(gc_box, controller_row, 1);
     m_gc_layout->addWidget(gc_button, controller_row, 2);
@@ -116,7 +114,7 @@ void GamecubeControllersWidget::ConnectWidgets()
   }
 }
 
-void GamecubeControllersWidget::OnGCTypeChanged(size_t index)
+void GamecubeControllersWidget::OnGCTypeChanged(const size_t index) const
 {
   const SerialInterface::SIDevices si_device =
       FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex());
@@ -124,7 +122,7 @@ void GamecubeControllersWidget::OnGCTypeChanged(size_t index)
                                   si_device != SerialInterface::SIDEVICE_GC_GBA);
 }
 
-void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
+void GamecubeControllersWidget::OnGCPadConfigure(const size_t index)
 {
   MappingWindow::Type type;
 
@@ -162,20 +160,20 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
     return;
   }
 
-  MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));
+  auto window = new MappingWindow(this, type, static_cast<int>(index));
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   SetQWidgetWindowDecorations(window);
   window->show();
 }
 
-void GamecubeControllersWidget::LoadSettings(Core::State state)
+void GamecubeControllersWidget::LoadSettings(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     const SerialInterface::SIDevices si_device =
-        Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
+        Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
     const std::optional<int> gc_index = ToGCMenuIndex(si_device);
     if (gc_index)
     {
@@ -186,7 +184,7 @@ void GamecubeControllersWidget::LoadSettings(Core::State state)
   }
 }
 
-void GamecubeControllersWidget::SaveSettings()
+void GamecubeControllersWidget::SaveSettings() const
 {
   {
     Config::ConfigChangeCallbackGuard config_guard;
@@ -196,9 +194,9 @@ void GamecubeControllersWidget::SaveSettings()
     {
       const SerialInterface::SIDevices si_device =
           FromGCMenuIndex(m_gc_controller_boxes[i]->currentIndex());
-      Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
+      SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
 
-      if (Core::IsRunning(system))
+      if (IsRunning(system))
       {
         system.GetSerialInterface().ChangeDevice(si_device, static_cast<s32>(i));
       }

@@ -37,7 +37,7 @@ bool VKBoundingBox::Initialize()
   return true;
 }
 
-std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
+std::vector<BBoxType> VKBoundingBox::Read(const u32 index, const u32 length)
 {
   // Can't be done within a render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -52,7 +52,7 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Copy from GPU -> readback buffer.
-  VkBufferCopy region = {0, 0, BUFFER_SIZE};
+  constexpr VkBufferCopy region = {0, 0, BUFFER_SIZE};
   vkCmdCopyBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
                   m_readback_buffer->GetBuffer(), 1, &region);
 
@@ -77,7 +77,7 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void VKBoundingBox::Write(u32 index, std::span<const BBoxType> values)
+void VKBoundingBox::Write(const u32 index, const std::span<const BBoxType> values)
 {
   // We can't issue vkCmdUpdateBuffer within a render pass.
   // However, the writes must be serialized, so we can't put it in the init buffer.
@@ -102,10 +102,10 @@ void VKBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 
 bool VKBoundingBox::CreateGPUBuffer()
 {
-  VkBufferUsageFlags buffer_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                    VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-  VkBufferCreateInfo info = {
+  constexpr VkBufferUsageFlags buffer_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                                              VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  constexpr VkBufferCreateInfo info = {
       VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
       nullptr,                               // const void*            pNext
       0,                                     // VkBufferCreateFlags    flags
@@ -127,8 +127,8 @@ bool VKBoundingBox::CreateGPUBuffer()
 
   VkBuffer buffer;
   VmaAllocation alloc;
-  VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &info, &alloc_create_info,
-                                 &buffer, &alloc, nullptr);
+  const VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &info, &alloc_create_info,
+                                       &buffer, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vmaCreateBuffer failed: ");

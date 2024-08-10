@@ -5,7 +5,6 @@
 
 #include "Common/EnumUtils.h"
 #include "VideoCommon/ConstantManager.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/VertexShaderGen.h"
@@ -30,7 +29,7 @@ static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_c
                                 std::string_view name, std::string_view shader_type,
                                 std::string_view stored_type, std::string_view offset_name = {});
 
-ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config,
+ShaderCode GenVertexShader(const APIType api_type, const ShaderHostConfig& host_config,
                            const vertex_ubershader_uid_data* uid_data)
 {
   const bool msaa = host_config.msaa;
@@ -302,11 +301,11 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   out.Write("// To use color 1, the vertex descriptor must have color 0 and 1.\n"
             "// If color 1 is present but not color 0, it is used for lighting channel 0.\n"
             "bool use_color_1 = ((components & {0}u) == {0}u); // VB_HAS_COL0 | VB_HAS_COL1\n",
-            static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
+            VB_HAS_COL0 | VB_HAS_COL1);
 
   out.Write("if ((components & {0}u) == {0}u) // VB_HAS_COL0 | VB_HAS_COL1\n"
             "{{\n",
-            static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
+            VB_HAS_COL0 | VB_HAS_COL1);
   LoadVertexAttribute(out, host_config, 2, "rawcolor0", "float4", "ubyte4");
   LoadVertexAttribute(out, host_config, 2, "rawcolor1", "float4", "ubyte4");
   out.Write("  vertex_color_0 = rawcolor0;\n"

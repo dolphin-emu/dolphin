@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include <string_view>
 #include <vector>
 
 #include "Common/Assembler/AssemblerShared.h"
-#include "Common/Assembler/GekkoLexer.h"
 #include "Common/CommonTypes.h"
 
 namespace Common::GekkoAssembler::detail
@@ -32,7 +30,7 @@ using ChunkVariant = std::variant<InstChunk, ByteChunk, PadChunk>;
 
 struct IRBlock
 {
-  explicit IRBlock(u32 address) : block_address(address) {}
+  explicit IRBlock(const u32 address) : block_address(address) {}
 
   u32 BlockEndAddress() const;
 

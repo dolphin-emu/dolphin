@@ -15,7 +15,7 @@ std::unique_ptr<WidescreenManager> g_widescreen;
 
 WidescreenManager::WidescreenManager()
 {
-  std::optional<bool> is_game_widescreen = GetWidescreenOverride();
+  const std::optional<bool> is_game_widescreen = GetWidescreenOverride();
   if (is_game_widescreen.has_value())
     m_is_game_widescreen = is_game_widescreen.value();
 
@@ -31,7 +31,7 @@ WidescreenManager::WidescreenManager()
   }
 
   m_config_changed = ConfigChangedEvent::Register(
-      [this](u32 bits) {
+      [this](const u32 bits) {
         if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
         {
           std::optional<bool> is_game_widescreen = GetWidescreenOverride();
@@ -47,7 +47,7 @@ WidescreenManager::WidescreenManager()
       "Widescreen");
 
   // VertexManager doesn't maintain statistics in Wii mode.
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (!system.IsWii())
   {
     m_update_widescreen = AfterFrameEvent::Register(
@@ -55,13 +55,13 @@ WidescreenManager::WidescreenManager()
   }
 }
 
-std::optional<bool> WidescreenManager::GetWidescreenOverride() const
+std::optional<bool> WidescreenManager::GetWidescreenOverride()
 {
   std::optional<bool> is_game_widescreen;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (system.IsWii())
-    is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
+    is_game_widescreen = Get(Config::SYSCONF_WIDESCREEN);
 
   // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
   if (g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceStandard)
@@ -87,7 +87,7 @@ std::optional<bool> WidescreenManager::GetWidescreenOverride() const
 void WidescreenManager::UpdateWidescreenHeuristic()
 {
   // Reset to baseline state before the update
-  const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
+  const auto [perspective, orthographic] = g_vertex_manager->ResetFlushAspectRatioCount();
   const bool was_orthographically_anamorphic = m_was_orthographically_anamorphic;
   m_heuristic_state = HeuristicState::Inactive;
   m_was_orthographically_anamorphic = false;
@@ -115,8 +115,8 @@ void WidescreenManager::UpdateWidescreenHeuristic()
       return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold;
     };
 
-    const auto& persp = flush_statistics.perspective;
-    const auto& ortho = flush_statistics.orthographic;
+    const auto& persp = perspective;
+    const auto& ortho = orthographic;
 
     g_stats.avg_persp_proj_viewport_ratio = persp.average_ratio.Mean();
     g_stats.avg_ortho_proj_viewport_ratio = ortho.average_ratio.Mean();

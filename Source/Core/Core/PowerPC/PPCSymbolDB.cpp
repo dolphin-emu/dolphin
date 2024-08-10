@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -19,7 +20,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
-#include "Core/Debugger/DebugInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -34,24 +34,24 @@ PPCSymbolDB::~PPCSymbolDB() = default;
 Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
 {
   // It's already in the list
-  if (m_functions.find(start_addr) != m_functions.end())
+  if (m_functions.contains(start_addr))
     return nullptr;
 
   Common::Symbol symbol;
   if (!PPCAnalyst::AnalyzeFunction(guard, start_addr, symbol))
     return nullptr;
 
-  const auto insert = m_functions.emplace(start_addr, std::move(symbol));
-  Common::Symbol* ptr = &insert.first->second;
+  const auto [fst, _snd] = m_functions.emplace(start_addr, std::move(symbol));
+  Common::Symbol* ptr = &fst->second;
   ptr->type = Common::Symbol::Type::Function;
   m_checksum_to_function[ptr->hash].insert(ptr);
   return ptr;
 }
 
-void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                                 const std::string& name, Common::Symbol::Type type)
+void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, const u32 size,
+                                 const std::string& name, const Common::Symbol::Type type)
 {
-  auto iter = m_functions.find(startAddr);
+  const auto iter = m_functions.find(startAddr);
   if (iter != m_functions.end())
   {
     // already got it, let's just update name, checksum & size to be sure.
@@ -87,7 +87,7 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
   }
 }
 
-Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
+Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(const u32 addr)
 {
   auto it = m_functions.lower_bound(addr);
 
@@ -108,7 +108,7 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-std::string_view PPCSymbolDB::GetDescription(u32 addr)
+std::string_view PPCSymbolDB::GetDescription(const u32 addr)
 {
   if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))
     return symbol->name;
@@ -117,17 +117,16 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  for (auto& p : m_functions)
+  for (auto& val : m_functions | std::views::values)
   {
-    p.second.callers.clear();
+    val.callers.clear();
   }
 
-  for (auto& entry : m_functions)
+  for (auto& [fst, f] : m_functions)
   {
-    Common::Symbol& f = entry.second;
     for (const Common::SCall& call : f.calls)
     {
-      const Common::SCall new_call(entry.first, call.call_address);
+      const Common::SCall new_call(fst, call.call_address);
       const u32 function_address = call.function;
 
       auto func_iter = m_functions.find(function_address);
@@ -146,7 +145,7 @@ void PPCSymbolDB::FillInCallers()
   }
 }
 
-void PPCSymbolDB::PrintCalls(u32 funcAddr) const
+void PPCSymbolDB::PrintCalls(const u32 funcAddr) const
 {
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
@@ -167,7 +166,7 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
   }
 }
 
-void PPCSymbolDB::PrintCallers(u32 funcAddr) const
+void PPCSymbolDB::PrintCallers(const u32 funcAddr) const
 {
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
@@ -185,9 +184,9 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
   }
 }
 
-void PPCSymbolDB::LogFunctionCall(u32 addr)
+void PPCSymbolDB::LogFunctionCall(const u32 addr)
 {
-  auto iter = m_functions.find(addr);
+  const auto iter = m_functions.find(addr);
   if (iter == m_functions.end())
     return;
 
@@ -459,9 +458,9 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   std::vector<const Common::Symbol*> function_symbols;
   std::vector<const Common::Symbol*> data_symbols;
 
-  for (const auto& function : m_functions)
+  for (const auto& val : m_functions | std::views::values)
   {
-    const Common::Symbol& symbol = function.second;
+    const Common::Symbol& symbol = val;
     if (symbol.type == Common::Symbol::Type::Function)
       function_symbols.push_back(&symbol);
     else
@@ -507,9 +506,9 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
   const auto& ppc_debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
 
   u32 next_address = 0;
-  for (const auto& function : m_functions)
+  for (const auto& val : m_functions | std::views::values)
   {
-    const Common::Symbol& symbol = function.second;
+    const Common::Symbol& symbol = val;
 
     // Skip functions which are inside bigger functions
     if (symbol.address + symbol.size <= next_address)

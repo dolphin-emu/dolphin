@@ -15,7 +15,7 @@
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-QVariant BranchWatchTableModel::data(const QModelIndex& index, int role) const
+QVariant BranchWatchTableModel::data(const QModelIndex& index, const int role) const
 {
   if (!index.isValid())
     return QVariant();
@@ -38,12 +38,12 @@ QVariant BranchWatchTableModel::data(const QModelIndex& index, int role) const
   return QVariant();
 }
 
-QVariant BranchWatchTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant BranchWatchTableModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
 
-  static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
+  static constexpr std::array headers = {
       QT_TR_NOOP("Instr."),        QT_TR_NOOP("Cond."),
       QT_TR_NOOP("Origin"),        QT_TR_NOOP("Destination"),
       QT_TR_NOOP("Recent Hits"),   QT_TR_NOOP("Total Hits"),
@@ -65,7 +65,7 @@ int BranchWatchTableModel::columnCount(const QModelIndex& parent) const
   return Column::NumberOfColumns;
 }
 
-bool BranchWatchTableModel::removeRows(int row, int count, const QModelIndex& parent)
+bool BranchWatchTableModel::removeRows(const int row, const int count, const QModelIndex& parent)
 {
   if (parent.isValid() || row < 0)
     return false;
@@ -200,7 +200,7 @@ void BranchWatchTableModel::SetInspected(const QModelIndex& index)
   }
 }
 
-void BranchWatchTableModel::SetOriginInspected(u32 origin_addr)
+void BranchWatchTableModel::SetOriginInspected(const u32 origin_addr)
 {
   using Inspection = Core::BranchWatchSelectionInspection;
   static const QList<int> roles = {Qt::FontRole, Qt::ForegroundRole};
@@ -216,7 +216,7 @@ void BranchWatchTableModel::SetOriginInspected(u32 origin_addr)
   }
 }
 
-void BranchWatchTableModel::SetDestinInspected(u32 destin_addr, bool nested)
+void BranchWatchTableModel::SetDestinInspected(const u32 destin_addr, const bool nested)
 {
   using Inspection = Core::BranchWatchSelectionInspection;
   static const QList<int> roles = {Qt::FontRole, Qt::ForegroundRole};
@@ -236,7 +236,7 @@ void BranchWatchTableModel::SetDestinInspected(u32 destin_addr, bool nested)
   SetSymbolInspected(destin_addr, true);
 }
 
-void BranchWatchTableModel::SetSymbolInspected(u32 symbol_addr, bool nested)
+void BranchWatchTableModel::SetSymbolInspected(const u32 symbol_addr, const bool nested)
 {
   using Inspection = Core::BranchWatchSelectionInspection;
   static const QList<int> roles = {Qt::FontRole, Qt::ForegroundRole};
@@ -271,9 +271,9 @@ void BranchWatchTableModel::PrefetchSymbols()
   const Core::BranchWatch::Selection& selection = m_branch_watch.GetSelection();
   m_symbol_list.clear();
   m_symbol_list.reserve(selection.size());
-  for (const Core::BranchWatch::Selection::value_type& value : selection)
+  for (const auto& [collection_ptr, _is_virtual, _condition, _inspection] : selection)
   {
-    const Core::BranchWatch::Collection::value_type* const kv = value.collection_ptr;
+    const Core::BranchWatch::Collection::value_type* const kv = collection_ptr;
     m_symbol_list.emplace_back(m_ppc_symbol_db.GetSymbolFromAddr(kv->first.origin_addr),
                                m_ppc_symbol_db.GetSymbolFromAddr(kv->first.destin_addr));
   }
@@ -286,7 +286,7 @@ static QVariant GetValidSymbolStringVariant(const QVariant& symbol_name_v)
   return QStringLiteral(" --- ");
 }
 
-static QString GetInstructionMnemonic(u32 hex)
+static QString GetInstructionMnemonic(const u32 hex)
 {
   const std::string disas = Common::GekkoDisassembler::Disassemble(hex, 0);
   const std::string::size_type split = disas.find('\t');
@@ -373,7 +373,7 @@ QVariant BranchWatchTableModel::FontRoleData(const QModelIndex& index) const
   return m_font;
 }
 
-QVariant BranchWatchTableModel::TextAlignmentRoleData(const QModelIndex& index) const
+QVariant BranchWatchTableModel::TextAlignmentRoleData(const QModelIndex& index)
 {
   // Qt enums become QFlags when operators are used. QVariant's constructors don't support QFlags.
   switch (index.column())

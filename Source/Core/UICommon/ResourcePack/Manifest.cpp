@@ -10,7 +10,7 @@ namespace ResourcePack
 Manifest::Manifest(const std::string& json)
 {
   picojson::value out;
-  auto error = picojson::parse(out, json);
+  const auto error = parse(out, json);
 
   if (!error.empty())
   {
@@ -20,14 +20,14 @@ Manifest::Manifest(const std::string& json)
   }
 
   // Required fields
-  picojson::value& name = out.get("name");
-  picojson::value& version = out.get("version");
-  picojson::value& id = out.get("id");
+  const picojson::value& name = out.get("name");
+  const picojson::value& version = out.get("version");
+  const picojson::value& id = out.get("id");
 
   // Optional fields
   picojson::value& authors = out.get("authors");
-  picojson::value& description = out.get("description");
-  picojson::value& website = out.get("website");
+  const picojson::value& description = out.get("description");
+  const picojson::value& website = out.get("website");
   picojson::value& compressed = out.get("compressed");
 
   if (!name.is<std::string>() || !id.is<std::string>() || !version.is<std::string>())

@@ -81,7 +81,7 @@ bool AESndUCode::UseNewFlagMasks() const
          m_crc == HASH_2022_PAD || m_crc == HASH_2023;
 }
 
-AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc)
+AESndUCode::AESndUCode(DSPHLE* dsphle, const u32 crc)
     : UCodeInterface(dsphle, crc), m_accelerator(dsphle->GetSystem().GetDSP())
 {
 }
@@ -96,11 +96,11 @@ void AESndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
-void AESndUCode::HandleMail(u32 mail)
+void AESndUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {
@@ -220,7 +220,7 @@ void AESndUCode::DMAInParameterBlock()
   m_parameter_block.flags = HLEMemory_Read_U32(memory, m_parameter_block_addr + 40);
 }
 
-void AESndUCode::DMAOutParameterBlock()
+void AESndUCode::DMAOutParameterBlock() const
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   HLEMemory_Write_U32(memory, m_parameter_block_addr + 0, m_parameter_block.out_buf);
@@ -240,7 +240,7 @@ void AESndUCode::DMAOutParameterBlock()
   HLEMemory_Write_U32(memory, m_parameter_block_addr + 40, m_parameter_block.flags);
 }
 
-AESndAccelerator::AESndAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp)
+AESndAccelerator::AESndAccelerator(DSPManager& dsp) : m_dsp(dsp)
 {
 }
 
@@ -254,19 +254,19 @@ void AESndAccelerator::OnEndException()
   SetPredScale(GetPredScale());
 }
 
-u8 AESndAccelerator::ReadMemory(u32 address)
+u8 AESndAccelerator::ReadMemory(const u32 address)
 {
   return m_dsp.ReadARAM(address);
 }
 
-void AESndAccelerator::WriteMemory(u32 address, u8 value)
+void AESndAccelerator::WriteMemory(const u32 address, const u8 value)
 {
   m_dsp.WriteARAM(value, address);
 }
 
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
 
-void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
+void AESndUCode::SetUpAccelerator(const u16 format, [[maybe_unused]] u16 gain)
 {
   // setup_accl
   m_accelerator.SetSampleFormat(format);
