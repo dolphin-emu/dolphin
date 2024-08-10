@@ -3,6 +3,4 @@
 
 #pragma once
 
-#include <string>
-
 extern const char s_dsp_test_text[8434];

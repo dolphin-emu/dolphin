@@ -8,7 +8,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
