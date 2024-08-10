@@ -158,8 +158,9 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
-  const HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                                          IID_PPV_ARGS(m_enumerator.GetAddressOf()));
+  const HRESULT result =
+      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                       IID_PPV_ARGS(m_enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;
@@ -332,8 +333,7 @@ void WASAPIStream::SoundLoop() const
     auto audio_data = reinterpret_cast<s16*>(data);
     GetMixer()->Mix(audio_data, m_frames_in_buffer);
 
-    const bool is_muted =
-        Get(Config::MAIN_AUDIO_MUTED) || Get(Config::MAIN_AUDIO_VOLUME) == 0;
+    const bool is_muted = Get(Config::MAIN_AUDIO_MUTED) || Get(Config::MAIN_AUDIO_VOLUME) == 0;
     const bool need_volume_adjustment = Get(Config::MAIN_AUDIO_VOLUME) != 100 && !is_muted;
 
     if (need_volume_adjustment)

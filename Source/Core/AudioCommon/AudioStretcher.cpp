@@ -25,7 +25,8 @@ void AudioStretcher::Clear()
   m_sound_touch.clear();
 }
 
-void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, const unsigned int num_out)
+void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in,
+                                    const unsigned int num_out)
 {
   const double time_delta = static_cast<double>(num_out) / m_sample_rate;  // seconds
 

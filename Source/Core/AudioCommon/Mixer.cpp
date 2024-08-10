@@ -112,15 +112,15 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, const unsigned int numSamples
   {
     const u32 indexR2 = indexR + 2;  // next sample
 
-    const s16 l1 = read_buffer(indexR & INDEX_MASK);  // current
-    const s16 l2 = read_buffer(indexR2 & INDEX_MASK); // next
+    const s16 l1 = read_buffer(indexR & INDEX_MASK);   // current
+    const s16 l2 = read_buffer(indexR2 & INDEX_MASK);  // next
     int sampleL = ((l1 << 16) + (l2 - l1) * static_cast<u16>(m_frac)) >> 16;
     sampleL = (sampleL * lvolume) >> 8;
     sampleL += samples[currentSample + 1];
     samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
 
-    const s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);  // current
-    const s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK); // next
+    const s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);   // current
+    const s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK);  // next
     int sampleR = ((r1 << 16) + (r2 - r1) * static_cast<u16>(m_frac)) >> 16;
     sampleR = (sampleR * rvolume) >> 8;
     sampleR += samples[currentSample];
@@ -258,7 +258,8 @@ void Mixer::MixerFifo::PushSamples(const short* samples, const unsigned int num_
   // AyuanX: Actual re-sampling work has been moved to sound thread
   // to alleviate the workload on main thread
   // and we simply store raw data here to make fast mem copy
-  const int over_bytes = num_samples * 4 - (MAX_SAMPLES * 2 - (indexW & INDEX_MASK)) * sizeof(short);
+  const int over_bytes =
+      num_samples * 4 - (MAX_SAMPLES * 2 - (indexW & INDEX_MASK)) * sizeof(short);
   if (over_bytes > 0)
   {
     memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4 - over_bytes);
@@ -333,7 +334,8 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, const unsigned int num
   {
     for (unsigned int i = 0; i < num_samples; ++i)
     {
-      const s16 sample = static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
+      const s16 sample =
+          static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
       samples_stereo[i * 2] = sample;
       samples_stereo[i * 2 + 1] = sample;
     }
@@ -342,7 +344,8 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, const unsigned int num
   }
 }
 
-void Mixer::PushGBASamples(const int device_number, const short* samples, const unsigned int num_samples)
+void Mixer::PushGBASamples(const int device_number, const short* samples,
+                           const unsigned int num_samples)
 {
   m_gba_mixers[device_number].PushSamples(samples, num_samples);
 }
@@ -372,7 +375,8 @@ void Mixer::SetWiimoteSpeakerVolume(const unsigned int lvolume, const unsigned i
   m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
 }
 
-void Mixer::SetGBAVolume(const int device_number, const unsigned int lvolume, const unsigned int rvolume)
+void Mixer::SetGBAVolume(const int device_number, const unsigned int lvolume,
+                         const unsigned int rvolume)
 {
   m_gba_mixers[device_number].SetVolume(lvolume, rvolume);
 }
@@ -381,7 +385,8 @@ void Mixer::StartLogDTKAudio(const std::string& filename)
 {
   if (!m_log_dtk_audio)
   {
-    const bool success = m_wave_writer_dtk.Start(filename, m_streaming_mixer.GetInputSampleRateDivisor());
+    const bool success =
+        m_wave_writer_dtk.Start(filename, m_streaming_mixer.GetInputSampleRateDivisor());
     if (success)
     {
       m_log_dtk_audio = true;

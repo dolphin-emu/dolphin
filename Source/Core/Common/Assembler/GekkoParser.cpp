@@ -842,20 +842,13 @@ void ParseState::EmitErrorHere(std::string&& message)
   const auto [token_type, token_val, invalid_reason, invalid_region] = lexer.Lookahead();
   if (token_type == TokenType::Invalid)
   {
-    error = AssemblerError{
-        std::string(invalid_reason),
-        lexer.CurrentLine(),
-        lexer.LineNumber(),
-        lexer.ColNumber() + invalid_region.begin,
-        invalid_region.len,
-    };
+    error = AssemblerError{std::string(invalid_reason), lexer.CurrentLine(), lexer.LineNumber(),
+                           lexer.ColNumber() + invalid_region.begin, invalid_region.len};
   }
   else
   {
-    error = AssemblerError{
-        std::move(message), lexer.CurrentLine(),        lexer.LineNumber(),
-        lexer.ColNumber(),  token_val.size(),
-    };
+    error = AssemblerError{std::move(message), lexer.CurrentLine(), lexer.LineNumber(),
+                           lexer.ColNumber(), token_val.size()};
   }
 }
 

@@ -78,8 +78,8 @@ void* GLContext::GetFuncAddress(const std::string& name)
   return nullptr;
 }
 
-std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, const bool stereo, const bool core,
-                                             bool prefer_egl, bool prefer_gles)
+std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, const bool stereo,
+                                             const bool core, bool prefer_egl, bool prefer_gles)
 {
   std::unique_ptr<GLContext> context;
 #if defined(__APPLE__)

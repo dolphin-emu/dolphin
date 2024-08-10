@@ -40,7 +40,7 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(const std::strin
     return std::make_unique<PulseAudio>();
   if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
     return std::make_unique<OpenSLESStream>();
-   if (backend == BACKEND_WSAPI && WASAPIStream::IsValid())
+  if (backend == BACKEND_WSAPI && WASAPIStream::IsValid())
     return std::make_unique<WASAPIStream>();
   return {};
 }

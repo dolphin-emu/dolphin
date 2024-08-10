@@ -422,7 +422,8 @@ std::unique_ptr<Context> CreateContextDecrypt(const u8* key)
 }
 
 // OFB encryption and decryption are the exact same. We don't encrypt though.
-void CryptOFB(const u8* key, const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, const size_t size)
+void CryptOFB(const u8* key, const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out,
+              const size_t size)
 {
   mbedtls_aes_context aes_ctx;
   size_t iv_offset = 0;

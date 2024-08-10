@@ -56,7 +56,10 @@ private:
 class Axis final : public Core::Device::Input
 {
 public:
-  Axis(const u8 index, const SHORT& axis, const SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
+  Axis(const u8 index, const SHORT& axis, const SHORT range)
+    : m_axis(axis), m_range(range), m_index(index)
+  {
+  }
   std::string GetName() const override
   {
     return std::string(named_axes[m_index]) + (m_range < 0 ? '-' : '+');
@@ -200,7 +203,8 @@ void DeInit()
   }
 }
 
-Device::Device(const XINPUT_CAPABILITIES& caps, const u8 index) : m_subtype(caps.SubType), m_index(index)
+Device::Device(const XINPUT_CAPABILITIES& caps, const u8 index)
+  : m_subtype(caps.SubType), m_index(index)
 {
   // XInputGetCaps can be broken on some devices, so we'll just ignore it
   // and assume all gamepad + vibration capabilities are supported
@@ -281,8 +285,8 @@ Core::DeviceRemoval Device::UpdateInput()
       m_battery_level = BATTERY_INPUT_MAX_VALUE;
       break;
     default:
-      m_battery_level =
-          battery_info.BatteryLevel / static_cast<ControlState>(BATTERY_LEVEL_FULL) * BATTERY_INPUT_MAX_VALUE;
+      m_battery_level = battery_info.BatteryLevel / static_cast<ControlState>(BATTERY_LEVEL_FULL) *
+                        BATTERY_INPUT_MAX_VALUE;
       break;
     }
   }

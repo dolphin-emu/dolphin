@@ -32,12 +32,13 @@ struct ImagePixelData
   ImagePixelData() = default;
 
   explicit ImagePixelData(std::vector<Pixel> image_pixels, const u32 width_, const u32 height_)
-      : pixels(std::move(image_pixels)), width(width_), height(height_)
+    : pixels(std::move(image_pixels)), width(width_), height(height_)
   {
   }
 
-  explicit ImagePixelData(const u32 width_, const u32 height_, const Pixel& default_color = Pixel{0, 0, 0, 0})
-      : pixels(width_ * height_, default_color), width(width_), height(height_)
+  explicit ImagePixelData(const u32 width_, const u32 height_,
+                          const Pixel& default_color = Pixel{0, 0, 0, 0})
+    : pixels(width_ * height_, default_color), width(width_), height(height_)
   {
   }
   std::vector<Pixel> pixels;

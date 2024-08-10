@@ -62,9 +62,8 @@ const std::vector<MemoryPatch>& MemoryPatches::GetPatches() const
 
 void MemoryPatches::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
 {
-  const auto it = std::ranges::find_if(m_patches, [address](const auto& patch) {
-    return patch.address == address;
-  });
+  const auto it = std::ranges::find_if(
+      m_patches, [address](const auto& patch) { return patch.address == address; });
 
   if (it == m_patches.end())
     return;

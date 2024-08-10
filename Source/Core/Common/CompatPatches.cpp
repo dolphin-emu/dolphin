@@ -44,7 +44,8 @@ static HANDLE WINAPI HeapCreateLow4GB(_In_ DWORD flOptions, _In_ SIZE_T dwInitia
   const auto ntdll = GetModuleHandleW(L"ntdll");
   if (!ntdll)
     return nullptr;
-  const auto RtlCreateHeap = reinterpret_cast<RtlCreateHeap_t>(GetProcAddress(ntdll, "RtlCreateHeap"));
+  const auto RtlCreateHeap =
+    reinterpret_cast<RtlCreateHeap_t>(GetProcAddress(ntdll, "RtlCreateHeap"));
   if (!RtlCreateHeap)
     return nullptr;
   // These values are arbitrary; just change them if problems are encountered later.

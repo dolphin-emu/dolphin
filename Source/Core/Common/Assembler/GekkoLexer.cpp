@@ -669,8 +669,8 @@ TokenType Lexer::ClassifyAlnum() const
   {
     return TokenType::FPR;
   }
-  if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") &&
-      alnum[2] >= '0' && alnum[2] <= '7')
+  if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") && alnum[2] >= '0' &&
+      alnum[2] <= '7')
   {
     return TokenType::CRField;
   }

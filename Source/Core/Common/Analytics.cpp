@@ -56,7 +56,8 @@ void AppendVarInt(std::string* out, u64 v)
   } while (v);
 }
 
-void AppendBytes(std::string* out, const u8* bytes, const u32 length, const bool encode_length = true)
+void AppendBytes(std::string* out, const u8* bytes, const u32 length,
+                 const bool encode_length = true)
 {
   if (encode_length)
   {

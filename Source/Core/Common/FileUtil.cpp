@@ -535,7 +535,8 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
-bool Copy(const std::string_view source_path, const std::string_view dest_path, const bool overwrite_existing)
+bool Copy(const std::string_view source_path, const std::string_view dest_path,
+          const bool overwrite_existing)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {} ({})", __func__, source_path, dest_path,
                 overwrite_existing ? "overwrite" : "preserve");

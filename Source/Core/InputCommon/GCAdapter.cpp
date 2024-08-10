@@ -313,8 +313,8 @@ static void WriteThreadFunc()
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #if LIBUSB_API_HAS_HOTPLUG
-static int HotplugCallback(libusb_context* ctx, const libusb_device* dev, const libusb_hotplug_event event,
-                           void* user_data)
+static int HotplugCallback(libusb_context* ctx, const libusb_device* dev,
+                           const libusb_hotplug_event event, void* user_data)
 {
   if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
   {
@@ -414,8 +414,8 @@ static void RefreshConfig()
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    s_is_adapter_wanted |= Get(Config::GetInfoForSIDevice(i)) ==
-                           SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
+    s_is_adapter_wanted |=
+        Get(Config::GetInfoForSIDevice(i)) == SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
     s_config_rumble_enabled[i] = Get(Config::GetInfoForAdapterRumble(i));
   }
 }

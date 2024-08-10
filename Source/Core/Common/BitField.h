@@ -375,8 +375,9 @@ public:
   using reference = BitFieldArrayRef<position, bits, size, T, S>;
 
 private:
-  constexpr BitFieldArrayIterator(BitFieldArray<position, bits, size, T, S>* array, const size_t index)
-      : m_array(array), m_index(index)
+  constexpr BitFieldArrayIterator(BitFieldArray<position, bits, size, T, S>* array,
+                                  const size_t index)
+    : m_array(array), m_index(index)
   {
   }
 

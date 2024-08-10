@@ -88,11 +88,12 @@ bool WriteImage(const std::string& path, const ImagePixelData& image)
     }
   }
 
-  return SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width,
-                         image.height, image.width * 4);
+  return SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width, image.height,
+                 image.width * 4);
 }
 
-ImagePixelData Resize(const ResizeMode mode, const ImagePixelData& src, const u32 new_width, const u32 new_height)
+ImagePixelData Resize(const ResizeMode mode, const ImagePixelData& src, const u32 new_width,
+                      const u32 new_height)
 {
   ImagePixelData result(new_width, new_height);
 
@@ -115,8 +116,9 @@ ImagePixelData Resize(const ResizeMode mode, const ImagePixelData& src, const u3
   return result;
 }
 
-ImagePixelData ResizeKeepAspectRatio(const ResizeMode mode, const ImagePixelData& src, const u32 new_width,
-                                     const u32 new_height, const Pixel& background_color)
+ImagePixelData ResizeKeepAspectRatio(const ResizeMode mode, const ImagePixelData& src,
+                                     const u32 new_width, const u32 new_height,
+                                     const Pixel& background_color)
 {
   ImagePixelData result(new_width, new_height, background_color);
 

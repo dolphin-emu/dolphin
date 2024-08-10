@@ -117,8 +117,7 @@ void CodeBlock::PushBigEndian(const u32 val)
 FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
                                            u32 current_instruction_address)
 {
-  FailureOr<GekkoIR> parse_result =
-      ParseToIR(instruction, current_instruction_address);
+  FailureOr<GekkoIR> parse_result = ParseToIR(instruction, current_instruction_address);
   if (IsFailure(parse_result))
   {
     return GetFailure(parse_result);
@@ -135,8 +134,8 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
     {
       if (std::holds_alternative<InstChunk>(chunk))
       {
-        for (const auto& [mnemonic_index, op_interval, raw_text, line_number, is_extended]
-          : std::get<InstChunk>(chunk))
+        for (const auto& [mnemonic_index, op_interval, raw_text, line_number, is_extended] :
+             std::get<InstChunk>(chunk))
         {
           OperandList adjusted_ops;
           ASSERT(op_interval.len <= MAX_OPERANDS);

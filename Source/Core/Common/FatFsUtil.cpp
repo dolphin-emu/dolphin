@@ -39,7 +39,8 @@ static Common::FatFsCallbacks* s_callbacks;
 
 namespace
 {
-int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, const u32 sector, const unsigned int count)
+int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, const u32 sector,
+                   const unsigned int count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
   if (!image->Seek(offset, File::SeekOrigin::Begin))
@@ -58,7 +59,8 @@ int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, const u32 sector, con
   return RES_OK;
 }
 
-int SDCardDiskWrite(File::IOFile* image, u8 pdrv, const u8* buff, const u32 sector, const unsigned int count)
+int SDCardDiskWrite(File::IOFile* image, u8 pdrv, const u8* buff, const u32 sector,
+                    const unsigned int count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
   if (!image->Seek(offset, File::SeekOrigin::Begin))
@@ -182,7 +184,8 @@ extern "C" DRESULT disk_read(const BYTE pdrv, BYTE* buff, const LBA_t sector, co
   return static_cast<DRESULT>(s_callbacks->DiskRead(pdrv, buff, sector, count));
 }
 
-extern "C" DRESULT disk_write(const BYTE pdrv, const BYTE* buff, const LBA_t sector, const UINT count)
+extern "C" DRESULT disk_write(const BYTE pdrv, const BYTE* buff, const LBA_t sector,
+                              const UINT count)
 {
   return static_cast<DRESULT>(s_callbacks->DiskWrite(pdrv, buff, sector, count));
 }
@@ -340,8 +343,8 @@ static u64 GetSize(const File::FSTEntry& entry)
     return AlignUp(entry.size, MAX_CLUSTER_SIZE);
 
   u64 size = 0;
-  for (const auto& [_isDirectory, child_size, _physicalName, virtualName, _children]
-    : entry.children)
+  for (const auto& [_isDirectory, child_size, _physicalName, virtualName, _children] :
+       entry.children)
   {
     size += 32;
     // For simplicity, assume that all names are LFN.
@@ -356,8 +359,8 @@ static u64 GetSize(const File::FSTEntry& entry)
   return size;
 }
 
-static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& entry, const bool is_root,
-                 std::vector<u8>& tmp_buffer)
+static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& entry,
+                 const bool is_root, std::vector<u8>& tmp_buffer)
 {
   if (cancelled())
     return false;
@@ -486,11 +489,9 @@ static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& e
 
 static void SortFST(File::FSTEntry* root)
 {
-  std::ranges::sort(
-      root->children,
-      [](const File::FSTEntry& lhs, const File::FSTEntry& rhs) {
-        return lhs.virtualName < rhs.virtualName;
-      });
+  std::ranges::sort(root->children, [](const File::FSTEntry& lhs, const File::FSTEntry& rhs) {
+    return lhs.virtualName < rhs.virtualName;
+  });
   for (auto& child : root->children)
     SortFST(&child);
 }
