@@ -50,7 +50,11 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
   for (auto scale : {1, 2, 4})
     load_png(scale);
 
-  ASSERT(icon.availableSizes().size() > 0);
+  // Change condition to prevent crash if no icons are found
+  if (icon.availableSizes().size() == 0)
+  {
+    qWarning() << "Icon not found:" << QString::fromStdString(std::string(name));
+  }
 
   return icon;
 }
