@@ -5,11 +5,9 @@
 
 #include <QWidget>
 
-#include <functional>
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/CheatSearch.h"

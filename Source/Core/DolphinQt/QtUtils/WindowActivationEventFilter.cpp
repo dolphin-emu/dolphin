@@ -4,7 +4,6 @@
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 
 #include <QEvent>
-#include <QObject>
 
 bool WindowActivationEventFilter::eventFilter(QObject* object, QEvent* event)
 {

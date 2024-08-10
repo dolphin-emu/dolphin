@@ -5,8 +5,6 @@
 
 #include <atomic>
 
-#include "Common/CommonTypes.h"
-
 class TASControlState
 {
 public:

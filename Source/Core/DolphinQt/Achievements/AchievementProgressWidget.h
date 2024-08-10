@@ -6,7 +6,6 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
 #include "Core/AchievementManager.h"
 
 class AchievementBox;

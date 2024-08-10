@@ -5,12 +5,9 @@
 
 #include <map>
 #include <optional>
-#include <string_view>
 #include <utility>
 
 #include <QDialog>
-
-#include "Common/CommonTypes.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"

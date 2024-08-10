@@ -5,7 +5,6 @@
 
 #include <QCheckBox>
 #include <QDoubleSpinBox>
-#include <QString>
 
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 

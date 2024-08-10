@@ -12,7 +12,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>

@@ -6,7 +6,6 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QVBoxLayout>
 
 #include "InputCommon/InputConfig.h"
 

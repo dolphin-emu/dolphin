@@ -4,20 +4,16 @@
 #include "DolphinQt/Debugger/BreakpointDialog.h"
 
 #include <QButtonGroup>
-#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QRadioButton>
-#include <QVBoxLayout>
 
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Expression.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 

@@ -10,8 +10,6 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMenu>
-#include <QPushButton>
-#include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

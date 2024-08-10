@@ -10,7 +10,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QStyle>
-#include <QVBoxLayout>
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"

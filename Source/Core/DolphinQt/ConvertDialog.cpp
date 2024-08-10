@@ -16,7 +16,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QList>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>

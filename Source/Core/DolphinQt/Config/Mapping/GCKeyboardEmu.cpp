@@ -8,7 +8,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QStyle>
-#include <QVBoxLayout>
 
 #include "InputCommon/InputConfig.h"
 

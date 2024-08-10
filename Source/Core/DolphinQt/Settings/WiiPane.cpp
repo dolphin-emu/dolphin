@@ -9,16 +9,13 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDir>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QSlider>
-#include <QSpacerItem>
 #include <QStringList>
 
 #include "Common/Config/Config.h"

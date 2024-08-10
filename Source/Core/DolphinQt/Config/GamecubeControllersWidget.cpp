@@ -7,12 +7,10 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 #include <optional>
 #include <utility>
-#include <vector>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
