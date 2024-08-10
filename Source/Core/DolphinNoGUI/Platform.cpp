@@ -6,7 +6,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
-#include "Core/State.h"
 #include "Core/System.h"
 
 Platform::~Platform() = default;
