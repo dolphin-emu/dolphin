@@ -4,7 +4,6 @@
 #include <cstring>
 #include <disasm.h>  // From Bochs, fallback included in Externals.
 #include <gtest/gtest.h>
-#include <map>
 #include <memory>
 #include <vector>
 
