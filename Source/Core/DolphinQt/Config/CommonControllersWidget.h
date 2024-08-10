@@ -5,8 +5,6 @@
 
 #include <QWidget>
 
-#include <array>
-
 class QCheckBox;
 class QGroupBox;
 class QVBoxLayout;

@@ -16,7 +16,6 @@
 #include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSlider>
 #include <QSpinBox>
 #include <QTableWidget>
 #include <QTextBlock>

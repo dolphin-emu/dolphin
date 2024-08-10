@@ -4,17 +4,13 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementProgressWidget.h"
 
-#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QProgressBar>
-#include <QString>
 #include <QVBoxLayout>
 
 #include <rcheevos/include/rc_api_runtime.h>
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 

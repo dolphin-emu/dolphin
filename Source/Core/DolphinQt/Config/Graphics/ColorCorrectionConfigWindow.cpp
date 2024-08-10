@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 
-#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGroupBox>

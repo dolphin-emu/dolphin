@@ -12,7 +12,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QRadioButton>
 #include <QVBoxLayout>
 

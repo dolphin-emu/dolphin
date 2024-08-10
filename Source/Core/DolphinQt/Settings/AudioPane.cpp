@@ -11,11 +11,8 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QRadioButton>
 #include <QSlider>
-#include <QSpacerItem>
 #include <QSpinBox>
-#include <QVBoxLayout>
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Enums.h"
@@ -25,7 +22,6 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
-#include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
 
 AudioPane::AudioPane()

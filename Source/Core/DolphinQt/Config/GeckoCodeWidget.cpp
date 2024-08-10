@@ -13,9 +13,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
-#include <QPushButton>
 #include <QTextEdit>
-#include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

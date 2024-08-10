@@ -3,7 +3,6 @@
 
 #include "DolphinQt/NetPlay/GameDigestDialog.h"
 
-#include <algorithm>
 #include <functional>
 
 #include <QDialogButtonBox>

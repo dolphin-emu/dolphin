@@ -10,7 +10,6 @@
 #include <QComboBox>
 #include <QCompleter>
 #include <QDialogButtonBox>
-#include <QEvent>
 #include <QGroupBox>
 #include <QKeyEvent>
 #include <QKeySequence>
@@ -20,10 +19,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QStackedWidget>
 #include <QString>
 #include <QStringConverter>
-#include <QStringList>
 #include <QThread>
 #include <QVBoxLayout>
 

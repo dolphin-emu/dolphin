@@ -3,15 +3,10 @@
 
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-#include <QSpinBox>
-#include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"

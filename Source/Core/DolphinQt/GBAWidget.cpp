@@ -6,15 +6,9 @@
 #include <fmt/format.h>
 
 #include <QAction>
-#include <QCloseEvent>
 #include <QContextMenuEvent>
-#include <QDragEnterEvent>
-#include <QDropEvent>
-#include <QFileDialog>
-#include <QIcon>
 #include <QMenu>
 #include <QMimeData>
-#include <QMouseEvent>
 #include <QPainter>
 
 #include "AudioCommon/AudioCommon.h"

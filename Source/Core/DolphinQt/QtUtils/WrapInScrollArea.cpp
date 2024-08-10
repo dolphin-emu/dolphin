@@ -5,7 +5,6 @@
 
 #include <QFrame>
 #include <QLayout>
-#include <QPalette>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWidget>

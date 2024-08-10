@@ -8,20 +8,16 @@
 #include <QClipboard>
 #include <QComboBox>
 #include <QFont>
-#include <QFontDatabase>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
-#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QShortcut>
 #include <QStyle>
 #include <QTabWidget>
-#include <QTextBlock>
-#include <QTextEdit>
 #include <QToolBar>
 #include <QToolButton>
 

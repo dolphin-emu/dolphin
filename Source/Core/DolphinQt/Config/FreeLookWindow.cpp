@@ -4,8 +4,6 @@
 #include "DolphinQt/Config/FreeLookWindow.h"
 
 #include <QDialogButtonBox>
-#include <QLabel>
-#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "DolphinQt/Config/FreeLookWidget.h"

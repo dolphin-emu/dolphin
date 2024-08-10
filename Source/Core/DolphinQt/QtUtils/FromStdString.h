@@ -4,7 +4,6 @@
 #pragma once
 
 #include <QString>
-#include <string_view>
 
 namespace QtUtils
 {

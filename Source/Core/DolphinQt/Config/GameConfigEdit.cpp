@@ -7,13 +7,11 @@
 #include <QCompleter>
 #include <QDesktopServices>
 #include <QFile>
-#include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QStringListModel>
-#include <QTextCursor>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWhatsThis>

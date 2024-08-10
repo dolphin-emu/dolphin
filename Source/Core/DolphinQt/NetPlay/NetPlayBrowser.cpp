@@ -12,11 +12,8 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
-#include <QRadioButton>
 #include <QSpacerItem>
 #include <QTableWidget>
-#include <QTableWidgetItem>
 #include <QVBoxLayout>
 
 #include "Common/Version.h"

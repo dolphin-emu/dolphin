@@ -5,12 +5,8 @@
 
 #include <QFont>
 #include <QGroupBox>
-#include <QHBoxLayout>
 #include <QIcon>
-#include <QLabel>
-#include <QTabWidget>
 #include <QTimer>
-#include <QToolTip>
 #include <QVBoxLayout>
 
 #include "Common/CommonPaths.h"
