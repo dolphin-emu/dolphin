@@ -11,7 +11,6 @@
 #include <picojson.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumFormatter.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 
 class ShaderCode;

@@ -7,10 +7,8 @@
 #include <array>
 #include <cstdio>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"

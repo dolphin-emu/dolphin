@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <array>
 #include <list>
 #include <map>
 #include <memory>
 #include <optional>
-#include <string>
-#include <string_view>
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"

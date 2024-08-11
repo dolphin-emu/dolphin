@@ -48,8 +48,6 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/NetPlayProto.h"
-#include "Core/PatchEngine.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"

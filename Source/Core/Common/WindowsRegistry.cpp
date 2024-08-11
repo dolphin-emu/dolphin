@@ -2,7 +2,6 @@
 
 #include <Windows.h>
 #include <string>
-#include <type_traits>
 #include "Common/StringUtil.h"
 
 namespace WindowsRegistry

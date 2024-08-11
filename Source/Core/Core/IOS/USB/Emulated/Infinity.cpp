@@ -5,7 +5,6 @@
 
 #include <array>
 #include <bit>
-#include <map>
 #include <mutex>
 #include <span>
 #include <vector>
@@ -15,7 +14,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"

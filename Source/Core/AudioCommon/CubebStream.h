@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstddef>
 #include <functional>
 #include <memory>
 #include <vector>

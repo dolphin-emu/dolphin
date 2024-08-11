@@ -7,7 +7,6 @@
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 namespace FreeLook

@@ -16,7 +16,6 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace DX11
 {

@@ -50,12 +50,10 @@
 #endif
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
-#include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -68,7 +66,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 

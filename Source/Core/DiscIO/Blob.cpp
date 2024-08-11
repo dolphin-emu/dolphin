@@ -4,8 +4,6 @@
 #include "DiscIO/Blob.h"
 
 #include <algorithm>
-#include <cstddef>
-#include <limits>
 #include <memory>
 #include <string>
 #include <utility>

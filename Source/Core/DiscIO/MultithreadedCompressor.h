@@ -9,7 +9,6 @@
 #include <thread>
 #include <utility>
 #include <variant>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/Event.h"

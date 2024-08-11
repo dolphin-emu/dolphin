@@ -12,8 +12,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "Core/IOS/Network/KD/Mail/MailCommon.h"
 #include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"

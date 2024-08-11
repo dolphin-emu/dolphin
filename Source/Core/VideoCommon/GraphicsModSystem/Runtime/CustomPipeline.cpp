@@ -9,7 +9,6 @@
 
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
-#include "Common/VariantUtil.h"
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"

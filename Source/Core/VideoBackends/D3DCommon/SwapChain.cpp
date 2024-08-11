@@ -3,11 +3,9 @@
 
 #include "VideoBackends/D3DCommon/SwapChain.h"
 
-#include <algorithm>
 #include <cstdint>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-
 class GLContext;
 
 namespace OGL

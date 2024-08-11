@@ -18,7 +18,6 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
-#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VideoConfig.h"
 
 std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;

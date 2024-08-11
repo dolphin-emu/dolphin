@@ -18,7 +18,6 @@
 #include "Common/StringUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
-#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"

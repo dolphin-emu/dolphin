@@ -5,7 +5,6 @@
 
 #include <cstddef>
 #include <fstream>
-#include <functional>
 #include <string>
 #include <string_view>
 #include <unordered_map>

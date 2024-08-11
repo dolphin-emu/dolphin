@@ -29,7 +29,6 @@
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/VariantUtil.h"
 #include "Common/Version.h"
@@ -65,8 +64,6 @@
 #include "Core/WiiUtils.h"
 
 #include "InputCommon/GCPadStatus.h"
-
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace Movie
 {
