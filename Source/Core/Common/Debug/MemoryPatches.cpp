@@ -4,7 +4,6 @@
 #include "Common/Debug/MemoryPatches.h"
 
 #include <algorithm>
-#include <sstream>
 #include <utility>
 
 namespace Common::Debug

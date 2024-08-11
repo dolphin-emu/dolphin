@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <functional>
 #include <memory>
 
 struct cubeb;

@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <type_traits>
 #include <utility>
 
 #include "Common/CommonTypes.h"

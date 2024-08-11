@@ -23,7 +23,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 #include <algorithm>
-#include <string_view>
 
 namespace OGL
 {

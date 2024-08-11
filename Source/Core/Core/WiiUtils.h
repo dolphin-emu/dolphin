@@ -5,7 +5,6 @@
 
 #include <cstddef>
 #include <functional>
-#include <optional>
 #include <string>
 #include <unordered_set>
 

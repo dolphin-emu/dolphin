@@ -4,7 +4,6 @@
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 
 #include <optional>
-#include <sstream>
 #include <string>
 
 #include <picojson.h>

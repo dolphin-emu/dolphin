@@ -22,7 +22,6 @@
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/OnScreenDisplay.h"
 
 namespace
 {

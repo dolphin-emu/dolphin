@@ -7,7 +7,6 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/Boot/Boot.h"
-#include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
