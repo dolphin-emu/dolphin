@@ -270,12 +270,14 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "{{\n",
             Common::ToUnderlying(VB_HAS_TANGENT));
   LoadVertexAttribute(out, host_config, 2, "rawtangent", "float3", "float3");
-  out.Write("  _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, rawtangent));\n"
+  out.Write("  _tangent = normalize(float3(dot(P0.xyz, rawtangent), dot(P1.xyz, rawtangent), dot(P2.xyz, "
+            "rawtangent)));\n"
             "}}\n"
             "else\n"
             "{{\n"
-            "  _tangent = float3(dot(N0, " I_CACHED_TANGENT ".xyz), dot(N1, " I_CACHED_TANGENT
-            ".xyz), dot(N2, " I_CACHED_TANGENT ".xyz));\n"
+            "  _tangent = normalize(float3(dot(P0.xyz, " I_CACHED_TANGENT
+            ".xyz), dot(P1.xyz, " I_CACHED_TANGENT ".xyz), dot(P2.xyz, " I_CACHED_TANGENT
+            ".xyz)));\n"
             "}}\n"
             "\n"
             "float3 _binormal = float3(0.0, 0.0, 0.0);\n"
@@ -283,13 +285,14 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "{{\n",
             Common::ToUnderlying(VB_HAS_BINORMAL));
   LoadVertexAttribute(out, host_config, 2, "rawbinormal", "float3", "float3");
-  out.Write("  _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
-            "rawbinormal));\n"
+  out.Write("  _binormal = normalize(float3(dot(P0.xyz, rawbinormal), dot(P1.xyz, rawbinormal), dot(P2.xyz, "
+            "rawbinormal)));\n"
             "}}\n"
             "else\n"
             "{{\n"
-            "  _binormal = float3(dot(N0, " I_CACHED_BINORMAL ".xyz), dot(N1, " I_CACHED_BINORMAL
-            ".xyz), dot(N2, " I_CACHED_BINORMAL ".xyz));\n"
+            "  _binormal = normalize(float3(dot(P0.xyz, " I_CACHED_BINORMAL
+            ".xyz), dot(P1.xyz, " I_CACHED_BINORMAL ".xyz), dot(P2.xyz, " I_CACHED_BINORMAL
+            ".xyz)));\n"
             "}}\n"
             "\n");
 

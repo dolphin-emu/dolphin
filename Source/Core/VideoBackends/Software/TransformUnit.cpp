@@ -52,9 +52,18 @@ static void MultiplyVec3Mat24(const Vec3& vec, const float* mat, Vec3& result)
 
 static void MultiplyVec3Mat34(const Vec3& vec, const float* mat, Vec3& result)
 {
+  // use 1 for vec.w
   result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z + mat[3];
   result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] * vec.z + mat[7];
   result.z = mat[8] * vec.x + mat[9] * vec.y + mat[10] * vec.z + mat[11];
+}
+
+static void MultiplyVec3Mat33X(const Vec3& vec, const float* mat, Vec3& result)
+{
+  // use 0 for vec.w
+  result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z;
+  result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] * vec.z;
+  result.z = mat[8] * vec.x + mat[9] * vec.y + mat[10] * vec.z;
 }
 
 static void MultipleVec3Perspective(const Vec3& vec, const Projection::Raw& proj, Vec4& result)
@@ -93,16 +102,21 @@ void TransformPosition(const InputVertexData* src, OutputVertexData* dst)
 void TransformNormal(const InputVertexData* src, OutputVertexData* dst)
 {
   const float* mat = &xfmem.normalMatrices[(src->posMtx & 31) * 3];
+  const float* pos_mat = &xfmem.posMatrices[src->posMtx * 4];
 
   MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
-  MultiplyVec3Mat33(src->normal[1], mat, dst->normal[1]);
-  MultiplyVec3Mat33(src->normal[2], mat, dst->normal[2]);
+  MultiplyVec3Mat33X(src->normal[1], pos_mat, dst->normal[1]);
+  MultiplyVec3Mat33X(src->normal[2], pos_mat, dst->normal[2]);
+  // TODO: is this comment still accurate if the position matrix is used, not the normal matrix?
+  //
   // The scale of the transform matrix is used to control the size of the emboss map effect, by
   // changing the scale of the transformed binormals (which only get used by emboss map texgens).
   // By normalising the first transformed normal (which is used by lighting calculations and needs
   // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
   // and not scaling for lighting.
   dst->normal[0].Normalize();
+  dst->normal[1].Normalize();
+  dst->normal[2].Normalize();
 }
 
 static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
