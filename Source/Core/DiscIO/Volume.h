@@ -35,8 +35,8 @@ struct Partition final
   constexpr bool operator!=(const Partition& other) const { return !(*this == other); }
   constexpr bool operator<(const Partition& other) const { return offset < other.offset; }
   constexpr bool operator>(const Partition& other) const { return other < *this; }
-  constexpr bool operator<=(const Partition& other) const { return !(*this < other); }
-  constexpr bool operator>=(const Partition& other) const { return !(*this > other); }
+  constexpr bool operator<=(const Partition& other) const { return *this >= other; }
+  constexpr bool operator>=(const Partition& other) const { return *this <= other; }
   u64 offset{std::numeric_limits<u64>::max()};
 };
 

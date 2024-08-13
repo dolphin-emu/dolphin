@@ -98,7 +98,7 @@ public:
       {
         for (auto name = names; name->u1.Function; name++)
         {
-          if (!IMAGE_SNAP_BY_ORDINAL(name->u1.Ordinal))
+          if ((name->u1.Ordinal & IMAGE_ORDINAL_FLAG64) == 0)
           {
             auto import = GetRva<PIMAGE_IMPORT_BY_NAME>(name->u1.AddressOfData);
             if (!strcmp(import->Name, function_name))

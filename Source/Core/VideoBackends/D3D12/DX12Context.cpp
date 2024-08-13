@@ -51,7 +51,7 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
     ComPtr<IDXGIAdapter> adapter;
     HRESULT hr = temp_dxgi_factory->EnumAdapters(adapter_index, &adapter);
 
-    if (!SUCCEEDED(hr))
+    if (FAILED(hr))
       return {};
 
     PFN_D3D12_CREATE_DEVICE d3d12_create_device;
@@ -62,7 +62,7 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
     }
 
     hr = d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
-    if (!SUCCEEDED(hr))
+    if (FAILED(hr))
       return {};
   }
 

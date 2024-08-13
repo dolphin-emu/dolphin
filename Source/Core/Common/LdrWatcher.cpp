@@ -116,8 +116,8 @@ void LdrDllNotifier::Install(LdrObserver* observer)
   if (!initialized)
     return;
   void* cookie{};
-  if (!NT_SUCCESS(LdrRegisterDllNotification(0, DllNotificationCallback,
-                                             static_cast<PVOID>(observer), &cookie)))
+  if (LdrRegisterDllNotification(0, DllNotificationCallback, static_cast<PVOID>(observer), &cookie)
+      < 0)
     cookie = {};
   observer->cookie = cookie;
   return;
