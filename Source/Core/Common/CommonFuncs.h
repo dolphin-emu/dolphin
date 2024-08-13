@@ -37,7 +37,7 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
   {                                                                                                \
     DebugBreak();                                                                                  \
   }
-#endif  // WIN32 ndef
+#endif  // _WIN32
 
 namespace Common
 {
