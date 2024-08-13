@@ -324,7 +324,7 @@ void SetUserDirectory(std::string custom_path)
 
   // Check our registry keys
   HKEY hkey;
-  Common::ScopeGuard dolphin_hkey_guard([&] { RegCloseKey(hkey); });
+  Common::ScopeGuard hkey_guard([&] { RegCloseKey(hkey); });
   DWORD local = 0;
   std::unique_ptr<TCHAR[]> configPath;
   if (SUCCEEDED(RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0,

@@ -3,13 +3,12 @@
 
 #pragma once
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 // clang-format off
 #include <Windows.h>
 #include <mmreg.h>
 #include <objbase.h>
-#include <wil/resource.h>
 // clang-format on
 
 #include <atomic>
@@ -28,7 +27,7 @@ struct IMMDeviceEnumerator;
 
 class WASAPIStream final : public SoundStream
 {
-#ifdef _MSC_VER
+#ifdef _WIN32
 public:
   explicit WASAPIStream();
   ~WASAPIStream();
@@ -48,12 +47,12 @@ private:
 
   // CoUninitialize must be called after all WASAPI COM objects have been destroyed,
   // therefore this member must be located before them, as first class fields are destructed last
-  wil::unique_couninitialize_call m_coinitialize{false};
+  bool m_coinitialize{false};
 
   Microsoft::WRL::ComPtr<IMMDeviceEnumerator> m_enumerator;
   Microsoft::WRL::ComPtr<IAudioClient> m_audio_client;
   Microsoft::WRL::ComPtr<IAudioRenderClient> m_audio_renderer;
-  wil::unique_event_nothrow m_need_data_event;
+  HANDLE m_need_data_event;
   WAVEFORMATEXTENSIBLE m_format;
 #endif  // _MSC_VER
 };
