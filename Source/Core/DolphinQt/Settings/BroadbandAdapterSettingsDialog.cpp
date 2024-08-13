@@ -51,7 +51,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
   case Type::TapServer:
   case Type::ModemTapServer:
   {
-    const bool is_modem = (m_bba_type == Type::ModemTapServer);
+    const bool is_modem = m_bba_type == Type::ModemTapServer;
     current_address =
         QString::fromStdString(Config::Get(is_modem ? Config::MAIN_MODEM_TAPSERVER_DESTINATION :
                                                       Config::MAIN_BBA_TAPSERVER_DESTINATION));

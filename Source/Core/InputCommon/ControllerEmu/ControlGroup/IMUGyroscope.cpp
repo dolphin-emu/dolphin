@@ -170,7 +170,7 @@ ControlState IMUGyroscope::GetDeadzone() const
 bool IMUGyroscope::IsCalibrating() const
 {
   const auto calibration_period = m_calibration_period_setting.GetValue();
-  return calibration_period && (Clock::now() - m_calibration_period_start) >=
+  return calibration_period && Clock::now() - m_calibration_period_start >=
                                    std::chrono::duration<double>(calibration_period);
 }
 

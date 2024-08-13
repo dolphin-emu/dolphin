@@ -62,13 +62,13 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
   for (u32 it = 0; it < size;)
   {
     int t0 = t & 1;
-    int t1 = (t >> 1) & 1;
+    int t1 = t >> 1 & 1;
     int u0 = u & 1;
-    int u1 = (u >> 1) & 1;
+    int u1 = u >> 1 & 1;
     int v0 = v & 1;
 
     x ^= t1 ^ v0;
-    x ^= (u0 | u1);
+    x ^= u0 | u1;
     x ^= (t0 ^ u1 ^ v0) & (t0 ^ u0);
 
     if (t0 == u0)
@@ -127,8 +127,8 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
       memcpy(&m_rom[0], iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
+    LoadFontFile(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS, 0x1aff00);
+    LoadFontFile(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252, 0x1fcf00);
   }
 
   auto& sram = system.GetSRAM();
@@ -232,10 +232,10 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
 
   // Official Windows-1252 and Shift JIS fonts present on the IPL dumps are 0x2575 and 0x4a24d
   // bytes long respectively, so, determine the size of the font being loaded based on the offset
-  const u64 fontsize = (offset == 0x1aff00) ? 0x4a24d : 0x2575;
+  const u64 fontsize = offset == 0x1aff00 ? 0x4a24d : 0x2575;
 
   INFO_LOG_FMT(BOOT, "Found IPL dump, loading {} font from {}",
-               (offset == 0x1aff00) ? "Shift JIS" : "Windows-1252", ipl_rom_path);
+               offset == 0x1aff00 ? "Shift JIS" : "Windows-1252", ipl_rom_path);
 
   if (!stream.Seek(offset, File::SeekOrigin::Begin) || !stream.ReadBytes(&m_rom[offset], fontsize))
   {
@@ -327,7 +327,7 @@ void CEXIIPL::TransferByte(u8& data)
         // ignore the "enabled" bit - see CEXIIPL::CEXIIPL
         data = m_rom[dev_addr];
 
-        if ((dev_addr >= 0x001AFF00) && (dev_addr <= 0x001FF474) && !m_fonts_loaded)
+        if (dev_addr >= 0x001AFF00 && dev_addr <= 0x001FF474 && !m_fonts_loaded)
         {
           if (dev_addr >= 0x001FCF00)
           {

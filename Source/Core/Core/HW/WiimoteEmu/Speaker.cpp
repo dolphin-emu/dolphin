@@ -35,8 +35,8 @@ static const s32 yamaha_indexscale[] = {230, 230, 230, 230, 307, 409, 512, 614,
 
 static s16 av_clip16(s32 a)
 {
-  if ((a + 32768) & ~65535)
-    return (a >> 31) ^ 32767;
+  if (a + 32768 & ~65535)
+    return a >> 31 ^ 32767;
   else
     return a;
 }
@@ -53,9 +53,9 @@ static s32 av_clip(s32 a, s32 amin, s32 amax)
 
 static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
 {
-  s.predictor += (s.step * yamaha_difflookup[nibble]) / 8;
+  s.predictor += s.step * yamaha_difflookup[nibble] / 8;
   s.predictor = av_clip16(s.predictor);
-  s.step = (s.step * yamaha_indexscale[nibble]) >> 8;
+  s.step = s.step * yamaha_indexscale[nibble] >> 8;
   s.step = av_clip(s.step, 127, 24576);
   return s.predictor;
 }
@@ -93,7 +93,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
     {
-      samples[i] = ((s16)(s8)data[i]) * 0x100;
+      samples[i] = (s16)(s8)data[i] * 0x100;
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
@@ -106,7 +106,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // 4 bit Yamaha ADPCM (same as dreamcast)
     for (int i = 0; i < length; ++i)
     {
-      samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, (data[i] >> 4) & 0xf);
+      samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] >> 4 & 0xf);
       samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
     }
 

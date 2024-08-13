@@ -338,7 +338,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
         if (s)
         {
           sscanf(s + 10, "%511s", container);
-          char* s2 = (strchr(container, ')'));
+          char* s2 = strchr(container, ')');
           if (s2 && container[0] != '.')
           {
             s2[0] = '\0';
@@ -367,7 +367,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
         if (s)
         {
           sscanf(s + 10, "%511s", container);
-          char* s2 = (strchr(container, ')'));
+          char* s2 = strchr(container, ')');
           if (s2 && container[0] != '.')
           {
             s2[0] = '\0';

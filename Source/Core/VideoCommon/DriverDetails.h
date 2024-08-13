@@ -13,23 +13,23 @@ namespace DriverDetails
 // can affect multiple APIs.
 enum API
 {
-  API_OPENGL = (1 << 0),
-  API_VULKAN = (1 << 1),
-  API_METAL = (1 << 2),
+  API_OPENGL = 1 << 0,
+  API_VULKAN = 1 << 1,
+  API_METAL = 1 << 2,
 };
 
 // Enum of supported operating systems
 enum OS
 {
-  OS_ALL = (1 << 0),
-  OS_WINDOWS = (1 << 1),
-  OS_LINUX = (1 << 2),
-  OS_OSX = (1 << 3),
-  OS_ANDROID = (1 << 4),
-  OS_FREEBSD = (1 << 5),
-  OS_OPENBSD = (1 << 6),
-  OS_NETBSD = (1 << 7),
-  OS_HAIKU = (1 << 8),
+  OS_ALL = 1 << 0,
+  OS_WINDOWS = 1 << 1,
+  OS_LINUX = 1 << 2,
+  OS_OSX = 1 << 3,
+  OS_ANDROID = 1 << 4,
+  OS_FREEBSD = 1 << 5,
+  OS_OPENBSD = 1 << 6,
+  OS_NETBSD = 1 << 7,
+  OS_HAIKU = 1 << 8,
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences

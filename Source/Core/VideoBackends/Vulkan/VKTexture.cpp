@@ -439,7 +439,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // likely finished with writes to this texture for now. We can't do this in common with a
   // FinishedRendering() call because the upload happens in the init command buffer, and we
   // don't want to interrupt the render pass with calls which were executed ages before.
-  if (level == (m_config.levels - 1) && layer == (m_config.layers - 1))
+  if (level == m_config.levels - 1 && layer == m_config.layers - 1)
   {
     TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

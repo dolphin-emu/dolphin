@@ -24,20 +24,20 @@ static u32 Decode5A3(u16 val)
 
   if (val & 0x8000)
   {
-    r = s_lut5to8[(val >> 10) & 0x1f];
-    g = s_lut5to8[(val >> 5) & 0x1f];
-    b = s_lut5to8[(val)&0x1f];
+    r = s_lut5to8[val >> 10 & 0x1f];
+    g = s_lut5to8[val >> 5 & 0x1f];
+    b = s_lut5to8[val&0x1f];
     a = 0xFF;
   }
   else
   {
-    a = s_lut3to8[(val >> 12) & 0x7];
-    r = (s_lut4to8[(val >> 8) & 0xf] * a + (bg_color & 0xFF) * (255 - a)) / 255;
-    g = (s_lut4to8[(val >> 4) & 0xf] * a + ((bg_color >> 8) & 0xFF) * (255 - a)) / 255;
-    b = (s_lut4to8[(val)&0xf] * a + ((bg_color >> 16) & 0xFF) * (255 - a)) / 255;
+    a = s_lut3to8[val >> 12 & 0x7];
+    r = (s_lut4to8[val >> 8 & 0xf] * a + (bg_color & 0xFF) * (255 - a)) / 255;
+    g = (s_lut4to8[val >> 4 & 0xf] * a + (bg_color >> 8 & 0xFF) * (255 - a)) / 255;
+    b = (s_lut4to8[val&0xf] * a + (bg_color >> 16 & 0xFF) * (255 - a)) / 255;
     a = 0xFF;
   }
-  return (a << 24) | (r << 16) | (g << 8) | b;
+  return a << 24 | r << 16 | g << 8 | b;
 }
 
 void Decode5A3Image(u32* dst, const u16* src, int width, int height)

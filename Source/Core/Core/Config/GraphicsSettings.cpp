@@ -34,7 +34,7 @@ const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP{
 const Info<float> GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO{
     {System::GFX, "Settings", "WidescreenHeuristicStandardRatio"}, 1.f};
 const Info<float> GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO{
-    {System::GFX, "Settings", "WidescreenHeuristicWidescreenRatio"}, (16 / 9.f) / (4 / 3.f)};
+    {System::GFX, "Settings", "WidescreenHeuristicWidescreenRatio"}, 16 / 9.f / (4 / 3.f)};
 const Info<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};

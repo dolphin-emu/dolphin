@@ -55,8 +55,8 @@ inline bool IsMMIOAddress(u32 address, bool is_wii)
 
   if (is_wii)
   {
-    return ((address & 0xFFFF0000) == 0x0D000000) ||  // Wii MMIOs
-           ((address & 0xFFFF0000) == 0x0D800000);    // Mirror of Wii MMIOs
+    return (address & 0xFFFF0000) == 0x0D000000 || // Wii MMIOs
+           (address & 0xFFFF0000) == 0x0D800000;   // Mirror of Wii MMIOs
   }
 
   return false;
@@ -69,12 +69,12 @@ inline bool IsMMIOAddress(u32 address, bool is_wii)
 inline u32 UniqueID(u32 address)
 {
   DEBUG_ASSERT_MSG(MEMMAP,
-                   ((address & 0xFFFF0000) == 0x0C000000) ||
-                       ((address & 0xFFFF0000) == 0x0D000000) ||
-                       ((address & 0xFFFF0000) == 0x0D800000),
+                   (address & 0xFFFF0000) == 0x0C000000 ||
+                   (address & 0xFFFF0000) == 0x0D000000 ||
+                   (address & 0xFFFF0000) == 0x0D800000,
                    "Trying to get the ID of a non-existing MMIO address.");
 
-  return (((address >> 24) & 1) << 16) | (address & 0xFFFF);
+  return (address >> 24 & 1) << 16 | address & 0xFFFF;
 }
 
 // Some utilities functions to define MMIO mappings.

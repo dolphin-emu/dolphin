@@ -163,10 +163,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
-    const float a = (g_ActiveConfig.iMissingColorValue) & 0xFF;
-    const float b = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
-    const float g = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
-    const float r = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
+    const float a = g_ActiveConfig.iMissingColorValue & 0xFF;
+    const float b = g_ActiveConfig.iMissingColorValue >> 8 & 0xFF;
+    const float g = g_ActiveConfig.iMissingColorValue >> 16 & 0xFF;
+    const float r = g_ActiveConfig.iMissingColorValue >> 24 & 0xFF;
     constants.missing_color_hex = g_ActiveConfig.iMissingColorValue;
     constants.missing_color_value = {r / 255, g / 255, b / 255, a / 255};
 
@@ -275,9 +275,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   for (int i : xf_state_manager.GetMaterialChanges())
   {
     u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
-    constants.materials[i][0] = (data >> 24) & 0xFF;
-    constants.materials[i][1] = (data >> 16) & 0xFF;
-    constants.materials[i][2] = (data >> 8) & 0xFF;
+    constants.materials[i][0] = data >> 24 & 0xFF;
+    constants.materials[i][1] = data >> 16 & 0xFF;
+    constants.materials[i][2] = data >> 8 & 0xFF;
     constants.materials[i][3] = data & 0xFF;
     dirty = true;
   }
@@ -343,10 +343,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
     const bool bUseVertexRounding = g_ActiveConfig.UseVertexRounding();
     const float viewport_width = bUseVertexRounding ?
-                                     (2.f * xfmem.viewport.wd) :
+                                     2.f * xfmem.viewport.wd :
                                      g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.wd);
     const float viewport_height = bUseVertexRounding ?
-                                      (2.f * xfmem.viewport.ht) :
+                                      2.f * xfmem.viewport.ht :
                                       g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.ht);
     const float pixel_size_x = 2.f / viewport_width;
     const float pixel_size_y = 2.f / viewport_height;
@@ -357,8 +357,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     constants.pixelcentercorrection[2] = 1.0f;
     constants.pixelcentercorrection[3] = 0.0f;
 
-    constants.viewport[0] = (2.f * xfmem.viewport.wd);
-    constants.viewport[1] = (2.f * xfmem.viewport.ht);
+    constants.viewport[0] = 2.f * xfmem.viewport.wd;
+    constants.viewport[1] = 2.f * xfmem.viewport.ht;
 
     if (UseVertexDepthRange())
     {

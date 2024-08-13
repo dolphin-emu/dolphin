@@ -298,7 +298,7 @@ void GekkoIRPlugin::OnHiaddr(std::string_view id)
       m_owner->EmitErrorHere(fmt::format("Undefined reference to Label/Constant '{}'", id));
       return;
     }
-    m_eval_stack.push_back((base >> 16) & 0xffff);
+    m_eval_stack.push_back(base >> 16 & 0xffff);
   }
 }
 
@@ -430,7 +430,7 @@ void GekkoIRPlugin::AddBytes(T val)
     ByteChunk& bytes = GetChunk<ByteChunk>();
     for (size_t i = sizeof(T) - 1; i > 0; i--)
     {
-      bytes.push_back((val >> (8 * i)) & 0xff);
+      bytes.push_back(val >> 8 * i & 0xff);
     }
     bytes.push_back(val & 0xff);
   }

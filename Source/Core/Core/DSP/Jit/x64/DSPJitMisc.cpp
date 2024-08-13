@@ -17,7 +17,7 @@ namespace DSP::JIT::x64
 void DSPEmitter::mrr(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1f;
-  u8 dreg = (opc >> 5) & 0x1f;
+  u8 dreg = opc >> 5 & 0x1f;
 
   dsp_op_read_reg(sreg, EDX);
   dsp_op_write_reg(dreg, EDX);
@@ -46,7 +46,7 @@ void DSPEmitter::lri(const UDSPInstruction opc)
 // Load immediate value I (8-bit sign extended) to accumulator register.
 void DSPEmitter::lris(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
+  u8 reg = (opc >> 8 & 0x7) + DSP_REG_AXL0;
   u16 imm = (s8)opc;
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
@@ -105,7 +105,7 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
   //	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 
   // From looking around it is always called with the matching index register
-  increase_addr_reg(opc & 0x3, (opc >> 2) & 0x3);
+  increase_addr_reg(opc & 0x3, opc >> 2 & 0x3);
 }
 
 //----
@@ -156,7 +156,7 @@ void DSPEmitter::sbset(const UDSPInstruction opc)
 // but it's harder to know exactly what effect they have.
 void DSPEmitter::srbith(const UDSPInstruction opc)
 {
-  switch ((opc >> 8) & 0xf)
+  switch (opc >> 8 & 0xf)
   {
   // M0/M2 change the multiplier mode (it can multiply by 2 for free).
   case 0xa:  // M2

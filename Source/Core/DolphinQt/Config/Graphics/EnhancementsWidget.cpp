@@ -473,7 +473,7 @@ void EnhancementsWidget::SaveSettings()
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
-                           (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
+                           !anaglyph && !passive && m_pp_effect->currentIndex() == 0 ?
                                "" :
                                m_pp_effect->currentText().toStdString());
 

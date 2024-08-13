@@ -176,7 +176,7 @@ void Device::AddCombinedInput(std::string name, const std::pair<std::string, std
 //
 std::string DeviceQualifier::ToString() const
 {
-  if (source.empty() && (cid < 0) && name.empty())
+  if (source.empty() && cid < 0 && name.empty())
     return {};
 
   if (cid > -1)
@@ -360,7 +360,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     {
       const auto new_state = input->GetState();
 
-      if (!is_ready && new_state < (1 - INPUT_DETECT_THRESHOLD))
+      if (!is_ready && new_state < 1 - INPUT_DETECT_THRESHOLD)
       {
         last_state = new_state;
         is_ready = true;
@@ -378,7 +378,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
         return false;
 
       // We want an input that was initially 0.0 and currently 1.0.
-      const auto detection_score = (last_state - std::abs(initial_state));
+      const auto detection_score = last_state - std::abs(initial_state);
       return detection_score > INPUT_DETECT_THRESHOLD;
     }
   };
@@ -469,7 +469,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     // Check for any releases of our detected inputs.
     for (auto& d : detections)
     {
-      if (!d.release_time.has_value() && d.input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+      if (!d.release_time.has_value() && d.input->GetState() < 1 - INPUT_DETECT_THRESHOLD)
         d.release_time = Clock::now();
     }
   }

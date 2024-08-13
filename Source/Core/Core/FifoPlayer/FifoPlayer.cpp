@@ -199,7 +199,7 @@ bool FifoPlayer::Open(const std::string& filename)
   if (m_FileLoadedCb)
     m_FileLoadedCb();
 
-  return (m_File != nullptr);
+  return m_File != nullptr;
 }
 
 void FifoPlayer::Close()
@@ -414,7 +414,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   // Skip all memory updates if early memory updates are enabled, as we already wrote them
   if (m_EarlyMemoryUpdates)
   {
-    memory_update = (u32)(frame.memoryUpdates.size());
+    memory_update = (u32)frame.memoryUpdates.size();
   }
 
   for (const FramePart& part : info.parts)
@@ -533,7 +533,7 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
     gpfifo.Write8(data[written++]);
 
     // Advance core timing
-    u32 elapsedCycles = u32(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
+    u32 elapsedCycles = u32((u64)written * m_CyclesPerFrame / m_FrameFifoSize);
     u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
     m_ElapsedCycles = elapsedCycles;
 
@@ -742,8 +742,8 @@ void FifoPlayer::LoadBPReg(u8 reg, u32 value)
 
   gpfifo.Write8(0x61);  // load BP reg
 
-  u32 cmd = (reg << 24) & 0xff000000;
-  cmd |= (value & 0x00ffffff);
+  u32 cmd = reg << 24 & 0xff000000;
+  cmd |= value & 0x00ffffff;
   gpfifo.Write32(cmd);
 }
 
@@ -760,8 +760,8 @@ void FifoPlayer::LoadXFReg(u16 reg, u32 value)
 {
   auto& gpfifo = m_system.GetGPFifo();
 
-  gpfifo.Write8(0x10);                      // load XF reg
-  gpfifo.Write32((reg & 0x0fff) | 0x1000);  // load 4 bytes into reg
+  gpfifo.Write8(0x10);                   // load XF reg
+  gpfifo.Write32(reg & 0x0fff | 0x1000); // load 4 bytes into reg
   gpfifo.Write32(value);
 }
 
@@ -770,8 +770,8 @@ void FifoPlayer::LoadXFMem16(u16 address, const u32* data)
   auto& gpfifo = m_system.GetGPFifo();
 
   // Loads 16 * 4 bytes in xf memory starting at address
-  gpfifo.Write8(0x10);                              // load XF reg
-  gpfifo.Write32(0x000f0000 | (address & 0xffff));  // load 16 * 4 bytes into address
+  gpfifo.Write8(0x10);                           // load XF reg
+  gpfifo.Write32(0x000f0000 | address & 0xffff); // load 16 * 4 bytes into address
   for (int i = 0; i < 16; ++i)
     gpfifo.Write32(data[i]);
 }

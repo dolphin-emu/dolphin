@@ -137,7 +137,7 @@ void DeserializeToAr(const std::vector<CodeBlock>& blocks, std::ostringstream& o
     for (; i < blk.instructions.size() - 3; i += 4)
     {
       // type=NormalCode, subtype=SUB_RAM_WRITE, size=32bit
-      const u32 ar_addr = ((blk.block_address + i) & 0x1ffffff) | 0x04000000;
+      const u32 ar_addr = blk.block_address + i & 0x1ffffff | 0x04000000;
       out_str << fmt::format("{:08x} {:02x}{:02x}{:02x}{:02x}\n", ar_addr, blk.instructions[i],
                              blk.instructions[i + 1], blk.instructions[i + 2],
                              blk.instructions[i + 3]);
@@ -146,7 +146,7 @@ void DeserializeToAr(const std::vector<CodeBlock>& blocks, std::ostringstream& o
     for (; i < blk.instructions.size(); i++)
     {
       // type=NormalCode, subtype=SUB_RAM_WRITE, size=8bit
-      const u32 ar_addr = ((blk.block_address + i) & 0x1ffffff);
+      const u32 ar_addr = blk.block_address + i & 0x1ffffff;
       out_str << fmt::format("{:08x} 000000{:02x}\n", ar_addr, blk.instructions[i]);
     }
   }
@@ -197,7 +197,7 @@ void DeserializeToGeckoTramp(const std::vector<CodeBlock>& blocks, std::ostrings
       continue;
     }
 
-    const u32 inject_addr = (blk.block_address & 0x1ffffff) | 0x02000000;
+    const u32 inject_addr = blk.block_address & 0x1ffffff | 0x02000000;
     u32 nlines = 1 + static_cast<u32>((blk.instructions.size() - 1) / 8);
     bool padding_on_newline = false;
     if (blk.instructions.size() % 8 == 0 || blk.instructions.size() % 8 > 4)

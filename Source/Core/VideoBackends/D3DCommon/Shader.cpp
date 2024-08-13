@@ -239,8 +239,8 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
 
   static constexpr D3D_SHADER_MACRO macros[] = {{"API_D3D", "1"}, {nullptr, nullptr}};
   const UINT flags = g_ActiveConfig.bEnableValidationLayer ?
-                         (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION) :
-                         (D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_SKIP_VALIDATION);
+                       D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION :
+                       D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_SKIP_VALIDATION;
   const char* target = GetCompileTarget(feature_level, stage);
 
   Microsoft::WRL::ComPtr<ID3DBlob> code;

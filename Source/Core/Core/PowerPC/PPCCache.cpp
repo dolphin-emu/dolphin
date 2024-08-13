@@ -31,7 +31,7 @@ constexpr std::array<u32, 255> s_way_from_valid = [] {
   for (size_t m = 0; m < data.size(); m++)
   {
     u32 w = 0;
-    while ((m & (size_t{1} << w)) != 0)
+    while ((m & size_t{1} << w) != 0)
       w++;
     data[m] = w;
   }
@@ -45,7 +45,7 @@ constexpr std::array<u32, 128> s_way_from_plru = [] {
   {
     std::array<u32, 7> b{};
     for (size_t i = 0; i < b.size(); i++)
-      b[i] = u32(m & (size_t{1} << i));
+      b[i] = u32(m & size_t{1} << i);
 
     u32 w = 0;
     if (b[0] != 0)
@@ -137,8 +137,8 @@ void Cache::Store(Memory::MemoryManager& memory, u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way) && modified[set] & (1U << way))
-    memory.CopyToEmu((addr & ~0x1f), data[set][way].data(), 32);
+  if (valid[set] & 1U << way && modified[set] & 1U << way)
+    memory.CopyToEmu(addr & ~0x1f, data[set][way].data(), 32);
   modified[set] &= ~(1U << way);
 }
 
@@ -148,7 +148,7 @@ void Cache::FlushAll(Memory::MemoryManager& memory)
   {
     for (size_t way = 0; way < CACHE_WAYS; way++)
     {
-      if (valid[set] & (1U << way) && modified[set] & (1U << way))
+      if (valid[set] & 1U << way && modified[set] & 1U << way)
         memory.CopyToEmu(addrs[set][way], data[set][way].data(), 32);
     }
   }
@@ -163,7 +163,7 @@ void Cache::Invalidate(Memory::MemoryManager& memory, u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way))
+  if (valid[set] & 1U << way)
   {
     if (addrs[set][way] & CACHE_VMEM_BIT)
       lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
@@ -184,10 +184,10 @@ void Cache::Flush(Memory::MemoryManager& memory, u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way))
+  if (valid[set] & 1U << way)
   {
-    if (modified[set] & (1U << way))
-      memory.CopyToEmu((addr & ~0x1f), data[set][way].data(), 32);
+    if (modified[set] & 1U << way)
+      memory.CopyToEmu(addr & ~0x1f, data[set][way].data(), 32);
 
     if (addrs[set][way] & CACHE_VMEM_BIT)
       lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
@@ -209,7 +209,7 @@ void Cache::Touch(Memory::MemoryManager& memory, u32 addr, bool store)
 std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, bool locked)
 {
   addr &= ~31;
-  u32 set = (addr >> 5) & 0x7f;
+  u32 set = addr >> 5 & 0x7f;
   u32 way;
 
   if (addr & CACHE_VMEM_BIT)
@@ -234,10 +234,10 @@ std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, boo
     else
       way = s_way_from_plru[plru[set]];
 
-    if (valid[set] & (1 << way))
+    if (valid[set] & 1 << way)
     {
       // store the cache back to main memory
-      if (modified[set] & (1 << way))
+      if (modified[set] & 1 << way)
         memory.CopyToEmu(addrs[set][way], data[set][way].data(), 32);
 
       if (addrs[set][way] & CACHE_VMEM_BIT)
@@ -249,7 +249,7 @@ std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, boo
     }
 
     // load
-    memory.CopyFromEmu(data[set][way].data(), (addr & ~0x1f), 32);
+    memory.CopyFromEmu(data[set][way].data(), addr & ~0x1f, 32);
 
     if (addr & CACHE_VMEM_BIT)
       lookup_table_vmem[(addr & memory.GetFakeVMemMask()) >> 5] = way;
@@ -259,13 +259,13 @@ std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, boo
       lookup_table[(addr & memory.GetRamMask()) >> 5] = way;
 
     addrs[set][way] = addr;
-    valid[set] |= (1 << way);
+    valid[set] |= 1 << way;
     modified[set] &= ~(1 << way);
   }
 
   // update plru
   if (way != 0xff)
-    plru[set] = (plru[set] & ~s_plru_mask[way]) | s_plru_value[way];
+    plru[set] = plru[set] & ~s_plru_mask[way] | s_plru_value[way];
 
   return {set, way};
 }
@@ -279,7 +279,7 @@ void Cache::Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len,
     auto [set, way] = GetCache(memory, addr, locked);
 
     u32 offset_in_block = addr - (addr & ~31);
-    u32 len_in_block = std::min<u32>(len, ((addr + 32) & ~31) - addr);
+    u32 len_in_block = std::min<u32>(len, (addr + 32 & ~31) - addr);
 
     if (way != 0xff)
     {
@@ -306,13 +306,13 @@ void Cache::Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u
     auto [set, way] = GetCache(memory, addr, locked);
 
     u32 offset_in_block = addr - (addr & ~31);
-    u32 len_in_block = std::min<u32>(len, ((addr + 32) & ~31) - addr);
+    u32 len_in_block = std::min<u32>(len, (addr + 32 & ~31) - addr);
 
     if (way != 0xff)
     {
       std::memcpy(reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block, value,
                   len_in_block);
-      modified[set] |= (1 << way);
+      modified[set] |= 1 << way;
     }
     else
     {
@@ -335,7 +335,7 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
     {
       for (u32 way = 0; way < CACHE_WAYS; way++)
       {
-        if ((valid[set] & (1 << way)) != 0)
+        if ((valid[set] & 1 << way) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
             lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
@@ -361,7 +361,7 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
     {
       for (u32 way = 0; way < CACHE_WAYS; way++)
       {
-        if ((valid[set] & (1 << way)) != 0)
+        if ((valid[set] & 1 << way) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
             lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = way;
@@ -395,10 +395,10 @@ void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& j
   // and it also invalidates all ways of the corresponding cache set, not just the way corresponding
   // to the given address.
   // (However, the icbi instruction's info on page 432 does not include this information)
-  const u32 set = (addr >> 5) & 0x7f;
+  const u32 set = addr >> 5 & 0x7f;
   for (size_t way = 0; way < 8; way++)
   {
-    if (valid[set] & (1U << way))
+    if (valid[set] & 1U << way)
     {
       if (addrs[set][way] & CACHE_VMEM_BIT)
         lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;

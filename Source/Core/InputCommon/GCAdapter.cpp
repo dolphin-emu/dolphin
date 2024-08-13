@@ -437,7 +437,7 @@ void Init()
       state != Core::State::Uninitialized && state != Core::State::Starting)
   {
     auto& core_timing = system.GetCoreTiming();
-    if ((core_timing.GetTicks() - s_last_init) < system.GetSystemTimers().GetTicksPerSecond())
+    if (core_timing.GetTicks() - s_last_init < system.GetSystemTimers().GetTicksPerSecond())
       return;
 
     s_last_init = core_timing.GetTicks();
@@ -799,7 +799,7 @@ void ProcessInputPayload(const u8* data, std::size_t size)
 
     for (int chan = 0; chan != SerialInterface::MAX_SI_CHANNELS; ++chan)
     {
-      const u8* const channel_data = &data[1 + (9 * chan)];
+      const u8* const channel_data = &data[1 + 9 * chan];
 
       const auto type = IdentifyControllerType(channel_data[0]);
 

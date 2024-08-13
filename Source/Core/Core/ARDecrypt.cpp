@@ -151,7 +151,7 @@ constexpr Seeds genseeds = [] {
   for (size_t i = 0; i < array0.size(); ++i)
   {
     const auto tmp = u8(gentable0[i] - 1);
-    array0[i] = (u32(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
+    array0[i] = u32(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31;
   }
 
   for (int i = 0; i < 0x10; ++i)
@@ -186,11 +186,11 @@ constexpr Seeds genseeds = [] {
         continue;
       }
 
-      const u8 tmp = (((j * 0x2AAB) >> 16) - (j >> 0x1F));
-      array2[tmp] |= (gentable1[j - (tmp * 6)] >> 2);
+      const u8 tmp = (j * 0x2AAB >> 16) - (j >> 0x1F);
+      array2[tmp] |= gentable1[j - tmp * 6] >> 2;
     }
-    seeds[i << 1] = ((array2[0] << 24) | (array2[2] << 16) | (array2[4] << 8) | array2[6]);
-    seeds[(i << 1) + 1] = ((array2[1] << 24) | (array2[3] << 16) | (array2[5] << 8) | array2[7]);
+    seeds[i << 1] = array2[0] << 24 | array2[2] << 16 | array2[4] << 8 | array2[6];
+    seeds[(i << 1) + 1] = array2[1] << 24 | array2[3] << 16 | array2[5] << 8 | array2[7];
   }
 
   int j = 0x1F;
@@ -231,8 +231,8 @@ static u16 gencrc16(const u32* codes, u16 size)
     {
       for (int i = 0; i < 4; ++i)
       {
-        u8 tmp2 = ((codes[tmp] >> (i << 3)) ^ ret);
-        ret = ((crctable0[(tmp2 >> 4) & 0x0F] ^ crctable1[tmp2 & 0x0F]) ^ (ret >> 8));
+        u8 tmp2 = codes[tmp] >> (i << 3) ^ ret;
+        ret = crctable0[tmp2 >> 4 & 0x0F] ^ crctable1[tmp2 & 0x0F] ^ ret >> 8;
       }
     }
   }
@@ -242,7 +242,7 @@ static u16 gencrc16(const u32* codes, u16 size)
 static u8 verifycode(const u32* codes, u16 size)
 {
   u16 tmp = gencrc16(codes, size);
-  return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
+  return (tmp >> 12 ^ tmp >> 8 ^ tmp >> 4 ^ tmp) & 0x0F;
 }
 
 static void unscramble1(u32* addr, u32* val)
@@ -251,24 +251,24 @@ static void unscramble1(u32* addr, u32* val)
 
   *val = std::rotl(*val, 4);
 
-  tmp = ((*addr ^ *val) & 0xF0F0F0F0);
+  tmp = (*addr ^ *val) & 0xF0F0F0F0;
   *addr ^= tmp;
-  *val = std::rotr((*val ^ tmp), 0x14);
+  *val = std::rotr(*val ^ tmp, 0x14);
 
-  tmp = ((*addr ^ *val) & 0xFFFF0000);
+  tmp = (*addr ^ *val) & 0xFFFF0000;
   *addr ^= tmp;
-  *val = std::rotr((*val ^ tmp), 0x12);
+  *val = std::rotr(*val ^ tmp, 0x12);
 
-  tmp = ((*addr ^ *val) & 0x33333333);
+  tmp = (*addr ^ *val) & 0x33333333;
   *addr ^= tmp;
-  *val = std::rotr((*val ^ tmp), 6);
+  *val = std::rotr(*val ^ tmp, 6);
 
-  tmp = ((*addr ^ *val) & 0x00FF00FF);
+  tmp = (*addr ^ *val) & 0x00FF00FF;
   *addr ^= tmp;
-  *val = std::rotl((*val ^ tmp), 9);
+  *val = std::rotl(*val ^ tmp, 9);
 
-  tmp = ((*addr ^ *val) & 0xAAAAAAAA);
-  *addr = std::rotl((*addr ^ tmp), 1);
+  tmp = (*addr ^ *val) & 0xAAAAAAAA;
+  *addr = std::rotl(*addr ^ tmp, 1);
   *val ^= tmp;
 }
 
@@ -278,25 +278,25 @@ static void unscramble2(u32* addr, u32* val)
 
   *val = std::rotr(*val, 1);
 
-  tmp = ((*addr ^ *val) & 0xAAAAAAAA);
+  tmp = (*addr ^ *val) & 0xAAAAAAAA;
   *val ^= tmp;
-  *addr = std::rotr((*addr ^ tmp), 9);
+  *addr = std::rotr(*addr ^ tmp, 9);
 
-  tmp = ((*addr ^ *val) & 0x00FF00FF);
+  tmp = (*addr ^ *val) & 0x00FF00FF;
   *val ^= tmp;
-  *addr = std::rotl((*addr ^ tmp), 6);
+  *addr = std::rotl(*addr ^ tmp, 6);
 
-  tmp = ((*addr ^ *val) & 0x33333333);
+  tmp = (*addr ^ *val) & 0x33333333;
   *val ^= tmp;
-  *addr = std::rotl((*addr ^ tmp), 0x12);
+  *addr = std::rotl(*addr ^ tmp, 0x12);
 
-  tmp = ((*addr ^ *val) & 0xFFFF0000);
+  tmp = (*addr ^ *val) & 0xFFFF0000;
   *val ^= tmp;
-  *addr = std::rotl((*addr ^ tmp), 0x14);
+  *addr = std::rotl(*addr ^ tmp, 0x14);
 
-  tmp = ((*addr ^ *val) & 0xF0F0F0F0);
+  tmp = (*addr ^ *val) & 0xF0F0F0F0;
   *val ^= tmp;
-  *addr = std::rotr((*addr ^ tmp), 4);
+  *addr = std::rotr(*addr ^ tmp, 4);
 }
 
 static void decryptcode(const u32* seeds, u32* code)
@@ -309,17 +309,17 @@ static void decryptcode(const u32* seeds, u32* code)
   unscramble1(&addr, &val);
   while (i < 32)
   {
-    tmp = (std::rotr(val, 4) ^ seeds[i++]);
-    tmp2 = (val ^ seeds[i++]);
-    addr ^= (table6[tmp & 0x3F] ^ table4[(tmp >> 8) & 0x3F] ^ table2[(tmp >> 16) & 0x3F] ^
-             table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
-             table3[(tmp2 >> 16) & 0x3F] ^ table1[(tmp2 >> 24) & 0x3F]);
+    tmp = std::rotr(val, 4) ^ seeds[i++];
+    tmp2 = val ^ seeds[i++];
+    addr ^= table6[tmp & 0x3F] ^ table4[tmp >> 8 & 0x3F] ^ table2[tmp >> 16 & 0x3F] ^
+        table0[tmp >> 24 & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[tmp2 >> 8 & 0x3F] ^
+        table3[tmp2 >> 16 & 0x3F] ^ table1[tmp2 >> 24 & 0x3F];
 
-    tmp = (std::rotr(addr, 4) ^ seeds[i++]);
-    tmp2 = (addr ^ seeds[i++]);
-    val ^= (table6[tmp & 0x3F] ^ table4[(tmp >> 8) & 0x3F] ^ table2[(tmp >> 16) & 0x3F] ^
-            table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
-            table3[(tmp2 >> 16) & 0x3F] ^ table1[(tmp2 >> 24) & 0x3F]);
+    tmp = std::rotr(addr, 4) ^ seeds[i++];
+    tmp2 = addr ^ seeds[i++];
+    val ^= table6[tmp & 0x3F] ^ table4[tmp >> 8 & 0x3F] ^ table2[tmp >> 16 & 0x3F] ^
+        table0[tmp >> 24 & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[tmp2 >> 8 & 0x3F] ^
+        table3[tmp2 >> 16 & 0x3F] ^ table1[tmp2 >> 24 & 0x3F];
   }
   unscramble2(&addr, &val);
   setcode(code, val, addr);
@@ -327,7 +327,7 @@ static void decryptcode(const u32* seeds, u32* code)
 
 static bool getbitstring(u32* ctrl, u32* out, u8 len)
 {
-  u32 tmp = (ctrl[0] + (ctrl[1] << 2));
+  u32 tmp = ctrl[0] + (ctrl[1] << 2);
 
   *out = 0;
   while (len--)
@@ -336,13 +336,13 @@ static bool getbitstring(u32* ctrl, u32* out, u8 len)
     {
       ctrl[2] = 0;
       ctrl[1]++;
-      tmp = (ctrl[0] + (ctrl[1] << 2));
+      tmp = ctrl[0] + (ctrl[1] << 2);
     }
     if (ctrl[1] >= ctrl[3])
     {
       return false;
     }
-    *out = ((*out << 1) | ((tmp >> (0x1F - ctrl[2])) & 1));
+    *out = *out << 1 | tmp >> 0x1F - ctrl[2] & 1;
     ctrl[2]++;
   }
   return true;
@@ -358,7 +358,7 @@ static bool batchdecrypt(u32* codes, u16 size)
   // if (size & 1) return 0;
   // if (!size) return 0;
 
-  u32 tmp = (size >> 1);
+  u32 tmp = size >> 1;
   while (tmp--)
   {
     decryptcode(genseeds.data(), ptr);
@@ -382,7 +382,7 @@ static bool batchdecrypt(u32* codes, u16 size)
 
   tmp = codes[0];
   codes[0] &= 0x0FFFFFFF;
-  if ((tmp >> 28) != verifycode(codes, size))
+  if (tmp >> 28 != verifycode(codes, size))
   {
     return false;
   }
@@ -424,17 +424,17 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
     bin[0] = 0;
     for (int i = 0; i < 6; i++)
     {
-      bin[0] |= (GetVal(filter, alpha[j >> 1][i]) << (((5 - i) * 5) + 2));
+      bin[0] |= GetVal(filter, alpha[j >> 1][i]) << (5 - i) * 5 + 2;
     }
-    bin[0] |= (GetVal(filter, alpha[j >> 1][6]) >> 3);
+    bin[0] |= GetVal(filter, alpha[j >> 1][6]) >> 3;
     dst[j++] = bin[0];
 
     bin[1] = 0;
     for (int i = 0; i < 6; i++)
     {
-      bin[1] |= (GetVal(filter, alpha[j >> 1][i + 6]) << (((5 - i) * 5) + 4));
+      bin[1] |= GetVal(filter, alpha[j >> 1][i + 6]) << (5 - i) * 5 + 4;
     }
-    bin[1] |= (GetVal(filter, alpha[j >> 1][12]) >> 1);
+    bin[1] |= GetVal(filter, alpha[j >> 1][12]) >> 1;
     dst[j++] = bin[1];
 
     // verify parity bit
@@ -446,11 +446,11 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
       {
         k++;
       }
-      parity ^= (bin[k] >> (i - (k << 5)));
+      parity ^= bin[k] >> i - (k << 5);
     }
-    if ((parity & 1) != (GetVal(filter, alpha[(j - 2) >> 1][12]) & 1))
+    if ((parity & 1) != (GetVal(filter, alpha[j - 2 >> 1][12]) & 1))
     {
-      ret = (org - size);
+      ret = org - size;
     }
   }
 
@@ -481,7 +481,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     //               "First Code in Block (should be verification code):\n{}",
     //               vCodes[0]);
 
-    for (size_t i = 0; i < (vCodes.size() << 1); i += 2)
+    for (size_t i = 0; i < vCodes.size() << 1; i += 2)
     {
       ops->emplace_back(uCodes[i], uCodes[i + 1]);
       // PanicAlertFmt("Decrypted AR Code without verification code:\n{:08X} {:08X}", uCodes[i],
@@ -491,7 +491,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
   else
   {
     // Skip passing the verification code back
-    for (size_t i = 2; i < (vCodes.size() << 1); i += 2)
+    for (size_t i = 2; i < vCodes.size() << 1; i += 2)
     {
       ops->emplace_back(uCodes[i], uCodes[i + 1]);
       // PanicAlertFmt("Decrypted AR Code:\n{:08X} {:08X}", uCodes[i], uCodes[i+1]);

@@ -55,7 +55,7 @@ BluetoothEmuDevice::BluetoothEmuDevice(EmulationKernel& ios, const std::string& 
     std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.registered[i].bdaddr));
 
     const auto& wm_name =
-        (i == WIIMOTE_BALANCE_BOARD) ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01";
+        i == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01";
     memcpy(bt_dinf.registered[i].name, wm_name, 20);
     memcpy(bt_dinf.active[i].name, wm_name, 20);
 
@@ -83,7 +83,7 @@ BluetoothEmuDevice::~BluetoothEmuDevice() = default;
 template <typename T>
 static void DoStateForMessage(EmulationKernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
 {
-  u32 request_address = (message != nullptr) ? message->ios_request.address : 0;
+  u32 request_address = message != nullptr ? message->ios_request.address : 0;
   p.Do(request_address);
   if (request_address != 0)
   {
@@ -471,7 +471,7 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
   constexpr u8 num_responses = 1;
 
   static_assert(
-      sizeof(SHCIEventInquiryResult) - 2 + (num_responses * sizeof(hci_inquiry_response)) < 256);
+      sizeof(SHCIEventInquiryResult) - 2 + num_responses * sizeof(hci_inquiry_response) < 256);
 
   const auto iter = std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
                                  std::mem_fn(&WiimoteDevice::IsInquiryScanEnabled));
@@ -508,7 +508,7 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
 
   inquiry_result->PayloadLength =
       u8(sizeof(SHCIEventInquiryResult) - 2 +
-         (inquiry_result->num_responses * sizeof(hci_inquiry_response)));
+         inquiry_result->num_responses * sizeof(hci_inquiry_response));
 
   AddEventToQueue(event);
   SendEventInquiryComplete(num_responses);
@@ -722,7 +722,7 @@ bool BluetoothEmuDevice::SendEventReadRemoteVerInfo(u16 connection_handle)
 
 void BluetoothEmuDevice::SendEventCommandComplete(u16 opcode, const void* data, u32 data_size)
 {
-  DEBUG_ASSERT((sizeof(SHCIEventCommand) - 2 + data_size) < 256);
+  DEBUG_ASSERT(sizeof(SHCIEventCommand) - 2 + data_size < 256);
 
   SQueuedEvent event(sizeof(SHCIEventCommand) + data_size, 0);
 
@@ -792,7 +792,7 @@ bool BluetoothEmuDevice::SendEventRoleChange(bdaddr_t bd, bool master)
 bool BluetoothEmuDevice::SendEventNumberOfCompletedPackets()
 {
   SQueuedEvent event((u32)(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) +
-                           (sizeof(hci_num_compl_pkts_info) * m_wiimotes.size())),
+                           sizeof(hci_num_compl_pkts_info) * m_wiimotes.size()),
                      0);
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");

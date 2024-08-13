@@ -50,7 +50,7 @@ static void SetPixelAlphaOnly(u32 offset, u8 a)
     u32 a32 = a;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xffffffc0;
-    val |= (a32 >> 2) & 0x0000003f;
+    val |= a32 >> 2 & 0x0000003f;
     *dst = val;
   }
   break;
@@ -79,9 +79,9 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
     u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff00003f;
-    val |= (src >> 4) & 0x00000fc0;  // blue
-    val |= (src >> 6) & 0x0003f000;  // green
-    val |= (src >> 8) & 0x00fc0000;  // red
+    val |= src >> 4 & 0x00000fc0; // blue
+    val |= src >> 6 & 0x0003f000; // green
+    val |= src >> 8 & 0x00fc0000; // red
     *dst = val;
   }
   break;
@@ -120,10 +120,10 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
     u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
-    val |= (src >> 2) & 0x0000003f;  // alpha
-    val |= (src >> 4) & 0x00000fc0;  // blue
-    val |= (src >> 6) & 0x0003f000;  // green
-    val |= (src >> 8) & 0x00fc0000;  // red
+    val |= src >> 2 & 0x0000003f; // alpha
+    val |= src >> 4 & 0x00000fc0; // blue
+    val |= src >> 6 & 0x0003f000; // green
+    val |= src >> 8 & 0x00fc0000; // red
     *dst = val;
   }
   break;
@@ -152,17 +152,17 @@ static u32 GetPixelColor(u32 offset)
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
-    return 0xff | ((src & 0x00ffffff) << 8);
+    return 0xff | (src & 0x00ffffff) << 8;
 
   case PixelFormat::RGBA6_Z24:
-    return Convert6To8(src & 0x3f) |                // Alpha
-           Convert6To8((src >> 6) & 0x3f) << 8 |    // Blue
-           Convert6To8((src >> 12) & 0x3f) << 16 |  // Green
-           Convert6To8((src >> 18) & 0x3f) << 24;   // Red
+    return Convert6To8(src & 0x3f) |             // Alpha
+           Convert6To8(src >> 6 & 0x3f) << 8 |   // Blue
+           Convert6To8(src >> 12 & 0x3f) << 16 | // Green
+           Convert6To8(src >> 18 & 0x3f) << 24;  // Red
 
   case PixelFormat::RGB565_Z16:
     // TODO: RGB565_Z16 is not supported correctly yet
-    return 0xff | ((src & 0x00ffffff) << 8);
+    return 0xff | (src & 0x00ffffff) << 8;
 
   default:
     ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
@@ -209,13 +209,13 @@ static u32 GetPixelDepth(u32 offset)
   case PixelFormat::RGBA6_Z24:
   case PixelFormat::Z24:
   {
-    depth = (*(u32*)&efb[offset]) & 0x00ffffff;
+    depth = *(u32*)&efb[offset] & 0x00ffffff;
   }
   break;
   case PixelFormat::RGB565_Z16:
   {
     // TODO: RGB565_Z16 is not supported correctly yet
-    depth = (*(u32*)&efb[offset]) & 0x00ffffff;
+    depth = *(u32*)&efb[offset] & 0x00ffffff;
   }
   break;
   default:
@@ -316,14 +316,14 @@ static void BlendColor(u8* srcClr, u8* dstClr)
   for (int i = 0; i < 4; i++)
   {
     // add MSB of factors to make their range 0 -> 256
-    u32 sf = (srcFactor & 0xff);
+    u32 sf = srcFactor & 0xff;
     sf += sf >> 7;
 
-    u32 df = (dstFactor & 0xff);
+    u32 df = dstFactor & 0xff;
     df += df >> 7;
 
-    u32 color = (srcClr[i] * sf + dstClr[i] * df) >> 8;
-    dstClr[i] = (color > 255) ? 255 : color;
+    u32 color = srcClr[i] * sf + dstClr[i] * df >> 8;
+    dstClr[i] = color > 255 ? 255 : color;
 
     dstFactor >>= 8;
     srcFactor >>= 8;
@@ -341,13 +341,13 @@ static void LogicBlend(u32 srcClr, u32* dstClr, LogicOp op)
     *dstClr = srcClr & *dstClr;
     break;
   case LogicOp::AndReverse:
-    *dstClr = srcClr & (~*dstClr);
+    *dstClr = srcClr & ~*dstClr;
     break;
   case LogicOp::Copy:
     *dstClr = srcClr;
     break;
   case LogicOp::AndInverted:
-    *dstClr = (~srcClr) & *dstClr;
+    *dstClr = ~srcClr & *dstClr;
     break;
   case LogicOp::NoOp:
     // Do nothing
@@ -368,13 +368,13 @@ static void LogicBlend(u32 srcClr, u32* dstClr, LogicOp op)
     *dstClr = ~*dstClr;
     break;
   case LogicOp::OrReverse:
-    *dstClr = srcClr | (~*dstClr);
+    *dstClr = srcClr | ~*dstClr;
     break;
   case LogicOp::CopyInverted:
     *dstClr = ~srcClr;
     break;
   case LogicOp::OrInverted:
-    *dstClr = (~srcClr) | *dstClr;
+    *dstClr = ~srcClr | *dstClr;
     break;
   case LogicOp::Nand:
     *dstClr = ~(srcClr & *dstClr);
@@ -390,7 +390,7 @@ static void SubtractBlend(u8* srcClr, u8* dstClr)
   for (int i = 0; i < 4; i++)
   {
     int c = (int)dstClr[i] - (int)srcClr[i];
-    dstClr[i] = (c < 0) ? 0 : c;
+    dstClr[i] = c < 0 ? 0 : c;
   }
 }
 
@@ -405,7 +405,7 @@ static void Dither(u16 x, u16 y, u8* color)
 
   // Only the color channels are dithered?
   for (int i = BLU_C; i <= RED_C; i++)
-    color[i] = ((color[i] - (color[i] >> 6)) + dither[y & 1][x & 1]) & 0xfc;
+    color[i] = color[i] - (color[i] >> 6) + dither[y & 1][x & 1] & 0xfc;
 }
 
 void BlendTev(u16 x, u16 y, u8* color)
@@ -424,7 +424,7 @@ void BlendTev(u16 x, u16 y, u8* color)
   }
   else if (bpmem.blendmode.logicopenable)
   {
-    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logicmode);
+    LogicBlend(*(u32*)color, &dstClr, bpmem.blendmode.logicmode);
   }
   else
   {
@@ -539,9 +539,9 @@ static yuv444 ConvertColorToYUV(u32 color)
   const u16 y = +66 * red + 129 * green + +25 * blue;
   const s16 u = -38 * red + -74 * green + 112 * blue;
   const s16 v = 112 * red + -94 * green + -18 * blue;
-  const u8 y_round = static_cast<u8>((y >> 8) + ((y >> 7) & 1));
-  const s8 u_round = static_cast<s8>((u >> 8) + ((u >> 7) & 1));
-  const s8 v_round = static_cast<s8>((v >> 8) + ((v >> 7) & 1));
+  const u8 y_round = static_cast<u8>((y >> 8) + (y >> 7 & 1));
+  const s8 u_round = static_cast<s8>((u >> 8) + (u >> 7 & 1));
+  const s8 v_round = static_cast<s8>((v >> 8) + (v >> 7 & 1));
   return {y_round, u_round, v_round};
 }
 
@@ -627,13 +627,13 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
       src_ptr[x].Y = scanline[i].Y + 16;
       // we mix our color differences in 10 bit space so it will round more accurately
       // U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
-      src_ptr[x].UV = 128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
+      src_ptr[x].UV = 128 + (scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U >> 2);
 
       // YV pixel
       src_ptr[x + 1].Y = scanline[i + 1].Y + 16;
       // V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
       src_ptr[x + 1].UV =
-          128 + ((scanline[i - 1].V + (scanline[i].V << 1) + scanline[i + 1].V) >> 2);
+          128 + (scanline[i - 1].V + (scanline[i].V << 1) + scanline[i + 1].V >> 2);
     }
     src_ptr += memory_stride;
   }

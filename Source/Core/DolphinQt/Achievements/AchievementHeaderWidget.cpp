@@ -130,7 +130,7 @@ void AchievementHeaderWidget::UpdateData()
 
     // This ensures that 0/0 renders as empty instead of full
     m_game_progress->setRange(
-        0, (game_summary.num_core_achievements == 0) ? 1 : game_summary.num_core_achievements);
+        0, game_summary.num_core_achievements == 0 ? 1 : game_summary.num_core_achievements);
     m_game_progress->setVisible(true);
     m_game_progress->setValue(game_summary.num_unlocked_achievements);
     m_progress_label->setVisible(true);

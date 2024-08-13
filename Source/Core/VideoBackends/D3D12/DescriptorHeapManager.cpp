@@ -30,7 +30,7 @@ bool DescriptorHeapManager::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_T
 
   // Set all slots to unallocated (1)
   const u32 bitset_count =
-      num_descriptors / BITSET_SIZE + (((num_descriptors % BITSET_SIZE) != 0) ? 1 : 0);
+      num_descriptors / BITSET_SIZE + (num_descriptors % BITSET_SIZE != 0 ? 1 : 0);
   m_free_slots.resize(bitset_count);
   for (BitSetType& bs : m_free_slots)
     bs.flip();
@@ -90,13 +90,13 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
   {
     if (state.tm0.min_filter == FilterMode::Linear)
     {
-      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      desc->Filter = state.tm0.mag_filter == FilterMode::Linear ?
                          D3D12_FILTER_MIN_MAG_MIP_LINEAR :
                          D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
     }
     else
     {
-      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      desc->Filter = state.tm0.mag_filter == FilterMode::Linear ?
                          D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR :
                          D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
     }
@@ -105,13 +105,13 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
   {
     if (state.tm0.min_filter == FilterMode::Linear)
     {
-      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      desc->Filter = state.tm0.mag_filter == FilterMode::Linear ?
                          D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT :
                          D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
     }
     else
     {
-      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      desc->Filter = state.tm0.mag_filter == FilterMode::Linear ?
                          D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
                          D3D12_FILTER_MIN_MAG_MIP_POINT;
     }

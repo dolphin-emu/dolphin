@@ -168,8 +168,8 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
 {
   constexpr auto hex_step = [](T acc, char c) { return acc << 4 | ConvertNib<T>(c); };
   constexpr auto dec_step = [](T acc, char c) { return acc * 10 + (c - '0'); };
-  constexpr auto oct_step = [](T acc, char c) { return acc << 3 | (c - '0'); };
-  constexpr auto bin_step = [](T acc, char c) { return acc << 1 | (c - '0'); };
+  constexpr auto oct_step = [](T acc, char c) { return acc << 3 | c - '0'; };
+  constexpr auto bin_step = [](T acc, char c) { return acc << 1 | c - '0'; };
 
   switch (tp)
   {
@@ -660,7 +660,7 @@ TokenType Lexer::ClassifyAlnum() const
   {
     return TokenType::GPR;
   }
-  else if ((CaseInsensitiveEquals(alnum, "sp")) || (CaseInsensitiveEquals(alnum, "rtoc")))
+  else if (CaseInsensitiveEquals(alnum, "sp") || CaseInsensitiveEquals(alnum, "rtoc"))
   {
     return TokenType::GPR;
   }

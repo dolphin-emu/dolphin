@@ -64,7 +64,7 @@ UnsignedMagic UnsignedDivisionConstants(u32 divisor)
   u32 max_quotient = multiplier >> shift;
 
   // Test for failure in round-up method
-  u32 round_up = (u64(multiplier + 1) * (max_quotient * divisor - 1)) >> (shift + 32);
+  u32 round_up = u64(multiplier + 1) * (max_quotient * divisor - 1) >> shift + 32;
   bool fast = round_up == max_quotient - 1;
 
   if (fast)

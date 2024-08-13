@@ -303,7 +303,7 @@ static bool IsInFilesDirectory(const std::string& path)
     const size_t slash_before_pos = files_pos - 1;
     const size_t slash_after_pos = files_pos + 5;
     if ((files_pos == 0 || IsDirectorySeparator(path[slash_before_pos])) &&
-        (slash_after_pos == path.size() || (IsDirectorySeparator(path[slash_after_pos]))) &&
+        (slash_after_pos == path.size() || IsDirectorySeparator(path[slash_after_pos])) &&
         ExistsAndIsValidDirectoryBlob(path.substr(0, files_pos) + "sys/main.dol"))
     {
       return true;
@@ -630,7 +630,7 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
                 return lhs.partition.GetRootDirectory() < rhs.partition.GetRootDirectory();
 
               // Ascending sort by partition type, except Update (1) comes before before Game (0)
-              return (lhs.type > PartitionType::Update || rhs.type > PartitionType::Update) ?
+              return lhs.type > PartitionType::Update || rhs.type > PartitionType::Update ?
                          lhs.type < rhs.type :
                          lhs.type > rhs.type;
             });
@@ -649,11 +649,11 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
   std::vector<u8> partition_table(PARTITION_SUBTABLE2_OFFSET + subtable_2_size * 8);
 
   Write32(subtable_1_size, 0x0, &partition_table);
-  Write32((PARTITION_TABLE_ADDRESS + PARTITION_SUBTABLE1_OFFSET) >> 2, 0x4, &partition_table);
+  Write32(PARTITION_TABLE_ADDRESS + PARTITION_SUBTABLE1_OFFSET >> 2, 0x4, &partition_table);
   if (subtable_2_size != 0)
   {
     Write32(subtable_2_size, 0x8, &partition_table);
-    Write32((PARTITION_TABLE_ADDRESS + PARTITION_SUBTABLE2_OFFSET) >> 2, 0xC, &partition_table);
+    Write32(PARTITION_TABLE_ADDRESS + PARTITION_SUBTABLE2_OFFSET >> 2, 0xC, &partition_table);
   }
 
   constexpr u64 STANDARD_UPDATE_PARTITION_ADDRESS = 0x50000;
@@ -679,7 +679,7 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
         Common::AlignUp(partitions[i].partition.GetDataSize(), VolumeWii::BLOCK_DATA_SIZE);
     partitions[i].partition.SetDataSize(data_size);
     const u64 encrypted_data_size =
-        (data_size / VolumeWii::BLOCK_DATA_SIZE) * VolumeWii::BLOCK_TOTAL_SIZE;
+        data_size / VolumeWii::BLOCK_DATA_SIZE * VolumeWii::BLOCK_TOTAL_SIZE;
     const u64 partition_data_offset = partition_address + PARTITION_DATA_OFFSET;
     m_partitions.emplace(partition_data_offset, std::move(partitions[i].partition));
     m_nonpartition_contents.Add(partition_data_offset, encrypted_data_size,
@@ -1170,9 +1170,9 @@ void DirectoryBlobPartition::WriteEntryData(std::vector<u8>* fst_data, u32* entr
 {
   (*fst_data)[(*entry_offset)++] = type;
 
-  (*fst_data)[(*entry_offset)++] = (name_offset >> 16) & 0xff;
-  (*fst_data)[(*entry_offset)++] = (name_offset >> 8) & 0xff;
-  (*fst_data)[(*entry_offset)++] = (name_offset)&0xff;
+  (*fst_data)[(*entry_offset)++] = name_offset >> 16 & 0xff;
+  (*fst_data)[(*entry_offset)++] = name_offset >> 8 & 0xff;
+  (*fst_data)[(*entry_offset)++] = name_offset&0xff;
 
   Write32((u32)(data_offset >> address_shift), *entry_offset, fst_data);
   *entry_offset += 4;
@@ -1263,9 +1263,9 @@ static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buff
 
 static void Write32(u32 data, u32 offset, std::vector<u8>* buffer)
 {
-  (*buffer)[offset++] = (data >> 24);
-  (*buffer)[offset++] = (data >> 16) & 0xff;
-  (*buffer)[offset++] = (data >> 8) & 0xff;
+  (*buffer)[offset++] = data >> 24;
+  (*buffer)[offset++] = data >> 16 & 0xff;
+  (*buffer)[offset++] = data >> 8 & 0xff;
   (*buffer)[offset] = data & 0xff;
 }
 }  // namespace DiscIO

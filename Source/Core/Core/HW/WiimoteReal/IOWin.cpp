@@ -254,7 +254,7 @@ int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t len, DWO
 
   if (written)
   {
-    *written = (result ? (DWORD)len : 0);
+    *written = result ? (DWORD)len : 0;
   }
 
   return result;
@@ -273,7 +273,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
   // HidCaps.OuputReportSize
   // In case of Wiimote HidCaps.OuputReportSize is 22 Byte.
   // This is currently needed by the Toshiba Bluetooth Stack.
-  if ((write_method == WWM_WRITE_FILE_LARGEST_REPORT_SIZE) && (MAX_PAYLOAD > len))
+  if (write_method == WWM_WRITE_FILE_LARGEST_REPORT_SIZE && MAX_PAYLOAD > len)
   {
     std::copy(buf, buf + len, resized_buffer);
     std::fill(resized_buffer + len, resized_buffer + MAX_PAYLOAD, 0);
@@ -375,10 +375,10 @@ bool GetParentDevice(const DEVINST& child_device_instance, HDEVINFO* parent_devi
   }
 
   // Create a new empty device info set for the device info data
-  (*parent_device_info) = SetupDiCreateDeviceInfoList(nullptr, nullptr);
+  *parent_device_info = SetupDiCreateDeviceInfoList(nullptr, nullptr);
 
   // Open the device info data of the parent and put it in the emtpy info set
-  if (!SetupDiOpenDeviceInfo((*parent_device_info), parent_device_id.data(), nullptr, 0,
+  if (!SetupDiOpenDeviceInfo(*parent_device_info, parent_device_id.data(), nullptr, 0,
                              parent_device_data))
   {
     SetupDiDestroyDeviceInfoList(parent_device_info);
@@ -408,7 +408,7 @@ bool CheckForToshibaStack(const DEVINST& hid_interface_device_instance)
 
     SetupDiDestroyDeviceInfoList(parent_device_info);
 
-    return (class_driver_provider == L"TOSHIBA");
+    return class_driver_provider == L"TOSHIBA";
   }
 
   DEBUG_LOG_FMT(WIIMOTE, "Unable to detect class driver provider!");
@@ -420,8 +420,8 @@ WinWriteMethod GetInitialWriteMethod(bool IsUsingToshibaStack)
 {
   // Currently Toshiba Bluetooth Stack needs the Output buffer to be the size of the largest output
   // report
-  return (IsUsingToshibaStack ? WWM_WRITE_FILE_LARGEST_REPORT_SIZE :
-                                WWM_WRITE_FILE_ACTUAL_REPORT_SIZE);
+  return IsUsingToshibaStack ? WWM_WRITE_FILE_LARGEST_REPORT_SIZE :
+           WWM_WRITE_FILE_ACTUAL_REPORT_SIZE;
 }
 
 int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, size_t size)
@@ -547,7 +547,7 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 
   // Get all hid devices connected
   HDEVINFO const device_info =
-      SetupDiGetClassDevs(&device_id, nullptr, nullptr, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
+      SetupDiGetClassDevs(&device_id, nullptr, nullptr, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
 
   SP_DEVICE_INTERFACE_DATA device_data = {};
   device_data.cbSize = sizeof(device_data);

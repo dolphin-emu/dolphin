@@ -307,7 +307,7 @@ void AsmEditor::wheelEvent(QWheelEvent* event)
 
   if (event->modifiers() & Qt::ControlModifier)
   {
-    auto delta = static_cast<int>(std::round((event->angleDelta().y() / 120.0)));
+    auto delta = static_cast<int>(std::round(event->angleDelta().y() / 120.0));
     if (delta != 0)
     {
       emit ZoomRequested(delta);

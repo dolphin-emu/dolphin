@@ -58,7 +58,7 @@ void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
   DSPDisassembler disasm(settings);
 
   u16 addr = start_addr;
-  const u16* ptr = (start_addr >> 15) != 0 ? dsp.irom : dsp.iram;
+  const u16* ptr = start_addr >> 15 != 0 ? dsp.irom : dsp.iram;
   constexpr size_t size = DSP_IROM_SIZE;
   static_assert(size == DSP_IRAM_SIZE);
   while (addr < end_addr)

@@ -190,7 +190,7 @@ struct PowerPCState
 
   void UpdateCR1()
   {
-    cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
+    cr.SetField(1, fpscr.FX << 3 | fpscr.FEX << 2 | fpscr.VX << 1 | fpscr.OX);
   }
 
   void SetSR(u32 index, u32 value);
@@ -223,7 +223,7 @@ struct PowerPCState
 
   void SetXER_OV(bool value)
   {
-    xer_so_ov = (xer_so_ov & 0xFE) | static_cast<u32>(value);
+    xer_so_ov = xer_so_ov & 0xFE | static_cast<u32>(value);
     SetXER_SO(value);
   }
 

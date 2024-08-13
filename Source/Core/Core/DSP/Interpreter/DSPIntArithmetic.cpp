@@ -19,7 +19,7 @@ namespace DSP::Interpreter
 // flags out: --10 0100
 void Interpreter::clr(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 11) & 0x1;
+  const u8 reg = opc >> 11 & 0x1;
 
   SetLongAcc(reg, 0);
   UpdateSR64(0);
@@ -33,7 +33,7 @@ void Interpreter::clr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::clrl(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const s64 acc = dsp_round_long_acc(GetLongAcc(reg));
 
   ZeroWriteBackLog();
@@ -53,7 +53,7 @@ void Interpreter::clrl(const UDSPInstruction opc)
 // flags out: -x-- ----
 void Interpreter::andcf(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const u16 imm = m_dsp_core.DSPState().FetchInstruction();
   const u16 val = GetAccMid(reg);
 
@@ -70,7 +70,7 @@ void Interpreter::andcf(const UDSPInstruction opc)
 // flags out: -x-- ----
 void Interpreter::andf(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const u16 imm = m_dsp_core.DSPState().FetchInstruction();
   const u16 val = GetAccMid(reg);
 
@@ -86,7 +86,7 @@ void Interpreter::andf(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::tst(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 11) & 0x1;
+  const u8 reg = opc >> 11 & 0x1;
   const s64 acc = GetLongAcc(reg);
 
   UpdateSR64(acc);
@@ -100,7 +100,7 @@ void Interpreter::tst(const UDSPInstruction opc)
 // flags out: --x0 xx00
 void Interpreter::tstaxh(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const s16 val = GetAXHigh(reg);
 
   UpdateSR16(val);
@@ -131,8 +131,8 @@ void Interpreter::cmp(const UDSPInstruction)
 // flags out: x-xx xxxx
 void Interpreter::cmpaxh(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 12) & 0x1;
-  const u8 sreg = (opc >> 11) & 0x1;
+  const u8 rreg = opc >> 12 & 0x1;
+  const u8 sreg = opc >> 11 & 0x1;
 
   const s64 acc = GetLongAcc(sreg);
   s64 ax = GetAXHigh(rreg);
@@ -153,7 +153,7 @@ void Interpreter::cmpaxh(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::cmpi(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   const s64 val = GetLongAcc(reg);
@@ -174,7 +174,7 @@ void Interpreter::cmpi(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::cmpis(const UDSPInstruction opc)
 {
-  const u8 areg = (opc >> 8) & 0x1;
+  const u8 areg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(areg);
   s64 imm = static_cast<s8>(opc);
@@ -195,8 +195,8 @@ void Interpreter::cmpis(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::xorr(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   const u16 accm = state.r.ac[dreg].m ^ state.r.ax[sreg].h;
@@ -215,8 +215,8 @@ void Interpreter::xorr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::andr(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   const u16 accm = state.r.ac[dreg].m & state.r.ax[sreg].h;
@@ -235,8 +235,8 @@ void Interpreter::andr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::orr(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   const u16 accm = state.r.ac[dreg].m | state.r.ax[sreg].h;
@@ -256,7 +256,7 @@ void Interpreter::orr(const UDSPInstruction opc)
 void Interpreter::andc(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const u16 accm = state.r.ac[dreg].m & state.r.ac[1 - dreg].m;
 
   ZeroWriteBackLogPreserveAcc(dreg);
@@ -275,7 +275,7 @@ void Interpreter::andc(const UDSPInstruction opc)
 void Interpreter::orc(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const u16 accm = state.r.ac[dreg].m | state.r.ac[1 - dreg].m;
 
   ZeroWriteBackLogPreserveAcc(dreg);
@@ -293,7 +293,7 @@ void Interpreter::orc(const UDSPInstruction opc)
 void Interpreter::xorc(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const u16 accm = state.r.ac[dreg].m ^ state.r.ac[1 - dreg].m;
 
   ZeroWriteBackLogPreserveAcc(dreg);
@@ -311,7 +311,7 @@ void Interpreter::xorc(const UDSPInstruction opc)
 void Interpreter::notc(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const u16 accm = state.r.ac[dreg].m ^ 0xffff;
 
   ZeroWriteBackLogPreserveAcc(dreg);
@@ -330,7 +330,7 @@ void Interpreter::notc(const UDSPInstruction opc)
 void Interpreter::xori(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const u16 imm = state.FetchInstruction();
   state.r.ac[reg].m ^= imm;
 
@@ -346,7 +346,7 @@ void Interpreter::xori(const UDSPInstruction opc)
 void Interpreter::andi(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const u16 imm = state.FetchInstruction();
 
   state.r.ac[reg].m &= imm;
@@ -363,7 +363,7 @@ void Interpreter::andi(const UDSPInstruction opc)
 void Interpreter::ori(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   const u16 imm = state.FetchInstruction();
 
   state.r.ac[reg].m |= imm;
@@ -381,8 +381,8 @@ void Interpreter::ori(const UDSPInstruction opc)
 void Interpreter::addr(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = (opc >> 9 & 0x3) + DSP_REG_AXL0;
 
   const s64 acc = GetLongAcc(dreg);
   s64 ax = 0;
@@ -418,8 +418,8 @@ void Interpreter::addr(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::addax(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 ax = GetLongACX(sreg);
@@ -438,7 +438,7 @@ void Interpreter::addax(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::add(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc0 = GetLongAcc(dreg);
   const s64 acc1 = GetLongAcc(1 - dreg);
@@ -457,7 +457,7 @@ void Interpreter::add(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::addp(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 prod = GetLongProduct();
@@ -477,8 +477,8 @@ void Interpreter::addp(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::addaxl(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 9) & 0x1;
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const u64 acc = GetLongAcc(dreg);
   const u16 acx = static_cast<u16>(GetAXLow(sreg));
@@ -499,7 +499,7 @@ void Interpreter::addaxl(const UDSPInstruction opc)
 void Interpreter::addi(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 areg = (opc >> 8) & 0x1;
+  const u8 areg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(areg);
   s64 imm = static_cast<s16>(state.FetchInstruction());
@@ -517,7 +517,7 @@ void Interpreter::addi(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::addis(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   s64 imm = static_cast<s8>(opc);
@@ -535,7 +535,7 @@ void Interpreter::addis(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::incm(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 sub = 0x10000;
   const s64 acc = GetLongAcc(dreg);
@@ -554,7 +554,7 @@ void Interpreter::incm(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::inc(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 res = acc + 1;
@@ -575,8 +575,8 @@ void Interpreter::inc(const UDSPInstruction opc)
 void Interpreter::subr(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = (opc >> 9 & 0x3) + DSP_REG_AXL0;
 
   const s64 acc = GetLongAcc(dreg);
   s64 ax = 0;
@@ -612,8 +612,8 @@ void Interpreter::subr(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::subax(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 acx = GetLongACX(sreg);
@@ -632,7 +632,7 @@ void Interpreter::subax(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::sub(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc1 = GetLongAcc(dreg);
   const s64 acc2 = GetLongAcc(1 - dreg);
@@ -651,7 +651,7 @@ void Interpreter::sub(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::subp(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 prod = GetLongProduct();
@@ -670,7 +670,7 @@ void Interpreter::subp(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::decm(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x01;
+  const u8 dreg = opc >> 8 & 0x01;
 
   const s64 sub = 0x10000;
   const s64 acc = GetLongAcc(dreg);
@@ -689,7 +689,7 @@ void Interpreter::decm(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::dec(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x01;
+  const u8 dreg = opc >> 8 & 0x01;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 res = acc - 1;
@@ -714,7 +714,7 @@ void Interpreter::dec(const UDSPInstruction opc)
 // the value of $acD after the operation is the same as it was before.
 void Interpreter::neg(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
   const s64 res = 0 - acc;
@@ -732,7 +732,7 @@ void Interpreter::neg(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::abs(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 11) & 0x1;
+  const u8 dreg = opc >> 11 & 0x1;
 
   s64 acc = GetLongAcc(dreg);
 
@@ -755,8 +755,8 @@ void Interpreter::abs(const UDSPInstruction opc)
 void Interpreter::movr(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 areg = (opc >> 8) & 0x1;
-  const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+  const u8 areg = opc >> 8 & 0x1;
+  const u8 sreg = (opc >> 9 & 0x3) + DSP_REG_AXL0;
 
   s64 ax = 0;
   switch (sreg)
@@ -788,8 +788,8 @@ void Interpreter::movr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::movax(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   const s64 acx = GetLongACX(sreg);
 
@@ -806,7 +806,7 @@ void Interpreter::movax(const UDSPInstruction opc)
 // flags out: --x0 xx00
 void Interpreter::mov(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const u64 acc = GetLongAcc(1 - dreg);
 
   ZeroWriteBackLog();
@@ -824,7 +824,7 @@ void Interpreter::mov(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::lsl16(const UDSPInstruction opc)
 {
-  const u8 areg = (opc >> 8) & 0x1;
+  const u8 areg = opc >> 8 & 0x1;
 
   s64 acc = GetLongAcc(areg);
   acc <<= 16;
@@ -842,7 +842,7 @@ void Interpreter::lsl16(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::lsr16(const UDSPInstruction opc)
 {
-  const u8 areg = (opc >> 8) & 0x1;
+  const u8 areg = opc >> 8 & 0x1;
 
   u64 acc = GetLongAcc(areg);
   // Lop off the extraneous sign extension our 64-bit fake accum causes
@@ -862,7 +862,7 @@ void Interpreter::lsr16(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::asr16(const UDSPInstruction opc)
 {
-  const u8 areg = (opc >> 11) & 0x1;
+  const u8 areg = opc >> 11 & 0x1;
 
   s64 acc = GetLongAcc(areg);
   acc >>= 16;
@@ -880,7 +880,7 @@ void Interpreter::asr16(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::lsl(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x01;
+  const u8 rreg = opc >> 8 & 0x01;
   const u16 shift = opc & 0x3f;
   u64 acc = GetLongAcc(rreg);
 
@@ -898,7 +898,7 @@ void Interpreter::lsl(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::lsr(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x01;
+  const u8 rreg = opc >> 8 & 0x01;
   u16 shift;
   u64 acc = GetLongAcc(rreg);
   // Lop off the extraneous sign extension our 64-bit fake accum causes
@@ -922,7 +922,7 @@ void Interpreter::lsr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::asl(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x01;
+  const u8 rreg = opc >> 8 & 0x01;
   const u16 shift = opc & 0x3f;
   u64 acc = GetLongAcc(rreg);
 
@@ -940,7 +940,7 @@ void Interpreter::asl(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::asr(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x01;
+  const u8 dreg = opc >> 8 & 0x01;
   u16 shift;
 
   if ((opc & 0x3f) == 0)
@@ -1030,8 +1030,8 @@ void Interpreter::asrn(const UDSPInstruction opc)
 void Interpreter::lsrnrx(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   s16 shift;
   const u16 axh = state.r.ax[sreg].h;
@@ -1069,8 +1069,8 @@ void Interpreter::lsrnrx(const UDSPInstruction opc)
 void Interpreter::asrnrx(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   s16 shift;
   const u16 axh = state.r.ax[sreg].h;
@@ -1106,7 +1106,7 @@ void Interpreter::asrnrx(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::lsrnr(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   s16 shift;
   const u16 accm = static_cast<u16>(GetAccMid(1 - dreg));
@@ -1139,7 +1139,7 @@ void Interpreter::lsrnr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::asrnr(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
 
   s16 shift;
   const u16 accm = static_cast<u16>(GetAccMid(1 - dreg));

@@ -373,8 +373,8 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   const u32 page_end_address = address | page_end_suffix;
 
   return std::any_of(m_mem_checks.cbegin(), m_mem_checks.cend(), [&](const auto& mc) {
-    return ((mc.start_address | page_end_suffix) == page_end_address ||
-            (mc.end_address | page_end_suffix) == page_end_address) ||
+    return (mc.start_address | page_end_suffix) == page_end_address ||
+           (mc.end_address | page_end_suffix) == page_end_address ||
            ((mc.start_address | page_end_suffix) < page_end_address &&
             (mc.end_address | page_end_suffix) > page_end_address);
   });

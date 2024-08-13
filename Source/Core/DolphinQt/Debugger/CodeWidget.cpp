@@ -498,7 +498,7 @@ static bool WillInstructionReturn(Core::System& system, UGeckoInstruction inst)
   if (inst.hex == 0x4C000064u)
     return true;
   const auto& ppc_state = system.GetPPCState();
-  bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR(ppc_state) != 0) != ((inst.BO_2 >> 1 & 1) != 0);
+  bool counter = (inst.BO_2 >> 2 & 1) != 0 || CTR(ppc_state) != 0 != ((inst.BO_2 >> 1 & 1) != 0);
   bool condition = inst.BO_2 >> 4 != 0 || ppc_state.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !inst.LK_3;

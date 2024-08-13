@@ -33,7 +33,7 @@ void SkylanderFigure::PopulateSectorTrailers()
   memcpy(&m_data[0x36], &first_block, sizeof(first_block));
   for (size_t index = 1; index < 0x10; index++)
   {
-    memcpy(&m_data[(index * 0x40) + 0x36], &other_blocks, sizeof(other_blocks));
+    memcpy(&m_data[index * 0x40 + 0x36], &other_blocks, sizeof(other_blocks));
   }
 }
 
@@ -41,13 +41,13 @@ void SkylanderFigure::PopulateKeys()
 {
   for (u8 sector = 0; sector < 0x10; sector++)
   {
-    u16 key_offset = (sector * 64) + (3 * 16);
+    u16 key_offset = sector * 64 + 3 * 16;
     u64 key = CalculateKeyA(sector, std::span<u8, 4>(m_data.begin(), 4));
 
     for (u32 j = 0; j < 6; j++)
     {
       u16 index = key_offset + (5 - j);
-      u8 byte = (key >> (j * 8)) & 0xFF;
+      u8 byte = key >> j * 8 & 0xFF;
       m_data[index] = byte;
     }
   }
@@ -94,12 +94,12 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
   // Run for every block
   for (u8 i = 0; i < 64; ++i)
   {
-    memcpy(current_block.data(), input.data() + (i * BLOCK_SIZE), BLOCK_SIZE);
+    memcpy(current_block.data(), input.data() + i * BLOCK_SIZE, BLOCK_SIZE);
 
     // Skip sector trailer and the first 8 blocks
-    if (((i + 1) % 4 == 0) || i < 8)
+    if ((i + 1) % 4 == 0 || i < 8)
     {
-      memcpy(encrypted.data() + (i * BLOCK_SIZE), current_block.data(), BLOCK_SIZE);
+      memcpy(encrypted.data() + i * BLOCK_SIZE, current_block.data(), BLOCK_SIZE);
       continue;
     }
 
@@ -115,7 +115,7 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
     mbedtls_aes_setkey_enc(&aes_context, hash_out.data(), 128);
 
     mbedtls_aes_crypt_ecb(&aes_context, MBEDTLS_AES_ENCRYPT, current_block.data(),
-                          encrypted.data() + (i * BLOCK_SIZE));
+                          encrypted.data() + i * BLOCK_SIZE);
   }
 
   memcpy(m_data.data(), encrypted.data(), FIGURE_SIZE);
@@ -176,7 +176,7 @@ void SkylanderFigure::Save()
 
 void SkylanderFigure::GetBlock(u8 index, u8* dest) const
 {
-  memcpy(dest, m_data.data() + (index * BLOCK_SIZE), BLOCK_SIZE);
+  memcpy(dest, m_data.data() + index * BLOCK_SIZE, BLOCK_SIZE);
 }
 
 FigureData SkylanderFigure::GetData() const
@@ -200,7 +200,7 @@ FigureData SkylanderFigure::GetData() const
     DecryptFigure(&decrypted);
 
     // Area with highest area counter is the newest
-    u16 area_offset = ((decrypted[0x89] + 1U) != decrypted[0x249]) ? 0x80 : 0x240;
+    u16 area_offset = decrypted[0x89] + 1U != decrypted[0x249] ? 0x80 : 0x240;
 
     figure_data.skylander_data = {
         .money = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x3),
@@ -225,13 +225,13 @@ FigureData SkylanderFigure::GetData() const
     // First nickname half
     for (size_t i = 0; i < 8; ++i)
     {
-      nickname[i] = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x20 + (i * 2));
+      nickname[i] = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x20 + i * 2);
     }
 
     // Second nickname half
     for (size_t i = 0; i < 8; ++i)
     {
-      nickname[i + 8] = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x40 + (i * 2));
+      nickname[i + 8] = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x40 + i * 2);
     }
 
     figure_data.skylander_data.nickname = nickname;
@@ -243,7 +243,7 @@ FigureData SkylanderFigure::GetData() const
     DecryptFigure(&decrypted);
 
     // Area with highest area counter is the newest
-    u16 area_offset = ((decrypted[0x89] + 1U) != decrypted[0x249]) ? 0x80 : 0x240;
+    u16 area_offset = decrypted[0x89] + 1U != decrypted[0x249] ? 0x80 : 0x240;
 
     figure_data.trophy_data.unlocked_villains = *(decrypted.data() + area_offset + 0x14);
   }
@@ -259,8 +259,8 @@ void SkylanderFigure::SetData(FigureData* figure_data)
   if (figure_data->normalized_type == Type::Skylander)
   {
     // Only update area with lowest counter
-    u16 area_offset = (decrypted[0x89] != (decrypted[0x249] + 1U)) ? 0x80 : 0x240;
-    u16 other_area_offset = (area_offset == 0x80) ? 0x240 : 0x80;
+    u16 area_offset = decrypted[0x89] != decrypted[0x249] + 1U ? 0x80 : 0x240;
+    u16 other_area_offset = area_offset == 0x80 ? 0x240 : 0x80;
 
     memcpy(decrypted.data() + area_offset + 0x3, &figure_data->skylander_data.money, 2);
     memcpy(decrypted.data() + area_offset + 0x5A, &figure_data->skylander_data.hero_level, 2);
@@ -294,13 +294,13 @@ void SkylanderFigure::SetData(FigureData* figure_data)
     {
       for (size_t i = 0; i < 8; ++i)
       {
-        memcpy(decrypted.data() + area_offset + 0x20 + (i * 2),
+        memcpy(decrypted.data() + area_offset + 0x20 + i * 2,
                &figure_data->skylander_data.nickname[i], 0x2);
       }
 
       for (size_t i = 0; i < 8; ++i)
       {
-        memcpy(decrypted.data() + area_offset + 0x40 + (i * 2),
+        memcpy(decrypted.data() + area_offset + 0x40 + i * 2,
                &figure_data->skylander_data.nickname[8 + i], 0x2);
       }
     }
@@ -315,8 +315,8 @@ void SkylanderFigure::SetData(FigureData* figure_data)
     }
 
     {
-      area_offset = (decrypted[0x112] != (decrypted[0x2D2] + 1U)) ? 0x110 : 0x2D0;
-      other_area_offset = (area_offset == 0x110) ? 0x2D0 : 0x110;
+      area_offset = decrypted[0x112] != decrypted[0x2D2] + 1U ? 0x110 : 0x2D0;
+      other_area_offset = area_offset == 0x110 ? 0x2D0 : 0x110;
 
       decrypted[area_offset + 2] = decrypted[other_area_offset + 2] + 1;
 
@@ -325,8 +325,8 @@ void SkylanderFigure::SetData(FigureData* figure_data)
   }
   else if (figure_data->normalized_type == Type::Trophy)
   {
-    u16 area_offset = (decrypted[0x89] != (decrypted[0x249] + 1U)) ? 0x80 : 0x240;
-    u16 other_area_offset = (area_offset == 0x80) ? 0x240 : 0x80;
+    u16 area_offset = decrypted[0x89] != decrypted[0x249] + 1U ? 0x80 : 0x240;
+    u16 other_area_offset = area_offset == 0x80 ? 0x240 : 0x80;
 
     {
       memcpy(decrypted.data() + area_offset + 0x14, &figure_data->trophy_data.unlocked_villains, 1);
@@ -342,8 +342,8 @@ void SkylanderFigure::SetData(FigureData* figure_data)
     }
 
     {
-      area_offset = (decrypted[0x112] != (decrypted[0x2D2] + 1U)) ? 0x110 : 0x2D0;
-      other_area_offset = (area_offset == 0x110) ? 0x2D0 : 0x110;
+      area_offset = decrypted[0x112] != decrypted[0x2D2] + 1U ? 0x110 : 0x2D0;
+      other_area_offset = area_offset == 0x110 ? 0x2D0 : 0x110;
 
       decrypted[area_offset + 2] = decrypted[other_area_offset + 2] + 1;
 
@@ -372,9 +372,9 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
     GetBlock(i, current_block.data());
 
     // Skip sector trailer and the first 8 blocks
-    if (((i + 1) % 4 == 0) || i < 8)
+    if ((i + 1) % 4 == 0 || i < 8)
     {
-      memcpy(decrypted.data() + (i * BLOCK_SIZE), current_block.data(), BLOCK_SIZE);
+      memcpy(decrypted.data() + i * BLOCK_SIZE, current_block.data(), BLOCK_SIZE);
       continue;
     }
 
@@ -401,7 +401,7 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
     mbedtls_aes_setkey_dec(&aes_context, hash_out.data(), 128);
 
     mbedtls_aes_crypt_ecb(&aes_context, MBEDTLS_AES_DECRYPT, current_block.data(),
-                          decrypted.data() + (i * BLOCK_SIZE));
+                          decrypted.data() + i * BLOCK_SIZE);
   }
 
   memcpy(dest->data(), decrypted.data(), FIGURE_SIZE);
@@ -414,7 +414,7 @@ void SkylanderFigure::Close()
 }
 void SkylanderFigure::SetBlock(u8 block, const u8* buf)
 {
-  memcpy(m_data.data() + (block * BLOCK_SIZE), buf, BLOCK_SIZE);
+  memcpy(m_data.data() + block * BLOCK_SIZE, buf, BLOCK_SIZE);
 }
 bool SkylanderFigure::FileIsOpen() const
 {

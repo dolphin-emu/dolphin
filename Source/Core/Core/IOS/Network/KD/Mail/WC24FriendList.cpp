@@ -88,7 +88,7 @@ u64 WC24FriendList::ConvertEmailToFriendCode(std::string_view email)
   {
     if (idx == 7)
     {
-      upper = upper | (email.size() & 0x1f);
+      upper = upper | email.size() & 0x1f;
       break;
     }
 

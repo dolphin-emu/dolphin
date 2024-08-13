@@ -285,12 +285,12 @@ void GBAWidget::SetBorderless(bool enable)
   if (windowState().testFlag(Qt::WindowFullScreen))
   {
     if (!enable)
-      setWindowState((windowState() ^ Qt::WindowFullScreen) | Qt::WindowMaximized);
+      setWindowState(windowState() ^ Qt::WindowFullScreen | Qt::WindowMaximized);
   }
   else if (windowState().testFlag(Qt::WindowMaximized))
   {
     if (enable)
-      setWindowState((windowState() ^ Qt::WindowMaximized) | Qt::WindowFullScreen);
+      setWindowState(windowState() ^ Qt::WindowMaximized | Qt::WindowFullScreen);
   }
   else if (windowFlags().testFlag(Qt::FramelessWindowHint) != enable)
   {

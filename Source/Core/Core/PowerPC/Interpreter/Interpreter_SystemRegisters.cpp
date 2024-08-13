@@ -67,10 +67,10 @@ void Interpreter::mtfsfix(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 field = inst.CRFD;
   const u32 pre_shifted_mask = 0xF0000000;
-  const u32 mask = (pre_shifted_mask >> (4 * field));
-  const u32 imm = (inst.hex << 16) & pre_shifted_mask;
+  const u32 mask = pre_shifted_mask >> 4 * field;
+  const u32 imm = inst.hex << 16 & pre_shifted_mask;
 
-  ppc_state.fpscr = (ppc_state.fpscr.Hex & ~mask) | (imm >> (4 * field));
+  ppc_state.fpscr = ppc_state.fpscr.Hex & ~mask | imm >> 4 * field;
 
   FPSCRUpdated(ppc_state);
 
@@ -85,12 +85,12 @@ void Interpreter::mtfsfx(Interpreter& interpreter, UGeckoInstruction inst)
   u32 m = 0;
   for (u32 i = 0; i < 8; i++)
   {
-    if ((fm & (1U << i)) != 0)
-      m |= (0xFU << (i * 4));
+    if ((fm & 1U << i) != 0)
+      m |= 0xFU << i * 4;
   }
 
   ppc_state.fpscr =
-      (ppc_state.fpscr.Hex & ~m) | (static_cast<u32>(ppc_state.ps[inst.FB].PS0AsU64()) & m);
+      ppc_state.fpscr.Hex & ~m | static_cast<u32>(ppc_state.ps[inst.FB].PS0AsU64()) & m;
   FPSCRUpdated(ppc_state);
 
   if (inst.Rc)
@@ -125,11 +125,11 @@ void Interpreter::mtcrf(Interpreter& interpreter, UGeckoInstruction inst)
     u32 mask = 0;
     for (u32 i = 0; i < 8; i++)
     {
-      if ((crm & (1U << i)) != 0)
-        mask |= 0xFU << (i * 4);
+      if ((crm & 1U << i) != 0)
+        mask |= 0xFU << i * 4;
     }
 
-    ppc_state.cr.Set((ppc_state.cr.Get() & ~mask) | (ppc_state.gpr[inst.RS] & mask));
+    ppc_state.cr.Set(ppc_state.cr.Get() & ~mask | ppc_state.gpr[inst.RS] & mask);
   }
 }
 
@@ -166,7 +166,7 @@ void Interpreter::mfsrin(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = (ppc_state.gpr[inst.RB] >> 28) & 0xF;
+  const u32 index = ppc_state.gpr[inst.RB] >> 28 & 0xF;
   ppc_state.gpr[inst.RD] = ppc_state.sr[index];
 }
 
@@ -215,22 +215,22 @@ void Interpreter::mtsrin(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = (ppc_state.gpr[inst.RB] >> 28) & 0xF;
+  const u32 index = ppc_state.gpr[inst.RB] >> 28 & 0xF;
   const u32 value = ppc_state.gpr[inst.RS];
   ppc_state.SetSR(index, value);
 }
 
 void Interpreter::mftb(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  [[maybe_unused]] const u32 index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
-  DEBUG_ASSERT_MSG(POWERPC, (index == SPR_TL) || (index == SPR_TU), "Invalid mftb");
+  [[maybe_unused]] const u32 index = inst.TBR >> 5 | (inst.TBR & 0x1F) << 5;
+  DEBUG_ASSERT_MSG(POWERPC, index == SPR_TL || index == SPR_TU, "Invalid mftb");
   mfspr(interpreter, inst);
 }
 
 void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 index = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
+  const u32 index = ((inst.SPR & 0x1F) << 5) + (inst.SPR >> 5 & 0x1F);
 
   // XER, LR, CTR, and timebase halves are the only ones available in user mode.
   if (ppc_state.msr.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR &&
@@ -303,7 +303,7 @@ void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  const u32 index = inst.SPRU << 5 | inst.SPRL & 0x1F;
 
   // XER, LR, and CTR are the only ones available to be written to in user mode
   if (ppc_state.msr.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
@@ -376,7 +376,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     // TODO: emulate locked cache and DMA bits.
     // Only the lower half of the register (upper half from a little endian perspective)
     // is modifiable, except for the DMAQL field.
-    ppc_state.spr[index] = (ppc_state.spr[index] & 0xF0FF0000) | (old_value & 0x0F000000);
+    ppc_state.spr[index] = ppc_state.spr[index] & 0xF0FF0000 | old_value & 0x0F000000;
     break;
 
   case SPR_HID4:
@@ -413,7 +413,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     {
       const u32 mem_address = DMAU(ppc_state).MEM_ADDR << 5;
       const u32 cache_address = DMAL(ppc_state).LC_ADDR << 5;
-      u32 length = ((DMAU(ppc_state).DMA_LEN_U << 2) | DMAL(ppc_state).DMA_LEN_L);
+      u32 length = DMAU(ppc_state).DMA_LEN_U << 2 | DMAL(ppc_state).DMA_LEN_L;
 
       if (length == 0)
         length = 128;
@@ -430,7 +430,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
 
   case SPR_DEC:
     // Top bit from 0 to 1
-    if ((old_value >> 31) == 0 && (ppc_state.gpr[inst.RD] >> 31) != 0)
+    if (old_value >> 31 == 0 && ppc_state.gpr[inst.RD] >> 31 != 0)
     {
       INFO_LOG_FMT(POWERPC, "Software triggered Decrementer exception");
       ppc_state.Exceptions |= EXCEPTION_DECREMENTER;
@@ -564,7 +564,7 @@ void Interpreter::crnand(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 a = ppc_state.cr.GetBit(inst.CRBA);
   const u32 b = ppc_state.cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, 1 ^ (a & b));
+  ppc_state.cr.SetBit(inst.CRBD, 1 ^ a & b);
 }
 
 void Interpreter::crnor(Interpreter& interpreter, UGeckoInstruction inst)
@@ -591,7 +591,7 @@ void Interpreter::crorc(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 a = ppc_state.cr.GetBit(inst.CRBA);
   const u32 b = ppc_state.cr.GetBit(inst.CRBB);
 
-  ppc_state.cr.SetBit(inst.CRBD, a | (1 ^ b));
+  ppc_state.cr.SetBit(inst.CRBD, a | 1 ^ b);
 }
 
 void Interpreter::crxor(Interpreter& interpreter, UGeckoInstruction inst)
@@ -621,10 +621,10 @@ void Interpreter::mcrfs(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 shift = 4 * (7 - inst.CRFS);
-  const u32 fpflags = (ppc_state.fpscr.Hex >> shift) & 0xF;
+  const u32 fpflags = ppc_state.fpscr.Hex >> shift & 0xF;
 
   // If any exception bits were read, clear them
-  ppc_state.fpscr.Hex &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
+  ppc_state.fpscr.Hex &= ~(0xF << shift & (FPSCR_FX | FPSCR_ANY_X));
   FPSCRUpdated(ppc_state);
 
   ppc_state.cr.SetField(inst.CRFD, fpflags);

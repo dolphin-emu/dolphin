@@ -28,7 +28,7 @@ namespace
 double CalculateStopDistance(double velocity, double acceleration, double max_jerk)
 {
   // Math below expects velocity to be non-negative.
-  const auto velocity_flip = (velocity < 0 ? -1 : 1);
+  const auto velocity_flip = velocity < 0 ? -1 : 1;
 
   const auto v_0 = velocity * velocity_flip;
   const auto a_0 = acceleration * velocity_flip;
@@ -38,7 +38,7 @@ double CalculateStopDistance(double velocity, double acceleration, double max_je
   const auto t_0 = a_0 / j;
 
   // Distance to reach zero acceleration.
-  const auto d_0 = std::pow(a_0, 3) / (3 * j * j) + (a_0 * v_0) / j;
+  const auto d_0 = std::pow(a_0, 3) / (3 * j * j) + a_0 * v_0 / j;
 
   // Velocity at zero acceleration.
   const auto v_1 = v_0 + a_0 * std::abs(t_0) - std::copysign(j * t_0 * t_0 / 2, t_0);
@@ -291,7 +291,7 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
   for (std::size_t i = 0; i != offset.data.size(); ++i)
   {
     // If new angle will overshoot stop right on target.
-    if (std::abs(offset.data[i]) < 0.0001 || (change_in_angle.data[i] / offset.data[i] > 1.0))
+    if (std::abs(offset.data[i]) < 0.0001 || change_in_angle.data[i] / offset.data[i] > 1.0)
     {
       state->angular_velocity.data[i] =
           (angle_target.data[i] - state->angle.data[i]) / time_elapsed;
@@ -371,7 +371,7 @@ void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& positi
   {
     // If new velocity will overshoot assume we would have stopped right on target.
     // TODO: Improve check to see if less jerk would have caused undershoot.
-    if ((change_in_position.data[i] / offset.data[i]) > 1.0)
+    if (change_in_position.data[i] / offset.data[i] > 1.0)
     {
       state->acceleration.data[i] = 0;
       state->velocity.data[i] = 0;
@@ -399,7 +399,7 @@ Common::Quaternion GetRotationFromAcceleration(const Common::Vec3& accel)
 Common::Quaternion GetRotationFromGyroscope(const Common::Vec3& gyro)
 {
   const auto length = gyro.Length();
-  return (length != 0) ? Common::Quaternion::Rotate(length, gyro / length) :
+  return length != 0 ? Common::Quaternion::Rotate(length, gyro / length) :
                          Common::Quaternion::Identity();
 }
 

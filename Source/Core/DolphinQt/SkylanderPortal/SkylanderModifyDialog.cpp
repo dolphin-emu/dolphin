@@ -35,8 +35,8 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   auto* hbox_name = new QHBoxLayout;
   QString name = QString();
 
-  if ((m_figure_data.skylander_data.nickname[0] != 0x00 &&
-       m_figure_data.normalized_type == IOS::HLE::USB::Type::Skylander))
+  if (m_figure_data.skylander_data.nickname[0] != 0x00 &&
+      m_figure_data.normalized_type == IOS::HLE::USB::Type::Skylander)
   {
     name = QStringLiteral("\"%1\"").arg(QString::fromUtf16(
         reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data())));
@@ -313,7 +313,7 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
   {
     edit_villains[i] = new QCheckBox();
     edit_villains[i]->setChecked(static_cast<bool>(m_figure_data.trophy_data.unlocked_villains &
-                                                   (0b1 << shift_distances[i])));
+                                                   0b1 << shift_distances[i]));
     // i18n: "Captured" is a participle here. This string is used when listing villains, not when a
     // villain was just captured
     auto* const label = new QLabel(tr("Captured villain %1:").arg(i + 1));
@@ -328,7 +328,7 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
     m_figure_data.trophy_data.unlocked_villains = 0x0;
     for (size_t i = 0; i < MAX_VILLAINS; ++i)
       m_figure_data.trophy_data.unlocked_villains |=
-          edit_villains[i]->isChecked() ? (0b1 << shift_distances[i]) : 0b0;
+          edit_villains[i]->isChecked() ? 0b1 << shift_distances[i] : 0b0;
 
     m_figure->SetData(&m_figure_data);
     m_allow_close = true;

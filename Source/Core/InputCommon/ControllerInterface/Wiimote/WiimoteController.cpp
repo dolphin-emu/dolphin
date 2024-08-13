@@ -679,11 +679,11 @@ u8 Device::GetDesiredLEDValue() const
 
   // Light LED 4 and LEDs 1 through 3 for remotes 5-7. (Add up the numbers on the remote)
   if (index < 7)
-    return 1 << (index - 4) | 8;
+    return 1 << index - 4 | 8;
 
   // Light LED 4+3 and LEDs 1 or 2 for remotes 8 or 9. (Add up the numbers on the remote)
   if (index < 9)
-    return 1 << (index - 7) | 8 | 4;
+    return 1 << index - 7 | 8 | 4;
 
   // For remotes 10 and up just light all LEDs.
   return 0xf;
@@ -756,11 +756,11 @@ void Device::MotionPlusState::SetCalibrationData(
 
 Device::NunchukState::Calibration::Calibration() : accel{}, stick{}
 {
-  accel.zero.data.fill(1 << (accel.BITS_OF_PRECISION - 1));
+  accel.zero.data.fill(1 << accel.BITS_OF_PRECISION - 1);
   // Approximate 1G value per WiiBrew:
   accel.max.data.fill(740);
 
-  stick.zero.data.fill(1 << (stick.BITS_OF_PRECISION - 1));
+  stick.zero.data.fill(1 << stick.BITS_OF_PRECISION - 1);
   stick.max.data.fill((1 << stick.BITS_OF_PRECISION) - 1);
 }
 
@@ -803,10 +803,10 @@ void Device::NunchukState::SetCalibrationData(const WiimoteEmu::Nunchuk::Calibra
 Device::ClassicState::Calibration::Calibration()
     : left_stick{}, right_stick{}, left_trigger{}, right_trigger{}
 {
-  left_stick.zero.data.fill(1 << (left_stick.BITS_OF_PRECISION - 1));
+  left_stick.zero.data.fill(1 << left_stick.BITS_OF_PRECISION - 1);
   left_stick.max.data.fill((1 << left_stick.BITS_OF_PRECISION) - 1);
 
-  right_stick.zero.data.fill(1 << (right_stick.BITS_OF_PRECISION - 1));
+  right_stick.zero.data.fill(1 << right_stick.BITS_OF_PRECISION - 1);
   right_stick.max.data.fill((1 << right_stick.BITS_OF_PRECISION) - 1);
 
   left_trigger.max = (1 << left_trigger.BITS_OF_PRECISION) - 1;
@@ -1096,7 +1096,7 @@ bool Device::IsMotionPlusActive() const
 bool Device::IsMotionPlusInDesiredMode() const
 {
   return m_mplus_state.current_mode.has_value() &&
-         (m_mplus_state.current_mode == m_mplus_desired_mode);
+         m_mplus_state.current_mode == m_mplus_desired_mode;
 }
 
 void Device::ProcessInputReport(WiimoteReal::Report& report)

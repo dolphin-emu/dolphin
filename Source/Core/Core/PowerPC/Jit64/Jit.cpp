@@ -500,7 +500,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   {
     MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
     MOV(64, R(scratch_reg), ImmPtr(memory.GetPhysicalBase()));
-    TEST(32, msr, Imm32(1 << (31 - 27)));
+    TEST(32, msr, Imm32(1 << 31 - 27));
     CMOVcc(64, RMEM, R(scratch_reg), CC_Z);
   }
   MOV(64, PPCSTATE(mem_ptr), R(RMEM));
@@ -513,7 +513,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   const u32 other_feature_flags = m_ppc_state.feature_flags & ~0x3;
   if (msr.IsImm())
   {
-    MOV(32, PPCSTATE(feature_flags), Imm32(other_feature_flags | ((msr.Imm32() >> 4) & 0x3)));
+    MOV(32, PPCSTATE(feature_flags), Imm32(other_feature_flags | msr.Imm32() >> 4 & 0x3));
   }
   else
   {
@@ -952,13 +952,13 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.compilerPC = op.address;
     js.op = &op;
     js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
-    js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
+    js.instructionsLeft = code_block.m_num_instructions - 1 - i;
     const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->num_cycles;
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
 
-    if (i == (code_block.m_num_instructions - 1))
+    if (i == code_block.m_num_instructions - 1)
     {
       js.isLastInstruction = true;
     }
@@ -1057,7 +1057,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SetJumpTarget(noBreakpoint);
       }
 
-      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+      if (opinfo->flags & FL_USE_FPU && !js.firstFPInstructionFound)
       {
         // This instruction uses FPU - needs to add FP exception bailout
         TEST(32, PPCSTATE(msr), Imm32(1 << 13));  // Test FP enabled bit
@@ -1105,7 +1105,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
-      if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
+      if (jo.memcheck && opinfo->flags & FL_LOADSTORE)
       {
         // If we have a fastmem loadstore, we can omit the exception check and let fastmem handle
         // it.
@@ -1207,7 +1207,7 @@ BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 
 BitSet32 Jit64::CallerSavedRegistersInUse() const
 {
-  BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16);
+  BitSet32 in_use = gpr.RegistersInUse() | fpr.RegistersInUse() << 16;
   return in_use & ABI_ALL_CALLER_SAVED;
 }
 

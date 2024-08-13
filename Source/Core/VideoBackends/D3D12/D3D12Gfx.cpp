@@ -118,10 +118,10 @@ void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enab
       d3d_frame_buffer->TransitionRenderTargets();
 
       const std::array<float, 4> clear_color = {
-          {static_cast<float>((color >> 16) & 0xFF) / 255.0f,
-           static_cast<float>((color >> 8) & 0xFF) / 255.0f,
-           static_cast<float>((color >> 0) & 0xFF) / 255.0f,
-           static_cast<float>((color >> 24) & 0xFF) / 255.0f}};
+          {static_cast<float>(color >> 16 & 0xFF) / 255.0f,
+           static_cast<float>(color >> 8 & 0xFF) / 255.0f,
+           static_cast<float>(color >> 0 & 0xFF) / 255.0f,
+           static_cast<float>(color >> 24 & 0xFF) / 255.0f}};
       d3d_frame_buffer->ClearRenderTargets(clear_color, &d3d_clear_rc);
       color_enable = false;
       alpha_enable = false;
@@ -636,12 +636,12 @@ void Gfx::UpdateDescriptorTables()
 {
   // Samplers force a full sync because any of the samplers could be in use.
   const bool texture_update_failed =
-      (m_dirty_bits & DirtyState_Textures) && !UpdateSRVDescriptorTable();
+      m_dirty_bits & DirtyState_Textures && !UpdateSRVDescriptorTable();
   const bool sampler_update_failed =
-      (m_dirty_bits & DirtyState_Samplers) && !UpdateSamplerDescriptorTable();
-  const bool uav_update_failed = (m_dirty_bits & DirtyState_PS_UAV) && !UpdateUAVDescriptorTable();
+      m_dirty_bits & DirtyState_Samplers && !UpdateSamplerDescriptorTable();
+  const bool uav_update_failed = m_dirty_bits & DirtyState_PS_UAV && !UpdateUAVDescriptorTable();
   const bool srv_update_failed =
-      (m_dirty_bits & DirtyState_VS_SRV) && !UpdateVSSRVDescriptorTable();
+      m_dirty_bits & DirtyState_VS_SRV && !UpdateVSSRVDescriptorTable();
   if (texture_update_failed || sampler_update_failed || uav_update_failed || srv_update_failed)
   {
     WARN_LOG_FMT(VIDEO, "Executing command list while waiting for temporary {}",
@@ -670,7 +670,7 @@ bool Gfx::UpdateSRVDescriptorTable()
       1, &dst_base_handle.cpu_handle, &dst_handle_sizes, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
       m_state.textures.data(), src_sizes.data(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
   m_state.srv_descriptor_base = dst_base_handle.gpu_handle;
-  m_dirty_bits = (m_dirty_bits & ~DirtyState_Textures) | DirtyState_SRV_Descriptor;
+  m_dirty_bits = m_dirty_bits & ~DirtyState_Textures | DirtyState_SRV_Descriptor;
   return true;
 }
 
@@ -683,7 +683,7 @@ bool Gfx::UpdateSamplerDescriptorTable()
     return false;
   }
 
-  m_dirty_bits = (m_dirty_bits & ~DirtyState_Samplers) | DirtyState_Sampler_Descriptor;
+  m_dirty_bits = m_dirty_bits & ~DirtyState_Samplers | DirtyState_Sampler_Descriptor;
   return true;
 }
 
@@ -700,7 +700,7 @@ bool Gfx::UpdateUAVDescriptorTable()
   g_dx_context->GetDevice()->CopyDescriptorsSimple(1, handle.cpu_handle, m_state.ps_uav,
                                                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
   m_state.uav_descriptor_base = handle.gpu_handle;
-  m_dirty_bits = (m_dirty_bits & ~DirtyState_PS_UAV) | DirtyState_UAV_Descriptor;
+  m_dirty_bits = m_dirty_bits & ~DirtyState_PS_UAV | DirtyState_UAV_Descriptor;
   return true;
 }
 
@@ -718,7 +718,7 @@ bool Gfx::UpdateVSSRVDescriptorTable()
   g_dx_context->GetDevice()->CopyDescriptorsSimple(1, handle.cpu_handle, m_state.vs_srv,
                                                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
   m_state.vertex_srv_descriptor_base = handle.gpu_handle;
-  m_dirty_bits = (m_dirty_bits & ~DirtyState_VS_SRV) | DirtyState_VS_SRV_Descriptor;
+  m_dirty_bits = m_dirty_bits & ~DirtyState_VS_SRV | DirtyState_VS_SRV_Descriptor;
   return true;
 }
 

@@ -20,22 +20,22 @@
 
 static u32 Helper_Get_EA(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
-  return inst.RA ? (ppcs.gpr[inst.RA] + u32(inst.SIMM_16)) : u32(inst.SIMM_16);
+  return inst.RA ? ppcs.gpr[inst.RA] + u32(inst.SIMM_16) : u32(inst.SIMM_16);
 }
 
 static u32 Helper_Get_EA_U(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
-  return (ppcs.gpr[inst.RA] + u32(inst.SIMM_16));
+  return ppcs.gpr[inst.RA] + u32(inst.SIMM_16);
 }
 
 static u32 Helper_Get_EA_X(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
-  return inst.RA ? (ppcs.gpr[inst.RA] + ppcs.gpr[inst.RB]) : ppcs.gpr[inst.RB];
+  return inst.RA ? ppcs.gpr[inst.RA] + ppcs.gpr[inst.RB] : ppcs.gpr[inst.RB];
 }
 
 static u32 Helper_Get_EA_UX(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
-  return (ppcs.gpr[inst.RA] + ppcs.gpr[inst.RB]);
+  return ppcs.gpr[inst.RA] + ppcs.gpr[inst.RB];
 }
 
 void Interpreter::lbz(Interpreter& interpreter, UGeckoInstruction inst)
@@ -546,14 +546,14 @@ void Interpreter::dcbz(Interpreter& interpreter, UGeckoInstruction inst)
   {
     // Hack to stop dcbz/dcbi over low MEM1 trashing memory. This is not needed if data cache
     // emulation is enabled.
-    if ((dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000) &&
+    if (dcbz_addr < 0x80008000 && dcbz_addr >= 0x80000000 &&
         Config::Get(Config::MAIN_LOW_DCBZ_HACK))
     {
       return;
     }
   }
 
-  interpreter.m_mmu.ClearDCacheLine(dcbz_addr & (~31));
+  interpreter.m_mmu.ClearDCacheLine(dcbz_addr & ~31);
 }
 
 void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
@@ -573,7 +573,7 @@ void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.ClearDCacheLine(address & (~31));
+  interpreter.m_mmu.ClearDCacheLine(address & ~31);
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -734,13 +734,13 @@ void Interpreter::lswx(Interpreter& interpreter, UGeckoInstruction inst)
   // Confirmed by hardware test that the zero case doesn't zero gpr[r]
   for (u32 n = 0; n < static_cast<u8>(ppc_state.xer_stringctrl); n++)
   {
-    const u32 reg = (inst.RD + (n >> 2)) & 0x1f;
+    const u32 reg = inst.RD + (n >> 2) & 0x1f;
     const u32 offset = (n & 3) << 3;
 
     if ((n & 0b11) == 0)
       ppc_state.gpr[reg] = 0;
 
-    const u32 temp_value = interpreter.m_mmu.Read_U8(EA) << (24 - offset);
+    const u32 temp_value = interpreter.m_mmu.Read_U8(EA) << 24 - offset;
     // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
     if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
     {
@@ -940,7 +940,7 @@ void Interpreter::lswi(Interpreter& interpreter, UGeckoInstruction inst)
       ppc_state.gpr[r] = 0;
     }
 
-    const u32 temp_value = interpreter.m_mmu.Read_U8(EA) << (24 - i);
+    const u32 temp_value = interpreter.m_mmu.Read_U8(EA) << 24 - i;
     if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
     {
       PanicAlertFmt("DSI exception in lsw.");
@@ -986,7 +986,7 @@ void Interpreter::stswi(Interpreter& interpreter, UGeckoInstruction inst)
       r++;
       r &= 31;
     }
-    interpreter.m_mmu.Write_U8((ppc_state.gpr[r] >> (24 - i)) & 0xFF, EA);
+    interpreter.m_mmu.Write_U8(ppc_state.gpr[r] >> 24 - i & 0xFF, EA);
     if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
     {
       return;
@@ -1018,7 +1018,7 @@ void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
 
   while (n > 0)
   {
-    interpreter.m_mmu.Write_U8((ppc_state.gpr[r] >> (24 - i)) & 0xFF, EA);
+    interpreter.m_mmu.Write_U8(ppc_state.gpr[r] >> 24 - i & 0xFF, EA);
 
     EA++;
     n--;
@@ -1026,7 +1026,7 @@ void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
     if (i == 32)
     {
       i = 0;
-      r = (r + 1) & 0x1f;  // wrap
+      r = r + 1 & 0x1f;  // wrap
     }
   }
 }

@@ -74,7 +74,7 @@ constexpr Dest SaturatingCast(T value)
 template <typename T>
 constexpr bool IsPow2(T imm)
 {
-  return imm > 0 && (imm & (imm - 1)) == 0;
+  return imm > 0 && (imm & imm - 1) == 0;
 }
 
 constexpr u32 NextPowerOf2(u32 value)

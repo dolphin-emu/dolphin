@@ -89,7 +89,7 @@ std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, std:
   else
   {
     format_str = split_width_height_values[1].substr(
-        height_underscore_pos + 1, (format_underscore_pos - height_underscore_pos) - 1);
+        height_underscore_pos + 1, format_underscore_pos - height_underscore_pos - 1);
   }
   u32 format;
   if (!TryParse(format_str, &format))

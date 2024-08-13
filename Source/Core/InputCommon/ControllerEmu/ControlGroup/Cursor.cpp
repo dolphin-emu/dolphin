@@ -114,7 +114,7 @@ Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
   const double max_step = STEP_PER_SEC / 1000.0 * ms_since_update;
 
   // Relative input:
-  if (m_relative_setting.GetValue() ^ (controls[6]->GetState<bool>()))
+  if (m_relative_setting.GetValue() ^ controls[6]->GetState<bool>())
   {
     // Recenter:
     if (controls[5]->GetState<bool>())

@@ -29,7 +29,7 @@ class RelativeMouseAxis final : public Core::Device::RelativeInput
 public:
   std::string GetName() const override
   {
-    return fmt::format("RelativeMouse {}{}", char('X' + m_index), (m_scale > 0) ? '+' : '-');
+    return fmt::format("RelativeMouse {}{}", char('X' + m_index), m_scale > 0 ? '+' : '-');
   }
 
   RelativeMouseAxis(u8 index, bool positive, const RelativeMouseState* state)
@@ -152,7 +152,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
     const LONG& ax = (&m_state_in.mouse.lX)[i];
 
     // each axis gets a negative and a positive input instance associated with it
-    AddInput(new Axis(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
+    AddInput(new Axis(i, ax, 2 == i ? -1 : -MOUSE_AXIS_SENSITIVITY));
     AddInput(new Axis(i, ax, -(2 == i) ? 1 : MOUSE_AXIS_SENSITIVITY));
   }
 
@@ -304,7 +304,7 @@ std::string KeyboardMouse::Axis::GetName() const
 {
   char tmpstr[] = "Axis ..";
   tmpstr[5] = (char)('X' + m_index);
-  tmpstr[6] = (m_range < 0 ? '-' : '+');
+  tmpstr[6] = m_range < 0 ? '-' : '+';
   return tmpstr;
 }
 
@@ -312,19 +312,19 @@ std::string KeyboardMouse::Cursor::GetName() const
 {
   char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
-  tmpstr[8] = (m_positive ? '+' : '-');
+  tmpstr[8] = m_positive ? '+' : '-';
   return tmpstr;
 }
 
 // get/set state
 ControlState KeyboardMouse::Key::GetState() const
 {
-  return (m_key != 0);
+  return m_key != 0;
 }
 
 ControlState KeyboardMouse::Button::GetState() const
 {
-  return (m_button != 0);
+  return m_button != 0;
 }
 
 ControlState KeyboardMouse::Axis::GetState() const

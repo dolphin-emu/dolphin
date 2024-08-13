@@ -579,7 +579,7 @@ void Core::RunUntil(u64 gc_ticks)
     m_core->runLoop(m_core);
   s32 end_time = mTimingCurrentTime(m_core->timing);
 
-  u64 d = (static_cast<u64>(end_time - begin_time) * gc_frequency) + m_gc_ticks_remainder;
+  u64 d = static_cast<u64>(end_time - begin_time) * gc_frequency + m_gc_ticks_remainder;
   m_last_gc_ticks += d / core_frequency;
   m_gc_ticks_remainder = d % core_frequency;
 }

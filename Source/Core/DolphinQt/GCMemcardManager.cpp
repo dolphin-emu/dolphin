@@ -720,7 +720,7 @@ void GCMemcardManager::DrawIcons()
     const int first_row = viewport_first_row < 0 ? 0 : viewport_first_row;
     const int viewport_last_row = table->indexAt(viewport->rect().bottomLeft()).row();
     const int last_row =
-        viewport_last_row < 0 ? (row_count - 1) : std::min(viewport_last_row, row_count - 1);
+        viewport_last_row < 0 ? row_count - 1 : std::min(viewport_last_row, row_count - 1);
 
     for (int row = first_row; row <= last_row; ++row)
     {

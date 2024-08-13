@@ -27,7 +27,7 @@ u16 ComputeCRC16(std::span<const u8> data)
     {
       if (Common::ExtractBit(crc, 15))
       {
-        crc = (crc << 1) ^ polynomial;
+        crc = crc << 1 ^ polynomial;
       }
       else
       {
@@ -47,12 +47,12 @@ u64 ComputeCRC48(std::span<const u8> data)
   u64 crc = initial_register_value;
   for (size_t i = 0; i < data.size(); ++i)
   {
-    crc ^= (static_cast<u64>(data[i]) << 40);
+    crc ^= static_cast<u64>(data[i]) << 40;
     for (size_t j = 0; j < 8; ++j)
     {
       if (Common::ExtractBit(crc, 47))
       {
-        crc = (crc << 1) ^ polynomial;
+        crc = crc << 1 ^ polynomial;
       }
       else
       {

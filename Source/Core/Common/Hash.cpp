@@ -39,7 +39,7 @@ u32 HashEctor(const u8* data, size_t len)
   for (size_t i = 0; i < len; i++)
   {
     crc ^= data[i];
-    crc = (crc << 3) | (crc >> 29);
+    crc = crc << 3 | crc >> 29;
   }
 
   return crc;
@@ -100,7 +100,7 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 {
   const u8* data = (const u8*)src;
   const int nblocks = len / 16;
-  u32 Step = (len / 8);
+  u32 Step = len / 8;
   if (samples == 0)
     samples = std::max(Step, 1u);
   Step = Step / samples;
@@ -116,7 +116,7 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
   //----------
   // body
 
-  const u64* blocks = (const u64*)(data);
+  const u64* blocks = (const u64*)data;
 
   for (int i = 0; i < nblocks; i += Step)
   {
@@ -324,7 +324,7 @@ FUNCTION_TARGET_SSE42
 static u64 GetHash64_SSE42_CRC32(const u8* src, u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
-  u32 Step = (len / 8);
+  u32 Step = len / 8;
   const u64* data = (const u64*)src;
   const u64* end = data + Step;
   if (samples == 0)

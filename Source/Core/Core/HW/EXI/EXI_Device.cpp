@@ -42,7 +42,7 @@ u32 IEXIDevice::ImmRead(u32 size)
   {
     u8 byte = 0;
     TransferByte(byte);
-    result |= byte << (24 - (position++ * 8));
+    result |= byte << 24 - position++ * 8;
   }
   return result;
 }
@@ -118,7 +118,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
   case EXIDeviceType::MemoryCard:
   case EXIDeviceType::MemoryCardFolder:
   {
-    bool gci_folder = (device_type == EXIDeviceType::MemoryCardFolder);
+    bool gci_folder = device_type == EXIDeviceType::MemoryCardFolder;
     result = std::make_unique<CEXIMemoryCard>(system, slot, gci_folder, memcard_header_data);
     break;
   }

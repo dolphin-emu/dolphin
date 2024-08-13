@@ -92,7 +92,7 @@ enum OpenMode : s32
   IOS_OPEN_NONE = 0,
   IOS_OPEN_READ = 1,
   IOS_OPEN_WRITE = 2,
-  IOS_OPEN_RW = (IOS_OPEN_READ | IOS_OPEN_WRITE)
+  IOS_OPEN_RW = IOS_OPEN_READ | IOS_OPEN_WRITE
 };
 
 struct OpenRequest final : Request

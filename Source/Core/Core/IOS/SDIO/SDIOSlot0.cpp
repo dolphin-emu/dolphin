@@ -222,7 +222,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     // This covers both select and deselect
     // Differentiate by checking if rca is set in req.arg
     // If it is, it's a select and return 0x700
-    memory.Write_U32((req.arg >> 16) ? 0x700 : 0x900, buffer_out);
+    memory.Write_U32(req.arg >> 16 ? 0x700 : 0x900, buffer_out);
     break;
 
   case SEND_IF_COND:
@@ -262,7 +262,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
 
   case ACMD_SETBUSWIDTH:
     // 0 = 1bit, 2 = 4bit
-    m_bus_width = (req.arg & 3);
+    m_bus_width = req.arg & 3;
     memory.Write_U32(0x920, buffer_out);
     break;
 
@@ -372,12 +372,12 @@ IPCReply SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
     return IPCReply(IPC_SUCCESS);
   }
 
-  if ((reg == HCR_CLOCKCONTROL) && (val & 1))
+  if (reg == HCR_CLOCKCONTROL && val & 1)
   {
     // Clock is set to oscillate, enable bit 1 to say it's stable
     m_registers[reg] = val | 2;
   }
-  else if ((reg == HCR_SOFTWARERESET) && val)
+  else if (reg == HCR_SOFTWARERESET && val)
   {
     // When a reset is specified, the register gets cleared
     m_registers[reg] = 0;
@@ -488,12 +488,12 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
   // Evaluate whether a card is currently inserted (config value).
   // Make sure we don't modify m_status so we don't lose track of whether the card is SDHC.
   const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
-  const u32 status = sd_card_inserted ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
+  const u32 status = sd_card_inserted ? m_status | CARD_INSERTED : CARD_NOT_EXIST;
 
   INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}",
-               (status & CARD_SDHC) ? "SDHC" : "SD",
-               (status & CARD_INSERTED) ? "inserted" : "not present",
-               (status & CARD_INITIALIZED) ? " and initialized" : "");
+               status & CARD_SDHC ? "SDHC" : "SD",
+               status & CARD_INSERTED ? "inserted" : "not present",
+               status & CARD_INITIALIZED ? " and initialized" : "");
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -617,9 +617,9 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   // Form the csd using the description above
   return {{
       0x007f003,
-      0x5b5f8000 | (c_size >> 2),
-      0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
-      0x07c04001 | (crc << 1),
+      0x5b5f8000 | c_size >> 2,
+      0x3ffc7f80 | c_size << 30 | c_size_mult << 15,
+      0x07c04001 | crc << 1,
   }};
 }
 
@@ -674,9 +674,9 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv2() const
   // Form the csd using the description above
   return {{
       0x400e005a,
-      0x5f590000 | (c_size >> 16),
-      0x00007f80 | (c_size << 16),
-      0x0a400001 | (crc << 1),
+      0x5f590000 | c_size >> 16,
+      0x00007f80 | c_size << 16,
+      0x0a400001 | crc << 1,
   }};
 }
 

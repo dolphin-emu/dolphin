@@ -202,7 +202,7 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
 
   for (const auto& bug : m_known_bugs)
   {
-    if ((bug.m_api & api) && (bug.m_os & m_os) &&
+    if (bug.m_api & api && bug.m_os & m_os &&
         (bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL) &&
         (bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL) &&
         (bug.m_family == m_family || bug.m_family == Family::UNKNOWN) &&

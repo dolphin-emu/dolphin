@@ -190,7 +190,7 @@ static bool GetModuleVersion(const wchar_t* name, Version* version)
   if (!VerQueryValueW(block.data(), LR"(\)", &buf, &buf_len))
     return false;
   auto info = static_cast<VS_FIXEDFILEINFO*>(buf);
-  *version = (static_cast<u64>(info->dwFileVersionMS) << 32) | info->dwFileVersionLS;
+  *version = static_cast<u64>(info->dwFileVersionMS) << 32 | info->dwFileVersionLS;
   return true;
 }
 

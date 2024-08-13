@@ -43,7 +43,7 @@ u32 CDump::GetGPR(int _step, int _gpr)
   if (offset >= m_size)
     return UINT32_MAX;
 
-  return Read32(offset + OFFSET_GPR + (_gpr * 4));
+  return Read32(offset + OFFSET_GPR + _gpr * 4);
 }
 
 u32 CDump::GetPC(int _step)
@@ -58,8 +58,8 @@ u32 CDump::GetPC(int _step)
 
 u32 CDump::Read32(u32 _pos)
 {
-  u32 result = (m_pData[_pos + 0] << 24) | (m_pData[_pos + 1] << 16) | (m_pData[_pos + 2] << 8) |
-               (m_pData[_pos + 3] << 0);
+  u32 result = m_pData[_pos + 0] << 24 | m_pData[_pos + 1] << 16 | m_pData[_pos + 2] << 8 |
+               m_pData[_pos + 3] << 0;
 
   return result;
 }

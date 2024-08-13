@@ -51,10 +51,10 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
     if (j > 0)
       buf += ", ";
 
-    u32 val = (opc.params[j].loc >= 1) ? op2 : op1;
+    u32 val = opc.params[j].loc >= 1 ? op2 : op1;
     val &= opc.params[j].mask;
     if (opc.params[j].lshift < 0)
-      val = val << (-opc.params[j].lshift);
+      val = val << -opc.params[j].lshift;
     else
       val = val >> opc.params[j].lshift;
 
@@ -65,8 +65,8 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
     if (type & P_REG)
     {
       // Check for _D parameter - if so flip.
-      if ((type == P_ACC_D) || (type == P_ACCM_D))  // Used to be P_ACCM_D TODO verify
-        val = (~val & 0x1) | ((type & P_REGS_MASK) >> 8);
+      if (type == P_ACC_D || type == P_ACCM_D)  // Used to be P_ACCM_D TODO verify
+        val = ~val & 0x1 | (type & P_REGS_MASK) >> 8;
       else
         val |= (type & P_REGS_MASK) >> 8;
       type &= ~P_REGS_MASK;
@@ -109,7 +109,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
         {
           // Left and right shifts function essentially as a single shift by a 7-bit signed value,
           // but are split into two intructions for clarity.
-          buf += fmt::format("#{}", (val & 0x20) != 0 ? (int(val) - 64) : int(val));
+          buf += fmt::format("#{}", (val & 0x20) != 0 ? int(val) - 64 : int(val));
         }
         else
         {
@@ -150,7 +150,7 @@ bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, s
 bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, size_t binbuf_size, u16* pc,
                                         std::string& dest)
 {
-  const u16 wrapped_pc = (*pc & 0x7fff);
+  const u16 wrapped_pc = *pc & 0x7fff;
   if (wrapped_pc >= binbuf_size)
   {
     ++pc;
@@ -168,12 +168,12 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, size_t binbuf_size, u
   bool is_extended = false;
   bool is_only_7_bit_ext = false;
 
-  if (((opc->opcode >> 12) == 0x3) && (op1 & 0x007f))
+  if (opc->opcode >> 12 == 0x3 && op1 & 0x007f)
   {
     is_extended = true;
     is_only_7_bit_ext = true;
   }
-  else if (((opc->opcode >> 12) > 0x3) && (op1 & 0x00ff))
+  else if (opc->opcode >> 12 > 0x3 && op1 & 0x00ff)
   {
     is_extended = true;
   }

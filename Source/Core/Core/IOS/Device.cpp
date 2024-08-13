@@ -70,7 +70,7 @@ IOCtlVRequest::IOCtlVRequest(Core::System& system, const u32 address_) : Request
   const u32 vectors_base = memory.Read_U32(address + 0x18);  // address to vectors
 
   u32 offset = 0;
-  for (size_t i = 0; i < (in_number + out_number); ++i)
+  for (size_t i = 0; i < in_number + out_number; ++i)
   {
     IOVector vector;
     vector.address = memory.Read_U32(vectors_base + offset);

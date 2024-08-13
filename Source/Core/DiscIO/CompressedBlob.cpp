@@ -49,9 +49,9 @@ CompressedBlobReader::CompressedBlobReader(File::IOFile file, const std::string&
   m_hashes.resize(m_header.num_blocks);
   m_file.ReadArray(m_hashes.data(), m_header.num_blocks);
 
-  m_data_offset = (sizeof(CompressedBlobHeader)) +
-                  (sizeof(u64)) * m_header.num_blocks     // skip block pointers
-                  + (sizeof(u32)) * m_header.num_blocks;  // skip hashes
+  m_data_offset = sizeof(CompressedBlobHeader) +
+                  sizeof(u64) * m_header.num_blocks    // skip block pointers
+                  + sizeof(u32) * m_header.num_blocks; // skip hashes
 
   // A compressed block is never ever longer than a decompressed block, so just header.block_size
   // should be fine.
@@ -98,7 +98,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
-  if (offset & (1ULL << 63))
+  if (offset & 1ULL << 63)
   {
     if (comp_block_size != m_header.block_size)
       ERROR_LOG_FMT(DISCIO, "Uncompressed block with wrong size");
@@ -222,7 +222,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
   state->compressed_buffer.resize(block_size - state->z.avail_out);
 
   OutputParameters output_parameters;
-  if ((status != Z_STREAM_END) || (state->z.avail_out < 10))
+  if (status != Z_STREAM_END || state->z.avail_out < 10)
   {
     // let's store uncompressed
     ++*num_stored;

@@ -138,7 +138,7 @@ static Common::EventHook s_frame_presented = AfterPresentEvent::Register(
     [](auto& present_info) {
       const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
       // The denominator should always be > 0 but if it's not, just return 1
-      const double last_speed = last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
+      const double last_speed = last_speed_denominator > 0.0 ? 1.0 / last_speed_denominator : 1.0;
 
       if (present_info.reason != PresentInfo::PresentReason::VideoInterfaceDuplicate)
         Core::Callback_FramePresented(last_speed);
@@ -555,7 +555,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   Common::ScopeGuard audio_guard([&system] { AudioCommon::ShutdownSoundStream(system); });
 
   HW::Init(system,
-           NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
+           NetPlay::IsNetPlayRunning() ? &boot_session_data.GetNetplaySettings()->sram : nullptr);
 
   Common::ScopeGuard hw_guard{[&system] {
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));

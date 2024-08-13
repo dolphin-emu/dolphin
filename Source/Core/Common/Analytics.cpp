@@ -51,7 +51,7 @@ void AppendVarInt(std::string* out, u64 v)
   {
     u8 current_byte = v & 0x7F;
     v >>= 7;
-    current_byte |= (!!v) << 7;
+    current_byte |= !!v << 7;
     out->push_back(current_byte);
   } while (v);
 }

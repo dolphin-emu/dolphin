@@ -34,7 +34,7 @@ struct Elt
     for (std::size_t i = 0; i < data.size() - 1; i++)
     {
       u8 y = data[i + 1];
-      data[i] = x ^ (y >> 7);
+      data[i] = x ^ y >> 7;
       x = y << 1;
     }
     data[29] = x ^ carry;
@@ -276,7 +276,7 @@ bool VerifySignature(const u8* public_key, const u8* signature, const u8* hash)
   if (bn_compare(rx.data(), ec_N, 30) >= 0)
     bn_sub_modulus(rx.data(), ec_N, 30);
 
-  return (bn_compare(rx.data(), R, 30) == 0);
+  return bn_compare(rx.data(), R, 30) == 0;
 }
 
 PublicKey PrivToPub(const u8* key)

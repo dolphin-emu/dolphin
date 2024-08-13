@@ -16,7 +16,7 @@
 namespace NetPlay
 {
 constexpr u32 LZO_IN_LEN = 1024 * 64;
-constexpr u32 LZO_OUT_LEN = LZO_IN_LEN + (LZO_IN_LEN / 16) + 64 + 3;
+constexpr u32 LZO_OUT_LEN = LZO_IN_LEN + LZO_IN_LEN / 16 + 64 + 3;
 
 bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
 {
@@ -43,7 +43,7 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
     lzo_uint32 cur_len = 0;  // number of bytes to read
     lzo_uint out_len = 0;    // number of bytes to write
 
-    if ((i + LZO_IN_LEN) >= size)
+    if (i + LZO_IN_LEN >= size)
     {
       cur_len = static_cast<lzo_uint32>(size - i);
     }
@@ -133,7 +133,7 @@ bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& pack
     lzo_uint32 cur_len = 0;  // number of bytes to read
     lzo_uint out_len = 0;    // number of bytes to write
 
-    if ((i + LZO_IN_LEN) >= size)
+    if (i + LZO_IN_LEN >= size)
     {
       cur_len = static_cast<lzo_uint32>(size - i);
     }

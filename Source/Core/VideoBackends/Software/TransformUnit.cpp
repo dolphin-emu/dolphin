@@ -206,7 +206,7 @@ static inline void AddScaledIntegerColor(const u8* src, float scale, Vec3& dst)
 
 static inline float SafeDivide(float n, float d)
 {
-  return (d == 0) ? (n > 0 ? 1 : 0) : n / d;
+  return d == 0 ? (n > 0 ? 1 : 0) : n / d;
 }
 
 static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Vec3& normal,
@@ -228,7 +228,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   case AttenuationFunc::Spec:
   {
     ldir = ldir.Normalized();
-    attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
+    attn = ldir * normal >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
     Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
@@ -245,8 +245,8 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
     ldir = ldir / dist;
     attn = std::max(0.0f, ldir * light->dir);
 
-    float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
-    float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
+    float cosAtt = light->cosatt.x + light->cosatt.y * attn + light->cosatt.z * attn * attn;
+    float distAtt = light->distatt.x + light->distatt.y * dist + light->distatt.z * dist2;
     attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
     break;
   }
@@ -344,16 +344,16 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       u8 mask = colorchan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
       {
-        if (mask & (1 << i))
+        if (mask & 1 << i)
           LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
       }
 
       int light_x = std::clamp(static_cast<int>(lightCol.x), 0, 255);
       int light_y = std::clamp(static_cast<int>(lightCol.y), 0, 255);
       int light_z = std::clamp(static_cast<int>(lightCol.z), 0, 255);
-      chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
-      chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
-      chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
+      chancolor[1] = matcolor[1] * (light_x + (light_x >> 7)) >> 8;
+      chancolor[2] = matcolor[2] * (light_y + (light_y >> 7)) >> 8;
+      chancolor[3] = matcolor[3] * (light_z + (light_z >> 7)) >> 8;
     }
     else
     {
@@ -378,12 +378,12 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       u8 mask = alphachan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
       {
-        if (mask & (1 << i))
+        if (mask & 1 << i)
           LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
       }
 
       int light_a = std::clamp(static_cast<int>(lightCol), 0, 255);
-      chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
+      chancolor[0] = matcolor[0] * (light_a + (light_a >> 7)) >> 8;
     }
     else
     {
@@ -440,8 +440,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
 
   for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
   {
-    dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1 + 1);
-    dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);
+    dst->texCoords[coordNum][0] *= bpmem.texcoords[coordNum].s.scale_minus_1 + 1;
+    dst->texCoords[coordNum][1] *= bpmem.texcoords[coordNum].t.scale_minus_1 + 1;
   }
 }
 }  // namespace TransformUnit

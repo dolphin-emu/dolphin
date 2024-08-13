@@ -158,7 +158,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     break;
 
   case CP_VAT_REG_A:
-    if ((sub_cmd - CP_VAT_REG_A) >= CP_NUM_VAT_REG)
+    if (sub_cmd - CP_VAT_REG_A >= CP_NUM_VAT_REG)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_A: Invalid VAT {}", sub_cmd - CP_VAT_REG_A);
@@ -167,7 +167,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     break;
 
   case CP_VAT_REG_B:
-    if ((sub_cmd - CP_VAT_REG_B) >= CP_NUM_VAT_REG)
+    if (sub_cmd - CP_VAT_REG_B >= CP_NUM_VAT_REG)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_B: Invalid VAT {}", sub_cmd - CP_VAT_REG_B);
@@ -176,7 +176,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     break;
 
   case CP_VAT_REG_C:
-    if ((sub_cmd - CP_VAT_REG_C) >= CP_NUM_VAT_REG)
+    if (sub_cmd - CP_VAT_REG_C >= CP_NUM_VAT_REG)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_C: Invalid VAT {}", sub_cmd - CP_VAT_REG_C);

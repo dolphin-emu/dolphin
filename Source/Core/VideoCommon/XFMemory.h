@@ -255,7 +255,7 @@ union LitChannel
 
   unsigned int GetFullLightMask() const
   {
-    return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
+    return enablelighting ? lightMask0_3 | lightMask4_7 << 4 : 0;
   }
 };
 template <>

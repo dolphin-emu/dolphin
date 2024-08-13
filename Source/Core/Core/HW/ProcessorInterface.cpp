@@ -124,7 +124,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    processor_interface.m_reset_code = val;
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: {:08x}",
                                 processor_interface.m_reset_code);
-                   if (!system.IsWii() && (~processor_interface.m_reset_code & 0x4))
+                   if (!system.IsWii() && ~processor_interface.m_reset_code & 0x4)
                    {
                      system.GetDVDInterface().ResetDrive(true);
                    }
@@ -138,7 +138,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     mmio->Register(base | i, MMIO::ReadToLarger<u16>(mmio, base | i, 16),
                    MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (i + 2), MMIO::ReadToLarger<u16>(mmio, base | i, 0),
+    mmio->Register(base | i + 2, MMIO::ReadToLarger<u16>(mmio, base | i, 0),
                    MMIO::InvalidWrite<u16>());
   }
 }
@@ -203,7 +203,7 @@ void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
                   Debug_GetInterruptName(cause_mask));
   }
 
-  if (!set && (m_interrupt_cause & cause_mask))
+  if (!set && m_interrupt_cause & cause_mask)
   {
     DEBUG_LOG_FMT(PROCESSORINTERFACE, "Setting Interrupt {} (clear)",
                   Debug_GetInterruptName(cause_mask));

@@ -345,7 +345,7 @@ void IOWindow::CreateMainLayout()
   // Outputs are not bounds checked and greater than 100% has no use case.
   // (incoming values are always 0 or 1)
   // Negative 100% can be used to invert force feedback wheel direction.
-  const int scalar_min_max = (m_type == Type::Input) ? 1000 : 100;
+  const int scalar_min_max = m_type == Type::Input ? 1000 : 100;
   m_scalar_spinbox->setMinimum(-scalar_min_max);
   m_scalar_spinbox->setMaximum(scalar_min_max);
   // i18n: Percentage symbol.

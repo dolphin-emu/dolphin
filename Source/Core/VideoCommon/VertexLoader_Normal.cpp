@@ -29,7 +29,7 @@ constexpr float FracAdjust(T val)
   // auto const U16FRAC = 1.f / (1u << 15);
 
   // TODO: is this right?
-  return val / float(1u << (sizeof(T) * 8 - std::is_signed_v<T> - 1));
+  return val / float(1u << sizeof(T) * 8 - std::is_signed_v<T> - 1);
 }
 
 template <>
@@ -76,7 +76,7 @@ void Normal_ReadIndex_Offset(VertexLoader* loader)
   const auto index = DataRead<I>();
   const auto data =
       reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[CPArray::Normal] +
-                                 (index * g_main_cp_state.array_strides[CPArray::Normal]));
+                                 index * g_main_cp_state.array_strides[CPArray::Normal]);
   ReadIndirect<T, N * 3, Offset * 3>(loader, data);
 }
 

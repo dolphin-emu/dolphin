@@ -186,14 +186,14 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   if (mac)
   {
     auto& mac_address =
-        (log_type == LogType::Write) ? ethernet_header.source : ethernet_header.destination;
+        log_type == LogType::Write ? ethernet_header.source : ethernet_header.destination;
     mac_address = *mac;
   }
   insert(&ethernet_header, ethernet_header.Size());
 
   if (socket_type == SOCK_STREAM)
   {
-    u32& sequence_number = (log_type == LogType::Read) ? m_read_sequence_number[socket] :
+    u32& sequence_number = log_type == LogType::Read ? m_read_sequence_number[socket] :
                                                          m_write_sequence_number[socket];
     Common::TCPHeader tcp_header(from, to, sequence_number, data, length);
     sequence_number += static_cast<u32>(length);

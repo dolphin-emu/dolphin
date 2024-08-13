@@ -143,8 +143,8 @@ void CPUInfo::Detect()
   {
     info = cpuid(1);
     const u32 version = info.eax;
-    const u32 family = ((version >> 8) & 0xf) + ((version >> 20) & 0xff);
-    const u32 model = ((version >> 4) & 0xf) + ((version >> 12) & 0xf0);
+    const u32 family = (version >> 8 & 0xf) + (version >> 20 & 0xff);
+    const u32 model = (version >> 4 & 0xf) + (version >> 12 & 0xf0);
     const u32 stepping = version & 0xf;
 
     cpu_id = fmt::format("{:02X}:{:02X}:{:X}", family, model, stepping);
@@ -162,35 +162,35 @@ void CPUInfo::Detect()
     // AMD CPUs before Zen faked this flag and didn't actually
     // implement simultaneous multithreading (SMT; Intel calls it HTT)
     // but rather some weird middle-ground between 1-2 cores
-    const bool ht = (info.edx >> 28) & 1;
+    const bool ht = info.edx >> 28 & 1;
     HTT = ht && (vendor == CPUVendor::Intel || (vendor == CPUVendor::AMD && family >= 0x17));
 
-    if ((info.edx >> 25) & 1)
+    if (info.edx >> 25 & 1)
       has_sse = true;
     if (info.ecx & 1)
       bSSE3 = true;
-    if ((info.ecx >> 9) & 1)
+    if (info.ecx >> 9 & 1)
       bSSSE3 = true;
-    if ((info.ecx >> 19) & 1)
+    if (info.ecx >> 19 & 1)
       bSSE4_1 = true;
-    if ((info.ecx >> 20) & 1)
+    if (info.ecx >> 20 & 1)
       bSSE4_2 = true;
-    if ((info.ecx >> 22) & 1)
+    if (info.ecx >> 22 & 1)
       bMOVBE = true;
-    if ((info.ecx >> 25) & 1)
+    if (info.ecx >> 25 & 1)
       bAES = true;
 
     // AVX support requires 3 separate checks:
     //  - Is the AVX bit set in CPUID?
     //  - Is the XSAVE bit set in CPUID?
     //  - XGETBV result has the XCR bit set.
-    if (((info.ecx >> 28) & 1) && ((info.ecx >> 27) & 1))
+    if (info.ecx >> 28 & 1 && info.ecx >> 27 & 1)
     {
       // Check that XSAVE can be used for SSE and AVX
       if ((xgetbv(XCR_XFEATURE_ENABLED_MASK) & 0b110) == 0b110)
       {
         bAVX = true;
-        if ((info.ecx >> 12) & 1)
+        if (info.ecx >> 12 & 1)
           bFMA = true;
       }
     }
@@ -198,11 +198,11 @@ void CPUInfo::Detect()
     if (func_id_max >= 7)
     {
       info = cpuid(7);
-      if ((info.ebx >> 3) & 1)
+      if (info.ebx >> 3 & 1)
         bBMI1 = true;
-      if ((info.ebx >> 8) & 1)
+      if (info.ebx >> 8 & 1)
         bBMI2 = true;
-      if ((info.ebx >> 29) & 1)
+      if (info.ebx >> 29 & 1)
         bSHA1 = bSHA2 = true;
     }
   }
@@ -225,9 +225,9 @@ void CPUInfo::Detect()
   {
     // Check for more features.
     info = cpuid(0x80000001);
-    if ((info.ecx >> 5) & 1)
+    if (info.ecx >> 5 & 1)
       bLZCNT = true;
-    if ((info.ecx >> 16) & 1)
+    if (info.ecx >> 16 & 1)
       bFMA4 = true;
   }
 

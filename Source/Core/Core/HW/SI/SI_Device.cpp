@@ -87,7 +87,7 @@ int ISIDevice::RunBuffer(u8* buffer, int request_length)
     temp += fmt::format("0x{:02x} ", buffer[num]);
     num++;
 
-    if ((num % 8) == 0)
+    if (num % 8 == 0)
     {
       DEBUG_LOG_FMT(SERIALINTERFACE, "{}", temp);
       temp.clear();
@@ -145,9 +145,9 @@ int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
   }
 
   const u32 ticks_per_second = timers.GetTicksPerSecond();
-  const u64 cycles = (gba_bytes_transferred * 8 * ticks_per_second / GBA_BITS_PER_SECOND) +
-                     (gc_bytes_transferred * 8 * ticks_per_second / GC_BITS_PER_SECOND) +
-                     (stop_bits_ns * ticks_per_second / 1000000000LL);
+  const u64 cycles = gba_bytes_transferred * 8 * ticks_per_second / GBA_BITS_PER_SECOND +
+                     gc_bytes_transferred * 8 * ticks_per_second / GC_BITS_PER_SECOND +
+                     stop_bits_ns * ticks_per_second / 1000000000LL;
   return static_cast<int>(cycles);
 }
 

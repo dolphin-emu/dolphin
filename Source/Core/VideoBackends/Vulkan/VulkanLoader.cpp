@@ -125,7 +125,7 @@ bool LoadVulkanInstanceFunctions(VkInstance instance)
   bool required_functions_missing = false;
   auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required) {
     *func_ptr = vkGetInstanceProcAddr(instance, name);
-    if (!(*func_ptr) && is_required)
+    if (!*func_ptr && is_required)
     {
       ERROR_LOG_FMT(HOST_GPU, "Vulkan: Failed to load required instance function {}", name);
       required_functions_missing = true;
@@ -145,7 +145,7 @@ bool LoadVulkanDeviceFunctions(VkDevice device)
   bool required_functions_missing = false;
   auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required) {
     *func_ptr = vkGetDeviceProcAddr(device, name);
-    if (!(*func_ptr) && is_required)
+    if (!*func_ptr && is_required)
     {
       ERROR_LOG_FMT(HOST_GPU, "Vulkan: Failed to load required device function {}", name);
       required_functions_missing = true;

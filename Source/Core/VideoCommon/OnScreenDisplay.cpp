@@ -58,10 +58,10 @@ static std::mutex s_messages_mutex;
 
 static ImVec4 ARGBToImVec4(const u32 argb)
 {
-  return ImVec4(static_cast<float>((argb >> 16) & 0xFF) / 255.0f,
-                static_cast<float>((argb >> 8) & 0xFF) / 255.0f,
-                static_cast<float>((argb >> 0) & 0xFF) / 255.0f,
-                static_cast<float>((argb >> 24) & 0xFF) / 255.0f);
+  return ImVec4(static_cast<float>(argb >> 16 & 0xFF) / 255.0f,
+                static_cast<float>(argb >> 8 & 0xFF) / 255.0f,
+                static_cast<float>(argb >> 0 & 0xFF) / 255.0f,
+                static_cast<float>(argb >> 24 & 0xFF) / 255.0f);
 }
 
 static float DrawMessage(int index, Message& msg, const ImVec2& position, int time_left)
@@ -119,7 +119,7 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
     if (msg.text.size() > 0)
       ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
     window_height =
-        ImGui::GetWindowSize().y + (WINDOW_PADDING * ImGui::GetIO().DisplayFramebufferScale.y);
+        ImGui::GetWindowSize().y + WINDOW_PADDING * ImGui::GetIO().DisplayFramebufferScale.y;
   }
 
   ImGui::End();

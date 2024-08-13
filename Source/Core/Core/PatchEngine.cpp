@@ -124,7 +124,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
 
         // Set name and whether the patch is user defined
         currentPatch.name = line.substr(1, line.size() - 1);
-        currentPatch.user_defined = (ini == &localIni);
+        currentPatch.user_defined = ini == &localIni;
       }
       else
       {

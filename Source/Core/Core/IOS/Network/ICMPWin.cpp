@@ -43,7 +43,7 @@ u16 cksum(const u16* buffer, int length)
 
   while (length > 0)
   {
-    sum += *(buffer++);
+    sum += *buffer++;
     length -= 2;
   }
 

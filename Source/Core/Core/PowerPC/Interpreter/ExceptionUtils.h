@@ -9,10 +9,10 @@
 
 enum class ProgramExceptionCause : u32
 {
-  FloatingPoint = 1 << (31 - 11),
-  IllegalInstruction = 1 << (31 - 12),
-  PrivilegedInstruction = 1 << (31 - 13),
-  Trap = 1 << (31 - 14),
+  FloatingPoint = 1 << 31 - 11,
+  IllegalInstruction = 1 << 31 - 12,
+  PrivilegedInstruction = 1 << 31 - 13,
+  Trap = 1 << 31 - 14,
 };
 
 inline void GenerateAlignmentException(PowerPC::PowerPCState& ppc_state, u32 address)

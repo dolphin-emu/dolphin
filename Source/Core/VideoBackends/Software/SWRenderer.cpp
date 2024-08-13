@@ -34,7 +34,7 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
     const u32 color = EfbInterface::GetColor(x, y);
 
     // rgba to argb
-    value = (color >> 8) | (color & 0xff) << 24;
+    value = color >> 8 | (color & 0xff) << 24;
 
     // check what to do with the alpha channel (GX_PokeAlphaRead)
     PixelEngine::AlphaReadMode alpha_read_mode =

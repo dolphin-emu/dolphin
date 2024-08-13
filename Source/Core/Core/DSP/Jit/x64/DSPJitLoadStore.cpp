@@ -20,7 +20,7 @@ namespace DSP::JIT::x64
 // bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
 void DSPEmitter::srsh(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x1) + DSP_REG_ACH0;
+  u8 reg = (opc >> 8 & 0x1) + DSP_REG_ACH0;
   // u16 addr = (g_dsp.r.cr << 8) | (opc & 0xFF);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -41,7 +41,7 @@ void DSPEmitter::srsh(const UDSPInstruction opc)
 // bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
 void DSPEmitter::srs(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x3) + DSP_REG_ACL0;
+  u8 reg = (opc >> 8 & 0x3) + DSP_REG_ACL0;
   // u16 addr = (g_dsp.r.cr << 8) | (opc & 0xFF);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -62,7 +62,7 @@ void DSPEmitter::srs(const UDSPInstruction opc)
 // from CR, and the lower 8 bits are from the 8-bit immediate.
 void DSPEmitter::lrs(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x7) + 0x18;
+  u8 reg = (opc >> 8 & 0x7) + 0x18;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
@@ -131,7 +131,7 @@ void DSPEmitter::si(const UDSPInstruction opc)
 // Move value from data memory pointed by addressing register $arS to register $D.
 void DSPEmitter::lrr(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x3;
+  u8 sreg = opc >> 5 & 0x3;
   u8 dreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -151,7 +151,7 @@ void DSPEmitter::lrr(const UDSPInstruction opc)
 // Decrement register $arS.
 void DSPEmitter::lrrd(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x3;
+  u8 sreg = opc >> 5 & 0x3;
   u8 dreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -172,7 +172,7 @@ void DSPEmitter::lrrd(const UDSPInstruction opc)
 // Increment register $arS.
 void DSPEmitter::lrri(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x3;
+  u8 sreg = opc >> 5 & 0x3;
   u8 dreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -193,7 +193,7 @@ void DSPEmitter::lrri(const UDSPInstruction opc)
 // Add indexing register $ixS to register $arS.
 void DSPEmitter::lrrn(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x3;
+  u8 sreg = opc >> 5 & 0x3;
   u8 dreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -214,7 +214,7 @@ void DSPEmitter::lrrn(const UDSPInstruction opc)
 // addressing register $arD.
 void DSPEmitter::srr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x3;
+  u8 dreg = opc >> 5 & 0x3;
   u8 sreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -232,7 +232,7 @@ void DSPEmitter::srr(const UDSPInstruction opc)
 // addressing register $arD. Decrement register $arD.
 void DSPEmitter::srrd(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x3;
+  u8 dreg = opc >> 5 & 0x3;
   u8 sreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -252,7 +252,7 @@ void DSPEmitter::srrd(const UDSPInstruction opc)
 // addressing register $arD. Increment register $arD.
 void DSPEmitter::srri(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x3;
+  u8 dreg = opc >> 5 & 0x3;
   u8 sreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -272,7 +272,7 @@ void DSPEmitter::srri(const UDSPInstruction opc)
 // addressing register $arD. Add corresponding indexing register $ixD to register $arD.
 void DSPEmitter::srrn(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x3;
+  u8 dreg = opc >> 5 & 0x3;
   u8 sreg = opc & 0x1f;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -293,7 +293,7 @@ void DSPEmitter::srrn(const UDSPInstruction opc)
 void DSPEmitter::ilrr(const UDSPInstruction opc)
 {
   u16 reg = opc & 0x3;
-  u16 dreg = (opc >> 8) & 1;
+  u16 dreg = opc >> 8 & 1;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
@@ -313,7 +313,7 @@ void DSPEmitter::ilrr(const UDSPInstruction opc)
 void DSPEmitter::ilrrd(const UDSPInstruction opc)
 {
   u16 reg = opc & 0x3;
-  u16 dreg = (opc >> 8) & 1;
+  u16 dreg = opc >> 8 & 1;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
@@ -334,7 +334,7 @@ void DSPEmitter::ilrrd(const UDSPInstruction opc)
 void DSPEmitter::ilrri(const UDSPInstruction opc)
 {
   u16 reg = opc & 0x3;
-  u16 dreg = (opc >> 8) & 1;
+  u16 dreg = opc >> 8 & 1;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
@@ -356,7 +356,7 @@ void DSPEmitter::ilrri(const UDSPInstruction opc)
 void DSPEmitter::ilrrn(const UDSPInstruction opc)
 {
   u16 reg = opc & 0x3;
-  u16 dreg = (opc >> 8) & 1;
+  u16 dreg = opc >> 8 & 1;
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 

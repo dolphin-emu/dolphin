@@ -163,7 +163,7 @@ void MotionPlus::DoState(PointerWrap& p)
 
 MotionPlus::ActivationStatus MotionPlus::GetActivationStatus() const
 {
-  if ((ACTIVE_DEVICE_ADDR << 1) == m_reg_data.ext_identifier[2])
+  if (ACTIVE_DEVICE_ADDR << 1 == m_reg_data.ext_identifier[2])
   {
     if (ChallengeState::Activating == m_reg_data.challenge_state)
       return ActivationStatus::Activating;
@@ -532,15 +532,15 @@ MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& an
 {
   // Slow (high precision) scaling can be used if it fits in the sensor range.
   const float yaw = angular_velocity.z;
-  const bool yaw_slow = (std::abs(yaw) < SLOW_MAX_RAD_PER_SEC);
+  const bool yaw_slow = std::abs(yaw) < SLOW_MAX_RAD_PER_SEC;
   const s32 yaw_value = yaw * (yaw_slow ? SLOW_SCALE : FAST_SCALE);
 
   const float roll = angular_velocity.y;
-  const bool roll_slow = (std::abs(roll) < SLOW_MAX_RAD_PER_SEC);
+  const bool roll_slow = std::abs(roll) < SLOW_MAX_RAD_PER_SEC;
   const s32 roll_value = roll * (roll_slow ? SLOW_SCALE : FAST_SCALE);
 
   const float pitch = angular_velocity.x;
-  const bool pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
+  const bool pitch_slow = std::abs(pitch) < SLOW_MAX_RAD_PER_SEC;
   const s32 pitch_value = pitch * (pitch_slow ? SLOW_SCALE : FAST_SCALE);
 
   const u16 clamped_yaw_value = u16(std::llround(std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE)));

@@ -369,7 +369,7 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
 
   case XFMEM_DUALTEX:
     return std::make_pair(RegName(XFMEM_DUALTEX),
-                          fmt::format("Dual Tex Trans {}", (value & 1) ? "enabled" : "disabled"));
+                          fmt::format("Dual Tex Trans {}", value & 1 ? "enabled" : "disabled"));
 
   case XFMEM_SETMATRIXINDA:
     return std::make_pair(RegName(XFMEM_SETMATRIXINDA),

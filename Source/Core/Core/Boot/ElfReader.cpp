@@ -106,7 +106,7 @@ void ElfReader::Initialize(u8* ptr)
   }
   entryPoint = header->e_entry;
 
-  bRelocate = (header->e_type != ET_EXEC);
+  bRelocate = header->e_type != ET_EXEC;
 }
 
 const char* ElfReader::GetSectionName(int section) const
@@ -190,7 +190,7 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_
     const char* stringBase = (const char*)GetSectionDataPtr(stringSection);
 
     // We have a symbol table!
-    Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
+    Elf32_Sym* symtab = (Elf32_Sym*)GetSectionDataPtr(sec);
     int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
     for (int sym = 0; sym < numSymbols; sym++)
     {

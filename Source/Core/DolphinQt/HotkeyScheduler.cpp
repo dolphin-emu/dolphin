@@ -404,7 +404,7 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_TOGGLE_AR))
       {
-        const int aspect_ratio = (static_cast<int>(Config::Get(Config::GFX_ASPECT_RATIO)) + 1) & 3;
+        const int aspect_ratio = static_cast<int>(Config::Get(Config::GFX_ASPECT_RATIO)) + 1 & 3;
         Config::SetCurrent(Config::GFX_ASPECT_RATIO, static_cast<AspectMode>(aspect_ratio));
         switch (static_cast<AspectMode>(aspect_ratio))
         {
@@ -497,7 +497,7 @@ void HotkeyScheduler::Run()
         auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
         if (speed > 0)
         {
-          speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
+          speed = speed >= 0.95 && speed <= 1.05 ? 1.0 : speed;
           Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
         }
         ShowEmulationSpeed();
@@ -506,7 +506,7 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
         auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
-        speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
+        speed = speed >= 0.95 && speed <= 1.05 ? 1.0 : speed;
         Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
         ShowEmulationSpeed();
       }

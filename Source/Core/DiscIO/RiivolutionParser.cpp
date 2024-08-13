@@ -51,7 +51,7 @@ static std::map<std::string, std::string> ReadParams(const pugi::xml_node& node,
 
 static std::vector<u8> ReadHexString(std::string_view sv)
 {
-  if ((sv.size() % 2) == 1)
+  if (sv.size() % 2 == 1)
     return {};
   if (sv.starts_with("0x") || sv.starts_with("0X"))
     sv = sv.substr(2);
@@ -506,7 +506,7 @@ void ApplyConfigDefaults(Disc* disc, const Config& config)
         {
           if (option.m_id.empty())
           {
-            if ((section.m_name + option.m_name) == config_option.m_id)
+            if (section.m_name + option.m_name == config_option.m_id)
               return &option;
           }
           else

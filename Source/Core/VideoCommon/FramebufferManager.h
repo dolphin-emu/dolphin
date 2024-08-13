@@ -42,7 +42,7 @@ struct fmt::formatter<EFBReinterpretType> : EnumFormatter<EFBReinterpretType::RG
 
 inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
-  return !((aLower >= bUpper) || (bLower >= aUpper));
+  return !(aLower >= bUpper || bLower >= aUpper);
 }
 
 class FramebufferManager final

@@ -40,28 +40,28 @@ void ProcessGBACrypto(Memory::MemoryManager& memory, u32 address)
   u16 palette_speed_coded;
   const s16 logo_speed = static_cast<s8>(logo_speed_32);
   if (logo_speed < 0)
-    palette_speed_coded = ((-logo_speed + 2) * 2) | (logo_palette << 4);
+    palette_speed_coded = (-logo_speed + 2) * 2 | logo_palette << 4;
   else if (logo_speed == 0)
-    palette_speed_coded = (logo_palette * 2) | 0x70;
+    palette_speed_coded = logo_palette * 2 | 0x70;
   else  // logo_speed > 0
-    palette_speed_coded = ((logo_speed - 1) * 2) | (logo_palette << 4);
+    palette_speed_coded = (logo_speed - 1) * 2 | logo_palette << 4;
 
   // JoyBoot ROMs start with a padded header; this is the length beyond that header
   const s32 length_no_header = Common::AlignUp(length, 8) - 0x200;
 
   // The JoyBus protocol transmits in 4-byte packets while flipping a state flag;
   // so the GBA BIOS counts the program length in 8-byte packet-pairs
-  const u16 packet_pair_count = (length_no_header < 0) ? 0 : length_no_header / 8;
+  const u16 packet_pair_count = length_no_header < 0 ? 0 : length_no_header / 8;
   palette_speed_coded |= (packet_pair_count & 0x4000) >> 14;
 
   // Pack together encoded transmission parameters
-  u32 t1 = (((packet_pair_count << 16) | 0x3f80) & 0x3f80ffff) * 2;
+  u32 t1 = ((packet_pair_count << 16 | 0x3f80) & 0x3f80ffff) * 2;
   t1 += (static_cast<s16>(static_cast<s8>(t1 >> 8)) & packet_pair_count) << 16;
-  const u32 t2 = ((palette_speed_coded & 0xff) << 16) + (t1 & 0xff0000) + ((t1 >> 8) & 0xffff00);
-  u32 t3 = palette_speed_coded << 16 | ((t2 << 8) & 0xff000000) | (t1 >> 16) | 0x80808080;
+  const u32 t2 = ((palette_speed_coded & 0xff) << 16) + (t1 & 0xff0000) + (t1 >> 8 & 0xffff00);
+  u32 t3 = palette_speed_coded << 16 | t2 << 8 & 0xff000000 | t1 >> 16 | 0x80808080;
 
   // Wrap with 'Kawa' or 'sedo' (Kawasedo is the author of the BIOS cipher)
-  t3 ^= ((t3 & 0x200) != 0 ? 0x6f646573 : 0x6177614b);
+  t3 ^= (t3 & 0x200) != 0 ? 0x6f646573 : 0x6177614b;
   HLEMemory_Write_U32(memory, dest_addr + 4, t3);
 
   // Done!

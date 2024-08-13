@@ -98,7 +98,7 @@ public:
     void SetButtons(u8 value)
     {
       // 0 == pressed.
-      bt.hex |= (BUTTON_C | BUTTON_Z);
+      bt.hex |= BUTTON_C | BUTTON_Z;
       bt.hex ^= value & (BUTTON_C | BUTTON_Z);
     }
 

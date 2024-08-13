@@ -80,7 +80,7 @@ static s32 TranslateErrorCode(s32 native_error, bool is_rw)
   case ERRORCODE(ENETRESET):
     return -SO_ENETRESET;
   case EITHER(WSAEWOULDBLOCK, EAGAIN):
-    return (is_rw) ? (-SO_EAGAIN) : (-SO_EINPROGRESS);
+    return is_rw ? -SO_EAGAIN : -SO_EINPROGRESS;
   default:
     return -1;
   }
@@ -484,7 +484,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
               if (cert != nullptr)
               {
                 std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                       ((ctx->hostname != nullptr) ? ctx->hostname : "") +
+                                       (ctx->hostname != nullptr ? ctx->hostname : "") +
                                        "_peercert.der";
                 File::IOFile(filename, "wb").WriteBytes(cert->raw.p, cert->raw.len);
               }
@@ -509,7 +509,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
               system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLWrite(
                   memory.GetPointerForRange(BufferOut2, ret), ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
-              WriteReturnValue(memory, (ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
+              WriteReturnValue(memory, ret == 0 ? SSL_ERR_ZERO : ret, BufferIn);
             }
             else
             {
@@ -543,7 +543,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
               system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLRead(
                   memory.GetPointerForRange(BufferIn2, ret), ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
-              WriteReturnValue(memory, (ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
+              WriteReturnValue(memory, ret == 0 ? SSL_ERR_ZERO : ret, BufferIn);
             }
             else
             {
@@ -605,7 +605,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
-          forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
+          forceNonBlock = (flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK;
           // send/sendto only handles MSG_OOB
           flags &= SO_MSG_OOB;
 
@@ -662,7 +662,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
-          forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
+          forceNonBlock = (flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK;
 
           // recv/recvfrom only handles PEEK/OOB
           flags &= SO_MSG_PEEK | SO_MSG_OOB;
@@ -1047,7 +1047,7 @@ void WiiSockMan::Update()
 
 void WiiSockMan::UpdatePollCommands()
 {
-  static constexpr int error_event = (POLLHUP | POLLERR);
+  static constexpr int error_event = POLLHUP | POLLERR;
 
   if (pending_polls.empty())
     return;
@@ -1203,7 +1203,7 @@ void WiiSockMan::DoState(PointerWrap& p)
   for (auto& pcmd : pending_polls)
   {
     for (auto& wfd : pcmd.wii_fds)
-      wfd.revents = (POLLHUP | POLLERR);
+      wfd.revents = POLLHUP | POLLERR;
   }
 }
 

@@ -167,7 +167,7 @@ static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalGCS(Fil
 
   // to get the actual block count calculate backwards from the filesize
   const u64 total_block_size = filesize - GCS_HEADER_SIZE;
-  if ((total_block_size % BLOCK_SIZE) != 0)
+  if (total_block_size % BLOCK_SIZE != 0)
     return ReadSavefileErrorCode::DataCorrupted;
 
   const size_t block_count = total_block_size / BLOCK_SIZE;

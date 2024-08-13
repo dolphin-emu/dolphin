@@ -185,8 +185,8 @@ void SetScissorAndViewport()
   auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
   g_gfx->SetScissorRect(converted_rc);
 
-  float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
-  float raw_y = (xfmem.viewport.yOrig - native_rc.y_off) + xfmem.viewport.ht;
+  float raw_x = xfmem.viewport.xOrig - native_rc.x_off - xfmem.viewport.wd;
+  float raw_y = xfmem.viewport.yOrig - native_rc.y_off + xfmem.viewport.ht;
   float raw_width = 2.0f * xfmem.viewport.wd;
   float raw_height = -2.0f * xfmem.viewport.ht;
   if (g_ActiveConfig.UseVertexRounding())
@@ -298,9 +298,9 @@ void SetBlendMode()
 */
 void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
-  bool colorEnable = (bpmem.blendmode.colorupdate != 0);
-  bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
-  bool zEnable = (bpmem.zmode.updateenable != 0);
+  bool colorEnable = bpmem.blendmode.colorupdate != 0;
+  bool alphaEnable = bpmem.blendmode.alphaupdate != 0;
+  bool zEnable = bpmem.zmode.updateenable != 0;
   auto pixel_format = bpmem.zcontrol.pixel_format;
 
   // (1): Disable unused color channels
@@ -312,7 +312,7 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
 
   if (colorEnable || alphaEnable || zEnable)
   {
-    u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+    u32 color = bpmem.clearcolorAR << 16 | bpmem.clearcolorGB;
     u32 z = bpmem.clearZValue;
 
     // (2) drop additional accuracy

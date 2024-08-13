@@ -843,7 +843,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 
   // Wii-exclusive
   case DICommand::ReadDVDMetadata:
-    switch ((m_DICMDBUF[0] >> 16) & 0xFF)
+    switch (m_DICMDBUF[0] >> 16 & 0xFF)
     {
     case 0:
       ERROR_LOG_FMT(DVDINTERFACE, "DVDLowReadDvdPhysical");
@@ -940,7 +940,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
     else
       drive_state = static_cast<u32>(m_drive_state) - 1;
 
-    const u32 result = (drive_state << 24) | static_cast<u32>(m_error_code);
+    const u32 result = drive_state << 24 | static_cast<u32>(m_error_code);
     INFO_LOG_FMT(DVDINTERFACE, "Requesting error... ({:#010x})", result);
     m_DIIMMBUF = result;
     SetDriveError(DriveError::None);
@@ -973,7 +973,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
     if (m_drive_state == DriveState::ReadyNoReadsMade)
       SetDriveState(DriveState::Ready);
 
-    switch ((m_DICMDBUF[0] >> 16) & 0xFF)
+    switch (m_DICMDBUF[0] >> 16 & 0xFF)
     {
     case 0x00:
     {
@@ -982,7 +982,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
       INFO_LOG_FMT(DVDINTERFACE, "(Audio) Start stream: offset: {:08x} length: {:08x}", offset,
                    length);
 
-      if ((offset == 0) && (length == 0))
+      if (offset == 0 && length == 0)
       {
         m_stop_at_track_end = true;
       }
@@ -1043,7 +1043,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
                    "CurrentStart:{:08x} CurrentLength:{:08x}",
                    m_audio_position, m_current_start + m_current_length, m_current_start,
                    m_current_length);
-      m_DIIMMBUF = (m_stream ? 1 : 0);
+      m_DIIMMBUF = m_stream ? 1 : 0;
       break;
     case 0x01:  // Returns the current offset
       INFO_LOG_FMT(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:{:08x}",
@@ -1074,8 +1074,8 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Used by both GC and Wii
   case DICommand::StopMotor:
   {
-    const bool eject = (m_DICMDBUF[0] & (1 << 17));
-    const bool kill = (m_DICMDBUF[0] & (1 << 20));
+    const bool eject = m_DICMDBUF[0] & 1 << 17;
+    const bool kill = m_DICMDBUF[0] & 1 << 20;
     INFO_LOG_FMT(DVDINTERFACE, "DVDLowStopMotor{}{}", eject ? " eject" : "", kill ? " kill!" : "");
 
     if (m_drive_state == DriveState::Ready || m_drive_state == DriveState::ReadyNoReadsMade ||
@@ -1127,7 +1127,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 
     // Note that this can be called multiple times, as long as the drive is in the ReadyNoReadsMade
     // state. Calling it does not exit that state.
-    AudioBufferConfig((m_DICMDBUF[0] >> 16) & 1, m_DICMDBUF[0] & 0xf);
+    AudioBufferConfig(m_DICMDBUF[0] >> 16 & 1, m_DICMDBUF[0] & 0xf);
     break;
 
   // GC-only patched drive firmware command, used by libogc

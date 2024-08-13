@@ -29,7 +29,7 @@ u32 ConditionRegister::Get() const
   u32 new_cr = 0;
   for (u32 i = 0; i < 8; i++)
   {
-    new_cr |= GetField(i) << (28 - i * 4);
+    new_cr |= GetField(i) << 28 - i * 4;
   }
   return new_cr;
 }
@@ -38,7 +38,7 @@ void ConditionRegister::Set(u32 cr)
 {
   for (u32 i = 0; i < 8; i++)
   {
-    SetField(i, (cr >> (28 - i * 4)) & 0xF);
+    SetField(i, cr >> 28 - i * 4 & 0xF);
   }
 }
 

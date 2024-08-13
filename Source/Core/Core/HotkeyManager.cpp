@@ -238,10 +238,10 @@ bool IsPressed(int id, bool held)
   unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
   unsigned int group_key =
       static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
-  if (s_hotkey.button[group] & (1 << group_key))
+  if (s_hotkey.button[group] & 1 << group_key)
   {
-    const bool pressed = !!(s_hotkey_down[group] & (1 << group_key));
-    s_hotkey_down[group] |= (1 << group_key);
+    const bool pressed = !!(s_hotkey_down[group] & 1 << group_key);
+    s_hotkey_down[group] |= 1 << group_key;
     if (!pressed || held)
       return true;
   }
@@ -372,7 +372,7 @@ HotkeyManager::HotkeyManager()
   for (std::size_t group = 0; group < m_hotkey_groups.size(); group++)
   {
     m_hotkey_groups[group] =
-        (m_keys[group] = new ControllerEmu::Buttons(s_groups_info[group].name));
+        m_keys[group] = new ControllerEmu::Buttons(s_groups_info[group].name);
     groups.emplace_back(m_hotkey_groups[group]);
     for (int key = s_groups_info[group].first; key <= s_groups_info[group].last; key++)
     {
@@ -403,7 +403,7 @@ void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
     if (s_groups_info[group].ignore_focus != ignore_focus)
       continue;
 
-    const int group_count = (s_groups_info[group].last - s_groups_info[group].first) + 1;
+    const int group_count = s_groups_info[group].last - s_groups_info[group].first + 1;
     std::vector<u32> bitmasks(group_count);
     for (size_t key = 0; key < bitmasks.size(); key++)
       bitmasks[key] = static_cast<u32>(1 << key);

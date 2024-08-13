@@ -201,8 +201,8 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
     return false;
 
   // Filter out anything which obviously not a gamepad
-  return !((controller.source == "Quartz")      // OSX Quartz Keyboard/Mouse
-           || (controller.source == "XInput2")  // Linux and BSD Keyboard/Mouse
+  return !(controller.source == "Quartz"      // OSX Quartz Keyboard/Mouse
+           || controller.source == "XInput2"  // Linux and BSD Keyboard/Mouse
            || (controller.source == "Android" && controller.cid <= 0)  // Android non-gamepad device
            || (controller.source == "DInput" &&
                controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse

@@ -62,17 +62,17 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
   int x = 0;
   MACAddress mac{};
 
-  for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
+  for (size_t i = 0; i < mac_string.size() && x < MAC_ADDRESS_SIZE * 2; ++i)
   {
     char c = Common::ToLower(mac_string.at(i));
     if (c >= '0' && c <= '9')
     {
-      mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
+      mac[x / 2] |= c - '0' << (x & 1 ? 0 : 4);
       ++x;
     }
     else if (c >= 'a' && c <= 'f')
     {
-      mac[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4);
+      mac[x / 2] |= c - 'a' + 10 << (x & 1 ? 0 : 4);
       ++x;
     }
   }
@@ -376,8 +376,8 @@ std::vector<u8> TCPPacket::Build() const
   // Adjust size and checksum fields
   const u16 tcp_length = static_cast<u16>(TCPHeader::SIZE + tcp_options.size() + data.size());
   const u16 tcp_properties =
-      (ntohs(tcp_header.properties) & 0xfff) |
-      (static_cast<u16>((tcp_options.size() + TCPHeader::SIZE) & 0x3c) << 10);
+      ntohs(tcp_header.properties) & 0xfff |
+      static_cast<u16>(tcp_options.size() + TCPHeader::SIZE & 0x3c) << 10;
   Common::BitCastPtr<u16>(tcp_ptr + offsetof(TCPHeader, properties)) = htons(tcp_properties);
 
   const u16 ip_header_size = static_cast<u16>(IPv4Header::SIZE + ipv4_options.size());

@@ -173,7 +173,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_out.m_hex =
-                       (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_out.m_hex & ~gpio_owner.m_hex);
+                       val & gpio_owner.m_hex | wii_ipc.m_gpio_out.m_hex & ~gpio_owner.m_hex;
                    if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
@@ -187,7 +187,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_dir.m_hex =
-                       (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex);
+                       val & gpio_owner.m_hex | wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex;
                  }));
   mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    Common::Flags<GPIO> gpio_in;
@@ -210,7 +210,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_out.m_hex =
-                       (wii_ipc.m_gpio_out.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
+                       wii_ipc.m_gpio_out.m_hex & gpio_owner.m_hex | val & ~gpio_owner.m_hex;
                    if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
@@ -224,7 +224,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_dir.m_hex =
-                       (wii_ipc.m_gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
+                       wii_ipc.m_gpio_dir.m_hex & gpio_owner.m_hex | val & ~gpio_owner.m_hex;
                  }));
   mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    Common::Flags<GPIO> gpio_in;
@@ -237,7 +237,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    // A reset occurs when the corresponding bit is cleared
                    auto& wii_ipc = system.GetWiiIPC();
-                   const bool di_reset_triggered = (wii_ipc.m_resets & 0x400) && !(val & 0x400);
+                   const bool di_reset_triggered = wii_ipc.m_resets & 0x400 && !(val & 0x400);
                    wii_ipc.m_resets = val;
                    if (di_reset_triggered)
                    {
@@ -263,12 +263,12 @@ void WiiIPC::UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cy
 
 void WiiIPC::UpdateInterrupts()
 {
-  if ((m_ctrl.Y1 & m_ctrl.IY1) || (m_ctrl.Y2 & m_ctrl.IY2))
+  if (m_ctrl.Y1 & m_ctrl.IY1 || m_ctrl.Y2 & m_ctrl.IY2)
   {
     m_ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
   }
 
-  if ((m_ctrl.X1 & m_ctrl.IX1) || (m_ctrl.X2 & m_ctrl.IX2))
+  if (m_ctrl.X1 & m_ctrl.IX1 || m_ctrl.X2 & m_ctrl.IX2)
   {
     m_ppc_irq_flags |= INT_CAUSE_IPC_STARLET;
   }
@@ -308,7 +308,7 @@ void WiiIPC::GenerateReply(u32 address)
 
 bool WiiIPC::IsReady() const
 {
-  return ((m_ctrl.Y1 == 0) && (m_ctrl.Y2 == 0) &&
-          ((m_ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
+  return m_ctrl.Y1 == 0 && m_ctrl.Y2 == 0 &&
+         (m_ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0;
 }
 }  // namespace IOS

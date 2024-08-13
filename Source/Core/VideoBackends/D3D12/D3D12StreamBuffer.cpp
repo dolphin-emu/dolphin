@@ -132,7 +132,7 @@ bool StreamBuffer::ReserveMemory(u32 num_bytes, u32 alignment)
 
 void StreamBuffer::CommitMemory(u32 final_num_bytes)
 {
-  ASSERT((m_current_offset + final_num_bytes) <= m_size);
+  ASSERT(m_current_offset + final_num_bytes <= m_size);
   ASSERT(final_num_bytes <= m_last_allocation_size);
   m_current_offset += final_num_bytes;
 }

@@ -186,7 +186,7 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
     // Sign extend into whole accum.
     // g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
     // g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
-    set_acc_h(reg - DSP_REG_ACM0, Imm16((val & 0x8000) ? 0xffff : 0x0000));
+    set_acc_h(reg - DSP_REG_ACM0, Imm16(val & 0x8000 ? 0xffff : 0x0000));
     set_acc_l(reg - DSP_REG_ACM0, Imm16(0));
     //}
     m_gpr.FlushRegs(c);

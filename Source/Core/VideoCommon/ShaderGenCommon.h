@@ -249,7 +249,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
     }
     else
     {
-      u32 mid = low + ((high - low) / 2);
+      u32 mid = low + (high - low) / 2;
       out.Write("{:{}}if ({} < {}u) {{\n", "", cur_indent, variable, mid);
       BuildTree(cur_indent + 2, low, mid);
       out.Write("{:{}}}} else {{\n", "", cur_indent);

@@ -92,10 +92,10 @@ private:
 
   enum Flags
   {
-    PPCF_ILLEGAL = (1 << 0),   // Illegal PowerPC instruction
-    PPCF_UNSIGNED = (1 << 1),  // Unsigned immediate instruction
-    PPCF_SUPER = (1 << 2),     // Supervisor level instruction
-    PPCF_64 = (1 << 3),        // 64-bit only instruction
+    PPCF_ILLEGAL = 1 << 0,  // Illegal PowerPC instruction
+    PPCF_UNSIGNED = 1 << 1, // Unsigned immediate instruction
+    PPCF_SUPER = 1 << 2,    // Supervisor level instruction
+    PPCF_64 = 1 << 3,       // 64-bit only instruction
   };
 
   static u32* m_instr;            // Pointer to instruction to disassemble

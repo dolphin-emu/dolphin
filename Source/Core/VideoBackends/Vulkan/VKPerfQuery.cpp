@@ -193,7 +193,7 @@ void PerfQuery::ReadbackQueries(u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count.load(std::memory_order_relaxed) &&
-         (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
+      m_query_readback_pos + query_count <= PERF_QUERY_BUFFER_SIZE);
 
   // Read back from the GPU.
   VkResult res = vkGetQueryPoolResults(

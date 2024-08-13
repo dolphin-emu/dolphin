@@ -144,7 +144,7 @@ u16 DSPHLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)
 {
   if (cpu_mailbox)
   {
-    return (m_dsp_state.cpu_mailbox >> 16) & 0xFFFF;
+    return m_dsp_state.cpu_mailbox >> 16 & 0xFFFF;
   }
   else
   {
@@ -168,7 +168,7 @@ void DSPHLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
 {
   if (cpu_mailbox)
   {
-    m_dsp_state.cpu_mailbox = (m_dsp_state.cpu_mailbox & 0xFFFF) | (value << 16);
+    m_dsp_state.cpu_mailbox = m_dsp_state.cpu_mailbox & 0xFFFF | value << 16;
   }
   else
   {
@@ -180,7 +180,7 @@ void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 {
   if (cpu_mailbox)
   {
-    m_dsp_state.cpu_mailbox = (m_dsp_state.cpu_mailbox & 0xFFFF0000) | value;
+    m_dsp_state.cpu_mailbox = m_dsp_state.cpu_mailbox & 0xFFFF0000 | value;
     SendMailToDSP(m_dsp_state.cpu_mailbox);
     // Mail sent so clear MSB to show that it is progressed
     m_dsp_state.cpu_mailbox &= 0x7FFFFFFF;
@@ -211,7 +211,7 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 
   // init - unclear if writing DSPInitCode does something. Clearing DSPInit immediately sets
   // DSPInitCode, which gets unset a bit later...
-  if ((m_dsp_control.DSPInit != 0) && (temp.DSPInit == 0))
+  if (m_dsp_control.DSPInit != 0 && temp.DSPInit == 0)
   {
     // Copy 1024(?) bytes of uCode from main memory 0x81000000 (or is it ARAM 00000000?)
     // to IMEM 0000 and jump to that code

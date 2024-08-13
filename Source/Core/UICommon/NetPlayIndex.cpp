@@ -297,7 +297,7 @@ std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) 
 
   for (size_t i = 0; i < server_id.size(); i += 2)
   {
-    char c = (server_id[i] - 'A') << 4 | (server_id[i + 1] - 'A');
+    char c = server_id[i] - 'A' << 4 | server_id[i + 1] - 'A';
     decoded.push_back(c);
   }
 

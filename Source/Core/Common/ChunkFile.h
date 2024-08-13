@@ -242,7 +242,7 @@ public:
 
   u32 GetOffsetFromPreviousPosition(u8* previous_pointer)
   {
-    return static_cast<u32>((*m_ptr_current) - previous_pointer);
+    return static_cast<u32>(*m_ptr_current - previous_pointer);
   }
 
   void Do(Common::Flag& flag)
@@ -345,7 +345,7 @@ private:
 
   DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
-    if (!IsMeasureMode() && (*m_ptr_current + size) > m_ptr_end)
+    if (!IsMeasureMode() && *m_ptr_current + size > m_ptr_end)
     {
       // trying to read/write past the end of the buffer, prevent this
       SetMeasureMode();

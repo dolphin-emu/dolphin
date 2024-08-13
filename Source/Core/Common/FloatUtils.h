@@ -36,14 +36,14 @@ static constexpr int FLOAT_FRAC_WIDTH = 23;
 inline bool IsQNAN(double d)
 {
   const u64 i = std::bit_cast<u64>(d);
-  return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_QBIT) == DOUBLE_QBIT);
+  return (i & DOUBLE_EXP) == DOUBLE_EXP && (i & DOUBLE_QBIT) == DOUBLE_QBIT;
 }
 
 inline bool IsSNAN(double d)
 {
   const u64 i = std::bit_cast<u64>(d);
-  return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
-         ((i & DOUBLE_QBIT) == DOUBLE_ZERO);
+  return (i & DOUBLE_EXP) == DOUBLE_EXP && (i & DOUBLE_FRAC) != DOUBLE_ZERO &&
+         (i & DOUBLE_QBIT) == DOUBLE_ZERO;
 }
 
 inline float FlushToZero(float f)

@@ -209,13 +209,13 @@ static bool IsMtspr(UGeckoInstruction inst)
 
 static bool IsSprInstructionUsingMmcr(UGeckoInstruction inst)
 {
-  const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  const u32 index = inst.SPRU << 5 | inst.SPRL & 0x1F;
   return index == SPR_MMCR0 || index == SPR_MMCR1;
 }
 
 static bool InstructionCanEndBlock(const CodeOp& op)
 {
-  return (op.opinfo->flags & FL_ENDBLOCK) &&
+  return op.opinfo->flags & FL_ENDBLOCK &&
          (!IsMtspr(op.inst) || IsSprInstructionUsingMmcr(op.inst));
 }
 
@@ -245,7 +245,7 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
     return false;
   if (b_flags & (FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
-  if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
+  if (a_flags & (FL_SET_CA | FL_READ_CA) && b_flags & (FL_SET_CA | FL_READ_CA))
     return false;
 
   // For now, only integer ops are acceptable.
@@ -408,7 +408,7 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
       WARN_LOG_FMT(SYMBOLS, "Weird function");
       continue;
     }
-    AnalyzeFunction2(func_db, &(func.second));
+    AnalyzeFunction2(func_db, &func.second);
     Common::Symbol& f = func.second;
     if (f.name.substr(0, 3) == "zzz")
     {
@@ -437,7 +437,7 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
       numTimer++;
     if (f.flags & Common::FFLAG_RFI)
       numRFI++;
-    if ((f.flags & Common::FFLAG_STRAIGHT) && (f.flags & Common::FFLAG_LEAF))
+    if (f.flags & Common::FFLAG_STRAIGHT && f.flags & Common::FFLAG_LEAF)
       numStraightLeaf++;
   }
   if (numLeafs == 0)
@@ -465,7 +465,7 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
 
 static bool isCarryOp(const CodeOp& a)
 {
-  return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
+  return a.opinfo->flags & FL_SET_CA && !(a.opinfo->flags & FL_SET_OE) &&
          a.opinfo->type == OpType::Integer;
 }
 
@@ -518,15 +518,15 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       if (type == ReorderType::Carry && i != start)
       {
         // if we read the CA flag, and the previous instruction sets it, don't move away.
-        if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
-            (code[i - increment].opinfo->flags & FL_SET_CA))
+        if (!reverse && a.opinfo->flags & FL_READ_CA &&
+            code[i - increment].opinfo->flags & FL_SET_CA)
         {
           continue;
         }
 
         // if we set the CA flag, and the next instruction reads it, don't move away.
-        if (reverse && (a.opinfo->flags & FL_SET_CA) &&
-            (code[i - increment].opinfo->flags & FL_READ_CA))
+        if (reverse && a.opinfo->flags & FL_SET_CA &&
+            code[i - increment].opinfo->flags & FL_READ_CA)
         {
           continue;
         }
@@ -607,9 +607,9 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
     code->crOut = BitSet8(0xFF);
   else if (opinfo->flags & FL_SET_CRn)
     code->crOut[code->inst.CRFD] = true;
-  else if ((opinfo->flags & FL_SET_CR0) || ((opinfo->flags & FL_RC_BIT) && code->inst.Rc))
+  else if (opinfo->flags & FL_SET_CR0 || (opinfo->flags & FL_RC_BIT && code->inst.Rc))
     code->crOut[0] = true;
-  else if ((opinfo->flags & FL_SET_CR1) || ((opinfo->flags & FL_RC_BIT_F) && code->inst.Rc))
+  else if (opinfo->flags & FL_SET_CR1 || (opinfo->flags & FL_RC_BIT_F && code->inst.Rc))
     code->crOut[1] = true;
   else if (opinfo->type == OpType::CR)
     code->crOut[code->inst.CRBD >> 2] = true;
@@ -620,8 +620,8 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
 
   code->canCauseException = first_fpu_instruction ||
                             (opinfo->flags & (FL_LOADSTORE | FL_PROGRAMEXCEPTION)) != 0 ||
-                            (m_enable_float_exceptions && (opinfo->flags & FL_FLOAT_EXCEPTION)) ||
-                            (m_enable_div_by_zero_exceptions && (opinfo->flags & FL_FLOAT_DIV));
+                            (m_enable_float_exceptions && opinfo->flags & FL_FLOAT_EXCEPTION) ||
+                            (m_enable_div_by_zero_exceptions && opinfo->flags & FL_FLOAT_DIV);
 
   code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
   code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
@@ -638,9 +638,9 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   // mfspr/mtspr can affect/use XER, so be super careful here
   // we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag
   if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 339)  // mfspr
-    code->wantsCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
+    code->wantsCA = (code->inst.SPRU << 5 | code->inst.SPRL & 0x1F) == SPR_XER;
   if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 467)  // mtspr
-    code->outputCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
+    code->outputCA = (code->inst.SPRU << 5 | code->inst.SPRL & 0x1F) == SPR_XER;
 
   code->regsIn = BitSet32(0);
   code->regsOut = BitSet32(0);
@@ -652,7 +652,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   {
     code->regsOut[code->inst.RD] = true;
   }
-  if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
+  if (opinfo->flags & FL_IN_A || (opinfo->flags & FL_IN_A0 && code->inst.RA != 0))
   {
     code->regsIn[code->inst.RA] = true;
   }
@@ -870,8 +870,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           caller = i;
         }
       }
-      else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-               (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
+      else if (inst.OPCD == 16 && inst.BO & BO_DONT_DECREMENT_FLAG &&
+               inst.BO & BO_DONT_CHECK_CONDITION && block_size > 1)
       {
         // Always follow unconditional BCX instructions, but they are very rare.
         follow = true;
@@ -884,7 +884,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
       {
         code[i].branchTo = code[caller].address + 4;
-        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION) &&
+        if (inst.BO & BO_DONT_DECREMENT_FLAG && inst.BO & BO_DONT_CHECK_CONDITION &&
             numFollows < BRANCH_FOLLOWING_THRESHOLD)
         {
           // bclrx with unconditional branch = return
@@ -904,7 +904,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
       {
         // mtspr, skip CALL/RET merging as LR is overwritten.
-        const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+        const u32 index = inst.SPRU << 5 | inst.SPRL & 0x1F;
         if (index == SPR_LR)
         {
           // We give up to follow the return address
@@ -1144,7 +1144,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 467)  // mtspr
     {
-      const int gqr = ((op.inst.SPRU << 5) | op.inst.SPRL) - SPR_GQR0;
+      const int gqr = (op.inst.SPRU << 5 | op.inst.SPRL) - SPR_GQR0;
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }

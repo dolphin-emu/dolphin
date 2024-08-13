@@ -53,7 +53,7 @@ void Jit64::rfi(UGeckoInstruction inst)
   const u32 mask = 0x87C0FFFF;
   const u32 clearMSR13 = 0xFFFBFFFF;  // Mask used to clear the bit MSR[13]
   // MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
-  AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
+  AND(32, PPCSTATE(msr), Imm32(~mask & clearMSR13));
   MOV(32, R(RSCRATCH), PPCSTATE_SRR1);
   AND(32, R(RSCRATCH), Imm32(mask & clearMSR13));
   OR(32, PPCSTATE(msr), R(RSCRATCH));
@@ -87,8 +87,8 @@ void Jit64::WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst
   MOV(32, R(ABI_PARAM3), Imm32(inst.hex));
   ABI_CallFunction(m_ppc_state.msr.IR ? (condition ? &Core::BranchWatch::HitVirtualTrue_fk :
                                                      &Core::BranchWatch::HitVirtualFalse_fk) :
-                                        (condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
-                                                     &Core::BranchWatch::HitPhysicalFalse_fk));
+                                        condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
+                                        &Core::BranchWatch::HitPhysicalFalse_fk);
   ABI_PopRegistersAndAdjustStack(caller_save, 0);
 
   FixupBranch branch_out = J(Jump::Near);
@@ -214,8 +214,8 @@ void Jit64::bcx(UGeckoInstruction inst)
   // If this is not the last instruction of a block
   // and an unconditional branch, we will skip the rest process.
   // Because PPCAnalyst::Flatten() merged the blocks.
-  if (!js.isLastInstruction && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-      (inst.BO & BO_DONT_CHECK_CONDITION))
+  if (!js.isLastInstruction && inst.BO & BO_DONT_DECREMENT_FLAG &&
+      inst.BO & BO_DONT_CHECK_CONDITION)
   {
     if (IsDebuggingEnabled())
     {

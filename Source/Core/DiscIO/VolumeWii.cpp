@@ -50,26 +50,26 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
   for (u32 partition_group = 0; partition_group < 4; ++partition_group)
   {
     const std::optional<u32> number_of_partitions =
-        m_reader->ReadSwapped<u32>(0x40000 + (partition_group * 8));
+        m_reader->ReadSwapped<u32>(0x40000 + partition_group * 8);
     if (!number_of_partitions)
       continue;
 
     const std::optional<u64> partition_table_offset =
-        ReadSwappedAndShifted(0x40000 + (partition_group * 8) + 4, PARTITION_NONE);
+        ReadSwappedAndShifted(0x40000 + partition_group * 8 + 4, PARTITION_NONE);
     if (!partition_table_offset)
       continue;
 
     for (u32 i = 0; i < number_of_partitions; i++)
     {
       const std::optional<u64> partition_offset =
-          ReadSwappedAndShifted(*partition_table_offset + (i * 8), PARTITION_NONE);
+          ReadSwappedAndShifted(*partition_table_offset + i * 8, PARTITION_NONE);
       if (!partition_offset)
         continue;
 
       const Partition partition(*partition_offset);
 
       const std::optional<u32> partition_type =
-          m_reader->ReadSwapped<u32>(*partition_table_offset + (i * 8) + 4);
+          m_reader->ReadSwapped<u32>(*partition_table_offset + i * 8 + 4);
       if (!partition_type)
         continue;
 
@@ -307,8 +307,8 @@ u64 VolumeWii::OffsetInHashedPartitionToRawOffset(u64 offset, const Partition& p
   if (partition == PARTITION_NONE)
     return offset;
 
-  return partition.offset + partition_data_offset + (offset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE) +
-         (offset % BLOCK_DATA_SIZE);
+  return partition.offset + partition_data_offset + offset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE +
+         offset % BLOCK_DATA_SIZE;
 }
 
 u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const

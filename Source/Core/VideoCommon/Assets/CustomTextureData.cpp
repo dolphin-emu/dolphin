@@ -209,7 +209,7 @@ static void ConvertTexture_A8R8G8B8(VideoCommon::CustomTextureData::ArraySlice::
       // Byte swap ABGR -> RGBA
       u32 val;
       std::memcpy(&val, data_ptr, sizeof(val));
-      val = ((val & 0xFF00FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000));
+      val = val & 0xFF00FF00 | val >> 16 & 0xFF | val << 16 & 0xFF0000;
       std::memcpy(data_ptr, &val, sizeof(u32));
       data_ptr += sizeof(u32);
     }
@@ -226,7 +226,7 @@ static void ConvertTexture_X8R8G8B8(VideoCommon::CustomTextureData::ArraySlice::
       // Byte swap XBGR -> RGBX, and set alpha to full intensity.
       u32 val;
       std::memcpy(&val, data_ptr, sizeof(val));
-      val = ((val & 0x0000FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000)) | 0xFF000000;
+      val = val & 0x0000FF00 | val >> 16 & 0xFF | val << 16 & 0xFF0000 | 0xFF000000;
       std::memcpy(data_ptr, &val, sizeof(u32));
       data_ptr += sizeof(u32);
     }
@@ -247,7 +247,7 @@ static void ConvertTexture_R8G8B8(VideoCommon::CustomTextureData::ArraySlice::Le
       // This is BGR in memory.
       u32 val;
       std::memcpy(&val, rgb_data_ptr, sizeof(val));
-      val = ((val & 0x0000FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000)) | 0xFF000000;
+      val = val & 0x0000FF00 | val >> 16 & 0xFF | val << 16 & 0xFF0000 | 0xFF000000;
       std::memcpy(data_ptr, &val, sizeof(u32));
       data_ptr += sizeof(u32);
       rgb_data_ptr += 3;
@@ -465,7 +465,7 @@ static bool ReadMipLevel(VideoCommon::CustomTextureData::ArraySlice::Level* leve
   // D3D11 cannot handle block compressed textures where the first mip level is
   // not a multiple of the block size.
   if (mip_level == 0 && info.block_size > 1 &&
-      ((width % info.block_size) != 0 || (height % info.block_size) != 0))
+      (width % info.block_size != 0 || height % info.block_size != 0))
   {
     ERROR_LOG_FMT(VIDEO,
                   "Invalid dimensions for DDS texture {}. For compressed textures of this format, "

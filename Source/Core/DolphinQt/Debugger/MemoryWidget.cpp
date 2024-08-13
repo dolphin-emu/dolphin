@@ -789,7 +789,7 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
                              u32(std::numeric_limits<s32>::max()) + 1;
   target.is_good_offset |= m_search_offset->text().isEmpty();
   target.is_good_offset &= offset >= 0 || neg_offset <= addr;
-  target.is_good_offset &= offset <= 0 || (std::numeric_limits<u32>::max() - u32(offset)) >= addr;
+  target.is_good_offset &= offset <= 0 || std::numeric_limits<u32>::max() - u32(offset) >= addr;
 
   if (!target.is_good_address || !target.is_good_offset)
     return target;

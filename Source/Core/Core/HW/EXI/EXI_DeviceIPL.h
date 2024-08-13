@@ -53,10 +53,10 @@ private:
 
   struct
   {
-    bool is_write() const { return (value >> 31) & 1; }
+    bool is_write() const { return value >> 31 & 1; }
     // TODO this is definitely a guess
     // Also, the low 6 bits are completely ignored
-    u32 address() const { return (value >> 6) & 0x1ffffff; }
+    u32 address() const { return value >> 6 & 0x1ffffff; }
     u32 low_bits() const { return value & 0x3f; }
     u32 value;
   } m_command{};

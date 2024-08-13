@@ -594,8 +594,8 @@ void Device::ResetPadData()
   m_pad_data = Proto::MessageType::PadDataResponse{};
 
   // Make sure they start from resting values, not from 0
-  m_touch_x = m_touch_x_min + ((m_touch_x_max - m_touch_x_min) / 2.0);
-  m_touch_y = m_touch_y_min + ((m_touch_y_max - m_touch_y_min) / 2.0);
+  m_touch_x = m_touch_x_min + (m_touch_x_max - m_touch_x_min) / 2.0;
+  m_touch_y = m_touch_y_min + (m_touch_y_max - m_touch_y_min) / 2.0;
   m_pad_data.left_stick_x = 128;
   m_pad_data.left_stick_y_inverted = 128;
   m_pad_data.right_stick_x = 128;

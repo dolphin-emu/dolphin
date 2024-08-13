@@ -173,9 +173,9 @@ void XEmitter::ReserveCodeSpace(int bytes)
 
 u8* XEmitter::AlignCodeTo(size_t alignment)
 {
-  ASSERT_MSG(DYNA_REC, alignment != 0 && (alignment & (alignment - 1)) == 0,
+  ASSERT_MSG(DYNA_REC, alignment != 0 && (alignment & alignment - 1) == 0,
              "Alignment must be power of two");
-  u64 c = reinterpret_cast<u64>(code) & (alignment - 1);
+  u64 c = reinterpret_cast<u64>(code) & alignment - 1;
   if (c)
     ReserveCodeSpace(static_cast<int>(alignment - c));
   return code;
@@ -206,12 +206,12 @@ void XEmitter::CheckFlags()
 
 void XEmitter::WriteModRM(int mod, int reg, int rm)
 {
-  Write8((u8)((mod << 6) | ((reg & 7) << 3) | (rm & 7)));
+  Write8((u8)(mod << 6 | (reg & 7) << 3 | rm & 7));
 }
 
 void XEmitter::WriteSIB(int scale, int index, int base)
 {
-  Write8((u8)((scale << 6) | ((index & 7) << 3) | (base & 7)));
+  Write8((u8)(scale << 6 | (index & 7) << 3 | base & 7));
 }
 
 void OpArg::WriteREX(XEmitter* emit, int opBits, int bits, int customOp) const
@@ -250,19 +250,19 @@ void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
   int X = !(indexReg & 8);
   int B = !(offsetOrBaseReg & 8);
 
-  int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
+  int vvvv = regOp2 == X64Reg::INVALID_REG ? 0xf : regOp2 ^ 0xf;
 
   // do we need any VEX fields that only appear in the three-byte form?
   if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
   {
-    u8 RvvvvLpp = (R << 7) | (vvvv << 3) | (L << 2) | pp;
+    u8 RvvvvLpp = R << 7 | vvvv << 3 | L << 2 | pp;
     emit->Write8(0xC5);
     emit->Write8(RvvvvLpp);
   }
   else
   {
-    u8 RXBmmmmm = (R << 7) | (X << 6) | (B << 5) | mmmmm;
-    u8 WvvvvLpp = (W << 7) | (vvvv << 3) | (L << 2) | pp;
+    u8 RXBmmmmm = R << 7 | X << 6 | B << 5 | mmmmm;
+    u8 WvvvvLpp = W << 7 | vvvv << 3 | L << 2 | pp;
     emit->Write8(0xC4);
     emit->Write8(RXBmmmmm);
     emit->Write8(WvvvvLpp);
@@ -384,7 +384,7 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
       ss = 0;
       break;
     }
-    emit->Write8((u8)((ss << 6) | ((ireg & 7) << 3) | (_offsetOrBaseReg & 7)));
+    emit->Write8((u8)(ss << 6 | (ireg & 7) << 3 | _offsetOrBaseReg & 7));
   }
 
   if (mod == 1)  // 8-bit disp
@@ -407,7 +407,7 @@ void XEmitter::Rex(int w, int r, int x, int b)
   r = r ? 1 : 0;
   x = x ? 1 : 0;
   b = b ? 1 : 0;
-  u8 rx = (u8)(0x40 | (w << 3) | (r << 2) | (x << 1) | (b));
+  u8 rx = (u8)(0x40 | w << 3 | r << 2 | x << 1 | b);
   if (rx != 0x40)
     Write8(rx);
 }
@@ -1271,7 +1271,7 @@ void XEmitter::WriteBitTest(int bits, const OpArg& dest, const OpArg& index, int
   {
     ASSERT_MSG(DYNA_REC, 0, "WriteBitTest - can't test imms");
   }
-  if ((index.IsImm() && index.GetImmBits() != 8))
+  if (index.IsImm() && index.GetImmBits() != 8)
   {
     ASSERT_MSG(DYNA_REC, 0, "WriteBitTest - illegal argument");
   }
@@ -1811,7 +1811,7 @@ void XEmitter::WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extr
   arg.WriteREX(this, 0, 0);
   Write8(0x0F);
   if (op > 0xFF)
-    Write8((op >> 8) & 0xFF);
+    Write8(op >> 8 & 0xFF);
   Write8(op & 0xFF);
   arg.WriteRest(this, extrabytes);
 }
@@ -1819,9 +1819,9 @@ void XEmitter::WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extr
 static int GetVEXmmmmm(u16 op)
 {
   // Currently, only 0x38 and 0x3A are used as secondary escape byte.
-  if ((op >> 8) == 0x3A)
+  if (op >> 8 == 0x3A)
     return 3;
-  else if ((op >> 8) == 0x38)
+  else if (op >> 8 == 0x38)
     return 2;
   else
     return 1;

@@ -582,7 +582,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
 
     if (IsIndexed(addr))
     {
-      const u32 base_size = (addr == VertexComponentFormat::Index8) ? 1 : 2;
+      const u32 base_size = addr == VertexComponentFormat::Index8 ? 1 : 2;
       if (elements == NormalComponentCount::NTB)
         return (index3 ? 3 : 1) * base_size;
       else
@@ -590,7 +590,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
     else
     {
-      const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+      const u32 base_count = elements == NormalComponentCount::NTB ? 9 : 3;
       const u32 base_size = GetElementSize(format);
       return base_count * base_size;
     }
@@ -599,7 +599,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     if (addr == VertexComponentFormat::NotPresent)
       return 0;
 
-    const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+    const u32 base_count = elements == NormalComponentCount::NTB ? 9 : 3;
     return base_count * sizeof(float);
   }();
 
@@ -892,7 +892,7 @@ public:
   static constexpr u32 NUM_COMPONENTS_TO_TEST = 3;
   static constexpr u32 NUM_PARAMETERS_PER_COMPONENT = 3;
   static constexpr u32 NUM_COMBINATIONS =
-      1 << (NUM_COMPONENTS_TO_TEST * NUM_PARAMETERS_PER_COMPONENT);
+      1 << NUM_COMPONENTS_TO_TEST * NUM_PARAMETERS_PER_COMPONENT;
 };
 INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedTexCoordsTest,
                          ::testing::Range(0u, VertexLoaderSkippedTexCoordsTest::NUM_COMBINATIONS));
@@ -903,10 +903,10 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   const u32 param = GetParam();
   for (u32 component = 0; component < NUM_COMPONENTS_TO_TEST; component++)
   {
-    const u32 bits = param >> (component * NUM_PARAMETERS_PER_COMPONENT);
-    enable_tex[component] = (bits & 1);
-    enable_matrix[component] = (bits & 2);
-    use_st[component] = (bits & 4);
+    const u32 bits = param >> component * NUM_PARAMETERS_PER_COMPONENT;
+    enable_tex[component] = bits & 1;
+    enable_matrix[component] = bits & 2;
+    use_st[component] = bits & 4;
   }
 
   size_t input_size = 1;

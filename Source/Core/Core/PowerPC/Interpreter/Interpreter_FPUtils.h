@@ -34,7 +34,7 @@ inline void CheckFPExceptions(PowerPC::PowerPCState& ppc_state)
 inline void UpdateFPExceptionSummary(PowerPC::PowerPCState& ppc_state)
 {
   ppc_state.fpscr.VX = (ppc_state.fpscr.Hex & FPSCR_VX_ANY) != 0;
-  ppc_state.fpscr.FEX = ((ppc_state.fpscr.Hex >> 22) & (ppc_state.fpscr.Hex & FPSCR_ANY_E)) != 0;
+  ppc_state.fpscr.FEX = (ppc_state.fpscr.Hex >> 22 & (ppc_state.fpscr.Hex & FPSCR_ANY_E)) != 0;
 
   CheckFPExceptions(ppc_state);
 }
@@ -343,39 +343,39 @@ inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, do
 // used by stfsXX instructions and ps_rsqrte
 inline u32 ConvertToSingle(u64 x)
 {
-  const u32 exp = u32((x >> 52) & 0x7ff);
+  const u32 exp = u32(x >> 52 & 0x7ff);
 
   if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return u32(x >> 32 & 0xc0000000 | x >> 29 & 0x3fffffff);
   }
   else if (exp >= 874)
   {
-    u32 t = u32(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
-    t = t >> (905 - exp);
-    t |= u32((x >> 32) & 0x80000000);
+    u32 t = u32(0x80000000 | (x & Common::DOUBLE_FRAC) >> 21);
+    t = t >> 905 - exp;
+    t |= u32(x >> 32 & 0x80000000);
     return t;
   }
   else
   {
     // This is said to be undefined.
     // The code is based on hardware tests.
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return u32(x >> 32 & 0xc0000000 | x >> 29 & 0x3fffffff);
   }
 }
 
 // used by psq_stXX operations.
 inline u32 ConvertToSingleFTZ(u64 x)
 {
-  const u32 exp = u32((x >> 52) & 0x7ff);
+  const u32 exp = u32(x >> 52 & 0x7ff);
 
   if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return u32(x >> 32 & 0xc0000000 | x >> 29 & 0x3fffffff);
   }
   else
   {
-    return u32((x >> 32) & 0x80000000);
+    return u32(x >> 32 & 0x80000000);
   }
 }
 
@@ -387,14 +387,14 @@ inline u64 ConvertToDouble(u32 value)
   // See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
 
   u64 x = value;
-  u64 exp = (x >> 23) & 0xff;
+  u64 exp = x >> 23 & 0xff;
   u64 frac = x & 0x007fffff;
 
   if (exp > 0 && exp < 255)  // Normal number
   {
     u64 y = !(exp >> 7);
     u64 z = y << 61 | y << 60 | y << 59;
-    return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
+    return (x & 0xc0000000) << 32 | z | (x & 0x3fffffff) << 29;
   }
   else if (exp == 0 && frac != 0)  // Subnormal number
   {
@@ -405,12 +405,12 @@ inline u64 ConvertToDouble(u32 value)
       exp -= 1;
     } while ((frac & 0x00800000) == 0);
 
-    return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
+    return (x & 0x80000000) << 32 | exp << 52 | (frac & 0x007fffff) << 29;
   }
   else  // QNaN, SNaN or Zero
   {
     u64 y = exp >> 7;
     u64 z = y << 61 | y << 60 | y << 59;
-    return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
+    return (x & 0xc0000000) << 32 | z | (x & 0x3fffffff) << 29;
   }
 }

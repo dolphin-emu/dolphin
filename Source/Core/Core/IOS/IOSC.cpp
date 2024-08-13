@@ -459,7 +459,7 @@ ReturnCode IOSC::ImportCertificate(const ES::CertReader& cert, Handle signer_han
 
   const std::vector<u8> public_key = cert.GetPublicKey();
   const bool is_rsa = cert.GetSignatureType() != SignatureType::ECC;
-  const u8* exponent = is_rsa ? (public_key.data() + public_key.size() - 4) : nullptr;
+  const u8* exponent = is_rsa ? public_key.data() + public_key.size() - 4 : nullptr;
   return ImportPublicKey(dest_handle, public_key.data(), exponent, pid);
 }
 
@@ -487,7 +487,7 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
   const u32 mask = entry->owner_mask | mask_with_current_pid;
   if (mask != mask_with_current_pid)
     return IOSC_EACCES;
-  entry->owner_mask = (new_owner & ~7) | mask;
+  entry->owner_mask = new_owner & ~7 | mask;
   return IPC_SUCCESS;
 }
 
@@ -694,7 +694,7 @@ bool IOSC::HasOwnership(Handle handle, u32 pid) const
 {
   u32 owner_mask;
   return handle == HANDLE_ROOT_KEY ||
-         (GetOwnership(handle, &owner_mask) == IPC_SUCCESS && ((1 << pid) & owner_mask) != 0);
+         (GetOwnership(handle, &owner_mask) == IPC_SUCCESS && (1 << pid & owner_mask) != 0);
 }
 
 bool IOSC::IsDefaultHandle(Handle handle) const

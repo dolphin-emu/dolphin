@@ -48,7 +48,7 @@ static constexpr std::array<u32, 2> CLOCK_FREQUENCIES{{
     54000000,
 }};
 
-static constexpr u32 NUM_HALF_LINES_FOR_SI_POLL = (7 * 2) + 1;  // this is how long an SI poll takes
+static constexpr u32 NUM_HALF_LINES_FOR_SI_POLL = 7 * 2 + 1;  // this is how long an SI poll takes
 
 void VideoInterfaceManager::DoState(PointerWrap& p)
 {
@@ -294,7 +294,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(
       base | VI_VERTICAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
         auto& vi = system.GetVideoInterface();
-        return 1 + (vi.m_half_line_count) / 2;
+        return 1 + vi.m_half_line_count / 2;
       }),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
         WARN_LOG_FMT(
@@ -307,7 +307,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         u16 value = static_cast<u16>(
             1 + vi.m_h_timing_0.HLW *
                     (system.GetCoreTiming().GetTicks() - vi.m_ticks_last_line_start) /
-                    (vi.GetTicksPerHalfLine()));
+                    vi.GetTicksPerHalfLine());
         return std::clamp<u16>(value, 1, vi.m_h_timing_0.HLW * 2);
       }),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
@@ -355,7 +355,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_unknown_aa_register =
-                       (vi.m_unknown_aa_register & 0x0000FFFF) | ((u32)val << 16);
+                       vi.m_unknown_aa_register & 0x0000FFFF | (u32)val << 16;
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (hi)");
                  }));
   mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
@@ -364,7 +364,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
                    auto& vi = system.GetVideoInterface();
-                   vi.m_unknown_aa_register = (vi.m_unknown_aa_register & 0xFFFF0000) | val;
+                   vi.m_unknown_aa_register = vi.m_unknown_aa_register & 0xFFFF0000 | val;
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (lo)");
                  }));
 
@@ -397,15 +397,15 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (u32 i = 0; i < 0x1000; i += 2)
   {
     mmio->Register(base | i, MMIO::ReadToLarger<u8>(mmio, base | i, 8), MMIO::InvalidWrite<u8>());
-    mmio->Register(base | (i + 1), MMIO::ReadToLarger<u8>(mmio, base | i, 0),
+    mmio->Register(base | i + 1, MMIO::ReadToLarger<u8>(mmio, base | i, 0),
                    MMIO::InvalidWrite<u8>());
   }
 
   // Map 32 bit reads and writes to 16 bit reads and writes.
   for (u32 i = 0; i < 0x1000; i += 4)
   {
-    mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
-                   MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
+    mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | i + 2),
+                   MMIO::WriteToSmaller<u32>(mmio, base | i, base | i + 2));
   }
 }
 
@@ -443,14 +443,14 @@ u32 VideoInterfaceManager::GetXFBAddressBottom() const
 
 u32 VideoInterfaceManager::GetHalfLinesPerEvenField() const
 {
-  return (3 * m_vertical_timing_register.EQU + m_vblank_timing_even.PRB +
-          2 * m_vertical_timing_register.ACV + m_vblank_timing_even.PSB);
+  return 3 * m_vertical_timing_register.EQU + m_vblank_timing_even.PRB +
+         2 * m_vertical_timing_register.ACV + m_vblank_timing_even.PSB;
 }
 
 u32 VideoInterfaceManager::GetHalfLinesPerOddField() const
 {
-  return (3 * m_vertical_timing_register.EQU + m_vblank_timing_odd.PRB +
-          2 * m_vertical_timing_register.ACV + m_vblank_timing_odd.PSB);
+  return 3 * m_vertical_timing_register.EQU + m_vblank_timing_odd.PRB +
+         2 * m_vertical_timing_register.ACV + m_vblank_timing_odd.PSB;
 }
 
 u32 VideoInterfaceManager::GetTicksPerEvenField() const
@@ -481,10 +481,10 @@ float VideoInterfaceManager::GetAspectRatio() const
 
   // 1. Get our active area in BT.601 samples (more or less pixels)
   int active_lines = m_vertical_timing_register.ACV;
-  int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
+  int active_width_samples = m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640;
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
-  float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
+  float tick_length = 1.0f / m_system.GetSystemTimers().GetTicksPerSecond();
   float vertical_period = tick_length * GetTicksPerField();
   float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
   float vertical_active_area = active_lines * horizontal_period;
@@ -550,7 +550,7 @@ float VideoInterfaceManager::GetAspectRatio() const
       !running_fifo_log)           // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
   else
-    return (4.0f / 3.0f);  // VI isn't initialized correctly, just return 4:3 instead
+    return 4.0f / 3.0f;  // VI isn't initialized correctly, just return 4:3 instead
 }
 
 // This function updates:
@@ -761,7 +761,7 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
   bool potentially_interlaced_xfb =
       m_picture_configuration.WPL != 0 &&
-      ((m_picture_configuration.STD / m_picture_configuration.WPL) == 2);
+      m_picture_configuration.STD / m_picture_configuration.WPL == 2;
   // Are there an odd number of half-lines per field (definition of interlaced video)
   bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
 
@@ -928,8 +928,8 @@ void VideoInterfaceManager::Update(u64 ticks)
 
   for (UVIInterruptRegister& reg : m_interrupt_register)
   {
-    u32 target_halfline = (reg.HCT > m_h_timing_0.HLW) ? 1 : 0;
-    if ((1 + (m_half_line_count) / 2 == reg.VCT) && ((m_half_line_count & 1) == target_halfline))
+    u32 target_halfline = reg.HCT > m_h_timing_0.HLW ? 1 : 0;
+    if (1 + m_half_line_count / 2 == reg.VCT && (m_half_line_count & 1) == target_halfline)
     {
       reg.IR_INT = 1;
     }
@@ -958,7 +958,7 @@ void VideoInterfaceManager::FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_s
   m_vblank_timing_even.PRB = 503 - fb_height * 2;
   m_vblank_timing_even.PSB = 4;
   m_picture_configuration.WPL = fb_width / 16;
-  m_picture_configuration.STD = (fb_stride / 2) / 16;
+  m_picture_configuration.STD = fb_stride / 2 / 16;
 
   UpdateParameters();
 
@@ -968,12 +968,12 @@ void VideoInterfaceManager::FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_s
       (m_half_line_count - m_odd_field_first_hl) % total_halflines)
   {
     // Even/Bottom field is next.
-    m_xfb_info_bottom.FBB = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
+    m_xfb_info_bottom.FBB = interlaced ? xfb_address + fb_width * 2 >> 5 : xfb_address >> 5;
   }
   else
   {
     // Odd/Top field is next
-    m_xfb_info_top.FBB = (xfb_address >> 5);
+    m_xfb_info_top.FBB = xfb_address >> 5;
   }
 }
 

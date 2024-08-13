@@ -250,7 +250,7 @@ void ReshapableInput::LoadConfig(Common::IniFile::Section* section,
   auto it = load_data.begin();
   for (auto& sample : m_calibration)
   {
-    if (TryParse(*(it++), &sample))
+    if (TryParse(*it++, &sample))
       sample /= CALIBRATION_CONFIG_SCALE;
   }
 

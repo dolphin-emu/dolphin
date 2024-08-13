@@ -49,7 +49,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
   {
     GCPadStatus pad_status = GetPadStatus();
 
-    hi = (u32)((u8)pad_status.stickX);  // Steering
+    hi = (u32)(u8)pad_status.stickX;  // Steering
     hi |= 0x800;                        // Pedal connected flag
     hi |= (u32)((u16)(pad_status.button | PAD_USE_ORIGIN) << 16);
 
@@ -114,7 +114,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
 
       // Strength is a 9 bit value from 0 to 256.
       // 0 = left strong, 256 = right strong
-      const u32 strength = ((wheel_command.parameter2 & 1) << 8) | wheel_command.parameter1;
+      const u32 strength = (wheel_command.parameter2 & 1) << 8 | wheel_command.parameter1;
 
       switch (type)
       {

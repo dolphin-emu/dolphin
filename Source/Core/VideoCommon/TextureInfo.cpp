@@ -27,7 +27,7 @@ TextureInfo TextureInfo::FromStage(u32 stage)
   const auto width = tex.texImage0.width + 1;
   const auto height = tex.texImage0.height + 1;
 
-  const u32 address = (tex.texImage3.image_base /* & 0x1FFFFF*/) << 5;
+  const u32 address = tex.texImage3.image_base /* & 0x1FFFFF*/ << 5;
 
   const u32 tlutaddr = tex.texTlut.tmem_offset << 9;
   std::span<const u8> tlut_data = TexDecoder_GetTmemSpan(tlutaddr);
@@ -308,7 +308,7 @@ TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_
   m_texture_size = TexDecoder_GetTextureSizeInBytes(m_expanded_width, m_expanded_height,
                                                     parent.GetTextureFormat());
 
-  std::span<const u8>* data = from_tmem ? ((level % 2) ? tmem_odd : tmem_even) : src_data;
+  std::span<const u8>* data = from_tmem ? (level % 2 ? tmem_odd : tmem_even) : src_data;
   m_ptr = data->data();
   m_data_valid = data->size() >= m_texture_size;
 

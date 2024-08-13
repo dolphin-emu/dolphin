@@ -162,7 +162,7 @@ void FifoManager::SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
     }
 
     memmove(m_fifo_aux_data, m_fifo_aux_read_ptr, m_fifo_aux_write_ptr - m_fifo_aux_read_ptr);
-    m_fifo_aux_write_ptr -= (m_fifo_aux_read_ptr - m_fifo_aux_data);
+    m_fifo_aux_write_ptr -= m_fifo_aux_read_ptr - m_fifo_aux_data;
     m_fifo_aux_read_ptr = m_fifo_aux_data;
 
     if (may_move_read_ptr)
@@ -350,7 +350,7 @@ void FifoManager::RunGpuLoop()
 
             fifo.CPReadPointer.store(readPtr, std::memory_order_relaxed);
             fifo.CPReadWriteDistance.fetch_sub(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
-            if ((write_ptr - m_video_buffer_read_ptr) == 0)
+            if (write_ptr - m_video_buffer_read_ptr == 0)
             {
               fifo.SafeCPReadPointer.store(fifo.CPReadPointer.load(std::memory_order_relaxed),
                                            std::memory_order_relaxed);
@@ -414,8 +414,8 @@ bool AtBreakpoint(Core::System& system)
   auto& command_processor = system.GetCommandProcessor();
   const auto& fifo = command_processor.GetFifo();
   return fifo.bFF_BPEnable.load(std::memory_order_relaxed) &&
-         (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
-          fifo.CPBreakpoint.load(std::memory_order_relaxed));
+         fifo.CPReadPointer.load(std::memory_order_relaxed) ==
+         fifo.CPBreakpoint.load(std::memory_order_relaxed);
 }
 
 void FifoManager::RunGpu()

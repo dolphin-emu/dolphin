@@ -35,9 +35,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
   // Skip disabled JIT instructions
-  FALLBACK_IF(bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
-  FALLBACK_IF(bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
-  FALLBACK_IF(bJITLoadStorelwzOff && (inst.OPCD == 32));
+  FALLBACK_IF(bJITLoadStorelbzxOff && inst.OPCD == 31 && inst.SUBOP10 == 87);
+  FALLBACK_IF(bJITLoadStorelXzOff && (inst.OPCD == 34 || inst.OPCD == 40 || inst.OPCD == 32));
+  FALLBACK_IF(bJITLoadStorelwzOff && inst.OPCD == 32);
 
   // Determine memory access size and sign extend
   int accessSize = 0;
@@ -124,9 +124,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
   // Determine whether this instruction updates inst.RA
   bool update;
   if (inst.OPCD == 31)
-    update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.IsImm(b) || gpr.Imm32(b) != 0);
+    update = (inst.SUBOP10 & 0x20) != 0 && (!gpr.IsImm(b) || gpr.Imm32(b) != 0);
   else
-    update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
+    update = (inst.OPCD & 1) != 0 && inst.SIMM_16 != 0;
 
   // Determine whether this instruction indexes with inst.RB
   const bool indexed = inst.OPCD == 31;
@@ -150,7 +150,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
       opAddress = RCOpArg::Imm32((u32)(s32)inst.SIMM_16);
     }
   }
-  else if (update && ((a == 0) || (d == a)))
+  else if (update && (a == 0 || d == a))
   {
     PanicAlertFmt("Invalid instruction");
   }
@@ -211,7 +211,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     }
   }
 
-  RCX64Reg Ra = (update && storeAddress) ? gpr.Bind(a, RCMode::ReadWrite) : RCX64Reg{};
+  RCX64Reg Ra = update && storeAddress ? gpr.Bind(a, RCMode::ReadWrite) : RCX64Reg{};
   RegCache::Realize(opAddress, Ra, Rd);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -456,7 +456,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR && m_jit.jo.fastmem_arena;
 
   if (emit_fast_path)
   {
@@ -502,7 +502,7 @@ void Jit64::stX(UGeckoInstruction inst)
   int s = inst.RS;
   int a = inst.RA;
   s32 offset = (s32)(s16)inst.SIMM_16;
-  bool update = (inst.OPCD & 1) && offset;
+  bool update = inst.OPCD & 1 && offset;
 
   if (!a && update)
     PanicAlertFmt("Invalid stX");

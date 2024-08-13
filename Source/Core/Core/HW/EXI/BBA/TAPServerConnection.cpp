@@ -107,7 +107,7 @@ static int ConnectToDestination(const std::string& destination)
 #endif
   }
 
-  const int fd = socket(ss.ss_family, SOCK_STREAM, (ss.ss_family == AF_INET) ? IPPROTO_TCP : 0);
+  const int fd = socket(ss.ss_family, SOCK_STREAM, ss.ss_family == AF_INET ? IPPROTO_TCP : 0);
   if (fd == -1)
   {
     ERROR_LOG_FMT(SP1, "Couldn't create socket; unable to create tapserver connection\n");
@@ -158,7 +158,7 @@ void TAPServerConnection::Deactivate()
 
 bool TAPServerConnection::IsActivated()
 {
-  return (m_fd >= 0);
+  return m_fd >= 0;
 }
 
 bool TAPServerConnection::RecvInit()
@@ -286,7 +286,7 @@ void TAPServerConnection::ReadThreadHandler()
       }
       else if (bytes_read == 2)
       {
-        frame_bytes_expected = size_bytes[0] | (size_bytes[1] << 8);
+        frame_bytes_expected = size_bytes[0] | size_bytes[1] << 8;
         frame_data.resize(frame_bytes_expected, '\0');
         if (frame_bytes_expected > m_max_frame_size)
         {
@@ -320,7 +320,7 @@ void TAPServerConnection::ReadThreadHandler()
                       Common::StrNetworkError());
         break;
       }
-      frame_bytes_expected |= (size_high << 8);
+      frame_bytes_expected |= size_high << 8;
       frame_data.resize(frame_bytes_expected, '\0');
       if (frame_bytes_expected > m_max_frame_size)
       {

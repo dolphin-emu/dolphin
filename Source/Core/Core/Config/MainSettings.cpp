@@ -676,7 +676,7 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   }
 
   const DiscIO::Region used_region =
-      region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
+      region ? *region : path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION);
   return fmt::format("{}{}.{}{}{}", dir, name,
                      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)),
                      blocks_string, ext);
@@ -736,7 +736,7 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   }
 
   const DiscIO::Region used_region =
-      region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
+      region ? *region : path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION);
   return fmt::format("{}/{}", base_path,
                      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region),
                                                    Config::RegionDirectoryStyle::Modern));

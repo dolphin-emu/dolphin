@@ -137,7 +137,7 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
     }
     else if (source[i] == '/')
     {
-      if ((i + 1) >= source.size())
+      if (i + 1 >= source.size())
         continue;
 
       if (source[i + 1] == '/')

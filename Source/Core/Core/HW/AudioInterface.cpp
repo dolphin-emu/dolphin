@@ -113,7 +113,7 @@ void AudioInterfaceManager::IncreaseSampleCount(const u32 amount)
   const u32 old_sample_counter = m_sample_counter + 1;
   m_sample_counter += amount;
 
-  if ((m_interrupt_timing - old_sample_counter) <= (m_sample_counter - old_sample_counter))
+  if (m_interrupt_timing - old_sample_counter <= m_sample_counter - old_sample_counter)
   {
     DEBUG_LOG_FMT(
         AUDIO_INTERFACE, "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} control.AIINTVLD={}",
@@ -289,7 +289,7 @@ void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    auto& ai = system.GetAudioInterface();
                    const u64 cycles_streamed =
-                       ai.IsPlaying() ? (system.GetCoreTiming().GetTicks() - ai.m_last_cpu_time) :
+                       ai.IsPlaying() ? system.GetCoreTiming().GetTicks() - ai.m_last_cpu_time :
                                         ai.m_last_cpu_time;
                    return ai.m_sample_counter +
                           static_cast<u32>(cycles_streamed / ai.m_cpu_cycles_per_sample);
@@ -322,7 +322,7 @@ void AudioInterfaceManager::GenerateAISInterrupt()
 
 bool AudioInterfaceManager::IsPlaying() const
 {
-  return (m_control.PSTAT == 1);
+  return m_control.PSTAT == 1;
 }
 
 u32 AudioInterfaceManager::GetAIDSampleRateDivisor() const

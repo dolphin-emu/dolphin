@@ -18,7 +18,7 @@ namespace DSP::Interpreter
 static bool IsSameMemArea(u16 a, u16 b)
 {
   // LM: tested on Wii
-  return (a >> 10) == (b >> 10);
+  return a >> 10 == b >> 10;
 }
 
 // DR $arR
@@ -54,7 +54,7 @@ void Interpreter::nr(const UDSPInstruction opc)
 void Interpreter::mv(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
-  const u8 dreg = ((opc >> 2) & 0x3);
+  const u8 dreg = opc >> 2 & 0x3;
 
   WriteToBackLog(0, dreg + DSP_REG_AXL0, OpReadRegister(sreg));
 }
@@ -66,7 +66,7 @@ void Interpreter::mv(const UDSPInstruction opc)
 void Interpreter::s(const UDSPInstruction opc)
 {
   const u8 dreg = opc & 0x3;
-  const u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
+  const u8 sreg = (opc >> 3 & 0x3) + DSP_REG_ACL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
@@ -80,7 +80,7 @@ void Interpreter::s(const UDSPInstruction opc)
 void Interpreter::sn(const UDSPInstruction opc)
 {
   const u8 dreg = opc & 0x3;
-  const u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
+  const u8 sreg = (opc >> 3 & 0x3) + DSP_REG_ACL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
@@ -94,7 +94,7 @@ void Interpreter::sn(const UDSPInstruction opc)
 void Interpreter::l(const UDSPInstruction opc)
 {
   const u8 sreg = opc & 0x3;
-  const u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 3 & 0x7) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   if (dreg >= DSP_REG_ACM0 && IsSRFlagSet(SR_40_MODE_BIT))
@@ -119,7 +119,7 @@ void Interpreter::l(const UDSPInstruction opc)
 void Interpreter::ln(const UDSPInstruction opc)
 {
   const u8 sreg = opc & 0x3;
-  const u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 3 & 0x7) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   if (dreg >= DSP_REG_ACM0 && IsSRFlagSet(SR_40_MODE_BIT))
@@ -145,7 +145,7 @@ void Interpreter::ln(const UDSPInstruction opc)
 void Interpreter::ls(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[3], OpReadRegister(sreg));
@@ -164,7 +164,7 @@ void Interpreter::ls(const UDSPInstruction opc)
 void Interpreter::lsn(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[3], OpReadRegister(sreg));
@@ -184,7 +184,7 @@ void Interpreter::lsn(const UDSPInstruction opc)
 void Interpreter::lsm(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[3], OpReadRegister(sreg));
@@ -205,7 +205,7 @@ void Interpreter::lsm(const UDSPInstruction opc)
 void Interpreter::lsnm(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[3], OpReadRegister(sreg));
@@ -225,7 +225,7 @@ void Interpreter::lsnm(const UDSPInstruction opc)
 void Interpreter::sl(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[0], OpReadRegister(sreg));
@@ -244,7 +244,7 @@ void Interpreter::sl(const UDSPInstruction opc)
 void Interpreter::sln(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[0], OpReadRegister(sreg));
@@ -264,7 +264,7 @@ void Interpreter::sln(const UDSPInstruction opc)
 void Interpreter::slm(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[0], OpReadRegister(sreg));
@@ -284,7 +284,7 @@ void Interpreter::slm(const UDSPInstruction opc)
 void Interpreter::slnm(const UDSPInstruction opc)
 {
   const u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
-  const u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  const u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   auto& state = m_dsp_core.DSPState();
 
   state.WriteDMEM(state.r.ar[0], OpReadRegister(sreg));
@@ -310,8 +310,8 @@ void Interpreter::slnm(const UDSPInstruction opc)
 // implemented yet)
 void Interpreter::ld(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 dreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   const u8 sreg = opc & 0x3;
   auto& state = m_dsp_core.DSPState();
 
@@ -334,8 +334,8 @@ void Interpreter::ld(const UDSPInstruction opc)
 // Increment both $arS and $ar3.
 void Interpreter::ldax(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 sreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   WriteToBackLog(0, rreg + DSP_REG_AXH0, state.ReadDMEM(state.r.ar[sreg]));
@@ -354,8 +354,8 @@ void Interpreter::ldax(const UDSPInstruction opc)
 // xxxx xxxx 11dr 01ss
 void Interpreter::ldn(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 dreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   const u8 sreg = opc & 0x3;
   auto& state = m_dsp_core.DSPState();
 
@@ -375,8 +375,8 @@ void Interpreter::ldn(const UDSPInstruction opc)
 // xxxx xxxx 11sr 0111
 void Interpreter::ldaxn(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 sreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   WriteToBackLog(0, rreg + DSP_REG_AXH0, state.ReadDMEM(state.r.ar[sreg]));
@@ -395,8 +395,8 @@ void Interpreter::ldaxn(const UDSPInstruction opc)
 // xxxx xxxx 11dr 10ss
 void Interpreter::ldm(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 dreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   const u8 sreg = opc & 0x3;
   auto& state = m_dsp_core.DSPState();
 
@@ -417,8 +417,8 @@ void Interpreter::ldm(const UDSPInstruction opc)
 // xxxx xxxx 11sr 1011
 void Interpreter::ldaxm(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 sreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   WriteToBackLog(0, rreg + DSP_REG_AXH0, state.ReadDMEM(state.r.ar[sreg]));
@@ -438,8 +438,8 @@ void Interpreter::ldaxm(const UDSPInstruction opc)
 // xxxx xxxx 11dr 11ss
 void Interpreter::ldnm(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 dreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   const u8 sreg = opc & 0x3;
   auto& state = m_dsp_core.DSPState();
 
@@ -460,8 +460,8 @@ void Interpreter::ldnm(const UDSPInstruction opc)
 // xxxx xxxx 11dr 1111
 void Interpreter::ldaxnm(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 5) & 0x1;
-  const u8 rreg = (opc >> 4) & 0x1;
+  const u8 sreg = opc >> 5 & 0x1;
+  const u8 rreg = opc >> 4 & 0x1;
   auto& state = m_dsp_core.DSPState();
 
   WriteToBackLog(0, rreg + DSP_REG_AXH0, state.ReadDMEM(state.r.ar[sreg]));

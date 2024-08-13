@@ -41,7 +41,7 @@ void Interpreter::callr(const UDSPInstruction opc)
     return;
 
   auto& state = m_dsp_core.DSPState();
-  const u8 reg = (opc >> 5) & 0x7;
+  const u8 reg = opc >> 5 & 0x7;
   const u16 addr = OpReadRegister(reg);
   state.StoreStack(StackRegister::Call, state.pc);
   state.pc = addr;
@@ -87,7 +87,7 @@ void Interpreter::jmprcc(const UDSPInstruction opc)
     return;
 
   auto& state = m_dsp_core.DSPState();
-  const u8 reg = (opc >> 5) & 0x7;
+  const u8 reg = opc >> 5 & 0x7;
   state.pc = OpReadRegister(reg);
 }
 

@@ -62,7 +62,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
     // Return the parent-most name if there is one for better hotkey strings.
     // Detection of L/R_Ctrl will be changed to just Ctrl.
     // Users can manually map L_Ctrl if they so desire.
-    const auto input = (quote == Quote::On) ?
+    const auto input = quote == Quote::On ?
                            detection.device->GetParentMostInput(detection.input) :
                            detection.input;
 
@@ -91,7 +91,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
       alternation.push_back(get_control_expression(*input));
 
     const bool is_hotkey = pressed_inputs.size() >= 2 &&
-                           (pressed_inputs[1]->press_time - pressed_inputs[0]->press_time) >
+                           pressed_inputs[1]->press_time - pressed_inputs[0]->press_time >
                                HOTKEY_VS_CONJUNCION_THRESHOLD;
 
     if (is_hotkey)

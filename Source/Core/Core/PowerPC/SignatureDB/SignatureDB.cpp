@@ -148,9 +148,9 @@ void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& 
 {
   for (const auto& symbol : symbol_db->Symbols())
   {
-    if ((filter.empty() && (!symbol.second.name.empty()) &&
+    if ((filter.empty() && !symbol.second.name.empty() &&
          symbol.second.name.substr(0, 3) != "zz_" && symbol.second.name.substr(0, 1) != ".") ||
-        ((!filter.empty()) && symbol.second.name.substr(0, filter.size()) == filter))
+        (!filter.empty() && symbol.second.name.substr(0, filter.size()) == filter))
     {
       DBFunc temp_dbfunc;
       temp_dbfunc.name = symbol.second.name;
@@ -214,7 +214,7 @@ u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 
     }
     // Checksum only uses opcode, not opcode data, because opcode data changes
     // in all compilations, but opcodes don't!
-    sum = (((sum << 17) & 0xFFFE0000) | ((sum >> 15) & 0x0001FFFF));
+    sum = sum << 17 & 0xFFFE0000 | sum >> 15 & 0x0001FFFF;
     sum = sum ^ (op | op2 | op3);
   }
   return sum;

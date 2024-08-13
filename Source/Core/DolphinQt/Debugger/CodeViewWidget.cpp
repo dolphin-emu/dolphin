@@ -99,8 +99,8 @@ private:
         {
           const bool is_lowest = addr == addr_lower;
           const bool is_highest = addr == addr_higher;
-          const int top = (is_lowest ? y_center : option.rect.top());
-          const int bottom = (is_highest ? y_center : option.rect.bottom());
+          const int top = is_lowest ? y_center : option.rect.top();
+          const int bottom = is_highest ? y_center : option.rect.bottom();
 
           // draw vertical part of the branch line
           painter->drawLine(x_right, top, x_right, bottom);
@@ -227,8 +227,8 @@ void CodeViewWidget::FontBasedSizing()
   // 'r31, r31, 16, 16, 31 (ffff0000)'. The user can resize the columns as necessary anyway.
   const std::string disas = Common::GekkoDisassembler::Disassemble(0x57ff843fu, 0);
   const auto split = disas.find('\t');
-  const std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
-  const std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
+  const std::string ins = split == std::string::npos ? disas : disas.substr(0, split);
+  const std::string param = split == std::string::npos ? "" : disas.substr(split + 1);
   setColumnWidth(CODE_VIEW_COLUMN_INSTRUCTION,
                  fm.boundingRect(QString::fromStdString(ins)).width() + extra_text_width);
   setColumnWidth(CODE_VIEW_COLUMN_PARAMETERS,
@@ -243,7 +243,7 @@ u32 CodeViewWidget::AddressForRow(int row) const
 {
   // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
-  const u32 row_zero_address = m_address - ((rowCount() / 2) * 4);
+  const u32 row_zero_address = m_address - rowCount() / 2 * 4;
   return row_zero_address + row * 4;
 }
 
@@ -296,7 +296,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     setRowCount(1);
 
   // Calculate (roughly) how many rows will fit in our table
-  int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
+  int rows = std::round(height() / static_cast<float>(rowHeight(0)) - 0.25);
 
   setRowCount(rows);
 
@@ -326,8 +326,8 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     std::string disas = debug_interface.Disassemble(guard, addr);
     auto split = disas.find('\t');
 
-    std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
-    std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
+    std::string ins = split == std::string::npos ? disas : disas.substr(0, split);
+    std::string param = split == std::string::npos ? "" : disas.substr(split + 1);
     const std::string_view desc = debug_interface.GetDescription(addr);
 
     // Adds whitespace and a minimum size to ins and param. Helps to prevent frequent resizing while
@@ -431,7 +431,7 @@ void CodeViewWidget::CalculateBranchIndentation()
   // process in order of how much vertical space the drawn arrow would take up
   // so shorter arrows go further to the left
   const auto priority = [](const CodeViewBranch& b) {
-    return b.is_link ? 0 : (std::max(b.src_addr, b.dst_addr) - std::min(b.src_addr, b.dst_addr));
+    return b.is_link ? 0 : std::max(b.src_addr, b.dst_addr) - std::min(b.src_addr, b.dst_addr);
   };
   std::stable_sort(m_branches.begin(), m_branches.end(),
                    [&priority](const CodeViewBranch& lhs, const CodeViewBranch& rhs) {
@@ -1095,7 +1095,7 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
 void CodeViewWidget::wheelEvent(QWheelEvent* event)
 {
   auto delta =
-      -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
+      -static_cast<int>(std::round(event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8)));
 
   if (delta == 0)
     return;

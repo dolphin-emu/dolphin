@@ -76,7 +76,7 @@ static unsigned int get_serial_id()
   const time_t now = std::time(nullptr);
   const struct tm tm = std::gmtime(&now)[0];
 
-  const u16 lo = static_cast<u16>(tm.tm_mday + ((tm.tm_mon + 1) << 8) + (tm.tm_sec << 8));
+  const u16 lo = static_cast<u16>(tm.tm_mday + (tm.tm_mon + 1 << 8) + (tm.tm_sec << 8));
   const u16 hi = static_cast<u16>(tm.tm_min + (tm.tm_hour << 8) + (tm.tm_year + 1900));
 
   return lo + (hi << 16);
@@ -106,7 +106,7 @@ static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
   /* Weird computation from MS - see fatgen103.doc for details */
   disk_size -= RESERVED_SECTORS * BYTES_PER_SECTOR; /* Don't count 32 reserved sectors */
   disk_size /= BYTES_PER_SECTOR;                    /* Disk size in sectors */
-  const u64 divider = ((256 * sectors_per_cluster) + NUM_FATS) / 2;
+  const u64 divider = (256 * sectors_per_cluster + NUM_FATS) / 2;
 
   return static_cast<u32>((disk_size + (divider - 1)) / divider);
 }

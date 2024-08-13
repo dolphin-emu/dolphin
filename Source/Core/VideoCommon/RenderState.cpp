@@ -305,7 +305,7 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   // Wrap modes
   // Hardware testing indicates that wrap_mode set to 3 behaves the same as clamp.
   auto filter_invalid_wrap = [](WrapMode mode) {
-    return (mode <= WrapMode::Mirror) ? mode : WrapMode::Clamp;
+    return mode <= WrapMode::Mirror ? mode : WrapMode::Clamp;
   };
   tm0.wrap_u = filter_invalid_wrap(bp_tm0.wrap_s);
   tm0.wrap_v = filter_invalid_wrap(bp_tm0.wrap_t);

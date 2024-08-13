@@ -82,7 +82,7 @@ void PatchesWidget::ConnectWidgets()
 
 void PatchesWidget::OnItemChanged(QListWidgetItem* item)
 {
-  m_patches[m_list->row(item)].enabled = (item->checkState() == Qt::Checked);
+  m_patches[m_list->row(item)].enabled = item->checkState() == Qt::Checked;
   SavePatches();
 }
 

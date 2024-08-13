@@ -431,7 +431,7 @@ struct IND_MTX
   IND_MTXA col0;
   IND_MTXB col1;
   IND_MTXC col2;
-  u8 GetScale() const { return (col0.s0 << 0) | (col1.s1 << 2) | (col2.s2 << 4); }
+  u8 GetScale() const { return col0.s0 << 0 | col1.s1 << 2 | col2.s2 << 4; }
 };
 
 union IND_IMASK
@@ -515,7 +515,7 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
       const bool has_bias = cc.bias != TevBias::Zero;  // != Compare is already known
       const bool has_scale = cc.scale != TevScale::Scale1;
 
-      const char op = (cc.op == TevOp::Sub ? '-' : '+');
+      const char op = cc.op == TevOp::Sub ? '-' : '+';
 
       if (cc.dest == TevOutput::Prev)
         out = fmt::format_to(out, "dest.rgb = ");
@@ -624,7 +624,7 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
       const bool has_bias = ac.bias != TevBias::Zero;  // != Compare is already known
       const bool has_scale = ac.scale != TevScale::Scale1;
 
-      const char op = (ac.op == TevOp::Sub ? '-' : '+');
+      const char op = ac.op == TevOp::Sub ? '-' : '+';
 
       if (ac.dest == TevOutput::Prev)
         out = fmt::format_to(out, "dest.a = ");
@@ -862,8 +862,8 @@ union RAS1_IREF
   BitField<21, 3, u32> bc3;
   u32 hex;
 
-  u32 getTexCoord(int i) const { return (hex >> (6 * i + 3)) & 7; }
-  u32 getTexMap(int i) const { return (hex >> (6 * i)) & 7; }
+  u32 getTexCoord(int i) const { return hex >> 6 * i + 3 & 7; }
+  u32 getTexMap(int i) const { return hex >> 6 * i & 7; }
 };
 template <>
 struct fmt::formatter<RAS1_IREF>
@@ -1968,7 +1968,7 @@ struct fmt::formatter<std::pair<u8, TevKSel>>
   {
     const auto& [cmd, ksel] = p;
     const u8 swap_number = (cmd - BPMEM_TEV_KSEL) / 2;
-    const bool swap_ba = (cmd - BPMEM_TEV_KSEL) & 1;
+    const bool swap_ba = cmd - BPMEM_TEV_KSEL & 1;
     const u8 even_stage = (cmd - BPMEM_TEV_KSEL) * 2;
     const u8 odd_stage = even_stage + 1;
 
@@ -2321,7 +2321,7 @@ union TexUnitAddress
     return Val;
   }
 
-  u32 GetUnitID() const { return UnitIdLow | (UnitIdHigh << 2); }
+  u32 GetUnitID() const { return UnitIdLow | UnitIdHigh << 2; }
 
 private:
   friend AllTexUnits;
@@ -2335,7 +2335,7 @@ private:
     // but that doesn't seem to be possible in c++17
 
     // So we manually re-implement the calculation
-    return (unit_id & 3) | ((unit_id & 4) << 3);
+    return unit_id & 3 | (unit_id & 4) << 3;
   }
 };
 static_assert(sizeof(TexUnitAddress) == sizeof(u32));

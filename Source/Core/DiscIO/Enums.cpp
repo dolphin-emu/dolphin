@@ -462,7 +462,7 @@ std::string GetSysMenuVersionString(u16 title_version, bool is_vwii)
       version = "3.3";
       break;
     case 384:
-      version = (region_letter != 'K' ? "3.4" : "3.5");
+      version = region_letter != 'K' ? "3.4" : "3.5";
       break;
     case 416:
       version = "4.0";

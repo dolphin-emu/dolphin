@@ -48,22 +48,22 @@ inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
 {
   u32 color = src;
   color &= 0xFCFCFCFC;
-  color |= (color >> 6) & 0x03030303;
+  color |= color >> 6 & 0x03030303;
   return color;
 }
 
 inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
 {
-  u32 color = (src & 0xF8FCF8);
-  color |= (color >> 5) & 0x070007;
-  color |= (color >> 6) & 0x000300;
+  u32 color = src & 0xF8FCF8;
+  color |= color >> 5 & 0x070007;
+  color |= color >> 6 & 0x000300;
   color |= 0xFF000000;
   return color;
 }
 
 inline u32 Z24ToZ16ToZ24(u32 src)
 {
-  return (src & 0xFFFF00) | (src >> 16);
+  return src & 0xFFFF00 | src >> 16;
 }
 
 inline u32 CompressZ16(u32 z24depth, DepthFormat format)

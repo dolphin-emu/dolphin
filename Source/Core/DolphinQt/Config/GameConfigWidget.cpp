@@ -248,7 +248,7 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
     return;
   }
 
-  bool checked = (checkbox->checkState() == Qt::Checked) ^ reverse;
+  bool checked = checkbox->checkState() == Qt::Checked ^ reverse;
 
   if (m_gameini_default.Exists(section, key))
   {

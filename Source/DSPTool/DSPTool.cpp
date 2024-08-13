@@ -73,7 +73,7 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   header.append("\t{\n\t\t");
   for (u32 j = 0; j < code_padded.size(); j++)
   {
-    if (j && ((j & 15) == 0))
+    if (j && (j & 15) == 0)
       header.append("\n\t\t");
     header.append(fmt::format("{:#06x}, ", code_padded[j]));
   }
@@ -120,7 +120,7 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
     header.append("\t{\n\t\t");
     for (std::size_t j = 0; j < codes_padded[i].size(); j++)
     {
-      if (j && ((j & 15) == 0))
+      if (j && (j & 15) == 0)
         header.append("\n\t\t");
       header.append(fmt::format("{:#06x}, ", codes_padded[i][j]));
     }
@@ -184,16 +184,16 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
         {
         case 0x15:  // DSP_REG_PRODM
           last_reg =
-              reg_vector.at((step * 32 - 32) + reg) + reg_vector.at((step * 32 - 32) + reg + 2);
+              reg_vector.at(step * 32 - 32 + reg) + reg_vector.at(step * 32 - 32 + reg + 2);
           current_reg = reg_vector.at(step * 32 + reg) + reg_vector.at(step * 32 + reg + 2);
           break;
         case 0x16:  // DSP_REG_PRODH
-          htemp = ((reg_vector.at(step * 32 + reg - 1) + reg_vector.at(step * 32 + reg + 1)) &
+          htemp = (reg_vector.at(step * 32 + reg - 1) + reg_vector.at(step * 32 + reg + 1) &
                    ~0xffff) >>
                   16;
           current_reg = (u8)(reg_vector.at(step * 32 + reg) + htemp);
           htemp =
-              ((reg_vector.at(step * 32 - 32 + reg - 1) + reg_vector.at(step * 32 - 32 + reg + 1)) &
+              (reg_vector.at(step * 32 - 32 + reg - 1) + reg_vector.at(step * 32 - 32 + reg + 1) &
                ~0xffff) >>
               16;
           last_reg = (u8)(reg_vector.at(step * 32 - 32 + reg) + htemp);
@@ -208,7 +208,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
       else
       {
         current_reg = reg_vector.at(step * 32 + reg);
-        last_reg = reg_vector.at((step * 32 - 32) + reg);
+        last_reg = reg_vector.at(step * 32 - 32 + reg);
       }
       if (last_reg != current_reg)
       {

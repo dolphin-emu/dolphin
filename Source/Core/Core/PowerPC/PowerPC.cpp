@@ -487,7 +487,7 @@ void PowerPCManager::CheckExceptions()
   {
     SRR0(m_ppc_state) = m_ppc_state.npc;
     // Page fault occurred
-    SRR1(m_ppc_state) = (m_ppc_state.msr.Hex & 0x87C0FFFF) | (1 << 30);
+    SRR1(m_ppc_state) = m_ppc_state.msr.Hex & 0x87C0FFFF | 1 << 30;
     m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
     m_ppc_state.msr.Hex &= ~0x04EF36;
     m_ppc_state.pc = m_ppc_state.npc = 0x00000400;
@@ -694,14 +694,14 @@ void MSRUpdated(PowerPCState& ppc_state)
   static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
 
   ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
-      (ppc_state.feature_flags & FEATURE_FLAG_PERFMON) | ((ppc_state.msr.Hex >> 4) & 0x3));
+      ppc_state.feature_flags & FEATURE_FLAG_PERFMON | ppc_state.msr.Hex >> 4 & 0x3);
 }
 
 void MMCRUpdated(PowerPCState& ppc_state)
 {
   const bool perfmon = ppc_state.spr[SPR_MMCR0] || ppc_state.spr[SPR_MMCR1];
   ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
-      (ppc_state.feature_flags & ~FEATURE_FLAG_PERFMON) | (perfmon ? FEATURE_FLAG_PERFMON : 0));
+      ppc_state.feature_flags & ~FEATURE_FLAG_PERFMON | (perfmon ? FEATURE_FLAG_PERFMON : 0));
 }
 
 void RecalculateAllFeatureFlags(PowerPCState& ppc_state)
@@ -712,7 +712,7 @@ void RecalculateAllFeatureFlags(PowerPCState& ppc_state)
   static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
 
   const bool perfmon = ppc_state.spr[SPR_MMCR0] || ppc_state.spr[SPR_MMCR1];
-  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(((ppc_state.msr.Hex >> 4) & 0x3) |
+  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(ppc_state.msr.Hex >> 4 & 0x3 |
                                                             (perfmon ? FEATURE_FLAG_PERFMON : 0));
 }
 

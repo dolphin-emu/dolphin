@@ -725,7 +725,7 @@ void SkylanderPortalWindow::RefreshList()
       auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
       if (PassesFilter(file.baseName(), ids.first, ids.second))
       {
-        const uint qvar = (ids.first << 16) | ids.second;
+        const uint qvar = ids.first << 16 | ids.second;
         QListWidgetItem* skylander = new QListWidgetItem(file.baseName());
         if (is_dark_theme)
         {
@@ -750,7 +750,7 @@ void SkylanderPortalWindow::RefreshList()
       int var = entry.first.second;
       if (PassesFilter(tr(entry.second.name), id, var))
       {
-        const uint qvar = (entry.first.first << 16) | entry.first.second;
+        const uint qvar = entry.first.first << 16 | entry.first.second;
         QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second.name));
         if (is_dark_theme)
         {

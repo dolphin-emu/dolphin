@@ -350,7 +350,7 @@ private:
 
   ControlState GetValue() const override
   {
-    return (GetArg(0).GetValue() > CONDITION_THRESHOLD) ? GetArg(1).GetValue() :
+    return GetArg(0).GetValue() > CONDITION_THRESHOLD ? GetArg(1).GetValue() :
                                                           GetArg(2).GetValue();
   }
 };
@@ -435,7 +435,7 @@ class SmoothExpression : public FunctionExpression
     const ControlState smooth_up = GetArg(1).GetValue();
     const ControlState smooth_down = GetArgCount() == 3 ? GetArg(2).GetValue() : smooth_up;
 
-    const ControlState smooth = (desired_value < m_value) ? smooth_down : smooth_up;
+    const ControlState smooth = desired_value < m_value ? smooth_down : smooth_up;
     const ControlState max_move = std::chrono::duration_cast<FSec>(elapsed).count() / smooth;
 
     if (std::isinf(max_move))
@@ -594,7 +594,7 @@ class RelativeExpression : public FunctionExpression
     const ControlState input = GetArg(0).GetValue();
     const ControlState speed = GetArg(1).GetValue();
 
-    const ControlState max_abs_value = (GetArgCount() >= 3) ? GetArg(2).GetValue() : 1.0;
+    const ControlState max_abs_value = GetArgCount() >= 3 ? GetArg(2).GetValue() : 1.0;
 
     const ControlState max_move = input * elapsed * speed;
     const ControlState diff_from_zero = std::abs(0.0 - m_state);

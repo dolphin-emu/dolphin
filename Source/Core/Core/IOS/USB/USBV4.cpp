@@ -75,7 +75,7 @@ V4GetUSStringMessage::V4GetUSStringMessage(EmulationKernel& ios, const IOCtlRequ
   memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
   request_type = 0x80;
   request = REQUEST_GET_DESCRIPTOR;
-  value = (0x03 << 8) | hid_request.string.bIndex;
+  value = 0x03 << 8 | hid_request.string.bIndex;
   index = 0x0409;  // language US
   length = 255;
   data_address = Common::swap32(hid_request.data_addr);

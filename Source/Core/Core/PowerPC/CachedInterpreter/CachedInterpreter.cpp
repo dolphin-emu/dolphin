@@ -312,7 +312,7 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.op = &op;
 
     js.compilerPC = op.address;
-    js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
+    js.instructionsLeft = code_block.m_num_instructions - 1 - i;
     js.downcountAmount += op.opinfo->num_cycles;
     if (op.opinfo->flags & FL_LOADSTORE)
       ++js.numLoadStoreInst;

@@ -22,11 +22,11 @@ constexpr size_t ABSOLUTE_ADDRESS_BIT = 0x2;
 // Generate inclusive mask [left, right] -- MSB=0 LSB=31
 constexpr u32 Mask(u32 left, u32 right)
 {
-  return static_cast<u32>(((u64{1} << (32 - left)) - 1) & ~((u64{1} << (31 - right)) - 1));
+  return static_cast<u32>((u64{1} << 32 - left) - 1 & ~((u64{1} << 31 - right) - 1));
 }
 constexpr u32 InsertVal(u32 val, u32 left, u32 right)
 {
-  return val << (31 - right) & Mask(left, right);
+  return val << 31 - right & Mask(left, right);
 }
 constexpr u32 InsertOpcode(u32 opcode)
 {
@@ -34,7 +34,7 @@ constexpr u32 InsertOpcode(u32 opcode)
 }
 constexpr u32 SprBitswap(u32 spr)
 {
-  return ((spr & 0b0000011111) << 5) | ((spr & 0b1111100000) >> 5);
+  return (spr & 0b0000011111) << 5 | (spr & 0b1111100000) >> 5;
 }
 
 constexpr MnemonicDesc INVALID_MNEMONIC = {0, 0, {}};
@@ -100,7 +100,7 @@ u32 OperandDesc::MaxVal() const
   const u32 mask_sh = mask >> shift;
   if (is_signed)
   {
-    const u32 mask_hibit = (mask_sh & (mask_sh ^ (mask_sh >> 1)));
+    const u32 mask_hibit = mask_sh & (mask_sh ^ mask_sh >> 1);
     return mask_hibit - 1;
   }
   return mask_sh;
@@ -118,7 +118,7 @@ u32 OperandDesc::MinVal() const
 u32 OperandDesc::TruncBits() const
 {
   const u32 mask_sh = mask >> shift;
-  const u32 mask_lobit = mask_sh & (mask_sh ^ (mask_sh << 1));
+  const u32 mask_lobit = mask_sh & (mask_sh ^ mask_sh << 1);
   return mask_lobit - 1;
 }
 
@@ -128,8 +128,8 @@ bool OperandDesc::Fits(u32 val) const
   if (is_signed)
   {
     // Get high bit and low bit from a range mask
-    const u32 mask_hibit = mask_sh & (mask_sh ^ (mask_sh >> 1));
-    const u32 mask_lobit = mask_sh & (mask_sh ^ (mask_sh << 1));
+    const u32 mask_hibit = mask_sh & (mask_sh ^ mask_sh >> 1);
+    const u32 mask_lobit = mask_sh & (mask_sh ^ mask_sh << 1);
     // Positive max is (signbit - 1)
     // Negative min is ~(Positive Max)
     const u32 positive_max = mask_hibit - 1;
@@ -143,7 +143,7 @@ bool OperandDesc::Fits(u32 val) const
 
 u32 OperandDesc::Fit(u32 val) const
 {
-  return (val << shift) & mask;
+  return val << shift & mask;
 }
 
 ///////////////////
@@ -1006,7 +1006,7 @@ void FillBOBICond(OperandList& operands)
   {
     operands.Insert(0, 0);
   }
-  operands[0] = (operands[0] << 2) | Cond;
+  operands[0] = operands[0] << 2 | Cond;
   operands.Insert(0, BO);
 }
 

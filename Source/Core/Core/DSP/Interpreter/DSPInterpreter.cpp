@@ -240,7 +240,7 @@ void Interpreter::WriteControlRegister(u16 val)
   }
   // init - unclear if writing CR_INIT_CODE does something. Clearing CR_INIT immediately sets
   // CR_INIT_CODE, which gets unset a bit later...
-  if (((state.control_reg & CR_INIT) != 0) && ((val & CR_INIT) == 0))
+  if ((state.control_reg & CR_INIT) != 0 && (val & CR_INIT) == 0)
   {
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL INIT");
     // Copy 1024(?) bytes of uCode from main memory 0x81000000 (or is it ARAM 00000000?)
@@ -298,7 +298,7 @@ bool Interpreter::CheckCondition(u8 condition) const
   const auto IsZero = [this] { return IsSRFlagSet(SR_ARITH_ZERO); };
   const auto IsLogicZero = [this] { return IsSRFlagSet(SR_LOGIC_ZERO); };
   const auto IsConditionB = [this] {
-    return (!(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))) || IsSRFlagSet(SR_ARITH_ZERO);
+    return !(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS)) || IsSRFlagSet(SR_ARITH_ZERO);
   };
 
   switch (condition & 0xf)
@@ -347,7 +347,7 @@ u16 Interpreter::IncrementAddressRegister(u16 reg) const
   const u32 wr = state.r.wr[reg];
   u32 nar = ar + 1;
 
-  if ((nar ^ ar) > ((wr | 1) << 1))
+  if ((nar ^ ar) > (wr | 1) << 1)
     nar -= wr + 1;
 
   return static_cast<u16>(nar);
@@ -360,7 +360,7 @@ u16 Interpreter::DecrementAddressRegister(u16 reg) const
   const u32 wr = state.r.wr[reg];
   u32 nar = ar + wr;
 
-  if (((nar ^ ar) & ((wr | 1) << 1)) > wr)
+  if (((nar ^ ar) & (wr | 1) << 1) > wr)
     nar -= wr + 1;
 
   return static_cast<u16>(nar);
@@ -385,7 +385,7 @@ u16 Interpreter::IncreaseAddressRegister(u16 reg, s16 ix_) const
   else
   {
     // Underflow or below min for mask
-    if ((((nar + wr + 1) ^ nar) & dar) <= wr)
+    if (((nar + wr + 1 ^ nar) & dar) <= wr)
       nar += wr + 1;
   }
 
@@ -412,7 +412,7 @@ u16 Interpreter::DecreaseAddressRegister(u16 reg, s16 ix_) const
   else
   {
     // Underflow or below min for mask
-    if ((((nar + wr + 1) ^ nar) & dar) <= wr)
+    if (((nar + wr + 1 ^ nar) & dar) <= wr)
       nar += wr + 1;
   }
 
@@ -422,7 +422,7 @@ u16 Interpreter::DecreaseAddressRegister(u16 reg, s16 ix_) const
 s32 Interpreter::GetLongACX(s32 reg) const
 {
   const auto& state = m_dsp_core.DSPState();
-  return static_cast<s32>((static_cast<u32>(state.r.ax[reg].h) << 16) | state.r.ax[reg].l);
+  return static_cast<s32>(static_cast<u32>(state.r.ax[reg].h) << 16 | state.r.ax[reg].l);
 }
 
 s16 Interpreter::GetAXLow(s32 reg) const
@@ -445,7 +445,7 @@ void Interpreter::SetLongAcc(s32 reg, s64 value)
 {
   auto& state = m_dsp_core.DSPState();
   // 40-bit sign extension
-  state.r.ac[reg].val = static_cast<u64>((value << (64 - 40)) >> (64 - 40));
+  state.r.ac[reg].val = static_cast<u64>(value << 64 - 40 >> 64 - 40);
 }
 
 s16 Interpreter::GetAccLow(s32 reg) const
@@ -485,9 +485,9 @@ s64 Interpreter::GetLongProductRounded() const
   const s64 prod = GetLongProduct();
 
   if ((prod & 0x10000) != 0)
-    return (prod + 0x8000) & ~0xffff;
+    return prod + 0x8000 & ~0xffff;
   else
-    return (prod + 0x7fff) & ~0xffff;
+    return prod + 0x7fff & ~0xffff;
 }
 
 void Interpreter::SetLongProduct(s64 value)
@@ -585,7 +585,7 @@ void Interpreter::UpdateSR16(s16 value, bool carry, bool overflow, bool over_s32
   }
 
   // 0x20 - Checks if top bits of m are equal
-  if (((static_cast<u16>(value) >> 14) == 0) || ((static_cast<u16>(value) >> 14) == 3))
+  if (static_cast<u16>(value) >> 14 == 0 || static_cast<u16>(value) >> 14 == 3)
   {
     state.r.sr |= SR_TOP2BITS;
   }
@@ -594,7 +594,7 @@ void Interpreter::UpdateSR16(s16 value, bool carry, bool overflow, bool over_s32
 [[maybe_unused]] static constexpr bool IsProperlySignExtended(u64 val)
 {
   const u64 topbits = val & 0xffff'ff80'0000'0000ULL;
-  return (topbits == 0) || (0xffff'ff80'0000'0000ULL == topbits);
+  return topbits == 0 || 0xffff'ff80'0000'0000ULL == topbits;
 }
 
 void Interpreter::UpdateSR64(s64 value, bool carry, bool overflow)
@@ -637,7 +637,7 @@ void Interpreter::UpdateSR64(s64 value, bool carry, bool overflow)
   }
 
   // 0x20 - Checks if top bits of m are equal
-  if (((value & 0xc0000000) == 0) || ((value & 0xc0000000) == 0xc0000000))
+  if ((value & 0xc0000000) == 0 || (value & 0xc0000000) == 0xc0000000)
   {
     state.r.sr |= SR_TOP2BITS;
   }
@@ -648,7 +648,7 @@ void Interpreter::UpdateSR64(s64 value, bool carry, bool overflow)
 // result of adding a and b in a 64-bit context.
 void Interpreter::UpdateSR64Add(s64 val1, s64 val2, s64 result)
 {
-  DEBUG_ASSERT(((val1 + val2) & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
+  DEBUG_ASSERT((val1 + val2 & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
   DEBUG_ASSERT(IsProperlySignExtended(val1));
   DEBUG_ASSERT(IsProperlySignExtended(val2));
   UpdateSR64(result, isCarryAdd(val1, result), isOverflow(val1, val2, result));
@@ -659,7 +659,7 @@ void Interpreter::UpdateSR64Add(s64 val1, s64 val2, s64 result)
 // result of adding a and b in a 64-bit context.
 void Interpreter::UpdateSR64Sub(s64 val1, s64 val2, s64 result)
 {
-  DEBUG_ASSERT(((val1 - val2) & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
+  DEBUG_ASSERT((val1 - val2 & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
   DEBUG_ASSERT(IsProperlySignExtended(val1));
   DEBUG_ASSERT(IsProperlySignExtended(val2));
   UpdateSR64(result, isCarrySubtract(val1, result), isOverflow(val1, -val2, result));

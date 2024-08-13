@@ -344,7 +344,7 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
 
   // Preemptively transition to shader read only after uploading the last mip level, as we're
   // likely finished with writes to this texture for now.
-  if (level == (m_config.levels - 1))
+  if (level == m_config.levels - 1)
     TransitionToState(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 

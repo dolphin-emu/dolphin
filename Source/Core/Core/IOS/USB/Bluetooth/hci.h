@@ -2510,7 +2510,7 @@ static __inline void hci_filter_set(uint8_t bit, struct hci_filter* filter)
   uint8_t off = bit - 1;
 
   off >>= 5;
-  filter->mask[off] |= (1 << ((bit - 1) & 0x1f));
+  filter->mask[off] |= 1 << (bit - 1 & 0x1f);
 }
 
 static __inline void hci_filter_clr(uint8_t bit, struct hci_filter* filter)
@@ -2518,7 +2518,7 @@ static __inline void hci_filter_clr(uint8_t bit, struct hci_filter* filter)
   uint8_t off = bit - 1;
 
   off >>= 5;
-  filter->mask[off] &= ~(1 << ((bit - 1) & 0x1f));
+  filter->mask[off] &= ~(1 << (bit - 1 & 0x1f));
 }
 
 static __inline int hci_filter_test(uint8_t bit, const struct hci_filter* filter)
@@ -2526,7 +2526,7 @@ static __inline int hci_filter_test(uint8_t bit, const struct hci_filter* filter
   uint8_t off = bit - 1;
 
   off >>= 5;
-  return (filter->mask[off] & (1 << ((bit - 1) & 0x1f)));
+  return filter->mask[off] & 1 << (bit - 1 & 0x1f);
 }
 
 /*

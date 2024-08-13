@@ -520,7 +520,7 @@ void InhibitScreenSaver(bool inhibit)
 #ifdef _WIN32
   // Prevents Windows from sleeping, turning off the display, or idling
   SetThreadExecutionState(ES_CONTINUOUS |
-                          (inhibit ? (ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED) : 0));
+                          (inhibit ? ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED : 0));
 #endif
 
 #ifdef __APPLE__

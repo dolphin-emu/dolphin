@@ -418,8 +418,8 @@ void HostFileSystem::DoState(PointerWrap& p)
     DoStateRead(p, "/tmp");
     if (!movie.IsMovieActive() || !original_save_state_made_during_movie_recording ||
         !Core::WiiRootIsTemporary() ||
-        (original_save_state_made_during_movie_recording !=
-         (movie.IsMovieActive() && Core::WiiRootIsTemporary())))
+        original_save_state_made_during_movie_recording !=
+        (movie.IsMovieActive() && Core::WiiRootIsTemporary()))
     {
       (void)p.DoExternal(temp_val);
     }

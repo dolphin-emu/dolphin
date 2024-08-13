@@ -186,7 +186,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
 {
   // Use existing header data if available
   {
-    File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
+    File::IOFile(m_save_directory + MC_HDR, "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
   }
 
   const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
@@ -484,7 +484,7 @@ inline void GCMemcardDirectory::SyncSaves()
         added = true;
       }
 
-      if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
+      if (added || memcmp((u8*)&m_saves[i].m_gci_header, (u8*)&current->m_dir_entries[i],
                           Memcard::DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
@@ -493,14 +493,14 @@ inline void GCMemcardDirectory::SyncSaves()
         const u32 old_start = m_saves[i].m_gci_header.m_first_block;
         const u32 new_start = current->m_dir_entries[i].m_first_block;
 
-        if ((gamecode != 0xFFFFFFFF) && (gamecode != new_gamecode))
+        if (gamecode != 0xFFFFFFFF && gamecode != new_gamecode)
         {
           PanicAlertFmtT(
               "Game overwrote with another games save. Data corruption ahead {0:#x}, {1:#x}",
               Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()),
               Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
         }
-        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
+        memcpy((u8*)&m_saves[i].m_gci_header, (u8*)&current->m_dir_entries[i],
                Memcard::DENTRY_SIZE);
         if (old_start != new_start)
         {
@@ -514,7 +514,7 @@ inline void GCMemcardDirectory::SyncSaves()
         }
       }
     }
-    else if ((i < m_saves.size()) && (*(u32*)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
+    else if (i < m_saves.size() && *(u32*)&m_saves[i].m_gci_header != 0xFFFFFFFF)
     {
       INFO_LOG_FMT(EXPANSIONINTERFACE, "Clearing and/or deleting save {:#x}",
                    Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()));
@@ -567,7 +567,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 {
   u32 block = dest_address / Memcard::BLOCK_SIZE;
   u32 offset = dest_address % Memcard::BLOCK_SIZE;
-  Memcard::Directory* dest = (block == 1) ? &m_dir1 : &m_dir2;
+  Memcard::Directory* dest = block == 1 ? &m_dir1 : &m_dir2;
   u16 Dnum = offset / Memcard::DENTRY_SIZE;
 
   if (Dnum == Memcard::DIRLEN)
@@ -576,11 +576,11 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
     // needed to update the update ctr, checksums
     // could check for writes to the 6 important bytes but doubtful that it improves performance
     // noticably
-    memcpy((u8*)(dest) + offset, src_address, length);
+    memcpy((u8*)dest + offset, src_address, length);
     SyncSaves();
   }
   else
-    memcpy((u8*)(dest) + offset, src_address, length);
+    memcpy((u8*)dest + offset, src_address, length);
   return length;
 }
 

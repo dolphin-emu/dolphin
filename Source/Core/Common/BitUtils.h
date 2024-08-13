@@ -39,7 +39,7 @@ constexpr size_t BitSize() noexcept
 template <typename T>
 constexpr T ExtractBit(const T src, const size_t bit) noexcept
 {
-  return (src >> bit) & static_cast<T>(1);
+  return src >> bit & static_cast<T>(1);
 }
 
 ///
@@ -76,8 +76,8 @@ constexpr T ExtractBit(const T src) noexcept
 template <typename T, typename Result = std::make_unsigned_t<T>>
 constexpr Result ExtractBits(const T src, const size_t begin, const size_t end) noexcept
 {
-  return static_cast<Result>(((static_cast<Result>(src) << ((BitSize<T>() - 1) - end)) >>
-                              (BitSize<T>() - end + begin - 1)));
+  return static_cast<Result>(static_cast<Result>(src) << BitSize<T>() - 1 - end >>
+                             BitSize<T>() - end + begin - 1);
 }
 
 ///
@@ -122,7 +122,7 @@ constexpr bool IsValidLowMask(const T mask) noexcept
   // Can be efficiently determined without looping or bit counting. It's the counterpart
   // to https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
   // and doesn't require special casing either edge case.
-  return (mask & (mask + 1)) == 0;
+  return (mask & mask + 1) == 0;
 }
 
 template <typename T, typename PtrType>
@@ -218,7 +218,7 @@ void SetBit(T& value, size_t bit_number, bool bit_value)
   static_assert(std::is_unsigned<T>(), "SetBit is only sane on unsigned types.");
 
   if (bit_value)
-    value |= (T{1} << bit_number);
+    value |= T{1} << bit_number;
   else
     value &= ~(T{1} << bit_number);
 }
@@ -276,7 +276,7 @@ T ExpandValue(T value, size_t left_shift_amount)
 {
   static_assert(std::is_unsigned<T>(), "ExpandValue is only sane on unsigned types.");
 
-  return (value << left_shift_amount) |
-         (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
+  return value << left_shift_amount |
+         T(-ExtractBit<0>(value)) >> BitSize<T>() - left_shift_amount;
 }
 }  // namespace Common

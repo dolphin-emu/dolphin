@@ -322,7 +322,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
       {
         value += fmt::format("{}{}", it.second.m_integer_values[i],
-                             i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
+                             i == it.second.m_integer_values.size() - 1 ? "" : ", ");
       }
       ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
     }
@@ -335,7 +335,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
       for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
       {
         value << it.second.m_float_values[i];
-        if (i != (it.second.m_float_values.size() - 1))
+        if (i != it.second.m_float_values.size() - 1)
           value << ", ";
       }
       ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());

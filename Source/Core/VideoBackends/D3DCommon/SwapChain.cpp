@@ -165,7 +165,7 @@ bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
       // scRGB always returns false (DX bug).
       hr = swap_chain4->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020,
                                                &color_space_support);
-      if (SUCCEEDED(hr) && (color_space_support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+      if (SUCCEEDED(hr) && color_space_support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT)
       {
         hr = swap_chain4->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, 0, 0,
                                         GetDXGIFormatForAbstractFormat(m_texture_format_hdr, false),

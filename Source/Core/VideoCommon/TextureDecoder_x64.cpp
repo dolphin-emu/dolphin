@@ -29,37 +29,37 @@ static inline u32 DecodePixel_IA8(u16 val)
 {
   int a = val & 0xFF;
   int i = val >> 8;
-  return i | (i << 8) | (i << 16) | (a << 24);
+  return i | i << 8 | i << 16 | a << 24;
 }
 
 static inline u32 DecodePixel_RGB565(u16 val)
 {
   int r, g, b, a;
-  r = Convert5To8((val >> 11) & 0x1f);
-  g = Convert6To8((val >> 5) & 0x3f);
-  b = Convert5To8((val)&0x1f);
+  r = Convert5To8(val >> 11 & 0x1f);
+  g = Convert6To8(val >> 5 & 0x3f);
+  b = Convert5To8(val&0x1f);
   a = 0xFF;
-  return r | (g << 8) | (b << 16) | (a << 24);
+  return r | g << 8 | b << 16 | a << 24;
 }
 
 static inline u32 DecodePixel_RGB5A3(u16 val)
 {
   int r, g, b, a;
-  if ((val & 0x8000))
+  if (val & 0x8000)
   {
-    r = Convert5To8((val >> 10) & 0x1f);
-    g = Convert5To8((val >> 5) & 0x1f);
-    b = Convert5To8((val)&0x1f);
+    r = Convert5To8(val >> 10 & 0x1f);
+    g = Convert5To8(val >> 5 & 0x1f);
+    b = Convert5To8(val&0x1f);
     a = 0xFF;
   }
   else
   {
-    a = Convert3To8((val >> 12) & 0x7);
-    r = Convert4To8((val >> 8) & 0xf);
-    g = Convert4To8((val >> 4) & 0xf);
-    b = Convert4To8((val)&0xf);
+    a = Convert3To8(val >> 12 & 0x7);
+    r = Convert4To8(val >> 8 & 0xf);
+    g = Convert4To8(val >> 4 & 0xf);
+    b = Convert4To8(val&0xf);
   }
-  return r | (g << 8) | (b << 16) | (a << 24);
+  return r | g << 8 | b << 16 | a << 24;
 }
 
 static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
@@ -161,7 +161,7 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
     const u8 val = src[x];
     u8 a = Convert4To8(val >> 4);
     u8 l = Convert4To8(val & 0xF);
-    dst[x] = (a << 24) | l << 16 | l << 8 | l;
+    dst[x] = a << 24 | l << 16 | l << 8 | l;
   }
 }
 
@@ -225,7 +225,7 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB5A3:
   {
     for (int y = 0; y < height; y += 8)
-      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+      for (int x = 0, yStep = y / 8 * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
           DecodeBytes_C4_RGB5A3(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
   }
@@ -234,7 +234,7 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::IA8:
   {
     for (int y = 0; y < height; y += 8)
-      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+      for (int x = 0, yStep = y / 8 * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
           DecodeBytes_C4_IA8(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
   }
@@ -243,7 +243,7 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB565:
   {
     for (int y = 0; y < height; y += 8)
-      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+      for (int x = 0, yStep = y / 8 * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
           DecodeBytes_C4_RGB565(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
   }
@@ -270,7 +270,7 @@ static void TexDecoder_DecodeImpl_I4_SSSE3(u32* dst, const u8* src, int width, i
   const __m128i maskF7E6 = _mm_set_epi8(15, 15, 15, 15, 7, 7, 7, 7, 14, 14, 14, 14, 6, 6, 6, 6);
   for (int y = 0; y < height; y += 8)
   {
-    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = y / 8 * Wsteps8; x < width; x += 8, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
       {
@@ -314,7 +314,7 @@ static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int hei
   // Produces a ~76% speed improvement over reference C implementation.
   for (int y = 0; y < height; y += 8)
   {
-    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = y / 8 * Wsteps8; x < width; x += 8, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
       {
@@ -403,7 +403,7 @@ static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, i
   // Produces a ~10% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps8; x < width; x += 8, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, xStep++)
       {
@@ -433,7 +433,7 @@ static void TexDecoder_DecodeImpl_I8(u32* dst, const u8* src, int width, int hei
   // Produces an ~86% speed improvement over reference C implementation.
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps8; x < width; x += 8, yStep++)
     {
       // Each loop iteration processes 4 rows from 4 64-bit reads.
       const u8* src2 = src + 32 * yStep;
@@ -534,7 +534,7 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB5A3:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+      for (int x = 0, yStep = y / 4 * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C8_RGB5A3((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
@@ -543,7 +543,7 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::IA8:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+      for (int x = 0, yStep = y / 4 * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C8_IA8(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
@@ -552,7 +552,7 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB565:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+      for (int x = 0, yStep = y / 4 * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C8_RGB565(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
@@ -569,7 +569,7 @@ static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int he
 {
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps8; x < width; x += 8, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
@@ -588,7 +588,7 @@ static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, 
   // Produces an ~50% speed improvement over SSE2 implementation.
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
@@ -616,7 +616,7 @@ static void TexDecoder_DecodeImpl_IA8(u32* dst, const u8* src, int width, int he
   const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
@@ -674,7 +674,7 @@ static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int 
   case TLUTFormat::RGB5A3:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+      for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C14X2_RGB5A3(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
   }
@@ -683,7 +683,7 @@ static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int 
   case TLUTFormat::IA8:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+      for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C14X2_IA8(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
   }
@@ -692,7 +692,7 @@ static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int 
   case TLUTFormat::RGB565:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+      for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C14X2_RGB565(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
   }
@@ -716,7 +716,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
   const __m128i kAlpha = _mm_set1_epi32(0xFF000000);
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
@@ -790,7 +790,7 @@ static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int widt
   // Produces a ~10% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
@@ -859,21 +859,21 @@ static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int widt
             if (vals[i] & 0x8000)
             {
               // Swizzle bits: 00012345 -> 12345123
-              r = (((vals[i] >> 10) & 0x1f) << 3) | (((vals[i] >> 10) & 0x1f) >> 2);
-              g = (((vals[i] >> 5) & 0x1f) << 3) | (((vals[i] >> 5) & 0x1f) >> 2);
-              b = (((vals[i]) & 0x1f) << 3) | (((vals[i]) & 0x1f) >> 2);
+              r = (vals[i] >> 10 & 0x1f) << 3 | (vals[i] >> 10 & 0x1f) >> 2;
+              g = (vals[i] >> 5 & 0x1f) << 3 | (vals[i] >> 5 & 0x1f) >> 2;
+              b = (vals[i] & 0x1f) << 3 | (vals[i] & 0x1f) >> 2;
               a = 0xFF;
             }
             else
             {
-              a = (((vals[i] >> 12) & 0x7) << 5) | (((vals[i] >> 12) & 0x7) << 2) |
-                  (((vals[i] >> 12) & 0x7) >> 1);
+              a = (vals[i] >> 12 & 0x7) << 5 | (vals[i] >> 12 & 0x7) << 2 |
+                  (vals[i] >> 12 & 0x7) >> 1;
               // Swizzle bits: 00001234 -> 12341234
-              r = (((vals[i] >> 8) & 0xf) << 4) | ((vals[i] >> 8) & 0xf);
-              g = (((vals[i] >> 4) & 0xf) << 4) | ((vals[i] >> 4) & 0xf);
-              b = (((vals[i]) & 0xf) << 4) | ((vals[i]) & 0xf);
+              r = (vals[i] >> 8 & 0xf) << 4 | vals[i] >> 8 & 0xf;
+              g = (vals[i] >> 4 & 0xf) << 4 | vals[i] >> 4 & 0xf;
+              b = (vals[i] & 0xf) << 4 | vals[i] & 0xf;
             }
-            newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
+            newdst[i] = r | g << 8 | b << 16 | a << 24;
           }
         }
       }
@@ -896,7 +896,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
   // Produces a ~25% speed improvement over reference C implementation.
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
@@ -912,7 +912,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
         const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
 
         // Need to check all 4 pixels' MSBs to ensure we can do data-parallelism:
-        if (((val0 & 0x8000) & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
+        if ((val0 & 0x8000 & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
         {
           // SSE2 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
 
@@ -937,7 +937,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
           // write the final result:
           _mm_storeu_si128((__m128i*)newdst, final);
         }
-        else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) == 0x0000)
+        else if ((val0 & 0x8000 | val1 & 0x8000 | val2 & 0x8000 | val3 & 0x8000) == 0x0000)
         {
           // SSE2 case #2: all 4 pixels are in RGBA4443.
 
@@ -979,21 +979,21 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
             if (vals[i] & 0x8000)
             {
               // Swizzle bits: 00012345 -> 12345123
-              r = (((vals[i] >> 10) & 0x1f) << 3) | (((vals[i] >> 10) & 0x1f) >> 2);
-              g = (((vals[i] >> 5) & 0x1f) << 3) | (((vals[i] >> 5) & 0x1f) >> 2);
-              b = (((vals[i]) & 0x1f) << 3) | (((vals[i]) & 0x1f) >> 2);
+              r = (vals[i] >> 10 & 0x1f) << 3 | (vals[i] >> 10 & 0x1f) >> 2;
+              g = (vals[i] >> 5 & 0x1f) << 3 | (vals[i] >> 5 & 0x1f) >> 2;
+              b = (vals[i] & 0x1f) << 3 | (vals[i] & 0x1f) >> 2;
               a = 0xFF;
             }
             else
             {
-              a = (((vals[i] >> 12) & 0x7) << 5) | (((vals[i] >> 12) & 0x7) << 2) |
-                  (((vals[i] >> 12) & 0x7) >> 1);
+              a = (vals[i] >> 12 & 0x7) << 5 | (vals[i] >> 12 & 0x7) << 2 |
+                  (vals[i] >> 12 & 0x7) >> 1;
               // Swizzle bits: 00001234 -> 12341234
-              r = (((vals[i] >> 8) & 0xf) << 4) | ((vals[i] >> 8) & 0xf);
-              g = (((vals[i] >> 4) & 0xf) << 4) | ((vals[i] >> 4) & 0xf);
-              b = (((vals[i]) & 0xf) << 4) | ((vals[i]) & 0xf);
+              r = (vals[i] >> 8 & 0xf) << 4 | vals[i] >> 8 & 0xf;
+              g = (vals[i] >> 4 & 0xf) << 4 | vals[i] >> 4 & 0xf;
+              b = (vals[i] & 0xf) << 4 | vals[i] & 0xf;
             }
-            newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
+            newdst[i] = r | g << 8 | b << 16 | a << 24;
           }
         }
       }
@@ -1010,7 +1010,7 @@ static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width
   // Produces a ~30% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       const u8* src2 = src + 64 * yStep;
       const __m128i mask0312 = _mm_set_epi8(12, 15, 13, 14, 8, 11, 9, 10, 4, 7, 5, 6, 0, 3, 1, 2);
@@ -1044,7 +1044,7 @@ static void TexDecoder_DecodeImpl_RGBA8(u32* dst, const u8* src, int width, int 
   // Produces a ~68% speed improvement over reference C implementation.
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+    for (int x = 0, yStep = y / 4 * Wsteps4; x < width; x += 4, yStep++)
     {
       // Input is divided up into 16-bit words. The texels are split up into AR and GB
       // components where all AR components come grouped up first in 32 bytes followed by the GB
@@ -1168,7 +1168,7 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
   // C code, but the SSE2 is faster than both.
   for (int y = 0; y < height; y += 8)
   {
-    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = y / 8 * Wsteps8; x < width; x += 8, yStep++)
     {
       // We handle two DXT blocks simultaneously to take full advantage of SSE2's 128-bit registers.
       // This is ideal because a single DXT block contains 2 RGBA colors when decoded from their
@@ -1348,7 +1348,7 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
                        4);
 #endif
 
-        u32* dst32 = (dst + (y + z * 4) * width + x);
+        u32* dst32 = dst + (y + z * 4) * width + x;
 
         // Copy the colors here:
         alignas(16) u32 colors0[4];
@@ -1357,53 +1357,53 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
         _mm_store_si128((__m128i*)colors1, mmcolors1);
 
         // Row 0:
-        dst32[(width * 0) + 0] = colors0[(dxt0sel >> ((0 * 8) + 6)) & 3];
-        dst32[(width * 0) + 1] = colors0[(dxt0sel >> ((0 * 8) + 4)) & 3];
-        dst32[(width * 0) + 2] = colors0[(dxt0sel >> ((0 * 8) + 2)) & 3];
-        dst32[(width * 0) + 3] = colors0[(dxt0sel >> ((0 * 8) + 0)) & 3];
-        dst32[(width * 0) + 4] = colors1[(dxt1sel >> ((0 * 8) + 6)) & 3];
-        dst32[(width * 0) + 5] = colors1[(dxt1sel >> ((0 * 8) + 4)) & 3];
-        dst32[(width * 0) + 6] = colors1[(dxt1sel >> ((0 * 8) + 2)) & 3];
-        dst32[(width * 0) + 7] = colors1[(dxt1sel >> ((0 * 8) + 0)) & 3];
+        dst32[width * 0 + 0] = colors0[dxt0sel >> 0 * 8 + 6 & 3];
+        dst32[width * 0 + 1] = colors0[dxt0sel >> 0 * 8 + 4 & 3];
+        dst32[width * 0 + 2] = colors0[dxt0sel >> 0 * 8 + 2 & 3];
+        dst32[width * 0 + 3] = colors0[dxt0sel >> 0 * 8 + 0 & 3];
+        dst32[width * 0 + 4] = colors1[dxt1sel >> 0 * 8 + 6 & 3];
+        dst32[width * 0 + 5] = colors1[dxt1sel >> 0 * 8 + 4 & 3];
+        dst32[width * 0 + 6] = colors1[dxt1sel >> 0 * 8 + 2 & 3];
+        dst32[width * 0 + 7] = colors1[dxt1sel >> 0 * 8 + 0 & 3];
 #ifdef CHECK
         ASSERT(memcmp(&(tmp0[0]), &dst32[(width * 0)], 16) == 0);
         ASSERT(memcmp(&(tmp1[0]), &dst32[(width * 0) + 4], 16) == 0);
 #endif
         // Row 1:
-        dst32[(width * 1) + 0] = colors0[(dxt0sel >> ((1 * 8) + 6)) & 3];
-        dst32[(width * 1) + 1] = colors0[(dxt0sel >> ((1 * 8) + 4)) & 3];
-        dst32[(width * 1) + 2] = colors0[(dxt0sel >> ((1 * 8) + 2)) & 3];
-        dst32[(width * 1) + 3] = colors0[(dxt0sel >> ((1 * 8) + 0)) & 3];
-        dst32[(width * 1) + 4] = colors1[(dxt1sel >> ((1 * 8) + 6)) & 3];
-        dst32[(width * 1) + 5] = colors1[(dxt1sel >> ((1 * 8) + 4)) & 3];
-        dst32[(width * 1) + 6] = colors1[(dxt1sel >> ((1 * 8) + 2)) & 3];
-        dst32[(width * 1) + 7] = colors1[(dxt1sel >> ((1 * 8) + 0)) & 3];
+        dst32[width * 1 + 0] = colors0[dxt0sel >> 1 * 8 + 6 & 3];
+        dst32[width * 1 + 1] = colors0[dxt0sel >> 1 * 8 + 4 & 3];
+        dst32[width * 1 + 2] = colors0[dxt0sel >> 1 * 8 + 2 & 3];
+        dst32[width * 1 + 3] = colors0[dxt0sel >> 1 * 8 + 0 & 3];
+        dst32[width * 1 + 4] = colors1[dxt1sel >> 1 * 8 + 6 & 3];
+        dst32[width * 1 + 5] = colors1[dxt1sel >> 1 * 8 + 4 & 3];
+        dst32[width * 1 + 6] = colors1[dxt1sel >> 1 * 8 + 2 & 3];
+        dst32[width * 1 + 7] = colors1[dxt1sel >> 1 * 8 + 0 & 3];
 #ifdef CHECK
         ASSERT(memcmp(&(tmp0[1]), &dst32[(width * 1)], 16) == 0);
         ASSERT(memcmp(&(tmp1[1]), &dst32[(width * 1) + 4], 16) == 0);
 #endif
         // Row 2:
-        dst32[(width * 2) + 0] = colors0[(dxt0sel >> ((2 * 8) + 6)) & 3];
-        dst32[(width * 2) + 1] = colors0[(dxt0sel >> ((2 * 8) + 4)) & 3];
-        dst32[(width * 2) + 2] = colors0[(dxt0sel >> ((2 * 8) + 2)) & 3];
-        dst32[(width * 2) + 3] = colors0[(dxt0sel >> ((2 * 8) + 0)) & 3];
-        dst32[(width * 2) + 4] = colors1[(dxt1sel >> ((2 * 8) + 6)) & 3];
-        dst32[(width * 2) + 5] = colors1[(dxt1sel >> ((2 * 8) + 4)) & 3];
-        dst32[(width * 2) + 6] = colors1[(dxt1sel >> ((2 * 8) + 2)) & 3];
-        dst32[(width * 2) + 7] = colors1[(dxt1sel >> ((2 * 8) + 0)) & 3];
+        dst32[width * 2 + 0] = colors0[dxt0sel >> 2 * 8 + 6 & 3];
+        dst32[width * 2 + 1] = colors0[dxt0sel >> 2 * 8 + 4 & 3];
+        dst32[width * 2 + 2] = colors0[dxt0sel >> 2 * 8 + 2 & 3];
+        dst32[width * 2 + 3] = colors0[dxt0sel >> 2 * 8 + 0 & 3];
+        dst32[width * 2 + 4] = colors1[dxt1sel >> 2 * 8 + 6 & 3];
+        dst32[width * 2 + 5] = colors1[dxt1sel >> 2 * 8 + 4 & 3];
+        dst32[width * 2 + 6] = colors1[dxt1sel >> 2 * 8 + 2 & 3];
+        dst32[width * 2 + 7] = colors1[dxt1sel >> 2 * 8 + 0 & 3];
 #ifdef CHECK
         ASSERT(memcmp(&(tmp0[2]), &dst32[(width * 2)], 16) == 0);
         ASSERT(memcmp(&(tmp1[2]), &dst32[(width * 2) + 4], 16) == 0);
 #endif
         // Row 3:
-        dst32[(width * 3) + 0] = colors0[(dxt0sel >> ((3 * 8) + 6)) & 3];
-        dst32[(width * 3) + 1] = colors0[(dxt0sel >> ((3 * 8) + 4)) & 3];
-        dst32[(width * 3) + 2] = colors0[(dxt0sel >> ((3 * 8) + 2)) & 3];
-        dst32[(width * 3) + 3] = colors0[(dxt0sel >> ((3 * 8) + 0)) & 3];
-        dst32[(width * 3) + 4] = colors1[(dxt1sel >> ((3 * 8) + 6)) & 3];
-        dst32[(width * 3) + 5] = colors1[(dxt1sel >> ((3 * 8) + 4)) & 3];
-        dst32[(width * 3) + 6] = colors1[(dxt1sel >> ((3 * 8) + 2)) & 3];
-        dst32[(width * 3) + 7] = colors1[(dxt1sel >> ((3 * 8) + 0)) & 3];
+        dst32[width * 3 + 0] = colors0[dxt0sel >> 3 * 8 + 6 & 3];
+        dst32[width * 3 + 1] = colors0[dxt0sel >> 3 * 8 + 4 & 3];
+        dst32[width * 3 + 2] = colors0[dxt0sel >> 3 * 8 + 2 & 3];
+        dst32[width * 3 + 3] = colors0[dxt0sel >> 3 * 8 + 0 & 3];
+        dst32[width * 3 + 4] = colors1[dxt1sel >> 3 * 8 + 6 & 3];
+        dst32[width * 3 + 5] = colors1[dxt1sel >> 3 * 8 + 4 & 3];
+        dst32[width * 3 + 6] = colors1[dxt1sel >> 3 * 8 + 2 & 3];
+        dst32[width * 3 + 7] = colors1[dxt1sel >> 3 * 8 + 0 & 3];
 #ifdef CHECK
         ASSERT(memcmp(&(tmp0[3]), &dst32[(width * 3)], 16) == 0);
         ASSERT(memcmp(&(tmp1[3]), &dst32[(width * 3) + 4], 16) == 0);

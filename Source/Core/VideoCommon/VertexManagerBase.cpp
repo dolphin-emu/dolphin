@@ -387,7 +387,7 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
   if (vertices)
   {
     const u32 copy_size = vertex_stride * num_vertices;
-    ASSERT((m_cur_buffer_pointer + copy_size) <= m_end_buffer_pointer);
+    ASSERT(m_cur_buffer_pointer + copy_size <= m_end_buffer_pointer);
     std::memcpy(m_cur_buffer_pointer, vertices, copy_size);
     m_cur_buffer_pointer += copy_size;
   }
@@ -720,7 +720,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
   // Make sure the buffer contains at least 3 vertices.
-  if ((m_cur_buffer_pointer - m_base_buffer_pointer) < (vert_decl.stride * 3))
+  if (m_cur_buffer_pointer - m_base_buffer_pointer < vert_decl.stride * 3)
     return;
 
   // Lookup vertices of the last rendered triangle and software-transform them

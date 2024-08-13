@@ -211,7 +211,7 @@ std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::I
         }
 
         current_code.name = line.substr(1, line.size() - 1);
-        current_code.user_defined = (ini == &local_ini);
+        current_code.user_defined = ini == &local_ini;
       }
       else
       {
@@ -446,7 +446,7 @@ static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAd
     LogInfo("Write 16-bit to pointer");
     LogInfo("--------");
     const u16 theshort = data & 0xFFFF;
-    const u32 offset = (data >> 16) << 1;
+    const u32 offset = data >> 16 << 1;
     LogInfo("Pointer: {:08x}", ptr);
     LogInfo("Byte: {:08x}", theshort);
     LogInfo("Offset: {:08x}", offset);
@@ -649,7 +649,7 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
 
   if ((data & 0xFF0000) == 0)
   {
-    if ((data >> 24) != 0x0)
+    if (data >> 24 != 0x0)
     {  // Memory Copy With Pointers Support
       LogInfo("Memory Copy With Pointers Support");
       LogInfo("--------");
@@ -685,7 +685,7 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
   {
     LogInfo("Bad Value");
     PanicAlertFmtT("Action Replay Error: Invalid value ({0:08x}) in Memory Copy ({1})",
-                   (data & ~0x7FFF), s_current_code->name);
+                   data & ~0x7FFF, s_current_code->name);
     return false;
   }
   return true;
@@ -782,11 +782,11 @@ static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& add
   switch (addr.size)
   {
   case DATATYPE_8BIT:
-    result = CompareValues(PowerPC::MMU::HostRead_U8(guard, new_addr), (data & 0xFF), addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead_U8(guard, new_addr), data & 0xFF, addr.type);
     break;
 
   case DATATYPE_16BIT:
-    result = CompareValues(PowerPC::MMU::HostRead_U16(guard, new_addr), (data & 0xFFFF), addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead_U16(guard, new_addr), data & 0xFFFF, addr.type);
     break;
 
   case DATATYPE_32BIT_FLOAT:
@@ -942,7 +942,7 @@ static bool RunCodeLocked(const Core::CPUThreadGuard& guard, const ARCode& arcod
         return false;
 
       case ZCODE_04:  // Fill & Slide or Memory Copy
-        if (0x3 == ((data >> 25) & 0x03))
+        if (0x3 == (data >> 25 & 0x03))
         {
           LogInfo("ZCode: Memory Copy");
           do_memory_copy = true;

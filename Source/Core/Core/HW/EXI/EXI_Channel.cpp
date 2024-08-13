@@ -209,8 +209,8 @@ bool CEXIChannel::IsCausingInterrupt()
     if (GetDevice(m_status.CHIP_SELECT)->IsInterruptSet())
       m_status.EXIINT = 1;
 
-  if ((m_status.EXIINT & m_status.EXIINTMASK) || (m_status.TCINT & m_status.TCINTMASK) ||
-      (m_status.EXTINT & m_status.EXTINTMASK))
+  if (m_status.EXIINT & m_status.EXIINTMASK || m_status.TCINT & m_status.TCINTMASK ||
+      m_status.EXTINT & m_status.EXTINTMASK)
   {
     return true;
   }

@@ -140,19 +140,19 @@ static void WritePair(PowerPC::MMU& mmu, T val1, T val2, u32 addr);
 template <>
 void WritePair<u8>(PowerPC::MMU& mmu, u8 val1, u8 val2, u32 addr)
 {
-  mmu.Write_U16((u16{val1} << 8) | u16{val2}, addr);
+  mmu.Write_U16(u16{val1} << 8 | u16{val2}, addr);
 }
 
 template <>
 void WritePair<u16>(PowerPC::MMU& mmu, u16 val1, u16 val2, u32 addr)
 {
-  mmu.Write_U32((u32{val1} << 16) | u32{val2}, addr);
+  mmu.Write_U32(u32{val1} << 16 | u32{val2}, addr);
 }
 
 template <>
 void WritePair<u32>(PowerPC::MMU& mmu, u32 val1, u32 val2, u32 addr)
 {
-  mmu.Write_U64((u64{val1} << 32) | u64{val2}, addr);
+  mmu.Write_U64(u64{val1} << 32 | u64{val2}, addr);
 }
 
 template <typename T>
@@ -318,7 +318,7 @@ void Interpreter::psq_l(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
+  const u32 EA = inst.RA ? ppc_state.gpr[inst.RA] + u32(inst.SIMM_12) : u32(inst.SIMM_12);
   Helper_Dequantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RD, inst.W);
 }
 
@@ -351,7 +351,7 @@ void Interpreter::psq_st(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
+  const u32 EA = inst.RA ? ppc_state.gpr[inst.RA] + u32(inst.SIMM_12) : u32(inst.SIMM_12);
   Helper_Quantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RS, inst.W);
 }
 
@@ -379,7 +379,7 @@ void Interpreter::psq_lx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 EA =
-      inst.RA ? (ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB]) : ppc_state.gpr[inst.RB];
+      inst.RA ? ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB] : ppc_state.gpr[inst.RB];
   Helper_Dequantize(interpreter.m_mmu, &ppc_state, EA, inst.Ix, inst.RD, inst.Wx);
 }
 
@@ -387,7 +387,7 @@ void Interpreter::psq_stx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 EA =
-      inst.RA ? (ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB]) : ppc_state.gpr[inst.RB];
+      inst.RA ? ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB] : ppc_state.gpr[inst.RB];
   Helper_Quantize(interpreter.m_mmu, &ppc_state, EA, inst.Ix, inst.RS, inst.Wx);
 }
 

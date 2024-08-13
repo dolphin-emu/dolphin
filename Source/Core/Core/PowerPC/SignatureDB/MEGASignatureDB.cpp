@@ -25,7 +25,7 @@ constexpr size_t INSTRUCTION_HEXSTRING_LENGTH = 8;
 bool GetCode(MEGASignature* sig, std::istringstream* iss)
 {
   std::string code;
-  if ((*iss >> code) && (code.length() % INSTRUCTION_HEXSTRING_LENGTH) == 0)
+  if (*iss >> code && code.length() % INSTRUCTION_HEXSTRING_LENGTH == 0)
   {
     for (size_t i = 0; i < code.length(); i += INSTRUCTION_HEXSTRING_LENGTH)
     {
@@ -67,14 +67,14 @@ bool GetFunctionName(std::istringstream* iss, std::string* name)
 bool GetName(MEGASignature* sig, std::istringstream* iss)
 {
   std::string unknown;
-  return (*iss >> unknown) && GetFunctionName(iss, &sig->name);
+  return *iss >> unknown && GetFunctionName(iss, &sig->name);
 }
 
 bool GetRefs(MEGASignature* sig, std::istringstream* iss)
 {
   std::string num, ref;
   u32 ref_count = 1;
-  while (*iss && (*iss >> num) && !num.empty())
+  while (*iss && *iss >> num && !num.empty())
   {
     num = num.substr(1);
     const char* ptr = num.c_str();

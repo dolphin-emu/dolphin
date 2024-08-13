@@ -67,7 +67,7 @@ void SettingsHandler::Decrypt()
   {
     decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
     m_position++;
-    m_key = (m_key >> 31) | (m_key << 1);
+    m_key = m_key >> 31 | m_key << 1;
   }
 
   // The decoded data normally uses CRLF line endings, but occasionally
@@ -113,7 +113,7 @@ void SettingsHandler::WriteByte(u8 b)
 
   m_buffer[m_position] = b ^ m_key;
   m_position++;
-  m_key = (m_key >> 31) | (m_key << 1);
+  m_key = m_key >> 31 | m_key << 1;
 }
 
 std::string SettingsHandler::GenerateSerialNumber()

@@ -86,7 +86,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_current_ip = htonl(ip);
   m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   m_arp_table[m_current_ip] = m_current_mac;
-  m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
+  m_router_ip = m_current_ip & 0xFFFFFF | 0x01000000;
   m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
   m_arp_table[m_router_ip] = m_router_mac;
 
@@ -125,7 +125,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
 void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data)
 {
   m_queue_data[m_queue_write] = data;
-  const u8 next_write_index = (m_queue_write + 1) & 15;
+  const u8 next_write_index = m_queue_write + 1 & 15;
   if (next_write_index != m_queue_read)
     m_queue_write = next_write_index;
   else
@@ -134,7 +134,7 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
 
 bool CEXIETHERNET::BuiltInBBAInterface::WillQueueOverrun() const
 {
-  return ((m_queue_write + 1) & 15) == m_queue_read;
+  return (m_queue_write + 1 & 15) == m_queue_read;
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
@@ -151,7 +151,7 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
       {
         if (WillQueueOverrun())
           break;
-        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
+        if (!tcp_buf.used || GetTickCountStd() - tcp_buf.tick <= 1000)
           continue;
 
         // Timed out packet, resend
@@ -226,7 +226,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   // options
   // send our emulated lan settings
 
-  (dhcp.options.size() == 0 || dhcp.options[0].size() < 2 || dhcp.options[0].at(2) == 1) ?
+  dhcp.options.size() == 0 || dhcp.options[0].size() < 2 || dhcp.options[0].at(2) == 1 ?
       reply.AddOption(53, {2}) :  // default, send a suggestion
       reply.AddOption(53, {5});
   reply.AddOption(54, ip_part);                                    // dhcp server ip
@@ -302,7 +302,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 
     // set default size to 0 to avoid issue
     datasize = 0;
-    const bool can_go = (GetTickCountStd() - ref->poke_time > 100 || ref->window_size > 2000);
+    const bool can_go = GetTickCountStd() - ref->poke_time > 100 || ref->window_size > 2000;
     std::array<u8, MAX_TCP_LENGTH> buffer;
     if (tcp_buffer != nullptr && ref->ready && can_go)
       st = ref->tcp_socket.receive(buffer.data(), MAX_TCP_LENGTH, datasize);
@@ -713,7 +713,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
     if (rp > wp)
       wp += 16;
 
-    if ((wp - rp) >= 8)
+    if (wp - rp >= 8)
       continue;
 
     std::lock_guard<std::mutex> lock(self->m_mtx);

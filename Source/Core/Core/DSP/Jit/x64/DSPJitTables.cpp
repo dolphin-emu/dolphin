@@ -249,7 +249,7 @@ JITFunction GetOp(UDSPInstruction inst)
 
 JITFunction GetExtOp(UDSPInstruction inst)
 {
-  const bool has_seven_bit_extension = (inst >> 12) == 0x3;
+  const bool has_seven_bit_extension = inst >> 12 == 0x3;
 
   if (has_seven_bit_extension)
     return s_ext_op_table[inst & 0x7F];

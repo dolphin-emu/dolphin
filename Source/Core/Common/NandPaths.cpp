@@ -97,7 +97,7 @@ bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64
 
   if (title_id != nullptr)
   {
-    *title_id = (static_cast<u64>(title_id_high) << 32) | title_id_low;
+    *title_id = static_cast<u64>(title_id_high) << 32 | title_id_low;
   }
   return true;
 }

@@ -37,7 +37,7 @@ static void WalkTheStack(const Core::CPUThreadGuard& guard,
     u32 addr = PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[1]);  // SP
 
     // Walk the stack chain
-    for (int count = 0; !IsStackBottom(guard, addr + 4) && (count < 20); ++count)
+    for (int count = 0; !IsStackBottom(guard, addr + 4) && count < 20; ++count)
     {
       u32 func_addr = PowerPC::MMU::HostRead_U32(guard, addr + 4);
       stack_step(func_addr);

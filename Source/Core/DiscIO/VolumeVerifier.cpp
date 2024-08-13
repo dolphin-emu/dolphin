@@ -661,7 +661,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
       {
         const std::string ios_ver_str = std::to_string(ios_ver);
         const std::string correct_ios =
-            IsDebugSigned() ? ("firmware.64." + ios_ver_str + ".") : ("ios" + ios_ver_str + "-");
+            IsDebugSigned() ? "firmware.64." + ios_ver_str + "." : "ios" + ios_ver_str + "-";
         for (const FileInfo& f : *file_info)
         {
           std::string file_name = f.GetName();

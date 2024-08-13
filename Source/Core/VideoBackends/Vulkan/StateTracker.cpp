@@ -389,7 +389,7 @@ bool StateTracker::Bind()
   const VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   const bool needs_vertex_buffer = !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
                                    m_pipeline->GetUsage() != AbstractPipelineUsage::GXUber;
-  if (needs_vertex_buffer && (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER))
+  if (needs_vertex_buffer && m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER)
   {
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
     m_dirty_flags &= ~DIRTY_FLAG_VERTEX_BUFFER;
@@ -514,7 +514,7 @@ void StateTracker::UpdateGXDescriptorSet()
                               nullptr};
     }
 
-    m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_UBOS) | DIRTY_FLAG_DESCRIPTOR_SETS;
+    m_dirty_flags = m_dirty_flags & ~DIRTY_FLAG_GX_UBOS | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
   if (m_dirty_flags & DIRTY_FLAG_GX_SAMPLERS || m_gx_descriptor_sets[1] == VK_NULL_HANDLE)
@@ -532,7 +532,7 @@ void StateTracker::UpdateGXDescriptorSet()
                             m_bindings.samplers.data(),
                             nullptr,
                             nullptr};
-    m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_SAMPLERS) | DIRTY_FLAG_DESCRIPTOR_SETS;
+    m_dirty_flags = m_dirty_flags & ~DIRTY_FLAG_GX_SAMPLERS | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
   const bool needs_bbox_ssbo = g_ActiveConfig.backend_info.bSupportsBBox;
@@ -567,7 +567,7 @@ void StateTracker::UpdateGXDescriptorSet()
                               nullptr};
     }
 
-    m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_SSBO) | DIRTY_FLAG_DESCRIPTOR_SETS;
+    m_dirty_flags = m_dirty_flags & ~DIRTY_FLAG_GX_SSBO | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
   if (num_writes > 0)
@@ -577,10 +577,10 @@ void StateTracker::UpdateGXDescriptorSet()
   {
     vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
-                            needs_ssbo ? NUM_GX_DESCRIPTOR_SETS : (NUM_GX_DESCRIPTOR_SETS - 1),
+                            needs_ssbo ? NUM_GX_DESCRIPTOR_SETS : NUM_GX_DESCRIPTOR_SETS - 1,
                             m_gx_descriptor_sets.data(),
                             needs_gs_ubo ? NUM_UBO_DESCRIPTOR_SET_BINDINGS :
-                                           (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
+                                           NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1,
                             m_bindings.gx_ubo_offsets.data());
     m_dirty_flags &= ~(DIRTY_FLAG_DESCRIPTOR_SETS | DIRTY_FLAG_GX_UBO_OFFSETS);
   }
@@ -589,7 +589,7 @@ void StateTracker::UpdateGXDescriptorSet()
     vkCmdBindDescriptorSets(
         g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
         m_pipeline->GetVkPipelineLayout(), 0, 1, m_gx_descriptor_sets.data(),
-        needs_gs_ubo ? NUM_UBO_DESCRIPTOR_SET_BINDINGS : (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
+        needs_gs_ubo ? NUM_UBO_DESCRIPTOR_SET_BINDINGS : NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1,
         m_bindings.gx_ubo_offsets.data());
     m_dirty_flags &= ~DIRTY_FLAG_GX_UBO_OFFSETS;
   }
@@ -618,7 +618,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
                           &m_bindings.utility_ubo_binding,
                           nullptr};
 
-    m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_UTILITY_UBO) | DIRTY_FLAG_DESCRIPTOR_SETS;
+    m_dirty_flags = m_dirty_flags & ~DIRTY_FLAG_UTILITY_UBO | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
   if (m_dirty_flags & DIRTY_FLAG_UTILITY_BINDINGS || m_utility_descriptor_sets[1] == VK_NULL_HANDLE)
@@ -647,7 +647,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
                           nullptr,
                           m_bindings.texel_buffers.data()};
 
-    m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_UTILITY_BINDINGS) | DIRTY_FLAG_DESCRIPTOR_SETS;
+    m_dirty_flags = m_dirty_flags & ~DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
   if (writes > 0)
@@ -724,7 +724,7 @@ void StateTracker::UpdateComputeDescriptorSet()
     vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<uint32_t>(dswrites.size()),
                            dswrites.data(), 0, nullptr);
     m_dirty_flags =
-        (m_dirty_flags & ~DIRTY_FLAG_COMPUTE_BINDINGS) | DIRTY_FLAG_COMPUTE_DESCRIPTOR_SET;
+        m_dirty_flags & ~DIRTY_FLAG_COMPUTE_BINDINGS | DIRTY_FLAG_COMPUTE_DESCRIPTOR_SET;
   }
 
   if (m_dirty_flags & DIRTY_FLAG_COMPUTE_DESCRIPTOR_SET)

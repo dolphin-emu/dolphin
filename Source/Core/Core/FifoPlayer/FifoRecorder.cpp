@@ -379,7 +379,7 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
     // Record memory update
     MemoryUpdate memUpdate;
     memUpdate.address = address;
-    memUpdate.fifoPosition = (u32)(m_FifoData.size());
+    memUpdate.fifoPosition = (u32)m_FifoData.size();
     memUpdate.type = type;
     memUpdate.data.resize(size);
     std::copy(newData, newData + size, memUpdate.data.begin());

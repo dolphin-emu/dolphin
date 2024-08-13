@@ -674,7 +674,7 @@ u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 {
   const auto it = std::find_if(m_entries.begin(), m_entries.end(),
                                [title_id](const auto& entry) { return entry.second == title_id; });
-  return (it == m_entries.end()) ? 0 : it->first;
+  return it == m_entries.end() ? 0 : it->first;
 }
 
 u32 UIDSys::GetNextUID() const

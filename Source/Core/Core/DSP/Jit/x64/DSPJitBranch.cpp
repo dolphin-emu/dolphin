@@ -168,7 +168,7 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 
 void DSPEmitter::r_jmprcc(const UDSPInstruction opc)
 {
-  u8 reg = (opc >> 5) & 0x7;
+  u8 reg = opc >> 5 & 0x7;
   // reg can only be DSP_REG_ARx and DSP_REG_IXx now,
   // no need to handle DSP_REG_STx.
   dsp_op_read_reg(reg, RAX);
@@ -216,7 +216,7 @@ void DSPEmitter::call(const UDSPInstruction opc)
 
 void DSPEmitter::r_callr(const UDSPInstruction opc)
 {
-  u8 reg = (opc >> 5) & 0x7;
+  u8 reg = opc >> 5 & 0x7;
   MOV(16, R(DX), Imm16(m_compile_pc + 1));
   dsp_reg_store_stack(StackRegister::Call);
   dsp_op_read_reg(reg, RAX);

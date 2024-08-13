@@ -97,7 +97,7 @@ void StateManager::Apply()
     }
   }
 
-  if (dirtyBuffers || (m_dirtyFlags.test(DirtyFlag_InputAssembler)))
+  if (dirtyBuffers || m_dirtyFlags.test(DirtyFlag_InputAssembler))
   {
     if (m_current.vertexBuffer != m_pending.vertexBuffer ||
         m_current.vertexBufferStride != m_pending.vertexBufferStride ||
@@ -316,22 +316,22 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   if (state.tm0.mipmap_filter == FilterMode::Linear)
   {
     if (state.tm0.min_filter == FilterMode::Linear)
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      sampdc.Filter = state.tm0.mag_filter == FilterMode::Linear ?
                           D3D11_FILTER_MIN_MAG_MIP_LINEAR :
                           D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
     else
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      sampdc.Filter = state.tm0.mag_filter == FilterMode::Linear ?
                           D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR :
                           D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
   }
   else
   {
     if (state.tm0.min_filter == FilterMode::Linear)
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      sampdc.Filter = state.tm0.mag_filter == FilterMode::Linear ?
                           D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT :
                           D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
     else
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      sampdc.Filter = state.tm0.mag_filter == FilterMode::Linear ?
                           D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
                           D3D11_FILTER_MIN_MAG_MIP_POINT;
   }

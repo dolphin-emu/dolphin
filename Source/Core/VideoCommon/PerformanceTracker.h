@@ -20,17 +20,17 @@ private:
 
   static inline std::size_t IncrementIndex(const std::size_t index)
   {
-    return (index + 1) & (MAX_DT_QUEUE_SIZE - 1);
+    return index + 1 & MAX_DT_QUEUE_SIZE - 1;
   }
 
   static inline std::size_t DecrementIndex(const std::size_t index)
   {
-    return (index - 1) & (MAX_DT_QUEUE_SIZE - 1);
+    return index - 1 & MAX_DT_QUEUE_SIZE - 1;
   }
 
   static inline std::size_t GetDifference(const std::size_t begin, const std::size_t end)
   {
-    return (end - begin) & (MAX_DT_QUEUE_SIZE - 1);
+    return end - begin & MAX_DT_QUEUE_SIZE - 1;
   }
 
 public:

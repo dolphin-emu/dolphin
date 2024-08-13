@@ -545,7 +545,7 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
       const u32 level_height = std::max(config.height >> level, 1u);
       const size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
       const size_t size = stride * level_height;
-      if ((start + size) > total_size)
+      if (start + size > total_size)
       {
         ERROR_LOG_FMT(VIDEO, "Insufficient texture data for layer {} level {}", layer, level);
         return tex;
@@ -957,12 +957,12 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         MathUtil::Rectangle<int> srcrect, dstrect;
         srcrect.left = src_x;
         srcrect.top = src_y;
-        srcrect.right = (src_x + copy_width);
-        srcrect.bottom = (src_y + copy_height);
+        srcrect.right = src_x + copy_width;
+        srcrect.bottom = src_y + copy_height;
         dstrect.left = dst_x;
         dstrect.top = dst_y;
-        dstrect.right = (dst_x + copy_width);
-        dstrect.bottom = (dst_y + copy_height);
+        dstrect.right = dst_x + copy_width;
+        dstrect.bottom = dst_y + copy_height;
 
         // If one copy is stereo, and the other isn't... not much we can do here :/
         const u32 layers_to_copy = std::min(entry->GetNumLayers(), entry_to_update->GetNumLayers());
@@ -1140,7 +1140,7 @@ public:
       level_pixel_count *= level.shape.height;
 
       // AverageDiff stores the difference sum in a u64, so make sure we can't overflow
-      ASSERT(level_pixel_count < (std::numeric_limits<u64>::max() / (255 * 255 * 4)));
+      ASSERT(level_pixel_count < std::numeric_limits<u64>::max() / (255 * 255 * 4));
 
       // Manually downsample the past downsample with a simple box blur
       // This is not necessarily close to whatever the original artists used, however
@@ -1332,8 +1332,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   if (texture_info.GetPaletteSize() && !IsValidTLUTFormat(texture_info.GetTlutFormat()))
     return {};
 
-  u32 bytes_per_block = (texture_info.GetBlockWidth() * texture_info.GetBlockHeight() *
-                         TexDecoder_GetTexelSizeInNibbles(texture_info.GetTextureFormat())) /
+  u32 bytes_per_block = texture_info.GetBlockWidth() * texture_info.GetBlockHeight() *
+                        TexDecoder_GetTexelSizeInNibbles(texture_info.GetTextureFormat()) /
                         2;
 
   // TODO: the texture cache lookup is based on address, but a texture from tmem has no reason
@@ -2099,12 +2099,12 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
     MathUtil::Rectangle<int> srcrect, dstrect;
     srcrect.left = src_x;
     srcrect.top = src_y;
-    srcrect.right = (src_x + src_width);
-    srcrect.bottom = (src_y + src_height);
+    srcrect.right = src_x + src_width;
+    srcrect.bottom = src_y + src_height;
     dstrect.left = dst_x;
     dstrect.top = dst_y;
-    dstrect.right = (dst_x + dst_width);
-    dstrect.bottom = (dst_y + dst_height);
+    dstrect.right = dst_x + dst_width;
+    dstrect.bottom = dst_y + dst_height;
 
     // We may have to scale if one of the copies is not internal resolution.
     if (srcrect.GetWidth() != dstrect.GetWidth() || srcrect.GetHeight() != dstrect.GetHeight())
@@ -3184,7 +3184,7 @@ u64 TCacheEntry::CalculateHash() const
     {
       // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
       // canceling each other out
-      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, bytes_per_row, samples_per_row);
+      temp_hash = temp_hash * 397 ^ Common::GetHash64(ptr, bytes_per_row, samples_per_row);
       ptr += memory_stride;
     }
     return temp_hash;

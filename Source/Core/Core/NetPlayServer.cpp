@@ -250,7 +250,7 @@ void NetPlayServer::ThreadFunc()
   while (m_do_loop)
   {
     // update pings every so many seconds
-    if ((m_ping_timer.ElapsedMs() > 1000) || m_update_pings)
+    if (m_ping_timer.ElapsedMs() > 1000 || m_update_pings)
     {
       // only used as an identifier, not time value, so truncation is fine
       m_ping_key = static_cast<u32>(Common::Timer::NowMs());
@@ -2406,7 +2406,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
 
       const bool enable_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
       const float bytes_per_second =
-          (std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
+          std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f * 1024.0f;
       const std::chrono::duration<double> send_interval(CHUNKED_DATA_UNIT_SIZE / bytes_per_second);
       bool skip_wait = false;
       size_t index = 0;

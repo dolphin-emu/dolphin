@@ -12,35 +12,35 @@
 // m_components
 enum : u32
 {
-  VB_HAS_POSMTXIDX = (1 << 1),
-  VB_HAS_TEXMTXIDX0 = (1 << 2),
-  VB_HAS_TEXMTXIDX1 = (1 << 3),
-  VB_HAS_TEXMTXIDX2 = (1 << 4),
-  VB_HAS_TEXMTXIDX3 = (1 << 5),
-  VB_HAS_TEXMTXIDX4 = (1 << 6),
-  VB_HAS_TEXMTXIDX5 = (1 << 7),
-  VB_HAS_TEXMTXIDX6 = (1 << 8),
-  VB_HAS_TEXMTXIDX7 = (1 << 9),
-  VB_HAS_TEXMTXIDXALL = (0xff << 2),
+  VB_HAS_POSMTXIDX = 1 << 1,
+  VB_HAS_TEXMTXIDX0 = 1 << 2,
+  VB_HAS_TEXMTXIDX1 = 1 << 3,
+  VB_HAS_TEXMTXIDX2 = 1 << 4,
+  VB_HAS_TEXMTXIDX3 = 1 << 5,
+  VB_HAS_TEXMTXIDX4 = 1 << 6,
+  VB_HAS_TEXMTXIDX5 = 1 << 7,
+  VB_HAS_TEXMTXIDX6 = 1 << 8,
+  VB_HAS_TEXMTXIDX7 = 1 << 9,
+  VB_HAS_TEXMTXIDXALL = 0xff << 2,
 
   // VB_HAS_POS=0, // Implied, it always has pos! don't bother testing
-  VB_HAS_NORMAL = (1 << 10),
-  VB_HAS_TANGENT = (1 << 11),
-  VB_HAS_BINORMAL = (1 << 12),
+  VB_HAS_NORMAL = 1 << 10,
+  VB_HAS_TANGENT = 1 << 11,
+  VB_HAS_BINORMAL = 1 << 12,
 
   VB_COL_SHIFT = 13,
-  VB_HAS_COL0 = (1 << 13),
-  VB_HAS_COL1 = (1 << 14),
+  VB_HAS_COL0 = 1 << 13,
+  VB_HAS_COL1 = 1 << 14,
 
-  VB_HAS_UV0 = (1 << 15),
-  VB_HAS_UV1 = (1 << 16),
-  VB_HAS_UV2 = (1 << 17),
-  VB_HAS_UV3 = (1 << 18),
-  VB_HAS_UV4 = (1 << 19),
-  VB_HAS_UV5 = (1 << 20),
-  VB_HAS_UV6 = (1 << 21),
-  VB_HAS_UV7 = (1 << 22),
-  VB_HAS_UVALL = (0xff << 15),
+  VB_HAS_UV0 = 1 << 15,
+  VB_HAS_UV1 = 1 << 16,
+  VB_HAS_UV2 = 1 << 17,
+  VB_HAS_UV3 = 1 << 18,
+  VB_HAS_UV4 = 1 << 19,
+  VB_HAS_UV5 = 1 << 20,
+  VB_HAS_UV6 = 1 << 21,
+  VB_HAS_UV7 = 1 << 22,
+  VB_HAS_UVALL = 0xff << 15,
   VB_HAS_UVTEXMTXSHIFT = 13,
 };
 
@@ -110,7 +110,7 @@ struct std::hash<PortableVertexDeclaration>
     // Second reduction step to reduce sums to 16 bits
     sum1 = (sum1 & 0xffff) + (sum1 >> 16);
     sum2 = (sum2 & 0xffff) + (sum2 >> 16);
-    return (sum2 << 16 | sum1);
+    return sum2 << 16 | sum1;
   }
   size_t operator()(const PortableVertexDeclaration& decl) const noexcept
   {

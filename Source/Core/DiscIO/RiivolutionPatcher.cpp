@@ -605,7 +605,7 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
         {
           // and replace it with a jump to the given offset
           const u32 target = memory_patch.m_offset | 0x80000000;
-          const u32 jmp = ((target - blr_address) & 0x03fffffc) | 0x48000000;
+          const u32 jmp = target - blr_address & 0x03fffffc | 0x48000000;
           PowerPC::MMU::HostTryWriteU32(guard, jmp, blr_address);
           const u32 overlapping_hook_count =
               HLE::UnpatchRange(system, blr_address, blr_address + 4);

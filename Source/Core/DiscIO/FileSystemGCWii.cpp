@@ -317,7 +317,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
   const size_t name_end = path.find('/', name_start);
   const std::string_view name = path.substr(name_start, name_end - name_start);
   const std::string_view rest_of_path =
-      (name_end != std::string::npos) ? path.substr(name_end + 1) : "";
+      name_end != std::string::npos ? path.substr(name_end + 1) : "";
 
   for (const FileInfo& child : file_info)
   {

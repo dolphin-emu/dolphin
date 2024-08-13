@@ -101,7 +101,7 @@ static u32 EFB_Read(const u32 addr)
   // Convert address to coordinates. It's possible that this should be done
   // differently depending on color depth, especially regarding PeekColor.
   const u32 x = (addr & 0xfff) >> 2;
-  const u32 y = (addr >> 12) & 0x3ff;
+  const u32 y = addr >> 12 & 0x3ff;
 
   if (addr & 0x00800000)
   {
@@ -124,7 +124,7 @@ static u32 EFB_Read(const u32 addr)
 static void EFB_Write(u32 data, u32 addr)
 {
   const u32 x = (addr & 0xfff) >> 2;
-  const u32 y = (addr >> 12) & 0x3ff;
+  const u32 y = addr >> 12 & 0x3ff;
 
   if (addr & 0x00800000)
   {
@@ -154,7 +154,7 @@ T MMU::ReadFromHardware(u32 em_address)
                 flag == XCheckTLBFlag::OpcodeNoException);
 
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
-  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
+  const u32 em_address_end_page = em_address + sizeof(T) - 1 & ~HW_PAGE_MASK;
   if (em_address_start_page != em_address_end_page)
   {
     // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
@@ -164,7 +164,7 @@ T MMU::ReadFromHardware(u32 em_address)
     u64 var = 0;
     for (u32 i = 0; i < sizeof(T); ++i)
     {
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
+      var = var << 8 | ReadFromHardware<flag, u8, never_translate>(em_address + i);
     }
     return static_cast<T>(var);
   }
@@ -199,8 +199,8 @@ T MMU::ReadFromHardware(u32 em_address)
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (m_memory.GetL1Cache() && (em_address >> 28) == 0xE &&
-      (em_address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && em_address >> 28 == 0xE &&
+      em_address < 0xE0000000 + m_memory.GetL1CacheSize())
   {
     T value;
     std::memcpy(&value, &m_memory.GetL1Cache()[em_address & 0x0FFFFFFF], sizeof(T));
@@ -227,7 +227,7 @@ T MMU::ReadFromHardware(u32 em_address)
     return bswap(value);
   }
 
-  if (m_memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
+  if (m_memory.GetEXRAM() && em_address >> 28 == 0x1 &&
       (em_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
   {
     T value;
@@ -249,7 +249,7 @@ T MMU::ReadFromHardware(u32 em_address)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (m_memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && (em_address & 0xFE000000) == 0x7E000000)
   {
     T value;
     std::memcpy(&value, &m_memory.GetFakeVMEM()[em_address & m_memory.GetFakeVMemMask()],
@@ -274,7 +274,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   DEBUG_ASSERT(size <= 4);
 
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
-  const u32 em_address_end_page = (em_address + size - 1) & ~HW_PAGE_MASK;
+  const u32 em_address_end_page = em_address + size - 1 & ~HW_PAGE_MASK;
   if (em_address_start_page != em_address_end_page)
   {
     // The write crosses a page boundary. Break it up into two writes.
@@ -372,14 +372,14 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   const u32 swapped_data = Common::swap32(std::rotr(data, size * 8));
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (m_memory.GetL1Cache() && (em_address >> 28 == 0xE) &&
-      (em_address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && em_address >> 28 == 0xE &&
+      em_address < 0xE0000000 + m_memory.GetL1CacheSize())
   {
     std::memcpy(&m_memory.GetL1Cache()[em_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
-  if (wi && (size < 4 || (em_address & 0x3)))
+  if (wi && (size < 4 || em_address & 0x3))
   {
     // When a write to memory is performed in hardware, 64 bits of data are sent to the memory
     // controller along with a mask. This mask is encoded using just two bits of data - one for
@@ -420,7 +420,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     return;
   }
 
-  if (m_memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
+  if (m_memory.GetEXRAM() && em_address >> 28 == 0x1 &&
       (em_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
   {
     em_address &= 0x0FFFFFFF;
@@ -440,7 +440,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (m_memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && (em_address & 0xFE000000) == 0x7E000000)
   {
     std::memcpy(&m_memory.GetFakeVMEM()[em_address & m_memory.GetFakeVMemMask()], &swapped_data,
                 size);
@@ -491,7 +491,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
 
   u32 hex;
   // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
-  if (m_memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && (address & 0xFE000000) == 0x7E000000)
   {
     hex = Common::swap32(&m_memory.GetFakeVMEM()[address & m_memory.GetFakeVMemMask()]);
   }
@@ -693,7 +693,7 @@ void MMU::Write_U16(const u32 var, const u32 address)
 }
 void MMU::Write_U16_Swap(const u32 var, const u32 address)
 {
-  Write_U16((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address);
+  Write_U16(var & 0xFFFF0000 | Common::swap16(static_cast<u16>(var)), address);
 }
 
 void MMU::Write_U32(const u32 var, const u32 address)
@@ -958,12 +958,12 @@ bool MMU::IsRAMAddress(u32 address, bool translate)
   {
     return true;
   }
-  else if (m_memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
+  else if (m_memory.GetFakeVMEM() && (address & 0xFE000000) == 0x7E000000)
   {
     return true;
   }
   else if (m_memory.GetL1Cache() && segment == 0xE &&
-           (address < (0xE0000000 + m_memory.GetL1CacheSize())))
+           address < 0xE0000000 + m_memory.GetL1CacheSize())
   {
     return true;
   }
@@ -1025,7 +1025,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF));
+      const u32 data = Common::swap32(m_memory.GetL1Cache() + (cache_address + i & 0x3FFFF));
       EFB_Write(data, mem_address + i);
     }
     return;
@@ -1037,7 +1037,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF));
+      const u32 data = Common::swap32(m_memory.GetL1Cache() + (cache_address + i & 0x3FFFF));
       m_memory.GetMMIOMapping()->Write(m_system, mem_address + i, data);
     }
     return;
@@ -1056,7 +1056,7 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
       const u32 data = Common::swap32(EFB_Read(mem_address + i));
-      std::memcpy(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
+      std::memcpy(m_memory.GetL1Cache() + (cache_address + i & 0x3FFFF), &data, sizeof(u32));
     }
     return;
   }
@@ -1069,7 +1069,7 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
     {
       const u32 data =
           Common::swap32(m_memory.GetMMIOMapping()->Read<u32>(m_system, mem_address + i));
-      std::memcpy(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
+      std::memcpy(m_memory.GetL1Cache() + (cache_address + i & 0x3FFFF), &data, sizeof(u32));
     }
     return;
   }
@@ -1083,7 +1083,7 @@ static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* w
   u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
   if ((bat_result & BAT_MAPPED_BIT) == 0)
     return false;
-  *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
+  *address = bat_result & BAT_RESULT_MASK | *address & BAT_PAGE_SIZE - 1;
   *wi = (bat_result & BAT_WI_BIT) != 0;
   return true;
 }
@@ -1229,7 +1229,7 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
-  const bool aligned = (address & ((access_size >> 3) - 1)) == 0;
+  const bool aligned = (address & (access_size >> 3) - 1) == 0;
   if (!aligned || !MMIO::IsMMIOAddress(address, m_system.IsWii()))
     return 0;
 
@@ -1323,7 +1323,7 @@ void MMU::SDRUpdated()
     WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
 
   m_ppc_state.pagetable_base = htaborg << 16;
-  m_ppc_state.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
+  m_ppc_state.pagetable_hashmask = htabmask << 10 | 0x3ff;
 }
 
 enum class TLBLookupResult
@@ -1359,7 +1359,7 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
     if (!IsNoExceptionFlag(flag))
       tlbe.recent = 0;
 
-    *paddr = tlbe.paddr[0] | (vpa & 0xfff);
+    *paddr = tlbe.paddr[0] | vpa & 0xfff;
     *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
@@ -1382,7 +1382,7 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
     if (!IsNoExceptionFlag(flag))
       tlbe.recent = 1;
 
-    *paddr = tlbe.paddr[1] | (vpa & 0xfff);
+    *paddr = tlbe.paddr[1] | vpa & 0xfff;
     *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
@@ -1409,7 +1409,7 @@ static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag
 
 void MMU::InvalidateTLBEntry(u32 address)
 {
-  const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
+  const u32 entry_index = address >> HW_PAGE_INDEX_SHIFT & HW_PAGE_INDEX_MASK;
 
   m_ppc_state.tlb[PowerPC::DATA_TLB_INDEX][entry_index].Invalidate();
   m_ppc_state.tlb[PowerPC::INST_TLB_INDEX][entry_index].Invalidate();
@@ -1450,7 +1450,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
   const u32 api = address.API;                //  6 bit (part of page_index)
 
   // hash function no 1 "xor" .360
-  u32 hash = (VSID ^ page_index);
+  u32 hash = VSID ^ page_index;
 
   UPTE_Lo pte1;
   pte1.VSID = VSID;
@@ -1466,7 +1466,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
       pte1.H = 1;
     }
 
-    u32 pteg_addr = ((hash & m_ppc_state.pagetable_hashmask) << 6) | m_ppc_state.pagetable_base;
+    u32 pteg_addr = (hash & m_ppc_state.pagetable_hashmask) << 6 | m_ppc_state.pagetable_base;
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
@@ -1508,7 +1508,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
         *wi = (pte2.WIMG & 0b1100) != 0;
 
         return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                      (pte2.RPN << 12) | offset};
+                                      pte2.RPN << 12 | offset};
       }
     }
   }
@@ -1610,12 +1610,12 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
 
 void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
 {
-  for (u32 i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
+  for (u32 i = 0; i < 0x10000000 >> BAT_INDEX_SHIFT; ++i)
   {
     // Map from 0x4XXXXXXX or 0x7XXXXXXX to the range
     // [0x7E000000,0x80000000).
     u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
-    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & m_memory.GetFakeVMemMask());
+    u32 p_address = 0x7E000000 | i << BAT_INDEX_SHIFT & m_memory.GetFakeVMemMask();
     u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
 
     if (m_power_pc.GetMemChecks().OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))

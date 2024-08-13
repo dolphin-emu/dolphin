@@ -480,7 +480,7 @@ void OnScreenUI::SetMousePress(u32 button_mask)
 
   for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
   {
-    ImGui::GetIO().AddMouseButtonEvent(static_cast<int>(i), (button_mask & (1u << i)) != 0);
+    ImGui::GetIO().AddMouseButtonEvent(static_cast<int>(i), (button_mask & 1u << i) != 0);
   }
 }
 

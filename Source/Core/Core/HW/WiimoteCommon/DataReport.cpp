@@ -94,9 +94,9 @@ struct IncludeAccel : virtual DataReportManipulator
 
     // LSBs
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    core.acc_bits = (new_accel.value.x >> 0) & 0b11;
-    core.acc_bits2 = (new_accel.value.y >> 1) & 0x1;
-    core.acc_bits2 |= (new_accel.value.z & 0xb10);
+    core.acc_bits = new_accel.value.x >> 0 & 0b11;
+    core.acc_bits2 = new_accel.value.y >> 1 & 0x1;
+    core.acc_bits2 |= new_accel.value.z & 0xb10;
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
@@ -213,7 +213,7 @@ struct ReportInterleave1 : IncludeCore, IncludeIR<IRReportFormat::Full1, 3, 18, 
 
     // Report only contains 4 MSB of Z axis.
     const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    accel->value.z |= (core.acc_bits << 6) | (core.acc_bits2 << 8);
+    accel->value.z |= core.acc_bits << 6 | core.acc_bits2 << 8;
   }
 
   void SetAccelData(const AccelData& accel) override
@@ -221,8 +221,8 @@ struct ReportInterleave1 : IncludeCore, IncludeIR<IRReportFormat::Full1, 3, 18, 
     data_ptr[2] = accel.value.x >> 2;
 
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    core.acc_bits = (accel.value.z >> 6) & 0b11;
-    core.acc_bits2 = (accel.value.z >> 8) & 0b11;
+    core.acc_bits = accel.value.z >> 6 & 0b11;
+    core.acc_bits2 = accel.value.z >> 8 & 0b11;
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
@@ -254,8 +254,8 @@ struct ReportInterleave2 : IncludeCore, IncludeIR<IRReportFormat::Full2, 3, 18, 
     data_ptr[2] = accel.value.y >> 2;
 
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    core.acc_bits = (accel.value.z >> 2) & 0b11;
-    core.acc_bits2 = (accel.value.z >> 4) & 0b11;
+    core.acc_bits = accel.value.z >> 2 & 0b11;
+    core.acc_bits2 = accel.value.z >> 4 & 0b11;
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 

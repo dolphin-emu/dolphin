@@ -172,8 +172,8 @@ bool LaggedFibonacciGenerator::Reinitialize(u32 seed_out[SEED_SIZE])
   // but the observable result (when shifting by 18 instead of 16) is not affected by this.
   for (size_t i = 0; i < SEED_SIZE; ++i)
   {
-    m_buffer[i] = (m_buffer[i] & 0xFF00FFFF) | (m_buffer[i] << 2 & 0x00FC0000) |
-                  ((m_buffer[i + 16] ^ m_buffer[i + 15]) << 9 & 0x00030000);
+    m_buffer[i] = m_buffer[i] & 0xFF00FFFF | m_buffer[i] << 2 & 0x00FC0000 |
+                  (m_buffer[i + 16] ^ m_buffer[i + 15]) << 9 & 0x00030000;
   }
 
   for (size_t i = 0; i < SEED_SIZE; ++i)
@@ -186,11 +186,11 @@ bool LaggedFibonacciGenerator::Initialize(bool check_existing_data)
 {
   for (size_t i = SEED_SIZE; i < LFG_K; ++i)
   {
-    const u32 calculated = (m_buffer[i - 17] << 23) ^ (m_buffer[i - 16] >> 9) ^ m_buffer[i - 1];
+    const u32 calculated = m_buffer[i - 17] << 23 ^ m_buffer[i - 16] >> 9 ^ m_buffer[i - 1];
 
     if (check_existing_data)
     {
-      const u32 actual = (m_buffer[i] & 0xFF00FFFF) | (m_buffer[i] << 2 & 0x00FC0000);
+      const u32 actual = m_buffer[i] & 0xFF00FFFF | m_buffer[i] << 2 & 0x00FC0000;
       if ((calculated & 0xFFFCFFFF) != actual)
         return false;
     }
@@ -201,7 +201,7 @@ bool LaggedFibonacciGenerator::Initialize(bool check_existing_data)
   // Instead of doing the "shift by 18 instead of 16" oddity when actually outputting the data,
   // we can do the shifting (and byteswapping) at this point to make the output code simpler.
   for (u32& x : m_buffer)
-    x = Common::swap32((x & 0xFF00FFFF) | ((x >> 2) & 0x00FF0000));
+    x = Common::swap32(x & 0xFF00FFFF | x >> 2 & 0x00FF0000);
 
   for (size_t i = 0; i < 4; ++i)
     Forward();

@@ -32,14 +32,14 @@ WidescreenManager::WidescreenManager()
 
   m_config_changed = ConfigChangedEvent::Register(
       [this](u32 bits) {
-        if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
+        if (bits & CONFIG_CHANGE_BIT_ASPECT_RATIO)
         {
           std::optional<bool> is_game_widescreen = GetWidescreenOverride();
           // If the widescreen flag isn't being overridden by any settings,
           // reset it to default if heuristic aren't running or to the last
           // heuristic value if they were running.
           if (!is_game_widescreen.has_value())
-            is_game_widescreen = (m_heuristic_state == HeuristicState::Active_Found_Anamorphic);
+            is_game_widescreen = m_heuristic_state == HeuristicState::Active_Found_Anamorphic;
           if (is_game_widescreen.has_value())
             m_is_game_widescreen = is_game_widescreen.value();
         }

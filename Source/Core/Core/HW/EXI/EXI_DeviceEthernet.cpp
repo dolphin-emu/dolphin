@@ -131,9 +131,9 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     transfer.valid = true;
     transfer.region = IsMXCommand(data) ? transfer.MX : transfer.EXI;
     if (transfer.region == transfer.EXI)
-      transfer.address = ((data & ~0xc000) >> 8) & 0xff;
+      transfer.address = (data & ~0xc000) >> 8 & 0xff;
     else
-      transfer.address = (data >> 8) & 0xffff;
+      transfer.address = data >> 8 & 0xffff;
     transfer.direction = IsWriteCommand(data) ? transfer.WRITE : transfer.READ;
 
     DEBUG_LOG_FMT(SP1, "{} {} {} {:x}", IsMXCommand(data) ? "mx " : "exi",
@@ -213,7 +213,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
   else
   {
     for (int i = size - 1; i >= 0; i--)
-      ret |= mBbaMem[transfer.address++] << (i * 8);
+      ret |= mBbaMem[transfer.address++] << i * 8;
   }
 
   DEBUG_LOG_FMT(SP1, "imm r{}: {:x}", size, ret);
@@ -257,12 +257,12 @@ void CEXIETHERNET::DoState(PointerWrap& p)
 
 bool CEXIETHERNET::IsMXCommand(u32 const data)
 {
-  return !!(data & (1 << 31));
+  return !!(data & 1 << 31);
 }
 
 bool CEXIETHERNET::IsWriteCommand(u32 const data)
 {
-  return IsMXCommand(data) ? !!(data & (1 << 30)) : !!(data & (1 << 14));
+  return IsMXCommand(data) ? !!(data & 1 << 30) : !!(data & 1 << 14);
 }
 
 const char* CEXIETHERNET::GetRegisterName() const
@@ -363,9 +363,9 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
       // MXSoftReset();
       m_network_interface->Activate();
     }
-    if (((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR)) != 0)
+    if ((mBbaMem[BBA_NCRA] & NCRA_SR ^ data & NCRA_SR) != 0)
     {
-      DEBUG_LOG_FMT(SP1, "{} rx", (data & NCRA_SR) ? "start" : "stop");
+      DEBUG_LOG_FMT(SP1, "{} rx", data & NCRA_SR ? "start" : "stop");
 
       if ((data & NCRA_SR) != 0)
         m_network_interface->RecvStart();
@@ -406,7 +406,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
     return;
 
   case BBA_IR:
-    data &= (data & 0xff) ^ 0xff;
+    data &= data & 0xff ^ 0xff;
     goto write_to_register;
 
   case BBA_TXFIFOCNT:
@@ -419,7 +419,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   default:
     for (int i = size - 1; i >= 0; i--)
     {
-      mBbaMem[transfer.address++] = (data >> (i * 8)) & 0xff;
+      mBbaMem[transfer.address++] = data >> i * 8 & 0xff;
     }
     return;
   }
@@ -479,11 +479,11 @@ inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
     u8 cur_byte = dest_eth_addr[byte_num];
     for (size_t bit = 0; bit < 8; ++bit)
     {
-      u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
+      u8 carry = crc >> 31 & 1 ^ cur_byte & 1;
       crc <<= 1;
       cur_byte >>= 1;
       if (carry)
-        crc = (crc ^ 0x4c11db6) | carry;
+        crc = crc ^ 0x4c11db6 | carry;
     }
   }
 
@@ -518,7 +518,7 @@ inline bool CEXIETHERNET::RecvMACFilter()
   {
     // Lookup the dest eth address in the hashmap
     u16 index = HashIndex(mRecvBuffer.get());
-    return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
+    return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & 1 << index % 8);
   }
 }
 

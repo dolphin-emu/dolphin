@@ -30,11 +30,11 @@ void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, 
     {
       int dst_x = dstrect.left + x_off;
       int dst_y = dstrect.top + y_off;
-      int dst_offset = (dst_y * dst_width) + dst_x;
+      int dst_offset = dst_y * dst_width + dst_x;
 
       int src_x = srcrect.left + static_cast<int>(std::round(x_off * x_ratio));
       int src_y = srcrect.top + static_cast<int>(std::round(y_off * y_ratio));
-      int src_offset = (src_y * src_width) + src_x;
+      int src_offset = src_y * src_width + src_x;
 
       destination[dst_offset] = source[src_offset];
     }

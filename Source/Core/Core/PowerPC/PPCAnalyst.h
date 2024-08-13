@@ -141,41 +141,41 @@ public:
     // If the JIT core supports conditional branches within the blocks
     // Block will end on unconditional branch or other ENDBLOCK flagged instruction.
     // Requires JIT support to be enabled.
-    OPTION_CONDITIONAL_CONTINUE = (1 << 0),
+    OPTION_CONDITIONAL_CONTINUE = 1 << 0,
 
     // Try to inline unconditional branches/calls/returns.
     // Also track the LR value to follow unconditional return instructions.
     // Might require JIT intervention to support it correctly.
     // Especially if the BLR optimization is used.
-    OPTION_BRANCH_FOLLOW = (1 << 1),
+    OPTION_BRANCH_FOLLOW = 1 << 1,
 
     // Complex blocks support jumping backwards on to themselves.
     // Happens commonly in loops, pretty complex to support.
     // May require register caches to use register usage metrics.
     // XXX: NOT COMPLETE
-    OPTION_COMPLEX_BLOCK = (1 << 2),
+    OPTION_COMPLEX_BLOCK = 1 << 2,
 
     // Similar to complex blocks.
     // Instead of jumping backwards, this jumps forwards within the block.
     // Requires JIT support to work.
     // XXX: NOT COMPLETE
-    OPTION_FORWARD_JUMP = (1 << 3),
+    OPTION_FORWARD_JUMP = 1 << 3,
 
     // Reorder compare/Rc instructions next to their associated branches and
     // merge in the JIT (for common cases, anyway).
-    OPTION_BRANCH_MERGE = (1 << 4),
+    OPTION_BRANCH_MERGE = 1 << 4,
 
     // Reorder carry instructions next to their associated branches and pass
     // carry flags in the x86 flags between them, instead of in XER.
-    OPTION_CARRY_MERGE = (1 << 5),
+    OPTION_CARRY_MERGE = 1 << 5,
 
     // Reorder cror instructions next to their associated fcmp.
-    OPTION_CROR_MERGE = (1 << 6),
+    OPTION_CROR_MERGE = 1 << 6,
   };
 
   // Option setting/getting
   void SetOption(AnalystOption option) { m_options |= option; }
-  void ClearOption(AnalystOption option) { m_options &= ~(option); }
+  void ClearOption(AnalystOption option) { m_options &= ~option; }
   bool HasOption(AnalystOption option) const { return !!(m_options & option); }
   void SetDebuggingEnabled(bool enabled) { m_is_debugging_enabled = enabled; }
   void SetBranchFollowingEnabled(bool enabled) { m_enable_branch_following = enabled; }

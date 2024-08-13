@@ -22,7 +22,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
-  update &= indexed || (inst.SIMM_16 != 0);
+  update &= indexed || inst.SIMM_16 != 0;
 
   int d = inst.RD;
   int a = inst.RA;
@@ -93,7 +93,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
-  update &= indexed || (inst.SIMM_16 != 0);
+  update &= indexed || inst.SIMM_16 != 0;
 
   int s = inst.RS;
   int a = inst.RA;

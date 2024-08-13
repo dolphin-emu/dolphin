@@ -155,7 +155,7 @@ bool SysConf::Save() const
 
     // Entry metadata (type and name)
     entries.insert(entries.end(),
-                   (static_cast<u8>(item.type) << 5) | (static_cast<u8>(item.name.size()) - 1));
+                   static_cast<u8>(item.type) << 5 | static_cast<u8>(item.name.size()) - 1);
     entries.insert(entries.end(), item.name.cbegin(), item.name.cend());
 
     // Entry data

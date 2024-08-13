@@ -86,8 +86,8 @@ public:
     void SetRightStick(const StickType& value)
     {
       rx1 = value.x & 0b1;
-      rx2 = (value.x >> 1) & 0b11;
-      rx3 = (value.x >> 3) & 0b11;
+      rx2 = value.x >> 1 & 0b11;
+      rx3 = value.x >> 3 & 0b11;
       ry = value.y;
     }
     // 5-bit values (0-31)
@@ -95,7 +95,7 @@ public:
     void SetLeftTrigger(TriggerType value)
     {
       lt1 = value & 0b111;
-      lt2 = (value >> 3) & 0b11;
+      lt2 = value >> 3 & 0b11;
     }
     auto GetRightTrigger() const { return TriggerRawValue(rt); }
     void SetRightTrigger(TriggerType value) { rt = value; }
@@ -208,11 +208,11 @@ public:
   static constexpr u8 CAL_STICK_RADIUS = 0x7f;
   static constexpr u8 CAL_STICK_RANGE = 0xff;
 
-  static constexpr u8 LEFT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS);
-  static constexpr u8 LEFT_STICK_RANGE = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS);
+  static constexpr u8 LEFT_STICK_CENTER = CAL_STICK_CENTER >> CAL_STICK_BITS - LEFT_STICK_BITS;
+  static constexpr u8 LEFT_STICK_RANGE = CAL_STICK_RANGE >> CAL_STICK_BITS - LEFT_STICK_BITS;
 
-  static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
-  static constexpr u8 RIGHT_STICK_RANGE = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
+  static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> CAL_STICK_BITS - RIGHT_STICK_BITS;
+  static constexpr u8 RIGHT_STICK_RANGE = CAL_STICK_RANGE >> CAL_STICK_BITS - RIGHT_STICK_BITS;
 
   static constexpr u8 TRIGGER_RANGE = 0x1F;
 

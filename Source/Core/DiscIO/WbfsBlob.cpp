@@ -104,7 +104,7 @@ bool WbfsFileReader::ReadHeader()
   m_header.hd_sector_count = Common::swap32(m_header.hd_sector_count);
   m_hd_sector_size = 1ull << m_header.hd_sector_shift;
 
-  if (m_size != (m_header.hd_sector_count * m_hd_sector_size))
+  if (m_size != m_header.hd_sector_count * m_hd_sector_size)
     return false;
 
   // Read wbfs cluster info
@@ -151,16 +151,16 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
 File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 {
-  u64 base_cluster = (offset >> m_header.wbfs_sector_shift);
+  u64 base_cluster = offset >> m_header.wbfs_sector_shift;
   if (base_cluster < m_blocks_per_disc)
   {
     u64 cluster_address = m_wbfs_sector_size * m_wlba_table[base_cluster];
-    u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
+    u64 cluster_offset = offset & m_wbfs_sector_size - 1;
     u64 final_address = cluster_address + cluster_offset;
 
     for (FileEntry& file_entry : m_files)
     {
-      if (final_address < (file_entry.base_address + file_entry.size))
+      if (final_address < file_entry.base_address + file_entry.size)
       {
         file_entry.file.Seek(final_address - file_entry.base_address, File::SeekOrigin::Begin);
         if (available)

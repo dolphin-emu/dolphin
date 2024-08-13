@@ -326,10 +326,10 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   case ExpansionInterface::Slot::A:
   case ExpansionInterface::Slot::B:
   {
-    has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
-                  device == ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
-                  device == ExpansionInterface::EXIDeviceType::AGP ||
-                  device == ExpansionInterface::EXIDeviceType::Microphone);
+    has_config = device == ExpansionInterface::EXIDeviceType::MemoryCard ||
+                 device == ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
+                 device == ExpansionInterface::EXIDeviceType::AGP ||
+                 device == ExpansionInterface::EXIDeviceType::Microphone;
     const bool hide_memory_card = device != ExpansionInterface::EXIDeviceType::MemoryCard ||
                                   Config::IsDefaultMemcardPathConfigured(slot);
     const bool hide_gci_path = device != ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
@@ -352,11 +352,11 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
     break;
   }
   case ExpansionInterface::Slot::SP1:
-    has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
-                  device == ExpansionInterface::EXIDeviceType::EthernetXLink ||
-                  device == ExpansionInterface::EXIDeviceType::EthernetTapServer ||
-                  device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn ||
-                  device == ExpansionInterface::EXIDeviceType::ModemTapServer);
+    has_config = device == ExpansionInterface::EXIDeviceType::Ethernet ||
+                 device == ExpansionInterface::EXIDeviceType::EthernetXLink ||
+                 device == ExpansionInterface::EXIDeviceType::EthernetTapServer ||
+                 device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn ||
+                 device == ExpansionInterface::EXIDeviceType::ModemTapServer;
     break;
   }
 

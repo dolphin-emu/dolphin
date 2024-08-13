@@ -134,10 +134,10 @@ public:
     ClearAll();
   }
 
-  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
-  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
+  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << bit % 32; }
+  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << bit % 32); }
   void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
-  bool Test(u32 bit) const { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
+  bool Test(u32 bit) const { return (m_valid_block[bit / 32] & 1u << bit % 32) != 0; }
 };
 
 class JitBaseBlockCache

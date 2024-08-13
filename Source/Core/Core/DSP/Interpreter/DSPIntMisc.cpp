@@ -17,7 +17,7 @@ namespace DSP::Interpreter
 void Interpreter::mrr(const UDSPInstruction opc)
 {
   const u8 sreg = opc & 0x1f;
-  const u8 dreg = (opc >> 5) & 0x1f;
+  const u8 dreg = opc >> 5 & 0x1f;
 
   OpWriteRegister(dreg, OpReadRegister(sreg));
 
@@ -48,7 +48,7 @@ void Interpreter::lri(const UDSPInstruction opc)
 // Load immediate value I (8-bit sign extended) to accumulator register.
 void Interpreter::lris(const UDSPInstruction opc)
 {
-  const u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
+  const u8 reg = (opc >> 8 & 0x7) + DSP_REG_AXL0;
   const u16 imm = static_cast<u16>(static_cast<s8>(opc));
 
   OpWriteRegister(reg, imm);
@@ -111,7 +111,7 @@ void Interpreter::addarn(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
   const u8 dreg = opc & 0x3;
-  const u8 sreg = (opc >> 2) & 0x3;
+  const u8 sreg = opc >> 2 & 0x3;
 
   state.r.ar[dreg] = IncreaseAddressRegister(dreg, static_cast<s16>(state.r.ix[sreg]));
 }
@@ -139,7 +139,7 @@ void Interpreter::sbset(const UDSPInstruction opc)
   auto& state = m_dsp_core.DSPState();
   const u8 bit = (opc & 0x7) + 6;
 
-  state.r.sr |= (1U << bit);
+  state.r.sr |= 1U << bit;
 }
 
 // This is a bunch of flag setters, flipping bits in SR.
@@ -148,7 +148,7 @@ void Interpreter::srbith(const UDSPInstruction opc)
   auto& state = m_dsp_core.DSPState();
 
   ZeroWriteBackLog();
-  switch ((opc >> 8) & 0x7)
+  switch (opc >> 8 & 0x7)
   {
   case 2:  // M2
     state.r.sr &= ~SR_MUL_MODIFY;

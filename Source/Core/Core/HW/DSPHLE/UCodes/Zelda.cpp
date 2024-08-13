@@ -199,7 +199,7 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       if ((mail & TASK_MAIL_MASK) != TASK_MAIL_TO_DSP)
       {
         WARN_LOG_FMT(DSPHLE, "Received rendering end mail without prefix CDD1: {:08x}", mail);
-        mail = TASK_MAIL_TO_DSP | (mail & ~TASK_MAIL_MASK);
+        mail = TASK_MAIL_TO_DSP | mail & ~TASK_MAIL_MASK;
         // The actual uCode does not check for the CDD1 prefix.
       }
 
@@ -270,8 +270,8 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
     }
     else
     {
-      m_sync_max_voice_id = (((mail >> 16) & 0xF) + 1) << 4;
-      m_sync_voice_skip_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
+      m_sync_max_voice_id = (mail >> 16 & 0xF) + 1 << 4;
+      m_sync_voice_skip_flags[mail >> 16 & 0xFF] = mail & 0xFFFF;
       RenderAudio();
       SetMailState(MailState::WAITING);
     }
@@ -309,7 +309,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
     // an asynchronous procedure, and we wouldn't want that, would we?
     Write32(mail);
 
-    switch ((mail >> 24) & 0x7F)
+    switch (mail >> 24 & 0x7F)
     {
     case 0x00:
       m_mail_expected_cmd_mails = 0;
@@ -415,7 +415,7 @@ void ZeldaUCode::RunPendingCommands()
     if ((cmd_mail & 0x80000000) == 0)
       continue;
 
-    const u32 command = (cmd_mail >> 24) & 0x7f;
+    const u32 command = cmd_mail >> 24 & 0x7f;
     const u32 sync = cmd_mail >> 16;
     const u32 extra_data = cmd_mail & 0xFFFF;
 
@@ -507,7 +507,7 @@ void ZeldaUCode::RunPendingCommands()
     // not break. This is because it hijacks the mail control flow and
     // stops processing of further commands until audio processing is done.
     case 0x02:
-      m_rendering_requested_frames = (cmd_mail >> 16) & 0xFF;
+      m_rendering_requested_frames = cmd_mail >> 16 & 0xFF;
       m_renderer.SetOutputVolume(cmd_mail & 0xFFFF);
       m_renderer.SetOutputLeftBufferAddr(Read32());
       m_renderer.SetOutputRightBufferAddr(Read32());
@@ -596,7 +596,7 @@ void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
     // The light protocol uses the address of the command handler in the
     // DSP code instead of the command id... go figure.
     // FIXME: LLE returns a different value
-    sync_value = 2 * ((sync_value >> 8) & 0x7F) + 0x62;
+    sync_value = 2 * (sync_value >> 8 & 0x7F) + 0x62;
     m_mail_handler.PushMail(0x80000000 | sync_value);
   }
   else
@@ -641,7 +641,7 @@ void ZeldaUCode::RenderAudio()
       // Test the sync flag for this voice, skip it if not set.
       u16 flags = m_sync_voice_skip_flags[m_rendering_curr_voice >> 4];
       u8 bit = 0xF - (m_rendering_curr_voice & 0xF);
-      if (flags & (1 << bit))
+      if (flags & 1 << bit)
         m_renderer.AddVoice(m_rendering_curr_voice);
 
       m_rendering_curr_voice++;
@@ -737,7 +737,7 @@ struct ZeldaAudioRenderer::VPB
   // (left/right) and Y (front/back) coordinates of the sound. 0x00 is all
   // right/back, 0x7F is all left/front. Format is 0XXXXXXX0YYYYYYY.
   u16 dolby_voice_position;
-  u8 GetDolbyVoiceX() const { return (dolby_voice_position >> 8) & 0x7F; }
+  u8 GetDolbyVoiceX() const { return dolby_voice_position >> 8 & 0x7F; }
   u8 GetDolbyVoiceY() const { return dolby_voice_position & 0x7F; }
   // How much reverbation to apply to the Dolby mixed voice. 0 is none,
   // 0x7FFF is the maximum value.
@@ -1022,8 +1022,8 @@ void ZeldaAudioRenderer::PrepareFrame()
   yn2 = pattern3[0x40 - 2];
   yn1 = pattern3[0x40 - 1];
   s16 acc = yn1;
-  s16 step = pattern3[0] + ((yn1 * yn2 + ((yn2 << 16) + yn1)) >> 16);
-  step = (step & 0x1FF) | 0x2000;
+  s16 step = pattern3[0] + (yn1 * yn2 + ((yn2 << 16) + yn1) >> 16);
+  step = step & 0x1FF | 0x2000;
   for (s32 i = 0; i < 0x40; ++i)
     pattern3[i] = acc + (i + 1) * step;
 
@@ -1204,12 +1204,12 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
     s16 front_volume = m_sine_table[vpb.GetDolbyVoiceY() ^ 0x7F];
 
     // Compute volume for each quadrant.
-    u16 shift_factor = (m_flags & MAKE_DOLBY_LOUDER) ? 15 : 16;
+    u16 shift_factor = m_flags & MAKE_DOLBY_LOUDER ? 15 : 16;
     s16 quadrant_volumes[4] = {
-        (s16)((left_volume * front_volume) >> shift_factor),
-        (s16)((left_volume * back_volume) >> shift_factor),
-        (s16)((right_volume * front_volume) >> shift_factor),
-        (s16)((right_volume * back_volume) >> shift_factor),
+        (s16)(left_volume * front_volume >> shift_factor),
+        (s16)(left_volume * back_volume >> shift_factor),
+        (s16)(right_volume * front_volume >> shift_factor),
+        (s16)(right_volume * back_volume >> shift_factor),
     };
 
     // Compute the volume delta for each sample to match the difference
@@ -1217,18 +1217,18 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
     s16 delta = vpb.dolby_volume_target - vpb.dolby_volume_current;
     s16 volume_deltas[4];
     for (size_t i = 0; i < 4; ++i)
-      volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> shift_factor;
+      volume_deltas[i] = (u16)quadrant_volumes[i] * delta >> shift_factor;
 
     // Apply master volume to each quadrant.
     for (s16& quadrant_volume : quadrant_volumes)
-      quadrant_volume = (quadrant_volume * vpb.dolby_volume_current) >> shift_factor;
+      quadrant_volume = quadrant_volume * vpb.dolby_volume_current >> shift_factor;
 
     // Compute reverb volume and ramp deltas.
     s16 reverb_volumes[4], reverb_volume_deltas[4];
     for (size_t i = 0; i < 4; ++i)
     {
-      reverb_volumes[i] = (quadrant_volumes[i] * vpb.dolby_reverb_factor) >> shift_factor;
-      reverb_volume_deltas[i] = (volume_deltas[i] * vpb.dolby_reverb_factor) >> shift_factor;
+      reverb_volumes[i] = quadrant_volumes[i] * vpb.dolby_reverb_factor >> shift_factor;
+      reverb_volume_deltas[i] = volume_deltas[i] * vpb.dolby_reverb_factor >> shift_factor;
     }
 
     struct
@@ -1259,14 +1259,14 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
   {
     // TODO: Store input samples if requested by the VPB.
 
-    int num_channels = (m_flags & FOUR_MIXING_DESTS) ? 4 : 6;
+    int num_channels = m_flags & FOUR_MIXING_DESTS ? 4 : 6;
     if (vpb.end_requested)
     {
       bool all_mute = true;
       for (int i = 0; i < num_channels; ++i)
       {
         vpb.channels[i].target_volume = vpb.channels[i].current_volume / 2;
-        all_mute &= (vpb.channels[i].target_volume == 0);
+        all_mute &= vpb.channels[i].target_volume == 0;
       }
       if (all_mute)
         vpb.done = true;
@@ -1351,7 +1351,7 @@ void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
   // A few versions of the UCode have VPB of size 0x80 (vs. the standard
   // 0xC0). The whole 0x40-0x80 part is gone. Handle that by moving things
   // around.
-  size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
+  size_t vpb_size = m_flags & TINY_VPB ? 0x80 : 0xC0;
 
   size_t base_idx = voice_id * vpb_size;
   for (size_t i = 0; i < vpb_size; ++i)
@@ -1367,7 +1367,7 @@ void ZeldaAudioRenderer::StoreVPB(u16 voice_id, VPB* vpb)
   u16* vpb_words = (u16*)vpb;
   u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(memory, m_vpb_base_addr);
 
-  size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
+  size_t vpb_size = m_flags & TINY_VPB ? 0x80 : 0xC0;
   size_t base_idx = voice_id * vpb_size;
 
   if (m_flags & TINY_VPB)
@@ -1411,10 +1411,10 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     u32 pos = vpb->current_pos_frac << shift;
     for (s16& sample : *buffer)
     {
-      sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
+      sample = pos >> 16 & mask ? 0xC000 : 0x4000;
       pos += vpb->resampling_ratio;
     }
-    vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
+    vpb->current_pos_frac = pos >> shift & 0xFFFF;
     break;
   }
 
@@ -1424,7 +1424,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     for (s16& sample : *buffer)
     {
       sample = pos & 0xFFFF;
-      pos += (vpb->resampling_ratio) >> 1;
+      pos += vpb->resampling_ratio >> 1;
     }
     vpb->current_pos_frac = pos & 0xFFFF;
     break;
@@ -1460,7 +1460,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
       (*buffer)[i] = pattern[pos >> 16];
       pos = (pos + step) % (PATTERN_SIZE << 16);
       if (pattern_info.variable_step)
-        pos = ((pos << 10) + m_buf_back_right[i] * vpb->resampling_ratio) >> 10;
+        pos = (pos << 10) + m_buf_back_right[i] * vpb->resampling_ratio >> 10;
     }
 
     vpb->current_pos_frac = pos >> 6;
@@ -1498,7 +1498,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 u16 ZeldaAudioRenderer::NeededRawSamplesCount(const VPB& vpb)
 {
   // Both of these are 4.12 fixed point, so shift by 12 to get the int part.
-  return (vpb.current_pos_frac + 0x50 * vpb.resampling_ratio) >> 12;
+  return vpb.current_pos_frac + 0x50 * vpb.resampling_ratio >> 12;
 }
 
 void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
@@ -1509,7 +1509,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 
   // Check if we need to do some interpolation. If the resampling ratio is
   // more than 4:1, it's not worth it.
-  if ((ratio >> 12) >= 4)
+  if (ratio >> 12 >= 4)
   {
     for (s16& dst_sample : *dst)
     {
@@ -1592,7 +1592,7 @@ void ZeldaAudioRenderer::DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
     u16 samples_to_download = std::min(vpb->GetRemainingLength(), (u32)requested_samples_count);
 
     for (u16 i = 0; i < samples_to_download; ++i)
-      *dst++ = Common::FromBigEndian<T>(*src_ptr++) << (16 - 8 * sizeof(T));
+      *dst++ = Common::FromBigEndian<T>(*src_ptr++) << 16 - 8 * sizeof(T);
 
     vpb->SetRemainingLength(vpb->GetRemainingLength() - samples_to_download);
     vpb->SetCurrentARAMAddr(vpb->GetCurrentARAMAddr() + samples_to_download * sizeof(T));
@@ -1639,7 +1639,7 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
     else if (requested_samples_count <= vpb->GetRemainingLength())
     {
       // Each AFC block is 16 samples.
-      u16 requested_blocks_count = (requested_samples_count + 0xF) >> 4;
+      u16 requested_blocks_count = requested_samples_count + 0xF >> 4;
       u16 decoded_samples_count = requested_blocks_count << 4;
 
       if (decoded_samples_count < vpb->GetRemainingLength())
@@ -1663,7 +1663,7 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
         if (!vpb->GetRemainingLength() && vpb->GetLoopStartPosition())
         {
           // Adjust remaining samples to account for the future loop iteration.
-          base = vpb->afc_remaining_samples + ((vpb->GetLoopStartPosition() + 0xF) & 0xF);
+          base = vpb->afc_remaining_samples + (vpb->GetLoopStartPosition() + 0xF & 0xF);
           for (size_t i = 0; i < vpb->afc_remaining_decoded_samples; ++i)
             vpb->afc_remaining_samples[0x10 - i - 1] = *base--;
         }
@@ -1678,7 +1678,7 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
       if (vpb->GetRemainingLength())  // Skip if we cannot load anything.
       {
         requested_samples_count -= vpb->GetRemainingLength();
-        u16 requested_blocks_count = (vpb->GetRemainingLength() + 0xF) >> 4;
+        u16 requested_blocks_count = vpb->GetRemainingLength() + 0xF >> 4;
         DecodeAFC(vpb, dst, requested_blocks_count);
         dst += vpb->GetRemainingLength();
       }
@@ -1729,8 +1729,8 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
   for (size_t b = 0; b < block_count; ++b)
   {
     s16 nibbles[16];
-    s16 delta = 1 << ((*src >> 4) & 0xF);
-    s16 idx = (*src & 0xF);
+    s16 delta = 1 << (*src >> 4 & 0xF);
+    s16 idx = *src & 0xF;
     src++;
 
     if (vpb->samples_source_type == VPB::SRC_AFC_HQ_FROM_ARAM)
@@ -1750,10 +1750,10 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
       // 2-bit samples
       for (size_t i = 0; i < 16; i += 4)
       {
-        nibbles[i + 0] = (*src >> 6) & 3;
-        nibbles[i + 1] = (*src >> 4) & 3;
-        nibbles[i + 2] = (*src >> 2) & 3;
-        nibbles[i + 3] = (*src >> 0) & 3;
+        nibbles[i + 0] = *src >> 6 & 3;
+        nibbles[i + 1] = *src >> 4 & 3;
+        nibbles[i + 2] = *src >> 2 & 3;
+        nibbles[i + 3] = *src >> 0 & 3;
         src++;
       }
       for (auto& nibble : nibbles)

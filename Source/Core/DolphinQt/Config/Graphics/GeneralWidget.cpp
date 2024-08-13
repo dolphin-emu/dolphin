@@ -157,8 +157,8 @@ void GeneralWidget::ConnectWidgets()
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
   connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
-    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
-                                        (index == static_cast<int>(AspectMode::CustomStretch));
+    const bool is_custom_aspect_ratio = index == static_cast<int>(AspectMode::Custom) ||
+                                        index == static_cast<int>(AspectMode::CustomStretch);
     m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -174,8 +174,8 @@ void GeneralWidget::LoadSettings()
       QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
 
   const bool is_custom_aspect_ratio =
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
+      Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom ||
+      Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch;
   m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);

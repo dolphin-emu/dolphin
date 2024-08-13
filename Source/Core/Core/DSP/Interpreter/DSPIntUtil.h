@@ -15,15 +15,15 @@ namespace DSP::Interpreter
 // s64 -> s40
 inline s64 dsp_convert_long_acc(s64 val)
 {
-  return ((val << 24) >> 24);
+  return val << 24 >> 24;
 }
 
 inline s64 dsp_round_long_acc(s64 val)
 {
   if ((val & 0x10000) != 0)
-    val = (val + 0x8000) & ~0xffff;
+    val = val + 0x8000 & ~0xffff;
   else
-    val = (val + 0x7fff) & ~0xffff;
+    val = val + 0x7fff & ~0xffff;
 
   return val;
 }

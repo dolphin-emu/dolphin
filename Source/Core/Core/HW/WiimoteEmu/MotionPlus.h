@@ -119,27 +119,27 @@ public:
 
   static constexpr int CALIBRATION_BITS = 16;
 
-  static constexpr u16 CALIBRATION_ZERO = 1 << (CALIBRATION_BITS - 1);
+  static constexpr u16 CALIBRATION_ZERO = 1 << CALIBRATION_BITS - 1;
   // Values are similar to that of a typical real M+.
   static constexpr u16 CALIBRATION_SCALE_OFFSET = 0x4400;
   static constexpr u16 CALIBRATION_FAST_SCALE_DEGREES = 0x4b0;
   static constexpr u16 CALIBRATION_SLOW_SCALE_DEGREES = 0x10e;
 
   static constexpr int BITS_OF_PRECISION = 14;
-  static constexpr s32 ZERO_VALUE = CALIBRATION_ZERO >> (CALIBRATION_BITS - BITS_OF_PRECISION);
+  static constexpr s32 ZERO_VALUE = CALIBRATION_ZERO >> CALIBRATION_BITS - BITS_OF_PRECISION;
   static constexpr s32 MAX_VALUE = (1 << BITS_OF_PRECISION) - 1;
 
   static constexpr u16 VALUE_SCALE =
-      (CALIBRATION_SCALE_OFFSET >> (CALIBRATION_BITS - BITS_OF_PRECISION));
+      CALIBRATION_SCALE_OFFSET >> CALIBRATION_BITS - BITS_OF_PRECISION;
   static constexpr float VALUE_SCALE_DEGREES = VALUE_SCALE / float(MathUtil::TAU) * 360;
 
   static constexpr float SLOW_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_SLOW_SCALE_DEGREES;
   static constexpr float FAST_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_FAST_SCALE_DEGREES;
 
-  static_assert(ZERO_VALUE == 1 << (BITS_OF_PRECISION - 1),
+  static_assert(ZERO_VALUE == 1 << BITS_OF_PRECISION - 1,
                 "SLOW_MAX_RAD_PER_SEC assumes calibrated zero is at center of sensor values.");
 
-  static constexpr u16 SENSOR_RANGE = 1 << (BITS_OF_PRECISION - 1);
+  static constexpr u16 SENSOR_RANGE = 1 << BITS_OF_PRECISION - 1;
   static constexpr float SLOW_MAX_RAD_PER_SEC = SENSOR_RANGE / SLOW_SCALE;
   static constexpr float FAST_MAX_RAD_PER_SEC = SENSOR_RANGE / FAST_SCALE;
 

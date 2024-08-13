@@ -83,30 +83,30 @@ struct CtrlRegister
   u8 IY2 : 1;
 
   CtrlRegister() { X1 = X2 = Y1 = Y2 = IX1 = IX2 = IY1 = IY2 = 0; }
-  inline u8 ppc() { return (IY2 << 5) | (IY1 << 4) | (X2 << 3) | (Y1 << 2) | (Y2 << 1) | X1; }
-  inline u8 arm() { return (IX2 << 5) | (IX1 << 4) | (Y2 << 3) | (X1 << 2) | (X2 << 1) | Y1; }
+  inline u8 ppc() { return IY2 << 5 | IY1 << 4 | X2 << 3 | Y1 << 2 | Y2 << 1 | X1; }
+  inline u8 arm() { return IX2 << 5 | IX1 << 4 | Y2 << 3 | X1 << 2 | X2 << 1 | Y1; }
   inline void ppc(u32 v)
   {
     X1 = v & 1;
-    X2 = (v >> 3) & 1;
-    if ((v >> 2) & 1)
+    X2 = v >> 3 & 1;
+    if (v >> 2 & 1)
       Y1 = 0;
-    if ((v >> 1) & 1)
+    if (v >> 1 & 1)
       Y2 = 0;
-    IY1 = (v >> 4) & 1;
-    IY2 = (v >> 5) & 1;
+    IY1 = v >> 4 & 1;
+    IY2 = v >> 5 & 1;
   }
 
   inline void arm(u32 v)
   {
     Y1 = v & 1;
-    Y2 = (v >> 3) & 1;
-    if ((v >> 2) & 1)
+    Y2 = v >> 3 & 1;
+    if (v >> 2 & 1)
       X1 = 0;
-    if ((v >> 1) & 1)
+    if (v >> 1 & 1)
       X2 = 0;
-    IX1 = (v >> 4) & 1;
-    IX2 = (v >> 5) & 1;
+    IX1 = v >> 4 & 1;
+    IX2 = v >> 5 & 1;
   }
 };
 

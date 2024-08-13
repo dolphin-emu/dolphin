@@ -208,11 +208,11 @@ void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDevic
   // Let the hardware see no device for 1 second
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(0, m_event_type_change_device,
-                            ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
+                            (u64)channel << 32 | (u64)EXIDeviceType::None << 16 | device_num,
                             from_thread);
   core_timing.ScheduleEvent(
       m_system.GetSystemTimers().GetTicksPerSecond(), m_event_type_change_device,
-      ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
+      (u64)channel << 32 | (u64)device_type << 16 | device_num, from_thread);
 }
 
 CEXIChannel* ExpansionInterfaceManager::GetChannel(u32 index)

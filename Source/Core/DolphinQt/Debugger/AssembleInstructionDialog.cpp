@@ -114,7 +114,7 @@ void AssembleInstructionDialog::OnEditChanged()
     const std::vector<u8>& block_bytes = GetT(asm_result)[0].instructions;
     for (size_t i = 0; i < 4 && i < block_bytes.size(); i++)
     {
-      m_code = (m_code << 8) | block_bytes[i];
+      m_code = m_code << 8 | block_bytes[i];
     }
 
     m_error_loc_label->setText(

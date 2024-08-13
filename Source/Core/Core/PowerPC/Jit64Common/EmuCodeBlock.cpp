@@ -181,7 +181,7 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
       // This method can potentially clobber the address if it shares a register
       // with the load target. In this case we can just subtract offset from the
       // register (see Jit64 for this implementation).
-      offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
+      offsetAddedToAddress = reg_value == opAddress.GetSimpleReg();
 
       LEA(32, reg_value, MDisp(opAddress.GetSimpleReg(), offset));
       opAddress = R(reg_value);
@@ -234,8 +234,8 @@ private:
   {
     if (m_sign_extend)
     {
-      u32 sign = !!(value & (1 << (sbits - 1)));
-      value |= sign * ((0xFFFFFFFF >> sbits) << sbits);
+      u32 sign = !!(value & 1 << sbits - 1);
+      value |= sign * (0xFFFFFFFF >> sbits << sbits);
     }
     m_code->MOV(32, R(m_dst_reg), Gen::Imm32(value));
   }
@@ -372,7 +372,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 
   FixupBranch exit;
   const bool dr_set =
-      (flags & SAFE_LOADSTORE_DR_ON) || (m_jit.m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR);
+      flags & SAFE_LOADSTORE_DR_ON || m_jit.m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR;
   const bool fast_check_address =
       !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
@@ -396,7 +396,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
-  size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+  size_t rsp_alignment = flags & SAFE_LOADSTORE_NO_PROLOG ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
   switch (accessSize)
   {
@@ -546,7 +546,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
   FixupBranch exit;
   const bool dr_set =
-      (flags & SAFE_LOADSTORE_DR_ON) || (m_jit.m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR);
+      flags & SAFE_LOADSTORE_DR_ON || m_jit.m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR;
   const bool fast_check_address =
       !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
@@ -570,7 +570,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
-  size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+  size_t rsp_alignment = flags & SAFE_LOADSTORE_NO_PROLOG ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
   // If the input is an immediate, we need to put it in a register.

@@ -53,7 +53,7 @@ public:
     if (iv)
       std::memcpy(&iv_tmp[0], iv, BLOCK_SIZE);
 
-    constexpr int mode = (AesMode == Mode::Encrypt) ? MBEDTLS_AES_ENCRYPT : MBEDTLS_AES_DECRYPT;
+    constexpr int mode = AesMode == Mode::Encrypt ? MBEDTLS_AES_ENCRYPT : MBEDTLS_AES_DECRYPT;
     if (mbedtls_aes_crypt_cbc(const_cast<mbedtls_aes_context*>(&ctx), mode, len, &iv_tmp[0], buf_in,
                               buf_out))
       return false;

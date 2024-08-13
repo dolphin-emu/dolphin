@@ -555,8 +555,8 @@ SkylanderUSB::SkylanderUSB(EmulationKernel& ios, const std::string& device_name)
 {
   m_vid = 0x1430;
   m_pid = 0x150;
-  m_id = (static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 | static_cast<u64>(9) << 8 |
-          static_cast<u64>(1));
+  m_id = static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 | static_cast<u64>(9) << 8 |
+         static_cast<u64>(1);
   m_device_descriptor = DeviceDescriptor{0x12,   0x1,   0x200, 0x0, 0x0, 0x0, 0x40,
                                          0x1430, 0x150, 0x100, 0x1, 0x2, 0x0, 0x1};
   m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x29, 0x1, 0x1, 0x0, 0x80, 0xFA});
@@ -1184,7 +1184,7 @@ void SkylanderPortal::QueryBlock(u8 sky_num, u8 block, u8* reply_buf)
   reply_buf[2] = block;
   if (skylander.status & Skylander::READY)
   {
-    reply_buf[1] = (0x10 | sky_num);
+    reply_buf[1] = 0x10 | sky_num;
     skylander.figure->GetBlock(block, reply_buf + 3);
   }
   else
@@ -1207,7 +1207,7 @@ void SkylanderPortal::WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u
 
   if (skylander.status & 1)
   {
-    reply_buf[1] = (0x10 | sky_num);
+    reply_buf[1] = 0x10 | sky_num;
     skylander.figure->SetBlock(block, to_write_buf);
     skylander.figure->Save();
   }

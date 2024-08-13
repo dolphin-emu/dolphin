@@ -890,7 +890,7 @@ ControlState GameController::LegacyAxis::GetState() const
 
 ControlState GameController::LegacyHat::GetState() const
 {
-  return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
+  return (SDL_JoystickGetHat(m_js, m_index) & 1 << m_direction) > 0;
 }
 
 void GameController::HapticEffect::UpdateEffect()
@@ -1000,7 +1000,7 @@ std::string GameController::PeriodicEffect::GetName() const
 
 std::string GameController::LeftRightEffect::GetName() const
 {
-  return (Motor::Strong == m_motor) ? "Strong" : "Weak";
+  return Motor::Strong == m_motor ? "Strong" : "Weak";
 }
 
 void GameController::HapticEffect::SetState(ControlState state)
@@ -1052,7 +1052,7 @@ bool GameController::PeriodicEffect::UpdateParameters(s16 value)
 
 bool GameController::LeftRightEffect::UpdateParameters(s16 value)
 {
-  u16& level = (Motor::Strong == m_motor) ? m_effect.leftright.large_magnitude :
+  u16& level = Motor::Strong == m_motor ? m_effect.leftright.large_magnitude :
                                             m_effect.leftright.small_magnitude;
   const u16 old_level = level;
 

@@ -108,7 +108,7 @@ void JitInterface::UpdateMembase()
 
 static std::string_view GetDescription(const CPUEmuFeatureFlags flags)
 {
-  static constexpr std::array<std::string_view, (FEATURE_FLAG_END_OF_ENUMERATION - 1) << 1>
+  static constexpr std::array<std::string_view, FEATURE_FLAG_END_OF_ENUMERATION - 1 << 1>
       descriptions = {
           "", "DR", "IR", "DR|IR", "PERFMON", "DR|PERFMON", "IR|PERFMON", "DR|IR|PERFMON",
       };
@@ -317,7 +317,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
 
   auto& ppc_state = m_system.GetPPCState();
   if (ppc_state.pc != 0 &&
-      (exception_addresses->find(ppc_state.pc)) == (exception_addresses->end()))
+      exception_addresses->find(ppc_state.pc) == exception_addresses->end())
   {
     if (type == ExceptionType::FIFOWrite)
     {

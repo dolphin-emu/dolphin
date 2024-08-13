@@ -135,8 +135,8 @@ void Turntable::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   m_buttons->GetState(&tt_data.bt, turntable_button_bitmasks.data(), m_input_override_function);
 
   // flip button bits :/
-  tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
-                 BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA);
+  tt_data.bt ^= BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
+      BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA;
 
   target_state->data = tt_data;
 }

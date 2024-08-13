@@ -182,14 +182,14 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
 
     const u32 index = value >> 16;
     const u16 address = value & 0xFFF;  // TODO: check mask
-    const u8 size = ((value >> 12) & 0xF) + 1;
+    const u8 size = (value >> 12 & 0xF) + 1;
 
     // Map the command byte to its ref array.
     // GX_LOAD_INDX_A (32 = 8*4) . CPArray::XF_A (4+8 = 12)
     // GX_LOAD_INDX_B (40 = 8*5) . CPArray::XF_B (5+8 = 13)
     // GX_LOAD_INDX_C (48 = 8*6) . CPArray::XF_C (6+8 = 14)
     // GX_LOAD_INDX_D (56 = 8*7) . CPArray::XF_D (7+8 = 15)
-    const auto ref_array = static_cast<CPArray>((static_cast<u8>(cmd) / 8) + 8);
+    const auto ref_array = static_cast<CPArray>(static_cast<u8>(cmd) / 8 + 8);
 
     callback.OnIndexedLoad(ref_array, index, address, size);
     return 5;

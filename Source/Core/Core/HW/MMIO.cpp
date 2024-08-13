@@ -230,7 +230,7 @@ ReadHandlingMethod<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_
 
   // TODO(delroth): optimize
   return ComplexRead<T>([=](Core::System& system, u32 addr) {
-    return ((T)high_part->Read(system, high_part_addr) << (8 * sizeof(ST))) |
+    return (T)high_part->Read(system, high_part_addr) << 8 * sizeof(ST) |
            low_part->Read(system, low_part_addr);
   });
 }
@@ -245,7 +245,7 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
 
   // TODO(delroth): optimize
   return ComplexWrite<T>([=](Core::System& system, u32 addr, T val) {
-    high_part->Write(system, high_part_addr, val >> (8 * sizeof(ST)));
+    high_part->Write(system, high_part_addr, val >> 8 * sizeof(ST));
     low_part->Write(system, low_part_addr, (ST)val);
   });
 }

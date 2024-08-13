@@ -23,7 +23,7 @@ public:
   void GetState(C* const buttons, const C* bitmasks) const
   {
     for (auto& control : controls)
-      *buttons |= *(bitmasks++) * control->GetState<bool>();
+      *buttons |= *bitmasks++ * control->GetState<bool>();
   }
 
   template <typename C>
@@ -38,7 +38,7 @@ public:
       ControlState state = control->GetState();
       if (std::optional<ControlState> state_override = override_func(name, control->name, state))
         state = *state_override;
-      *buttons |= *(bitmasks++) * (std::lround(state) > 0);
+      *buttons |= *bitmasks++ * (std::lround(state) > 0);
     }
   }
 };

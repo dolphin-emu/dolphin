@@ -74,7 +74,7 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
     }
     const std::string& current_directory = directory_stack.top().second;
     u8* node = nodes_directory + i * NODE_SIZE;
-    u32 name_offset = (node[1] << 16) | Common::swap16(node + 2);
+    u32 name_offset = node[1] << 16 | Common::swap16(node + 2);
     u32 data_offset = Common::swap32(node + 4);
     u32 size = Common::swap32(node + 8);
     std::string basename = string_table + name_offset;

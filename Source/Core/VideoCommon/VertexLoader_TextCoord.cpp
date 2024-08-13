@@ -50,7 +50,7 @@ void TexCoord_ReadIndex(VertexLoader* loader)
   const auto index = DataRead<I>();
   const auto data = reinterpret_cast<const T*>(
       VertexLoaderManager::cached_arraybases[CPArray::TexCoord0 + loader->m_tcIndex] +
-      (index * g_main_cp_state.array_strides[CPArray::TexCoord0 + loader->m_tcIndex]));
+      index * g_main_cp_state.array_strides[CPArray::TexCoord0 + loader->m_tcIndex]);
   const auto scale = loader->m_tcScale[loader->m_tcIndex];
 
   for (int i = 0; i != N; ++i)

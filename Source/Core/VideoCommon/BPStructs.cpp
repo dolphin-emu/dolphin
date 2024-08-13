@@ -395,7 +395,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     // The copy below will always be in bounds as tmem is bigger than the maximum address a TLUT can
     // be loaded to.
     static constexpr u32 MAX_LOADABLE_TMEM_ADDR =
-        (1 << bpmem.tmem_config.tlut_dest.tmem_addr.NumBits()) << 9;
+        1 << bpmem.tmem_config.tlut_dest.tmem_addr.NumBits() << 9;
     static constexpr u32 MAX_TMEM_LINE_COUNT =
         (1 << bpmem.tmem_config.tlut_dest.tmem_line_count.NumBits()) * TMEM_LINE_SIZE;
     static_assert(MAX_LOADABLE_TMEM_ADDR + MAX_TMEM_LINE_COUNT < TMEM_SIZE);
@@ -653,7 +653,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   case BPMEM_TEV_COLOR_RA + 4:
   case BPMEM_TEV_COLOR_RA + 6:
   {
-    int num = (bp.address >> 1) & 0x3;
+    int num = bp.address >> 1 & 0x3;
     if (bpmem.tevregs[num].ra.type == TevRegType::Constant)
     {
       pixel_shader_manager.SetTevKonstColor(num, 0, bpmem.tevregs[num].ra.red);
@@ -672,7 +672,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   case BPMEM_TEV_COLOR_BG + 4:
   case BPMEM_TEV_COLOR_BG + 6:
   {
-    int num = (bp.address >> 1) & 0x3;
+    int num = bp.address >> 1 & 0x3;
     if (bpmem.tevregs[num].bg.type == TevRegType::Constant)
     {
       pixel_shader_manager.SetTevKonstColor(num, 1, bpmem.tevregs[num].bg.green);
@@ -708,8 +708,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   case BPMEM_SU_SSIZE + 12:
     if (bp.changes)
     {
-      pixel_shader_manager.SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
-      geometry_shader_manager.SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
+      pixel_shader_manager.SetTexCoordChanged(bp.address - BPMEM_SU_SSIZE >> 1);
+      geometry_shader_manager.SetTexCoordChanged(bp.address - BPMEM_SU_SSIZE >> 1);
     }
     return;
   }
@@ -771,8 +771,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   // --------------------------------------------------
   case BPMEM_TEV_COLOR_ENV:  // Texture Environment 1
   case BPMEM_TEV_COLOR_ENV + 16:
-    pixel_shader_manager.SetTevCombiner((bp.address - BPMEM_TEV_COLOR_ENV) >> 1,
-                                        (bp.address - BPMEM_TEV_COLOR_ENV) & 1, bp.newvalue);
+    pixel_shader_manager.SetTevCombiner(bp.address - BPMEM_TEV_COLOR_ENV >> 1,
+                                        bp.address - BPMEM_TEV_COLOR_ENV & 1, bp.newvalue);
     return;
   default:
     break;
@@ -789,7 +789,7 @@ void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
   auto& system = Core::System::GetInstance();
 
   int oldval = ((u32*)&bpmem)[reg];
-  int newval = (oldval & ~bpmem.bpMask) | (value & bpmem.bpMask);
+  int newval = oldval & ~bpmem.bpMask | value & bpmem.bpMask;
   int changes = (oldval ^ newval) & 0xFFFFFF;
 
   BPCmd bp = {reg, changes, newval};
@@ -1029,7 +1029,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
 
   case BPMEM_COPYFILTER0:  // 0x53
   {
-    const u32 w0 = (cmddata & 0x00003f);
+    const u32 w0 = cmddata & 0x00003f;
     const u32 w1 = (cmddata & 0x000fc0) >> 6;
     const u32 w2 = (cmddata & 0x03f000) >> 12;
     const u32 w3 = (cmddata & 0xfc0000) >> 18;
@@ -1039,7 +1039,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
 
   case BPMEM_COPYFILTER1:  // 0x54
   {
-    const u32 w4 = (cmddata & 0x00003f);
+    const u32 w4 = cmddata & 0x00003f;
     const u32 w5 = (cmddata & 0x000fc0) >> 6;
     const u32 w6 = (cmddata & 0x03f000) >> 12;
     // There is no w7
@@ -1050,12 +1050,12 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_CLEARBBOX1:  // 0x55
     return std::make_pair(RegName(BPMEM_CLEARBBOX1),
                           fmt::format("Bounding Box index 0: {}\nBounding Box index 1: {}",
-                                      cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
+                                      cmddata & 0x3ff, cmddata >> 10 & 0x3ff));
 
   case BPMEM_CLEARBBOX2:  // 0x56
     return std::make_pair(RegName(BPMEM_CLEARBBOX2),
                           fmt::format("Bounding Box index 2: {}\nBounding Box index 3: {}",
-                                      cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
+                                      cmddata & 0x3ff, cmddata >> 10 & 0x3ff));
 
   case BPMEM_CLEAR_PIXEL_PERF:  // 0x57
     return DescriptionlessReg(BPMEM_CLEAR_PIXEL_PERF);

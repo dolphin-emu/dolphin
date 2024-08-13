@@ -100,7 +100,7 @@ void CommandProcessorManager::DoState(PointerWrap& p)
 
 static inline void WriteHigh(std::atomic<u32>& reg, u16 highbits)
 {
-  reg.store((reg.load(std::memory_order_relaxed) & 0x0000FFFF) | (static_cast<u32>(highbits) << 16),
+  reg.store(reg.load(std::memory_order_relaxed) & 0x0000FFFF | static_cast<u32>(highbits) << 16,
             std::memory_order_relaxed);
 }
 
@@ -286,16 +286,16 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       if (fifo_.CPWritePointer.load(std::memory_order_relaxed) >=
           fifo_.SafeCPReadPointer.load(std::memory_order_relaxed))
       {
-        return (fifo_.CPWritePointer.load(std::memory_order_relaxed) -
-                fifo_.SafeCPReadPointer.load(std::memory_order_relaxed)) >>
+        return fifo_.CPWritePointer.load(std::memory_order_relaxed) -
+               fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) >>
                16;
       }
       else
       {
-        return (fifo_.CPEnd.load(std::memory_order_relaxed) -
-                fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) +
-                fifo_.CPWritePointer.load(std::memory_order_relaxed) -
-                fifo_.CPBase.load(std::memory_order_relaxed) + 32) >>
+        return fifo_.CPEnd.load(std::memory_order_relaxed) -
+               fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) +
+               fifo_.CPWritePointer.load(std::memory_order_relaxed) -
+               fifo_.CPBase.load(std::memory_order_relaxed) + 32 >>
                16;
       }
     });
@@ -370,8 +370,8 @@ void CommandProcessorManager::GatherPipeBursted()
     {
       // In multibuffer mode is not allowed write in the same FIFO attached to the GPU.
       // Fix Pokemon XD in DC mode.
-      if ((processor_interface.m_fifo_cpu_end == m_fifo.CPEnd.load(std::memory_order_relaxed)) &&
-          (processor_interface.m_fifo_cpu_base == m_fifo.CPBase.load(std::memory_order_relaxed)) &&
+      if (processor_interface.m_fifo_cpu_end == m_fifo.CPEnd.load(std::memory_order_relaxed) &&
+          processor_interface.m_fifo_cpu_base == m_fifo.CPBase.load(std::memory_order_relaxed) &&
           m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) > 0)
       {
         m_system.GetFifo().FlushGpu();
@@ -498,10 +498,10 @@ void CommandProcessorManager::SetCPStatusFromGPU()
 
   // overflow & underflow check
   m_fifo.bFF_HiWatermark.store(
-      (m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) > m_fifo.CPHiWatermark),
+      m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) > m_fifo.CPHiWatermark,
       std::memory_order_relaxed);
   m_fifo.bFF_LoWatermark.store(
-      (m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) < m_fifo.CPLoWatermark),
+      m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) < m_fifo.CPLoWatermark,
       std::memory_order_relaxed);
 
   bool bpInt = m_fifo.bFF_Breakpoint.load(std::memory_order_relaxed) &&
@@ -536,10 +536,10 @@ void CommandProcessorManager::SetCPStatusFromCPU()
 {
   // overflow & underflow check
   m_fifo.bFF_HiWatermark.store(
-      (m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) > m_fifo.CPHiWatermark),
+      m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) > m_fifo.CPHiWatermark,
       std::memory_order_relaxed);
   m_fifo.bFF_LoWatermark.store(
-      (m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) < m_fifo.CPLoWatermark),
+      m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) < m_fifo.CPLoWatermark,
       std::memory_order_relaxed);
 
   bool bpInt = m_fifo.bFF_Breakpoint.load(std::memory_order_relaxed) &&
@@ -575,8 +575,8 @@ void CommandProcessorManager::SetCpStatusRegister()
   // Here always there is one fifo attached to the GPU
   m_cp_status_reg.Breakpoint = m_fifo.bFF_Breakpoint.load(std::memory_order_relaxed);
   m_cp_status_reg.ReadIdle = !m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) ||
-                             (m_fifo.CPReadPointer.load(std::memory_order_relaxed) ==
-                              m_fifo.CPWritePointer.load(std::memory_order_relaxed));
+                             m_fifo.CPReadPointer.load(std::memory_order_relaxed) ==
+                             m_fifo.CPWritePointer.load(std::memory_order_relaxed);
   m_cp_status_reg.CommandIdle = !m_fifo.CPReadWriteDistance.load(std::memory_order_relaxed) ||
                                 Fifo::AtBreakpoint(m_system) ||
                                 !m_fifo.bFF_GPReadEnable.load(std::memory_order_relaxed);
@@ -637,7 +637,7 @@ void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer,
   // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
   // (such as 0x18) seem to result in actual hangs on real hardware, so the alert still is important
   // to keep around for unexpected cases.
-  const bool suppress_panic_alert = (cmd_byte <= 0x7) || (cmd_byte == 0x3f);
+  const bool suppress_panic_alert = cmd_byte <= 0x7 || cmd_byte == 0x3f;
 
   const auto log_level =
       suppress_panic_alert ? Common::Log::LogLevel::LWARNING : Common::Log::LogLevel::LERROR;

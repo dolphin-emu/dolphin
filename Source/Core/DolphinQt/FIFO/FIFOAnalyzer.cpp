@@ -221,7 +221,7 @@ public:
     const auto [name, desc] = GetXFTransferInfo(address, count, data);
     ASSERT(!name.empty());
 
-    const u32 command = address | ((count - 1) << 16);
+    const u32 command = address | count - 1 << 16;
 
     text = QStringLiteral("XF  %1  ").arg(command, 8, 16, QLatin1Char('0'));
 
@@ -262,7 +262,7 @@ public:
     const u32 object_prim_size = num_vertices * vertex_size;
 
     const u8 opcode =
-        0x80 | (static_cast<u8>(primitive) << OpcodeDecoder::GX_PRIMITIVE_SHIFT) | vat;
+        0x80 | static_cast<u8>(primitive) << OpcodeDecoder::GX_PRIMITIVE_SHIFT | vat;
     text = QStringLiteral("PRIMITIVE %1 (%2)  %3 vertices %4 bytes/vertex %5 total bytes")
                .arg(QString::fromStdString(name))
                .arg(opcode, 2, 16, QLatin1Char('0'))
@@ -444,7 +444,7 @@ void FIFOAnalyzer::BeginSearch()
   for (u32 cmd_nr = 0; cmd_nr < m_object_data_offsets.size(); cmd_nr++)
   {
     const u32 cmd_start = m_object_data_offsets[cmd_nr];
-    const u32 cmd_end = (cmd_nr + 1 == m_object_data_offsets.size()) ?
+    const u32 cmd_end = cmd_nr + 1 == m_object_data_offsets.size() ?
                             object_size :
                             m_object_data_offsets[cmd_nr + 1];
 
@@ -491,7 +491,7 @@ void FIFOAnalyzer::FindPrevious()
                    [index](auto& result) { return result.m_cmd < static_cast<u32>(index); });
   if (prev_result != m_search_results.rend())
   {
-    ShowSearchResult((m_search_results.rend() - prev_result) - 1);
+    ShowSearchResult(m_search_results.rend() - prev_result - 1);
   }
 }
 

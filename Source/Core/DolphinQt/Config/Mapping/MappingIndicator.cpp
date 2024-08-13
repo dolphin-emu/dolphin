@@ -193,12 +193,12 @@ QPolygonF GetPolygonSegmentFromRadiusGetter(F&& radius_getter, double direction,
   const double upper_radius_outer = radius_getter(upper_angle);
   const double upper_radius_inner = upper_radius_outer - segment_depth;
 
-  shape[0] = {std::cos(lower_angle) * (lower_radius_inner),
-              std::sin(lower_angle) * (lower_radius_inner)};
-  shape[1] = {std::cos(center_angle) * (center_radius_inner),
-              std::sin(center_angle) * (center_radius_inner)};
-  shape[2] = {std::cos(upper_angle) * (upper_radius_inner),
-              std::sin(upper_angle) * (upper_radius_inner)};
+  shape[0] = {std::cos(lower_angle) * lower_radius_inner,
+              std::sin(lower_angle) * lower_radius_inner};
+  shape[1] = {std::cos(center_angle) * center_radius_inner,
+              std::sin(center_angle) * center_radius_inner};
+  shape[2] = {std::cos(upper_angle) * upper_radius_inner,
+              std::sin(upper_angle) * upper_radius_inner};
   shape[3] = {std::cos(upper_angle) * upper_radius_outer,
               std::sin(upper_angle) * upper_radius_outer};
   shape[4] = {std::cos(center_angle) * center_radius_outer,
@@ -275,7 +275,7 @@ void GenerateFibonacciSphere(int point_count, F&& callback)
 
   for (int i = 0; i != point_count; ++i)
   {
-    const float z = (1.f / point_count - 1.f) + (2.f / point_count) * i;
+    const float z = 1.f / point_count - 1.f + 2.f / point_count * i;
     const float r = std::sqrt(1.f - z * z);
     const float x = std::cos(golden_angle * i) * r;
     const float y = std::sin(golden_angle * i) * r;
@@ -409,7 +409,7 @@ void AnalogStickIndicator::Draw()
   const auto adj_coord = m_group.GetReshapableState(true);
 
   DrawReshapableInput(m_group, gate_brush_color,
-                      (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
+                      adj_coord.x || adj_coord.y ? std::make_optional(adj_coord) : std::nullopt);
 }
 
 void TiltIndicator::Draw()
@@ -430,7 +430,7 @@ void TiltIndicator::Draw()
   adj_coord.y = std::fmod(adj_coord.y + norm_360_deg + norm_180_deg, norm_360_deg) - norm_180_deg;
 
   DrawReshapableInput(m_group, TILT_GATE_COLOR,
-                      (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
+                      adj_coord.x || adj_coord.y ? std::make_optional(adj_coord) : std::nullopt);
 }
 
 void MixedTriggersIndicator::Draw()
@@ -743,7 +743,7 @@ void GyroMappingIndicator::Draw()
 
   // Use an empty rotation matrix if gyroscope data is not present.
   const auto rotation =
-      (gyro_state.has_value() ? Common::Matrix33::FromQuaternion(m_state) : Common::Matrix33{});
+      gyro_state.has_value() ? Common::Matrix33::FromQuaternion(m_state) : Common::Matrix33{};
 
   QPainter p(this);
   DrawBoundingBox(p);

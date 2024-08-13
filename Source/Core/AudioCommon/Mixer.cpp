@@ -82,9 +82,9 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
       FIXED_SAMPLE_RATE_DIVIDEND / static_cast<float>(m_input_sample_rate_divisor);
   if (consider_framelimit && emulationspeed > 0.0f)
   {
-    float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
+    float numLeft = static_cast<float>((indexW - indexR & INDEX_MASK) / 2);
 
-    u32 low_watermark = (FIXED_SAMPLE_RATE_DIVIDEND * timing_variance) /
+    u32 low_watermark = FIXED_SAMPLE_RATE_DIVIDEND * timing_variance /
                         (static_cast<u64>(m_input_sample_rate_divisor) * 1000);
     low_watermark = std::min(low_watermark, MAX_SAMPLES / 2);
 
@@ -108,21 +108,21 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   };
 
   // TODO: consider a higher-quality resampling algorithm.
-  for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2)
+  for (; currentSample < numSamples * 2 && (indexW - indexR & INDEX_MASK) > 2; currentSample += 2)
   {
     u32 indexR2 = indexR + 2;  // next sample
 
     s16 l1 = read_buffer(indexR & INDEX_MASK);   // current
     s16 l2 = read_buffer(indexR2 & INDEX_MASK);  // next
-    int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
-    sampleL = (sampleL * lvolume) >> 8;
+    int sampleL = (l1 << 16) + (l2 - l1) * (u16)m_frac >> 16;
+    sampleL = sampleL * lvolume >> 8;
     sampleL += samples[currentSample + 1];
     samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
 
-    s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);   // current
-    s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK);  // next
-    int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
-    sampleR = (sampleR * rvolume) >> 8;
+    s16 r1 = read_buffer(indexR + 1 & INDEX_MASK);  // current
+    s16 r2 = read_buffer(indexR2 + 1 & INDEX_MASK); // next
+    int sampleR = (r1 << 16) + (r2 - r1) * (u16)m_frac >> 16;
+    sampleR = sampleR * rvolume >> 8;
     sampleR += samples[currentSample];
     samples[currentSample] = std::clamp(sampleR, -32767, 32767);
 
@@ -136,10 +136,10 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
 
   // Padding
   short s[2];
-  s[0] = read_buffer((indexR - 1) & INDEX_MASK);
-  s[1] = read_buffer((indexR - 2) & INDEX_MASK);
-  s[0] = (s[0] * rvolume) >> 8;
-  s[1] = (s[1] * lvolume) >> 8;
+  s[0] = read_buffer(indexR - 1 & INDEX_MASK);
+  s[1] = read_buffer(indexR - 2 & INDEX_MASK);
+  s[0] = s[0] * rvolume >> 8;
+  s[1] = s[1] * lvolume >> 8;
   for (; currentSample < numSamples * 2; currentSample += 2)
   {
     int sampleR = std::clamp(s[0] + samples[currentSample + 0], -32767, 32767);
@@ -252,7 +252,7 @@ void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_sample
 
   // Check if we have enough free space
   // indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
-  if (num_samples * 2 + ((indexW - m_indexR.load()) & INDEX_MASK) >= MAX_SAMPLES * 2)
+  if (num_samples * 2 + (indexW - m_indexR.load() & INDEX_MASK) >= MAX_SAMPLES * 2)
     return;
 
   // AyuanX: Actual re-sampling work has been moved to sound thread
@@ -490,7 +490,7 @@ std::pair<s32, s32> Mixer::MixerFifo::GetVolume() const
 
 unsigned int Mixer::MixerFifo::AvailableSamples() const
 {
-  unsigned int samples_in_fifo = ((m_indexW.load() - m_indexR.load()) & INDEX_MASK) / 2;
+  unsigned int samples_in_fifo = (m_indexW.load() - m_indexR.load() & INDEX_MASK) / 2;
   if (samples_in_fifo <= 1)
     return 0;  // Mixer::MixerFifo::Mix always keeps one sample in the buffer.
   return (samples_in_fifo - 1) * static_cast<u64>(m_mixer->m_sampleRate) *

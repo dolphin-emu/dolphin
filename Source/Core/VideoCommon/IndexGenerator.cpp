@@ -200,8 +200,8 @@ u16* AddLines_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
   constexpr u32 advance = linestrip ? 1 : 2;
   for (u32 i = 1; i < num_verts; i += advance)
   {
-    u32 p0 = (index + i - 1) << 2;
-    u32 p1 = (index + i - 0) << 2;
+    u32 p0 = index + i - 1 << 2;
+    u32 p1 = index + i - 0 << 2;
     if constexpr (pr)
     {
       *index_ptr++ = p0 + 0;
@@ -239,7 +239,7 @@ u16* AddPoints_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
   // Bottom two bits indicate which of (TL, TR, BL, BR) this is
   for (u32 i = 0; i < num_verts; ++i)
   {
-    u32 base = (index + i) << 2;
+    u32 base = index + i << 2;
     if constexpr (pr)
     {
       *index_ptr++ = base + 0;

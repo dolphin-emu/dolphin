@@ -36,7 +36,7 @@ enum ControlRequestTypes
 
 constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
 {
-  return static_cast<u16>(((dir << 7 | type << 5 | recipient) << 8) | request);
+  return static_cast<u16>((dir << 7 | type << 5 | recipient) << 8 | request);
 }
 
 struct DeviceDescriptor

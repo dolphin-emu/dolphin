@@ -181,7 +181,7 @@ void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system)
 u32 GetHookByAddress(u32 address)
 {
   auto iter = s_hooked_addresses.find(address);
-  return (iter != s_hooked_addresses.end()) ? iter->second : 0;
+  return iter != s_hooked_addresses.end() ? iter->second : 0;
 }
 
 u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address)
@@ -192,7 +192,7 @@ u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address)
     return index;
 
   const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(address);
-  return (symbol && symbol->address == address) ? index : 0;
+  return symbol && symbol->address == address ? index : 0;
 }
 
 HookType GetHookTypeByIndex(u32 index)

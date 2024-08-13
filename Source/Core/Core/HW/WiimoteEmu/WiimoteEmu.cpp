@@ -84,7 +84,7 @@ void Wiimote::Reset()
   // TODO: This feels sketchy, this needs to properly handle the case where the load and the write
   // happen under different Wii Roots and/or determinism modes.
 
-  std::string eeprom_file = (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin");
+  std::string eeprom_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin";
   if (!want_determinism && m_eeprom_dirty)
   {
     // Write out existing EEPROM
@@ -116,8 +116,8 @@ void Wiimote::Reset()
         IR_LOW_X & 0xFF,
         IR_LOW_Y & 0xFF,
         // Mix
-        ((IR_LOW_Y & 0x300) >> 2) | ((IR_LOW_X & 0x300) >> 4) | ((IR_LOW_Y & 0x300) >> 6) |
-            ((IR_HIGH_X & 0x300) >> 8),
+        (IR_LOW_Y & 0x300) >> 2 | (IR_LOW_X & 0x300) >> 4 | (IR_LOW_Y & 0x300) >> 6 |
+            (IR_HIGH_X & 0x300) >> 8,
         // Point 2
         IR_HIGH_X & 0xFF,
         IR_LOW_Y & 0xFF,
@@ -125,8 +125,8 @@ void Wiimote::Reset()
         IR_HIGH_X & 0xFF,
         IR_HIGH_Y & 0xFF,
         // Mix
-        ((IR_HIGH_Y & 0x300) >> 2) | ((IR_HIGH_X & 0x300) >> 4) | ((IR_HIGH_Y & 0x300) >> 6) |
-            ((IR_LOW_X & 0x300) >> 8),
+        (IR_HIGH_Y & 0x300) >> 2 | (IR_HIGH_X & 0x300) >> 4 | (IR_HIGH_Y & 0x300) >> 6 |
+            (IR_LOW_X & 0x300) >> 8,
         // Point 4
         IR_LOW_X & 0xFF,
         IR_HIGH_Y & 0xFF,

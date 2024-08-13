@@ -147,7 +147,7 @@ AbstractTextureFormat FramebufferManager::GetEFBDepthCopyFormat()
 
 static u32 CalculateEFBLayers()
 {
-  return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
+  return g_ActiveConfig.stereo_mode != StereoMode::Off ? 2 : 1;
 }
 
 TextureConfig FramebufferManager::GetEFBColorTextureConfig(u32 width, u32 height)
@@ -453,7 +453,7 @@ bool FramebufferManager::IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* ti
   {
     const u32 tile_x = x / m_efb_cache_tile_size;
     const u32 tile_y = y / m_efb_cache_tile_size;
-    *tile_index = (tile_y * m_efb_cache_tile_row_stride) + tile_x;
+    *tile_index = tile_y * m_efb_cache_tile_row_stride + tile_x;
   }
   return data.tiles[*tile_index].present;
 }
@@ -749,8 +749,8 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   u32 total_tiles = 1;
   if (IsUsingTiledEFBCache())
   {
-    const u32 tiles_wide = ((EFB_WIDTH + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size);
-    const u32 tiles_high = ((EFB_HEIGHT + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size);
+    const u32 tiles_wide = (EFB_WIDTH + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size;
+    const u32 tiles_high = (EFB_HEIGHT + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size;
     total_tiles = tiles_wide * tiles_high;
     m_efb_cache_tile_row_stride = tiles_wide;
   }
@@ -946,7 +946,7 @@ AbstractPipeline* FramebufferManager::GetClearPipeline(bool colorEnable, bool al
 void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
 {
   // Flush if we exceeded the number of vertices per batch.
-  if ((m_color_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
+  if (m_color_poke_vertices.size() + 6 > MAX_POKE_VERTICES)
     FlushEFBPokes();
 
   CreatePokeVertices(&m_color_poke_vertices, x, y, 0.0f, color);
@@ -964,7 +964,7 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
 void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
 {
   // Flush if we exceeded the number of vertices per batch.
-  if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
+  if (m_depth_poke_vertices.size() + 6 > MAX_POKE_VERTICES)
     FlushEFBPokes();
 
   CreatePokeVertices(&m_depth_poke_vertices, x, y, depth, 0);

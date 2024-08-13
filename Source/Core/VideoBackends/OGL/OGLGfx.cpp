@@ -380,8 +380,8 @@ void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEn
   if (colorEnable || alphaEnable)
   {
     glColorMask(colorEnable, colorEnable, colorEnable, alphaEnable);
-    glClearColor(float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
-                 float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
+    glClearColor(float(color >> 16 & 0xFF) / 255.0f, float(color >> 8 & 0xFF) / 255.0f,
+                 float(color >> 0 & 0xFF) / 255.0f, float(color >> 24 & 0xFF) / 255.0f);
     clear_mask = GL_COLOR_BUFFER_BIT;
   }
   if (zEnable)

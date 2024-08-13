@@ -32,7 +32,7 @@ static inline void WrapCoord(int* coordp, WrapMode wrap_mode, int image_size)
     // Per YAGCD's info on TX_SETMODE1_I0 (et al.), mirror "requires the texture size to be a power
     // of two. (wrapping is implemented by a logical AND (SIZE-1))".  So though this doesn't wrap
     // nicely for non-power-of-2 sizes, that's how hardware does it.
-    coord = coord & (image_size - 1);
+    coord = coord & image_size - 1;
     break;
   case WrapMode::Mirror:
   {
@@ -42,7 +42,7 @@ static inline void WrapCoord(int* coordp, WrapMode wrap_mode, int image_size)
     // with non-power-of-2 sizes, but seems to match what happens on actual hardware.
     if ((coord & image_size) != 0)
       coord = ~coord;
-    coord = coord & (image_size - 1);
+    coord = coord & image_size - 1;
     break;
   }
   default:
@@ -85,7 +85,7 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
   {
     // use mipmap
     baseMip = lod >> 4;
-    mipLinear = (lodFract && tm0.mipmap_filter == MipMode::Linear);
+    mipLinear = lodFract && tm0.mipmap_filter == MipMode::Linear;
 
     // if using nearest mip filter and lodFract >= 0.5 round up to next mip
     if (tm0.mipmap_filter == MipMode::Point && lodFract >= 8)
@@ -98,7 +98,7 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
     u32 texel[4];
 
     SampleMip(s, t, baseMip, linear, texmap, sampledTex);
-    SetTexel(sampledTex, texel, (16 - lodFract));
+    SetTexel(sampledTex, texel, 16 - lodFract);
 
     SampleMip(s, t, baseMip + 1, linear, texmap, sampledTex);
     AddTexel(sampledTex, texel, lodFract);
@@ -168,7 +168,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     {
       mipWidth = std::max(mipWidth, fmtWidth);
       mipHeight = std::max(mipHeight, fmtHeight);
-      const u32 size = (mipWidth * mipHeight * fmtDepth) >> 1;
+      const u32 size = mipWidth * mipHeight * fmtDepth >> 1;
 
       image_src = Common::SafeSubspan(image_src, size);
       mipWidth >>= 1;
@@ -210,15 +210,15 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 
       TexDecoder_DecodeTexel(sampledTex, image_src, imageSPlus1, imageT, image_width_minus_1,
                              texfmt, tlut, tlutfmt);
-      AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
+      AddTexel(sampledTex, texel, fractS * (128 - fractT));
 
       TexDecoder_DecodeTexel(sampledTex, image_src, imageS, imageTPlus1, image_width_minus_1,
                              texfmt, tlut, tlutfmt);
-      AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
+      AddTexel(sampledTex, texel, (128 - fractS) * fractT);
 
       TexDecoder_DecodeTexel(sampledTex, image_src, imageSPlus1, imageTPlus1, image_width_minus_1,
                              texfmt, tlut, tlutfmt);
-      AddTexel(sampledTex, texel, (fractS) * (fractT));
+      AddTexel(sampledTex, texel, fractS * fractT);
     }
     else
     {
@@ -228,15 +228,15 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 
       TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageSPlus1, imageT,
                                           image_width_minus_1);
-      AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
+      AddTexel(sampledTex, texel, fractS * (128 - fractT));
 
       TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageS, imageTPlus1,
                                           image_width_minus_1);
-      AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
+      AddTexel(sampledTex, texel, (128 - fractS) * fractT);
 
       TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageSPlus1,
                                           imageTPlus1, image_width_minus_1);
-      AddTexel(sampledTex, texel, (fractS) * (fractT));
+      AddTexel(sampledTex, texel, fractS * fractT);
     }
 
     sample[0] = (u8)(texel[0] >> 14);

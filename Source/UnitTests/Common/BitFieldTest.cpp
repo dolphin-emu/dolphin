@@ -107,8 +107,8 @@ TEST(BitField, Read)
     EXPECT_EQ(*(s64*)&val, object.full_s64);
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned);
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned2);
-    EXPECT_EQ(((s64)(object.hex << 52)) >> 61, object.regular_field_signed);
-    EXPECT_EQ(((s64)(object.hex << 30)) >> 60, object.at_dword_boundary);
+    EXPECT_EQ((s64)(object.hex << 52) >> 61, object.regular_field_signed);
+    EXPECT_EQ((s64)(object.hex << 30) >> 60, object.at_dword_boundary);
     EXPECT_EQ(((object.hex >> 15) & 1) ? -1 : 0, object.signed_1bit);
     EXPECT_EQ((bool)object.flag, ((object.hex >> 63) & 1));
     EXPECT_EQ(static_cast<TestEnum>((object.hex >> 16) & 3), object.enum_1);
@@ -133,20 +133,20 @@ TEST(BitField, Assignment)
     EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
 
     object.at_dword_boundary = val;
-    EXPECT_EQ(((s64)(val << 60)) >> 60, object.at_dword_boundary);
+    EXPECT_EQ((s64)(val << 60) >> 60, object.at_dword_boundary);
 
     object.signed_1bit = val;
-    EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit);
+    EXPECT_EQ(val & 1 ? -1 : 0, object.signed_1bit);
 
     object.regular_field_signed = val;
-    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
+    EXPECT_EQ((s64)(object.hex << 61) >> 61, object.regular_field_signed);
 
     // Assignment from other BitField
     object.at_dword_boundary = object.regular_field_signed;
     EXPECT_EQ(object.regular_field_signed, object.at_dword_boundary);
 
     // Assignment to field of a type with a size smaller than the underlying type
-    object.flag = (val & 2);
+    object.flag = val & 2;
     EXPECT_EQ(object.flag, (val & 2) != 0);
   }
 }
@@ -180,20 +180,20 @@ TEST(BitField, Alignment)
     EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
 
     object.at_dword_boundary = val;
-    EXPECT_EQ(((s64)(val << 60)) >> 60, object.at_dword_boundary);
+    EXPECT_EQ((s64)(val << 60) >> 60, object.at_dword_boundary);
 
     object.signed_1bit = val;
-    EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit);
+    EXPECT_EQ(val & 1 ? -1 : 0, object.signed_1bit);
 
     object.regular_field_signed = val;
-    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
+    EXPECT_EQ((s64)(object.hex << 61) >> 61, object.regular_field_signed);
 
     // Assignment from other BitField
     object.at_dword_boundary = object.regular_field_signed;
     EXPECT_EQ(object.regular_field_signed, object.at_dword_boundary);
 
     // Assignment to field of a type with a size smaller than the underlying type
-    object.flag = (val & 2);
+    object.flag = val & 2;
     EXPECT_EQ(object.flag, (val & 2) != 0);
   }
 }

@@ -24,7 +24,7 @@ u16 Accessors::ReadU16(const Core::CPUThreadGuard& guard, u32 address) const
 void Accessors::WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value)
 {
   WriteU8(guard, address, value & 0xff);
-  WriteU8(guard, address + 1, (value >> 8) & 0xff);
+  WriteU8(guard, address + 1, value >> 8 & 0xff);
 }
 
 u32 Accessors::ReadU32(const Core::CPUThreadGuard& guard, u32 address) const
@@ -37,7 +37,7 @@ u32 Accessors::ReadU32(const Core::CPUThreadGuard& guard, u32 address) const
 void Accessors::WriteU32(const Core::CPUThreadGuard& guard, u32 address, u32 value)
 {
   WriteU16(guard, address, value & 0xffff);
-  WriteU16(guard, address + 2, (value >> 16) & 0xffff);
+  WriteU16(guard, address + 2, value >> 16 & 0xffff);
 }
 
 u64 Accessors::ReadU64(const Core::CPUThreadGuard& guard, u32 address) const
@@ -50,7 +50,7 @@ u64 Accessors::ReadU64(const Core::CPUThreadGuard& guard, u32 address) const
 void Accessors::WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 value)
 {
   WriteU32(guard, address, value & 0xffffffff);
-  WriteU32(guard, address + 4, (value >> 32) & 0xffffffff);
+  WriteU32(guard, address + 4, value >> 32 & 0xffffffff);
 }
 
 float Accessors::ReadF32(const Core::CPUThreadGuard& guard, u32 address) const
@@ -166,7 +166,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
       offset = 0;
       page_base = page_base + 0x1000;
     } while (needle_size != 0 && page_base != 0);
-    return (needle_size == 0);
+    return needle_size == 0;
   }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_start,
@@ -196,7 +196,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
       }
       else
       {
-        haystack_address = (haystack_address + haystack_page_change) & 0xfffff000;
+        haystack_address = haystack_address + haystack_page_change & 0xfffff000;
       }
     } while ((haystack_address & 0xfffff000) != haystack_page_limit);
     return std::nullopt;
@@ -208,7 +208,7 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
   static constexpr u32 aram_base_address = 0;
   bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return !guard.GetSystem().IsWii() && (address - aram_base_address) < GetSize();
+    return !guard.GetSystem().IsWii() && address - aram_base_address < GetSize();
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
@@ -252,7 +252,7 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
       auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
                             reverse_end, std::make_reverse_iterator(needle_start + needle_size),
                             std::make_reverse_iterator(needle_start));
-      result = (it == reverse_end) ? end() : (&(*it) - needle_size + 1);
+      result = it == reverse_end ? end() : &*it - needle_size + 1;
     }
     if (result == end())
     {
@@ -353,7 +353,7 @@ struct SmallBlockAccessors : Accessors
 
   bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return (*alloc_base != nullptr) && (address < size);
+    return *alloc_base != nullptr && address < size;
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
@@ -369,7 +369,7 @@ struct SmallBlockAccessors : Accessors
 
   iterator end() const override
   {
-    return (*alloc_base == nullptr) ? nullptr : (*alloc_base + size);
+    return *alloc_base == nullptr ? nullptr : *alloc_base + size;
   }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
@@ -395,7 +395,7 @@ struct SmallBlockAccessors : Accessors
       auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
                             reverse_end, std::make_reverse_iterator(needle_start + needle_size),
                             std::make_reverse_iterator(needle_start));
-      result = (it == reverse_end) ? end() : (&(*it) - needle_size + 1);
+      result = it == reverse_end ? end() : &*it - needle_size + 1;
     }
     if (result == end())
     {

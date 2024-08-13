@@ -86,9 +86,9 @@ const std::array<BaseAndDec, 32> frsqrte_expected = {{
 double ApproximateReciprocalSquareRoot(double val)
 {
   s64 integral = std::bit_cast<s64>(val);
-  s64 mantissa = integral & ((1LL << 52) - 1);
-  const s64 sign = integral & (1ULL << 63);
-  s64 exponent = integral & (0x7FFLL << 52);
+  s64 mantissa = integral & (1LL << 52) - 1;
+  const s64 sign = integral & 1ULL << 63;
+  s64 exponent = integral & 0x7FFLL << 52;
 
   // Special case 0
   if (mantissa == 0 && exponent == 0)
@@ -98,7 +98,7 @@ double ApproximateReciprocalSquareRoot(double val)
   }
 
   // Special case NaN-ish numbers
-  if (exponent == (0x7FFLL << 52))
+  if (exponent == 0x7FFLL << 52)
   {
     if (mantissa == 0)
     {
@@ -122,13 +122,13 @@ double ApproximateReciprocalSquareRoot(double val)
     {
       exponent -= 1LL << 52;
       mantissa <<= 1;
-    } while (!(mantissa & (1LL << 52)));
+    } while (!(mantissa & 1LL << 52));
     mantissa &= (1LL << 52) - 1;
     exponent += 1LL << 52;
   }
 
-  const s64 exponent_lsb = exponent & (1LL << 52);
-  exponent = ((0x3FFLL << 52) - ((exponent - (0x3FELL << 52)) / 2)) & (0x7FFLL << 52);
+  const s64 exponent_lsb = exponent & 1LL << 52;
+  exponent = (0x3FFLL << 52) - (exponent - (0x3FELL << 52)) / 2 & 0x7FFLL << 52;
   integral = sign | exponent;
 
   const int i = static_cast<int>((exponent_lsb | mantissa) >> 37);
@@ -152,16 +152,16 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 double ApproximateReciprocal(double val)
 {
   s64 integral = std::bit_cast<s64>(val);
-  const s64 mantissa = integral & ((1LL << 52) - 1);
-  const s64 sign = integral & (1ULL << 63);
-  s64 exponent = integral & (0x7FFLL << 52);
+  const s64 mantissa = integral & (1LL << 52) - 1;
+  const s64 sign = integral & 1ULL << 63;
+  s64 exponent = integral & 0x7FFLL << 52;
 
   // Special case 0
   if (mantissa == 0 && exponent == 0)
     return std::copysign(std::numeric_limits<double>::infinity(), val);
 
   // Special case NaN-ish numbers
-  if (exponent == (0x7FFLL << 52))
+  if (exponent == 0x7FFLL << 52)
   {
     if (mantissa == 0)
       return std::copysign(0.0, val);
@@ -169,11 +169,11 @@ double ApproximateReciprocal(double val)
   }
 
   // Special case small inputs
-  if (exponent < (895LL << 52))
+  if (exponent < 895LL << 52)
     return std::copysign(std::numeric_limits<float>::max(), val);
 
   // Special case large inputs
-  if (exponent >= (1149LL << 52))
+  if (exponent >= 1149LL << 52)
     return std::copysign(0.0, val);
 
   exponent = (0x7FDLL << 52) - exponent;

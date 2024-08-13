@@ -422,8 +422,8 @@ void AESndUCode::DoMixing()
           std::swap(new_r, new_l);
         }
         // mix_samples
-        const s32 mixed_l = (static_cast<s32>(new_l) * m_parameter_block.volume_l) >> 8;
-        const s32 mixed_r = (static_cast<s32>(new_r) * m_parameter_block.volume_r) >> 8;
+        const s32 mixed_l = static_cast<s32>(new_l) * m_parameter_block.volume_l >> 8;
+        const s32 mixed_r = static_cast<s32>(new_r) * m_parameter_block.volume_r >> 8;
         // Clamping from set40 mode
         m_parameter_block.left = std::clamp(mixed_l, -32768, 32767);
         m_parameter_block.right = std::clamp(mixed_r, -32768, 32767);

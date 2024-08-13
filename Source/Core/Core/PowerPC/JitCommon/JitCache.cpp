@@ -266,7 +266,7 @@ void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length
       return;
     }
 
-    const u32 end_of_page = (first_address + (1u << shift)) & mask;
+    const u32 end_of_page = first_address + (1u << shift) & mask;
     const u32 length_this_page = end_of_page - first_address;
     if (translated.valid)
       InvalidateICacheInternal(translated.address, address, length_this_page, forced);
@@ -520,10 +520,10 @@ size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address, u32 feature_fla
 {
   if (m_entry_points_ptr)
   {
-    return (static_cast<size_t>(feature_flags) << 30) | (address >> 2);
+    return static_cast<size_t>(feature_flags) << 30 | address >> 2;
   }
   else
   {
-    return (address >> 2) & FAST_BLOCK_MAP_FALLBACK_MASK;
+    return address >> 2 & FAST_BLOCK_MAP_FALLBACK_MASK;
   }
 }

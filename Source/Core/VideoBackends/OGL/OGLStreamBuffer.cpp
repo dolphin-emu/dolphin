@@ -101,7 +101,7 @@ void StreamBuffer::AllocMemory(u32 size)
   // smaller than allocation A, we will have already waited for these fences in A, but not used
   // the space. In this case, don't set m_free_iterator to a position before that which we know
   // is safe to use, which would result in waiting on the same fence(s) next time.
-  if ((m_iterator + size) > m_free_iterator)
+  if (m_iterator + size > m_free_iterator)
     m_free_iterator = m_iterator + size;
 
   // if buffer is full
@@ -363,7 +363,7 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   {
     // pinned memory is much faster than buffer storage on AMD cards
     if (g_ogl_config.bSupportsGLPinnedMemory &&
-        !(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_PINNED_MEMORY)))
+        !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_PINNED_MEMORY))
       return std::make_unique<PinnedMemory>(type, size);
 
     // buffer storage works well in most situations

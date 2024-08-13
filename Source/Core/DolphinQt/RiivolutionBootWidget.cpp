@@ -266,7 +266,7 @@ void RiivolutionBootWidget::SaveConfigXMLs()
     {
       for (const auto& option : section.m_options)
       {
-        std::string id = option.m_id.empty() ? (section.m_name + option.m_name) : option.m_id;
+        std::string id = option.m_id.empty() ? section.m_name + option.m_name : option.m_id;
         config_options.emplace_back(
             DiscIO::Riivolution::ConfigOption{std::move(id), option.m_selected_choice});
       }

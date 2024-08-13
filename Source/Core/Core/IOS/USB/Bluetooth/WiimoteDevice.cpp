@@ -436,7 +436,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
   case L2CAP_PSM_HID_CNTL:
   {
     const u8 hid_type = data[0];
-    if (hid_type == ((WiimoteCommon::HID_TYPE_SET_REPORT << 4) | WiimoteCommon::HID_PARAM_OUTPUT))
+    if (hid_type == (WiimoteCommon::HID_TYPE_SET_REPORT << 4 | WiimoteCommon::HID_PARAM_OUTPUT))
     {
       struct DataFrame
       {
@@ -465,7 +465,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
   case L2CAP_PSM_HID_INTR:
   {
     const u8 hid_type = data[0];
-    if (hid_type == ((WiimoteCommon::HID_TYPE_DATA << 4) | WiimoteCommon::HID_PARAM_OUTPUT))
+    if (hid_type == (WiimoteCommon::HID_TYPE_DATA << 4 | WiimoteCommon::HID_PARAM_OUTPUT))
       m_hid_source->InterruptDataOutput(data + sizeof(hid_type), data_size - sizeof(hid_type));
     else
       ERROR_LOG_FMT(IOS_WIIMOTE, "Unknown HID-type ({:#x}) on L2CAP_PSM_HID_INTR", hid_type);

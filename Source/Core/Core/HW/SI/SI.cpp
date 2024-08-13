@@ -127,7 +127,7 @@ constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
 // Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
 constexpr s32 ConvertSILengthField(u32 field)
 {
-  return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
+  return (field - 1 & SI_XFER_LENGTH_MASK) + 1;
 }
 
 void SerialInterfaceManager::GlobalRunSIBuffer(Core::System& system, u64 user_data, s64 cycles_late)
@@ -363,10 +363,10 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     // CH3 -> Bit 0 + 5
     const u32 rdst_bit = 8 * (3 - i) + 5;
 
-    mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
+    mmio->Register(base | SI_CHANNEL_0_OUT + 0xC * i,
                    MMIO::DirectRead<u32>(&m_channel[i].out.hex),
                    MMIO::DirectWrite<u32>(&m_channel[i].out.hex));
-    mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
+    mmio->Register(base | SI_CHANNEL_0_IN_HI + 0xC * i,
                    MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
                      si.m_status_reg.hex &= ~(1U << rdst_bit);
@@ -374,7 +374,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      return si.m_channel[i].in_hi.hex;
                    }),
                    MMIO::DirectWrite<u32>(&m_channel[i].in_hi.hex));
-    mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
+    mmio->Register(base | SI_CHANNEL_0_IN_LO + 0xC * i,
                    MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
                      si.m_status_reg.hex &= ~(1U << rdst_bit);

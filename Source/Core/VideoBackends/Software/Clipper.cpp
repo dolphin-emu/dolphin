@@ -444,9 +444,9 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 
     // Note that py or px are set positive or negative to ensure that the triangles are drawn ccw.
     if (fabsf(dx) > fabsf(dy))
-      py = (dx > 0) ? -1 : 1;
+      py = dx > 0 ? -1 : 1;
     else
-      px = (dy > 0) ? 1 : -1;
+      px = dy > 0 ? 1 : -1;
 
     OutputVertexData triangle[3];
 

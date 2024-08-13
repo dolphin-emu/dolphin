@@ -165,7 +165,7 @@ void Bind(u32 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
   // It holds the level 0 mipmap (and other even mipmap LODs, if mipmapping is enabled)
   unit_state.even.size = CalculateUnitSize(unit_state.even);
 
-  bool fits = (width * height * 32U) <= unit_state.even.size;
+  bool fits = width * height * 32U <= unit_state.even.size;
 
   if (is_mipmapped || is_32_bit)
   {
@@ -174,7 +174,7 @@ void Bind(u32 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
     // texture
     unit_state.odd.size = CalculateUnitSize(unit_state.odd);
 
-    fits = fits && (width * height * 32U) <= unit_state.odd.size;
+    fits = fits && width * height * 32U <= unit_state.odd.size;
   }
   else
   {
@@ -233,8 +233,8 @@ bool TextureUnitState::BankConfig::Overlaps(const BankConfig& other) const
 {
   if (size == 0 || other.size == 0)
     return false;
-  return (base <= other.base && (base + size) > other.base) ||
-         (other.base <= base && (other.base + other.size) > base);
+  return (base <= other.base && base + size > other.base) ||
+         (other.base <= base && other.base + other.size > base);
 }
 
 bool TextureUnitState::Overlaps(const TextureUnitState& other) const

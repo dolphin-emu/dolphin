@@ -121,7 +121,7 @@ static void Hex2mem(u8* dst, u8* src, u32 len)
 {
   while (len-- > 0)
   {
-    *dst++ = (Hex2char(*src) << 4) | Hex2char(*(src + 1));
+    *dst++ = Hex2char(*src) << 4 | Hex2char(*(src + 1));
     src += 2;
   }
 }
@@ -328,19 +328,19 @@ static void HandleQuery()
 {
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
 
-  if (!strncmp((const char*)(s_cmd_bfr), "qAttached", strlen("qAttached")))
+  if (!strncmp((const char*)s_cmd_bfr, "qAttached", strlen("qAttached")))
     return SendReply("1");
-  if (!strcmp((const char*)(s_cmd_bfr), "qC"))
+  if (!strcmp((const char*)s_cmd_bfr, "qC"))
     return SendReply("QC1");
-  if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
+  if (!strcmp((const char*)s_cmd_bfr, "qfThreadInfo"))
     return SendReply("m1");
-  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+  else if (!strcmp((const char*)s_cmd_bfr, "qsThreadInfo"))
     return SendReply("l");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+  else if (!strncmp((const char*)s_cmd_bfr, "qThreadExtraInfo", strlen("qThreadExtraInfo")))
     return SendReply("00");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+  else if (!strncmp((const char*)s_cmd_bfr, "qHostInfo", strlen("qHostInfo")))
     return WriteHostInfo();
-  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
+  else if (!strncmp((const char*)s_cmd_bfr, "qSupported", strlen("qSupported")))
     return SendReply("swbreak+;hwbreak+");
 
   SendReply("");
@@ -366,14 +366,14 @@ static void wbe32hex(u8* p, u32 v)
 {
   u32 i;
   for (i = 0; i < 8; i++)
-    p[i] = Nibble2hex(v >> (28 - 4 * i));
+    p[i] = Nibble2hex(v >> 28 - 4 * i);
 }
 
 static void wbe64hex(u8* p, u64 v)
 {
   u32 i;
   for (i = 0; i < 16; i++)
-    p[i] = Nibble2hex(v >> (60 - 4 * i));
+    p[i] = Nibble2hex(v >> 60 - 4 * i);
 }
 
 static u32 re32hex(u8* p)
@@ -382,7 +382,7 @@ static u32 re32hex(u8* p)
   u32 res = 0;
 
   for (i = 0; i < 8; i++)
-    res = (res << 4) | Hex2char(p[i]);
+    res = res << 4 | Hex2char(p[i]);
 
   return res;
 }
@@ -393,7 +393,7 @@ static u64 re64hex(u8* p)
   u64 res = 0;
 
   for (i = 0; i < 16; i++)
-    res = (res << 4) | Hex2char(p[i]);
+    res = res << 4 | Hex2char(p[i]);
 
   return res;
 }
@@ -814,12 +814,12 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
   i = 1;
   addr = 0;
   while (s_cmd_bfr[i] != ',')
-    addr = (addr << 4) | Hex2char(s_cmd_bfr[i++]);
+    addr = addr << 4 | Hex2char(s_cmd_bfr[i++]);
   i++;
 
   len = 0;
   while (i < s_cmd_len)
-    len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
+    len = len << 4 | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: read memory: {:08x} bytes from {:08x}", len, addr);
 
   if (len * 2 > sizeof reply)
@@ -844,12 +844,12 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
   i = 1;
   addr = 0;
   while (s_cmd_bfr[i] != ',')
-    addr = (addr << 4) | Hex2char(s_cmd_bfr[i++]);
+    addr = addr << 4 | Hex2char(s_cmd_bfr[i++]);
   i++;
 
   len = 0;
   while (s_cmd_bfr[i] != ':')
-    len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
+    len = len << 4 | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
   if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
@@ -883,11 +883,11 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     TMemCheck new_memcheck;
     new_memcheck.start_address = addr;
     new_memcheck.end_address = addr + len - 1;
-    new_memcheck.is_ranged = (len > 1);
+    new_memcheck.is_ranged = len > 1;
     new_memcheck.is_break_on_read =
-        (type == BreakpointType::Read || type == BreakpointType::Access);
+        type == BreakpointType::Read || type == BreakpointType::Access;
     new_memcheck.is_break_on_write =
-        (type == BreakpointType::Write || type == BreakpointType::Access);
+        type == BreakpointType::Write || type == BreakpointType::Access;
     new_memcheck.break_on_hit = true;
     new_memcheck.log_on_hit = false;
     new_memcheck.is_enabled = true;
@@ -934,11 +934,11 @@ static void HandleRemoveBreakpoint()
 
   i = 3;
   while (s_cmd_bfr[i] != ',')
-    addr = (addr << 4) | Hex2char(s_cmd_bfr[i++]);
+    addr = addr << 4 | Hex2char(s_cmd_bfr[i++]);
   i++;
 
   while (i < s_cmd_len)
-    len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
+    len = len << 4 | Hex2char(s_cmd_bfr[i++]);
 
   RemoveBreakpoint(static_cast<BreakpointType>(type), addr, len);
   SendReply("OK");

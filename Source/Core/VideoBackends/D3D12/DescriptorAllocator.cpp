@@ -32,7 +32,7 @@ bool DescriptorAllocator::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYP
 
 bool DescriptorAllocator::Allocate(u32 num_handles, DescriptorHandle* out_base_handle)
 {
-  if ((m_current_offset + num_handles) > m_num_descriptors)
+  if (m_current_offset + num_handles > m_num_descriptors)
     return false;
 
   out_base_handle->index = m_current_offset;
@@ -113,7 +113,7 @@ bool SamplerAllocator::ShouldReset() const
 {
   // We only reset the sampler heap if more than half of the descriptors are used.
   // This saves descriptor copying when there isn't a large number of sampler configs per frame.
-  return m_sampler_map.size() >= (D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE / 2);
+  return m_sampler_map.size() >= D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE / 2;
 }
 
 void SamplerAllocator::Reset()

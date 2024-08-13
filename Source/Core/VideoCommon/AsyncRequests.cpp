@@ -37,7 +37,7 @@ void AsyncRequests::PullEventsInternal()
 
     // try to merge as many efb pokes as possible
     // it's a bit hacky, but some games render a complete frame in this way
-    if ((e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z))
+    if (e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z)
     {
       m_merged_efb_pokes.clear();
       Event first_event = m_queue.front();

@@ -32,9 +32,9 @@ LibusbDevice::LibusbDevice(EmulationKernel& ios, libusb_device* device,
   libusb_ref_device(m_device);
   m_vid = descriptor.idVendor;
   m_pid = descriptor.idProduct;
-  m_id = (static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 |
-          static_cast<u64>(libusb_get_bus_number(device)) << 8 |
-          static_cast<u64>(libusb_get_device_address(device)));
+  m_id = static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 |
+         static_cast<u64>(libusb_get_bus_number(device)) << 8 |
+         static_cast<u64>(libusb_get_device_address(device));
 
   for (u8 i = 0; i < descriptor.bNumConfigurations; ++i)
   {
@@ -207,7 +207,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
                 cmd->index, cmd->length);
 
-  switch ((cmd->request_type << 8) | cmd->request)
+  switch (cmd->request_type << 8 | cmd->request)
   {
   // The following requests have to go through libusb and cannot be directly sent to the device.
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_INTERFACE, REQUEST_SET_INTERFACE):

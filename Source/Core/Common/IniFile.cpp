@@ -167,7 +167,7 @@ bool IniFile::DeleteSection(std::string_view section_name)
 
   for (auto iter = sections.begin(); iter != sections.end(); ++iter)
   {
-    if (&(*iter) == s)
+    if (&*iter == s)
     {
       sections.erase(iter);
       return true;

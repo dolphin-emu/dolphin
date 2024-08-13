@@ -1070,7 +1070,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
                             DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion(), tmd.IsvWii())) :
                         QString{};
 
-    const QString sysmenu_text = (tmd.IsValid() && tmd.IsvWii()) ? tr("Load vWii System Menu %1") :
+    const QString sysmenu_text = tmd.IsValid() && tmd.IsvWii() ? tr("Load vWii System Menu %1") :
                                                                    tr("Load Wii System Menu %1");
 
     m_boot_sysmenu->setText(sysmenu_text.arg(sysmenu_version));
@@ -1186,17 +1186,17 @@ void MenuBar::CheckNAND()
            "of data, out of an allowed maximum of %3 blocks (%4 KiB).")
             .arg(Common::AlignUp(result.used_clusters_user, IOS::HLE::FS::CLUSTERS_PER_BLOCK) /
                  IOS::HLE::FS::CLUSTERS_PER_BLOCK)
-            .arg((result.used_clusters_user * IOS::HLE::FS::CLUSTER_SIZE) / 1024)
+            .arg(result.used_clusters_user * IOS::HLE::FS::CLUSTER_SIZE / 1024)
             .arg(IOS::HLE::FS::USER_CLUSTERS / IOS::HLE::FS::CLUSTERS_PER_BLOCK)
-            .arg((IOS::HLE::FS::USER_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE) / 1024);
+            .arg(IOS::HLE::FS::USER_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE / 1024);
     const QString system_cluster_message =
         tr("The system-reserved part of your NAND contains %1 blocks (%2 KiB) "
            "of data, out of an allowed maximum of %3 blocks (%4 KiB).")
             .arg(Common::AlignUp(result.used_clusters_system, IOS::HLE::FS::CLUSTERS_PER_BLOCK) /
                  IOS::HLE::FS::CLUSTERS_PER_BLOCK)
-            .arg((result.used_clusters_system * IOS::HLE::FS::CLUSTER_SIZE) / 1024)
+            .arg(result.used_clusters_system * IOS::HLE::FS::CLUSTER_SIZE / 1024)
             .arg(IOS::HLE::FS::SYSTEM_CLUSTERS / IOS::HLE::FS::CLUSTERS_PER_BLOCK)
-            .arg((IOS::HLE::FS::SYSTEM_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE) / 1024);
+            .arg(IOS::HLE::FS::SYSTEM_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE / 1024);
 
     if (overfull)
     {
@@ -1495,7 +1495,7 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
           return matches;
         }
 
-        const auto lookup_addr = (*found_addr - max_name_length) + i;
+        const auto lookup_addr = *found_addr - max_name_length + i;
 
         const std::array<u8, 4> ref = {
             static_cast<u8>(lookup_addr >> 24), static_cast<u8>(lookup_addr >> 16),

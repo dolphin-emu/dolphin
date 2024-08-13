@@ -31,7 +31,7 @@ void ClearEfb()
   {
     for (u16 x = left; x <= right; x++)
     {
-      EfbInterface::SetColor(x, y, (u8*)(&clearColor));
+      EfbInterface::SetColor(x, y, (u8*)&clearColor);
       EfbInterface::SetDepth(x, y, bpmem.clearZValue);
     }
   }

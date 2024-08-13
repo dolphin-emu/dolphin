@@ -143,7 +143,7 @@ public:
 
   DOLPHIN_FORCE_INLINE BitField& operator=(T val)
   {
-    storage = (storage & ~GetMask()) | ((static_cast<StorageType>(val) << position) & GetMask());
+    storage = storage & ~GetMask() | static_cast<StorageType>(val) << position & GetMask();
     return *this;
   }
 
@@ -160,7 +160,7 @@ private:
   constexpr T Value(std::true_type) const
   {
     const size_t shift_amount = 8 * sizeof(StorageType) - bits;
-    return static_cast<T>((storage << (shift_amount - position)) >> shift_amount);
+    return static_cast<T>(storage << shift_amount - position >> shift_amount);
   }
 
   constexpr T Value(std::false_type) const
@@ -170,7 +170,7 @@ private:
 
   static constexpr StorageType GetMask()
   {
-    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(StorageType) - bits))
+    return std::numeric_limits<StorageTypeU>::max() >> 8 * sizeof(StorageType) - bits
            << position;
   }
 
@@ -255,8 +255,8 @@ public:
   void SetValue(size_t index, T value)
   {
     const size_t pos = position + bits * index;
-    storage = (storage & ~GetElementMask(index)) |
-              ((static_cast<StorageType>(value) << pos) & GetElementMask(index));
+    storage = storage & ~GetElementMask(index) |
+              static_cast<StorageType>(value) << pos & GetElementMask(index);
   }
   Ref operator[](size_t index) { return Ref(this, index); }
   constexpr const ConstRef operator[](size_t index) const { return ConstRef(this, index); }
@@ -276,7 +276,7 @@ private:
   {
     const size_t pos = position + bits * index;
     const size_t shift_amount = 8 * sizeof(StorageType) - bits;
-    return static_cast<T>((storage << (shift_amount - pos)) >> shift_amount);
+    return static_cast<T>(storage << shift_amount - pos >> shift_amount);
   }
 
   constexpr T Value(std::false_type, size_t index) const
@@ -288,7 +288,7 @@ private:
   static constexpr StorageType GetElementMask(size_t index)
   {
     const size_t pos = position + bits * index;
-    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(StorageType) - bits)) << pos;
+    return std::numeric_limits<StorageTypeU>::max() >> 8 * sizeof(StorageType) - bits << pos;
   }
 
   StorageType storage;

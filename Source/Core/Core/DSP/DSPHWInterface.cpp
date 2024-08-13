@@ -57,7 +57,7 @@ u16 SDSP::ReadMailboxHigh(Mailbox mailbox)
 void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 {
   const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
-  const u32 new_value = (old_value & ~0xffff) | value;
+  const u32 new_value = old_value & ~0xffff | value;
 
   GetMailbox(mailbox).store(new_value | 0x80000000, std::memory_order_release);
 
@@ -71,7 +71,7 @@ void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 void SDSP::WriteMailboxHigh(Mailbox mailbox, u16 value)
 {
   const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
-  const u32 new_value = (old_value & 0xffff) | (value << 16);
+  const u32 new_value = old_value & 0xffff | value << 16;
 
   GetMailbox(mailbox).store(new_value & ~0x80000000, std::memory_order_release);
 }
@@ -317,7 +317,7 @@ const u8* SDSP::DDMAOut(u16 dsp_addr, u32 addr, u32 size)
 
 void SDSP::DoDMA()
 {
-  const u32 addr = (m_ifx_regs[DSP_DSMAH] << 16) | m_ifx_regs[DSP_DSMAL];
+  const u32 addr = m_ifx_regs[DSP_DSMAH] << 16 | m_ifx_regs[DSP_DSMAL];
   const u16 ctl = m_ifx_regs[DSP_DSCR];
   const u16 dsp_addr = m_ifx_regs[DSP_DSPA] * 2;
   const u16 len = m_ifx_regs[DSP_DSBL];
@@ -339,19 +339,19 @@ void SDSP::DoDMA()
   const u8* copied_data_ptr = nullptr;
   switch (ctl & 0x3)
   {
-  case (DSP_CR_DMEM | DSP_CR_TO_CPU):
+  case DSP_CR_DMEM | DSP_CR_TO_CPU:
     copied_data_ptr = DDMAOut(dsp_addr, addr, len);
     break;
 
-  case (DSP_CR_DMEM | DSP_CR_FROM_CPU):
+  case DSP_CR_DMEM | DSP_CR_FROM_CPU:
     copied_data_ptr = DDMAIn(dsp_addr, addr, len);
     break;
 
-  case (DSP_CR_IMEM | DSP_CR_TO_CPU):
+  case DSP_CR_IMEM | DSP_CR_TO_CPU:
     copied_data_ptr = IDMAOut(dsp_addr, addr, len);
     break;
 
-  case (DSP_CR_IMEM | DSP_CR_FROM_CPU):
+  case DSP_CR_IMEM | DSP_CR_FROM_CPU:
     copied_data_ptr = IDMAIn(dsp_addr, addr, len);
     break;
   }

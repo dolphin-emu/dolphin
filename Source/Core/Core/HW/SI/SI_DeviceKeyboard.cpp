@@ -47,8 +47,8 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
     GetData(high, low);
     for (int i = 0; i < 4; i++)
     {
-      buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
-      buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
+      buffer[i + 0] = high >> 24 - i * 8 & 0xff;
+      buffer[i + 4] = low >> 24 - i * 8 & 0xff;
     }
     return sizeof(high) + sizeof(low);
   }

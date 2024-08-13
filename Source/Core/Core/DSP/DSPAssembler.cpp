@@ -203,11 +203,11 @@ s32 DSPAssembler::ParseValue(const char* str)
         {
           val <<= 4;
           if (ptr[i] >= 'a' && ptr[i] <= 'f')
-            val += (ptr[i] - 'a' + 10);
+            val += ptr[i] - 'a' + 10;
           else if (ptr[i] >= 'A' && ptr[i] <= 'F')
-            val += (ptr[i] - 'A' + 10);
+            val += ptr[i] - 'A' + 10;
           else if (ptr[i] >= '0' && ptr[i] <= '9')
-            val += (ptr[i] - '0');
+            val += ptr[i] - '0';
           else
             ShowError(AssemblerError::IncorrectHex, "{}", str);
         }
@@ -335,14 +335,14 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   }
 
   int j = 0;
-  for (int i = 0; i < ((s32)strlen(s_buffer) + 1); i++)
+  for (int i = 0; i < (s32)strlen(s_buffer) + 1; i++)
   {
     char c = s_buffer[i];
     if (c != ' ')
       d_buffer[j++] = c;
   }
 
-  for (int i = 0; i < ((s32)strlen(d_buffer) + 1); i++)
+  for (int i = 0; i < (s32)strlen(d_buffer) + 1; i++)
   {
     char c = d_buffer[i];
     if (c == '-')
@@ -517,7 +517,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
   for (size_t i = 0; i < count; i++)
   {
     m_location.opcode_param_number = i + 1;
-    if (opc->params[i].type != par[i].type || (par[i].type & P_REG))
+    if (opc->params[i].type != par[i].type || par[i].type & P_REG)
     {
       if (par[i].type == P_VAL &&
           (opc->params[i].type == P_ADDR_I || opc->params[i].type == P_ADDR_D))
@@ -526,7 +526,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
         continue;
       }
 
-      if ((opc->params[i].type & P_REG) && (par[i].type & P_REG))
+      if (opc->params[i].type & P_REG && par[i].type & P_REG)
       {
         // modified by Hermes: test the register range
         switch (opc->params[i].type)
@@ -536,7 +536,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
         case P_REG1A:
         case P_REG1C:
         {
-          int value = (opc->params[i].type >> 8) & 0x1f;
+          int value = opc->params[i].type >> 8 & 0x1f;
           if ((int)par[i].val < value ||
               (int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
           {
@@ -555,11 +555,11 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           {
             if (par[i].val >= DSP_REG_ACM0 && par[i].val <= DSP_REG_ACM1)
             {
-              ShowWarning("$ACM{0} register used instead of $ACC{0} register", (par[i].val & 1));
+              ShowWarning("$ACM{0} register used instead of $ACC{0} register", par[i].val & 1);
             }
             else if (par[i].val >= DSP_REG_ACL0 && par[i].val <= DSP_REG_ACL1)
             {
-              ShowWarning("$ACL{0} register used instead of $ACC{0} register", (par[i].val & 1));
+              ShowWarning("$ACL{0} register used instead of $ACC{0} register", par[i].val & 1);
             }
             else
             {
@@ -572,11 +572,11 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           {
             if (par[i].val >= DSP_REG_ACL0 && par[i].val <= DSP_REG_ACL1)
             {
-              ShowWarning("$ACL{0} register used instead of $ACCM{0} register", (par[i].val & 1));
+              ShowWarning("$ACL{0} register used instead of $ACCM{0} register", par[i].val & 1);
             }
             else if (par[i].val >= DSP_REG_ACC0_FULL && par[i].val <= DSP_REG_ACC1_FULL)
             {
-              ShowWarning("$ACC{0} register used instead of $ACM{0} register", (par[i].val & 1));
+              ShowWarning("$ACC{0} register used instead of $ACM{0} register", par[i].val & 1);
             }
             else
             {
@@ -589,11 +589,11 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           {
             if (par[i].val >= DSP_REG_ACM0 && par[i].val <= DSP_REG_ACM1)
             {
-              ShowWarning("$ACM{0} register used instead of $ACL{0} register", (par[i].val & 1));
+              ShowWarning("$ACM{0} register used instead of $ACL{0} register", par[i].val & 1);
             }
             else if (par[i].val >= DSP_REG_ACC0_FULL && par[i].val <= DSP_REG_ACC1_FULL)
             {
-              ShowWarning("$ACC{0} register used instead of $ACL{0} register", (par[i].val & 1));
+              ShowWarning("$ACC{0} register used instead of $ACL{0} register", par[i].val & 1);
             }
             else
             {
@@ -642,7 +642,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           if (value < 256)
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Address value must be from {:#x} to {:#x}, was {:#x}", valueu, (value >> 1),
+                      "Address value must be from {:#x} to {:#x}, was {:#x}", valueu, value >> 1,
                       (int)par[i].val);
           }
           else
@@ -821,7 +821,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       }
 
       // turn text into spaces if disable_text is on (in a comment).
-      if (disable_text && ((unsigned char)c) > ' ')
+      if (disable_text && (unsigned char)c > ' ')
         c = ' ';
 
       if (c == '\r' || c == '\n' || c == ';')
@@ -848,10 +848,10 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       for (int j = 0; j < (int)col_pos; j++)
       {
         if (j == 0)
-          if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))
+          if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || ptr[j] == '_'))
             valid = false;
         if (!((ptr[j] >= '0' && ptr[j] <= '9') || (ptr[j] >= 'A' && ptr[j] <= 'Z') ||
-              (ptr[j] == '_')))
+              ptr[j] == '_'))
           valid = false;
       }
       if (valid)

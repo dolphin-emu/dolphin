@@ -88,13 +88,13 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
   }
   else
   {  // Write device register
-    u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+    u8 reg_num = static_cast<uint8_t>(m_transfer_descriptor >> 24 & 0x1F);
     bool should_update_interrupts = false;
     for (; size && reg_num < m_regs.size(); size--)
     {
       should_update_interrupts |=
-          ((reg_num == Register::INTERRUPT_MASK) || (reg_num == Register::PENDING_INTERRUPT_MASK));
-      m_regs[reg_num++] = (data >> 24);
+          reg_num == Register::INTERRUPT_MASK || reg_num == Register::PENDING_INTERRUPT_MASK;
+      m_regs[reg_num++] = data >> 24;
       data <<= 8;
     }
     if (should_update_interrupts)
@@ -154,7 +154,7 @@ u32 CEXIModem::ImmRead(u32 size)
   else
   {
     // Read device register
-    const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+    const u8 reg_num = static_cast<uint8_t>(m_transfer_descriptor >> 24 & 0x1F);
     if (reg_num == 0)
     {
       return 0x02020000;  // Device ID (modem)
@@ -166,7 +166,7 @@ u32 CEXIModem::ImmRead(u32 size)
       {
         break;
       }
-      ret |= (m_regs[reg_num + z] << ((3 - z) * 8));
+      ret |= m_regs[reg_num + z] << (3 - z) * 8;
     }
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
     return ret;
@@ -234,7 +234,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
   }
 
   m_transfer_descriptor =
-      (bytes_requested_after_read == 0) ?
+      bytes_requested_after_read == 0 ?
           INVALID_TRANSFER_DESCRIPTOR :
           SetModemTransferSize(m_transfer_descriptor, bytes_requested_after_read);
 }
@@ -272,7 +272,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
   }
 
   m_transfer_descriptor =
-      (bytes_expected_after_write == 0) ?
+      bytes_expected_after_write == 0 ?
           INVALID_TRANSFER_DESCRIPTOR :
           SetModemTransferSize(m_transfer_descriptor, bytes_expected_after_write);
 }
@@ -288,12 +288,12 @@ void CEXIModem::DoState(PointerWrap& p)
 
 u16 CEXIModem::GetTxThreshold() const
 {
-  return (m_regs[Register::TX_THRESHOLD_HIGH] << 8) | m_regs[Register::TX_THRESHOLD_LOW];
+  return m_regs[Register::TX_THRESHOLD_HIGH] << 8 | m_regs[Register::TX_THRESHOLD_LOW];
 }
 
 u16 CEXIModem::GetRxThreshold() const
 {
-  return (m_regs[Register::RX_THRESHOLD_HIGH] << 8) | m_regs[Register::RX_THRESHOLD_LOW];
+  return m_regs[Register::RX_THRESHOLD_HIGH] << 8 | m_regs[Register::RX_THRESHOLD_LOW];
 }
 
 void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
@@ -304,7 +304,7 @@ void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
   }
   else
   {
-    m_regs[Register::PENDING_INTERRUPT_MASK] &= (~what);
+    m_regs[Register::PENDING_INTERRUPT_MASK] &= ~what;
   }
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(
       from_cpu ? CoreTiming::FromThread::CPU : CoreTiming::FromThread::NON_CPU, 0);
@@ -315,7 +315,7 @@ void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
   // The caller is expected to hold m_receive_buffer_lock when calling this.
   const u16 bytes_available =
       static_cast<u16>(std::min<std::size_t>(m_receive_buffer.size(), 0x200));
-  m_regs[Register::BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
+  m_regs[Register::BYTES_AVAILABLE_HIGH] = bytes_available >> 8 & 0xFF;
   m_regs[Register::BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
   SetInterruptFlag(Interrupt::RECEIVE_BUFFER_ABOVE_THRESHOLD,
                    m_receive_buffer.size() >= GetRxThreshold(), from_cpu);

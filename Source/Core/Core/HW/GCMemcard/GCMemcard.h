@@ -89,7 +89,7 @@ struct GCMemcardAnimationFrameRGBA8
 constexpr u32 BLOCK_SIZE = 0x2000;
 
 // the amount of memory card blocks in a megabit of data
-constexpr u32 MBIT_TO_BLOCKS = (1024 * 1024) / (BLOCK_SIZE * 8);
+constexpr u32 MBIT_TO_BLOCKS = 1024 * 1024 / (BLOCK_SIZE * 8);
 
 // number of metadata and filesystem blocks before the actual user data blocks
 constexpr u32 MC_FST_BLOCKS = 0x05;

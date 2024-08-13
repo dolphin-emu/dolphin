@@ -76,7 +76,7 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
       i = static_cast<s32>(t);
 
       // Ties to even
-      if (t - i < 0 || (t - i == 0 && (i & 1)))
+      if (t - i < 0 || (t - i == 0 && i & 1))
       {
         i--;
       }
@@ -172,7 +172,7 @@ void Interpreter::Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state,
   const u32 compare_value = static_cast<u32>(compare_result);
 
   // Clear and set the FPCC bits accordingly.
-  ppc_state.fpscr.FPRF = (ppc_state.fpscr.FPRF & ~FPCC_MASK) | compare_value;
+  ppc_state.fpscr.FPRF = ppc_state.fpscr.FPRF & ~FPCC_MASK | compare_value;
 
   ppc_state.cr.SetField(inst.CRFD, compare_value);
 }
@@ -207,7 +207,7 @@ void Interpreter::Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state,
   const u32 compare_value = static_cast<u32>(compare_result);
 
   // Clear and set the FPCC bits accordingly.
-  ppc_state.fpscr.FPRF = (ppc_state.fpscr.FPRF & ~FPCC_MASK) | compare_value;
+  ppc_state.fpscr.FPRF = ppc_state.fpscr.FPRF & ~FPCC_MASK | compare_value;
 
   ppc_state.cr.SetField(inst.CRFD, compare_value);
 }
@@ -265,7 +265,7 @@ void Interpreter::fabsx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::fnabsx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.ps[inst.FD].SetPS0(ppc_state.ps[inst.FB].PS0AsU64() | (UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetPS0(ppc_state.ps[inst.FB].PS0AsU64() | UINT64_C(1) << 63);
 
   // This is a binary instruction. Does not alter FPSCR
   if (inst.Rc)
@@ -275,7 +275,7 @@ void Interpreter::fnabsx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::fnegx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.ps[inst.FD].SetPS0(ppc_state.ps[inst.FB].PS0AsU64() ^ (UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetPS0(ppc_state.ps[inst.FB].PS0AsU64() ^ UINT64_C(1) << 63);
 
   // This is a binary instruction. Does not alter FPSCR
   if (inst.Rc)
@@ -289,7 +289,7 @@ void Interpreter::fselx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  ppc_state.ps[inst.FD].SetPS0((a.PS0AsDouble() >= -0.0) ? c.PS0AsDouble() : b.PS0AsDouble());
+  ppc_state.ps[inst.FD].SetPS0(a.PS0AsDouble() >= -0.0 ? c.PS0AsDouble() : b.PS0AsDouble());
 
   // This is a binary instruction. Does not alter FPSCR
   if (inst.Rc)

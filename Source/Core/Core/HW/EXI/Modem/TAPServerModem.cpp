@@ -37,7 +37,7 @@ bool CEXIModem::TAPServerNetworkInterface::SendAndRemoveAllHDLCFrames(std::strin
 {
   const std::size_t orig_size = send_buffer->size();
   const bool send_succeeded = m_tapserver_if.SendAndRemoveAllHDLCFrames(send_buffer);
-  if (send_succeeded && (send_buffer->size() < orig_size))
+  if (send_succeeded && send_buffer->size() < orig_size)
     m_modem_ref->SendComplete();
   return send_succeeded;
 }

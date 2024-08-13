@@ -437,7 +437,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
   if (software_fma)
   {
-    for (size_t i = (packed ? 1 : 0); i != std::numeric_limits<size_t>::max(); --i)
+    for (size_t i = packed ? 1 : 0; i != std::numeric_limits<size_t>::max(); --i)
     {
       if ((i == 0 || madds0) && !madds1)
       {

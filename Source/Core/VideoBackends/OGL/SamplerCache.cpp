@@ -71,15 +71,15 @@ void SamplerCache::InvalidateBinding(u32 stage)
 void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
 {
   GLenum min_filter;
-  GLenum mag_filter = (params.tm0.mag_filter == FilterMode::Near) ? GL_NEAREST : GL_LINEAR;
+  GLenum mag_filter = params.tm0.mag_filter == FilterMode::Near ? GL_NEAREST : GL_LINEAR;
   if (params.tm0.mipmap_filter == FilterMode::Linear)
   {
-    min_filter = (params.tm0.min_filter == FilterMode::Near) ? GL_NEAREST_MIPMAP_LINEAR :
+    min_filter = params.tm0.min_filter == FilterMode::Near ? GL_NEAREST_MIPMAP_LINEAR :
                                                                GL_LINEAR_MIPMAP_LINEAR;
   }
   else
   {
-    min_filter = (params.tm0.min_filter == FilterMode::Near) ? GL_NEAREST_MIPMAP_NEAREST :
+    min_filter = params.tm0.min_filter == FilterMode::Near ? GL_NEAREST_MIPMAP_NEAREST :
                                                                GL_LINEAR_MIPMAP_NEAREST;
   }
 

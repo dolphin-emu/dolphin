@@ -56,10 +56,10 @@ void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPa
       PowerPC::MMU::HostWrite_U8(guard, patch.value[offset], address + offset);
     }
 
-    if (((address + offset) % 4) == 3)
+    if ((address + offset) % 4 == 3)
       power_pc.ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
   }
-  if (((address + size) % 4) != 0)
+  if ((address + size) % 4 != 0)
   {
     power_pc.ScheduleInvalidateCacheThreadSafe(
         Common::AlignDown(address + static_cast<u32>(size), 4));
@@ -335,8 +335,8 @@ u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int me
   case 1:
   {
     const auto& dsp = guard.GetSystem().GetDSP();
-    return (dsp.ReadARAM(address) << 24) | (dsp.ReadARAM(address + 1) << 16) |
-           (dsp.ReadARAM(address + 2) << 8) | (dsp.ReadARAM(address + 3));
+    return dsp.ReadARAM(address) << 24 | dsp.ReadARAM(address + 1) << 16 |
+           dsp.ReadARAM(address + 2) << 8 | dsp.ReadARAM(address + 3);
   }
   default:
     return 0;
@@ -466,7 +466,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   {
     unsigned register_index = 0;
     Common::FromChars(offset_match.substr(1), register_index, 10);
-    offset = (register_index == 0 ? 0 : m_system.GetPPCState().gpr[register_index]);
+    offset = register_index == 0 ? 0 : m_system.GetPPCState().gpr[register_index];
   }
   else
   {

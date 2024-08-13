@@ -63,7 +63,7 @@ static const u32 IN_LEN = 60 * 1024u;
 static const u32 IN_LEN = 128 * 1024u;
 #endif
 
-static const u32 OUT_LEN = IN_LEN + (IN_LEN / 16) + 64 + 3;
+static const u32 OUT_LEN = IN_LEN + IN_LEN / 16 + 64 + 3;
 
 static unsigned char __LZO_MMODEL out[OUT_LEN];
 
@@ -271,7 +271,7 @@ static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 
 // Arbitrarily chosen value (38 years) that is subtracted in GetSystemTimeAsDouble()
 // to increase sub-second precision of the resulting double timestamp
-static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
+static constexpr int DOUBLE_TIME_OFFSET = 38 * 365 * 24 * 60 * 60;
 
 static double GetSystemTimeAsDouble()
 {
@@ -429,9 +429,9 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
     if (File::Exists(filename))
     {
       if (File::Exists(last_state_filename))
-        File::Delete((last_state_filename));
+        File::Delete(last_state_filename);
       if (File::Exists(last_state_dtmname))
-        File::Delete((last_state_dtmname));
+        File::Delete(last_state_dtmname);
 
       if (!File::Rename(filename, last_state_filename))
       {
@@ -445,7 +445,7 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
     }
 
     auto& movie = system.GetMovie();
-    if ((movie.IsMovieActive()) && !movie.IsJustStartingRecordingInputFromSaveState())
+    if (movie.IsMovieActive() && !movie.IsJustStartingRecordingInputFromSaveState())
       movie.SaveRecording(dtmname);
     else if (!movie.IsMovieActive())
       File::Delete(dtmname);
@@ -664,7 +664,7 @@ u64 GetUnixTimeOfSlot(int slot)
 
   constexpr u64 MS_PER_SEC = 1000;
   return static_cast<u64>(header.legacy_header.time * MS_PER_SEC) +
-         (DOUBLE_TIME_OFFSET * MS_PER_SEC);
+         DOUBLE_TIME_OFFSET * MS_PER_SEC;
 }
 
 static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f)

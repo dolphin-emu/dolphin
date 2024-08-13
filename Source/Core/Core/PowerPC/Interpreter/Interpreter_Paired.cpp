@@ -30,8 +30,8 @@ void Interpreter::ps_neg(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const auto& b = ppc_state.ps[inst.FB];
 
-  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() ^ (UINT64_C(1) << 63),
-                                b.PS1AsU64() ^ (UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() ^ UINT64_C(1) << 63,
+                                b.PS1AsU64() ^ UINT64_C(1) << 63);
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -51,8 +51,8 @@ void Interpreter::ps_nabs(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const auto& b = ppc_state.ps[inst.FB];
 
-  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() | (UINT64_C(1) << 63),
-                                b.PS1AsU64() | (UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() | UINT64_C(1) << 63,
+                                b.PS1AsU64() | UINT64_C(1) << 63);
 
   if (inst.Rc)
     ppc_state.UpdateCR1();

@@ -93,7 +93,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
 
   // shift = (905 - Exponent) plus the 21 bit double to single shift
   NEG(16, R(RSCRATCH));
-  ADD(16, R(RSCRATCH), Imm16((905 + 21) - 874));
+  ADD(16, R(RSCRATCH), Imm16(905 + 21 - 874));
   MOVQ_xmm(XMM1, R(RSCRATCH));
 
   // XMM0 = fraction | 0x0010000000000000

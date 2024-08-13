@@ -67,7 +67,7 @@ struct ConditionRegister
 
     // LT/SO
     static_assert(CR_EMU_LT_BIT - CR_EMU_SO_BIT == CR_LT_BIT - CR_SO_BIT);
-    ppc_cr |= (cr_val >> CR_EMU_SO_BIT) & (PowerPC::CR_LT | PowerPC::CR_SO);
+    ppc_cr |= cr_val >> CR_EMU_SO_BIT & (PowerPC::CR_LT | PowerPC::CR_SO);
     // EQ
     ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << PowerPC::CR_EQ_BIT;
     // GT
@@ -76,12 +76,12 @@ struct ConditionRegister
     return ppc_cr;
   }
 
-  u32 GetBit(u32 bit) const { return (GetField(bit >> 2) >> (3 - (bit & 3))) & 1; }
+  u32 GetBit(u32 bit) const { return GetField(bit >> 2) >> 3 - (bit & 3) & 1; }
 
   void SetBit(u32 bit, u32 value)
   {
     if (value & 1)
-      SetField(bit >> 2, GetField(bit >> 2) | (0x8 >> (bit & 3)));
+      SetField(bit >> 2, GetField(bit >> 2) | 0x8 >> (bit & 3));
     else
       SetField(bit >> 2, GetField(bit >> 2) & ~(0x8 >> (bit & 3)));
   }

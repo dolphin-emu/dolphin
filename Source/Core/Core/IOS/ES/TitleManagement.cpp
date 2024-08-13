@@ -325,7 +325,7 @@ ReturnCode ESCore::ImportContentBegin(Context& context, u64 title_id, u32 conten
   if (!context.title_import_export.tmd.FindContentById(context.title_import_export.content.id,
                                                        &content_info))
     return ES_EINVAL;
-  context.title_import_export.content.iv[0] = (content_info.index >> 8) & 0xFF;
+  context.title_import_export.content.iv[0] = content_info.index >> 8 & 0xFF;
   context.title_import_export.content.iv[1] = content_info.index & 0xFF;
 
   context.title_import_export.content.valid = true;
@@ -765,7 +765,7 @@ ReturnCode ESCore::ExportContentBegin(Context& context, u64 title_id, u32 conten
     return static_cast<ReturnCode>(ret);
   }
 
-  context.title_import_export.content.iv[0] = (content_info.index >> 8) & 0xFF;
+  context.title_import_export.content.iv[0] = content_info.index >> 8 & 0xFF;
   context.title_import_export.content.iv[1] = content_info.index & 0xFF;
 
   // IOS returns a content ID which is passed to further content calls.

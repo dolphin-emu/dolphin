@@ -208,8 +208,8 @@ void SystemTimersManager::DecrementerSet()
 u32 SystemTimersManager::GetFakeDecrementer() const
 {
   const auto& core_timing = m_system.GetCoreTiming();
-  return (core_timing.GetFakeDecStartValue() -
-          (u32)((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO));
+  return core_timing.GetFakeDecStartValue() -
+         (u32)((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO);
 }
 
 void SystemTimersManager::TimeBaseSet()
@@ -223,7 +223,7 @@ u64 SystemTimersManager::GetFakeTimeBase() const
 {
   const auto& core_timing = m_system.GetCoreTiming();
   return core_timing.GetFakeTBStartValue() +
-         ((core_timing.GetTicks() - core_timing.GetFakeTBStartTicks()) / TIMER_RATIO);
+         (core_timing.GetTicks() - core_timing.GetFakeTBStartTicks()) / TIMER_RATIO;
 }
 
 s64 SystemTimersManager::GetLocalTimeRTCOffset() const

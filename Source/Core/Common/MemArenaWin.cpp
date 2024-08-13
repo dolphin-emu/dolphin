@@ -348,7 +348,7 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
     return rv;
   }
 
-  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)(u64)offset, size, base);
 }
 
 bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
@@ -375,7 +375,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   it->m_is_mapped = false;
 
   const bool can_join_with_preceding = it != regions.begin() && !(it - 1)->m_is_mapped;
-  const bool can_join_with_succeeding = (it + 1) != regions.end() && !(it + 1)->m_is_mapped;
+  const bool can_join_with_succeeding = it + 1 != regions.end() && !(it + 1)->m_is_mapped;
   if (can_join_with_preceding && can_join_with_succeeding)
   {
     // join three mappings to one

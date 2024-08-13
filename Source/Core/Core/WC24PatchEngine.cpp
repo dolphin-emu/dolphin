@@ -139,7 +139,7 @@ std::optional<std::string> GetNetworkPatchByPayload(std::string_view source)
     {
       const std::string_view domain =
           source.substr(pos + 6, end_of_line == std::string_view::npos ? std::string_view::npos :
-                                                                         (end_of_line - pos - 6));
+                                                                         end_of_line - pos - 6);
       for (const WC24PatchEngine::NetworkPatch& patch : s_patches)
       {
         if (patch.is_kd != WC24PatchEngine::IsKD{true} && domain == patch.source && patch.enabled)

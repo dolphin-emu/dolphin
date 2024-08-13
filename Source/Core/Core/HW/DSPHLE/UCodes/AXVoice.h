@@ -263,7 +263,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
         curr_pos -= 0x10000;
       }
 
-      u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
+      u16 curr_pos_frac = (curr_pos & 0xFFFF) >> 9 << 2;
       const s16* c = &coeffs[curr_pos_frac];
 
       s64 t0 = temp[idx++ & 3];
@@ -271,7 +271,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
       s64 t2 = temp[idx++ & 3];
       s64 t3 = temp[idx++ & 3];
 
-      s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
+      s64 samp = t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3] >> 15;
 
       output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
@@ -319,7 +319,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
         s32 s0 = temp[idx++ & 3];
         s32 s1 = temp[idx++ & 3];
 
-        sample = ((s0 * inv_curr_frac) + (s1 * curr_frac)) >> 16;
+        sample = s0 * inv_curr_frac + s1 * curr_frac >> 16;
         idx += 2;
       }
       else
@@ -362,7 +362,7 @@ void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16
   u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
                                samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
                                HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
-  pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
+  pb.src.cur_addr_frac = curr_pos & 0xFFFF;
 
   // Update current position, YN1, YN2 and pred scale in the PB.
   pb.audio_addr.cur_addr_hi = static_cast<u16>(accelerator->GetCurrentAddress() >> 16);
@@ -403,7 +403,7 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
 s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
 {
   for (u32 i = 0; i < count; ++i)
-    yn1 = samples[i] = (a0 * (s32)samples[i] + b0 * (s32)yn1) >> 15;
+    yn1 = samples[i] = a0 * (s32)samples[i] + b0 * (s32)yn1 >> 15;
   return yn1;
 }
 
@@ -430,7 +430,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     // unsigned on Wii
     const s32 volume = (u16)pb.vol_env.cur_volume;
 #endif
-    const s32 sample = ((s32)samples[i] * volume) >> 15;
+    const s32 sample = (s32)samples[i] * volume >> 15;
     samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }

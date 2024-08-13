@@ -192,7 +192,7 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
     std::lock_guard lk(transfer_lock);
     if (!recv_fifo.empty())
     {
-      _uData = 0x08000000 | (recv_fifo.front() << 16);
+      _uData = 0x08000000 | recv_fifo.front() << 16;
       recv_fifo.pop_front();
     }
     break;

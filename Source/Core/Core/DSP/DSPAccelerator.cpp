@@ -22,7 +22,7 @@ u16 Accelerator::ReadD3()
     m_current_address++;
     break;
   case 0x6:  // u16 reads
-    val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
+    val = ReadMemory(m_current_address * 2) << 8 | ReadMemory(m_current_address * 2 + 1);
     m_current_address++;
     break;
   default:
@@ -77,18 +77,18 @@ u16 Accelerator::Read(const s16* coefs)
   case 0x00:  // ADPCM audio
   {
     int scale = 1 << (m_pred_scale & 0xF);
-    int coef_idx = (m_pred_scale >> 4) & 0x7;
+    int coef_idx = m_pred_scale >> 4 & 0x7;
 
     s32 coef1 = coefs[coef_idx * 2 + 0];
     s32 coef2 = coefs[coef_idx * 2 + 1];
 
-    int temp = (m_current_address & 1) ? (ReadMemory(m_current_address >> 1) & 0xF) :
-                                         (ReadMemory(m_current_address >> 1) >> 4);
+    int temp = m_current_address & 1 ? ReadMemory(m_current_address >> 1) & 0xF :
+                                         ReadMemory(m_current_address >> 1) >> 4;
 
     if (temp >= 8)
       temp -= 16;
 
-    s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
+    s32 val32 = scale * temp + (0x400 + coef1 * m_yn1 + coef2 * m_yn2 >> 11);
     val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
     step_size_bytes = 2;
 
@@ -118,7 +118,7 @@ u16 Accelerator::Read(const s16* coefs)
     break;
   }
   case 0x0A:  // 16-bit PCM audio
-    val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
+    val = ReadMemory(m_current_address * 2) << 8 | ReadMemory(m_current_address * 2 + 1);
     m_yn2 = m_yn1;
     m_yn1 = val;
     step_size_bytes = 2;
@@ -148,7 +148,7 @@ u16 Accelerator::Read(const s16* coefs)
   // Somehow, YN1 and YN2 must be initialized with their "loop" values,
   // so yeah, it seems likely that we should raise an exception to let
   // the DSP program do that, at least if DSP_FORMAT == 0x0A.
-  if (m_current_address == (m_end_address + step_size_bytes - 1))
+  if (m_current_address == m_end_address + step_size_bytes - 1)
   {
     // Set address back to start address.
     m_current_address = m_start_address;

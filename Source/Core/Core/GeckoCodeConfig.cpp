@@ -50,7 +50,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   int read_state = 0;
   GeckoCode gcode;
 
-  while ((std::getline(ss, line).good()))
+  while (std::getline(ss, line).good())
   {
     // Remove \r at the end of the line for files using windows line endings, std::getline only
     // removes \n
@@ -148,7 +148,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
       // Use the C locale to workaround this behavior
       ss.imbue(std::locale::classic());
 
-      switch ((line)[0])
+      switch (line[0])
       {
       // enabled or disabled code
       case '+':
@@ -158,8 +158,8 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
         if (!gcode.name.empty())
           gcodes.push_back(gcode);
         gcode = GeckoCode();
-        gcode.enabled = (1 == ss.tellg());  // silly
-        gcode.user_defined = (ini == &localIni);
+        gcode.enabled = 1 == ss.tellg();  // silly
+        gcode.user_defined = ini == &localIni;
         ss.seekg(1, std::ios_base::cur);
         // read the code name
         std::getline(ss, gcode.name, '[');  // stop at [ character (beginning of contributor name)

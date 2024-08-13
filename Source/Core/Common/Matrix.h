@@ -31,7 +31,7 @@ union TVec3
 
   constexpr TVec3 Cross(const TVec3& rhs) const
   {
-    return {(y * rhs.z) - (rhs.y * z), (z * rhs.x) - (rhs.z * x), (x * rhs.y) - (rhs.x * y)};
+    return {y * rhs.z - rhs.y * z, z * rhs.x - rhs.z * x, x * rhs.y - rhs.x * y};
   }
   constexpr T Dot(const TVec3& other) const { return x * other.x + y * other.y + z * other.z; }
   constexpr T LengthSquared() const { return Dot(*this); }
@@ -228,8 +228,8 @@ union TVec2
 
   constexpr bool operator==(const TVec2& other) const { return x == other.x && y == other.y; }
 
-  constexpr T Cross(const TVec2& rhs) const { return (x * rhs.y) - (y * rhs.x); }
-  constexpr T Dot(const TVec2& rhs) const { return (x * rhs.x) + (y * rhs.y); }
+  constexpr T Cross(const TVec2& rhs) const { return x * rhs.y - y * rhs.x; }
+  constexpr T Dot(const TVec2& rhs) const { return x * rhs.x + y * rhs.y; }
   constexpr T LengthSquared() const { return Dot(*this); }
   T Length() const { return std::sqrt(LengthSquared()); }
   TVec2 Normalized() const { return *this / Length(); }

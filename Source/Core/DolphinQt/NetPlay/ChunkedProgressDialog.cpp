@@ -130,7 +130,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 
   const float acquired = progress / 1024.0f / 1024.0f;
   const float total = m_data_size / 1024.0f / 1024.0f;
-  const int prog = std::lround((static_cast<float>(progress) / m_data_size) * 100.0f);
+  const int prog = std::lround(static_cast<float>(progress) / m_data_size * 100.0f);
 
   m_status_labels[pid]->setText(tr("%1[%2]: %3/%4 MiB")
                                     .arg(player_name, QString::number(pid),

@@ -28,7 +28,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc)
   for (u16& volume : m_last_aux_volumes)
     volume = 0x8000;
 
-  m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
+  m_old_axwii = crc == 0xfa450138 || crc == 0x7699af32;
 
   m_accelerator = std::make_unique<HLEAccelerator>(dsphle->GetSystem().GetDSP());
 }
@@ -605,8 +605,8 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
     int right = m_samples_main_right[i];
 
     // Apply global volume. Cast to s64 to avoid overflow.
-    left = ((s64)left * volume_ramp[i]) >> 15;
-    right = ((s64)right * volume_ramp[i]) >> 15;
+    left = (s64)left * volume_ramp[i] >> 15;
+    right = (s64)right * volume_ramp[i] >> 15;
 
     m_samples_main_left[i] = std::clamp(left, -32767, 32767);
     m_samples_main_right[i] = std::clamp(right, -32767, 32767);

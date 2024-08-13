@@ -329,7 +329,7 @@ std::string SystemUpdater::GetDeviceId()
   u32 ios_device_id;
   if (m_ios.GetESCore().GetDeviceId(&ios_device_id) < 0)
     return "";
-  return std::to_string((u64(1) << 32) | ios_device_id);
+  return std::to_string(u64(1) << 32 | ios_device_id);
 }
 
 class OnlineSystemUpdater final : public SystemUpdater
@@ -642,7 +642,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 std::pair<IOS::ES::TMDReader, std::vector<u8>>
 OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title)
 {
-  const std::string url = (title.version == 0) ?
+  const std::string url = title.version == 0 ?
                               fmt::format("{}/{:016x}/tmd", prefix_url, title.id) :
                               fmt::format("{}/{:016x}/tmd.{}", prefix_url, title.id, title.version);
   const Common::HttpRequest::Response response = m_http.Get(url);
@@ -986,9 +986,9 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
   }
 
   result.used_clusters_user = used_clusters_user;
-  result.used_clusters_system = root_stats ? (root_stats->used_clusters - used_clusters_user) : 0;
+  result.used_clusters_system = root_stats ? root_stats->used_clusters - used_clusters_user : 0;
   result.used_inodes_user = used_inodes_user;
-  result.used_inodes_system = root_stats ? (root_stats->used_inodes - used_inodes_user) : 0;
+  result.used_inodes_system = root_stats ? root_stats->used_inodes - used_inodes_user : 0;
 
   return result;
 }

@@ -402,27 +402,27 @@ union UReg_MSR
 // FPSCR exception flags
 enum FPSCRExceptionFlag : u32
 {
-  FPSCR_FX = 1U << (31 - 0),
-  FPSCR_FEX = 1U << (31 - 1),
-  FPSCR_VX = 1U << (31 - 2),
-  FPSCR_OX = 1U << (31 - 3),
-  FPSCR_UX = 1U << (31 - 4),
-  FPSCR_ZX = 1U << (31 - 5),
-  FPSCR_XX = 1U << (31 - 6),
-  FPSCR_VXSNAN = 1U << (31 - 7),
-  FPSCR_VXISI = 1U << (31 - 8),
-  FPSCR_VXIDI = 1U << (31 - 9),
-  FPSCR_VXZDZ = 1U << (31 - 10),
-  FPSCR_VXIMZ = 1U << (31 - 11),
-  FPSCR_VXVC = 1U << (31 - 12),
-  FPSCR_VXSOFT = 1U << (31 - 21),
-  FPSCR_VXSQRT = 1U << (31 - 22),
-  FPSCR_VXCVI = 1U << (31 - 23),
-  FPSCR_VE = 1U << (31 - 24),
-  FPSCR_OE = 1U << (31 - 25),
-  FPSCR_UE = 1U << (31 - 26),
-  FPSCR_ZE = 1U << (31 - 27),
-  FPSCR_XE = 1U << (31 - 28),
+  FPSCR_FX = 1U << 31 - 0,
+  FPSCR_FEX = 1U << 31 - 1,
+  FPSCR_VX = 1U << 31 - 2,
+  FPSCR_OX = 1U << 31 - 3,
+  FPSCR_UX = 1U << 31 - 4,
+  FPSCR_ZX = 1U << 31 - 5,
+  FPSCR_XX = 1U << 31 - 6,
+  FPSCR_VXSNAN = 1U << 31 - 7,
+  FPSCR_VXISI = 1U << 31 - 8,
+  FPSCR_VXIDI = 1U << 31 - 9,
+  FPSCR_VXZDZ = 1U << 31 - 10,
+  FPSCR_VXIMZ = 1U << 31 - 11,
+  FPSCR_VXVC = 1U << 31 - 12,
+  FPSCR_VXSOFT = 1U << 31 - 21,
+  FPSCR_VXSQRT = 1U << 31 - 22,
+  FPSCR_VXCVI = 1U << 31 - 23,
+  FPSCR_VE = 1U << 31 - 24,
+  FPSCR_OE = 1U << 31 - 25,
+  FPSCR_UE = 1U << 31 - 26,
+  FPSCR_ZE = 1U << 31 - 27,
+  FPSCR_XE = 1U << 31 - 28,
 
   FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ | FPSCR_VXIMZ | FPSCR_VXVC |
                  FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI,
@@ -940,5 +940,5 @@ constexpr s32 SignExt16(s16 x)
 }
 constexpr s32 SignExt26(u32 x)
 {
-  return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);
+  return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)x;
 }

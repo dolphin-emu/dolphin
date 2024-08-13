@@ -455,7 +455,7 @@ struct ARMBinary final
     // The header is at least 0x10.
     if (m_bytes.size() < 0x10)
       return false;
-    return m_bytes.size() >= (GetHeaderSize() + GetElfOffset() + GetElfSize());
+    return m_bytes.size() >= GetHeaderSize() + GetElfOffset() + GetElfSize();
   }
 
   std::vector<u8> GetElf() const

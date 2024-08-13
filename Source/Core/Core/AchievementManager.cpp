@@ -166,7 +166,7 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   }
   std::lock_guard lg{m_filereader_lock};
   rc_hash_filereader volume_reader{
-      .open = (volume) ? &AchievementManager::FilereaderOpenByVolume :
+      .open = volume ? &AchievementManager::FilereaderOpenByVolume :
                          &AchievementManager::FilereaderOpenByFilepath,
       .seek = &AchievementManager::FilereaderSeek,
       .tell = &AchievementManager::FilereaderTell,
@@ -468,9 +468,9 @@ const AchievementManager::Badge& AchievementManager::GetAchievementBadge(Achieve
 {
   auto& badge_list = locked ? m_locked_badges : m_unlocked_badges;
   auto itr = badge_list.find(id);
-  return (itr != badge_list.end() && itr->second.data.size() > 0) ?
+  return itr != badge_list.end() && itr->second.data.size() > 0 ?
              itr->second :
-             (locked ? m_default_locked_badge : m_default_unlocked_badge);
+             locked ? m_default_locked_badge : m_default_unlocked_badge;
 }
 
 const AchievementManager::LeaderboardStatus*
@@ -661,8 +661,8 @@ int64_t AchievementManager::FilereaderTell(void* file_handle)
 size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes)
 {
   FilereaderState* filereader_state = static_cast<FilereaderState*>(file_handle);
-  bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
-                                                 static_cast<u8*>(buffer), DiscIO::PARTITION_NONE));
+  bool success = filereader_state->volume->Read(filereader_state->position, requested_bytes,
+                                                static_cast<u8*>(buffer), DiscIO::PARTITION_NONE);
   if (success)
   {
     filereader_state->position += requested_bytes;
@@ -921,7 +921,7 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
                               client_event->achievement->points),
                   OSD::Duration::VERY_LONG,
-                  (rc_client_get_hardcore_enabled(instance.m_client)) ? OSD::Color::YELLOW :
+                  rc_client_get_hardcore_enabled(instance.m_client) ? OSD::Color::YELLOW :
                                                                         OSD::Color::CYAN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
   AchievementManager::GetInstance().m_update_callback(

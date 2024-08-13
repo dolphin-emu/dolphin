@@ -251,15 +251,15 @@ void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(
       base | DSP_CONTROL, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
         auto& dsp = system.GetDSP();
-        return (dsp.m_dsp_control.Hex & ~DSP_CONTROL_MASK) |
-               (dsp.m_dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
+        return dsp.m_dsp_control.Hex & ~DSP_CONTROL_MASK |
+               dsp.m_dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK;
       }),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
         auto& dsp = system.GetDSP();
 
         UDSPControl tmpControl;
-        tmpControl.Hex = (val & ~DSP_CONTROL_MASK) |
-                         (dsp.m_dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK);
+        tmpControl.Hex = val & ~DSP_CONTROL_MASK |
+                         dsp.m_dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK;
 
         // Not really sure if this is correct, but it works...
         // Kind of a hack because DSP_CONTROL_MASK should make this bit
@@ -307,7 +307,7 @@ void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
                    auto& dsp = system.GetDSP();
                    dsp.m_aram_dma.Cnt.Hex =
-                       (dsp.m_aram_dma.Cnt.Hex & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
+                       dsp.m_aram_dma.Cnt.Hex & 0xFFFF0000 | val & WMASK_LO_ALIGN_32BIT;
                    dsp.Do_ARAM_DMA();
                  }));
 
@@ -354,17 +354,17 @@ void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // remaining_blocks_count is zero-based.  DreamMix World Fighters will hang if it
                    // never reaches zero.
                    auto& dsp = system.GetDSP();
-                   return (dsp.m_audio_dma.remaining_blocks_count > 0 ?
-                               dsp.m_audio_dma.remaining_blocks_count - 1 :
-                               0);
+                   return dsp.m_audio_dma.remaining_blocks_count > 0 ?
+                            dsp.m_audio_dma.remaining_blocks_count - 1 :
+                            0;
                  }),
                  MMIO::InvalidWrite<u16>());
 
   // 32 bit reads/writes are a combination of two 16 bit accesses.
   for (u32 i = 0; i < 0x1000; i += 4)
   {
-    mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
-                   MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
+    mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | i + 2),
+                   MMIO::WriteToSmaller<u32>(mmio, base | i, base | i + 2));
   }
 }
 
@@ -376,7 +376,7 @@ void DSPManager::UpdateInterrupts()
   // (DSP_CONTROL>>1) & DSP_CONTROL & MASK_OF_ALL_INTERRUPT_BITS
   // We can check if any of the interrupts are enabled and active, all at once.
   bool ints_set =
-      (((m_dsp_control.Hex >> 1) & m_dsp_control.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0);
+      (m_dsp_control.Hex >> 1 & m_dsp_control.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0;
 
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
@@ -391,7 +391,7 @@ void DSPManager::GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
   // The INT_* enumeration members have values that reflect their bit positions in
   // DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
   // don't call this with bogus values.
-  m_dsp_control.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
+  m_dsp_control.Hex |= DSPIntType & (INT_DSP | INT_ARAM | INT_AID);
   UpdateInterrupts();
 }
 
@@ -461,7 +461,7 @@ void DSPManager::Do_ARAM_DMA()
   m_dsp_control.DMAState = 1;
 
   // ARAM DMA transfer rate has been measured on real hw
-  int ticksToTransfer = (m_aram_dma.Cnt.count / 32) * 246;
+  int ticksToTransfer = m_aram_dma.Cnt.count / 32 * 246;
   core_timing.ScheduleEvent(ticksToTransfer, m_event_type_complete_aram);
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
@@ -538,7 +538,7 @@ void DSPManager::Do_ARAM_DMA()
         {
           if (m_aram_dma.ARAddr < 0x400000)
           {
-            *(u64*)&m_aram.ptr[(m_aram_dma.ARAddr + 0x400000) & m_aram.mask] =
+            *(u64*)&m_aram.ptr[m_aram_dma.ARAddr + 0x400000 & m_aram.mask] =
                 Common::swap64(memory.Read_U64(m_aram_dma.MMAddr));
           }
           *(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask] =

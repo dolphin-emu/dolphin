@@ -91,7 +91,7 @@ private:
 
     for (size_t i = 0; i < N; ++i)
     {
-      (*dst)[i] += ((vol >> 16) * src[i]) >> 16;
+      (*dst)[i] += (vol >> 16) * src[i] >> 16;
       vol += step;
     }
 
@@ -104,7 +104,7 @@ private:
   {
     while (count--)
     {
-      s32 vol_src = ((s32)*src++ * (s32)vol) >> 15;
+      s32 vol_src = (s32)*src++ * (s32)vol >> 15;
       *dst++ += std::clamp(vol_src, -0x8000, 0x7FFF);
     }
   }

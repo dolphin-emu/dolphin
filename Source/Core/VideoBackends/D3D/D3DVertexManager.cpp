@@ -131,7 +131,7 @@ void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_siz
 
 bool VertexManager::MapTexelBuffer(u32 required_size, D3D11_MAPPED_SUBRESOURCE& sr)
 {
-  if ((m_texel_buffer_offset + required_size) > TEXEL_STREAM_BUFFER_SIZE)
+  if (m_texel_buffer_offset + required_size > TEXEL_STREAM_BUFFER_SIZE)
   {
     // Restart buffer.
     HRESULT hr = D3D::context->Map(m_texel_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &sr);
@@ -225,7 +225,7 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   u32 totalBufferSize = vertexBufferSize + indexBufferSize;
 
   u32 cursor = m_buffer_cursor;
-  u32 padding = vertex_stride > 0 ? (m_buffer_cursor % vertex_stride) : 0;
+  u32 padding = vertex_stride > 0 ? m_buffer_cursor % vertex_stride : 0;
   if (padding)
   {
     cursor += vertex_stride - padding;
@@ -240,7 +240,7 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
     MapType = D3D11_MAP_WRITE_DISCARD;
   }
 
-  *out_base_vertex = vertex_stride > 0 ? (cursor / vertex_stride) : 0;
+  *out_base_vertex = vertex_stride > 0 ? cursor / vertex_stride : 0;
   *out_base_index = (cursor + vertexBufferSize) / sizeof(u16);
 
   D3D::context->Map(m_buffers[m_current_buffer].Get(), 0, MapType, 0, &map);

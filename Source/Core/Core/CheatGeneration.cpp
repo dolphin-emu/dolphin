@@ -26,26 +26,26 @@ static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Chea
 
   for (size_t i = 0; i < data.size(); ++i)
   {
-    const u32 address = (addr + i) & 0x01ff'ffffu;
+    const u32 address = addr + i & 0x01ff'ffffu;
     if (Common::AlignUp(address, 4) == address && i + 3 < data.size())
     {
       const u8 cmd = AR_SET_INT_CMD;
       const u32 val = Common::swap32(&data[i]);
-      codes.emplace_back((cmd << 24) | address, val);
+      codes.emplace_back(cmd << 24 | address, val);
       i += 3;
     }
     else if (Common::AlignUp(address, 2) == address && i + 1 < data.size())
     {
       const u8 cmd = AR_SET_SHORT_CMD;
       const u32 val = Common::swap16(&data[i]);
-      codes.emplace_back((cmd << 24) | address, val);
+      codes.emplace_back(cmd << 24 | address, val);
       ++i;
     }
     else
     {
       const u8 cmd = AR_SET_BYTE_CMD;
       const u32 val = data[i];
-      codes.emplace_back((cmd << 24) | address, val);
+      codes.emplace_back(cmd << 24 | address, val);
     }
   }
 
@@ -64,7 +64,7 @@ Cheats::GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, 
   u32 address = session.GetResultAddress(index);
 
   // check if the address is actually addressable by the ActionReplay system
-  if (((address & 0x01ff'ffffu) | 0x8000'0000u) != address)
+  if ((address & 0x01ff'ffffu | 0x8000'0000u) != address)
     return Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress;
 
   ActionReplay::ARCode ar_code;

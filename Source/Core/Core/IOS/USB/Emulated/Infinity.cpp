@@ -141,7 +141,7 @@ InfinityUSB::InfinityUSB(EmulationKernel& ios, const std::string& device_name) :
 {
   m_vid = 0x0E6F;
   m_pid = 0x0129;
-  m_id = (u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1));
+  m_id = u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1);
   m_device_descriptor = DeviceDescriptor{0x12,   0x1,    0x200, 0x0, 0x0, 0x0, 0x20,
                                          0x0E6F, 0x0129, 0x200, 0x1, 0x2, 0x3, 0x1};
   m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x29, 0x1, 0x1, 0x0, 0x80, 0xFA});
@@ -438,7 +438,7 @@ u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, int num_of_byt
   {
     checksum += data[i];
   }
-  return (checksum & 0xFF);
+  return checksum & 0xFF;
 }
 
 void InfinityBase::GetBlankResponse(u8 sequence, std::array<u8, 32>& reply_buf)
@@ -454,7 +454,7 @@ void InfinityBase::GetPresentFigures(u8 sequence, std::array<u8, 32>& reply_buf)
   int x = 3;
   for (u8 i = 0; i < m_figures.size(); i++)
   {
-    u8 slot = i == 0 ? 0x10 : (i > 0 && i < 4) ? 0x20 : 0x30;
+    u8 slot = i == 0 ? 0x10 : i > 0 && i < 4 ? 0x20 : 0x30;
     if (m_figures[i].present)
     {
       reply_buf[x] = slot + m_figures[i].order_added;
@@ -507,7 +507,7 @@ void InfinityBase::QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_bu
   }
   if (figure.present && file_block < 20)
   {
-    memcpy(&reply_buf[4], figure.data.data() + (16 * file_block), 16);
+    memcpy(&reply_buf[4], figure.data.data() + 16 * file_block, 16);
   }
   reply_buf[20] = GenerateChecksum(reply_buf, 20);
 }
@@ -534,7 +534,7 @@ void InfinityBase::WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf,
   }
   if (figure.present && file_block < 20)
   {
-    memcpy(figure.data.data() + (file_block * 16), to_write_buf, 16);
+    memcpy(figure.data.data() + file_block * 16, to_write_buf, 16);
     figure.Save();
   }
   reply_buf[4] = GenerateChecksum(reply_buf, 4);
@@ -586,7 +586,7 @@ static u32 InfinityCRC32(const std::array<u8, 16>& buffer)
   for (u32 i = 0; i < 12; ++i)
   {
     u8 index = u8(ret & 0xFF) ^ buffer[i];
-    ret = ((ret >> 8) ^ CRC32_TABLE[index]);
+    ret = ret >> 8 ^ CRC32_TABLE[index];
   }
 
   return ret;
@@ -685,13 +685,13 @@ bool InfinityBase::CreateFigure(const std::string& file_path, u32 figure_num)
   u32 other_blocks = 0x778788;
   for (s8 i = 2; i >= 0; i--)
   {
-    file_data[0x38 - i] = u8((first_block >> i * 8) & 0xFF);
+    file_data[0x38 - i] = u8(first_block >> i * 8 & 0xFF);
   }
   for (u32 index = 1; index < 0x05; index++)
   {
     for (s8 i = 2; i >= 0; i--)
     {
-      file_data[((index * 0x40) + 0x38) - i] = u8((other_blocks >> i * 8) & 0xFF);
+      file_data[index * 0x40 + 0x38 - i] = u8(other_blocks >> i * 8 & 0xFF);
     }
   }
   // Create the vector to calculate the SHA1 hash with
@@ -808,7 +808,7 @@ std::array<u8, 16> InfinityBase::GenerateInfinityFigureKey(const std::vector<u8>
   {
     for (int x = 3; x >= 0; x--)
     {
-      key[(3 - x) + (i * 4)] = digest[x + (i * 4)];
+      key[3 - x + i * 4] = digest[x + i * 4];
     }
   }
   return key;
@@ -820,8 +820,8 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
                                     0x00, 0x00, 0x00, 0x01, 0xD1, 0x1F};
 
   // Figure Number, input by end user
-  figure_data[1] = u8((figure_num >> 16) & 0xFF);
-  figure_data[2] = u8((figure_num >> 8) & 0xFF);
+  figure_data[1] = u8(figure_num >> 16 & 0xFF);
+  figure_data[2] = u8(figure_num >> 8 & 0xFF);
   figure_data[3] = u8(figure_num & 0xFF);
 
   // Manufacture date, formatted as YY/MM/DD. Set to Infinity 1.0 release date
@@ -832,7 +832,7 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
   u32 checksum = InfinityCRC32(figure_data);
   for (s8 i = 3; i >= 0; i--)
   {
-    figure_data[15 - i] = u8((checksum >> i * 8) & 0xFF);
+    figure_data[15 - i] = u8(checksum >> i * 8 & 0xFF);
   }
   DEBUG_LOG_FMT(IOS_USB, "Block 1: \n{}", HexDump(figure_data.data(), 16));
   return figure_data;
@@ -852,13 +852,13 @@ void InfinityBase::GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf
   u32 next_random = GetNext();
   u64 scrambled_next_random = Scramble(next_random, 0);
   reply_buf = {0xAA, 0x09, sequence};
-  reply_buf[3] = u8((scrambled_next_random >> 56) & 0xFF);
-  reply_buf[4] = u8((scrambled_next_random >> 48) & 0xFF);
-  reply_buf[5] = u8((scrambled_next_random >> 40) & 0xFF);
-  reply_buf[6] = u8((scrambled_next_random >> 32) & 0xFF);
-  reply_buf[7] = u8((scrambled_next_random >> 24) & 0xFF);
-  reply_buf[8] = u8((scrambled_next_random >> 16) & 0xFF);
-  reply_buf[9] = u8((scrambled_next_random >> 8) & 0xFF);
+  reply_buf[3] = u8(scrambled_next_random >> 56 & 0xFF);
+  reply_buf[4] = u8(scrambled_next_random >> 48 & 0xFF);
+  reply_buf[5] = u8(scrambled_next_random >> 40 & 0xFF);
+  reply_buf[6] = u8(scrambled_next_random >> 32 & 0xFF);
+  reply_buf[7] = u8(scrambled_next_random >> 24 & 0xFF);
+  reply_buf[8] = u8(scrambled_next_random >> 16 & 0xFF);
+  reply_buf[9] = u8(scrambled_next_random >> 8 & 0xFF);
   reply_buf[10] = u8(scrambled_next_random & 0xFF);
   reply_buf[11] = GenerateChecksum(reply_buf, 11);
 }
@@ -883,7 +883,7 @@ u32 InfinityBase::GetNext()
   u32 c = m_random_c;
   u32 ret = std::rotl(m_random_b, 27);
 
-  u32 temp = (a + ((ret ^ 0xFFFFFFFF) + 1));
+  u32 temp = a + ((ret ^ 0xFFFFFFFF) + 1);
   b ^= std::rotl(c, 17);
   a = m_random_d;
   c += a;
@@ -909,12 +909,12 @@ u64 InfinityBase::Scramble(u32 num_to_scramble, u32 garbage)
 
     if ((mask & 1) != 0)
     {
-      ret |= (num_to_scramble & 1);
+      ret |= num_to_scramble & 1;
       num_to_scramble >>= 1;
     }
     else
     {
-      ret |= (garbage & 1);
+      ret |= garbage & 1;
       garbage >>= 1;
     }
 
@@ -933,7 +933,7 @@ u32 InfinityBase::Descramble(u64 num_to_descramble)
   {
     if (Common::ExtractBit(mask, 63))
     {
-      ret = (ret << 1) | (num_to_descramble & 0x01);
+      ret = ret << 1 | num_to_descramble & 0x01;
     }
 
     num_to_descramble >>= 1;

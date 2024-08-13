@@ -34,8 +34,8 @@ struct SlopeContext
     // adjust a little less than 0.5
     const float adjust = 0.495f;
 
-    xOff = ((float)x0_ - (v0->screenPosition.x - x_off)) + adjust;
-    yOff = ((float)y0_ - (v0->screenPosition.y - y_off)) + adjust;
+    xOff = (float)x0_ - (v0->screenPosition.x - x_off) + adjust;
+    yOff = (float)y0_ - (v0->screenPosition.y - y_off) + adjust;
 
     dx10 = v1->screenPosition.x - v0->screenPosition.x;
     dx20 = v2->screenPosition.x - v0->screenPosition.x;
@@ -92,7 +92,7 @@ struct Slope
   {
     float dx = xOff + (float)(x - x0);
     float dy = yOff + (float)(y - y0);
-    return f0 + (dfdx * dx) + (dfdy * dy);
+    return f0 + dfdx * dx + dfdy * dy;
   }
 };
 
@@ -134,7 +134,7 @@ static s32 FixedLog2(float f)
 static inline int iround(float x)
 {
   int t = (int)x;
-  if ((x - t) >= 0.5)
+  if (x - t >= 0.5)
     return t + 1;
 
   return t;
@@ -246,8 +246,8 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   bias >>= 1;
   lod += bias;
 
-  *linear = ((lod > 0 && tm0.min_filter == FilterMode::Linear) ||
-             (lod <= 0 && tm0.mag_filter == FilterMode::Linear));
+  *linear = (lod > 0 && tm0.min_filter == FilterMode::Linear) ||
+            (lod <= 0 && tm0.mag_filter == FilterMode::Linear);
 
   // NOTE: The order of comparisons for this clamp check matters.
   if (lod > static_cast<s32>(tm1.max_lod))
@@ -315,7 +315,7 @@ void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
   {
     const s32 X1 = iround(16.0f * (v0->screenPosition.x - x_off)) - 9;
     const s32 Y1 = iround(16.0f * (v0->screenPosition.y - y_off)) - 9;
-    const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4, x_off, y_off);
+    const SlopeContext ctx(v0, v1, v2, X1 + 0xF >> 4, Y1 + 0xF >> 4, x_off, y_off);
     ZSlope = Slope(v0->screenPosition.z, v1->screenPosition.z, v2->screenPosition.z, ctx);
   }
 }
@@ -359,10 +359,10 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
   const s32 FDY31 = DY31 * 16;
 
   // Bounding rectangle
-  s32 minx = (std::min(std::min(X1, X2), X3) + 0xF) >> 4;
-  s32 maxx = (std::max(std::max(X1, X2), X3) + 0xF) >> 4;
-  s32 miny = (std::min(std::min(Y1, Y2), Y3) + 0xF) >> 4;
-  s32 maxy = (std::max(std::max(Y1, Y2), Y3) + 0xF) >> 4;
+  s32 minx = std::min(std::min(X1, X2), X3) + 0xF >> 4;
+  s32 maxx = std::max(std::max(X1, X2), X3) + 0xF >> 4;
+  s32 miny = std::min(std::min(Y1, Y2), Y3) + 0xF >> 4;
+  s32 maxy = std::max(std::max(Y1, Y2), Y3) + 0xF >> 4;
 
   // scissor
   ASSERT(scissor.rect.left >= 0);
@@ -379,7 +379,7 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
     return;
 
   // Set up the remaining slopes
-  const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4, scissor.x_off,
+  const SlopeContext ctx(v0, v1, v2, X1 + 0xF >> 4, Y1 + 0xF >> 4, scissor.x_off,
                          scissor.y_off);
 
   float w[3] = {1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w,
@@ -423,8 +423,8 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
   {
     for (s32 x = block_minx; x < maxx; x += BLOCK_SIZE)
     {
-      s32 x1_ = (x + BLOCK_SIZE - 1);
-      s32 y1_ = (y + BLOCK_SIZE - 1);
+      s32 x1_ = x + BLOCK_SIZE - 1;
+      s32 y1_ = y + BLOCK_SIZE - 1;
 
       // Corners of block
       s32 x0 = x << 4;
@@ -437,19 +437,19 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
       bool a10 = C1 + DX12 * y0 - DY12 * x1 > 0;
       bool a01 = C1 + DX12 * y1 - DY12 * x0 > 0;
       bool a11 = C1 + DX12 * y1 - DY12 * x1 > 0;
-      int a = (a00 << 0) | (a10 << 1) | (a01 << 2) | (a11 << 3);
+      int a = a00 << 0 | a10 << 1 | a01 << 2 | a11 << 3;
 
       bool b00 = C2 + DX23 * y0 - DY23 * x0 > 0;
       bool b10 = C2 + DX23 * y0 - DY23 * x1 > 0;
       bool b01 = C2 + DX23 * y1 - DY23 * x0 > 0;
       bool b11 = C2 + DX23 * y1 - DY23 * x1 > 0;
-      int b = (b00 << 0) | (b10 << 1) | (b01 << 2) | (b11 << 3);
+      int b = b00 << 0 | b10 << 1 | b01 << 2 | b11 << 3;
 
       bool c00 = C3 + DX31 * y0 - DY31 * x0 > 0;
       bool c10 = C3 + DX31 * y0 - DY31 * x1 > 0;
       bool c01 = C3 + DX31 * y1 - DY31 * x0 > 0;
       bool c11 = C3 + DX31 * y1 - DY31 * x1 > 0;
-      int c = (c00 << 0) | (c10 << 1) | (c01 << 2) | (c11 << 3);
+      int c = c00 << 0 | c10 << 1 | c01 << 2 | c11 << 3;
 
       // Skip block when outside an edge
       if (a == 0x0 || b == 0x0 || c == 0x0)

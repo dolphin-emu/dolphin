@@ -56,7 +56,7 @@ void Pos_ReadIndex(VertexLoader* loader)
   loader->m_vertexSkip = index == std::numeric_limits<I>::max();
   const auto data =
       reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[CPArray::Position] +
-                                 (index * g_main_cp_state.array_strides[CPArray::Position]));
+                                 index * g_main_cp_state.array_strides[CPArray::Position]);
   const auto scale = loader->m_posScale;
 
   for (int i = 0; i < N; ++i)

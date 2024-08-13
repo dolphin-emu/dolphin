@@ -25,7 +25,7 @@ CISOFileReader::CISOFileReader(File::IOFile file) : m_file(std::move(file))
 
   MapType count = 0;
   for (u32 idx = 0; idx < CISO_MAP_SIZE; ++idx)
-    m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
+    m_ciso_map[idx] = 1 == header.map[idx] ? count++ : UNUSED_BLOCK_ID;
 }
 
 std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)

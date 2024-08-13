@@ -289,7 +289,7 @@ void CEXIMemoryCard::SetCS(int cs)
     case Command::SectorErase:
       if (m_position > 2)
       {
-        m_memory_card->ClearBlock(m_address & (m_memory_card_size - 1));
+        m_memory_card->ClearBlock(m_address & m_memory_card_size - 1);
         m_status |= MC_STATUS_BUSY;
         m_status &= ~MC_STATUS_READY;
 
@@ -316,9 +316,9 @@ void CEXIMemoryCard::SetCS(int cs)
 
         while (count--)
         {
-          m_memory_card->Write(m_address, 1, &(m_programming_buffer[i++]));
+          m_memory_card->Write(m_address, 1, &m_programming_buffer[i++]);
           i &= 127;
-          m_address = (m_address & ~0x1FF) | ((m_address + 1) & 0x1FF);
+          m_address = m_address & ~0x1FF | m_address + 1 & 0x1FF;
         }
 
         CmdDoneLater(5000);
@@ -398,7 +398,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       if (m_position == 1)
         byte = 0x80;  // dummy cycle
       else
-        byte = static_cast<u8>(m_memory_card->GetCardId() >> (24 - (((m_position - 2) & 3) * 8)));
+        byte = static_cast<u8>(m_memory_card->GetCardId() >> 24 - (m_position - 2 & 3) * 8);
       break;
 
     case Command::ReadArray:
@@ -415,16 +415,16 @@ void CEXIMemoryCard::TransferByte(u8& byte)
         m_address |= (byte & 3) << 7;
         break;
       case 4:  // BA
-        m_address |= (byte & 0x7F);
+        m_address |= byte & 0x7F;
         break;
       }
       if (m_position > 1)  // not specified for 1..8, anyway
       {
-        m_memory_card->Read(m_address & (m_memory_card_size - 1), 1, &byte);
+        m_memory_card->Read(m_address & m_memory_card_size - 1, 1, &byte);
         // after 9 bytes, we start incrementing the address,
         // but only the sector offset - the pointer wraps around
         if (m_position >= 9)
-          m_address = (m_address & ~0x1FF) | ((m_address + 1) & 0x1FF);
+          m_address = m_address & ~0x1FF | m_address + 1 & 0x1FF;
       }
       break;
 
@@ -437,7 +437,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       if (m_position == 1)  // (unspecified)
         byte = static_cast<u8>(m_card_id >> 8);
       else
-        byte = static_cast<u8>((m_position & 1) ? (m_card_id) : (m_card_id >> 8));
+        byte = static_cast<u8>(m_position & 1 ? m_card_id : m_card_id >> 8);
       break;
 
     case Command::SectorErase:
@@ -478,12 +478,12 @@ void CEXIMemoryCard::TransferByte(u8& byte)
         m_address |= (byte & 3) << 7;
         break;
       case 4:  // BA
-        m_address |= (byte & 0x7F);
+        m_address |= byte & 0x7F;
         break;
       }
 
       if (m_position >= 5)
-        m_programming_buffer[((m_position - 5) & 0x7F)] = byte;  // wrap around after 128 bytes
+        m_programming_buffer[(m_position - 5 & 0x7F)] = byte;  // wrap around after 128 bytes
 
       byte = 0xFF;
       break;
@@ -545,7 +545,7 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
   auto& memory = m_system.GetMemory();
   m_memory_card->Write(m_address, size, memory.GetPointerForRange(addr, size));
 
-  if (((m_address + size) % Memcard::BLOCK_SIZE) == 0)
+  if ((m_address + size) % Memcard::BLOCK_SIZE == 0)
   {
     INFO_LOG_FMT(EXPANSIONINTERFACE, "writing to block: {:x}", m_address / Memcard::BLOCK_SIZE);
   }

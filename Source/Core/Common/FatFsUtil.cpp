@@ -103,8 +103,8 @@ u32 GetSystemTimeFAT()
 #endif
 
   DWORD fattime = 0;
-  fattime |= (tm.tm_year - 80) << 25;
-  fattime |= (tm.tm_mon + 1) << 21;
+  fattime |= tm.tm_year - 80 << 25;
+  fattime |= tm.tm_mon + 1 << 21;
   fattime |= tm.tm_mday << 16;
   fattime |= tm.tm_hour << 11;
   fattime |= tm.tm_min << 5;
@@ -727,8 +727,8 @@ static bool Unpack(const std::function<bool()>& cancelled, const std::string pat
 
     // Check for path traversal attacks.
     const bool is_path_traversal_attack =
-        (childname.find("\\") != std::string_view::npos) ||
-        (childname.find('/') != std::string_view::npos) ||
+        childname.find("\\") != std::string_view::npos ||
+        childname.find('/') != std::string_view::npos ||
         std::all_of(childname.begin(), childname.end(), [](char c) { return c == '.'; });
     if (is_path_traversal_attack)
     {

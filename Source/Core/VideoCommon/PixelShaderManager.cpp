@@ -91,10 +91,10 @@ void PixelShaderManager::SetConstants()
     {
       // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
-      int center = ((u32)bpmem.fogRange.Base.Center) - 342;
+      int center = (u32)bpmem.fogRange.Base.Center - 342;
       // normalize center to make calculations easy
       float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
-      ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
+      ScreenSpaceCenter = ScreenSpaceCenter * 2.0f - 1.0f;
       // bpmem.fogRange.K seems to be  a table of precalculated coefficients for the adjust factor
       // observations: bpmem.fogRange.K[0].LO appears to be the lowest value and
       // bpmem.fogRange.K[4].HI the largest
@@ -138,7 +138,7 @@ void PixelShaderManager::SetConstants()
     for (int i = 0; i < 4; i++)
       constants.pack1[i][3] = 0;
 
-    for (u32 i = 0; i < (bpmem.genMode.numtevstages + 1); ++i)
+    for (u32 i = 0; i < bpmem.genMode.numtevstages + 1; ++i)
     {
       // Note: a tevind of zero just happens to be a passthrough, so no need
       // to set an extra bit.  Furthermore, wrap and add to previous apply even if there is no
@@ -443,7 +443,7 @@ void PixelShaderManager::SetZModeControl()
 {
   u32 late_ztest = bpmem.GetEmulatedZ() == EmulatedZ::Late;
   u32 rgba6_format =
-      (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
+      bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor ?
           1 :
           0;
   u32 dither = rgba6_format && bpmem.blendmode.dither;

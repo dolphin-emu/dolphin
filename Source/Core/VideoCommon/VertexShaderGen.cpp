@@ -135,9 +135,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
     for (u32 i = 0; i < 8; ++i)
     {
-      const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
+      const u32 has_texmtx = uid_data->components & VB_HAS_TEXMTXIDX0 << i;
 
-      if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
+      if ((uid_data->components & VB_HAS_UV0 << i) != 0 || has_texmtx != 0)
       {
         out.Write("ATTRIBUTE_LOCATION({:s}) in float{} rawtex{};\n", ShaderAttrib::TexCoord0 + i,
                   has_texmtx != 0 ? 3 : 2, i);
@@ -173,7 +173,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     std::array<std::string_view, 3> names = {"normal", "binormal", "tangent"};
     for (int i = 0; i < 3; i++)
     {
-      if (uid_data->components & (VB_HAS_NORMAL << i))
+      if (uid_data->components & VB_HAS_NORMAL << i)
       {
         out.Write("  float {0}0;\n"
                   "  float {0}1;\n"
@@ -184,7 +184,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     for (int i = 0; i < 2; i++)
     {
-      if (uid_data->components & (VB_HAS_COL0 << i))
+      if (uid_data->components & VB_HAS_COL0 << i)
       {
         out.Write("  uint color{};\n", i);
         input_extract.Write("float4 rawcolor{0} = float4(unpack_ubyte4(i.color{0})) / 255.0f;\n",
@@ -193,9 +193,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     for (int i = 0; i < 8; i++)
     {
-      if (uid_data->components & (VB_HAS_UV0 << i))
+      if (uid_data->components & VB_HAS_UV0 << i)
       {
-        u32 ncomponents = (uid_data->texcoord_elem_count >> (2 * i)) & 3;
+        u32 ncomponents = uid_data->texcoord_elem_count >> 2 * i & 3;
         if (ncomponents < 2)
         {
           out.Write("  float tex{};\n", i);
@@ -289,7 +289,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       (uid_data->components & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
   for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; color++)
   {
-    if ((color == 0 || use_color_1) && (uid_data->components & (VB_HAS_COL0 << color)) != 0)
+    if ((color == 0 || use_color_1) && (uid_data->components & VB_HAS_COL0 << color) != 0)
     {
       // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are present.
       out.Write("vertex_color_{0} = rawcolor{0};\n", color);
@@ -409,7 +409,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     default:
       ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
       u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
-      if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
+      if ((uid_data->components & VB_HAS_UV0 << texnum) != 0)
       {
         out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
@@ -448,10 +448,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       break;
     case TexGenType::Regular:
     default:
-      if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
+      if ((uid_data->components & VB_HAS_TEXMTXIDX0 << i) != 0)
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (static_cast<TexSize>(uid_data->texMtxInfo_n_projection >> i & 1) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -467,7 +467,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (static_cast<TexSize>(uid_data->texMtxInfo_n_projection >> i & 1) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
@@ -492,7 +492,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                 "float4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                 "float4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+                postInfo.index & 0x3f, postInfo.index + 1 & 0x3f, postInfo.index + 2 & 0x3f);
 
       if (postInfo.normalize)
         out.Write("o.tex{}.xyz = normalize(o.tex{}.xyz);\n", i, i);

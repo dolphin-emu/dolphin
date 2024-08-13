@@ -67,7 +67,7 @@ struct WiimotePoolEntry
     // Keep wii remotes in the pool for a bit before disconnecting them.
     constexpr auto POOL_TIME = std::chrono::seconds{5};
 
-    return (Clock::now() - entry_time) > POOL_TIME;
+    return Clock::now() - entry_time > POOL_TIME;
   }
 };
 
@@ -947,7 +947,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
 
   // Set LEDs.
   OutputReportLeds led_report = {};
-  led_report.leds = u8(1 << (i % WIIMOTE_BALANCE_BOARD));
+  led_report.leds = u8(1 << i % WIIMOTE_BALANCE_BOARD);
   wm->QueueReport(led_report);
 
   {

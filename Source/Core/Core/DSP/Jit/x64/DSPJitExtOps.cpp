@@ -59,7 +59,7 @@ void DSPEmitter::nr(const UDSPInstruction opc)
 void DSPEmitter::mv(const UDSPInstruction opc)
 {
   u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
-  u8 dreg = ((opc >> 2) & 0x3);
+  u8 dreg = opc >> 2 & 0x3;
   dsp_op_read_reg(sreg, RBX, RegisterExtension::Zero);
   m_store_index = dreg + DSP_REG_AXL0;
 }
@@ -71,7 +71,7 @@ void DSPEmitter::mv(const UDSPInstruction opc)
 void DSPEmitter::s(const UDSPInstruction opc)
 {
   u8 dreg = opc & 0x3;
-  u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
+  u8 sreg = (opc >> 3 & 0x3) + DSP_REG_ACL0;
   //	u16 addr = g_dsp.r[dest];
   dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
 
@@ -93,7 +93,7 @@ void DSPEmitter::s(const UDSPInstruction opc)
 void DSPEmitter::sn(const UDSPInstruction opc)
 {
   u8 dreg = opc & 0x3;
-  u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
+  u8 sreg = (opc >> 3 & 0x3) + DSP_REG_ACL0;
   dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -113,7 +113,7 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 void DSPEmitter::l(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x3;
-  u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;  // AX?.?, AC?.[LM]
+  u8 dreg = (opc >> 3 & 0x7) + DSP_REG_AXL0;  // AX?.?, AC?.[LM]
 
   pushExtValueFromMem(dreg, sreg);
 
@@ -138,7 +138,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 void DSPEmitter::ln(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x3;
-  u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 3 & 0x7) + DSP_REG_AXL0;
 
   pushExtValueFromMem(dreg, sreg);
 
@@ -164,7 +164,7 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 void DSPEmitter::ls(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -189,7 +189,7 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 void DSPEmitter::lsn(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -214,7 +214,7 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 void DSPEmitter::lsm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -240,7 +240,7 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 void DSPEmitter::lsnm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -264,7 +264,7 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 void DSPEmitter::sl(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -289,7 +289,7 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 void DSPEmitter::sln(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -314,7 +314,7 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 void DSPEmitter::slm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -339,7 +339,7 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 void DSPEmitter::slnm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
-  u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = (opc >> 4 & 0x3) + DSP_REG_AXL0;
   dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
@@ -369,8 +369,8 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 // implemented yet)
 void DSPEmitter::ld(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 dreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
   u8 sreg = opc & 0x3;
 
   pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
@@ -404,8 +404,8 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 // Increment both $arS and $ar3.
 void DSPEmitter::ldax(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 sreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
 
   pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
 
@@ -435,8 +435,8 @@ void DSPEmitter::ldax(const UDSPInstruction opc)
 // xxxx xxxx 11dr 01ss
 void DSPEmitter::ldn(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 dreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
   u8 sreg = opc & 0x3;
 
   pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
@@ -467,8 +467,8 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 // xxxx xxxx 11sr 0111
 void DSPEmitter::ldaxn(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 sreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
 
   pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
 
@@ -498,8 +498,8 @@ void DSPEmitter::ldaxn(const UDSPInstruction opc)
 // xxxx xxxx 11dr 10ss
 void DSPEmitter::ldm(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 dreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
   u8 sreg = opc & 0x3;
 
   pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
@@ -530,8 +530,8 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 // xxxx xxxx 11sr 1011
 void DSPEmitter::ldaxm(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 sreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
 
   pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
 
@@ -561,8 +561,8 @@ void DSPEmitter::ldaxm(const UDSPInstruction opc)
 // xxxx xxxx 11dr 11ss
 void DSPEmitter::ldnm(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 dreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
   u8 sreg = opc & 0x3;
 
   pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
@@ -593,8 +593,8 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 // xxxx xxxx 11sr 1111
 void DSPEmitter::ldaxnm(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 5) & 0x1;
-  u8 rreg = (opc >> 4) & 0x1;
+  u8 sreg = opc >> 5 & 0x1;
+  u8 rreg = opc >> 4 & 0x1;
 
   pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
 

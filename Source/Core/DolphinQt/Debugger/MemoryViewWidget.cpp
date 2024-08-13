@@ -116,7 +116,7 @@ public:
   void wheelEvent(QWheelEvent* event) override
   {
     auto delta =
-        -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
+        -static_cast<int>(std::round(event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8)));
 
     if (delta == 0)
       return;
@@ -299,7 +299,7 @@ void MemoryViewWidget::CreateTable()
   const int total_columns = MISC_COLUMNS + m_data_columns;
 
   const int rows =
-      std::round((m_table->height() / static_cast<float>(m_table->rowHeight(0))) - 0.25);
+      std::round(m_table->height() / static_cast<float>(m_table->rowHeight(0)) - 0.25);
 
   m_table->setColumnCount(total_columns);
   m_table->setRowCount(rows);
@@ -401,7 +401,7 @@ void MemoryViewWidget::Update()
 
   // Update addresses
   const u32 address = Common::AlignDown(m_address, m_alignment);
-  u32 row_address = address - (m_table->rowCount() / 2) * m_bytes_per_row;
+  u32 row_address = address - m_table->rowCount() / 2 * m_bytes_per_row;
   const int data_span = m_bytes_per_row / GetTypeSize(m_type);
 
   for (int i = 0; i < m_table->rowCount(); i++, row_address += m_bytes_per_row)
@@ -805,7 +805,7 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
     return;
 
   const auto length = GetTypeSize(m_type);
-  const int breaks = row ? (m_bytes_per_row / length) : 1;
+  const int breaks = row ? m_bytes_per_row / length : 1;
   bool overlap = false;
 
   auto& memchecks = m_system.GetPowerPC().GetMemChecks();
@@ -826,8 +826,8 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
       check.start_address = address;
       check.end_address = check.start_address + length - 1;
       check.is_ranged = length > 0;
-      check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
-      check.is_break_on_write = (m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite);
+      check.is_break_on_read = m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite;
+      check.is_break_on_write = m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite;
       check.log_on_hit = m_do_log;
       check.break_on_hit = true;
 

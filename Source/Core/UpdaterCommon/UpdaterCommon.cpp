@@ -100,7 +100,7 @@ bool HexDecode(const std::string& hex, u8* buffer, size_t size)
     if (!high || !low)
       return false;
 
-    buffer[i] = (*high << 4) | *low;
+    buffer[i] = *high << 4 | *low;
   }
 
   return true;

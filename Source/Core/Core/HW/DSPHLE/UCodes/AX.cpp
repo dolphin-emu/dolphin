@@ -558,8 +558,8 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
   for (u32 i = 0; i < 32 * millis; ++i)
   {
     u16 coef = Common::swap16(*ramp++);
-    m_samples_main_left[i] = (s64(m_samples_main_left[i]) * coef) >> 15;
-    m_samples_main_right[i] = (s64(m_samples_main_right[i]) * coef) >> 15;
+    m_samples_main_left[i] = s64(m_samples_main_left[i]) * coef >> 15;
+    m_samples_main_right[i] = s64(m_samples_main_right[i]) * coef >> 15;
   }
 }
 
@@ -710,7 +710,7 @@ void AXUCode::HandleMail(u32 mail)
     if ((mail & TASK_MAIL_MASK) != TASK_MAIL_TO_DSP)
     {
       WARN_LOG_FMT(DSPHLE, "Rendering task without prefix CDD1: {:08x}", mail);
-      mail = TASK_MAIL_TO_DSP | (mail & ~TASK_MAIL_MASK);
+      mail = TASK_MAIL_TO_DSP | mail & ~TASK_MAIL_MASK;
       // The actual uCode does not check for the CDD1 prefix.
     }
 

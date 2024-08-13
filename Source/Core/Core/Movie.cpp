@@ -278,7 +278,7 @@ void MovieManager::SetReadOnly(bool bEnabled)
 
 bool MovieManager::IsRecordingInput() const
 {
-  return (m_play_mode == PlayMode::Recording);
+  return m_play_mode == PlayMode::Recording;
 }
 
 bool MovieManager::IsRecordingInputFromSaveState() const
@@ -298,7 +298,7 @@ bool MovieManager::IsJustStartingPlayingInputFromSaveState() const
 
 bool MovieManager::IsPlayingInput() const
 {
-  return (m_play_mode == PlayMode::Playing);
+  return m_play_mode == PlayMode::Playing;
 }
 
 bool MovieManager::IsMovieActive() const
@@ -381,7 +381,7 @@ bool MovieManager::IsUsingPad(int controller) const
 
 bool MovieManager::IsUsingBongo(int controller) const
 {
-  return ((m_bongos & (1 << controller)) != 0);
+  return (m_bongos & 1 << controller) != 0;
 }
 
 bool MovieManager::IsUsingGBA(int controller) const
@@ -533,7 +533,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     {
       const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
       if (si_device == SerialInterface::SIDEVICE_GC_TARUKONGA)
-        m_bongos |= (1 << i);
+        m_bongos |= 1 << i;
     }
 
     if (Core::IsRunning(m_system))
@@ -724,8 +724,8 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
 
     // TODO: This does not handle the different IR formats.
 
-    const u16 x = ir_data[0] | ((ir_data[2] >> 4 & 0x3) << 8);
-    const u16 y = ir_data[1] | ((ir_data[2] >> 6 & 0x3) << 8);
+    const u16 x = ir_data[0] | (ir_data[2] >> 4 & 0x3) << 8;
+    const u16 y = ir_data[1] | (ir_data[2] >> 6 & 0x3) << 8;
     display_str += fmt::format(" IR:{},{}", x, y);
   }
 
@@ -803,20 +803,20 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
 // NOTE: CPU Thread
 void MovieManager::CheckPadStatus(const GCPadStatus* PadStatus, int controllerID)
 {
-  m_pad_state.A = ((PadStatus->button & PAD_BUTTON_A) != 0);
-  m_pad_state.B = ((PadStatus->button & PAD_BUTTON_B) != 0);
-  m_pad_state.X = ((PadStatus->button & PAD_BUTTON_X) != 0);
-  m_pad_state.Y = ((PadStatus->button & PAD_BUTTON_Y) != 0);
-  m_pad_state.Z = ((PadStatus->button & PAD_TRIGGER_Z) != 0);
-  m_pad_state.Start = ((PadStatus->button & PAD_BUTTON_START) != 0);
+  m_pad_state.A = (PadStatus->button & PAD_BUTTON_A) != 0;
+  m_pad_state.B = (PadStatus->button & PAD_BUTTON_B) != 0;
+  m_pad_state.X = (PadStatus->button & PAD_BUTTON_X) != 0;
+  m_pad_state.Y = (PadStatus->button & PAD_BUTTON_Y) != 0;
+  m_pad_state.Z = (PadStatus->button & PAD_TRIGGER_Z) != 0;
+  m_pad_state.Start = (PadStatus->button & PAD_BUTTON_START) != 0;
 
-  m_pad_state.DPadUp = ((PadStatus->button & PAD_BUTTON_UP) != 0);
-  m_pad_state.DPadDown = ((PadStatus->button & PAD_BUTTON_DOWN) != 0);
-  m_pad_state.DPadLeft = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
-  m_pad_state.DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);
+  m_pad_state.DPadUp = (PadStatus->button & PAD_BUTTON_UP) != 0;
+  m_pad_state.DPadDown = (PadStatus->button & PAD_BUTTON_DOWN) != 0;
+  m_pad_state.DPadLeft = (PadStatus->button & PAD_BUTTON_LEFT) != 0;
+  m_pad_state.DPadRight = (PadStatus->button & PAD_BUTTON_RIGHT) != 0;
 
-  m_pad_state.L = ((PadStatus->button & PAD_TRIGGER_L) != 0);
-  m_pad_state.R = ((PadStatus->button & PAD_TRIGGER_R) != 0);
+  m_pad_state.L = (PadStatus->button & PAD_TRIGGER_L) != 0;
+  m_pad_state.R = (PadStatus->button & PAD_TRIGGER_R) != 0;
   m_pad_state.TriggerL = PadStatus->triggerLeft;
   m_pad_state.TriggerR = PadStatus->triggerRight;
 
@@ -888,13 +888,13 @@ void MovieManager::ReadHeader()
 {
   for (int i = 0; i < 4; ++i)
   {
-    if (m_temp_header.GBAControllers & (1 << i))
+    if (m_temp_header.GBAControllers & 1 << i)
       m_controllers[i] = ControllerType::GBA;
-    else if (m_temp_header.controllers & (1 << i))
+    else if (m_temp_header.controllers & 1 << i)
       m_controllers[i] = ControllerType::GC;
     else
       m_controllers[i] = ControllerType::None;
-    m_wiimotes[i] = (m_temp_header.controllers & (1 << (i + 4))) != 0;
+    m_wiimotes[i] = (m_temp_header.controllers & 1 << i + 4) != 0;
   }
   m_recording_start_time = m_temp_header.recordingStartTime;
   if (m_rerecords < m_temp_header.numRerecords)
@@ -1297,7 +1297,7 @@ bool MovieManager::PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rp
     PanicAlertFmtT(
         "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte {2}.){3}",
         sizeInMovie, size, m_current_byte,
-        (m_controllers == ControllerTypeArray{}) ?
+        m_controllers == ControllerTypeArray{} ?
             " Try re-creating the recording with all GameCube controllers "
             "disabled (in Configure > GameCube > Device Settings)." :
             "");
@@ -1381,7 +1381,7 @@ void MovieManager::SaveRecording(const std::string& filename)
     if (IsUsingPad(i))
       header.controllers |= 1 << i;
     if (IsUsingWiimote(i) && m_system.IsWii())
-      header.controllers |= 1 << (i + 4);
+      header.controllers |= 1 << i + 4;
   }
 
   header.bFromSaveState = m_recording_from_save_state;

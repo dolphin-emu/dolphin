@@ -113,10 +113,10 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
   // Convert RGBA8 -> floating-point values.
   VkClearValue clear_color_value = {};
   VkClearValue clear_depth_value = {};
-  clear_color_value.color.float32[0] = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
-  clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
-  clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
-  clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[0] = static_cast<float>(color >> 16 & 0xFF) / 255.0f;
+  clear_color_value.color.float32[1] = static_cast<float>(color >> 8 & 0xFF) / 255.0f;
+  clear_color_value.color.float32[2] = static_cast<float>(color >> 0 & 0xFF) / 255.0f;
+  clear_color_value.color.float32[3] = static_cast<float>(color >> 24 & 0xFF) / 255.0f;
   clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
   if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
     clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
@@ -392,14 +392,14 @@ void VKGfx::OnConfigChanged(u32 bits)
     g_object_cache->ReloadPipelineCache();
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
-  if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_VSYNC))
+  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_VSYNC)
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->SetVSync(g_ActiveConfig.bVSyncActive);
   }
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
-  if (m_swap_chain && ((bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR)))
+  if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_STEREO_MODE || bits & CONFIG_CHANGE_BIT_HDR))
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->RecreateSwapChain();

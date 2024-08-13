@@ -48,7 +48,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     u32 color = g_framebuffer_manager->PeekEFBColor(x, y);
 
     // a little-endian value is expected to be returned
-    color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
+    color = color & 0xFF00FF00 | color >> 16 & 0xFF | color << 16 & 0xFF0000;
 
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24)
     {
@@ -121,8 +121,8 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       // Convert to expected format (BGRA->RGBA)
       // TODO: Check alpha, depending on mode?
       const EfbPokeData& point = points[i];
-      u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
-                   ((point.data << 16) & 0xFF0000));
+      u32 color = point.data & 0xFF00FF00 | point.data >> 16 & 0xFF |
+                  point.data << 16 & 0xFF0000;
       g_framebuffer_manager->PokeEFBColor(point.x, point.y, color);
     }
   }

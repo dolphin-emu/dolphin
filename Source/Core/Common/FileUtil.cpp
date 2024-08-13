@@ -369,7 +369,7 @@ u64 GetSize(FILE* f)
   }
 
   const u64 size = ftello(f);
-  if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
+  if (size != pos && fseeko(f, pos, SEEK_SET) != 0)
   {
     ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), Common::LastStrerrorString());
     return 0;

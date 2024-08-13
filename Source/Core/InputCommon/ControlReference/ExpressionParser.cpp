@@ -64,7 +64,7 @@ private:
   void RemoveSuppression(Device::Input* modifier, Device::Input* final_input)
   {
     auto it = m_suppressions.find({final_input, modifier});
-    if (it != m_suppressions.end() && (--it->second) == 0)
+    if (it != m_suppressions.end() && --it->second == 0)
       m_suppressions.erase(it);
   }
 
@@ -132,7 +132,7 @@ Token Lexer::GetRealLiteral(char first_char)
 {
   std::string value;
   value += first_char;
-  value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
+  value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || '.' == c; });
 
   static const std::regex re(R"(\d+(\.\d+)?)");
   if (std::regex_match(value, re))
@@ -275,7 +275,7 @@ public:
     if (m_output)
       m_output->SetState(value);
   }
-  int CountNumControls() const override { return (m_input || m_output) ? 1 : 0; }
+  int CountNumControls() const override { return m_input || m_output ? 1 : 0; }
   void UpdateReferences(ControlEnvironment& env) override
   {
     m_device = env.FindDevice(m_qualifier);

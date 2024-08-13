@@ -99,6 +99,6 @@ private:
 
 constexpr bool IsSSLIDValid(int id)
 {
-  return (id >= 0 && id < NET_SSL_MAXINSTANCES && NetSSLDevice::_SSL[id].active);
+  return id >= 0 && id < NET_SSL_MAXINSTANCES && NetSSLDevice::_SSL[id].active;
 }
 }  // namespace IOS::HLE

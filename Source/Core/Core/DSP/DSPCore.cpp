@@ -222,7 +222,7 @@ void SDSP::CheckExceptions()
   for (int i = 7; i > 0; i--)
   {
     // Seems exp int are not masked by sr_int_enable
-    if ((exceptions & (1U << i)) != 0)
+    if ((exceptions & 1U << i) != 0)
     {
       if (IsSRFlagSet(SR_INT_ENABLE) || i == static_cast<int>(ExceptionType::ExternalInterrupt))
       {

@@ -19,7 +19,7 @@ namespace DSP::JIT::x64
 // flags out: --10 0100
 void DSPEmitter::clr(const UDSPInstruction opc)
 {
-  u8 reg = (opc >> 11) & 0x1;
+  u8 reg = opc >> 11 & 0x1;
   //	dsp_set_long_acc(reg, 0);
   XOR(32, R(EAX), R(EAX));
   set_long_acc(reg);
@@ -37,7 +37,7 @@ void DSPEmitter::clr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::clrl(const UDSPInstruction opc)
 {
-  u8 reg = (opc >> 8) & 0x1;
+  u8 reg = opc >> 8 & 0x1;
   //	s64 acc = dsp_round_long_acc(dsp_get_long_acc(reg));
   get_long_acc(reg);
   round_long_acc();
@@ -63,7 +63,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    const u8 reg = (opc >> 8) & 0x1;
+    const u8 reg = opc >> 8 & 0x1;
     // const u16 imm = m_dsp_core.DSPState().FetchInstruction();
     const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
     // const u16 val = GetAccMid(reg);
@@ -99,7 +99,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    const u8 reg = (opc >> 8) & 0x1;
+    const u8 reg = opc >> 8 & 0x1;
     // const u16 imm = m_dsp_core.DSPState().FetchInstruction();
     const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
     // const u16 val = GetAccMid(reg);
@@ -133,7 +133,7 @@ void DSPEmitter::tst(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    u8 reg = (opc >> 11) & 0x1;
+    u8 reg = opc >> 11 & 0x1;
     //		s64 acc = dsp_get_long_acc(reg);
     get_long_acc(reg);
     //		Update_SR_Register64(acc);
@@ -150,7 +150,7 @@ void DSPEmitter::tstaxh(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    u8 reg = (opc >> 8) & 0x1;
+    u8 reg = opc >> 8 & 0x1;
     //		s16 val = dsp_get_ax_h(reg);
     get_ax_h(reg, EAX);
     //		Update_SR_Register16(val);
@@ -197,8 +197,8 @@ void DSPEmitter::cmpaxh(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    u8 rreg = ((opc >> 12) & 0x1);
-    u8 sreg = (opc >> 11) & 0x1;
+    u8 rreg = opc >> 12 & 0x1;
+    u8 sreg = opc >> 11 & 0x1;
 
     // const s64 acc = GetLongAcc(sreg);
     X64Reg acc = RAX;
@@ -232,7 +232,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    const u8 reg = (opc >> 8) & 0x1;
+    const u8 reg = opc >> 8 & 0x1;
     // const s64 val = GetLongAcc(reg);
     X64Reg val = RAX;
     get_long_acc(reg, val);
@@ -266,7 +266,7 @@ void DSPEmitter::cmpis(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
-    u8 areg = (opc >> 8) & 0x1;
+    u8 areg = opc >> 8 & 0x1;
     // const s64 acc = GetLongAcc(areg);
     X64Reg acc = RAX;
     get_long_acc(areg, acc);
@@ -299,8 +299,8 @@ void DSPEmitter::cmpis(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::xorr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] ^ g_dsp.r.axh[sreg];
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -326,8 +326,8 @@ void DSPEmitter::xorr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::andr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] & g_dsp.r.axh[sreg];
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -353,8 +353,8 @@ void DSPEmitter::andr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::orr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] | g_dsp.r.axh[sreg];
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -380,7 +380,7 @@ void DSPEmitter::orr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::andc(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] & g_dsp.r.acm[1 - dreg];
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -406,7 +406,7 @@ void DSPEmitter::andc(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::orc(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] | g_dsp.r.acm[1 - dreg];
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -431,7 +431,7 @@ void DSPEmitter::orc(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::xorc(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] ^ g_dsp.r.acm[1 - dreg];
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -456,7 +456,7 @@ void DSPEmitter::xorc(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::notc(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] ^ 0xffff;
   X64Reg accm = RAX;
   get_acc_m(dreg, accm);
@@ -481,7 +481,7 @@ void DSPEmitter::notc(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::xori(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   //	u16 imm = dsp_fetch_code();
   const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   //	g_dsp.r.acm[reg] ^= imm;
@@ -506,7 +506,7 @@ void DSPEmitter::xori(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::andi(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   //	u16 imm = dsp_fetch_code();
   const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   //	g_dsp.r.acm[reg] &= imm;
@@ -531,7 +531,7 @@ void DSPEmitter::andi(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::ori(const UDSPInstruction opc)
 {
-  const u8 reg = (opc >> 8) & 0x1;
+  const u8 reg = opc >> 8 & 0x1;
   //	u16 imm = dsp_fetch_code();
   const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   //	g_dsp.r.acm[reg] |= imm;
@@ -557,8 +557,8 @@ void DSPEmitter::ori(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::addr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = (opc >> 9 & 0x3) + DSP_REG_AXL0;
 
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -590,8 +590,8 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::addax(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
 
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -621,7 +621,7 @@ void DSPEmitter::addax(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::add(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
 
   // const s64 acc0 = GetLongAcc(dreg);
   X64Reg acc0 = RAX;
@@ -651,7 +651,7 @@ void DSPEmitter::add(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::addp(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
 
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -682,8 +682,8 @@ void DSPEmitter::addp(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::addaxl(const UDSPInstruction opc)
 {
-  u8 sreg = (opc >> 9) & 0x1;
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
 
   // const u64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -715,7 +715,7 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::addi(const UDSPInstruction opc)
 {
-  u8 areg = (opc >> 8) & 0x1;
+  u8 areg = opc >> 8 & 0x1;
   // const s64 acc = GetLongAcc(areg);
   X64Reg acc = RAX;
   get_long_acc(areg, acc);
@@ -749,7 +749,7 @@ void DSPEmitter::addi(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::addis(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
 
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -782,7 +782,7 @@ void DSPEmitter::addis(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::incm(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   s64 subtract = 0x10000;
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -811,7 +811,7 @@ void DSPEmitter::incm(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::inc(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
   get_long_acc(dreg, acc);
@@ -841,8 +841,8 @@ void DSPEmitter::inc(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::subr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = (opc >> 9 & 0x3) + DSP_REG_AXL0;
 
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -875,8 +875,8 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::subax(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
 
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -907,7 +907,7 @@ void DSPEmitter::subax(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::sub(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   // const s64 acc1 = GetLongAcc(dreg);
   X64Reg acc1 = RAX;
   get_long_acc(dreg, acc1);
@@ -937,7 +937,7 @@ void DSPEmitter::sub(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::subp(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
   get_long_acc(dreg, acc);
@@ -967,7 +967,7 @@ void DSPEmitter::subp(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::decm(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x01;
+  u8 dreg = opc >> 8 & 0x01;
   s64 subtract = 0x10000;
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
@@ -996,7 +996,7 @@ void DSPEmitter::decm(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void DSPEmitter::dec(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x01;
+  u8 dreg = opc >> 8 & 0x01;
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
   get_long_acc(dreg, acc);
@@ -1031,7 +1031,7 @@ void DSPEmitter::dec(const UDSPInstruction opc)
 // the value of $acD after the operation is the same as it was before.
 void DSPEmitter::neg(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   // const s64 acc = GetLongAcc(dreg);
   X64Reg acc = RAX;
   get_long_acc(dreg, acc);
@@ -1060,7 +1060,7 @@ void DSPEmitter::neg(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::abs(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 11) & 0x1;
+  u8 dreg = opc >> 11 & 0x1;
 
   //	s64 acc = dsp_get_long_acc(dreg);
   get_long_acc(dreg);
@@ -1087,8 +1087,8 @@ void DSPEmitter::abs(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::movr(const UDSPInstruction opc)
 {
-  u8 areg = (opc >> 8) & 0x1;
-  u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+  u8 areg = opc >> 8 & 0x1;
+  u8 sreg = (opc >> 9 & 0x3) + DSP_REG_AXL0;
 
   //	s64 acc = (s16)g_dsp.r[sreg];
   dsp_op_read_reg(sreg, RAX, RegisterExtension::Sign);
@@ -1110,8 +1110,8 @@ void DSPEmitter::movr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::movax(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
 
   //	s64 acx = dsp_get_long_acx(sreg);
   get_long_acx(sreg);
@@ -1131,7 +1131,7 @@ void DSPEmitter::movax(const UDSPInstruction opc)
 // flags out: --x0 xx00
 void DSPEmitter::mov(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
   //	u64 acc = dsp_get_long_acc(1 - dreg);
   get_long_acc(1 - dreg);
   //	dsp_set_long_acc(dreg, acc);
@@ -1152,7 +1152,7 @@ void DSPEmitter::mov(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsl16(const UDSPInstruction opc)
 {
-  u8 areg = (opc >> 8) & 0x1;
+  u8 areg = opc >> 8 & 0x1;
   //	s64 acc = dsp_get_long_acc(areg);
   get_long_acc(areg);
   //	acc <<= 16;
@@ -1173,7 +1173,7 @@ void DSPEmitter::lsl16(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsr16(const UDSPInstruction opc)
 {
-  u8 areg = (opc >> 8) & 0x1;
+  u8 areg = opc >> 8 & 0x1;
 
   //	u64 acc = dsp_get_long_acc(areg);
   get_long_acc(areg);
@@ -1198,7 +1198,7 @@ void DSPEmitter::lsr16(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::asr16(const UDSPInstruction opc)
 {
-  u8 areg = (opc >> 11) & 0x1;
+  u8 areg = opc >> 11 & 0x1;
 
   //	s64 acc = dsp_get_long_acc(areg);
   get_long_acc(areg);
@@ -1220,7 +1220,7 @@ void DSPEmitter::asr16(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsl(const UDSPInstruction opc)
 {
-  u8 rreg = (opc >> 8) & 0x01;
+  u8 rreg = opc >> 8 & 0x01;
   u16 shift = opc & 0x3f;
   //	u64 acc = dsp_get_long_acc(rreg);
   get_long_acc(rreg);
@@ -1245,7 +1245,7 @@ void DSPEmitter::lsl(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsr(const UDSPInstruction opc)
 {
-  u8 rreg = (opc >> 8) & 0x01;
+  u8 rreg = opc >> 8 & 0x01;
   u16 shift;
   //	u64 acc = dsp_get_long_acc(rreg);
   get_long_acc(rreg);
@@ -1280,7 +1280,7 @@ void DSPEmitter::lsr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::asl(const UDSPInstruction opc)
 {
-  u8 rreg = (opc >> 8) & 0x01;
+  u8 rreg = opc >> 8 & 0x01;
   u16 shift = opc & 0x3f;
   //	u64 acc = dsp_get_long_acc(rreg);
   get_long_acc(rreg);
@@ -1303,7 +1303,7 @@ void DSPEmitter::asl(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::asr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x01;
+  u8 dreg = opc >> 8 & 0x01;
   u16 shift;
 
   if ((opc & 0x3f) == 0)
@@ -1453,8 +1453,8 @@ void DSPEmitter::asrn(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
 
   //	s16 shift;
   //	u16 axh = g_dsp.r.axh[sreg];
@@ -1516,8 +1516,8 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::asrnrx(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
-  u8 sreg = (opc >> 9) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
+  u8 sreg = opc >> 9 & 0x1;
 
   //	s16 shift;
   //	u16 axh = g_dsp.r.axh[sreg];
@@ -1573,7 +1573,7 @@ void DSPEmitter::asrnrx(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsrnr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
 
   //	s16 shift;
   //	u16 accm = (u16)dsp_get_acc_m(1 - dreg);
@@ -1631,7 +1631,7 @@ void DSPEmitter::lsrnr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::asrnr(const UDSPInstruction opc)
 {
-  u8 dreg = (opc >> 8) & 0x1;
+  u8 dreg = opc >> 8 & 0x1;
 
   //	s16 shift;
   //	u16 accm = (u16)dsp_get_acc_m(1 - dreg);

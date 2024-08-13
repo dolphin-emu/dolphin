@@ -58,12 +58,12 @@ struct Symbol
 
 enum
 {
-  FFLAG_TIMERINSTRUCTIONS = (1 << 0),
-  FFLAG_LEAF = (1 << 1),
-  FFLAG_ONLYCALLSNICELEAFS = (1 << 2),
-  FFLAG_EVIL = (1 << 3),
-  FFLAG_RFI = (1 << 4),
-  FFLAG_STRAIGHT = (1 << 5)
+  FFLAG_TIMERINSTRUCTIONS = 1 << 0,
+  FFLAG_LEAF = 1 << 1,
+  FFLAG_ONLYCALLSNICELEAFS = 1 << 2,
+  FFLAG_EVIL = 1 << 3,
+  FFLAG_RFI = 1 << 4,
+  FFLAG_STRAIGHT = 1 << 5
 };
 
 class SymbolDB

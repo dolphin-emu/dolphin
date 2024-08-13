@@ -123,8 +123,8 @@ const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
 const std::string& TitleDatabase::GetChannelName(u64 title_id, DiscIO::Language language) const
 {
   const std::string id{
-      {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
-       static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
+      {static_cast<char>(title_id >> 24 & 0xff), static_cast<char>(title_id >> 16 & 0xff),
+       static_cast<char>(title_id >> 8 & 0xff), static_cast<char>(title_id & 0xff)}};
   return GetTitleName(id, language);
 }
 

@@ -30,7 +30,7 @@ namespace VideoCommon
 // Stretches the native/internal analog resolution aspect ratio from ~4:3 to ~16:9
 static float SourceAspectRatioToWidescreen(float source_aspect)
 {
-  return source_aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
+  return source_aspect * (16.0f / 9.0f / (4.0f / 3.0f));
 }
 
 static std::tuple<int, int> FindClosestIntegerResolution(float width, float height,
@@ -53,7 +53,7 @@ static std::tuple<int, int> FindClosestIntegerResolution(float width, float heig
     for (const int new_height : std::array<int, 2>{ceiled_height, floored_height})
     {
       const float new_aspect_ratio = static_cast<float>(new_width) / new_height;
-      const float aspect_ratio_distance = std::abs((new_aspect_ratio / aspect_ratio) - 1.f);
+      const float aspect_ratio_distance = std::abs(new_aspect_ratio / aspect_ratio - 1.f);
       if (aspect_ratio_distance < min_aspect_ratio_distance)
       {
         min_aspect_ratio_distance = aspect_ratio_distance;
@@ -270,10 +270,10 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     // We always scale positively to make sure the least amount of information is lost.
     //
     // TODO: this should be added as black padding on the edges by the frame dumper.
-    if ((width % resolution_lcm) != 0 || width == 0)
-      width += resolution_lcm - (width % resolution_lcm);
-    if ((height % resolution_lcm) != 0 || height == 0)
-      height += resolution_lcm - (height % resolution_lcm);
+    if (width % resolution_lcm != 0 || width == 0)
+      width += resolution_lcm - width % resolution_lcm;
+    if (height % resolution_lcm != 0 || height == 0)
+      height += resolution_lcm - height % resolution_lcm;
 
     // Remove any black borders, there would be no point in including them in the recording
     target_rect.left = 0;
@@ -292,7 +292,7 @@ void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height)
 {
   const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
   const bool size_changed =
-      (m_backbuffer_width != backbuffer_width || m_backbuffer_height != backbuffer_height);
+      m_backbuffer_width != backbuffer_width || m_backbuffer_height != backbuffer_height;
   m_backbuffer_width = backbuffer_width;
   m_backbuffer_height = backbuffer_height;
   UpdateDrawRectangle();
@@ -304,7 +304,7 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
 {
   const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
   const bool size_changed =
-      (m_backbuffer_width != (int)info.width || m_backbuffer_height != (int)info.height);
+      m_backbuffer_width != (int)info.width || m_backbuffer_height != (int)info.height;
   m_backbuffer_width = info.width;
   m_backbuffer_height = info.height;
   m_backbuffer_scale = info.scale;
@@ -404,7 +404,7 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
 
   // If stretch is enabled, we prefer the aspect ratio of the window.
   if (aspect_mode == AspectMode::Stretch)
-    return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
+    return static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height);
 
   // The actual aspect ratio of the XFB texture is irrelevant, the VI one is the one that matters
   const auto& vi = Core::System::GetInstance().GetVideoInterface();
@@ -428,7 +428,7 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
   }
   else if (aspect_mode == AspectMode::Raw)
   {
-    return m_xfb_entry ? (static_cast<float>(m_last_xfb_width) / m_last_xfb_height) : 1.f;
+    return m_xfb_entry ? static_cast<float>(m_last_xfb_width) / m_last_xfb_height : 1.f;
   }
 
   return source_aspect_ratio;
@@ -512,9 +512,9 @@ u32 Presenter::AutoIntegralScale() const
   else
     source_height = std::round(source_width / target_aspect_ratio);
   const u32 width_scale =
-      source_width > 0 ? ((target_width + (source_width - 1)) / source_width) : 1;
+      source_width > 0 ? (target_width + (source_width - 1)) / source_width : 1;
   const u32 height_scale =
-      source_height > 0 ? ((target_height + (source_height - 1)) / source_height) : 1;
+      source_height > 0 ? (target_height + (source_height - 1)) / source_height : 1;
   // Limit to the max to avoid creating textures larger than their max supported resolution.
   return std::min(std::max(width_scale, height_scale),
                   static_cast<u32>(Config::Get(Config::GFX_MAX_EFB_SCALE)));
@@ -557,7 +557,7 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
   {
   default:
   case AspectMode::Auto:
-    expected_aspect = g_widescreen->IsGameWidescreen() ? (16.0f / 9.0f) : (4.0f / 3.0f);
+    expected_aspect = g_widescreen->IsGameWidescreen() ? 16.0f / 9.0f : 4.0f / 3.0f;
     break;
   case AspectMode::ForceWide:
     expected_aspect = 16.0f / 9.0f;

@@ -142,7 +142,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
   }
 
   const u32 chunk_size = Common::swap32(m_header_2.chunk_size);
-  const auto is_power_of_two = [](u32 x) { return (x & (x - 1)) == 0; };
+  const auto is_power_of_two = [](u32 x) { return (x & x - 1) == 0; };
   if ((!RVZ || chunk_size < VolumeWii::BLOCK_TOTAL_SIZE || !is_power_of_two(chunk_size)) &&
       chunk_size % VolumeWii::GROUP_TOTAL_SIZE != 0)
   {
@@ -501,7 +501,7 @@ bool WIARVZFileReader<RVZ>::ReadFromGroups(u64* offset, u64* size, u8** out_ptr,
   data_size += skipped_data;
 
   const u64 start_group_index = (*offset - data_offset) / chunk_size;
-  for (u64 i = start_group_index; i < number_of_groups && (*size) > 0; ++i)
+  for (u64 i = start_group_index; i < number_of_groups && *size > 0; ++i)
   {
     const u64 total_group_index = group_index + i;
     if (total_group_index >= m_group_entries.size())
@@ -614,8 +614,8 @@ template <bool RVZ>
 std::string WIARVZFileReader<RVZ>::VersionToString(u32 version)
 {
   const u8 a = version >> 24;
-  const u8 b = (version >> 16) & 0xff;
-  const u8 c = (version >> 8) & 0xff;
+  const u8 b = version >> 16 & 0xff;
+  const u8 c = version >> 8 & 0xff;
   const u8 d = version & 0xff;
 
   if (d == 0 || d == 0xff)
@@ -1664,7 +1664,7 @@ ConversionResultCode WIARVZFileReader<RVZ>::Output(std::vector<OutputParametersE
     u32 data_size = static_cast<u32>(entry.exception_lists.size() + entry.main_data.size());
     if constexpr (RVZ)
     {
-      data_size = (data_size & 0x7FFFFFFF) | (static_cast<u32>(entry.compressed) << 31);
+      data_size = data_size & 0x7FFFFFFF | static_cast<u32>(entry.compressed) << 31;
       group_entry->rvz_packed_size = Common::swap32(static_cast<u32>(entry.rvz_packed_size));
     }
     group_entry->data_size = Common::swap32(data_size);

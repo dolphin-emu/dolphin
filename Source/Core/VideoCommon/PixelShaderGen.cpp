@@ -253,7 +253,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->nIndirectStagesUsed = nIndirectStagesUsed;
   for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
   {
-    if (uid_data->nIndirectStagesUsed & (1 << i))
+    if (uid_data->nIndirectStagesUsed & 1 << i)
       uid_data->SetTevindrefValues(i, bpmem.tevindref.getTexCoord(i), bpmem.tevindref.getTexMap(i));
   }
 
@@ -303,7 +303,7 @@ PixelShaderUid GetPixelShaderUid()
   }
 
 #define MY_STRUCT_OFFSET(str, elem) ((u32)((u64) & (str).elem - (u64) & (str)))
-  uid_data->num_values = (g_ActiveConfig.bEnablePixelLighting) ?
+  uid_data->num_values = g_ActiveConfig.bEnablePixelLighting ?
                              sizeof(*uid_data) :
                              MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
@@ -803,7 +803,7 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_stages, bool per_pixel
 
   for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
   {
-    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
+    if ((uid_data->nIndirectStagesUsed & 1U << i) != 0)
     {
       u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);
@@ -1165,7 +1165,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
   {
-    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
+    if ((uid_data->nIndirectStagesUsed & 1U << i) != 0)
     {
       u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);
@@ -1179,7 +1179,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
       out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
       out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
-                (i & 1) ? "zw" : "xy");
+                i & 1 ? "zw" : "xy");
 
       out.Write("\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i,
                 texmap);
@@ -1292,7 +1292,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
     out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS "[1].w {};\n",
-              (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
+              uid_data->ztex_op == ZTexOp::Add ? "+ zCoord" : "");
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
 
@@ -1639,13 +1639,13 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
     if (u32(stage.tevksel_kc) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + (u32(stage.tevksel_kc) - 0xc) % 4,
+                           C_KCOLORS + (u32(stage.tevksel_kc) - 0xc) % 4);
     }
     if (u32(stage.tevksel_ka) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + (u32(stage.tevksel_ka) - 0xc) % 4,
+                           C_KCOLORS + (u32(stage.tevksel_ka) - 0xc) % 4);
     }
   }
 
@@ -1850,7 +1850,7 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
   out.Write("(((((tevin_a.{0}<<8) + "
             "(tevin_b.{0}-tevin_a.{0})*(tevin_c.{0}+(tevin_c.{0}>>7))){1}){2})>>8)",
             components, tev_scale_table_left[scale],
-            (scale != TevScale::Divide2) ? tev_lerp_bias[op] : "");
+            scale != TevScale::Divide2 ? tev_lerp_bias[op] : "");
   out.Write("){}", tev_scale_table_right[scale]);
 }
 

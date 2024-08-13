@@ -112,9 +112,9 @@ void MemoryManager::Init()
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : m_physical_regions)
   {
-    if (!wii && (region.flags & PhysicalMemoryRegion::WII_ONLY))
+    if (!wii && region.flags & PhysicalMemoryRegion::WII_ONLY)
       continue;
-    if (!fake_vmem && (region.flags & PhysicalMemoryRegion::FAKE_VMEM))
+    if (!fake_vmem && region.flags & PhysicalMemoryRegion::FAKE_VMEM)
       continue;
 
     region.shm_position = mem_size;
@@ -143,7 +143,7 @@ void MemoryManager::Init()
 
     for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
     {
-      const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
+      const size_t index = i + region.physical_address >> PowerPC::BAT_INDEX_SHIFT;
       m_physical_page_mappings[index] = *region.out_pointer + i;
     }
   }
@@ -499,7 +499,7 @@ std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
 
   if (m_exram)
   {
-    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
+    if (address >> 28 == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
     {
       return std::span(m_exram + (address & GetExRamMask()),
                        GetExRamSizeReal() - (address & GetExRamMask()));

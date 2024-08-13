@@ -719,7 +719,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
       if (decl.texcoords[i].enable)
       {
         ASSERT(decl.texcoords[i].components <= 3);
-        vs->texcoord_elem_count |= decl.texcoords[i].components << (i * 2);
+        vs->texcoord_elem_count |= decl.texcoords[i].components << i * 2;
       }
     }
     out.vertex_format = nullptr;

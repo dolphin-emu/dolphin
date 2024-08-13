@@ -156,7 +156,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
         break;
       }
 
-      ASSERT_MSG(VIDEO, !format.integer || (format.type < ComponentFormat::Float),
+      ASSERT_MSG(VIDEO, !format.integer || format.type < ComponentFormat::Float,
                  "only non-float values are allowed to be streamed as integer");
     }
     for (; i < components; i++)
@@ -172,9 +172,9 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
 {
   const auto set_default_color = [](std::array<u8, 4>& color) {
     color[Tev::ALP_C] = g_ActiveConfig.iMissingColorValue & 0xFF;
-    color[Tev::BLU_C] = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
-    color[Tev::GRN_C] = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
-    color[Tev::RED_C] = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
+    color[Tev::BLU_C] = g_ActiveConfig.iMissingColorValue >> 8 & 0xFF;
+    color[Tev::GRN_C] = g_ActiveConfig.iMissingColorValue >> 16 & 0xFF;
+    color[Tev::RED_C] = g_ActiveConfig.iMissingColorValue >> 24 & 0xFF;
   };
 
   if (vdec.colors[0].enable)

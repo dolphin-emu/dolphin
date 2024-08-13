@@ -392,7 +392,7 @@ void ASndUCode::DoMixing(u32 return_mail)
         }
         // jump_load_smp_addr
         const u16 input_sample_offset =
-            (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+            m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
         if (input_sample_offset == 0)
         {
           // jump_load_smp_dma
@@ -483,7 +483,7 @@ void ASndUCode::DMAInSampleDataAssumeAligned()
 std::pair<s16, s16> ASndUCode::ReadSampleMono8Bits() const
 {
   // mono_8bits
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   s16 result = m_input_sample_buffer[index];
   if ((m_current_voice.start_addr & 1) == 0)
     result >>= 8;
@@ -494,7 +494,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleMono8Bits() const
 std::pair<s16, s16> ASndUCode::ReadSampleStereo8Bits() const
 {
   // stereo_8bits
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   const u16 sample = m_input_sample_buffer[index];
   const s16 right = sample & 0xff00;
   const s16 left = sample << 8;
@@ -503,7 +503,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo8Bits() const
 std::pair<s16, s16> ASndUCode::ReadSampleMono16Bits() const
 {
   // mono_16bits
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   const s16 result = m_input_sample_buffer[index];
   return {result, result};
 }
@@ -511,7 +511,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleMono16Bits() const
 std::pair<s16, s16> ASndUCode::ReadSampleStereo16Bits() const
 {
   // stereo_16bits
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   const s16 right = m_input_sample_buffer[index];
   // Note that 1 is added to index after the masking - meaning that theoretically an out-of-bounds
   // index 0x10 can be read (but the buffer is oversized both here and in the actual uCode, so the
@@ -523,7 +523,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo16Bits() const
 std::pair<s16, s16> ASndUCode::ReadSampleMono8BitsUnsigned() const
 {
   // mono_8bits_unsigned
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   s16 result = m_input_sample_buffer[index];
   if ((m_current_voice.start_addr & 1) == 0)
     result >>= 8;
@@ -535,7 +535,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleMono8BitsUnsigned() const
 std::pair<s16, s16> ASndUCode::ReadSampleMono16BitsLittleEndian() const
 {
   // mono_16bits_le
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   // Actual implementation is u32 result_l = result | result << 16; result = result_l >> 8;
   const s16 result = Common::swap16(m_input_sample_buffer[index]);
   return {result, result};
@@ -544,7 +544,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleMono16BitsLittleEndian() const
 std::pair<s16, s16> ASndUCode::ReadSampleStereo8BitsUnsigned() const
 {
   // stereo_8bits_unsigned
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   u16 sample = m_input_sample_buffer[index] ^ 0x8080;
   const s16 right = sample & 0xff00;
   const s16 left = sample << 8;
@@ -554,7 +554,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo8BitsUnsigned() const
 std::pair<s16, s16> ASndUCode::ReadSampleStereo16BitsLittleEndian() const
 {
   // stereo_16bits_le
-  const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
+  const u32 index = m_current_voice.start_addr >> 1 & INPUT_SAMPLE_BUFFER_WORD_MASK;
   const s16 right = Common::swap16(m_input_sample_buffer[index]);
   // Note that 1 is added to index after the masking - meaning that theoretically an out-of-bounds
   // index 0x10 can be read (but the buffer is oversized both here and in the actual uCode, so the

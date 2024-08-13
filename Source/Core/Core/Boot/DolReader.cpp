@@ -40,7 +40,7 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
 
   // swap memory
   u32* p = (u32*)&m_dolheader;
-  for (size_t i = 0; i < (sizeof(SDolHeader) / sizeof(u32)); i++)
+  for (size_t i = 0; i < sizeof(SDolHeader) / sizeof(u32); i++)
     p[i] = Common::swap32(p[i]);
 
   const u32 HID4_pattern = Common::swap32(0x7c13fba6);
@@ -59,7 +59,7 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
       const u8* text_start = &buffer[m_dolheader.textOffset[i]];
       m_text_sections.emplace_back(text_start, &text_start[m_dolheader.textSize[i]]);
 
-      for (unsigned int j = 0; !m_is_wii && j < (m_dolheader.textSize[i] / sizeof(u32)); ++j)
+      for (unsigned int j = 0; !m_is_wii && j < m_dolheader.textSize[i] / sizeof(u32); ++j)
       {
         u32 word = ((u32*)text_start)[j];
         if ((word & HID4_mask) == HID4_pattern)

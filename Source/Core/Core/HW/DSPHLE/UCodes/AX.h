@@ -165,7 +165,7 @@ protected:
     for (size_t i = 0; i < BufCount; ++i)
     {
       const BufferDesc& buf = buffers[i];
-      s32 value = s32((u32(init_array[3 * i]) << 16) | init_array[3 * i + 1]);
+      s32 value = s32(u32(init_array[3 * i]) << 16 | init_array[3 * i + 1]);
       s16 delta = init_array[3 * i + 2];
       if (value == 0)
       {

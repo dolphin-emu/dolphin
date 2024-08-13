@@ -23,7 +23,7 @@
 
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
-  const u64 factor = ((1024 * 1024) / 8);
+  const u64 factor = 1024 * 1024 / 8;
   const u64 megabits = bytes / factor;
   const u64 remainder = bytes % factor;
   if (remainder != 0)
@@ -559,7 +559,7 @@ BlockAlloc::BlockAlloc(u16 size_mbits)
 u16 BlockAlloc::GetNextBlock(u16 block) const
 {
   // FIXME: This is fishy, shouldn't that be in range [5, 4096[?
-  if ((block < MC_FST_BLOCKS) || (block > 4091))
+  if (block < MC_FST_BLOCKS || block > 4091)
     return 0;
 
   return m_map[block - MC_FST_BLOCKS];
@@ -619,7 +619,7 @@ u16 BlockAlloc::AssignBlocksContiguous(u16 length)
   if (length > m_free_blocks)
     return 0xFFFF;
   u16 current = starting;
-  while ((current - starting + 1) < length)
+  while (current - starting + 1 < length)
   {
     m_map[current - 5] = current + 1;
     current++;
@@ -656,7 +656,7 @@ GCMemcardErrorCode BlockAlloc::CheckForErrors(u16 size_mbits) const
   if (size_mbits > 0 && size_mbits <= 256)
   {
     // check if free block count matches the actual amount of free blocks in m_map
-    const u16 total_available_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
+    const u16 total_available_blocks = size_mbits * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
     ASSERT(total_available_blocks <= m_map.size());
     u16 blocks_in_use = 0;
     for (size_t i = 0; i < total_available_blocks; ++i)
@@ -696,7 +696,7 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   const u16 block = DEntry_FirstBlock(index);
   const u16 BlockCount = DEntry_BlockCount(index);
 
-  if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
+  if (block == 0xFFFF || BlockCount == 0xFFFF)
   {
     return GCMemcardGetSaveDataRetVal::FAIL;
   }
@@ -704,7 +704,7 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   u16 nextBlock = block;
   for (int i = 0; i < BlockCount; ++i)
   {
-    if ((!nextBlock) || (nextBlock == 0xFFFF))
+    if (!nextBlock || nextBlock == 0xFFFF)
       return GCMemcardGetSaveDataRetVal::FAIL;
     Blocks.push_back(m_data_blocks[nextBlock - MC_FST_BLOCKS]);
     nextBlock = GetActiveBat().GetNextBlock(nextBlock);
@@ -843,14 +843,14 @@ std::optional<std::vector<u32>> GCMemcard::ReadBannerRGBA8(u8 index) const
 
   // See comment on m_banner_and_icon_flags for an explanation of these.
   const u8 flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
-  const u8 format = (flags & 0b0000'0011);
+  const u8 format = flags & 0b0000'0011;
   if (format != MEMORY_CARD_BANNER_FORMAT_CI8 && format != MEMORY_CARD_BANNER_FORMAT_RGB5A3)
     return std::nullopt;
 
   constexpr u32 pixel_count = MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT;
   const size_t total_bytes = format == MEMORY_CARD_BANNER_FORMAT_CI8 ?
-                                 (pixel_count + MEMORY_CARD_CI8_PALETTE_ENTRIES * 2) :
-                                 (pixel_count * 2);
+                                 pixel_count + MEMORY_CARD_CI8_PALETTE_ENTRIES * 2 :
+                                 pixel_count * 2;
   const auto data = GetSaveDataBytes(index, offset, total_bytes);
   if (!data || data->size() != total_bytes)
     return std::nullopt;
@@ -888,7 +888,7 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   // Skip over the banner if there is one.
   // See ReadBannerRGBA8() for details on how the banner is stored.
   const u8 flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
-  const u8 banner_format = (flags & 0b0000'0011);
+  const u8 banner_format = flags & 0b0000'0011;
   const u32 banner_pixels = MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT;
   if (banner_format == MEMORY_CARD_BANNER_FORMAT_CI8)
     image_offset += banner_pixels + MEMORY_CARD_CI8_PALETTE_ENTRIES * 2;
@@ -902,8 +902,8 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   std::array<u8, MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES> frame_delays;
   for (u32 i = 0; i < MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES; ++i)
   {
-    frame_formats[i] = (icon_format >> (2 * i)) & 0b11;
-    frame_delays[i] = (animation_speed >> (2 * i)) & 0b11;
+    frame_formats[i] = icon_format >> 2 * i & 0b11;
+    frame_delays[i] = animation_speed >> 2 * i & 0b11;
   }
 
   // if first frame format is 0, the entire icon is skipped
@@ -1093,11 +1093,11 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   {
     const int block = i / 0x2000;
     const int offset = i % 0x2000;
-    chksum ^= (FileBuffer[block].m_block[offset] & 0xFF);
+    chksum ^= FileBuffer[block].m_block[offset] & 0xFF;
     for (j = 8; j > 0; j--)
     {
       if (chksum & 1)
-        chksum = (chksum >> 1) ^ 0x8408;
+        chksum = chksum >> 1 ^ 0x8408;
       else
         chksum >>= 1;
     }
@@ -1158,7 +1158,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
     for (j = 8; j > 0; j--)
     {
       if (chksum & 1)
-        chksum = (chksum >> 1) ^ 0xEDB88320;
+        chksum = chksum >> 1 ^ 0xEDB88320;
       else
         chksum >>= 1;
     }
@@ -1172,7 +1172,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   // calc 32-bit checksum
   for (i = 0x004C; i < 0x0164 + pso3offset; i++)
   {
-    chksum = ((chksum >> 8) & 0xFFFFFF) ^ crc32LUT[(chksum ^ FileBuffer[1].m_block[i]) & 0xFF];
+    chksum = chksum >> 8 & 0xFFFFFF ^ crc32LUT[(chksum ^ FileBuffer[1].m_block[i]) & 0xFF];
   }
 
   // set new checksum
@@ -1209,9 +1209,9 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 siz
   u64 rand = format_time;
   for (int i = 0; i < 12; i++)
   {
-    rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
+    rand = rand * (u64)0x0000000041c64e6dULL + (u64)0x0000000000003039ULL >> 16;
     data->m_serial[i] = (u8)(flash_id[i] + (u32)rand);
-    rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
+    rand = rand * (u64)0x0000000041c64e6dULL + (u64)0x0000000000003039ULL >> 16;
     rand &= (u64)0x0000000000007fffULL;
   }
   data->m_sram_bias = rtc_bias;

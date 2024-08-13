@@ -54,7 +54,7 @@ void Interpreter::tstprod(const UDSPInstruction)
 // flags out: --xx xx0x
 void Interpreter::movp(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const s64 acc = GetLongProduct();
 
   ZeroWriteBackLog();
@@ -71,7 +71,7 @@ void Interpreter::movp(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::movnp(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
   const s64 acc = -GetLongProduct();
 
   ZeroWriteBackLog();
@@ -88,7 +88,7 @@ void Interpreter::movnp(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::movpz(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x01;
+  const u8 dreg = opc >> 8 & 0x01;
   const s64 acc = GetLongProductRounded();
 
   ZeroWriteBackLog();
@@ -106,8 +106,8 @@ void Interpreter::movpz(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::addpaxz(const UDSPInstruction opc)
 {
-  const u8 dreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 dreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   const s64 oldprod = GetLongProduct();
   const s64 prod = GetLongProductRounded();
@@ -144,7 +144,7 @@ void Interpreter::mulaxh(const UDSPInstruction)
 // $axS.h of secondary accumulator $axS (treat them both as signed).
 void Interpreter::mul(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 11) & 0x1;
+  const u8 sreg = opc >> 11 & 0x1;
   const u16 axl = GetAXLow(sreg);
   const u16 axh = GetAXHigh(sreg);
   const s64 prod = Multiply(axh, axl);
@@ -163,8 +163,8 @@ void Interpreter::mul(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulac(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 11) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 11 & 0x1;
 
   const s64 acc = GetLongAcc(rreg) + GetLongProduct();
   const u16 axl = GetAXLow(sreg);
@@ -187,8 +187,8 @@ void Interpreter::mulac(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulmv(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 sreg = ((opc >> 11) & 0x1);
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 11 & 0x1;
 
   const s64 acc = GetLongProduct();
   const u16 axl = GetAXLow(sreg);
@@ -212,8 +212,8 @@ void Interpreter::mulmv(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulmvz(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 11) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 11 & 0x1;
 
   const s64 acc = GetLongProductRounded();
   const u16 axl = GetAXLow(sreg);
@@ -235,11 +235,11 @@ void Interpreter::mulmvz(const UDSPInstruction opc)
 // Part is selected by S and T bits. Zero selects low part, one selects high part.
 void Interpreter::mulx(const UDSPInstruction opc)
 {
-  const u8 treg = ((opc >> 11) & 0x1);
-  const u8 sreg = ((opc >> 12) & 0x1);
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
-  const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
-  const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
+  const u16 val1 = sreg == 0 ? GetAXLow(0) : GetAXHigh(0);
+  const u16 val2 = treg == 0 ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplyMulX(sreg, treg, val1, val2);
 
   ZeroWriteBackLog();
@@ -256,13 +256,13 @@ void Interpreter::mulx(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulxac(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const s64 acc = GetLongAcc(rreg) + GetLongProduct();
-  const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
-  const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
+  const u16 val1 = sreg == 0 ? GetAXLow(0) : GetAXHigh(0);
+  const u16 val2 = treg == 0 ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplyMulX(sreg, treg, val1, val2);
 
   ZeroWriteBackLog();
@@ -281,13 +281,13 @@ void Interpreter::mulxac(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulxmv(const UDSPInstruction opc)
 {
-  const u8 rreg = ((opc >> 8) & 0x1);
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const s64 acc = GetLongProduct();
-  const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
-  const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
+  const u16 val1 = sreg == 0 ? GetAXLow(0) : GetAXHigh(0);
+  const u16 val2 = treg == 0 ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplyMulX(sreg, treg, val1, val2);
 
   ZeroWriteBackLog();
@@ -307,13 +307,13 @@ void Interpreter::mulxmv(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulxmvz(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const s64 acc = GetLongProductRounded();
-  const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
-  const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
+  const u16 val1 = sreg == 0 ? GetAXLow(0) : GetAXHigh(0);
+  const u16 val2 = treg == 0 ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplyMulX(sreg, treg, val1, val2);
 
   ZeroWriteBackLog();
@@ -331,8 +331,8 @@ void Interpreter::mulxmvz(const UDSPInstruction opc)
 // secondary accumulator $axS (treat them both as signed).
 void Interpreter::mulc(const UDSPInstruction opc)
 {
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const u16 accm = GetAccMid(sreg);
   const u16 axh = GetAXHigh(treg);
@@ -352,9 +352,9 @@ void Interpreter::mulc(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulcac(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const s64 acc = GetLongAcc(rreg) + GetLongProduct();
   const u16 accm = GetAccMid(sreg);
@@ -377,9 +377,9 @@ void Interpreter::mulcac(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulcmv(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const s64 acc = GetLongProduct();
   const u16 accm = GetAccMid(sreg);
@@ -403,9 +403,9 @@ void Interpreter::mulcmv(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void Interpreter::mulcmvz(const UDSPInstruction opc)
 {
-  const u8 rreg = (opc >> 8) & 0x1;
-  const u8 treg = (opc >> 11) & 0x1;
-  const u8 sreg = (opc >> 12) & 0x1;
+  const u8 rreg = opc >> 8 & 0x1;
+  const u8 treg = opc >> 11 & 0x1;
+  const u8 sreg = opc >> 12 & 0x1;
 
   const s64 acc = GetLongProductRounded();
   const u16 accm = GetAccMid(sreg);
@@ -428,11 +428,11 @@ void Interpreter::mulcmvz(const UDSPInstruction opc)
 // signed) and add result to product register.
 void Interpreter::maddx(const UDSPInstruction opc)
 {
-  const u8 treg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 treg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
-  const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
-  const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
+  const u16 val1 = sreg == 0 ? GetAXLow(0) : GetAXHigh(0);
+  const u16 val2 = treg == 0 ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplyAdd(val1, val2);
 
   ZeroWriteBackLog();
@@ -447,11 +447,11 @@ void Interpreter::maddx(const UDSPInstruction opc)
 // signed) and subtract result from product register.
 void Interpreter::msubx(const UDSPInstruction opc)
 {
-  const u8 treg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 treg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
-  const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
-  const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
+  const u16 val1 = sreg == 0 ? GetAXLow(0) : GetAXHigh(0);
+  const u16 val2 = treg == 0 ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplySub(val1, val2);
 
   ZeroWriteBackLog();
@@ -466,8 +466,8 @@ void Interpreter::msubx(const UDSPInstruction opc)
 // register.
 void Interpreter::maddc(const UDSPInstruction opc)
 {
-  const u8 treg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 treg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   const u16 accm = GetAccMid(sreg);
   const u16 axh = GetAXHigh(treg);
@@ -485,8 +485,8 @@ void Interpreter::maddc(const UDSPInstruction opc)
 // product register.
 void Interpreter::msubc(const UDSPInstruction opc)
 {
-  const u8 treg = (opc >> 8) & 0x1;
-  const u8 sreg = (opc >> 9) & 0x1;
+  const u8 treg = opc >> 8 & 0x1;
+  const u8 sreg = opc >> 9 & 0x1;
 
   const u16 accm = GetAccMid(sreg);
   const u16 axh = GetAXHigh(treg);
@@ -504,7 +504,7 @@ void Interpreter::msubc(const UDSPInstruction opc)
 // result to product register.
 void Interpreter::madd(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 8) & 0x1;
+  const u8 sreg = opc >> 8 & 0x1;
   const u16 axl = GetAXLow(sreg);
   const u16 axh = GetAXHigh(sreg);
   const s64 prod = MultiplyAdd(axl, axh);
@@ -521,7 +521,7 @@ void Interpreter::madd(const UDSPInstruction opc)
 // subtract result from product register.
 void Interpreter::msub(const UDSPInstruction opc)
 {
-  const u8 sreg = (opc >> 8) & 0x1;
+  const u8 sreg = opc >> 8 & 0x1;
   const u16 axl = GetAXLow(sreg);
   const u16 axh = GetAXHigh(sreg);
   const s64 prod = MultiplySub(axl, axh);

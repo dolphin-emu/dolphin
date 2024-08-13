@@ -164,9 +164,9 @@ void GBASockServer::ClockSync(Core::System& system)
   time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
   char bytes[4] = {0, 0, 0, 0};
-  bytes[0] = (time_slice >> 24) & 0xff;
-  bytes[1] = (time_slice >> 16) & 0xff;
-  bytes[2] = (time_slice >> 8) & 0xff;
+  bytes[0] = time_slice >> 24 & 0xff;
+  bytes[1] = time_slice >> 16 & 0xff;
+  bytes[2] = time_slice >> 8 & 0xff;
   bytes[3] = time_slice & 0xff;
 
   sf::Socket::Status status = m_clock_sync->send(bytes, 4);
@@ -326,7 +326,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
       return -1;
 #ifdef _DEBUG
     const Common::Log::LogLevel log_level =
-        (m_last_cmd == EBufferCommands::CMD_STATUS || m_last_cmd == EBufferCommands::CMD_RESET) ?
+        m_last_cmd == EBufferCommands::CMD_STATUS || m_last_cmd == EBufferCommands::CMD_RESET ?
             Common::Log::LogLevel::LERROR :
             Common::Log::LogLevel::LWARNING;
     GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,

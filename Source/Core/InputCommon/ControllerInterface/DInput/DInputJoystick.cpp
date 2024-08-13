@@ -238,12 +238,12 @@ Core::DeviceRemoval Joystick::UpdateInput()
 
     if (SUCCEEDED(hr))
     {
-      for (LPDIDEVICEOBJECTDATA evt = evtbuf; evt != (evtbuf + numevents); ++evt)
+      for (LPDIDEVICEOBJECTDATA evt = evtbuf; evt != evtbuf + numevents; ++evt)
       {
         // all the buttons are at the end of the data format
         // they are bytes rather than longs
         if (evt->dwOfs < DIJOFS_BUTTON(0))
-          *(DWORD*)(((BYTE*)&m_state_in) + evt->dwOfs) = evt->dwData;
+          *(DWORD*)((BYTE*)&m_state_in + evt->dwOfs) = evt->dwData;
         else
           ((BYTE*)&m_state_in)[evt->dwOfs] = (BYTE)evt->dwData;
       }
@@ -302,11 +302,11 @@ ControlState Joystick::Hat::GetState() const
 {
   // "Some drivers report the centered position of the POV indicator as 65,535.
   // Determine whether the indicator is centered as follows" -MSDN
-  const bool is_centered = (0xffff == LOWORD(m_hat));
+  const bool is_centered = 0xffff == LOWORD(m_hat);
 
   if (is_centered)
     return 0;
 
-  return (std::abs(int(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
+  return std::abs(int(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2;
 }
 }  // namespace ciface::DInput

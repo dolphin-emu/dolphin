@@ -25,15 +25,15 @@ void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value)
     cr_val |= 1ULL << 63;
   }
 
-  cr_val = (cr_val & ~(1ULL << PowerPC::CR_EMU_SO_BIT)) |
-           (u64{ppc_state.GetXER_SO()} << PowerPC::CR_EMU_SO_BIT);
+  cr_val = cr_val & ~(1ULL << PowerPC::CR_EMU_SO_BIT) |
+           u64{ppc_state.GetXER_SO()} << PowerPC::CR_EMU_SO_BIT;
 
   ppc_state.cr.fields[0] = cr_val;
 }
 
 u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
 {
-  return value2 > (~value1);
+  return value2 > ~value1;
 }
 
 void Interpreter::addi(Interpreter& interpreter, UGeckoInstruction inst)
@@ -81,7 +81,7 @@ void Interpreter::andi_rc(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::andis_rc(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] & (u32{inst.UIMM} << 16);
+  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] & u32{inst.UIMM} << 16;
   Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
 }
 
@@ -135,7 +135,7 @@ void Interpreter::ori(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::oris(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] | (u32{inst.UIMM} << 16);
+  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] | u32{inst.UIMM} << 16;
 }
 
 void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
@@ -143,8 +143,8 @@ void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const s32 immediate = inst.SIMM_16;
   ppc_state.gpr[inst.RD] = u32(immediate - s32(ppc_state.gpr[inst.RA]));
-  ppc_state.SetCarry((ppc_state.gpr[inst.RA] == 0) ||
-                     (Helper_Carry(0 - ppc_state.gpr[inst.RA], u32(immediate))));
+  ppc_state.SetCarry(ppc_state.gpr[inst.RA] == 0 ||
+                     Helper_Carry(0 - ppc_state.gpr[inst.RA], u32(immediate)));
 }
 
 void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
@@ -174,7 +174,7 @@ void Interpreter::xori(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::xoris(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] ^ (u32{inst.UIMM} << 16);
+  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] ^ u32{inst.UIMM} << 16;
 }
 
 void Interpreter::rlwimix(Interpreter& interpreter, UGeckoInstruction inst)
@@ -182,7 +182,7 @@ void Interpreter::rlwimix(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   auto& ppc_state = interpreter.m_ppc_state;
   ppc_state.gpr[inst.RA] =
-      (ppc_state.gpr[inst.RA] & ~mask) | (std::rotl(ppc_state.gpr[inst.RS], inst.SH) & mask);
+      ppc_state.gpr[inst.RA] & ~mask | std::rotl(ppc_state.gpr[inst.RS], inst.SH) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
@@ -308,7 +308,7 @@ void Interpreter::orx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::orcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] | (~ppc_state.gpr[inst.RB]);
+  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] | ~ppc_state.gpr[inst.RB];
 
   if (inst.Rc)
     Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
@@ -348,7 +348,7 @@ void Interpreter::srawx(Interpreter& interpreter, UGeckoInstruction inst)
     const s32 rrs = s32(ppc_state.gpr[inst.RS]);
     ppc_state.gpr[inst.RA] = u32(rrs >> amount);
 
-    ppc_state.SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
+    ppc_state.SetCarry(rrs < 0 && amount > 0 && u32(rrs) << 32 - amount != 0);
   }
 
   if (inst.Rc)
@@ -362,7 +362,7 @@ void Interpreter::srawix(Interpreter& interpreter, UGeckoInstruction inst)
   const s32 rrs = s32(ppc_state.gpr[inst.RS]);
 
   ppc_state.gpr[inst.RA] = u32(rrs >> amount);
-  ppc_state.SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
+  ppc_state.SetCarry(rrs < 0 && amount > 0 && u32(rrs) << 32 - amount != 0);
 
   if (inst.Rc)
     Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
@@ -372,7 +372,7 @@ void Interpreter::srwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 amount = ppc_state.gpr[inst.RB];
-  ppc_state.gpr[inst.RA] = (amount & 0x20) != 0 ? 0 : (ppc_state.gpr[inst.RS] >> (amount & 0x1f));
+  ppc_state.gpr[inst.RA] = (amount & 0x20) != 0 ? 0 : ppc_state.gpr[inst.RS] >> (amount & 0x1f);
 
   if (inst.Rc)
     Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
@@ -388,7 +388,7 @@ void Interpreter::tw(Interpreter& interpreter, UGeckoInstruction inst)
   DEBUG_LOG_FMT(POWERPC, "tw rA {:x} rB {:x} TO {:x}", a, b, TO);
 
   if ((a < b && (TO & 0x10) != 0) || (a > b && (TO & 0x08) != 0) || (a == b && (TO & 0x04) != 0) ||
-      ((u32(a) < u32(b)) && (TO & 0x02) != 0) || ((u32(a) > u32(b)) && (TO & 0x01) != 0))
+      (u32(a) < u32(b) && (TO & 0x02) != 0) || (u32(a) > u32(b) && (TO & 0x01) != 0))
   {
     GenerateProgramException(ppc_state, ProgramExceptionCause::Trap);
     interpreter.m_system.GetPowerPC().CheckExceptions();
@@ -409,7 +409,7 @@ static bool HasAddOverflowed(u32 x, u32 y, u32 result)
 {
   // If x and y have the same sign, but the result is different
   // then an overflow has occurred.
-  return (((x ^ result) & (y ^ result)) >> 31) != 0;
+  return ((x ^ result) & (y ^ result)) >> 31 != 0;
 }
 
 void Interpreter::addx(Interpreter& interpreter, UGeckoInstruction inst)
@@ -552,7 +552,7 @@ void Interpreter::mulhwx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const s64 a = static_cast<s32>(ppc_state.gpr[inst.RA]);
   const s64 b = static_cast<s32>(ppc_state.gpr[inst.RB]);
-  const u32 d = static_cast<u32>((a * b) >> 32);
+  const u32 d = static_cast<u32>(a * b >> 32);
 
   ppc_state.gpr[inst.RD] = d;
 
@@ -565,7 +565,7 @@ void Interpreter::mulhwux(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u64 a = ppc_state.gpr[inst.RA];
   const u64 b = ppc_state.gpr[inst.RB];
-  const u32 d = static_cast<u32>((a * b) >> 32);
+  const u32 d = static_cast<u32>(a * b >> 32);
 
   ppc_state.gpr[inst.RD] = d;
 
@@ -594,7 +594,7 @@ void Interpreter::negx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 a = ppc_state.gpr[inst.RA];
 
-  ppc_state.gpr[inst.RD] = (~a) + 1;
+  ppc_state.gpr[inst.RD] = ~a + 1;
 
   if (inst.OE)
     ppc_state.SetXER_OV(a == 0x80000000);

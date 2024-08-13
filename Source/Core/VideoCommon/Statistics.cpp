@@ -314,8 +314,8 @@ void Statistics::DisplayScissor()
     for (size_t i = 0; i < info.m_result.size(); i++)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
-      const u8 new_alpha = (i == info.m_result.size() - 1) ? 0x40 : 0x80;
-      const ImU32 new_col = (col & ~IM_COL32_A_MASK) | (new_alpha << IM_COL32_A_SHIFT);
+      const u8 new_alpha = i == info.m_result.size() - 1 ? 0x40 : 0x80;
+      const ImU32 new_col = col & ~IM_COL32_A_MASK | new_alpha << IM_COL32_A_SHIFT;
 
       const auto& r = info.m_result[i];
       draw_list->AddRectFilled(vec(r.rect.left + r.x_off, r.rect.top + r.y_off),
@@ -368,9 +368,9 @@ void Statistics::DisplayScissor()
     for (size_t i = 0; i < info.m_result.size(); i++)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
-      const u8 new_alpha = (i == info.m_result.size() - 1) ? 0x80 : 0x40;
+      const u8 new_alpha = i == info.m_result.size() - 1 ? 0x80 : 0x40;
       const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
-      const ImU32 new_col = (col & ~IM_COL32_A_MASK) | (new_alpha << IM_COL32_A_SHIFT);
+      const ImU32 new_col = col & ~IM_COL32_A_MASK | new_alpha << IM_COL32_A_SHIFT;
 
       const auto& r = info.m_result[i];
       draw_list->AddRectFilled(

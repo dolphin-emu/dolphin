@@ -149,7 +149,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   {
     // Patch MMIO address
     if (PowerPC::MMU::HostRead_U32(guard, INSTALLER_BASE_ADDRESS + h) ==
-        (0x3f000000u | ((mmio_addr ^ 1) << 8)))
+        (0x3f000000u | (mmio_addr ^ 1) << 8))
     {
       NOTICE_LOG_FMT(ACTIONREPLAY, "Patching MMIO access at {:08x}", INSTALLER_BASE_ADDRESS + h);
       PowerPC::MMU::HostWrite_U32(guard, 0x3f000000u | mmio_addr << 8, INSTALLER_BASE_ADDRESS + h);
@@ -210,7 +210,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   auto& ppc_state = guard.GetSystem().GetPPCState();
   auto& memory = guard.GetSystem().GetMemory();
   auto& jit_interface = guard.GetSystem().GetJitInterface();
-  for (u32 j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
+  for (u32 j = 0; j < INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS; j += 32)
   {
     ppc_state.iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
   }

@@ -170,7 +170,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
     if (temp_check[2] == 'e' && temp_check[3] == ';')
     {
       // Is the frame larger than BBA_RECV_SIZE?
-      if ((bytes_read - 4) < BBA_RECV_SIZE)
+      if (bytes_read - 4 < BBA_RECV_SIZE)
       {
         // Copy payload into BBA buffer as an ethernet frame
         memmove(self->m_eth_ref->mRecvBuffer.get(), self->m_in_frame + 4, bytes_read - 4);

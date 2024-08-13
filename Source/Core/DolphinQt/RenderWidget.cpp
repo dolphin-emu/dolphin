@@ -169,14 +169,14 @@ void RenderWidget::UpdateCursor()
     // on top of the game window in the background
     const bool keep_on_top = (windowFlags() & Qt::WindowStaysOnTopHint) != 0;
     const bool should_hide =
-        (Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) &&
+        Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never &&
         (keep_on_top || Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
     setCursor(should_hide ? Qt::BlankCursor : Qt::ArrowCursor);
   }
   else
   {
-    setCursor((m_cursor_locked &&
-               Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) ?
+    setCursor(m_cursor_locked &&
+              Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never ?
                   Qt::BlankCursor :
                   Qt::ArrowCursor);
   }
@@ -238,7 +238,7 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   {
     screen_offset = window()->windowHandle()->screen()->geometry().topLeft();
   }
-  render_rect.moveTopLeft(((render_rect.topLeft() - screen_offset) * scale) + screen_offset);
+  render_rect.moveTopLeft((render_rect.topLeft() - screen_offset) * scale + screen_offset);
   render_rect.setSize(render_rect.size() * scale);
 
   if (follow_aspect_ratio)

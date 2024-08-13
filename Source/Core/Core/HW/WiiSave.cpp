@@ -292,8 +292,8 @@ public:
     m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
                    sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
     const u32 banner_size = header.banner_size;
-    if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
-        (((banner_size - BNR_SZ) % ICON_SZ) != 0))
+    if (banner_size < FULL_BNR_MIN || banner_size > FULL_BNR_MAX ||
+        (banner_size - BNR_SZ) % ICON_SZ != 0)
     {
       ERROR_LOG_FMT(CONSOLE, "Not a Wii save or read failure for file header size {:x}",
                     banner_size);

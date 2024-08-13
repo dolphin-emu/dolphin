@@ -110,12 +110,12 @@ private:
 
   static inline u16 GetModemTransferSize(u32 transfer_descriptor)
   {
-    return (transfer_descriptor >> 8) & 0xFFFF;
+    return transfer_descriptor >> 8 & 0xFFFF;
   }
 
   static inline u32 SetModemTransferSize(u32 transfer_descriptor, u16 new_size)
   {
-    return (transfer_descriptor & 0xFF000000) | (new_size << 8);
+    return transfer_descriptor & 0xFF000000 | new_size << 8;
   }
 
   class NetworkInterface

@@ -859,10 +859,10 @@ void ProgramShaderCache::CreateHeader()
       ,
       GetGLSLVersionString(), v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
       earlyz_string,
-      (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GlslEs310) ?
+      g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GlslEs310 ?
           "#extension GL_ARB_shading_language_420pack : enable" :
           "",
-      (g_ogl_config.bSupportsMSAA && v < Glsl150) ?
+      g_ogl_config.bSupportsMSAA && v < Glsl150 ?
           "#extension GL_ARB_texture_multisample : enable" :
           "",
       binding_layout.c_str(), varying_location.c_str(),
@@ -905,7 +905,7 @@ void ProgramShaderCache::CreateHeader()
           "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
-      (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
+      is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
           "precision highp usamplerBuffer;" :
           "",
       use_multisample_2d_array_precision ? "precision highp sampler2DMSArray;" : "",

@@ -188,7 +188,7 @@ struct SamplerState
   bool operator!=(const SamplerState& rhs) const { return !operator==(rhs); }
   bool operator<(const SamplerState& rhs) const { return Hex() < rhs.Hex(); }
 
-  constexpr u64 Hex() const { return tm0.hex | (static_cast<u64>(tm1.hex) << 32); }
+  constexpr u64 Hex() const { return tm0.hex | static_cast<u64>(tm1.hex) << 32; }
 
   // Based on BPMemory TexMode0/TexMode1, but with slightly higher precision and some
   // simplifications

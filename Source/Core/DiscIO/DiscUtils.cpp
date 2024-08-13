@@ -35,9 +35,9 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
       return "INSTALL";
     [[fallthrough]];
   default:
-    const std::string type_as_game_id{static_cast<char>((partition_type >> 24) & 0xFF),
-                                      static_cast<char>((partition_type >> 16) & 0xFF),
-                                      static_cast<char>((partition_type >> 8) & 0xFF),
+    const std::string type_as_game_id{static_cast<char>(partition_type >> 24 & 0xFF),
+                                      static_cast<char>(partition_type >> 16 & 0xFF),
+                                      static_cast<char>(partition_type >> 8 & 0xFF),
                                       static_cast<char>(partition_type & 0xFF)};
     if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(),
                     [](char c) { return std::isalnum(c, std::locale::classic()); }))

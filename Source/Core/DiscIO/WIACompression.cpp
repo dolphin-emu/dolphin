@@ -25,7 +25,7 @@ namespace DiscIO
 {
 static u32 LZMA2DictionarySize(u8 p)
 {
-  return (static_cast<u32>(2) | (p & 1)) << (p / 2 + 11);
+  return (static_cast<u32>(2) | p & 1) << p / 2 + 11;
 }
 
 Decompressor::~Decompressor() = default;
@@ -191,7 +191,7 @@ LZMADecompressor::LZMADecompressor(bool lzma2, const u8* filter_options, size_t 
     std::memcpy(&m_options.dict_size, filter_options + 1, sizeof(u32));
 
     const u8 d = filter_options[0];
-    if (d >= (9 * 5 * 5))
+    if (d >= 9 * 5 * 5)
     {
       m_error_occurred = true;
     }

@@ -108,9 +108,9 @@ void AdjustOperandsForGas(GekkoMnemonic mnemonic, OperandList& ops_list)
 
 void CodeBlock::PushBigEndian(u32 val)
 {
-  instructions.push_back((val >> 24) & 0xff);
-  instructions.push_back((val >> 16) & 0xff);
-  instructions.push_back((val >> 8) & 0xff);
+  instructions.push_back(val >> 24 & 0xff);
+  instructions.push_back(val >> 16 & 0xff);
+  instructions.push_back(val >> 8 & 0xff);
   instructions.push_back(val & 0xff);
 }
 

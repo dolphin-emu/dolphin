@@ -394,7 +394,7 @@ std::string DigestToString(const Digest& digest)
   hash.reserve(digest.size() * 2);
   for (size_t i = 0; i < digest.size(); ++i)
   {
-    const u8 upper = static_cast<u8>((digest[i] >> 4) & 0xf);
+    const u8 upper = static_cast<u8>(digest[i] >> 4 & 0xf);
     const u8 lower = static_cast<u8>(digest[i] & 0xf);
     hash.push_back(lookup[upper]);
     hash.push_back(lookup[lower]);

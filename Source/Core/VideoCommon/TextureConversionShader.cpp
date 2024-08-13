@@ -211,10 +211,10 @@ static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, APIType
     code.Write("  bool first = (uv1.x & {}) == 0;\n", blkH * blkW / 2);
     samples = 2;
   }
-  code.Write("  int offset_in_block = uv1.x & {};\n", (blkH * blkW / samples) - 1);
+  code.Write("  int offset_in_block = uv1.x & {};\n", blkH * blkW / samples - 1);
   code.Write("  int y_offset_in_block = offset_in_block >> {};\n",
              MathUtil::IntLog2(blkW / samples));
-  code.Write("  int x_offset_in_block = (offset_in_block & {}) << {};\n", (blkW / samples) - 1,
+  code.Write("  int x_offset_in_block = (offset_in_block & {}) << {};\n", blkW / samples - 1,
              MathUtil::IntLog2(samples));
 
   code.Write("  sampleUv.x = x_block_position + x_offset_in_block;\n"

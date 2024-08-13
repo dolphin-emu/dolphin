@@ -94,7 +94,7 @@ static std::optional<u32> inet_pton(const char* src)
   {
     if (ch >= '0' && ch <= '9')
     {
-      unsigned int newt = (*tp * 10) + (ch - '0');
+      unsigned int newt = *tp * 10 + (ch - '0');
 
       if (newt > 255)
         return std::nullopt;
@@ -761,9 +761,9 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
 
   for (int i = 0; remoteHost->h_addr_list[i]; ++i)
   {
-    const u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
+    const u32 ip = Common::swap32(*(u32*)remoteHost->h_addr_list[i]);
     const std::string ip_s =
-        fmt::format("{}.{}.{}.{}", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
+        fmt::format("{}.{}.{}.{}", ip >> 24, ip >> 16 & 0xff, ip >> 8 & 0xff, ip & 0xff);
     DEBUG_LOG_FMT(IOS_NET, "addr{}:{}", i, ip_s);
   }
 
@@ -772,7 +772,7 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
   static constexpr u32 GETHOSTBYNAME_IP_LIST_OFFSET = 0x110;
   // Limit host name length to avoid buffer overflow.
   const auto name_length = static_cast<u32>(strlen(remoteHost->h_name)) + 1;
-  if (name_length > (GETHOSTBYNAME_IP_LIST_OFFSET - GETHOSTBYNAME_STRUCT_SIZE))
+  if (name_length > GETHOSTBYNAME_IP_LIST_OFFSET - GETHOSTBYNAME_STRUCT_SIZE)
   {
     ERROR_LOG_FMT(IOS_NET, "Hostname too long in IOCTL_SO_GETHOSTBYNAME");
     return IPCReply(-1);
@@ -791,7 +791,7 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
   for (u32 i = 0; i < num_ip_addr; ++i)
   {
     u32 addr = request.buffer_out + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4;
-    memory.Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), addr);
+    memory.Write_U32_Swap(*(u32*)remoteHost->h_addr_list[i], addr);
   }
 
   // List of pointers to IP addresses; located at offset 0x340.
@@ -910,7 +910,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
                            u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4]),
                            u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]));
               address = Common::swap32(
-                  *(u32*)(&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]));
+                  *(u32*)&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]);
               break;
             }
             AdapterList = AdapterList->Next;

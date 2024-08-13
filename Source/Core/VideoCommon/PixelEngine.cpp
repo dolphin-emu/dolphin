@@ -115,7 +115,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF;
                    }),
                    MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
+    mmio->Register(base | pq_reg.addr + 2, MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
                      return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16;
                    }),
                    MMIO::InvalidWrite<u16>());
@@ -149,7 +149,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // BBOX registers, readonly and need to update a flag.
   for (int i = 0; i < 4; ++i)
   {
-    mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
+    mmio->Register(base | PE_BBOX_LEFT + 2 * i,
                    MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
                      g_bounding_box->Disable(system.GetPixelShaderManager());
                      return g_video_backend->Video_GetBoundingBox(i);

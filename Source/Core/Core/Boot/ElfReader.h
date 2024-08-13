@@ -31,18 +31,18 @@ public:
   ~ElfReader();
   u32 Read32(int off) const { return base32[off >> 2]; }
   // Quick accessors
-  ElfType GetType() const { return (ElfType)(header->e_type); }
-  ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
+  ElfType GetType() const { return (ElfType)header->e_type; }
+  ElfMachine GetMachine() const { return (ElfMachine)header->e_machine; }
   u32 GetEntryPoint() const override { return entryPoint; }
-  u32 GetFlags() const { return (u32)(header->e_flags); }
+  u32 GetFlags() const { return (u32)header->e_flags; }
   bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;
   bool LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db) const override;
   // TODO: actually check for validity.
   bool IsValid() const override { return true; }
   bool IsWii() const override;
 
-  int GetNumSegments() const { return (int)(header->e_phnum); }
-  int GetNumSections() const { return (int)(header->e_shnum); }
+  int GetNumSegments() const { return (int)header->e_phnum; }
+  int GetNumSections() const { return (int)header->e_shnum; }
   const u8* GetPtr(int offset) const { return (u8*)base + offset; }
   const char* GetSectionName(int section) const;
   const u8* GetSectionDataPtr(int section) const

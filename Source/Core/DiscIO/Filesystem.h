@@ -58,7 +58,7 @@ public:
     }
     bool operator==(const const_iterator& it) const
     {
-      return m_file_info ? (it.m_file_info && *m_file_info == *it.m_file_info) : (!it.m_file_info);
+      return m_file_info ? it.m_file_info && *m_file_info == *it.m_file_info : !it.m_file_info;
     }
     bool operator!=(const const_iterator& it) const { return !operator==(it); }
     // Incrementing or destroying an iterator will invalidate its returned references and

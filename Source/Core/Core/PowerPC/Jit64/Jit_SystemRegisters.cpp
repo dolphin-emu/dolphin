@@ -226,7 +226,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  u32 iIndex = inst.SPRU << 5 | inst.SPRL & 0x1F;
   int d = inst.RD;
 
   switch (iIndex)
@@ -307,7 +307,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  u32 iIndex = inst.SPRU << 5 | inst.SPRL & 0x1F;
   int d = inst.RD;
   switch (iIndex)
   {
@@ -363,7 +363,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
       const UGeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
       // if we can.
-      u32 nextIndex = (next.SPRU << 5) | (next.SPRL & 0x1F);
+      u32 nextIndex = next.SPRU << 5 | next.SPRL & 0x1F;
       // Be careful; the actual opcode is for mftb (371), not mfspr (339)
       int n = next.RD;
       if (next.OPCD == 31 && next.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
@@ -516,9 +516,9 @@ void Jit64::mtcrf(UGeckoInstruction inst)
     {
       for (int i = 0; i < 8; i++)
       {
-        if ((crm & (0x80 >> i)) != 0)
+        if ((crm & 0x80 >> i) != 0)
         {
-          u8 newcr = (gpr.Imm32(inst.RS) >> (28 - (i * 4))) & 0xF;
+          u8 newcr = gpr.Imm32(inst.RS) >> 28 - i * 4 & 0xF;
           u64 newcrval = PowerPC::ConditionRegister::PPCToInternal(newcr);
           if ((s64)newcrval == (s32)newcrval)
           {
@@ -539,11 +539,11 @@ void Jit64::mtcrf(UGeckoInstruction inst)
       RegCache::Realize(Rs);
       for (int i = 0; i < 8; i++)
       {
-        if ((crm & (0x80 >> i)) != 0)
+        if ((crm & 0x80 >> i) != 0)
         {
           MOV(32, R(RSCRATCH), Rs);
           if (i != 7)
-            SHR(32, R(RSCRATCH), Imm8(28 - (i * 4)));
+            SHR(32, R(RSCRATCH), Imm8(28 - i * 4));
           if (i != 0)
             AND(32, R(RSCRATCH), Imm8(0xF));
           MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
@@ -691,7 +691,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   if (cpu_info.bBMI1)
   {
     MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-    MOV(32, R(RSCRATCH2), Imm32((4 << 8) | shift));
+    MOV(32, R(RSCRATCH2), Imm32(4 << 8 | shift));
     BEXTR(32, RSCRATCH2, R(RSCRATCH), RSCRATCH2);
   }
   else
@@ -826,9 +826,9 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(jo.fp_exceptions);
 
-  u8 imm = (inst.hex >> (31 - 19)) & 0xF;
-  u32 mask = 0xF0000000 >> (4 * inst.CRFD);
-  u32 or_mask = imm << (28 - 4 * inst.CRFD);
+  u8 imm = inst.hex >> 31 - 19 & 0xF;
+  u32 mask = 0xF0000000 >> 4 * inst.CRFD;
+  u32 or_mask = imm << 28 - 4 * inst.CRFD;
   u32 and_mask = ~mask;
 
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
@@ -860,8 +860,8 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   u32 mask = 0;
   for (int i = 0; i < 8; i++)
   {
-    if (inst.FM & (1 << i))
-      mask |= 0xF << (4 * i);
+    if (inst.FM & 1 << i)
+      mask |= 0xF << 4 * i;
   }
 
   int b = inst.FB;

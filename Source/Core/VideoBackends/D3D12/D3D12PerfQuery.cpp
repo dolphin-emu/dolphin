@@ -147,7 +147,7 @@ bool PerfQuery::IsFlushed() const
 void PerfQuery::ResolveQueries()
 {
   // Do we need to split the resolve as it's wrapping around?
-  if ((m_query_resolve_pos + m_unresolved_queries) > PERF_QUERY_BUFFER_SIZE)
+  if (m_query_resolve_pos + m_unresolved_queries > PERF_QUERY_BUFFER_SIZE)
     ResolveQueries(PERF_QUERY_BUFFER_SIZE - m_query_resolve_pos);
 
   ResolveQueries(m_unresolved_queries);
@@ -156,7 +156,7 @@ void PerfQuery::ResolveQueries()
 void PerfQuery::ResolveQueries(u32 query_count)
 {
   DEBUG_ASSERT(m_unresolved_queries >= query_count &&
-               (m_query_resolve_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
+      m_query_resolve_pos + query_count <= PERF_QUERY_BUFFER_SIZE);
 
   g_dx_context->GetCommandList()->ResolveQueryData(
       m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION, m_query_resolve_pos, query_count,
@@ -218,7 +218,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count.load(std::memory_order_relaxed) &&
-         (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
+      m_query_readback_pos + query_count <= PERF_QUERY_BUFFER_SIZE);
 
   const D3D12_RANGE read_range = {m_query_readback_pos * sizeof(PerfQueryDataType),
                                   (m_query_readback_pos + query_count) * sizeof(PerfQueryDataType)};
@@ -242,7 +242,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
 
     // Grab result from readback buffer, it will already have been invalidated.
     PerfQueryDataType result;
-    std::memcpy(&result, mapped_ptr + (index * sizeof(PerfQueryDataType)), sizeof(result));
+    std::memcpy(&result, mapped_ptr + index * sizeof(PerfQueryDataType), sizeof(result));
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
     u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /

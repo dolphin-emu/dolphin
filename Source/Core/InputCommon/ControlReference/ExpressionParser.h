@@ -125,7 +125,7 @@ public:
   {
     const auto col_pos = str.find_last_of(':');
 
-    has_device = (str.npos != col_pos);
+    has_device = str.npos != col_pos;
     if (has_device)
     {
       device_qualifier.FromString(str.substr(0, col_pos));

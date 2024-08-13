@@ -44,7 +44,7 @@ public:
     constexpr operator bool() const { return (m_bs->m_val & m_mask) != 0; }
     bool operator=(bool set)
     {
-      m_bs->m_val = (m_bs->m_val & ~m_mask) | (set ? m_mask : 0);
+      m_bs->m_val = m_bs->m_val & ~m_mask | (set ? m_mask : 0);
       return set;
     }
 
@@ -103,7 +103,7 @@ public:
 
   constexpr static BitSet AllTrue(size_t count)
   {
-    return BitSet(count == sizeof(IntTy) * 8 ? ~IntTy{0} : ((IntTy{1} << count) - 1));
+    return BitSet(count == sizeof(IntTy) * 8 ? ~IntTy{0} : (IntTy{1} << count) - 1);
   }
 
   Ref operator[](size_t bit) { return Ref(this, IntTy{1} << bit); }

@@ -209,7 +209,7 @@ void VideoConfig::Refresh()
 void VideoConfig::VerifyValidity()
 {
   // TODO: Check iMaxAnisotropy value
-  if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
+  if (iAdapter < 0 || iAdapter > (int)backend_info.Adapters.size() - 1)
     iAdapter = 0;
 
   if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
@@ -309,7 +309,7 @@ void CheckForConfigChanges()
   }
 
   if (g_ActiveConfig.graphics_mod_config &&
-      (old_game_mod_changes != g_ActiveConfig.graphics_mod_config->GetChangeCount()))
+      old_game_mod_changes != g_ActiveConfig.graphics_mod_config->GetChangeCount())
   {
     g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
   }

@@ -54,7 +54,7 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
 
     if (xfmem.projection.type == ProjectionType::Perspective)
     {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
+      float offset = g_ActiveConfig.iStereoDepth / 1000.0f *
                      (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
       constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
       constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;

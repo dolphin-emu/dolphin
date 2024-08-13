@@ -283,11 +283,11 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_Config.backend_info.AdapterName = g_ogl_config.gl_renderer;
 
   g_Config.backend_info.bSupportsDualSourceBlend =
-      (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
-       GLExtensions::Supports("GL_EXT_blend_func_extended"));
+      GLExtensions::Supports("GL_ARB_blend_func_extended") ||
+      GLExtensions::Supports("GL_EXT_blend_func_extended");
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
-      ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
+      (GLExtensions::Version() >= 310 || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
                                         GLExtensions::Supports("GL_ARB_sample_shading");

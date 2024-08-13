@@ -81,7 +81,7 @@ void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     auto& region = m_mi_mem.regions[i / 4];
     mmio->Register(base | i, MMIO::DirectRead<u16>(&region.first_page),
                    MMIO::DirectWrite<u16>(&region.first_page));
-    mmio->Register(base | (i + 2), MMIO::DirectRead<u16>(&region.last_page),
+    mmio->Register(base | i + 2, MMIO::DirectRead<u16>(&region.last_page),
                    MMIO::DirectWrite<u16>(&region.last_page));
   }
 
@@ -108,9 +108,9 @@ void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (u32 i = 0; i < m_mi_mem.timers.size(); ++i)
   {
     auto& timer = m_mi_mem.timers[i];
-    mmio->Register(base | (MI_TIMER0_HI + 4 * i), MMIO::DirectRead<u16>(&timer.hi),
+    mmio->Register(base | MI_TIMER0_HI + 4 * i, MMIO::DirectRead<u16>(&timer.hi),
                    MMIO::DirectWrite<u16>(&timer.hi));
-    mmio->Register(base | (MI_TIMER0_LO + 4 * i), MMIO::DirectRead<u16>(&timer.lo),
+    mmio->Register(base | MI_TIMER0_LO + 4 * i, MMIO::DirectRead<u16>(&timer.lo),
                    MMIO::DirectWrite<u16>(&timer.lo));
   }
 
@@ -119,8 +119,8 @@ void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   for (u32 i = 0; i < 0x1000; i += 4)
   {
-    mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
-                   MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
+    mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | i + 2),
+                   MMIO::WriteToSmaller<u32>(mmio, base | i, base | i + 2));
   }
 }
 

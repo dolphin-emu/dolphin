@@ -105,7 +105,7 @@ private:
         continue;
       auto val_start = equals_index + 1;
       auto eol = line.find('\r', val_start);
-      auto val_size = (eol == line.npos) ? line.npos : eol - val_start;
+      auto val_size = eol == line.npos ? line.npos : eol - val_start;
       key_it->second = line.substr(val_start, val_size);
     }
   }
@@ -236,7 +236,7 @@ static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
 
   constexpr BuildVersion WIN11_BASE{10, 0, 22000};
   const char* version_name =
-      (result.current_version >= WIN11_BASE) ? "OSMinimumVersionWin11" : "OSMinimumVersionWin10";
+      result.current_version >= WIN11_BASE ? "OSMinimumVersionWin11" : "OSMinimumVersionWin10";
   result.target_version = build_info.GetVersion(version_name);
 
   if (!result.target_version.has_value() || result.current_version >= result.target_version)

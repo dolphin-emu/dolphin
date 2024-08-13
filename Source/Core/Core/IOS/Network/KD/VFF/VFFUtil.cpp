@@ -54,7 +54,7 @@ static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
   {
     fs->fs_type = FS_FAT12;
 
-    u32 table_size = ((cluster_count + 1) / 2) * 3;
+    u32 table_size = (cluster_count + 1) / 2 * 3;
     table_size = Common::AlignUp(table_size, cluster_size);
 
     // Fsize is the full table size divided by 512 (Cluster size).
@@ -80,7 +80,7 @@ static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
   // Root directory entry is 4096 bytes long, with each entry being 32 bytes. 4096 / 32 = 128
   fs->n_rootdir = 128;
 
-  u32 sysect = 1 + (fs->fsize * 2) + fs->n_rootdir / (512 / 32);
+  u32 sysect = 1 + fs->fsize * 2 + fs->n_rootdir / (512 / 32);
 
   // cluster_count is the total count whereas this is the actual amount of clusters we can use
   u32 actual_cluster_count = cluster_count - sysect;
