@@ -72,7 +72,6 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
 
     return std::make_unique<DXShader>(ShaderStage::Geometry, std::move(bytecode), gs.Get(), name);
   }
-  break;
 
   case ShaderStage::Pixel:
   {
@@ -84,7 +83,6 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
 
     return std::make_unique<DXShader>(ShaderStage::Pixel, std::move(bytecode), ps.Get(), name);
   }
-  break;
 
   case ShaderStage::Compute:
   {
@@ -96,7 +94,6 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
 
     return std::make_unique<DXShader>(ShaderStage::Compute, std::move(bytecode), cs.Get(), name);
   }
-  break;
 
   default:
     break;

@@ -338,7 +338,6 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
   case XFMEM_SETNUMCHAN:
     return std::make_pair(RegName(XFMEM_SETNUMCHAN),
                           fmt::format("Number of color channels: {}", value & 3));
-    break;
 
   case XFMEM_SETCHAN0_AMBCOLOR:
     return std::make_pair(RegName(XFMEM_SETCHAN0_AMBCOLOR),
@@ -396,7 +395,6 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
   case XFMEM_SETVIEWPORT + 5:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 5),
                           fmt::format("Viewport far z: {}", std::bit_cast<float>(value)));
-    break;
 
   case XFMEM_SETPROJECTION:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 0),
@@ -464,7 +462,6 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
     return std::make_pair(
         fmt::format("Possible Normal Mtx XF reg?: {:x}={:x}", address, value),
         "Maybe these are for Normals? xfmem.texcoords[0].nrmmtxinfo.hex = data; break; ??");
-    break;
 
   case 0x1013:
   case 0x1014:

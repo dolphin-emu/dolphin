@@ -455,7 +455,8 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
   Common::ToLower(&extension_lower);
 
   // Load additional mip levels
-  for (u32 mip_level = static_cast<u32>(data->m_levels.size());; mip_level++)
+  for (u32 initial_mip_level = static_cast<u32>(data->m_levels.size()), mip_level =
+               initial_mip_level; mip_level < initial_mip_level + 100; mip_level++)
   {
     const auto mip_level_filename = filename + fmt::format("_mip{}", mip_level);
 
@@ -488,8 +489,6 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
 
     data->m_levels.push_back(std::move(level));
   }
-
-  return true;
 }
 
 DirectFilesystemAssetLibrary::AssetMap
