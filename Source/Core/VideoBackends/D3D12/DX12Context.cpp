@@ -3,15 +3,12 @@
 
 #include "VideoBackends/D3D12/DX12Context.h"
 
-#include <algorithm>
 #include <array>
 #include <dxgi1_6.h>
-#include <queue>
 #include <vector>
 
 #include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
-#include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
@@ -445,14 +442,14 @@ bool DXContext::CreateCommandLists()
   for (u32 i = 0; i < NUM_COMMAND_LISTS; i++)
   {
     CommandListResources& res = m_command_lists[i];
-    HRESULT hr = m_device->CreateCommandAllocator(
-        D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(res.command_allocator.GetAddressOf()));
+    HRESULT hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                  IID_PPV_ARGS(&res.command_allocator));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command allocator: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
     hr = m_device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, res.command_allocator.Get(),
-                                     nullptr, IID_PPV_ARGS(res.command_list.GetAddressOf()));
+                                     nullptr, IID_PPV_ARGS(&res.command_list));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command list: {}", DX12HRWrap(hr));
     if (FAILED(hr))
     {

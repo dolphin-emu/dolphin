@@ -81,13 +81,13 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
   // Use Win8.1 version if available.
   if (create_dxgi_factory2 &&
       SUCCEEDED(create_dxgi_factory2(debug_device ? DXGI_CREATE_FACTORY_DEBUG : 0,
-                                     IID_PPV_ARGS(factory.GetAddressOf()))))
+                                     IID_PPV_ARGS(&factory))))
   {
     return factory;
   }
 
   // Fallback to original version, without debug support.
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
   if (FAILED(hr))
   {
     PanicAlertFmt("CreateDXGIFactory() failed: {}", Common::HRWrap(hr));
@@ -100,7 +100,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
 std::vector<std::string> GetAdapterNames()
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
   if (FAILED(hr))
     return {};
 

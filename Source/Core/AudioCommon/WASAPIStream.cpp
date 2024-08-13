@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/WASAPIStream.h"
+#include "Common/ScopeGuard.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 // clang-format off
+#include <initguid.h>
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
 #include <devpkey.h>
 #include <functiondiscoverykeys_devpkey.h>
-#include <wil/resource.h>
+#include <propvarutil.h>
+#include <wrl/client.h>
 // clang-format on
 
 #include <thread>
@@ -28,8 +31,9 @@ using Microsoft::WRL::ComPtr;
 WASAPIStream::WASAPIStream()
 {
   if (SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
-    m_coinitialize.activate();
+    m_coinitialize = true;
 
+  m_need_data_event = CreateEvent(NULL, FALSE, FALSE, NULL);
   m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
   m_format.Format.nChannels = 2;
   m_format.Format.nSamplesPerSec = GetMixer()->GetSampleRate();
@@ -47,6 +51,10 @@ WASAPIStream::~WASAPIStream()
   m_running.store(false, std::memory_order_relaxed);
   if (m_thread.joinable())
     m_thread.join();
+  if (m_need_data_event != NULL)
+    CloseHandle(m_need_data_event);
+  if (m_coinitialize)
+    CoUninitialize();
 }
 
 bool WASAPIStream::IsValid()
@@ -84,21 +92,22 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   if (result != RPC_E_CHANGED_MODE && !HandleWinAPI("Failed to call CoInitialize", result))
     return;
 
-  wil::unique_couninitialize_call cleanup;
-  if (FAILED(result))
-    cleanup.release();  // CoUninitialize must be matched with each successful CoInitialize call, so
-                        // don't call it if initialize fails
+  Common::ScopeGuard result_guard([result] {
+    if (SUCCEEDED(result))
+      CoUninitialize();  // CoUninitialize must be matched with each successful CoInitialize call,
+                         // so don't call it if initialize fails
+  });
 
   ComPtr<IMMDeviceEnumerator> enumerator;
 
   result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                            IID_PPV_ARGS(enumerator.GetAddressOf()));
+                            IID_PPV_ARGS(&enumerator));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return;
 
   ComPtr<IMMDeviceCollection> devices;
-  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, devices.GetAddressOf());
+  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
 
   if (!HandleWinAPI("Failed to get available devices", result))
     return;
@@ -109,19 +118,20 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   for (u32 i = 0; i < count; i++)
   {
     ComPtr<IMMDevice> device;
-    devices->Item(i, device.GetAddressOf());
+    devices->Item(i, &device);
     if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
       continue;
 
     ComPtr<IPropertyStore> device_properties;
 
-    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
+    result = device->OpenPropertyStore(STGM_READ, &device_properties);
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       continue;
 
-    wil::unique_prop_variant device_name;
-    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
+    PROPVARIANT device_name = {};
+    result = device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
+    Common::ScopeGuard device_name_guard([&] { PropVariantClear(&device_name); });
 
     if (!callback(std::move(device), TStrToUTF8(device_name.pwszVal)))
       break;
@@ -160,7 +170,7 @@ bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
   HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                                    IID_PPV_ARGS(m_enumerator.GetAddressOf()));
+                                    IID_PPV_ARGS(&m_enumerator));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;
@@ -178,7 +188,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
     {
-      result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
+      result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
     }
     else
     {
@@ -189,7 +199,7 @@ bool WASAPIStream::SetRunning(bool running)
       {
         ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
                       Config::Get(Config::MAIN_WASAPI_DEVICE));
-        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
+        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
       }
     }
 
@@ -199,21 +209,21 @@ bool WASAPIStream::SetRunning(bool running)
     // Show a friendly name in the log
     ComPtr<IPropertyStore> device_properties;
 
-    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
+    result = device->OpenPropertyStore(STGM_READ, &device_properties);
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       return false;
 
-    wil::unique_prop_variant device_name;
-    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
+    PROPVARIANT device_name = {};
+    result = device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
+    Common::ScopeGuard device_name_guard([&] { PropVariantClear(&device_name); });
 
     INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", TStrToUTF8(device_name.pwszVal));
 
     ComPtr<IAudioClient> audio_client;
 
     // Get IAudioDevice
-    result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                              reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
+    result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr, &audio_client);
 
     if (!HandleWinAPI("Failed to activate IAudioClient", result))
       return false;
@@ -276,15 +286,18 @@ bool WASAPIStream::SetRunning(bool running)
 
     ComPtr<IAudioRenderClient> audio_renderer;
 
-    result = audio_client->GetService(IID_PPV_ARGS(audio_renderer.GetAddressOf()));
+    result = audio_client->GetService(IID_PPV_ARGS(&audio_renderer));
 
     if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
       return false;
 
-    wil::unique_event_nothrow need_data_event;
-    need_data_event.create();
+    HANDLE need_data_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+    Common::ScopeGuard need_data_event_guard([&] {
+      if (need_data_event != NULL)
+        CloseHandle(need_data_event);
+    });
 
-    audio_client->SetEventHandle(need_data_event.get());
+    audio_client->SetEventHandle(need_data_event);
 
     result = audio_client->Start();
 
@@ -297,6 +310,7 @@ bool WASAPIStream::SetRunning(bool running)
     m_audio_client = std::move(audio_client);
     m_audio_renderer = std::move(audio_renderer);
     m_need_data_event = std::move(need_data_event);
+    need_data_event = nullptr;
 
     m_running.store(true, std::memory_order_relaxed);
     m_thread = std::thread(&WASAPIStream::SoundLoop, this);
@@ -308,7 +322,11 @@ bool WASAPIStream::SetRunning(bool running)
     if (m_thread.joinable())
       m_thread.join();
 
-    m_need_data_event.reset();
+    if (m_need_data_event)
+    {
+      CloseHandle(m_need_data_event);
+      m_need_data_event = NULL;
+    }
     m_audio_renderer.Reset();
     m_audio_client.Reset();
   }
@@ -326,7 +344,7 @@ void WASAPIStream::SoundLoop()
 
   while (m_running.load(std::memory_order_relaxed))
   {
-    WaitForSingleObject(m_need_data_event.get(), 1000);
+    WaitForSingleObject(m_need_data_event, 1000);
 
     m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
 

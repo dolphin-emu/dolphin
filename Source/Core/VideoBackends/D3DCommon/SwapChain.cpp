@@ -155,7 +155,7 @@ bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
     // Only try to activate HDR here, to avoid failing when creating the swapchain
     // (we can't know if the format is supported upfront)
     Microsoft::WRL::ComPtr<IDXGISwapChain4> swap_chain4;
-    hr = m_swap_chain->QueryInterface(IID_PPV_ARGS(&swap_chain4));
+    hr = m_swap_chain.As(&swap_chain4);
     if (SUCCEEDED(hr))
     {
       UINT color_space_support = 0;
@@ -214,7 +214,7 @@ bool SwapChain::ResizeSwapChain()
     WARN_LOG_FMT(VIDEO, "ResizeBuffers() failed: {}", Common::HRWrap(hr));
 
   Microsoft::WRL::ComPtr<IDXGISwapChain4> swap_chain4;
-  hr = m_swap_chain->QueryInterface(IID_PPV_ARGS(&swap_chain4));
+  hr = m_swap_chain.As(&swap_chain4);
   if (SUCCEEDED(hr))
     hr = swap_chain4->SetColorSpace1(m_hdr ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
                                              DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
