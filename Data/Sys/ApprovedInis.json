@@ -192,14 +192,6 @@
     "title": "MVP Baseball 2004",
     "3159CA79B0A890131763EA6CB163684BEE886E3F": "Fix 2D Rendering"
   },
-  "GWLE6L": {
-    "title": "Project Zoo",
-    "C9101E4C6800FEEF18136846D771273593C21890": "Bypass FIFO reset"
-  },
-  "GWLX6L": {
-    "title": "Project Zoo",
-    "89C15ADC918F3A4399257534F326EB9F933AF040": "Bypass FIFO reset"
-  },
   "GXXE01": {
     "title": "Pokémon XD: Gale of Darkness",
     "64FAA15062F0D0C319F904BBDE9C4489A25D6369": "Allow Memory Card saving with Savestates"
