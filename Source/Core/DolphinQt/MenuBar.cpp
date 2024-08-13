@@ -408,6 +408,10 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
       action->setChecked(true);
 
     connect(action, &QAction::triggered, this, [=, this]() { emit SetStateSlot(i); });
+    connect(this, &MenuBar::SetStateSlot, [action, i](const int slot) {
+      if (slot == i)
+        action->setChecked(true);
+    });
   }
 }
 
