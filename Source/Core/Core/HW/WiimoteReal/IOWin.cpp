@@ -197,8 +197,8 @@ void init_lib()
 
 namespace WiimoteReal
 {
-int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, enum WinWriteMethod& stack,
-            const u8* buf, size_t len, DWORD* written);
+int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, WinWriteMethod& stack, const u8* buf,
+            size_t len, DWORD* written);
 int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index);
 
 template <typename T>

@@ -623,7 +623,7 @@ IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request)
   auto& memory = system.GetMemory();
 
   const std::string hostname = memory.GetString(request.buffer_in);
-  struct hostent* remoteHost = gethostbyname(hostname.c_str());
+  hostent* remoteHost = gethostbyname(hostname.c_str());
 
   if (remoteHost == nullptr || remoteHost->h_addr_list == nullptr ||
       remoteHost->h_addr_list[0] == nullptr)
