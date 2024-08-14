@@ -80,7 +80,7 @@ protected:
     // Read unswapped.
     const float actual = m_dst.Read<float, false>();
 
-    if (!actual || actual != actual)
+    if (!actual || std::isnan(actual))
       EXPECT_EQ(std::bit_cast<u32>(expected), std::bit_cast<u32>(actual));
     else
       EXPECT_EQ(expected, actual);
