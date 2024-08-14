@@ -177,10 +177,8 @@ void VerifyWidget::Verify()
                    }
                    verifier.Finish();
 
-                   const DiscIO::VolumeVerifier::Result result = verifier.GetResult();
                    progress.Reset();
-
-                   return result;
+                   return verifier.GetResult();
                  });
   SetQWidgetWindowDecorations(progress.GetRaw());
   progress.GetRaw()->exec();
