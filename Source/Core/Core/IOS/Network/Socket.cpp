@@ -876,7 +876,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
   for (wii_fd = 0; wii_fd < WII_SOCKET_FD_MAX; ++wii_fd)
   {
     // Find an available socket fd
-    if (WiiSockets.count(wii_fd) == 0)
+    if (!WiiSockets.contains(wii_fd))
       break;
   }
 
@@ -964,7 +964,7 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
 {
-  if (WiiSockets.count(wii_fd) > 0)
+  if (WiiSockets.contains(wii_fd))
     return WiiSockets.at(wii_fd).fd;
   return -EBADF;
 }

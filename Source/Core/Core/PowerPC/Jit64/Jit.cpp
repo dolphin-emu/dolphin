@@ -909,7 +909,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
   // this lets them use fastmem).
-  if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+  if (!js.pairedQuantizeAddresses.contains(js.blockStart))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
     BitSet8 gqr_static = ComputeStaticGQRs(code_block);
@@ -938,8 +938,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
   }
 
-  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
-      js.noSpeculativeConstantsAddresses.end())
+  if (!js.noSpeculativeConstantsAddresses.contains(js.blockStart))
   {
     IntializeSpeculativeConstants();
   }
@@ -967,8 +966,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck =
-          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
+      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
 
       // Gather pipe writes using an immediate address are explicitly tracked.
       if (jo.optimizeGatherPipe &&

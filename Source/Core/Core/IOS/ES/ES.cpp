@@ -1049,7 +1049,7 @@ ReturnCode ESCore::WriteNewCertToStore(const ES::CertReader& cert)
   {
     const std::map<std::string, ES::CertReader> certs = ES::ParseCertChain(current_store);
     // The cert is already present in the store. Nothing to do.
-    if (certs.find(cert.GetName()) != certs.end())
+    if (certs.contains(cert.GetName()))
       return IPC_SUCCESS;
   }
 

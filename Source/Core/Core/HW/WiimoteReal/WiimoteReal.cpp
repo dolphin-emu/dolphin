@@ -1000,7 +1000,7 @@ bool IsBalanceBoardName(const std::string& name)
 bool IsNewWiimote(const std::string& identifier)
 {
   std::lock_guard lk(s_known_ids_mutex);
-  return s_known_ids.count(identifier) == 0;
+  return !s_known_ids.contains(identifier);
 }
 
 void HandleWiimoteSourceChange(unsigned int index)

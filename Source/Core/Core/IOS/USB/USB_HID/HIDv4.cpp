@@ -173,13 +173,12 @@ void USB_HIDv4::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> d
     if (event == ChangeEvent::Inserted)
     {
       s32 new_id = 0;
-      while (m_ios_ids.find(new_id) != m_ios_ids.cend())
+      while (m_ios_ids.contains(new_id))
         ++new_id;
       m_ios_ids[new_id] = device->GetId();
       m_device_ids[device->GetId()] = new_id;
     }
-    else if (event == ChangeEvent::Removed &&
-             m_device_ids.find(device->GetId()) != m_device_ids.cend())
+    else if (event == ChangeEvent::Removed && m_device_ids.contains(device->GetId()))
     {
       m_ios_ids.erase(m_device_ids.at(device->GetId()));
       m_device_ids.erase(device->GetId());

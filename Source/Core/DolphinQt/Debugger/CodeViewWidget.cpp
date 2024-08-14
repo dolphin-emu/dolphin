@@ -728,7 +728,7 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
 
       for (u32 i = 1; i <= 3; i++)
       {
-        if (results.mem_tracked.count(address + i))
+        if (results.mem_tracked.contains(address + i))
           iter++;
         else
           break;

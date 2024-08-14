@@ -742,7 +742,7 @@ static bool ValidateHeaders(const StateHeader& header)
   std::string loaded_str = header.version_string;
   const u32 loaded_version = header.version_header.version_cookie - COOKIE_BASE;
 
-  if (s_old_versions.count(loaded_version))
+  if (s_old_versions.contains(loaded_version))
   {
     // This is a REALLY old version, before we started writing the version string to file
     success = false;

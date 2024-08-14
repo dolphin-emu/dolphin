@@ -340,7 +340,7 @@ bool ESCore::FinishImport(const ES::TMDReader& tmd)
     // There should not be any directory in there. Remove it.
     if (fs->ReadDirectory(PID_KERNEL, PID_KERNEL, absolute_path))
       fs->Delete(PID_KERNEL, PID_KERNEL, absolute_path);
-    else if (expected_entries.find(name) == expected_entries.end())
+    else if (!expected_entries.contains(name))
       fs->Delete(PID_KERNEL, PID_KERNEL, absolute_path);
   }
 
