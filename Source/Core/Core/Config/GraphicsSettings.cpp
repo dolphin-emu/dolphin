@@ -163,6 +163,8 @@ const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{{System::GFX, "ColorCorrection", "
 // Graphics.Stereoscopy
 
 const Info<StereoMode> GFX_STEREO_MODE{{System::GFX, "Stereoscopy", "StereoMode"}, StereoMode::Off};
+const Info<bool> GFX_STEREO_PER_EYE_RESOLUTION_FULL{
+    {System::GFX, "Stereoscopy", "StereoPerEyeResolutionFull"}, false};
 const Info<int> GFX_STEREO_DEPTH{{System::GFX, "Stereoscopy", "StereoDepth"}, 20};
 const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE{
     {System::GFX, "Stereoscopy", "StereoConvergencePercentage"}, 100};
