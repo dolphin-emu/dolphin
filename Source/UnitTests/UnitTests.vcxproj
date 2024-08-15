@@ -24,9 +24,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /i /e /s /y /f "$(ProjectDir)\..\..\Data\Sys\" "$(TargetDir)Sys"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\DSP\DSPTestBinary.h" />
@@ -109,7 +106,15 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <Target Name="ExecUnitTests" AfterTargets="AfterBuild;CopyDeps" Condition="'$(RunUnitTests)'=='true'">
+  <ItemGroup>
+    <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(DataSysFiles)" Outputs="@(DataSysFiles -> '$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <Message Text="Copying Data directory..." Importance="High" />
+    <RemoveDir Directories="$(TargetDir)Sys" />
+    <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(TargetDir)%(RecursiveDir)" SkipUnchangedFiles="True" />
+  </Target>
+  <Target Name="ExecUnitTests" AfterTargets="AfterBuild" Condition="'$(RunUnitTests)'=='true'">
     <!--This is only executed via msbuild, VS test runner automatically does this-->
     <Exec Command="$(TargetPath)" />
   </Target>
