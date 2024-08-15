@@ -1179,6 +1179,25 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     return_value = IPC_SUCCESS;
     break;
   }
+  case IOCTL_NWC24_KD_GET_TIME_TRIGGERS:
+  {
+    if (request.buffer_out == 0 || request.buffer_out % 4 != 0 || request.buffer_out_size < 12)
+    {
+      return_value = IPC_EINVAL;
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_KD_GET_TIME_TRIGGERS = IPC_EINVAL");
+      break;
+    }
+
+    INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_KD_GET_TIME_TRIGGERS");
+
+    std::lock_guard lg(m_scheduler_buffer_lock);
+    memory.Write_U32(m_mail_span, request.buffer_out + 4);
+    memory.Write_U32(m_download_span, request.buffer_out + 8);
+    WriteReturnValue(memory, NWC24::WC24_OK, request.buffer_out);
+
+    return_value = IPC_SUCCESS;
+    break;
+  }
 
   default:
     request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
