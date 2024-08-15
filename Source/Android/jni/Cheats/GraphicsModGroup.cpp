@@ -53,7 +53,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GraphicsModGroup_getMods(JN
     // If no group matches the mod's features, or if the mod has no features, skip it
     if (std::none_of(mod.m_features.begin(), mod.m_features.end(),
                      [&groups](const GraphicsModFeatureConfig& feature) {
-                       return groups.count(feature.m_group) == 1;
+                       return groups.contains(feature.m_group);
                      }))
     {
       continue;
