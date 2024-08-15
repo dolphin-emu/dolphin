@@ -104,7 +104,6 @@ option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
-option(STEAM "Creates a build for Steam" OFF)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -391,7 +390,7 @@ if(ENABLE_LTO)
 endif()
 
 if(UNIX)
-  if(LINUX_LOCAL_DEV OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM))
+  if(LINUX_LOCAL_DEV)
     add_definitions(-DLINUX_LOCAL_DEV)
   endif()
 endif()
@@ -751,10 +750,6 @@ if(SYSTEMD_FOUND)
   add_definitions(-DHAVE_LIBSYSTEMD)
 else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
-endif()
-
-if(STEAM)
-  add_definitions(-DSTEAM)
 endif()
 
 if (WIN32)
