@@ -367,7 +367,7 @@ void ConvertDialog::Convert()
   if (m_files.size() > 1)
   {
     dst_dir = DolphinFileDialog::getExistingDirectory(
-        this, tr("Save Converted Image"),
+        this, tr("Save Converted Images"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath())).dir().absolutePath());
 
     if (dst_dir.isEmpty())

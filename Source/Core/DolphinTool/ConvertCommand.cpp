@@ -260,7 +260,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
     if (!compression_o.has_value())
     {
-      fmt::print(std::cerr, "Error: Compression format must be set for WIA or RVZ\n");
+      fmt::print(std::cerr, "Error: Compression method must be set for WIA or RVZ\n");
       return EXIT_FAILURE;
     }
 
