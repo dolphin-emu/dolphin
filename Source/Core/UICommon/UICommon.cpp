@@ -308,21 +308,12 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use AppData\Roaming\Dolphin Emulator as the User directory path
   // 6. Default
   //    -> Use GetExeDirectory()\User
-  //
-  // On Steam builds, we take a simplified approach:
-  // 1. GetExeDirectory()\portable.txt exists
-  //    -> Use GetExeDirectory()\User
-  // 2. AppData\Roaming exists
-  //    -> Use AppData\Roaming\Dolphin Emulator (Steam) as the User directory path
-  // 3. Default
-  //    -> Use GetExeDirectory()\User
 
   // Get AppData path in case we need it.
   wil::unique_cotaskmem_string appdata;
   bool appdata_found = SUCCEEDED(
       SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, appdata.put()));
 
-#ifndef STEAM
   // Check our registry keys
   wil::unique_hkey hkey;
   DWORD local = 0;
@@ -389,21 +380,6 @@ void SetUserDirectory(std::string custom_path)
   {
     user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
-#else  // ifndef STEAM
-  if (File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt"))  // Case 1
-  {
-    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
-  }
-  else if (appdata_found)  // Case 2
-  {
-    user_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
-  }
-  else  // Case 3
-  {
-    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
-  }
-#endif
-
 #else
   if (File::IsDirectory(ROOT_DIR DIR_SEP EMBEDDED_USER_DIR))
   {

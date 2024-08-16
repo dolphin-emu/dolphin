@@ -70,9 +70,6 @@ DEFAULT_CONFIG = {
 
     "run_unit_tests": False,
 
-    # Whether we should make a build for Steam.
-    "steam": False,
-
     # Whether our autoupdate functionality is enabled or not.
     "autoupdate": True,
 
@@ -119,12 +116,6 @@ def parse_args(conf=DEFAULT_CONFIG):
 
     parser.add_argument("--run_unit_tests", action="store_true",
                         default=conf["run_unit_tests"])
-
-    parser.add_argument(
-        "--steam",
-        help="Create a build for Steam",
-        action="store_true",
-        default=conf["steam"])
 
     parser.add_argument(
         "--autoupdate",
@@ -311,8 +302,6 @@ def build(config):
                 "-DMACOS_CODE_SIGNING_IDENTITY="
                 + config["codesign_identity"],
                 '-DMACOS_CODE_SIGNING="ON"',
-                "-DSTEAM="
-                + python_to_cmake_bool(config["steam"]),
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
                 '-DDISTRIBUTOR=' + config['distributor'],
