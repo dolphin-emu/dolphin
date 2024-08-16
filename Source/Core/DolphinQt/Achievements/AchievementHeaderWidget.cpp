@@ -103,7 +103,7 @@ void AchievementHeaderWidget::UpdateData()
   {
     rc_client_user_game_summary_t game_summary;
     rc_client_get_user_game_summary(instance.GetClient(), &game_summary);
-    if (game_badge.data.empty())
+    if (!game_badge.data.empty())
     {
       QImage i_game_icon(game_badge.data.data(), game_badge.width, game_badge.height,
                          QImage::Format_RGBA8888);
