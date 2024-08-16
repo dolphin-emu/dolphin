@@ -290,7 +290,7 @@ void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_pat
   File::CreateDir(path);
 
   // now restore from the stream
-  while (1)
+  while (true)
   {
     char type = 0;
     p.Do(type);
