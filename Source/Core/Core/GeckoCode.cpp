@@ -158,7 +158,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   const u32 codelist_base_address =
       INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
-  const u32 codelist_end_address = INSTALLER_END_ADDRESS;
+  constexpr u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
   // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
@@ -170,7 +170,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   // Each code is 8 bytes (2 words) wide. There is a starter code and an end code.
   const u32 start_address = codelist_base_address + CODE_SIZE;
-  const u32 end_address = codelist_end_address - CODE_SIZE;
+  constexpr u32 end_address = codelist_end_address - CODE_SIZE;
   u32 next_address = start_address;
 
   // NOTE: Only active codes are in the list

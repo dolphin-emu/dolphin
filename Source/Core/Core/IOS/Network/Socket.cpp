@@ -911,7 +911,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
       const bool is_udp = getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
                                      &option_length) == 0 &&
                           socket_type == SOCK_DGRAM;
-      const int opt_broadcast = 1;
+      constexpr int opt_broadcast = 1;
       if (is_udp &&
           setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&opt_broadcast),
                      sizeof(opt_broadcast)) != 0)

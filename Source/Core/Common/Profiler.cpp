@@ -15,9 +15,9 @@
 
 namespace Common
 {
-static const u32 PROFILER_FIELD_LENGTH = 8;
-static const u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH + 3;
-static const int PROFILER_LAZY_DELAY = 60;  // in frames
+static constexpr u32 PROFILER_FIELD_LENGTH = 8;
+static constexpr u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH + 3;
+static constexpr int PROFILER_LAZY_DELAY = 60;  // in frames
 
 std::list<Profiler*> Profiler::s_all_profilers;
 std::mutex Profiler::s_mutex;

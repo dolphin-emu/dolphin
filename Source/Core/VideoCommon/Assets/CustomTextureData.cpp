@@ -38,7 +38,7 @@ namespace
 
 #pragma pack(push, 1)
 
-const uint32_t DDS_MAGIC = 0x20534444;  // "DDS "
+constexpr uint32_t DDS_MAGIC = 0x20534444;  // "DDS "
 
 struct DDS_PIXELFORMAT
 {

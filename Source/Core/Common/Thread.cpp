@@ -71,7 +71,7 @@ void SwitchCurrentThread()
 // https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
 static void SetCurrentThreadNameViaException(const char* name)
 {
-  static const DWORD MS_VC_EXCEPTION = 0x406D1388;
+  static constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push, 8)
   struct THREADNAME_INFO

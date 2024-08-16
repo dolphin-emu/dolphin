@@ -1006,7 +1006,7 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
 {
   auto& instance = AchievementManager::GetInstance();
   auto current_time = std::chrono::steady_clock::now();
-  const auto message_wait_time = std::chrono::milliseconds{OSD::Duration::SHORT};
+  constexpr auto message_wait_time = std::chrono::milliseconds{OSD::Duration::SHORT};
   if (current_time - instance.m_last_progress_message < message_wait_time)
     return;
   OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,

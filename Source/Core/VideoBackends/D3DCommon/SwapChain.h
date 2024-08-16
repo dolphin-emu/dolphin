@@ -20,7 +20,7 @@ public:
   virtual ~SwapChain();
 
   // Sufficient buffers for triple buffering.
-  static const u32 SWAP_CHAIN_BUFFER_COUNT = 3;
+  static constexpr u32 SWAP_CHAIN_BUFFER_COUNT = 3;
 
   // Returns true if the stereo mode is quad-buffering.
   static bool WantsStereo();

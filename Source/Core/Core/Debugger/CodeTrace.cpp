@@ -273,14 +273,14 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
 
   // Exclusions from updating tracking logic. mt operations are too complex and specialized.
   // Combiner used later.
-  static const std::array<std::string_view, 3> exclude{"dc", "ic", "mt"};
-  static const std::array<std::string_view, 2> compare{"c", "fc"};
+  static constexpr std::array<std::string_view, 3> exclude{"dc", "ic", "mt"};
+  static constexpr std::array<std::string_view, 2> compare{"c", "fc"};
 
   // rlwimi, at least, can preserve parts of the target register. Not sure if rldimi can too or if
   // there are any others like this.
-  static const std::array<std::string_view, 1> combiner{"rlwimi"};
+  static constexpr std::array<std::string_view, 1> combiner{"rlwimi"};
 
-  static const std::array<std::string_view, 2> mover{"mr", "fmr"};
+  static constexpr std::array<std::string_view, 2> mover{"mr", "fmr"};
 
   // Link register for when r0 gets overwritten
   if (instr.instruction.starts_with("mflr") && match_reg0)

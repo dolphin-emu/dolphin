@@ -214,10 +214,10 @@ void CompatPatchesInstall(LdrWatcher* watcher)
          Version version;
          if (!GetModuleVersion(event.name.c_str(), &version))
            return;
-         const u16 fixed_build = 10548;
+         constexpr u16 fixed_build = 10548;
          if (version.build >= fixed_build)
            return;
-         const UcrtPatchInfo patches[] = {
+         constexpr UcrtPatchInfo patches[] = {
              // 10.0.10240.16384 (th1.150709-1700)
              {0xF61ED, 0x6AE7B, 5},
              // 10.0.10240.16390 (th1_st1.150714-1601)

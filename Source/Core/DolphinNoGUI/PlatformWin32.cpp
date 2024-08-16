@@ -186,7 +186,7 @@ LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     if (hwnd)
     {
       // Remove rounded corners from the render window on Windows 11
-      const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+      constexpr DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
       DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner_preference,
                             sizeof(corner_preference));
     }

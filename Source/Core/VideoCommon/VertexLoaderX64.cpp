@@ -20,16 +20,16 @@
 
 using namespace Gen;
 
-static const X64Reg src_reg = ABI_PARAM1;
-static const X64Reg dst_reg = ABI_PARAM2;
-static const X64Reg scratch1 = RAX;
-static const X64Reg scratch2 = ABI_PARAM3;
-static const X64Reg scratch3 = ABI_PARAM4;
+static constexpr X64Reg src_reg = ABI_PARAM1;
+static constexpr X64Reg dst_reg = ABI_PARAM2;
+static constexpr X64Reg scratch1 = RAX;
+static constexpr X64Reg scratch2 = ABI_PARAM3;
+static constexpr X64Reg scratch3 = ABI_PARAM4;
 // The remaining number of vertices to be processed.  Starts at count - 1, and the final loop has it
 // at 0.
-static const X64Reg remaining_reg = R10;
-static const X64Reg skipped_reg = R11;
-static const X64Reg base_reg = RBX;
+static constexpr X64Reg remaining_reg = R10;
+static constexpr X64Reg skipped_reg = R11;
+static constexpr X64Reg base_reg = RBX;
 
 static const u8* memory_base_ptr = (u8*)&g_main_cp_state.array_strides;
 

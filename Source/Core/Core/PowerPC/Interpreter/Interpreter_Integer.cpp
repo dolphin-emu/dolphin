@@ -468,7 +468,7 @@ void Interpreter::addmex(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 carry = ppc_state.GetCarry();
   const u32 a = ppc_state.gpr[inst.RA];
-  const u32 b = 0xFFFFFFFF;
+  constexpr u32 b = 0xFFFFFFFF;
   const u32 result = a + b + carry;
 
   ppc_state.gpr[inst.RD] = result;
@@ -659,7 +659,7 @@ void Interpreter::subfmex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 a = ~ppc_state.gpr[inst.RA];
-  const u32 b = 0xFFFFFFFF;
+  constexpr u32 b = 0xFFFFFFFF;
   const u32 carry = ppc_state.GetCarry();
   const u32 result = a + b + carry;
 

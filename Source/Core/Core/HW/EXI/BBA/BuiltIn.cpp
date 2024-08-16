@@ -913,7 +913,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
 
   // Handle SSDP multicast
   create();
-  const int on = 1;
+  constexpr int on = 1;
   if (setsockopt(getHandle(), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&on),
                  sizeof(on)) != 0)
   {
@@ -926,7 +926,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
     ERROR_LOG_FMT(SP1, "setsockopt failed to reuse SSDP port: {}", Common::StrNetworkError());
   }
 #endif
-  if (const char loop = 1;
+  if (constexpr char loop = 1;
       setsockopt(getHandle(), IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to set SSDP loopback: {}", Common::StrNetworkError());

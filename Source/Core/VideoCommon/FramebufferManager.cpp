@@ -982,8 +982,8 @@ void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
 void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x,
                                             u32 y, float z, u32 color)
 {
-  const float cs_pixel_width = 1.0f / EFB_WIDTH * 2.0f;
-  const float cs_pixel_height = 1.0f / EFB_HEIGHT * 2.0f;
+  constexpr float cs_pixel_width = 1.0f / EFB_WIDTH * 2.0f;
+  constexpr float cs_pixel_height = 1.0f / EFB_HEIGHT * 2.0f;
   if (g_ActiveConfig.backend_info.bSupportsLargePoints)
   {
     // GPU will expand the point to a quad.

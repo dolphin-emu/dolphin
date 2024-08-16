@@ -50,8 +50,8 @@ void Jit64::rfi(UGeckoInstruction inst)
   fpr.Flush();
 
   // See Interpreter rfi for details
-  const u32 mask = 0x87C0FFFF;
-  const u32 clearMSR13 = 0xFFFBFFFF;  // Mask used to clear the bit MSR[13]
+  constexpr u32 mask = 0x87C0FFFF;
+  constexpr u32 clearMSR13 = 0xFFFBFFFF;  // Mask used to clear the bit MSR[13]
   // MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
   AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
   MOV(32, R(RSCRATCH), PPCSTATE_SRR1);

@@ -30,7 +30,7 @@ ColorCorrectionConfigWindow::ColorCorrectionConfigWindow(QWidget* parent) : QDia
 
 void ColorCorrectionConfigWindow::Create()
 {
-  static const char TR_COLOR_SPACE_CORRECTION_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_COLOR_SPACE_CORRECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Converts the colors from the color spaces that GC/Wii were meant to work with to "
       "sRGB/Rec.709.<br><br>There's no way of knowing what exact color space games were meant for, "
       "given there were multiple standards and most games didn't acknowledge them, so it's not "
@@ -38,16 +38,16 @@ void ColorCorrectionConfigWindow::Create()
       "natural to you, or match it with the region the game was developed in.<br><br>HDR output is "
       "required to show all the colors from the PAL and NTSC-J color "
       "spaces.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_GAME_GAMMA_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_GAME_GAMMA_DESCRIPTION[] = QT_TR_NOOP(
       "NTSC-M and NTSC-J target gamma ~2.2. PAL targets gamma ~2.8.<br>None of the two were "
       "necessarily followed by games or TVs.<br>2.35 is a good generic value for all "
       "regions.<br><br>If a game allows you to chose a gamma value, match it "
       "here.<br><br><dolphin_emphasis>If unsure, leave this at 2.35.</dolphin_emphasis>");
-  static const char TR_GAMMA_CORRECTION_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_GAMMA_CORRECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Converts the gamma from what the game targeted to what your current SDR display "
       "targets.<br>Monitors often target sRGB. TVs often target 2.2.<br><br><dolphin_emphasis>If "
       "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_HDR_PAPER_WHITE_NITS_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_HDR_PAPER_WHITE_NITS_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the base luminance of a paper white surface in nits. Useful for adjusting to "
       "different environmental lighting conditions when using a HDR display.<br><br>HDR output is "
       "required for this setting to take effect.<br><br><dolphin_emphasis>If unsure, leave this at "

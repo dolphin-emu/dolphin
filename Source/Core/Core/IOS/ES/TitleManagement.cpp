@@ -120,7 +120,7 @@ static ReturnCode InitBackupKey(u64 tid, u32 title_flags, IOSC& iosc, IOSC::Hand
 
   // Ignore the region byte.
   const u64 title_id = tid | 0xff;
-  const u32 affected_type = ES::TITLE_TYPE_0x10 | ES::TITLE_TYPE_DATA;
+  constexpr u32 affected_type = ES::TITLE_TYPE_0x10 | ES::TITLE_TYPE_DATA;
   if (title_id == Titles::SYSTEM_MENU || (title_flags & affected_type) != affected_type ||
       !(title_id == 0x00010005735841ff || title_id - 0x00010005735a41ff <= 0x700))
   {

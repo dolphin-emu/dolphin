@@ -15,8 +15,8 @@ namespace DSP
 {
 // Definition of the packet structures stored in PCAP capture files.
 
-const u8 IFX_ACCESS_PACKET_MAGIC = 0;
-const u8 DMA_PACKET_MAGIC = 1;
+constexpr u8 IFX_ACCESS_PACKET_MAGIC = 0;
+constexpr u8 DMA_PACKET_MAGIC = 1;
 
 #pragma pack(push, 1)
 struct IFXAccessPacket

@@ -47,8 +47,8 @@ namespace ExpansionInterface
 #define MC_STATUS_READY 0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
 
-static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
-static const auto MC_TRANSFER_RATE_WRITE = static_cast<u32>(96.125f * 1024.0f);
+static constexpr u32 MC_TRANSFER_RATE_READ = 512 * 1024;
+static constexpr auto MC_TRANSFER_RATE_WRITE = static_cast<u32>(96.125f * 1024.0f);
 
 static Common::EnumMap<CoreTiming::EventType*, MAX_MEMCARD_SLOT> s_et_cmd_done;
 static Common::EnumMap<CoreTiming::EventType*, MAX_MEMCARD_SLOT> s_et_transfer_complete;

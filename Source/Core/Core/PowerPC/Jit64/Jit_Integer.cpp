@@ -60,7 +60,7 @@ void Jit64::GenerateOverflow(Gen::CCFlags cond)
   // We need to do this without modifying flags so as not to break stuff that assumes flags
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
-  static const std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
+  static constexpr std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
   MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
   LEA(64, RSCRATCH2, MConst(ovtable));
   MOV(8, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
@@ -640,7 +640,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     return;
   }
 
-  const X64Reg input = RSCRATCH;
+  constexpr X64Reg input = RSCRATCH;
   if (gpr.IsImm(a))
   {
     if (signedCompare)

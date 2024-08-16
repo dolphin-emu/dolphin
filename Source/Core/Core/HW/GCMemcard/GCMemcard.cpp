@@ -23,7 +23,7 @@
 
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
-  const u64 factor = ((1024 * 1024) / 8);
+  constexpr u64 factor = ((1024 * 1024) / 8);
   const u64 megabits = bytes / factor;
   const u64 remainder = bytes % factor;
   if (remainder != 0)
@@ -92,7 +92,7 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   // check if the filesize is a valid memory card size
   const u64 filesize = file.GetSize();
   const u64 filesize_megabits = BytesToMegabits(filesize).value_or(0);
-  const std::array<u16, 6> valid_megabits = {{
+  constexpr std::array<u16, 6> valid_megabits = {{
       MBIT_SIZE_MEMORY_CARD_59,
       MBIT_SIZE_MEMORY_CARD_123,
       MBIT_SIZE_MEMORY_CARD_251,
@@ -889,7 +889,7 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   // See ReadBannerRGBA8() for details on how the banner is stored.
   const u8 flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
   const u8 banner_format = (flags & 0b0000'0011);
-  const u32 banner_pixels = MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT;
+  constexpr u32 banner_pixels = MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT;
   if (banner_format == MEMORY_CARD_BANNER_FORMAT_CI8)
     image_offset += banner_pixels + MEMORY_CARD_CI8_PALETTE_ENTRIES * 2;
   else if (banner_format == MEMORY_CARD_BANNER_FORMAT_RGB5A3)

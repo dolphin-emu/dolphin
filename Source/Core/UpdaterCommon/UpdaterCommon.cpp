@@ -119,7 +119,7 @@ std::optional<std::string> GzipInflate(const std::string& data)
   inflateInit2(&zstrm, 16 + MAX_WBITS);
 
   std::string out;
-  const size_t buf_len = 20 * 1024 * 1024;
+  constexpr size_t buf_len = 20 * 1024 * 1024;
   auto buffer = std::make_unique<char[]>(buf_len);
   int ret;
 

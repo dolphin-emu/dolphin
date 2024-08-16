@@ -467,7 +467,8 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
   Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
 
   u8 buf[MAX_PAYLOAD];
-  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+  constexpr u8 req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus),
+                                      0};
   int invalid_report_count = 0;
   int rc = WriteToHandle(dev_handle, method, req_status_report, sizeof(req_status_report));
   while (rc > 0)
@@ -626,7 +627,7 @@ bool WiimoteWindows::ConnectInternal()
   if (!IsNewWiimote(WStringToUTF8(m_devicepath)))
     return false;
 
-  auto const open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
+  constexpr auto open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 
   m_dev_handle = CreateFile(m_devicepath.c_str(), GENERIC_READ | GENERIC_WRITE, open_flags, nullptr,
                             OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr);
@@ -1000,7 +1001,7 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
   {
     // Time to avoid RemoveDevice after SetServiceState.
     // Sometimes SetServiceState takes a while..
-    auto const avoid_forget_seconds = 5.0;
+    constexpr auto avoid_forget_seconds = 5.0;
 
     const auto pair_time = s_connect_times.find(btdi.Address.ullLong);
     if (pair_time == s_connect_times.end() ||

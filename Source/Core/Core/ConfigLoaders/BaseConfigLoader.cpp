@@ -95,7 +95,7 @@ public:
   void Load(Config::Layer* layer) override
   {
     // List of settings that under no circumstances should be loaded from the global config INI.
-    static const auto s_setting_disallowed = {
+    static constexpr auto s_setting_disallowed = {
         &Config::MAIN_MEMORY_CARD_SIZE.GetLocation(),
     };
 

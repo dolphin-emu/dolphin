@@ -66,7 +66,7 @@ constexpr u32 NUM_BREAKPOINT_TYPES = 4;
 constexpr int MACH_O_POWERPC = 18;
 constexpr int MACH_O_POWERPC_750 = 9;
 
-const s64 GDB_UPDATE_CYCLES = 100000;
+constexpr s64 GDB_UPDATE_CYCLES = 100000;
 
 static bool s_has_control = false;
 static bool s_just_connected = false;
@@ -182,7 +182,7 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
 
 static void Nack()
 {
-  const char nak = GDB_STUB_NAK;
+  constexpr char nak = GDB_STUB_NAK;
   const ssize_t res = send(s_sock, &nak, 1, 0);
 
   if (res != 1)
@@ -191,7 +191,7 @@ static void Nack()
 
 static void Ack()
 {
-  const char ack = GDB_STUB_ACK;
+  constexpr char ack = GDB_STUB_ACK;
   const ssize_t res = send(s_sock, &ack, 1, 0);
 
   if (res != 1)

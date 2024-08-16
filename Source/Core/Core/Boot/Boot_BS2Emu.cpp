@@ -244,7 +244,7 @@ void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guar
   // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
   // TODO: determine why some games fail when using a retail ID.
   // (Seem to take different EXI paths, see Ikaruga for example)
-  const u32 console_type = static_cast<u32>(Core::ConsoleType::LatestDevkit);
+  constexpr u32 console_type = static_cast<u32>(Core::ConsoleType::LatestDevkit);
   PowerPC::MMU::HostWrite_U32(guard, console_type, 0x8000002C);
 
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)

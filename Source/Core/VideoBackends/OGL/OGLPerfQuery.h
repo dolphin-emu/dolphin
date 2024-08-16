@@ -34,7 +34,7 @@ protected:
   };
 
   // when testing in SMS: 64 was too small, 128 was ok
-  static const u32 PERF_QUERY_BUFFER_SIZE = 512;
+  static constexpr u32 PERF_QUERY_BUFFER_SIZE = 512;
 
   // This contains gl query objects with unretrieved results.
   std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer;

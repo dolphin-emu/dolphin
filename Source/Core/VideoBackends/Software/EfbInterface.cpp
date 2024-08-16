@@ -401,7 +401,7 @@ static void Dither(u16 x, u16 y, u8* color)
     return;
 
   // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
-  static const u8 dither[2][2] = {{0, 2}, {3, 1}};
+  static constexpr u8 dither[2][2] = {{0, 2}, {3, 1}};
 
   // Only the color channels are dithered?
   for (int i = BLU_C; i <= RED_C; i++)

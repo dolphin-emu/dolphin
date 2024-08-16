@@ -13,7 +13,7 @@ void CustomAssetLoader::Init()
   m_asset_monitor_thread_shutdown.Clear();
 
   const size_t sys_mem = Common::MemPhysical();
-  const size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
+  constexpr size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
   // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
   m_max_memory_available =
       (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);

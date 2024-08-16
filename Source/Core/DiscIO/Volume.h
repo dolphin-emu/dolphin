@@ -166,11 +166,11 @@ protected:
   virtual u32 GetOffsetShift() const { return 0; }
   static std::map<Language, std::string> ReadWiiNames(const std::vector<char16_t>& data);
 
-  static const size_t NUMBER_OF_LANGUAGES = 10;
-  static const size_t NAME_CHARS_LENGTH = 42;
-  static const size_t NAME_BYTES_LENGTH = NAME_CHARS_LENGTH * sizeof(char16_t);
-  static const size_t NAMES_TOTAL_CHARS = NAME_CHARS_LENGTH * NUMBER_OF_LANGUAGES;
-  static const size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
+  static constexpr size_t NUMBER_OF_LANGUAGES = 10;
+  static constexpr size_t NAME_CHARS_LENGTH = 42;
+  static constexpr size_t NAME_BYTES_LENGTH = NAME_CHARS_LENGTH * sizeof(char16_t);
+  static constexpr size_t NAMES_TOTAL_CHARS = NAME_CHARS_LENGTH * NUMBER_OF_LANGUAGES;
+  static constexpr size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
 
   static const IOS::ES::TicketReader INVALID_TICKET;
   static const IOS::ES::TMDReader INVALID_TMD;

@@ -703,7 +703,7 @@ void GCMemcardManager::CreateNewCard(Slot slot)
 
 void GCMemcardManager::DrawIcons()
 {
-  const int column = COLUMN_INDEX_ICON;
+  constexpr int column = COLUMN_INDEX_ICON;
   for (Slot slot : MEMCARD_SLOTS)
   {
     QTableWidget* table = m_slot_table[slot];

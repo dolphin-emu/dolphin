@@ -32,7 +32,7 @@ struct SlopeContext
       : x0(x0_), y0(y0_)
   {
     // adjust a little less than 0.5
-    const float adjust = 0.495f;
+    constexpr float adjust = 0.495f;
 
     xOff = ((float)x0_ - (v0->screenPosition.x - x_off)) + adjust;
     yOff = ((float)y0_ - (v0->screenPosition.y - y_off)) + adjust;

@@ -19,7 +19,7 @@
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/GCPadStatus.h"
 
-static const u16 button_bitmasks[] = {
+static constexpr u16 button_bitmasks[] = {
     PAD_BUTTON_A,
     PAD_BUTTON_B,
     PAD_BUTTON_X,
@@ -29,13 +29,13 @@ static const u16 button_bitmasks[] = {
     0  // MIC HAX
 };
 
-static const u16 trigger_bitmasks[] = {
+static constexpr u16 trigger_bitmasks[] = {
     PAD_TRIGGER_L,
     PAD_TRIGGER_R,
 };
 
-static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
-                                    PAD_BUTTON_RIGHT};
+static constexpr u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
+                                        PAD_BUTTON_RIGHT};
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {

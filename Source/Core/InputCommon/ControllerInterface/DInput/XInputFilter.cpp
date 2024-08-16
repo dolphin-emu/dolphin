@@ -18,7 +18,7 @@ namespace ciface::DInput
 // seconds). This is more or less equivalent and much faster.
 std::unordered_set<DWORD> GetXInputGUIDS()
 {
-  static const GUID s_GUID_devclass_HID = {
+  static constexpr GUID s_GUID_devclass_HID = {
       0x745a17a0, 0x74d3, 0x11d0, {0xb6, 0xfe, 0x00, 0xa0, 0xc9, 0x0f, 0x57, 0xda}};
   std::unordered_set<DWORD> guids;
 

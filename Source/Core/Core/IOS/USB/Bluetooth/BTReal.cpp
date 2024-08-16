@@ -423,7 +423,7 @@ void BluetoothRealDevice::WaitForHCICommandComplete(const u16 opcode)
 void BluetoothRealDevice::SendHCIResetCommand()
 {
   u8 packet[3] = {};
-  const u16 payload[] = {HCI_CMD_RESET};
+  constexpr u16 payload[] = {HCI_CMD_RESET};
   memcpy(packet, payload, sizeof(payload));
   const int ret =
       libusb_control_transfer(m_handle, REQUEST_TYPE, 0, 0, 0, packet, sizeof(packet), TIMEOUT);

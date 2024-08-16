@@ -20,9 +20,9 @@
 
 namespace DiscIO
 {
-static const u64 WII_SECTOR_SIZE = 0x8000;
-static const u64 WII_SECTOR_COUNT = 143432 * 2;
-static const u64 WII_DISC_HEADER_SIZE = 256;
+static constexpr u64 WII_SECTOR_SIZE = 0x8000;
+static constexpr u64 WII_SECTOR_COUNT = 143432 * 2;
+static constexpr u64 WII_DISC_HEADER_SIZE = 256;
 
 WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
     : m_size(0), m_good(false)

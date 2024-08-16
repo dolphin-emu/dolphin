@@ -210,7 +210,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         if (self->m_chat_osd_enabled)
         {
           constexpr std::string_view cmd = "setting;chat;true;";
-          const auto size = u32(cmd.length());
+          constexpr auto size = u32(cmd.length());
           u8 buffer[255] = {};
           memmove(buffer, cmd.data(), size);
 

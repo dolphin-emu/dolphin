@@ -507,7 +507,7 @@ std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
 }
 
 // NOTE: In these uniforms, a row refers to a row of blocks, not texels.
-static const char decoding_shader_header[] = R"(
+static constexpr char decoding_shader_header[] = R"(
 #if defined(PALETTE_FORMAT_IA8) || defined(PALETTE_FORMAT_RGB565) || defined(PALETTE_FORMAT_RGB5A3)
 #define HAS_PALETTE 1
 #endif

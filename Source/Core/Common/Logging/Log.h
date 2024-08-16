@@ -87,7 +87,7 @@ constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LDEBUG;
 constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LINFO;
 #endif  // logging
 
-static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
+static constexpr char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args);

@@ -140,7 +140,7 @@ void RenderWidget::OnHandleChanged(void* handle)
   {
 #ifdef _WIN32
     // Remove rounded corners from the render window on Windows 11
-    const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+    constexpr DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
     DwmSetWindowAttribute(reinterpret_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
                           &corner_preference, sizeof(corner_preference));
 #endif

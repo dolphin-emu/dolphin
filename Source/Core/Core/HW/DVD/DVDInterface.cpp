@@ -1217,7 +1217,7 @@ void DVDInterface::ForceOutOfBoundsRead(ReplyType reply_type)
   SetDriveError(DriveError::BlockOOB);
 
   // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
-  const DIInterruptType interrupt_type = DIInterruptType::DEINT;
+  constexpr DIInterruptType interrupt_type = DIInterruptType::DEINT;
   m_system.GetCoreTiming().ScheduleEvent(
       MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
       m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));

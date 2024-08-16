@@ -328,12 +328,12 @@ void CommonAsmRoutines::GenMfcr()
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
-alignas(16) static const float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
-alignas(16) static const float m_32767 = 32767.0f;
-alignas(16) static const float m_m32768 = -32768.0f;
-alignas(16) static const float m_255 = 255.0f;
-alignas(16) static const float m_127 = 127.0f;
-alignas(16) static const float m_m128 = -128.0f;
+alignas(16) static constexpr float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
+alignas(16) static constexpr float m_32767 = 32767.0f;
+alignas(16) static constexpr float m_m32768 = -32768.0f;
+alignas(16) static constexpr float m_255 = 255.0f;
+alignas(16) static constexpr float m_127 = 127.0f;
+alignas(16) static constexpr float m_m128 = -128.0f;
 
 // Sizes of the various quantized store types
 constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};

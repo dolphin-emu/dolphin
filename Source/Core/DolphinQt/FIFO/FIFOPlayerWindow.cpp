@@ -199,11 +199,11 @@ void FIFOPlayerWindow::ConnectWidgets()
 
 void FIFOPlayerWindow::AddDescriptions()
 {
-  static const char TR_MEMORY_UPDATES_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_MEMORY_UPDATES_DESCRIPTION[] = QT_TR_NOOP(
       "If enabled, then all memory updates happen at once before the first frame.<br><br>"
       "Causes issues with many fifologs, but can be useful for testing.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_LOOP_DESCRIPTION[] =
+  static constexpr char TR_LOOP_DESCRIPTION[] =
       QT_TR_NOOP("If unchecked, then playback of the fifolog stops after the final frame.<br><br>"
                  "This is generally only useful when a frame-dumping option is enabled.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");

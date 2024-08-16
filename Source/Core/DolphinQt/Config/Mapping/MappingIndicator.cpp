@@ -259,8 +259,8 @@ void DrawVirtualNotches(QPainter& p, ControllerEmu::ReshapableInput& stick, QCol
   p.setBrush(notch_color);
   for (int i = 0; i < 8; ++i)
   {
-    const double segment_depth = 1.0 - ControllerEmu::MINIMUM_NOTCH_DISTANCE;
-    const double segment_gap = MathUtil::TAU / 8.0;
+    constexpr double segment_depth = 1.0 - ControllerEmu::MINIMUM_NOTCH_DISTANCE;
+    constexpr double segment_gap = MathUtil::TAU / 8.0;
     const double direction = segment_gap * i;
     p.drawPolygon(GetPolygonSegmentFromRadiusGetter(
         [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, direction, segment_size,
@@ -446,16 +446,16 @@ void MixedTriggersIndicator::Draw()
   constexpr int TRIGGER_COUNT = 2;
   std::array<ControlState, TRIGGER_COUNT> raw_analog_state;
   std::array<ControlState, TRIGGER_COUNT> adj_analog_state;
-  const std::array<u16, TRIGGER_COUNT> button_masks = {0x1, 0x2};
+  constexpr std::array<u16, TRIGGER_COUNT> button_masks = {0x1, 0x2};
   u16 button_state = 0;
 
   triggers.GetState(&button_state, button_masks.data(), raw_analog_state.data(), false);
   triggers.GetState(&button_state, button_masks.data(), adj_analog_state.data(), true);
 
   // Rectangle sizes:
-  const int trigger_height = TRIGGER_INDICATOR_HEIGHT;
+  constexpr int trigger_height = TRIGGER_INDICATOR_HEIGHT;
   const int trigger_width = width() - 1;
-  const int trigger_button_width = trigger_height;
+  constexpr int trigger_button_width = trigger_height;
   const int trigger_analog_width = trigger_width - trigger_button_width;
 
   // Bounding box background:

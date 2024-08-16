@@ -236,12 +236,12 @@ void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupTyp
   const u32 mem1_physical_size = memory.GetRamSizeReal();
   const u32 mem1_simulated_size = memory.GetRamSizeReal();
   const u32 mem1_end = Memory::MEM1_BASE_ADDR + mem1_simulated_size;
-  const u32 mem1_arena_begin = 0;
+  constexpr u32 mem1_arena_begin = 0;
   const u32 mem1_arena_end = mem1_end;
   const u32 mem2_physical_size = memory.GetExRamSizeReal();
   const u32 mem2_simulated_size = memory.GetExRamSizeReal();
   const u32 mem2_end = Memory::MEM2_BASE_ADDR + mem2_simulated_size - ios_reserved_size;
-  const u32 mem2_arena_begin = Memory::MEM2_BASE_ADDR + 0x800U;
+  constexpr u32 mem2_arena_begin = Memory::MEM2_BASE_ADDR + 0x800U;
   const u32 mem2_arena_end = mem2_end - ipc_buffer_size;
   const u32 ipc_buffer_begin = mem2_arena_end;
   const u32 ipc_buffer_end = mem2_end;

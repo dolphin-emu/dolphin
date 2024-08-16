@@ -15,7 +15,7 @@ namespace Common
 // Reads all of the current file. destination must be big enough to fit the whole file.
 inline bool ReadFileFromZip(unzFile file, u8* destination, u64 len)
 {
-  const u64 MAX_BUFFER_SIZE = 65535;
+  constexpr u64 MAX_BUFFER_SIZE = 65535;
 
   if (unzOpenCurrentFile(file) != UNZ_OK)
     return false;

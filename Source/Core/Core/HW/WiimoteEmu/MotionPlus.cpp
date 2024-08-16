@@ -61,7 +61,7 @@ Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationB
   const auto calibration = blocks.GetRelevantCalibration(is_slow);
 
   // It seems M+ calibration data does not follow the "right-hand rule".
-  const auto sign_fix = Common::Vec3(-1, +1, -1);
+  constexpr auto sign_fix = Common::Vec3(-1, +1, -1);
 
   // Adjust deg/s to rad/s.
   constexpr auto scalar = float(MathUtil::TAU / 360);

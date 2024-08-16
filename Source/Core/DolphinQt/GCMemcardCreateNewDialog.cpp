@@ -77,9 +77,9 @@ bool GCMemcardCreateNewDialog::CreateCard()
   if (path.isEmpty())
     return false;
 
-  const CardFlashId flash_id{};
-  const u32 rtc_bias = 0;
-  const u32 sram_language = 0;
+  constexpr CardFlashId flash_id{};
+  constexpr u32 rtc_bias = 0;
+  constexpr u32 sram_language = 0;
   const u64 format_time =
       Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
 

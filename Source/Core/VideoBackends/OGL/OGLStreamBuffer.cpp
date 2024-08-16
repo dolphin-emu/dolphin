@@ -297,7 +297,7 @@ public:
 
   void Unmap(u32 used_size) override { m_iterator += used_size; }
   u8* m_pointer;
-  static const u32 ALIGN_PINNED_MEMORY = 4096;
+  static constexpr u32 ALIGN_PINNED_MEMORY = 4096;
 };
 
 /* Fifo based on the glBufferSubData call.

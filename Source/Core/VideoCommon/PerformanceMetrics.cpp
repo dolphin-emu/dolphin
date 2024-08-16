@@ -82,11 +82,11 @@ double PerformanceMetrics::GetLastSpeedDenominator() const
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
-  const float bg_alpha = 0.7f;
-  const auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
+  constexpr float bg_alpha = 0.7f;
+  constexpr auto imgui_flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
 
   const double fps = GetFPS();
   const double vps = GetVPS();

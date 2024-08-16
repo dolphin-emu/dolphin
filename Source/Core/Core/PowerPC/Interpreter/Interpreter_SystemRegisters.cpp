@@ -66,7 +66,7 @@ void Interpreter::mtfsfix(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 field = inst.CRFD;
-  const u32 pre_shifted_mask = 0xF0000000;
+  constexpr u32 pre_shifted_mask = 0xF0000000;
   const u32 mask = (pre_shifted_mask >> (4 * field));
   const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 

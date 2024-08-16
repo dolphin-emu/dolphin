@@ -258,98 +258,98 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
 
 void AdvancedWidget::AddDescriptions()
 {
-  static const char TR_SHOW_FPS_DESCRIPTION[] =
+  static constexpr char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
                  "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_FTIMES_DESCRIPTION[] =
+  static constexpr char TR_SHOW_FTIMES_DESCRIPTION[] =
       QT_TR_NOOP("Shows the average time in ms between each distinct rendered frame alongside "
                  "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_VPS_DESCRIPTION[] =
+  static constexpr char TR_SHOW_VPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
                  "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_VTIMES_DESCRIPTION[] =
+  static constexpr char TR_SHOW_VTIMES_DESCRIPTION[] =
       QT_TR_NOOP("Shows the average time in ms between each rendered frame alongside "
                  "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_GRAPHS_DESCRIPTION[] =
+  static constexpr char TR_SHOW_GRAPHS_DESCRIPTION[] =
       QT_TR_NOOP("Shows frametime graph along with statistics as a representation of "
                  "emulation performance.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_SPEED_DESCRIPTION[] =
+  static constexpr char TR_SHOW_SPEED_DESCRIPTION[] =
       QT_TR_NOOP("Shows the % speed of emulation compared to full speed."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_SPEED_COLORS_DESCRIPTION[] =
+  static constexpr char TR_SHOW_SPEED_COLORS_DESCRIPTION[] =
       QT_TR_NOOP("Changes the color of the FPS counter depending on emulation speed."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "checked.</dolphin_emphasis>");
-  static const char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
+  static constexpr char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
       QT_TR_NOOP("The amount of time the FPS and VPS counters will sample over."
                  "<br><br>The higher the value, the more stable the FPS/VPS counter will be, "
                  "but the slower it will be to update."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "at 1000ms.</dolphin_emphasis>");
-  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
       "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
       "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
       "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_WIREFRAME_DESCRIPTION[] =
+  static constexpr char TR_WIREFRAME_DESCRIPTION[] =
       QT_TR_NOOP("Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_STATS_DESCRIPTION[] =
+  static constexpr char TR_SHOW_STATS_DESCRIPTION[] =
       QT_TR_NOOP("Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_PROJ_STATS_DESCRIPTION[] =
+  static constexpr char TR_SHOW_PROJ_STATS_DESCRIPTION[] =
       QT_TR_NOOP("Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
-  static const char TR_TEXTURE_FORMAT_DESCRIPTION[] =
+  static constexpr char TR_TEXTURE_FORMAT_DESCRIPTION[] =
       QT_TR_NOOP("Modifies textures to show the format they're encoded in.<br><br>May require "
                  "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
+  static constexpr char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
                  "debugging graphical issues. On the Vulkan and D3D backends, this also enables "
                  "debug symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
-  static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
+  static constexpr char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
                  "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump mipmapped game textures to "
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary mipmapped textures if "
       "'Arbitrary Mipmap Detection' is enabled in Enhancements.<br><br>"
       "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
-  static const char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump base game textures to "
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
-  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
+  static constexpr char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
                  "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Caches custom textures to system RAM on startup.<br><br>This can require exponentially "
       "more RAM but fixes possible stuttering.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_DUMP_EFB_DESCRIPTION[] =
+  static constexpr char TR_DUMP_EFB_DESCRIPTION[] =
       QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_DUMP_XFB_DESCRIPTION[] =
+  static constexpr char TR_DUMP_XFB_DESCRIPTION[] =
       QT_TR_NOOP("Dumps the contents of XFB copies to User/Dump/Textures/.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
+  static constexpr char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
                  "upscaling.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_LOAD_GRAPHICS_MODS_DESCRIPTION[] =
+  static constexpr char TR_LOAD_GRAPHICS_MODS_DESCRIPTION[] =
       QT_TR_NOOP("Loads graphics mods from User/Load/GraphicsMods/.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION[] = QT_TR_NOOP(
       "Selects how frame dumps (videos) and screenshots are going to be captured.<br>If the game "
       "or window resolution change during a recording, multiple video files might be created.<br>"
       "Note that color correction and cropping are always ignored by the captures."
@@ -365,11 +365,11 @@ void AdvancedWidget::AddDescriptions()
       "possible input for external editing software.<br><br><dolphin_emphasis>If unsure, leave "
       "this at \"Aspect Ratio Corrected Internal Resolution\".</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
-  static const char TR_USE_FFV1_DESCRIPTION[] =
+  static constexpr char TR_USE_FFV1_DESCRIPTION[] =
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
-  static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
+  static constexpr char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
       QT_TR_NOOP("Specifies the zlib compression level to use when saving PNG images (both for "
                  "screenshots and framedumping).<br><br>"
                  "Since PNG uses lossless compression, this does not affect the image quality; "
@@ -379,35 +379,35 @@ void AdvancedWidget::AddDescriptions()
                  "However, for PNG files, levels between 3 and 6 are generally about as good as "
                  "level 9 but finish in significantly less time.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
-  static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
       "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9),"
       " to the specific user target aspect ratio (e.g. 4:3 or 16:9).<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software. Most games don't have "
       "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
+  static constexpr char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
       QT_TR_NOOP("Enables multithreaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
                  "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
-  static const char TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION[] =
+  static constexpr char TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION[] =
       QT_TR_NOOP("On backends that support both using the geometry shader and the vertex shader "
                  "for expanding points and lines, selects the vertex shader for the job.  May "
                  "affect performance."
                  "<br><br>%1");
-  static const char TR_CPU_CULL_DESCRIPTION[] =
+  static constexpr char TR_CPU_CULL_DESCRIPTION[] =
       QT_TR_NOOP("Cull vertices on the CPU to reduce the number of draw calls required.  "
                  "May affect performance and draw statistics.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "
       "<br><br>May improve performance in some games which rely on CPU EFB Access at the cost "
       "of stability.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
       "Use a manual implementation of texture sampling instead of the graphics backend's built-in "
       "functionality.<br><br>"
       "This setting can fix graphical issues in some games on certain GPUs, most commonly vertical "
@@ -420,7 +420,7 @@ void AdvancedWidget::AddDescriptions()
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
-  static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
       "using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, "
       "but slightly increases input latency, makes movement less smooth and slightly decreases "
@@ -428,7 +428,7 @@ void AdvancedWidget::AddDescriptions()
       "unchecked.</dolphin_emphasis>");
 #endif
 
-  static const char IF_UNSURE_UNCHECKED[] =
+  static constexpr char IF_UNSURE_UNCHECKED[] =
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));

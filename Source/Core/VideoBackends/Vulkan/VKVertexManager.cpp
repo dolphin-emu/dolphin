@@ -304,7 +304,7 @@ void VertexManager::UploadAllConstants()
 
   // We are free to re-use parts of the buffer now since we're uploading all constants.
   const u32 ub_alignment = static_cast<u32>(g_vulkan_context->GetUniformBufferAlignment());
-  const u32 pixel_constants_offset = 0;
+  constexpr u32 pixel_constants_offset = 0;
   const u32 vertex_constants_offset =
       Common::AlignUp(pixel_constants_offset + sizeof(PixelShaderConstants), ub_alignment);
   const u32 geometry_constants_offset =

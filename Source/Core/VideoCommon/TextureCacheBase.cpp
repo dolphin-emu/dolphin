@@ -56,10 +56,10 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-static const u64 TEXHASH_INVALID = 0;
+static constexpr u64 TEXHASH_INVALID = 0;
 // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
-static const int TEXTURE_KILL_THRESHOLD = 64;
-static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
+static constexpr int TEXTURE_KILL_THRESHOLD = 64;
+static constexpr int TEXTURE_POOL_KILL_THRESHOLD = 3;
 
 static int xfb_count = 0;
 
@@ -1660,7 +1660,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 #ifdef __APPLE__
   const bool no_mips = g_ActiveConfig.bNoMipmapping;
 #else
-  const bool no_mips = false;
+  constexpr bool no_mips = false;
 #endif
 
   RcTcacheEntry entry;

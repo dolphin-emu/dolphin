@@ -98,7 +98,7 @@ public:
 
   bool GetData(u32& hi, u32& low) override;
 
-  static const u32 HI_BUTTON_MASK =
+  static constexpr u32 HI_BUTTON_MASK =
       (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_BUTTON_START | PAD_TRIGGER_R)
       << 16;
 };

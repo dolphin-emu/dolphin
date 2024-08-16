@@ -33,11 +33,12 @@
 
 namespace VideoCommon
 {
-static const char s_empty_pixel_shader[] = "void main() { SetOutput(Sample()); }\n";
-static const char s_default_pixel_shader_name[] = "default_pre_post_process";
+static constexpr char s_empty_pixel_shader[] = "void main() { SetOutput(Sample()); }\n";
+static constexpr char s_default_pixel_shader_name[] = "default_pre_post_process";
 // Keep the highest quality possible to avoid losing quality on subtle gamma conversions.
 // RGBA16F should have enough quality even if we store colors in gamma space on it.
-static const AbstractTextureFormat s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
+static constexpr AbstractTextureFormat s_intermediary_buffer_format =
+    AbstractTextureFormat::RGBA16F;
 
 static bool LoadShaderFromFile(const std::string& shader, const std::string& sub_dir,
                                std::string& out_code)

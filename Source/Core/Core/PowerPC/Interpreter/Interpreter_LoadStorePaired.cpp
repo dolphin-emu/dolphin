@@ -19,7 +19,7 @@
 #include "Core/System.h"
 
 // dequantize table
-const float m_dequantizeTable[] = {
+constexpr float m_dequantizeTable[] = {
     1.0 / (1ULL << 0),  1.0 / (1ULL << 1),  1.0 / (1ULL << 2),  1.0 / (1ULL << 3),
     1.0 / (1ULL << 4),  1.0 / (1ULL << 5),  1.0 / (1ULL << 6),  1.0 / (1ULL << 7),
     1.0 / (1ULL << 8),  1.0 / (1ULL << 9),  1.0 / (1ULL << 10), 1.0 / (1ULL << 11),
@@ -39,7 +39,7 @@ const float m_dequantizeTable[] = {
 };
 
 // quantize table
-const float m_quantizeTable[] = {
+constexpr float m_quantizeTable[] = {
     (1ULL << 0),        (1ULL << 1),        (1ULL << 2),        (1ULL << 3),
     (1ULL << 4),        (1ULL << 5),        (1ULL << 6),        (1ULL << 7),
     (1ULL << 8),        (1ULL << 9),        (1ULL << 10),       (1ULL << 11),

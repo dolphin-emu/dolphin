@@ -149,7 +149,7 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
 
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
-  const u32 mask = 0x87C0FFFF;
+  constexpr u32 mask = 0x87C0FFFF;
   ppc_state.msr.Hex = (ppc_state.msr.Hex & ~mask) | (SRR1(ppc_state) & mask);
   // MSR[13] is set to 0.
   ppc_state.msr.Hex &= 0xFFFBFFFF;

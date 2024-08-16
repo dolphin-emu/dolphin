@@ -210,9 +210,9 @@ bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
 
 bool DXContext::CreateCommandQueue()
 {
-  const D3D12_COMMAND_QUEUE_DESC queue_desc = {D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                               D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
-                                               D3D12_COMMAND_QUEUE_FLAG_NONE};
+  constexpr D3D12_COMMAND_QUEUE_DESC queue_desc = {D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                   D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
+                                                   D3D12_COMMAND_QUEUE_FLAG_NONE};
   HRESULT hr = m_device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_command_queue));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command queue: {}", DX12HRWrap(hr));
   return SUCCEEDED(hr);

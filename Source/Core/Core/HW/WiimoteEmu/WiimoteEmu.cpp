@@ -57,15 +57,15 @@ namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
 
-static const u16 button_bitmasks[] = {
+static constexpr u16 button_bitmasks[] = {
     Wiimote::BUTTON_A,     Wiimote::BUTTON_B,    Wiimote::BUTTON_ONE, Wiimote::BUTTON_TWO,
     Wiimote::BUTTON_MINUS, Wiimote::BUTTON_PLUS, Wiimote::BUTTON_HOME};
 
-static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote::PAD_LEFT,
-                                    Wiimote::PAD_RIGHT};
+static constexpr u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote::PAD_LEFT,
+                                        Wiimote::PAD_RIGHT};
 
-static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
-                                             Wiimote::PAD_DOWN};
+static constexpr u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT,
+                                                 Wiimote::PAD_UP, Wiimote::PAD_DOWN};
 
 void Wiimote::Reset()
 {
@@ -970,7 +970,7 @@ Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::
 
 Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  const Common::Vec3 default_accel = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION));
+  constexpr Common::Vec3 default_accel = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION));
   const Common::Vec3 accel = m_imu_accelerometer->GetState().value_or(default_accel);
 
   return OverrideVec3(m_imu_accelerometer, GetAcceleration(accel));

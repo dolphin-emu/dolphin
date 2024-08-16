@@ -190,22 +190,22 @@ GekkoSyntaxHighlight::GekkoSyntaxHighlight(QTextDocument* document, QTextCharFor
 void GekkoSyntaxHighlight::HighlightSubstr(int start, int len, HighlightFormat format)
 {
   QTextCharFormat hl_format = m_base_format;
-  const QColor DIRECTIVE_COLOR[2] = {QColor(0x9d, 0x00, 0x06),
-                                     QColor(0xfb, 0x49, 0x34)};  // Gruvbox darkred
-  const QColor MNEMONIC_COLOR[2] = {QColor(0x79, 0x74, 0x0e),
-                                    QColor(0xb8, 0xbb, 0x26)};  // Gruvbox darkgreen
-  const QColor IMM_COLOR[2] = {QColor(0xb5, 0x76, 0x14),
-                               QColor(0xfa, 0xbd, 0x2f)};  // Gruvbox darkyellow
-  const QColor BUILTIN_COLOR[2] = {QColor(0x07, 0x66, 0x78),
-                                   QColor(0x83, 0xa5, 0x98)};  // Gruvbox darkblue
-  const QColor HA_LA_COLOR[2] = {QColor(0xaf, 0x3a, 0x03),
-                                 QColor(0xfe, 0x80, 0x19)};  // Gruvbox darkorange
-  const QColor HOVER_BG_COLOR[2] = {QColor(0xd5, 0xc4, 0xa1),
-                                    QColor(0x50, 0x49, 0x45)};  // Gruvbox bg2
-  const QColor STRING_COLOR[2] = {QColor(0x98, 0x97, 0x1a),
-                                  QColor(0x98, 0x97, 0x1a)};  // Gruvbox green
-  const QColor COMMENT_COLOR[2] = {QColor(0x68, 0x9d, 0x6a),
-                                   QColor(0x68, 0x9d, 0x6a)};  // Gruvbox aqua
+  constexpr QColor DIRECTIVE_COLOR[2] = {QColor(0x9d, 0x00, 0x06),
+                                         QColor(0xfb, 0x49, 0x34)};  // Gruvbox darkred
+  constexpr QColor MNEMONIC_COLOR[2] = {QColor(0x79, 0x74, 0x0e),
+                                        QColor(0xb8, 0xbb, 0x26)};  // Gruvbox darkgreen
+  constexpr QColor IMM_COLOR[2] = {QColor(0xb5, 0x76, 0x14),
+                                   QColor(0xfa, 0xbd, 0x2f)};  // Gruvbox darkyellow
+  constexpr QColor BUILTIN_COLOR[2] = {QColor(0x07, 0x66, 0x78),
+                                       QColor(0x83, 0xa5, 0x98)};  // Gruvbox darkblue
+  constexpr QColor HA_LA_COLOR[2] = {QColor(0xaf, 0x3a, 0x03),
+                                     QColor(0xfe, 0x80, 0x19)};  // Gruvbox darkorange
+  constexpr QColor HOVER_BG_COLOR[2] = {QColor(0xd5, 0xc4, 0xa1),
+                                        QColor(0x50, 0x49, 0x45)};  // Gruvbox bg2
+  constexpr QColor STRING_COLOR[2] = {QColor(0x98, 0x97, 0x1a),
+                                      QColor(0x98, 0x97, 0x1a)};  // Gruvbox green
+  constexpr QColor COMMENT_COLOR[2] = {QColor(0x68, 0x9d, 0x6a),
+                                       QColor(0x68, 0x9d, 0x6a)};  // Gruvbox aqua
 
   switch (format)
   {

@@ -832,8 +832,9 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
   }
 }
 
-alignas(16) static const u64 psMantissaTruncate[2] = {0xFFFFFFFFF8000000ULL, 0xFFFFFFFFF8000000ULL};
-alignas(16) static const u64 psRoundBit[2] = {0x8000000, 0x8000000};
+alignas(16) static constexpr u64 psMantissaTruncate[2] = {0xFFFFFFFFF8000000ULL,
+                                                          0xFFFFFFFFF8000000ULL};
+alignas(16) static constexpr u64 psRoundBit[2] = {0x8000000, 0x8000000};
 
 // Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
@@ -900,13 +901,13 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
   MOVDDUP(dst, R(dst));
 }
 
-alignas(16) static const u64 psDoubleExp[2] = {Common::DOUBLE_EXP, 0};
-alignas(16) static const u64 psDoubleFrac[2] = {Common::DOUBLE_FRAC, 0};
-alignas(16) static const u64 psDoubleNoSign[2] = {~Common::DOUBLE_SIGN, 0};
+alignas(16) static constexpr u64 psDoubleExp[2] = {Common::DOUBLE_EXP, 0};
+alignas(16) static constexpr u64 psDoubleFrac[2] = {Common::DOUBLE_FRAC, 0};
+alignas(16) static constexpr u64 psDoubleNoSign[2] = {~Common::DOUBLE_SIGN, 0};
 
-alignas(16) static const u32 psFloatExp[4] = {Common::FLOAT_EXP, 0, 0, 0};
-alignas(16) static const u32 psFloatFrac[4] = {Common::FLOAT_FRAC, 0, 0, 0};
-alignas(16) static const u32 psFloatNoSign[4] = {~Common::FLOAT_SIGN, 0, 0, 0};
+alignas(16) static constexpr u32 psFloatExp[4] = {Common::FLOAT_EXP, 0, 0, 0};
+alignas(16) static constexpr u32 psFloatFrac[4] = {Common::FLOAT_FRAC, 0, 0, 0};
+alignas(16) static constexpr u32 psFloatNoSign[4] = {~Common::FLOAT_SIGN, 0, 0, 0};
 
 // TODO: it might be faster to handle FPRF in the same way as CR is currently handled for integer,
 // storing the result of each floating point op and calculating it when needed. This is trickier

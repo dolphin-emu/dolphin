@@ -101,7 +101,7 @@ void MemoryCard::FlushThread()
 
   Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_slot).c_str());
 
-  const auto flush_interval = std::chrono::seconds(15);
+  constexpr auto flush_interval = std::chrono::seconds(15);
 
   while (true)
   {

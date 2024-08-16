@@ -31,7 +31,7 @@ StreamBuffer::~StreamBuffer()
 
 bool StreamBuffer::AllocateBuffer(u32 size)
 {
-  static const D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_UPLOAD};
+  static constexpr D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_UPLOAD};
   const D3D12_RESOURCE_DESC resource_desc = {D3D12_RESOURCE_DIMENSION_BUFFER,
                                              0,
                                              size,
@@ -51,7 +51,7 @@ bool StreamBuffer::AllocateBuffer(u32 size)
   if (FAILED(hr))
     return false;
 
-  static const D3D12_RANGE read_range = {};
+  static constexpr D3D12_RANGE read_range = {};
   hr = m_buffer->Map(0, &read_range, reinterpret_cast<void**>(&m_host_pointer));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map buffer of size {}: {}", size, DX12HRWrap(hr));
   if (FAILED(hr))

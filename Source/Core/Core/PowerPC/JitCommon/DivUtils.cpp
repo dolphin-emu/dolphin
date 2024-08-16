@@ -11,7 +11,7 @@ namespace JitCommon
 {
 SignedMagic SignedDivisionConstants(s32 divisor)
 {
-  const u32 two31 = 2147483648;
+  constexpr u32 two31 = 2147483648;
 
   const u32 ad = std::abs(divisor);
   const u32 t = two31 - (divisor < 0);

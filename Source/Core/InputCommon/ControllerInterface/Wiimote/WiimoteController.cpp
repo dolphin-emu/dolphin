@@ -1240,7 +1240,7 @@ void Device::UpdateOrientation()
         Common::Vec3(m_ir_state.center_position.y * WiimoteEmu::CameraLogic::CAMERA_FOV_Y, 0,
                      m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X) /
         2;
-    const auto ir_normal = Common::Vec3(0, 1, 0);
+    constexpr auto ir_normal = Common::Vec3(0, 1, 0);
     const auto ir_vector = WiimoteEmu::GetRotationFromGyroscope(-ir_rotation) * ir_normal;
 
     // Pitch correction will be slightly wrong based on sensorbar height.
@@ -1270,8 +1270,8 @@ void Device::IRState::ProcessData(const DataReportManipulator& manipulator)
 
   MathUtil::RunningVariance<Common::Vec2> points;
 
-  const auto camera_max = IRObject(WiimoteEmu::CameraLogic::CAMERA_RES_X - 1,
-                                   WiimoteEmu::CameraLogic::CAMERA_RES_Y - 1);
+  constexpr auto camera_max = IRObject(WiimoteEmu::CameraLogic::CAMERA_RES_X - 1,
+                                       WiimoteEmu::CameraLogic::CAMERA_RES_Y - 1);
 
   const auto add_point = [&](IRObject point, u8 size, size_t idx) {
     // Non-visible points are 0xFF-filled.

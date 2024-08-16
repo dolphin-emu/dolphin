@@ -492,7 +492,7 @@ union TestUnion5
 TEST(BitFieldArray, StorageType)
 {
   TestUnion5 object;
-  const u64 arr2_hex_1 = 0b1010ull << 30;
+  constexpr u64 arr2_hex_1 = 0b1010ull << 30;
   object.hex = arr2_hex_1;
   const TestUnion5& objectc = object;
 
@@ -507,17 +507,17 @@ TEST(BitFieldArray, StorageType)
   object.arr1[3] = 4;
   object.arr1[4] = 8;
   object.arr1[5] = 16;
-  const u64 arr1_hex = 0b10000'01000'00100'00010'00001'00000;
+  constexpr u64 arr1_hex = 0b10000'01000'00100'00010'00001'00000;
   EXPECT_EQ(object.hex, arr1_hex | arr2_hex_1);
 
   object.arr2[2] = object.arr2[0] = true;
   object.arr2[3] = object.arr2[1] = false;
-  const u64 arr2_hex_2 = 0b0101ull << 30;
+  constexpr u64 arr2_hex_2 = 0b0101ull << 30;
   EXPECT_EQ(object.hex, arr1_hex | arr2_hex_2);
 
   object.arr2[2] = object.arr2[1];
   object.arr2[3] = objectc.arr2[0];
-  const u64 arr2_hex_3 = 0b1001ull << 30;
+  constexpr u64 arr2_hex_3 = 0b1001ull << 30;
   EXPECT_EQ(object.hex, arr1_hex | arr2_hex_3);
 
   u32 counter = 0;

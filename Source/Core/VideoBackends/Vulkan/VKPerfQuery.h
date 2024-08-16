@@ -35,7 +35,7 @@ private:
 
   // when testing in SMS: 64 was too small, 128 was ok
   // TODO: This should be size_t, but the base class uses u32s
-  static const u32 PERF_QUERY_BUFFER_SIZE = 512;
+  static constexpr u32 PERF_QUERY_BUFFER_SIZE = 512;
 
   struct ActiveQuery
   {

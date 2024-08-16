@@ -37,12 +37,12 @@ namespace ExpansionInterface
 // We should provide an option to choose from the above, or figure out the checksum (the algo in
 // yagcd seems wrong) so that people can change default language.
 
-static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
-                                     "(C) 1999 ArtX Inc.  All rights reserved."
-                                     "PAL  Revision 1.0  ";
+static constexpr char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
+                                         "(C) 1999 ArtX Inc.  All rights reserved."
+                                         "PAL  Revision 1.0  ";
 
-static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
-                                      "(C) 1999 ArtX Inc.  All rights reserved.";
+static constexpr char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
+                                          "(C) 1999 ArtX Inc.  All rights reserved.";
 
 Common::Flags<RTCFlag> g_rtc_flags;
 

@@ -60,10 +60,10 @@ static const u32 IN_LEN = 8 * 1024u;
 #elif defined(LZO_ARCH_I086) && !defined(LZO_HAVE_MM_HUGE_ARRAY)
 static const u32 IN_LEN = 60 * 1024u;
 #else
-static const u32 IN_LEN = 128 * 1024u;
+static constexpr u32 IN_LEN = 128 * 1024u;
 #endif
 
-static const u32 OUT_LEN = IN_LEN + (IN_LEN / 16) + 64 + 3;
+static constexpr u32 OUT_LEN = IN_LEN + (IN_LEN / 16) + 64 + 3;
 
 static unsigned char __LZO_MMODEL out[OUT_LEN];
 

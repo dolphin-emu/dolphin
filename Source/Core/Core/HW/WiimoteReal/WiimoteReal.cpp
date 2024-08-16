@@ -357,12 +357,12 @@ bool Wiimote::IsBalanceBoard()
     return false;
   // Initialise the extension by writing 0x55 to 0xa400f0, then writing 0x00 to 0xa400fb.
   // TODO: Use the structs for building these reports..
-  static const u8 init_extension_rpt1[MAX_PAYLOAD] = {
+  static constexpr u8 init_extension_rpt1[MAX_PAYLOAD] = {
       WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
-  static const u8 init_extension_rpt2[MAX_PAYLOAD] = {
+  static constexpr u8 init_extension_rpt2[MAX_PAYLOAD] = {
       WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
-  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus),
-                                     0};
+  static constexpr u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT,
+                                         u8(OutputReportID::RequestStatus), 0};
   if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
       !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
   {
@@ -387,14 +387,14 @@ bool Wiimote::IsBalanceBoard()
       if (!status->extension)
         return false;
       // Read two bytes from 0xa400fe to identify the extension.
-      static const u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
-                                            u8(OutputReportID::ReadData),
-                                            0x04,
-                                            0xa4,
-                                            0x00,
-                                            0xfe,
-                                            0x02,
-                                            0x00};
+      static constexpr u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
+                                                u8(OutputReportID::ReadData),
+                                                0x04,
+                                                0xa4,
+                                                0x00,
+                                                0xfe,
+                                                0x02,
+                                                0x00};
       ret = IOWrite(identify_ext_rpt, sizeof(identify_ext_rpt));
       break;
     }
@@ -526,12 +526,12 @@ void Wiimote::Prepare()
 bool Wiimote::PrepareOnThread()
 {
   // Set reporting mode to non-continuous core buttons and turn on rumble.
-  u8 static const mode_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::ReportMode), 1,
-                                   u8(InputReportID::ReportCore)};
+  constexpr u8 static mode_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::ReportMode), 1,
+                                       u8(InputReportID::ReportCore)};
 
   // Request status and turn off rumble.
-  u8 static const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT,
-                                         u8(OutputReportID::RequestStatus), 0};
+  constexpr u8 static req_status_report[] = {WR_SET_REPORT | BT_OUTPUT,
+                                             u8(OutputReportID::RequestStatus), 0};
 
   return IOWrite(mode_report, sizeof(mode_report)) &&
          (Common::SleepCurrentThread(200), IOWrite(req_status_report, sizeof(req_status_report)));

@@ -131,10 +131,10 @@ public:
 
 private:
   // Number of command lists. One is being built while the other(s) are executed.
-  static const u32 NUM_COMMAND_LISTS = 3;
+  static constexpr u32 NUM_COMMAND_LISTS = 3;
 
   // Textures that don't fit into this buffer will be uploaded with a staging buffer.
-  static const u32 TEXTURE_UPLOAD_BUFFER_SIZE = 32 * 1024 * 1024;
+  static constexpr u32 TEXTURE_UPLOAD_BUFFER_SIZE = 32 * 1024 * 1024;
 
   struct CommandListResources
   {

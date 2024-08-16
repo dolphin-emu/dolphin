@@ -36,8 +36,8 @@ enum Block
 
   NUM_BLOCKS
 };
-const u32 BLOCK_SIZE = 0x10000;
-const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
+constexpr u32 BLOCK_SIZE = 0x10000;
+constexpr u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 
 // Checks if a given physical memory address refers to the MMIO address range.
 // In practice, most games use a virtual memory mapping (via BATs set in the

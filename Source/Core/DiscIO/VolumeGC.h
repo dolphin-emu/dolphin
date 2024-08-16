@@ -53,8 +53,8 @@ public:
   std::array<u8, 20> GetSyncHash() const override;
 
 private:
-  static const u32 GC_BANNER_WIDTH = 96;
-  static const u32 GC_BANNER_HEIGHT = 32;
+  static constexpr u32 GC_BANNER_WIDTH = 96;
+  static constexpr u32 GC_BANNER_HEIGHT = 32;
 
   struct GCBannerInformation
   {
@@ -95,8 +95,8 @@ private:
   ConvertedGCBanner LoadBannerFile() const;
   ConvertedGCBanner ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const;
 
-  static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
-  static const size_t BNR2_SIZE = sizeof(GCBanner);
+  static constexpr size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
+  static constexpr size_t BNR2_SIZE = sizeof(GCBanner);
 
   Common::Lazy<ConvertedGCBanner> m_converted_banner;
 

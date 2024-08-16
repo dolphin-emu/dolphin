@@ -243,7 +243,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     case FrameDumpResolutionType::XFBAspectRatioCorrectedResolution:
     {
       target_rect = m_xfb_rect;
-      const bool allow_stretch = false;
+      constexpr bool allow_stretch = false;
       auto [float_width, float_height] =
           ScaleToDisplayAspectRatio(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight(), allow_stretch);
       const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
@@ -525,7 +525,7 @@ void Presenter::SetSuggestedWindowSize(int width, int height)
   // While trying to guess the best window resolution, we can't allow it to use the
   // "AspectMode::Stretch" setting because that would self influence the output result,
   // given it would be based on the previous frame resolution
-  const bool allow_stretch = false;
+  constexpr bool allow_stretch = false;
   const auto [out_width, out_height] = CalculateOutputDimensions(width, height, allow_stretch);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
