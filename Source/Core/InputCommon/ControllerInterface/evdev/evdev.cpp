@@ -102,7 +102,7 @@ protected:
 
       for (auto remove_prefix : {"BTN_", "KEY_"})
       {
-        if (name.find(remove_prefix) == 0)
+        if (name.starts_with(remove_prefix))
           return std::string(name.substr(std::strlen(remove_prefix)));
       }
 

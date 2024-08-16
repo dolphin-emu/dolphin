@@ -28,13 +28,13 @@ TEST(VertexLoaderUID, UniqueEnough)
 
   vtx_desc.low.Hex = 0x76543210;
   vtx_desc.high.Hex = 0xFEDCBA98;
-  EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
+  EXPECT_FALSE(uids.contains(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
   vat.g0.Hex = 0xFFFFFFFF;
   vat.g1.Hex = 0xFFFFFFFF;
   vat.g2.Hex = 0xFFFFFFFF;
-  EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
+  EXPECT_FALSE(uids.contains(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 }
 

@@ -179,7 +179,7 @@ std::string KeycodeToName(const CGKeyCode keycode)
       {kVK_RightOption, "Right Alt"},
   };
 
-  if (named_keys.find(keycode) != named_keys.end())
+  if (named_keys.contains(keycode))
     return named_keys.at(keycode);
   else
     return "Key " + std::to_string(keycode);
