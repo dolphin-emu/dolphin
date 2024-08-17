@@ -109,7 +109,7 @@
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
   </ItemGroup>
-  <Target Name="AfterBuild" Inputs="@(DataSysFiles)" Outputs="@(DataSysFiles -> '$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')">
+  <Target Name="AfterBuild">
     <Message Text="Copying Data directory..." Importance="High" />
     <RemoveDir Directories="$(TargetDir)Sys" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(TargetDir)%(RecursiveDir)" SkipUnchangedFiles="True" />
