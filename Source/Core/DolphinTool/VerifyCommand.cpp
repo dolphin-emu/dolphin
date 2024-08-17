@@ -48,10 +48,10 @@ static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
 
   fmt::print(std::cout, "Problems Found: {}\n", result.problems.empty() ? "No" : "Yes");
 
-  for (const auto& problem : result.problems)
+  for (const auto& [severity, text] : result.problems)
   {
     fmt::print(std::cout, "\nSeverity: ");
-    switch (problem.severity)
+    switch (severity)
     {
     case DiscIO::VolumeVerifier::Severity::Low:
       fmt::print(std::cout, "Low");
@@ -69,7 +69,7 @@ static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
       ASSERT(false);
       break;
     }
-    fmt::print(std::cout, "\nSummary: {}\n\n", problem.text);
+    fmt::print(std::cout, "\nSummary: {}\n\n", text);
   }
 }
 
