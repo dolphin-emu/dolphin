@@ -397,7 +397,7 @@ bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* update
   // Remove the updates data from the PB
   memmove(&pb_mem[41], &pb_mem[46], sizeof(pb) - 2 * 46);
 
-  Common::BitCastFromArray<u16>(pb_mem, pb);
+  pb = std::bit_cast<AXPBWii>(pb_mem);
 
   return true;
 }
@@ -416,7 +416,7 @@ void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 update
   pb_mem[44] = updates_addr >> 16;
   pb_mem[45] = updates_addr & 0xFFFF;
 
-  Common::BitCastFromArray<u16>(pb_mem, pb);
+  pb = std::bit_cast<AXPBWii>(pb_mem);
 }
 
 void AXWiiUCode::ProcessPBList(u32 pb_addr)
