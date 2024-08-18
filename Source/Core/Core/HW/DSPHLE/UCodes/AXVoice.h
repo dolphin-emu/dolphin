@@ -567,10 +567,12 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
       // Only one filter at most for Wiimotes.
       if (pb.remote_iir.on == 2)
       {
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_WIIMOTE_BIQUAD);
         BiquadFilter(samples, count, pb.remote_iir.biquad);
       }
       else
       {
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_WIIMOTE_LOWPASS);
         LowPassFilter(samples, count, pb.remote_iir.lpf);
       }
     }
