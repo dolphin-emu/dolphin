@@ -88,7 +88,7 @@ public:
   void SetLogConfigVisible(bool visible);
   void SetToolBarVisible(bool visible);
   bool IsToolBarVisible() const;
-  void SetWidgetsLocked(bool visible);
+  void SetWidgetsLocked(bool locked);
   bool AreWidgetsLocked() const;
 
   void RefreshWidgetVisibility();

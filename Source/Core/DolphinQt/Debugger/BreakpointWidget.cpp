@@ -677,7 +677,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   Update();
 }
 
-void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_write, bool do_log,
+void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool do_read, bool do_write, bool do_log,
                                     bool do_break, const QString& condition)
 {
   TMemCheck check;
@@ -685,8 +685,8 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   check.start_address = from;
   check.end_address = to;
   check.is_ranged = true;
-  check.is_break_on_read = on_read;
-  check.is_break_on_write = on_write;
+  check.is_break_on_read = do_read;
+  check.is_break_on_write = do_write;
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
   check.condition =

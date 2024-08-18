@@ -165,22 +165,22 @@ void GameTracker::StartInternal()
   QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
 }
 
-bool GameTracker::AddPath(const QString& dir)
+bool GameTracker::AddPath(const QString& path)
 {
   if (Settings::Instance().IsAutoRefreshEnabled())
-    QueueOnObject(this, [this, dir] { return addPath(dir); });
+    QueueOnObject(this, [this, path] { return addPath(path); });
 
-  m_tracked_paths.push_back(dir);
+  m_tracked_paths.push_back(path);
 
   return true;
 }
 
-bool GameTracker::RemovePath(const QString& dir)
+bool GameTracker::RemovePath(const QString& path)
 {
   if (Settings::Instance().IsAutoRefreshEnabled())
-    QueueOnObject(this, [this, dir] { return removePath(dir); });
+    QueueOnObject(this, [this, path] { return removePath(path); });
 
-  const auto index = m_tracked_paths.indexOf(dir);
+  const auto index = m_tracked_paths.indexOf(path);
 
   if (index == -1)
     return false;
@@ -228,9 +228,9 @@ void GameTracker::UpdateDirectory(const QString& dir)
   m_load_thread.EmplaceItem(Command{CommandType::UpdateDirectory, dir});
 }
 
-void GameTracker::UpdateFile(const QString& dir)
+void GameTracker::UpdateFile(const QString& path)
 {
-  m_load_thread.EmplaceItem(Command{CommandType::UpdateFile, dir});
+  m_load_thread.EmplaceItem(Command{CommandType::UpdateFile, path});
 }
 
 void GameTracker::AddDirectoryInternal(const QString& dir)
@@ -308,20 +308,20 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
   }
 }
 
-void GameTracker::UpdateFileInternal(const QString& file)
+void GameTracker::UpdateFileInternal(const QString& path)
 {
-  if (QFileInfo(file).exists())
+  if (QFileInfo(path).exists())
   {
     if (m_started)
-      GameRemoved(file.toStdString());
-    AddPath(file);
-    LoadGame(file);
+      GameRemoved(path.toStdString());
+    AddPath(path);
+    LoadGame(path);
   }
-  else if (RemovePath(file))
+  else if (RemovePath(path))
   {
-    m_tracked_files.remove(file);
+    m_tracked_files.remove(path);
     if (m_started)
-      emit GameRemoved(file.toStdString());
+      emit GameRemoved(path.toStdString());
   }
 }
 

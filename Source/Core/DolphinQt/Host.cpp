@@ -268,9 +268,9 @@ void Host_UpdateMainFrame()
 {
 }
 
-void Host_RequestRenderWindowSize(int w, int h)
+void Host_RequestRenderWindowSize(int width, int height)
 {
-  emit Host::GetInstance()->RequestRenderSize(w, h);
+  emit Host::GetInstance()->RequestRenderSize(width, height);
 }
 
 bool Host_UIBlocksControllerState()

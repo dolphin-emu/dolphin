@@ -428,12 +428,13 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_hide_remote_gbas_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
-void NetPlayDialog::SendMessage(const std::string& msg)
+void NetPlayDialog::SendMessage(const std::string& message)
 {
-  Settings::Instance().GetNetPlayClient()->SendChatMessage(msg);
+  Settings::Instance().GetNetPlayClient()->SendChatMessage(message);
 
   DisplayMessage(
-      QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname), QString::fromStdString(msg)),
+      QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname),
+                                   QString::fromStdString(message)),
       "");
 }
 

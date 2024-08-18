@@ -135,7 +135,7 @@ private:
 };
 }  // namespace
 
-void GekkoSyntaxHighlight::highlightBlock(const QString& text)
+void GekkoSyntaxHighlight::highlightBlock(const QString& line)
 {
   BlockInfo* info = static_cast<BlockInfo*>(currentBlockUserData());
   if (info == nullptr)
@@ -144,16 +144,16 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
     setCurrentBlockUserData(info);
   }
 
-  qsizetype comment_idx = text.indexOf(QLatin1Char('#'));
+  qsizetype comment_idx = line.indexOf(QLatin1Char('#'));
   if (comment_idx != -1)
   {
-    HighlightSubstr(comment_idx, text.length() - comment_idx, HighlightFormat::Comment);
+    HighlightSubstr(comment_idx, line.length() - comment_idx, HighlightFormat::Comment);
   }
 
   if (m_mode == 0)
   {
     HighlightParsePlugin plugin;
-    ParseWithPlugin(&plugin, text.toStdString());
+    ParseWithPlugin(&plugin, line.toStdString());
 
     info->block_format = plugin.MoveFormatting();
     info->parens = plugin.MoveParens();
