@@ -241,7 +241,7 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_3d_mode, &QComboBox::currentIndexChanged, [this] {
     m_block_save = true;
     m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-    LoadPPShaders();
+    LoadPPShaders(static_cast<StereoMode>(m_3d_mode->currentIndex()));
     m_block_save = false;
 
     SaveSettings();
@@ -250,23 +250,30 @@ void EnhancementsWidget::ConnectWidgets()
           &EnhancementsWidget::ConfigureColorCorrection);
   connect(m_configure_pp_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
+    const QSignalBlocker blocker(this);
+    m_block_save = true;
+    LoadPPShaders(Config::Get(Config::GFX_STEREO_MODE));
+    m_block_save = false;
+  });
 }
 
-void EnhancementsWidget::LoadPPShaders()
+void EnhancementsWidget::LoadPPShaders(StereoMode stereo_mode)
 {
   std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
-  if (g_Config.stereo_mode == StereoMode::Anaglyph)
+  if (stereo_mode == StereoMode::Anaglyph)
   {
     shaders = VideoCommon::PostProcessing::GetAnaglyphShaderList();
   }
-  else if (g_Config.stereo_mode == StereoMode::Passive)
+  else if (stereo_mode == StereoMode::Passive)
   {
     shaders = VideoCommon::PostProcessing::GetPassiveShaderList();
   }
 
   m_pp_effect->clear();
 
-  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
+  if (stereo_mode != StereoMode::Anaglyph && stereo_mode != StereoMode::Passive)
     m_pp_effect->addItem(tr("(off)"));
 
   auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
@@ -283,10 +290,23 @@ void EnhancementsWidget::LoadPPShaders()
     }
   }
 
-  if (g_Config.stereo_mode == StereoMode::Anaglyph && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
-  else if (g_Config.stereo_mode == StereoMode::Passive && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
+  if (!found)
+  {
+    if (stereo_mode == StereoMode::Anaglyph)
+      selected_shader = "dubois";
+    else if (stereo_mode == StereoMode::Passive)
+      selected_shader = "horizontal";
+    else
+      selected_shader = "";
+
+    int index = m_pp_effect->findText(QString::fromStdString(selected_shader));
+    if (index >= 0)
+      m_pp_effect->setCurrentIndex(index);
+    else
+      m_pp_effect->setCurrentIndex(0);
+
+    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, selected_shader);
+  }
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
@@ -381,7 +401,7 @@ void EnhancementsWidget::LoadSettings()
   m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
   // Post Processing Shader
-  LoadPPShaders();
+  LoadPPShaders(Config::Get(Config::GFX_STEREO_MODE));
 
   // Stereoscopy
   const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;

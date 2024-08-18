@@ -17,6 +17,7 @@ class QPushButton;
 class QSlider;
 class ToolTipComboBox;
 class ToolTipPushButton;
+enum class StereoMode : int;
 
 class EnhancementsWidget final : public QWidget
 {
@@ -33,7 +34,7 @@ private:
   void AddDescriptions();
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
-  void LoadPPShaders();
+  void LoadPPShaders(StereoMode stereo_mode);
 
   // Enhancements
   ConfigChoice* m_ir_combo;
