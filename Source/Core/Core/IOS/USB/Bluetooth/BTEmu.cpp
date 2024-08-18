@@ -890,7 +890,7 @@ bool BluetoothEmuDevice::SendEventLinkKeyNotification(const u8 num_to_send)
   AddEventToQueue(event);
 
   return true;
-};
+}
 
 bool BluetoothEmuDevice::SendEventRequestLinkKey(const bdaddr_t& bd)
 {
@@ -911,7 +911,7 @@ bool BluetoothEmuDevice::SendEventRequestLinkKey(const bdaddr_t& bd)
   AddEventToQueue(event);
 
   return true;
-};
+}
 
 bool BluetoothEmuDevice::SendEventReadClockOffsetComplete(u16 connection_handle)
 {

@@ -142,7 +142,7 @@ public:
            m_collection_pf.size();
   }
   std::size_t GetBlacklistSize() const { return m_blacklist_size; }
-  Phase GetRecordingPhase() const { return m_recording_phase; };
+  Phase GetRecordingPhase() const { return m_recording_phase; }
 
   // An empty selection in reduction mode can't be reconstructed when loading from a file.
   bool CanSave() const { return !(m_recording_phase == Phase::Reduction && m_selection.empty()); }

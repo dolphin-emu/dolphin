@@ -30,7 +30,7 @@ struct MPI : mbedtls_mpi
   MPI() { mbedtls_mpi_init(this); }
   ~MPI() { mbedtls_mpi_free(this); }
 
-  mbedtls_mpi* Data() { return this; };
+  mbedtls_mpi* Data() { return this; }
 
   template <std::size_t N>
   bool ReadBinary(const u8 (&in_data)[N])
