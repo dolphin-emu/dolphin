@@ -74,7 +74,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
       std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()));
   return seconds.get_local_time().time_since_epoch().count();
 #else
-  time_t sysTime, tzDiff, tzDST;
+  time_t sysTime, tzDST;
   time(&sysTime);
   tm* gmTime = localtime(&sysTime);
 
@@ -86,7 +86,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
 
   // Lazy way to get local time in sec
   gmTime = gmtime(&sysTime);
-  tzDiff = sysTime - mktime(gmTime);
+  time_t tzDiff = sysTime - mktime(gmTime);
 
   return static_cast<u64>(sysTime + tzDiff + tzDST);
 #endif
