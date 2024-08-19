@@ -543,8 +543,7 @@ void Core::RunCommand(Command& command)
     {
       int recvd = GBASIOJOYSendCommand(
           &m_sio_driver, static_cast<GBASIOJOYCommand>(command.buffer[0]), &command.buffer[1]);
-      std::copy(command.buffer.begin() + 1, command.buffer.begin() + 1 + recvd,
-                std::back_inserter(m_response));
+      std::copy_n(command.buffer.begin() + 1, recvd, std::back_inserter(m_response));
     }
 
     if (m_thread && !m_response_ready)

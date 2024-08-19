@@ -107,8 +107,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer, DirectoryBlobReade
     else if (std::holds_alternative<ContentMemory>(m_content_source))
     {
       const auto& content = std::get<ContentMemory>(m_content_source);
-      std::copy(content->begin() + offset_in_content,
-                content->begin() + offset_in_content + bytes_to_read, *buffer);
+      std::copy_n(content->begin() + offset_in_content, bytes_to_read, *buffer);
     }
     else if (std::holds_alternative<ContentPartition>(m_content_source))
     {

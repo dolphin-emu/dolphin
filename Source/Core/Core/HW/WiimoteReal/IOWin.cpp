@@ -275,7 +275,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
   // This is currently needed by the Toshiba Bluetooth Stack.
   if ((write_method == WWM_WRITE_FILE_LARGEST_REPORT_SIZE) && (MAX_PAYLOAD > len))
   {
-    std::copy(buf, buf + len, resized_buffer);
+    std::copy_n(buf, len, resized_buffer);
     std::fill(resized_buffer + len, resized_buffer + MAX_PAYLOAD, 0);
     write_buffer = resized_buffer + 1;
     bytes_to_write = MAX_PAYLOAD - 1;
