@@ -316,11 +316,10 @@ static inline u32 DecodePixel_IA8(u16 val)
 
 static inline u32 DecodePixel_RGB565(u16 val)
 {
-  int r, g, b, a;
-  r = Convert5To8((val >> 11) & 0x1f);
-  g = Convert6To8((val >> 5) & 0x3f);
-  b = Convert5To8((val)&0x1f);
-  a = 0xFF;
+  int r = Convert5To8((val >> 11) & 0x1f);
+  int g = Convert6To8((val >> 5) & 0x3f);
+  int b = Convert5To8((val) & 0x1f);
+  int a = 0xFF;
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 

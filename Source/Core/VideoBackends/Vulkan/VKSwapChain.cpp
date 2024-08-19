@@ -226,10 +226,9 @@ bool SwapChain::SelectSurfaceFormat()
 
 bool SwapChain::SelectPresentMode()
 {
-  VkResult res;
   u32 mode_count;
-  res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
-                                                  &mode_count, nullptr);
+  VkResult res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
+                                                           &mode_count, nullptr);
   if (res != VK_SUCCESS || mode_count == 0)
   {
     LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceFormatsKHR failed: ");

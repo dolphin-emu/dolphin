@@ -867,8 +867,8 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     {
       PIP_ADAPTER_ADDRESSES AdapterAddresses = nullptr;
       ULONG OutBufferLength = 0;
-      ULONG RetVal = 0, i;
-      for (i = 0; i < 5; ++i)
+      ULONG RetVal = 0;
+      for (int i = 0; i < 5; ++i)
       {
         RetVal = GetAdaptersAddresses(AF_INET, 0, nullptr, AdapterAddresses, &OutBufferLength);
 

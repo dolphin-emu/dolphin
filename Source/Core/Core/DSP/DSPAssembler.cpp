@@ -276,9 +276,7 @@ char* DSPAssembler::FindBrackets(char* src, char* dst)
   s32 len = (s32)strlen(src);
   s32 first = -1;
   s32 count = 0;
-  s32 i, j;
-  j = 0;
-  for (i = 0; i < len; i++)
+  for (s32 i = 0, j = 0; i < len; i++)
   {
     if (src[i] == '(')
     {

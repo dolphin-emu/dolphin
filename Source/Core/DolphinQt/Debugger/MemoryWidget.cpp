@@ -576,13 +576,12 @@ void MemoryWidget::ValidateAndPreviewInputValue()
 
   if (!bytes.empty())
   {
-    QString hex_string;
     std::string s;
 
     for (const u8 c : bytes)
       s.append(fmt::format("{:02x}", c));
 
-    hex_string = QString::fromStdString(s);
+    QString hex_string = QString::fromStdString(s);
     int output_length = hex_string.length();
 
     if (output_length > 16)

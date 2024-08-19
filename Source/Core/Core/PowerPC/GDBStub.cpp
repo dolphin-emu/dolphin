@@ -364,24 +364,21 @@ static void HandleIsThreadAlive()
 
 static void wbe32hex(u8* p, u32 v)
 {
-  u32 i;
-  for (i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
     p[i] = Nibble2hex(v >> (28 - 4 * i));
 }
 
 static void wbe64hex(u8* p, u64 v)
 {
-  u32 i;
-  for (i = 0; i < 16; i++)
+  for (u32 i = 0; i < 16; i++)
     p[i] = Nibble2hex(v >> (60 - 4 * i));
 }
 
 static u32 re32hex(u8* p)
 {
-  u32 i;
   u32 res = 0;
 
-  for (i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
     res = (res << 4) | Hex2char(p[i]);
 
   return res;
@@ -389,10 +386,9 @@ static u32 re32hex(u8* p)
 
 static u64 re64hex(u8* p)
 {
-  u32 i;
   u64 res = 0;
 
-  for (i = 0; i < 16; i++)
+  for (u32 i = 0; i < 16; i++)
     res = (res << 4) | Hex2char(p[i]);
 
   return res;
@@ -404,10 +400,9 @@ static void ReadRegister()
   auto& ppc_state = system.GetPPCState();
 
   static u8 reply[64];
-  u32 id;
 
   memset(reply, 0, sizeof reply);
-  id = Hex2char(s_cmd_bfr[1]);
+  u32 id = Hex2char(s_cmd_bfr[1]);
   if (s_cmd_bfr[2] != '\0')
   {
     id <<= 4;
@@ -588,11 +583,10 @@ static void ReadRegisters()
 
   static u8 bfr[GDB_BFR_MAX - 4];
   u8* bufptr = bfr;
-  u32 i;
 
   memset(bfr, 0, sizeof bfr);
 
-  for (i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; i++)
   {
     wbe32hex(bufptr + i * 8, ppc_state.gpr[i]);
   }
@@ -606,10 +600,9 @@ static void WriteRegisters()
   auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
-  u32 i;
   u8* bufptr = s_cmd_bfr;
 
-  for (i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; i++)
   {
     ppc_state.gpr[i] = re32hex(bufptr + i * 8);
   }
@@ -623,11 +616,9 @@ static void WriteRegister()
   auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
-  u32 id;
-
   u8* bufptr = s_cmd_bfr + 3;
 
-  id = Hex2char(s_cmd_bfr[1]);
+  u32 id = Hex2char(s_cmd_bfr[1]);
   if (s_cmd_bfr[2] != '=')
   {
     ++bufptr;
@@ -808,16 +799,14 @@ static void WriteRegister()
 static void ReadMemory(const Core::CPUThreadGuard& guard)
 {
   static u8 reply[GDB_BFR_MAX - 4];
-  u32 addr, len;
-  u32 i;
 
-  i = 1;
-  addr = 0;
+  u32 i = 1;
+  u32 addr = 0;
   while (s_cmd_bfr[i] != ',')
     addr = (addr << 4) | Hex2char(s_cmd_bfr[i++]);
   i++;
 
-  len = 0;
+  u32 len = 0;
   while (i < s_cmd_len)
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: read memory: {:08x} bytes from {:08x}", len, addr);
@@ -838,16 +827,13 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
 
 static void WriteMemory(const Core::CPUThreadGuard& guard)
 {
-  u32 addr, len;
-  u32 i;
-
-  i = 1;
-  addr = 0;
+  u32 i = 1;
+  u32 addr = 0;
   while (s_cmd_bfr[i] != ',')
     addr = (addr << 4) | Hex2char(s_cmd_bfr[i++]);
   i++;
 
-  len = 0;
+  u32 len = 0;
   while (s_cmd_bfr[i] != ':')
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
@@ -901,14 +887,13 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
 
 static void HandleAddBreakpoint()
 {
-  u32 type;
-  u32 i, addr = 0, len = 0;
+  u32 addr = 0, len = 0;
 
-  type = Hex2char(s_cmd_bfr[1]);
+  u32 type = Hex2char(s_cmd_bfr[1]);
   if (type > NUM_BREAKPOINT_TYPES)
     return SendReply("E01");
 
-  i = 3;
+  u32 i = 3;
   while (s_cmd_bfr[i] != ',')
     addr = addr << 4 | Hex2char(s_cmd_bfr[i++]);
   i++;
@@ -923,16 +908,14 @@ static void HandleAddBreakpoint()
 
 static void HandleRemoveBreakpoint()
 {
-  u32 type, addr, len, i;
-
-  type = Hex2char(s_cmd_bfr[1]);
+  u32 type = Hex2char(s_cmd_bfr[1]);
   if (type > NUM_BREAKPOINT_TYPES)
     return SendReply("E01");
 
-  addr = 0;
-  len = 0;
+  u32 addr = 0;
+  u32 len = 0;
 
-  i = 3;
+  u32 i = 3;
   while (s_cmd_bfr[i] != ',')
     addr = (addr << 4) | Hex2char(s_cmd_bfr[i++]);
   i++;

@@ -341,7 +341,6 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
-  sf::IpAddress target;
   StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
                                            std::bit_cast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
@@ -395,7 +394,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->ready = false;
     ref->ip = std::bit_cast<u32>(ip_header.destination_addr);
 
-    target = sf::IpAddress(ntohl(destination_ip));
+    sf::IpAddress target = sf::IpAddress(ntohl(destination_ip));
     ref->tcp_socket.Connect(target, ntohs(tcp_header.destination_port), m_current_ip);
   }
   else
