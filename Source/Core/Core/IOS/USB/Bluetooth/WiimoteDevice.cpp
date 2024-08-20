@@ -531,7 +531,7 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
   DEBUG_LOG_FMT(IOS_WIIMOTE, "    PSM: {:#06x}", command_connection_req->psm);
   DEBUG_LOG_FMT(IOS_WIIMOTE, "    SCID: {:#06x}", command_connection_req->scid);
 
-  l2cap_con_rsp_cp rsp = {};
+  l2cap_con_rsp_cp rsp;
   rsp.scid = command_connection_req->scid;
   rsp.status = L2CAP_NO_INFO;
 

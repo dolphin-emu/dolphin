@@ -84,7 +84,7 @@ Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
 
 void Turntable::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  DataFormat tt_data = {};
+  DataFormat tt_data;
 
   // stick
   {

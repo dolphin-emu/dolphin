@@ -274,7 +274,7 @@ IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   auto& memory = system.GetMemory();
 
   const bool has_tmd = request.in_vectors[0].size != 0;
-  size_t tmd_view_size = 0;
+  size_t tmd_view_size;
 
   if (has_tmd)
   {

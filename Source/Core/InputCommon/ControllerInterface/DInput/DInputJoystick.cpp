@@ -224,7 +224,7 @@ bool Joystick::IsValid() const
 
 Core::DeviceRemoval Joystick::UpdateInput()
 {
-  HRESULT hr = 0;
+  HRESULT hr;
 
   // just always poll,
   // MSDN says if this isn't needed it doesn't do anything

@@ -167,7 +167,7 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
 
 u32 CEXIAgp::ImmRead(u32 _uSize)
 {
-  u32 uData = 0;
+  u32 uData;
   u8 RomVal1, RomVal2, RomVal3, RomVal4;
 
   switch (m_current_cmd)

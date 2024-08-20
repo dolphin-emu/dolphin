@@ -157,7 +157,7 @@ void SystemTimersManager::PatchEngineCallback(Core::System& system, u64 userdata
   // We have to carefully combine these together so that we stay on the VI period without drifting.
   u32 vi_interval = system.GetVideoInterface().GetTicksPerField();
   s64 cycles_pruned = (userdata + cycles_late) % vi_interval;
-  s64 next_schedule = 0;
+  s64 next_schedule;
 
   // Try to patch mem and run the Action Replay
   if (PatchEngine::ApplyFramePatches(system))

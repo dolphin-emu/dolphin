@@ -777,7 +777,7 @@ static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& add
   LogInfo("Size: {:08x}", addr.size);
   LogInfo("Hardware Address: {:08x}", new_addr);
 
-  bool result = true;
+  bool result;
 
   switch (addr.size)
   {

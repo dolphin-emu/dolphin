@@ -57,7 +57,7 @@ PlatformWin32::~PlatformWin32()
 
 bool PlatformWin32::RegisterRenderWindowClass()
 {
-  WNDCLASSEX wc = {};
+  WNDCLASSEX wc;
   wc.cbSize = sizeof(WNDCLASSEX);
   wc.style = 0;
   wc.lpfnWndProc = WndProc;

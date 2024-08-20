@@ -118,9 +118,7 @@ static VFile* OpenROM_Zip(const char* path)
 
 static VFile* OpenROM(const char* rom_path)
 {
-  VFile* vf{};
-
-  vf = OpenROM_Archive(rom_path);
+  VFile* vf = OpenROM_Archive(rom_path);
   if (!vf)
     vf = OpenROM_Zip(rom_path);
   if (!vf)

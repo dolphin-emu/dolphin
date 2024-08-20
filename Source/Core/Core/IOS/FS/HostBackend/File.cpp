@@ -169,7 +169,7 @@ Result<u32> HostFileSystem::SeekFile(Fd fd, std::uint32_t offset, SeekMode mode)
   if (!handle || !handle->host_file->IsOpen())
     return ResultCode::Invalid;
 
-  u32 new_position = 0;
+  u32 new_position;
   switch (mode)
   {
   case SeekMode::Set:

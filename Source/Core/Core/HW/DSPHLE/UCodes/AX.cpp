@@ -531,7 +531,7 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
   }
 
   const u32 frame_byte_size = 32 * millis * sizeof(s16);
-  u32 table_offset = 0;
+  u32 table_offset;
   if (triggered)
   {
     // one attack frame based on previous frame

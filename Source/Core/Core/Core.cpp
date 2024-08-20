@@ -998,7 +998,7 @@ void QueueHostJob(std::function<void(Core::System&)> job, bool run_during_stop)
   if (!job)
     return;
 
-  bool send_message = false;
+  bool send_message;
   {
     std::lock_guard guard(s_host_jobs_lock);
     send_message = s_host_jobs_queue.empty();

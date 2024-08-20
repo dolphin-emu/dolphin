@@ -401,7 +401,7 @@ void CEXIIPL::TransferByte(u8& data)
 
 u32 CEXIIPL::GetEmulatedTime(Core::System& system, u32 epoch)
 {
-  u64 ltime = 0;
+  u64 ltime;
 
   auto& movie = system.GetMovie();
   if (movie.IsMovieActive())

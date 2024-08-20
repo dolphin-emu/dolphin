@@ -124,7 +124,7 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
                                 enable_validation_layer))
     return VK_NULL_HANDLE;
 
-  VkApplicationInfo app_info = {};
+  VkApplicationInfo app_info;
   app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   app_info.pNext = nullptr;
   app_info.pApplicationName = "Dolphin Emulator";
@@ -159,7 +159,7 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
 
   *out_vk_api_version = app_info.apiVersion;
 
-  VkInstanceCreateInfo instance_create_info = {};
+  VkInstanceCreateInfo instance_create_info;
   instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   instance_create_info.pNext = nullptr;
   instance_create_info.flags = 0;
@@ -701,13 +701,13 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
     return false;
   }
 
-  VkDeviceCreateInfo device_info = {};
+  VkDeviceCreateInfo device_info;
   device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   device_info.pNext = nullptr;
   device_info.flags = 0;
 
   static constexpr float queue_priorities[] = {1.0f};
-  VkDeviceQueueCreateInfo graphics_queue_info = {};
+  VkDeviceQueueCreateInfo graphics_queue_info;
   graphics_queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   graphics_queue_info.pNext = nullptr;
   graphics_queue_info.flags = 0;
@@ -715,7 +715,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   graphics_queue_info.queueCount = 1;
   graphics_queue_info.pQueuePriorities = queue_priorities;
 
-  VkDeviceQueueCreateInfo present_queue_info = {};
+  VkDeviceQueueCreateInfo present_queue_info;
   present_queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   present_queue_info.pNext = nullptr;
   present_queue_info.flags = 0;
@@ -784,7 +784,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
 
 bool VulkanContext::CreateAllocator(u32 vk_api_version)
 {
-  VmaAllocatorCreateInfo allocator_info = {};
+  VmaAllocatorCreateInfo allocator_info;
   allocator_info.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
   allocator_info.physicalDevice = m_physical_device;
   allocator_info.device = m_device;
@@ -1012,7 +1012,7 @@ bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkS
     return false;
   }
 
-  VkPhysicalDeviceSurfaceInfo2KHR si = {};
+  VkPhysicalDeviceSurfaceInfo2KHR si;
   si.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
   si.surface = surface;
 

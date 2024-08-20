@@ -91,7 +91,7 @@ void PatchesWidget::OnAdd()
   PatchEngine::Patch patch;
   patch.user_defined = true;
 
-  bool new_patch_confirmed = false;
+  bool new_patch_confirmed;
   {
     NewPatchDialog dialog(this, patch);
     SetQWidgetWindowDecorations(&dialog);
@@ -121,7 +121,7 @@ void PatchesWidget::OnEdit()
     patch.name = tr("%1 (Copy)").arg(QString::fromStdString(patch.name)).toStdString();
   }
 
-  bool new_patch_confirmed = false;
+  bool new_patch_confirmed;
   {
     NewPatchDialog dialog(this, patch);
     SetQWidgetWindowDecorations(&dialog);

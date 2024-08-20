@@ -91,7 +91,7 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
 
 bool DXTexture::CreateSRV()
 {
-  D3D_SRV_DIMENSION dimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+  D3D_SRV_DIMENSION dimension;
   if (m_config.type == AbstractTextureType::Texture_2DArray)
   {
     if (m_config.IsMultisampled())

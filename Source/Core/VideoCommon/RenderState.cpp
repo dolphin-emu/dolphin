@@ -326,7 +326,7 @@ RasterizationState GetInvalidRasterizationState()
 
 RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
 {
-  RasterizationState state = {};
+  RasterizationState state;
   state.cullmode = CullMode::None;
   state.primitive = primitive;
   return state;
@@ -334,7 +334,7 @@ RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
 
 RasterizationState GetCullBackFaceRasterizationState(PrimitiveType primitive)
 {
-  RasterizationState state = {};
+  RasterizationState state;
   state.cullmode = CullMode::Back;
   state.primitive = primitive;
   return state;
@@ -349,7 +349,7 @@ DepthState GetInvalidDepthState()
 
 DepthState GetNoDepthTestingDepthState()
 {
-  DepthState state = {};
+  DepthState state;
   state.testenable = false;
   state.updateenable = false;
   state.func = CompareMode::Always;
@@ -358,7 +358,7 @@ DepthState GetNoDepthTestingDepthState()
 
 DepthState GetAlwaysWriteDepthState()
 {
-  DepthState state = {};
+  DepthState state;
   state.testenable = true;
   state.updateenable = true;
   state.func = CompareMode::Always;
@@ -446,7 +446,7 @@ SamplerState GetLinearSamplerState()
 
 FramebufferState GetColorFramebufferState(AbstractTextureFormat format)
 {
-  FramebufferState state = {};
+  FramebufferState state;
   state.color_texture_format = format;
   state.depth_texture_format = AbstractTextureFormat::Undefined;
   state.per_sample_shading = false;

@@ -546,7 +546,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   }
 
   // Import the ticket.
-  IOS::HLE::ReturnCode ret = IOS::HLE::IPC_SUCCESS;
+  IOS::HLE::ReturnCode ret;
   auto& es = m_ios.GetESCore();
   if ((ret = es.ImportTicket(ticket.first, ticket.second)) < 0)
   {

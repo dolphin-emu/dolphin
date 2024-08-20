@@ -257,7 +257,7 @@ static std::vector<std::string> GetAssemblerFiles(const std::string& source)
 {
   std::vector<std::string> files;
   std::size_t last_pos = 0;
-  std::size_t pos = 0;
+  std::size_t pos;
 
   while ((pos = source.find('\n', last_pos)) != std::string::npos)
   {

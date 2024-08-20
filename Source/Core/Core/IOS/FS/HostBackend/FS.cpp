@@ -714,7 +714,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
 
 Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string& path)
 {
-  const FstEntry* entry = nullptr;
+  const FstEntry* entry;
   if (path == "/")
   {
     entry = &m_root_entry;
@@ -792,7 +792,7 @@ Result<NandStats> HostFileSystem::GetNandStats()
   if (!root_stats)
     return root_stats.Error();  // TODO: is this right? can this fail on hardware?
 
-  NandStats stats{};
+  NandStats stats;
   stats.cluster_size = CLUSTER_SIZE;
   stats.free_clusters = USABLE_CLUSTERS - root_stats->used_clusters;
   stats.used_clusters = root_stats->used_clusters;
@@ -810,7 +810,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
   if (!result)
     return result.Error();
 
-  DirectoryStats stats{};
+  DirectoryStats stats;
   stats.used_inodes = static_cast<u32>(std::min<u64>(result->used_inodes, TOTAL_INODES));
   stats.used_clusters = static_cast<u32>(std::min<u64>(result->used_clusters, USABLE_CLUSTERS));
   return stats;
@@ -822,7 +822,7 @@ HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
   if (!IsValidPath(wii_path))
     return ResultCode::Invalid;
 
-  ExtendedDirectoryStats stats{};
+  ExtendedDirectoryStats stats;
   std::string path(BuildFilename(wii_path).host_path);
   File::FileInfo info(path);
   if (!info.Exists())

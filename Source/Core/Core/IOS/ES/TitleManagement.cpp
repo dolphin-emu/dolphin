@@ -238,7 +238,7 @@ ReturnCode ESCore::ImportTitleInit(Context& context, const std::vector<u8>& tmd_
   // Finish a previous import (if it exists).
   FinishStaleImport(context.title_import_export.tmd.GetTitleId());
 
-  ReturnCode ret = IPC_SUCCESS;
+  ReturnCode ret;
 
   if (verify_signature != VerifySignature::No)
   {

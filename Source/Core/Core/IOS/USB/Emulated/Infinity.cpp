@@ -496,7 +496,7 @@ void InfinityBase::QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_bu
   reply_buf[1] = 0x12;
   reply_buf[2] = sequence;
   reply_buf[3] = 0x00;
-  u8 file_block = 0;
+  u8 file_block;
   if (block == 0)
   {
     file_block = 1;
@@ -523,7 +523,7 @@ void InfinityBase::WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf,
   reply_buf[1] = 0x02;
   reply_buf[2] = sequence;
   reply_buf[3] = 0x00;
-  u8 file_block = 0;
+  u8 file_block;
   if (block == 0)
   {
     file_block = 1;

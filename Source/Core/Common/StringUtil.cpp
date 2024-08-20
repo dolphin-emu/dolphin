@@ -386,7 +386,7 @@ std::string TabsToSpaces(int tab_size, std::string str)
 {
   const std::string spaces(tab_size, ' ');
 
-  size_t i = 0;
+  size_t i;
   while (str.npos != (i = str.find('\t')))
     str.replace(i, 1, spaces);
 

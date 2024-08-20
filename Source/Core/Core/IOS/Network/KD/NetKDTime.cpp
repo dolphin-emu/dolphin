@@ -35,7 +35,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   s32 result = 0;
   u32 common_result = 0;
   // TODO Writes stuff to /shared2/nwc24/misc.bin
-  u32 update_misc = 0;
+  u32 update_misc;
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

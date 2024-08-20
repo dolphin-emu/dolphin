@@ -591,7 +591,7 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
     const RasterizationState& rasterization_state, const DepthState& depth_state,
     const BlendingState& blending_state, AbstractPipelineUsage usage)
 {
-  AbstractPipelineConfig config = {};
+  AbstractPipelineConfig config;
   config.usage = usage;
   config.vertex_format = vertex_format;
   config.vertex_shader = vertex_shader;
@@ -1404,7 +1404,7 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
     return nullptr;
   }
 
-  AbstractPipelineConfig config = {};
+  AbstractPipelineConfig config;
   config.vertex_format = nullptr;
   config.vertex_shader = m_efb_copy_vertex_shader.get();
   config.geometry_shader =

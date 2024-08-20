@@ -47,7 +47,7 @@ HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequ
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  auto ret = 0;
+  int ret;
   std::array<u8, 20> output_hash{};
   mbedtls_sha1_context context;
   ShaDevice::ShaContext engine_context;

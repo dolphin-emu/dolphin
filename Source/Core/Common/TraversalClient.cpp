@@ -222,7 +222,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
   }
   if (packet->type != TraversalPacketType::Ack)
   {
-    TraversalPacket ack = {};
+    TraversalPacket ack;
     ack.type = TraversalPacketType::Ack;
     ack.requestId = packet->requestId;
     ack.ack.ok = ok;
@@ -312,7 +312,7 @@ void TraversalClient::NewTraversalTest()
   }
   enet_socket_set_option(m_TestSocket, ENET_SOCKOPT_NONBLOCK, 1);
   // create holepunch packet
-  TraversalPacket packet = {};
+  TraversalPacket packet;
   packet.type = TraversalPacketType::Ping;
   packet.ping.hostId = m_HostId;
   packet.requestId = Common::Random::GenerateValue<TraversalRequestId>();

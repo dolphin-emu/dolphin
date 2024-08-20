@@ -166,7 +166,7 @@ TextureConfig FramebufferManager::GetEFBDepthTextureConfig(u32 width, u32 height
 
 FramebufferState FramebufferManager::GetEFBFramebufferState() const
 {
-  FramebufferState ret = {};
+  FramebufferState ret;
   ret.color_texture_format = m_efb_color_texture->GetFormat();
   ret.depth_texture_format = m_efb_depth_texture->GetFormat();
   ret.per_sample_shading = IsEFBMultisampled() && g_ActiveConfig.bSSAA;

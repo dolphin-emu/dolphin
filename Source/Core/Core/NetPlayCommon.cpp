@@ -40,8 +40,8 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
   lzo_uint i = 0;
   while (true)
   {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint out_len = 0;    // number of bytes to write
+    lzo_uint32 cur_len;   // number of bytes to read
+    lzo_uint out_len = 0; // number of bytes to write
 
     if ((i + LZO_IN_LEN) >= size)
     {
@@ -130,8 +130,8 @@ bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& pack
   lzo_uint i = 0;
   while (true)
   {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint out_len = 0;    // number of bytes to write
+    lzo_uint32 cur_len;    // number of bytes to read
+    lzo_uint out_len = 0;  // number of bytes to write
 
     if ((i + LZO_IN_LEN) >= size)
     {

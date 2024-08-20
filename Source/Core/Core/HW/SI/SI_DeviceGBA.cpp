@@ -148,7 +148,7 @@ void GBASockServer::ClockSync(Core::System& system)
 
   auto& core_timing = system.GetCoreTiming();
 
-  u32 time_slice = 0;
+  u32 time_slice;
 
   if (m_last_time_slice == 0)
   {

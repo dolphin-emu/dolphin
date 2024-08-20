@@ -137,12 +137,11 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
     return false;
 
   u64 remain = size;
-  u64 block = 0;
   u32 position_in_block = static_cast<u32>(offset % m_block_size);
 
   while (remain > 0)
   {
-    block = offset / m_block_size;
+    u64 block = offset / m_block_size;
 
     const Cache* cache = GetCacheLine(block);
     if (!cache)

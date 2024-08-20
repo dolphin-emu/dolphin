@@ -96,11 +96,11 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   eff.dwStartDelay = 0;
 
   // Initialize parameters with zero force (their current state).
-  DICONSTANTFORCE diCF{};
+  DICONSTANTFORCE diCF;
   diCF.lMagnitude = 0;
-  DIRAMPFORCE diRF{};
+  DIRAMPFORCE diRF;
   diRF.lStart = diRF.lEnd = 0;
-  DIPERIODIC diPE{};
+  DIPERIODIC diPE;
   diPE.dwMagnitude = 0;
   diPE.lOffset = 0;
   diPE.dwPhase = 0;

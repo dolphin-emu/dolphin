@@ -218,7 +218,7 @@ void InitDriverInfo()
 bool PopulateConfig(GLContext* m_main_gl_context)
 {
   bool bSuccess = true;
-  bool supports_glsl_cache = false;
+  bool supports_glsl_cache;
 
   g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
   g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);

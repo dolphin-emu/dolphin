@@ -206,7 +206,7 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_
       if (bRelocate)
         value += sectionAddrs[sectionIndex];
 
-      auto symtype = Common::Symbol::Type::Data;
+      Common::Symbol::Type symtype;
       switch (type)
       {
       case STT_OBJECT:

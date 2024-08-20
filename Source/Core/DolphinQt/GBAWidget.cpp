@@ -531,7 +531,7 @@ void GBAWidget::paintEvent(QPaintEvent* event)
   painter.fillRect(QRect(QPoint(), size()), Qt::black);
 
   const QRect src_rect(0, 0, m_core_info.width, m_core_info.height);
-  QRect target_rect{};
+  QRect target_rect;
   if (size() == QSize(m_core_info.width, m_core_info.height))
   {
     target_rect = QRect(0, 0, m_core_info.width, m_core_info.height);

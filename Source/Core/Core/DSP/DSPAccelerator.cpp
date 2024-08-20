@@ -64,7 +64,7 @@ u16 Accelerator::Read(const s16* coefs)
     return 0x0000;
 
   u16 val;
-  u8 step_size_bytes = 0;
+  u8 step_size_bytes;
 
   // let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
   // ucode seems to indicate that the bottom two bits specify the "read size"

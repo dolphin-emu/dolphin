@@ -236,8 +236,7 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
 u32 CSIDevice_GCController::MapPadStatus(const GCPadStatus& pad_status)
 {
   // Thankfully changing mode does not change the high bits ;)
-  u32 hi = 0;
-  hi = pad_status.stickY;
+  u32 hi = pad_status.stickY;
   hi |= pad_status.stickX << 8;
   hi |= (pad_status.button | PAD_USE_ORIGIN) << 16;
   return hi;

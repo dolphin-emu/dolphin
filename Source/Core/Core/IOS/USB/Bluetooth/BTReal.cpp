@@ -464,12 +464,12 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
       (sizeof(bdaddr_t) + sizeof(linkkey_t)) * static_cast<u8>(m_link_keys.size());
   std::vector<u8> packet(sizeof(hci_cmd_hdr_t) + payload_size);
 
-  hci_cmd_hdr_t header{};
+  hci_cmd_hdr_t header;
   header.opcode = HCI_CMD_WRITE_STORED_LINK_KEY;
   header.length = payload_size;
   std::memcpy(packet.data(), &header, sizeof(header));
 
-  hci_write_stored_link_key_cp command{};
+  hci_write_stored_link_key_cp command;
   command.num_keys_write = static_cast<u8>(m_link_keys.size());
   std::memcpy(packet.data() + sizeof(hci_cmd_hdr_t), &command, sizeof(command));
 

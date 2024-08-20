@@ -493,7 +493,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
   auto& memory = m_system.GetMemory();
-  u8* mem = nullptr;
+  u8* mem;
 
   if (memUpdate.address & 0x10000000)
     mem = &memory.GetEXRAM()[memUpdate.address & memory.GetExRamMask()];

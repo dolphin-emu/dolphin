@@ -305,7 +305,7 @@ static QString UpdateTrackFromIndex(int index)
 
 static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
 {
-  DiscIO::Region value = DiscIO::Region::Unknown;
+  DiscIO::Region value;
 
   switch (index)
   {

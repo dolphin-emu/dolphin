@@ -385,7 +385,7 @@ void Interpreter::addr(const UDSPInstruction opc)
   const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
   const s64 acc = GetLongAcc(dreg);
-  s64 ax = 0;
+  s64 ax;
 
   switch (sreg)
   {
@@ -579,7 +579,7 @@ void Interpreter::subr(const UDSPInstruction opc)
   const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
   const s64 acc = GetLongAcc(dreg);
-  s64 ax = 0;
+  s64 ax;
 
   switch (sreg)
   {
@@ -758,7 +758,7 @@ void Interpreter::movr(const UDSPInstruction opc)
   const u8 areg = (opc >> 8) & 0x1;
   const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
-  s64 ax = 0;
+  s64 ax;
   switch (sreg)
   {
   case DSP_REG_AXL0:

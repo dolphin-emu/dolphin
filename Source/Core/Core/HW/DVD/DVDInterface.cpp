@@ -203,7 +203,7 @@ void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
   constexpr u32 MAX_POSSIBLE_SAMPLES = MAX_POSSIBLE_BLOCKS * StreamADPCM::SAMPLES_PER_BLOCK;
   const u32 maximum_blocks = sample_rate == AudioInterface::SampleRate::AI32KHz ? 4 : 6;
   u64 read_offset = 0;
-  u32 read_length = 0;
+  u32 read_length;
 
   if (interrupt_type == DIInterruptType::TCINT)
   {

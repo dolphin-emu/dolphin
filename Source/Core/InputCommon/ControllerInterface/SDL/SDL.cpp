@@ -400,7 +400,7 @@ static void EnableSDLLogging()
           break;
         }
 
-        auto log_level = Common::Log::LogLevel::LNOTICE;
+        Common::Log::LogLevel log_level;
         switch (priority)
         {
         case SDL_LOG_PRIORITY_VERBOSE:

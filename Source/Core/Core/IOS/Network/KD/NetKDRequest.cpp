@@ -109,7 +109,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
                (u64{id_ctr} << 10);
   const u64 mix_id_copy1 = mix_id;
 
-  u32 ctr = 0;
+  u32 ctr;
   for (ctr = 0; ctr <= 42; ctr++)
   {
     u64 value = mix_id >> (52 - ctr);

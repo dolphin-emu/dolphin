@@ -137,7 +137,7 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
 static VkPipelineColorBlendAttachmentState
 GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage usage)
 {
-  VkPipelineColorBlendAttachmentState vk_state = {};
+  VkPipelineColorBlendAttachmentState vk_state;
 
   bool use_dual_source = state.usedualsrc;
 

@@ -1035,7 +1035,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
     ERROR_LOG_FMT(IOS_USB, "Skylander command invalid");
     return IPC_EINVAL;
   }
-  std::array<u8, 64> interrupt_response = {};
+  std::array<u8, 64> interrupt_response;
   s32 expected_count;
   u64 expected_time_us;
   // Audio requests are 64 bytes long, are the only Interrupt requests longer than 32 bytes,

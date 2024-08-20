@@ -54,7 +54,7 @@ bool D3DBoundingBox::Initialize()
   D3DCommon::SetDebugObjectName(m_staging_buffer.Get(), "BoundingBox Staging Buffer");
 
   // UAV is required to allow concurrent access.
-  D3D11_UNORDERED_ACCESS_VIEW_DESC UAVdesc = {};
+  D3D11_UNORDERED_ACCESS_VIEW_DESC UAVdesc;
   UAVdesc.Format = DXGI_FORMAT_R32_TYPELESS;
   UAVdesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
   UAVdesc.Buffer.FirstElement = 0;

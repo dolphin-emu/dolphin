@@ -212,7 +212,7 @@ s32 WiiSocket::Shutdown(u32 how)
 
 s32 WiiSocket::CloseFd()
 {
-  s32 ReturnValue = 0;
+  s32 ReturnValue;
   if (fd >= 0)
   {
     s32 ret = closesocket(fd);

@@ -109,7 +109,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
       tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
 
-  VkImageViewType image_view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+  VkImageViewType image_view_type;
   if (tex_config.type == AbstractTextureType::Texture_CubeMap)
   {
     image_view_type = VK_IMAGE_VIEW_TYPE_CUBE;
@@ -851,7 +851,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
-  VkBufferImageCopy image_copy = {};
+  VkBufferImageCopy image_copy;
   const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(src_tex->GetFormat());
   image_copy.bufferOffset =
       static_cast<VkDeviceSize>(static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
@@ -953,7 +953,7 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
-  VkBufferImageCopy image_copy = {};
+  VkBufferImageCopy image_copy;
   image_copy.bufferOffset =
       static_cast<VkDeviceSize>(static_cast<size_t>(src_rect.top) * m_config.GetStride() +
                                 static_cast<size_t>(src_rect.left) * m_texel_size);
