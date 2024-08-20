@@ -760,8 +760,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     p.Do(hash);
     p.Do(id);
 
-    auto& entry = GetEntry(id);
-    if (entry)
+    if (auto& entry = GetEntry(id))
       entry->textures_by_hash_iter = m_textures_by_hash.emplace(hash, entry);
   }
 
@@ -778,8 +777,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     p.Do(index);
     p.Do(id);
 
-    auto& entry = GetEntry(id);
-    if (entry)
+    if (auto& entry = GetEntry(id))
       m_bound_textures[index] = entry;
   }
 }
@@ -869,15 +867,13 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
             continue;
           }
 
-          auto reinterpreted_entry = ReinterpretEntry(entry, entry_to_update->format.texfmt);
-          if (reinterpreted_entry)
+          if (auto reinterpreted_entry = ReinterpretEntry(entry, entry_to_update->format.texfmt))
             entry = reinterpreted_entry;
         }
 
         if (isPaletteTexture)
         {
-          auto decoded_entry = ApplyPaletteToEntry(entry, palette, tlutfmt);
-          if (decoded_entry)
+          if (auto decoded_entry = ApplyPaletteToEntry(entry, palette, tlutfmt))
           {
             // Link the efb copy with the partially updated texture, so we won't apply this partial
             // update again
@@ -1599,11 +1595,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     u32 width = texture_info.GetRawWidth();
     if (hires_texture)
     {
-      auto asset = hires_texture->GetAsset();
-      if (asset)
+      if (auto asset = hires_texture->GetAsset())
       {
-        auto data = asset->GetData();
-        if (data)
+        if (auto data = asset->GetData())
         {
           if (!data->m_texture.m_slices.empty())
           {
@@ -1628,8 +1622,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   data_for_assets.reserve(cached_game_assets.size());
   for (auto& cached_asset : cached_game_assets)
   {
-    auto data = cached_asset.m_asset->GetData();
-    if (data)
+    if (auto data = cached_asset.m_asset->GetData())
     {
       if (cached_asset.m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
       {

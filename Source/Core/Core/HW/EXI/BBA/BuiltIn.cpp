@@ -249,12 +249,12 @@ std::optional<std::vector<u8>>
 CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
   std::size_t datasize = 0;  // Set by socket.receive using a non-const reference
-  unsigned short remote_port;
 
   switch (ref->type)
   {
   case IPPROTO_UDP:
   {
+    unsigned short remote_port;
     std::array<u8, MAX_UDP_LENGTH> buffer;
     ref->udp_socket.receive(buffer.data(), MAX_UDP_LENGTH, datasize, ref->target, remote_port);
     if (datasize > 0)
@@ -341,7 +341,6 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
-  sf::IpAddress target;
   StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
                                            std::bit_cast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
@@ -369,6 +368,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
   }
   else if (flags & TCP_FLAG_SIN)
   {
+    sf::IpAddress target;
     // new connection
     if (ref != nullptr)
       return;

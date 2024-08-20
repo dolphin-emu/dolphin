@@ -20,7 +20,6 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
   // OR-mask for disabling FPU exceptions (bits 7-12 in the MXCSR register)
   const u32 EXCEPTION_MASK = 0x1F80;
   // Flush-To-Zero (non-IEEE mode: denormal outputs are set to +/- 0)
-  const u32 FTZ = 0x8000;
   // lookup table for FPSCR.RN-to-MXCSR.RC translation
   static const u32 simd_rounding_table[] = {
       (0 << 13) | EXCEPTION_MASK,  // nearest
@@ -32,6 +31,7 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
 
   if (non_ieee_mode)
   {
+    const u32 FTZ = 0x8000;
     csr |= FTZ;
   }
   _mm_setcsr(csr);

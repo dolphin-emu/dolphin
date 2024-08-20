@@ -325,12 +325,11 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
     if (child.NameCaseInsensitiveEquals(name))
     {
       // A match is found. The rest of the path is passed on to finish the search.
-      std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child);
-
-      // If the search wasn't successful, the loop continues, just in case there's a second
-      // file info that matches searching_for (which probably won't happen in practice)
-      if (result)
+      if (std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child))
         return result;
+
+      // The search wasn't successful, the loop continues, just in case there's a second
+      // file info that matches searching_for (which probably won't happen in practice)
     }
   }
 

@@ -449,11 +449,11 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
   }
 
   HashBlock hashes;
-  u8 cluster_data_buffer[BLOCK_DATA_SIZE];
   const u8* cluster_data;
 
   if (m_has_encryption)
   {
+    u8 cluster_data_buffer[BLOCK_DATA_SIZE];
     Common::AES::Context* aes_context = partition_details.key->get();
     if (!aes_context)
       return false;

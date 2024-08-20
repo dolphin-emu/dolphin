@@ -27,10 +27,9 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
   ISIDevice::RunBuffer(buffer, request_length);
 
   // Read the command
-  const auto command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
-  switch (command)
+  switch (const auto command = static_cast<EBufferCommands>(buffer[0]))
   {
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:

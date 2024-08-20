@@ -279,8 +279,7 @@ static void WriteThreadFunc()
   {
     s_write_happened.Wait();
 
-    const int write_size = s_controller_write_payload_size.load();
-    if (write_size)
+    if (const int write_size = s_controller_write_payload_size.load())
     {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
       const int error =
@@ -953,10 +952,10 @@ void Output(int chan, u8 rumble_command)
       s_port_states[chan].controller_type != ControllerType::Wireless)
   {
     s_controller_rumble[chan] = rumble_command;
-    std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
-        0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
-        s_controller_rumble[3]};
     {
+      std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
+          0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
+          s_controller_rumble[3]};
 #if GCADAPTER_USE_ANDROID_IMPLEMENTATION
       std::lock_guard lk(s_write_mutex);
 #endif

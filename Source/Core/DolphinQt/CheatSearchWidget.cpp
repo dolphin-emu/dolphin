@@ -90,8 +90,7 @@ void CheatSearchWidget::CreateWidgets()
   QLabel* session_info_label = new QLabel();
   {
     QString ranges;
-    size_t range_count = m_session->GetMemoryRangeCount();
-    switch (range_count)
+    switch (size_t range_count = m_session->GetMemoryRangeCount())
     {
     case 1:
     {
@@ -460,9 +459,8 @@ void CheatSearchWidget::OnResetClicked()
 void CheatSearchWidget::OnAddressTableItemChanged(QTableWidgetItem* item)
 {
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
-  const int column = item->column();
 
-  switch (column)
+  switch (item->column())
   {
   case ADDRESS_TABLE_COLUMN_INDEX_DESCRIPTION:
   {
@@ -537,8 +535,7 @@ void CheatSearchWidget::GenerateARCodes()
   for (auto* const item : m_address_table->selectedItems())
   {
     const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
-    auto result = Cheats::GenerateActionReplayCode(*m_session, index);
-    if (result)
+    if (auto result = Cheats::GenerateActionReplayCode(*m_session, index))
     {
       emit ActionReplayCodeGenerated(*result);
       had_success = true;

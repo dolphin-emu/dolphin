@@ -236,7 +236,6 @@ void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupTyp
   const u32 mem1_physical_size = memory.GetRamSizeReal();
   const u32 mem1_simulated_size = memory.GetRamSizeReal();
   const u32 mem1_end = Memory::MEM1_BASE_ADDR + mem1_simulated_size;
-  const u32 mem1_arena_begin = 0;
   const u32 mem1_arena_end = mem1_end;
   const u32 mem2_physical_size = memory.GetExRamSizeReal();
   const u32 mem2_simulated_size = memory.GetExRamSizeReal();
@@ -250,6 +249,7 @@ void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupTyp
 
   if (setup_type == MemorySetupType::Full)
   {
+    const u32 mem1_arena_begin = 0;
     // Overwriting these after the game's apploader sets them would be bad
     memory.Write_U32(mem1_physical_size, ADDR_MEM1_SIZE);
     memory.Write_U32(mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
@@ -957,8 +957,7 @@ void Init(Core::System& system)
 
   s_event_enqueue =
       core_timing.RegisterEvent("IPCEvent", [](Core::System& system_, u64 userdata, s64) {
-        auto* ios = system_.GetIOS();
-        if (ios)
+        if (auto* ios = system_.GetIOS())
           ios->HandleIPCEvent(userdata);
       });
 

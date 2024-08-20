@@ -87,8 +87,7 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
     return std::nullopt;
   const std::string default_root = wiidisc.attribute("root").as_string();
 
-  const auto id = wiidisc.child("id");
-  if (id)
+  if (const auto id = wiidisc.child("id"))
   {
     for (const auto& attribute : id.attributes())
     {
@@ -113,8 +112,7 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
     }
   }
 
-  const auto options = wiidisc.child("options");
-  if (options)
+  if (const auto options = wiidisc.child("options"))
   {
     for (const auto& section_node : options.children("section"))
     {

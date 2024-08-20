@@ -168,11 +168,9 @@ u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition
       biggest_offset = std::max(biggest_offset, offset);
     }
 
-    const std::optional<u64> dol_offset = GetBootDOLOffset(volume, partition);
-    if (dol_offset)
+    if (const std::optional<u64> dol_offset = GetBootDOLOffset(volume, partition))
     {
-      const std::optional<u64> dol_size = GetBootDOLSize(volume, partition, *dol_offset);
-      if (dol_size)
+      if (const std::optional<u64> dol_size = GetBootDOLSize(volume, partition, *dol_offset))
       {
         const u64 offset = volume.PartitionOffsetToRawOffset(*dol_offset + *dol_size, partition);
         biggest_offset = std::max(biggest_offset, offset);
@@ -187,8 +185,7 @@ u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition
       biggest_offset = std::max(biggest_offset, offset);
     }
 
-    const FileSystem* fs = volume.GetFileSystem(partition);
-    if (fs)
+    if (const FileSystem* fs = volume.GetFileSystem(partition))
     {
       const u64 offset_in_partition = GetBiggestReferencedOffset(volume, fs->GetRoot());
       const u64 offset = volume.PartitionOffsetToRawOffset(offset_in_partition, partition);

@@ -334,8 +334,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       {
         alignment = 0;
         sscanf(line, "%08x %08x %08x %08x %511s", &address, &size, &vaddress, &offset, name);
-        char* s = strstr(line, "(entry of ");
-        if (s)
+        if (char* s = strstr(line, "(entry of "))
         {
           sscanf(s + 10, "%511s", container);
           char* s2 = (strchr(container, ')'));
@@ -363,8 +362,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       {
         alignment = 0;
         sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
-        char* s = strstr(line, "(entry of ");
-        if (s)
+        if (char* s = strstr(line, "(entry of "))
         {
           sscanf(s + 10, "%511s", container);
           char* s2 = (strchr(container, ')'));
@@ -496,7 +494,6 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
 //  - It's a custom code map format
 bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::string& filename) const
 {
-  constexpr int SYMBOL_NAME_LIMIT = 30;
   File::IOFile f(filename, "w");
   if (!f)
     return false;
@@ -526,6 +523,7 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
     // Write the code
     for (u32 address = symbol.address; address < next_address; address += 4)
     {
+      constexpr int SYMBOL_NAME_LIMIT = 30;
       const std::string disasm = ppc_debug_interface.Disassemble(&guard, address);
       f.WriteString(fmt::format("{0:08x} {1:<{2}.{3}} {4}\n", address, symbol.name,
                                 SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT, disasm));

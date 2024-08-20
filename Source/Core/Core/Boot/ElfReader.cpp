@@ -115,9 +115,8 @@ const char* ElfReader::GetSectionName(int section) const
     return nullptr;
 
   int nameOffset = sections[section].sh_name;
-  char* ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
 
-  if (ptr)
+  if (char* ptr = (char*)GetSectionDataPtr(header->e_shstrndx))
     return ptr + nameOffset;
   else
     return nullptr;

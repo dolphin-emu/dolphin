@@ -49,10 +49,9 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     return -1;
 
   // Read the command
-  const auto command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
-  switch (command)
+  switch (const auto command = static_cast<EBufferCommands>(buffer[0]))
   {
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:

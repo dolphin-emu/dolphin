@@ -183,9 +183,9 @@ IPCReply USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& reque
   for (auto& endpoint : endpoints)
   {
     constexpr u8 ENDPOINT_INTERRUPT = 0b11;
-    constexpr u8 ENDPOINT_IN = 0x80;
     if (endpoint.bmAttributes == ENDPOINT_INTERRUPT)
     {
+      constexpr u8 ENDPOINT_IN = 0x80;
       const bool is_in_endpoint = (endpoint.bEndpointAddress & ENDPOINT_IN) != 0;
 
       AdditionalDeviceData* data = &m_additional_device_data[&device - m_usbv5_devices.data()];

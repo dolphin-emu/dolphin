@@ -15,8 +15,6 @@ namespace Common
 // Reads all of the current file. destination must be big enough to fit the whole file.
 inline bool ReadFileFromZip(unzFile file, u8* destination, u64 len)
 {
-  const u64 MAX_BUFFER_SIZE = 65535;
-
   if (unzOpenCurrentFile(file) != UNZ_OK)
     return false;
 
@@ -25,6 +23,7 @@ inline bool ReadFileFromZip(unzFile file, u8* destination, u64 len)
   u64 bytes_to_go = len;
   while (bytes_to_go > 0)
   {
+    const u64 MAX_BUFFER_SIZE = 65535;
     // NOTE: multiples of 4G can't cause read_len == 0 && bytes_to_go > 0, as MAX_BUFFER_SIZE is
     // small.
     const u32 read_len = static_cast<u32>(std::min(bytes_to_go, MAX_BUFFER_SIZE));

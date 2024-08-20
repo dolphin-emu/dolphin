@@ -154,8 +154,7 @@ Token Lexer::NextToken()
   if (it == expr.end())
     return Token(TOK_EOF);
 
-  char c = *it++;
-  switch (c)
+  switch (char c = *it++)
   {
   case ' ':
   case '\t':

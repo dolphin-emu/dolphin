@@ -394,11 +394,9 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   RCOpArg Rb;
   RCOpArg Rc;
   RCX64Reg Rd;
-  RCX64Reg xmm2_guard;
-  RCX64Reg result_xmm_guard;
-  RCX64Reg Rc_duplicated_guard;
   if (software_fma)
   {
+    RCX64Reg xmm2_guard;
     xmm2_guard = fpr.Scratch(XMM2);
     Ra = packed ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
     Rb = packed ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
@@ -406,6 +404,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
     if (preserve_d && packed)
     {
+      RCX64Reg result_xmm_guard;
       result_xmm_guard = fpr.Scratch();
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard, result_xmm_guard);
       result_xmm = Gen::X64Reg(result_xmm_guard);
@@ -429,6 +428,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
     if (madds_accurate_nans)
     {
+      RCX64Reg Rc_duplicated_guard;
       Rc_duplicated_guard = fpr.Scratch();
       RegCache::Realize(Rc_duplicated_guard);
       Rc_duplicated = Rc_duplicated_guard;

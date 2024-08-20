@@ -271,13 +271,13 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
   if (File::GetSize(*partition_root + "sys/boot.bin") < 0x20)
     return false;
 
-#ifdef _WIN32
-  constexpr const char* dir_separator = "/\\";
-#else
-  constexpr char dir_separator = '/';
-#endif
   if (true_root)
   {
+#ifdef _WIN32
+    constexpr const char* dir_separator = "/\\";
+#else
+    constexpr char dir_separator = '/';
+#endif
     *true_root =
         dol_path.substr(0, dol_path.find_last_of(dir_separator, partition_root->size() - 2) + 1);
   }
@@ -462,8 +462,7 @@ DirectoryBlobReader::DirectoryBlobReader(
       if (partition == m_wrapped_volume->GetGamePartition())
         continue;
 
-      auto type = m_wrapped_volume->GetPartitionType(partition);
-      if (type)
+      if (auto type = m_wrapped_volume->GetPartitionType(partition))
       {
         partitions.emplace_back(DirectoryBlobPartition(m_wrapped_volume.get(), partition, m_is_wii,
                                                        nullptr, nullptr, this),
@@ -657,11 +656,11 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
   }
 
   constexpr u64 STANDARD_UPDATE_PARTITION_ADDRESS = 0x50000;
-  constexpr u64 STANDARD_GAME_PARTITION_ADDRESS = 0xF800000;
   u64 partition_address = STANDARD_UPDATE_PARTITION_ADDRESS;
   u64 offset_in_table = PARTITION_SUBTABLE1_OFFSET;
   for (size_t i = 0; i < partitions.size(); ++i)
   {
+    constexpr u64 STANDARD_GAME_PARTITION_ADDRESS = 0xF800000;
     if (i == subtable_1_size)
       offset_in_table = PARTITION_SUBTABLE2_OFFSET;
 
@@ -921,11 +920,9 @@ DirectoryBlobPartition::DirectoryBlobPartition(
       SetApploader(ExtractNodeToVector(&sys_nodes, &apploader, blob), "apploader");
 
   FSTBuilderNode dol_node{"main.dol", 0, {}};
-  const auto dol_offset = GetBootDOLOffset(*volume, partition);
-  if (dol_offset)
+  if (const auto dol_offset = GetBootDOLOffset(*volume, partition))
   {
-    const auto dol_size = GetBootDOLSize(*volume, partition, *dol_offset);
-    if (dol_size)
+    if (const auto dol_size = GetBootDOLSize(*volume, partition, *dol_offset))
     {
       std::vector<BuilderContentSource> dol_contents;
       dol_contents.emplace_back(

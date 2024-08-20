@@ -267,14 +267,13 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
   LPCVOID write_buffer = buf + 1;
   DWORD bytes_to_write = (DWORD)(len - 1);
 
-  u8 resized_buffer[MAX_PAYLOAD];
-
   // Resize the buffer, if the underlying HID Class driver needs the buffer to be the size of
   // HidCaps.OuputReportSize
   // In case of Wiimote HidCaps.OuputReportSize is 22 Byte.
   // This is currently needed by the Toshiba Bluetooth Stack.
   if ((write_method == WWM_WRITE_FILE_LARGEST_REPORT_SIZE) && (MAX_PAYLOAD > len))
   {
+    u8 resized_buffer[MAX_PAYLOAD];
     std::copy(buf, buf + len, resized_buffer);
     std::fill(resized_buffer + len, resized_buffer + MAX_PAYLOAD, 0);
     write_buffer = resized_buffer + 1;
@@ -286,9 +285,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
       WriteFile(dev_handle, write_buffer, bytes_to_write, &bytes_written, &hid_overlap_write);
   if (!result)
   {
-    const DWORD error = GetLastError();
-
-    switch (error)
+    switch (const DWORD error = GetLastError())
     {
     case ERROR_INVALID_USER_BUFFER:
       INFO_LOG_FMT(WIIMOTE, "IOWrite[WWM_WRITE_FILE]: Falling back to SetOutputReport");
@@ -466,12 +463,12 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
 
   Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
 
-  u8 buf[MAX_PAYLOAD];
   u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
   int invalid_report_count = 0;
   int rc = WriteToHandle(dev_handle, method, req_status_report, sizeof(req_status_report));
   while (rc > 0)
   {
+    u8 buf[MAX_PAYLOAD];
     rc = ReadFromHandle(dev_handle, buf);
     if (rc <= 0)
       break;
@@ -712,9 +709,7 @@ size_t GetReportSize(u8 rid)
 {
   using namespace WiimoteCommon;
 
-  const auto report_id = static_cast<InputReportID>(rid);
-
-  switch (report_id)
+  switch (const auto report_id = static_cast<InputReportID>(rid))
   {
   case InputReportID::Status:
     return sizeof(InputReportStatus);

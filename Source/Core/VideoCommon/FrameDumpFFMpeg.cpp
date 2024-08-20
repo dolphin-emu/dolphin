@@ -223,8 +223,8 @@ bool FFMpegFrameDump::CreateVideoFile()
 
   if (!codec_name.empty())
   {
-    const AVCodecDescriptor* const codec_desc = avcodec_descriptor_get_by_name(codec_name.c_str());
-    if (codec_desc)
+    if (const AVCodecDescriptor* const codec_desc =
+        avcodec_descriptor_get_by_name(codec_name.c_str()))
       codec_id = codec_desc->id;
     else
       WARN_LOG_FMT(FRAMEDUMP, "Invalid codec {}", codec_name);

@@ -28,8 +28,7 @@ void NWC24Config::ReadConfig()
   {
     if (file->Read(&m_data, 1))
     {
-      const s32 config_error = CheckNwc24Config();
-      if (config_error)
+      if (const s32 config_error = CheckNwc24Config())
         ERROR_LOG_FMT(IOS_WC24, "There is an error in the config for for WC24: {}", config_error);
 
       return;

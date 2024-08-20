@@ -44,8 +44,7 @@ void LabelMap::RegisterDefaults()
 
 bool LabelMap::RegisterLabel(std::string label, u16 lval, LabelType type)
 {
-  const std::optional<u16> old_value = GetLabelValue(label);
-  if (old_value)
+  if (const std::optional<u16> old_value = GetLabelValue(label))
   {
     if (old_value != lval)
     {

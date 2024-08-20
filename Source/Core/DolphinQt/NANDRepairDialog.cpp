@@ -48,10 +48,10 @@ NANDRepairDialog::NANDRepairDialog(const WiiUtils::NANDCheckResult& result, QWid
     main_layout->addWidget(warning_label);
 
     std::string title_listings;
-    Core::TitleDatabase title_db;
     const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(true);
     for (const u64 title_id : result.titles_to_remove)
     {
+      Core::TitleDatabase title_db;
       title_listings += fmt::format("{:016x}", title_id);
 
       const std::string database_name = title_db.GetChannelName(title_id, language);

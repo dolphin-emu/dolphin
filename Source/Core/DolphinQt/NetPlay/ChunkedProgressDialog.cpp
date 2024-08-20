@@ -141,9 +141,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 
 void ChunkedProgressDialog::reject()
 {
-  auto server = Settings::Instance().GetNetPlayServer();
-
-  if (server)
+  if (auto server = Settings::Instance().GetNetPlayServer())
     server->AbortGameStart();
 
   QDialog::reject();

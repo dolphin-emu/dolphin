@@ -127,8 +127,7 @@ void ProfileCycler::CycleProfile(CycleDirection cycle_direction, InputConfig* de
   }
   const std::string profile = GetProfile(cycle_direction, profile_index, profiles);
 
-  auto* controller = device_configuration->GetController(controller_index);
-  if (controller)
+  if (auto* controller = device_configuration->GetController(controller_index))
   {
     UpdateToProfile(profile, controller, device_configuration);
   }
@@ -166,8 +165,7 @@ void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
 
   const std::string profile = GetProfile(cycle_direction, profile_index, profiles_for_game);
 
-  auto* controller = device_configuration->GetController(controller_index);
-  if (controller)
+  if (auto* controller = device_configuration->GetController(controller_index))
   {
     UpdateToProfile(profile, controller, device_configuration);
   }

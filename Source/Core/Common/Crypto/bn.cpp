@@ -71,14 +71,13 @@ void bn_mul(u8* d, const u8* a, const u8* b, const u8* N, const size_t n)
 
 void bn_exp(u8* d, const u8* a, const u8* N, const size_t n, const u8* e, const size_t en)
 {
-  u8 t[512];
-
   bn_zero(d, n);
   d[n - 1] = 1;
   for (size_t i = 0; i < en; i++)
   {
     for (u8 mask = 0x80; mask != 0; mask >>= 1)
     {
+      u8 t[512];
       bn_mul(t, d, d, N, n);
       if ((e[i] & mask) != 0)
         bn_mul(d, t, a, N, n);

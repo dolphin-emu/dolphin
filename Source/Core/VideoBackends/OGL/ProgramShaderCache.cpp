@@ -57,8 +57,7 @@ static thread_local bool s_is_shared_context = false;
 
 static std::string GetGLSLVersionString()
 {
-  GlslVersion v = g_ogl_config.eSupportedGLSLVersion;
-  switch (v)
+  switch (g_ogl_config.eSupportedGLSLVersion)
   {
   case GlslEs300:
     return "#version 300 es";

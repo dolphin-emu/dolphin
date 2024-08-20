@@ -103,21 +103,18 @@ void VolumeDisc::AddGamePartitionToSyncHash(Common::SHA1::Context* context) cons
                        partition);
 
   // Boot DOL (may be missing if this is a Datel disc)
-  const std::optional<u64> dol_offset = GetBootDOLOffset(*this, partition);
-  if (dol_offset)
+  if (const std::optional<u64> dol_offset = GetBootDOLOffset(*this, partition))
   {
     ReadAndAddToSyncHash(context, *dol_offset,
                          GetBootDOLSize(*this, partition, *dol_offset).value_or(0), partition);
   }
 
   // File system
-  const std::optional<u64> fst_offset = GetFSTOffset(*this, partition);
-  if (fst_offset)
+  if (const std::optional<u64> fst_offset = GetFSTOffset(*this, partition))
     ReadAndAddToSyncHash(context, *fst_offset, GetFSTSize(*this, partition).value_or(0), partition);
 
   // opening.bnr (name and banner)
-  const FileSystem* file_system = GetFileSystem(partition);
-  if (file_system)
+  if (const FileSystem* file_system = GetFileSystem(partition))
   {
     std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
     if (file_info && !file_info->IsDirectory())

@@ -423,7 +423,6 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 {
   // Samples per millisecond. In theory DSP sampling rate can be changed from
   // 32KHz to 48KHz, but AX always process at 32KHz.
-  constexpr u32 spms = 32;
 
   AXPBWii pb;
 
@@ -447,6 +446,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     {
       for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
       {
+        constexpr u32 spms = 32;
         ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
         ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
                      ConvertMixerControl(HILO_TO_32(pb.mixer_control)),

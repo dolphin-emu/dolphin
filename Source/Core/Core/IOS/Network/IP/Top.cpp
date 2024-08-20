@@ -69,8 +69,8 @@ NetIPTopDevice::NetIPTopDevice(EmulationKernel& ios, const std::string& device_n
     : EmulationDevice(ios, device_name)
 {
   m_work_queue.Reset("Network Worker", [this](AsyncTask task) {
-    const IPCReply reply = task.handler();
     {
+      const IPCReply reply = task.handler();
       std::lock_guard lg(m_async_reply_lock);
       m_async_replies.emplace(AsyncReply{task.request, reply.return_value});
     }
@@ -1087,9 +1087,9 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   u32 sockoffset = addr + 0x460;
   if (ret == 0)
   {
-    constexpr size_t WII_ADDR_INFO_SIZE = 0x20;
     for (addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
     {
+      constexpr size_t WII_ADDR_INFO_SIZE = 0x20;
       memory.Write_U32(result_iter->ai_flags, addr);
       memory.Write_U32(result_iter->ai_family, addr + 0x04);
       memory.Write_U32(result_iter->ai_socktype, addr + 0x08);

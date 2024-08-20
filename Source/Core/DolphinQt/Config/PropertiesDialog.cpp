@@ -77,8 +77,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
   {
-    std::shared_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(game.GetFilePath());
-    if (volume)
+    if (std::shared_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(game.GetFilePath()))
     {
       VerifyWidget* verify = new VerifyWidget(volume);
       tab_widget->addTab(GetWrappedWidget(verify, this, padding_width, padding_height),

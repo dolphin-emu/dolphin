@@ -143,8 +143,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
 
 D3DVertexFormat::~D3DVertexFormat()
 {
-  ID3D11InputLayout* layout = m_layout.load();
-  if (layout)
+  if (ID3D11InputLayout* layout = m_layout.load())
     layout->Release();
 }
 

@@ -198,7 +198,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
 
   bool aligned = m_data_type_aligned->isChecked();
   auto data_type = m_data_type_dropdown->currentData().value<Cheats::DataType>();
-  auto session = Cheats::MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
-  if (session)
+  if (auto session =
+      Cheats::MakeSession(std::move(memory_ranges), address_space, aligned, data_type))
     emit NewSessionCreated(*session);
 }

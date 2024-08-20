@@ -391,8 +391,7 @@ void JitBaseBlockCache::LinkBlockExits(JitBlock& block)
   {
     if (!e.linkStatus)
     {
-      JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, block.feature_flags);
-      if (destinationBlock)
+      if (JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, block.feature_flags))
       {
         WriteLinkBlock(e, destinationBlock);
         e.linkStatus = true;

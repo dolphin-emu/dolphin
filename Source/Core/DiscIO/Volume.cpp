@@ -136,12 +136,10 @@ std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path)
 
 std::unique_ptr<Volume> CreateVolume(std::unique_ptr<BlobReader> reader)
 {
-  std::unique_ptr<VolumeDisc> disc = TryCreateDisc(reader);
-  if (disc)
+  if (std::unique_ptr<VolumeDisc> disc = TryCreateDisc(reader))
     return disc;
 
-  std::unique_ptr<VolumeWAD> wad = TryCreateWAD(reader);
-  if (wad)
+  if (std::unique_ptr<VolumeWAD> wad = TryCreateWAD(reader))
     return wad;
 
   return nullptr;

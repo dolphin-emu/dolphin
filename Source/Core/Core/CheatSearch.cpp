@@ -71,8 +71,7 @@ static std::vector<u8> ToByteVector(const T& val)
 
 std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
 {
-  DataType type = GetDataType(value);
-  switch (type)
+  switch (DataType type = GetDataType(value))
   {
   case Cheats::DataType::U8:
     return {std::get<u8>(value.m_value)};

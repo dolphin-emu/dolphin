@@ -436,10 +436,9 @@ void Jit64::dcbz(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA;
-  int b = inst.RB;
-
   {
+    int a = inst.RA;
+    int b = inst.RB;
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RCOpArg Rb = gpr.Use(b, RCMode::Read);
     RegCache::Realize(Ra, Rb);
@@ -632,10 +631,11 @@ void Jit64::lmw(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA, d = inst.RD;
+  int d = inst.RD;
 
   // TODO: This doesn't handle rollback on DSI correctly
   {
+    int a = inst.RA;
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RegCache::Realize(Ra);
     MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)(s32)inst.SIMM_16));

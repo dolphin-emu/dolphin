@@ -158,8 +158,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 
   if (!IsValid() && GetExtension() == ".json")
   {
-    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
-    if (descriptor)
+    if (auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path))
     {
       GameFile proxy(descriptor->base_file);
       if (proxy.IsValid())
@@ -691,8 +690,7 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
   }
   else if (m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR)
   {
-    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
-    if (descriptor)
+    if (auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path))
     {
       GameFile proxy(descriptor->base_file);
       if (proxy.IsValid())

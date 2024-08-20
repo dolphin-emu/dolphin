@@ -236,8 +236,7 @@ void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& syste
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
-  if (stm)
+  if (auto stm = ios->GetDeviceByName("/dev/stm/eventhook"))
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->ResetButton();
 }
 
@@ -248,8 +247,7 @@ void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& syste
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
-  if (stm)
+  if (auto stm = ios->GetDeviceByName("/dev/stm/eventhook"))
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->PowerButton();
 }
 

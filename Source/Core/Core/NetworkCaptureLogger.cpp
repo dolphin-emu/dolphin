@@ -182,8 +182,7 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   };
 
   Common::EthernetHeader ethernet_header(0x800);
-  auto mac = Common::StringToMacAddress(Config::Get(Config::MAIN_WIRELESS_MAC));
-  if (mac)
+  if (auto mac = Common::StringToMacAddress(Config::Get(Config::MAIN_WIRELESS_MAC)))
   {
     auto& mac_address =
         (log_type == LogType::Write) ? ethernet_header.source : ethernet_header.destination;

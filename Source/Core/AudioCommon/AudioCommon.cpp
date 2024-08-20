@@ -161,9 +161,7 @@ bool SupportsVolumeChanges(std::string_view backend)
 
 void UpdateSoundStream(Core::System& system)
 {
-  SoundStream* sound_stream = system.GetSoundStream();
-
-  if (sound_stream)
+  if (SoundStream* sound_stream = system.GetSoundStream())
   {
     int volume = Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
     sound_stream->SetVolume(volume);

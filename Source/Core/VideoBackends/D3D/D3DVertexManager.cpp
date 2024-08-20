@@ -225,8 +225,7 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   u32 totalBufferSize = vertexBufferSize + indexBufferSize;
 
   u32 cursor = m_buffer_cursor;
-  u32 padding = vertex_stride > 0 ? (m_buffer_cursor % vertex_stride) : 0;
-  if (padding)
+  if (u32 padding = vertex_stride > 0 ? (m_buffer_cursor % vertex_stride) : 0)
   {
     cursor += vertex_stride - padding;
   }

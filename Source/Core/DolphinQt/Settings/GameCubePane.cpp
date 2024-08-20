@@ -815,8 +815,7 @@ void GameCubePane::SaveSettings()
                                m_gba_rom_edits[i]->text().toStdString());
     }
 
-    auto server = Settings::Instance().GetNetPlayServer();
-    if (server)
+    if (auto server = Settings::Instance().GetNetPlayServer())
       server->SetGBAConfig(server->GetGBAConfig(), true);
   }
 #endif

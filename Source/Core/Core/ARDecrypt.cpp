@@ -466,8 +466,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     Common::ToUpper(&s);
   }
 
-  const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size());
-  if (ret)
+  if (const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size()))
   {
     // Return value is index + 1, 0 being the success flag value.
     PanicAlertFmtT(

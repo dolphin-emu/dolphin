@@ -175,8 +175,7 @@ u8* XEmitter::AlignCodeTo(size_t alignment)
 {
   ASSERT_MSG(DYNA_REC, alignment != 0 && (alignment & (alignment - 1)) == 0,
              "Alignment must be power of two");
-  u64 c = reinterpret_cast<u64>(code) & (alignment - 1);
-  if (c)
+  if (u64 c = reinterpret_cast<u64>(code) & (alignment - 1))
     ReserveCodeSpace(static_cast<int>(alignment - c));
   return code;
 }

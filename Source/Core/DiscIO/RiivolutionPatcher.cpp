@@ -50,8 +50,7 @@ FileDataLoaderHostFS::FileDataLoaderHostFS(std::string sd_root, const std::strin
   // m_patch_root with it.
   if (!patch_root.empty())
   {
-    auto r = MakeAbsoluteFromRelative(patch_root);
-    if (r)
+    if (auto r = MakeAbsoluteFromRelative(patch_root))
       m_patch_root = std::move(*r);
   }
 }
@@ -405,8 +404,7 @@ static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
   {
     if (node.IsFolder())
     {
-      DiscIO::FSTBuilderNode* result = FindFilenameNodeInFST(filename, node.GetFolderContent());
-      if (result)
+      if (DiscIO::FSTBuilderNode* result = FindFilenameNodeInFST(filename, node.GetFolderContent()))
         return result;
     }
     else if (Common::CaseInsensitiveEquals(node.m_filename, filename))
@@ -438,8 +436,7 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
   else
   {
     // Otherwise we want to patch the first file in the FST that matches that filename.
-    DiscIO::FSTBuilderNode* node = FindFilenameNodeInFST(file.m_disc, *fst);
-    if (node)
+    if (DiscIO::FSTBuilderNode* node = FindFilenameNodeInFST(file.m_disc, *fst))
       ApplyPatchToFile(patch, file, node);
   }
 }
@@ -666,8 +663,7 @@ std::optional<SavegameRedirect> ExtractSavegameRedirect(std::span<const Patch> r
     if (!patch.m_savegame_patches.empty())
     {
       const auto& save_patch = patch.m_savegame_patches[0];
-      auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external);
-      if (resolved)
+      if (auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external))
         return SavegameRedirect{std::move(*resolved), save_patch.m_clone};
       return std::nullopt;
     }

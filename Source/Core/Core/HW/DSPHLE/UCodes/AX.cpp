@@ -130,9 +130,7 @@ void AXUCode::HandleCommandList()
   bool end = false;
   while (!end)
   {
-    u16 cmd = m_cmdlist[curr_idx++];
-
-    switch (cmd)
+    switch (u16 cmd = m_cmdlist[curr_idx++])
     {
       // Some of these commands are unknown, or unused in this AX HLE.
       // We still need to skip their arguments using "curr_idx += N".
@@ -416,7 +414,6 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 {
   // Samples per millisecond. In theory DSP sampling rate can be changed from
   // 32KHz to 48KHz, but AX always process at 32KHz.
-  constexpr u32 spms = 32;
 
   AXPB pb;
 
@@ -434,6 +431,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 
     for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
     {
+      constexpr u32 spms = 32;
       ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
 
       ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,

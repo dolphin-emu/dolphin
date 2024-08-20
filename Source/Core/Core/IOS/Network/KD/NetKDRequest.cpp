@@ -162,8 +162,8 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
   m_scheduler_buffer[1] = Common::swap32(-1);
 
   m_work_queue.Reset("WiiConnect24 Worker", [this](AsyncTask task) {
-    const IPCReply reply = task.handler();
     {
+      const IPCReply reply = task.handler();
       std::lock_guard lg(m_async_reply_lock);
       m_async_replies.emplace(AsyncReply{task.request, reply.return_value});
     }
@@ -178,8 +178,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
-  if (socket_manager)
+  if (auto socket_manager = GetEmulationKernel().GetSocketManager())
     socket_manager->Clean();
 
   {

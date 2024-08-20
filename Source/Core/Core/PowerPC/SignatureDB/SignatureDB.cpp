@@ -170,8 +170,7 @@ u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 
     u32 op = opcode & 0xFC000000;
     u32 op2 = 0;
     u32 op3 = 0;
-    u32 auxop = op >> 26;
-    switch (auxop)
+    switch (u32 auxop = op >> 26)
     {
     case 4:  // PS instructions
       op2 = opcode & 0x0000003F;

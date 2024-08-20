@@ -35,9 +35,8 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
   HLE::ReturnCode return_code = IPC_EINVAL;
-  AesIoctlv command = static_cast<AesIoctlv>(request.request);
 
-  switch (command)
+  switch (AesIoctlv command = static_cast<AesIoctlv>(request.request))
   {
   case AesIoctlv::Copy:
   {

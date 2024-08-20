@@ -176,8 +176,7 @@ void GamecubeControllersWidget::LoadSettings(Core::State state)
   {
     const SerialInterface::SIDevices si_device =
         Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
-    const std::optional<int> gc_index = ToGCMenuIndex(si_device);
-    if (gc_index)
+    if (const std::optional<int> gc_index = ToGCMenuIndex(si_device))
     {
       SignalBlocking(m_gc_controller_boxes[i])->setCurrentIndex(*gc_index);
       m_gc_controller_boxes[i]->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);

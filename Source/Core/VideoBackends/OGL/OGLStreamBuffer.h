@@ -35,8 +35,7 @@ public:
 
   std::pair<u8*, u32> Map(u32 size, u32 stride)
   {
-    u32 padding = m_iterator % stride;
-    if (padding)
+    if (u32 padding = m_iterator % stride)
     {
       m_iterator += stride - padding;
     }

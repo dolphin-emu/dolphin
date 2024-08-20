@@ -30,9 +30,7 @@ bool IsTAPDevice(const TCHAR* guid)
     TCHAR unit_string[256];
     HKEY unit_key;
     TCHAR component_id_string[] = _T("ComponentId");
-    TCHAR component_id[256];
     TCHAR net_cfg_instance_id_string[] = _T("NetCfgInstanceId");
-    TCHAR net_cfg_instance_id[256];
     DWORD data_type;
 
     len = _countof(enum_name);
@@ -54,21 +52,21 @@ bool IsTAPDevice(const TCHAR* guid)
     }
     else
     {
+      TCHAR component_id[256];
       len = sizeof(component_id);
       status = RegQueryValueEx(unit_key, component_id_string, nullptr, &data_type,
                                (LPBYTE)component_id, &len);
 
       if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
       {
+        TCHAR net_cfg_instance_id[256];
         len = sizeof(net_cfg_instance_id);
         status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, nullptr, &data_type,
                                  (LPBYTE)net_cfg_instance_id, &len);
 
         if (status == ERROR_SUCCESS && data_type == REG_SZ)
         {
-          TCHAR* const component_id_sub = _tcsstr(component_id, TAP_COMPONENT_ID);
-
-          if (component_id_sub)
+          if (TCHAR* const component_id_sub = _tcsstr(component_id, TAP_COMPONENT_ID))
           {
             if (!_tcscmp(component_id_sub, TAP_COMPONENT_ID) && !_tcscmp(net_cfg_instance_id, guid))
             {
@@ -112,7 +110,6 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
     TCHAR enum_name[256];
     TCHAR connection_string[256];
     HKEY connection_key;
-    TCHAR name_data[256];
     DWORD name_type;
     const TCHAR name_string[] = _T("Name");
 
@@ -130,6 +127,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 
     if (status == ERROR_SUCCESS)
     {
+      TCHAR name_data[256];
       len = sizeof(name_data);
       status = RegQueryValueEx(connection_key, name_string, nullptr, &name_type, (LPBYTE)name_data,
                                &len);

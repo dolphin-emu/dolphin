@@ -397,8 +397,7 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
                                       0};
 
     // Attempt creating this context.
-    HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
-    if (core_context)
+    if (HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data()))
     {
       INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
       return core_context;

@@ -401,9 +401,8 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
   for (const auto& call : symbol->calls)
   {
     const u32 addr = call.function;
-    const Common::Symbol* const call_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
-    if (call_symbol)
+    if (const Common::Symbol* const call_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr))
     {
       const QString name =
           QString::fromStdString(fmt::format("> {} ({:08x})", call_symbol->name, addr));
@@ -426,9 +425,8 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
   for (const auto& caller : symbol->callers)
   {
     const u32 addr = caller.call_address;
-    const Common::Symbol* const caller_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
-    if (caller_symbol)
+    if (const Common::Symbol* const caller_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr))
     {
       const QString name =
           QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
@@ -516,8 +514,8 @@ void CodeWidget::StepOut()
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
   {
+    auto& ppc_state = power_pc.GetPPCState();
     Core::CPUThreadGuard guard(m_system);
 
     PowerPC::CoreMode old_mode = power_pc.GetMode();

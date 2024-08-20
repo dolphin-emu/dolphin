@@ -204,10 +204,9 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     return;
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
-
   {
+    auto& system = GetSystem();
+    auto& memory = system.GetMemory();
     std::lock_guard lk(m_devices_mutex);
     const u32 dest = m_devicechange_hook_request->buffer_out;
     u32 offset = 0;

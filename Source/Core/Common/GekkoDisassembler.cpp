@@ -796,7 +796,6 @@ void GekkoDisassembler::mspr(u32 in, int smode)
 {
   int d = (int)PPCGETD(in);
   int spr = (int)((PPCGETB(in) << 5) + PPCGETA(in));
-  int fmt = 0;
 
   if (in & 1)
   {
@@ -804,6 +803,7 @@ void GekkoDisassembler::mspr(u32 in, int smode)
   }
   else
   {
+    int fmt = 0;
     const char* x;
     switch (spr)
     {

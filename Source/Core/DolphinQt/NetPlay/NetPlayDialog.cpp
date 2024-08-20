@@ -367,8 +367,7 @@ void NetPlayDialog::ConnectWidgets()
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
-      auto server = Settings::Instance().GetNetPlayServer();
-      if (server)
+      if (auto server = Settings::Instance().GetNetPlayServer())
         server->SetHostInputAuthority(enable);
     }
   };
@@ -881,9 +880,7 @@ void NetPlayDialog::OnMsgStartGame()
   }
 
   QueueOnObject(this, [this] {
-    auto client = Settings::Instance().GetNetPlayClient();
-
-    if (client)
+    if (auto client = Settings::Instance().GetNetPlayClient())
     {
       if (auto game = FindGameFile(m_current_game_identifier))
         client->StartGame(game->GetFilePath());
@@ -1047,8 +1044,7 @@ void NetPlayDialog::OnTtlDetermined(u8 ttl)
 
 bool NetPlayDialog::IsRecording()
 {
-  std::optional<bool> is_recording = RunOnObject(m_record_input_action, &QAction::isChecked);
-  if (is_recording)
+  if (std::optional<bool> is_recording = RunOnObject(m_record_input_action, &QAction::isChecked))
     return *is_recording;
   return false;
 }
@@ -1274,7 +1270,6 @@ void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
 
 void NetPlayDialog::SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder)
 {
-  auto client = Settings::Instance().GetNetPlayClient();
-  if (client)
+  if (auto client = Settings::Instance().GetNetPlayClient())
     client->SetWiiSyncData(nullptr, std::move(titles), std::move(redirect_folder));
 }

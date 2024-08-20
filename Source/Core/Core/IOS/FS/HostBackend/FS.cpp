@@ -397,8 +397,6 @@ void HostFileSystem::DoState(PointerWrap& p)
       movie.IsMovieActive() && Core::WiiRootIsTemporary();
   p.Do(original_save_state_made_during_movie_recording);
 
-  u32 temp_val = 0;
-
   if (!p.IsReadMode())
   {
     DoStateWriteOrMeasure(p, "/tmp");
@@ -415,6 +413,7 @@ void HostFileSystem::DoState(PointerWrap& p)
   }
   else  // case where we're in read mode.
   {
+    u32 temp_val = 0;
     DoStateRead(p, "/tmp");
     if (!movie.IsMovieActive() || !original_save_state_made_during_movie_recording ||
         !Core::WiiRootIsTemporary() ||

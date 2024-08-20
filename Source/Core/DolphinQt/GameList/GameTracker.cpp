@@ -356,8 +356,7 @@ void GameTracker::LoadGame(const QString& path)
   if (!DiscIO::ShouldHideFromGameList(converted_path))
   {
     bool cache_changed = false;
-    auto game = m_cache.AddOrGet(converted_path, &cache_changed);
-    if (game)
+    if (auto game = m_cache.AddOrGet(converted_path, &cache_changed))
       emit GameLoaded(std::move(game));
     if (cache_changed && !m_refresh_in_progress)
       m_cache.Save();

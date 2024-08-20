@@ -106,13 +106,12 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       // For natural sorting, pad all numbers to the same length.
       if (SORT_ROLE == role)
       {
-        constexpr int MAX_NUMBER_LENGTH = 10;
-
         const QRegularExpression rx(QStringLiteral("\\d+"));
         QRegularExpressionMatch match;
         int pos = 0;
         while ((match = rx.match(name, pos)).hasMatch())
         {
+          constexpr int MAX_NUMBER_LENGTH = 10;
           pos = match.capturedStart();
           name.replace(pos, match.capturedLength(),
                        match.captured().rightJustified(MAX_NUMBER_LENGTH));

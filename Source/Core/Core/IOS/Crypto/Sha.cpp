@@ -82,9 +82,8 @@ HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequ
 std::optional<IPCReply> ShaDevice::IOCtlV(const IOCtlVRequest& request)
 {
   HLE::ReturnCode return_code = IPC_EINVAL;
-  ShaIoctlv command = static_cast<ShaIoctlv>(request.request);
 
-  switch (command)
+  switch (ShaIoctlv command = static_cast<ShaIoctlv>(request.request))
   {
   case ShaIoctlv::InitState:
   case ShaIoctlv::ContributeState:

@@ -199,9 +199,7 @@ void NetPlayBrowser::RefreshLoop()
 
       NetPlayIndex client;
 
-      auto entries = client.List(filters);
-
-      if (entries)
+      if (auto entries = client.List(filters))
       {
         emit UpdateListRequested(std::move(*entries));
       }

@@ -161,8 +161,7 @@ void RiivolutionBootWidget::OpenXML()
     }
 
     auto root = FindRoot(p);
-    const auto config = LoadConfigXML(root);
-    if (config)
+    if (const auto config = LoadConfigXML(root))
       DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
     MakeGUIForParsedFile(p, std::move(root), *parsed);
   }

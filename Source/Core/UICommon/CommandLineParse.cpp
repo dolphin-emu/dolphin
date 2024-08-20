@@ -51,8 +51,7 @@ public:
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      std::optional<Config::System> system = Config::GetSystemFromName(system_str);
-      if (system)
+      if (std::optional<Config::System> system = Config::GetSystemFromName(system_str))
       {
         m_values.emplace_back(
             Config::Location{std::move(*system), std::move(section), std::move(key)},

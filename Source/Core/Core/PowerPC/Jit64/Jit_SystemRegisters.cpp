@@ -675,10 +675,10 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   // Only clear exception bits (but not FEX/VX).
   mask &= FPSCR_FX | FPSCR_ANY_X;
 
-  RCX64Reg scratch_guard;
   X64Reg scratch;
   if (mask != 0)
   {
+    RCX64Reg scratch_guard;
     scratch_guard = gpr.Scratch();
     RegCache::Realize(scratch_guard);
     scratch = scratch_guard;

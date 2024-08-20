@@ -608,7 +608,6 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
 std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
 {
   std::ostringstream ss;
-  u32 unused_counter = 1;
   ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
 
   // Builtin uniforms:
@@ -640,6 +639,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
 
   if (user_post_process)
   {
+    u32 unused_counter = 1;
     ss << "\n";
     // Custom options/uniforms
     for (const auto& it : m_config.GetOptions())

@@ -448,8 +448,7 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
   std::vector<u32> types;
   for (const Partition& partition : partitions)
   {
-    const std::optional<u32> type = m_volume.GetPartitionType(partition);
-    if (type)
+    if (const std::optional<u32> type = m_volume.GetPartitionType(partition))
       types.emplace_back(*type);
   }
 
@@ -656,8 +655,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
     if (!has_correct_ios && tmd.IsValid())
     {
-      std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
-      if (file_info)
+      if (std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys"))
       {
         const std::string ios_ver_str = std::to_string(ios_ver);
         const std::string correct_ios =

@@ -471,8 +471,7 @@ void VKGfx::SetTexture(u32 index, const AbstractTexture* texture)
 {
   // Texture should always be in SHADER_READ_ONLY layout prior to use.
   // This is so we don't need to transition during render passes.
-  const VKTexture* tex = static_cast<const VKTexture*>(texture);
-  if (tex)
+  if (const VKTexture* tex = static_cast<const VKTexture*>(texture))
   {
     if (tex->GetLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     {
@@ -514,8 +513,7 @@ void VKGfx::SetSamplerState(u32 index, const SamplerState& state)
 
 void VKGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  VKTexture* vk_texture = static_cast<VKTexture*>(texture);
-  if (vk_texture)
+  if (VKTexture* vk_texture = static_cast<VKTexture*>(texture))
   {
     StateTracker::GetInstance()->EndRenderPass();
     StateTracker::GetInstance()->SetImageTexture(index, vk_texture->GetView());

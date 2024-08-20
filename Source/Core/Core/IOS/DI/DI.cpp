@@ -108,8 +108,7 @@ void DIDevice::ProcessQueuedIOCtl()
 
   auto& system = GetSystem();
   IOCtlRequest request{system, m_executing_command->m_request_address};
-  auto finished = StartIOCtl(request);
-  if (finished)
+  if (auto finished = StartIOCtl(request))
   {
     system.GetCoreTiming().ScheduleEvent(IPC_OVERHEAD_TICKS, s_finish_executing_di_command,
                                          static_cast<u64>(finished.value()));
@@ -628,8 +627,7 @@ void DIDevice::InterruptFromDVDInterface(DVD::DIInterruptType interrupt_type)
     break;
   }
 
-  auto di = GetDevice();
-  if (di)
+  if (auto di = GetDevice())
   {
     di->FinishDICommand(result);
   }
@@ -644,8 +642,7 @@ void DIDevice::FinishDICommandCallback(Core::System& system, u64 userdata, s64 t
 {
   const DIResult result = static_cast<DIResult>(userdata);
 
-  auto di = GetDevice();
-  if (di)
+  if (auto di = GetDevice())
     di->FinishDICommand(result);
   else
     PanicAlertFmt("IOS::HLE::DIDevice: Received interrupt from DI when device wasn't registered!");

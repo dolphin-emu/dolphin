@@ -582,8 +582,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
-        if (cache_entry)
+        if (const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i)))
         {
           if (std::find(texture_names.begin(), texture_names.end(),
                         cache_entry->texture_info_name) == texture_names.end())
@@ -903,8 +902,7 @@ void VertexManagerBase::UpdatePipelineObject()
   case ShaderCompilationMode::AsynchronousSkipRendering:
   {
     // Can we background compile shaders? If so, get the pipeline asynchronously.
-    auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config);
-    if (res)
+    if (auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config))
     {
       // Specialized shaders are ready, prefer these.
       m_current_pipeline_object = *res;

@@ -420,9 +420,9 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
 
   const std::string last_state_filename = File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav";
   const std::string last_state_dtmname = last_state_filename + ".dtm";
-  const std::string dtmname = filename + ".dtm";
 
   {
+    const std::string dtmname = filename + ".dtm";
     std::lock_guard lk(s_save_thread_mutex);
 
     // Backup existing state (overwriting an existing backup, if any).

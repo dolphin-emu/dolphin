@@ -90,11 +90,10 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
 
 bool NANDImporter::FindSuperblock()
 {
-  constexpr size_t NAND_SUPERBLOCK_START = 0x1fc00000;
-
   // There are 16 superblocks, choose the highest/newest version
   for (int i = 0; i < 16; i++)
   {
+    constexpr size_t NAND_SUPERBLOCK_START = 0x1fc00000;
     auto superblock = std::make_unique<NANDSuperblock>();
     std::memcpy(superblock.get(), &m_nand[NAND_SUPERBLOCK_START + i * sizeof(NANDSuperblock)],
                 sizeof(NANDSuperblock));

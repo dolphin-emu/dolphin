@@ -237,8 +237,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
   if (disc_image_extensions.contains(extension))
   {
-    std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
-    if (disc)
+    if (std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path))
     {
       return std::make_unique<BootParameters>(Disc{std::move(path), std::move(disc), paths},
                                               std::move(boot_session_data_));
@@ -267,15 +266,13 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
   if (extension == ".wad")
   {
-    std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path));
-    if (wad)
+    if (std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path)))
       return std::make_unique<BootParameters>(std::move(*wad), std::move(boot_session_data_));
   }
 
   if (extension == ".json")
   {
-    auto descriptor = DiscIO::ParseGameModDescriptorFile(path);
-    if (descriptor)
+    if (auto descriptor = DiscIO::ParseGameModDescriptorFile(path))
     {
       auto boot_params = GenerateFromFile(descriptor->base_file, std::move(boot_session_data_));
       if (!boot_params)

@@ -84,10 +84,9 @@ TEST(BitField, Storage)
 
 TEST(BitField, Read)
 {
-  TestUnion object;
-
   for (u64 val : table)
   {
+    TestUnion object;
     object.hex = val;
 
     // Make sure reading/casting does not behave completely idiotic

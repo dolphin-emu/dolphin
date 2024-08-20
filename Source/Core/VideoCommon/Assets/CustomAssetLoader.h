@@ -63,8 +63,7 @@ private:
     auto [it, inserted] = asset_map.try_emplace(asset_id);
     if (!inserted)
     {
-      auto shared = it->second.lock();
-      if (shared)
+      if (auto shared = it->second.lock())
         return shared;
     }
     std::shared_ptr<AssetType> ptr(new AssetType(std::move(library), asset_id), [&](AssetType* a) {

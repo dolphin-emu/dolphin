@@ -686,8 +686,7 @@ u32 UIDSys::GetNextUID() const
 
 u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
 {
-  const u32 current_uid = GetUIDFromTitle(title_id);
-  if (current_uid)
+  if (const u32 current_uid = GetUIDFromTitle(title_id))
   {
     INFO_LOG_FMT(IOS_ES, "Title {:016x} already exists in uid.sys", title_id);
     return current_uid;

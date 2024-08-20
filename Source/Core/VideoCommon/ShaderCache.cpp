@@ -122,8 +122,7 @@ const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
 
   const bool exists_in_cache = it != m_gx_pipeline_cache.end();
   std::unique_ptr<AbstractPipeline> pipeline;
-  std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
-  if (pipeline_config)
+  if (std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid))
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
   if (g_ActiveConfig.bShaderCache && !exists_in_cache)
     AppendGXPipelineUID(uid);
@@ -154,8 +153,7 @@ const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineU
     return it->second.first.get();
 
   std::unique_ptr<AbstractPipeline> pipeline;
-  std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
-  if (pipeline_config)
+  if (std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid))
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
   return InsertGXUberPipeline(uid, std::move(pipeline));
 }
@@ -234,8 +232,7 @@ void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, 
     CacheReader(T& cache_) : cache(cache_) {}
     void Read(const K& key, const u8* value, u32 value_size) override
     {
-      auto shader = g_gfx->CreateShaderFromBinary(stage, value, value_size);
-      if (shader)
+      if (auto shader = g_gfx->CreateShaderFromBinary(stage, value, value_size))
       {
         auto& entry = cache.shader_map[key];
         entry.shader = std::move(shader);

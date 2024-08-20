@@ -187,11 +187,11 @@ void GameList::MakeListView()
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
     m_list->sortByColumn(static_cast<int>(GameListModel::Column::Title), Qt::AscendingOrder);
 
-  const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
-                                           const QHeaderView::ResizeMode mode) {
-    hor_header->setSectionResizeMode(static_cast<int>(column), mode);
-  };
   {
+    const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
+                                             const QHeaderView::ResizeMode mode) {
+      hor_header->setSectionResizeMode(static_cast<int>(column), mode);
+    };
     using Column = GameListModel::Column;
     using Mode = QHeaderView::ResizeMode;
     SetResizeMode(Column::Platform, Mode::Fixed);
@@ -1021,8 +1021,6 @@ void GameList::OnSectionResized(int index, int, int)
 {
   auto* hor_header = m_list->horizontalHeader();
 
-  std::vector<int> sections;
-
   const int vis_index = hor_header->visualIndex(index);
   const int col_count = hor_header->count() - hor_header->hiddenSectionCount();
 
@@ -1040,6 +1038,7 @@ void GameList::OnSectionResized(int index, int, int)
 
   if (!last)
   {
+    std::vector<int> sections;
     for (int i = 0; i < vis_index; i++)
     {
       const int logical_index = hor_header->logicalIndex(i);

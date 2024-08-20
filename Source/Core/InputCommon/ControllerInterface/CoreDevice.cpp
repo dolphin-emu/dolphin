@@ -305,17 +305,14 @@ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* d
 {
   if (def_dev)
   {
-    Device::Input* const inp = def_dev->FindInput(name);
-    if (inp)
+    if (Device::Input* const inp = def_dev->FindInput(name))
       return inp;
   }
 
   std::lock_guard lk(m_devices_mutex);
   for (const auto& d : m_devices)
   {
-    Device::Input* const i = d->FindInput(name);
-
-    if (i)
+    if (Device::Input* const i = d->FindInput(name))
       return i;
   }
 

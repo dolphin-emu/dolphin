@@ -1585,9 +1585,9 @@ void NetPlayClient::ThreadFunc()
 {
   INFO_LOG_FMT(NETPLAY, "NetPlayClient starting.");
 
-  Common::QoSSession qos_session;
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
   {
+    Common::QoSSession qos_session;
     qos_session = Common::QoSSession(m_server);
 
     if (qos_session.Successful())

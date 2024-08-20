@@ -179,8 +179,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
 
   root->setText(text);
 
-  const DiscIO::FileSystem* const file_system = m_volume->GetFileSystem(partition);
-  if (file_system)
+  if (const DiscIO::FileSystem* const file_system = m_volume->GetFileSystem(partition))
     PopulateDirectory(partition_id, root, file_system->GetRoot());
 }
 

@@ -164,9 +164,7 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
 
 void GameDigestDialog::reject()
 {
-  auto server = Settings::Instance().GetNetPlayServer();
-
-  if (server)
+  if (auto server = Settings::Instance().GetNetPlayServer())
     server->AbortGameDigest();
 
   QDialog::reject();

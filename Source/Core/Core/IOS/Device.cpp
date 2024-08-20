@@ -28,8 +28,7 @@ OpenRequest::OpenRequest(Core::System& system, const u32 address_) : Request(sys
   auto& memory = system.GetMemory();
   path = memory.GetString(memory.Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(memory.Read_U32(address + 0x10));
-  const EmulationKernel* ios = system.GetIOS();
-  if (ios)
+  if (const EmulationKernel* ios = system.GetIOS())
   {
     uid = ios->GetUidForPPC();
     gid = ios->GetGidForPPC();

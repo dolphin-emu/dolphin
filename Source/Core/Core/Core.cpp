@@ -981,8 +981,7 @@ void UpdateWantDeterminism(Core::System& system, bool initial)
 
     const Core::CPUThreadGuard guard(system);
     s_wants_determinism = new_want_determinism;
-    const auto ios = system.GetIOS();
-    if (ios)
+    if (const auto ios = system.GetIOS())
       ios->UpdateWantDeterminism(new_want_determinism);
 
     system.GetFifo().UpdateWantDeterminism(new_want_determinism);

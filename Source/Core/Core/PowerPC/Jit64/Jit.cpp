@@ -912,8 +912,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (!js.pairedQuantizeAddresses.contains(js.blockStart))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
-    BitSet8 gqr_static = ComputeStaticGQRs(code_block);
-    if (gqr_static)
+    if (BitSet8 gqr_static = ComputeStaticGQRs(code_block))
     {
       SwitchToFarCode();
       const u8* target = GetCodePtr();

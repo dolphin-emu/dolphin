@@ -1235,8 +1235,7 @@ void BluetoothEmuDevice::CommandDisconnect(u32 input_address)
   SendEventCommandStatus(HCI_CMD_DISCONNECT);
   SendEventDisconnect(disconnect.con_handle, disconnect.reason);
 
-  WiimoteDevice* wiimote = AccessWiimote(disconnect.con_handle);
-  if (wiimote)
+  if (WiimoteDevice* wiimote = AccessWiimote(disconnect.con_handle))
     wiimote->EventDisconnect(disconnect.reason);
 }
 

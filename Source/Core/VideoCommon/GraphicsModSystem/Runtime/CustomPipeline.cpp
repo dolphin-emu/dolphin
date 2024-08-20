@@ -189,9 +189,9 @@ void CustomPipeline::UpdatePixelData(
     return;
   }
 
-  std::size_t max_material_data_size = 0;
   if (m_pixel_material.m_asset->GetLastLoadedTime() > m_pixel_material.m_cached_write_time)
   {
+    std::size_t max_material_data_size = 0;
     m_last_generated_material_code = ShaderCode{};
     m_pixel_material.m_cached_write_time = m_pixel_material.m_asset->GetLastLoadedTime();
     std::size_t texture_count = 0;

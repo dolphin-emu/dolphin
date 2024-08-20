@@ -246,12 +246,12 @@ void USB_KBD::Update()
   {
     const bool key_pressed_now = IsKeyPressed(static_cast<int>(i));
     const bool key_pressed_before = m_old_key_buffer[i];
-    u8 key_code = 0;
 
     if (key_pressed_now ^ key_pressed_before)
     {
       if (key_pressed_now)
       {
+        u8 key_code = 0;
         switch (m_keyboard_layout)
         {
         case KBD_LAYOUT_QWERTY:

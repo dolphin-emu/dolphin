@@ -502,8 +502,7 @@ std::string GetXFMemName(u32 address)
   else if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
   {
     const u32 light = (address - XFMEM_LIGHTS) / 16;
-    const u32 offset = (address - XFMEM_LIGHTS) % 16;
-    switch (offset)
+    switch (const u32 offset = (address - XFMEM_LIGHTS) % 16)
     {
     default:
       return fmt::format("Light {} unused param {}", light, offset);

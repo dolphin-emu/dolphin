@@ -243,8 +243,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int verifyOption = memory.Read_U32(BufferOut);
     std::string hostname = memory.GetString(BufferOut2, BufferOutSize2);
 
-    int freeSSL = GetSSLFreeID();
-    if (freeSSL)
+    if (int freeSSL = GetSSLFreeID())
     {
       int sslID = freeSSL - 1;
       WII_SSL* ssl = &_SSL[sslID];

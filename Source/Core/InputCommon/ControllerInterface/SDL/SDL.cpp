@@ -304,9 +304,8 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
 void InputBackend::OpenAndAddDevice(int index)
 {
   SDL_GameController* gc = SDL_GameControllerOpen(index);
-  SDL_Joystick* js = SDL_JoystickOpen(index);
 
-  if (js)
+  if (SDL_Joystick* js = SDL_JoystickOpen(index))
   {
     if (SDL_JoystickNumButtons(js) > 255 || SDL_JoystickNumAxes(js) > 255 ||
         SDL_JoystickNumHats(js) > 255 || SDL_JoystickNumBalls(js) > 255)

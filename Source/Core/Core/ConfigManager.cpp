@@ -465,8 +465,7 @@ std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) 
     return "KO";
   case DiscIO::Region::PAL:
   {
-    const auto user_lang = GetCurrentLanguage(wii);
-    switch (user_lang)
+    switch (const auto user_lang = GetCurrentLanguage(wii))
     {
     case DiscIO::Language::German:
       return "DE";

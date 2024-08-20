@@ -389,8 +389,7 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
       break;
     }
 
-    const char format_specifier = string[i];
-    switch (format_specifier)
+    switch (const char format_specifier = string[i])
     {
     case 's':
     {

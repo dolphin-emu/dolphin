@@ -121,8 +121,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
         return false;
       }
 
-      const auto old_handle = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, rw_mode);
-      if (old_handle)
+      if (const auto old_handle = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, rw_mode))
         continue;
 
       const auto new_handle = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path,
@@ -977,8 +976,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
                                 "/title/00010003", "/title/00010004", "/title/00010005",
                                 "/title/00010006", "/title/00010007", "/shared2/title"})
   {
-    const auto dir_stats = fs->GetExtendedDirectoryStats(user_path);
-    if (dir_stats)
+    if (const auto dir_stats = fs->GetExtendedDirectoryStats(user_path))
     {
       used_clusters_user += dir_stats->used_clusters;
       used_inodes_user += dir_stats->used_inodes;

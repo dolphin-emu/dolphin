@@ -27,11 +27,12 @@ bool CSVSignatureDB::Load(const std::string& file_path)
   {
     std::istringstream iss(line);
     u32 checksum, size;
-    std::string tab, symbol, object_location, object_name;
+    std::string tab;
 
     iss >> std::hex >> checksum >> std::hex >> size;
     if (iss && std::getline(iss, tab, '\t'))
     {
+      std::string symbol, object_location, object_name;
       if (std::getline(iss, symbol, '\t') && std::getline(iss, object_location, '\t'))
         std::getline(iss, object_name);
       HashSignatureDB::DBFunc func;

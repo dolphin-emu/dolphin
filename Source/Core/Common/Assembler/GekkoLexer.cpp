@@ -620,9 +620,7 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
   const size_t string_start = m_scan_pos.index - 1;
   TokenType token_type = TokenType::StringLit;
 
-  std::optional<std::string_view> failure_reason = RunDfa(string_dfa);
-
-  if (failure_reason)
+  if (std::optional<std::string_view> failure_reason = RunDfa(string_dfa))
   {
     token_type = TokenType::Invalid;
     invalid_reason = *failure_reason;

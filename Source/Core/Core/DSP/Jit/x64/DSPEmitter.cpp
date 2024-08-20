@@ -176,9 +176,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
   // Call extended
   if (op_template->extended)
   {
-    const auto jit_function = GetExtOp(inst);
-
-    if (jit_function)
+    if (const auto jit_function = GetExtOp(inst))
     {
       (this->*jit_function)(inst);
       ext_is_jit = true;
@@ -195,8 +193,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
   }
 
   // Main instruction
-  const auto jit_function = GetOp(inst);
-  if (jit_function)
+  if (const auto jit_function = GetOp(inst))
   {
     (this->*jit_function)(inst);
   }
