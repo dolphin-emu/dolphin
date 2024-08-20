@@ -34,11 +34,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-02 08:02+0200\n"
+"POT-Creation-Date: 2024-08-20 22:04+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Ettore Atalan <atalanttore@googlemail.com>, 2015-2020,2024\n"
-"Language-Team: German (http://app.transifex.com/delroth/dolphin-emu/language/"
-"de/)\n"
+"Language-Team: German (http://app.transifex.com/dolphinemu/dolphin-emu/"
+"language/de/)\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -200,7 +200,7 @@ msgstr ""
 msgid "%1 doesn't support this feature on your system."
 msgstr "%1 unterstützt diese Funktion auf Ihrem System nicht."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:296
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:316
 msgid "%1 doesn't support this feature."
 msgstr "%1 unterstützt diese Funktion nicht."
 
@@ -222,7 +222,7 @@ msgstr "%1 ist beigetreten"
 msgid "%1 has left"
 msgstr "%1 ist gegangen"
 
-#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:111
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:124
 msgid "%1 has unlocked %2/%3 achievements worth %4/%5 points"
 msgstr ""
 
@@ -234,7 +234,7 @@ msgstr "%1 ist kein gültiges ROM"
 msgid "%1 is now golfing"
 msgstr "%1 golft jetzt"
 
-#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:110
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:123
 msgid "%1 is playing %2"
 msgstr "%1 spielt %2"
 
@@ -248,7 +248,7 @@ msgid "%1 ms"
 msgstr "%1 ms"
 
 #: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:40
-#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:128
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:146
 msgid "%1 points"
 msgstr "%1 Punkte"
 
@@ -268,28 +268,32 @@ msgstr "%1%"
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:174
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:177
 msgid "%1% (Normal Speed)"
 msgstr "%1% (Normale Geschwindigkeit)"
 
-#. i18n: One of the options shown below "Run until (ignoring breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:641
+#. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:643
 msgid "%1's value is changed"
 msgstr "Wert von %1 wurde geändert"
 
-#. i18n: One of the options shown below "Run until (ignoring breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:635
+#. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:637
 msgid "%1's value is hit"
 msgstr ""
 
-#. i18n: One of the options shown below "Run until (ignoring breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:638
+#. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:640
 msgid "%1's value is used"
 msgstr "Wert von %1 wird verwendet"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:177
 msgid "%1, %2, %3, %4"
 msgstr "%1, %2, %3, %4"
+
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:137
+msgid "%1/%2"
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:606
 msgid "%1: %2"
@@ -311,7 +315,7 @@ msgstr "%1[%2]: %3 %"
 msgid "%1[%2]: %3/%4 MiB"
 msgstr "%1[%2]: %3/%4 MiB"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:332
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:352
 #, c-format
 msgid "%1x MSAA"
 msgstr "%1x MSAA"
@@ -324,7 +328,7 @@ msgstr "%1x Nativ (%2x%3)"
 msgid "%1x Native (%2x%3) for %4"
 msgstr "%1x Nativ (%2x%3) für %4"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:344
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:364
 #, c-format
 msgid "%1x SSAA"
 msgstr "%1x SSAA"
@@ -368,9 +372,13 @@ msgstr "&3x"
 msgid "&4x"
 msgstr "&4x"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:646
+#: Source/Core/DolphinQt/MenuBar.cpp:647
 msgid "&About"
 msgstr "&Über"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
+msgid "&Add Function"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:361
 msgid "&Add Memory Breakpoint"
@@ -381,23 +389,19 @@ msgstr "&Speicherhaltepunkt hinzufügen"
 msgid "&Add New Code..."
 msgstr "Neuen Code &hinzufügen..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
-msgid "&Add function"
-msgstr "Funktion &hinzufügen"
-
 #: Source/Core/DolphinQt/Config/PatchesWidget.cpp:48
 msgid "&Add..."
 msgstr "&Hinzufügen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:534
+#: Source/Core/DolphinQt/MenuBar.cpp:535
 msgid "&Assembler"
 msgstr "&Assembler"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:579
+#: Source/Core/DolphinQt/MenuBar.cpp:580
 msgid "&Audio Settings"
 msgstr "&Audioeinstellungen"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:194
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:197
 msgid "&Auto Update:"
 msgstr "&Automatisches Update"
 
@@ -406,14 +410,14 @@ msgid "&Borderless Window"
 msgstr "&Randloses Fenster"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1045
-msgid "&Break On Hit"
+msgid "&Break on Hit"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:503
+#: Source/Core/DolphinQt/MenuBar.cpp:504
 msgid "&Breakpoints"
 msgstr "&Haltepunkte"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:629
+#: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "&Bug Tracker"
 msgstr "&Bug Tracker"
 
@@ -425,11 +429,11 @@ msgstr "&Abbrechen"
 msgid "&Cheats Manager"
 msgstr "&Cheats-Manager"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:639
+#: Source/Core/DolphinQt/MenuBar.cpp:640
 msgid "&Check for Updates..."
 msgstr "&Auf Updates prüfen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1022
+#: Source/Core/DolphinQt/MenuBar.cpp:1023
 msgid "&Clear Symbols"
 msgstr "Symbole lös&chen"
 
@@ -437,7 +441,7 @@ msgstr "Symbole lös&chen"
 msgid "&Clone..."
 msgstr "&Klonen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:468
+#: Source/Core/DolphinQt/MenuBar.cpp:469
 msgid "&Code"
 msgstr "&Code"
 
@@ -445,17 +449,14 @@ msgstr "&Code"
 msgid "&Connected"
 msgstr "&Verbunden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:581
+#: Source/Core/DolphinQt/MenuBar.cpp:582
 msgid "&Controller Settings"
 msgstr "&Controller-Einstellungen"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1040
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:577
 msgid "&Copy Address"
 msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:575
-msgid "&Copy address"
-msgstr "Adresse &kopieren"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:137
 msgid "&Create..."
@@ -492,7 +493,7 @@ msgstr "B&earbeiten..."
 msgid "&Eject Disc"
 msgstr "&Disc auswerfen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:346
+#: Source/Core/DolphinQt/MenuBar.cpp:343
 msgid "&Emulation"
 msgstr "&Emulation"
 
@@ -517,36 +518,36 @@ msgstr "&Als GCI exportieren..."
 msgid "&File"
 msgstr "&Datei"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:601
+#: Source/Core/DolphinQt/MenuBar.cpp:602
 msgid "&Font..."
 msgstr "Schri&ftart..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:352
+#: Source/Core/DolphinQt/MenuBar.cpp:349
 msgid "&Frame Advance"
 msgstr "&Einzelbildwiedergabe"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:583
+#: Source/Core/DolphinQt/MenuBar.cpp:584
 msgid "&Free Look Settings"
 msgstr "&Freies Umsehen-Einstellungen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1024
+#: Source/Core/DolphinQt/MenuBar.cpp:1025
 msgid "&Generate Symbols From"
 msgstr "Symbole erzeu&gen aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:625
+#: Source/Core/DolphinQt/MenuBar.cpp:626
 msgid "&GitHub Repository"
 msgstr "&GitHub-Repositorium"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:578
+#: Source/Core/DolphinQt/MenuBar.cpp:579
 msgid "&Graphics Settings"
 msgstr "&Grafikeinstellungen"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:312
-#: Source/Core/DolphinQt/MenuBar.cpp:616
+#: Source/Core/DolphinQt/MenuBar.cpp:617
 msgid "&Help"
 msgstr "&Hilfe"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:582
+#: Source/Core/DolphinQt/MenuBar.cpp:583
 msgid "&Hotkey Settings"
 msgstr "&Tastenkürzel-Einstellungen"
 
@@ -570,15 +571,15 @@ msgstr "&Importieren..."
 msgid "&Infinity Base"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
-msgid "&Insert blr"
-msgstr "blr &einfügen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
+msgid "&Insert BLR"
+msgstr ""
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:457
 msgid "&Interframe Blending"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:528
+#: Source/Core/DolphinQt/MenuBar.cpp:529
 msgid "&JIT"
 msgstr "&JIT"
 
@@ -590,11 +591,11 @@ msgstr "&Sprache:"
 msgid "&Load Branch Watch"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:369
+#: Source/Core/DolphinQt/MenuBar.cpp:366
 msgid "&Load State"
 msgstr "Spielstand &laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1030
+#: Source/Core/DolphinQt/MenuBar.cpp:1031
 msgid "&Load Symbol Map"
 msgstr "Symbolkarte &laden"
 
@@ -608,19 +609,19 @@ msgstr ""
 msgid "&Lock Watches"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:460
+#: Source/Core/DolphinQt/MenuBar.cpp:461
 msgid "&Lock Widgets In Place"
 msgstr "Widgets an Ort und Stelle &sperren"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1046
-msgid "&Log On Hit"
+msgid "&Log on Hit"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:512
+#: Source/Core/DolphinQt/MenuBar.cpp:513
 msgid "&Memory"
 msgstr "&Arbeitsspeicher"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:775
+#: Source/Core/DolphinQt/MenuBar.cpp:776
 msgid "&Movie"
 msgstr "Fil&m"
 
@@ -628,7 +629,7 @@ msgstr "Fil&m"
 msgid "&Mute"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:520
+#: Source/Core/DolphinQt/MenuBar.cpp:521
 msgid "&Network"
 msgstr "&Netzwerk"
 
@@ -641,19 +642,19 @@ msgstr "&Nein"
 msgid "&Open..."
 msgstr "Ö&ffnen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:569
+#: Source/Core/DolphinQt/MenuBar.cpp:570
 msgid "&Options"
 msgstr "&Optionen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1050
+#: Source/Core/DolphinQt/MenuBar.cpp:1051
 msgid "&Patch HLE Functions"
 msgstr "&HLE-Funktionen patchen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:348
+#: Source/Core/DolphinQt/MenuBar.cpp:345
 msgid "&Pause"
 msgstr "Pau&se"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:347
+#: Source/Core/DolphinQt/MenuBar.cpp:344
 msgid "&Play"
 msgstr "&Start"
 
@@ -661,7 +662,7 @@ msgstr "&Start"
 msgid "&Properties"
 msgstr "&Eigenschaften"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:790
+#: Source/Core/DolphinQt/MenuBar.cpp:791
 msgid "&Read-Only Mode"
 msgstr "Nu&r-Lese-Modus"
 
@@ -669,7 +670,7 @@ msgstr "Nu&r-Lese-Modus"
 msgid "&Refresh List"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:476
+#: Source/Core/DolphinQt/MenuBar.cpp:477
 msgid "&Registers"
 msgstr "&Register"
 
@@ -682,12 +683,12 @@ msgstr "Entfe&rnen"
 msgid "&Remove Code"
 msgstr "Code entfe&rnen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:590
-msgid "&Rename symbol"
-msgstr "Symbol &umbenennen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:592
+msgid "&Rename Symbol"
+msgstr ""
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:410
-#: Source/Core/DolphinQt/MenuBar.cpp:350
+#: Source/Core/DolphinQt/MenuBar.cpp:347
 msgid "&Reset"
 msgstr "&Reset"
 
@@ -699,7 +700,7 @@ msgstr "&Ressourcenpaketverwaltung"
 msgid "&Save Branch Watch"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1031
+#: Source/Core/DolphinQt/MenuBar.cpp:1032
 msgid "&Save Symbol Map"
 msgstr "Symbolkarte &speichern"
 
@@ -711,11 +712,11 @@ msgstr ""
 msgid "&Skylanders Portal"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:179
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:182
 msgid "&Speed Limit:"
 msgstr "&Geschwindigkeitsbegrenzung:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:349
+#: Source/Core/DolphinQt/MenuBar.cpp:346
 msgid "&Stop"
 msgstr "Sto&pp"
 
@@ -723,7 +724,7 @@ msgstr "Sto&pp"
 msgid "&Theme:"
 msgstr "&Design:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:485
+#: Source/Core/DolphinQt/MenuBar.cpp:486
 msgid "&Threads"
 msgstr "&Threads"
 
@@ -745,17 +746,17 @@ msgstr "ROM &entladen"
 msgid "&Unlock Watches"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:434
+#: Source/Core/DolphinQt/MenuBar.cpp:435
 msgid "&View"
 msgstr "&Ansicht"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/MenuBar.cpp:495
+#: Source/Core/DolphinQt/MenuBar.cpp:496
 msgid "&Watch"
 msgstr "&Überwachungsfenster"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:618
+#: Source/Core/DolphinQt/MenuBar.cpp:619
 msgid "&Website"
 msgstr "&Webseite"
 
@@ -767,11 +768,11 @@ msgstr "&Wiki"
 msgid "&Yes"
 msgstr "&Ja"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1338
+#: Source/Core/DolphinQt/MenuBar.cpp:1339
 msgid "'%1' not found, no symbol names generated"
 msgstr "Konnte '%1' nicht finden, es wurden keine Symbolnamen generiert"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1563
+#: Source/Core/DolphinQt/MenuBar.cpp:1564
 msgid "'%1' not found, scanning for common functions instead"
 msgstr ""
 "'%1' konnte nicht gefunden werden, es wird stattdessen nach gemeinsamen "
@@ -793,7 +794,7 @@ msgstr "(System)"
 msgid "(host)"
 msgstr "(Host)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:270
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:277
 msgid "(off)"
 msgstr "(aus)"
 
@@ -817,7 +818,7 @@ msgstr ", Komma"
 msgid "- Subtract"
 msgstr "- Subtrahieren"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:378
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:379
 msgid "--> %1"
 msgstr "--> %1"
 
@@ -895,7 +896,7 @@ msgstr "16:9"
 msgid "16x Anisotropic"
 msgstr "16x Anisotropisch"
 
-#: Source/Core/Core/HotkeyManager.cpp:193
+#: Source/Core/Core/HotkeyManager.cpp:196
 msgid "1x"
 msgstr "1x"
 
@@ -907,7 +908,7 @@ msgstr "2 GiB"
 msgid "256 MiB"
 msgstr "256 MiB"
 
-#: Source/Core/Core/HotkeyManager.cpp:194
+#: Source/Core/Core/HotkeyManager.cpp:197
 msgid "2x"
 msgstr "2x"
 
@@ -943,19 +944,19 @@ msgid "32-bit Unsigned Integer"
 msgstr ""
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:350
+#: Source/Core/Core/HotkeyManager.cpp:357
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:455
 msgid "3D"
 msgstr "3D"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:359
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:25
 msgid "3D Depth"
 msgstr "3D-Tiefe"
 
-#: Source/Core/Core/HotkeyManager.cpp:195
+#: Source/Core/Core/HotkeyManager.cpp:198
 msgid "3x"
 msgstr "3x"
 
@@ -979,7 +980,7 @@ msgstr "4:3"
 msgid "4K"
 msgstr "4K"
 
-#: Source/Core/Core/HotkeyManager.cpp:196
+#: Source/Core/Core/HotkeyManager.cpp:199
 msgid "4x"
 msgstr "4x"
 
@@ -1076,7 +1077,7 @@ msgstr ""
 msgid "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:709
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:711
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:295
 msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
@@ -1109,8 +1110,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> Größer als"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1549
-#: Source/Core/DolphinQt/MainWindow.cpp:1616
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
+#: Source/Core/DolphinQt/MainWindow.cpp:1629
 msgid "A NetPlay Session is already in progress!"
 msgstr "Eine NetPlay-Sitzung läuft bereits!"
 
@@ -1134,7 +1135,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "Eine Disc wird momentan bereits eingelesen."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:548
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:568
 msgid ""
 "A group of features to make the colors more accurate, matching the color "
 "space Wii and GC games were meant for."
@@ -1146,7 +1147,7 @@ msgstr ""
 "Ein Spielstand kann nicht geladen werden, wenn kein zu startendes Spiel "
 "angegeben wurde."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:953
+#: Source/Core/DolphinQt/MainWindow.cpp:966
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1248,7 +1249,7 @@ msgid "Achievement Settings"
 msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:27
-#: Source/Core/DolphinQt/MenuBar.cpp:272
+#: Source/Core/DolphinQt/MenuBar.cpp:270
 msgid "Achievements"
 msgstr "Errungenschaften"
 
@@ -1340,7 +1341,7 @@ msgstr "Action Replay: Normal Code {0}: Ungültiger Subtype {1:08x} ({2})"
 msgid "Activate NetPlay Chat"
 msgstr "NetPlay Chat aktivieren"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:268
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
 msgid "Active"
 msgstr "Aktiv"
 
@@ -1391,11 +1392,11 @@ msgstr "Neues USB-Gerät hinzufügen"
 msgid "Add Shortcut to Desktop"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:80
 msgid "Add a Breakpoint"
 msgstr "Einen Haltepunkt hinzufügen"
 
-#: Source/Core/Core/HotkeyManager.cpp:78
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Add a Memory Breakpoint"
 msgstr "Speicherhaltepunkt hinzufügen"
 
@@ -1429,13 +1430,13 @@ msgstr "Hinzufügen..."
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:123
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:288
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:300
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:268
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:158
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:83
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:185
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
-#: Source/Core/DolphinQt/MenuBar.cpp:1025
+#: Source/Core/DolphinQt/MenuBar.cpp:1026
 msgid "Address"
 msgstr "Adresse"
 
@@ -1454,7 +1455,7 @@ msgstr ""
 msgid "Address:"
 msgstr "Adresse:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:510
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:530
 msgid ""
 "Adjust the texture filtering. Anisotropic filtering enhances the visual "
 "quality of textures that are at oblique viewing angles. Force Nearest and "
@@ -1535,7 +1536,7 @@ msgstr "Erweitert"
 msgid "Advanced Settings"
 msgstr "Erweiterte Einstellungen"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:517
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:537
 msgid ""
 "Affects how the game output is scaled to the window resolution.<br>The "
 "performance mostly depends on the number of samples each method uses."
@@ -1591,7 +1592,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:440
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:591
-#: Source/Core/DolphinQt/MainWindow.cpp:780
+#: Source/Core/DolphinQt/MainWindow.cpp:793
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:139
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:345
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1599,7 +1600,7 @@ msgid "All Files"
 msgstr "Alle Dateien"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:75
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:682
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:681
 msgid "All Files (*)"
 msgstr "Alle Dateien (*)"
 
@@ -1608,7 +1609,7 @@ msgstr "Alle Dateien (*)"
 msgid "All Float"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:779
+#: Source/Core/DolphinQt/MainWindow.cpp:792
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "Alle GC/Wii-Dateien"
@@ -1617,8 +1618,8 @@ msgstr "Alle GC/Wii-Dateien"
 msgid "All Hexadecimal"
 msgstr "Alle Hexadezimalen"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1412
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
+#: Source/Core/DolphinQt/MainWindow.cpp:1425
+#: Source/Core/DolphinQt/MainWindow.cpp:1437
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Alle Speicherstände (*.sav *.s##);; Alle Dateien (*)"
 
@@ -1642,11 +1643,11 @@ msgstr "Alle Codes der Spieler synchronisiert."
 msgid "All players' saves synchronized."
 msgstr "Alle Spielstände der Spieler synchronisiert."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:149
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:151
 msgid "Allow Mismatched Region Settings"
 msgstr "Nicht übereinstimmende Regionseinstellungen zulassen"
 
-#: Source/Core/DolphinQt/Main.cpp:263
+#: Source/Core/DolphinQt/Main.cpp:262
 msgid "Allow Usage Statistics Reporting"
 msgstr "Berichterstattung für Nutzungsdaten erlauben"
 
@@ -1707,7 +1708,7 @@ msgstr "Winkel"
 msgid "Angular velocity to ignore and remap."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:622
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:642
 msgid "Anti-Aliasing"
 msgstr "Anti-Aliasing"
 
@@ -1719,19 +1720,19 @@ msgstr "Anti-Aliasing:"
 msgid "Any Region"
 msgstr "Beliebige Region"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1708
-msgid "Append signature to"
-msgstr "Signatur anfügen an"
+#: Source/Core/DolphinQt/MenuBar.cpp:1709
+msgid "Append Signature To"
+msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1043
+#: Source/Core/DolphinQt/MenuBar.cpp:1044
 msgid "Append to &Existing Signature File..."
 msgstr "An &vorhandene Signaturdatei anfügen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1047
+#: Source/Core/DolphinQt/MenuBar.cpp:1048
 msgid "Appl&y Signature File..."
 msgstr "Signaturdatei an&wenden..."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:551
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:571
 msgid ""
 "Applies a post-processing effect after rendering a frame.<br><br /"
 "><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>"
@@ -1747,9 +1748,9 @@ msgstr "Apploader Datum:"
 msgid "Apply"
 msgstr "Übernehmen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1731
-msgid "Apply signature file"
-msgstr "Signaturdatei anwenden"
+#: Source/Core/DolphinQt/MenuBar.cpp:1732
+msgid "Apply Signature File"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:159
 msgid "Arbitrary Mipmap Detection"
@@ -1759,7 +1760,7 @@ msgstr "Willkürliche Mipmaps erkennen"
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Möchtest du '%1' wirklich löschen? "
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:834
+#: Source/Core/DolphinQt/GameList/GameList.cpp:830
 msgid "Are you sure you want to delete this file?"
 msgstr "Möchtest du diese Datei wirklich löschen? "
 
@@ -1796,8 +1797,8 @@ msgstr "Seitenverhältnis:"
 msgid "Assemble"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:606
-msgid "Assemble instruction"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:608
+msgid "Assemble Instruction"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:234
@@ -1858,7 +1859,11 @@ msgstr "Automatisch"
 msgid "Auto (Multiple of 640x528)"
 msgstr "Automatisch (Vielfaches von 640x528)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:184
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:460
+msgid "Auto Update"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:187
 msgid "Auto Update Settings"
 msgstr "Einstellungen automatisch updaten"
 
@@ -1882,7 +1887,7 @@ msgstr "Fenstergröße automatisch anpassen"
 msgid "Auto-Hide"
 msgstr "Automatisch verbergen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1348
+#: Source/Core/DolphinQt/MenuBar.cpp:1349
 msgid "Auto-detect RSO modules?"
 msgstr "RSO-Module automatisch erkennen?"
 
@@ -1898,6 +1903,17 @@ msgstr ""
 "Passt die Fenstergröße automatisch der internen Auflösung an."
 "<br><br><dolphin_emphasis>Im Zweifel deaktiviert lassen.</dolphin_emphasis>"
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:389
+msgid ""
+"Automatically changes the game disc when requested by games with two discs. "
+"This feature requires the game to be launched in one of the following ways:"
+"<br>- From the game list, with both discs being present in the game list."
+"<br>- With File > Open or the command line interface, with the paths to both "
+"discs being provided.<br>- By launching an M3U file with File > Open or the "
+"command line interface.<br><br><dolphin_emphasis>If unsure, leave this "
+"unchecked.</dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:246
 msgid "Automatically update Current Values"
 msgstr ""
@@ -1909,7 +1925,7 @@ msgid "Auxiliary"
 msgstr "Hilfs"
 
 #. i18n: The symbol for the unit "bytes"
-#: Source/Core/UICommon/UICommon.cpp:551
+#: Source/Core/UICommon/UICommon.cpp:528
 msgid "B"
 msgstr "B"
 
@@ -1995,10 +2011,10 @@ msgstr ""
 msgid "Bad value provided."
 msgstr "Unzulässigen Wert angegeben."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1000
+#: Source/Core/DolphinQt/GameList/GameList.cpp:996
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:218
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:152
-#: Source/Core/DolphinQt/MenuBar.cpp:673
+#: Source/Core/DolphinQt/MenuBar.cpp:674
 msgid "Banner"
 msgstr "Banner"
 
@@ -2026,7 +2042,7 @@ msgstr "Basispriorität"
 msgid "Basic"
 msgstr "Standard"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:138
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:139
 msgid "Basic Settings"
 msgstr "Grundeinstellungen"
 
@@ -2088,9 +2104,9 @@ msgid ""
 "Try again with a different character."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1010
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1006
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:232
-#: Source/Core/DolphinQt/MenuBar.cpp:683
+#: Source/Core/DolphinQt/MenuBar.cpp:684
 msgid "Block Size"
 msgstr "Blockgröße"
 
@@ -2128,15 +2144,15 @@ msgstr ""
 "Bluetooth-Durchleitungsmodus ist aktiviert, aber Dolphin wurde ohne libusb "
 "gebaut. Durchleitungsmodus kann nicht verwendet werden."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:588
+#: Source/Core/DolphinQt/MenuBar.cpp:589
 msgid "Boot to Pause"
 msgstr "Pausieren nach Boot"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1811
+#: Source/Core/DolphinQt/MainWindow.cpp:1824
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii-NAND-Sicherungsdatei (*.bin);;Alle Dateien (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1837
+#: Source/Core/DolphinQt/MainWindow.cpp:1850
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii Schlüsseldatei (*.bin);;Alle Dateien (*)"
 
@@ -2264,30 +2280,30 @@ msgstr ""
 msgid "Branch: %1"
 msgstr "Entwicklungszweig: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:162
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:163
 msgid "Branches"
 msgstr "Zweige"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:143
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:269
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:271
 msgid "Break"
 msgstr "Unterbrechen"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1049
-msgid "Break &And Log On Hit"
+msgid "Break &and Log on Hit"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:340
+#: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:26
 msgid "Breakpoint"
 msgstr "Haltepunkt"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:567
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:561
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "Haltepunkt gefunden! Schritt heraus abgebrochen."
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:95
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:96
 msgid "Breakpoints"
 msgstr "Haltepunkte"
 
@@ -2386,7 +2402,7 @@ msgstr ""
 msgid "C Stick"
 msgstr "C-Stick"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1042
+#: Source/Core/DolphinQt/MenuBar.cpp:1043
 msgid "C&reate Signature File..."
 msgstr "Signatu&rdatei erstellen..."
 
@@ -2424,7 +2440,7 @@ msgstr ""
 msgid "Calculate"
 msgstr "Berechnen"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:559
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:579
 msgid ""
 "Calculates lighting of 3D objects per-pixel rather than per-vertex, "
 "smoothing out the appearance of lit polygons and making individual triangles "
@@ -2491,14 +2507,14 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Kann Wiimote bei Verbindungs-Handle {0:02x} nicht finden"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1542
-#: Source/Core/DolphinQt/MainWindow.cpp:1609
+#: Source/Core/DolphinQt/MainWindow.cpp:1555
+#: Source/Core/DolphinQt/MainWindow.cpp:1622
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Du kannst keine NetPlay-Session starten, während ein Spiel noch läuft!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:159
-#: Source/Core/DolphinQt/MenuBar.cpp:1381
+#: Source/Core/DolphinQt/MenuBar.cpp:1382
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:62
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:281
@@ -2550,7 +2566,7 @@ msgstr ""
 msgid "Cannot refresh without results."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:552
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:551
 msgid "Cannot set GCI folder to an empty path."
 msgstr ""
 
@@ -2599,7 +2615,7 @@ msgstr "Disc &wechseln..."
 msgid "Change Disc"
 msgstr "Disc wechseln"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:152
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:155
 msgid "Change Discs Automatically"
 msgstr "Discs automatisch wechseln"
 
@@ -2670,7 +2686,7 @@ msgstr "Cheatsuche"
 msgid "Cheats Manager"
 msgstr "Cheat-Verwaltung"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:297
+#: Source/Core/DolphinQt/MenuBar.cpp:294
 msgid "Check NAND..."
 msgstr "NAND prüfen..."
 
@@ -2682,7 +2698,7 @@ msgstr "Veränderungen der Spieleliste im Hintergrund prüfen"
 msgid "Check for updates"
 msgstr "Auf Updates prüfen"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:860
+#: Source/Core/DolphinQt/GameList/GameList.cpp:856
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
@@ -2702,29 +2718,29 @@ msgstr "China"
 msgid "Choose"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:648
-msgid "Choose a file to open"
-msgstr "Datei zum Öffnen auswählen"
-
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:437
-msgid "Choose a file to open or create"
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:216
+msgid "Choose Folder to Extract To"
 msgstr ""
-
-#: Source/Core/DolphinQt/MenuBar.cpp:1751
-msgid "Choose priority input file"
-msgstr "Vorrangige Eingabedatei auswählen"
-
-#: Source/Core/DolphinQt/MenuBar.cpp:1756
-msgid "Choose secondary input file"
-msgstr "Sekundäre Eingabedatei auswählen"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:541
-msgid "Choose the GCI base folder"
+msgid "Choose GCI Base Folder"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:217
-msgid "Choose the folder to extract to"
-msgstr "Ordner zum Extrahieren auswählen"
+#: Source/Core/DolphinQt/MenuBar.cpp:1752
+msgid "Choose Priority Input File"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1757
+msgid "Choose Secondary Input File"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:647
+msgid "Choose a File to Open"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:437
+msgid "Choose a File to Open or Create"
+msgstr ""
 
 #. i18n: Refers to emulated wii remote movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:39
@@ -2743,7 +2759,7 @@ msgstr "Klassischer Controller"
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:265
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:152
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:171
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:172
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:103
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:114
 msgid "Clear"
@@ -2753,7 +2769,7 @@ msgstr "Leeren"
 msgid "Clear Branch Watch"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:904
+#: Source/Core/DolphinQt/MenuBar.cpp:905
 msgid "Clear Cache"
 msgstr "Cache leeren"
 
@@ -2774,7 +2790,7 @@ msgstr "Code b&earbeiten und klonen..."
 msgid "Close"
 msgstr "Schließen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:571 Source/Core/DolphinQt/MenuBar.cpp:574
+#: Source/Core/DolphinQt/MenuBar.cpp:572 Source/Core/DolphinQt/MenuBar.cpp:575
 msgid "Co&nfiguration"
 msgstr "Ko&nfiguration"
 
@@ -2798,7 +2814,7 @@ msgstr "Code:"
 msgid "Codes received!"
 msgstr "Codes empfangen!"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:631
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:651
 msgid "Color Correction"
 msgstr ""
 
@@ -2818,7 +2834,7 @@ msgstr "Farbraum"
 msgid "Column &Visibility"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1045
+#: Source/Core/DolphinQt/MenuBar.cpp:1046
 msgid "Combine &Two Signature Files..."
 msgstr "&Zwei Signaturdateien kombinieren..."
 
@@ -2853,9 +2869,9 @@ msgstr "Shader vor dem Start kompilieren"
 msgid "Compiling Shaders"
 msgstr "Kompiliere Shader"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1011
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1007
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:234
-#: Source/Core/DolphinQt/MenuBar.cpp:684
+#: Source/Core/DolphinQt/MenuBar.cpp:685
 msgid "Compression"
 msgstr "Komprimierung"
 
@@ -2880,7 +2896,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:460
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:159
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:278
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:272
 msgid "Condition"
 msgstr "Bedingung"
 
@@ -2987,9 +3003,9 @@ msgstr "Ausgabe konfigurieren"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:283
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
-#: Source/Core/DolphinQt/GameList/GameList.cpp:833
-#: Source/Core/DolphinQt/MainWindow.cpp:952
-#: Source/Core/DolphinQt/MainWindow.cpp:1747
+#: Source/Core/DolphinQt/GameList/GameList.cpp:829
+#: Source/Core/DolphinQt/MainWindow.cpp:965
+#: Source/Core/DolphinQt/MainWindow.cpp:1760
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Bestätigen"
@@ -3002,7 +3018,7 @@ msgstr "Ändern des Backends bestätigen"
 msgid "Confirm on Stop"
 msgstr "Beim Beenden bestätigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1291
+#: Source/Core/DolphinQt/MenuBar.cpp:1292
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:499
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:240
 msgid "Confirmation"
@@ -3013,7 +3029,7 @@ msgstr "Bestätigung"
 msgid "Connect"
 msgstr "Verbinden"
 
-#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:340
+#: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/DolphinQt/MenuBar.cpp:337
 msgid "Connect Balance Board"
 msgstr "Balance Bord anschließen"
 
@@ -3021,27 +3037,27 @@ msgstr "Balance Bord anschließen"
 msgid "Connect USB Keyboard"
 msgstr "USB-Tastatur verbunden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:332
+#: Source/Core/DolphinQt/MenuBar.cpp:329
 msgid "Connect Wii Remote %1"
 msgstr "Wiimote %1 verbinden"
 
-#: Source/Core/Core/HotkeyManager.cpp:81
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Connect Wii Remote 1"
 msgstr "Wiimote 1 verbinden"
 
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:85
 msgid "Connect Wii Remote 2"
 msgstr "Wiimote 2 verbinden"
 
-#: Source/Core/Core/HotkeyManager.cpp:83
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Connect Wii Remote 3"
 msgstr "Wiimote 3 verbinden"
 
-#: Source/Core/Core/HotkeyManager.cpp:84
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Connect Wii Remote 4"
 msgstr "Wiimote 4 verbinden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:325
+#: Source/Core/DolphinQt/MenuBar.cpp:322
 msgid "Connect Wii Remotes"
 msgstr "Wiimotes verbinden"
 
@@ -3087,19 +3103,19 @@ msgstr "Control Stick"
 msgid "Controller Profile"
 msgstr "Controller-Profil"
 
-#: Source/Core/Core/HotkeyManager.cpp:342
+#: Source/Core/Core/HotkeyManager.cpp:349
 msgid "Controller Profile 1"
 msgstr "Controller-Profil 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:343
+#: Source/Core/Core/HotkeyManager.cpp:350
 msgid "Controller Profile 2"
 msgstr "Controller-Profil 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:344
+#: Source/Core/Core/HotkeyManager.cpp:351
 msgid "Controller Profile 3"
 msgstr "Controller-Profil 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:345
+#: Source/Core/Core/HotkeyManager.cpp:352
 msgid "Controller Profile 4"
 msgstr "Controller-Profil 4"
 
@@ -3111,6 +3127,16 @@ msgstr "Controller-Einstellungen"
 msgid "Controllers"
 msgstr "Controller"
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:404
+msgid ""
+"Controls how fast emulation runs relative to the original hardware."
+"<br><br>Values higher than 100% will emulate faster than the original "
+"hardware can run, if your hardware is able to keep up. Values lower than "
+"100% will slow emulation instead. Unlimited will emulate as fast as your "
+"hardware is able to.<br><br><dolphin_emphasis>If unsure, select 100%.</"
+"dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:51
 msgid ""
 "Controls the base luminance of a paper white surface in nits. Useful for "
@@ -3119,7 +3145,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this at 203.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:586
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:606
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.<br><br>A "
@@ -3131,7 +3157,7 @@ msgstr ""
 "<br><br>Ein höherer Wert sorgt für stärkere Außen-Effekte, während ein "
 "niedrigerer Wert angenehmer ist."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:497
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:517
 msgid ""
 "Controls the rendering resolution.<br><br>A high resolution greatly improves "
 "visual quality, but also greatly increases GPU load and can cause issues in "
@@ -3145,7 +3171,7 @@ msgstr ""
 "geringer die interne Auflösung, desto besser die Performance."
 "<br><br><dolphin_emphasis>Im Zweifel, wähle Nativ.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:583
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:603
 msgid ""
 "Controls the separation distance between the virtual cameras.<br><br>A "
 "higher value creates a stronger feeling of depth while a lower value is more "
@@ -3179,7 +3205,7 @@ msgstr ""
 "Kontroliiert, ob High- oder Low-Level-DSP Emulation verwendet werden soll. "
 "Standardwert <b>True</b>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:659
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:679
 msgid "Convergence"
 msgstr "Konvergenz"
 
@@ -3271,17 +3297,21 @@ msgstr ""
 msgid "Copy"
 msgstr "Kopieren"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:577
-msgid "Copy &function"
-msgstr "&Funktion kopieren"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:579
+msgid "Copy &Function"
+msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:580
-msgid "Copy &hex"
-msgstr "&Hex kopieren"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:582
+msgid "Copy &Hex"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:881
 msgid "Copy Address"
 msgstr "Adresse kopieren"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:581
+msgid "Copy Code &Line"
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:641
 msgid "Copy Failed"
@@ -3291,17 +3321,13 @@ msgstr "Kopieren fehlgeschlagen"
 msgid "Copy Hex"
 msgstr "Hex kopieren"
 
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:588
+msgid "Copy Tar&get Sddress"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:886
 msgid "Copy Value"
 msgstr "Wert kopieren"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:579
-msgid "Copy code &line"
-msgstr "Codezei&le kopieren"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:586
-msgid "Copy tar&get address"
-msgstr "&Zieladresse kopieren"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:244
 msgid "Copy to A"
@@ -3431,8 +3457,8 @@ msgstr "Konnte Datei {0} nicht erkennen"
 msgid "Could not save your changes!"
 msgstr ""
 
-#: Source/Core/UICommon/AutoUpdate.cpp:303
-#: Source/Core/UICommon/AutoUpdate.cpp:309
+#: Source/Core/UICommon/AutoUpdate.cpp:307
+#: Source/Core/UICommon/AutoUpdate.cpp:313
 msgid "Could not start updater process: {0}"
 msgstr ""
 
@@ -3536,7 +3562,7 @@ msgid ""
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:307
+#: Source/Core/DolphinQt/MenuBar.cpp:304
 msgid "Current Region"
 msgstr "Aktuelle Region"
 
@@ -3728,24 +3754,24 @@ msgstr "Decodierungsqualität:"
 msgid "Decrease"
 msgstr "Reduzieren"
 
-#: Source/Core/Core/HotkeyManager.cpp:128
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Decrease Convergence"
 msgstr "Konvergenz verrringern"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Decrease Depth"
 msgstr "Tiefe reduzieren"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Decrease Emulation Speed"
 msgstr "Emulationsgeschwindigkeit verringern"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:119
+#: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Decrease IR"
 msgstr "Interne Auflösung reduzieren"
 
-#: Source/Core/Core/HotkeyManager.cpp:183
+#: Source/Core/Core/HotkeyManager.cpp:186
 msgid "Decrease Selected State Slot"
 msgstr ""
 
@@ -3807,8 +3833,8 @@ msgstr ""
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:131
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:529
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:546
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:533
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:550
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:102
 msgid "Delete"
 msgstr "Entfernen"
@@ -3826,7 +3852,7 @@ msgstr "Ausgewählte Dateien löschen..."
 msgid "Delete the existing file '{0}'?"
 msgstr "Vorhandende Datei '{0}' löschen?"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:656
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:676
 msgid "Depth"
 msgstr "Tiefe"
 
@@ -3841,9 +3867,9 @@ msgstr "Tiefe:"
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:619
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:48
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1002
+#: Source/Core/DolphinQt/GameList/GameList.cpp:998
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:220
-#: Source/Core/DolphinQt/MenuBar.cpp:675
+#: Source/Core/DolphinQt/MenuBar.cpp:676
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:92
 msgid "Description"
 msgstr "Beschreibung"
@@ -3892,7 +3918,7 @@ msgstr "Gelöst"
 msgid "Detect"
 msgstr "Erkenne"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1382
+#: Source/Core/DolphinQt/MenuBar.cpp:1383
 msgid "Detecting RSO Modules"
 msgstr ""
 
@@ -3900,7 +3926,7 @@ msgstr ""
 msgid "Deterministic dual core:"
 msgstr "Deterministischer Doppelkern: "
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:197
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:202
 msgid "Dev (multiple times a day)"
 msgstr "Entwickler (mehrmals am Tag)"
 
@@ -3958,15 +3984,15 @@ msgstr "Kopierfilter deaktivieren"
 msgid "Disable EFB VRAM Copies"
 msgstr "EFB VRAM-Kopien deaktivieren"
 
-#: Source/Core/Core/HotkeyManager.cpp:48
+#: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Disable Emulation Speed Limit"
 msgstr "Geschwindigkeitsbegrenzung ausschalten"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:884
+#: Source/Core/DolphinQt/MenuBar.cpp:885
 msgid "Disable Fastmem"
 msgstr "Fastmem deaktivieren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:890
+#: Source/Core/DolphinQt/MenuBar.cpp:891
 msgid "Disable Fastmem Arena"
 msgstr ""
 
@@ -3974,11 +4000,11 @@ msgstr ""
 msgid "Disable Fog"
 msgstr "Nebel deaktivieren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:876
+#: Source/Core/DolphinQt/MenuBar.cpp:877
 msgid "Disable JIT Cache"
 msgstr "JIT-Zwischenspeicher deaktivieren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:896
+#: Source/Core/DolphinQt/MenuBar.cpp:897
 msgid "Disable Large Entry Points Map"
 msgstr ""
 
@@ -4007,7 +4033,7 @@ msgstr ""
 "zu erzwingen. Sperrt jede Hochskalierung.<br><br><dolphin_emphasis>Im "
 "Zweifel deaktiviert lassen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:598
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:618
 msgid ""
 "Disables the blending of adjacent rows when copying the EFB. This is known "
 "in some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the "
@@ -4036,7 +4062,8 @@ msgstr "Disc"
 msgid "Discard"
 msgstr "Verwerfen"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:122
+#. i18n: Settings that affect how achievements are displayed while playing.
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:124
 msgid "Display Settings"
 msgstr ""
 
@@ -4071,15 +4098,15 @@ msgstr "Distanz"
 msgid "Distance of travel from neutral position."
 msgstr "Weite der Bewegung von der neutralen Position."
 
-#: Source/Core/DolphinQt/Main.cpp:265
+#: Source/Core/DolphinQt/Main.cpp:264
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "Dolphin autorisieren, Informationen an das Entwicklerteam zu senden?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1748
+#: Source/Core/DolphinQt/MainWindow.cpp:1761
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Möchtest du \"%1\" zur Liste der Spielverzeichnisse hinzufügen?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1292
+#: Source/Core/DolphinQt/MenuBar.cpp:1293
 msgid "Do you want to clear the list of symbol names?"
 msgstr "Möchtest du die Liste der Symbolnamen löschen?"
 
@@ -4089,7 +4116,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:956
+#: Source/Core/DolphinQt/MainWindow.cpp:969
 msgid "Do you want to stop the current emulation?"
 msgstr "Laufende Emulation stoppen?"
 
@@ -4110,9 +4137,9 @@ msgstr "Dolphin FIFO-Log (*.dff)"
 msgid "Dolphin Game Mod Preset"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1593
-#: Source/Core/DolphinQt/MenuBar.cpp:1610
-#: Source/Core/DolphinQt/MenuBar.cpp:1629
+#: Source/Core/DolphinQt/MenuBar.cpp:1594
+#: Source/Core/DolphinQt/MenuBar.cpp:1611
+#: Source/Core/DolphinQt/MenuBar.cpp:1630
 msgid "Dolphin Map File (*.map)"
 msgstr "Dolphin-Kartendatei (*.map)"
 
@@ -4124,8 +4151,8 @@ msgstr "Dolphin-Signatur-CSV-Datei"
 msgid "Dolphin Signature File"
 msgstr "Dolphin-Signaturdatei"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1859
-#: Source/Core/DolphinQt/MainWindow.cpp:1938
+#: Source/Core/DolphinQt/MainWindow.cpp:1872
+#: Source/Core/DolphinQt/MainWindow.cpp:1951
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS-Filme (*.dtm)"
 
@@ -4176,14 +4203,6 @@ msgstr ""
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "Dolphin kann nicht lizenzierte Discs nicht überprüfen."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:220
-msgid ""
-"Dolphin will use this for titles whose region cannot be determined "
-"automatically."
-msgstr ""
-"Dolphin wird dies für Titel verwenden, deren Region nicht automatisch "
-"bestimmt werden kann."
-
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:74
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "Dolphins Cheatsystem ist momentan deaktiviert."
@@ -4193,7 +4212,7 @@ msgstr "Dolphins Cheatsystem ist momentan deaktiviert."
 msgid "Domain"
 msgstr "Domain"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:197
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:200
 msgid "Don't Update"
 msgstr "Nicht updaten"
 
@@ -4250,11 +4269,11 @@ msgstr "%1 Codes heruntergeladen. (%2 hinzugefügt)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:336
 msgid ""
-"Downloads full game covers from GameTDB.com to display in the Game List's "
-"Grid View. If this setting is unchecked the Game List displays a banner "
-"generated from the game's save files, and if the game has no save file "
-"displays a generic banner instead.<br><br>List View will always use the save "
-"file banners.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
+"Downloads full game covers from GameTDB.com to display in the game list's "
+"Grid View. If this setting is unchecked, the game list displays a banner "
+"from the game's save data, and if the game has no save file, displays a "
+"generic banner instead.<br><br>List View will always use the save file "
+"banners.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
 
@@ -4297,7 +4316,7 @@ msgstr "&FakeVMEM dumpen"
 msgid "Dump &MRAM"
 msgstr "&MRAM dumpen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:845
+#: Source/Core/DolphinQt/MenuBar.cpp:846
 msgid "Dump Audio"
 msgstr "Audio dumpen"
 
@@ -4309,7 +4328,7 @@ msgstr "Basistexturen dumpen"
 msgid "Dump EFB Target"
 msgstr "EFB-Target dumpen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:839
+#: Source/Core/DolphinQt/MenuBar.cpp:840
 msgid "Dump Frames"
 msgstr "Frames dumpen"
 
@@ -4436,16 +4455,16 @@ msgstr "Ostasien"
 msgid "Edit Breakpoint"
 msgstr "Haltepunkt bearbeiten"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:233
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:236
 msgid "Edit Conditional"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:233
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:236
 msgid "Edit conditional expression"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:528
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:545
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:532
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:549
 msgid "Edit..."
 msgstr "Bearbeiten..."
 
@@ -4469,7 +4488,7 @@ msgstr "Effektiv"
 msgid "Effective priority"
 msgstr "Effektive Priorität"
 
-#: Source/Core/UICommon/UICommon.cpp:552
+#: Source/Core/UICommon/UICommon.cpp:529
 msgid "EiB"
 msgstr "EiB"
 
@@ -4535,7 +4554,7 @@ msgstr ""
 "Aktuell: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
 "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)"
 
-#: Source/Core/Core/HotkeyManager.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:342
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:26
 msgid "Emulation Speed"
 msgstr "Emulationsgeschwindigkeit"
@@ -4555,7 +4574,7 @@ msgstr "API-Validierungsschichten aktivieren"
 msgid "Enable Audio Stretching"
 msgstr "Audiodehnung aktivieren"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:146
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:147
 msgid "Enable Cheats"
 msgstr "Cheats aktivieren"
 
@@ -4579,9 +4598,9 @@ msgstr ""
 msgid "Enable Dual Core"
 msgstr "Dual Core aktivieren"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:143
-msgid "Enable Dual Core (speedup)"
-msgstr "Dual Core aktivieren (Beschleunigung)"
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:144
+msgid "Enable Dual Core (speedhack)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:95
 msgid "Enable Emulated CPU Clock Override"
@@ -4625,7 +4644,7 @@ msgid ""
 "the game to be closed before re-enabling."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:915
+#: Source/Core/DolphinQt/MenuBar.cpp:916
 msgid "Enable JIT Block Profiling"
 msgstr ""
 
@@ -4667,7 +4686,7 @@ msgstr ""
 msgid "Enable Unofficial Achievements"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:234
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:235
 msgid "Enable Usage Statistics Reporting"
 msgstr "Berichterstattung für Nutzungsdaten aktivieren"
 
@@ -4747,7 +4766,7 @@ msgstr ""
 "Aktiviert die Fließkomma-Ergebnis-Bitschalter-Berechnung, wird von einigen "
 "Spielen benötigt. (EIN = Kompatibilität, AUS = Geschwindigkeit)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:604
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:624
 msgid ""
 "Enables detection of arbitrary mipmaps, which some games use for special "
 "distance-based effects.<br><br>May have false positives that result in "
@@ -4784,7 +4803,7 @@ msgstr ""
 "unterstützt wird. Die meisten Spiele haben damit kein Problem."
 "<br><br><dolphin_emphasis>Im Zweifel deaktiviert lassen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:612
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:632
 msgid ""
 "Enables scRGB HDR output (if supported by your graphics backend and "
 "monitor). Fullscreen might be required.<br><br>This gives post process "
@@ -4832,6 +4851,15 @@ msgid ""
 "Read the Terms of Service at: https://www.wiilink24.com/tos"
 msgstr ""
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:379
+msgid ""
+"Enables the use of AR and Gecko cheat codes which can be used to modify "
+"games' behavior. These codes can be configured with the Cheats Manager in "
+"the Tools menu.<br><br>This setting cannot be changed while emulation is "
+"active.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
+"dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:313
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
@@ -4861,7 +4889,7 @@ msgid ""
 "Aborting import."
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:269
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:271
 msgid "End Addr"
 msgstr ""
 
@@ -4912,14 +4940,14 @@ msgid ""
 "to."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1353
+#: Source/Core/DolphinQt/MenuBar.cpp:1354
 msgid "Enter the RSO module address:"
 msgstr "Geben Sie die RSO-Moduladresse ein:"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:194
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:250
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:263
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:387
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:262
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:386
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:358
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:364
@@ -4958,26 +4986,26 @@ msgstr "Geben Sie die RSO-Moduladresse ein:"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
-#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:306
-#: Source/Core/DolphinQt/MainWindow.cpp:314
-#: Source/Core/DolphinQt/MainWindow.cpp:1132
-#: Source/Core/DolphinQt/MainWindow.cpp:1541
-#: Source/Core/DolphinQt/MainWindow.cpp:1548
-#: Source/Core/DolphinQt/MainWindow.cpp:1608
-#: Source/Core/DolphinQt/MainWindow.cpp:1615
-#: Source/Core/DolphinQt/MainWindow.cpp:1726
-#: Source/Core/DolphinQt/MenuBar.cpp:205 Source/Core/DolphinQt/MenuBar.cpp:1251
-#: Source/Core/DolphinQt/MenuBar.cpp:1337
-#: Source/Core/DolphinQt/MenuBar.cpp:1360
-#: Source/Core/DolphinQt/MenuBar.cpp:1375
-#: Source/Core/DolphinQt/MenuBar.cpp:1407
-#: Source/Core/DolphinQt/MenuBar.cpp:1432
-#: Source/Core/DolphinQt/MenuBar.cpp:1649
-#: Source/Core/DolphinQt/MenuBar.cpp:1661
-#: Source/Core/DolphinQt/MenuBar.cpp:1673
-#: Source/Core/DolphinQt/MenuBar.cpp:1695
-#: Source/Core/DolphinQt/MenuBar.cpp:1721
-#: Source/Core/DolphinQt/MenuBar.cpp:1773
+#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:309
+#: Source/Core/DolphinQt/MainWindow.cpp:317
+#: Source/Core/DolphinQt/MainWindow.cpp:1145
+#: Source/Core/DolphinQt/MainWindow.cpp:1554
+#: Source/Core/DolphinQt/MainWindow.cpp:1561
+#: Source/Core/DolphinQt/MainWindow.cpp:1621
+#: Source/Core/DolphinQt/MainWindow.cpp:1628
+#: Source/Core/DolphinQt/MainWindow.cpp:1739
+#: Source/Core/DolphinQt/MenuBar.cpp:205 Source/Core/DolphinQt/MenuBar.cpp:1252
+#: Source/Core/DolphinQt/MenuBar.cpp:1338
+#: Source/Core/DolphinQt/MenuBar.cpp:1361
+#: Source/Core/DolphinQt/MenuBar.cpp:1376
+#: Source/Core/DolphinQt/MenuBar.cpp:1408
+#: Source/Core/DolphinQt/MenuBar.cpp:1433
+#: Source/Core/DolphinQt/MenuBar.cpp:1650
+#: Source/Core/DolphinQt/MenuBar.cpp:1662
+#: Source/Core/DolphinQt/MenuBar.cpp:1674
+#: Source/Core/DolphinQt/MenuBar.cpp:1696
+#: Source/Core/DolphinQt/MenuBar.cpp:1722
+#: Source/Core/DolphinQt/MenuBar.cpp:1774
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:316
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:480
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:741
@@ -4994,9 +5022,9 @@ msgstr "Geben Sie die RSO-Moduladresse ein:"
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:465
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:486
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:507
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:552
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:589
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:612
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:551
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:588
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:611
 #: Source/Core/DolphinQt/Translation.cpp:322
 msgid "Error"
 msgstr "Fehler"
@@ -5029,7 +5057,7 @@ msgstr ""
 msgid "Error obtaining session list: %1"
 msgstr "Fehler beim Abrufen der Sitzungsliste: %1"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:307
+#: Source/Core/DolphinQt/MainWindow.cpp:310
 msgid "Error occurred while loading some texture packs"
 msgstr ""
 
@@ -5129,7 +5157,7 @@ msgstr ""
 msgid "Euphoria"
 msgstr "Euphoria"
 
-#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:309
+#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:306
 #: Source/Core/UICommon/NetPlayIndex.cpp:249
 msgid "Europe"
 msgstr "Europa"
@@ -5142,15 +5170,15 @@ msgstr ""
 msgid "Exit"
 msgstr "Beenden"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:944
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:945
 msgid "Expected + or closing paren."
 msgstr "Erwartete + oder schließende runde Klammer."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:774
-msgid "Expected arguments: "
-msgstr "Erwartete Argumente: "
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:775
+msgid "Expected arguments: {0}"
+msgstr ""
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:911
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:912
 msgid "Expected closing paren."
 msgstr "Erwartete schließende runde Klammer."
 
@@ -5162,19 +5190,19 @@ msgstr "Erwartetes Komma."
 msgid "Expected end of expression."
 msgstr "Erwartetes Ende des Ausdrucks."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:930
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:931
 msgid "Expected name of input."
 msgstr "Erwarteter Name der Eingabe."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:921
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:922
 msgid "Expected opening paren."
 msgstr "Erwartete öffnende runde Klammer."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:841
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:842
 msgid "Expected start of expression."
 msgstr "Erwarteter Beginn des Ausdrucks."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:815
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:816
 msgid "Expected variable name."
 msgstr ""
 
@@ -5182,7 +5210,7 @@ msgstr ""
 msgid "Experimental"
 msgstr "Experimentell"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:323
+#: Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "Export All Wii Saves"
 msgstr "Alle Wii-Spielstände exportieren"
 
@@ -5193,11 +5221,11 @@ msgstr "Alle Wii-Spielstände exportieren"
 msgid "Export Failed"
 msgstr "Exportieren fehlgeschlagen"
 
-#: Source/Core/Core/HotkeyManager.cpp:57
+#: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Export Recording"
 msgstr "Aufnahme exportieren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:783
+#: Source/Core/DolphinQt/MenuBar.cpp:784
 msgid "Export Recording..."
 msgstr "Aufnahme exportieren..."
 
@@ -5225,7 +5253,7 @@ msgstr "Als .&gcs exportieren..."
 msgid "Export as .&sav..."
 msgstr "Als .&sav exportieren..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1176
+#: Source/Core/DolphinQt/MenuBar.cpp:1177
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
@@ -5253,35 +5281,35 @@ msgstr "Extern"
 msgid "External Frame Buffer (XFB)"
 msgstr "Externer Bildspeicher (XFB)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:298
+#: Source/Core/DolphinQt/MenuBar.cpp:295
 msgid "Extract Certificates from NAND"
 msgstr "Zertifikate aus NAND extrahieren"
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:270
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:269
 msgid "Extract Entire Disc..."
 msgstr "Gesamte Disc extrahieren..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:294
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:293
 msgid "Extract Entire Partition..."
 msgstr "Gesamte Partition extrahieren..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:301
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:300
 msgid "Extract File..."
 msgstr "Datei extrahieren..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:243
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:242
 msgid "Extract Files..."
 msgstr "Dateien extrahieren..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:253
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:252
 msgid "Extract System Data..."
 msgstr "Systemdaten extrahieren..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:357
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:356
 msgid "Extracting All Files..."
 msgstr "Alle Dateien werden extrahiert..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:358
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:357
 msgid "Extracting Directory..."
 msgstr "Verzeichnis wird extrahiert..."
 
@@ -5311,7 +5339,7 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "Konnte diese Sitzung nicht zum NetPlay Index hinzufügen: %1"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1722
+#: Source/Core/DolphinQt/MenuBar.cpp:1723
 msgid "Failed to append to signature file '%1'"
 msgstr "Konnte nicht an Signaturdatei '%1' anfügen."
 
@@ -5379,7 +5407,7 @@ msgstr ""
 "Konnte NetPlay-Speicherkarte nicht löschen. Überprüfe deine "
 "Schreibberechtigungen."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:859
+#: Source/Core/DolphinQt/GameList/GameList.cpp:855
 msgid "Failed to delete the selected file."
 msgstr "Konnte die ausgewählte Datei nicht löschen."
 
@@ -5408,15 +5436,15 @@ msgstr ""
 msgid "Failed to export the following save files:"
 msgstr "Konnte folgende Spielstände nicht exportieren:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1251
+#: Source/Core/DolphinQt/MenuBar.cpp:1252
 msgid "Failed to extract certificates from NAND"
 msgstr "Konnte Zertifikate aus NAND nicht extrahieren"
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:387
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:386
 msgid "Failed to extract file."
 msgstr "Datei konnte nicht extrahiert werden."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:263
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:262
 msgid "Failed to extract system data."
 msgstr "Systemdaten konnten nicht extrahiert werden."
 
@@ -5438,14 +5466,14 @@ msgstr "Ein oder mehrere D3D-Symbole konnten nicht gefunden werden"
 msgid "Failed to import \"%1\"."
 msgstr "Konnte \"%1\" nicht importieren."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1152
+#: Source/Core/DolphinQt/MenuBar.cpp:1153
 msgid ""
 "Failed to import save file. Please launch the game once, then try again."
 msgstr ""
 "Konnte Spielstand nicht importieren. Bitte starte das Spiel einmal und "
 "versuche es danach erneut."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1146
+#: Source/Core/DolphinQt/MenuBar.cpp:1147
 msgid ""
 "Failed to import save file. The given file appears to be corrupted or is not "
 "a valid Wii save."
@@ -5453,7 +5481,7 @@ msgstr ""
 "Konnte Spielstand nicht importieren. Die gegebene Datei scheint beschädigt "
 "zu sein oder ist kein gültiger Wii-Spielstand."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1159
+#: Source/Core/DolphinQt/MenuBar.cpp:1160
 msgid ""
 "Failed to import save file. Your NAND may be corrupt, or something is "
 "preventing access to files within it. Try repairing your NAND (Tools -> "
@@ -5464,7 +5492,7 @@ msgstr ""
 "dein NAND zu reparieren (Extras -> NAND verwalten -> NAND prüfen...) und "
 "versuche anschließend, den Spielstand erneut zu importieren."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1132
+#: Source/Core/DolphinQt/MainWindow.cpp:1145
 msgid "Failed to init core"
 msgstr "Konnte Kern nicht initiieren"
 
@@ -5484,11 +5512,11 @@ msgid "Failed to install pack: %1"
 msgstr "Konnte Paket: %1 nicht installieren"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:633
-#: Source/Core/DolphinQt/MenuBar.cpp:1117
+#: Source/Core/DolphinQt/MenuBar.cpp:1118
 msgid "Failed to install this title to the NAND."
 msgstr "Konnte diesen Titel nicht in den NAND installieren."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1643
+#: Source/Core/DolphinQt/MainWindow.cpp:1656
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5496,8 +5524,8 @@ msgstr ""
 "Fehler beim Lauschen auf Port %1. Wird eine andere Instanz des NetPlay-"
 "Servers ausgeführt?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1375
-#: Source/Core/DolphinQt/MenuBar.cpp:1432
+#: Source/Core/DolphinQt/MenuBar.cpp:1376
+#: Source/Core/DolphinQt/MenuBar.cpp:1433
 msgid "Failed to load RSO module at %1"
 msgstr "Konnte RSO-Modul an %1 nicht laden"
 
@@ -5509,7 +5537,7 @@ msgstr "Fehler beim Laden der Datei d3d11.dll"
 msgid "Failed to load dxgi.dll"
 msgstr "Fehler beim Laden der Datei dxgi.dll"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1661
+#: Source/Core/DolphinQt/MenuBar.cpp:1662
 msgid "Failed to load map file '%1'"
 msgstr "Konnte Kartendatei '%1' nicht laden"
 
@@ -5548,7 +5576,7 @@ msgid "Failed to open \"{0}\" for writing."
 msgstr ""
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1726
+#: Source/Core/DolphinQt/MainWindow.cpp:1739
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "Konnte '&1' nicht öffnen"
@@ -5591,7 +5619,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1642
+#: Source/Core/DolphinQt/MainWindow.cpp:1655
 msgid "Failed to open server"
 msgstr "Konnte Server nicht öffnen"
 
@@ -5737,19 +5765,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr "Konnte FIFO-Log nicht speichern."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1650
+#: Source/Core/DolphinQt/MenuBar.cpp:1651
 msgid "Failed to save code map to path '%1'"
 msgstr "Konnte Codekarte nicht in Pfad '%1' speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1695
+#: Source/Core/DolphinQt/MenuBar.cpp:1696
 msgid "Failed to save signature file '%1'"
 msgstr "Konnte Signaturdatei '%1' nicht speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1674
+#: Source/Core/DolphinQt/MenuBar.cpp:1675
 msgid "Failed to save symbol map to path '%1'"
 msgstr "Konnte Symbolkarte nicht in Pfad '%1' speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1774
+#: Source/Core/DolphinQt/MenuBar.cpp:1775
 msgid "Failed to save to signature file '%1'"
 msgstr "Konnte nicht an Signaturdatei '%1' speichern."
 
@@ -5805,8 +5833,8 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:631
 #: Source/Core/DolphinQt/GameList/GameList.cpp:661
-#: Source/Core/DolphinQt/GameList/GameList.cpp:858
-#: Source/Core/DolphinQt/MenuBar.cpp:1117
+#: Source/Core/DolphinQt/GameList/GameList.cpp:854
+#: Source/Core/DolphinQt/MenuBar.cpp:1118
 msgid "Failure"
 msgstr "Fehler"
 
@@ -5814,11 +5842,12 @@ msgstr "Fehler"
 msgid "Fair Input Delay"
 msgstr "Faire Eingangsverzögerung"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:203
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:210
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:464
 msgid "Fallback Region"
 msgstr "Zurückgreifende Region"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:214
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:221
 msgid "Fallback Region:"
 msgstr "Zurückgreifende Region:"
 
@@ -5856,9 +5885,9 @@ msgstr ""
 msgid "File Details"
 msgstr "Dateidetails"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1009
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1005
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:230
-#: Source/Core/DolphinQt/MenuBar.cpp:682
+#: Source/Core/DolphinQt/MenuBar.cpp:683
 msgid "File Format"
 msgstr "Dateiformat"
 
@@ -5870,20 +5899,20 @@ msgstr "Dateiformat:"
 msgid "File Info"
 msgstr "Datei-Informationen"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1004
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1000
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:224
-#: Source/Core/DolphinQt/MenuBar.cpp:677
+#: Source/Core/DolphinQt/MenuBar.cpp:678
 msgid "File Name"
 msgstr "Dateiname"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1005
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1001
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:226
-#: Source/Core/DolphinQt/MenuBar.cpp:678
+#: Source/Core/DolphinQt/MenuBar.cpp:679
 msgid "File Path"
 msgstr "Dateipfad"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1008
-#: Source/Core/DolphinQt/MenuBar.cpp:681
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1004
+#: Source/Core/DolphinQt/MenuBar.cpp:682
 msgid "File Size"
 msgstr "Dateigröße"
 
@@ -5987,9 +6016,9 @@ msgstr "Bitschalter"
 msgid "Float"
 msgstr "Float"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:571
-msgid "Follow &branch"
-msgstr "&Zweig folgen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:573
+msgid "Follow &Branch"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:921
 msgid "For best results please slowly move your input to all possible regions."
@@ -6057,7 +6086,7 @@ msgstr ""
 msgid "Forced on because %1 doesn't support geometry shaders."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:565
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:585
 msgid ""
 "Forces the game to output graphics at any aspect ratio by expanding the view "
 "frustum without stretching the image.<br>This is a hack, and its results "
@@ -6067,7 +6096,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:593
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:613
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding.<br><br>Has no impact on "
@@ -6114,20 +6143,20 @@ msgstr ""
 msgid "Frame %1"
 msgstr "Bild %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:50 Source/Core/Core/HotkeyManager.cpp:336
+#: Source/Core/Core/HotkeyManager.cpp:53 Source/Core/Core/HotkeyManager.cpp:343
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:21
 msgid "Frame Advance"
 msgstr "Einzelbildwiedergabe"
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:54
 msgid "Frame Advance Decrease Speed"
 msgstr "Erhöhe Einzelbildwiedergabegeschwindigkeit"
 
-#: Source/Core/Core/HotkeyManager.cpp:52
+#: Source/Core/Core/HotkeyManager.cpp:55
 msgid "Frame Advance Increase Speed"
 msgstr "Verringere Einzelbildwiedergabegeschwindigkeit"
 
-#: Source/Core/Core/HotkeyManager.cpp:53
+#: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Frame Advance Reset Speed"
 msgstr "Einzelbildwiedergabegeschwindigkeit zurücksetzen"
 
@@ -6188,11 +6217,11 @@ msgstr ""
 msgid "FreeLook"
 msgstr "Freies Umsehen"
 
-#: Source/Core/Core/HotkeyManager.cpp:348
+#: Source/Core/Core/HotkeyManager.cpp:355
 msgid "Freelook"
 msgstr "Freies Umsehen"
 
-#: Source/Core/Core/HotkeyManager.cpp:121
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Freelook Toggle"
 msgstr "Freies Umsehen umschalten"
 
@@ -6226,11 +6255,12 @@ msgstr "Von:"
 msgid "FullScr"
 msgstr "Vollbild"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:268
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
 msgid "Function"
 msgstr "Funktion"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:117
+#. i18n: Settings that affect the functionality of unlocking achievements.
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid "Function Settings"
 msgstr ""
 
@@ -6250,7 +6280,7 @@ msgstr "GBA (TCP)"
 msgid "GBA Cartridge Path:"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:358
+#: Source/Core/Core/HotkeyManager.cpp:365
 msgid "GBA Core"
 msgstr "GBA-Kern"
 
@@ -6266,11 +6296,11 @@ msgstr "GBA-Einstellungen"
 msgid "GBA TAS Input %1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:359
+#: Source/Core/Core/HotkeyManager.cpp:366
 msgid "GBA Volume"
 msgstr "GBA-Lautstärke"
 
-#: Source/Core/Core/HotkeyManager.cpp:360
+#: Source/Core/Core/HotkeyManager.cpp:367
 msgid "GBA Window Size"
 msgstr "GBA-Fenstergröße"
 
@@ -6400,11 +6430,11 @@ msgstr "Spiel"
 msgid "Game Boy Advance"
 msgstr "Game Boy Advance"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:649
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:648
 msgid "Game Boy Advance Carts (*.gba)"
 msgstr "Game Boy Advance Module (*.gba)"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:836
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:835
 msgid ""
 "Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
 "All Files (*)"
@@ -6440,8 +6470,8 @@ msgstr ""
 msgid "Game Gamma:"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1006
-#: Source/Core/DolphinQt/MenuBar.cpp:679
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1002
+#: Source/Core/DolphinQt/MenuBar.cpp:680
 msgid "Game ID"
 msgstr "Spielkennung"
 
@@ -6569,7 +6599,8 @@ msgstr ""
 msgid "Gecko Codes"
 msgstr "Gecko-Codes"
 
-#: Source/Core/Core/HotkeyManager.cpp:333
+#: Source/Core/Core/HotkeyManager.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:339
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:200
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:60
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:120
@@ -6589,14 +6620,21 @@ msgid "Generate Action Replay Code(s)"
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:236
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:470
 msgid "Generate a New Statistics Identity"
 msgstr "Neue Statistikidentität erzeugen"
+
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:439
+msgid ""
+"Generate a new anonymous ID for your usage statistics. This will cause any "
+"future statistics to be unassociated with your previous statistics."
+msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:587
 msgid "Generated AR code(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1331
+#: Source/Core/DolphinQt/MenuBar.cpp:1332
 msgid "Generated symbol names from '%1'"
 msgstr "Generierte Symbolnamen von '%1'"
 
@@ -6614,7 +6652,7 @@ msgstr "Deutschland"
 msgid "GetDeviceList failed: {0}"
 msgstr ""
 
-#: Source/Core/UICommon/UICommon.cpp:551
+#: Source/Core/UICommon/UICommon.cpp:528
 msgid "GiB"
 msgstr "GiB"
 
@@ -6647,7 +6685,7 @@ msgstr "Grafik"
 msgid "Graphics Mods"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:346
+#: Source/Core/Core/HotkeyManager.cpp:353
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:20
 msgid "Graphics Toggles"
 msgstr "Grafik schaltet um"
@@ -6656,7 +6694,7 @@ msgstr "Grafik schaltet um"
 msgid "Graphics mods are currently disabled."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:554
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:574
 msgid ""
 "Greatly increases the quality of textures generated using render-to-texture "
 "effects.<br><br>Slightly increases GPU load and causes relatively few "
@@ -6683,7 +6721,7 @@ msgstr "Grün links"
 msgid "Green Right"
 msgstr "Grün rechts"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:654
+#: Source/Core/DolphinQt/MenuBar.cpp:655
 msgid "Grid View"
 msgstr "Tabellenansicht"
 
@@ -6765,7 +6803,7 @@ msgstr "Verbergen"
 msgid "Hide &Controls"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:749
+#: Source/Core/DolphinQt/MenuBar.cpp:750
 msgid "Hide All"
 msgstr "Alles verbergen"
 
@@ -6783,12 +6821,12 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:371
 msgid ""
-"Hides the Mouse Cursor whenever it is inside the render window and the "
+"Hides the mouse cursor whenever it is inside the render window and the "
 "render window is focused.<br><br><dolphin_emphasis>If unsure, select &quot;"
 "On Movement&quot;.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:209
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:207
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:427
 msgid "High"
 msgstr "Hoch"
@@ -6857,7 +6895,7 @@ msgstr "Hostname"
 msgid "Hotkey Settings"
 msgstr "Tastenkürzel-Einstellungen"
 
-#: Source/Core/Core/HotkeyManager.cpp:210
+#: Source/Core/Core/HotkeyManager.cpp:213
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:262
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
@@ -6984,11 +7022,11 @@ msgstr ""
 "Geeignet für rundenbasierte Spiele mit zeitabhängiger Steuerung, zum "
 "Beispiel Golf."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:375
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:363
 msgid "Identity Generation"
 msgstr "Indentitätserzeugung"
 
-#: Source/Core/DolphinQt/Main.cpp:267
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -7030,6 +7068,16 @@ msgid ""
 "If enabled, then all memory updates happen at once before the first frame."
 "<br><br>Causes issues with many fifologs, but can be useful for testing."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:433
+msgid ""
+"If selected, Dolphin can collect data on its performance, feature usage, "
+"emulated games, and configuration, as well as data on your system's hardware "
+"and operating system.<br><br>No private data is ever collected. This data "
+"helps us understand how people and emulated games use Dolphin and prioritize "
+"our efforts. It also helps us identify rare configurations that are causing "
+"bugs, performance and stability issues."
 msgstr ""
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:207
@@ -7099,7 +7147,7 @@ msgstr ""
 "Performance etwas.<br><br><dolphin_emphasis>Im Zweifel deaktiviert lassen.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:295
+#: Source/Core/DolphinQt/MenuBar.cpp:292
 msgid "Import BootMii NAND Backup..."
 msgstr "BootMii-NAND-Sicherung importieren..."
 
@@ -7114,15 +7162,15 @@ msgstr "Importieren fehlgeschlagen"
 msgid "Import Save File(s)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:321
+#: Source/Core/DolphinQt/MenuBar.cpp:318
 msgid "Import Wii Save..."
 msgstr "Wii-Spielstand importieren..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1820
+#: Source/Core/DolphinQt/MainWindow.cpp:1833
 msgid "Importing NAND backup"
 msgstr "NAND-Sicherung wird importiert"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1830
+#: Source/Core/DolphinQt/MainWindow.cpp:1843
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7185,24 +7233,24 @@ msgstr ""
 msgid "Increase"
 msgstr "Erhöhen"
 
-#: Source/Core/Core/HotkeyManager.cpp:129
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Increase Convergence"
 msgstr "Konvergenz erhöhen"
 
-#: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Increase Depth"
 msgstr "Tiefe erhöhen"
 
-#: Source/Core/Core/HotkeyManager.cpp:47
+#: Source/Core/Core/HotkeyManager.cpp:50
 msgid "Increase Emulation Speed"
 msgstr "Emulationsgeschwindigkeit erhöhen"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:117
+#: Source/Core/Core/HotkeyManager.cpp:120
 msgid "Increase IR"
 msgstr "Interne Auflösung erhöhen"
 
-#: Source/Core/Core/HotkeyManager.cpp:182
+#: Source/Core/Core/HotkeyManager.cpp:185
 msgid "Increase Selected State Slot"
 msgstr ""
 
@@ -7251,8 +7299,8 @@ msgstr "Info"
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/GameList/GameList.cpp:717
 #: Source/Core/DolphinQt/GameList/GameList.cpp:779
-#: Source/Core/DolphinQt/MenuBar.cpp:1330
-#: Source/Core/DolphinQt/MenuBar.cpp:1573
+#: Source/Core/DolphinQt/MenuBar.cpp:1331
+#: Source/Core/DolphinQt/MenuBar.cpp:1574
 msgid "Information"
 msgstr "Information"
 
@@ -7266,10 +7314,10 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:438
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:275
-#: Source/Core/DolphinQt/MenuBar.cpp:1353
-#: Source/Core/DolphinQt/MenuBar.cpp:1413
-#: Source/Core/DolphinQt/MenuBar.cpp:1680
-#: Source/Core/DolphinQt/MenuBar.cpp:1705
+#: Source/Core/DolphinQt/MenuBar.cpp:1354
+#: Source/Core/DolphinQt/MenuBar.cpp:1414
+#: Source/Core/DolphinQt/MenuBar.cpp:1681
+#: Source/Core/DolphinQt/MenuBar.cpp:1706
 msgid "Input"
 msgstr "Eingabe"
 
@@ -7288,12 +7336,9 @@ msgid "Insert &BLR"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1037
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
 msgid "Insert &NOP"
 msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
-msgid "Insert &nop"
-msgstr "&nop einfügen"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:218
 msgid "Insert SD Card"
@@ -7312,7 +7357,7 @@ msgstr ""
 msgid "Install Update"
 msgstr "Update installieren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:293
+#: Source/Core/DolphinQt/MenuBar.cpp:290
 msgid "Install WAD..."
 msgstr "WAD installieren..."
 
@@ -7320,8 +7365,9 @@ msgstr "WAD installieren..."
 msgid "Install to the NAND"
 msgstr "In NAND installieren"
 
+#. i18n: Short for "Instruction"
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:159
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:160
 msgid "Instr."
 msgstr "Instr."
 
@@ -7335,7 +7381,7 @@ msgstr "Anweisung"
 msgid "Instruction Breakpoint"
 msgstr "Anweisungshaltepunkt"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1802
+#: Source/Core/DolphinQt/MenuBar.cpp:1803
 msgid "Instruction:"
 msgstr "Anweisung:"
 
@@ -7344,7 +7390,7 @@ msgstr "Anweisung:"
 msgid "Instruction: %1"
 msgstr "Anweisung: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:739
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:741
 msgid ""
 "Instructions executed:   %1\n"
 "Value contained in:\n"
@@ -7403,8 +7449,8 @@ msgid ""
 "Internal LZO Error - failed to parse decompressed version string ({0} / {1})"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:347
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:619
+#: Source/Core/Core/HotkeyManager.cpp:354
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:639
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
 msgstr "Interne Auflösung"
@@ -7421,7 +7467,7 @@ msgstr ""
 msgid "Interpreter (slowest)"
 msgstr "Interpreter (am langsamsten)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:856
+#: Source/Core/DolphinQt/MenuBar.cpp:857
 msgid "Interpreter Core"
 msgstr "Interpreterkern"
 
@@ -7429,7 +7475,7 @@ msgstr "Interpreterkern"
 msgid "Invalid Expression."
 msgstr "Ungültiger Ausdruck."
 
-#: Source/Core/UICommon/AutoUpdate.cpp:214
+#: Source/Core/UICommon/AutoUpdate.cpp:218
 msgid "Invalid JSON received from auto-update service : {0}"
 msgstr ""
 
@@ -7437,7 +7483,7 @@ msgstr ""
 msgid "Invalid Mixed Code"
 msgstr "Ungültiger gemischter Code"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:315
+#: Source/Core/DolphinQt/MainWindow.cpp:318
 msgid "Invalid Pack %1 provided: %2"
 msgstr "Ungültiges Paket %1 angegeben: &2"
 
@@ -7446,7 +7492,7 @@ msgstr "Ungültiges Paket %1 angegeben: &2"
 msgid "Invalid Player ID"
 msgstr "Ungültige Spieler-ID"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1360
+#: Source/Core/DolphinQt/MenuBar.cpp:1361
 msgid "Invalid RSO module address: %1"
 msgstr "Ungültige RSO-Moduladresse: %1"
 
@@ -7526,11 +7572,11 @@ msgstr "Italien"
 msgid "Item"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:854
+#: Source/Core/DolphinQt/MenuBar.cpp:855
 msgid "JIT"
 msgstr "JIT"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:868
+#: Source/Core/DolphinQt/MenuBar.cpp:869
 msgid "JIT Block Linking Off"
 msgstr "JIT-Blockverbindung Aus"
 
@@ -7538,47 +7584,47 @@ msgstr "JIT-Blockverbindung Aus"
 msgid "JIT Blocks"
 msgstr "JIT-Blöcke"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1003
+#: Source/Core/DolphinQt/MenuBar.cpp:1004
 msgid "JIT Branch Off"
 msgstr "JIT Zweig Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:975
+#: Source/Core/DolphinQt/MenuBar.cpp:976
 msgid "JIT FloatingPoint Off"
 msgstr "JIT FließKomma Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:982
+#: Source/Core/DolphinQt/MenuBar.cpp:983
 msgid "JIT Integer Off"
 msgstr "JIT Ganzahl Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:960
+#: Source/Core/DolphinQt/MenuBar.cpp:961
 msgid "JIT LoadStore Floating Off"
 msgstr "JIT LadenSpeichern Fließkomma Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:932
+#: Source/Core/DolphinQt/MenuBar.cpp:933
 msgid "JIT LoadStore Off"
 msgstr "JIT LadenSpeichern Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:968
+#: Source/Core/DolphinQt/MenuBar.cpp:969
 msgid "JIT LoadStore Paired Off"
 msgstr "JIT LadenSpeichern Gekoppelt Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:946
+#: Source/Core/DolphinQt/MenuBar.cpp:947
 msgid "JIT LoadStore lXz Off"
 msgstr "JIT LadenSpeichern lXz Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:939
+#: Source/Core/DolphinQt/MenuBar.cpp:940
 msgid "JIT LoadStore lbzx Off"
 msgstr "JIT LadenSpeichern lbzx Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:953
+#: Source/Core/DolphinQt/MenuBar.cpp:954
 msgid "JIT LoadStore lwz Off"
 msgstr "JIT LadenSpeichern lwz Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:926
+#: Source/Core/DolphinQt/MenuBar.cpp:927
 msgid "JIT Off (JIT Core)"
 msgstr "JIT Aus (JIT-Kern)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:989
+#: Source/Core/DolphinQt/MenuBar.cpp:990
 msgid "JIT Paired Off"
 msgstr "JIT Gekoppelt Aus"
 
@@ -7590,14 +7636,15 @@ msgstr ""
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1010
+#: Source/Core/DolphinQt/MenuBar.cpp:1011
 msgid "JIT Register Cache Off"
 msgstr "JIT-Register-Cache Aus"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:996
+#: Source/Core/DolphinQt/MenuBar.cpp:997
 msgid "JIT SystemRegisters Off"
 msgstr "JIT-SystemRegister Aus"
 
+#: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:313
 #: Source/Core/Core/PowerPC/Jit64/Jit.cpp:840
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1028
 msgid ""
@@ -7608,11 +7655,11 @@ msgstr ""
 "niemals passieren. Melde bitte diesen Vorfall im Bug-Tracker. Dolphin wird "
 "jetzt beendet."
 
-#: Source/Android/jni/MainAndroid.cpp:423
+#: Source/Android/jni/MainAndroid.cpp:424
 msgid "JIT is not active"
 msgstr ""
 
-#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:311
+#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:308
 msgid "Japan"
 msgstr "Japan"
 
@@ -7634,7 +7681,7 @@ msgid ""
 "edit anything!"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:680
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:682
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:297
 msgid "Keep Running"
 msgstr ""
@@ -7669,7 +7716,7 @@ msgstr "Tastatur-Controller"
 msgid "Keys"
 msgstr "Tasten"
 
-#: Source/Core/UICommon/UICommon.cpp:551
+#: Source/Core/UICommon/UICommon.cpp:528
 msgid "KiB"
 msgstr "KiB"
 
@@ -7677,7 +7724,7 @@ msgstr "KiB"
 msgid "Kick Player"
 msgstr "Spieler hinauswerfen"
 
-#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:313
+#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:310
 msgid "Korea"
 msgstr "Korea"
 
@@ -7816,6 +7863,14 @@ msgstr ""
 "Links-/Rechtsklick für weitere Optionen.\n"
 "Mittlere Maustaste zum Leeren."
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:384
+msgid ""
+"Lets you use languages and other region-related settings that the game may "
+"not be designed for. May cause various crashes and bugs.<br><br>This setting "
+"cannot be changed while emulation is active.<br><br><dolphin_emphasis>If "
+"unsure, leave this unchecked.</dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:235
 msgid "Levers"
@@ -7849,11 +7904,11 @@ msgstr ""
 msgid "Limit Chunked Upload Speed:"
 msgstr "Uploadblock-Geschwindigkeit begrenzen:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:688
+#: Source/Core/DolphinQt/MenuBar.cpp:689
 msgid "List Columns"
 msgstr "Listen-Spalten"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:651
+#: Source/Core/DolphinQt/MenuBar.cpp:652
 msgid "List View"
 msgstr "Listenansicht"
 
@@ -7863,17 +7918,17 @@ msgstr "Lauscht"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:129
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:173
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:174
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:104
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
 msgid "Load"
 msgstr "Laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1035
+#: Source/Core/DolphinQt/MenuBar.cpp:1036
 msgid "Load &Bad Map File..."
 msgstr "&Ungültige Kartendatei laden..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1034
+#: Source/Core/DolphinQt/MenuBar.cpp:1035
 msgid "Load &Other Map File..."
 msgstr "&Andere Kartendatei laden..."
 
@@ -7882,7 +7937,7 @@ msgid "Load Branch Watch &From..."
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:615
-msgid "Load Branch Watch snapshot"
+msgid "Load Branch Watch Snapshot"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:107
@@ -7893,7 +7948,7 @@ msgstr "Lade benutzerdefinierte Texturen"
 msgid "Load File"
 msgstr "Datei laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:278
+#: Source/Core/DolphinQt/MenuBar.cpp:275
 msgid "Load GameCube Main Menu"
 msgstr "GameCube-Hauptmenü laden"
 
@@ -7901,16 +7956,21 @@ msgstr "GameCube-Hauptmenü laden"
 msgid "Load Host's Save Data Only"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:356
+#: Source/Core/Core/HotkeyManager.cpp:363
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:22
 msgid "Load Last State"
 msgstr "Letzten Spielstand laden"
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1593
+#: Source/Core/DolphinQt/MenuBar.cpp:1610
+msgid "Load Map File"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:211
 msgid "Load Path:"
 msgstr "Ladepfad:"
 
-#: Source/Core/Core/HotkeyManager.cpp:185
+#: Source/Core/Core/HotkeyManager.cpp:188
 msgid "Load ROM"
 msgstr "ROM laden"
 
@@ -7918,104 +7978,104 @@ msgstr "ROM laden"
 msgid "Load Slot"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:181
-#: Source/Core/Core/HotkeyManager.cpp:353
+#: Source/Core/Core/HotkeyManager.cpp:184
+#: Source/Core/Core/HotkeyManager.cpp:360
 msgid "Load State"
 msgstr "Spielstand laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:169
 msgid "Load State Last 1"
 msgstr "Zuletzt gespeicherten Spielstand 1 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:175
+#: Source/Core/Core/HotkeyManager.cpp:178
 msgid "Load State Last 10"
 msgstr "Zuletzt gespeicherten Spielstand 10 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:167
+#: Source/Core/Core/HotkeyManager.cpp:170
 msgid "Load State Last 2"
 msgstr "Zuletzt gespeicherten Spielstand 2 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:168
+#: Source/Core/Core/HotkeyManager.cpp:171
 msgid "Load State Last 3"
 msgstr "Zuletzt gespeicherten Spielstand 3 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:169
+#: Source/Core/Core/HotkeyManager.cpp:172
 msgid "Load State Last 4"
 msgstr "Zuletzt gespeicherten Spielstand 4 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:170
+#: Source/Core/Core/HotkeyManager.cpp:173
 msgid "Load State Last 5"
 msgstr "Zuletzt gespeicherten Spielstand 5 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:171
+#: Source/Core/Core/HotkeyManager.cpp:174
 msgid "Load State Last 6"
 msgstr "Zuletzt gespeicherten Spielstand 6 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:172
+#: Source/Core/Core/HotkeyManager.cpp:175
 msgid "Load State Last 7"
 msgstr "Zuletzt gespeicherten Spielstand 7 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:173
+#: Source/Core/Core/HotkeyManager.cpp:176
 msgid "Load State Last 8"
 msgstr "Zuletzt gespeicherten Spielstand 8 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:174
+#: Source/Core/Core/HotkeyManager.cpp:177
 msgid "Load State Last 9"
 msgstr "Zuletzt gespeicherten Spielstand 9 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Slot 1"
 msgstr "Spielstand in Slot 1 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Load State Slot 10"
 msgstr "Spielstand in Slot 10 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Load State Slot 2"
 msgstr "Spielstand in Slot 2 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:133
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Load State Slot 3"
 msgstr "Spielstand in Slot 3 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:134
+#: Source/Core/Core/HotkeyManager.cpp:137
 msgid "Load State Slot 4"
 msgstr "Spielstand in Slot 4 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:135
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Load State Slot 5"
 msgstr "Spielstand in Slot 5 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Load State Slot 6"
 msgstr "Spielstand in Slot 6 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State Slot 7"
 msgstr "Spielstand in Slot 7 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:141
 msgid "Load State Slot 8"
 msgstr "Spielstand in Slot 8 laden"
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:142
 msgid "Load State Slot 9"
 msgstr "Spielstand in Slot 9 laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:370
+#: Source/Core/DolphinQt/MenuBar.cpp:367
 msgid "Load State from File"
 msgstr "Spielstand von Datei laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:371
+#: Source/Core/DolphinQt/MenuBar.cpp:368
 msgid "Load State from Selected Slot"
 msgstr "Spielstand vom ausgewählten Slot laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:372
+#: Source/Core/DolphinQt/MenuBar.cpp:369
 msgid "Load State from Slot"
 msgstr "Spielstand von Slot laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1077
+#: Source/Core/DolphinQt/MenuBar.cpp:1078
 msgid "Load Wii System Menu %1"
 msgstr "Wii-Systemmenü laden %1"
 
@@ -8023,20 +8083,15 @@ msgstr "Wii-Systemmenü laden %1"
 msgid "Load and Write Host's Save Data"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:141
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Load from Selected Slot"
 msgstr "Spielstand vom ausgewählten Slot laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:426
+#: Source/Core/DolphinQt/MenuBar.cpp:427
 msgid "Load from Slot %1 - %2"
 msgstr "Lade von Slot %1 - %2"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1592
-#: Source/Core/DolphinQt/MenuBar.cpp:1609
-msgid "Load map file"
-msgstr "Kartendatei laden"
-
-#: Source/Core/DolphinQt/MenuBar.cpp:1076
+#: Source/Core/DolphinQt/MenuBar.cpp:1077
 msgid "Load vWii System Menu %1"
 msgstr ""
 
@@ -8044,7 +8099,7 @@ msgstr ""
 msgid "Load..."
 msgstr "Laden..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1574
+#: Source/Core/DolphinQt/MenuBar.cpp:1575
 msgid "Loaded symbols from '%1'"
 msgstr "Geladene Symbole von '%1'"
 
@@ -8072,20 +8127,20 @@ msgstr "Lokal"
 msgid "Lock Mouse Cursor"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:103
+#: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:111
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:97
 msgid "Locked"
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:364
 msgid ""
-"Locks the Mouse Cursor to the Render Widget as long as it has focus. You can "
+"Locks the mouse cursor to the Render Widget as long as it has focus. You can "
 "set a hotkey to unlock it.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:269
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:271
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:238
 msgid "Log"
 msgstr "Log"
@@ -8095,10 +8150,11 @@ msgid "Log Configuration"
 msgstr "Protokollkonfiguration"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:61
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:187
 msgid "Log In"
 msgstr "Anmelden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:909
+#: Source/Core/DolphinQt/MenuBar.cpp:910
 msgid "Log JIT Instruction Coverage"
 msgstr "JIT-Anweisungsabdeckung protokollieren"
 
@@ -8137,7 +8193,7 @@ msgstr ""
 msgid "Lost connection to NetPlay server..."
 msgstr "Die Verbindung zum NetPlay-Server wurde getrennt..."
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:203
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:201
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:423
 msgid "Low"
 msgstr "Niedrig"
@@ -8200,9 +8256,9 @@ msgstr ""
 msgid "Make sure there is a Skylander in slot %1!"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1003
+#: Source/Core/DolphinQt/GameList/GameList.cpp:999
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:222
-#: Source/Core/DolphinQt/MenuBar.cpp:676
+#: Source/Core/DolphinQt/MenuBar.cpp:677
 msgid "Maker"
 msgstr "Hersteller"
 
@@ -8211,7 +8267,7 @@ msgstr "Hersteller"
 msgid "Maker:"
 msgstr "Hersteller:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:571
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:591
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.<br><br>Disabling fog will break some games which rely on "
@@ -8223,7 +8279,7 @@ msgstr ""
 "machen, die die korrekte Nebelemulation benötigen."
 "<br><br><dolphin_emphasis>Im Zweifel deaktiviert lassen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:294
+#: Source/Core/DolphinQt/MenuBar.cpp:291
 msgid "Manage NAND"
 msgstr "NAND verwalten"
 
@@ -8262,7 +8318,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "Kann zu Verlangsamung im Wii-Menü und einigen Spielen führen."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:228
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:206
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:204
 msgid "Medium"
 msgstr "Mittel"
 
@@ -8278,7 +8334,7 @@ msgstr "Speicherhaltepunkt"
 msgid "Memory Card"
 msgstr "Speicherkarte"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:287
+#: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "Memory Card Manager"
 msgstr "Speicherkartenverwaltung"
 
@@ -8308,7 +8364,7 @@ msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 "MemoryCard: Schreibvorgang mit ungültiger Zieladresse aufgerufen ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1801
+#: Source/Core/DolphinQt/MainWindow.cpp:1814
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -8320,7 +8376,7 @@ msgstr ""
 "Vorgang ist nicht umkehrbar, daher wird empfohlen, dass du Sicherungen "
 "beider NANDs behälst. Bist du sicher, dass du fortfahren möchtest?"
 
-#: Source/Core/UICommon/UICommon.cpp:551
+#: Source/Core/UICommon/UICommon.cpp:528
 msgid "MiB"
 msgstr "MiB"
 
@@ -8396,8 +8452,8 @@ msgstr ""
 msgid "Modifying Skylander: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1381
-#: Source/Core/DolphinQt/MenuBar.cpp:1532
+#: Source/Core/DolphinQt/MenuBar.cpp:1382
+#: Source/Core/DolphinQt/MenuBar.cpp:1533
 msgid "Modules found: %1"
 msgstr "Module gefunden: %1"
 
@@ -8439,7 +8495,7 @@ msgstr "Mauszeigersichtbarkeit"
 msgid "Move"
 msgstr "Bewegen"
 
-#: Source/Core/Core/HotkeyManager.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:344
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:23
 msgid "Movie"
 msgstr "Film"
@@ -8463,10 +8519,10 @@ msgstr "Multiplikator"
 msgid "N&o to All"
 msgstr "N&ein zu allen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1206
-#: Source/Core/DolphinQt/MenuBar.cpp:1215
-#: Source/Core/DolphinQt/MenuBar.cpp:1233
-#: Source/Core/DolphinQt/MenuBar.cpp:1237
+#: Source/Core/DolphinQt/MenuBar.cpp:1207
+#: Source/Core/DolphinQt/MenuBar.cpp:1216
+#: Source/Core/DolphinQt/MenuBar.cpp:1234
+#: Source/Core/DolphinQt/MenuBar.cpp:1238
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:29
 msgid "NAND Check"
 msgstr "NAND-Prüfung"
@@ -8475,8 +8531,8 @@ msgstr "NAND-Prüfung"
 msgid "NKit Warning"
 msgstr "NKit-Warnung"
 
-#: Source/Core/DiscIO/Enums.cpp:121 Source/Core/DolphinQt/MenuBar.cpp:280
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:216
+#: Source/Core/DiscIO/Enums.cpp:121 Source/Core/DolphinQt/MenuBar.cpp:277
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:223
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
@@ -8485,7 +8541,7 @@ msgid "NTSC-J (ARIB TR-B9)"
 msgstr "NTSC-J (ARIB TR-B9)"
 
 #: Source/Core/DiscIO/Enums.cpp:130
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:216
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:223
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
@@ -8502,8 +8558,8 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DiscIO/Enums.cpp:124 Source/Core/DolphinQt/MenuBar.cpp:282
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:216
+#: Source/Core/DiscIO/Enums.cpp:124 Source/Core/DolphinQt/MenuBar.cpp:279
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:223
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
@@ -8516,11 +8572,11 @@ msgstr "NTSC-U"
 msgid "Name"
 msgstr "Name"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1122
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1118
 msgid "Name for a new tag:"
 msgstr "Name für ein neues Tag:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1134
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1130
 msgid "Name of the tag to remove:"
 msgstr "Name des Tag, das entfernt werden soll:"
 
@@ -8599,7 +8655,7 @@ msgid "Never Auto-Update"
 msgstr "Niemals automatisch updaten"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:365
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:170
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:171
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:101
 msgid "New"
 msgstr "Neu"
@@ -8624,7 +8680,7 @@ msgstr "Neue Suche"
 msgid "New Tag..."
 msgstr "Neues Tag..."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:376
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:364
 msgid "New identity generated."
 msgstr "Neue identität erzeugt."
 
@@ -8632,12 +8688,13 @@ msgstr "Neue identität erzeugt."
 msgid "New instruction:"
 msgstr "Neue Anweisung:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1122
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1118
 msgid "New tag"
 msgstr "Neues Tag"
 
-#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
-#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:94 Source/Core/Core/HotkeyManager.cpp:98
+#: Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Next Game Profile"
 msgstr "Nächstes Spielprofil"
 
@@ -8645,8 +8702,9 @@ msgstr "Nächstes Spielprofil"
 msgid "Next Match"
 msgstr "Nächste Übereinstimmung"
 
-#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
-#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:92 Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Next Profile"
 msgstr "Nächstes Profil"
 
@@ -8733,7 +8791,7 @@ msgstr ""
 msgid "No input"
 msgstr "Keine Eingabe"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1217
+#: Source/Core/DolphinQt/MenuBar.cpp:1218
 msgid "No issues have been detected."
 msgstr "Es wurden keine Probleme festgestellt."
 
@@ -8780,7 +8838,7 @@ msgstr ""
 "Desynchronisationen zu vermeiden"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:35
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:330
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:350
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:424
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:119
@@ -8980,7 +9038,7 @@ msgid ""
 "performed in the emulated software."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:621
+#: Source/Core/DolphinQt/MenuBar.cpp:622
 msgid "Online &Documentation"
 msgstr "Online-&Dokumentation"
 
@@ -8988,7 +9046,7 @@ msgstr "Online-&Dokumentation"
 msgid "Only Show Collection"
 msgstr "Nur Sammlung anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1705
+#: Source/Core/DolphinQt/MenuBar.cpp:1706
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -8996,7 +9054,7 @@ msgstr ""
 "Nur Symbole anhängen mit dem Präfix:\n"
 "(Leer für alle Symbole)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1680
+#: Source/Core/DolphinQt/MenuBar.cpp:1681
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -9019,14 +9077,18 @@ msgstr "Über&geordneten Ordner öffnen"
 msgid "Open &User Folder"
 msgstr "&Benutzerordner öffnen"
 
+#: Source/Core/Core/HotkeyManager.cpp:42
+msgid "Open Achievements"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:67
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:39
 msgid "Open Directory..."
 msgstr "Verzeichnis öffnen..."
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:217
-msgid "Open FIFO log"
-msgstr "FIFO-Log öffnen"
+msgid "Open FIFO Log"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:484
 msgid "Open GameCube &Save Folder"
@@ -9127,7 +9189,7 @@ msgstr "Andere"
 msgid "Other Partition (%1)"
 msgstr "Andere Partition (%1)"
 
-#: Source/Core/Core/HotkeyManager.cpp:357
+#: Source/Core/Core/HotkeyManager.cpp:364
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:25
 msgid "Other State Hotkeys"
 msgstr "Tastenkürzel anderer Spielstand"
@@ -9144,7 +9206,7 @@ msgstr "Anderes Spiel..."
 msgid "Output"
 msgstr "Ausgabe"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:628
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:648
 msgid "Output Resampling"
 msgstr ""
 
@@ -9152,16 +9214,16 @@ msgstr ""
 msgid "Output Resampling:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:699
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:701
 msgid "Overwritten"
 msgstr "Überschrieben"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:779
+#: Source/Core/DolphinQt/MenuBar.cpp:780
 msgid "P&lay Input Recording..."
 msgstr "Eingabeau&fzeichnung wiedergeben..."
 
-#: Source/Core/DiscIO/Enums.cpp:127 Source/Core/DolphinQt/MenuBar.cpp:285
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:216
+#: Source/Core/DiscIO/Enums.cpp:127 Source/Core/DolphinQt/MenuBar.cpp:282
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:223
 msgid "PAL"
 msgstr "PAL"
 
@@ -9190,7 +9252,7 @@ msgstr "PNG-Bilddatei (*.png);; Alle Dateien (*)"
 msgid "PPC Size"
 msgstr "PPC-Größe"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:600
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
 msgid "PPC vs Host"
 msgstr "PPC vs Host"
 
@@ -9203,7 +9265,7 @@ msgstr "Pad"
 msgid "Pads"
 msgstr "Pads"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:160
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:161
 msgid "Parameters"
 msgstr "Parameter"
 
@@ -9266,7 +9328,7 @@ msgstr "Pause"
 msgid "Pause Branch Watch"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:800
+#: Source/Core/DolphinQt/MenuBar.cpp:801
 msgid "Pause at End of Movie"
 msgstr "Pause am Filmende"
 
@@ -9311,7 +9373,7 @@ msgstr "Spitzengeschwindigkeit von nach außen gerichteten Schwenkbewegungen."
 msgid "Per-Pixel Lighting"
 msgstr "Per-Pixel Lighting"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:305
+#: Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "Perform Online System Update"
 msgstr "Online-Systemaktualisierung durchführen"
 
@@ -9341,11 +9403,11 @@ msgstr "Physikalisch"
 msgid "Physical address space"
 msgstr ""
 
-#: Source/Core/UICommon/UICommon.cpp:552
+#: Source/Core/UICommon/UICommon.cpp:529
 msgid "PiB"
 msgstr "PiB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1283
+#: Source/Core/DolphinQt/MenuBar.cpp:1284
 msgid "Pick a debug font"
 msgstr "Wähle eine Debug-Schriftart"
 
@@ -9361,8 +9423,8 @@ msgstr "Nicken abwärts"
 msgid "Pitch Up"
 msgstr "Nicken aufwärts"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:999
-#: Source/Core/DolphinQt/MenuBar.cpp:672
+#: Source/Core/DolphinQt/GameList/GameList.cpp:995
+#: Source/Core/DolphinQt/MenuBar.cpp:673
 msgid "Platform"
 msgstr "Plattform"
 
@@ -9374,7 +9436,7 @@ msgstr "Start"
 msgid "Play / Record"
 msgstr "Abspielen / Aufnahme"
 
-#: Source/Core/Core/HotkeyManager.cpp:56
+#: Source/Core/Core/HotkeyManager.cpp:59
 msgid "Play Recording"
 msgstr "Aufnahme abspielen"
 
@@ -9471,7 +9533,7 @@ msgstr ""
 "Mögliche Desynchronisation erkannt: %1 wurde wahrscheinlich auf Frame %2 "
 "desynchronisiert"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:634
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:654
 msgid "Post-Processing Effect"
 msgstr "Nachbearbeitungseffekt"
 
@@ -9524,7 +9586,7 @@ msgstr ""
 msgid "Presets"
 msgstr "Voreinstellungen"
 
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Press Sync Button"
 msgstr "Sync-Taste drücken"
 
@@ -9547,9 +9609,9 @@ msgstr ""
 "<br><br><dolphin_emphasis>Nicht empfohlen, nur verwenden, wenn die anderen "
 "Optionen schlechte Ergebnisse liefern.</dolphin_emphasis>"
 
-#: Source/Core/Core/HotkeyManager.cpp:92 Source/Core/Core/HotkeyManager.cpp:96
-#: Source/Core/Core/HotkeyManager.cpp:100
-#: Source/Core/Core/HotkeyManager.cpp:104
+#: Source/Core/Core/HotkeyManager.cpp:95 Source/Core/Core/HotkeyManager.cpp:99
+#: Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Previous Game Profile"
 msgstr "Vorheriges Spielprofil"
 
@@ -9557,8 +9619,9 @@ msgstr "Vorheriges Spielprofil"
 msgid "Previous Match"
 msgstr "Vorherige Übereinstimmung"
 
-#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
-#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:93 Source/Core/Core/HotkeyManager.cpp:97
+#: Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Previous Profile"
 msgstr "Vorheriges Profil"
 
@@ -9608,13 +9671,13 @@ msgstr ""
 msgid "Profile"
 msgstr "Profil"
 
-#: Source/Core/Core/HotkeyManager.cpp:339
+#: Source/Core/Core/HotkeyManager.cpp:346
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:24
 msgid "Program Counter"
 msgstr "Programmzähler"
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:60
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:346
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:345
 #: Source/Core/DolphinQt/ConvertDialog.cpp:436
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:283
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:308
@@ -9631,11 +9694,11 @@ msgstr ""
 msgid "Public"
 msgstr "Öffentlich"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:553
+#: Source/Core/DolphinQt/MenuBar.cpp:554
 msgid "Purge Game List Cache"
 msgstr "Spielelisten Cache leeren"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:740
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:739
 msgid "Put IPL ROMs in User/GC/<region>."
 msgstr ""
 
@@ -9662,7 +9725,7 @@ msgstr "Qualität des DPLII-Decoders. Audiolatenz steigt mit Qualität."
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1800
+#: Source/Core/DolphinQt/MainWindow.cpp:1813
 msgid "Question"
 msgstr "Frage"
 
@@ -9687,11 +9750,11 @@ msgstr "R-Analog"
 msgid "READY"
 msgstr "BEREIT"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1027
+#: Source/Core/DolphinQt/MenuBar.cpp:1028
 msgid "RSO Modules"
 msgstr "RSO-Module"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1348
+#: Source/Core/DolphinQt/MenuBar.cpp:1349
 msgid "RSO auto-detection"
 msgstr "Automatische RSO-Erkennung"
 
@@ -9728,13 +9791,13 @@ msgstr ""
 msgid "Raw Internal Resolution"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
-msgid "Re&place instruction"
-msgstr "Anweisung er&setzen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:606
+msgid "Re&place Instruction"
+msgstr ""
 
 #. i18n: This is a selectable condition when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:134
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:269
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:271
 msgid "Read"
 msgstr "Lesen"
 
@@ -9757,7 +9820,7 @@ msgstr "Nur Lesen"
 msgid "Read or Write"
 msgstr "Lesen oder Schreiben"
 
-#: Source/Core/Core/HotkeyManager.cpp:58
+#: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Read-Only Mode"
 msgstr "Nur-Lese-Modus"
 
@@ -9816,7 +9879,7 @@ msgstr "Rot links"
 msgid "Red Right"
 msgstr "Rot rechts"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:503
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:523
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
 "in smoother edges on objects. Increases GPU load and sometimes causes "
@@ -9868,8 +9931,8 @@ msgstr ""
 msgid "Refreshing..."
 msgstr "Aktualisiere..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1007
-#: Source/Core/DolphinQt/MenuBar.cpp:680
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1003
+#: Source/Core/DolphinQt/MenuBar.cpp:681
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
 msgstr "Region"
@@ -9890,7 +9953,8 @@ msgstr "Relative Eingabe"
 msgid "Relative Input Hold"
 msgstr "Relative Eingabe halten"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:197
+#. i18n: Releases is a noun.
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:202
 msgid "Releases (every few months)"
 msgstr ""
 
@@ -9919,7 +9983,7 @@ msgstr "Junk-Daten entfernen (unwiederruflich):"
 msgid "Remove Tag..."
 msgstr "Tag entfernen..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1134
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1130
 msgid "Remove tag"
 msgstr "Tag entfernen"
 
@@ -9935,8 +9999,8 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:934
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:968
-msgid "Rename symbol"
-msgstr "Symbol umbenennen"
+msgid "Rename Symbol"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:182
 msgid "Render Window"
@@ -9969,7 +10033,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/FreeLookManager.cpp:99
-#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:187
+#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:190
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:930
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:151
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:108
@@ -9981,7 +10045,7 @@ msgstr "Zurücksetzen"
 msgid "Reset All"
 msgstr "Alles zurücksetzen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:595
+#: Source/Core/DolphinQt/MenuBar.cpp:596
 msgid "Reset Ignore Panic Handler"
 msgstr ""
 
@@ -10033,9 +10097,9 @@ msgstr "Neustart erforderlich"
 msgid "Restore Defaults"
 msgstr "Standard wiederherstellen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:608
-msgid "Restore instruction"
-msgstr "Anweisung wiederherstellen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:610
+msgid "Restore Instruction"
+msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:742
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
@@ -10164,20 +10228,20 @@ msgstr ""
 msgid "Rumble"
 msgstr "Rumble"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:597
-msgid "Run &To Here"
-msgstr "Bis &hier ausführen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
+msgid "Run &to Here"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:203
 msgid "Run GBA Cores in Dedicated Threads"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:679
-msgid "Run until"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:681
+msgid "Run Until"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:633
-msgid "Run until (ignoring breakpoints)"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:635
+msgid "Run Until (Ignoring Breakpoints)"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:179
@@ -10247,11 +10311,11 @@ msgstr "SSL-Kontext"
 msgid "START"
 msgstr "START"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1039
+#: Source/Core/DolphinQt/MenuBar.cpp:1040
 msgid "Sa&ve Code"
 msgstr "Code speich&ern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:385
+#: Source/Core/DolphinQt/MenuBar.cpp:382
 msgid "Sa&ve State"
 msgstr "S&pielstand speichern"
 
@@ -10263,7 +10327,7 @@ msgstr "Sicher"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:21
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:130
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:371
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:174
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:175
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:105
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:710
 msgid "Save"
@@ -10278,23 +10342,35 @@ msgid "Save Branch Watch &As..."
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:598
-msgid "Save Branch Watch snapshot"
+msgid "Save Branch Watch Snapshot"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1762
+msgid "Save Combined Output File As"
+msgstr ""
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:379
+msgid "Save Converted Image"
+msgstr ""
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:370
+msgid "Save Converted Images"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:588
 #: Source/Core/DolphinQt/GameList/GameList.cpp:593
-#: Source/Core/DolphinQt/MenuBar.cpp:1175
+#: Source/Core/DolphinQt/MenuBar.cpp:1176
 msgid "Save Export"
 msgstr "Export speichern"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:228
-msgid "Save FIFO log"
-msgstr "FIFO-Log speichern"
+msgid "Save FIFO Log"
+msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:303
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:302
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:773
-msgid "Save File to"
-msgstr "Datei speichern unter"
+msgid "Save File To"
+msgstr ""
 
 #. i18n: Noun (i.e. the data saved by the game)
 #: Source/Core/DolphinQt/GBAWidget.cpp:415
@@ -10305,15 +10381,19 @@ msgstr ""
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1133
-#: Source/Core/DolphinQt/MenuBar.cpp:1142
-#: Source/Core/DolphinQt/MenuBar.cpp:1145
-#: Source/Core/DolphinQt/MenuBar.cpp:1151
-#: Source/Core/DolphinQt/MenuBar.cpp:1158
+#: Source/Core/DolphinQt/MenuBar.cpp:1134
+#: Source/Core/DolphinQt/MenuBar.cpp:1143
+#: Source/Core/DolphinQt/MenuBar.cpp:1146
+#: Source/Core/DolphinQt/MenuBar.cpp:1152
+#: Source/Core/DolphinQt/MenuBar.cpp:1159
 msgid "Save Import"
 msgstr "Import speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:177
+#: Source/Core/DolphinQt/MenuBar.cpp:1628
+msgid "Save Map File"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:180
 msgid "Save Oldest State"
 msgstr "Ältesten Spielstand überschreiben"
 
@@ -10321,73 +10401,77 @@ msgstr "Ältesten Spielstand überschreiben"
 msgid "Save Preset"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1938
+#: Source/Core/DolphinQt/MainWindow.cpp:1951
 msgid "Save Recording File As"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:180
-#: Source/Core/Core/HotkeyManager.cpp:354
+#: Source/Core/DolphinQt/MenuBar.cpp:1684
+msgid "Save Signature File"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:183
+#: Source/Core/Core/HotkeyManager.cpp:361
 #: Source/Core/DolphinQt/GBAWidget.cpp:423
 msgid "Save State"
 msgstr "Spielstand speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:143
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Save State Slot 1"
 msgstr "In Slot 1 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
+#: Source/Core/Core/HotkeyManager.cpp:155
 msgid "Save State Slot 10"
 msgstr "In Slot 10 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Save State Slot 2"
 msgstr "In Slot 2 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:148
 msgid "Save State Slot 3"
 msgstr "In Slot 3 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:149
 msgid "Save State Slot 4"
 msgstr "In Slot 4 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:150
 msgid "Save State Slot 5"
 msgstr "In Slot 5 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:151
 msgid "Save State Slot 6"
 msgstr "In Slot 6 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:149
+#: Source/Core/Core/HotkeyManager.cpp:152
 msgid "Save State Slot 7"
 msgstr "In Slot 7 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:153
 msgid "Save State Slot 8"
 msgstr "In Slot 8 speichern"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
+#: Source/Core/Core/HotkeyManager.cpp:154
 msgid "Save State Slot 9"
 msgstr "In Slot 9 speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:386
+#: Source/Core/DolphinQt/MenuBar.cpp:383
 msgid "Save State to File"
 msgstr "Spielstand in Datei speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:388
+#: Source/Core/DolphinQt/MenuBar.cpp:385
 msgid "Save State to Oldest Slot"
 msgstr "Spielstand in ältesten Slot speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:387
+#: Source/Core/DolphinQt/MenuBar.cpp:384
 msgid "Save State to Selected Slot"
 msgstr "Spielstand im ausgewählten Slot speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:389
+#: Source/Core/DolphinQt/MenuBar.cpp:386
 msgid "Save State to Slot"
 msgstr "Spielstand in Slot speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1036
+#: Source/Core/DolphinQt/MenuBar.cpp:1037
 msgid "Save Symbol Map &As..."
 msgstr "Symbolkarte speichern &als..."
 
@@ -10407,11 +10491,7 @@ msgstr ""
 msgid "Save as..."
 msgstr "Speichern unter..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1761
-msgid "Save combined output file as"
-msgstr "Kombinierte Ausgabedatei speichern als"
-
-#: Source/Core/DolphinQt/MenuBar.cpp:1134
+#: Source/Core/DolphinQt/MenuBar.cpp:1135
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
@@ -10425,19 +10505,11 @@ msgstr ""
 msgid "Save in Same Directory as the ROM"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1627
-msgid "Save map file"
-msgstr "Kartendatei speichern"
-
-#: Source/Core/DolphinQt/MenuBar.cpp:1683
-msgid "Save signature file"
-msgstr "Signaturdatei speichern"
-
-#: Source/Core/Core/HotkeyManager.cpp:153
+#: Source/Core/Core/HotkeyManager.cpp:156
 msgid "Save to Selected Slot"
 msgstr "Spielstand im ausgewählten Slot speichern"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:427
+#: Source/Core/DolphinQt/MenuBar.cpp:428
 msgid "Save to Slot %1 - %2"
 msgstr "Spielstand in Slot %1 - %2 speichern"
 
@@ -10473,7 +10545,7 @@ msgstr "ScrShot"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:149
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:83
-#: Source/Core/DolphinQt/MenuBar.cpp:561 Source/Core/DolphinQt/MenuBar.cpp:563
+#: Source/Core/DolphinQt/MenuBar.cpp:562 Source/Core/DolphinQt/MenuBar.cpp:564
 msgid "Search"
 msgstr "Suche"
 
@@ -10500,7 +10572,7 @@ msgid ""
 "for a bit and try again."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:911
+#: Source/Core/DolphinQt/MenuBar.cpp:912
 msgid "Search for an Instruction"
 msgstr "Suche nach einer Anweisung"
 
@@ -10508,7 +10580,7 @@ msgstr "Suche nach einer Anweisung"
 msgid "Search games..."
 msgstr "Suche Spiele..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1802
+#: Source/Core/DolphinQt/MenuBar.cpp:1803
 msgid "Search instruction"
 msgstr "Suchanweisung"
 
@@ -10545,7 +10617,7 @@ msgstr "Auswählen"
 #. If the user presses Cancel, Branch Watch will save to a file in the user folder.
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:778
 msgid ""
-"Select Branch Watch snapshot auto-save file (for user folder location, "
+"Select Branch Watch Snapshot Auto-Save File (for user folder location, "
 "cancel)"
 msgstr ""
 
@@ -10554,7 +10626,7 @@ msgid "Select Dump Path"
 msgstr "Dump-Pfad auswählen"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:568
-#: Source/Core/DolphinQt/MenuBar.cpp:1169
+#: Source/Core/DolphinQt/MenuBar.cpp:1170
 msgid "Select Export Directory"
 msgstr "Export-Verzeichnis auswählen"
 
@@ -10562,16 +10634,20 @@ msgstr "Export-Verzeichnis auswählen"
 msgid "Select Figure File"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:681
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:680
 msgid "Select GBA BIOS"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:830
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:829
 msgid "Select GBA ROM"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:710
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:709
 msgid "Select GBA Saves Path"
+msgstr ""
+
+#: Source/Core/DolphinQt/MainWindow.cpp:1849
+msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:21
@@ -10582,12 +10658,24 @@ msgstr "Letzten Spielstand auswählen"
 msgid "Select Load Path"
 msgstr "Ladepfad auswählen"
 
+#: Source/Core/DolphinQt/MainWindow.cpp:1823
+msgid "Select NAND Backup"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:93
 msgid "Select Resource Pack Path"
 msgstr "Ressourcenpaket-Pfad auswählen"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:138
 msgid "Select Riivolution XML file"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:506
+msgid "Select SD Card Image"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1125
+msgid "Select Save File"
 msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:484
@@ -10598,57 +10686,61 @@ msgstr ""
 msgid "Select Skylander File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:428
+#: Source/Core/DolphinQt/MenuBar.cpp:429
 msgid "Select Slot %1 - %2"
 msgstr "Slot %1 - %2 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:355
+#: Source/Core/Core/HotkeyManager.cpp:362
 msgid "Select State"
 msgstr "Spielstand auswählen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:402
+#: Source/Core/DolphinQt/MenuBar.cpp:399
 msgid "Select State Slot"
 msgstr "Spielstand-Slot auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:155
+#: Source/Core/Core/HotkeyManager.cpp:158
 msgid "Select State Slot 1"
 msgstr "Slot 1 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:164
+#: Source/Core/Core/HotkeyManager.cpp:167
 msgid "Select State Slot 10"
 msgstr "Slot 10 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:156
+#: Source/Core/Core/HotkeyManager.cpp:159
 msgid "Select State Slot 2"
 msgstr "Slot 2 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:157
+#: Source/Core/Core/HotkeyManager.cpp:160
 msgid "Select State Slot 3"
 msgstr "Slot 3 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:158
+#: Source/Core/Core/HotkeyManager.cpp:161
 msgid "Select State Slot 4"
 msgstr "Slot 4 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:159
+#: Source/Core/Core/HotkeyManager.cpp:162
 msgid "Select State Slot 5"
 msgstr "Slot 5 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:160
+#: Source/Core/Core/HotkeyManager.cpp:163
 msgid "Select State Slot 6"
 msgstr "Slot 6 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:161
+#: Source/Core/Core/HotkeyManager.cpp:164
 msgid "Select State Slot 7"
 msgstr "Slot 7 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:162
+#: Source/Core/Core/HotkeyManager.cpp:165
 msgid "Select State Slot 8"
 msgstr "Slot 8 auswählen"
 
-#: Source/Core/Core/HotkeyManager.cpp:163
+#: Source/Core/Core/HotkeyManager.cpp:166
 msgid "Select State Slot 9"
 msgstr "Slot 9 auswählen"
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1104
+msgid "Select Title to Install to NAND"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:105
 msgid "Select WFS Path"
@@ -10667,23 +10759,19 @@ msgstr "Verzeichnis auswählen"
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:583
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
-#: Source/Core/DolphinQt/MainWindow.cpp:775
-#: Source/Core/DolphinQt/MainWindow.cpp:1412
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
+#: Source/Core/DolphinQt/MainWindow.cpp:788
+#: Source/Core/DolphinQt/MainWindow.cpp:1425
+#: Source/Core/DolphinQt/MainWindow.cpp:1437
 msgid "Select a File"
 msgstr "Datei auswählen"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:523
-msgid "Select a Folder to sync with the SD Card Image"
+msgid "Select a Folder to Sync with the SD Card Image"
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:47
 msgid "Select a Game"
 msgstr "Spiel auswählen"
-
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:506
-msgid "Select a SD Card Image"
-msgstr "SD-Kartenabbild auswählen"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:695
 msgid "Select a file"
@@ -10693,42 +10781,21 @@ msgstr ""
 msgid "Select a game"
 msgstr "Spiel auswählen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1104
-msgid "Select a title to install to NAND"
-msgstr "Wähle einen Titel zum Installieren in den NAND aus."
-
 #: Source/Core/DolphinQt/GBAWidget.cpp:195
 msgid "Select e-Reader Cards"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1413
+#: Source/Core/DolphinQt/MenuBar.cpp:1414
 msgid "Select the RSO module address:"
 msgstr "Wählen Sie die RSO-Moduladresse aus:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1859
+#: Source/Core/DolphinQt/MainWindow.cpp:1872
 msgid "Select the Recording File to Play"
 msgstr ""
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:192
 msgid "Select the Virtual SD Card Root"
 msgstr ""
-
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
-msgid "Select the keys file (OTP/SEEPROM dump)"
-msgstr "Wähle die Schlüsseldateien (OTP/SEEPROM Dump)"
-
-#: Source/Core/DolphinQt/MainWindow.cpp:1810
-#: Source/Core/DolphinQt/MenuBar.cpp:1124
-msgid "Select the save file"
-msgstr "Wii-Spielstand auswählen"
-
-#: Source/Core/DolphinQt/ConvertDialog.cpp:379
-msgid "Select where you want to save the converted image"
-msgstr "Wähle aus, wo das konvertierte Abbild gespeichert werden soll"
-
-#: Source/Core/DolphinQt/ConvertDialog.cpp:370
-msgid "Select where you want to save the converted images"
-msgstr "Wähle aus, wo die konvertierten Abbilder gespeichert werden sollen"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 msgid "Selected Font"
@@ -10787,7 +10854,7 @@ msgid ""
 "Corrected Internal Resolution\".</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:576
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:596
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling of "
 "depth if the necessary hardware is present. Heavily decreases emulation "
@@ -10838,6 +10905,27 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>"
 msgstr ""
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
+msgid ""
+"Selects which update track Dolphin uses when checking for updates at "
+"startup. If a new update is available, Dolphin will show a list of changes "
+"made since your current version and ask you if you want to update."
+"<br><br>The Dev track has the latest version of Dolphin which often updates "
+"multiple times per day. Select this track if you want the newest features "
+"and fixes.<br><br>The Releases track has an update every few months. Some "
+"reasons you might prefer to use this track:<br>- You prefer using versions "
+"that have had additional testing.<br>- NetPlay requires players to have the "
+"same Dolphin version, and the latest Release version will have the most "
+"players to match with.<br>- You frequently use Dolphin's savestate system, "
+"which doesn't guarantee backward compatibility of savestates between Dolphin "
+"versions. If this applies to you, make sure you make an in-game save before "
+"updating (i.e. save your game in the same way you would on a physical "
+"GameCube or Wii), then load the in-game save after updating Dolphin and "
+"before making any new savestates.<br><br>Selecting \"Don't Update\" will "
+"prevent Dolphin from automatically checking for updates."
+"<br><br><dolphin_emphasis>If unsure, select Releases.</dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:270
 msgid "Send"
 msgstr "Senden"
@@ -10845,6 +10933,15 @@ msgstr "Senden"
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:356
 msgid "Sensor Bar Position:"
 msgstr "Position der Sensorleiste:"
+
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:373
+msgid ""
+"Separates CPU and GPU emulation work to separate threads. Reduces single-"
+"thread burden by spreading Dolphin's heaviest load across two cores, which "
+"usually improves performance. However, it can result in glitches and crashes."
+"<br><br>This setting cannot be changed while emulation is active."
+"<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
+msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:315
 msgid ""
@@ -10876,38 +10973,34 @@ msgstr "&Wert zuweisen"
 msgid "Set Brea&kpoint"
 msgstr ""
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:359
+msgid "Set Memory Card File for Slot A"
+msgstr ""
+
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:360
+msgid "Set Memory Card File for Slot B"
+msgstr ""
+
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:74 Source/Core/DolphinQt/ToolBar.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:77 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
 msgstr "PC zuweisen"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
+msgid "Set Symbol &End Address"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
+msgid "Set Symbol &Size"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:991
+msgid "Set Symbol End Address"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:416
 msgid "Set as &Default ISO"
 msgstr "Als &Standard-ISO festlegen"
-
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:359
-msgid "Set memory card file for Slot A"
-msgstr "Lege eine Speicherkarten-Datei für Slot A fest"
-
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:360
-msgid "Set memory card file for Slot B"
-msgstr "Lege eine Speicherkarten-Datei für Slot B fest"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
-msgid "Set symbol &end address"
-msgstr "Symbol-&Endadresse festlegen"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:592
-msgid "Set symbol &size"
-msgstr "&Symbolgröße festlegen"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:992
-msgid "Set symbol end address"
-msgstr "Symbol-Endadresse festlegen"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:969
-msgid "Set symbol size (%1):"
-msgstr "Symbolgröße festlegen (%1):"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:188
 msgid ""
@@ -10925,7 +11018,7 @@ msgstr "Stellt die Wii Systemsprache ein."
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:329
 msgid ""
-"Sets the language displayed by Dolphin's User Interface.<br><br>Changes to "
+"Sets the language displayed by Dolphin's user interface.<br><br>Changes to "
 "this setting only take effect once Dolphin is restarted."
 "<br><br><dolphin_emphasis>If unsure, select &lt;System Language&gt;.</"
 "dolphin_emphasis>"
@@ -10937,10 +11030,17 @@ msgid ""
 "Certain backends only."
 msgstr ""
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:429
+msgid ""
+"Sets the region used for titles whose region cannot be determined "
+"automatically.<br><br>This setting cannot be changed while emulation is "
+"active."
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:378
 msgid ""
-"Sets the style of Dolphin's User Interface. Any Custom User Styles that you "
-"have loaded will be presented here, allowing you to switch to them."
+"Sets the style of Dolphin's user interface. Any custom styles that you have "
+"added will be presented here, allowing you to switch to them."
 "<br><br><dolphin_emphasis>If unsure, select (System).</dolphin_emphasis>"
 msgstr ""
 
@@ -10991,11 +11091,11 @@ msgstr "Shinkansen-Controller"
 msgid "Show % Speed"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:435
+#: Source/Core/DolphinQt/MenuBar.cpp:436
 msgid "Show &Log"
 msgstr "&Log anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:448
+#: Source/Core/DolphinQt/MenuBar.cpp:449
 msgid "Show &Toolbar"
 msgstr "&Werkzeugleiste anzeigen"
 
@@ -11003,15 +11103,15 @@ msgstr "&Werkzeugleiste anzeigen"
 msgid "Show Active Title in Window Title"
 msgstr "Aktiven Titel in Fenstertitel anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:748
+#: Source/Core/DolphinQt/MenuBar.cpp:749
 msgid "Show All"
 msgstr "Alles anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:735
+#: Source/Core/DolphinQt/MenuBar.cpp:736
 msgid "Show Australia"
 msgstr "Australien anzeigen"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:156
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:159
 msgid "Show Current Game on Discord"
 msgstr "Zeige momentanes Spiel auf Discord"
 
@@ -11020,7 +11120,7 @@ msgstr "Zeige momentanes Spiel auf Discord"
 msgid "Show Disabled Codes First"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:710
+#: Source/Core/DolphinQt/MenuBar.cpp:711
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL anzeigen"
 
@@ -11033,7 +11133,7 @@ msgstr ""
 msgid "Show FPS"
 msgstr "FPS anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:818
+#: Source/Core/DolphinQt/MenuBar.cpp:819
 msgid "Show Frame Counter"
 msgstr "Bildzähler anzeigen"
 
@@ -11041,15 +11141,15 @@ msgstr "Bildzähler anzeigen"
 msgid "Show Frame Times"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:736
+#: Source/Core/DolphinQt/MenuBar.cpp:737
 msgid "Show France"
 msgstr "Frankreich anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:708
+#: Source/Core/DolphinQt/MenuBar.cpp:709
 msgid "Show GameCube"
 msgstr "GameCube anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:737
+#: Source/Core/DolphinQt/MenuBar.cpp:738
 msgid "Show Germany"
 msgstr "Deutschland anzeigen"
 
@@ -11057,27 +11157,27 @@ msgstr "Deutschland anzeigen"
 msgid "Show Golf Mode Overlay"
 msgstr "Golf-Modus-Überlagerung anzeigen"
 
-#: Source/Core/Core/HotkeyManager.cpp:199
+#: Source/Core/Core/HotkeyManager.cpp:202
 msgid "Show Infinity Base"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:824
+#: Source/Core/DolphinQt/MenuBar.cpp:825
 msgid "Show Input Display"
 msgstr "Eingabebildschirm anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:738
+#: Source/Core/DolphinQt/MenuBar.cpp:739
 msgid "Show Italy"
 msgstr "Italien anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:732
+#: Source/Core/DolphinQt/MenuBar.cpp:733
 msgid "Show JPN"
 msgstr "JPN anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:739
+#: Source/Core/DolphinQt/MenuBar.cpp:740
 msgid "Show Korea"
 msgstr "Korea anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:812
+#: Source/Core/DolphinQt/MenuBar.cpp:813
 msgid "Show Lag Counter"
 msgstr "Lag-Zähler anzeigen"
 
@@ -11085,7 +11185,7 @@ msgstr "Lag-Zähler anzeigen"
 msgid "Show Language:"
 msgstr "Anzeigesprache:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:441
+#: Source/Core/DolphinQt/MenuBar.cpp:442
 msgid "Show Log &Configuration"
 msgstr "Protokoll&konfiguration anzeigen"
 
@@ -11097,7 +11197,7 @@ msgstr "NetPlay-Nachrichten anzeigen"
 msgid "Show NetPlay Ping"
 msgstr "NetPlay-Ping anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:740
+#: Source/Core/DolphinQt/MenuBar.cpp:741
 msgid "Show Netherlands"
 msgstr "Niederlande anzeigen"
 
@@ -11105,12 +11205,12 @@ msgstr "Niederlande anzeigen"
 msgid "Show On-Screen Display Messages"
 msgstr "Bildschirmnachrichten zeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:733
+#: Source/Core/DolphinQt/MenuBar.cpp:734
 msgid "Show PAL"
 msgstr "PAL anzeigen"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:72 Source/Core/DolphinQt/ToolBar.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:75 Source/Core/DolphinQt/ToolBar.cpp:112
 msgid "Show PC"
 msgstr "PC anzeigen"
 
@@ -11118,7 +11218,7 @@ msgstr "PC anzeigen"
 msgid "Show Performance Graphs"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:713
+#: Source/Core/DolphinQt/MenuBar.cpp:714
 msgid "Show Platforms"
 msgstr "Plattformen anzeigen"
 
@@ -11126,23 +11226,23 @@ msgstr "Plattformen anzeigen"
 msgid "Show Projection Statistics"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:747
+#: Source/Core/DolphinQt/MenuBar.cpp:748
 msgid "Show Regions"
 msgstr "Regionen anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:806
+#: Source/Core/DolphinQt/MenuBar.cpp:807
 msgid "Show Rerecord Counter"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:741
+#: Source/Core/DolphinQt/MenuBar.cpp:742
 msgid "Show Russia"
 msgstr "Russland anzeigen"
 
-#: Source/Core/Core/HotkeyManager.cpp:198
+#: Source/Core/Core/HotkeyManager.cpp:201
 msgid "Show Skylanders Portal"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:742
+#: Source/Core/DolphinQt/MenuBar.cpp:743
 msgid "Show Spain"
 msgstr "Spanien anzeigen"
 
@@ -11154,19 +11254,23 @@ msgstr ""
 msgid "Show Statistics"
 msgstr "Statistiken anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:831
+#: Source/Core/DolphinQt/MenuBar.cpp:832
 msgid "Show System Clock"
 msgstr "Systemuhr anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:743
+#: Source/Core/DolphinQt/MenuBar.cpp:744
 msgid "Show Taiwan"
 msgstr "Taiwan anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:734
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:586
+msgid "Show Target in Memor&y"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:735
 msgid "Show USA"
 msgstr "USA anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:745
+#: Source/Core/DolphinQt/MenuBar.cpp:746
 msgid "Show Unknown"
 msgstr "Unbekannte anzeigen"
 
@@ -11178,27 +11282,27 @@ msgstr ""
 msgid "Show VPS"
 msgstr "VPS anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:709
+#: Source/Core/DolphinQt/MenuBar.cpp:710
 msgid "Show WAD"
 msgstr "WAD anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:707
+#: Source/Core/DolphinQt/MenuBar.cpp:708
 msgid "Show Wii"
 msgstr "Wii anzeigen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:744
+#: Source/Core/DolphinQt/MenuBar.cpp:745
 msgid "Show World"
 msgstr "Welt anzeigen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:582
-msgid "Show in &memory"
-msgstr "Im &Speicher anzeigen"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:584
+msgid "Show in &Memory"
+msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:527
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:531
 msgid "Show in Code"
 msgstr "Im Code anzeigen"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:544
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:548
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:357
 msgid "Show in Memory"
 msgstr "Im Speicher anzeigen"
@@ -11215,13 +11319,9 @@ msgstr "Im Speicher anzeigen"
 msgid "Show in server browser"
 msgstr "Im Server-Browser anzeigen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:584
-msgid "Show target in memor&y"
-msgstr "&Ziel im Speicher anzeigen"
-
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:265
 msgid ""
-"Shows Dolphin's debugging User Interface. This lets you view and modify a "
+"Shows Dolphin's debugging user interface. This lets you view and modify a "
 "game's code and memory contents, set debugging breakpoints, examine network "
 "requests, and more.<br><br><dolphin_emphasis>If unsure, leave this unchecked."
 "</dolphin_emphasis>"
@@ -11257,18 +11357,6 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:375
-msgid ""
-"Shows the Mouse Cursor at all times.<br><br><dolphin_emphasis>If unsure, "
-"select &quot;On Movement&quot;.</dolphin_emphasis>"
-msgstr ""
-
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:368
-msgid ""
-"Shows the Mouse Cursor briefly whenever it has recently moved, then hides it."
-"<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>"
-msgstr ""
-
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:358
 msgid ""
 "Shows the active game title in the render window's title bar."
@@ -11287,6 +11375,18 @@ msgid ""
 "Shows the average time in ms between each rendered frame alongside the "
 "standard deviation.<br><br><dolphin_emphasis>If unsure, leave this unchecked."
 "</dolphin_emphasis>"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:375
+msgid ""
+"Shows the mouse cursor at all times.<br><br><dolphin_emphasis>If unsure, "
+"select &quot;On Movement&quot;.</dolphin_emphasis>"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:368
+msgid ""
+"Shows the mouse cursor briefly whenever it has recently moved, then hides it."
+"<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:262
@@ -11328,6 +11428,14 @@ msgstr ""
 "Zeigt verschiedene Rendering-Statistiken an.<br><br><dolphin_emphasis>Im "
 "Zweifel deaktiviert lassen.</dolphin_emphasis>"
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:398
+msgid ""
+"Shows which game is active and the duration of your current play session in "
+"your Discord status.<br><br>This setting cannot be changed while emulation "
+"is active.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
+"dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:210
 msgid "Side-by-Side"
 msgstr "Nebeneinander"
@@ -11344,7 +11452,7 @@ msgstr "Seitwärts umschalten"
 msgid "Sideways Wii Remote"
 msgstr "Wiimote seitwärts"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1026
+#: Source/Core/DolphinQt/MenuBar.cpp:1027
 msgid "Signature Database"
 msgstr "Signaturendatenbank"
 
@@ -11393,7 +11501,7 @@ msgstr ""
 "Größe des Dehnungspuffers in Millisekunden. Zu niedrige Werte können zu "
 "Audioknistern führen."
 
-#: Source/Core/Core/HotkeyManager.cpp:69 Source/Core/DolphinQt/ToolBar.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:72 Source/Core/DolphinQt/ToolBar.cpp:110
 msgid "Skip"
 msgstr "Überspringen"
 
@@ -11576,6 +11684,10 @@ msgstr ""
 msgid "Speed"
 msgstr "Geschwindigkeit"
 
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:455
+msgid "Speed Limit"
+msgstr ""
+
 #. i18n: Figures for the game Skylanders: Spyro's Adventure. The game has the same title in all
 #. countries it was released in, except Japan, where it's named スカイランダーズ スパイロの大冒険.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:262
@@ -11612,11 +11724,11 @@ msgstr ""
 msgid "Start New Cheat Search"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:777
+#: Source/Core/DolphinQt/MenuBar.cpp:778
 msgid "Start Re&cording Input"
 msgstr "&Aufzeichnung der Eingabe starten"
 
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Start Recording"
 msgstr "Aufnahme starten"
 
@@ -11655,39 +11767,39 @@ msgstr "Schritt"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:62
+#: Source/Core/Core/HotkeyManager.cpp:65
 msgid "Step Into"
 msgstr "Schritt hinein"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:71 Source/Core/DolphinQt/ToolBar.cpp:109
 msgid "Step Out"
 msgstr "Schritt heraus"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:65 Source/Core/DolphinQt/ToolBar.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:106
 msgid "Step Over"
 msgstr "Schritt über"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:571
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:565
 msgid "Step out successful!"
 msgstr "Schritt heraus erfolgreich!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:569
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:563
 msgid "Step out timed out!"
 msgstr "Zeitüberschreitung bei Schritt heraus!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:488
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:486
 msgid "Step over in progress..."
 msgstr "Schritt über in Bearbeitung..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:462
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:461
 msgid "Step successful!"
 msgstr "Schritt erfolgreich!"
 
-#: Source/Core/Core/HotkeyManager.cpp:338
+#: Source/Core/Core/HotkeyManager.cpp:345
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:21
 msgid "Stepping"
 msgstr "Schrittweite"
@@ -11696,7 +11808,7 @@ msgstr "Schrittweite"
 msgid "Stereo"
 msgstr "Stereo"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:653
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:673
 msgid "Stereoscopic 3D Mode"
 msgstr "Stereoskopischer 3D-Modus"
 
@@ -11726,7 +11838,7 @@ msgstr "Stick"
 msgid "Stop"
 msgstr "Stopp"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:780
+#: Source/Core/DolphinQt/MenuBar.cpp:781
 msgid "Stop Playing/Recording Input"
 msgstr "Wiedergabe/Aufzeichnung der Eingabe stoppen"
 
@@ -11805,14 +11917,14 @@ msgstr "Stil:"
 msgid "Stylus"
 msgstr "Eingabestift"
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:260
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:385
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:259
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:282
 #: Source/Core/DolphinQt/ConvertDialog.cpp:537
 #: Source/Core/DolphinQt/GameList/GameList.cpp:631
 #: Source/Core/DolphinQt/GameList/GameList.cpp:661
-#: Source/Core/DolphinQt/MenuBar.cpp:214 Source/Core/DolphinQt/MenuBar.cpp:1112
-#: Source/Core/DolphinQt/MenuBar.cpp:1246
+#: Source/Core/DolphinQt/MenuBar.cpp:214 Source/Core/DolphinQt/MenuBar.cpp:1113
+#: Source/Core/DolphinQt/MenuBar.cpp:1247
 msgid "Success"
 msgstr "Erfolg"
 
@@ -11839,24 +11951,24 @@ msgstr ""
 msgid "Successfully exported save files"
 msgstr "Spielstände wurden erfolgreich exportiert"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1247
+#: Source/Core/DolphinQt/MenuBar.cpp:1248
 msgid "Successfully extracted certificates from NAND"
 msgstr "Zertifikate aus NAND erfolgreich extrahiert"
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:385
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 msgid "Successfully extracted file."
 msgstr "Datei erfolgreich extrahiert."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:261
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:260
 msgid "Successfully extracted system data."
 msgstr "Systemdaten erfolgreich extrahiert."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1142
+#: Source/Core/DolphinQt/MenuBar.cpp:1143
 msgid "Successfully imported save file."
 msgstr "Spielstand wurde erfolgreich importiert."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:632
-#: Source/Core/DolphinQt/MenuBar.cpp:1113
+#: Source/Core/DolphinQt/MenuBar.cpp:1114
 msgid "Successfully installed this title to the NAND."
 msgstr "Der Titel wurde erfolgreich in den NAND installiert."
 
@@ -11907,7 +12019,7 @@ msgstr ""
 msgid "Swapper"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:590
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:610
 msgid ""
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -11935,17 +12047,21 @@ msgstr "Zu B wechseln"
 msgid "Symbol"
 msgstr "Symbol"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:993
-msgid "Symbol (%1) end address:"
-msgstr "Symbol (%1) Endadresse:"
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:992
+msgid "Symbol End Address (%1):"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:934
-msgid "Symbol name:"
-msgstr "Symbolname:"
+msgid "Symbol Name:"
+msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:968
+msgid "Symbol Size (%1):"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:162
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:137
-#: Source/Core/DolphinQt/MenuBar.cpp:1020
+#: Source/Core/DolphinQt/MenuBar.cpp:1021
 msgid "Symbols"
 msgstr "Symbole"
 
@@ -11996,7 +12112,7 @@ msgstr "Synchronisiere Spielstände..."
 msgid "System Language:"
 msgstr "Systemsprache:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:796
+#: Source/Core/DolphinQt/MenuBar.cpp:797
 msgid "TAS Input"
 msgstr "TAS-Eingabe"
 
@@ -12007,9 +12123,9 @@ msgid "TAS Tools"
 msgstr "TAS-Werkzeuge"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:502
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1012
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1008
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:236
-#: Source/Core/DolphinQt/MenuBar.cpp:685
+#: Source/Core/DolphinQt/MenuBar.cpp:686
 msgid "Tags"
 msgstr "Tags"
 
@@ -12027,7 +12143,7 @@ msgstr "Schweif"
 msgid "Taiwan"
 msgstr "Taiwan"
 
-#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:354
+#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:351
 msgid "Take Screenshot"
 msgstr "Screenshot erstellen"
 
@@ -12035,7 +12151,7 @@ msgstr "Screenshot erstellen"
 msgid "Target address range is invalid."
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:700
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:702
 msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
@@ -12070,7 +12186,7 @@ msgstr "Texturen-Cache-Genauigkeit"
 msgid "Texture Dumping"
 msgstr "Texturdump"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:625
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:645
 msgid "Texture Filtering"
 msgstr "Texturfilterung"
 
@@ -12117,7 +12233,7 @@ msgstr "Die IPL-Datei ist kein bekannter guter Dump. (CRC32: {0:x})"
 msgid "The Masterpiece partitions are missing."
 msgstr "Die Partitionen der Meisterstücke fehlen."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1238
+#: Source/Core/DolphinQt/MenuBar.cpp:1239
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
@@ -12125,7 +12241,7 @@ msgstr ""
 "Das NAND konnte nicht repariert werden. Es wird empfohlen, deine aktuellen "
 "Daten zu sichern und mit einem frischen NAND neu anzufangen."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1233
+#: Source/Core/DolphinQt/MenuBar.cpp:1234
 msgid "The NAND has been repaired."
 msgstr "Das NAND wurde repariert."
 
@@ -12293,7 +12409,7 @@ msgstr ""
 msgid "The filesystem is invalid or could not be read."
 msgstr "Das Dateisystem ist ungültig oder konnte nicht gelesen werden."
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:590
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:589
 msgid ""
 "The folder %1 does not conform to Dolphin's region code format for GCI "
 "folders. Please rename this folder to either %2, %3, or %4, matching the "
@@ -12435,7 +12551,7 @@ msgid ""
 "The same file can't be used in multiple slots; it is already used by %1."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:613
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:612
 msgid ""
 "The same folder can't be used in multiple slots; it is already used by %1."
 msgstr ""
@@ -12476,7 +12592,7 @@ msgstr ""
 msgid "The specified file \"{0}\" does not exist"
 msgstr "Die ausgewählte Datei \"{0}\" existiert nicht"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1196
+#: Source/Core/DolphinQt/MenuBar.cpp:1197
 msgid ""
 "The system-reserved part of your NAND contains %1 blocks (%2 KiB) of data, "
 "out of an allowed maximum of %3 blocks (%4 KiB)."
@@ -12537,7 +12653,7 @@ msgstr "Die Updatepartition fehlt."
 msgid "The update partition is not at its normal position."
 msgstr "Die Update-Partition ist nicht in der normalen Position."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1188
+#: Source/Core/DolphinQt/MenuBar.cpp:1189
 msgid ""
 "The user-accessible part of your NAND contains %1 blocks (%2 KiB) of data, "
 "out of an allowed maximum of %3 blocks (%4 KiB)."
@@ -12655,7 +12771,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:265
-#: Source/Core/DolphinQt/GameList/GameList.cpp:835
+#: Source/Core/DolphinQt/GameList/GameList.cpp:831
 msgid "This cannot be undone!"
 msgstr "Dies kann nicht ruckgängig gemacht werden!"
 
@@ -12894,7 +13010,7 @@ msgstr "Threads"
 msgid "Threshold"
 msgstr "Schwelle"
 
-#: Source/Core/UICommon/UICommon.cpp:552
+#: Source/Core/UICommon/UICommon.cpp:529
 msgid "TiB"
 msgstr "TiB"
 
@@ -12915,10 +13031,10 @@ msgstr ""
 msgid "Timed Out"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1001
+#: Source/Core/DolphinQt/GameList/GameList.cpp:997
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:214
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:154
-#: Source/Core/DolphinQt/MenuBar.cpp:674
+#: Source/Core/DolphinQt/MenuBar.cpp:675
 msgid "Title"
 msgstr "Titel"
 
@@ -12926,25 +13042,29 @@ msgstr "Titel"
 msgid "To"
 msgstr "Zu"
 
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:183
+msgid "To log in, stop the current emulation."
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:132
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:99
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:114
 msgid "To:"
 msgstr "Zu:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:351
+#: Source/Core/DolphinQt/MenuBar.cpp:348
 msgid "Toggle &Fullscreen"
 msgstr "&Vollbildmodus umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Toggle 3D Anaglyph"
 msgstr "3D-Anaglyph umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Toggle 3D Side-by-Side"
 msgstr "3D-Nebeneinander umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Toggle 3D Top-Bottom"
 msgstr "3D-Übereinander umschalten"
 
@@ -12952,28 +13072,28 @@ msgstr "3D-Übereinander umschalten"
 msgid "Toggle All Log Types"
 msgstr "Alle Log-Typen umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Toggle Aspect Ratio"
 msgstr "Seitenverhältnis umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:76
+#: Source/Core/Core/HotkeyManager.cpp:79
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:902
 msgid "Toggle Breakpoint"
 msgstr "Haltepunkt umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Toggle Crop"
 msgstr "Zuschneiden umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Toggle Custom Textures"
 msgstr "Benutzerdefinierte Texturen umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Toggle EFB Copies"
 msgstr "EFB-Kopien umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Toggle Fog"
 msgstr "Nebel umschalten"
 
@@ -12985,31 +13105,31 @@ msgstr "Vollbildmodus umschalten"
 msgid "Toggle Pause"
 msgstr "Pause umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:89
 msgid "Toggle SD Card"
 msgstr "SD-Karte umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Toggle Skip EFB Access"
 msgstr "EFB-Zugang überspringen umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:116
 msgid "Toggle Texture Dumping"
 msgstr "Texturdump umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:87
+#: Source/Core/Core/HotkeyManager.cpp:90
 msgid "Toggle USB Keyboard"
 msgstr "USB-Tastatur umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Toggle XFB Copies"
 msgstr "XFB-Kopien umschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:111
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle XFB Immediate Mode"
 msgstr "Sofortigen XFB-Modus umschalten"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:964
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:966
 msgid "Tokenizing failed."
 msgstr "Tokenisierung fehlgeschlagen."
 
@@ -13132,7 +13252,7 @@ msgid "Trophy"
 msgstr "Trophäe"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:127
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:268
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:331
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:353
 msgid "Type"
@@ -13162,7 +13282,7 @@ msgstr "USB-Geräteemulation"
 msgid "USB Emulation"
 msgstr "USB-Emulation"
 
-#: Source/Core/Core/HotkeyManager.cpp:361
+#: Source/Core/Core/HotkeyManager.cpp:368
 msgid "USB Emulation Devices"
 msgstr "USB-Emulationsgeräte"
 
@@ -13213,15 +13333,15 @@ msgstr ""
 "Kompilierung beseitigt, während die Leistung nur minimal beeinflusst wird. "
 "Die Ergebnisse hängen jedoch vom Verhalten des Grafiktreibers ab."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1407
+#: Source/Core/DolphinQt/MenuBar.cpp:1408
 msgid "Unable to auto-detect RSO module"
 msgstr "Konnte RSO-Module nicht automatisch erkennen"
 
-#: Source/Core/UICommon/AutoUpdate.cpp:204
+#: Source/Core/UICommon/AutoUpdate.cpp:208
 msgid "Unable to contact update server."
 msgstr ""
 
-#: Source/Core/UICommon/AutoUpdate.cpp:276
+#: Source/Core/UICommon/AutoUpdate.cpp:280
 msgid "Unable to create updater copy."
 msgstr ""
 
@@ -13260,7 +13380,7 @@ msgstr ""
 msgid "Unable to read file."
 msgstr ""
 
-#: Source/Core/UICommon/AutoUpdate.cpp:281
+#: Source/Core/UICommon/AutoUpdate.cpp:285
 msgid "Unable to set permissions on updater copy."
 msgstr ""
 
@@ -13283,11 +13403,11 @@ msgstr "Unkomprimierte GC/Wii-Abbilder (*.iso *.gcm)"
 msgid "Undead"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:373
+#: Source/Core/Core/HotkeyManager.cpp:181 Source/Core/DolphinQt/MenuBar.cpp:370
 msgid "Undo Load State"
 msgstr "Spielstand Laden rückgängig machen"
 
-#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:390
+#: Source/Core/Core/HotkeyManager.cpp:182 Source/Core/DolphinQt/MenuBar.cpp:387
 msgid "Undo Save State"
 msgstr "Spielstand Speichern rückgängig machen"
 
@@ -13308,7 +13428,7 @@ msgstr ""
 "Titels aus dem NAND entfernt, ohne die gespeicherten Daten zu löschen. "
 "Fortsetzen?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:315
+#: Source/Core/DolphinQt/MenuBar.cpp:312
 msgid "United States"
 msgstr "Vereinigte Staaten"
 
@@ -13410,11 +13530,11 @@ msgstr "Unbekannt(%1 %2).sky"
 msgid "Unknown(%1).bin"
 msgstr "Unbekannt(%1).bin"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:167
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:170
 msgid "Unlimited"
 msgstr "Unbegrenzt"
 
-#: Source/Core/Core/HotkeyManager.cpp:186
+#: Source/Core/Core/HotkeyManager.cpp:189
 msgid "Unload ROM"
 msgstr "ROM entladen"
 
@@ -13422,7 +13542,12 @@ msgstr "ROM entladen"
 msgid "Unlock Cursor"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:98
+#: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:106
+msgid "Unlocked"
+msgstr ""
+
+#. i18n: %1 is a date/time.
+#: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:101
 msgid "Unlocked at %1"
 msgstr ""
 
@@ -13522,7 +13647,7 @@ msgstr "Aufrecht umschalten"
 msgid "Upright Wii Remote"
 msgstr "Wiimote aufrecht"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:229
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
 msgid "Usage Statistics Reporting Settings"
 msgstr "Einstellungen zur Berichterstattung von Nutzungsdaten"
 
@@ -13617,7 +13742,7 @@ msgstr "Benutzername"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:320
 msgid ""
-"Uses Dolphin's database of properly formatted names in the Game List Title "
+"Uses Dolphin's database of properly formatted names in the game list's Title "
 "column.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
@@ -13698,7 +13823,7 @@ msgstr ""
 msgid "Value"
 msgstr "Wert"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:713
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:715
 msgid "Value tracked to current instruction."
 msgstr ""
 
@@ -13786,22 +13911,22 @@ msgstr "Virtuelle Kerben"
 msgid "Virtual address space"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:334
+#: Source/Core/Core/HotkeyManager.cpp:341
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:63
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:189
+#: Source/Core/Core/HotkeyManager.cpp:45 Source/Core/Core/HotkeyManager.cpp:192
 msgid "Volume Down"
 msgstr "Lautstärke reduzieren"
 
-#: Source/Core/Core/HotkeyManager.cpp:44 Source/Core/Core/HotkeyManager.cpp:191
+#: Source/Core/Core/HotkeyManager.cpp:47 Source/Core/Core/HotkeyManager.cpp:194
 msgid "Volume Toggle Mute"
 msgstr "Lautloser Modus ein/ausschalten"
 
-#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:190
+#: Source/Core/Core/HotkeyManager.cpp:46 Source/Core/Core/HotkeyManager.cpp:193
 msgid "Volume Up"
 msgstr "Lautstärke erhöhen"
 
@@ -13809,7 +13934,7 @@ msgstr "Lautstärke erhöhen"
 msgid "Vulkan"
 msgstr "Vulkan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1104
+#: Source/Core/DolphinQt/MenuBar.cpp:1105
 msgid "WAD files (*.wad)"
 msgstr "WAD-Dateien (*.wad)"
 
@@ -13944,7 +14069,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:217
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:233
-#: Source/Core/DolphinQt/MenuBar.cpp:1562
+#: Source/Core/DolphinQt/MenuBar.cpp:1563
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:472
 msgid "Warning"
 msgstr "Warnungen"
@@ -14097,7 +14222,7 @@ msgstr "Freigegebene USB-Durchleitungsgeräte"
 msgid "Widescreen Hack"
 msgstr "Breitbild-Hack"
 
-#: Source/Core/Core/HotkeyManager.cpp:341
+#: Source/Core/Core/HotkeyManager.cpp:348
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyWii.cpp:20
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:42
 msgid "Wii"
@@ -14167,7 +14292,7 @@ msgstr "Wii und Wiimote"
 msgid "Wii data is not public yet"
 msgstr "Wii-Daten sind noch nicht öffentlich"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1125
+#: Source/Core/DolphinQt/MenuBar.cpp:1126
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "Wii-Spielstände (*.bin);;Alle Dateien (*)"
 
@@ -14202,11 +14327,11 @@ msgstr "Weltweit"
 
 #. i18n: This is a selectable condition when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:136
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:272
 msgid "Write"
 msgstr "Schreiben"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:922
+#: Source/Core/DolphinQt/MenuBar.cpp:923
 msgid "Write JIT Block Log Dump"
 msgstr ""
 
@@ -14366,7 +14491,7 @@ msgid ""
 "now and configure a \"Standard Controller\"."
 msgstr ""
 
-#: Source/Core/UICommon/AutoUpdate.cpp:222
+#: Source/Core/UICommon/AutoUpdate.cpp:226
 msgid "You are running the latest version available on this update track."
 msgstr "Du führst die neueste verfügbare Version auf dieser Update-Spur aus."
 
@@ -14434,7 +14559,7 @@ msgid ""
 "If you select \"No\", audio might be garbled."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1208
+#: Source/Core/DolphinQt/MenuBar.cpp:1209
 msgid ""
 "Your NAND contains more data than allowed. Wii software may behave "
 "incorrectly or not allow saving."
