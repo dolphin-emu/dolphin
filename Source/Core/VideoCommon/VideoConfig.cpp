@@ -136,6 +136,13 @@ void VideoConfig::Refresh()
   iMultisamples = Config::Get(Config::GFX_MSAA);
   bSSAA = Config::Get(Config::GFX_SSAA);
   iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
+  iEFBExcludeWidth = Config::Get(Config::GFX_BLOOM_FIX_WIDTH);
+  iEFBExcludeBloomStrength = Config::Get(Config::GFX_BLOOM_FIX_STRENGTH);
+  iEFBExcludeBlurRadius = Config::Get(Config::GFX_BLOOM_FIX_BLUR_RADIUS);
+  bEFBExcludeAlt = Config::Get(Config::GFX_BLOOM_FIX_ALT);
+  bEFBBlur = Config::Get(Config::GFX_BLOOM_FIX_BLUR);
+  bEFBExcludeDownscale = Config::Get(Config::GFX_BLOOM_FIX_DOWNSCALE);
+  bEFBExcludeEnabled = Config::Get(Config::GFX_BLOOM_FIX_ENABLED);
   bTexFmtOverlayEnable = Config::Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
   bTexFmtOverlayCenter = Config::Get(Config::GFX_TEXFMT_OVERLAY_CENTER);
   bWireFrame = Config::Get(Config::GFX_ENABLE_WIREFRAME);

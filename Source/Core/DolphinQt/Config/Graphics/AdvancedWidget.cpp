@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include "QFontMetrics"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -19,6 +20,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -185,6 +187,56 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
 #endif
 
+  // Scaled EFB Bloom Fixes
+  auto* efb_box = new QGroupBox(tr("Bloom Fixes"));
+  auto* efb_layout = new QVBoxLayout();
+  auto* efb_layout_width_integer = new QHBoxLayout();
+  auto* efb_layout_top = new QHBoxLayout();
+  auto* efb_layout_bottom = new QHBoxLayout();
+  efb_box->setLayout(efb_layout);
+
+  m_bloom_fix_check = new ConfigBool(tr("Enabled"), Config::GFX_BLOOM_FIX_ENABLED);
+  m_bloom_alt_check = new ConfigBool(tr("Filter Less"), Config::GFX_BLOOM_FIX_ALT);
+  m_bloom_blur_check = new ConfigBool(tr("Use Shader"), Config::GFX_BLOOM_FIX_BLUR);
+  m_bloom_downscale_check = new ConfigBool(tr("Downscale Bloom"), Config::GFX_BLOOM_FIX_DOWNSCALE);
+  m_bloom_width_slider = new ConfigSlider(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
+  m_bloom_width_integer = new ConfigInteger(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
+  // Change stepping by a factor of 5. (20 = 100).
+  m_bloom_strength_slider = new ConfigSlider(0, 25, Config::GFX_BLOOM_FIX_STRENGTH, 20);
+  m_bloom_blur_radius_slider = new ConfigSlider(0, 10, Config::GFX_BLOOM_FIX_BLUR_RADIUS, 4);
+  auto* bloom_strength_label = new QLabel(tr("Stremgth"));
+  auto* blur_radius_label = new QLabel(tr("Radius"));
+  m_bloom_strength_val_label = new QLabel();
+  m_bloom_strength_val_label->setFixedWidth(32);
+  m_bloom_blur_radius_val_label = new QLabel();
+  m_bloom_blur_radius_val_label->setFixedWidth(24);
+
+  UpdateBloomControls();
+
+  m_bloom_blur_radius_slider->setTickPosition(QSlider::TicksBelow);
+  m_bloom_strength_slider->setTickPosition(QSlider::TicksBelow);
+
+  QFontMetrics fm(font());
+  m_bloom_width_integer->setFixedWidth(fm.lineSpacing() * 4);
+
+  efb_layout_top->addWidget(m_bloom_fix_check);
+  efb_layout_top->addStretch();
+  efb_layout_top->addWidget(m_bloom_alt_check);
+  efb_layout_top->addWidget(m_bloom_blur_check);
+  efb_layout_top->addWidget(m_bloom_downscale_check);
+  efb_layout_width_integer->addWidget(new QLabel(tr("Width < ")));
+  efb_layout_width_integer->addWidget(m_bloom_width_integer);
+  efb_layout_width_integer->addWidget(m_bloom_width_slider);
+  efb_layout_bottom->addWidget(blur_radius_label);
+  efb_layout_bottom->addWidget(m_bloom_blur_radius_val_label);
+  efb_layout_bottom->addWidget(m_bloom_blur_radius_slider);
+  efb_layout_bottom->addWidget(bloom_strength_label);
+  efb_layout_bottom->addWidget(m_bloom_strength_val_label);
+  efb_layout_bottom->addWidget(m_bloom_strength_slider);
+  efb_layout->addLayout(efb_layout_top);
+  efb_layout->addLayout(efb_layout_width_integer);
+  efb_layout->addLayout(efb_layout_bottom);
+
   // Experimental.
   auto* experimental_box = new QGroupBox(tr("Experimental"));
   auto* experimental_layout = new QGridLayout();
@@ -204,6 +256,7 @@ void AdvancedWidget::CreateWidgets()
   main_layout->addWidget(texture_dump_box);
   main_layout->addWidget(dump_box);
   main_layout->addWidget(misc_box);
+  main_layout->addWidget(efb_box);
   main_layout->addWidget(experimental_box);
   main_layout->addStretch();
 
@@ -215,6 +268,15 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_bloom_fix_check, &QCheckBox::toggled, this, &AdvancedWidget::UpdateBloomControls);
+  connect(m_bloom_blur_check, &QCheckBox::toggled, [=](bool checked) {
+    m_bloom_strength_slider->setEnabled(checked);
+    m_bloom_blur_radius_slider->setEnabled(checked);
+  });
+  connect(m_bloom_strength_slider, &ConfigSlider::valueChanged, this,
+          &AdvancedWidget::UpdateSliderLabels);
+  connect(m_bloom_blur_radius_slider, &ConfigSlider::valueChanged, this,
+          &AdvancedWidget::UpdateSliderLabels);
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
@@ -254,6 +316,38 @@ void AdvancedWidget::OnBackendChanged()
 void AdvancedWidget::OnEmulationStateChanged(bool running)
 {
   m_enable_prog_scan->setEnabled(!running);
+
+  // Keeps the enabled state correct when starting/stopping a game with ini settings. The checkbox
+  // is correctly set elsewhere, but signals are blocked at that time, and don't trigger the
+  // connected slot.
+  UpdateBloomControls();
+  UpdateSliderLabels();
+}
+
+void AdvancedWidget::UpdateBloomControls()
+{
+  const bool checked = m_bloom_fix_check->isChecked();
+  const bool blur_checked = m_bloom_blur_check->isChecked();
+  m_bloom_alt_check->setEnabled(checked);
+  m_bloom_blur_check->setEnabled(checked);
+  m_bloom_downscale_check->setEnabled(checked);
+  m_bloom_width_integer->setEnabled(checked);
+  m_bloom_width_slider->setEnabled(checked);
+  m_bloom_blur_radius_slider->setEnabled(checked && blur_checked);
+  m_bloom_strength_slider->setEnabled(checked && blur_checked);
+}
+
+void AdvancedWidget::UpdateSliderLabels()
+{
+  int strength = m_bloom_strength_slider->value();
+  int radius = m_bloom_blur_radius_slider->value();
+
+  m_bloom_strength_val_label->setText(QStringLiteral("%1%").arg(strength * 5));
+
+  if (radius == 0)
+    m_bloom_blur_radius_val_label->setText(tr("off"));
+  else
+    m_bloom_blur_radius_val_label->setText(QStringLiteral("%1").arg(radius));
 }
 
 void AdvancedWidget::AddDescriptions()
@@ -418,6 +512,28 @@ void AdvancedWidget::AddDescriptions()
       "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
       "Texture Sampling.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_DESCRIPTION[] = QT_TR_NOOP(
+      "EFB copies can have different sizes. Scaling up small EFB copies can create graphical "
+      "issues, like poor bloom. These sliders will exclude efb copies from scaling based on their "
+      "width and/or height in pixels. <br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION[] = QT_TR_NOOP(
+      "This slider will exclude EFB copies from scaling based on their "
+      "width in pixels. <br><br>0 = "
+      "exclude nothing. <br><br>640 = exclude everything, the same as Scaled EFB Copy = "
+      "off.<br><br>"
+      "Start on the left and slowly move the slider to the right until the graphical issue "
+      "improves. Values of 161, 300 or 630 may "
+      "be good.");
+  static const char TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION[] =
+      QT_TR_NOOP("Only excludes textures that are written on top of eachother. Fixes low-res "
+                 "issues in some games."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION[] =
+      QT_TR_NOOP("Uses a shader to fix bloom by blurring the texture rather than downscaling it. "
+                 "Provides higher quality results in most games. Enables sliders for editing the "
+                 "shader's radius and overall bloom strength. Typically not used with Downscale.");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -456,6 +572,17 @@ void AdvancedWidget::AddDescriptions()
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
   m_frame_dumps_resolution_type->SetDescription(tr(TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION));
+
+  m_bloom_fix_check->SetTitle(tr("Bloom Fixes"));
+  m_bloom_fix_check->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_DESCRIPTION));
+  m_bloom_width_integer->SetTitle(tr("Width"));
+  m_bloom_width_integer->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
+  m_bloom_width_slider->SetTitle(tr("Width"));
+  m_bloom_width_slider->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
+  m_bloom_alt_check->SetTitle(tr("Reduce amount of exclusions"));
+  m_bloom_alt_check->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION));
+  m_bloom_blur_check->SetTitle(tr("Use Shader"));
+  m_bloom_blur_check->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif

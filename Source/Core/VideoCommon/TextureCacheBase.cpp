@@ -353,6 +353,80 @@ RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const 
   return decoded_entry;
 }
 
+void TextureCacheBase::BlurCopy(RcTcacheEntry& existing_entry)
+{
+  // Complete novice coding, errors likely.
+  const AbstractPipeline* pipeline = g_shader_cache->GetTextureBlurPipeline();
+
+  if (!pipeline)
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to obtain texture blur pipeline");
+    return;
+  }
+
+  TextureConfig new_config = existing_entry->texture->GetConfig();
+  // new_config.levels = 1;
+  // new_config.flags |= AbstractTextureFlag_RenderTarget;
+
+  // Is there something better to use, since it is only temporary and is discarded?
+  RcTcacheEntry blur_entry = AllocateCacheEntry(new_config);
+  if (!blur_entry)
+    return;
+
+  blur_entry->SetGeneralParameters(existing_entry->addr, existing_entry->size_in_bytes,
+                                   existing_entry->format.texfmt,
+                                   existing_entry->should_force_safe_hashing);
+  blur_entry->SetDimensions(existing_entry->native_width, existing_entry->native_height, 1);
+  blur_entry->is_efb_copy = true;
+  blur_entry->may_have_overlapping_textures = false;
+  blur_entry->texture->FinishedRendering();
+
+  g_gfx->BeginUtilityDrawing();
+
+  struct Uniforms
+  {
+    u32 pass;
+    u32 width;
+    u32 height;
+    u32 blur_radius;
+    float blur_strength;
+  };
+
+  Uniforms uniforms;
+  uniforms.pass = 0;
+  uniforms.width = new_config.width;
+  uniforms.height = new_config.height;
+  uniforms.blur_radius = g_ActiveConfig.iEFBExcludeBlurRadius;
+  // Scaled by factor of 5. (20 = 100).
+  uniforms.blur_strength = static_cast<float>(g_ActiveConfig.iEFBExcludeBloomStrength) * 5 / 100;
+
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+  g_gfx->SetAndDiscardFramebuffer(blur_entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(blur_entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, existing_entry->texture.get());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+
+  blur_entry->texture->FinishedRendering();
+
+  // Second pass
+  uniforms.pass = 1;
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+  g_gfx->SetAndDiscardFramebuffer(existing_entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(existing_entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, blur_entry->texture.get());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+
+  existing_entry->texture->FinishedRendering();
+}
+
 RcTcacheEntry TextureCacheBase::ReinterpretEntry(const RcTcacheEntry& existing_entry,
                                                  TextureFormat new_format)
 {
@@ -2264,13 +2338,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     scaled_tex_h /= 2;
   }
 
-  if (!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled)
-  {
-    // No upscaling
-    scaled_tex_w = tex_w;
-    scaled_tex_h = tex_h;
-  }
-
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
 
@@ -2298,6 +2365,29 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     ERROR_LOG_FMT(VIDEO, "Trying to copy from EFB to invalid address {:#010x}", dstAddr);
     return;
   }
+
+  bool scale_efb = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
+  bool use_blur_shader = false;
+
+  // Bloom correction detection.
+  if (!is_xfb_copy && g_ActiveConfig.bEFBExcludeEnabled &&
+      width <= g_ActiveConfig.iEFBExcludeWidth &&
+      (!g_ActiveConfig.bEFBExcludeAlt || m_bloom_dst_check == dst))
+  {
+    // Poorly upscaled EFB detected.
+    // Will accept the blur shader being used on unscaled EFBs as well.
+    use_blur_shader = g_ActiveConfig.bEFBBlur;
+    scale_efb = !g_ActiveConfig.bEFBExcludeDownscale && g_ActiveConfig.bCopyEFBScaled;
+  }
+
+  if (!scale_efb)
+  {
+    // No upscaling
+    scaled_tex_w = tex_w;
+    scaled_tex_h = tex_h;
+  }
+
+  m_bloom_dst_check = dst;
 
   if (g_ActiveConfig.bGraphicMods)
   {
@@ -2379,6 +2469,13 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter, dstFormat,
                           isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
+
+      // Bloom fix
+      if (use_blur_shader == true &&
+          (baseFormat == TextureFormat::RGB565 || baseFormat == TextureFormat::RGBA8))
+      {
+        BlurCopy(entry);
+      }
 
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {
