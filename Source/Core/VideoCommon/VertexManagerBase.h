@@ -45,7 +45,7 @@ enum TexelBufferFormat : u32
 namespace OpcodeDecoder
 {
 enum class Primitive : u8;
-};
+}
 
 class VertexManagerBase
 {

@@ -18,7 +18,7 @@ struct PortableVertexDeclaration;
 namespace OpcodeDecoder
 {
 enum class Primitive : u8;
-};
+}
 
 namespace VertexLoaderManager
 {

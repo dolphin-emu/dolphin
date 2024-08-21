@@ -65,7 +65,7 @@ Slot OtherSlot(Slot slot)
 {
   return slot == Slot::A ? Slot::B : Slot::A;
 }
-};  // namespace
+}  // namespace
 
 struct GCMemcardManager::IconAnimationData
 {

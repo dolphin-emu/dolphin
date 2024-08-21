@@ -17,7 +17,7 @@
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 namespace Cheats
 {

@@ -195,7 +195,7 @@ std::from_chars_result FromChars(std::string_view sv, T& value,
   const char* const last = first + sv.size();
   return std::from_chars(first, last, value, fmt);
 }
-};  // namespace Common
+}  // namespace Common
 
 std::string TabsToSpaces(int tab_size, std::string str);
 

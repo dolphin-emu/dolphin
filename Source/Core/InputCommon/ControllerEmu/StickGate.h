@@ -87,7 +87,7 @@ public:
 
   ControlState GetDeadzonePercentage() const;
 
-  virtual ControlState GetVirtualNotchSize() const { return 0.0; };
+  virtual ControlState GetVirtualNotchSize() const { return 0.0; }
 
   virtual ControlState GetGateRadiusAtAngle(double angle) const = 0;
   virtual ReshapeData GetReshapableState(bool adjusted) const = 0;

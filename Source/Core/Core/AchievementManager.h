@@ -170,7 +170,7 @@ private:
 
   void FetchBoardInfo(AchievementId leaderboard_id);
 
-  std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
+  std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; }
 
   static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
                                void* userdata);

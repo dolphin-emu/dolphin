@@ -283,7 +283,7 @@ public:
     m_output = env.FindOutput(m_qualifier);
   }
 
-  Device::Input* GetInput() const { return m_input; };
+  Device::Input* GetInput() const { return m_input; }
 
 private:
   // Keep a shared_ptr to the device so the control pointer doesn't become invalid.

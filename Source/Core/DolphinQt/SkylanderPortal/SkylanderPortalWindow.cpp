@@ -81,7 +81,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   m_collection_path = QDir::toNativeSeparators(skylanders_folder.path()) + QDir::separator();
   m_last_skylander_path = m_collection_path;
   m_path_edit->setText(m_collection_path);
-};
+}
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
 

@@ -25,7 +25,7 @@ public:
   const std::vector<std::pair<u8*, u8*>>& GetRangesToFree() const
   {
     return m_ranges_to_free_on_next_codegen;
-  };
+  }
 
 private:
   void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override;
