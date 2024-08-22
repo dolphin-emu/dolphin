@@ -126,6 +126,16 @@ const char* GetGeckoCodeHandlerPath()
     GECKO_CODE_HANDLER_MPN : GECKO_CODE_HANDLER;
 }
 
+bool IsGeckoCodeHandlerEnabled()
+{
+  return Config::Get(Config::MAIN_CODE_HANDLER);
+}
+
+
+const char* code_handler_file = GetGeckoCodeHandlerPath();
+
+const bool is_mpn_handler = (code_handler_file = GECKO_CODE_HANDLER_MPN);
+
 // Requires s_active_codes_lock
 // NOTE: Refer to "codehandleronly.s" from Gecko OS.
 static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
@@ -149,87 +159,187 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
     mmio_addr = 0xCD;
   }
 
-  // Install code handler
-  for (u32 i = 0; i < data.size(); ++i)
-    PowerPC::MMU::HostWrite_U8(guard, data[i], INSTALLER_BASE_ADDRESS + i);
-
-  // Patch the code handler to the current system type (Gamecube/Wii)
-  for (u32 h = 0; h < data.length(); h += 4)
+  auto free_memory_base_address = Core::getGameFreeMemory();
+  bool use_free_memory = free_memory_base_address.has_value();
+  if (use_free_memory && is_mpn_handler == true)
   {
-    // Patch MMIO address
-    if (PowerPC::MMU::HostRead_U32(guard, INSTALLER_BASE_ADDRESS + h) ==
-        (0x3f000000u | ((mmio_addr ^ 1) << 8)))
+    // Move Gecko code handler to the free mem region
+    u32 codelist_base_address = free_memory_base_address.value().first;
+    u32 codelist_end_address = free_memory_base_address.value().second;
+    u32 codelist_start_address = free_memory_base_address.value().first;
+
+    // Install code handler
+    for (u32 i = 0; i < data.size(); ++i)
+      PowerPC::MMU::HostWrite_U8(guard, data[i], codelist_base_address + i);
+
+    // Patch the code handler to the current system type (Gamecube/Wii)
+    for (u32 h = 0; h < data.length(); h += 4)
     {
-      NOTICE_LOG_FMT(ACTIONREPLAY, "Patching MMIO access at {:08x}", INSTALLER_BASE_ADDRESS + h);
-      PowerPC::MMU::HostWrite_U32(guard, 0x3f000000u | mmio_addr << 8, INSTALLER_BASE_ADDRESS + h);
+      // Patch MMIO address
+      if (PowerPC::MMU::HostRead_U32(guard, codelist_base_address + h) ==
+          (0x3f000000u | ((mmio_addr ^ 1) << 8)))
+      {
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Patching MMIO access at {:08x}", codelist_base_address + h);
+        PowerPC::MMU::HostWrite_U32(guard, 0x3f000000u | mmio_addr << 8, codelist_base_address + h);
+      }
+    }
+
+    PowerPC::MMU::HostWrite_U32(guard, ((codelist_base_address & 0xFFFF0000) >> 16) + 0x3DE00000,
+                                0x80001904);
+    PowerPC::MMU::HostWrite_U32(guard, (codelist_base_address & 0x0000FFFF) + 0x61EF0000,
+                                0x80001908);
+
+    // Write a magic value to 'gameid' (codehandleronly does not actually read this).
+    // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
+    PowerPC::MMU::HostWrite_U32(guard, MAGIC_GAMEID, codelist_start_address);
+
+    // Create GCT in memory
+    PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address);
+    PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address + 4);
+
+    // Each code is 8 bytes (2 words) wide. There is a starter code and an end code.
+    const u32 start_address = codelist_base_address + CODE_SIZE;
+    const u32 end_address = codelist_end_address - CODE_SIZE;
+    u32 next_address = start_address;
+
+    // NOTE: Only active codes are in the list
+    for (const GeckoCode& active_code : s_active_codes)
+    {
+      // If the code is not going to fit in the space we have left then we have to skip it
+      if (next_address + active_code.codes.size() * CODE_SIZE > end_address)
+      {
+        NOTICE_LOG_FMT(ACTIONREPLAY,
+                       "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                       "not write: \"{}\". Need {} bytes, only {} remain.",
+                       active_code.name, active_code.codes.size() * CODE_SIZE,
+                       end_address - next_address);
+        OSD::AddMessage(
+            fmt::format("Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                        "not write: \"{}\". Need {} bytes, only {} remain.",
+                        active_code.name, active_code.codes.size() * CODE_SIZE,
+                        end_address - next_address),
+            OSD::Duration::VERY_LONG);
+        continue;
+      }
+
+      for (const GeckoCode::Code& code : active_code.codes)
+      {
+        PowerPC::MMU::HostWrite_U32(guard, code.address, next_address);
+        PowerPC::MMU::HostWrite_U32(guard, code.data, next_address + 4);
+        next_address += CODE_SIZE;
+      }
+    }
+
+    WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
+                 end_address - start_address);
+
+    OSD::AddMessage(fmt::format("Gecko Codes: Using {} of {} bytes", next_address - start_address,
+                                end_address - start_address));
+
+    // Stop code. Tells the handler that this is the end of the list.
+    PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
+    PowerPC::MMU::HostWrite_U32(guard, 0x00000000, next_address + 4);
+    PowerPC::MMU::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
+
+    // Turn on codes
+    PowerPC::MMU::HostWrite_U8(guard, 1, codelist_start_address + 7);
+
+    // Invalidate the icache and any asm codes
+    auto& ppc_state = guard.GetSystem().GetPPCState();
+    auto& memory = guard.GetSystem().GetMemory();
+    auto& jit_interface = guard.GetSystem().GetJitInterface();
+    for (u32 j = 0; j < (INSTALLER_END_ADDRESS - codelist_start_address); j += 32)
+    {
+      ppc_state.iCache.Invalidate(memory, jit_interface, codelist_start_address + j);
     }
   }
-
-  const u32 codelist_base_address =
-      INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
-  const u32 codelist_end_address = INSTALLER_END_ADDRESS;
-
-  // Write a magic value to 'gameid' (codehandleronly does not actually read this).
-  // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
-  PowerPC::MMU::HostWrite_U32(guard, MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
-
-  // Create GCT in memory
-  PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address);
-  PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address + 4);
-
-  // Each code is 8 bytes (2 words) wide. There is a starter code and an end code.
-  const u32 start_address = codelist_base_address + CODE_SIZE;
-  const u32 end_address = codelist_end_address - CODE_SIZE;
-  u32 next_address = start_address;
-
-  // NOTE: Only active codes are in the list
-  for (const GeckoCode& active_code : s_active_codes)
+  else
   {
-    // If the code is not going to fit in the space we have left then we have to skip it
-    if (next_address + active_code.codes.size() * CODE_SIZE > end_address)
+    u32 codelist_base_address = INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
+    u32 codelist_end_address = INSTALLER_END_ADDRESS;
+    u32 codelist_start_address = INSTALLER_BASE_ADDRESS;
+
+
+    // Install code handler
+    for (u32 i = 0; i < data.size(); ++i)
+      PowerPC::MMU::HostWrite_U8(guard, data[i], INSTALLER_BASE_ADDRESS + i);
+
+    // Patch the code handler to the current system type (Gamecube/Wii)
+    for (u32 h = 0; h < data.length(); h += 4)
     {
-      NOTICE_LOG_FMT(ACTIONREPLAY,
-                     "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
-                     "not write: \"{}\". Need {} bytes, only {} remain.",
-                     active_code.name, active_code.codes.size() * CODE_SIZE,
-                     end_address - next_address);
-      OSD::AddMessage(fmt::format("Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
-                      "not write: \"{}\". Need {} bytes, only {} remain.",
-                      active_code.name, active_code.codes.size() * CODE_SIZE,
-                      end_address - next_address),
-          OSD::Duration::VERY_LONG);
-      continue;
+      // Patch MMIO address
+      if (PowerPC::MMU::HostRead_U32(guard, INSTALLER_BASE_ADDRESS + h) ==
+          (0x3f000000u | ((mmio_addr ^ 1) << 8)))
+      {
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Patching MMIO access at {:08x}", INSTALLER_BASE_ADDRESS + h);
+        PowerPC::MMU::HostWrite_U32(guard, 0x3f000000u | mmio_addr << 8,
+                                    INSTALLER_BASE_ADDRESS + h);
+      }
     }
 
-    for (const GeckoCode::Code& code : active_code.codes)
+    // Write a magic value to 'gameid' (codehandleronly does not actually read this).
+    // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
+    PowerPC::MMU::HostWrite_U32(guard, MAGIC_GAMEID, codelist_start_address);
+
+    // Create GCT in memory
+    PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address);
+    PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address + 4);
+
+    // Each code is 8 bytes (2 words) wide. There is a starter code and an end code.
+    const u32 start_address = codelist_base_address + CODE_SIZE;
+    const u32 end_address = codelist_end_address - CODE_SIZE;
+    u32 next_address = start_address;
+
+    // NOTE: Only active codes are in the list
+    for (const GeckoCode& active_code : s_active_codes)
     {
-      PowerPC::MMU::HostWrite_U32(guard, code.address, next_address);
-      PowerPC::MMU::HostWrite_U32(guard, code.data, next_address + 4);
-      next_address += CODE_SIZE;
+      // If the code is not going to fit in the space we have left then we have to skip it
+      if (next_address + active_code.codes.size() * CODE_SIZE > end_address)
+      {
+        NOTICE_LOG_FMT(ACTIONREPLAY,
+                       "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                       "not write: \"{}\". Need {} bytes, only {} remain.",
+                       active_code.name, active_code.codes.size() * CODE_SIZE,
+                       end_address - next_address);
+        OSD::AddMessage(
+            fmt::format("Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                        "not write: \"{}\". Need {} bytes, only {} remain.",
+                        active_code.name, active_code.codes.size() * CODE_SIZE,
+                        end_address - next_address),
+            OSD::Duration::VERY_LONG);
+        continue;
+      }
+
+      for (const GeckoCode::Code& code : active_code.codes)
+      {
+        PowerPC::MMU::HostWrite_U32(guard, code.address, next_address);
+        PowerPC::MMU::HostWrite_U32(guard, code.data, next_address + 4);
+        next_address += CODE_SIZE;
+      }
     }
-  }
 
-  WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
-               end_address - start_address);
+    WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
+                 end_address - start_address);
 
-  OSD::AddMessage(fmt::format("Gecko Codes: Using {} of {} bytes", next_address - start_address,
-               end_address - start_address));
+    OSD::AddMessage(fmt::format("Gecko Codes: Using {} of {} bytes", next_address - start_address,
+                                end_address - start_address));
 
-  // Stop code. Tells the handler that this is the end of the list.
-  PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
-  PowerPC::MMU::HostWrite_U32(guard, 0x00000000, next_address + 4);
-  PowerPC::MMU::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
+    // Stop code. Tells the handler that this is the end of the list.
+    PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
+    PowerPC::MMU::HostWrite_U32(guard, 0x00000000, next_address + 4);
+    PowerPC::MMU::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
 
-  // Turn on codes
-  PowerPC::MMU::HostWrite_U8(guard, 1, INSTALLER_BASE_ADDRESS + 7);
+    // Turn on codes
+    PowerPC::MMU::HostWrite_U8(guard, 1, codelist_start_address + 7);
 
-  // Invalidate the icache and any asm codes
-  auto& ppc_state = guard.GetSystem().GetPPCState();
-  auto& memory = guard.GetSystem().GetMemory();
-  auto& jit_interface = guard.GetSystem().GetJitInterface();
-  for (u32 j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
-  {
-    ppc_state.iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
+    // Invalidate the icache and any asm codes
+    auto& ppc_state = guard.GetSystem().GetPPCState();
+    auto& memory = guard.GetSystem().GetMemory();
+    auto& jit_interface = guard.GetSystem().GetJitInterface();
+    for (u32 j = 0; j < (INSTALLER_END_ADDRESS - codelist_start_address); j += 32)
+    {
+      ppc_state.iCache.Invalidate(memory, jit_interface, codelist_start_address + j);
+    }
   }
   return Installation::Installed;
 }

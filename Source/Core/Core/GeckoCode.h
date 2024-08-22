@@ -72,4 +72,5 @@ void RunCodeHandler(const Core::CPUThreadGuard& guard);
 void Shutdown();
 void DoState(PointerWrap&);
 
+
 }  // namespace Gecko

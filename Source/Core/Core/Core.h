@@ -191,4 +191,14 @@ void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
 void UpdateTitle(Core::System& system);
 
+enum class GameName : u8 {
+  UnknownGame = 0,
+  MarioParty4 = 1,
+  MarioParty5 = 2,
+  MarioParty6 = 3,
+  MarioParty7 = 4,
+  MarioParty8 = 5
+};
+
+std::optional<std::pair<u32,u32>> getGameFreeMemory();
 }  // namespace Core
