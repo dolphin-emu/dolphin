@@ -33,6 +33,8 @@
 // static variable to ensure we open at the most recent figure file location
 static QString s_last_figure_path;
 
+using FigureUIPosition = IOS::HLE::USB::FigureUIPosition;
+
 InfinityBaseWindow::InfinityBaseWindow(QWidget* parent) : QWidget(parent)
 {
   // i18n: Window for managing Disney Infinity figures
@@ -48,7 +50,7 @@ InfinityBaseWindow::InfinityBaseWindow(QWidget* parent) : QWidget(parent)
   installEventFilter(this);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-};
+}
 
 InfinityBaseWindow::~InfinityBaseWindow() = default;
 
@@ -77,19 +79,23 @@ void InfinityBaseWindow::CreateMainWindow()
   auto* vbox_group = new QVBoxLayout();
   auto* scroll_area = new QScrollArea();
 
-  AddFigureSlot(vbox_group, tr("Play Set/Power Disc"), 0);
+  AddFigureSlot(vbox_group, tr("Play Set/Power Disc"), FigureUIPosition::HexagonDiscOne);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player One"), 1);
+  AddFigureSlot(vbox_group, tr("Power Disc Two"), FigureUIPosition::HexagonDiscTwo);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player One Ability One"), 3);
+  AddFigureSlot(vbox_group, tr("Power Disc Three"), FigureUIPosition::HexagonDiscThree);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player One Ability Two"), 5);
+  AddFigureSlot(vbox_group, tr("Player One"), FigureUIPosition::PlayerOne);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player Two"), 2);
+  AddFigureSlot(vbox_group, tr("Player One Ability One"), FigureUIPosition::P1AbilityOne);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player Two Ability One"), 4);
+  AddFigureSlot(vbox_group, tr("Player One Ability Two"), FigureUIPosition::P1AbilityTwo);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player Two Ability Two"), 6);
+  AddFigureSlot(vbox_group, tr("Player Two"), FigureUIPosition::PlayerTwo);
+  add_line(vbox_group);
+  AddFigureSlot(vbox_group, tr("Player Two Ability One"), FigureUIPosition::P2AbilityOne);
+  add_line(vbox_group);
+  AddFigureSlot(vbox_group, tr("Player Two Ability Two"), FigureUIPosition::P2AbilityTwo);
 
   m_group_figures->setLayout(vbox_group);
   scroll_area->setWidget(m_group_figures);
@@ -99,7 +105,7 @@ void InfinityBaseWindow::CreateMainWindow()
   setLayout(main_layout);
 }
 
-void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, u8 slot)
+void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, FigureUIPosition slot)
 {
   auto* hbox_infinity = new QHBoxLayout();
 
@@ -108,16 +114,16 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, u8
   auto* clear_btn = new QPushButton(tr("Clear"));
   auto* create_btn = new QPushButton(tr("Create"));
   auto* load_btn = new QPushButton(tr("Load"));
-  m_edit_figures[slot] = new QLineEdit();
-  m_edit_figures[slot]->setEnabled(false);
-  m_edit_figures[slot]->setText(tr("None"));
+  m_edit_figures[static_cast<u8>(slot)] = new QLineEdit();
+  m_edit_figures[static_cast<u8>(slot)]->setEnabled(false);
+  m_edit_figures[static_cast<u8>(slot)]->setText(tr("None"));
 
   connect(clear_btn, &QAbstractButton::clicked, this, [this, slot] { ClearFigure(slot); });
   connect(create_btn, &QAbstractButton::clicked, this, [this, slot] { CreateFigure(slot); });
   connect(load_btn, &QAbstractButton::clicked, this, [this, slot] { LoadFigure(slot); });
 
   hbox_infinity->addWidget(label_skyname);
-  hbox_infinity->addWidget(m_edit_figures[slot]);
+  hbox_infinity->addWidget(m_edit_figures[static_cast<u8>(slot)]);
   hbox_infinity->addWidget(clear_btn);
   hbox_infinity->addWidget(create_btn);
   hbox_infinity->addWidget(load_btn);
@@ -125,15 +131,15 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, u8
   vbox_group->addLayout(hbox_infinity);
 }
 
-void InfinityBaseWindow::ClearFigure(u8 slot)
+void InfinityBaseWindow::ClearFigure(FigureUIPosition slot)
 {
   auto& system = Core::System::GetInstance();
-  m_edit_figures[slot]->setText(tr("None"));
+  m_edit_figures[static_cast<u8>(slot)]->setText(tr("None"));
 
   system.GetInfinityBase().RemoveFigure(slot);
 }
 
-void InfinityBaseWindow::LoadFigure(u8 slot)
+void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
 {
   const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Figure File"), s_last_figure_path,
@@ -148,7 +154,7 @@ void InfinityBaseWindow::LoadFigure(u8 slot)
   LoadFigurePath(slot, file_path);
 }
 
-void InfinityBaseWindow::CreateFigure(u8 slot)
+void InfinityBaseWindow::CreateFigure(FigureUIPosition slot)
 {
   CreateFigureDialog create_dlg(this, slot);
   SetQWidgetWindowDecorations(&create_dlg);
@@ -158,7 +164,7 @@ void InfinityBaseWindow::CreateFigure(u8 slot)
   }
 }
 
-void InfinityBaseWindow::LoadFigurePath(u8 slot, const QString& path)
+void InfinityBaseWindow::LoadFigurePath(FigureUIPosition slot, const QString& path)
 {
   File::IOFile inf_file(path.toStdString(), "r+b");
   if (!inf_file)
@@ -183,11 +189,11 @@ void InfinityBaseWindow::LoadFigurePath(u8 slot, const QString& path)
   auto& system = Core::System::GetInstance();
 
   system.GetInfinityBase().RemoveFigure(slot);
-  m_edit_figures[slot]->setText(QString::fromStdString(
+  m_edit_figures[static_cast<u8>(slot)]->setText(QString::fromStdString(
       system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file), slot)));
 }
 
-CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(parent)
+CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) : QDialog(parent)
 {
   setWindowTitle(tr("Infinity Figure Creator"));
   setObjectName(QStringLiteral("infinity_creator"));
@@ -201,10 +207,14 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
   {
     const auto figure = entry.second;
     // Only display entry if it is a piece appropriate for the slot
-    if ((slot == 0 &&
+    if ((slot == FigureUIPosition::HexagonDiscOne &&
          ((figure > 0x1E8480 && figure < 0x2DC6BF) || (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
-        ((slot == 1 || slot == 2) && figure < 0x1E847F) ||
-        ((slot == 3 || slot == 4 || slot == 5 || slot == 6) &&
+        ((slot == FigureUIPosition::HexagonDiscTwo || slot == FigureUIPosition::HexagonDiscThree) &&
+         (figure > 0x3D0900 && figure < 0x4C4B3F)) ||
+        ((slot == FigureUIPosition::PlayerOne || slot == FigureUIPosition::PlayerTwo) &&
+         figure < 0x1E847F) ||
+        ((slot == FigureUIPosition::P1AbilityOne || slot == FigureUIPosition::P1AbilityTwo ||
+          slot == FigureUIPosition::P2AbilityOne || slot == FigureUIPosition::P2AbilityTwo) &&
          (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
       const auto figure_name = QString::fromStdString(entry.first);

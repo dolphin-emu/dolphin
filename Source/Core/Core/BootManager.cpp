@@ -166,9 +166,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     }
   }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().CloseGame();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   const bool load_ipl = !system.IsWii() && !Config::Get(Config::MAIN_SKIP_IPL) &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
@@ -211,8 +209,7 @@ static void RestoreSYSCONF()
         },
         setting.config_info);
   }
-  // Save the SYSCONF.
-  Config::GetLayer(Config::LayerType::Base)->Save();
+  ConfigLoaders::SaveToSYSCONF(Config::LayerType::Base);
 }
 
 void RestoreConfig()

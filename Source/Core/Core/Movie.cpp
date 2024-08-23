@@ -536,7 +536,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
         m_bongos |= (1 << i);
     }
 
-    if (Core::IsRunningAndStarted())
+    if (Core::IsRunning(m_system))
     {
       const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
       if (File::Exists(save_path))
@@ -551,7 +551,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     }
 
     // Wiimotes cause desync issues if they're not reset before launching the game
-    if (!Core::IsRunningAndStarted())
+    if (!Core::IsRunning(m_system))
     {
       // This will also reset the Wiimotes for GameCube games, but that shouldn't do anything
       Wiimote::ResetAllWiimotes();
@@ -941,10 +941,8 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
   ReadHeader();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return false;
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   m_total_frames = m_temp_header.frameCount;
   m_total_lag_count = m_temp_header.lagCount;
@@ -1341,7 +1339,7 @@ void MovieManager::EndPlayInput(bool cont)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
     auto& cpu = m_system.GetCPU();
-    const bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
+    const bool was_running = Core::IsRunning(m_system) && !cpu.IsStepping();
     if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
       cpu.Break();
     m_rerecords = 0;

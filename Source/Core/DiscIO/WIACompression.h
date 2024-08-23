@@ -38,7 +38,7 @@ public:
 
   virtual bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
                           size_t* in_bytes_read) = 0;
-  virtual bool Done() const { return m_done; };
+  virtual bool Done() const { return m_done; }
 
 protected:
   bool m_done = false;

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/AGL.h"
+
 #include "Common/Logging/Log.h"
 
 // UpdateCachedDimensions and AttachContextToView contain calls to UI APIs, so they must only be

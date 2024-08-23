@@ -312,7 +312,7 @@ class BitFieldArrayConstRef
   friend class BitFieldArrayConstIterator<position, bits, size, T, S>;
 
 public:
-  constexpr T Value() const { return m_array->Value(m_index); };
+  constexpr T Value() const { return m_array->Value(m_index); }
   constexpr operator T() const { return Value(); }
 
 private:
@@ -333,7 +333,7 @@ class BitFieldArrayRef
   friend class BitFieldArrayIterator<position, bits, size, T, S>;
 
 public:
-  constexpr T Value() const { return m_array->Value(m_index); };
+  constexpr T Value() const { return m_array->Value(m_index); }
   constexpr operator T() const { return Value(); }
   T operator=(const BitFieldArrayRef<position, bits, size, T, S>& value) const
   {

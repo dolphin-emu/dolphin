@@ -65,7 +65,7 @@ Slot OtherSlot(Slot slot)
 {
   return slot == Slot::A ? Slot::B : Slot::A;
 }
-};  // namespace
+}  // namespace
 
 struct GCMemcardManager::IconAnimationData
 {
@@ -356,8 +356,8 @@ void GCMemcardManager::SetSlotFileInteractive(Slot slot)
 {
   QString path = QDir::toNativeSeparators(
       DolphinFileDialog::getOpenFileName(this,
-                                         slot == Slot::A ? tr("Set memory card file for Slot A") :
-                                                           tr("Set memory card file for Slot B"),
+                                         slot == Slot::A ? tr("Set Memory Card File for Slot A") :
+                                                           tr("Set Memory Card File for Slot B"),
                                          QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
                                          QStringLiteral("%1 (*.raw *.gcp);;%2 (*)")
                                              .arg(tr("GameCube Memory Cards"), tr("All Files"))));

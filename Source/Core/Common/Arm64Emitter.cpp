@@ -87,26 +87,6 @@ void ARM64XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
   m_lastCacheFlushEnd = ptr;
 }
 
-const u8* ARM64XEmitter::GetCodePtr() const
-{
-  return m_code;
-}
-
-u8* ARM64XEmitter::GetWritableCodePtr()
-{
-  return m_code;
-}
-
-const u8* ARM64XEmitter::GetCodeEnd() const
-{
-  return m_code_end;
-}
-
-u8* ARM64XEmitter::GetWritableCodeEnd()
-{
-  return m_code_end;
-}
-
 void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
 {
   for (u32 i = 0; i < bytes / 4; i++)

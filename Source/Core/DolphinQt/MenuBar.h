@@ -24,7 +24,7 @@ enum class State;
 namespace DiscIO
 {
 enum class Region;
-};
+}
 
 namespace UICommon
 {

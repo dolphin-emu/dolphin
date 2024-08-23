@@ -259,7 +259,6 @@ int main(int argc, char* argv[])
     Settings::Instance().ApplyStyle();
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
-    win.Show();
 
 
 

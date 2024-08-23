@@ -20,6 +20,7 @@
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace OSD
@@ -36,8 +37,9 @@ static std::atomic<int> s_obscured_pixels_top = 0;
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 duration_, u32 color_, std::unique_ptr<Icon> icon_ = nullptr)
-      : text(std::move(text_)), duration(duration_), color(color_), icon(std::move(icon_))
+  Message(std::string text_, u32 duration_, u32 color_,
+          const VideoCommon::CustomTextureData::ArraySlice::Level* icon_ = nullptr)
+      : text(std::move(text_)), duration(duration_), color(color_), icon(icon_)
   {
     timer.Start();
   }
@@ -48,7 +50,7 @@ struct Message
   bool ever_drawn = false;
   bool should_discard = false;
   u32 color = 0;
-  std::unique_ptr<Icon> icon;
+  const VideoCommon::CustomTextureData::ArraySlice::Level* icon;
   std::unique_ptr<AbstractTexture> texture;
 };
 static std::multimap<MessageType, Message> s_messages;
@@ -95,13 +97,13 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
         msg.texture = g_gfx->CreateTexture(tex_config);
         if (msg.texture)
         {
-          msg.texture->Load(0, width, height, width, msg.icon->rgba_data.data(),
+          msg.texture->Load(0, width, height, width, msg.icon->data.data(),
                             sizeof(u32) * width * height);
         }
         else
         {
           // don't try again next time
-          msg.icon.reset();
+          msg.icon = nullptr;
         }
       }
 
@@ -109,11 +111,13 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
       {
         ImGui::Image(msg.texture.get(), ImVec2(static_cast<float>(msg.icon->width),
                                                static_cast<float>(msg.icon->height)));
+        ImGui::SameLine();
       }
     }
 
     // Use %s in case message contains %.
-    ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
+    if (msg.text.size() > 0)
+      ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
     window_height =
         ImGui::GetWindowSize().y + (WINDOW_PADDING * ImGui::GetIO().DisplayFramebufferScale.y);
   }
@@ -127,7 +131,7 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
 }
 
 void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
-                     std::unique_ptr<Icon> icon)
+                     const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
 {
   std::lock_guard lock{s_messages_mutex};
 
@@ -141,7 +145,8 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
   s_messages.emplace(type, Message(std::move(message), ms, argb, std::move(icon)));
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb, std::unique_ptr<Icon> icon)
+void AddMessage(std::string message, u32 ms, u32 argb,
+                const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.emplace(MessageType::Typeless, Message(std::move(message), ms, argb, std::move(icon)));

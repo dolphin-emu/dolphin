@@ -15,11 +15,11 @@ namespace Core
 {
 class CPUThreadGuard;
 class System;
-};  // namespace Core
+}  // namespace Core
 namespace Memory
 {
 class MemoryManager;
-};
+}
 
 namespace PowerPC
 {

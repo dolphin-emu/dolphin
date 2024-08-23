@@ -244,10 +244,12 @@ private:
   public:
     MotionInput(std::string name, SDL_GameController* gc, SDL_SensorType type, int index,
                 ControlState scale)
-        : m_name(std::move(name)), m_gc(gc), m_type(type), m_index(index), m_scale(scale){};
+        : m_name(std::move(name)), m_gc(gc), m_type(type), m_index(index), m_scale(scale)
+    {
+    }
 
-    std::string GetName() const override { return m_name; };
-    bool IsDetectable() const override { return false; };
+    std::string GetName() const override { return m_name; }
+    bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
 
   private:

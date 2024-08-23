@@ -757,7 +757,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   std::size_t block_size = m_code_buffer.size();
 
-  if (m_enable_debugging)
+  if (IsDebuggingEnabled())
   {
     // We can link blocks as long as we are not single stepping
     EnableBlockLink();
@@ -909,7 +909,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
   // this lets them use fastmem).
-  if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+  if (!js.pairedQuantizeAddresses.contains(js.blockStart))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
     BitSet8 gqr_static = ComputeStaticGQRs(code_block);
@@ -938,8 +938,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
   }
 
-  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
-      js.noSpeculativeConstantsAddresses.end())
+  if (!js.noSpeculativeConstantsAddresses.contains(js.blockStart))
   {
     IntializeSpeculativeConstants();
   }
@@ -958,9 +957,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
 
-    if (!m_enable_debugging)
-      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
-
     if (i == (code_block.m_num_instructions - 1))
     {
       js.isLastInstruction = true;
@@ -970,8 +966,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck =
-          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
+      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
 
       // Gather pipe writes using an immediate address are explicitly tracked.
       if (jo.optimizeGatherPipe &&
@@ -1038,7 +1033,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       auto& cpu = m_system.GetCPU();
       auto& power_pc = m_system.GetPowerPC();
-      if (m_enable_debugging && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
+      if (IsDebuggingEnabled() && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
           !cpu.IsStepping())
       {
         gpr.Flush();
@@ -1046,7 +1041,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionP(PowerPC::CheckBreakPointsFromJIT, &power_pc);
+        ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
         CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));

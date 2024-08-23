@@ -78,7 +78,7 @@ public:
   {
     static LdrDllNotifier notifier;
     return notifier;
-  };
+  }
   void Install(LdrObserver* observer);
   void Uninstall(LdrObserver* observer);
 

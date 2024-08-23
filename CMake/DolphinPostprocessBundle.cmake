@@ -14,14 +14,13 @@ if(CMAKE_GENERATOR)
 	set(_DOLPHIN_POSTPROCESS_BUNDLE_MODULE_LOCATION "${CMAKE_CURRENT_LIST_FILE}")
 	function(dolphin_postprocess_bundle target)
 		add_custom_command(TARGET ${target} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -DDOLPHIN_BUNDLE_PATH="$<TARGET_FILE_DIR:${target}>/../.."
+			COMMAND ${CMAKE_COMMAND} "-D" "DOLPHIN_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:${target}>"
 				-P "${_DOLPHIN_POSTPROCESS_BUNDLE_MODULE_LOCATION}"
 		)
 	endfunction()
 	return()
 endif()
 
-get_filename_component(DOLPHIN_BUNDLE_PATH "${DOLPHIN_BUNDLE_PATH}" ABSOLUTE)
 message(STATUS "Fixing up application bundle: ${DOLPHIN_BUNDLE_PATH}")
 
 # Make sure to fix up any additional shared libraries (like plugins) that are

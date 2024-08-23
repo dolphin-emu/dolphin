@@ -289,7 +289,7 @@ void BreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, false, do_break, do_log, condition);
+    m_parent->AddBP(address, do_break, do_log, condition);
   }
   else
   {

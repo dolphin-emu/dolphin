@@ -532,7 +532,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   if (title.id == Titles::BOOT2)
     return UpdateResult::Succeeded;
 
-  if (!ShouldInstallTitle(title) || updated_titles->find(title.id) != updated_titles->end())
+  if (!ShouldInstallTitle(title) || updated_titles->contains(title.id))
     return UpdateResult::Succeeded;
 
   NOTICE_LOG_FMT(CORE, "Updating title {:016x}", title.id);

@@ -540,7 +540,7 @@ void NetPlayClient::OnPlayerLeave(sf::Packet& packet)
     const auto& player = it->second;
     INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", player.name, pid);
     m_dialog->OnPlayerDisconnect(player.name);
-    m_players.erase(m_players.find(pid));
+    m_players.erase(it);
   }
 
   m_dialog->Update();
@@ -2513,7 +2513,7 @@ void NetPlayClient::RequestGolfControl()
 std::string NetPlayClient::GetCurrentGolfer()
 {
   std::lock_guard lkp(m_crit.players);
-  if (m_players.count(m_current_golfer))
+  if (m_players.contains(m_current_golfer))
     return m_players[m_current_golfer].name;
   return "";
 }

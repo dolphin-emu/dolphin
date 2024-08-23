@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/CheatSearchWidget.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include <functional>
 #include <optional>
@@ -42,6 +41,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"

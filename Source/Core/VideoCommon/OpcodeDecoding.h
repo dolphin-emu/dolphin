@@ -203,7 +203,8 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
     const u32 address = Common::swap32(&data[1]);
     const u32 size = Common::swap32(&data[5]);
 
-    callback.OnDisplayList(address, size);
+    // Force 32-byte alignment for both the address and the size.
+    callback.OnDisplayList(address & ~31, size & ~31);
     return 9;
   }
 

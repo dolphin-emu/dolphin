@@ -42,7 +42,7 @@ distribution.
 namespace ExpansionInterface
 {
 enum class Slot : int;
-};
+}
 
 using CardFlashId = std::array<u8, 12>;
 

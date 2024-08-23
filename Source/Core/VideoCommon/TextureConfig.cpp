@@ -9,8 +9,8 @@
 
 bool TextureConfig::operator==(const TextureConfig& o) const
 {
-  return std::tie(width, height, levels, layers, samples, format, flags) ==
-         std::tie(o.width, o.height, o.levels, o.layers, o.samples, o.format, o.flags);
+  return std::tie(width, height, levels, layers, samples, format, flags, type) ==
+         std::tie(o.width, o.height, o.levels, o.layers, o.samples, o.format, o.flags, o.type);
 }
 
 bool TextureConfig::operator!=(const TextureConfig& o) const

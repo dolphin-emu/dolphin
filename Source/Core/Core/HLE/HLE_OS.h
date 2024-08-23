@@ -11,7 +11,7 @@
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 namespace HLE_OS
 {
