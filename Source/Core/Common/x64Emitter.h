@@ -1083,14 +1083,6 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionPP(FunctionPointer func, const void* param1, const void* param2)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
   void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));

@@ -217,9 +217,9 @@ void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
   OR(32, R(fpscr), R(tmp1));
 }
 
-static void DoICacheReset(PowerPC::PowerPCState& ppc_state, JitInterface& jit_interface)
+static void DoICacheReset(PowerPC::PowerPCState& ppc_state)
 {
-  ppc_state.iCache.Reset(jit_interface);
+  ppc_state.iCache.Reset();
 }
 
 void Jit64::mtspr(UGeckoInstruction inst)
@@ -287,7 +287,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
     FixupBranch dont_reset_icache = J_CC(CC_NC);
     BitSet32 regs = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(regs, 0);
-    ABI_CallFunctionPP(DoICacheReset, &m_ppc_state, &m_system.GetJitInterface());
+    ABI_CallFunctionP(DoICacheReset, &m_ppc_state);
     ABI_PopRegistersAndAdjustStack(regs, 0);
     SetJumpTarget(dont_reset_icache);
     return;
