@@ -203,7 +203,7 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
     {
       if (!GetBlock(block_num + i, buffer))
       {
-        std::fill(buffer, buffer + (cnt_blocks - i) * m_block_size, 0u);
+        std::fill_n(buffer, (cnt_blocks - i) * m_block_size, 0u);
         return i;
       }
       buffer += m_block_size;
