@@ -18,6 +18,8 @@ class InterfacePane final : public QWidget
   Q_OBJECT
 public:
   explicit InterfacePane(QWidget* parent = nullptr);
+  ToolTipComboBox* m_combobox_userstyle;
+  ConfigStringChoice* m_combobox_theme;
 
 private:
   void CreateLayout();
@@ -33,8 +35,6 @@ private:
   QVBoxLayout* m_main_layout;
   ConfigStringChoice* m_combobox_language;
 
-  ConfigStringChoice* m_combobox_theme;
-  ToolTipComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
   ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
