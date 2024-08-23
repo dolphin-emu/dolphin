@@ -152,7 +152,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{103, 0x1402}, {"Flashwing (Jade)", Game::Giants, Element::Earth, Type::Skylander}},
     {{103, 0x2206}, {"Flashwing (LightCore)", Game::SwapForce, Element::Earth, Type::Skylander}},
     {{104, 0x1206}, {"Hot Head", Game::Giants, Element::Fire, Type::Giant}},
-    {{104, 0x1213}, {"Hot Head (Sparkle)", Game::Giants, Element::Fire, Type::Skylander}},
+    {{104, 0x1213}, {"Hot Head (Sparkle)", Game::Giants, Element::Fire, Type::Giant}},
     {{105, 0x1000}, {"Hot Dog", Game::Giants, Element::Fire, Type::Skylander}},
     {{105, 0x1015}, {"Hot Dog (Bronze)", Game::Giants, Element::Fire, Type::Skylander}},
     {{105, 0x1402}, {"Hot Dog (Molten)", Game::Giants, Element::Fire, Type::Skylander}},
