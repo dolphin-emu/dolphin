@@ -183,7 +183,7 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
 
   // Set hats to center:
   // "The center position is normally reported as -1" -MSDN
-  std::fill(std::begin(m_state_in.rgdwPOV), std::end(m_state_in.rgdwPOV), -1);
+  std::ranges::fill(m_state_in.rgdwPOV, -1);
 }
 
 Joystick::~Joystick()
