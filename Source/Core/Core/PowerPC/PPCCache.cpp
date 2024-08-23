@@ -389,12 +389,13 @@ u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
 void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface,
                                   u32 addr)
 {
-  // Per the 750cl manual, section 3.4.1.5 Instruction Cache Enabling/Disabling (page 137)
-  // and section 3.4.2.6 Instruction Cache Block Invalidate (icbi) (page 140), the icbi
-  // instruction always invalidates, even if the instruction cache is disabled or locked,
-  // and it also invalidates all ways of the corresponding cache set, not just the way corresponding
-  // to the given address.
-  // (However, the icbi instruction's info on page 432 does not include this information)
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  auto& ppc_state = system.GetPPCState();
+  if (!HID0(ppc_state).ICE || m_disable_icache)
+    return;
+
+  // Invalidates the whole set
   const u32 set = (addr >> 5) & 0x7f;
   for (size_t way = 0; way < 8; way++)
   {
@@ -411,8 +412,7 @@ void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& j
   valid[set] = 0;
   modified[set] = 0;
 
-  // Also tell the JIT that the corresponding address has been invalidated
-  jit_interface.InvalidateICacheLine(addr);
+  system.GetJitInterface().InvalidateICacheLine(addr);
 }
 
 void InstructionCache::RefreshConfig()
