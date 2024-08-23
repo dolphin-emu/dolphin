@@ -63,8 +63,8 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   connect(graphics_mod_list, &GraphicsModListWidget::OpenGraphicsSettings, this,
           &PropertiesDialog::OpenGraphicsSettings);
 
-  const int padding_width = 120;
-  const int padding_height = 100;
+  const int padding_width = 600;
+  const int padding_height = 1100;
   tab_widget->addTab(GetWrappedWidget(game_config, this, padding_width, padding_height),
                      tr("Game Config"));
   tab_widget->addTab(GetWrappedWidget(patches, this, padding_width, padding_height), tr("Patches"));
@@ -105,4 +105,51 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   setLayout(layout);
   tab_widget->setCurrentIndex(3);
+}
+
+GeckoDialog::GeckoDialog(QWidget* parent) : QDialog(parent)
+{
+  setWindowTitle(QStringLiteral("%1").arg(QString::fromStdString("Modifications")));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+  QVBoxLayout* layout = new QVBoxLayout();
+  QTabWidget* tab_widget = new QTabWidget(this);
+  GeckoCodeWidget* mp4_gecko = new GeckoCodeWidget("GMPE01", "GMPE01", 0);
+  GeckoCodeWidget* mp5_gecko = new GeckoCodeWidget("GP5E01", "GP5E01", 0);
+  GeckoCodeWidget* mp6_gecko = new GeckoCodeWidget("GP6E01", "GP6E01", 0);
+  GeckoCodeWidget* mp7_gecko = new GeckoCodeWidget("GP7E01", "GP7E01", 0);
+  GeckoCodeWidget* mp8_gecko = new GeckoCodeWidget("RM8E01", "RM8E01", 0);
+
+  connect(mp4_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &GeckoDialog::OpenGeneralSettings);
+  connect(mp5_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &GeckoDialog::OpenGeneralSettings);
+  connect(mp6_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &GeckoDialog::OpenGeneralSettings);
+  connect(mp7_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &GeckoDialog::OpenGeneralSettings);
+  connect(mp8_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &GeckoDialog::OpenGeneralSettings);
+
+  const int padding_width = 600;
+  const int padding_height = 1100;
+
+  tab_widget->addTab(GetWrappedWidget(mp4_gecko, this, padding_width, padding_height),
+                     tr("Mario Party 4"));
+  tab_widget->addTab(GetWrappedWidget(mp5_gecko, this, padding_width, padding_height),
+                     tr("Mario Party 5"));
+  tab_widget->addTab(GetWrappedWidget(mp6_gecko, this, padding_width, padding_height),
+                     tr("Mario Party 6"));
+  tab_widget->addTab(GetWrappedWidget(mp7_gecko, this, padding_width, padding_height),
+                     tr("Mario Party 7"));
+  tab_widget->addTab(GetWrappedWidget(mp8_gecko, this, padding_width, padding_height),
+                     tr("Mario Party 8"));
+
+  layout->addWidget(tab_widget);
+
+  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  layout->addWidget(close_box);
+  setLayout(layout);
 }

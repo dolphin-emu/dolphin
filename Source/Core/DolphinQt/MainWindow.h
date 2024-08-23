@@ -31,6 +31,7 @@ class FreeLookWindow;
 class GameList;
 class GBATASInputWindow;
 class GCTASInputWindow;
+class GeckoDialog;
 class GraphicsWindow;
 class HotkeyScheduler;
 class InfinityBaseWindow;
@@ -213,6 +214,7 @@ private:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
+  void ShowGeckoCodes();
 
 #ifdef _WIN32
   // This gets called for each event from the Windows message queue.
@@ -237,7 +239,7 @@ private:
   bool m_is_screensaver_inhibited = false;
   u32 m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
-
+  GeckoDialog* m_gecko_dialog = nullptr;
   ControllersWindow* m_controllers_window = nullptr;
   SettingsWindow* m_settings_window = nullptr;
   GraphicsWindow* m_graphics_window = nullptr;
@@ -246,7 +248,6 @@ private:
   InfinityBaseWindow* m_infinity_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
-
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;
   DiscordHandler* m_netplay_discord;

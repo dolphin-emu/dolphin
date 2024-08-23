@@ -264,7 +264,7 @@ void NetPlayDialog::CreateMainLayout()
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
-
+  m_buffer_size_box->setFixedSize(100, 20);
   setLayout(m_main_layout);
 }
 

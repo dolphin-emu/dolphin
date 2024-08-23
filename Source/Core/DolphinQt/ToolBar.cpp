@@ -133,7 +133,7 @@ void ToolBar::MakeActions()
   m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
-
+  m_view_gecko_codes_action = addAction(tr("Modifications"), this, &ToolBar::ViewGeckoCodes);
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
   for (const auto& action :
@@ -196,6 +196,7 @@ void ToolBar::UpdateIcons()
   m_screenshot_action->setIcon(Resources::GetThemeIcon("screenshot"));
   m_config_action->setIcon(Resources::GetThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetThemeIcon("classic"));
+  m_view_gecko_codes_action->setIcon(Resources::GetThemeIcon("modifications"));
   m_graphics_action->setIcon(Resources::GetThemeIcon("graphics"));
   m_start_netplay_action->setIcon(Resources::GetThemeIcon("wifi"));
 }
