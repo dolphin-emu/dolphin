@@ -3,15 +3,10 @@
 
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 
-#include <QApplication>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QMenu>
-#include <QMouseEvent>
-#include <QPainter>
 #include <QSignalBlocker>
-#include <QStyleOptionViewItem>
-#include <QStyledItemDelegate>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -55,40 +50,6 @@ enum TableColumns
   CONDITION_COLUMN = 9,
 };
 }  // namespace
-
-// Fix icons not centering properly in a QTableWidget.
-class CustomDelegate : public QStyledItemDelegate
-{
-public:
-  CustomDelegate(BreakpointWidget* parent) : QStyledItemDelegate(parent) {}
-
-private:
-  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
-  {
-    Q_ASSERT(index.isValid());
-
-    // Fetch normal drawing logic.
-    QStyleOptionViewItem opt = option;
-    initStyleOption(&opt, index);
-
-    // Disable drawing icon the normal way.
-    opt.icon = QIcon();
-    opt.decorationSize = QSize(0, 0);
-
-    // Default draw command for paint.
-    QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, 0);
-
-    // Draw pixmap at the center of the tablewidget cell
-    QPixmap pix = qvariant_cast<QPixmap>(index.data(Qt::DecorationRole));
-    if (!pix.isNull())
-    {
-      const QRect r = option.rect;
-      const QSize size = pix.deviceIndependentSize().toSize();
-      const QPoint p = QPoint((r.width() - size.width()) / 2, (r.height() - size.height()) / 2);
-      painter->drawPixmap(r.topLeft() + p, pix);
-    }
-  }
-};
 
 BreakpointWidget::BreakpointWidget(QWidget* parent)
     : QDockWidget(parent), m_system(Core::System::GetInstance())
@@ -148,7 +109,6 @@ void BreakpointWidget::CreateWidgets()
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
-  m_table->setItemDelegate(new CustomDelegate(this));
   m_table->setTabKeyNavigation(false);
   m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(10);
