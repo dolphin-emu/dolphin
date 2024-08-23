@@ -225,8 +225,9 @@ void GeneralPane::CreateCheats()
   auto* code_handler_layout = new QFormLayout();
   auto* code_handler_label = new QLabel(tr("Code Handler:"));
   m_combobox_codehandler = new QComboBox();
-  m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(false));
-  m_combobox_codehandler->addItem(tr("MPN (Extended)"), QVariant(true));
+  m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(0));
+  m_combobox_codehandler->addItem(tr("MPN (Extended)"), QVariant(1));
+  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
 
   code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
 
@@ -248,7 +249,7 @@ void GeneralPane::LoadConfig()
 #endif
   SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
   SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
-  SignalBlocking(m_combobox_codehandler)->setCurrentIndex(Config::Get(Config::MAIN_CODE_HANDLER) ? 1 : 0);
+  SignalBlocking(m_combobox_codehandler)->setCurrentIndex(Config::Get(Config::MAIN_CODE_HANDLER));
   SignalBlocking(m_checkbox_override_region_settings)
       ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
   SignalBlocking(m_checkbox_auto_disc_change)
@@ -367,7 +368,7 @@ void GeneralPane::GenerateNewIdentity()
 
 void GeneralPane::OnCodeHandlerChanged(int index)
 {
-  bool use_mpn = m_combobox_codehandler->itemData(index).toBool();
-  Config::SetBaseOrCurrent(Config::MAIN_CODE_HANDLER, use_mpn);  // Ensure correct usage
+  int code_handler_value = m_combobox_codehandler->itemData(index).toInt();
+  Config::SetBaseOrCurrent(Config::MAIN_CODE_HANDLER, code_handler_value);
   Config::Save();
 }

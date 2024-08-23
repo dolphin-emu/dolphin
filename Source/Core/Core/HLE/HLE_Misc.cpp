@@ -12,6 +12,8 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include <Common/CommonPaths.h>
+#include <Core/ConfigManager.h>
 
 namespace HLE_Misc
 {
@@ -23,6 +25,31 @@ void UnimplementedFunction(const Core::CPUThreadGuard& guard)
   auto& ppc_state = system.GetPPCState();
   ppc_state.npc = LR(ppc_state);
 }
+
+const char* GetGeckoCodeHandlerPath()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  switch (code_handler_value)
+  {
+    case 0: return GECKO_CODE_HANDLER; // Dolphin (Stock)
+    case 1: return GECKO_CODE_HANDLER_MPN; // MPN (Extended)
+    case 2: return GECKO_CODE_HANDLER_MPN_SUPER; // MPN (Super Extended)
+    default: return GECKO_CODE_HANDLER; // Fallback
+  }
+}
+
+bool IsGeckoCodeHandlerEnabled()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  return code_handler_value == 1 || code_handler_value == 2; // Return true for 1 and 2
+}
+
+bool IsGeckoCodeHandlerSUPER()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  return code_handler_value == 2; // Return true for 1 and 2
+}
+
 
 void HBReload(const Core::CPUThreadGuard& guard)
 {
@@ -44,7 +71,20 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
   // been read into memory, or such, so we do the first 5 frames.  More
   // robust alternative would be to actually detect memory writes, but that
   // would be even uglier.)
-  u32 gch_gameid = PowerPC::MMU::HostRead_U32(guard, Gecko::INSTALLER_BASE_ADDRESS);
+
+  const bool is_mpn_handler_and_game_id_gp7e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
+  const bool is_mpn_handler_and_game_id_gp6e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP6E01");
+  const bool is_mpn_handler_and_game_id_gp5e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP5E01");
+
+  u32 codelist_hook = is_mpn_handler_and_game_id_gp7e01 ? Gecko::INSTALLER_BASE_ADDRESS_MP7 :
+                      is_mpn_handler_and_game_id_gp6e01 ? Gecko::INSTALLER_BASE_ADDRESS_MP6 :
+                      is_mpn_handler_and_game_id_gp5e01 ? Gecko::INSTALLER_BASE_ADDRESS_MP5 :
+                                                          Gecko::INSTALLER_BASE_ADDRESS;
+
+  u32 gch_gameid = PowerPC::MMU::HostRead_U32(guard, codelist_hook);
   if (gch_gameid - Gecko::MAGIC_GAMEID == 5)
   {
     return;
@@ -53,7 +93,7 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
   {
     gch_gameid = Gecko::MAGIC_GAMEID;
   }
-  PowerPC::MMU::HostWrite_U32(guard, gch_gameid + 1, Gecko::INSTALLER_BASE_ADDRESS);
+  PowerPC::MMU::HostWrite_U32(guard, gch_gameid + 1, codelist_hook);
 
   ppc_state.iCache.Reset(jit_interface);
 }

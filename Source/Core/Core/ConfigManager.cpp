@@ -89,8 +89,7 @@ SConfig::~SConfig()
 
 namespace Config
 {
-  // Initialize the configuration option
-  const Info<bool> MAIN_CODE_HANDLER{{System::Main, "CodeHandler", "UseMPN"}, false};
+  const Info<int> MAIN_CODE_HANDLER{{System::Main, "CodeHandler", "CodeHandlerValue"}, 0};
 }
 
 void SConfig::SaveSettings()

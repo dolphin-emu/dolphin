@@ -49,7 +49,28 @@ bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs);
 // Installation address for codehandler.bin in the Game's RAM
 constexpr u32 INSTALLER_BASE_ADDRESS = 0x80001800;
 constexpr u32 INSTALLER_END_ADDRESS = 0x80003000;
+
+// Override kerjump to 0x8023CF6C location for CodeHandler
+constexpr u32 INSTALLER_BASE_ADDRESS_MP7 = 0x8023CF6C;
+constexpr u32 INSTALLER_END_ADDRESS_MP7 = 0x8023F9D0;
+
+// Override kerjump to 0x80213974 location for CodeHandler
+constexpr u32 INSTALLER_BASE_ADDRESS_MP6 = 0x817611C0;
+constexpr u32 INSTALLER_END_ADDRESS_MP6 = 0x817611C0;
+
+// Override kerjump to 0x801A811C location for CodeHandler
+constexpr u32 INSTALLER_BASE_ADDRESS_MP5 = 0x81788000;
+constexpr u32 INSTALLER_END_ADDRESS_MP5 = 0x817F0000;
+
+// Override kerjump to 0x8011CCC4 location for CodeHandler
+constexpr u32 INSTALLER_BASE_ADDRESS_MP4 = 0x81792D00;
+constexpr u32 INSTALLER_END_ADDRESS_MP4 = 0x817F0000;
+
 constexpr u32 ENTRY_POINT = INSTALLER_BASE_ADDRESS + 0xA8;
+constexpr u32 ENTRY_POINT_MP7 = INSTALLER_BASE_ADDRESS_MP7 + 0xA8;
+constexpr u32 ENTRY_POINT_MP6 = INSTALLER_BASE_ADDRESS_MP6 + 0xA8;
+constexpr u32 ENTRY_POINT_MP5 = INSTALLER_BASE_ADDRESS_MP5 + 0xA8;
+
 // If the GCT is max-length then this is the second word of the End code (0xF0000000 0x00000000)
 // If the table is shorter than the max-length then this address is unused / contains trash.
 constexpr u32 HLE_TRAMPOLINE_ADDRESS = INSTALLER_END_ADDRESS - 4;
@@ -71,6 +92,5 @@ std::vector<GeckoCode> SetAndReturnActiveCodes(std::span<const GeckoCode> gcodes
 void RunCodeHandler(const Core::CPUThreadGuard& guard);
 void Shutdown();
 void DoState(PointerWrap&);
-
 
 }  // namespace Gecko

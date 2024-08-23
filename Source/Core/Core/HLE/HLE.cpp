@@ -8,8 +8,10 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -79,6 +81,30 @@ void Patch(Core::System& system, u32 addr, std::string_view func_name)
   }
 }
 
+const char* GetGeckoCodeHandlerPath()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  switch (code_handler_value)
+  {
+    case 0: return GECKO_CODE_HANDLER; // Dolphin (Stock)
+    case 1: return GECKO_CODE_HANDLER_MPN; // MPN (Extended)
+    case 2: return GECKO_CODE_HANDLER_MPN_SUPER; // MPN (Super Extended)
+    default: return GECKO_CODE_HANDLER; // Fallback
+  }
+}
+
+bool IsGeckoCodeHandlerEnabled()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  return code_handler_value == 1 || code_handler_value == 2; // Return true for 1 and 2
+}
+
+bool IsGeckoCodeHandlerSUPER()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  return code_handler_value == 2; // Return true for 1 and 2
+}
+
 void PatchFixedFunctions(Core::System& system)
 {
   // MIOS puts patch data in low MEM1 (0x1800-0x3000) for its own use.
@@ -100,7 +126,28 @@ void PatchFixedFunctions(Core::System& system)
 
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
-  Patch(system, Gecko::ENTRY_POINT, "GeckoCodehandler");
+
+  const bool is_mpn_handler_and_game_id_gp7e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
+  const bool is_mpn_handler_and_game_id_gp6e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP6E01");
+  const bool is_mpn_handler_and_game_id_gp5e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP5E01");
+
+  u32 codelist_hook = is_mpn_handler_and_game_id_gp7e01 ?
+                          Gecko::ENTRY_POINT_MP7 :
+                          is_mpn_handler_and_game_id_gp6e01 ?
+                          Gecko::ENTRY_POINT_MP6 :
+                          is_mpn_handler_and_game_id_gp5e01 ?
+                          Gecko::ENTRY_POINT_MP5 :
+                                                          Gecko::ENTRY_POINT;
+
+
+  Patch(system, codelist_hook, "GeckoCodehandler");
+
+
+
+
   // This has to always be installed even if cheats are not enabled because of the possiblity of
   // loading a savestate where PC is inside the code handler while cheats are disabled.
   Patch(system, Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
