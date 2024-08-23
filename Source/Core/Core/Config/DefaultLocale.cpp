@@ -79,11 +79,9 @@ static DiscIO::Language ComputeDefaultLanguage()
 
 static std::optional<std::string> TryParseCountryCode(const std::string& locale)
 {
-  const auto is_upper = [](char c) { return std::isupper(c, std::locale::classic()); };
-
   for (const std::string& part : SplitString(locale, '-'))
   {
-    if (part.size() == 2 && is_upper(part[0]) && is_upper(part[1]))
+    if (part.size() == 2 && Common::IsUpper(part[0]) && Common::IsUpper(part[1]))
       return part;
   }
 

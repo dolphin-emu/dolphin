@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -39,8 +40,7 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
                                       static_cast<char>((partition_type >> 16) & 0xFF),
                                       static_cast<char>((partition_type >> 8) & 0xFF),
                                       static_cast<char>(partition_type & 0xFF)};
-    if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(),
-                    [](char c) { return std::isalnum(c, std::locale::classic()); }))
+    if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(), Common::IsAlnum))
     {
       return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
