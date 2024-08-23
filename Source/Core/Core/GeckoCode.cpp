@@ -212,9 +212,9 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
       PowerPC::MMU::HostWrite_U32(guard, 0x00000000, addr);
     }
     PowerPC::MMU::HostWrite_U32(guard, ((codelist_base_address & 0xFFFF0000) >> 16) + 0x3DE00000,
-                                0x80001904);
+                                0x800018F8);
     PowerPC::MMU::HostWrite_U32(guard, (codelist_base_address & 0x0000FFFF) + 0x61EF0000,
-                                0x80001908);
+                                0x800018FC);
   }
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).

@@ -390,7 +390,6 @@ void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& j
                                   u32 addr)
 {
   auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
   auto& ppc_state = system.GetPPCState();
   if (!HID0(ppc_state).ICE || m_disable_icache)
     return;
