@@ -504,7 +504,7 @@ bool RenderWidget::event(QEvent* event)
 
 void RenderWidget::PassEventToPresenter(const QEvent* event)
 {
-  if (!Core::IsRunningAndStarted())
+  if (!Core::IsRunning(Core::System::GetInstance()))
     return;
 
   switch (event->type())

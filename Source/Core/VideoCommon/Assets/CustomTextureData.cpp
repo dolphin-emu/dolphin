@@ -574,6 +574,14 @@ bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::stri
   std::vector<u8> buffer(file.GetSize());
   file.ReadBytes(buffer.data(), file.GetSize());
 
+  return LoadPNGTexture(level, buffer);
+}
+
+bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::vector<u8>& buffer)
+{
+  if (!level) [[unlikely]]
+    return false;
+
   if (!Common::LoadPNG(buffer, &level->data, &level->width, &level->height))
     return false;
 

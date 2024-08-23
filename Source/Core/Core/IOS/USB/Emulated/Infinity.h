@@ -66,6 +66,27 @@ private:
   std::queue<std::unique_ptr<IntrMessage>> m_response_list;
 };
 
+enum class FigureUIPosition : u8
+{
+  HexagonDiscOne = 0,
+  HexagonDiscTwo = 1,
+  HexagonDiscThree = 2,
+  PlayerOne = 3,
+  P1AbilityOne = 4,
+  P1AbilityTwo = 5,
+  PlayerTwo = 6,
+  P2AbilityOne = 7,
+  P2AbilityTwo = 8
+};
+
+enum class FigureBasePosition : u8
+{
+  Unknown = 0,
+  HexagonSlot = 1,
+  PlayerOneSlot = 2,
+  PlayerTwoSlot = 3
+};
+
 class InfinityBase final
 {
 public:
@@ -79,23 +100,23 @@ public:
                   u8 sequence);
   void DescrambleAndSeed(u8* buf, u8 sequence, std::array<u8, 32>& reply_buf);
   void GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf);
-  void RemoveFigure(u8 position);
+  void RemoveFigure(FigureUIPosition position);
   // Returns Infinity Figure name based on data from in_file param
   std::string LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE>& buf,
-                         File::IOFile in_file, u8 position);
+                         File::IOFile in_file, FigureUIPosition position);
   bool CreateFigure(const std::string& file_path, u32 character);
   static std::span<const std::pair<const char*, const u32>> GetFigureList();
   std::string FindFigure(u32 character) const;
 
 protected:
   std::mutex m_infinity_mutex;
-  std::array<InfinityFigure, 7> m_figures;
+  std::array<InfinityFigure, 9> m_figures;
 
 private:
   InfinityFigure& GetFigureByOrder(u8 order_added);
   std::array<u8, 16> GenerateInfinityFigureKey(const std::vector<u8>& sha1_data);
   std::array<u8, 16> GenerateBlankFigureData(u32 figure_num);
-  u8 DeriveFigurePosition(u8 position);
+  FigureBasePosition DeriveFigurePosition(FigureUIPosition position);
   void GenerateSeed(u32 seed);
   u32 GetNext();
   u64 Scramble(u32 num_to_scramble, u32 garbage);

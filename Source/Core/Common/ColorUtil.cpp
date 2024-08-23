@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/ColorUtil.h"
+
 #include "Common/Swap.h"
 
 namespace Common

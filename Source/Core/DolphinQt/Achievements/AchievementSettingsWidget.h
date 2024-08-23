@@ -38,7 +38,6 @@ private:
   void ToggleSpectator();
   void ToggleDiscordPresence();
   void ToggleProgress();
-  void ToggleBadges();
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
@@ -56,7 +55,6 @@ private:
   ToolTipCheckBox* m_common_spectator_enabled_input;
   ToolTipCheckBox* m_common_discord_presence_enabled_input;
   ToolTipCheckBox* m_common_progress_enabled_input;
-  ToolTipCheckBox* m_common_badges_enabled_input;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS

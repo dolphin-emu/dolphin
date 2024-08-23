@@ -261,4 +261,4 @@ int __cdecl EnableCompatPatches()
 extern "C" {
 __declspec(allocate(".CRT$XCZ")) decltype(&EnableCompatPatches)
     enableCompatPatches = EnableCompatPatches;
-};
+}

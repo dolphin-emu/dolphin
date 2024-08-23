@@ -308,7 +308,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
   bool any_removed;
   {
     std::lock_guard lk(m_devices_mutex);
-    auto it = std::remove_if(m_devices.begin(), m_devices.end(), [&callback](const auto& dev) {
+    const size_t erased = std::erase_if(m_devices, [&callback](const auto& dev) {
       if (callback(dev.get()))
       {
         NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Removed device: {}", dev->GetQualifiedName());
@@ -316,9 +316,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
       }
       return false;
     });
-    const size_t prev_size = m_devices.size();
-    m_devices.erase(it, m_devices.end());
-    any_removed = m_devices.size() != prev_size;
+    any_removed = erased != 0;
   }
 
   if (any_removed && (!m_populating_devices_counter || force_devices_release))

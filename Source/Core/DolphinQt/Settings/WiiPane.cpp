@@ -503,7 +503,7 @@ void WiiPane::PopulateUSBPassthroughListWidget()
 void WiiPane::BrowseSDRaw()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select a SD Card Image"),
+      this, tr("Select SD Card Image"),
       QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)),
       tr("SD Card Image (*.raw);;"
          "All Files (*)")));
@@ -520,7 +520,7 @@ void WiiPane::SetSDRaw(const QString& path)
 void WiiPane::BrowseSDSyncFolder()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select a Folder to sync with the SD Card Image"),
+      this, tr("Select a Folder to Sync with the SD Card Image"),
       QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH))));
   if (!file.isEmpty())
     SetSDSyncFolder(file);

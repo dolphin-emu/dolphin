@@ -290,7 +290,7 @@ void ShaderCache::LoadPipelineCache(T& cache, Common::LinearDiskCache<DiskKeyTyp
       UnserializePipelineUid(key, real_uid);
 
       // Skip those which are already compiled.
-      if (failed || cache.find(real_uid) != cache.end())
+      if (failed || cache.contains(real_uid))
         return;
 
       auto config = this_ptr->GetGXPipelineConfig(real_uid);

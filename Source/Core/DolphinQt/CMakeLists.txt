@@ -566,15 +566,14 @@ endif()
 
 if(APPLE)
   include(BundleUtilities)
-  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app)
+  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DolphinQt.app)
 
   # Ask for an application bundle.
   set_target_properties(dolphin-mpn PROPERTIES
     MACOSX_BUNDLE true
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/DolphinEmu.entitlements"
-    XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --options=runtime"
-    OUTPUT_NAME Dolphin
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+    OUTPUT_NAME DolphinQt
     )
 
   # Copy qt.conf into the bundle
@@ -638,54 +637,16 @@ if(APPLE)
   endif()
 
   if(MACOS_CODE_SIGNING)
-    # Code sign make file builds
-    add_custom_command(TARGET dolphin-mpn POST_BUILD
-      COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "$<TARGET_BUNDLE_DIR:dolphin-mpn>")
+    add_custom_command(TARGET dolphin-mpn
+      POST_BUILD
+      COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
+      "-e" "${CMAKE_CURRENT_SOURCE_DIR}/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements"
+      "${MACOS_CODE_SIGNING_IDENTITY}"
+      "${BUNDLE_PATH}"
+    )
   endif()
 else()
   install(TARGETS dolphin-mpn RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)
-  # Set that we want ORIGIN in FLAGS.
-  # We also want RPATH, not RUNPATH, so disable the new tags.
-  target_link_options(dolphin-mpn
-  PRIVATE
-    LINKER:-z,origin
-    LINKER:--disable-new-dtags
-  )
-
-  # For Steam Runtime builds, our Qt shared libraries will be in a "lib" folder.
-  set_target_properties(dolphin-mpn PROPERTIES
-    BUILD_WITH_INSTALL_RPATH true
-    INSTALL_RPATH "\$ORIGIN/lib"
-  )
-
-  add_custom_command(TARGET dolphin-mpn POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
-    COMMAND cp "${Qt6_DIR}/../../LICENSE.*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
-    COMMAND cp -P "${Qt6_DIR}/../../*.so*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${Qt6_DIR}/../../../plugins" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
-  )
-
-  # Copy qt.conf
-  target_sources(dolphin-mpn PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
-  add_custom_command(TARGET dolphin-mpn POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
-  )
-
-  # Mark all data files as resources
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
-  file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
-  foreach(res ${resources})
-    target_sources(dolphin-mpn PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
-    source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
-  endforeach()
-
-  # Copy Sys folder
-  add_custom_command(TARGET dolphin-mpn POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
-  )
 endif()
 
 if(USE_MGBA)

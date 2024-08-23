@@ -9,6 +9,8 @@
 
 namespace Common
 {
+#define EMULATOR_NAME "Dolphin"
+
 #ifdef _DEBUG
 #define BUILD_TYPE_STR "Debug "
 #elif defined DEBUGFAST
@@ -39,6 +41,12 @@ const std::string& GetScmBranchStr()
 {
   static const std::string scm_branch_str = SCM_BRANCH_STR;
   return scm_branch_str;
+}
+
+const std::string& GetUserAgentStr()
+{
+  static const std::string user_agent_str = EMULATOR_NAME "/" SCM_DESC_STR;
+  return user_agent_str;
 }
 
 const std::string& GetScmDistributorStr()

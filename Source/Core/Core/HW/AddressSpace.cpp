@@ -120,7 +120,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
     return PowerPC::MMU::HostRead_F32(guard, address);
-  };
+  }
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const

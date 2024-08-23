@@ -214,7 +214,7 @@ PUBLIC
 PRIVATE
   fmt::fmt
   spng::spng
-  xxhash
+  xxhash::xxhash
   imgui
   implot
   glslang

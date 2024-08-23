@@ -34,7 +34,7 @@ PPCSymbolDB::~PPCSymbolDB() = default;
 Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
 {
   // It's already in the list
-  if (m_functions.find(start_addr) != m_functions.end())
+  if (m_functions.contains(start_addr))
     return nullptr;
 
   Common::Symbol symbol;

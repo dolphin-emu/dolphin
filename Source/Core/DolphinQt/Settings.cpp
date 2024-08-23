@@ -59,7 +59,12 @@ Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
   Core::AddOnStateChangedCallback([this](Core::State new_state) {
-    QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
+    QueueOnObject(this, [this, new_state] {
+      // Avoid signal spam while continuously frame stepping. Will still send a signal for the first
+      // and last framestep.
+      if (!m_continuously_frame_stepping)
+        emit EmulationStateChanged(new_state);
+    });
   });
 
   Config::AddConfigChangedCallback([this] {
@@ -118,9 +123,8 @@ QSettings& Settings::GetQSettings()
   return settings;
 }
 
-void Settings::SetThemeName(const QString& theme_name)
+void Settings::TriggerThemeChanged()
 {
-  Config::SetBaseOrCurrent(Config::MAIN_THEME_NAME, theme_name.toStdString());
   emit ThemeChanged();
 }
 
@@ -355,11 +359,6 @@ void Settings::NotifyRefreshGameListComplete()
   emit GameListRefreshCompleted();
 }
 
-void Settings::RefreshMetadata()
-{
-  emit MetadataRefreshRequested();
-}
-
 void Settings::NotifyMetadataRefreshComplete()
 {
   emit MetadataRefreshCompleted();
@@ -419,21 +418,9 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetCursorVisibility(Config::ShowCursor hideCursor)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_SHOW_CURSOR, hideCursor);
-  emit CursorVisibilityChanged();
-}
-
 Config::ShowCursor Settings::GetCursorVisibility() const
 {
   return Config::Get(Config::MAIN_SHOW_CURSOR);
-}
-
-void Settings::SetLockCursor(bool lock_cursor)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_LOCK_CURSOR, lock_cursor);
-  emit LockCursorChanged();
 }
 
 bool Settings::GetLockCursor() const
@@ -446,7 +433,6 @@ void Settings::SetKeepWindowOnTop(bool top)
   if (IsKeepWindowOnTopEnabled() == top)
     return;
 
-  Config::SetBaseOrCurrent(Config::MAIN_KEEP_WINDOW_ON_TOP, top);
   emit KeepWindowOnTopChanged(top);
 }
 
@@ -553,21 +539,10 @@ bool Settings::GetCheatsEnabled() const
   return Config::Get(Config::MAIN_ENABLE_CHEATS);
 }
 
-void Settings::SetCheatsEnabled(bool enabled)
-{
-  if (Config::Get(Config::MAIN_ENABLE_CHEATS) != enabled)
-  {
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
-    emit EnableCheatsChanged(enabled);
-  }
-}
-
 void Settings::SetDebugModeEnabled(bool enabled)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     enabled = false;
-#endif  // USE_RETRO_ACHIEVEMENTS
   if (IsDebugModeEnabled() != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
@@ -847,4 +822,14 @@ void Settings::SetUSBKeyboardConnected(bool connected)
     Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
+}
+
+void Settings::SetIsContinuouslyFrameStepping(bool is_stepping)
+{
+  m_continuously_frame_stepping = is_stepping;
+}
+
+bool Settings::GetIsContinuouslyFrameStepping() const
+{
+  return m_continuously_frame_stepping;
 }

@@ -229,8 +229,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   setAcceptDrops(true);
   setAttribute(Qt::WA_NativeWindow);
 
-  InitControllers();
-
   CreateComponents();
 
   ConnectGameList();
@@ -239,6 +237,17 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectRenderWidget();
   ConnectStack();
   ConnectMenuBar();
+
+  QSettings& settings = Settings::GetQSettings();
+  restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
+  restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
+  if (!Settings::Instance().IsBatchModeEnabled())
+  {
+    SetQWidgetWindowDecorations(this);
+    show();
+  }
+
+  InitControllers();
   ConnectHotkeys();
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
@@ -291,11 +300,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   m_state_slot =
       std::clamp(Settings::Instance().GetStateSlot(), 1, static_cast<int>(State::NUM_STATES));
 
-  QSettings& settings = Settings::GetQSettings();
-
-  restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
-  restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
-
   m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
 
   // Restoring of window states can sometimes go wrong, resulting in widgets being visible when they
@@ -321,6 +325,12 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   }
 
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
+
+  if (m_pending_boot != nullptr)
+  {
+    StartGame(std::move(m_pending_boot));
+    m_pending_boot.reset();
+  }
 }
 
 MainWindow::~MainWindow()
@@ -347,8 +357,11 @@ MainWindow::~MainWindow()
 
   QSettings& settings = Settings::GetQSettings();
 
-  settings.setValue(QStringLiteral("mainwindow/state"), saveState());
-  settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  if (!Settings::Instance().IsBatchModeEnabled())
+  {
+    settings.setValue(QStringLiteral("mainwindow/state"), saveState());
+    settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  }
 
   settings.setValue(QStringLiteral("renderwidget/geometry"), m_render_widget_geometry);
 
@@ -645,6 +658,10 @@ void MainWindow::ConnectHotkeys()
     movie.SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_hotkey_scheduler, &HotkeyScheduler::OpenAchievements, this,
+          &MainWindow::ShowAchievementsWindow, Qt::QueuedConnection);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StepOver, m_code_widget, &CodeWidget::StepOver);
@@ -1910,7 +1927,7 @@ void MainWindow::OnImportNANDBackup()
     return;
 
   QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+      DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"), QDir::currentPath(),
                                          tr("BootMii NAND backup file (*.bin);;"
                                             "All Files (*)"));
 
@@ -1936,7 +1953,7 @@ void MainWindow::OnImportNANDBackup()
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
             return DolphinFileDialog::getOpenFileName(
-                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       this, tr("Select Keys File (OTP/SEEPROM Dump)"), QDir::currentPath(),
                        tr("BootMii keys file (*.bin);;"
                           "All Files (*)"))
                 .toStdString();
@@ -1985,7 +2002,7 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if ((!Core::IsRunningAndStarted() && Core::IsRunning(system)) || movie.IsRecordingInput() ||
+  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;
@@ -2174,20 +2191,4 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 
   AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
   StartGame(std::move(boot_params));
-}
-
-void MainWindow::Show()
-{
-  if (!Settings::Instance().IsBatchModeEnabled())
-  {
-    SetQWidgetWindowDecorations(this);
-    QWidget::show();
-  }
-
-  // If the booting of a game was requested on start up, do that now
-  if (m_pending_boot != nullptr)
-  {
-    StartGame(std::move(m_pending_boot));
-    m_pending_boot.reset();
-  }
 }

@@ -27,8 +27,13 @@ ConfigRadioInt::ConfigRadioInt(const QString& label, const Config::Info<int>& se
 
 void ConfigRadioInt::Update()
 {
-  if (!isChecked())
-    return;
-
-  Config::SetBaseOrCurrent(m_setting, m_value);
+  if (isChecked())
+  {
+    Config::SetBaseOrCurrent(m_setting, m_value);
+    emit OnSelected(m_value);
+  }
+  else
+  {
+    emit OnDeselected(m_value);
+  }
 }

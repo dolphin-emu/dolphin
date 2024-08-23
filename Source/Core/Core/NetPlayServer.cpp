@@ -286,7 +286,7 @@ void NetPlayServer::ThreadFunc()
         auto& e = m_async_queue.Front();
         if (e.target_mode == TargetMode::Only)
         {
-          if (m_players.find(e.target_pid) != m_players.end())
+          if (m_players.contains(e.target_pid))
             Send(m_players.at(e.target_pid).socket, e.packet, e.channel_id);
         }
         else
@@ -786,7 +786,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 cid;
     packet >> cid;
 
-    if (m_chunked_data_complete_count.find(cid) != m_chunked_data_complete_count.end())
+    if (m_chunked_data_complete_count.contains(cid))
     {
       m_chunked_data_complete_count[cid]++;
       m_chunked_data_complete_event.Set();
@@ -845,7 +845,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_host_input_authority)
     {
       // Prevent crash before game stop if the golfer disconnects
-      if (m_current_golfer != 0 && m_players.find(m_current_golfer) != m_players.end())
+      if (m_current_golfer != 0 && m_players.contains(m_current_golfer))
         Send(m_players.at(m_current_golfer).socket, spac);
     }
     else
@@ -930,7 +930,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     packet >> pid;
 
     // Check if player ID is valid and sender isn't a spectator
-    if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
+    if (!m_players.contains(pid) || !PlayerHasControllerMapped(player.pid))
       break;
 
     if (m_host_input_authority && m_settings.golf_mode && m_pending_golfer == 0 &&
@@ -2497,7 +2497,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
         if (e.target_mode == TargetMode::Only)
         {
-          if (m_players.find(e.target_pid) == m_players.end())
+          if (!m_players.contains(e.target_pid))
           {
             skip_wait = true;
             break;

@@ -14,7 +14,7 @@ class PointerWrap;
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 namespace Gecko
 {

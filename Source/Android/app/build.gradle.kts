@@ -8,10 +8,11 @@ plugins {
 @Suppress("UnstableApiUsage")
 android {
     compileSdkVersion = "android-34"
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "27.0.12077973"
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -116,12 +117,11 @@ android {
 }
 
 dependencies {
-    "baselineProfile"(project(":benchmark"))
+    baselineProfile(project(":benchmark"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     implementation("androidx.core:core-ktx:1.13.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -135,7 +135,6 @@ dependencies {
     // Kotlin extensions for lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
     // Android TV UI libraries.
     implementation("androidx.leanback:leanback:1.0.0")
@@ -171,7 +170,7 @@ fun getGitVersion(): String {
 
 fun getBuildVersionCode(): Int {
     try {
-        return Integer.valueOf(
+        val commitCount = Integer.valueOf(
             ProcessBuilder("git", "rev-list", "--first-parent", "--count", "HEAD")
                 .directory(project.rootDir)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
@@ -179,6 +178,15 @@ fun getBuildVersionCode(): Int {
                 .start().inputStream.bufferedReader().use { it.readText() }
                 .trim()
         )
+
+        val isRelease = ProcessBuilder("git", "describe", "--exact-match", "HEAD")
+            .directory(project.rootDir)
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .start()
+            .waitFor() == 0
+
+        return commitCount * 2 + (if (isRelease) 0 else 1)
     } catch (e: Exception) {
         logger.error("Cannot find git, defaulting to dummy version code")
     }

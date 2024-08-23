@@ -15,4 +15,4 @@ template <>
 bool ReadValue(std::string* value, const std::string& subkey, const std::string& name);
 
 OSVERSIONINFOW GetOSVersion();
-};  // namespace WindowsRegistry
+}  // namespace WindowsRegistry

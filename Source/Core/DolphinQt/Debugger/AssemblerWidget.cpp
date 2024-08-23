@@ -770,7 +770,7 @@ bool AssemblerWidget::SaveEditor(AsmEditor* editor)
 
     QString selected_filter;
     save_path = DolphinFileDialog::getSaveFileName(
-        this, tr("Save File to"), QString::fromStdString(default_dir),
+        this, tr("Save File To"), QString::fromStdString(default_dir),
         QStringLiteral("%1;;%2").arg(asm_filter).arg(all_filter), &selected_filter);
 
     if (save_path.isEmpty())

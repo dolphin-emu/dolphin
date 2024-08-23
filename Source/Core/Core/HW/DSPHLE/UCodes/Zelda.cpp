@@ -7,6 +7,7 @@
 #include <array>
 #include <map>
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -803,8 +804,13 @@ struct ZeldaAudioRenderer::VPB
   // can be used for future linear interpolation.
   s16 resample_buffer[4];
 
-  // TODO: document and implement.
-  s16 prev_input_samples[0x18];
+  s16 variable_fir_history[20];
+
+  // Biquad filter history.
+  s16 biquad_xn1;
+  s16 biquad_xn2;
+  s16 biquad_yn1;
+  s16 biquad_yn2;
 
   // Values from the last decoded AFC block. The last two values are
   // especially important since AFC decoding - as a variant of ADPCM -
@@ -813,7 +819,12 @@ struct ZeldaAudioRenderer::VPB
   s16 afc_remaining_samples[0x10];
   s16* AFCYN2() { return &afc_remaining_samples[0xE]; }
   s16* AFCYN1() { return &afc_remaining_samples[0xF]; }
-  u16 unk_68_80[0x80 - 0x68];
+
+  // Low-pass filter history.
+  s16 low_pass_yn1;
+  s16 low_pass_xn1;
+
+  u16 unk_6A_80[0x80 - 0x6A];
 
   enum SamplesSourceType
   {
@@ -861,7 +872,11 @@ struct ZeldaAudioRenderer::VPB
   s16 loop_yn1;
   s16 loop_yn2;
 
-  u16 unk_84;
+  union
+  {
+    BitField<0, 5, u16> variable_fir_filter_size;
+    BitField<5, 1, u16> enable_biquad_filter;
+  };
 
   // If true, ramp down quickly to a volume of zero, and end the voice (by
   // setting VPB[1] done) when it reaches zero.
@@ -889,6 +904,20 @@ struct ZeldaAudioRenderer::VPB
   u16 base_address_h;
   u16 base_address_l;
   DEFINE_32BIT_ACCESSOR(base_address, BaseAddress)
+
+  u16 unk_8E;
+  u16 unk_8F;
+
+  u16 variable_fir_coeffs[20];
+
+  // Biquad filter coefficients.
+  s16 biquad_bn1;
+  s16 biquad_bn2;
+  s16 biquad_an1;
+  s16 biquad_an2;
+
+  // Low-pass filter coefficient.
+  u16 low_pass_coeff;
 
   u16 padding[0xC0];
 
@@ -1173,6 +1202,62 @@ ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
   }
 }
 
+void ZeldaAudioRenderer::ApplyLowPassFilter(MixingBuffer* buf, VPB* vpb)
+{
+  s32 yn1 = vpb->reset_vpb ? 0 : vpb->low_pass_yn1;
+  s32 xn1 = vpb->reset_vpb ? 0 : vpb->low_pass_xn1;
+
+  // 9.7 format I think.
+  s32 coeff = vpb->low_pass_coeff;
+
+  for (int i = 0; i < 0x50; ++i)
+  {
+    s32 xn0 = (*buf)[i];
+    s64 tmp = xn0 - xn1;
+    tmp *= coeff;
+    tmp >>= 7;
+    tmp += yn1;
+    s16 yn0 = std::clamp<s64>(tmp, -0x8000, 0x7FFF);
+    (*buf)[i] = yn0;
+
+    yn1 = yn0;
+    xn1 = xn0;
+  }
+
+  vpb->low_pass_yn1 = yn1;
+  vpb->low_pass_xn1 = xn1;
+}
+
+void ZeldaAudioRenderer::ApplyBiquadFilter(MixingBuffer* buf, VPB* vpb)
+{
+  s32 xn1 = vpb->biquad_xn1;
+  s32 xn2 = vpb->biquad_xn2;
+  s32 yn1 = vpb->biquad_yn1;
+  s32 yn2 = vpb->biquad_yn2;
+
+  for (int i = 0; i < 0x50; ++i)
+  {
+    s32 xn0 = (*buf)[i];
+    s64 tmp = 0;
+    tmp += vpb->biquad_bn1 * xn1;
+    tmp += vpb->biquad_bn2 * xn2;
+    tmp += vpb->biquad_an1 * yn1;
+    tmp += vpb->biquad_an2 * yn2;
+    s16 yn0 = std::clamp<s64>(tmp >> 15, -0x8000, 0x7FFF);
+    (*buf)[i] = yn0;
+
+    xn2 = xn1;
+    xn1 = xn0;
+    yn2 = yn1;
+    yn1 = yn0;
+  }
+
+  vpb->biquad_xn1 = xn1;
+  vpb->biquad_xn2 = xn2;
+  vpb->biquad_yn1 = yn1;
+  vpb->biquad_yn2 = yn2;
+}
+
 void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 {
   VPB vpb;
@@ -1184,9 +1269,23 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
   MixingBuffer input_samples;
   LoadInputSamples(&input_samples, &vpb);
 
-  // TODO: In place effects.
+  if (vpb.low_pass_coeff != 0)
+  {
+    ApplyLowPassFilter(&input_samples, &vpb);
+  }
 
-  // TODO: IIR filter.
+#ifdef STRICT_ZELDA_HLE
+  if (vpb.variable_fir_filter_size != 0)
+  {
+    ERROR_LOG_FMT(DSPHLE, "TODO: variable FIR filter of size {}", vpb.variable_fir_filter_size);
+  }
+#endif
+
+  if (vpb.enable_biquad_filter && (vpb.biquad_an2 != 0 || vpb.biquad_an1 != 0 ||
+                                   vpb.biquad_bn2 != 0 || vpb.biquad_bn1 != 0x7FFF))
+  {
+    ApplyBiquadFilter(&input_samples, &vpb);
+  }
 
   if (vpb.use_dolby_volume)
   {
@@ -1407,12 +1506,13 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     else
       shift = 2;
     u32 mask = (1 << shift) - 1;
+    u32 ratio = vpb->resampling_ratio << (shift - 1);
 
     u32 pos = vpb->current_pos_frac << shift;
     for (s16& sample : *buffer)
     {
       sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
-      pos += vpb->resampling_ratio;
+      pos += ratio;
     }
     vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
     break;

@@ -665,7 +665,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
 
       auto refpair1 = std::make_pair(*id1, *id2);
       auto refpair2 = std::make_pair(*id2, *id1);
-      if (reference_pairs.count(refpair1) == 0 && reference_pairs.count(refpair2) == 0)
+      if (!reference_pairs.contains(refpair1) && !reference_pairs.contains(refpair2))
         reference_pairs.insert(refpair1);
     }
   }
@@ -854,7 +854,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
   {
     auto& entry = iter.first->second;
     if (entry != entry_to_update && entry->IsCopy() &&
-        entry->references.count(entry_to_update.get()) == 0 &&
+        !entry->references.contains(entry_to_update.get()) &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
         entry->memory_stride == numBlocksX * block_size)
     {
@@ -1012,8 +1012,8 @@ static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
   return !(tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near);
 }
 
-static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
-                            bool has_arbitrary_mips)
+SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
+                                               bool has_arbitrary_mips)
 {
   const TexMode0& tm0 = bpmem.tex.GetUnit(index).texMode0;
 
@@ -1073,13 +1073,11 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     state.tm0.anisotropic_filtering = false;
   }
 
-  g_gfx->SetSamplerState(index, state);
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
-  pixel_shader_manager.SetSamplerState(index, state.tm0.hex, state.tm1.hex);
+  return state;
 }
 
-void TextureCacheBase::BindTextures(BitSet32 used_textures)
+void TextureCacheBase::BindTextures(BitSet32 used_textures,
+                                    const std::array<SamplerState, 8>& samplers)
 {
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
@@ -1091,8 +1089,9 @@ void TextureCacheBase::BindTextures(BitSet32 used_textures)
       g_gfx->SetTexture(i, tentry->texture.get());
       pixel_shader_manager.SetTexDims(i, tentry->native_width, tentry->native_height);
 
-      const float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
-      SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
+      auto& state = samplers[i];
+      g_gfx->SetSamplerState(i, state);
+      pixel_shader_manager.SetSamplerState(i, state.tm0.hex, state.tm1.hex);
     }
   }
 

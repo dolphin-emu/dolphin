@@ -97,6 +97,17 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
 {
 #ifdef _WIN32
   s32 error_code = WSAGetLastError();
+  // Some programs might hijack WinSock2 (e.g. ReShade) and alter the expected return value.
+  if (error_code == WSAEINVAL && caller == "SO_CONNECT")
+  {
+    // Note:
+    // In order to preserve backward compatibility, this error is reported as WSAEINVAL to Windows
+    // Sockets 1.1 applications that link to either Winsock.dll or Wsock32.dll.
+    //
+    // Source:
+    // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-connect
+    error_code = WSAEALREADY;
+  }
 #else
   s32 error_code = errno;
 #endif
@@ -292,7 +303,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         memory.CopyFromEmu(&addr, ioctl.buffer_in + 8, sizeof(WiiSockAddrIn));
         sockaddr_in local_name = WiiSockMan::ToNativeAddrIn(addr);
 
-        int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
+        const int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_CONNECT", false);
         UpdateConnectingState(ReturnValue);
 
@@ -865,7 +876,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
   for (wii_fd = 0; wii_fd < WII_SOCKET_FD_MAX; ++wii_fd)
   {
     // Find an available socket fd
-    if (WiiSockets.count(wii_fd) == 0)
+    if (!WiiSockets.contains(wii_fd))
       break;
   }
 
@@ -953,7 +964,7 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
 {
-  if (WiiSockets.count(wii_fd) > 0)
+  if (WiiSockets.contains(wii_fd))
     return WiiSockets.at(wii_fd).fd;
   return -EBADF;
 }

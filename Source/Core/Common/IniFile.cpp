@@ -75,7 +75,7 @@ bool IniFile::Section::Get(std::string_view key, std::string* value,
 
 bool IniFile::Section::Exists(std::string_view key) const
 {
-  return values.find(key) != values.end();
+  return values.contains(key);
 }
 
 bool IniFile::Section::Delete(std::string_view key)

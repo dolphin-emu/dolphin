@@ -943,7 +943,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   auto& cpu = m_system.GetCPU();
 
-  if (m_enable_debugging)
+  if (IsDebuggingEnabled())
   {
     // We can link blocks as long as we are not single stepping
     SetBlockLinkingEnabled(true);
@@ -1101,8 +1101,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (IsProfilingEnabled())
     ABI_CallFunction(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
 
-  if (code_block.m_gqr_used.Count() == 1 &&
-      js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+  if (code_block.m_gqr_used.Count() == 1 && !js.pairedQuantizeAddresses.contains(js.blockStart))
   {
     int gqr = *code_block.m_gqr_used.begin();
     if (!code_block.m_gqr_modified[gqr] && !GQR(m_ppc_state, gqr))
@@ -1126,8 +1125,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   gpr.Start(js.gpa);
   fpr.Start(js.fpa);
 
-  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
-      js.noSpeculativeConstantsAddresses.end())
+  if (!js.noSpeculativeConstantsAddresses.contains(js.blockStart))
   {
     IntializeSpeculativeConstants();
   }
@@ -1145,9 +1143,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.downcountAmount += opinfo->num_cycles;
     js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
-    if (!m_enable_debugging)
-      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
-
     // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
     if (op.inst.OPCD != 46 && op.inst.OPCD != 47)
       gpr.UpdateLastUsed(op.regsIn | op.regsOut);
@@ -1161,8 +1156,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck =
-          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
+      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
 
       if (jo.optimizeGatherPipe &&
           (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
@@ -1240,7 +1234,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
     else
     {
-      if (m_enable_debugging && !cpu.IsStepping() &&
+      if (IsDebuggingEnabled() && !cpu.IsStepping() &&
           m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
       {
         FlushCarry();
@@ -1252,7 +1246,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOVI2R(DISPATCHER_PC, op.address);
         STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        ABI_CallFunction(&PowerPC::CheckBreakPointsFromJIT, &m_system.GetPowerPC());
+        ABI_CallFunction(&PowerPC::CheckAndHandleBreakPointsFromJIT, &m_system.GetPowerPC());
 
         LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
             MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));

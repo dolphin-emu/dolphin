@@ -299,16 +299,14 @@ void GameList::MakeEmptyView()
   size_policy.setRetainSizeWhenHidden(true);
   m_empty->setSizePolicy(size_policy);
 
-  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
-          [this, refreshing_msg = refreshing_msg] {
-            m_empty->setText(refreshing_msg);
-            m_empty->setEnabled(false);
-          });
-  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this,
-          [this, empty_msg = empty_msg] {
-            m_empty->setText(empty_msg);
-            m_empty->setEnabled(true);
-          });
+  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this, [this, refreshing_msg] {
+    m_empty->setText(refreshing_msg);
+    m_empty->setEnabled(false);
+  });
+  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this, [this, empty_msg] {
+    m_empty->setText(empty_msg);
+    m_empty->setEnabled(true);
+  });
 }
 
 void GameList::resizeEvent(QResizeEvent* event)
@@ -805,15 +803,11 @@ bool GameList::AddShortcutToDesktop()
 
   std::string game_name = game->GetName(Core::TitleDatabase());
   // Sanitize the string by removing all characters that cannot be used in NTFS file names
-  game_name.erase(std::remove_if(game_name.begin(), game_name.end(),
-                                 [](char ch) {
-                                   static constexpr char illegal_characters[] = {
-                                       '<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
-                                   return std::find(std::begin(illegal_characters),
-                                                    std::end(illegal_characters),
-                                                    ch) != std::end(illegal_characters);
-                                 }),
-                  game_name.end());
+  std::erase_if(game_name, [](char ch) {
+    static constexpr char illegal_characters[] = {'<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
+    return std::find(std::begin(illegal_characters), std::end(illegal_characters), ch) !=
+           std::end(illegal_characters);
+  });
 
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
   auto persist_file = shell_link.try_query<IPersistFile>();

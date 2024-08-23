@@ -7,14 +7,16 @@
 #include <string>
 
 #include <QDialog>
+#include <QIcon>
 #include <QModelIndexList>
 
-#include "Core/Core.h"
+#include "Common/CommonTypes.h"
 
 namespace Core
 {
 class BranchWatch;
 class CPUThreadGuard;
+enum class State;
 class System;
 }  // namespace Core
 class PPCSymbolDB;
@@ -54,6 +56,11 @@ public:
                              QWidget* parent = nullptr);
   ~BranchWatchDialog() override;
 
+  BranchWatchDialog(const BranchWatchDialog&) = delete;
+  BranchWatchDialog(BranchWatchDialog&&) = delete;
+  BranchWatchDialog& operator=(const BranchWatchDialog&) = delete;
+  BranchWatchDialog& operator=(BranchWatchDialog&&) = delete;
+
 protected:
   void hideEvent(QHideEvent* event) override;
   void showEvent(QShowEvent* event) override;
@@ -73,6 +80,7 @@ private:
   void OnWipeInspection();
   void OnTimeout();
   void OnEmulationStateChanged(Core::State new_state);
+  void OnThemeChanged();
   void OnHelp();
   void OnToggleAutoSave(bool checked);
   void OnHideShowControls(bool checked);
@@ -81,11 +89,14 @@ private:
   void OnTableClicked(const QModelIndex& index);
   void OnTableContextMenu(const QPoint& pos);
   void OnTableHeaderContextMenu(const QPoint& pos);
-  void OnTableDelete(QModelIndexList index_list);
+  void OnTableDelete();
   void OnTableDeleteKeypress();
-  void OnTableSetBLR(QModelIndexList index_list);
-  void OnTableSetNOP(QModelIndexList index_list);
-  void OnTableCopyAddress(QModelIndexList index_list);
+  void OnTableSetBLR();
+  void OnTableSetNOP();
+  void OnTableCopyAddress();
+  void OnTableSetBreakpointBreak();
+  void OnTableSetBreakpointLog();
+  void OnTableSetBreakpointBoth();
 
   void SaveSettings();
 
@@ -95,9 +106,14 @@ public:
 
 private:
   void UpdateStatus();
+  void UpdateIcons();
   void Save(const Core::CPUThreadGuard& guard, const std::string& filepath);
   void Load(const Core::CPUThreadGuard& guard, const std::string& filepath);
   void AutoSave(const Core::CPUThreadGuard& guard);
+  void SetStubPatches(u32 value) const;
+  void SetBreakpoints(bool break_on_hit, bool log_on_hit) const;
+
+  [[nodiscard]] QMenu* GetTableContextMenu(const QModelIndex& index);
 
   Core::System& m_system;
   Core::BranchWatch& m_branch_watch;
@@ -106,6 +122,14 @@ private:
   QPushButton *m_btn_start_pause, *m_btn_clear_watch, *m_btn_path_was_taken, *m_btn_path_not_taken,
       *m_btn_was_overwritten, *m_btn_not_overwritten, *m_btn_wipe_recent_hits;
   QAction* m_act_autosave;
+  QAction* m_act_insert_nop;
+  QAction* m_act_insert_blr;
+  QAction* m_act_copy_address;
+  QMenu* m_mnu_set_breakpoint;
+  QAction* m_act_break_on_hit;
+  QAction* m_act_log_on_hit;
+  QAction* m_act_both_on_hit;
+  QMenu* m_mnu_table_context = nullptr;
   QMenu* m_mnu_column_visibility;
 
   QToolBar* m_control_toolbar;
@@ -115,5 +139,8 @@ private:
   QStatusBar* m_status_bar;
   QTimer* m_timer;
 
+  QIcon m_icn_full, m_icn_partial;
+
+  QModelIndexList m_index_list_temp;
   std::optional<std::string> m_autosave_filepath;
 };

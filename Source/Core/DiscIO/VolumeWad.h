@@ -40,8 +40,6 @@ public:
   std::vector<u64> GetContentOffsets() const override;
   bool CheckContentIntegrity(const IOS::ES::Content& content, const std::vector<u8>& encrypted_data,
                              const IOS::ES::TicketReader& ticket) const override;
-  bool CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
-                             const IOS::ES::TicketReader& ticket) const override;
   IOS::ES::TicketReader GetTicketWithFixedCommonKey() const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;

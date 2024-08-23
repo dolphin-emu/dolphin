@@ -176,7 +176,7 @@ std::optional<IPCReply> OH0::RegisterRemovalHook(const u64 device_id, const IOCt
 {
   std::lock_guard lock{m_hooks_mutex};
   // IOS only allows a single device removal hook.
-  if (m_removal_hooks.find(device_id) != m_removal_hooks.end())
+  if (m_removal_hooks.contains(device_id))
     return IPCReply(IPC_EEXIST);
   m_removal_hooks.insert({device_id, request.address});
   return std::nullopt;
@@ -271,8 +271,7 @@ std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
       continue;
     has_device_with_vid_pid = true;
 
-    if (m_opened_devices.find(device.second->GetId()) != m_opened_devices.cend() ||
-        !device.second->Attach())
+    if (m_opened_devices.contains(device.second->GetId()) || !device.second->Attach())
     {
       continue;
     }
