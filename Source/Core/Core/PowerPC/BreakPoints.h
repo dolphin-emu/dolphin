@@ -60,7 +60,6 @@ public:
 
   using TBreakPoints = std::vector<TBreakPoint>;
   using TBreakPointsStr = std::vector<std::string>;
-
   const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
   TBreakPointsStr GetStrings() const;
   void AddFromStrings(const TBreakPointsStr& bp_strings);

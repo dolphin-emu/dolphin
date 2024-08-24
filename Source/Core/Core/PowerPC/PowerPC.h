@@ -316,6 +316,7 @@ private:
   CoreMode m_mode = CoreMode::Interpreter;
 
   BreakPoints m_breakpoints;
+  void ClearAllTemporary();
   MemChecks m_memchecks;
   PPCSymbolDB m_symbol_db;
   PPCDebugInterface m_debug_interface;

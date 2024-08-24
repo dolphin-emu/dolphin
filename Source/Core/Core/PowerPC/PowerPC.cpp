@@ -267,9 +267,6 @@ void PowerPCManager::Init(CPUCore cpu_core)
   InitializeCPUCore(cpu_core);
   m_ppc_state.iCache.Init();
   m_ppc_state.dCache.Init();
-
-  if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
-    m_breakpoints.ClearAllTemporary();
 }
 
 void PowerPCManager::Reset()
