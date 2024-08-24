@@ -137,7 +137,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 32> GAME_QUIRKS_NAMES{
+constexpr std::array<const char*, 34> GAME_QUIRKS_NAMES{
     "directly-reads-wiimote-input",
     "uses-DVDLowStopLaser",
     "uses-DVDLowOffset",
@@ -158,6 +158,8 @@ constexpr std::array<const char*, 32> GAME_QUIRKS_NAMES{
     "uses-cp-perf-command",
     "uses-unimplemented-ax-command",
     "uses-ax-initial-time-delay",
+    "uses-ax-wiimote-lowpass",
+    "uses-ax-wiimote-biquad",
     "sets-xf-clipdisable-bit-0",
     "sets-xf-clipdisable-bit-1",
     "sets-xf-clipdisable-bit-2",

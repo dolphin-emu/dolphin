@@ -438,7 +438,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 
       ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
                    ConvertMixerControl(pb.mixer_control),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
+                   m_coeffs_checksum ? m_coeffs.data() : nullptr, false);
 
       // Forward the buffers
       for (auto& ptr : buffers.ptrs)
