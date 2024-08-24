@@ -7,8 +7,8 @@
 #include <memory>
 #include <mutex>
 
+#include "AudioCommon/CubebUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/WorkQueueThread.h"
 
 struct cubeb;
 struct cubeb_stream;
@@ -52,11 +52,6 @@ private:
 
   const WiiSpeakState& m_sampler;
 
-#ifdef _WIN32
-  Common::WorkQueueThread<std::function<void()>> m_work_queue{
-      "Wii Speak Worker", [](const std::function<void()>& func) { func(); }};
-  bool m_coinit_success = false;
-  bool m_should_couninit = false;
-#endif
+  CubebUtils::CoInitSyncWorker m_worker{"Wii Speak Worker"};
 };
 }  // namespace IOS::HLE::USB

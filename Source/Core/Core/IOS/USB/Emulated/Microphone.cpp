@@ -28,56 +28,21 @@ namespace IOS::HLE::USB
 {
 Microphone::Microphone(const WiiSpeakState& sampler) : m_sampler(sampler)
 {
-#ifdef _WIN32
-  Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
-    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-    auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
-    m_coinit_success = result == S_OK;
-    m_should_couninit = result == S_OK || result == S_FALSE;
-  });
-  sync_event.Wait();
-#endif
-
   StreamInit();
 }
 
 Microphone::~Microphone()
 {
   StreamTerminate();
-
-#ifdef _WIN32
-  if (m_should_couninit)
-  {
-    Common::Event sync_event;
-    m_work_queue.EmplaceItem([this, &sync_event] {
-      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-      m_should_couninit = false;
-      CoUninitialize();
-    });
-    sync_event.Wait();
-  }
-  m_coinit_success = false;
-#endif
 }
 
 void Microphone::StreamInit()
 {
-#ifdef _WIN32
-  if (!m_coinit_success)
+  if (!m_worker.Execute([this] { m_cubeb_ctx = CubebUtils::GetContext(); }))
   {
     ERROR_LOG_FMT(IOS_USB, "Failed to init Wii Speak stream");
     return;
   }
-  Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
-    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-#endif
-    m_cubeb_ctx = CubebUtils::GetContext();
-#ifdef _WIN32
-  });
-  sync_event.Wait();
-#endif
 
   // TODO: Not here but rather inside the WiiSpeak device if possible?
   StreamStart();
@@ -88,20 +53,7 @@ void Microphone::StreamTerminate()
   StopStream();
 
   if (m_cubeb_ctx)
-  {
-#ifdef _WIN32
-    if (!m_coinit_success)
-      return;
-    Common::Event sync_event;
-    m_work_queue.EmplaceItem([this, &sync_event] {
-      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-#endif
-      m_cubeb_ctx.reset();
-#ifdef _WIN32
-    });
-    sync_event.Wait();
-#endif
-  }
+    m_worker.Execute([this] { m_cubeb_ctx.reset(); });
 }
 
 static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state state)
@@ -113,14 +65,7 @@ void Microphone::StreamStart()
   if (!m_cubeb_ctx)
     return;
 
-#ifdef _WIN32
-  if (!m_coinit_success)
-    return;
-  Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
-    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-#endif
-
+  m_worker.Execute([this] {
 #ifdef ANDROID
     JNIEnv* env = IDCache::GetEnvForThread();
     if (jboolean result = env->CallStaticBooleanMethod(
@@ -164,30 +109,20 @@ void Microphone::StreamStart()
     }
 
     INFO_LOG_FMT(IOS_USB, "started cubeb stream");
-#ifdef _WIN32
   });
-  sync_event.Wait();
-#endif
 }
 
 void Microphone::StopStream()
 {
-  if (m_cubeb_stream)
-  {
-#ifdef _WIN32
-    Common::Event sync_event;
-    m_work_queue.EmplaceItem([this, &sync_event] {
-      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-#endif
-      if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
-        ERROR_LOG_FMT(IOS_USB, "Error stopping cubeb stream");
-      cubeb_stream_destroy(m_cubeb_stream);
-      m_cubeb_stream = nullptr;
-#ifdef _WIN32
-    });
-    sync_event.Wait();
-#endif
-  }
+  if (!m_cubeb_stream)
+    return;
+
+  m_worker.Execute([this] {
+    if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
+      ERROR_LOG_FMT(IOS_USB, "Error stopping cubeb stream");
+    cubeb_stream_destroy(m_cubeb_stream);
+    m_cubeb_stream = nullptr;
+  });
 }
 
 long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
