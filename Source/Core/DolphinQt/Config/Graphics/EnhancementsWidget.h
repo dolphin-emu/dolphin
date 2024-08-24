@@ -58,6 +58,7 @@ private:
   ConfigSlider* m_3d_depth;
   ConfigSlider* m_3d_convergence;
   ConfigBool* m_3d_swap_eyes;
+  ConfigBool* m_3d_per_eye_resolution;
 
   int m_msaa_modes;
   bool m_block_save;

@@ -10,6 +10,7 @@
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
+enum class StereoPerEyeResolution : int;
 enum class TextureFilteringMode : int;
 enum class OutputResamplingMode : int;
 enum class ColorCorrectionRegion : int;
@@ -139,6 +140,7 @@ extern const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS;
 // Graphics.Stereoscopy
 
 extern const Info<StereoMode> GFX_STEREO_MODE;
+extern const Info<bool> GFX_STEREO_PER_EYE_RESOLUTION_FULL;
 extern const Info<int> GFX_STEREO_DEPTH;
 extern const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE;
 extern const Info<bool> GFX_STEREO_SWAP_EYES;
