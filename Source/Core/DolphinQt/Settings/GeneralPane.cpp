@@ -227,7 +227,7 @@ void GeneralPane::CreateCheats()
   m_combobox_codehandler = new QComboBox();
   m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(0));
   m_combobox_codehandler->addItem(tr("MPN (Extended)"), QVariant(1));
-  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
+  //m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
   code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
 
   cheats_group_layout->addLayout(code_handler_layout);
