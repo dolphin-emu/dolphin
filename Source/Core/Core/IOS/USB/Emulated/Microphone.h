@@ -7,8 +7,8 @@
 #include <memory>
 #include <mutex>
 
+#include "AudioCommon/CubebUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/WorkQueueThread.h"
 
 #ifdef HAVE_CUBEB
 #include "AudioCommon/CubebUtils.h"
@@ -60,12 +60,7 @@ private:
 #ifdef HAVE_CUBEB
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
-
-#ifdef _WIN32
-  Common::AsyncWorkThread m_work_queue{"Wii Speak Worker"};
-  bool m_coinit_success = false;
-  bool m_should_couninit = false;
-#endif
+  CubebUtils::CoInitSyncWorker m_worker{"Wii Speak Worker"};
 #endif
 };
 }  // namespace IOS::HLE::USB

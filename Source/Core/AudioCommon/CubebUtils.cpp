@@ -13,6 +13,10 @@
 
 #include <cubeb/cubeb.h>
 
+#ifdef _WIN32
+#include <Objbase.h>
+#endif
+
 static void LogCallback(const char* format, ...)
 {
   auto* instance = Common::Log::LogManager::GetInstance();
@@ -47,7 +51,9 @@ static void DestroyContext(cubeb* ctx)
   }
 }
 
-std::shared_ptr<cubeb> CubebUtils::GetContext()
+namespace CubebUtils
+{
+std::shared_ptr<cubeb> GetContext()
 {
   static std::weak_ptr<cubeb> weak;
 
@@ -73,12 +79,12 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   return shared;
 }
 
-std::vector<std::pair<std::string, std::string>> CubebUtils::ListInputDevices()
+std::vector<std::pair<std::string, std::string>> ListInputDevices()
 {
   std::vector<std::pair<std::string, std::string>> devices;
 
   cubeb_device_collection collection;
-  auto cubeb_ctx = CubebUtils::GetContext();
+  auto cubeb_ctx = GetContext();
   const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_INPUT, &collection);
 
   if (r != CUBEB_OK)
@@ -136,7 +142,7 @@ std::vector<std::pair<std::string, std::string>> CubebUtils::ListInputDevices()
   return devices;
 }
 
-cubeb_devid CubebUtils::GetInputDeviceById(std::string_view id)
+cubeb_devid GetInputDeviceById(std::string_view id)
 {
   if (id.empty())
     return nullptr;
@@ -170,3 +176,45 @@ cubeb_devid CubebUtils::GetInputDeviceById(std::string_view id)
 
   return device_id;
 }
+
+CoInitSyncWorker::CoInitSyncWorker([[maybe_unused]] std::string worker_name)
+#ifdef _WIN32
+    : m_work_queue{std::move(worker_name)}
+#endif
+{
+#ifdef _WIN32
+  m_work_queue.PushBlocking([this] {
+    const auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    m_coinit_success = result == S_OK;
+    m_should_couninit = m_coinit_success || result == S_FALSE;
+  });
+#endif
+}
+
+CoInitSyncWorker::~CoInitSyncWorker()
+{
+#ifdef _WIN32
+  if (m_should_couninit)
+  {
+    m_work_queue.PushBlocking([this] {
+      m_should_couninit = false;
+      CoUninitialize();
+    });
+  }
+  m_coinit_success = false;
+#endif
+}
+
+bool CoInitSyncWorker::Execute(FunctionType f)
+{
+#ifdef _WIN32
+  if (!m_coinit_success)
+    return false;
+
+  m_work_queue.PushBlocking(f);
+#else
+  f();
+#endif
+  return true;
+}
+}  // namespace CubebUtils
