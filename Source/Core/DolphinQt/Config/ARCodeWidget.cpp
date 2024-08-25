@@ -238,7 +238,6 @@ void ARCodeWidget::LoadCodes()
   m_code_remove->setEnabled(false);
 
   UpdateList();
-  OnSelectionChanged();
 }
 
 void ARCodeWidget::SaveCodes()
