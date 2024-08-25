@@ -166,17 +166,16 @@ void GeckoCodeWidget::ConnectWidgets()
 
 void GeckoCodeWidget::OnSelectionChanged()
 {
-  auto items = m_code_list->selectedItems();
-
+  const QList<QListWidgetItem*> items = m_code_list->selectedItems();
   const bool empty = items.empty();
 
-  m_edit_code->setEnabled(!empty);
-  m_remove_code->setEnabled(!empty);
+  m_edit_code->setDisabled(empty);
+  m_remove_code->setDisabled(empty);
 
-  if (items.empty())
+  if (empty)
     return;
 
-  auto selected = items[0];
+  const QListWidgetItem* const selected = items[0];
 
   const int index = selected->data(Qt::UserRole).toInt();
 

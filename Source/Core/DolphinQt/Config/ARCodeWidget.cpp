@@ -67,8 +67,8 @@ void ARCodeWidget::CreateWidgets()
 
   m_code_list->setEnabled(!m_game_id.empty());
   m_code_add->setEnabled(!m_game_id.empty());
-  m_code_edit->setEnabled(!m_game_id.empty());
-  m_code_remove->setEnabled(!m_game_id.empty());
+  m_code_edit->setEnabled(false);
+  m_code_remove->setEnabled(false);
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -179,14 +179,18 @@ void ARCodeWidget::OnListReordered()
 
 void ARCodeWidget::OnSelectionChanged()
 {
-  auto items = m_code_list->selectedItems();
+  const QList<QListWidgetItem*> items = m_code_list->selectedItems();
+  const bool empty = items.empty();
 
-  if (items.empty())
+  m_code_edit->setDisabled(empty);
+  m_code_remove->setDisabled(empty);
+
+  if (empty)
     return;
 
-  const auto* selected = items[0];
+  const QListWidgetItem* const selected = items[0];
 
-  bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
+  const bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
 
   m_code_remove->setEnabled(user_defined);
   m_code_edit->setText(user_defined ? tr("&Edit Code...") : tr("Clone and &Edit Code..."));
