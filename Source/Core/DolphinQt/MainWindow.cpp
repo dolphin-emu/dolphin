@@ -925,7 +925,8 @@ bool MainWindow::RequestStop()
   }
 
   const bool rendered_widget_was_active =
-      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
+      Settings::Instance().IsKeepWindowOnTopEnabled() ||
+      (m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen());
   QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
                                 m_render_widget :
                                 static_cast<QWidget*>(this);
