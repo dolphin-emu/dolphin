@@ -3,7 +3,7 @@
 
 #include "AudioCommon/WASAPIStream.h"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 // clang-format off
 #include <Audioclient.h>
@@ -349,4 +349,4 @@ void WASAPIStream::SoundLoop()
   }
 }
 
-#endif  // _WIN32
+#endif  // _MSC_VER
