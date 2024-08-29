@@ -14,6 +14,7 @@
 #include <climits>
 #include <cstdio>
 #include <dwmapi.h>
+#include <thread>
 
 #include "VideoCommon/Present.h"
 #include "resource.h"

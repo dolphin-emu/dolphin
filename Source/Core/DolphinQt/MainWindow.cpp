@@ -1196,7 +1196,7 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
   DEVMODE screen_settings;
   memset(&screen_settings, 0, sizeof(screen_settings));
   screen_settings.dmSize = sizeof(screen_settings);
-  sscanf(Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES).c_str(), "%dx%d",
+  sscanf(Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES).c_str(), "%lux%lu",
          &screen_settings.dmPelsWidth, &screen_settings.dmPelsHeight);
   screen_settings.dmBitsPerPel = 32;
   screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;

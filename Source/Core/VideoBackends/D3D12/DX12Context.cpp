@@ -88,8 +88,8 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
 
 bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
 {
-  constexpr u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
-                           D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
+  const u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
+                       D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
 
   D3D12_FEATURE_DATA_FORMAT_SUPPORT support = {format};
   return SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support,

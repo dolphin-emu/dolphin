@@ -10,10 +10,10 @@
 #include <locale>
 #include <memory>
 #include <sstream>
+#include "Common/ScopeGuard.h"
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 
-#include <wil/resource.h>
 #endif
 
 #include <fmt/format.h>
@@ -204,13 +204,15 @@ void SetLocale(std::string locale_name)
     const std::string& adjusted_locale = locale;
 #endif
 
-    // setlocale sets the C locale, and global sets the C and C++ locales, so the call to setlocale
-    // would be redundant if it wasn't for not having any other good way to check whether
-    // the locale name is valid. (Constructing a std::locale object for an unsupported
-    // locale name throws std::runtime_error, and exception handling is disabled in Dolphin.)
+      // setlocale sets the C locale, and global sets the C and C++ locales, so the call to
+      // setlocale would be redundant if it wasn't for not having any other good way to check
+      // whether the locale name is valid. (Constructing a std::locale object for an unsupported
+      // locale name throws std::runtime_error, and exception handling is disabled in Dolphin.)
+#ifndef __MINGW32__
     if (!std::setlocale(LC_ALL, adjusted_locale.c_str()))
       return false;
     std::locale::global(std::locale(adjusted_locale));
+#endif
     return true;
   };
 
@@ -315,29 +317,32 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use GetExeDirectory()\User
 
   // Get AppData path in case we need it.
-  wil::unique_cotaskmem_string appdata;
-  bool appdata_found = SUCCEEDED(
-      SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, appdata.put()));
+  PWSTR appdata;
+  Common::ScopeGuard appdata_guard([&] { CoTaskMemFree(appdata); });
+  bool appdata_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &appdata));
 
   // Check our registry keys
-  wil::unique_hkey hkey;
+  HKEY hkey;
+  Common::ScopeGuard dolphin_hkey_guard([&] { RegCloseKey(hkey); });
   DWORD local = 0;
   std::unique_ptr<TCHAR[]> configPath;
-  if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE,
-                   hkey.put()) == ERROR_SUCCESS)
+  if (SUCCEEDED(RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0,
+                             KEY_QUERY_VALUE, &hkey)))
   {
+    Common::ScopeGuard local_user_config_hkey_guard([&] { RegCloseKey(hkey); });
     DWORD size = sizeof(local);
-    if (RegQueryValueEx(hkey.get(), TEXT("LocalUserConfig"), nullptr, nullptr,
-                        reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
+    if (SUCCEEDED(RegQueryValueEx(hkey, TEXT("LocalUserConfig"), nullptr, nullptr,
+                                  reinterpret_cast<LPBYTE>(&local), &size)))
     {
       local = 0;
     }
 
     size = 0;
-    RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
+    RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
     configPath = std::make_unique<TCHAR[]>(size / sizeof(TCHAR));
-    if (RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr,
-                        reinterpret_cast<LPBYTE>(configPath.get()), &size) != ERROR_SUCCESS)
+    if (SUCCEEDED(RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr,
+                                  reinterpret_cast<LPBYTE>(configPath.get()), &size)))
     {
       configPath.reset();
     }
@@ -346,14 +351,15 @@ void SetUserDirectory(std::string custom_path)
   local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
 
   // Attempt to check if the old User directory exists in Documents.
-  wil::unique_cotaskmem_string documents;
-  bool documents_found = SUCCEEDED(
-      SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, documents.put()));
+  PWSTR documents;
+  Common::ScopeGuard documents_guard([&] { CoTaskMemFree(documents); });
+  bool documents_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, &documents));
 
   std::optional<std::string> old_user_folder;
   if (documents_found)
   {
-    old_user_folder = TStrToUTF8(documents.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+    old_user_folder = TStrToUTF8(documents) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
   }
 
   if (local)  // Case 1-2
@@ -370,7 +376,7 @@ void SetUserDirectory(std::string custom_path)
   }
   else if (appdata_found)  // Case 5
   {
-    user_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+    user_path = TStrToUTF8(appdata) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
     // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
     // builds, which will look for the default User directory in Documents. If we set this key,
