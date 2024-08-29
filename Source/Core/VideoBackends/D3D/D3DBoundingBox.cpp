@@ -90,7 +90,7 @@ std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
 
 void D3DBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
-  D3D11_BOX box{index * sizeof(BBoxType),
+  D3D11_BOX box{static_cast<u32>(index * sizeof(BBoxType)),
                 0,
                 0,
                 static_cast<u32>((index + values.size()) * sizeof(BBoxType)),

@@ -16,6 +16,7 @@
   }
 
 #else  // WIN32
+#define NO_OLDNAMES
 // Function Cross-Compatibility
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp

@@ -153,7 +153,7 @@ void Destroy()
     {
       // print out alive objects, but only if we actually have pending references
       // note this will also print out internal live objects to the debug console
-      s_debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+      s_debug->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL));
     }
     s_debug.Reset();
   }
