@@ -3,10 +3,13 @@
 
 #pragma once
 
+#include <windows.h>
 #include <fmt/format.h>
 #include <string>
 #include <winerror.h>
+#ifdef _MSC_VER
 #include <winrt/base.h>
+#endif
 
 #include "Common/CommonTypes.h"
 
@@ -35,6 +38,7 @@ struct fmt::formatter<Common::HRWrap>
   }
 };
 
+#ifdef _MSC_VER
 template <>
 struct fmt::formatter<winrt::hresult>
 {
@@ -45,3 +49,4 @@ struct fmt::formatter<winrt::hresult>
     return fmt::format_to(ctx.out(), "{} ({:#010x})", Common::GetHResultMessage(hr), hr.value);
   }
 };
+#endif

@@ -124,8 +124,11 @@ void Gfx::SetPipeline(const AbstractPipeline* pipeline)
 void Gfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   // TODO: Move to stateman
-  const CD3D11_RECT rect(rc.left, rc.top, std::max(rc.right, rc.left + 1),
-                         std::max(rc.bottom, rc.top + 1));
+  D3D11_RECT rect;
+  rect.left = rc.left;
+  rect.top = rc.top;
+  rect.left = std::max(rc.right, rc.left + 1);
+  rect.bottom = std::max(rc.bottom, rc.top + 1);
   D3D::context->RSSetScissorRects(1, &rect);
 }
 
@@ -133,7 +136,13 @@ void Gfx::SetViewport(float x, float y, float width, float height, float near_de
                       float far_depth)
 {
   // TODO: Move to stateman
-  const CD3D11_VIEWPORT vp(x, y, width, height, near_depth, far_depth);
+  D3D11_VIEWPORT vp;
+  vp.TopLeftX = x;
+  vp.TopLeftY = y;
+  vp.Width = width;
+  vp.Height = height;
+  vp.MinDepth = near_depth;
+  vp.MaxDepth = far_depth;
   D3D::context->RSSetViewports(1, &vp);
 }
 

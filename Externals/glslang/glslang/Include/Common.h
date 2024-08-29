@@ -44,6 +44,7 @@
 #else
 #include <cmath>
 #endif
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <list>

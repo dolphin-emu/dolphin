@@ -607,7 +607,7 @@ std::filesystem::path StringToPath(std::string_view path)
 // path::u8string returns std::u8string starting with C++20, which is annoying to convert.
 std::string PathToString(const std::filesystem::path& path)
 {
-#ifdef _MSC_VER
+#ifdef _WIN32
   return WStringToUTF8(path.native());
 #else
   return path.native();

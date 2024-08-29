@@ -116,8 +116,8 @@ bool DXTexture::CreateSRV()
     return false;
   }
   const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(
-      m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
-      m_config.levels, 0, m_config.layers);
+      dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, m_config.levels, 0,
+      m_config.layers);
   DEBUG_ASSERT(!m_srv);
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))
@@ -132,9 +132,12 @@ bool DXTexture::CreateSRV()
 
 bool DXTexture::CreateUAV()
 {
-  const CD3D11_UNORDERED_ACCESS_VIEW_DESC desc(
-      m_texture.Get(), D3D11_UAV_DIMENSION_TEXTURE2DARRAY,
-      D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, 0, m_config.layers);
+  D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
+  desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+  desc.Format = D3DCommon::GetSRVFormatForAbstractFormat(m_config.format);
+  desc.Texture2DArray.MipSlice = 0;
+  desc.Texture2DArray.FirstArraySlice = 0;
+  desc.Texture2DArray.ArraySize = m_config.layers;
   DEBUG_ASSERT(!m_uav);
   HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
   if (FAILED(hr))
@@ -264,7 +267,13 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
   }
   else
   {
-    CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
+    D3D11_BOX src_box;
+    src_box.left = src_rect.left;
+    src_box.top = src_rect.top;
+    src_box.front = 0;
+    src_box.right = src_rect.right;
+    src_box.bottom = src_rect.bottom;
+    src_box.back = 1;
     D3D::context->CopySubresourceRegion(
         m_tex.Get(), 0, static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0,
         static_cast<const DXTexture*>(src)->GetD3DTexture(),
@@ -299,7 +308,13 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   }
   else
   {
-    CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
+    D3D11_BOX src_box;
+    src_box.left = src_rect.left;
+    src_box.top = src_rect.top;
+    src_box.front = 0;
+    src_box.right = src_rect.right;
+    src_box.bottom = src_rect.bottom;
+    src_box.back = 1;
     D3D::context->CopySubresourceRegion(
         static_cast<const DXTexture*>(dst)->GetD3DTexture(),
         D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()),
@@ -484,11 +499,15 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
   ComPtr<ID3D11DepthStencilView> dsv;
   if (depth_attachment)
   {
-    const CD3D11_DEPTH_STENCIL_VIEW_DESC desc(
-        depth_attachment->GetConfig().IsMultisampled() ? D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY :
-                                                         D3D11_DSV_DIMENSION_TEXTURE2DARRAY,
-        D3DCommon::GetDSVFormatForAbstractFormat(depth_attachment->GetFormat()), 0, 0,
-        depth_attachment->GetLayers(), 0);
+    D3D11_DEPTH_STENCIL_VIEW_DESC desc;
+    desc.ViewDimension = depth_attachment->GetConfig().IsMultisampled() ?
+                             D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY :
+                             D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+    desc.Format = D3DCommon::GetDSVFormatForAbstractFormat(depth_attachment->GetFormat());
+    desc.Texture2DArray.MipSlice = 0;
+    desc.Texture2DMSArray.ArraySize = depth_attachment->GetLayers();
+    desc.Texture2DMSArray.FirstArraySlice = 0;
+    desc.Flags = 0;
     HRESULT hr = D3D::device->CreateDepthStencilView(depth_attachment->GetD3DTexture(), &desc,
                                                      dsv.GetAddressOf());
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create depth stencil view for framebuffer: {}",

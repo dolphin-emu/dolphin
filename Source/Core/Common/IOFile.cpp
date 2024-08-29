@@ -9,6 +9,7 @@
 
 #ifdef _WIN32
 #include <io.h>
+#include <share.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/StringUtil.h"

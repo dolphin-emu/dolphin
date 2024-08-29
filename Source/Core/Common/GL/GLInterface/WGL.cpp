@@ -223,7 +223,7 @@ void* GLContextWGL::GetFuncAddress(const std::string& name)
     func = GetProcAddress(opengl_module, name.c_str());
   }
 
-  return func;
+  return (void*)func;
 }
 
 // Create rendering window.

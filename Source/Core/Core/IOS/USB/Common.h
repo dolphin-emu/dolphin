@@ -12,6 +12,8 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 
+#pragma push_macro("interface")
+#undef interface
 namespace IOS::HLE::USB
 {
 constexpr u8 DEFAULT_CONFIG_NUM = 0;
@@ -189,3 +191,5 @@ protected:
   u64 m_id = 0xFFFFFFFFFFFFFFFF;
 };
 }  // namespace IOS::HLE::USB
+
+#pragma pop_macro("interface")
