@@ -1271,14 +1271,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a, b))
-  {
-    s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
-    gpr.SetImmediate32(d, i * j);
-    if (inst.OE)
-      GenerateConstantOverflow((s64)i * (s64)j);
-  }
-  else if (gpr.IsImm(a) || gpr.IsImm(b))
+  if (gpr.IsImm(a) || gpr.IsImm(b))
   {
     u32 imm = gpr.IsImm(a) ? gpr.Imm32(a) : gpr.Imm32(b);
     int src = gpr.IsImm(a) ? b : a;
@@ -1320,14 +1313,7 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
   bool sign = inst.SUBOP10 == 75;
 
-  if (gpr.IsImm(a, b))
-  {
-    if (sign)
-      gpr.SetImmediate32(d, (u32)((u64)(((s64)gpr.SImm32(a) * (s64)gpr.SImm32(b))) >> 32));
-    else
-      gpr.SetImmediate32(d, (u32)(((u64)gpr.Imm32(a) * (u64)gpr.Imm32(b)) >> 32));
-  }
-  else if (sign)
+  if (sign)
   {
     RCOpArg Ra = gpr.Use(a, RCMode::Read);
     RCOpArg Rb = gpr.UseNoImm(b, RCMode::Read);
