@@ -78,6 +78,7 @@ public:
 
 private:
   ConstantPropagationResult EvaluateAddImm(UGeckoInstruction inst) const;
+  ConstantPropagationResult EvaluateAddImmCarry(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateRlwinmxRlwnmx(UGeckoInstruction inst, u32 shift) const;
   ConstantPropagationResult EvaluateBitwiseImm(UGeckoInstruction inst,
                                                u32 (*do_op)(u32, u32)) const;

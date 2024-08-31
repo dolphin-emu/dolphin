@@ -6,6 +6,7 @@
 #include <bit>
 
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PPCTables.h"
 
 namespace JitCommon
@@ -30,6 +31,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
 {
   switch (inst.OPCD)
   {
+  case 12:  // addic
+  case 13:  // addic.
+    return EvaluateAddImmCarry(inst);
   case 14:  // addi
   case 15:  // addis
     return EvaluateAddImm(inst);
@@ -67,6 +71,19 @@ ConstantPropagationResult ConstantPropagation::EvaluateAddImm(UGeckoInstruction 
     return {};
 
   return ConstantPropagationResult(inst.RD, m_gpr_values[inst.RA] + immediate);
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateAddImmCarry(UGeckoInstruction inst) const
+{
+  if (!HasGPR(inst.RA))
+    return {};
+
+  const u32 a = m_gpr_values[inst.RA];
+  const bool rc = inst.OPCD & 1;
+
+  ConstantPropagationResult result(inst.RD, a + inst.SIMM_16, rc);
+  result.carry = Interpreter::Helper_Carry(a, inst.SIMM_16);
+  return result;
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateRlwinmxRlwnmx(UGeckoInstruction inst,
