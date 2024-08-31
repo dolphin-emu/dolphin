@@ -2561,13 +2561,7 @@ void Jit64::srawix(UGeckoInstruction inst)
   int s = inst.RS;
   int amount = inst.SH;
 
-  if (gpr.IsImm(s))
-  {
-    s32 imm = gpr.SImm32(s);
-    gpr.SetImmediate32(a, imm >> amount);
-    FinalizeCarry(amount != 0 && imm < 0 && (u32(imm) << (32 - amount)));
-  }
-  else if (amount != 0)
+  if (amount != 0)
   {
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
     RCOpArg Rs = gpr.Use(s, RCMode::Read);
