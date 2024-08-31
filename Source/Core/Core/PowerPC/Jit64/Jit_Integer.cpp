@@ -1042,14 +1042,6 @@ void Jit64::subfic(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, d = inst.RD, imm = inst.SIMM_16;
 
-  if (gpr.IsImm(a))
-  {
-    u32 i = imm, j = gpr.Imm32(a);
-    gpr.SetImmediate32(d, i - j);
-    FinalizeCarry(j == 0 || (i > j - 1));
-    return;
-  }
-
   RCOpArg Ra = gpr.Use(a, RCMode::Read);
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rd);
