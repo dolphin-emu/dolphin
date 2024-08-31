@@ -1262,14 +1262,7 @@ void Jit64::mulli(UGeckoInstruction inst)
   int a = inst.RA, d = inst.RD;
   u32 imm = inst.SIMM_16;
 
-  if (gpr.IsImm(a))
-  {
-    gpr.SetImmediate32(d, gpr.Imm32(a) * imm);
-  }
-  else
-  {
-    MultiplyImmediate(imm, a, d, false);
-  }
+  MultiplyImmediate(imm, a, d, false);
 }
 
 void Jit64::mullwx(UGeckoInstruction inst)

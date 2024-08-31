@@ -77,6 +77,7 @@ public:
   void Clear() { m_gpr_values_known = BitSet32{}; }
 
 private:
+  ConstantPropagationResult EvaluateMulImm(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateAddImm(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateAddImmCarry(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateRlwinmxRlwnmx(UGeckoInstruction inst, u32 shift) const;

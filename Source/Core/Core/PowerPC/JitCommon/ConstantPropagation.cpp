@@ -31,6 +31,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
 {
   switch (inst.OPCD)
   {
+  case 7:  // mulli
+    return EvaluateMulImm(inst);
   case 12:  // addic
   case 13:  // addic.
     return EvaluateAddImmCarry(inst);
@@ -58,6 +60,14 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   default:
     return {};
   }
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateMulImm(UGeckoInstruction inst) const
+{
+  if (!HasGPR(inst.RA))
+    return {};
+
+  return ConstantPropagationResult(inst.RD, m_gpr_values[inst.RA] * inst.SIMM_16);
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateAddImm(UGeckoInstruction inst) const
