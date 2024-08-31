@@ -936,15 +936,8 @@ void JitArm64::mullwx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    s32 i = (s32)gpr.GetImm(a), j = (s32)gpr.GetImm(b);
-    gpr.SetImmediate(d, i * j);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else if ((gpr.IsImm(a) && MultiplyImmediate(gpr.GetImm(a), b, d, inst.Rc)) ||
-           (gpr.IsImm(b) && MultiplyImmediate(gpr.GetImm(b), a, d, inst.Rc)))
+  if ((gpr.IsImm(a) && MultiplyImmediate(gpr.GetImm(a), b, d, inst.Rc)) ||
+      (gpr.IsImm(b) && MultiplyImmediate(gpr.GetImm(b), a, d, inst.Rc)))
   {
     // Code is generated inside MultiplyImmediate, nothing to be done here.
   }
@@ -964,22 +957,12 @@ void JitArm64::mulhwx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    s32 i = (s32)gpr.GetImm(a), j = (s32)gpr.GetImm(b);
-    gpr.SetImmediate(d, (u32)((u64)(((s64)i * (s64)j)) >> 32));
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a || d == b);
-    SMULL(EncodeRegTo64(gpr.R(d)), gpr.R(a), gpr.R(b));
-    LSR(EncodeRegTo64(gpr.R(d)), EncodeRegTo64(gpr.R(d)), 32);
+  gpr.BindToRegister(d, d == a || d == b);
+  SMULL(EncodeRegTo64(gpr.R(d)), gpr.R(a), gpr.R(b));
+  LSR(EncodeRegTo64(gpr.R(d)), EncodeRegTo64(gpr.R(d)), 32);
 
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
+  if (inst.Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::mulhwux(UGeckoInstruction inst)
@@ -989,22 +972,12 @@ void JitArm64::mulhwux(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
-    gpr.SetImmediate(d, (u32)(((u64)i * (u64)j) >> 32));
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a || d == b);
-    UMULL(EncodeRegTo64(gpr.R(d)), gpr.R(a), gpr.R(b));
-    LSR(EncodeRegTo64(gpr.R(d)), EncodeRegTo64(gpr.R(d)), 32);
+  gpr.BindToRegister(d, d == a || d == b);
+  UMULL(EncodeRegTo64(gpr.R(d)), gpr.R(a), gpr.R(b));
+  LSR(EncodeRegTo64(gpr.R(d)), EncodeRegTo64(gpr.R(d)), 32);
 
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
+  if (inst.Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::addzex(UGeckoInstruction inst)
