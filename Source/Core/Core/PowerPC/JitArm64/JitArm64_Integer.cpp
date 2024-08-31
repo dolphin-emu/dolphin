@@ -760,17 +760,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
   int amount = inst.SH;
   bool inplace_carry = CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags;
 
-  if (gpr.IsImm(s))
-  {
-    s32 imm = (s32)gpr.GetImm(s);
-    gpr.SetImmediate(a, imm >> amount);
-
-    ComputeCarry(amount != 0 && (imm < 0) && (u32(imm) << (32 - amount)));
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-  }
-  else if (amount == 0)
+  if (amount == 0)
   {
     gpr.BindToRegister(a, a == s);
     ARM64Reg RA = gpr.R(a);
