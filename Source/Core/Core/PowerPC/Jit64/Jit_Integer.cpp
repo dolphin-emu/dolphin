@@ -1201,13 +1201,6 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rd);
 
-  // simplest cases first
-  if (imm == 0)
-  {
-    XOR(32, Rd, Rd);
-    return;
-  }
-
   if (imm == (u32)-1)
   {
     if (d != a)
