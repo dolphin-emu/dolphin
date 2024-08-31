@@ -1330,44 +1330,34 @@ void JitArm64::subfic(UGeckoInstruction inst)
   int a = inst.RA, d = inst.RD;
   s32 imm = inst.SIMM_16;
 
-  if (gpr.IsImm(a))
-  {
-    u32 a_imm = gpr.GetImm(a);
+  const bool will_read = d == a;
+  gpr.BindToRegister(d, will_read);
+  ARM64Reg RD = gpr.R(d);
 
-    gpr.SetImmediate(d, imm - a_imm);
-    ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(imm, 0u - a_imm));
+  if (imm == -1)
+  {
+    // d = -1 - a = ~a
+    MVN(RD, gpr.R(a));
+    // CA is always set in this case
+    ComputeCarry(true);
   }
   else
   {
-    const bool will_read = d == a;
-    gpr.BindToRegister(d, will_read);
-    ARM64Reg RD = gpr.R(d);
+    const bool is_zero = imm == 0;
 
-    if (imm == -1)
+    // d = imm - a
     {
-      // d = -1 - a = ~a
-      MVN(RD, gpr.R(a));
-      // CA is always set in this case
-      ComputeCarry(true);
-    }
-    else
-    {
-      const bool is_zero = imm == 0;
-
-      // d = imm - a
+      Arm64GPRCache::ScopedARM64Reg WA(ARM64Reg::WZR);
+      if (!is_zero)
       {
-        Arm64GPRCache::ScopedARM64Reg WA(ARM64Reg::WZR);
-        if (!is_zero)
-        {
-          WA = will_read ? gpr.GetScopedReg() : Arm64GPRCache::ScopedARM64Reg(RD);
-          MOVI2R(WA, imm);
-        }
-
-        CARRY_IF_NEEDED(SUB, SUBS, RD, WA, gpr.R(a));
+        WA = will_read ? gpr.GetScopedReg() : Arm64GPRCache::ScopedARM64Reg(RD);
+        MOVI2R(WA, imm);
       }
 
-      ComputeCarry();
+      CARRY_IF_NEEDED(SUB, SUBS, RD, WA, gpr.R(a));
     }
+
+    ComputeCarry();
   }
 }
 
