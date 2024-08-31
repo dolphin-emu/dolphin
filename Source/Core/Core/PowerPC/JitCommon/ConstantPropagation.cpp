@@ -144,6 +144,7 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstructio
   if (!HasGPR(inst.RS))
     return {};
 
+  std::optional<bool> carry;
   u32 a;
   const u32 s = GetGPR(inst.RS);
 
@@ -151,6 +152,10 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstructio
   {
   case 26:  // cntlzwx
     a = std::countl_zero(s);
+    break;
+  case 824:  // srawix
+    a = s32(s) >> inst.SH;
+    carry = inst.SH != 0 && s32(s) < 0 && (s << (32 - inst.SH));
     break;
   case 922:  // extshx
     a = s32(s16(s));
@@ -162,7 +167,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstructio
     return {};
   }
 
-  return ConstantPropagationResult(inst.RA, a, inst.Rc);
+  ConstantPropagationResult result(ConstantPropagationResult(inst.RA, a, inst.Rc));
+  result.carry = carry;
+  return result;
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstruction inst,
