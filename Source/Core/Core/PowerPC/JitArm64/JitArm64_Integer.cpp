@@ -822,29 +822,15 @@ void JitArm64::addic(UGeckoInstruction inst)
   int a = inst.RA, d = inst.RD;
   bool rc = inst.OPCD == 13;
   s32 simm = inst.SIMM_16;
-  u32 imm = (u32)simm;
 
-  if (gpr.IsImm(a))
-  {
-    u32 i = gpr.GetImm(a);
-    gpr.SetImmediate(d, i + imm);
+  gpr.BindToRegister(d, d == a);
+  ARM64Reg WA = gpr.GetReg();
+  CARRY_IF_NEEDED(ADDI2R, ADDSI2R, gpr.R(d), gpr.R(a), simm, WA);
+  gpr.Unlock(WA);
 
-    bool has_carry = Interpreter::Helper_Carry(i, imm);
-    ComputeCarry(has_carry);
-    if (rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a);
-    ARM64Reg WA = gpr.GetReg();
-    CARRY_IF_NEEDED(ADDI2R, ADDSI2R, gpr.R(d), gpr.R(a), simm, WA);
-    gpr.Unlock(WA);
-
-    ComputeCarry();
-    if (rc)
-      ComputeRC0(gpr.R(d));
-  }
+  ComputeCarry();
+  if (rc)
+    ComputeRC0(gpr.R(d));
 }
 
 bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
