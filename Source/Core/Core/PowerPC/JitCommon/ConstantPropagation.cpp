@@ -219,6 +219,16 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
     d = u64(a) + u64(b);
     d_overflow = s64(s32(a)) + s64(s32(b));
     break;
+  case 11:  // mulhwux
+    d = d_overflow = (u64(a) * u64(b)) >> 32;
+    break;
+  case 75:  // mulhwx
+    d = d_overflow = u64(s64(s32(a)) * s64(s32(b))) >> 32;
+    break;
+  case 235:  // mullwx
+  case 747:  // mullwox
+    d = d_overflow = s64(s32(a)) * s64(s32(b));
+    break;
   default:
     return {};
   }
