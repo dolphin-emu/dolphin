@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"

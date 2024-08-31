@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include <QApplication>
 #include <QClipboard>

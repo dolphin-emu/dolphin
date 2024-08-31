@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"

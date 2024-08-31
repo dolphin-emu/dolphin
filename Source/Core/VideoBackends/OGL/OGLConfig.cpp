@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+#include <fmt/ranges.h>
+
 #include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
