@@ -104,7 +104,7 @@ public:
   }
 
   bool IsBranchTypeAllowed(UGeckoInstruction inst) const;
-  void SetInspected(const QModelIndex& index);
+  void SetInspected(const QModelIndex& index) const;
 
 private:
   const Core::BranchWatch& m_branch_watch;
@@ -190,7 +190,7 @@ bool BranchWatchProxyModel::IsBranchTypeAllowed(UGeckoInstruction inst) const
   return false;
 }
 
-void BranchWatchProxyModel::SetInspected(const QModelIndex& index)
+void BranchWatchProxyModel::SetInspected(const QModelIndex& index) const
 {
   sourceModel()->SetInspected(mapToSource(index));
 }
@@ -535,7 +535,7 @@ void BranchWatchDialog::showEvent(QShowEvent* event)
   QDialog::showEvent(event);
 }
 
-void BranchWatchDialog::OnStartPause(bool checked)
+void BranchWatchDialog::OnStartPause(bool checked) const
 {
   if (checked)
   {
@@ -672,22 +672,22 @@ void BranchWatchDialog::OnBranchNotOverwritten()
   UpdateStatus();
 }
 
-void BranchWatchDialog::OnWipeRecentHits()
+void BranchWatchDialog::OnWipeRecentHits() const
 {
   m_table_model->OnWipeRecentHits();
 }
 
-void BranchWatchDialog::OnWipeInspection()
+void BranchWatchDialog::OnWipeInspection() const
 {
   m_table_model->OnWipeInspection();
 }
 
-void BranchWatchDialog::OnTimeout()
+void BranchWatchDialog::OnTimeout() const
 {
   Update();
 }
 
-void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state)
+void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state) const
 {
   if (TimerCondition(m_branch_watch, new_state))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
@@ -781,7 +781,7 @@ void BranchWatchDialog::OnToggleAutoSave(bool checked)
     m_autosave_filepath = filepath.toStdString();
 }
 
-void BranchWatchDialog::OnHideShowControls(bool checked)
+void BranchWatchDialog::OnHideShowControls(bool checked) const
 {
   if (checked)
     m_control_toolbar->hide();
@@ -789,12 +789,12 @@ void BranchWatchDialog::OnHideShowControls(bool checked)
     m_control_toolbar->show();
 }
 
-void BranchWatchDialog::OnToggleIgnoreApploader(bool checked)
+void BranchWatchDialog::OnToggleIgnoreApploader(bool checked) const
 {
   m_system.SetIsBranchWatchIgnoreApploader(checked);
 }
 
-void BranchWatchDialog::OnTableClicked(const QModelIndex& index)
+void BranchWatchDialog::OnTableClicked(const QModelIndex& index) const
 {
   const QVariant v = m_table_proxy->data(index, UserRole::ClickRole);
   switch (index.column())
@@ -811,7 +811,7 @@ void BranchWatchDialog::OnTableClicked(const QModelIndex& index)
   }
 }
 
-void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
+void BranchWatchDialog::OnTableContextMenu(const QPoint& pos) const
 {
   if (m_table_view->horizontalHeader()->hiddenSectionCount() == Column::NumberOfColumns)
   {
@@ -827,12 +827,12 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   m_index_list_temp.shrink_to_fit();
 }
 
-void BranchWatchDialog::OnTableHeaderContextMenu(const QPoint& pos)
+void BranchWatchDialog::OnTableHeaderContextMenu(const QPoint& pos) const
 {
   m_mnu_column_visibility->exec(m_table_view->horizontalHeader()->mapToGlobal(pos));
 }
 
-void BranchWatchDialog::OnTableDelete()
+void BranchWatchDialog::OnTableDelete() const
 {
   std::ranges::transform(
       m_index_list_temp, m_index_list_temp.begin(),
@@ -847,7 +847,7 @@ void BranchWatchDialog::OnTableDelete()
   UpdateStatus();
 }
 
-void BranchWatchDialog::OnTableDeleteKeypress()
+void BranchWatchDialog::OnTableDeleteKeypress() const
 {
   m_index_list_temp = m_table_view->selectionModel()->selectedRows();
   OnTableDelete();
@@ -855,17 +855,17 @@ void BranchWatchDialog::OnTableDeleteKeypress()
   m_index_list_temp.shrink_to_fit();
 }
 
-void BranchWatchDialog::OnTableSetBLR()
+void BranchWatchDialog::OnTableSetBLR() const
 {
   SetStubPatches(0x4e800020);
 }
 
-void BranchWatchDialog::OnTableSetNOP()
+void BranchWatchDialog::OnTableSetNOP() const
 {
   SetStubPatches(0x60000000);
 }
 
-void BranchWatchDialog::OnTableCopyAddress()
+void BranchWatchDialog::OnTableCopyAddress() const
 {
   auto iter = m_index_list_temp.begin();
   if (iter == m_index_list_temp.end())
@@ -883,17 +883,17 @@ void BranchWatchDialog::OnTableCopyAddress()
   QApplication::clipboard()->setText(text);
 }
 
-void BranchWatchDialog::OnTableSetBreakpointBreak()
+void BranchWatchDialog::OnTableSetBreakpointBreak() const
 {
   SetBreakpoints(true, false);
 }
 
-void BranchWatchDialog::OnTableSetBreakpointLog()
+void BranchWatchDialog::OnTableSetBreakpointLog() const
 {
   SetBreakpoints(false, true);
 }
 
-void BranchWatchDialog::OnTableSetBreakpointBoth()
+void BranchWatchDialog::OnTableSetBreakpointBoth() const
 {
   SetBreakpoints(true, true);
 }
@@ -955,14 +955,14 @@ void BranchWatchDialog::SaveQSettings() const
                     m_table_view->horizontalHeader()->saveState());
 }
 
-void BranchWatchDialog::Update()
+void BranchWatchDialog::Update() const
 {
   if (m_branch_watch.GetRecordingPhase() == Core::BranchWatch::Phase::Blacklist)
     UpdateStatus();
   m_table_model->UpdateHits();
 }
 
-void BranchWatchDialog::UpdateStatus()
+void BranchWatchDialog::UpdateStatus() const
 {
   switch (m_branch_watch.GetRecordingPhase())
   {
