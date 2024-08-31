@@ -213,6 +213,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
       return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RA));
     else if (has_b)
       return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RB));
+    else if (inst.RA == inst.RB)
+      return EvaluateTable31ABIdenticalRegisters(inst, flags);
     else
       return {};
   }
@@ -224,6 +226,13 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
 
   switch (inst.SUBOP10)
   {
+  case 8:    // subfcx
+  case 40:   // subfx
+  case 520:  // subfcox
+  case 552:  // subfox
+    d = u64(u32(~a)) + u64(b) + 1;
+    d_overflow = s64(s32(b)) - s64(s32(a));
+    break;
   case 10:   // addcx
   case 522:  // addcox
   case 266:  // addx
@@ -274,6 +283,28 @@ ConstantPropagation::EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u
   }
 
   return {};
+}
+
+ConstantPropagationResult
+ConstantPropagation::EvaluateTable31ABIdenticalRegisters(UGeckoInstruction inst, u64 flags) const
+{
+  switch (inst.SUBOP10)
+  {
+  case 8:    // subfcx
+  case 40:   // subfx
+  case 520:  // subfcox
+  case 552:  // subfox
+  {
+    ConstantPropagationResult result(inst.RD, 0, inst.Rc);
+    if (flags & FL_SET_CA)
+      result.carry = true;
+    if (flags & FL_SET_OE)
+      result.overflow = false;
+    return result;
+  }
+  default:
+    return {};
+  }
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateTable31SB(UGeckoInstruction inst) const

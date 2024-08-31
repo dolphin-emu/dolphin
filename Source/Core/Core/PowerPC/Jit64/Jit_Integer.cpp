@@ -1097,24 +1097,7 @@ void Jit64::subfx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
   const bool carry = !(inst.SUBOP10 & (1 << 5));
 
-  if (a == b)
-  {
-    gpr.SetImmediate32(d, 0);
-    if (carry)
-      FinalizeCarry(true);
-    if (inst.OE)
-      GenerateConstantOverflow(false);
-  }
-  else if (gpr.IsImm(a, b))
-  {
-    s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
-    gpr.SetImmediate32(d, i - j);
-    if (carry)
-      FinalizeCarry(j == 0 || Interpreter::Helper_Carry((u32)i, 0u - (u32)j));
-    if (inst.OE)
-      GenerateConstantOverflow((s64)i - (s64)j);
-  }
-  else if (gpr.IsImm(a))
+  if (gpr.IsImm(a))
   {
     s32 j = gpr.SImm32(a);
     RCOpArg Rb = gpr.Use(b, RCMode::Read);
