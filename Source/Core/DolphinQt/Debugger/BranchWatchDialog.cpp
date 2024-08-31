@@ -644,11 +644,6 @@ void BranchWatchDialog::OnCodePathNotTaken()
 
 void BranchWatchDialog::OnBranchWasOverwritten()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
-  {
-    ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
-    return;
-  }
   {
     const Core::CPUThreadGuard guard{m_system};
     m_table_model->OnBranchWasOverwritten(guard);
@@ -659,11 +654,6 @@ void BranchWatchDialog::OnBranchWasOverwritten()
 
 void BranchWatchDialog::OnBranchNotOverwritten()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
-  {
-    ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
-    return;
-  }
   {
     const Core::CPUThreadGuard guard{m_system};
     m_table_model->OnBranchNotOverwritten(guard);
@@ -689,6 +679,8 @@ void BranchWatchDialog::OnTimeout() const
 
 void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state) const
 {
+  m_btn_was_overwritten->setEnabled(new_state != Core::State::Uninitialized);
+  m_btn_not_overwritten->setEnabled(new_state != Core::State::Uninitialized);
   if (TimerCondition(m_branch_watch, new_state))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   else if (m_timer->isActive())
