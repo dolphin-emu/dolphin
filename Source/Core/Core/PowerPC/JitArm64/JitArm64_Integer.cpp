@@ -1122,26 +1122,10 @@ void JitArm64::subfx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (a == b)
-  {
-    gpr.SetImmediate(d, 0);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
-    gpr.SetImmediate(d, j - i);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a || d == b);
-    SUB(gpr.R(d), gpr.R(b), gpr.R(a));
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
+  gpr.BindToRegister(d, d == a || d == b);
+  SUB(gpr.R(d), gpr.R(b), gpr.R(a));
+  if (inst.Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::subfex(UGeckoInstruction inst)
@@ -1283,17 +1267,7 @@ void JitArm64::subfcx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    u32 a_imm = gpr.GetImm(a), b_imm = gpr.GetImm(b);
-
-    gpr.SetImmediate(d, b_imm - a_imm);
-    ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(b_imm, 0u - a_imm));
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else if (gpr.IsImm(a, 0))
+  if (gpr.IsImm(a, 0))
   {
     if (d != b)
     {
