@@ -64,6 +64,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
 
 ConstantPropagationResult ConstantPropagation::EvaluateMulImm(UGeckoInstruction inst) const
 {
+  if (inst.SIMM_16 == 0)
+    return ConstantPropagationResult(inst.RD, 0);
+
   if (!HasGPR(inst.RA))
     return {};
 
@@ -202,8 +205,17 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstructio
 ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstruction inst,
                                                                  u64 flags) const
 {
-  if (!HasGPR(inst.RA, inst.RB))
-    return {};
+  const bool has_a = HasGPR(inst.RA);
+  const bool has_b = HasGPR(inst.RB);
+  if (!has_a || !has_b)
+  {
+    if (has_a)
+      return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RA));
+    else if (has_b)
+      return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RB));
+    else
+      return {};
+  }
 
   u64 d;
   s64 d_overflow;
@@ -239,6 +251,29 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
   if (flags & FL_SET_OE)
     result.overflow = (d_overflow != s64(s32(d_overflow)));
   return result;
+}
+
+ConstantPropagationResult
+ConstantPropagation::EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u64 flags,
+                                                       u32 value) const
+{
+  switch (inst.SUBOP10)
+  {
+  case 11:   // mulhwux
+  case 75:   // mulhwx
+  case 235:  // mullwx
+  case 747:  // mullwox
+    if (value == 0)
+    {
+      ConstantPropagationResult result(inst.RD, 0, inst.Rc);
+      if (flags & FL_SET_OE)
+        result.overflow = false;
+      return result;
+    }
+    break;
+  }
+
+  return {};
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateTable31SB(UGeckoInstruction inst) const
