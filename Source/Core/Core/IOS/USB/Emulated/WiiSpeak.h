@@ -75,7 +75,6 @@ private:
 
   void GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const;
   void SetRegister(const std::unique_ptr<CtrlMessage>& cmd);
-  bool IsMicrophoneConnected() const;
 
   EmulationKernel& m_ios;
   const u16 m_vid = 0x057E;

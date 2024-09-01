@@ -888,10 +888,10 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
-            InvertedSwitchSetting(
+            SwitchSetting(
                 context,
-                BooleanSetting.MAIN_WII_SPEAK_CONNECTED,
-                R.string.disconnect_wii_speak,
+                BooleanSetting.MAIN_WII_SPEAK_MUTED,
+                R.string.mute_wii_speak,
                 0
             )
         )

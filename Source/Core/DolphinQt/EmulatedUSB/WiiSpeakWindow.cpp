@@ -52,11 +52,11 @@ void WiiSpeakWindow::CreateMainWindow()
   m_config_group = new QGroupBox(tr("Microphone Configuration"));
   auto* config_layout = new QHBoxLayout();
 
-  auto checkbox_mic_connected = new QCheckBox(tr("Connect"), this);
-  checkbox_mic_connected->setChecked(Config::Get(Config::MAIN_WII_SPEAK_CONNECTED));
-  connect(checkbox_mic_connected, &QCheckBox::toggled, this,
+  auto checkbox_mic_muted = new QCheckBox(tr("Mute"), this);
+  checkbox_mic_muted->setChecked(Config::Get(Config::MAIN_WII_SPEAK_MUTED));
+  connect(checkbox_mic_muted, &QCheckBox::toggled, this,
           &WiiSpeakWindow::SetWiiSpeakConnectionState);
-  config_layout->addWidget(checkbox_mic_connected);
+  config_layout->addWidget(checkbox_mic_muted);
 
   m_combobox_microphones = new QComboBox();
   m_combobox_microphones->addItem(QLatin1String("(%1)").arg(tr("Autodetect preferred microphone")),
@@ -86,9 +86,9 @@ void WiiSpeakWindow::EmulateWiiSpeak(bool emulate)
   m_config_group->setVisible(emulate);
 }
 
-void WiiSpeakWindow::SetWiiSpeakConnectionState(bool connected)
+void WiiSpeakWindow::SetWiiSpeakConnectionState(bool muted)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_CONNECTED, connected);
+  Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_MUTED, muted);
 }
 
 void WiiSpeakWindow::OnEmulationStateChanged(Core::State state)

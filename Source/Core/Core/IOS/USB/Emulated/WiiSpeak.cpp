@@ -94,12 +94,6 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
                 cmd->index, cmd->length);
 
-  // Without a proper way to reconnect the emulated Wii Speak,
-  // this error after being raised prevents some games to use the microphone later.
-  //
-  // if (!IsMicrophoneConnected())
-  //  return IPC_ENOENT;
-
   switch (cmd->request_type << 8 | cmd->request)
   {
   case USBHDR(DIR_DEVICE2HOST, TYPE_STANDARD, REC_INTERFACE, REQUEST_GET_INTERFACE):
@@ -162,9 +156,6 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 
 int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
-  // if (!IsMicrophoneConnected())
-  //   return IPC_ENOENT;
-
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
@@ -403,10 +394,5 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
                  arg1, arg2);
     break;
   }
-}
-
-bool WiiSpeak::IsMicrophoneConnected() const
-{
-  return Config::Get(Config::MAIN_WII_SPEAK_CONNECTED);
 }
 }  // namespace IOS::HLE::USB

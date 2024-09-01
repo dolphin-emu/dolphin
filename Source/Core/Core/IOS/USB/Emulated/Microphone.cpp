@@ -186,7 +186,7 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 
 bool Microphone::HasData() const
 {
-  return m_samples_avail > 0 && Config::Get(Config::MAIN_WII_SPEAK_CONNECTED);
+  return m_samples_avail > 0 && !Config::Get(Config::MAIN_WII_SPEAK_MUTED);
 }
 
 const WiiSpeakState& Microphone::GetSampler() const
