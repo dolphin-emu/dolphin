@@ -61,8 +61,8 @@ class SwitchSettingViewHolder(
 
             if (setting.setting === BooleanSetting.MAIN_EMULATE_WII_SPEAK && isChecked) {
                 if (!PermissionsHandler.hasRecordAudioPermission(itemView.context)) {
-                  val settingsActivity = itemView.context as Activity
-                  PermissionsHandler.requestRecordAudioPermission(settingsActivity)
+                  val currentActivity = adapter.fragmentActivity as Activity
+                  PermissionsHandler.requestRecordAudioPermission(currentActivity)
                 }
             }
 
