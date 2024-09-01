@@ -25,6 +25,11 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].Location().value());
 }
 
+void GPRRegCache::DiscardImm(preg_t preg)
+{
+  m_jit.GetConstantPropagation().ClearGPR(preg);
+}
+
 OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
 {
   return PPCSTATE_GPR(preg);
@@ -50,6 +55,7 @@ void GPRRegCache::SetImmediate32(preg_t preg, u32 imm_value, bool dirty)
   // processing speculative constants.
   DiscardRegContentsIfCached(preg);
   m_regs[preg].SetToImm32(imm_value, dirty);
+  m_jit.GetConstantPropagation().SetGPR(preg, imm_value);
 }
 
 BitSet32 GPRRegCache::GetRegUtilization() const
