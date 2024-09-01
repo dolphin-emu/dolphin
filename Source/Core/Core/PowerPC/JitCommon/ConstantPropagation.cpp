@@ -401,6 +401,15 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31SB(UGeckoInstructi
   case 536:  // srwx
     a = u32(u64(s) >> b);
     break;
+  case 792:  // srawx
+  {
+    const u64 temp = (s64(s32(s)) << 32) >> b;
+    a = u32(temp >> 32);
+
+    ConstantPropagationResult result(inst.RA, a, inst.Rc);
+    result.carry = (temp & a) != 0;
+    return result;
+  }
   default:
     return {};
   }
@@ -456,6 +465,18 @@ ConstantPropagation::EvaluateTable31SBOneRegisterKnown(UGeckoInstruction inst, u
       a = 0xFFFFFFFF;
     else
       return {};
+    break;
+  case 792:  // srawx
+    if (!known_reg_is_b && value == 0)
+    {
+      ConstantPropagationResult result(inst.RA, 0, inst.Rc);
+      result.carry = false;
+      return result;
+    }
+    else
+    {
+      return {};
+    }
     break;
   default:
     return {};
