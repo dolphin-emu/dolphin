@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-25 11:34+0200\n"
+"POT-Creation-Date: 2024-09-01 08:42+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Péter Patkós, 2023-2024\n"
 "Language-Team: Hungarian (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -183,11 +183,11 @@ msgid ""
 "Current Frame: %3"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:913
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:915
 msgid "%1 has joined"
 msgstr "%1 csatlakozott"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:918
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:920
 msgid "%1 has left"
 msgstr "%1 kilépett"
 
@@ -195,11 +195,11 @@ msgstr "%1 kilépett"
 msgid "%1 has unlocked %2/%3 achievements worth %4/%5 points"
 msgstr "%1 feloldott %4/%5 pontot érő %2/%3 teljesítményt"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1116
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1118
 msgid "%1 is not a valid ROM"
 msgstr "%1 nem egy valid ROM"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1040
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1042
 msgid "%1 is now golfing"
 msgstr "%1 éppen golfozik"
 
@@ -242,17 +242,17 @@ msgid "%1% (Normal Speed)"
 msgstr "%1% (Normál sebesség)"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:643
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:644
 msgid "%1's value is changed"
 msgstr "%1 értéke megváltozott"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:637
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:638
 msgid "%1's value is hit"
 msgstr ""
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:640
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:641
 msgid "%1's value is used"
 msgstr ""
 
@@ -345,7 +345,7 @@ msgstr "&4x"
 msgid "&About"
 msgstr "&Névjegy"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
 msgid "&Add Function"
 msgstr "&Funkció hozzáadása"
 
@@ -423,7 +423,7 @@ msgid "&Controller Settings"
 msgstr "&Vezérlő beállítások"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1040
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:577
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:578
 msgid "&Copy Address"
 msgstr "&Cím másolása"
 
@@ -540,7 +540,7 @@ msgstr "&Importálás..."
 msgid "&Infinity Base"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
 msgid "&Insert BLR"
 msgstr ""
 
@@ -652,7 +652,7 @@ msgstr "&Törlés"
 msgid "&Remove Code"
 msgstr "&Kód törlése"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:592
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:593
 msgid "&Rename Symbol"
 msgstr "&Szimbólum átnevezése"
 
@@ -785,7 +785,7 @@ msgstr ", vessző"
 msgid "- Subtract"
 msgstr "- Kivonás"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:379
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:380
 msgid "--> %1"
 msgstr "--> %1"
 
@@ -794,7 +794,7 @@ msgid "--Unknown--"
 msgstr "--Ismeretlen--"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:333
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:717
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:719
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:185
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:102
 msgid "..."
@@ -1045,7 +1045,7 @@ msgid "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "<dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:711
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:712
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:295
 msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
@@ -1077,8 +1077,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1562
-#: Source/Core/DolphinQt/MainWindow.cpp:1629
+#: Source/Core/DolphinQt/MainWindow.cpp:1563
+#: Source/Core/DolphinQt/MainWindow.cpp:1630
 msgid "A NetPlay Session is already in progress!"
 msgstr "Egy NetPlay játékmenet már folyamatban van!"
 
@@ -1106,7 +1106,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:966
+#: Source/Core/DolphinQt/MainWindow.cpp:967
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1358,7 +1358,7 @@ msgstr "Hozzáadás"
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:288
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:300
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:270
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:158
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:159
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:83
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:185
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
@@ -1524,8 +1524,8 @@ msgstr "Minden GC/Wii fájl"
 msgid "All Hexadecimal"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1425
-#: Source/Core/DolphinQt/MainWindow.cpp:1437
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "All Save States (*.sav *.s##);; Minden fájl (*)"
 
@@ -1541,11 +1541,11 @@ msgstr ""
 msgid "All files (*)"
 msgstr "Minden fájl (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1210
+#: Source/Core/Core/NetPlayServer.cpp:1211
 msgid "All players' codes synchronized."
 msgstr "Minden játékos kódjai szinkronizálva."
 
-#: Source/Core/Core/NetPlayServer.cpp:1152
+#: Source/Core/Core/NetPlayServer.cpp:1153
 msgid "All players' saves synchronized."
 msgstr "Minden játékos mentései szinkronizálva."
 
@@ -1669,7 +1669,7 @@ msgstr "Biztosan törlöd ezt a fájlt?"
 msgid "Are you sure you want to delete this pack?"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:500
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:502
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Biztosan ki akarsz lépni a NetPlay-ből?"
 
@@ -1698,7 +1698,7 @@ msgstr "Képarány:"
 msgid "Assemble"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:608
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:609
 msgid "Assemble Instruction"
 msgstr "Összeállítási utasítás"
 
@@ -1710,7 +1710,7 @@ msgstr ""
 msgid "Assembly File"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:296
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:298
 msgid "Assign Controller Ports"
 msgstr "Vezérlő portjainak társítása"
 
@@ -1768,7 +1768,7 @@ msgstr "Automatikus frissítés"
 msgid "Auto Update Settings"
 msgstr "Automatikus frissítés beállításai"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:481
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:483
 msgid ""
 "Auto internal resolution is not allowed in strict sync mode, as it depends "
 "on window size.\n"
@@ -2036,11 +2036,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1824
+#: Source/Core/DolphinQt/MainWindow.cpp:1825
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND backup fájl(*.bin);;Minden fájl (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1850
+#: Source/Core/DolphinQt/MainWindow.cpp:1851
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii keys fájl (*.bin);;Minden fájl (*)"
 
@@ -2168,7 +2168,7 @@ msgstr ""
 msgid "Branch: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:163
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:164
 msgid "Branches"
 msgstr ""
 
@@ -2233,16 +2233,16 @@ msgstr "&NetPlay játékmenetek böngészése...."
 msgid "Buffer Size:"
 msgstr "Pufferméret:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:928
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:930
 msgid "Buffer size changed to %1"
 msgstr "Pufferméret megváltozott erre: %1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:134
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:959
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:136
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:961
 msgid "Buffer:"
 msgstr "Puffer:"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:267
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:269
 msgid ""
 "Buggy GPU driver detected.\n"
 "Please either install the closed-source GPU driver or update your Mesa 3D "
@@ -2384,8 +2384,8 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1555
-#: Source/Core/DolphinQt/MainWindow.cpp:1622
+#: Source/Core/DolphinQt/MainWindow.cpp:1556
+#: Source/Core/DolphinQt/MainWindow.cpp:1623
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Nem indítható NetPlay munkamenet, amíg egy játék fut!"
 
@@ -2539,7 +2539,7 @@ msgstr ""
 msgid "Character entered is invalid!"
 msgstr "A megadott karakter érvénytelen!"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:267
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:269
 msgid "Chat"
 msgstr "Chat"
 
@@ -2573,7 +2573,7 @@ msgid ""
 "whether it's still in use."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:211
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:213
 msgid "Checksum"
 msgstr "Ellenőrzőösszeg"
 
@@ -2677,7 +2677,7 @@ msgstr ""
 msgid "Code:"
 msgstr "Kód:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1865
+#: Source/Core/Core/NetPlayClient.cpp:1866
 msgid "Codes received!"
 msgstr ""
 
@@ -2871,8 +2871,8 @@ msgstr "Kimenet konfigurálása"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:965
-#: Source/Core/DolphinQt/MainWindow.cpp:1760
+#: Source/Core/DolphinQt/MainWindow.cpp:966
+#: Source/Core/DolphinQt/MainWindow.cpp:1761
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Megerősítés"
@@ -2886,7 +2886,7 @@ msgid "Confirm on Stop"
 msgstr "Megerősítés leállításkor"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1292
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:499
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:501
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:240
 msgid "Confirmation"
 msgstr "Megerősítés"
@@ -2940,7 +2940,7 @@ msgstr ""
 msgid "Connected"
 msgstr "Csatlakoztatva"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:715
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:717
 msgid "Connecting"
 msgstr "Csatlakozás"
 
@@ -3135,18 +3135,18 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:293
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:707
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:736
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:764
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:295
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:709
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:738
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:766
 msgid "Copy"
 msgstr "Másolás"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:579
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:580
 msgid "Copy &Function"
 msgstr "&Funkció másolása"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:582
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:583
 msgid "Copy &Hex"
 msgstr "&Hex másolása"
 
@@ -3154,7 +3154,7 @@ msgstr "&Hex másolása"
 msgid "Copy Address"
 msgstr "Cím másolása"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:581
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:582
 msgid "Copy Code &Line"
 msgstr "&Kódsor másolása"
 
@@ -3166,7 +3166,7 @@ msgstr "Másolás sikertelen"
 msgid "Copy Hex"
 msgstr "Hex másolása"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:588
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:589
 msgid "Copy Tar&get Address"
 msgstr ""
 
@@ -3206,16 +3206,16 @@ msgstr "SDR Gamma korrekció"
 msgid "Cost"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:176
-#: Source/Core/Core/NetPlayClient.cpp:240
+#: Source/Core/Core/NetPlayClient.cpp:177
+#: Source/Core/Core/NetPlayClient.cpp:241
 msgid "Could not communicate with host."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:142
+#: Source/Core/Core/NetPlayClient.cpp:143
 msgid "Could not create client."
 msgstr "Kliens létrehozása sikertelen."
 
-#: Source/Core/Core/NetPlayClient.cpp:156
+#: Source/Core/Core/NetPlayClient.cpp:157
 msgid "Could not create peer."
 msgstr "Peer létrehozása sikertelen."
 
@@ -3300,7 +3300,7 @@ msgid ""
 "options."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:994
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:996
 msgid "Couldn't look up central server"
 msgstr "A központi szerver nem található"
 
@@ -3392,7 +3392,7 @@ msgstr "Jelenlegi érték"
 msgid "Current context"
 msgstr "Jelenlegi kontextus"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:212
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:214
 msgid "Current game"
 msgstr "Jelenlegi játék"
 
@@ -3505,7 +3505,7 @@ msgstr "Dance Mat"
 msgid "Dark"
 msgstr "Sötét"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:139
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:141
 msgid "Data"
 msgstr "Adat"
 
@@ -3533,7 +3533,7 @@ msgstr ""
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1823
+#: Source/Core/Core/NetPlayClient.cpp:1824
 msgid "Data received!"
 msgstr ""
 
@@ -3894,7 +3894,7 @@ msgstr ""
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1761
+#: Source/Core/DolphinQt/MainWindow.cpp:1762
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr ""
 
@@ -3908,7 +3908,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:969
+#: Source/Core/DolphinQt/MainWindow.cpp:970
 msgid "Do you want to stop the current emulation?"
 msgstr "Biztos leállítod az aktuális emulációt?"
 
@@ -3943,8 +3943,8 @@ msgstr ""
 msgid "Dolphin Signature File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1872
-#: Source/Core/DolphinQt/MainWindow.cpp:1951
+#: Source/Core/DolphinQt/MainWindow.cpp:1873
+#: Source/Core/DolphinQt/MainWindow.cpp:1952
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS videók (*.dtm)"
 
@@ -3977,7 +3977,7 @@ msgstr ""
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "A Dolphin egy szabad, nyílt forráskódú GameCube és Wii emulátor."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:999
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1001
 msgid "Dolphin is too old for traversal server"
 msgstr "A Dolphin túl régi az átjárási szerverhez"
 
@@ -4206,7 +4206,7 @@ msgid ""
 "driver."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:187
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:189
 msgid ""
 "Each player sends their own inputs to the game, with equal buffer size for "
 "all players, configured by the host.\n"
@@ -4659,7 +4659,7 @@ msgstr ""
 msgid "End Addr"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:126
+#: Source/Core/Core/NetPlayServer.cpp:127
 msgid "Enet Didn't Initialize"
 msgstr "Enet nincs inicializálva"
 
@@ -4754,12 +4754,12 @@ msgstr "RSO modul címének megadása:"
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
 #: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:309
 #: Source/Core/DolphinQt/MainWindow.cpp:317
-#: Source/Core/DolphinQt/MainWindow.cpp:1145
-#: Source/Core/DolphinQt/MainWindow.cpp:1554
-#: Source/Core/DolphinQt/MainWindow.cpp:1561
-#: Source/Core/DolphinQt/MainWindow.cpp:1621
-#: Source/Core/DolphinQt/MainWindow.cpp:1628
-#: Source/Core/DolphinQt/MainWindow.cpp:1739
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1555
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
+#: Source/Core/DolphinQt/MainWindow.cpp:1622
+#: Source/Core/DolphinQt/MainWindow.cpp:1629
+#: Source/Core/DolphinQt/MainWindow.cpp:1740
 #: Source/Core/DolphinQt/MenuBar.cpp:205 Source/Core/DolphinQt/MenuBar.cpp:1252
 #: Source/Core/DolphinQt/MenuBar.cpp:1338
 #: Source/Core/DolphinQt/MenuBar.cpp:1361
@@ -4773,11 +4773,11 @@ msgstr "RSO modul címének megadása:"
 #: Source/Core/DolphinQt/MenuBar.cpp:1722
 #: Source/Core/DolphinQt/MenuBar.cpp:1774
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:316
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:480
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:741
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:983
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1106
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1116
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:482
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:743
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:985
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1108
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1118
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:336
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:342
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:349
@@ -4803,7 +4803,7 @@ msgstr "Hibanapló"
 msgid "Error Opening Adapter: %1"
 msgstr "Hiba az adapter megnyitásakor: %1"
 
-#: Source/Core/Core/NetPlayServer.cpp:1503
+#: Source/Core/Core/NetPlayServer.cpp:1504
 msgid "Error collecting save data!"
 msgstr ""
 
@@ -4827,11 +4827,11 @@ msgstr ""
 msgid "Error occurred while loading some texture packs"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1852
+#: Source/Core/Core/NetPlayClient.cpp:1853
 msgid "Error processing codes."
 msgstr "Kódfeldolgozási hiba."
 
-#: Source/Core/Core/NetPlayClient.cpp:1824
+#: Source/Core/Core/NetPlayClient.cpp:1825
 msgid "Error processing data."
 msgstr "Adatfeldolgozási hiba."
 
@@ -4839,11 +4839,11 @@ msgstr "Adatfeldolgozási hiba."
 msgid "Error reading file: {0}"
 msgstr "Hiba a fájl olvasása közben: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1539
+#: Source/Core/Core/NetPlayServer.cpp:1540
 msgid "Error synchronizing cheat codes!"
 msgstr "Hiba a csaláskódok szinkronizálása közben!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1525
+#: Source/Core/Core/NetPlayServer.cpp:1526
 msgid "Error synchronizing save data!"
 msgstr "Hiba a mentett adatok szinkronizálása közben!"
 
@@ -5030,7 +5030,7 @@ msgstr ""
 msgid "Extension Motion Simulation"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:523
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:525
 msgid "External"
 msgstr "Külső"
 
@@ -5092,7 +5092,7 @@ msgstr ""
 "Memóriakártya megnyitása sikertelen:\n"
 "%1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:457
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:459
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr ""
 
@@ -5116,7 +5116,7 @@ msgstr ""
 msgid "Failed to connect to Redump.org"
 msgstr "Nem sikerült kapcsolódni ehhez: Redump.org"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:984
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:986
 msgid "Failed to connect to server: %1"
 msgstr "Nem sikerült kapcsolódni a szerverhez: %1"
 
@@ -5153,12 +5153,12 @@ msgid ""
 "The Skylander may already be on the portal."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1292
+#: Source/Core/Core/NetPlayClient.cpp:1293
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1082
+#: Source/Core/Core/NetPlayClient.cpp:1083
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 
@@ -5238,7 +5238,7 @@ msgid ""
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1145
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
 msgid "Failed to init core"
 msgstr ""
 
@@ -5262,7 +5262,7 @@ msgstr ""
 msgid "Failed to install this title to the NAND."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1656
+#: Source/Core/DolphinQt/MainWindow.cpp:1657
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5318,7 +5318,7 @@ msgid "Failed to open \"{0}\" for writing."
 msgstr ""
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1739
+#: Source/Core/DolphinQt/MainWindow.cpp:1740
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "'%1' megnyitása sikertelen"
@@ -5357,7 +5357,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "Nem sikerült megnyitni a fájlt."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1655
+#: Source/Core/DolphinQt/MainWindow.cpp:1656
 msgid "Failed to open server"
 msgstr "Nem sikerült megnyitni a szervert"
 
@@ -5390,7 +5390,7 @@ msgid "Failed to open the input file \"%1\"."
 msgstr "Nem sikerült megnyitni a bemeneti fájlt \"%1\"."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:287 Source/Core/DiscIO/FileBlob.cpp:58
-#: Source/Core/DiscIO/WIABlob.cpp:2043
+#: Source/Core/DiscIO/WIABlob.cpp:2050
 msgid ""
 "Failed to open the output file \"{0}\".\n"
 "Check that you have permissions to write the target folder and that the "
@@ -5415,7 +5415,7 @@ msgid "Failed to read from file."
 msgstr "Nem sikerült a fájlból olvasni."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:378 Source/Core/DiscIO/FileBlob.cpp:98
-#: Source/Core/DiscIO/WIABlob.cpp:2058
+#: Source/Core/DiscIO/WIABlob.cpp:2065
 msgid "Failed to read from the input file \"{0}\"."
 msgstr "Nem sikerült beolvasni a \"{0}\" bemeneti fájlt."
 
@@ -5477,15 +5477,15 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "Nem sikerült eltávolítani ezt a játékot a NAND-ról."
 
-#: Source/Core/Core/NetPlayClient.cpp:1106
+#: Source/Core/Core/NetPlayClient.cpp:1107
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1137
+#: Source/Core/Core/NetPlayClient.cpp:1138
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1143
+#: Source/Core/Core/NetPlayClient.cpp:1144
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr ""
 
@@ -5528,11 +5528,11 @@ msgstr ""
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "A BT.DINF írása a SYSCONF fájlba sikertelen"
 
-#: Source/Core/Core/NetPlayClient.cpp:1173
+#: Source/Core/Core/NetPlayClient.cpp:1174
 msgid "Failed to write Mii data."
 msgstr "Mii adat írása sikertelen."
 
-#: Source/Core/Core/NetPlayClient.cpp:1258
+#: Source/Core/Core/NetPlayClient.cpp:1259
 msgid "Failed to write Wii save."
 msgstr "Wii mentés írása sikertelen."
 
@@ -5546,7 +5546,7 @@ msgstr ""
 msgid "Failed to write modified memory card to disk."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1271
+#: Source/Core/Core/NetPlayClient.cpp:1272
 msgid "Failed to write redirected save."
 msgstr ""
 
@@ -5555,7 +5555,7 @@ msgid "Failed to write savefile to disk."
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:382
-#: Source/Core/DiscIO/FileBlob.cpp:104 Source/Core/DiscIO/WIABlob.cpp:2062
+#: Source/Core/DiscIO/FileBlob.cpp:104 Source/Core/DiscIO/WIABlob.cpp:2069
 msgid ""
 "Failed to write the output file \"{0}\".\n"
 "Check that you have enough space available on the target drive."
@@ -5568,7 +5568,7 @@ msgstr ""
 msgid "Failure"
 msgstr "Hiba"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:185
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:187
 msgid "Fair Input Delay"
 msgstr ""
 
@@ -5740,7 +5740,7 @@ msgstr ""
 msgid "Float"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:573
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:574
 msgid "Follow &Branch"
 msgstr ""
 
@@ -6022,11 +6022,11 @@ msgstr "GBA hangerő"
 msgid "GBA Window Size"
 msgstr "GBA ablakméret"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:836
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:838
 msgid "GBA%1 ROM changed to \"%2\""
 msgstr "GBA%1 ROM megváltozott erre: \"%2\""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:841
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:843
 msgid "GBA%1 ROM disabled"
 msgstr "GBA%1 ROM letiltva"
 
@@ -6068,7 +6068,7 @@ msgstr "GL_MAX_TEXTURE_SIZE mérete {0} - legalább 1024-nek kell lennie."
 msgid "GPU Texture Decoding"
 msgstr "GPU textúra dekódolás"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:233
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:235
 msgid ""
 "GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
 "GPU: Does your video card support OpenGL 3.0?"
@@ -6078,7 +6078,7 @@ msgstr ""
 msgid "GPU: OGL ERROR: Does your video card support OpenGL 2.0?"
 msgstr "GPU: OGL ERROR: Támogatja az OpenGL 2.0-t a videokártyád?"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:251
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:253
 msgid ""
 "GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
 "GPU: Does your video card support OpenGL 3.0?"
@@ -6086,7 +6086,7 @@ msgstr ""
 "GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
 "GPU: Támogatja az OpenGL 3.0-t a videokártyád?"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:276
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:278
 msgid ""
 "GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
 "GPU: Does your video card support OpenGL 3.3?"
@@ -6094,7 +6094,7 @@ msgstr ""
 "GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
 "GPU: Támogatja az OpenGL 3.3-at a videokártyád?"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:260
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:262
 msgid ""
 "GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
 "GPU: Does your video card support OpenGL 3.1?"
@@ -6102,7 +6102,7 @@ msgstr ""
 "GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
 "GPU: Támogatja az OpenGL 3.1-et a videokártyád?"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:242
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:244
 msgid ""
 "GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
 "GPU: Does your video card support OpenGL 3.0?"
@@ -6118,7 +6118,7 @@ msgstr ""
 "GPU: OGL ERROR: Need OpenGL version 3.\n"
 "GPU: Támogatja az OpenGL 3-at a videokártyád?"
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:468
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:470
 msgid ""
 "GPU: OGL ERROR: Need at least GLSL 1.30\n"
 "GPU: Does your video card support OpenGL 3.0?\n"
@@ -6191,29 +6191,29 @@ msgstr "Játék azonosító"
 msgid "Game ID:"
 msgstr "Játék azonosító:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:636
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:638
 msgid "Game Status"
 msgstr "Játék állapot"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:828
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:830
 msgid "Game changed to \"%1\""
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:644
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:646
 msgid ""
 "Game file has a different hash; right-click it, select Properties, switch to "
 "the Verify tab, and select Verify Integrity to check the hash"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:647
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:649
 msgid "Game has a different disc number"
 msgstr "A játéknak eltér a lemezszáma."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:649
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:651
 msgid "Game has a different revision"
 msgstr "A játéknak eltér a verziója"
 
-#: Source/Core/Core/NetPlayClient.cpp:1749
+#: Source/Core/Core/NetPlayClient.cpp:1750
 msgid "Game is already running!"
 msgstr "A játék már fut!"
 
@@ -6222,7 +6222,7 @@ msgid ""
 "Game overwrote with another games save. Data corruption ahead {0:#x}, {1:#x}"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:651
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:653
 msgid "Game region does not match"
 msgstr "A játék régiója nem egyezik."
 
@@ -6376,7 +6376,7 @@ msgstr "Óriás"
 msgid "Giants"
 msgstr "Óriások"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:197
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:199
 msgid "Golf Mode"
 msgstr "Golf mód"
 
@@ -6519,7 +6519,7 @@ msgstr "Már játékban lévők elrejtése"
 msgid "Hide Incompatible Sessions"
 msgstr "Nem kompatibilisek elrejtése"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:234
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:236
 msgid "Hide Remote GBAs"
 msgstr "Távoli GBAk elrejtése"
 
@@ -6558,7 +6558,7 @@ msgstr "Gazda"
 msgid "Host Code:"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:191
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:193
 msgid "Host Input Authority"
 msgstr ""
 
@@ -6566,7 +6566,7 @@ msgstr ""
 msgid "Host Size"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:193
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:195
 msgid ""
 "Host has control of sending all inputs to the game, as received from other "
 "players, giving the host zero latency but increasing latency for others.\n"
@@ -6574,11 +6574,11 @@ msgid ""
 "latency connections."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:937
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:939
 msgid "Host input authority disabled"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:937
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:939
 msgid "Host input authority enabled"
 msgstr ""
 
@@ -6688,7 +6688,7 @@ msgstr ""
 msgid "Icon"
 msgstr "Ikon"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:199
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:201
 msgid ""
 "Identical to Host Input Authority, except the \"Host\" (who has zero "
 "latency) can be switched at any time.\n"
@@ -6712,7 +6712,7 @@ msgid ""
 "This authorization can be revoked at any time through Dolphin's settings."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:168
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:170
 msgid ""
 "If checked, all Wii saves will be used instead of only the save of the game "
 "being started. Useful when switching games mid-session. Has no effect if No "
@@ -6815,11 +6815,11 @@ msgstr "Mentési fájl(ok) importálása"
 msgid "Import Wii Save..."
 msgstr "Wii mentés importálása..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1833
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
 msgid "Importing NAND backup"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1843
+#: Source/Core/DolphinQt/MainWindow.cpp:1844
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -6978,7 +6978,7 @@ msgid "Insert &BLR"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1037
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "Insert &NOP"
 msgstr ""
 
@@ -7009,7 +7009,7 @@ msgstr "Telepítés a NAND-ra"
 
 #. i18n: Short for "Instruction"
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:160
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:161
 msgid "Instr."
 msgstr ""
 
@@ -7032,7 +7032,7 @@ msgstr "Utasítás:"
 msgid "Instruction: %1"
 msgstr "Utasítás: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:741
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:742
 msgid ""
 "Instructions executed:   %1\n"
 "Value contained in:\n"
@@ -7150,7 +7150,7 @@ msgstr ""
 msgid "Invalid game."
 msgstr "Érvénytelen játék."
 
-#: Source/Core/Core/NetPlayClient.cpp:1984
+#: Source/Core/Core/NetPlayClient.cpp:1985
 msgid "Invalid host"
 msgstr "Érvénytelen gazda"
 
@@ -7321,7 +7321,7 @@ msgid ""
 "edit anything!"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:682
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:683
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:297
 msgid "Keep Running"
 msgstr ""
@@ -7360,7 +7360,7 @@ msgstr "Gombok"
 msgid "KiB"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:295
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:297
 msgid "Kick Player"
 msgstr "Játékos kirúgása"
 
@@ -7586,7 +7586,7 @@ msgstr "Fájl betöltése"
 msgid "Load GameCube Main Menu"
 msgstr "GameCube főmenü betöltése"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:147
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:149
 msgid "Load Host's Save Data Only"
 msgstr ""
 
@@ -7713,7 +7713,7 @@ msgstr "Állapot betöltése foglalatból"
 msgid "Load Wii System Menu %1"
 msgstr "Wii rendszermenü betöltése %1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:152
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:154
 msgid "Load and Write Host's Save Data"
 msgstr ""
 
@@ -7753,7 +7753,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:528
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:530
 msgid "Local"
 msgstr "Helyi"
 
@@ -7823,7 +7823,7 @@ msgstr ""
 msgid "Loop"
 msgstr "Ismétlés"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:977
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:979
 msgid "Lost connection to NetPlay server..."
 msgstr "Elveszett a kapcsolat a NetPlay szerverrel..."
 
@@ -7918,7 +7918,7 @@ msgstr "NAND kezelése"
 msgid "Manual Texture Sampling"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:636
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:638
 msgid "Mapping"
 msgstr ""
 
@@ -7930,11 +7930,11 @@ msgstr ""
 msgid "Match Found"
 msgstr "Egyezés található"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:959
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:961
 msgid "Max Buffer:"
 msgstr "Max puffer:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:927
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:929
 msgid "Max buffer size changed to %1"
 msgstr "A maximális pufferméret %1 értékre változott"
 
@@ -7992,7 +7992,7 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1814
+#: Source/Core/DolphinQt/MainWindow.cpp:1815
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -8035,7 +8035,7 @@ msgstr ""
 msgid "Mismatch between internal data structures."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1108
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1110
 msgid ""
 "Mismatched ROMs\n"
 "Selected: {0}\n"
@@ -8221,7 +8221,7 @@ msgstr "Natív (640x528)"
 msgid "Native GCI File"
 msgstr "Natív GCI fájl"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:100
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:102
 msgid "NetPlay"
 msgstr "NetPlay"
 
@@ -8237,27 +8237,27 @@ msgstr "NetPlay beállítás"
 msgid "Netherlands"
 msgstr "Hollandia"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:154
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:156
 msgid ""
 "Netplay will start using the Host's save data, and any save data created or "
 "modified during the Netplay session will remain in the Host's local saves."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:149
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:151
 msgid ""
 "Netplay will start using the Host's save data, but any save data created or "
 "modified during the Netplay session will be discarded at the end of the "
 "session."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:144
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:146
 msgid ""
 "Netplay will start without any save data, and any created save data will be "
 "discarded at the end of the Netplay session."
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:147
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:183
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:185
 msgid "Network"
 msgstr "Hálózat"
 
@@ -8327,7 +8327,7 @@ msgstr "Következő egyezés"
 msgid "Next Profile"
 msgstr "Következő profil"
 
-#: Source/Core/Core/NetPlayClient.cpp:293
+#: Source/Core/Core/NetPlayClient.cpp:294
 msgid "Nickname is too long."
 msgstr "A becenév túl hosszú."
 
@@ -8364,7 +8364,7 @@ msgstr "Nincs tömörítés"
 msgid "No Match"
 msgstr "Nincs egyezés"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:142
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:144
 msgid "No Save Data"
 msgstr "Nincs mentett adat"
 
@@ -8414,7 +8414,7 @@ msgstr "Nincs bemenet"
 msgid "No issues have been detected."
 msgstr "Nem található probléma."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:653
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:655
 msgid "No matching game was found"
 msgstr ""
 
@@ -8471,7 +8471,7 @@ msgstr "Észak-Amerika"
 msgid "Not Set"
 msgstr "Nincs megadva"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:473
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:475
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "Nem minden játékos rendelkezik a játékkal. Biztos elindítod?"
 
@@ -8491,7 +8491,7 @@ msgid ""
 "required."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:653
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:655
 msgid "Not found"
 msgstr "Nem található"
 
@@ -8548,7 +8548,7 @@ msgid "Nunchuk Stick"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/AssembleInstructionDialog.cpp:121
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:641
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:643
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:60
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:708
 msgid "OK"
@@ -8790,7 +8790,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:103
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:102
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:29
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:229
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:231
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:356
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:431
 msgid "Other"
@@ -8809,7 +8809,7 @@ msgstr ""
 msgid "Other State Management"
 msgstr "Egyéb állapot menedzsment"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:215
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:217
 msgid "Other game..."
 msgstr "Egyéb játék..."
 
@@ -8825,7 +8825,7 @@ msgstr "Kimeneti mintavételezés"
 msgid "Output Resampling:"
 msgstr "Kimeneti mintavételezés:"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:701
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:702
 msgid "Overwritten"
 msgstr "Felülírva"
 
@@ -8863,7 +8863,7 @@ msgstr "PNG képfájl (*.png);; Minden fájl (*)"
 msgid "PPC Size"
 msgstr "PPC méret"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "PPC vs Host"
 msgstr ""
 
@@ -8876,7 +8876,7 @@ msgstr "Irányító"
 msgid "Pads"
 msgstr "Irányítók"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:162
 msgid "Parameters"
 msgstr "Paraméterek"
 
@@ -9025,7 +9025,7 @@ msgstr ""
 msgid "Pick a debug font"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:636
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:638
 msgid "Ping"
 msgstr "Ping"
 
@@ -9062,7 +9062,7 @@ msgstr ""
 msgid "Playback Options"
 msgstr "Visszajátszási beállítások"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:636
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:638
 msgid "Player"
 msgstr "Játékos"
 
@@ -9091,7 +9091,7 @@ msgid "Player Two Ability Two"
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:290
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:292
 msgid "Players"
 msgstr "Játékosok"
 
@@ -9143,7 +9143,7 @@ msgstr "Port:"
 msgid "Portal Slots"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:970
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:972
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr ""
 
@@ -9316,11 +9316,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1600
+#: Source/Core/Core/NetPlayClient.cpp:1601
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1596
+#: Source/Core/Core/NetPlayClient.cpp:1597
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "A Quality of Service (QoS) sikeresen engedélyezve."
 
@@ -9331,11 +9331,11 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1813
+#: Source/Core/DolphinQt/MainWindow.cpp:1814
 msgid "Question"
 msgstr "Kérdés"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:135
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:137
 msgid "Quit"
 msgstr "Kilépés"
 
@@ -9397,7 +9397,7 @@ msgstr "Nyers"
 msgid "Raw Internal Resolution"
 msgstr "Nyers belső felbontás"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:606
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:607
 msgid "Re&place Instruction"
 msgstr ""
 
@@ -9456,7 +9456,7 @@ msgstr ""
 msgid "Record"
 msgstr "Rögzítés"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:230
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:232
 msgid "Record Inputs"
 msgstr ""
 
@@ -9595,8 +9595,8 @@ msgid ""
 "afterwards). Do you want to continue anyway?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:934
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:968
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:935
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:969
 msgid "Rename Symbol"
 msgstr "Szimbólum átnevezése"
 
@@ -9696,11 +9696,11 @@ msgstr "Újraindítás szükséges"
 msgid "Restore Defaults"
 msgstr "Alapértelmezettek visszaállítása"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:610
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:611
 msgid "Restore Instruction"
 msgstr "Utasítás visszaállítása"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:742
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:744
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
 msgid "Retry"
 msgstr "Újra"
@@ -9709,7 +9709,7 @@ msgstr "Újra"
 msgid "Return Speed"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:636
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:638
 msgid "Revision"
 msgstr "Revízió"
 
@@ -9768,7 +9768,7 @@ msgstr "Balra gurulás"
 msgid "Roll Right"
 msgstr "Jobbra gurulás"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:522
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:524
 msgid "Room ID"
 msgstr "Szoba ID"
 
@@ -9827,7 +9827,7 @@ msgstr ""
 msgid "Rumble"
 msgstr "Rumble"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:600
 msgid "Run &to Here"
 msgstr ""
 
@@ -9835,11 +9835,11 @@ msgstr ""
 msgid "Run GBA Cores in Dedicated Threads"
 msgstr "GBA-magok futtatása dedikált szálakban"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:681
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:682
 msgid "Run Until"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:635
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:636
 msgid "Run Until (Ignoring Breakpoints)"
 msgstr ""
 
@@ -9851,7 +9851,7 @@ msgstr ""
 msgid "Russia"
 msgstr "Oroszország"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:224
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:226
 msgid "SD Card"
 msgstr "SD kártya"
 
@@ -10000,7 +10000,7 @@ msgstr "Legrégebbi állapot mentése"
 msgid "Save Preset"
 msgstr "Előbeállítás mentése"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1951
+#: Source/Core/DolphinQt/MainWindow.cpp:1952
 msgid "Save Recording File As"
 msgstr "Rögzített fájl mentése, mint"
 
@@ -10239,7 +10239,7 @@ msgstr "GBA ROM kiválasztása"
 msgid "Select GBA Saves Path"
 msgstr "GBA mentési útvonal kiválasztása"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1849
+#: Source/Core/DolphinQt/MainWindow.cpp:1850
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr ""
 
@@ -10251,7 +10251,7 @@ msgstr "Legutóbbi állapot kiválasztása"
 msgid "Select Load Path"
 msgstr "Betöltési útvonal kiválasztása"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1823
+#: Source/Core/DolphinQt/MainWindow.cpp:1824
 msgid "Select NAND Backup"
 msgstr "NAND Backup kiválasztása"
 
@@ -10353,8 +10353,8 @@ msgstr "Válassz egy könyvtárat"
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
 #: Source/Core/DolphinQt/MainWindow.cpp:788
-#: Source/Core/DolphinQt/MainWindow.cpp:1425
-#: Source/Core/DolphinQt/MainWindow.cpp:1437
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "Select a File"
 msgstr "Válassz egy fájlt"
 
@@ -10382,7 +10382,7 @@ msgstr ""
 msgid "Select the RSO module address:"
 msgstr "Válaszd ki az RSO modul címét:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1872
+#: Source/Core/DolphinQt/MainWindow.cpp:1873
 msgid "Select the Recording File to Play"
 msgstr "Válaszd ki a lejátszandó felvételt"
 
@@ -10398,11 +10398,11 @@ msgstr "Kiválasztott betűtípus"
 msgid "Selected controller profile does not exist"
 msgstr "A megadott vezérlő profil nem létezik"
 
-#: Source/Core/Core/NetPlayServer.cpp:1341
-#: Source/Core/Core/NetPlayServer.cpp:1715
-#: Source/Core/Core/NetPlayServer.cpp:2043
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:489
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:891
+#: Source/Core/Core/NetPlayServer.cpp:1342
+#: Source/Core/Core/NetPlayServer.cpp:1716
+#: Source/Core/Core/NetPlayServer.cpp:2044
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:491
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:893
 msgid "Selected game doesn't exist in game list!"
 msgstr "A kiválasztott játék nem létezik a játéklistában!"
 
@@ -10509,7 +10509,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select Releases.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:270
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:272
 msgid "Send"
 msgstr "Küldés"
 
@@ -10542,7 +10542,7 @@ msgstr ""
 msgid "Server Port"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1981
+#: Source/Core/Core/NetPlayClient.cpp:1982
 msgid "Server rejected traversal attempt"
 msgstr "A szerver elutasította az átjárási kérelmet"
 
@@ -10567,15 +10567,15 @@ msgstr ""
 msgid "Set PC"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:597
 msgid "Set Symbol &End Address"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:595
 msgid "Set Symbol &Size"
 msgstr "&Szimbólumméret megadása"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:991
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:992
 msgid "Set Symbol End Address"
 msgstr ""
 
@@ -10734,7 +10734,7 @@ msgstr "GameCube megjelenítése"
 msgid "Show Germany"
 msgstr "Németország megjelenítése"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:232
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:234
 msgid "Show Golf Mode Overlay"
 msgstr "Golf mód átfedés megjelenítése"
 
@@ -10843,7 +10843,7 @@ msgstr "Rendszeróra megjelenítése"
 msgid "Show Taiwan"
 msgstr "Tajvan megjelenítése"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:586
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:587
 msgid "Show Target in Memor&y"
 msgstr "Cél megjelenítése a &Memóriában"
 
@@ -10875,7 +10875,7 @@ msgstr "Wii megjelenítése"
 msgid "Show World"
 msgstr "Világ megjelenítése"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:584
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:585
 msgid "Show in &Memory"
 msgstr "Megjelenítés a &Memóriában"
 
@@ -11275,7 +11275,7 @@ msgstr ""
 msgid "Standard Controller"
 msgstr "Szabványos vezérlő"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:132
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:134
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:66
 msgid "Start"
 msgstr "Start"
@@ -11313,7 +11313,7 @@ msgstr "Indítás Riivolution Patchekkel"
 msgid "Start with Riivolution Patches..."
 msgstr "Indítás Riivolution Patchekkel..."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:873
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:875
 msgid "Started game"
 msgstr "Elindított játék"
 
@@ -11411,7 +11411,7 @@ msgstr "Stop"
 msgid "Stop Playing/Recording Input"
 msgstr "Játék/felvétel leállítása"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:410
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:412
 msgid "Stopped game"
 msgstr "Megállított játék"
 
@@ -11447,7 +11447,7 @@ msgstr ""
 msgid "Stretch to Window"
 msgstr "Ablakméretűvé nyújtás"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:176
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:178
 msgid "Strict Settings Sync"
 msgstr ""
 
@@ -11487,7 +11487,7 @@ msgstr ""
 msgid "Success"
 msgstr "Siker"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:456
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:458
 msgid "Successfully added to the NetPlay index"
 msgstr ""
 
@@ -11606,19 +11606,19 @@ msgstr "B-re váltás"
 msgid "Symbol"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:992
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:993
 msgid "Symbol End Address (%1):"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:934
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:935
 msgid "Symbol Name:"
 msgstr "Szimbólum neve:"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:968
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:969
 msgid "Symbol Size (%1):"
 msgstr "Szimbólum mérete (%1):"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:162
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:163
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:137
 #: Source/Core/DolphinQt/MenuBar.cpp:1021
 msgid "Symbols"
@@ -11628,7 +11628,7 @@ msgstr ""
 msgid "Sync"
 msgstr "Szinkronizálás"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:174
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:176
 msgid "Sync AR/Gecko Codes"
 msgstr "AR/Gecko kódok szinkronizálása"
 
@@ -11652,15 +11652,15 @@ msgid ""
 "emulation."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1434
+#: Source/Core/Core/NetPlayClient.cpp:1435
 msgid "Synchronizing AR codes..."
 msgstr "AR kódok szinkronizálása..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1367
+#: Source/Core/Core/NetPlayClient.cpp:1368
 msgid "Synchronizing Gecko codes..."
 msgstr "Gecko kódok szinkronizálása..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1050
+#: Source/Core/Core/NetPlayClient.cpp:1051
 msgid "Synchronizing save data..."
 msgstr "Mentett adatok szinkronizálása..."
 
@@ -11708,7 +11708,7 @@ msgstr "Pillanatkép készítése"
 msgid "Target address range is invalid."
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:702
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:703
 msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
@@ -11980,7 +11980,7 @@ msgstr "A játék azonosítója {0}, de ennyinek kellene lennie: {1}."
 msgid "The game disc does not contain any usable update information."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:290
+#: Source/Core/Core/NetPlayClient.cpp:291
 msgid "The game is currently running."
 msgstr "A játék éppen fut."
 
@@ -11991,7 +11991,7 @@ msgid ""
 "disc."
 msgstr ""
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:716
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:718
 msgid ""
 "The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need "
 "to turn this off in the graphics driver's settings in order for Dolphin to "
@@ -12016,7 +12016,7 @@ msgstr ""
 "Ennek a Skylandernek a hős szintje. Csak a Skylanders: Spyro's Adventuresben "
 "látható. 0 és 100 között"
 
-#: Source/Core/Core/NetPlayClient.cpp:184
+#: Source/Core/Core/NetPlayClient.cpp:185
 msgid ""
 "The host code is too long.\n"
 "Please recheck that you have the correct code."
@@ -12084,15 +12084,15 @@ msgid ""
 msgstr ""
 "Nem használható ugyanaz a mappa több foglalatban; már használatban van: %1."
 
-#: Source/Core/Core/NetPlayClient.cpp:287
+#: Source/Core/Core/NetPlayClient.cpp:288
 msgid "The server and client's NetPlay versions are incompatible."
 msgstr "A szerver és a kliens NetPlay verziói nem kompatibilisek."
 
-#: Source/Core/Core/NetPlayClient.cpp:283
+#: Source/Core/Core/NetPlayClient.cpp:284
 msgid "The server is full."
 msgstr "A szerver megtelt."
 
-#: Source/Core/Core/NetPlayClient.cpp:296
+#: Source/Core/Core/NetPlayClient.cpp:297
 msgid "The server sent an unknown error message."
 msgstr "A szerver egy ismeretlen hibaüzenetet küldött."
 
@@ -12456,7 +12456,7 @@ msgid ""
 "save sync."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:178
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:180
 msgid ""
 "This will sync additional graphics settings, and force everyone to the same "
 "internal resolution.\n"
@@ -12676,8 +12676,8 @@ msgstr ""
 msgid "Trap Team"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:994
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:998
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:996
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1000
 msgid "Traversal Error"
 msgstr ""
 
@@ -12685,7 +12685,7 @@ msgstr ""
 msgid "Traversal Server"
 msgstr "Átjárási szerver"
 
-#: Source/Core/Core/NetPlayClient.cpp:1978
+#: Source/Core/Core/NetPlayClient.cpp:1979
 msgid "Traversal server timed out connecting to the host"
 msgstr "Időtúllépés az átjárási szerver és a gazda csatlakozásakor"
 
@@ -12878,7 +12878,7 @@ msgstr "Egyesült Államok"
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:68
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:126
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:130
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:760
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:762
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -12892,21 +12892,21 @@ msgstr "Ismeretlen (Id:%1 Var:%2)"
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "Ismeretlen DVD parancs {0:08x} - végzetes hiba"
 
-#: Source/Core/Core/NetPlayClient.cpp:1334
+#: Source/Core/Core/NetPlayClient.cpp:1335
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "Ismeretlen SYNC_CODES üzenet érkezett az alábbi azonosítóval: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1239
+#: Source/Core/Core/NetPlayServer.cpp:1240
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1035
+#: Source/Core/Core/NetPlayClient.cpp:1036
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Ismeretlen SYNC_SAVE_DATA üzenet érkezett az alábbi azonosítóval: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1182
+#: Source/Core/Core/NetPlayServer.cpp:1183
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -12936,7 +12936,7 @@ msgstr "Ismeretlen lemez"
 msgid "Unknown error occurred."
 msgstr "Ismeretlen hiba lépett fel."
 
-#: Source/Core/Core/NetPlayClient.cpp:1987
+#: Source/Core/Core/NetPlayClient.cpp:1988
 msgid "Unknown error {0:x}"
 msgstr "Ismeretlen hiba {0:x}"
 
@@ -12944,11 +12944,11 @@ msgstr "Ismeretlen hiba {0:x}"
 msgid "Unknown error."
 msgstr "Ismeretlen hiba."
 
-#: Source/Core/Core/NetPlayClient.cpp:480
+#: Source/Core/Core/NetPlayClient.cpp:481
 msgid "Unknown message received with id : {0}"
 msgstr "Ismeretlen üzenet érkezett az alábbi azonosítóval: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1247
+#: Source/Core/Core/NetPlayServer.cpp:1248
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 
@@ -13088,7 +13088,7 @@ msgstr "Használati statisztika-jelentés beállítások"
 msgid "Use 8.8.8.8 for normal DNS, else enter your custom one"
 msgstr "Használd a 8.8.8.8-at a normál DNS-hez, vagy adj meg egy sajátot."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:166
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:168
 msgid "Use All Wii Save Data"
 msgstr ""
 
@@ -13212,7 +13212,7 @@ msgstr ""
 msgid "Using Qt %1"
 msgstr "Qt %1 használatával"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1045
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1047
 msgid "Using TTL %1 for probe packet"
 msgstr ""
 
@@ -13252,7 +13252,7 @@ msgstr ""
 msgid "Value"
 msgstr "Érték"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:715
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:716
 msgid "Value tracked to current instruction."
 msgstr ""
 
@@ -13465,7 +13465,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:217
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:233
 #: Source/Core/DolphinQt/MenuBar.cpp:1563
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:472
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:474
 msgid "Warning"
 msgstr "Figyelem"
 
@@ -13726,19 +13726,19 @@ msgstr ""
 msgid "Write to Window"
 msgstr "Ablakba írás"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:647
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:649
 msgid "Wrong disc number"
 msgstr "Helytelen lemezszám"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:643
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:645
 msgid "Wrong hash"
 msgstr "Helytelen hash"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:651
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:653
 msgid "Wrong region"
 msgstr "Helytelen régió"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:649
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:651
 msgid "Wrong revision"
 msgstr "Helytelen revízió"
 
@@ -14084,11 +14084,11 @@ msgstr "{0} (NKit)"
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1231
+#: Source/Core/Core/NetPlayServer.cpp:1232
 msgid "{0} failed to synchronize codes."
 msgstr "{0} kódok szinkronizálása sikertelen."
 
-#: Source/Core/Core/NetPlayServer.cpp:1173
+#: Source/Core/Core/NetPlayServer.cpp:1174
 msgid "{0} failed to synchronize."
 msgstr "{0} szinkronizálása sikertelen."
 
@@ -14101,7 +14101,7 @@ msgstr ""
 "Ellenőrizd az írási jogokat vagy mozgasd a fájlokat a Dolphinen kívülre"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:265
-#: Source/Core/DiscIO/WIABlob.cpp:1703
+#: Source/Core/DiscIO/WIABlob.cpp:1710
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "{0} / {1} blokk. Tömörítési arány: {2}%"
 
