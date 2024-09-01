@@ -41,6 +41,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   case 14:  // addi
   case 15:  // addis
     return EvaluateAddImm(inst);
+  case 20:  // rlwimix
+    return EvaluateRlwimix(inst);
   case 21:  // rlwinmx
     return EvaluateRlwinmxRlwnmx(inst, inst.SH);
   case 23:  // rlwnmx
@@ -112,6 +114,22 @@ ConstantPropagationResult ConstantPropagation::EvaluateAddImmCarry(UGeckoInstruc
   ConstantPropagationResult result(inst.RD, a + inst.SIMM_16, rc);
   result.carry = Interpreter::Helper_Carry(a, inst.SIMM_16);
   return result;
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateRlwimix(UGeckoInstruction inst) const
+{
+  if (!HasGPR(inst.RS))
+    return {};
+
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+  if (mask == 0xFFFFFFFF)
+    return ConstantPropagationResult(inst.RA, std::rotl(GetGPR(inst.RS), inst.SH), inst.Rc);
+
+  if (!HasGPR(inst.RA))
+    return {};
+
+  return ConstantPropagationResult(
+      inst.RA, (GetGPR(inst.RA) & ~mask) | (std::rotl(GetGPR(inst.RS), inst.SH) & mask), inst.Rc);
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateRlwinmxRlwnmx(UGeckoInstruction inst,
