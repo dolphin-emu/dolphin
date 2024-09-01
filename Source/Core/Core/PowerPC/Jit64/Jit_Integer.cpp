@@ -2204,12 +2204,7 @@ void Jit64::srwx(UGeckoInstruction inst)
   int b = inst.RB;
   int s = inst.RS;
 
-  if (gpr.IsImm(b, s))
-  {
-    u32 amount = gpr.Imm32(b);
-    gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (gpr.Imm32(s) >> (amount & 0x1f)));
-  }
-  else if (gpr.IsImm(b))
+  if (gpr.IsImm(b))
   {
     u32 amount = gpr.Imm32(b);
     if (amount & 0x20)
