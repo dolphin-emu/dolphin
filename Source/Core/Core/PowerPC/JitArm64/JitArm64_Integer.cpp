@@ -1574,28 +1574,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    s32 imm_a = gpr.GetImm(a);
-    s32 imm_b = gpr.GetImm(b);
-    u32 imm_d;
-    if (imm_b == 0 || (static_cast<u32>(imm_a) == 0x80000000 && imm_b == -1))
-    {
-      if (imm_a < 0)
-        imm_d = 0xFFFFFFFF;
-      else
-        imm_d = 0;
-    }
-    else
-    {
-      imm_d = static_cast<u32>(imm_a / imm_b);
-    }
-    gpr.SetImmediate(d, imm_d);
-
-    if (inst.Rc)
-      ComputeRC0(imm_d);
-  }
-  else if (gpr.IsImm(a, 0))
+  if (gpr.IsImm(a, 0))
   {
     // Zero divided by anything is always zero
     gpr.SetImmediate(d, 0);
