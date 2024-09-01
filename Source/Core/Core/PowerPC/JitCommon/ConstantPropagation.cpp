@@ -225,9 +225,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
   if (!has_a || !has_b)
   {
     if (has_a)
-      return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RA));
+      return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RA), false);
     else if (has_b)
-      return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RB));
+      return EvaluateTable31ABOneRegisterKnown(inst, flags, GetGPR(inst.RB), true);
     else if (inst.RA == inst.RB)
       return EvaluateTable31ABIdenticalRegisters(inst, flags);
     else
@@ -265,6 +265,10 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
   case 747:  // mullwox
     d = d_overflow = s64(s32(a)) * s64(s32(b));
     break;
+  case 459:  // divwux
+  case 971:  // divwuox
+    d = d_overflow = b == 0 ? 0x1'0000'0000 : u64(a / b);
+    break;
   default:
     return {};
   }
@@ -278,8 +282,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
 }
 
 ConstantPropagationResult
-ConstantPropagation::EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u64 flags,
-                                                       u32 value) const
+ConstantPropagation::EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u64 flags, u32 value,
+                                                       bool known_reg_is_b) const
 {
   switch (inst.SUBOP10)
   {
@@ -293,6 +297,20 @@ ConstantPropagation::EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u
       if (flags & FL_SET_OE)
         result.overflow = false;
       return result;
+    }
+    break;
+  case 459:  // divwux
+  case 971:  // divwuox
+    if (known_reg_is_b && value == 0)
+    {
+      ConstantPropagationResult result(inst.RD, 0, inst.Rc);
+      if (flags & FL_SET_OE)
+        result.overflow = true;
+      return result;
+    }
+    if (!known_reg_is_b && value == 0 && !(flags & FL_SET_OE))
+    {
+      return ConstantPropagationResult(inst.RD, 0, inst.Rc);
     }
     break;
   }
