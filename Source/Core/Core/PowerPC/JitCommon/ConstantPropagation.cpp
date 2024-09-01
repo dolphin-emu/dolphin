@@ -269,6 +269,12 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstructi
   case 971:  // divwuox
     d = d_overflow = b == 0 ? 0x1'0000'0000 : u64(a / b);
     break;
+  case 491:   // divwx
+  case 1003:  // divwox
+    d = d_overflow = b == 0 || (a == 0x80000000 && b == 0xFFFFFFFF) ?
+                         (s32(a) < 0 ? 0xFFFFFFFF : 0x1'0000'0000) :
+                         s32(a) / s32(b);
+    break;
   default:
     return {};
   }
@@ -308,6 +314,9 @@ ConstantPropagation::EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u
         result.overflow = true;
       return result;
     }
+    [[fallthrough]];
+  case 491:   // divwx
+  case 1003:  // divwox
     if (!known_reg_is_b && value == 0 && !(flags & FL_SET_OE))
     {
       return ConstantPropagationResult(inst.RD, 0, inst.Rc);
