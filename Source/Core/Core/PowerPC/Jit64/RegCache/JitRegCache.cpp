@@ -536,6 +536,9 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
       m_xregs[RX(i)].MakeDirty();
   }
 
+  if (makeDirty)
+    DiscardImm(i);
+
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(),
              "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
 }
