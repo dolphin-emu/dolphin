@@ -378,6 +378,7 @@ void Arm64GPRCache::SetImmediateInternal(size_t index, u32 imm, bool dirty)
     UnlockRegister(EncodeRegTo32(reg.GetReg()));
   reg.LoadToImm(imm);
   reg.SetDirty(dirty);
+  m_jit->GetConstantPropagation().SetGPR(index - GUEST_GPR_OFFSET, imm);
 }
 
 void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
@@ -385,6 +386,7 @@ void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
   GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   const size_t bitsize = guest_reg.bitsize;
+  const bool is_gpr = index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT;
 
   reg.ResetLastUsed();
 
@@ -411,12 +413,13 @@ void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
       m_emit->MOVI2R(host_reg, reg.GetImm());
     }
     reg.Load(host_reg);
-    if (will_write)
-      reg.SetDirty(true);
   }
-  else if (will_write)
+
+  if (will_write)
   {
     reg.SetDirty(true);
+    if (is_gpr)
+      m_jit->GetConstantPropagation().ClearGPR(index - GUEST_GPR_OFFSET);
   }
 }
 
