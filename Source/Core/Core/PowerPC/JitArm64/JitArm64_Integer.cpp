@@ -1820,34 +1820,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
 
-  if (gpr.IsImm(b) && gpr.IsImm(s))
-  {
-    s32 i = gpr.GetImm(s), amount = gpr.GetImm(b);
-    if (amount & 0x20)
-    {
-      gpr.SetImmediate(a, i & 0x80000000 ? 0xFFFFFFFF : 0);
-      ComputeCarry(i & 0x80000000 ? true : false);
-    }
-    else
-    {
-      amount &= 0x1F;
-      gpr.SetImmediate(a, i >> amount);
-      ComputeCarry(amount != 0 && i < 0 && (u32(i) << (32 - amount)));
-    }
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-    return;
-  }
-  else if (gpr.IsImm(s, 0))
-  {
-    gpr.SetImmediate(a, 0);
-    ComputeCarry(false);
-    if (inst.Rc)
-      ComputeRC0(0);
-    return;
-  }
-  else if (gpr.IsImm(b))
+  if (gpr.IsImm(b))
   {
     int amount = gpr.GetImm(b);
 
