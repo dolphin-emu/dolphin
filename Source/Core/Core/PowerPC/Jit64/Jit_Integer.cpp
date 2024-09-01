@@ -1321,22 +1321,7 @@ void Jit64::divwux(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a, b))
-  {
-    if (gpr.Imm32(b) == 0)
-    {
-      gpr.SetImmediate32(d, 0);
-      if (inst.OE)
-        GenerateConstantOverflow(true);
-    }
-    else
-    {
-      gpr.SetImmediate32(d, gpr.Imm32(a) / gpr.Imm32(b));
-      if (inst.OE)
-        GenerateConstantOverflow(false);
-    }
-  }
-  else if (gpr.IsImm(b))
+  if (gpr.IsImm(b))
   {
     u32 divisor = gpr.Imm32(b);
     if (divisor == 0)
