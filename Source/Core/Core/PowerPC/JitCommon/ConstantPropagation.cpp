@@ -371,6 +371,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31SB(UGeckoInstructi
 
   switch (inst.SUBOP10)
   {
+  case 24:  // slwx
+    a = u32(u64(s) << b);
+    break;
   case 28:  // andx
     a = s & b;
     break;
@@ -410,6 +413,14 @@ ConstantPropagation::EvaluateTable31SBOneRegisterKnown(UGeckoInstruction inst, u
 
   switch (inst.SUBOP10)
   {
+  case 24:  // slwx
+    if (!known_reg_is_b && value == 0)
+      a = 0;
+    else if (known_reg_is_b && (value & 0x20))
+      a = 0;
+    else
+      return {};
+    break;
   case 60:  // andcx
     if (known_reg_is_b)
       value = ~value;
