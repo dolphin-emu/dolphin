@@ -25,6 +25,11 @@ void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location().value());
 }
 
+void FPURegCache::DiscardImm(preg_t preg)
+{
+  // FPURegCache doesn't support immediates, so no need to do anything
+}
+
 std::span<const X64Reg> FPURegCache::GetAllocationOrder() const
 {
   static constexpr X64Reg allocation_order[] = {XMM6,  XMM7,  XMM8,  XMM9, XMM10, XMM11, XMM12,

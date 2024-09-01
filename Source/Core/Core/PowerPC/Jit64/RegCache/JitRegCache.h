@@ -193,6 +193,7 @@ protected:
   virtual Gen::OpArg GetDefaultLocation(preg_t preg) const = 0;
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
+  virtual void DiscardImm(preg_t preg) = 0;
 
   virtual std::span<const Gen::X64Reg> GetAllocationOrder() const = 0;
 

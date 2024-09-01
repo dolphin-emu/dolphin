@@ -84,6 +84,8 @@ public:
 
   void FlushRegistersBeforeSlowAccess();
 
+  JitCommon::ConstantPropagation& GetConstantPropagation() { return m_constant_propagation; }
+
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
 
