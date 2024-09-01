@@ -370,6 +370,9 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Reset(js.op->regsOut);
   fpr.Reset(js.op->GetFregsOut());
 
+  // We must also update constant propagation
+  m_constant_propagation.ClearGPRs(js.op->regsOut);
+
   if (js.op->canEndBlock)
   {
     if (js.isLastInstruction)
@@ -1127,8 +1130,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           }
 
           CompileInstruction(op);
-
-          m_constant_propagation.ClearGPRs(op.regsOut);
         }
 
         m_constant_propagation.Apply(constant_propagation_result);
