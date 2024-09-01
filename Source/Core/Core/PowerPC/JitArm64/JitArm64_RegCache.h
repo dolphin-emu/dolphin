@@ -328,15 +328,15 @@ public:
 
   // Returns a guest GPR inside of a host register.
   // Will dump an immediate to the host register as well.
-  Arm64Gen::ARM64Reg R(size_t preg) { return R(GetGuestGPR(preg)); }
+  Arm64Gen::ARM64Reg R(size_t preg) { return BindForRead(GUEST_GPR_OFFSET + preg); }
 
   // Returns a guest CR inside of a host register.
-  Arm64Gen::ARM64Reg CR(size_t preg) { return R(GetGuestCR(preg)); }
+  Arm64Gen::ARM64Reg CR(size_t preg) { return BindForRead(GUEST_CR_OFFSET + preg); }
 
   // Set a register to an immediate. Only valid for guest GPRs.
   void SetImmediate(size_t preg, u32 imm, bool dirty = true)
   {
-    SetImmediate(GetGuestGPR(preg), imm, dirty);
+    SetImmediateInternal(GUEST_GPR_OFFSET + preg, imm, dirty);
   }
 
   // Returns if a register is set as an immediate. Only valid for guest GPRs.
@@ -374,14 +374,14 @@ public:
   // flushed. Just remember to call this function again with will_write = true after the Flush call.
   void BindToRegister(size_t preg, bool will_read, bool will_write = true)
   {
-    BindToRegister(GetGuestGPR(preg), will_read, will_write);
+    BindForWrite(GUEST_GPR_OFFSET + preg, will_read, will_write);
   }
 
   // Binds a guest CR to a host register, optionally loading its value.
   // The description of BindToRegister above applies to this function as well.
   void BindCRToRegister(size_t preg, bool will_read, bool will_write = true)
   {
-    BindToRegister(GetGuestCR(preg), will_read, will_write);
+    BindForWrite(GUEST_CR_OFFSET + preg, will_read, will_write);
   }
 
   BitSet32 GetCallerSavedUsed() const override;
@@ -426,14 +426,19 @@ private:
   GuestRegInfo GetGuestCR(size_t preg);
   GuestRegInfo GetGuestByIndex(size_t index);
 
-  Arm64Gen::ARM64Reg R(const GuestRegInfo& guest_reg);
-  void SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty);
-  void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
+  Arm64Gen::ARM64Reg BindForRead(size_t index);
+  void SetImmediateInternal(size_t index, u32 imm, bool dirty);
+  void BindForWrite(size_t index, bool will_read, bool will_write = true);
 
   void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
                       IgnoreDiscardedRegisters ignore_discarded_registers);
   void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
                         IgnoreDiscardedRegisters ignore_discarded_registers);
+
+  static constexpr size_t GUEST_GPR_COUNT = 32;
+  static constexpr size_t GUEST_CR_COUNT = 8;
+  static constexpr size_t GUEST_GPR_OFFSET = 0;
+  static constexpr size_t GUEST_CR_OFFSET = GUEST_GPR_COUNT;
 };
 
 class Arm64FPRCache : public Arm64RegCache

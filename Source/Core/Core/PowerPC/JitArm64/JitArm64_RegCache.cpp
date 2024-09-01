@@ -137,12 +137,6 @@ void Arm64RegCache::DiscardRegister(size_t preg)
     UnlockRegister(host_reg);
 }
 
-// GPR Cache
-constexpr size_t GUEST_GPR_COUNT = 32;
-constexpr size_t GUEST_CR_COUNT = 8;
-constexpr size_t GUEST_GPR_OFFSET = 0;
-constexpr size_t GUEST_CR_OFFSET = GUEST_GPR_COUNT;
-
 Arm64GPRCache::Arm64GPRCache() : Arm64RegCache(GUEST_GPR_COUNT + GUEST_CR_COUNT)
 {
 }
@@ -270,8 +264,8 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
         const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
         if (ppc_offset <= 252)
         {
-          ARM64Reg RX1 = reg1_zero ? ARM64Reg::WZR : R(GetGuestByIndex(i));
-          ARM64Reg RX2 = reg2_zero ? ARM64Reg::WZR : R(GetGuestByIndex(i + 1));
+          ARM64Reg RX1 = reg1_zero ? ARM64Reg::WZR : BindForRead(i);
+          ARM64Reg RX2 = reg2_zero ? ARM64Reg::WZR : BindForRead(i + 1);
           m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
           if (flush_all)
           {
@@ -332,8 +326,9 @@ void Arm64GPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg,
   FlushCRRegisters(BitSet8(0xFF), mode, tmp_reg, ignore_discarded_registers);
 }
 
-ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
+ARM64Reg Arm64GPRCache::BindForRead(size_t index)
 {
+  GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   size_t bitsize = guest_reg.bitsize;
 
@@ -375,8 +370,9 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
   return ARM64Reg::INVALID_REG;
 }
 
-void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty)
+void Arm64GPRCache::SetImmediateInternal(size_t index, u32 imm, bool dirty)
 {
+  GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   if (reg.GetType() == RegType::Register)
     UnlockRegister(EncodeRegTo32(reg.GetReg()));
@@ -384,8 +380,9 @@ void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool di
   reg.SetDirty(dirty);
 }
 
-void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write)
+void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
 {
+  GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   const size_t bitsize = guest_reg.bitsize;
 
