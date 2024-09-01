@@ -1625,15 +1625,7 @@ void JitArm64::srwx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
 
-  if (gpr.IsImm(b) && gpr.IsImm(s))
-  {
-    u32 i = gpr.GetImm(s), amount = gpr.GetImm(b);
-    gpr.SetImmediate(a, (amount & 0x20) ? 0 : i >> (amount & 0x1F));
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-  }
-  else if (gpr.IsImm(b))
+  if (gpr.IsImm(b))
   {
     u32 amount = gpr.GetImm(b);
     if (amount & 0x20)

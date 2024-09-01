@@ -398,6 +398,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31SB(UGeckoInstructi
   case 476:  // nandx
     a = ~(s & b);
     break;
+  case 536:  // srwx
+    a = u32(u64(s) >> b);
+    break;
   default:
     return {};
   }
@@ -413,7 +416,8 @@ ConstantPropagation::EvaluateTable31SBOneRegisterKnown(UGeckoInstruction inst, u
 
   switch (inst.SUBOP10)
   {
-  case 24:  // slwx
+  case 24:   // slwx
+  case 536:  // srwx
     if (!known_reg_is_b && value == 0)
       a = 0;
     else if (known_reg_is_b && (value & 0x20))
