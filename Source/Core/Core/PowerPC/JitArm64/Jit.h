@@ -36,6 +36,8 @@ public:
   void Init() override;
   void Shutdown() override;
 
+  JitCommon::ConstantPropagation& GetConstantPropagation() { return m_constant_propagation; }
+
   JitBaseBlockCache* GetBlockCache() override { return &blocks; }
   bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
