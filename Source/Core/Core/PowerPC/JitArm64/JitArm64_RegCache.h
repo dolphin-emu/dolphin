@@ -61,9 +61,8 @@ static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 enum class RegType
 {
   NotLoaded,
-  Discarded,   // Reg is not loaded because we know it won't be read before the next write
+  Discarded,   // Reg is in ConstantPropagation, or isn't loaded at all
   Register,    // Reg type is register
-  Immediate,   // Reg is really a IMM
   LowerPair,   // Only the lower pair of a paired register
   Duplicated,  // The lower reg is the same as the upper one (physical upper doesn't actually have
                // the duplicated value)
@@ -94,24 +93,17 @@ public:
 
   RegType GetType() const { return m_type; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
-  u32 GetImm() const { return m_value; }
   void Load(Arm64Gen::ARM64Reg reg, RegType type = RegType::Register)
   {
     m_type = type;
     m_reg = reg;
-  }
-  void LoadToImm(u32 imm)
-  {
-    m_type = RegType::Immediate;
-    m_value = imm;
-
-    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   }
   void Discard()
   {
     // Invalidate any previous information
     m_type = RegType::Discarded;
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    m_dirty = true;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -121,6 +113,7 @@ public:
     // Invalidate any previous information
     m_type = RegType::NotLoaded;
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    m_dirty = false;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -136,9 +129,6 @@ private:
   // For REG_REG
   RegType m_type = RegType::NotLoaded;                         // store type
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;  // host register we are in
-
-  // For REG_IMM
-  u32 m_value = 0;  // IMM value
 
   u32 m_last_used = 0;
 
@@ -339,11 +329,11 @@ public:
     SetImmediateInternal(GUEST_GPR_OFFSET + preg, imm, dirty);
   }
 
-  // Returns if a register is set as an immediate. Only valid for guest GPRs.
-  bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == RegType::Immediate; }
+  // Returns whether a register is set as an immediate. Only valid for guest GPRs.
+  bool IsImm(size_t preg) const;
 
   // Gets the immediate that a register is set to. Only valid for guest GPRs.
-  u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
+  u32 GetImm(size_t preg) const;
 
   bool IsImm(size_t preg, u32 imm) const { return IsImm(preg) && GetImm(preg) == imm; }
 
