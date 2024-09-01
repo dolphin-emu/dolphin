@@ -238,11 +238,11 @@ enum class BooleanSetting(
         "EmulateWiiSpeak",
         false
     ),
-    MAIN_WII_SPEAK_CONNECTED(
+    MAIN_WII_SPEAK_MUTED(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_EMULATED_USB_DEVICES,
-        "WiiSpeakConnected",
-        false
+        "WiiSpeakMuted",
+        true
     ),
     MAIN_SHOW_GAME_TITLES(
         Settings.FILE_DOLPHIN,
