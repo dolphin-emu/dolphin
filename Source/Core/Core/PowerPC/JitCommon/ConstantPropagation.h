@@ -89,7 +89,7 @@ private:
   ConstantPropagationResult EvaluateTable31S(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateTable31AB(UGeckoInstruction inst, u64 flags) const;
   ConstantPropagationResult EvaluateTable31ABOneRegisterKnown(UGeckoInstruction inst, u64 flags,
-                                                              u32 value) const;
+                                                              u32 value, bool known_reg_is_b) const;
   ConstantPropagationResult EvaluateTable31ABIdenticalRegisters(UGeckoInstruction inst,
                                                                 u64 flags) const;
   ConstantPropagationResult EvaluateTable31SB(UGeckoInstruction inst) const;

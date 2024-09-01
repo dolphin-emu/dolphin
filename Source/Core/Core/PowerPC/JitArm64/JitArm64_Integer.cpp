@@ -1333,15 +1333,7 @@ void JitArm64::divwux(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
-    gpr.SetImmediate(d, j == 0 ? 0 : i / j);
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else if (gpr.IsImm(b))
+  if (gpr.IsImm(b))
   {
     const u32 divisor = gpr.GetImm(b);
 
