@@ -152,9 +152,9 @@ long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const 
   if (Core::GetState(Core::System::GetInstance()) != Core::State::Running)
     return nframes;
 
-  // Skip data when HLE Wii Speak is not connected
+  // Skip data when HLE Wii Speak is muted
   // TODO: Update cubeb and use cubeb_stream_set_input_mute
-  if (!Config::Get(Config::MAIN_WII_SPEAK_CONNECTED))
+  if (Config::Get(Config::MAIN_WII_SPEAK_MUTED))
     return nframes;
 
   auto* mic = static_cast<Microphone*>(user_data);

@@ -21,7 +21,7 @@ private:
   void CreateMainWindow();
   void OnEmulationStateChanged(Core::State state);
   void EmulateWiiSpeak(bool emulate);
-  void SetWiiSpeakConnectionState(bool connected);
+  void SetWiiSpeakMuted(bool muted);
   void OnInputDeviceChange();
 
   QCheckBox* m_checkbox_enabled;

@@ -76,7 +76,6 @@ private:
 
   void GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const;
   void SetRegister(const std::unique_ptr<CtrlMessage>& cmd);
-  bool IsMicrophoneConnected() const;
 
   const u16 m_vid = 0x057E;
   const u16 m_pid = 0x0308;
