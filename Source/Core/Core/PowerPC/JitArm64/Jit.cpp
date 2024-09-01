@@ -1359,7 +1359,10 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         m_constant_propagation.Apply(constant_propagation_result);
 
         if (constant_propagation_result.gpr >= 0)
+        {
+          // Mark the GPR as dirty in the register cache
           gpr.SetImmediate(constant_propagation_result.gpr, constant_propagation_result.gpr_value);
+        }
 
         if (constant_propagation_result.instruction_fully_executed)
         {
