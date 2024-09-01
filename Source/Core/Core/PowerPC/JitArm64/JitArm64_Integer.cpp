@@ -1770,82 +1770,72 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
   const u32 width = inst.ME - inst.MB + 1;
   const u32 rot_dist = inst.SH ? 32 - inst.SH : 0;
 
-  if (gpr.IsImm(a) && gpr.IsImm(s))
+  if (mask == 0 || (a == s && inst.SH == 0))
   {
-    u32 res = (gpr.GetImm(a) & ~mask) | (std::rotl(gpr.GetImm(s), inst.SH) & mask);
-    gpr.SetImmediate(a, res);
-    if (inst.Rc)
-      ComputeRC0(res);
+    // Do Nothing
   }
-  else
+  else if (mask == 0xFFFFFFFF)
   {
-    if (mask == 0 || (a == s && inst.SH == 0))
-    {
-      // Do Nothing
-    }
-    else if (mask == 0xFFFFFFFF)
-    {
-      if (inst.SH || a != s)
-        gpr.BindToRegister(a, a == s);
+    if (inst.SH || a != s)
+      gpr.BindToRegister(a, a == s);
 
-      if (inst.SH)
-        ROR(gpr.R(a), gpr.R(s), rot_dist);
-      else if (a != s)
-        MOV(gpr.R(a), gpr.R(s));
-    }
-    else if (lsb == 0 && inst.MB <= inst.ME && rot_dist + width <= 32)
+    if (inst.SH)
+      ROR(gpr.R(a), gpr.R(s), rot_dist);
+    else if (a != s)
+      MOV(gpr.R(a), gpr.R(s));
+  }
+  else if (lsb == 0 && inst.MB <= inst.ME && rot_dist + width <= 32)
+  {
+    // Destination is in least significant position
+    // No mask inversion
+    // Source field pre-rotation is contiguous
+    gpr.BindToRegister(a, true);
+    BFXIL(gpr.R(a), gpr.R(s), rot_dist, width);
+  }
+  else if (inst.SH == 0 && inst.MB <= inst.ME)
+  {
+    // No rotation
+    // No mask inversion
+    gpr.BindToRegister(a, true);
+    ARM64Reg WA = gpr.GetReg();
+    UBFX(WA, gpr.R(s), lsb, width);
+    BFI(gpr.R(a), WA, lsb, width);
+    gpr.Unlock(WA);
+  }
+  else if (inst.SH && inst.MB <= inst.ME)
+  {
+    // No mask inversion
+    gpr.BindToRegister(a, true);
+    if ((rot_dist + lsb) % 32 == 0)
     {
-      // Destination is in least significant position
-      // No mask inversion
-      // Source field pre-rotation is contiguous
-      gpr.BindToRegister(a, true);
-      BFXIL(gpr.R(a), gpr.R(s), rot_dist, width);
-    }
-    else if (inst.SH == 0 && inst.MB <= inst.ME)
-    {
-      // No rotation
-      // No mask inversion
-      gpr.BindToRegister(a, true);
-      ARM64Reg WA = gpr.GetReg();
-      UBFX(WA, gpr.R(s), lsb, width);
-      BFI(gpr.R(a), WA, lsb, width);
-      gpr.Unlock(WA);
-    }
-    else if (inst.SH && inst.MB <= inst.ME)
-    {
-      // No mask inversion
-      gpr.BindToRegister(a, true);
-      if ((rot_dist + lsb) % 32 == 0)
-      {
-        BFI(gpr.R(a), gpr.R(s), lsb, width);
-      }
-      else
-      {
-        ARM64Reg WA = gpr.GetReg();
-        ROR(WA, gpr.R(s), (rot_dist + lsb) % 32);
-        BFI(gpr.R(a), WA, lsb, width);
-        gpr.Unlock(WA);
-      }
+      BFI(gpr.R(a), gpr.R(s), lsb, width);
     }
     else
     {
-      gpr.BindToRegister(a, true);
-      const bool allocate_reg = a == s;
-      ARM64Reg RA = gpr.R(a);
       ARM64Reg WA = gpr.GetReg();
-      ARM64Reg WB = allocate_reg ? gpr.GetReg() : RA;
-
-      MOVI2R(WA, mask);
-      BIC(WB, RA, WA);
-      AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, rot_dist));
-      ORR(RA, WB, WA);
-
+      ROR(WA, gpr.R(s), (rot_dist + lsb) % 32);
+      BFI(gpr.R(a), WA, lsb, width);
       gpr.Unlock(WA);
-      if (allocate_reg)
-        gpr.Unlock(WB);
     }
-
-    if (inst.Rc)
-      ComputeRC0(gpr.R(a));
   }
+  else
+  {
+    gpr.BindToRegister(a, true);
+    const bool allocate_reg = a == s;
+    ARM64Reg RA = gpr.R(a);
+    ARM64Reg WA = gpr.GetReg();
+    ARM64Reg WB = allocate_reg ? gpr.GetReg() : RA;
+
+    MOVI2R(WA, mask);
+    BIC(WB, RA, WA);
+    AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, rot_dist));
+    ORR(RA, WB, WA);
+
+    gpr.Unlock(WA);
+    if (allocate_reg)
+      gpr.Unlock(WB);
+  }
+
+  if (inst.Rc)
+    ComputeRC0(gpr.R(a));
 }
