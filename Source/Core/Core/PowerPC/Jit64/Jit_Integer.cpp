@@ -1433,24 +1433,7 @@ void Jit64::divwx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a, b))
-  {
-    s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
-    if (j == 0 || (i == (s32)0x80000000 && j == -1))
-    {
-      const u32 result = i < 0 ? 0xFFFFFFFF : 0x00000000;
-      gpr.SetImmediate32(d, result);
-      if (inst.OE)
-        GenerateConstantOverflow(true);
-    }
-    else
-    {
-      gpr.SetImmediate32(d, i / j);
-      if (inst.OE)
-        GenerateConstantOverflow(false);
-    }
-  }
-  else if (gpr.IsImm(a))
+  if (gpr.IsImm(a))
   {
     // Constant dividend
     const u32 dividend = gpr.Imm32(a);
