@@ -19,11 +19,11 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 #include "ConfigManager.h"
 #include "Config/MainSettings.h"
-
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include "Core/System.h"
 
 namespace Gecko
 {
@@ -122,26 +122,30 @@ std::vector<GeckoCode> SetAndReturnActiveCodes(std::span<const GeckoCode> gcodes
 
 const char* GetGeckoCodeHandlerPath()
 {
-  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER);
   switch (code_handler_value)
   {
-    case 0: return GECKO_CODE_HANDLER; // Dolphin (Stock)
-    case 1: return GECKO_CODE_HANDLER_MPN; // MPN (Extended)
-    case 2: return GECKO_CODE_HANDLER_MPN_SUPER; // MPN (Super Extended)
-    default: return GECKO_CODE_HANDLER; // Fallback
+  case 0:
+    return GECKO_CODE_HANDLER;  // Dolphin (Stock)
+  case 1:
+    return GECKO_CODE_HANDLER_MPN;  // MPN (Extended)
+  case 2:
+    return GECKO_CODE_HANDLER_MPN_SUPER;  // MPN (Super Extended)
+  default:
+    return GECKO_CODE_HANDLER;  // Fallback
   }
 }
 
 bool IsGeckoCodeHandlerEnabled()
 {
-  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
-  return code_handler_value == 1 || code_handler_value == 2; // Return true for 1 and 2
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER);
+  return code_handler_value == 1 || code_handler_value == 2;
 }
 
 bool IsGeckoCodeHandlerSUPER()
 {
-  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
-  return code_handler_value == 2; // Return true for 1 and 2
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER);
+  return code_handler_value == 2;
 }
 
 // Requires s_active_codes_lock
@@ -149,15 +153,16 @@ bool IsGeckoCodeHandlerSUPER()
 static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 {
   std::string data;
-  if (!File::ReadFileToString(File::GetSysDirectory() + GetGeckoCodeHandlerPath(), data))
+  if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
   {
-    ERROR_LOG_FMT(ACTIONREPLAY, "Could not enable cheats because the selected codehandler was missing.");
+    ERROR_LOG_FMT(ACTIONREPLAY,
+                  "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
     return Installation::Failed;
   }
 
   if (data.size() > INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS - CODE_SIZE)
   {
-    ERROR_LOG_FMT(ACTIONREPLAY, "The codehandler is too big. The file may be corrupt.");
+    ERROR_LOG_FMT(ACTIONREPLAY, GECKO_CODE_HANDLER " is too big. The file may be corrupt.");
     return Installation::Failed;
   }
 
@@ -198,14 +203,13 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
                                               CODE_SIZE;
 
   u32 codelist_end_address = is_mpn_handler_and_game_id_gp7e01 ? INSTALLER_END_ADDRESS_MP7 :
-                         is_mpn_handler_and_game_id_gp6e01 ? INSTALLER_END_ADDRESS_MP6 :
-                         is_mpn_handler_and_game_id_gp5e01 ? INSTALLER_END_ADDRESS_MP5 :
-                                                             INSTALLER_END_ADDRESS;
-  
+                             is_mpn_handler_and_game_id_gp6e01 ? INSTALLER_END_ADDRESS_MP6 :
+                             is_mpn_handler_and_game_id_gp5e01 ? INSTALLER_END_ADDRESS_MP5 :
+                                                                 INSTALLER_END_ADDRESS;
+
   if (is_mpn_handler_and_game_id_gp7e01 || is_mpn_handler_and_game_id_gp6e01 ||
       is_mpn_handler_and_game_id_gp5e01)
   {
-  
     // Move Gecko code handler to the free mem region
     for (u32 addr = codelist_base_address; addr < codelist_end_address; addr += 4)
     {
@@ -219,7 +223,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
   // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
-  PowerPC::MMU::HostWrite_U32(guard, MAGIC_GAMEID, codelist_base_address);
+  PowerPC::MMU::HostWrite_U32(guard, MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
 
   // Create GCT in memory
   PowerPC::MMU::HostWrite_U32(guard, 0x00d0c0de, codelist_base_address);
@@ -241,7 +245,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
                      "not write: \"{}\". Need {} bytes, only {} remain.",
                      active_code.name, active_code.codes.size() * CODE_SIZE,
                      end_address - next_address);
-      OSD::AddMessage(fmt::format("Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+      OSD::AddMessage(
+          fmt::format("Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
                       "not write: \"{}\". Need {} bytes, only {} remain.",
                       active_code.name, active_code.codes.size() * CODE_SIZE,
                       end_address - next_address),
@@ -260,8 +265,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
                end_address - start_address);
 
-  OSD::AddMessage(fmt::format("Gecko Codes: Using {} of {} bytes", next_address - start_address,
-               end_address - start_address));
+
+  OSD::AddMessage(fmt::format("Gecko Codes: Using {} of {} bytes", next_address - start_address, end_address - start_address));
 
   // Stop code. Tells the handler that this is the end of the list.
   PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
