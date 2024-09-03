@@ -2906,6 +2906,11 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
     float clamp_top;
     float clamp_bottom;
     float pixel_height;
+    float rcp_pixel_width;
+    float rcp_pixel_height;
+    float efb_scale;
+    u32 efb_copy_scaled;
+    u32 linear_filter;
     u32 padding;
   };
   Uniforms uniforms;
@@ -2930,6 +2935,11 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   uniforms.clamp_bottom = (uniforms.src_top + uniforms.src_height);
   uniforms.clamp_bottom -= (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
   uniforms.pixel_height = g_ActiveConfig.bCopyEFBScaled ? rcp_efb_height : 1.0f / EFB_HEIGHT;
+  uniforms.rcp_pixel_width = rcp_efb_width;
+  uniforms.rcp_pixel_height = rcp_efb_height;
+  uniforms.efb_scale = static_cast<float>(g_framebuffer_manager->GetEFBScale());
+  uniforms.efb_copy_scaled = g_ActiveConfig.bCopyEFBScaled ? 1u : 0u;
+  uniforms.linear_filter = linear_filter ? 1u : 0u;
   uniforms.padding = 0;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
