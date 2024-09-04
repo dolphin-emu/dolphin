@@ -34,6 +34,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Unreachable.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/BranchWatch.h"
@@ -103,7 +104,9 @@ public:
   }
 
   bool IsBranchTypeAllowed(UGeckoInstruction inst) const;
-  void SetInspected(const QModelIndex& index);
+  void SetInspected(const QModelIndex& index) const;
+  const Core::BranchWatchSelectionValueType&
+  GetBranchWatchSelection(const QModelIndex& index) const;
 
 private:
   const Core::BranchWatch& m_branch_watch;
@@ -156,42 +159,39 @@ bool BranchWatchProxyModel::filterAcceptsRow(int source_row, const QModelIndex&)
   return true;
 }
 
-static constexpr bool BranchSavesLR(UGeckoInstruction inst)
-{
-  DEBUG_ASSERT(inst.OPCD == 18 || inst.OPCD == 16 ||
-               (inst.OPCD == 19 && (inst.SUBOP10 == 16 || inst.SUBOP10 == 528)));
-  // Every branch instruction uses the same LK field.
-  return inst.LK;
-}
-
 bool BranchWatchProxyModel::IsBranchTypeAllowed(UGeckoInstruction inst) const
 {
-  const bool lr_saved = BranchSavesLR(inst);
   switch (inst.OPCD)
   {
   case 18:
-    return lr_saved ? m_bl : m_b;
+    return inst.LK ? m_bl : m_b;
   case 16:
-    return lr_saved ? m_bcl : m_bc;
+    return inst.LK ? m_bcl : m_bc;
   case 19:
     switch (inst.SUBOP10)
     {
     case 16:
       if ((inst.BO & 0b10100) == 0b10100)  // 1z1zz - Branch always
-        return lr_saved ? m_blrl : m_blr;
-      return lr_saved ? m_bclrl : m_bclr;
+        return inst.LK ? m_blrl : m_blr;
+      return inst.LK ? m_bclrl : m_bclr;
     case 528:
       if ((inst.BO & 0b10100) == 0b10100)  // 1z1zz - Branch always
-        return lr_saved ? m_bctrl : m_bctr;
-      return lr_saved ? m_bcctrl : m_bcctr;
+        return inst.LK ? m_bctrl : m_bctr;
+      return inst.LK ? m_bcctrl : m_bcctr;
     }
   }
   return false;
 }
 
-void BranchWatchProxyModel::SetInspected(const QModelIndex& index)
+void BranchWatchProxyModel::SetInspected(const QModelIndex& index) const
 {
   sourceModel()->SetInspected(mapToSource(index));
+}
+
+const Core::BranchWatchSelectionValueType&
+BranchWatchProxyModel::GetBranchWatchSelection(const QModelIndex& index) const
+{
+  return sourceModel()->GetBranchWatchSelection(mapToSource(index));
 }
 
 BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
@@ -201,320 +201,355 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 {
   setWindowTitle(tr("Branch Watch Tool"));
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
-  setLayout([this, &ppc_symbol_db]() {
-    auto* main_layout = new QVBoxLayout;
 
-    // Controls Toolbar (widgets are added later)
-    main_layout->addWidget(m_control_toolbar = new QToolBar);
+  // Branch Watch Table
+  m_table_view = new QTableView(nullptr);
+  m_table_proxy = new BranchWatchProxyModel(m_branch_watch, m_table_view);
+  m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db, m_table_proxy);
 
-    // Branch Watch Table
-    main_layout->addWidget(m_table_view = [this, &ppc_symbol_db]() {
-      const auto& ui_settings = Settings::Instance();
+  m_table_proxy->setSourceModel(m_table_model);
+  m_table_proxy->setSortRole(UserRole::SortRole);
+  m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
 
-      m_table_proxy = new BranchWatchProxyModel(m_branch_watch);
-      m_table_proxy->setSourceModel(
-          m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db));
-      m_table_proxy->setSortRole(UserRole::SortRole);
-      m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
+  m_table_view->setModel(m_table_proxy);
+  m_table_view->setSortingEnabled(true);
+  m_table_view->sortByColumn(Column::Origin, Qt::AscendingOrder);
+  m_table_view->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  m_table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_table_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_table_view->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  m_table_view->setCornerButtonEnabled(false);
+  m_table_view->verticalHeader()->hide();
+  m_table_view->setColumnWidth(Column::Instruction, 50);
+  m_table_view->setColumnWidth(Column::Condition, 50);
+  m_table_view->setColumnWidth(Column::OriginSymbol, 250);
+  m_table_view->setColumnWidth(Column::DestinSymbol, 250);
+  // The default column width (100 units) is fine for the rest.
 
-      m_table_model->setFont(ui_settings.GetDebugFont());
-      connect(&ui_settings, &Settings::DebugFontChanged, m_table_model,
-              &BranchWatchTableModel::setFont);
-      connect(Host::GetInstance(), &Host::PPCSymbolsChanged, m_table_model,
-              &BranchWatchTableModel::UpdateSymbols);
+  auto* const horizontal_header = m_table_view->horizontalHeader();
+  horizontal_header->setContextMenuPolicy(Qt::CustomContextMenu);
+  horizontal_header->setStretchLastSection(true);
+  horizontal_header->setSectionsMovable(true);
+  horizontal_header->setFirstSectionMovable(true);
 
-      auto* const table_view = new QTableView;
-      table_view->setModel(m_table_proxy);
-      table_view->setSortingEnabled(true);
-      table_view->sortByColumn(Column::Origin, Qt::AscendingOrder);
-      table_view->setSelectionMode(QAbstractItemView::ExtendedSelection);
-      table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
-      table_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      table_view->setContextMenuPolicy(Qt::CustomContextMenu);
-      table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-      table_view->setCornerButtonEnabled(false);
-      table_view->verticalHeader()->hide();
-      table_view->setColumnWidth(Column::Instruction, 50);
-      table_view->setColumnWidth(Column::Condition, 50);
-      table_view->setColumnWidth(Column::OriginSymbol, 250);
-      table_view->setColumnWidth(Column::DestinSymbol, 250);
-      // The default column width (100 units) is fine for the rest.
+  connect(m_table_view, &QTableView::clicked, this, &BranchWatchDialog::OnTableClicked);
+  connect(m_table_view, &QTableView::customContextMenuRequested, this,
+          &BranchWatchDialog::OnTableContextMenu);
+  connect(horizontal_header, &QHeaderView::customContextMenuRequested, this,
+          &BranchWatchDialog::OnTableHeaderContextMenu);
+  connect(new QShortcut(QKeySequence(Qt::Key_Delete), this), &QShortcut::activated, this,
+          &BranchWatchDialog::OnTableDeleteKeypress);
 
-      QHeaderView* const horizontal_header = table_view->horizontalHeader();
-      horizontal_header->restoreState(  // Restore column visibility state.
-          Settings::GetQSettings()
-              .value(QStringLiteral("branchwatchdialog/tableheader/state"))
-              .toByteArray());
-      horizontal_header->setContextMenuPolicy(Qt::CustomContextMenu);
-      horizontal_header->setStretchLastSection(true);
-      horizontal_header->setSectionsMovable(true);
-      horizontal_header->setFirstSectionMovable(true);
+  // Status Bar
+  m_status_bar = new QStatusBar(nullptr);
+  m_status_bar->setSizeGripEnabled(false);
 
-      connect(table_view, &QTableView::clicked, this, &BranchWatchDialog::OnTableClicked);
-      connect(table_view, &QTableView::customContextMenuRequested, this,
-              &BranchWatchDialog::OnTableContextMenu);
-      connect(horizontal_header, &QHeaderView::customContextMenuRequested, this,
-              &BranchWatchDialog::OnTableHeaderContextMenu);
-      connect(new QShortcut(QKeySequence(Qt::Key_Delete), this), &QShortcut::activated, this,
-              &BranchWatchDialog::OnTableDeleteKeypress);
-
-      return table_view;
-    }());
-
-    m_mnu_column_visibility = [this]() {
-      static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
-          QT_TR_NOOP("Instruction"),   QT_TR_NOOP("Condition"),         QT_TR_NOOP("Origin"),
-          QT_TR_NOOP("Destination"),   QT_TR_NOOP("Recent Hits"),       QT_TR_NOOP("Total Hits"),
-          QT_TR_NOOP("Origin Symbol"), QT_TR_NOOP("Destination Symbol")};
-
-      auto* const menu = new QMenu();
-      for (int column = 0; column < Column::NumberOfColumns; ++column)
-      {
-        QAction* action = menu->addAction(tr(headers[column]), [this, column](bool enabled) {
-          m_table_view->setColumnHidden(column, !enabled);
-        });
-        action->setChecked(!m_table_view->isColumnHidden(column));
-        action->setCheckable(true);
-      }
-      return menu;
-    }();
-
-    // Menu Bar
-    main_layout->setMenuBar([this]() {
-      QMenuBar* const menu_bar = new QMenuBar;
-      menu_bar->setNativeMenuBar(false);
-
-      QMenu* const menu_file = new QMenu(tr("&File"), menu_bar);
-      menu_file->addAction(tr("&Save Branch Watch"), this, &BranchWatchDialog::OnSave);
-      menu_file->addAction(tr("Save Branch Watch &As..."), this, &BranchWatchDialog::OnSaveAs);
-      menu_file->addAction(tr("&Load Branch Watch"), this, &BranchWatchDialog::OnLoad);
-      menu_file->addAction(tr("Load Branch Watch &From..."), this, &BranchWatchDialog::OnLoadFrom);
-      m_act_autosave = menu_file->addAction(tr("A&uto Save"));
-      m_act_autosave->setCheckable(true);
-      connect(m_act_autosave, &QAction::toggled, this, &BranchWatchDialog::OnToggleAutoSave);
-      menu_bar->addMenu(menu_file);
-
-      QMenu* const menu_tool = new QMenu(tr("&Tool"), menu_bar);
-      menu_tool->setToolTipsVisible(true);
-      menu_tool->addAction(tr("Hide &Controls"), this, &BranchWatchDialog::OnHideShowControls)
-          ->setCheckable(true);
-      QAction* const act_ignore_apploader =
-          menu_tool->addAction(tr("Ignore &Apploader Branch Hits"));
-      act_ignore_apploader->setToolTip(
-          tr("This only applies to the initial boot of the emulated software."));
-      act_ignore_apploader->setChecked(m_system.IsBranchWatchIgnoreApploader());
-      act_ignore_apploader->setCheckable(true);
-      connect(act_ignore_apploader, &QAction::toggled, this,
-              &BranchWatchDialog::OnToggleIgnoreApploader);
-
-      menu_tool->addMenu(m_mnu_column_visibility)->setText(tr("Column &Visibility"));
-      menu_tool->addAction(tr("Wipe &Inspection Data"), this, &BranchWatchDialog::OnWipeInspection);
-      menu_tool->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
-
-      menu_bar->addMenu(menu_tool);
-
-      return menu_bar;
-    }());
-
-    // Status Bar
-    main_layout->addWidget(m_status_bar = []() {
-      auto* const status_bar = new QStatusBar;
-      status_bar->setSizeGripEnabled(false);
-      return status_bar;
-    }());
-
+  // Controls Toolbar
+  m_control_toolbar = new QToolBar(nullptr);
+  {
     // Tool Controls
-    m_control_toolbar->addWidget([this]() {
-      auto* const layout = new QGridLayout;
+    m_btn_start_pause = new QPushButton(tr("Start Branch Watch"), nullptr);
+    connect(m_btn_start_pause, &QPushButton::toggled, this, &BranchWatchDialog::OnStartPause);
+    m_btn_start_pause->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_start_pause->setCheckable(true);
 
-      layout->addWidget(m_btn_start_pause = new QPushButton(tr("Start Branch Watch")), 0, 0);
-      connect(m_btn_start_pause, &QPushButton::toggled, this, &BranchWatchDialog::OnStartPause);
-      m_btn_start_pause->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-      m_btn_start_pause->setCheckable(true);
+    m_btn_clear_watch = new QPushButton(tr("Clear Branch Watch"), nullptr);
+    connect(m_btn_clear_watch, &QPushButton::clicked, this, &BranchWatchDialog::OnClearBranchWatch);
+    m_btn_clear_watch->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-      layout->addWidget(m_btn_clear_watch = new QPushButton(tr("Clear Branch Watch")), 1, 0);
-      connect(m_btn_clear_watch, &QPushButton::pressed, this,
-              &BranchWatchDialog::OnClearBranchWatch);
-      m_btn_clear_watch->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_path_was_taken = new QPushButton(tr("Code Path Was Taken"), nullptr);
+    connect(m_btn_path_was_taken, &QPushButton::clicked, this,
+            &BranchWatchDialog::OnCodePathWasTaken);
+    m_btn_path_was_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-      layout->addWidget(m_btn_path_was_taken = new QPushButton(tr("Code Path Was Taken")), 0, 1);
-      connect(m_btn_path_was_taken, &QPushButton::pressed, this,
-              &BranchWatchDialog::OnCodePathWasTaken);
-      m_btn_path_was_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_path_not_taken = new QPushButton(tr("Code Path Not Taken"), nullptr);
+    connect(m_btn_path_not_taken, &QPushButton::clicked, this,
+            &BranchWatchDialog::OnCodePathNotTaken);
+    m_btn_path_not_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-      layout->addWidget(m_btn_path_not_taken = new QPushButton(tr("Code Path Not Taken")), 1, 1);
-      connect(m_btn_path_not_taken, &QPushButton::pressed, this,
-              &BranchWatchDialog::OnCodePathNotTaken);
-      m_btn_path_not_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    auto* const layout = new QGridLayout(nullptr);
+    layout->addWidget(m_btn_start_pause, 0, 0);
+    layout->addWidget(m_btn_clear_watch, 1, 0);
+    layout->addWidget(m_btn_path_was_taken, 0, 1);
+    layout->addWidget(m_btn_path_not_taken, 1, 1);
 
-      auto* const group_box = new QGroupBox(tr("Tool Controls"));
-      group_box->setLayout(layout);
-      group_box->setAlignment(Qt::AlignHCenter);
+    auto* const group_box = new QGroupBox(tr("Tool Controls"), nullptr);
+    group_box->setLayout(layout);
+    group_box->setAlignment(Qt::AlignHCenter);
 
-      return group_box;
-    }());
-
+    m_control_toolbar->addWidget(group_box);
+  }
+  {
     // Spacer
-    m_control_toolbar->addWidget([]() {
-      auto* const widget = new QWidget;
-      widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
-      return widget;
-    }());
-
+    auto* const widget = new QWidget(nullptr);
+    widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+    m_control_toolbar->addWidget(widget);
+  }
+  {
     // Branch Type Filter Options
-    m_control_toolbar->addWidget([this]() {
-      auto* const layout = new QGridLayout;
+    auto* const layout = new QGridLayout(nullptr);
 
-      const auto routine = [this, layout](const QString& text, const QString& tooltip, int row,
-                                          int column, void (BranchWatchProxyModel::*slot)(bool)) {
-        QCheckBox* const check_box = new QCheckBox(text);
-        check_box->setToolTip(tooltip);
-        layout->addWidget(check_box, row, column);
-        connect(check_box, &QCheckBox::toggled, [this, slot](bool checked) {
-          (m_table_proxy->*slot)(checked);
-          UpdateStatus();
-        });
-        check_box->setChecked(true);
-      };
+    const auto routine = [this, layout](const QString& text, const QString& tooltip, int row,
+                                        int column, void (BranchWatchProxyModel::*slot)(bool)) {
+      auto* const check_box = new QCheckBox(text, nullptr);
+      check_box->setToolTip(tooltip);
+      layout->addWidget(check_box, row, column);
+      connect(check_box, &QCheckBox::toggled, [this, slot](bool checked) {
+        (m_table_proxy->*slot)(checked);
+        UpdateStatus();
+      });
+      check_box->setChecked(true);
+    };
 
-      // clang-format off
-      routine(QStringLiteral("b"     ), tr("Branch"                                         ), 0, 0, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_b     >);
-      routine(QStringLiteral("bl"    ), tr("Branch (LR saved)"                              ), 0, 1, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bl    >);
-      routine(QStringLiteral("bc"    ), tr("Branch Conditional"                             ), 0, 2, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bc    >);
-      routine(QStringLiteral("bcl"   ), tr("Branch Conditional (LR saved)"                  ), 0, 3, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bcl   >);
-      routine(QStringLiteral("blr"   ), tr("Branch to Link Register"                        ), 1, 0, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_blr   >);
-      routine(QStringLiteral("blrl"  ), tr("Branch to Link Register (LR saved)"             ), 1, 1, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_blrl  >);
-      routine(QStringLiteral("bclr"  ), tr("Branch Conditional to Link Register"            ), 1, 2, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bclr  >);
-      routine(QStringLiteral("bclrl" ), tr("Branch Conditional to Link Register (LR saved)" ), 1, 3, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bclrl >);
-      routine(QStringLiteral("bctr"  ), tr("Branch to Count Register"                       ), 2, 0, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bctr  >);
-      routine(QStringLiteral("bctrl" ), tr("Branch to Count Register (LR saved)"            ), 2, 1, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bctrl >);
-      routine(QStringLiteral("bcctr" ), tr("Branch Conditional to Count Register"           ), 2, 2, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bcctr >);
-      routine(QStringLiteral("bcctrl"), tr("Branch Conditional to Count Register (LR saved)"), 2, 3, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bcctrl>);
-      // clang-format on
+    // clang-format off
+    routine(QStringLiteral("b"     ), tr("Branch"                                         ), 0, 0, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_b     >);
+    routine(QStringLiteral("bl"    ), tr("Branch (LR saved)"                              ), 0, 1, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bl    >);
+    routine(QStringLiteral("bc"    ), tr("Branch Conditional"                             ), 0, 2, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bc    >);
+    routine(QStringLiteral("bcl"   ), tr("Branch Conditional (LR saved)"                  ), 0, 3, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bcl   >);
+    routine(QStringLiteral("blr"   ), tr("Branch to Link Register"                        ), 1, 0, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_blr   >);
+    routine(QStringLiteral("blrl"  ), tr("Branch to Link Register (LR saved)"             ), 1, 1, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_blrl  >);
+    routine(QStringLiteral("bclr"  ), tr("Branch Conditional to Link Register"            ), 1, 2, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bclr  >);
+    routine(QStringLiteral("bclrl" ), tr("Branch Conditional to Link Register (LR saved)" ), 1, 3, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bclrl >);
+    routine(QStringLiteral("bctr"  ), tr("Branch to Count Register"                       ), 2, 0, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bctr  >);
+    routine(QStringLiteral("bctrl" ), tr("Branch to Count Register (LR saved)"            ), 2, 1, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bctrl >);
+    routine(QStringLiteral("bcctr" ), tr("Branch Conditional to Count Register"           ), 2, 2, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bcctr >);
+    routine(QStringLiteral("bcctrl"), tr("Branch Conditional to Count Register (LR saved)"), 2, 3, &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_bcctrl>);
+    // clang-format on
 
-      auto* const group_box = new QGroupBox(tr("Branch Type"));
-      group_box->setLayout(layout);
-      group_box->setAlignment(Qt::AlignHCenter);
+    auto* const group_box = new QGroupBox(tr("Branch Type"), nullptr);
+    group_box->setLayout(layout);
+    group_box->setAlignment(Qt::AlignHCenter);
 
-      return group_box;
-    }());
-
+    m_act_branch_type_filters = m_control_toolbar->addWidget(group_box);
+  }
+  {
     // Origin and Destination Filter Options
-    m_control_toolbar->addWidget([this]() {
-      auto* const layout = new QGridLayout;
+    auto* const layout = new QGridLayout(nullptr);
 
-      const auto routine = [this, layout](const QString& placeholder_text, int row, int column,
-                                          int width,
-                                          void (BranchWatchProxyModel::*slot)(const QString&)) {
-        QLineEdit* const line_edit = new QLineEdit;
-        layout->addWidget(line_edit, row, column, 1, width);
-        connect(line_edit, &QLineEdit::textChanged, [this, slot](const QString& text) {
-          (m_table_proxy->*slot)(text);
-          UpdateStatus();
-        });
-        line_edit->setPlaceholderText(placeholder_text);
-        return line_edit;
-      };
+    const auto routine = [this, layout](const QString& placeholder_text, int row, int column,
+                                        int width,
+                                        void (BranchWatchProxyModel::*slot)(const QString&)) {
+      auto* const line_edit = new QLineEdit(nullptr);
+      layout->addWidget(line_edit, row, column, 1, width);
+      connect(line_edit, &QLineEdit::textChanged, [this, slot](const QString& text) {
+        (m_table_proxy->*slot)(text);
+        UpdateStatus();
+      });
+      line_edit->setPlaceholderText(placeholder_text);
+      return line_edit;
+    };
 
-      // clang-format off
-      routine(tr("Origin Symbol"     ), 0, 0, 1, &BranchWatchProxyModel::OnSymbolTextChanged<&BranchWatchProxyModel::m_origin_symbol_name>);
-      routine(tr("Origin Min"        ), 1, 0, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_origin_min>)->setMaxLength(8);
-      routine(tr("Origin Max"        ), 2, 0, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_origin_max>)->setMaxLength(8);
-      routine(tr("Destination Symbol"), 0, 1, 1, &BranchWatchProxyModel::OnSymbolTextChanged<&BranchWatchProxyModel::m_destin_symbol_name>);
-      routine(tr("Destination Min"   ), 1, 1, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_destin_min>)->setMaxLength(8);
-      routine(tr("Destination Max"   ), 2, 1, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_destin_max>)->setMaxLength(8);
-      // clang-format on
+    // clang-format off
+    routine(tr("Origin Symbol"     ), 0, 0, 1, &BranchWatchProxyModel::OnSymbolTextChanged<&BranchWatchProxyModel::m_origin_symbol_name>);
+    routine(tr("Origin Min"        ), 1, 0, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_origin_min>)->setMaxLength(8);
+    routine(tr("Origin Max"        ), 2, 0, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_origin_max>)->setMaxLength(8);
+    routine(tr("Destination Symbol"), 0, 1, 1, &BranchWatchProxyModel::OnSymbolTextChanged<&BranchWatchProxyModel::m_destin_symbol_name>);
+    routine(tr("Destination Min"   ), 1, 1, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_destin_min>)->setMaxLength(8);
+    routine(tr("Destination Max"   ), 2, 1, 1, &BranchWatchProxyModel::OnAddressTextChanged<&BranchWatchProxyModel::m_destin_max>)->setMaxLength(8);
+    // clang-format on
 
-      auto* const group_box = new QGroupBox(tr("Origin and Destination"));
-      group_box->setLayout(layout);
-      group_box->setAlignment(Qt::AlignHCenter);
+    auto* const group_box = new QGroupBox(tr("Origin and Destination"), nullptr);
+    group_box->setLayout(layout);
+    group_box->setAlignment(Qt::AlignHCenter);
 
-      return group_box;
-    }());
-
+    m_act_origin_destin_filters = m_control_toolbar->addWidget(group_box);
+  }
+  {
     // Condition Filter Options
-    m_control_toolbar->addWidget([this]() {
-      auto* const layout = new QVBoxLayout;
-      layout->setAlignment(Qt::AlignHCenter);
+    auto* const layout = new QVBoxLayout(nullptr);
+    layout->setAlignment(Qt::AlignHCenter);
 
-      const auto routine = [this, layout](const QString& text,
-                                          void (BranchWatchProxyModel::*slot)(bool)) {
-        QCheckBox* const check_box = new QCheckBox(text);
-        layout->addWidget(check_box);
-        connect(check_box, &QCheckBox::toggled, [this, slot](bool checked) {
-          (m_table_proxy->*slot)(checked);
-          UpdateStatus();
-        });
-        check_box->setChecked(true);
-        return check_box;
-      };
+    const auto routine = [this, layout](const QString& text,
+                                        void (BranchWatchProxyModel::*slot)(bool)) {
+      auto* const check_box = new QCheckBox(text, nullptr);
+      layout->addWidget(check_box);
+      connect(check_box, &QCheckBox::toggled, [this, slot](bool checked) {
+        (m_table_proxy->*slot)(checked);
+        UpdateStatus();
+      });
+      check_box->setChecked(true);
+      return check_box;
+    };
 
-      routine(QStringLiteral("true"),
-              &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_cond_true>)
-          ->setToolTip(tr("This will also filter unconditional branches.\n"
-                          "To filter for or against unconditional branches,\n"
-                          "use the Branch Type filter options."));
-      routine(QStringLiteral("false"),
-              &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_cond_false>);
+    routine(tr("true"), &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_cond_true>)
+        ->setToolTip(tr("This will also filter unconditional branches.\n"
+                        "To filter for or against unconditional branches,\n"
+                        "use the Branch Type filter options."));
+    routine(tr("false"), &BranchWatchProxyModel::OnToggled<&BranchWatchProxyModel::m_cond_false>);
 
-      auto* const group_box = new QGroupBox(tr("Condition"));
-      group_box->setLayout(layout);
-      group_box->setAlignment(Qt::AlignHCenter);
+    auto* const group_box = new QGroupBox(tr("Condition"), nullptr);
+    group_box->setLayout(layout);
+    group_box->setAlignment(Qt::AlignHCenter);
 
-      return group_box;
-    }());
-
+    m_act_condition_filters = m_control_toolbar->addWidget(group_box);
+  }
+  {
     // Misc. Controls
-    m_control_toolbar->addWidget([this]() {
-      auto* const layout = new QVBoxLayout;
+    m_btn_was_overwritten = new QPushButton(tr("Branch Was Overwritten"), nullptr);
+    connect(m_btn_was_overwritten, &QPushButton::clicked, this,
+            &BranchWatchDialog::OnBranchWasOverwritten);
+    m_btn_was_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-      layout->addWidget(m_btn_was_overwritten = new QPushButton(tr("Branch Was Overwritten")));
-      connect(m_btn_was_overwritten, &QPushButton::pressed, this,
-              &BranchWatchDialog::OnBranchWasOverwritten);
-      m_btn_was_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_not_overwritten = new QPushButton(tr("Branch Not Overwritten"), nullptr);
+    connect(m_btn_not_overwritten, &QPushButton::clicked, this,
+            &BranchWatchDialog::OnBranchNotOverwritten);
+    m_btn_not_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-      layout->addWidget(m_btn_not_overwritten = new QPushButton(tr("Branch Not Overwritten")));
-      connect(m_btn_not_overwritten, &QPushButton::pressed, this,
-              &BranchWatchDialog::OnBranchNotOverwritten);
-      m_btn_not_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_wipe_recent_hits = new QPushButton(tr("Wipe Recent Hits"), nullptr);
+    connect(m_btn_wipe_recent_hits, &QPushButton::clicked, this,
+            &BranchWatchDialog::OnWipeRecentHits);
+    m_btn_wipe_recent_hits->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_wipe_recent_hits->setEnabled(false);
 
-      layout->addWidget(m_btn_wipe_recent_hits = new QPushButton(tr("Wipe Recent Hits")));
-      connect(m_btn_wipe_recent_hits, &QPushButton::pressed, this,
-              &BranchWatchDialog::OnWipeRecentHits);
-      m_btn_wipe_recent_hits->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-      m_btn_wipe_recent_hits->setEnabled(false);
+    auto* const layout = new QVBoxLayout(nullptr);
+    layout->addWidget(m_btn_was_overwritten);
+    layout->addWidget(m_btn_not_overwritten);
+    layout->addWidget(m_btn_wipe_recent_hits);
 
-      auto* const group_box = new QGroupBox(tr("Misc. Controls"));
-      group_box->setLayout(layout);
-      group_box->setAlignment(Qt::AlignHCenter);
+    auto* const group_box = new QGroupBox(tr("Misc. Controls"), nullptr);
+    group_box->setLayout(layout);
+    group_box->setAlignment(Qt::AlignHCenter);
 
-      return group_box;
-    }());
+    m_act_misc_controls = m_control_toolbar->addWidget(group_box);
+  }
 
-    UpdateIcons();
+  // Table Context Menus
+  auto* const delete_action = new QAction(tr("&Delete"), this);
+  connect(delete_action, &QAction::triggered, this, &BranchWatchDialog::OnTableDelete);
 
-    connect(m_timer = new QTimer, &QTimer::timeout, this, &BranchWatchDialog::OnTimeout);
-    connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-            &BranchWatchDialog::OnEmulationStateChanged);
-    connect(&Settings::Instance(), &Settings::ThemeChanged, this,
-            &BranchWatchDialog::OnThemeChanged);
-    connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
-            &BranchWatchDialog::UpdateStatus);
+  m_act_invert_condition = new QAction(tr("Invert &Condition"), this);
+  connect(m_act_invert_condition, &QAction::triggered, this,
+          &BranchWatchDialog::OnTableInvertCondition);
 
-    return main_layout;
-  }());
+  m_act_invert_decrement_check = new QAction(tr("Invert &Decrement Check"), this);
+  connect(m_act_invert_decrement_check, &QAction::triggered, this,
+          &BranchWatchDialog::OnTableInvertDecrementCheck);
 
-  const auto& settings = Settings::GetQSettings();
-  restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
+  m_act_make_unconditional = new QAction(tr("Make &Unconditional"), this);
+  connect(m_act_make_unconditional, &QAction::triggered, this,
+          &BranchWatchDialog::OnTableMakeUnconditional);
+
+  m_act_copy_address = new QAction(tr("&Copy Address"), this);
+  connect(m_act_copy_address, &QAction::triggered, this, &BranchWatchDialog::OnTableCopyAddress);
+
+  m_act_insert_nop = new QAction(tr("Insert &NOP"), this);
+  connect(m_act_insert_nop, &QAction::triggered, this, &BranchWatchDialog::OnTableSetNOP);
+
+  m_act_insert_blr = new QAction(tr("Insert &BLR"), this);
+  connect(m_act_insert_blr, &QAction::triggered, this, &BranchWatchDialog::OnTableSetBLR);
+
+  m_mnu_set_breakpoint = new QMenu(tr("Set Brea&kpoint"), this);
+  m_act_break_on_hit = m_mnu_set_breakpoint->addAction(
+      tr("&Break on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
+  m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log on Hit"), this,
+                                                     &BranchWatchDialog::OnTableSetBreakpointLog);
+  m_act_both_on_hit = m_mnu_set_breakpoint->addAction(tr("Break &and Log on Hit"), this,
+                                                      &BranchWatchDialog::OnTableSetBreakpointBoth);
+
+  m_mnu_table_context_instruction = new QMenu(this);
+  m_mnu_table_context_instruction->addActions(
+      {delete_action, m_act_invert_condition, m_act_invert_decrement_check});
+
+  m_mnu_table_context_condition = new QMenu(this);
+  m_mnu_table_context_condition->addActions({delete_action, m_act_make_unconditional});
+
+  m_mnu_table_context_origin = new QMenu(this);
+  m_mnu_table_context_origin->addActions(
+      {delete_action, m_act_insert_nop, m_act_copy_address, m_mnu_set_breakpoint->menuAction()});
+
+  m_mnu_table_context_destin_or_symbol = new QMenu(this);
+  m_mnu_table_context_destin_or_symbol->addActions(
+      {delete_action, m_act_insert_blr, m_act_copy_address, m_mnu_set_breakpoint->menuAction()});
+
+  m_mnu_table_context_other = new QMenu(this);
+  m_mnu_table_context_other->addAction(delete_action);
+
+  LoadQSettings();
+
+  // Column Visibility Menu
+  m_mnu_column_visibility = new QMenu(this);
+  {
+    static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
+        QT_TR_NOOP("Instruction"),   QT_TR_NOOP("Condition"),         QT_TR_NOOP("Origin"),
+        QT_TR_NOOP("Destination"),   QT_TR_NOOP("Recent Hits"),       QT_TR_NOOP("Total Hits"),
+        QT_TR_NOOP("Origin Symbol"), QT_TR_NOOP("Destination Symbol")};
+
+    for (int column = 0; column < Column::NumberOfColumns; ++column)
+    {
+      auto* const action =
+          m_mnu_column_visibility->addAction(tr(headers[column]), [this, column](bool enabled) {
+            m_table_view->setColumnHidden(column, !enabled);
+          });
+      action->setChecked(!m_table_view->isColumnHidden(column));
+      action->setCheckable(true);
+    }
+  }
+
+  // Toolbar Visibility Menu
+  auto* const toolbar_visibility_menu = new QMenu(this);
+  {
+    const auto routine = [toolbar_visibility_menu](const QString& text, QAction* toolbar_action) {
+      auto* const menu_action =
+          toolbar_visibility_menu->addAction(text, toolbar_action, &QAction::setVisible);
+      menu_action->setChecked(toolbar_action->isVisible());
+      menu_action->setCheckable(true);
+    };
+    routine(tr("&Branch Type"), m_act_branch_type_filters);
+    routine(tr("&Origin and Destination"), m_act_origin_destin_filters);
+    routine(tr("&Condition"), m_act_condition_filters);
+    routine(tr("&Misc. Controls"), m_act_misc_controls);
+  }
+
+  // Menu Bar
+  auto* const menu_bar = new QMenuBar(nullptr);
+  menu_bar->setNativeMenuBar(false);
+  {
+    auto* const menu = menu_bar->addMenu(tr("&File"));
+    menu->addAction(tr("&Save Branch Watch"), this, &BranchWatchDialog::OnSave);
+    menu->addAction(tr("Save Branch Watch &As..."), this, &BranchWatchDialog::OnSaveAs);
+    menu->addAction(tr("&Load Branch Watch"), this, &BranchWatchDialog::OnLoad);
+    menu->addAction(tr("Load Branch Watch &From..."), this, &BranchWatchDialog::OnLoadFrom);
+    m_act_autosave = menu->addAction(tr("A&uto Save"));
+    m_act_autosave->setCheckable(true);
+    connect(m_act_autosave, &QAction::toggled, this, &BranchWatchDialog::OnToggleAutoSave);
+  }
+  {
+    auto* const menu = menu_bar->addMenu(tr("&Tool"));
+    menu->setToolTipsVisible(true);
+    menu->addAction(tr("Hide &Controls"), this, &BranchWatchDialog::OnHideShowControls)
+        ->setCheckable(true);
+    auto* const act_ignore_apploader = menu->addAction(tr("Ignore &Apploader Branch Hits"));
+    act_ignore_apploader->setToolTip(
+        tr("This only applies to the initial boot of the emulated software."));
+    act_ignore_apploader->setChecked(m_system.IsBranchWatchIgnoreApploader());
+    act_ignore_apploader->setCheckable(true);
+    connect(act_ignore_apploader, &QAction::toggled, this,
+            &BranchWatchDialog::OnToggleIgnoreApploader);
+    menu->addMenu(m_mnu_column_visibility)->setText(tr("Column &Visibility"));
+    menu->addMenu(toolbar_visibility_menu)->setText(tr("&Toolbar Visibility"));
+    menu->addAction(tr("Wipe &Inspection Data"), this, &BranchWatchDialog::OnWipeInspection);
+    menu->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
+  }
+
+  connect(m_timer = new QTimer(this), &QTimer::timeout, this, &BranchWatchDialog::OnTimeout);
+  connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
+          &BranchWatchDialog::UpdateStatus);
+
+  auto* const main_layout = new QVBoxLayout(nullptr);
+  main_layout->setMenuBar(menu_bar);
+  main_layout->addWidget(m_control_toolbar);
+  main_layout->addWidget(m_table_view);
+  main_layout->addWidget(m_status_bar);
+  setLayout(main_layout);
 }
 
 BranchWatchDialog::~BranchWatchDialog()
 {
-  SaveSettings();
+  SaveQSettings();
 }
 
 static constexpr int BRANCH_WATCH_TOOL_TIMER_DELAY_MS = 100;
-static constexpr int BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS = 200;
 
 static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State state)
 {
@@ -523,37 +558,30 @@ static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State st
 
 void BranchWatchDialog::hideEvent(QHideEvent* event)
 {
-  if (m_timer->isActive())
-    m_timer->stop();
+  Hide();
   QDialog::hideEvent(event);
 }
 
 void BranchWatchDialog::showEvent(QShowEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState(m_system)))
-    m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
+  Show();
   QDialog::showEvent(event);
 }
 
-void BranchWatchDialog::OnStartPause(bool checked)
+void BranchWatchDialog::OnStartPause(bool checked) const
 {
+  m_branch_watch.SetRecordingActive(Core::CPUThreadGuard{m_system}, checked);
   if (checked)
   {
-    m_branch_watch.Start();
     m_btn_start_pause->setText(tr("Pause Branch Watch"));
-    // Restart the timer if the situation calls for it, but always turn off single-shot.
-    m_timer->setSingleShot(false);
     if (Core::GetState(m_system) > Core::State::Paused)
       m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   }
   else
   {
-    m_branch_watch.Pause();
     m_btn_start_pause->setText(tr("Start Branch Watch"));
-    // Schedule one last update in the future in case Branch Watch is in the middle of a hit.
-    if (Core::GetState(m_system) > Core::State::Paused)
-      m_timer->setInterval(BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS);
-    m_timer->setSingleShot(true);
+    if (m_timer->isActive())
+      m_timer->stop();
   }
   Update();
 }
@@ -644,11 +672,6 @@ void BranchWatchDialog::OnCodePathNotTaken()
 
 void BranchWatchDialog::OnBranchWasOverwritten()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
-  {
-    ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
-    return;
-  }
   {
     const Core::CPUThreadGuard guard{m_system};
     m_table_model->OnBranchWasOverwritten(guard);
@@ -659,11 +682,6 @@ void BranchWatchDialog::OnBranchWasOverwritten()
 
 void BranchWatchDialog::OnBranchNotOverwritten()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
-  {
-    ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
-    return;
-  }
   {
     const Core::CPUThreadGuard guard{m_system};
     m_table_model->OnBranchNotOverwritten(guard);
@@ -672,26 +690,25 @@ void BranchWatchDialog::OnBranchNotOverwritten()
   UpdateStatus();
 }
 
-void BranchWatchDialog::OnWipeRecentHits()
+void BranchWatchDialog::OnWipeRecentHits() const
 {
   m_table_model->OnWipeRecentHits();
 }
 
-void BranchWatchDialog::OnWipeInspection()
+void BranchWatchDialog::OnWipeInspection() const
 {
   m_table_model->OnWipeInspection();
 }
 
-void BranchWatchDialog::OnTimeout()
+void BranchWatchDialog::OnTimeout() const
 {
   Update();
 }
 
-void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state)
+void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state) const
 {
-  if (!isVisible())
-    return;
-
+  m_btn_was_overwritten->setEnabled(new_state != Core::State::Uninitialized);
+  m_btn_not_overwritten->setEnabled(new_state != Core::State::Uninitialized);
   if (TimerCondition(m_branch_watch, new_state))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   else if (m_timer->isActive())
@@ -751,6 +768,15 @@ void BranchWatchDialog::OnHelp()
          "destination symbol columns, these actions will only be enabled if every row in the "
          "selection has a symbol."
          "\n\n"
+         "If the instruction column of a row selection is right-clicked, an action to invert the "
+         "branch instruction's condition and an action to invert the branch instruction's "
+         "decrement check will be available, but only if the branch instruction is a conditional "
+         "one."
+         "\n\n"
+         "If the condition column of a row selection is right-clicked, an action to make the "
+         "branch instruction unconditional will be available, but only if the branch instruction "
+         "is a conditional one."
+         "\n\n"
          "If the origin column of a row selection is right-clicked, an action to replace the "
          "branch instruction at the origin(s) with a NOP instruction (No Operation) will be "
          "available."
@@ -784,7 +810,7 @@ void BranchWatchDialog::OnToggleAutoSave(bool checked)
     m_autosave_filepath = filepath.toStdString();
 }
 
-void BranchWatchDialog::OnHideShowControls(bool checked)
+void BranchWatchDialog::OnHideShowControls(bool checked) const
 {
   if (checked)
     m_control_toolbar->hide();
@@ -792,12 +818,12 @@ void BranchWatchDialog::OnHideShowControls(bool checked)
     m_control_toolbar->show();
 }
 
-void BranchWatchDialog::OnToggleIgnoreApploader(bool checked)
+void BranchWatchDialog::OnToggleIgnoreApploader(bool checked) const
 {
   m_system.SetIsBranchWatchIgnoreApploader(checked);
 }
 
-void BranchWatchDialog::OnTableClicked(const QModelIndex& index)
+void BranchWatchDialog::OnTableClicked(const QModelIndex& index) const
 {
   const QVariant v = m_table_proxy->data(index, UserRole::ClickRole);
   switch (index.column())
@@ -814,7 +840,7 @@ void BranchWatchDialog::OnTableClicked(const QModelIndex& index)
   }
 }
 
-void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
+void BranchWatchDialog::OnTableContextMenu(const QPoint& pos) const
 {
   if (m_table_view->horizontalHeader()->hiddenSectionCount() == Column::NumberOfColumns)
   {
@@ -830,12 +856,12 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   m_index_list_temp.shrink_to_fit();
 }
 
-void BranchWatchDialog::OnTableHeaderContextMenu(const QPoint& pos)
+void BranchWatchDialog::OnTableHeaderContextMenu(const QPoint& pos) const
 {
   m_mnu_column_visibility->exec(m_table_view->horizontalHeader()->mapToGlobal(pos));
 }
 
-void BranchWatchDialog::OnTableDelete()
+void BranchWatchDialog::OnTableDelete() const
 {
   std::ranges::transform(
       m_index_list_temp, m_index_list_temp.begin(),
@@ -850,7 +876,7 @@ void BranchWatchDialog::OnTableDelete()
   UpdateStatus();
 }
 
-void BranchWatchDialog::OnTableDeleteKeypress()
+void BranchWatchDialog::OnTableDeleteKeypress() const
 {
   m_index_list_temp = m_table_view->selectionModel()->selectedRows();
   OnTableDelete();
@@ -858,17 +884,44 @@ void BranchWatchDialog::OnTableDeleteKeypress()
   m_index_list_temp.shrink_to_fit();
 }
 
-void BranchWatchDialog::OnTableSetBLR()
+void BranchWatchDialog::OnTableSetBLR() const
 {
   SetStubPatches(0x4e800020);
 }
 
-void BranchWatchDialog::OnTableSetNOP()
+void BranchWatchDialog::OnTableSetNOP() const
 {
   SetStubPatches(0x60000000);
 }
 
-void BranchWatchDialog::OnTableCopyAddress()
+void BranchWatchDialog::OnTableInvertCondition() const
+{
+  SetEditPatches([](u32 hex) {
+    UGeckoInstruction inst = hex;
+    inst.BO ^= 0b01000;
+    return inst.hex;
+  });
+}
+
+void BranchWatchDialog::OnTableInvertDecrementCheck() const
+{
+  SetEditPatches([](u32 hex) {
+    UGeckoInstruction inst = hex;
+    inst.BO ^= 0b00010;
+    return inst.hex;
+  });
+}
+
+void BranchWatchDialog::OnTableMakeUnconditional() const
+{
+  SetEditPatches([](u32 hex) {
+    UGeckoInstruction inst = hex;
+    inst.BO = 0b10100;  // 1z1zz - Branch always
+    return inst.hex;
+  });
+}
+
+void BranchWatchDialog::OnTableCopyAddress() const
 {
   auto iter = m_index_list_temp.begin();
   if (iter == m_index_list_temp.end())
@@ -886,37 +939,102 @@ void BranchWatchDialog::OnTableCopyAddress()
   QApplication::clipboard()->setText(text);
 }
 
-void BranchWatchDialog::OnTableSetBreakpointBreak()
+void BranchWatchDialog::OnTableSetBreakpointBreak() const
 {
   SetBreakpoints(true, false);
 }
 
-void BranchWatchDialog::OnTableSetBreakpointLog()
+void BranchWatchDialog::OnTableSetBreakpointLog() const
 {
   SetBreakpoints(false, true);
 }
 
-void BranchWatchDialog::OnTableSetBreakpointBoth()
+void BranchWatchDialog::OnTableSetBreakpointBoth() const
 {
   SetBreakpoints(true, true);
 }
 
-void BranchWatchDialog::SaveSettings()
+void BranchWatchDialog::ConnectSlots()
+{
+  const auto* const settings = &Settings::Instance();
+  connect(settings, &Settings::EmulationStateChanged, this,
+          &BranchWatchDialog::OnEmulationStateChanged);
+  connect(settings, &Settings::ThemeChanged, this, &BranchWatchDialog::OnThemeChanged);
+  connect(settings, &Settings::DebugFontChanged, m_table_model, &BranchWatchTableModel::setFont);
+  const auto* const host = Host::GetInstance();
+  connect(host, &Host::PPCSymbolsChanged, m_table_model, &BranchWatchTableModel::UpdateSymbols);
+}
+
+void BranchWatchDialog::DisconnectSlots()
+{
+  const auto* const settings = &Settings::Instance();
+  disconnect(settings, &Settings::EmulationStateChanged, this,
+             &BranchWatchDialog::OnEmulationStateChanged);
+  disconnect(settings, &Settings::ThemeChanged, this, &BranchWatchDialog::OnThemeChanged);
+  disconnect(settings, &Settings::DebugFontChanged, m_table_model,
+             &BranchWatchTableModel::OnDebugFontChanged);
+  const auto* const host = Host::GetInstance();
+  disconnect(host, &Host::PPCSymbolsChanged, m_table_model,
+             &BranchWatchTableModel::OnPPCSymbolsChanged);
+}
+
+void BranchWatchDialog::Show()
+{
+  ConnectSlots();
+  // Hit every slot that may have missed a signal while this widget was hidden.
+  OnEmulationStateChanged(Core::GetState(m_system));
+  OnThemeChanged();
+  m_table_model->OnDebugFontChanged(Settings::Instance().GetDebugFont());
+  m_table_model->OnPPCSymbolsChanged();
+}
+
+void BranchWatchDialog::Hide()
+{
+  DisconnectSlots();
+  if (m_timer->isActive())
+    m_timer->stop();
+}
+
+void BranchWatchDialog::LoadQSettings()
+{
+  const auto& settings = Settings::GetQSettings();
+  restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
+  m_table_view->horizontalHeader()->restoreState(  // Restore column visibility state.
+      settings.value(QStringLiteral("branchwatchdialog/tableheader/state")).toByteArray());
+  m_act_branch_type_filters->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/branch_type_hidden")).toBool());
+  m_act_origin_destin_filters->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/origin_destin_hidden")).toBool());
+  m_act_condition_filters->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/condition_hidden")).toBool());
+  m_act_misc_controls->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/misc_controls_hidden")).toBool());
+}
+
+void BranchWatchDialog::SaveQSettings() const
 {
   auto& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("branchwatchdialog/tableheader/state"),
                     m_table_view->horizontalHeader()->saveState());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/branch_type_hidden"),
+                    !m_act_branch_type_filters->isVisible());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/origin_destin_hidden"),
+                    !m_act_origin_destin_filters->isVisible());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/condition_hidden"),
+                    !m_act_condition_filters->isVisible());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/misc_controls_hidden"),
+                    !m_act_misc_controls->isVisible());
 }
 
-void BranchWatchDialog::Update()
+void BranchWatchDialog::Update() const
 {
   if (m_branch_watch.GetRecordingPhase() == Core::BranchWatch::Phase::Blacklist)
     UpdateStatus();
   m_table_model->UpdateHits();
 }
 
-void BranchWatchDialog::UpdateStatus()
+void BranchWatchDialog::UpdateStatus() const
 {
   switch (m_branch_watch.GetRecordingPhase())
   {
@@ -1015,6 +1133,21 @@ void BranchWatchDialog::SetStubPatches(u32 value) const
   m_code_widget->Update();
 }
 
+void BranchWatchDialog::SetEditPatches(u32 (*transform)(u32)) const
+{
+  auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
+  for (const Core::CPUThreadGuard guard(m_system); const QModelIndex& index : m_index_list_temp)
+  {
+    const Core::BranchWatchCollectionKey& k =
+        m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first;
+    // This function assumes patches apply to the origin address, unlike SetStubPatches.
+    debug_interface.SetPatch(guard, k.origin_addr, transform(k.original_inst.hex));
+    m_table_proxy->SetInspected(index);
+  }
+  // TODO: Same issue as SetStubPatches.
+  m_code_widget->Update();
+}
+
 void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
 {
   auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
@@ -1027,112 +1160,111 @@ void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
   m_code_widget->Update();
 }
 
-QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
+void BranchWatchDialog::SetBreakpointMenuActionsIcons() const
 {
-  if (m_mnu_table_context == nullptr)
+  qsizetype bp_break_count = 0, bp_log_count = 0, bp_both_count = 0;
+  for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+       const QModelIndex& index : m_index_list_temp)
   {
-    m_mnu_table_context = new QMenu(this);
-    m_mnu_table_context->addAction(tr("&Delete"), this, &BranchWatchDialog::OnTableDelete);
-    m_act_insert_nop =
-        m_mnu_table_context->addAction(tr("Insert &NOP"), this, &BranchWatchDialog::OnTableSetNOP);
-    m_act_insert_blr =
-        m_mnu_table_context->addAction(tr("Insert &BLR"), this, &BranchWatchDialog::OnTableSetBLR);
-    m_act_copy_address = m_mnu_table_context->addAction(tr("&Copy Address"), this,
-                                                        &BranchWatchDialog::OnTableCopyAddress);
-
-    m_mnu_set_breakpoint = new QMenu(tr("Set Brea&kpoint"));
-    m_act_break_on_hit = m_mnu_set_breakpoint->addAction(
-        tr("&Break on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
-    m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log on Hit"), this,
-                                                       &BranchWatchDialog::OnTableSetBreakpointLog);
-    m_act_both_on_hit = m_mnu_set_breakpoint->addAction(
-        tr("Break &and Log on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBoth);
-    m_mnu_table_context->addMenu(m_mnu_set_breakpoint);
+    if (const TBreakPoint* bp = breakpoints.GetRegularBreakpoint(
+            m_table_proxy->data(index, UserRole::ClickRole).value<u32>()))
+    {
+      if (bp->break_on_hit && bp->log_on_hit)
+      {
+        bp_both_count += 1;
+        continue;
+      }
+      bp_break_count += bp->break_on_hit;
+      bp_log_count += bp->log_on_hit;
+    }
   }
+  const qsizetype selected_row_count = m_index_list_temp.size();
+  m_act_break_on_hit->setIconVisibleInMenu(bp_break_count != 0);
+  m_act_break_on_hit->setIcon(bp_break_count == selected_row_count ? m_icn_full : m_icn_partial);
+  m_act_log_on_hit->setIconVisibleInMenu(bp_log_count != 0);
+  m_act_log_on_hit->setIcon(bp_log_count == selected_row_count ? m_icn_full : m_icn_partial);
+  m_act_both_on_hit->setIconVisibleInMenu(bp_both_count != 0);
+  m_act_both_on_hit->setIcon(bp_both_count == selected_row_count ? m_icn_full : m_icn_partial);
+}
 
+QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
+{
   const bool core_initialized = Core::GetState(m_system) != Core::State::Uninitialized;
-
-  bool supported_column = true;
   switch (index.column())
   {
+  case Column::Instruction:
+    return GetTableContextMenu_Instruction(core_initialized);
+  case Column::Condition:
+    return GetTableContextMenu_Condition(core_initialized);
   case Column::Origin:
-    m_act_insert_blr->setVisible(false);
-    m_act_insert_nop->setVisible(true);
-    m_act_insert_nop->setEnabled(core_initialized);
-    m_act_copy_address->setEnabled(true);
-    m_mnu_set_breakpoint->setEnabled(true);
-    break;
+    return GetTableContextMenu_Origin(core_initialized);
   case Column::Destination:
-  {
-    m_act_insert_nop->setVisible(false);
-    m_act_insert_blr->setVisible(true);
-    const bool all_branches_save_lr =
-        core_initialized &&
-        std::all_of(
-            m_index_list_temp.begin(), m_index_list_temp.end(), [this](const QModelIndex& idx) {
-              const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
-              return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
-            });
-    m_act_insert_blr->setEnabled(all_branches_save_lr);
-    m_act_copy_address->setEnabled(true);
-    m_mnu_set_breakpoint->setEnabled(true);
-    break;
-  }
+    return GetTableContextMenu_Destin(core_initialized);
+  case Column::RecentHits:
+  case Column::TotalHits:
+    return m_mnu_table_context_other;
   case Column::OriginSymbol:
   case Column::DestinSymbol:
-  {
-    m_act_insert_nop->setVisible(false);
-    m_act_insert_blr->setVisible(true);
-    const bool all_symbols_valid =
-        core_initialized &&
-        std::all_of(m_index_list_temp.begin(), m_index_list_temp.end(),
-                    [this](const QModelIndex& idx) {
-                      return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
-                    });
-    m_act_insert_blr->setEnabled(all_symbols_valid);
-    m_act_copy_address->setEnabled(all_symbols_valid);
-    m_mnu_set_breakpoint->setEnabled(all_symbols_valid);
-    break;
+    return GetTableContextMenu_Symbol(core_initialized);
   }
-  default:
-    m_act_insert_nop->setVisible(false);
-    m_act_insert_blr->setVisible(false);
-    supported_column = false;
-    break;
-  }
-  m_act_copy_address->setVisible(supported_column);
-  m_mnu_set_breakpoint->menuAction()->setVisible(supported_column);
-  // Setting breakpoints while nothing is being emulated is discouraged in the UI.
-  m_mnu_set_breakpoint->setEnabled(core_initialized);
+  static_assert(Column::NumberOfColumns == 8);
+  Common::Unreachable();
+}
 
-  if (core_initialized && supported_column)
-  {
-    qsizetype bp_break_count = 0, bp_log_count = 0, bp_both_count = 0;
-    for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
-         const QModelIndex& idx : m_index_list_temp)
-    {
-      if (const TBreakPoint* bp = breakpoints.GetRegularBreakpoint(
-              m_table_proxy->data(idx, UserRole::ClickRole).value<u32>()))
-      {
-        if (bp->break_on_hit && bp->log_on_hit)
-        {
-          bp_both_count += 1;
-          continue;
-        }
-        bp_break_count += bp->break_on_hit;
-        bp_log_count += bp->log_on_hit;
-      }
-    }
-    m_act_break_on_hit->setIconVisibleInMenu(bp_break_count != 0);
-    m_act_break_on_hit->setIcon(bp_break_count == m_index_list_temp.size() ? m_icn_full :
-                                                                             m_icn_partial);
-    m_act_log_on_hit->setIconVisibleInMenu(bp_log_count != 0);
-    m_act_log_on_hit->setIcon(bp_log_count == m_index_list_temp.size() ? m_icn_full :
-                                                                         m_icn_partial);
-    m_act_both_on_hit->setIconVisibleInMenu(bp_both_count != 0);
-    m_act_both_on_hit->setIcon(bp_both_count == m_index_list_temp.size() ? m_icn_full :
-                                                                           m_icn_partial);
-  }
+QMenu* BranchWatchDialog::GetTableContextMenu_Instruction(bool core_initialized) const
+{
+  const bool all_branches_conditional =  // Taking advantage of short-circuit evaluation here.
+      core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return BranchIsConditional(
+            m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first.original_inst);
+      });
+  m_act_invert_condition->setEnabled(all_branches_conditional);
+  m_act_invert_decrement_check->setEnabled(all_branches_conditional);
+  return m_mnu_table_context_instruction;
+}
 
-  return m_mnu_table_context;
+QMenu* BranchWatchDialog::GetTableContextMenu_Condition(bool core_initialized) const
+{
+  const bool all_branches_conditional =  // Taking advantage of short-circuit evaluation here.
+      core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return BranchIsConditional(
+            m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first.original_inst);
+      });
+  m_act_make_unconditional->setEnabled(all_branches_conditional);
+  return m_mnu_table_context_condition;
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu_Origin(bool core_initialized) const
+{
+  SetBreakpointMenuActionsIcons();
+  m_act_insert_nop->setEnabled(core_initialized);
+  m_act_copy_address->setEnabled(true);
+  m_mnu_set_breakpoint->setEnabled(true);
+  return m_mnu_table_context_origin;
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu_Destin(bool core_initialized) const
+{
+  SetBreakpointMenuActionsIcons();
+  const bool all_branches_save_lr =  // Taking advantage of short-circuit evaluation here.
+      core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first.original_inst.LK;
+      });
+  m_act_insert_blr->setEnabled(all_branches_save_lr);
+  m_act_copy_address->setEnabled(true);
+  m_mnu_set_breakpoint->setEnabled(true);
+  return m_mnu_table_context_destin_or_symbol;
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu_Symbol(bool core_initialized) const
+{
+  SetBreakpointMenuActionsIcons();
+  const bool all_symbols_valid =
+      std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return m_table_proxy->data(index, UserRole::ClickRole).isValid();
+      });
+  m_act_insert_blr->setEnabled(core_initialized && all_symbols_valid);
+  m_act_copy_address->setEnabled(all_symbols_valid);
+  m_mnu_set_breakpoint->setEnabled(all_symbols_valid);
+  return m_mnu_table_context_destin_or_symbol;
 }
