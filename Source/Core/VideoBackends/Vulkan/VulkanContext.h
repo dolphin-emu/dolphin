@@ -18,6 +18,43 @@ namespace Vulkan
 class VulkanContext
 {
 public:
+  struct PhysicalDeviceInfo
+  {
+    PhysicalDeviceInfo(const PhysicalDeviceInfo&) = default;
+    explicit PhysicalDeviceInfo(VkPhysicalDevice device);
+    VkPhysicalDeviceFeatures features() const;
+
+    char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
+    u8 pipelineCacheUUID[VK_UUID_SIZE];
+    u32 apiVersion;
+    u32 driverVersion;
+    u32 vendorID;
+    u32 deviceID;
+    VkDeviceSize minUniformBufferOffsetAlignment;
+    VkDeviceSize bufferImageGranularity;
+    u32 maxTexelBufferElements;
+    u32 maxImageDimension2D;
+    VkSampleCountFlags framebufferColorSampleCounts;
+    VkSampleCountFlags framebufferDepthSampleCounts;
+    float pointSizeRange[2];
+    float maxSamplerAnisotropy;
+    u32 subgroupSize = 1;
+    bool dualSrcBlend;
+    bool geometryShader;
+    bool samplerAnisotropy;
+    bool logicOp;
+    bool fragmentStoresAndAtomics;
+    bool sampleRateShading;
+    bool largePoints;
+    bool shaderStorageImageMultisample;
+    bool shaderTessellationAndGeometryPointSize;
+    bool occlusionQueryPrecise;
+    bool shaderClipDistance;
+    bool depthClamp;
+    bool textureCompressionBC;
+    bool shaderSubgroupOperations = false;
+  };
+
   VulkanContext(VkInstance instance, VkPhysicalDevice physical_device);
   ~VulkanContext();
 
@@ -37,10 +74,9 @@ public:
   static void PopulateBackendInfo(VideoConfig* config);
   static void PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list);
   static void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
-                                          const VkPhysicalDeviceProperties& properties,
-                                          const VkPhysicalDeviceFeatures& features);
+                                          const PhysicalDeviceInfo& info);
   static void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice gpu,
-                                                  const VkPhysicalDeviceProperties& properties);
+                                                  const PhysicalDeviceInfo& info);
 
   // Creates a Vulkan device context.
   // This assumes that PopulateBackendInfo and PopulateBackendInfoAdapters has already
@@ -65,39 +101,20 @@ public:
   {
     return m_graphics_queue_properties;
   }
-  const VkPhysicalDeviceMemoryProperties& GetDeviceMemoryProperties() const
-  {
-    return m_device_memory_properties;
-  }
-  const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_device_properties; }
-  const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features; }
-  const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_properties.limits; }
+  const PhysicalDeviceInfo& GetDeviceInfo() const { return m_device_info; }
   // Support bits
-  bool SupportsAnisotropicFiltering() const
-  {
-    return m_device_features.samplerAnisotropy == VK_TRUE;
-  }
-  bool SupportsPreciseOcclusionQueries() const
-  {
-    return m_device_features.occlusionQueryPrecise == VK_TRUE;
-  }
-  u32 GetShaderSubgroupSize() const { return m_shader_subgroup_size; }
-  bool SupportsShaderSubgroupOperations() const { return m_supports_shader_subgroup_operations; }
+  bool SupportsAnisotropicFiltering() const { return m_device_info.samplerAnisotropy; }
+  bool SupportsPreciseOcclusionQueries() const { return m_device_info.occlusionQueryPrecise; }
+  u32 GetShaderSubgroupSize() const { return m_device_info.subgroupSize; }
+  bool SupportsShaderSubgroupOperations() const { return m_device_info.shaderSubgroupOperations; }
 
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
   {
-    return m_device_properties.limits.minUniformBufferOffsetAlignment;
+    return m_device_info.minUniformBufferOffsetAlignment;
   }
-  VkDeviceSize GetTexelBufferAlignment() const
-  {
-    return m_device_properties.limits.minUniformBufferOffsetAlignment;
-  }
-  VkDeviceSize GetBufferImageGranularity() const
-  {
-    return m_device_properties.limits.bufferImageGranularity;
-  }
-  float GetMaxSamplerAnisotropy() const { return m_device_properties.limits.maxSamplerAnisotropy; }
+  VkDeviceSize GetBufferImageGranularity() const { return m_device_info.bufferImageGranularity; }
+  float GetMaxSamplerAnisotropy() const { return m_device_info.maxSamplerAnisotropy; }
 
   // Returns true if the specified extension is supported and enabled.
   bool SupportsDeviceExtension(const char* name) const;
@@ -118,10 +135,9 @@ private:
                                        WindowSystemType wstype, bool enable_debug_utils,
                                        bool validation_layer_enabled);
   bool SelectDeviceExtensions(bool enable_surface);
-  bool SelectDeviceFeatures();
+  void WarnMissingDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
-  void PopulateShaderSubgroupSupport();
   bool CreateAllocator(u32 vk_api_version);
 
   VkInstance m_instance = VK_NULL_HANDLE;
@@ -137,12 +153,7 @@ private:
 
   VkDebugUtilsMessengerEXT m_debug_utils_messenger = VK_NULL_HANDLE;
 
-  VkPhysicalDeviceFeatures m_device_features = {};
-  VkPhysicalDeviceProperties m_device_properties = {};
-  VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
-
-  u32 m_shader_subgroup_size = 1;
-  bool m_supports_shader_subgroup_operations = false;
+  PhysicalDeviceInfo m_device_info;
 
   std::vector<std::string> m_device_extensions;
 };

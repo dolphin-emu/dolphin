@@ -627,24 +627,24 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
     return false;
   }
 
-  if (header.vendor_id != g_vulkan_context->GetDeviceProperties().vendorID)
+  if (header.vendor_id != g_vulkan_context->GetDeviceInfo().vendorID)
   {
     ERROR_LOG_FMT(
         VIDEO, "Pipeline cache failed validation: Incorrect vendor ID (file: {:#X}, device: {:#X})",
-        header.vendor_id, g_vulkan_context->GetDeviceProperties().vendorID);
+        header.vendor_id, g_vulkan_context->GetDeviceInfo().vendorID);
     return false;
   }
 
-  if (header.device_id != g_vulkan_context->GetDeviceProperties().deviceID)
+  if (header.device_id != g_vulkan_context->GetDeviceInfo().deviceID)
   {
     ERROR_LOG_FMT(
         VIDEO, "Pipeline cache failed validation: Incorrect device ID (file: {:#X}, device: {:#X})",
-        header.device_id, g_vulkan_context->GetDeviceProperties().deviceID);
+        header.device_id, g_vulkan_context->GetDeviceInfo().deviceID);
     return false;
   }
 
-  if (std::memcmp(header.uuid, g_vulkan_context->GetDeviceProperties().pipelineCacheUUID,
-                  VK_UUID_SIZE) != 0)
+  if (std::memcmp(header.uuid, g_vulkan_context->GetDeviceInfo().pipelineCacheUUID, VK_UUID_SIZE) !=
+      0)
   {
     ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Incorrect UUID");
     return false;
