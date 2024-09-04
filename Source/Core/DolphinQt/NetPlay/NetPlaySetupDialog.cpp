@@ -526,7 +526,7 @@ void NetPlaySetupDialog::UpdateListBrowser()
     auto* game_id = new QTableWidgetItem(QString::fromStdString(entry.game_id));
     auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry.player_count));
 
-    const bool enabled = Common::GetScmDescStr() == entry.version;
+    const bool enabled = true;
 
     for (const auto& item : {name, game_id, player_count, in_game})
       item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
