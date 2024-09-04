@@ -42,12 +42,24 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
   if (apiVersion >= VK_API_VERSION_1_1)
   {
     VkPhysicalDeviceSubgroupProperties properties_subgroup = {};
+    VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
     properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     properties2.pNext = nullptr;
     properties_subgroup.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
     InsertIntoChain(&properties2, &properties_subgroup);
 
+    if (apiVersion >= VK_API_VERSION_1_2)
+    {
+      properties_vk12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+      InsertIntoChain(&properties2, &properties_vk12);
+    }
+
     vkGetPhysicalDeviceProperties2(device, &properties2);
+
+    if (apiVersion >= VK_API_VERSION_1_2)
+    {
+      driverID = properties_vk12.driverID;
+    }
 
     subgroupSize = properties_subgroup.subgroupSize;
 
@@ -194,6 +206,27 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   return supports_debug_utils && supports_validation_layers;
 }
 
+static u32 getAPIVersion()
+{
+  u32 supported_version;
+  u32 used_version = VK_API_VERSION_1_0;
+  if (vkEnumerateInstanceVersion && vkEnumerateInstanceVersion(&supported_version) == VK_SUCCESS)
+  {
+    // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
+    if (supported_version >= VK_API_VERSION_1_2)
+      used_version = VK_API_VERSION_1_2;
+    else if (supported_version >= VK_API_VERSION_1_1)
+      used_version = VK_API_VERSION_1_1;
+    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.{}, supported: {}.{}", VK_VERSION_MINOR(used_version),
+                 VK_VERSION_MAJOR(supported_version), VK_VERSION_MINOR(supported_version));
+  }
+  else
+  {
+    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
+  }
+  return used_version;
+}
+
 VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
                                                bool enable_validation_layer,
                                                u32* out_vk_api_version)
@@ -210,31 +243,7 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   app_info.applicationVersion = VK_MAKE_VERSION(5, 0, 0);
   app_info.pEngineName = "Dolphin Emulator";
   app_info.engineVersion = VK_MAKE_VERSION(5, 0, 0);
-  app_info.apiVersion = VK_MAKE_VERSION(1, 0, 0);
-
-  // Try for Vulkan 1.1 if the loader supports it.
-  if (vkEnumerateInstanceVersion)
-  {
-    u32 supported_api_version = 0;
-    VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
-    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
-                              VK_VERSION_MINOR(supported_api_version) >= 1))
-    {
-      // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
-      app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.1, supported: {}.{}",
-                   VK_VERSION_MAJOR(supported_api_version),
-                   VK_VERSION_MINOR(supported_api_version));
-    }
-    else
-    {
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
-    }
-  }
-  else
-  {
-    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
-  }
+  app_info.apiVersion = getAPIVersion();
 
   *out_vk_api_version = app_info.apiVersion;
 
@@ -488,12 +497,8 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsSSAA = info.sampleRateShading;
   config->backend_info.bSupportsLogicOp = info.logicOp;
 
-#ifdef __APPLE__
   // Metal doesn't support this.
-  config->backend_info.bSupportsLodBiasInSampler = false;
-#else
-  config->backend_info.bSupportsLodBiasInSampler = true;
-#endif
+  config->backend_info.bSupportsLodBiasInSampler = info.driverID != VK_DRIVER_ID_MOLTENVK;
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
@@ -518,9 +523,11 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
 
   std::string device_name = info.deviceName;
   u32 vendor_id = info.vendorID;
+  bool is_moltenvk = info.driverID == VK_DRIVER_ID_MOLTENVK;
 
   // Only Apple family GPUs support framebuffer fetch.
-  if (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos)
+  // We currently use a hacked MoltenVK to implement this, so don't attempt outside of MVK
+  if (is_moltenvk && (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos))
   {
     config->backend_info.bSupportsFramebufferFetch = true;
   }
@@ -926,6 +933,41 @@ bool VulkanContext::SupportsDeviceExtension(const char* name) const
                      [name](const std::string& extension) { return extension == name; });
 }
 
+static bool DriverIsMesa(VkDriverId driver_id)
+{
+  switch (driver_id)
+  {
+  case VK_DRIVER_ID_MESA_RADV:
+  case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+  case VK_DRIVER_ID_MESA_LLVMPIPE:
+  case VK_DRIVER_ID_MESA_TURNIP:
+  case VK_DRIVER_ID_MESA_V3DV:
+  case VK_DRIVER_ID_MESA_PANVK:
+  case VK_DRIVER_ID_MESA_VENUS:
+  case VK_DRIVER_ID_MESA_DOZEN:
+  case VK_DRIVER_ID_MESA_NVK:
+  case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
+  case VK_DRIVER_ID_MESA_HONEYKRISP:
+    return true;
+  default:
+    return false;
+  }
+}
+
+static DriverDetails::Driver GetMesaDriver(VkDriverId driver_id)
+{
+  switch (driver_id)
+  {
+    // clang-format off
+  case VK_DRIVER_ID_MESA_RADV:              return DriverDetails::DRIVER_R600;
+  case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA: return DriverDetails::DRIVER_I965;
+  case VK_DRIVER_ID_MESA_NVK:               return DriverDetails::DRIVER_NOUVEAU;
+  case VK_DRIVER_ID_MESA_TURNIP:            return DriverDetails::DRIVER_FREEDRENO;
+  default:                                  return DriverDetails::DRIVER_UNKNOWN;
+    // clang-format on
+  }
+}
+
 void VulkanContext::InitDriverDetails()
 {
   DriverDetails::Vendor vendor;
@@ -936,7 +978,15 @@ void VulkanContext::InitDriverDetails()
   // vulkan.gpuinfo.org, as of 19/09/2017.
   std::string device_name = m_device_info.deviceName;
   u32 vendor_id = m_device_info.vendorID;
-  if (vendor_id == 0x10DE)
+  // Note: driver_id may be 0 on vulkan < 1.2
+  VkDriverId driver_id = m_device_info.driverID;
+
+  if (DriverIsMesa(driver_id))
+  {
+    vendor = DriverDetails::VENDOR_MESA;
+    driver = GetMesaDriver(driver_id);
+  }
+  else if (vendor_id == 0x10DE)
   {
     // Currently, there is only the official NV binary driver.
     // "NVIDIA" does not appear in the device name.
@@ -1004,12 +1054,11 @@ void VulkanContext::InitDriverDetails()
     driver = DriverDetails::DRIVER_UNKNOWN;
   }
 
-#ifdef __APPLE__
   // Vulkan on macOS goes through Metal, and is not susceptible to the same bugs
   // as the vendor's native Vulkan drivers. We use a different driver fields to
   // differentiate MoltenVK.
-  driver = DriverDetails::DRIVER_PORTABILITY;
-#endif
+  if (driver_id == VK_DRIVER_ID_MOLTENVK)
+    driver = DriverDetails::DRIVER_PORTABILITY;
 
   DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
                       static_cast<double>(m_device_info.driverVersion),
