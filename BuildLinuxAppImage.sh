@@ -12,6 +12,8 @@ cp -r ./Source/Core/DolphinQt ./AppDir/usr/Source/Core
 rm -rf ./AppDir/usr/Source/Core/DolphinQt/CMakeFiles
 rm -rf ./AppDir/usr/Source/Core/DolphinQt/dolphin-emu_autogen
 rm ./AppDir/usr/Source/Core/DolphinQt/cmake_install.cmake
+rm ./AppDir/usr/bin/dolphin-emu-nogui
+rm ./AppDir/usr/bin/dolphin-tool
 mv ./AppDir/usr/share/dolphin-emu/sys ./AppDir/usr/bin/Sys
 rm -rf ./AppDir/usr/share/dolphin-emu
 sed -i 's/env QT_QPA_PLATFORM=xcb dolphin-emu/dolphin-emu/g' ./AppDir/usr/share/applications/dolphin-emu.desktop
