@@ -578,8 +578,8 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
   // Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
   for (u32 i = 0; i < 5 * 32; ++i)
   {
-    int left = std::clamp(m_samples_main_left[i], -32767, 32767);
-    int right = std::clamp(m_samples_main_right[i], -32767, 32767);
+    s16 left = ClampS16(m_samples_main_left[i]);
+    s16 right = ClampS16(m_samples_main_right[i]);
 
     buffer[2 * i + 0] = Common::swap16(right);
     buffer[2 * i + 1] = Common::swap16(left);

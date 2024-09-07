@@ -602,15 +602,16 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   // Clamp internal buffers to 16 bits.
   for (size_t i = 0; i < volume_ramp.size(); ++i)
   {
-    int left = m_samples_main_left[i];
-    int right = m_samples_main_right[i];
+    // Cast to s64 to avoid overflow.
+    s64 left = m_samples_main_left[i];
+    s64 right = m_samples_main_right[i];
 
-    // Apply global volume. Cast to s64 to avoid overflow.
-    left = ((s64)left * volume_ramp[i]) >> 15;
-    right = ((s64)right * volume_ramp[i]) >> 15;
+    // Apply global volume.
+    left = (left * volume_ramp[i]) >> 15;
+    right = (right * volume_ramp[i]) >> 15;
 
-    m_samples_main_left[i] = std::clamp(left, -32767, 32767);
-    m_samples_main_right[i] = std::clamp(right, -32767, 32767);
+    m_samples_main_left[i] = ClampS16(left);
+    m_samples_main_right[i] = ClampS16(right);
   }
 
   std::array<s16, 3 * 32 * 2> buffer;
@@ -635,7 +636,7 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
     u16* out = (u16*)HLEMemory_Get_Pointer(memory, addresses[i]);
     for (u32 j = 0; j < 3 * 6; ++j)
     {
-      int sample = std::clamp(in[j], -32767, 32767);
+      s16 sample = ClampS16(in[j]);
       out[j] = Common::swap16((u16)sample);
     }
   }

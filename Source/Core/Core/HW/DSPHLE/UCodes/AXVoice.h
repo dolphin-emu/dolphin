@@ -372,6 +372,11 @@ void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16
   pb.adpcm.pred_scale = accelerator->GetPredScale();
 }
 
+s16 ClampS16(s64 sample)
+{
+  return std::clamp<s64>(sample, -0x8000, 0x7FFF);
+}
+
 // Add samples to an output buffer, with optional volume ramping.
 void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
 {
@@ -389,21 +394,20 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
     s64 sample = input[i];
     sample *= volume;
     sample >>= 15;
-    sample = std::clamp((s32)sample, -32767, 32767);  // -32768 ?
+    s16 sample16 = ClampS16((s32)sample);
 
-    out[i] += (s16)sample;
+    out[i] += sample16;
     volume += volume_delta;
 
-    *dpop = (s16)sample;
+    *dpop = sample16;
   }
 }
 
-// Execute a low pass filter on the samples using one history value. Returns
-// the new history value.
+// Execute a low pass filter on the samples using one history value.
 static void LowPassFilter(s16* samples, u32 count, PBLowPassFilter& f)
 {
   for (u32 i = 0; i < count; ++i)
-    f.yn1 = samples[i] = (f.a0 * (s32)samples[i] + f.b0 * (s32)f.yn1) >> 15;
+    f.yn1 = samples[i] = ClampS16((f.a0 * (s32)samples[i] + f.b0 * (s32)f.yn1) >> 15);
 }
 
 #ifdef AX_WII
@@ -425,7 +429,7 @@ static void BiquadFilter(s16* samples, u32 count, PBBiquadFilter& f)
     else
       tmp += 0x7FFF;
     tmp >>= 16;
-    s16 yn0 = s16(tmp);
+    s16 yn0 = ClampS16(tmp);
     f.xn2 = f.xn1;
     f.yn2 = f.yn1;
     f.xn1 = xn0;
@@ -459,7 +463,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     const s32 volume = (u16)pb.vol_env.cur_volume;
 #endif
     const s32 sample = ((s32)samples[i] * volume) >> 15;
-    samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
+    samples[i] = ClampS16(sample);
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
 
