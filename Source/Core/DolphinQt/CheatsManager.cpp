@@ -36,8 +36,6 @@ CheatsManager::CheatsManager(Core::System& system, QWidget* parent)
   CreateWidgets();
   ConnectWidgets();
 
-  RefreshCodeTabs(Core::GetState(m_system), true);
-
   auto& settings = Settings::GetQSettings();
   restoreGeometry(settings.value(QStringLiteral("cheatsmanager/geometry")).toByteArray());
 }
@@ -50,7 +48,7 @@ CheatsManager::~CheatsManager()
 
 void CheatsManager::OnStateChanged(Core::State state)
 {
-  RefreshCodeTabs(state, false);
+  RefreshCodeTabs(state);
   if (state == Core::State::Paused)
     UpdateAllCheatSearchWidgetCurrentValues();
 }
@@ -99,9 +97,9 @@ void CheatsManager::showEvent(QShowEvent* event)
   RegisterAfterFrameEventCallback();
 }
 
-void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
+void CheatsManager::RefreshCodeTabs(Core::State state)
 {
-  if (!force && (state == Core::State::Starting || state == Core::State::Stopping))
+  if (state == Core::State::Starting || state == Core::State::Stopping)
     return;
 
   const auto& game_id =
@@ -109,47 +107,15 @@ void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
   const auto& game_tdb_id = SConfig::GetInstance().GetGameTDBID();
   const u16 revision = SConfig::GetInstance().GetRevision();
 
-  if (!force && m_game_id == game_id && m_game_tdb_id == game_tdb_id && m_revision == revision)
+  if (m_game_id == game_id && m_game_tdb_id == game_tdb_id && m_revision == revision)
     return;
 
   m_game_id = game_id;
   m_game_tdb_id = game_tdb_id;
   m_revision = revision;
 
-  if (m_ar_code)
-  {
-    const int tab_index = m_tab_widget->indexOf(m_ar_code);
-    if (tab_index != -1)
-      m_tab_widget->removeTab(tab_index);
-    m_ar_code->deleteLater();
-    m_ar_code = nullptr;
-  }
-
-  if (m_gecko_code)
-  {
-    const int tab_index = m_tab_widget->indexOf(m_gecko_code);
-    if (tab_index != -1)
-      m_tab_widget->removeTab(tab_index);
-    m_gecko_code->deleteLater();
-    m_gecko_code = nullptr;
-  }
-
-  m_ar_code = new ARCodeWidget(m_game_id, m_revision, false);
-  m_gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision, false);
-  m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
-  m_tab_widget->insertTab(1, m_gecko_code, tr("Gecko Codes"));
-  m_tab_widget->setTabUnclosable(0);
-  m_tab_widget->setTabUnclosable(1);
-
-  connect(m_ar_code, &ARCodeWidget::OpenGeneralSettings, this, &CheatsManager::OpenGeneralSettings);
-  connect(m_gecko_code, &GeckoCodeWidget::OpenGeneralSettings, this,
-          &CheatsManager::OpenGeneralSettings);
-#ifdef USE_RETRO_ACHIEVEMENTS
-  connect(m_ar_code, &ARCodeWidget::OpenAchievementSettings, this,
-          &CheatsManager::OpenAchievementSettings);
-  connect(m_gecko_code, &GeckoCodeWidget::OpenAchievementSettings, this,
-          &CheatsManager::OpenAchievementSettings);
-#endif  // USE_RETRO_ACHIEVEMENTS
+  m_ar_code->ChangeGame(m_game_id, m_revision);
+  m_gecko_code->ChangeGame(m_game_id, m_game_tdb_id, m_revision);
 }
 
 void CheatsManager::CreateWidgets()
@@ -157,9 +123,19 @@ void CheatsManager::CreateWidgets()
   m_tab_widget = new PartiallyClosableTabWidget;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
+  int tab_index;
+
+  m_ar_code = new ARCodeWidget(m_game_id, m_revision, false);
+  tab_index = m_tab_widget->addTab(m_ar_code, tr("AR Code"));
+  m_tab_widget->setTabUnclosable(tab_index);
+
+  m_gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision, false);
+  tab_index = m_tab_widget->addTab(m_gecko_code, tr("Gecko Codes"));
+  m_tab_widget->setTabUnclosable(tab_index);
+
   m_cheat_search_new = new CheatSearchFactoryWidget();
-  m_tab_widget->addTab(m_cheat_search_new, tr("Start New Cheat Search"));
-  m_tab_widget->setTabUnclosable(0);
+  tab_index = m_tab_widget->addTab(m_cheat_search_new, tr("Start New Cheat Search"));
+  m_tab_widget->setTabUnclosable(tab_index);
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(m_tab_widget);
@@ -172,14 +148,9 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
 {
   auto* w = new CheatSearchWidget(m_system, session.Clone());
   const int tab_index = m_tab_widget->addTab(w, tr("Cheat Search"));
-  w->connect(w, &CheatSearchWidget::ActionReplayCodeGenerated, this,
-             [this](const ActionReplay::ARCode& ar_code) {
-               if (m_ar_code)
-                 m_ar_code->AddCode(ar_code);
-             });
-  w->connect(w, &CheatSearchWidget::ShowMemory, [this](u32 address) { emit ShowMemory(address); });
-  w->connect(w, &CheatSearchWidget::RequestWatch,
-             [this](QString name, u32 address) { emit RequestWatch(name, address); });
+  connect(w, &CheatSearchWidget::ActionReplayCodeGenerated, m_ar_code, &ARCodeWidget::AddCode);
+  connect(w, &CheatSearchWidget::ShowMemory, this, &CheatsManager::ShowMemory);
+  connect(w, &CheatSearchWidget::RequestWatch, this, &CheatsManager::RequestWatch);
   m_tab_widget->setCurrentIndex(tab_index);
 }
 
@@ -196,4 +167,13 @@ void CheatsManager::ConnectWidgets()
   connect(m_cheat_search_new, &CheatSearchFactoryWidget::NewSessionCreated, this,
           &CheatsManager::OnNewSessionCreated);
   connect(m_tab_widget, &QTabWidget::tabCloseRequested, this, &CheatsManager::OnTabCloseRequested);
+  connect(m_ar_code, &ARCodeWidget::OpenGeneralSettings, this, &CheatsManager::OpenGeneralSettings);
+  connect(m_gecko_code, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &CheatsManager::OpenGeneralSettings);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_ar_code, &ARCodeWidget::OpenAchievementSettings, this,
+          &CheatsManager::OpenAchievementSettings);
+  connect(m_gecko_code, &GeckoCodeWidget::OpenAchievementSettings, this,
+          &CheatsManager::OpenAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }

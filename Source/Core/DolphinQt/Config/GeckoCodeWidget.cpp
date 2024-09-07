@@ -42,20 +42,30 @@ GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u1
   CreateWidgets();
   ConnectWidgets();
 
-  if (!m_game_id.empty())
-  {
-    Common::IniFile game_ini_local;
+  LoadCodes();
+}
 
-    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
-    // will always be stored in GS/${GAMEID}.ini
-    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+void GeckoCodeWidget::ChangeGame(std::string game_id, std::string gametdb_id,
+                                 const u16 game_revision)
+{
+  m_game_id = std::move(game_id);
+  m_gametdb_id = std::move(gametdb_id);
+  m_game_revision = game_revision;
+  m_restart_required = false;
 
-    const Common::IniFile game_ini_default =
-        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
-    m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
-  }
+  m_gecko_codes.clear();
+  m_code_list->clear();
+  m_name_label->clear();
+  m_creator_label->clear();
+  m_code_description->clear();
+  m_code_view->clear();
 
-  UpdateList();
+  // If a CheatCodeEditor is open, it's now trying to add or edit a code in the previous game's code
+  // list which is no longer loaded. Letting the user save the code wouldn't make sense, so close
+  // the dialog instead.
+  m_cheat_code_editor->reject();
+
+  LoadCodes();
 }
 
 GeckoCodeWidget::~GeckoCodeWidget() = default;
@@ -91,18 +101,9 @@ void GeckoCodeWidget::CreateWidgets()
   m_remove_code = new NonDefaultQPushButton(tr("&Remove Code"));
   m_download_codes = new NonDefaultQPushButton(tr("Download Codes"));
 
+  m_cheat_code_editor = new CheatCodeEditor(this);
+
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
-
-  m_code_list->setEnabled(!m_game_id.empty());
-  m_name_label->setEnabled(!m_game_id.empty());
-  m_creator_label->setEnabled(!m_game_id.empty());
-  m_code_description->setEnabled(!m_game_id.empty());
-  m_code_view->setEnabled(!m_game_id.empty());
-
-  m_add_code->setEnabled(!m_game_id.empty());
-  m_edit_code->setEnabled(false);
-  m_remove_code->setEnabled(false);
-  m_download_codes->setEnabled(!m_game_id.empty());
 
   auto* layout = new QVBoxLayout;
 
@@ -166,17 +167,16 @@ void GeckoCodeWidget::ConnectWidgets()
 
 void GeckoCodeWidget::OnSelectionChanged()
 {
-  auto items = m_code_list->selectedItems();
-
+  const QList<QListWidgetItem*> items = m_code_list->selectedItems();
   const bool empty = items.empty();
 
-  m_edit_code->setEnabled(!empty);
-  m_remove_code->setEnabled(!empty);
+  m_edit_code->setDisabled(empty);
+  m_remove_code->setDisabled(empty);
 
-  if (items.empty())
+  if (empty)
     return;
 
-  auto selected = items[0];
+  const QListWidgetItem* const selected = items[0];
 
   const int index = selected->data(Qt::UserRole).toInt();
 
@@ -212,10 +212,9 @@ void GeckoCodeWidget::AddCode()
   Gecko::GeckoCode code;
   code.enabled = true;
 
-  CheatCodeEditor ed(this);
-  ed.SetGeckoCode(&code);
-  SetQWidgetWindowDecorations(&ed);
-  if (ed.exec() == QDialog::Rejected)
+  m_cheat_code_editor->SetGeckoCode(&code);
+  SetQWidgetWindowDecorations(m_cheat_code_editor);
+  if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
   m_gecko_codes.push_back(std::move(code));
@@ -231,10 +230,9 @@ void GeckoCodeWidget::EditCode()
 
   const int index = item->data(Qt::UserRole).toInt();
 
-  CheatCodeEditor ed(this);
-  ed.SetGeckoCode(&m_gecko_codes[index]);
-  SetQWidgetWindowDecorations(&ed);
-  if (ed.exec() == QDialog::Rejected)
+  m_cheat_code_editor->SetGeckoCode(&m_gecko_codes[index]);
+  SetQWidgetWindowDecorations(m_cheat_code_editor);
+  if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
   SaveCodes();
@@ -252,6 +250,35 @@ void GeckoCodeWidget::RemoveCode()
 
   UpdateList();
   SaveCodes();
+}
+
+void GeckoCodeWidget::LoadCodes()
+{
+  if (!m_game_id.empty())
+  {
+    Common::IniFile game_ini_local;
+
+    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
+    // will always be stored in GS/${GAMEID}.ini
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+
+    const Common::IniFile game_ini_default =
+        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
+    m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+  }
+
+  m_code_list->setEnabled(!m_game_id.empty());
+  m_name_label->setEnabled(!m_game_id.empty());
+  m_creator_label->setEnabled(!m_game_id.empty());
+  m_code_description->setEnabled(!m_game_id.empty());
+  m_code_view->setEnabled(!m_game_id.empty());
+
+  m_add_code->setEnabled(!m_game_id.empty());
+  m_edit_code->setEnabled(false);
+  m_remove_code->setEnabled(false);
+  m_download_codes->setEnabled(!m_game_id.empty());
+
+  UpdateList();
 }
 
 void GeckoCodeWidget::SaveCodes()
