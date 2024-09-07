@@ -3,11 +3,8 @@
 
 #include "Core/HW/SI/SI_Device.h"
 
-#include <istream>
 #include <memory>
-#include <ostream>
 #include <string>
-#include <type_traits>
 
 #include <fmt/format.h>
 
@@ -33,28 +30,6 @@ constexpr u64 GC_BITS_PER_SECOND = 200000;
 constexpr u64 GBA_BITS_PER_SECOND = 250000;
 constexpr u64 GC_STOP_BIT_NS = 6500;
 constexpr u64 GBA_STOP_BIT_NS = 14000;
-
-std::ostream& operator<<(std::ostream& stream, SIDevices device)
-{
-  stream << static_cast<std::underlying_type_t<SIDevices>>(device);
-  return stream;
-}
-
-std::istream& operator>>(std::istream& stream, SIDevices& device)
-{
-  std::underlying_type_t<SIDevices> value;
-
-  if (stream >> value)
-  {
-    device = static_cast<SIDevices>(value);
-  }
-  else
-  {
-    device = SIDevices::SIDEVICE_NONE;
-  }
-
-  return stream;
-}
 
 ISIDevice::ISIDevice(Core::System& system, SIDevices device_type, int device_number)
     : m_system(system), m_device_number(device_number), m_device_type(device_type)
