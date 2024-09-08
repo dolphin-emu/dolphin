@@ -395,6 +395,7 @@ void VKGfx::OnConfigChanged(u32 bits)
   if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_VSYNC))
   {
     ExecuteCommandBuffer(false, true);
+    g_command_buffer_mgr->SetVSync(g_ActiveConfig.bVSyncActive);
     m_swap_chain->SetVSync(g_ActiveConfig.bVSyncActive);
   }
 

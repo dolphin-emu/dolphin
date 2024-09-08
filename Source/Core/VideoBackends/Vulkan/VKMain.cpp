@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/PresentWait.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
@@ -197,7 +198,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   UpdateActiveConfig();
 
   // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
+  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading, g_ActiveConfig.bVSyncActive);
   if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlertFmt("Failed to create Vulkan command buffers");
@@ -225,6 +226,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       Shutdown();
       return false;
     }
+
+    if (g_vulkan_context->SupportsPresentWait())
+      StartPresentWaitThread();
   }
 
   if (!StateTracker::CreateInstance())
@@ -245,6 +249,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
+  if (g_vulkan_context->SupportsPresentWait())
+    StopPresentWaitThread();
+
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 

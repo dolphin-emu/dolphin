@@ -15,6 +15,38 @@
 
 namespace Vulkan
 {
+
+// Small wrapper to make it easier to deal with VkPhysicalDeviceFeatures2 and it's pNext chain
+struct DolphinFeatures : public VkPhysicalDeviceFeatures2
+{
+  VkPhysicalDeviceVulkan12Features features12 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+  VkPhysicalDeviceVulkan11Features features11 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES};
+
+  VkPhysicalDevicePresentIdFeaturesKHR present_id = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_FEATURES_KHR};
+  VkPhysicalDevicePresentWaitFeaturesKHR present_wait = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_FEATURES_KHR};
+
+  DolphinFeatures() : VkPhysicalDeviceFeatures2(), m_tail(&pNext) {}
+
+  void PopulateNextChain(uint64_t device_api_version, std::vector<std::string>& enabled_extentions);
+
+private:
+  void** m_tail;
+
+  template <typename T>
+  void AppendIf(T* feature, bool cond)
+  {
+    if (cond)
+    {
+      *m_tail = feature;
+      m_tail = &feature->pNext;
+    }
+  }
+};
+
 class VulkanContext
 {
 public:
@@ -70,16 +102,16 @@ public:
     return m_device_memory_properties;
   }
   const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_device_properties; }
-  const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features; }
+  const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features.features; }
   const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_properties.limits; }
   // Support bits
   bool SupportsAnisotropicFiltering() const
   {
-    return m_device_features.samplerAnisotropy == VK_TRUE;
+    return m_device_features.features.samplerAnisotropy == VK_TRUE;
   }
   bool SupportsPreciseOcclusionQueries() const
   {
-    return m_device_features.occlusionQueryPrecise == VK_TRUE;
+    return m_device_features.features.occlusionQueryPrecise == VK_TRUE;
   }
   u32 GetShaderSubgroupSize() const { return m_shader_subgroup_size; }
   bool SupportsShaderSubgroupOperations() const { return m_supports_shader_subgroup_operations; }
@@ -105,6 +137,11 @@ public:
   // Returns true if exclusive fullscreen is supported for the given surface.
   bool SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface);
 
+  bool SupportsPresentWait() const { return m_device_features.present_wait.presentWait; }
+
+  // Present Count is required to be non-zero and always increasing.
+  uint64_t NextPresentCount() { return ++m_present_count; }
+
   VmaAllocator GetMemoryAllocator() const { return m_allocator; }
 
 #ifdef WIN32
@@ -122,9 +159,10 @@ private:
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
   void PopulateShaderSubgroupSupport();
-  bool CreateAllocator(u32 vk_api_version);
+  bool CreateAllocator();
 
   VkInstance m_instance = VK_NULL_HANDLE;
+  u32 m_instance_api_version = 0;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
   VkDevice m_device = VK_NULL_HANDLE;
   VmaAllocator m_allocator = VK_NULL_HANDLE;
@@ -137,7 +175,7 @@ private:
 
   VkDebugUtilsMessengerEXT m_debug_utils_messenger = VK_NULL_HANDLE;
 
-  VkPhysicalDeviceFeatures m_device_features = {};
+  DolphinFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
 
@@ -145,6 +183,8 @@ private:
   bool m_supports_shader_subgroup_operations = false;
 
   std::vector<std::string> m_device_extensions;
+
+  uint64_t m_present_count = 0;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;

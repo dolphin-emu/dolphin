@@ -30,6 +30,9 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+// We should factor out video backpressure into a shared_ptr<PendingTimeOffset> later.
+#include "VideoCommon/PendingTimeOffset.h"
+
 namespace CoreTiming
 {
 // Sort by time, unless the times are the same, in which case sort by the order added to the queue
@@ -368,6 +371,8 @@ void CoreTimingManager::Advance()
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
+  using namespace std::chrono;
+
   // Based on number of cycles and emulation speed, increase the target deadline
   const s64 cycles = target_cycle - m_throttle_last_cycle;
 
@@ -379,9 +384,38 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   const double speed = Core::GetIsThrottlerTempDisabled() ? 0.0 : m_emulation_speed;
 
-  if (0.0 < speed)
-    m_throttle_deadline +=
-        std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
+  DT applied_offset = DT::zero();
+
+  if (0.0 < speed) {
+    ASSERT(cycles >= 0);
+
+    const DT sleep_dur = std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
+
+    DT pending_offset;
+    {
+      std::unique_lock lk{s_pending_time_offset.Lock};
+      pending_offset = s_pending_time_offset.Offset__;
+    }
+    if (pending_offset == DT::zero()) {
+      m_throttle_deadline += sleep_dur;
+    } else {
+      // The clocks used to measure vkWaitForPresentKHR() are imprecise and noisy.
+      // We want to exponentially approach vsync at a velocity proportional to
+      // remaining distance, with a time constant equal to 100ms.
+      double velocity = duration_cast<DT_us>(pending_offset) / DT_us(100'000);
+
+      // Limit velocity to at most 0.5ms per (frame≈16ms).
+      constexpr double MAX_VELOCITY = 1. / 32.;
+      velocity = std::clamp(velocity, -MAX_VELOCITY, MAX_VELOCITY);
+
+      constexpr DT MAX_FRAME_DUR = duration_cast<DT>(DT_ms(16));
+
+      // d=vt. Clamp t <= 1 frame to avoid unusual cases.
+      const DT_us distance = velocity * std::min(sleep_dur, MAX_FRAME_DUR);
+      applied_offset = duration_cast<DT>(distance);
+      m_throttle_deadline += sleep_dur + applied_offset;
+    }
+  }
 
   const TimePoint time = Clock::now();
   const TimePoint min_deadline = time - m_max_fallback;
@@ -412,6 +446,11 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     // Count amount of time sleeping for analytics
     const TimePoint time_after_sleep = Clock::now();
     g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
+  }
+
+  if (applied_offset != DT::zero()) {
+    std::unique_lock lk{s_pending_time_offset.Lock};
+    s_pending_time_offset.Offset__ -= applied_offset;
   }
 }
 

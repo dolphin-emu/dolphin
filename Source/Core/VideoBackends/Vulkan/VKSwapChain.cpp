@@ -13,6 +13,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/PresentWait.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Present.h"
@@ -332,6 +333,11 @@ bool SwapChain::CreateSwapChain()
   VkSwapchainKHR old_swap_chain = m_swap_chain;
   m_swap_chain = VK_NULL_HANDLE;
 
+  // vkWaitForPresentKHR uses a copy of swapchain, we need to make sure it's flushed
+  // before passing it as the old swapchain arg of vkCreateSwapchainKHR
+  if (old_swap_chain && g_vulkan_context->SupportsPresentWait())
+    FlushPresentWaitQueue();
+
   // Now we can actually create the swap chain
   VkSwapchainCreateInfoKHR swap_chain_info = {VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                                               nullptr,
@@ -487,6 +493,9 @@ void SwapChain::DestroySwapChain()
   // Release exclusive fullscreen before destroying.
   if (m_current_fullscreen_state)
     SetFullscreenState(false);
+
+  if (g_vulkan_context->SupportsPresentWait())
+    FlushPresentWaitQueue();
 
   vkDestroySwapchainKHR(g_vulkan_context->GetDevice(), m_swap_chain, nullptr);
   m_swap_chain = VK_NULL_HANDLE;

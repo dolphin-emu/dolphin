@@ -633,6 +633,7 @@
     <ClInclude Include="VideoBackends\Vulkan\CommandBufferManager.h" />
     <ClInclude Include="VideoBackends\Vulkan\Constants.h" />
     <ClInclude Include="VideoBackends\Vulkan\ObjectCache.h" />
+    <ClInclude Include="VideoBackends\Vulkan\PresentWait.h" />
     <ClInclude Include="VideoBackends\Vulkan\ShaderCompiler.h" />
     <ClInclude Include="VideoBackends\Vulkan\StagingBuffer.h" />
     <ClInclude Include="VideoBackends\Vulkan\StateTracker.h" />
@@ -719,6 +720,7 @@
     <ClInclude Include="VideoCommon\OnScreenUI.h" />
     <ClInclude Include="VideoCommon\OnScreenUIKeyMap.h" />
     <ClInclude Include="VideoCommon\OpcodeDecoding.h" />
+    <ClInclude Include="VideoCommon\PendingTimeOffset.h" />
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
     <ClInclude Include="VideoCommon\PerformanceMetrics.h" />
     <ClInclude Include="VideoCommon\PerformanceTracker.h" />
@@ -1281,6 +1283,7 @@
     <ClCompile Include="VideoBackends\Software\TransformUnit.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\CommandBufferManager.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\ObjectCache.cpp" />
+    <ClCompile Include="VideoBackends\Vulkan\PresentWait.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\ShaderCompiler.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\StagingBuffer.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\StateTracker.cpp" />
@@ -1352,6 +1355,7 @@
     <ClCompile Include="VideoCommon\OnScreenDisplay.cpp" />
     <ClCompile Include="VideoCommon\OnScreenUI.cpp" />
     <ClCompile Include="VideoCommon\OpcodeDecoding.cpp" />
+    <ClCompile Include="VideoCommon\PendingTimeOffset.cpp" />
     <ClCompile Include="VideoCommon\PerfQueryBase.cpp" />
     <ClCompile Include="VideoCommon\PerformanceMetrics.cpp" />
     <ClCompile Include="VideoCommon\PerformanceTracker.cpp" />
