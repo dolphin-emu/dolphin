@@ -198,7 +198,7 @@ void LoadPatches()
   else
   {
     Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni), sconfig.GetGameID());
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+    ActionReplay::LoadAndApplyCodes(globalIni, localIni, sconfig.GetGameID());
   }
 }
 
@@ -335,7 +335,7 @@ bool ApplyFramePatches(Core::System& system)
 void Shutdown()
 {
   s_on_frame.clear();
-  ActionReplay::ApplyCodes({});
+  ActionReplay::ApplyCodes({}, "");
   Gecko::Shutdown();
 }
 

@@ -50,6 +50,11 @@ namespace Gecko
 class GeckoCode;
 }  // namespace Gecko
 
+namespace ActionReplay
+{
+struct ARCode;
+}  // namespace ActionReplay
+
 class AchievementManager
 {
 public:
@@ -135,7 +140,10 @@ public:
                              const std::string& game_ini_id) const;
   void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
                                 const std::string& game_ini_id) const;
+  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
+                             const std::string& game_ini_id) const;
   bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_ini_id) const;
+  bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_ini_id) const;
 
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
@@ -197,6 +205,7 @@ private:
   bool CheckApprovedCode(const T& code, const std::string& game_ini_id) const;
   Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
   Common::SHA1::Digest GetCodeHash(const Gecko::GeckoCode& code) const;
+  Common::SHA1::Digest GetCodeHash(const ActionReplay::ARCode& code) const;
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
                                          rc_client_leaderboard_entry_list_t* list,
@@ -284,6 +293,12 @@ public:
 
   constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
                                         const std::string& game_ini_id)
+  {
+    return true;
+  };
+
+  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code,
+                                     const std::string& game_ini_id)
   {
     return true;
   };
