@@ -35,24 +35,26 @@ ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_
   CreateWidgets();
   ConnectWidgets();
 
-  if (!m_game_id.empty())
-  {
-    Common::IniFile game_ini_local;
-
-    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
-    // will always be stored in GS/${GAMEID}.ini
-    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-
-    const Common::IniFile game_ini_default =
-        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
-    m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
-  }
-
-  UpdateList();
-  OnSelectionChanged();
+  LoadCodes();
 }
 
 ARCodeWidget::~ARCodeWidget() = default;
+
+void ARCodeWidget::ChangeGame(std::string game_id, const u16 game_revision)
+{
+  m_game_id = std::move(game_id);
+  m_game_revision = game_revision;
+  m_restart_required = false;
+
+  m_ar_codes.clear();
+
+  // If a CheatCodeEditor is open, it's now trying to add or edit a code in the previous game's code
+  // list which is no longer loaded. Letting the user save the code wouldn't make sense, so close
+  // the dialog instead.
+  m_cheat_code_editor->reject();
+
+  LoadCodes();
+}
 
 void ARCodeWidget::CreateWidgets()
 {
@@ -65,10 +67,7 @@ void ARCodeWidget::CreateWidgets()
   m_code_edit = new NonDefaultQPushButton(tr("&Edit Code..."));
   m_code_remove = new NonDefaultQPushButton(tr("&Remove Code"));
 
-  m_code_list->setEnabled(!m_game_id.empty());
-  m_code_add->setEnabled(!m_game_id.empty());
-  m_code_edit->setEnabled(!m_game_id.empty());
-  m_code_remove->setEnabled(!m_game_id.empty());
+  m_cheat_code_editor = new CheatCodeEditor(this);
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -179,14 +178,18 @@ void ARCodeWidget::OnListReordered()
 
 void ARCodeWidget::OnSelectionChanged()
 {
-  auto items = m_code_list->selectedItems();
+  const QList<QListWidgetItem*> items = m_code_list->selectedItems();
+  const bool empty = items.empty();
 
-  if (items.empty())
+  m_code_edit->setDisabled(empty);
+  m_code_remove->setDisabled(empty);
+
+  if (empty)
     return;
 
-  const auto* selected = items[0];
+  const QListWidgetItem* const selected = items[0];
 
-  bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
+  const bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
 
   m_code_remove->setEnabled(user_defined);
   m_code_edit->setText(user_defined ? tr("&Edit Code...") : tr("Clone and &Edit Code..."));
@@ -212,6 +215,29 @@ void ARCodeWidget::UpdateList()
   }
 
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
+}
+
+void ARCodeWidget::LoadCodes()
+{
+  if (!m_game_id.empty())
+  {
+    Common::IniFile game_ini_local;
+
+    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
+    // will always be stored in GS/${GAMEID}.ini
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+
+    const Common::IniFile game_ini_default =
+        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
+    m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
+  }
+
+  m_code_list->setEnabled(!m_game_id.empty());
+  m_code_add->setEnabled(!m_game_id.empty());
+  m_code_edit->setEnabled(false);
+  m_code_remove->setEnabled(false);
+
+  UpdateList();
 }
 
 void ARCodeWidget::SaveCodes()
@@ -241,10 +267,9 @@ void ARCodeWidget::OnCodeAddClicked()
   ActionReplay::ARCode ar;
   ar.enabled = true;
 
-  CheatCodeEditor ed(this);
-  ed.SetARCode(&ar);
-  SetQWidgetWindowDecorations(&ed);
-  if (ed.exec() == QDialog::Rejected)
+  m_cheat_code_editor->SetARCode(&ar);
+  SetQWidgetWindowDecorations(m_cheat_code_editor);
+  if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
   m_ar_codes.push_back(std::move(ar));
@@ -261,23 +286,19 @@ void ARCodeWidget::OnCodeEditClicked()
 
   const auto* const selected = items[0];
   auto& current_ar = m_ar_codes[m_code_list->row(selected)];
+  SetQWidgetWindowDecorations(m_cheat_code_editor);
 
-  CheatCodeEditor ed(this);
   if (current_ar.user_defined)
   {
-    ed.SetARCode(&current_ar);
-
-    SetQWidgetWindowDecorations(&ed);
-    if (ed.exec() == QDialog::Rejected)
+    m_cheat_code_editor->SetARCode(&current_ar);
+    if (m_cheat_code_editor->exec() == QDialog::Rejected)
       return;
   }
   else
   {
     ActionReplay::ARCode ar = current_ar;
-    ed.SetARCode(&ar);
-
-    SetQWidgetWindowDecorations(&ed);
-    if (ed.exec() == QDialog::Rejected)
+    m_cheat_code_editor->SetARCode(&ar);
+    if (m_cheat_code_editor->exec() == QDialog::Rejected)
       return;
 
     m_ar_codes.push_back(std::move(ar));
