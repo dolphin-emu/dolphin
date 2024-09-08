@@ -92,7 +92,33 @@ inline double Force25Bit(double d)
 {
   u64 integral = std::bit_cast<u64>(d);
 
-  integral = (integral & 0xFFFFFFFFF8000000ULL) + (integral & 0x8000000);
+  u64 exponent = integral & Common::DOUBLE_EXP;
+  u64 fraction = integral & Common::DOUBLE_FRAC;
+
+  if (exponent == 0 && fraction != 0)
+  {
+    // Subnormals get "normalized" before they're rounded
+    // In the end, this practically just means that the rounding is
+    // at a different bit
+
+    s64 keep_mask = 0xFFFFFFFFF8000000LL;
+    u64 round = 0x8000000;
+
+    // Shift the mask and rounding bit to the right until
+    // the fraction is "normal"
+    // That is to say shifting it until the MSB of the fraction
+    // would escape into the exponent
+    u32 shift = std::countl_zero(fraction) - (63 - Common::DOUBLE_FRAC_WIDTH);
+    keep_mask >>= shift;
+    round >>= shift;
+
+    // Round using these shifted values
+    integral = (integral & keep_mask) + (integral & round);
+  }
+  else
+  {
+    integral = (integral & 0xFFFFFFFFF8000000ULL) + (integral & 0x8000000);
+  }
 
   return std::bit_cast<double>(integral);
 }
