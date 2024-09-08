@@ -1256,7 +1256,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chun
       {
         if (next_junk_start == end_offset)
         {
-          // Storing this chunk without RVZ packing would be inefficient, so store it without
+          // Storing this chunk with RVZ packing would be inefficient, so store it without
           PushBack(&entry.main_data, in + current_offset, in + end_offset);
           break;
         }
