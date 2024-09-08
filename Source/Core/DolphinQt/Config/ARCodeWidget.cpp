@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 
@@ -230,6 +231,14 @@ void ARCodeWidget::LoadCodes()
     const Common::IniFile game_ini_default =
         SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
     m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    if (!m_restart_required)
+    {
+      std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+      AchievementManager::GetInstance().FilterApprovedARCodes(m_ar_codes, m_game_id);
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
   }
 
   m_code_list->setEnabled(!m_game_id.empty());

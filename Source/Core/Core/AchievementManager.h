@@ -50,6 +50,11 @@ namespace Gecko
 class GeckoCode;
 }  // namespace Gecko
 
+namespace ActionReplay
+{
+struct ARCode;
+}  // namespace ActionReplay
+
 class AchievementManager
 {
 public:
@@ -135,6 +140,8 @@ public:
                              const std::string& game_ini_id) const;
   void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
                                 const std::string& game_ini_id) const;
+  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
+                             const std::string& game_ini_id) const;
 
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
@@ -194,6 +201,7 @@ private:
   void FilterApprovedIni(std::vector<T>& patches, const std::string& game_ini_id) const;
   Common::SHA1::Digest GetPatchHash(const PatchEngine::Patch& patch) const;
   Common::SHA1::Digest GetPatchHash(const Gecko::GeckoCode& patch) const;
+  Common::SHA1::Digest GetPatchHash(const ActionReplay::ARCode& patch) const;
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
                                          rc_client_leaderboard_entry_list_t* list,

@@ -198,14 +198,16 @@ void LoadPatches()
   else
   {
     auto gecko_codes = Gecko::LoadCodes(globalIni, localIni);
+    auto ar_codes = ActionReplay::LoadCodes(globalIni, localIni);
 #ifdef USE_RETRO_ACHIEVEMENTS
     {
       std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
       AchievementManager::GetInstance().FilterApprovedGeckoCodes(gecko_codes, sconfig.GetGameID());
+      AchievementManager::GetInstance().FilterApprovedARCodes(ar_codes, sconfig.GetGameID());
     }
 #endif  // USE_RETRO_ACHIEVEMENTS
     Gecko::SetActiveCodes(gecko_codes);
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+    ActionReplay::ApplyCodes(ar_codes);
   }
 }
 
