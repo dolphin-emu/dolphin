@@ -23,6 +23,7 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
+#include "Core/ActionReplay.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -461,6 +462,18 @@ Common::SHA1::Digest AchievementManager::GetCodeHash(const Gecko::GeckoCode& cod
   return context->Finish();
 }
 
+Common::SHA1::Digest AchievementManager::GetCodeHash(const ActionReplay::ARCode& code) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.ops.size())));
+  for (const auto& entry : code.ops)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.cmd_addr));
+    context->Update(Common::BitCastToArray<u8>(entry.value));
+  }
+  return context->Finish();
+}
+
 void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                                                const std::string& game_ini_id) const
 {
@@ -473,8 +486,20 @@ void AchievementManager::FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>&
   FilterApprovedIni(codes, game_ini_id);
 }
 
+void AchievementManager::FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
+                                               const std::string& game_ini_id) const
+{
+  FilterApprovedIni(codes, game_ini_id);
+}
+
 bool AchievementManager::CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
                                                 const std::string& game_ini_id) const
+{
+  return CheckApprovedCode(code, game_ini_id);
+}
+
+bool AchievementManager::CheckApprovedARCode(const ActionReplay::ARCode& code,
+                                             const std::string& game_ini_id) const
 {
   return CheckApprovedCode(code, game_ini_id);
 }
