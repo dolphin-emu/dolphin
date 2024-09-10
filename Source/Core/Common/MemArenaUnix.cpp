@@ -37,7 +37,6 @@ void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
     ERROR_LOG_FMT(MEMMAP, "shm_open failed: {}", strerror(errno));
     return;
   }
-  shm_unlink(file_name.c_str());
   if (ftruncate(m_shm_fd, size) < 0)
     ERROR_LOG_FMT(MEMMAP, "Failed to allocate low memory space");
 }
