@@ -247,11 +247,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
     instance.Init();
   else
     instance.Shutdown();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
-  {
-    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-    emit Settings::Instance().HardcoreStateChanged();
-  }
+  UpdateHardcoreMode();
 }
 
 void AchievementSettingsWidget::Login()
@@ -271,17 +267,7 @@ void AchievementSettingsWidget::Logout()
 void AchievementSettingsWidget::ToggleHardcore()
 {
   SaveSettings();
-  AchievementManager::GetInstance().SetHardcoreMode();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
-  {
-    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
-      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
-    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
-    Settings::Instance().SetDebugModeEnabled(false);
-  }
-  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-  emit Settings::Instance().HardcoreStateChanged();
+  UpdateHardcoreMode();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
@@ -309,6 +295,17 @@ void AchievementSettingsWidget::ToggleDiscordPresence()
 void AchievementSettingsWidget::ToggleProgress()
 {
   SaveSettings();
+}
+
+void AchievementSettingsWidget::UpdateHardcoreMode()
+{
+  AchievementManager::GetInstance().SetHardcoreMode();
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    Settings::Instance().SetDebugModeEnabled(false);
+  }
+  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  emit Settings::Instance().HardcoreStateChanged();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS
