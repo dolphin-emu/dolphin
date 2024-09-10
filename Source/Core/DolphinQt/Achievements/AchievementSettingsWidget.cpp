@@ -247,11 +247,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
     instance.Init();
   else
     instance.Shutdown();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
-  {
-    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-    emit Settings::Instance().HardcoreStateChanged();
-  }
+  ToggleHardcore();
 }
 
 void AchievementSettingsWidget::Login()
