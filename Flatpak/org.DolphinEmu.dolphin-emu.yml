@@ -1,0 +1,83 @@
+app-id: org.DolphinEmu.dolphin-emu
+runtime: org.kde.Platform
+runtime-version: '6.7'
+sdk: org.kde.Sdk
+command: dolphin-emu-wrapper
+rename-desktop-file: dolphin-emu.desktop
+rename-icon: dolphin-emu
+finish-args:
+  - --device=all
+  - --socket=pulseaudio
+  # dolphin doesn't work on wayland (only the ui does), if a user were to set
+  # this env variable globally to wayland then games wouldn't work. 
+  # we overwrite the setting and force xcb to prevent this from happening.
+  - --env=QT_QPA_PLATFORM=xcb
+  - --socket=x11
+  - --share=network
+  - --share=ipc
+  # required for the emulated bluetooth adapter feature to work.
+  - --allow=bluetooth
+  - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  - --talk-name=org.freedesktop.ScreenSaver
+  # required for Gamescope on Steam Deck
+  - --filesystem=xdg-run/gamescope-0:ro
+modules:
+  # enables motion controls on non-wii controllers (switch, ps4, etc)
+  # requires a udev rule enabling Motion Sensors access
+  - name: libevdev
+    buildsystem: meson
+    config-opts:
+      - -Dtests=disabled
+      - -Ddocumentation=disabled
+    sources:
+      - type: archive
+        url: https://www.freedesktop.org/software/libevdev/libevdev-1.13.2.tar.xz
+        sha256: 3eca86a6ce55b81d5bce910637fc451c8bbe373b1f9698f375c7f1ad0de3ac48
+        x-checker-data:
+          type: anitya
+          project-id: 20540
+          stable-only: true
+          url-template: https://www.freedesktop.org/software/libevdev/libevdev-$version.tar.xz
+
+  # needed for screensaver inhibition
+  - name: xdg-screensaver-shim
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://github.com/Unrud/xdg-screensaver-shim/archive/0.0.2.tar.gz
+        sha256: 0ed2a69fe6ee6cbffd2fe16f85116db737f17fb1e79bfb812d893cf15c728399
+
+  # build the vendored SDL2 from Externals until the runtime gets 2.30.6
+  - SDL2/SDL2.json
+
+  - name: dolphin-emu
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DENABLE_ALSA=OFF
+      - -DENABLE_SDL=ON
+      - -DENABLE_EVDEV=ON
+      - -DDISTRIBUTOR=dolphin-emu.org
+    cleanup:
+      - /share/man
+    post-install:
+      - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
+      - "${FLATPAK_BUILDER_BUILDDIR}/Flatpak/fill_release_node.sh"
+      - install -Dm644 -t ${FLATPAK_DEST}/share/metainfo/ org.DolphinEmu.dolphin-emu.metainfo.xml
+      - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
+        /app/share/applications/dolphin-emu.desktop
+    sources:
+      - type: dir
+        path: ..
+      - type: file
+        path: org.DolphinEmu.dolphin-emu.metainfo.xml.in
+        dest-filename: org.DolphinEmu.dolphin-emu.metainfo.xml
+      - type: script
+        commands:
+          - |
+            for i in {0..9}; do
+              test -S $XDG_RUNTIME_DIR/discord-ipc-$i ||
+                ln -sf {app/com.discordapp.Discord,$XDG_RUNTIME_DIR}/discord-ipc-$i;
+            done
+            dolphin-emu "$@"
+        dest-filename: dolphin-emu-wrapper
