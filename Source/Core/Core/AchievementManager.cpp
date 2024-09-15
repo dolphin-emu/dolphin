@@ -204,6 +204,22 @@ void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
     DoIdle();
 }
 
+std::string AchievementManager::CalculateHash(const std::string& file_path)
+{
+  char hash_result[33] = "0";
+  rc_hash_filereader volume_reader{
+      .open = &AchievementManager::FilereaderOpenByFilepath,
+      .seek = &AchievementManager::FilereaderSeek,
+      .tell = &AchievementManager::FilereaderTell,
+      .read = &AchievementManager::FilereaderRead,
+      .close = &AchievementManager::FilereaderClose,
+  };
+  rc_hash_init_custom_filereader(&volume_reader);
+  rc_hash_generate_from_file(hash_result, RC_CONSOLE_GAMECUBE, file_path.c_str());
+
+  return std::string(hash_result);
+}
+
 void AchievementManager::FetchPlayerBadge()
 {
   FetchBadge(&m_player_badge, RC_IMAGE_TYPE_USER,

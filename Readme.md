@@ -234,7 +234,7 @@ Options:
                         Path to disc image FILE.
   -a ALGORITHM, --algorithm=ALGORITHM
                         Optional. Compute and print the digest using the
-                        selected algorithm, then exit. [crc32|md5|sha1]
+                        selected algorithm, then exit. [crc32|md5|sha1|rchash]
 ```
 
 ```

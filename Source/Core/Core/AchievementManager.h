@@ -110,6 +110,8 @@ public:
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
 
+  static std::string CalculateHash(const std::string& file_path);
+
   void FetchPlayerBadge();
   void FetchGameBadges();
 
