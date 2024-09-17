@@ -582,7 +582,7 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
   endforeach()
 endif()
 
-target_link_libraries(dolphin-emu PUBLIC slippi-rust-extensions)
+target_link_libraries(dolphin-emu PUBLIC slippi_rust_extensions)
 
 if(APPLE)
   include(BundleUtilities)

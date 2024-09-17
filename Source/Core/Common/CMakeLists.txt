@@ -170,7 +170,7 @@ PUBLIC
   MbedTLS::mbedtls
   minizip::minizip
   sfml-network
-  slippi-rust-extensions
+  slippi_rust_extensions
 
 PRIVATE
   CURL::libcurl
