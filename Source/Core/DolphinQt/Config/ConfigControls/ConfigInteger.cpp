@@ -4,7 +4,13 @@
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 
 ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, int step)
-    : ConfigControl(setting.GetLocation()), m_setting(setting)
+    : ConfigInteger(minimum, maximum, setting, nullptr, step)
+{
+}
+
+ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting,
+                             Config::Layer* layer, int step)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting)
 {
   setMinimum(minimum);
   setMaximum(maximum);

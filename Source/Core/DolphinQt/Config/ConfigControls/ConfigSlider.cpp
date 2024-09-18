@@ -4,7 +4,13 @@
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 
 ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
-    : ConfigControl(Qt::Horizontal, setting.GetLocation()), m_setting(setting)
+    : ConfigSlider(minimum, maximum, setting, nullptr, tick)
+{
+}
+
+ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting,
+                           Config::Layer* layer, int tick)
+    : ConfigControl(Qt::Horizontal, setting.GetLocation(), layer), m_setting(setting)
 
 {
   setMinimum(minimum);
