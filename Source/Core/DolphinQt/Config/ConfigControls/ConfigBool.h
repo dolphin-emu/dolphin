@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 
 namespace Config
@@ -11,11 +12,14 @@ template <typename T>
 class Info;
 }
 
-class ConfigBool : public ToolTipCheckBox
+class ConfigBool final : public ConfigControl<ToolTipCheckBox>
 {
   Q_OBJECT
 public:
   ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse = false);
+
+protected:
+  void OnConfigChanged() override;
 
 private:
   void Update();

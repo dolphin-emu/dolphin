@@ -7,15 +7,23 @@
 #include <utility>
 #include <vector>
 
+#include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 
-#include "Common/Config/Config.h"
+namespace Config
+{
+template <typename T>
+class Info;
+}
 
-class ConfigChoice : public ToolTipComboBox
+class ConfigChoice final : public ConfigControl<ToolTipComboBox>
 {
   Q_OBJECT
 public:
   ConfigChoice(const QStringList& options, const Config::Info<int>& setting);
+
+protected:
+  void OnConfigChanged() override;
 
 private:
   void Update(int choice);
@@ -23,7 +31,7 @@ private:
   Config::Info<int> m_setting;
 };
 
-class ConfigStringChoice : public ToolTipComboBox
+class ConfigStringChoice final : public ConfigControl<ToolTipComboBox>
 {
   Q_OBJECT
 public:
@@ -32,11 +40,13 @@ public:
   ConfigStringChoice(const std::vector<std::pair<QString, QString>>& options,
                      const Config::Info<std::string>& setting);
 
+protected:
+  void OnConfigChanged() override;
+
 private:
-  void Connect();
   void Update(int index);
   void Load();
 
-  Config::Info<std::string> m_setting;
+  const Config::Info<std::string>& m_setting;
   bool m_text_is_data = false;
 };

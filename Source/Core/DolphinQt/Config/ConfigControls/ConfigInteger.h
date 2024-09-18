@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSpinBox.h"
 
 namespace Config
@@ -11,12 +12,15 @@ template <typename T>
 class Info;
 }
 
-class ConfigInteger : public ToolTipSpinBox
+class ConfigInteger final : public ConfigControl<ToolTipSpinBox>
 {
   Q_OBJECT
 public:
   ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, int step = 1);
   void Update(int value);
+
+protected:
+  void OnConfigChanged() override;
 
 private:
   const Config::Info<int>& m_setting;
