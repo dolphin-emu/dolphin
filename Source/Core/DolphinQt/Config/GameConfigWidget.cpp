@@ -3,36 +3,38 @@
 
 #include "DolphinQt/Config/GameConfigWidget.h"
 
-#include <QCheckBox>
-#include <QComboBox>
+#include <QFont>
 #include <QGroupBox>
+#include <QHBoxLayout>
+#include <QIcon>
 #include <QLabel>
-#include <QPushButton>
-#include <QSlider>
-#include <QSpinBox>
 #include <QTabWidget>
+#include <QTimer>
+#include <QToolTip>
 #include <QVBoxLayout>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
+#include "Common/Config/Layer.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
-
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigEdit.h"
+#include "DolphinQt/Config/Graphics/AdvancedWidget.h"
+#include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
+#include "DolphinQt/Config/Graphics/GeneralWidget.h"
+#include "DolphinQt/Config/Graphics/HacksWidget.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
-
-constexpr int DETERMINISM_NOT_SET_INDEX = 0;
-constexpr int DETERMINISM_AUTO_INDEX = 1;
-constexpr int DETERMINISM_NONE_INDEX = 2;
-constexpr int DETERMINISM_FAKE_COMPLETION_INDEX = 3;
-
-constexpr const char* DETERMINISM_NOT_SET_STRING = "";
-constexpr const char* DETERMINISM_AUTO_STRING = "auto";
-constexpr const char* DETERMINISM_NONE_STRING = "none";
-constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
 static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
                         u16 revision, bool read_only)
@@ -55,46 +57,62 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   m_gameini_local_path =
       QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
+  m_layer = std::make_unique<Config::Layer>(
+      ConfigLoaders::GenerateLocalGameConfigLoader(m_game_id, m_game.GetRevision()));
+  m_global_layer = std::make_unique<Config::Layer>(
+      ConfigLoaders::GenerateGlobalGameConfigLoader(m_game_id, m_game.GetRevision()));
+
   CreateWidgets();
-  LoadSettings();
-  ConnectWidgets();
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GameConfigWidget::LoadSettings);
 
   PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
               m_game.GetRevision(), true);
   PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(),
               false);
 
-  // Always give the user the opportunity to create a new INI
-  if (m_local_tab->count() == 0)
+  bool game_id_tab = false;
+  for (int i = 0; i < m_local_tab->count(); i++)
   {
+    if (m_local_tab->tabText(i).toStdString() == m_game_id + ".ini")
+      game_id_tab = true;
+  }
+
+  if (game_id_tab == false)
+  {
+    // Create new local game ini tab if none exists.
     auto* edit = new GameConfigEdit(
         nullptr, QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
         false);
     m_local_tab->addTab(edit, QString::fromStdString(m_game_id + ".ini"));
   }
+
+  // Fails to change font if it's directly called at this time. Is there a better workaround?
+  QTimer::singleShot(100, this, [this]() {
+    SetItalics();
+    Config::OnConfigChanged();
+  });
 }
 
 void GameConfigWidget::CreateWidgets()
 {
-  // General
-  m_refresh_config = new QPushButton(tr("Refresh"));
-
+  Config::Layer* layer = m_layer.get();
   // Core
   auto* core_box = new QGroupBox(tr("Core"));
   auto* core_layout = new QGridLayout;
   core_box->setLayout(core_layout);
 
-  m_enable_dual_core = new QCheckBox(tr("Enable Dual Core"));
-  m_enable_mmu = new QCheckBox(tr("Enable MMU"));
-  m_enable_fprf = new QCheckBox(tr("Enable FPRF"));
-  m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
-  m_emulate_disc_speed = new QCheckBox(tr("Emulate Disc Speed"));
-  m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
-  m_manual_texture_sampling = new QCheckBox(tr("Manual Texture Sampling"));
-  m_deterministic_dual_core = new QComboBox;
+  m_enable_dual_core = new ConfigBool(tr("Enable Dual Core"), Config::MAIN_CPU_THREAD, layer);
+  m_enable_mmu = new ConfigBool(tr("Enable MMU"), Config::MAIN_MMU, layer);
+  m_enable_fprf = new ConfigBool(tr("Enable FPRF"), Config::MAIN_FPRF, layer);
+  m_sync_gpu = new ConfigBool(tr("Synchronize GPU thread"), Config::MAIN_SYNC_GPU, layer);
+  m_emulate_disc_speed =
+      new ConfigBool(tr("Emulate Disc Speed"), Config::MAIN_FAST_DISC_SPEED, layer, true);
+  m_use_dsp_hle = new ConfigBool(tr("DSP HLE (fast)"), Config::MAIN_DSP_HLE, layer);
 
-  for (const auto& item : {tr("Not Set"), tr("auto"), tr("none"), tr("fake-completion")})
-    m_deterministic_dual_core->addItem(item);
+  const std::vector<std::string> choice{tr("auto").toStdString(), tr("none").toStdString(),
+                                        tr("fake-completion").toStdString()};
+  m_deterministic_dual_core =
+      new ConfigStringChoice(choice, Config::MAIN_GPU_DETERMINISM_MODE, layer);
 
   m_enable_mmu->setToolTip(tr(
       "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
@@ -114,24 +132,18 @@ void GameConfigWidget::CreateWidgets()
   core_layout->addWidget(m_sync_gpu, 3, 0);
   core_layout->addWidget(m_emulate_disc_speed, 4, 0);
   core_layout->addWidget(m_use_dsp_hle, 5, 0);
-  core_layout->addWidget(m_manual_texture_sampling, 6, 0);
-  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 7, 0);
-  core_layout->addWidget(m_deterministic_dual_core, 7, 1);
+  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 6, 0);
+  core_layout->addWidget(m_deterministic_dual_core, 6, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
   auto* stereoscopy_layout = new QGridLayout;
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_depth_slider = new QSlider(Qt::Horizontal);
-
-  m_depth_slider->setMinimum(100);
-  m_depth_slider->setMaximum(200);
-
-  m_convergence_spin = new QSpinBox;
-  m_convergence_spin->setMinimum(0);
-  m_convergence_spin->setMaximum(INT32_MAX);
-  m_use_monoscopic_shadows = new QCheckBox(tr("Monoscopic Shadows"));
+  m_depth_slider = new ConfigSlider(100, 200, Config::GFX_STEREO_DEPTH_PERCENTAGE, layer);
+  m_convergence_spin = new ConfigInteger(0, INT32_MAX, Config::GFX_STEREO_CONVERGENCE, layer);
+  m_use_monoscopic_shadows =
+      new ConfigBool(tr("Monoscopic Shadows"), Config::GFX_STEREO_EFB_MONO_DEPTH, layer);
 
   m_depth_slider->setToolTip(
       tr("This value is multiplied with the depth set in the graphics configuration."));
@@ -146,31 +158,15 @@ void GameConfigWidget::CreateWidgets()
   stereoscopy_layout->addWidget(m_convergence_spin, 1, 1);
   stereoscopy_layout->addWidget(m_use_monoscopic_shadows, 2, 0);
 
-  auto* settings_box = new QGroupBox(tr("Game-Specific Settings"));
-  auto* settings_layout = new QVBoxLayout;
-  settings_box->setLayout(settings_layout);
-
-  settings_layout->addWidget(
-      new QLabel(tr("These settings override core Dolphin settings.\nUndetermined means the game "
-                    "uses Dolphin's setting.")));
-  settings_layout->addWidget(core_box);
-  settings_layout->addWidget(stereoscopy_box);
-
-  auto* general_layout = new QGridLayout;
-
-  general_layout->addWidget(settings_box, 0, 0, 1, -1);
-
-  general_layout->addWidget(m_refresh_config, 1, 0, 1, -1);
-
-  for (QCheckBox* item :
-       {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
-        m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
-    item->setTristate(true);
+  auto* general_layout = new QVBoxLayout;
+  general_layout->addWidget(core_box);
+  general_layout->addWidget(stereoscopy_box);
+  general_layout->addStretch();
 
   auto* general_widget = new QWidget;
   general_widget->setLayout(general_layout);
 
-  // Advanced
+  // Editor tab
   auto* advanced_layout = new QVBoxLayout;
 
   auto* default_group = new QGroupBox(tr("Default Config (Read Only)"));
@@ -196,207 +192,175 @@ void GameConfigWidget::CreateWidgets()
 
   auto* layout = new QVBoxLayout;
   auto* tab_widget = new QTabWidget;
-
   tab_widget->addTab(general_widget, tr("General"));
-  tab_widget->addTab(advanced_widget, tr("Editor"));
 
+  // GFX settings tabs. Placed in a QWidget for consistent margins.
+  auto* gfx_tab_holder = new QWidget;
+  auto* gfx_layout = new QVBoxLayout;
+  gfx_tab_holder->setLayout(gfx_layout);
+  tab_widget->addTab(gfx_tab_holder, tr("Graphics"));
+
+  auto* gfx_tabs = new QTabWidget;
+
+  gfx_tabs->addTab(GetWrappedWidget(new GeneralWidget(this, m_layer.get()), this, 125, 100),
+                   tr("General"));
+  gfx_tabs->addTab(GetWrappedWidget(new EnhancementsWidget(this, m_layer.get()), this, 125, 100),
+                   tr("Enhancements"));
+  gfx_tabs->addTab(GetWrappedWidget(new HacksWidget(this, m_layer.get()), this, 125, 100),
+                   tr("Hacks"));
+  gfx_tabs->addTab(GetWrappedWidget(new AdvancedWidget(this, m_layer.get()), this, 125, 100),
+                   tr("Advanced"));
+  const int editor_index = tab_widget->addTab(advanced_widget, tr("Editor"));
+  gfx_layout->addWidget(gfx_tabs);
+
+  connect(tab_widget, &QTabWidget::currentChanged, this, [this, editor_index](int index) {
+    // Update the ini editor after editing other tabs.
+    if (index == editor_index)
+    {
+      // Layer only auto-saves when it is destroyed.
+      m_layer->Save();
+
+      // There can be multiple ini loaded for a game, only replace the one related to the game
+      // ini being edited.
+      for (int i = 0; i < m_local_tab->count(); i++)
+      {
+        if (m_local_tab->tabText(i).toStdString() == m_game_id + ".ini")
+        {
+          m_local_tab->removeTab(i);
+
+          auto* edit = new GameConfigEdit(
+              nullptr,
+              QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
+              false);
+
+          m_local_tab->insertTab(i, edit, QString::fromStdString(m_game_id + ".ini"));
+          break;
+        }
+      }
+    }
+
+    // Update other tabs after using ini editor.
+    if (m_prev_tab_index == editor_index)
+    {
+      // Load won't clear deleted keys, so everything is wiped before loading.
+      m_layer->DeleteAllKeys();
+      m_layer->Load();
+      Config::OnConfigChanged();
+    }
+
+    m_prev_tab_index = index;
+  });
+
+  const QString help_msg = tr(
+      "Italics mark default game settings, bold marks user settings.\nRight-click to remove user "
+      "settings.\nGraphics tabs don't display the value of a default game setting.\nAnti-Aliasing "
+      "settings are disabled when the global graphics backend doesn't "
+      "match the game setting.");
+
+  auto help_icon = style()->standardIcon(QStyle::SP_MessageBoxQuestion);
+  auto* help_label = new QLabel(tr("These settings override core Dolphin settings."));
+  help_label->setToolTip(help_msg);
+  auto help_label_icon = new QLabel();
+  help_label_icon->setPixmap(help_icon.pixmap(12, 12));
+  help_label_icon->setToolTip(help_msg);
+  auto* help_layout = new QHBoxLayout();
+  help_layout->addWidget(help_label);
+  help_layout->addWidget(help_label_icon);
+  help_layout->addStretch();
+
+  layout->addLayout(help_layout);
   layout->addWidget(tab_widget);
-
   setLayout(layout);
 }
 
-void GameConfigWidget::ConnectWidgets()
+GameConfigWidget::~GameConfigWidget()
 {
-  // Buttons
-  connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
+  // Destructor saves the layer to file.
+  m_layer.reset();
 
-  for (QCheckBox* box :
-       {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
-        m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
-    connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
-
-  connect(m_deterministic_dual_core, &QComboBox::currentIndexChanged, this,
-          &GameConfigWidget::SaveSettings);
-  connect(m_depth_slider, &QSlider::valueChanged, this, &GameConfigWidget::SaveSettings);
-  connect(m_convergence_spin, &QSpinBox::valueChanged, this, &GameConfigWidget::SaveSettings);
-}
-
-void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key, bool reverse)
-{
-  bool checked;
-  if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
-    return checkbox->setCheckState(checked ^ reverse ? Qt::Checked : Qt::Unchecked);
-
-  if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
-    return checkbox->setCheckState(checked ^ reverse ? Qt::Checked : Qt::Unchecked);
-  checkbox->setCheckState(Qt::PartiallyChecked);
-}
-
-void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key, bool reverse)
-{
-  // Delete any existing entries from the local gameini if checkbox is undetermined.
-  // Otherwise, write the current value to the local gameini if the value differs from the default
-  // gameini values.
-  // Delete any existing entry from the local gameini if the value does not differ from the default
-  // gameini value.
-
-  if (checkbox->checkState() == Qt::PartiallyChecked)
+  // If a game is running and the game properties window is closed, update local game layer with
+  // any new changes. Not sure if doing it more frequently is safe.
+  auto local_layer = Config::GetLayer(Config::LayerType::LocalGame);
+  if (local_layer && SConfig::GetInstance().GetGameID() == m_game_id)
   {
-    m_gameini_local.DeleteKey(section, key);
-    return;
+    local_layer->DeleteAllKeys();
+    local_layer->Load();
+    Config::OnConfigChanged();
   }
 
-  bool checked = (checkbox->checkState() == Qt::Checked) ^ reverse;
-
-  if (m_gameini_default.Exists(section, key))
-  {
-    bool default_value;
-    m_gameini_default.GetOrCreateSection(section)->Get(key, &default_value);
-
-    if (default_value != checked)
-      m_gameini_local.GetOrCreateSection(section)->Set(key, checked);
-    else
-      m_gameini_local.DeleteKey(section, key);
-
-    return;
-  }
-
-  m_gameini_local.GetOrCreateSection(section)->Set(key, checked);
+  // Delete empty configs
+  if (File::GetSize(m_gameini_local_path.toStdString()) == 0)
+    File::Delete(m_gameini_local_path.toStdString());
 }
 
 void GameConfigWidget::LoadSettings()
 {
-  // Reload config
-  m_gameini_local = SConfig::LoadLocalGameIni(m_game_id, m_game.GetRevision());
-  m_gameini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game.GetRevision());
+  // Load globals
+  auto update_bool = [this](auto config, bool reverse = false) {
+    const Config::Location& setting = config->GetLocation();
 
-  // Load game-specific settings
+    // Don't overwrite local with global
+    if (m_layer->Exists(setting) || !m_global_layer->Exists(setting))
+      return;
 
-  // Core
-  LoadCheckBox(m_enable_dual_core, "Core", "CPUThread");
-  LoadCheckBox(m_enable_mmu, "Core", "MMU");
-  LoadCheckBox(m_enable_fprf, "Core", "FPRF");
-  LoadCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  LoadCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
-  LoadCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
-  LoadCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
+    std::optional<bool> value = m_global_layer->Get<bool>(config->GetLocation());
 
-  std::string determinism_mode;
+    if (value.has_value())
+    {
+      const QSignalBlocker blocker(config);
+      config->setChecked(value.value() ^ reverse);
+    }
+  };
 
-  int determinism_index = DETERMINISM_NOT_SET_INDEX;
+  auto update_int = [this](auto config) {
+    const Config::Location& setting = config->GetLocation();
 
-  m_gameini_default.GetIfExists("Core", "GPUDeterminismMode", &determinism_mode);
-  m_gameini_local.GetIfExists("Core", "GPUDeterminismMode", &determinism_mode);
+    if (m_layer->Exists(setting) || !m_global_layer->Exists(setting))
+      return;
 
-  if (determinism_mode == DETERMINISM_AUTO_STRING)
+    std::optional<int> value = m_global_layer->Get<int>(setting);
+
+    if (value.has_value())
+    {
+      const QSignalBlocker blocker(config);
+      config->setValue(value.value());
+    }
+  };
+
+  for (ConfigBool* config : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
+                             m_use_dsp_hle, m_use_monoscopic_shadows})
   {
-    determinism_index = DETERMINISM_AUTO_INDEX;
-  }
-  else if (determinism_mode == DETERMINISM_NONE_STRING)
-  {
-    determinism_index = DETERMINISM_NONE_INDEX;
-  }
-  else if (determinism_mode == DETERMINISM_FAKE_COMPLETION_STRING)
-  {
-    determinism_index = DETERMINISM_FAKE_COMPLETION_INDEX;
+    update_bool(config);
   }
 
-  m_deterministic_dual_core->setCurrentIndex(determinism_index);
+  update_bool(m_emulate_disc_speed, true);
 
-  // Stereoscopy
-  int depth_percentage = 100;
-
-  m_gameini_default.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &depth_percentage);
-  m_gameini_local.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &depth_percentage);
-
-  m_depth_slider->setValue(depth_percentage);
-
-  int convergence = 0;
-
-  m_gameini_default.GetIfExists("Video_Stereoscopy", "StereoConvergence", &convergence);
-  m_gameini_local.GetIfExists("Video_Stereoscopy", "StereoConvergence", &convergence);
-
-  m_convergence_spin->setValue(convergence);
-
-  LoadCheckBox(m_use_monoscopic_shadows, "Video_Stereoscopy", "StereoEFBMonoDepth");
+  update_int(m_depth_slider);
+  update_int(m_convergence_spin);
 }
 
-void GameConfigWidget::SaveSettings()
+void GameConfigWidget::SetItalics()
 {
-  // Core
-  SaveCheckBox(m_enable_dual_core, "Core", "CPUThread");
-  SaveCheckBox(m_enable_mmu, "Core", "MMU");
-  SaveCheckBox(m_enable_fprf, "Core", "FPRF");
-  SaveCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  SaveCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
-  SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
-  SaveCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
+  // Mark system game settings with italics. Called once because it should never change.
+  auto italics = [this](auto config) {
+    if (!m_global_layer->Exists(config->GetLocation()))
+      return;
 
-  int determinism_num = m_deterministic_dual_core->currentIndex();
+    QFont ifont = config->font();
+    ifont.setItalic(true);
+    config->setFont(ifont);
+  };
 
-  std::string determinism_mode = DETERMINISM_NOT_SET_STRING;
-
-  switch (determinism_num)
-  {
-  case DETERMINISM_AUTO_INDEX:
-    determinism_mode = DETERMINISM_AUTO_STRING;
-    break;
-  case DETERMINISM_NONE_INDEX:
-    determinism_mode = DETERMINISM_NONE_STRING;
-    break;
-  case DETERMINISM_FAKE_COMPLETION_INDEX:
-    determinism_mode = DETERMINISM_FAKE_COMPLETION_STRING;
-    break;
-  }
-
-  if (determinism_mode != DETERMINISM_NOT_SET_STRING)
-  {
-    std::string default_mode = DETERMINISM_NOT_SET_STRING;
-    if (!(m_gameini_default.GetIfExists("Core", "GPUDeterminismMode", &default_mode) &&
-          default_mode == determinism_mode))
-    {
-      m_gameini_local.GetOrCreateSection("Core")->Set("GPUDeterminismMode", determinism_mode);
-    }
-  }
-  else
-  {
-    m_gameini_local.DeleteKey("Core", "GPUDeterminismMode");
-  }
-
-  // Stereoscopy
-  int depth_percentage = m_depth_slider->value();
-
-  if (depth_percentage != 100)
-  {
-    int default_value = 0;
-    if (!(m_gameini_default.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage",
-                                        &default_value) &&
-          default_value == depth_percentage))
-    {
-      m_gameini_local.GetOrCreateSection("Video_Stereoscopy")
-          ->Set("StereoDepthPercentage", depth_percentage);
-    }
-  }
-
-  int convergence = m_convergence_spin->value();
-  if (convergence != 0)
-  {
-    int default_value = 0;
-    if (!(m_gameini_default.GetIfExists("Video_Stereoscopy", "StereoConvergence", &default_value) &&
-          default_value == convergence))
-    {
-      m_gameini_local.GetOrCreateSection("Video_Stereoscopy")
-          ->Set("StereoConvergence", convergence);
-    }
-  }
-
-  SaveCheckBox(m_use_monoscopic_shadows, "Video_Stereoscopy", "StereoEFBMonoDepth");
-
-  bool success = m_gameini_local.Save(m_gameini_local_path.toStdString());
-
-  // If the resulting file is empty, delete it. Kind of a hack, but meh.
-  if (success && File::GetSize(m_gameini_local_path.toStdString()) == 0)
-    File::Delete(m_gameini_local_path.toStdString());
+  for (auto* config : findChildren<ConfigBool*>())
+    italics(config);
+  for (auto* config : findChildren<ConfigSlider*>())
+    italics(config);
+  for (auto* config : findChildren<ConfigInteger*>())
+    italics(config);
+  for (auto* config : findChildren<ConfigRadioInt*>())
+    italics(config);
+  for (auto* config : findChildren<ConfigChoice*>())
+    italics(config);
+  for (auto* config : findChildren<ConfigStringChoice*>())
+    italics(config);
 }

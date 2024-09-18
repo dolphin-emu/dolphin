@@ -18,6 +18,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
@@ -43,6 +44,15 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(fa
           &EnhancementsWidget::LoadSettings);
   connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this,
           &EnhancementsWidget::LoadSettings);
+}
+
+EnhancementsWidget::EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer)
+    : m_game_layer(layer)
+{
+  CreateWidgets();
+  LoadSettings();
+  ConnectWidgets();
+  AddDescriptions();
 }
 
 constexpr int TEXTURE_FILTERING_DEFAULT = 0;
@@ -104,7 +114,7 @@ void EnhancementsWidget::CreateWidgets()
     }
   }
 
-  m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE);
+  m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE, m_game_layer);
   m_ir_combo->setMaxVisibleItems(visible_resolution_option_count);
 
   m_aa_combo = new ToolTipComboBox();
@@ -146,19 +156,22 @@ void EnhancementsWidget::CreateWidgets()
 
   m_pp_effect = new ToolTipComboBox();
   m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
-  m_scaled_efb_copy = new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
+  m_scaled_efb_copy =
+      new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED, m_game_layer);
   m_per_pixel_lighting =
-      new ConfigBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
+      new ConfigBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING, m_game_layer);
 
-  m_widescreen_hack = new ConfigBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
-  m_disable_fog = new ConfigBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
+  m_widescreen_hack =
+      new ConfigBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK, m_game_layer);
+  m_disable_fog = new ConfigBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG, m_game_layer);
   m_force_24bit_color =
-      new ConfigBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
-  m_disable_copy_filter =
-      new ConfigBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  m_arbitrary_mipmap_detection = new ConfigBool(tr("Arbitrary Mipmap Detection"),
-                                                Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
-  m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT);
+      new ConfigBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR, m_game_layer);
+  m_disable_copy_filter = new ConfigBool(tr("Disable Copy Filter"),
+                                         Config::GFX_ENHANCE_DISABLE_COPY_FILTER, m_game_layer);
+  m_arbitrary_mipmap_detection =
+      new ConfigBool(tr("Arbitrary Mipmap Detection"),
+                     Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_game_layer);
+  m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -209,15 +222,16 @@ void EnhancementsWidget::CreateWidgets()
 
   m_3d_mode = new ConfigChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
                                 tr("HDMI 3D"), tr("Passive")},
-                               Config::GFX_STEREO_MODE);
-  m_3d_depth = new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
+                               Config::GFX_STEREO_MODE, m_game_layer);
+  m_3d_depth =
+      new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH, m_game_layer);
   m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
-                                      Config::GFX_STEREO_CONVERGENCE, 100);
+                                      Config::GFX_STEREO_CONVERGENCE, m_game_layer, 100);
 
-  m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+  m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES, m_game_layer);
 
-  m_3d_per_eye_resolution =
-      new ConfigBool(tr("Use Full Resolution Per Eye"), Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
+  m_3d_per_eye_resolution = new ConfigBool(
+      tr("Use Full Resolution Per Eye"), Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL, m_game_layer);
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);

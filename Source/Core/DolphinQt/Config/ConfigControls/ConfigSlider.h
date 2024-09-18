@@ -17,6 +17,9 @@ class ConfigSlider final : public ConfigControl<ToolTipSlider>
   Q_OBJECT
 public:
   ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick = 0);
+  ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, Config::Layer* layer,
+               int tick = 0);
+
   void Update(int value);
 
 protected:

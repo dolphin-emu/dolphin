@@ -3,8 +3,9 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 
-ConfigRadioInt::ConfigRadioInt(const QString& label, const Config::Info<int>& setting, int value)
-    : ConfigControl(label, setting.GetLocation()), m_setting(setting), m_value(value)
+ConfigRadioInt::ConfigRadioInt(const QString& label, const Config::Info<int>& setting, int value,
+                               Config::Layer* layer)
+    : ConfigControl(label, setting.GetLocation(), layer), m_setting(setting), m_value(value)
 {
   setChecked(ReadValue(setting) == value);
 

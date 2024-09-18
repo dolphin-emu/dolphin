@@ -17,6 +17,9 @@ class ConfigInteger final : public ConfigControl<ToolTipSpinBox>
   Q_OBJECT
 public:
   ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, int step = 1);
+  ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, Config::Layer* layer,
+                int step = 1);
+
   void Update(int value);
 
 protected:
