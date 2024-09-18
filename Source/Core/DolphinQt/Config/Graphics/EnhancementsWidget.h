@@ -10,6 +10,7 @@
 class ConfigBool;
 class ConfigChoice;
 class ConfigSlider;
+class GameConfigWidget;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
@@ -19,11 +20,17 @@ class ToolTipComboBox;
 class ToolTipPushButton;
 enum class StereoMode : int;
 
+namespace Config
+{
+class Layer;
+}  // namespace Config
+
 class EnhancementsWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit EnhancementsWidget(GraphicsWindow* parent);
+  EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
   void LoadSettings();
@@ -60,6 +67,7 @@ private:
   ConfigBool* m_3d_swap_eyes;
   ConfigBool* m_3d_per_eye_resolution;
 
+  Config::Layer* m_game_layer = nullptr;
   int m_msaa_modes;
   bool m_block_save;
 };

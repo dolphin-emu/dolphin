@@ -8,6 +8,7 @@
 #include <QSignalBlocker>
 
 #include "Common/Config/Enums.h"
+#include "Common/Config/Layer.h"
 #include "DolphinQt/Settings.h"
 
 namespace Config
@@ -21,14 +22,19 @@ template <class Derived>
 class ConfigControl : public Derived
 {
 public:
-  ConfigControl(const Config::Location& location) : m_location(location) { ConnectConfig(); }
-  ConfigControl(const QString& label, const Config::Location& location)
-      : Derived(label), m_location(location)
+  ConfigControl(const Config::Location& location, Config::Layer* layer)
+      : m_location(location), m_layer(layer)
   {
     ConnectConfig();
   }
-  ConfigControl(const Qt::Orientation& orient, const Config::Location& location)
-      : Derived(orient), m_location(location)
+  ConfigControl(const QString& label, const Config::Location& location, Config::Layer* layer)
+      : Derived(label), m_location(location), m_layer(layer)
+  {
+    ConnectConfig();
+  }
+  ConfigControl(const Qt::Orientation& orient, const Config::Location& location,
+                Config::Layer* layer)
+      : Derived(orient), m_location(location), m_layer(layer)
   {
     ConnectConfig();
   }
@@ -51,22 +57,49 @@ protected:
   template <typename T>
   void SaveValue(const Config::Info<T>& setting, const T& value)
   {
+    if (m_layer != nullptr)
+    {
+      m_layer->Set(m_location, value);
+      Config::OnConfigChanged();
+      return;
+    }
+
     Config::SetBaseOrCurrent(setting, value);
   }
 
   template <typename T>
   const T ReadValue(const Config::Info<T>& setting) const
   {
+    if (m_layer != nullptr)
+      return m_layer->Get(setting);
+
     return Config::Get(setting);
   }
 
-  virtual void OnConfigChanged() {};
+  virtual void OnConfigChanged(){};
 
 private:
   bool IsConfigLocal() const
   {
-    return Config::GetActiveLayerForConfig(m_location) != Config::LayerType::Base;
+    if (m_layer != nullptr)
+      return m_layer->Exists(m_location);
+    else
+      return Config::GetActiveLayerForConfig(m_location) != Config::LayerType::Base;
+  }
+
+  void mousePressEvent(QMouseEvent* event) override
+  {
+    if (m_layer != nullptr && event->button() == Qt::RightButton)
+    {
+      m_layer->DeleteKey(m_location);
+      Config::OnConfigChanged();
+    }
+    else
+    {
+      Derived::mousePressEvent(event);
+    }
   }
 
   const Config::Location m_location;
+  Config::Layer* m_layer;
 };
