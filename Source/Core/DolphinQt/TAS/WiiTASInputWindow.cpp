@@ -5,13 +5,10 @@
 
 #include <cmath>
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-#include <QSpinBox>
-#include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

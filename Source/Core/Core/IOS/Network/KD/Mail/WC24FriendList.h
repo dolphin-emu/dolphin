@@ -5,13 +5,10 @@
 
 #include <array>
 #include <memory>
-#include <string_view>
 #include <vector>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
 namespace IOS::HLE

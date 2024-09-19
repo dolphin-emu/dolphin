@@ -3,6 +3,4 @@
 
 #pragma once
 
-#include <string>
-
 extern const char s_hermes_text[21370];

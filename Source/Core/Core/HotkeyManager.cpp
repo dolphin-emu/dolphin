@@ -20,7 +20,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/GCPadStatus.h"
 
 // clang-format off
 constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{

@@ -5,7 +5,6 @@
 
 #include <QApplication>
 #include <QCoreApplication>
-#include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
 #include <QStandardItemModel>

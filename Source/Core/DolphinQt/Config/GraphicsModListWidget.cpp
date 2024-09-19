@@ -3,14 +3,12 @@
 
 #include "DolphinQt/Config/GraphicsModListWidget.h"
 
-#include <QCheckBox>
 #include <QDesktopServices>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
 #include <QUrl>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include <set>

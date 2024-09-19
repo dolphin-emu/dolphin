@@ -23,16 +23,12 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
-
-#include "VideoCommon/VideoCommon.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;

@@ -3,17 +3,13 @@
 
 #include "DolphinQt/Config/FreeLookWidget.h"
 
-#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
-#include <QVBoxLayout>
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"

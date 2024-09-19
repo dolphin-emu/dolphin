@@ -12,10 +12,8 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QSplitter>
 #include <QTextBrowser>
-#include <QTreeWidget>
 #include <QTreeWidgetItem>
 
 #include "Common/Assert.h"

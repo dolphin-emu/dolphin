@@ -8,7 +8,6 @@
 #include <cstring>
 
 #include "Common/Crypto/bn.h"
-#include "Common/Inline.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 

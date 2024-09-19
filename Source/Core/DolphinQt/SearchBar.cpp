@@ -3,7 +3,6 @@
 
 #include "DolphinQt/SearchBar.h"
 
-#include <QEvent>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QLineEdit>

@@ -14,7 +14,6 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"

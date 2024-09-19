@@ -5,8 +5,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QFileDialog>
-#include <QFileInfo>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -14,8 +12,6 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
-#include <QVBoxLayout>
 
 #include <array>
 #include <utility>

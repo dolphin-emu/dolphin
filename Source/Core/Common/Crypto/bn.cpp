@@ -4,7 +4,6 @@
 #include "Common/Crypto/bn.h"
 
 #include <cstddef>
-#include <cstdio>
 #include <cstring>
 
 #include "Common/CommonTypes.h"

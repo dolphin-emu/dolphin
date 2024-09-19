@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "AudioCommon/Mixer.h"
-#include "Common/CommonTypes.h"
 
 class SoundStream
 {

@@ -5,8 +5,6 @@
 
 #include "DolphinQt/Config/ToolTipControls/ToolTipWidget.h"
 
-#include <QPushButton>
-
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 class ToolTipPushButton : public ToolTipWidget<NonDefaultQPushButton>

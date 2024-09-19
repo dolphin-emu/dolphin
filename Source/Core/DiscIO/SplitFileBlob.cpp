@@ -13,7 +13,6 @@
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/MsgHandler.h"
 
 namespace DiscIO
 {

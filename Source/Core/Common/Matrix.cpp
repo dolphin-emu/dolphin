@@ -3,7 +3,6 @@
 
 #include "Common/Matrix.h"
 
-#include <algorithm>
 #include <cmath>
 
 #include "Common/MathUtil.h"

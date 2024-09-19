@@ -26,7 +26,6 @@
 #pragma comment(lib, "libittnotify.lib")
 #endif
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 

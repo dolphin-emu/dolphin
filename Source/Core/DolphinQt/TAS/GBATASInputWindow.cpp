@@ -3,15 +3,10 @@
 
 #include "DolphinQt/TAS/GBATASInputWindow.h"
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-#include <QSpinBox>
-#include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GBAPadEmu.h"

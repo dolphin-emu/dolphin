@@ -5,8 +5,6 @@
 
 #include <QDialogButtonBox>
 #include <QEvent>
-#include <QGroupBox>
-#include <QLabel>
 #include <QTabWidget>
 #include <QVBoxLayout>
 

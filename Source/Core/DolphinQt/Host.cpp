@@ -15,8 +15,6 @@
 #include <windows.h>
 #endif
 
-#include "Common/Common.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

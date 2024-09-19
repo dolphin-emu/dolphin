@@ -4,12 +4,10 @@
 #include "DolphinQt/Config/SettingsWindow.h"
 
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
-#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/AdvancedPane.h"
 #include "DolphinQt/Settings/AudioPane.h"
@@ -18,8 +16,6 @@
 #include "DolphinQt/Settings/InterfacePane.h"
 #include "DolphinQt/Settings/PathPane.h"
 #include "DolphinQt/Settings/WiiPane.h"
-
-#include "Core/Core.h"
 
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {

@@ -4,8 +4,6 @@
 #include "DolphinQt/Config/InfoWidget.h"
 
 #include <QComboBox>
-#include <QCryptographicHash>
-#include <QDir>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -15,7 +13,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 

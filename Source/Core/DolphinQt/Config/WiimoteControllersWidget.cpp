@@ -9,12 +9,9 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QPushButton>
-#include <QRadioButton>
 #include <QScreen>
 #include <QVBoxLayout>
 
-#include <map>
 #include <optional>
 
 #include "Common/Config/Config.h"
@@ -37,8 +34,6 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/UICommon.h"
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {

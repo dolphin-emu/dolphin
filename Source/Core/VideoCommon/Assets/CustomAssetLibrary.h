@@ -4,8 +4,6 @@
 #pragma once
 
 #include <chrono>
-#include <filesystem>
-#include <map>
 #include <string>
 
 namespace VideoCommon

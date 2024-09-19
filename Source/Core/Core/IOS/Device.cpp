@@ -10,7 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
 #include "Core/System.h"
 

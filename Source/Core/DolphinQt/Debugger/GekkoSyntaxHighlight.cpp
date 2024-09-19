@@ -5,7 +5,6 @@
 
 #include "Common/Assembler/GekkoParser.h"
 
-#include <QLabel>
 #include <QPalette>
 
 namespace

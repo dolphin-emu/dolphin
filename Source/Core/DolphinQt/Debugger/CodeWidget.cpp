@@ -8,7 +8,6 @@
 #include <fmt/format.h>
 
 #include <QGridLayout>
-#include <QGroupBox>
 #include <QGuiApplication>
 #include <QLabel>
 #include <QLineEdit>
@@ -16,7 +15,6 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStyleHints>
-#include <QTableWidget>
 #include <QWidget>
 
 #include "Common/Event.h"

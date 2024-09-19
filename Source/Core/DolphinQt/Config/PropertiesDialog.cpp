@@ -6,7 +6,6 @@
 #include <memory>
 
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 

@@ -3,17 +3,11 @@
 
 #include "DolphinQt/RenderWidget.h"
 
-#include <array>
-
 #include <QApplication>
-#include <QDragEnterEvent>
-#include <QDropEvent>
 #include <QFileInfo>
-#include <QGuiApplication>
 #include <QIcon>
 #include <QKeyEvent>
 #include <QMimeData>
-#include <QMouseEvent>
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
