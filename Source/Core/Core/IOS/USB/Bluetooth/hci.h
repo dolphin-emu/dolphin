@@ -2505,7 +2505,7 @@ struct hci_filter
   uint32_t mask[8]; /* 256 bits */
 };
 
-static __inline void hci_filter_set(uint8_t bit, struct hci_filter* filter)
+static __inline void hci_filter_set(uint8_t bit, hci_filter* filter)
 {
   uint8_t off = bit - 1;
 
@@ -2513,7 +2513,7 @@ static __inline void hci_filter_set(uint8_t bit, struct hci_filter* filter)
   filter->mask[off] |= (1 << ((bit - 1) & 0x1f));
 }
 
-static __inline void hci_filter_clr(uint8_t bit, struct hci_filter* filter)
+static __inline void hci_filter_clr(uint8_t bit, hci_filter* filter)
 {
   uint8_t off = bit - 1;
 
@@ -2581,7 +2581,7 @@ struct btreq
       uint16_t btri_link_policy; /* Link Policy */
       uint16_t btri_packet_type; /* Packet Type */
     } btri;
-    struct bt_stats btrs; /* unit stats */
+    bt_stats btrs; /* unit stats */
   } btru;
 };
 
