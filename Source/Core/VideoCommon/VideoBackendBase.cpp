@@ -52,6 +52,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -391,6 +392,12 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
+
+  if (g_Config.bDumpTextures)
+  {
+    OSD::AddMessage(fmt::format("Texture Dumping is enabled. This will reduce performance."),
+                    OSD::Duration::NORMAL);
+  }
 
   g_shader_cache->InitializeShaderCache();
 

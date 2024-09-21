@@ -469,7 +469,14 @@ void HotkeyScheduler::Run()
       }
 
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
-        Config::SetCurrent(Config::GFX_DUMP_TEXTURES, !Config::Get(Config::GFX_DUMP_TEXTURES));
+      {
+        const bool enable_dumping = !Config::Get(Config::GFX_DUMP_TEXTURES);
+        Config::SetCurrent(Config::GFX_DUMP_TEXTURES, enable_dumping);
+        OSD::AddMessage(
+            fmt::format("Texture Dumping {}",
+                        enable_dumping ? "enabled. This will reduce performance." : "disabled."),
+            OSD::Duration::NORMAL);
+      }
 
       if (IsHotkey(HK_TOGGLE_TEXTURES))
         Config::SetCurrent(Config::GFX_HIRES_TEXTURES, !Config::Get(Config::GFX_HIRES_TEXTURES));
