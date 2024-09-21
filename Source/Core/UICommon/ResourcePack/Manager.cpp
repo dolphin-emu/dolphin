@@ -85,7 +85,7 @@ std::vector<ResourcePack>& GetPacks()
 std::vector<ResourcePack*> GetLowerPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
-  for (auto it = std::find(packs.begin(), packs.end(), pack) + 1; it != packs.end(); ++it)
+  for (auto it = std::ranges::find(packs, pack) + 1; it != packs.end(); ++it)
   {
     auto& entry = *it;
     if (!IsInstalled(pack))
@@ -100,7 +100,7 @@ std::vector<ResourcePack*> GetLowerPriorityPacks(const ResourcePack& pack)
 std::vector<ResourcePack*> GetHigherPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
-  auto end = std::find(packs.begin(), packs.end(), pack);
+  auto end = std::ranges::find(packs, pack);
 
   for (auto it = packs.begin(); it != end; ++it)
   {
@@ -145,7 +145,7 @@ bool Remove(ResourcePack& pack)
   if (!result)
     return false;
 
-  auto pack_iterator = std::find(packs.begin(), packs.end(), pack);
+  auto pack_iterator = std::ranges::find(packs, pack);
 
   if (pack_iterator == packs.end())
     return false;

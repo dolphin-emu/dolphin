@@ -77,7 +77,7 @@ std::optional<PatchEntry> DeserializeLine(std::string line)
     entry.conditional = true;
   }
 
-  const auto iter = std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
+  const auto iter = std::ranges::find(s_patch_type_strings, items[1]);
   if (iter == s_patch_type_strings.end())
     return std::nullopt;
   entry.type = static_cast<PatchType>(std::distance(s_patch_type_strings.begin(), iter));
