@@ -86,11 +86,6 @@ auto GetMetadataFields(T& obj)
   return std::tie(obj.uid, obj.gid, obj.is_file, obj.modes, obj.attribute);
 }
 
-auto GetNamePredicate(const std::string& name)
-{
-  return [&name](const auto& entry) { return entry.name == name; };
-}
-
 // Convert the host directory entries into ones that can be exposed to the emulated system.
 static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
 {
@@ -254,8 +249,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   for (const std::string& component : SplitString(std::string(path.substr(1)), '/'))
   {
     complete_path += '/' + component;
-    const auto next =
-        std::find_if(entry->children.begin(), entry->children.end(), GetNamePredicate(component));
+    const auto next = std::ranges::find(entry->children, component, &FstEntry::name);
     if (next != entry->children.end())
     {
       entry = &*next;
@@ -552,8 +546,7 @@ ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
   else
     return ResultCode::InUse;
 
-  const auto it = std::find_if(parent->children.begin(), parent->children.end(),
-                               GetNamePredicate(split_path.file_name));
+  const auto it = std::ranges::find(parent->children, split_path.file_name, &FstEntry::name);
   if (it != parent->children.end())
     parent->children.erase(it);
   SaveFst();
@@ -642,8 +635,8 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
   new_entry->name = split_new_path.file_name;
 
   // Finally, remove the child from the old parent and move it to the new parent.
-  const auto it = std::find_if(old_parent->children.begin(), old_parent->children.end(),
-                               GetNamePredicate(split_old_path.file_name));
+  const auto it =
+      std::ranges::find(old_parent->children, split_old_path.file_name, &FstEntry::name);
   if (it != old_parent->children.end())
   {
     new_entry->data = it->data;
