@@ -85,7 +85,7 @@ bool IniFile::Section::Delete(std::string_view key)
     return false;
 
   values.erase(it);
-  keys_order.erase(std::find(keys_order.begin(), keys_order.end(), key));
+  keys_order.erase(std::ranges::find(keys_order, key));
   return true;
 }
 
