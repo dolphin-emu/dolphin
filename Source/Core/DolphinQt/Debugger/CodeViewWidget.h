@@ -57,7 +57,6 @@ public:
 signals:
   void RequestPPCComparison(u32 addr);
   void ShowMemory(u32 address);
-  void BreakpointsChanged();
   void UpdateCodeWidget();
 
 private:

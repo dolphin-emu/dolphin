@@ -200,6 +200,8 @@ MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           qOverload<>(&MemoryViewWidget::UpdateColumns));
+  connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this,
+          qOverload<>(&MemoryViewWidget::Update));
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
           qOverload<>(&MemoryViewWidget::UpdateColumns));
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
@@ -840,8 +842,7 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
     }
   }
 
-  emit BreakpointsChanged();
-  Update();
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void MemoryViewWidget::OnCopyAddress(u32 addr)
