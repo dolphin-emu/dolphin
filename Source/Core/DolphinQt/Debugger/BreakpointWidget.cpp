@@ -131,6 +131,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
     Update();
   });
 
+  connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &BreakpointWidget::Update);
   connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this, &BreakpointWidget::Update);
 
   UpdateIcons();
