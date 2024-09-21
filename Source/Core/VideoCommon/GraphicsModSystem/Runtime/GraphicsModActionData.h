@@ -32,6 +32,12 @@ struct EFB
   bool* skip;
   u32* scaled_width;
   u32* scaled_height;
+  bool* force_copy_to_ram;
+};
+
+struct XFB
+{
+  bool* force_copy_to_ram;
 };
 
 struct Projection
