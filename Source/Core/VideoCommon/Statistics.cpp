@@ -176,7 +176,7 @@ void Statistics::AddScissorRect()
     }
     else
     {
-      add = std::find_if(scissors.begin(), scissors.end(), [&](auto& s) {
+      add = std::ranges::find_if(scissors, [&](auto& s) {
               return s.Matches(scissor, show_scissors, show_viewports);
             }) == scissors.end();
     }

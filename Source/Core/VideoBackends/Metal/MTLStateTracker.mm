@@ -61,8 +61,8 @@ static NSString* GetName(Metal::StateTracker::UploadBuffer buffer)
 
 bool Metal::StateTracker::UsageTracker::PrepareForAllocation(u64 last_draw, size_t amt)
 {
-  auto removeme = std::find_if(m_usage.begin(), m_usage.end(),
-                               [last_draw](UsageEntry usage) { return usage.drawno > last_draw; });
+  auto removeme = std::ranges::find_if(
+      m_usage, [last_draw](UsageEntry usage) { return usage.drawno > last_draw; });
   if (removeme != m_usage.begin())
     m_usage.erase(m_usage.begin(), removeme);
 

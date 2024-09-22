@@ -726,7 +726,7 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
       {SignatureType::ECC, PublicKeyType::ECC, sizeof(CertECC)},
   }};
 
-  const auto info = std::find_if(types.cbegin(), types.cend(), [this](const CertStructInfo& entry) {
+  const auto info = std::ranges::find_if(types, [this](const CertStructInfo& entry) {
     return m_bytes.size() >= std::get<2>(entry) && std::get<0>(entry) == GetSignatureType() &&
            std::get<1>(entry) == GetPublicKeyType();
   });
