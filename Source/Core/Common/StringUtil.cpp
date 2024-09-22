@@ -403,8 +403,7 @@ void StringPopBackIf(std::string* s, char c)
 
 size_t StringUTF8CodePointCount(std::string_view str)
 {
-  return str.size() -
-         std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
+  return str.size() - std::ranges::count_if(str, [](char c) -> bool { return (c & 0xC0) == 0x80; });
 }
 
 #ifdef _WIN32
