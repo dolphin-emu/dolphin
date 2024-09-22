@@ -527,14 +527,13 @@ void ESDevice::DoState(PointerWrap& p)
 
 ESDevice::ContextArray::iterator ESDevice::FindActiveContext(s32 fd)
 {
-  return std::find_if(m_contexts.begin(), m_contexts.end(),
-                      [fd](const auto& context) { return context.ipc_fd == fd && context.active; });
+  return std::ranges::find_if(
+      m_contexts, [fd](const auto& context) { return context.ipc_fd == fd && context.active; });
 }
 
 ESDevice::ContextArray::iterator ESDevice::FindInactiveContext()
 {
-  return std::find_if(m_contexts.begin(), m_contexts.end(),
-                      [](const auto& context) { return !context.active; });
+  return std::ranges::find_if(m_contexts, [](const auto& context) { return !context.active; });
 }
 
 std::optional<IPCReply> ESDevice::Open(const OpenRequest& request)

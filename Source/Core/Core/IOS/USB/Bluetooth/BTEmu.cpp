@@ -473,8 +473,7 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
   static_assert(
       sizeof(SHCIEventInquiryResult) - 2 + (num_responses * sizeof(hci_inquiry_response)) < 256);
 
-  const auto iter = std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
-                                 std::mem_fn(&WiimoteDevice::IsInquiryScanEnabled));
+  const auto iter = std::ranges::find_if(m_wiimotes, &WiimoteDevice::IsInquiryScanEnabled);
   if (iter == m_wiimotes.end())
   {
     // No remotes are discoverable.
