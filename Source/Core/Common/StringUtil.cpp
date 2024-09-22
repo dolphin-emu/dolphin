@@ -681,10 +681,14 @@ void ToUpper(std::string* str)
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
 {
-  if (a.size() != b.size())
-    return false;
-  return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+  return std::ranges::equal(
+      a, b, [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+}
+
+bool CaseInsensitiveLess::operator()(std::string_view a, std::string_view b) const
+{
+  return std::ranges::lexicographical_compare(
+      a, b, [](char ca, char cb) { return Common::ToLower(ca) < Common::ToLower(cb); });
 }
 
 std::string BytesToHexString(std::span<const u8> bytes)

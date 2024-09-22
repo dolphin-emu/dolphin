@@ -314,5 +314,13 @@ std::string GetEscapedHtml(std::string html);
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b);
+
+// 'std::less'-like comparison function object type for case-insensitive strings.
+struct CaseInsensitiveLess
+{
+  using is_transparent = void;  // Allow heterogenous lookup.
+  bool operator()(std::string_view a, std::string_view b) const;
+};
+
 std::string BytesToHexString(std::span<const u8> bytes);
 }  // namespace Common
