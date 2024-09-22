@@ -36,8 +36,6 @@ public:
   bool enabled = false;
   bool default_enabled = false;
   bool user_defined = false;
-
-  bool Exist(u32 address, u32 data) const;
 };
 
 bool operator==(const GeckoCode& lhs, const GeckoCode& rhs);
