@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -287,7 +288,7 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
   std::transform(
       m_calibration.begin(), m_calibration.end(), save_data.begin(),
       [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
-  section->Set(group + CALIBRATION_CONFIG_NAME, JoinStrings(save_data, " "), "");
+  section->Set(group + CALIBRATION_CONFIG_NAME, fmt::to_string(fmt::join(save_data, " ")), "");
 
   // Save center value.
   static constexpr char center_format[] = "{:.2f} {:.2f}";
