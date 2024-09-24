@@ -42,6 +42,8 @@ DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive pri
   return VertexManagerBase::PrepareForAdditionalData(primitive, count, stride, false);
 }
 
+static InputVertexData s_state;
+
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   using OpcodeDecoder::Primitive;
@@ -72,17 +74,19 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
   {
     const u16 index = m_cpu_index_buffer[i];
-    memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
+    //memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
+    m_vertex = s_state;
 
     // parse the videocommon format to our own struct format (m_vertex)
     SetFormat();
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
+    s_state = m_vertex;
 
     // transform this vertex so that it can be used for rasterization (outVertex)
     OutputVertexData* outVertex = m_setup_unit.GetVertex();
     TransformUnit::TransformPosition(&m_vertex, outVertex);
     outVertex->normal = {};
-    if (VertexLoaderManager::g_current_components & VB_HAS_NORMAL)
+    //if (VertexLoaderManager::g_current_components & VB_HAS_NORMAL)
       TransformUnit::TransformNormal(&m_vertex, outVertex);
     TransformUnit::TransformColor(&m_vertex, outVertex);
     TransformUnit::TransformTexCoord(&m_vertex, outVertex);
