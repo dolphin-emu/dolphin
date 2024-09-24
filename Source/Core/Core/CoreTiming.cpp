@@ -387,6 +387,11 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   const TimePoint min_deadline = time - m_max_fallback;
   const TimePoint max_deadline = time + m_max_fallback;
 
+  if (speed <= 0.0)
+  {
+    m_throttle_deadline = time;
+  }
+
   if (m_throttle_deadline > max_deadline)
   {
     m_throttle_deadline = max_deadline;
