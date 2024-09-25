@@ -137,6 +137,14 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
       MOVUPS(MPIC(VertexLoaderManager::position_cache.data(), scratch3, SCALE_4), coords);
       SetJumpTarget(dont_store);
     }
+    else if (native_format == &m_native_vtx_decl.normals[0])
+    {
+      TEST(32, R(remaining_reg), R(remaining_reg));
+      FixupBranch dont_store = J_CC(CC_NZ);
+      // For similar reasons, the cached normal is 4 floats each
+      MOVUPS(MPIC(VertexLoaderManager::normal_cache.data()), coords);
+      SetJumpTarget(dont_store);
+    }
     else if (native_format == &m_native_vtx_decl.normals[1])
     {
       TEST(32, R(remaining_reg), R(remaining_reg));

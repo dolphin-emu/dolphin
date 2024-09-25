@@ -251,47 +251,53 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n"
             "\n"
+            "float3 _rawnormal;\n"
+            "float3 _rawtangent;\n"
+            "float3 _rawbinormal;\n"
+            "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n"
+            "{{\n",
+            Common::ToUnderlying(VB_HAS_NORMAL));
+  LoadVertexAttribute(out, host_config, 2, "rawnormal", "float3", "float3");
+  out.Write("  _rawnormal = rawnormal;\n"
+            "}}\n"
+            "else\n"
+            "{{\n"
+            "  _rawnormal = " I_CACHED_NORMAL ".xyz;\n"
+            "}}\n"
+            "\n"
+            "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n"
+            "{{\n",
+            Common::ToUnderlying(VB_HAS_TANGENT));
+  LoadVertexAttribute(out, host_config, 2, "rawtangent", "float3", "float3");
+  out.Write("  _rawtangent = rawtangent;\n"
+            "}}\n"
+            "else\n"
+            "{{\n"
+            "  _rawtangent = " I_CACHED_TANGENT ".xyz;\n"
+            "}}\n"
+            "\n"
+            "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n"
+            "{{\n",
+            Common::ToUnderlying(VB_HAS_BINORMAL));
+  LoadVertexAttribute(out, host_config, 2, "rawbinormal", "float3", "float3");
+  out.Write("  _rawbinormal = rawbinormal;\n"
+            "}}\n"
+            "else\n"
+            "{{\n"
+            "  _rawbinormal = " I_CACHED_BINORMAL ".xyz;\n"
+            "}}\n"
+            "\n"
             "// The scale of the transform matrix is used to control the size of the emboss map\n"
             "// effect by changing the scale of the transformed binormals (which only get used by\n"
             "// emboss map texgens). By normalising the first transformed normal (which is used\n"
             "// by lighting calculations and needs to be unit length), the same transform matrix\n"
             "// can do double duty, scaling for emboss mapping, and not scaling for lighting.\n"
-            "float3 _normal = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n"
-            "{{\n",
-            Common::ToUnderlying(VB_HAS_NORMAL));
-  LoadVertexAttribute(out, host_config, 2, "rawnormal", "float3", "float3");
-  out.Write("  _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
-            "rawnormal)));\n"
-            "}}\n"
-            "\n"
-            "float3 _tangent = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n"
-            "{{\n",
-            Common::ToUnderlying(VB_HAS_TANGENT));
-  LoadVertexAttribute(out, host_config, 2, "rawtangent", "float3", "float3");
-  out.Write("  _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, rawtangent));\n"
-            "}}\n"
-            "else\n"
-            "{{\n"
-            "  _tangent = float3(dot(N0, " I_CACHED_TANGENT ".xyz), dot(N1, " I_CACHED_TANGENT
-            ".xyz), dot(N2, " I_CACHED_TANGENT ".xyz));\n"
-            "}}\n"
-            "\n"
-            "float3 _binormal = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n"
-            "{{\n",
-            Common::ToUnderlying(VB_HAS_BINORMAL));
-  LoadVertexAttribute(out, host_config, 2, "rawbinormal", "float3", "float3");
-  out.Write("  _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
-            "rawbinormal));\n"
-            "}}\n"
-            "else\n"
-            "{{\n"
-            "  _binormal = float3(dot(N0, " I_CACHED_BINORMAL ".xyz), dot(N1, " I_CACHED_BINORMAL
-            ".xyz), dot(N2, " I_CACHED_BINORMAL ".xyz));\n"
-            "}}\n"
-            "\n");
+            "float3 _normal = normalize(float3(dot(N0, _rawnormal), dot(N1, _rawnormal), dot(N2, "
+            "_rawnormal)));\n"
+            "float3 _tangent = float3(dot(N0, _rawtangent), dot(N1, _rawtangent), dot(N2, "
+            "_rawtangent));\n"
+            "float3 _binormal = float3(dot(N0, _rawbinormal), dot(N1, _rawbinormal), dot(N2, "
+            "_rawbinormal));\n");
 
   // Hardware Lighting
   out.Write("// xfmem.numColorChans controls the number of color channels available to TEV,\n"
