@@ -9,12 +9,12 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StringUtil.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -442,7 +442,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   };
 
   auto hotkey_string = [](std::vector<std::string> inputs) {
-    return "@(" + JoinStrings(inputs, "+") + ')';
+    return fmt::format("@({})", fmt::join(inputs, "+"));
   };
 
   // General hotkeys

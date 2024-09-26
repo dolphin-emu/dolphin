@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -96,12 +97,12 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 
     if (is_hotkey)
     {
-      alternations.push_back(fmt::format("@({})", JoinStrings(alternation, "+")));
+      alternations.push_back(fmt::format("@({})", fmt::join(alternation, "+")));
     }
     else
     {
       std::sort(alternation.begin(), alternation.end());
-      alternations.push_back(JoinStrings(alternation, "&"));
+      alternations.push_back(fmt::to_string(fmt::join(alternation, "&")));
     }
   };
 
@@ -130,7 +131,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
   std::sort(alternations.begin(), alternations.end());
   alternations.erase(std::unique(alternations.begin(), alternations.end()), alternations.end());
 
-  return JoinStrings(alternations, "|");
+  return fmt::to_string(fmt::join(alternations, "|"));
 }
 
 void RemoveSpuriousTriggerCombinations(
