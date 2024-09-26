@@ -43,7 +43,6 @@ public:
   void Update();
 
 signals:
-  void BreakpointsChanged();
   void ShowCode(u32 address);
   void ShowMemory(u32 address);
 

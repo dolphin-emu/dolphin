@@ -188,6 +188,8 @@ CodeViewWidget::CodeViewWidget()
   });
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this,
           qOverload<>(&CodeViewWidget::Update));
+  connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this,
+          qOverload<>(&CodeViewWidget::Update));
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this,
           qOverload<>(&CodeViewWidget::Update));
@@ -1139,16 +1141,14 @@ void CodeViewWidget::ToggleBreakpoint()
 {
   m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(GetContextAddress());
 
-  emit BreakpointsChanged();
-  Update();
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void CodeViewWidget::AddBreakpoint()
 {
   m_system.GetPowerPC().GetBreakPoints().Add(GetContextAddress());
 
-  emit BreakpointsChanged();
-  Update();
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 u32 CodeViewWidget::GetContextAddress() const

@@ -41,6 +41,7 @@ signals:
   void RequestRenderSize(int w, int h);
   void UpdateDisasmDialog();
   void PPCSymbolsChanged();
+  void PPCBreakpointsChanged();
 
 private:
   Host();

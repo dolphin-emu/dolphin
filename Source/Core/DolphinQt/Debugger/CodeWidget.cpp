@@ -190,8 +190,6 @@ void CodeWidget::ConnectWidgets()
           &CodeWidget::OnSelectFunctionCallers);
 
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &CodeWidget::OnPPCSymbolsChanged);
-  connect(m_code_view, &CodeViewWidget::BreakpointsChanged, this,
-          [this] { emit BreakpointsChanged(); });
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
 
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
