@@ -129,6 +129,7 @@ public:
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
   void FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg);
+  void FixGTBeforeSettingEQ(Gen::X64Reg reg);
   // Generates a branch that will check if a given bit of a CR register part
   // is set or not.
   Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
