@@ -72,7 +72,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
   // std::chrono::current_zone() until 19H1, and other compilers don't even provide support for
   // timezone-related parts of chrono. Someday!
   // see https://bugs.dolphin-emu.org/issues/13007#note-4
-  time_t sysTime, tzDiff, tzDST;
+  time_t sysTime, tzDST;
   time(&sysTime);
   tm* gmTime = localtime(&sysTime);
 
@@ -84,7 +84,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
 
   // Lazy way to get local time in sec
   gmTime = gmtime(&sysTime);
-  tzDiff = sysTime - mktime(gmTime);
+  time_t tzDiff = sysTime - mktime(gmTime);
 
   return static_cast<u64>(sysTime + tzDiff + tzDST);
 }
