@@ -1113,7 +1113,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
                    op.address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {
-          TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+          TEST(32, PPCSTATE(Exceptions), Imm32(ANY_LOADSTORE_EXCEPTION));
           memException = J_CC(CC_NZ, Jump::Near);
         }
 

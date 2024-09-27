@@ -13,6 +13,7 @@
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
@@ -244,36 +245,42 @@ protected:
   //
   // Registers used:
   //
-  //                 addr     scratch
-  // Store:          X2       X1
-  // Load:           X1
-  // Zero 256:       X1       X30
-  // Store float:    X2       Q0
-  // Load float:     X1
+  //                 addr     inst     scratch
+  // Store:          X2       X3       X1
+  // Load:           X1       X2
+  // Zero 256:       X1       X2       X30
+  // Store float:    X2       X3       Q0
+  // Load float:     X1       X2
   //
   // If mode == AlwaysFastAccess, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.
   //
+  // If emitting_routine, the PowerPC instruction being executed must be present in the inst
+  // register listed in the table above. If not, the inst argument to this function is used instead.
+  //
   // Additional scratch registers are used in the following situations:
   //
-  // emitting_routine && mode == Auto:                                            X0
-  // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
-  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                 X3
-  // mode != AlwaysSlowAccess && !jo.fastmem:                                     X0
-  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck &&
-  //         (flags & BackPatchInfo::FLAG_LOAD):                                  X0
-  // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
-  // !emitting_routine && mode == Auto && jo.fastmem:                             X30
+  // emitting_routine && mode == Auto:                                                        X0
+  // emitting_routine && mode == Auto && !(flags & FLAG_STORE):                               X3
+  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem && !(flags & FLAG_STORE):    X3
+  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem && (flags & FLAG_STORE):     X4
+  // mode != AlwaysSlowAccess && !jo.fastmem:                                                 X0
+  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck && (flags & FLAG_LOAD):     X0
+  // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                            X30
+  // !emitting_routine && mode == Auto && jo.fastmem:                                         X30
   //
   // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
   // may be clobbered if mode != AlwaysFastAccess.
-  void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
-                            Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
+  void EmitBackpatchRoutine(UGeckoInstruction inst, u32 flags, MemAccessMode mode,
+                            Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr,
+                            BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
 
   // Loadstore routines
-  void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
-  void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset, bool update);
+  void SafeLoadToReg(UGeckoInstruction inst, u32 dest, s32 addr, s32 offsetReg, u32 flags,
+                     s32 offset, bool update);
+  void SafeStoreFromReg(UGeckoInstruction inst, s32 dest, u32 value, s32 regOffset, u32 flags,
+                        s32 offset, bool update);
   // If lookup succeeds, writes upper 15 bits of physical address to addr_out. If not,
   // jumps to the returned FixupBranch. Clobbers tmp and the 17 lower bits of addr_out.
   Arm64Gen::FixupBranch BATAddressLookup(Arm64Gen::ARM64Reg addr_out, Arm64Gen::ARM64Reg addr_in,

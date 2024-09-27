@@ -160,7 +160,7 @@ int Interpreter::SingleStepInner()
     else if (m_ppc_state.msr.FP)
     {
       RunInterpreterOp(*this, m_prev_inst);
-      if ((m_ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+      if ((m_ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
       {
         CheckExceptions();
       }
@@ -176,7 +176,7 @@ int Interpreter::SingleStepInner()
       else
       {
         RunInterpreterOp(*this, m_prev_inst);
-        if ((m_ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+        if ((m_ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
         {
           CheckExceptions();
         }
