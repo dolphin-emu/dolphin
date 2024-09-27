@@ -70,8 +70,6 @@ public:
 
   // Fills the backend_info fields with the capabilities of the selected backend/device.
   static void PopulateBackendInfo(const WindowSystemInfo& wsi);
-  // Called by the UI thread when the graphics config is opened.
-  static void PopulateBackendInfoFromUI(const WindowSystemInfo& wsi);
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);

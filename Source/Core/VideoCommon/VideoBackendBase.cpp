@@ -284,6 +284,11 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
 
 void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
 {
+  // If the core is running, the backend info will have been populated already. If we did it here,
+  // the UI thread could race with the GPU thread.
+  if (Core::IsRunningOrStarting(Core::System::GetInstance()))
+    return;
+
   g_Config.Refresh();
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
   // a value from the previously used renderer
@@ -294,14 +299,6 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
   // We validate the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
   g_Config.VerifyValidity();
-}
-
-void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
-{
-  // If the core is running, the backend info will have been populated already.
-  // If we did it here, the UI thread can race with the with the GPU thread.
-  if (!Core::IsRunning(Core::System::GetInstance()))
-    PopulateBackendInfo(wsi);
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)
