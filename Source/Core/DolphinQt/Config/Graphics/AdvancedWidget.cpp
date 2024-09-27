@@ -415,9 +415,9 @@ void AdvancedWidget::AddDescriptions()
       "emulation of texture wrapping special cases (at 1x IR or when scaled EFB is disabled, and "
       "with custom textures disabled) and better emulates Level of Detail calculation.<br><br>"
       "This comes at the cost of potentially worse performance, especially at higher internal "
-      "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
-      "Texture Sampling.<br><br>"
-      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      "resolutions.<br><br>If this setting is enabled, the Texture Filtering setting will be "
+      "disabled."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
