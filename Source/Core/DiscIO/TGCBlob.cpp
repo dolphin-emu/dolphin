@@ -28,8 +28,8 @@ void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_
 
   if (replace_end > replace_start)
   {
-    std::copy(replace_ptr + (replace_start - replace_offset),
-              replace_ptr + (replace_end - replace_offset), out_ptr + (replace_start - offset));
+    std::copy_n(replace_ptr + (replace_start - replace_offset), replace_end - replace_start,
+                out_ptr + (replace_start - offset));
   }
 }
 

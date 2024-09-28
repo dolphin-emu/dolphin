@@ -153,8 +153,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
     u32 can_read = m_block_size * cache->num_blocks - read_offset;
     u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
 
-    std::copy(cache->data.begin() + read_offset, cache->data.begin() + read_offset + was_read,
-              out_ptr);
+    std::copy_n(cache->data.begin() + read_offset, was_read, out_ptr);
 
     offset += was_read;
     out_ptr += was_read;

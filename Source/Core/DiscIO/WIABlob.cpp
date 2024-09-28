@@ -1635,7 +1635,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
       const size_t size = state->compressor->GetSize();
 
       entry.main_data.resize(size);
-      std::copy(data, data + size, entry.main_data.data());
+      std::copy_n(data, size, entry.main_data.data());
 
       if (compressed_exception_lists)
         entry.exception_lists.clear();
