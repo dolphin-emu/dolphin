@@ -535,7 +535,7 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
                      sizeof(Ticket::title_key), key.data(), PID_ES);
   // Finally, IOS copies the decrypted title key back to the ticket buffer.
   if (ret == IPC_SUCCESS)
-    std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
+    std::ranges::copy(key, ticket_begin + offsetof(Ticket, title_key));
 
   return ret;
 }

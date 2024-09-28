@@ -551,7 +551,7 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   // Sign the data.
   const auto data_digest = Common::SHA1::CalculateDigest(data, data_size);
   const auto signature = Common::ec::Sign(ap_priv.data(), data_digest.data());
-  std::copy(signature.cbegin(), signature.cend(), sig_out);
+  std::ranges::copy(signature, sig_out);
 }
 
 void IOSC::LoadDefaultEntries()
