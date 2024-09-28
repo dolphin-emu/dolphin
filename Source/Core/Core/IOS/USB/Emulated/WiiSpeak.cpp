@@ -103,6 +103,25 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
     cmd->ScheduleTransferCompletion(1, 100);
     break;
   }
+  case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_INTERFACE, REQUEST_SET_INTERFACE):
+  {
+    INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] REQUEST_SET_INTERFACE index={:04x} value={:04x}",
+                 m_vid, m_pid, m_active_interface, cmd->index, cmd->value);
+    if (static_cast<u8>(cmd->index) != m_active_interface)
+    {
+      const int ret = ChangeInterface(static_cast<u8>(cmd->index));
+      if (ret < 0)
+      {
+        ERROR_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Failed to change interface to {}", m_vid, m_pid,
+                      m_active_interface, cmd->index);
+        return ret;
+      }
+    }
+    const int ret = SetAltSetting(static_cast<u8>(cmd->value));
+    if (ret == 0)
+      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
+    return ret;
+  }
   case USBHDR(DIR_HOST2DEVICE, TYPE_VENDOR, REC_INTERFACE, 0):
   {
     init = false;
