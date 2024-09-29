@@ -621,7 +621,7 @@ void BluetoothRealDevice::SaveLinkKeys()
   {
     bdaddr_t address;
     // Reverse the address so that it is stored in the correct order in the config file
-    std::reverse_copy(entry.first.begin(), entry.first.end(), address.begin());
+    std::ranges::reverse_copy(entry.first, address.begin());
     oss << Common::MacAddressToString(address);
     oss << '=';
     oss << std::hex;
