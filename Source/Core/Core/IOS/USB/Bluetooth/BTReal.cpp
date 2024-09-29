@@ -598,7 +598,7 @@ void BluetoothRealDevice::LoadLinkKeys()
     }
 
     auto& mac = address.value();
-    std::reverse(mac.begin(), mac.end());
+    std::ranges::reverse(mac);
 
     const std::string& key_string = pair.substr(index + 1);
     linkkey_t key{};

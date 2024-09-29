@@ -660,7 +660,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       }
       g_Config.backend_info.AAModes.push_back(1);
       // The UI wants ascending order
-      std::reverse(g_Config.backend_info.AAModes.begin(), g_Config.backend_info.AAModes.end());
+      std::ranges::reverse(g_Config.backend_info.AAModes);
     }
   }
   else
