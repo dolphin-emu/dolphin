@@ -164,10 +164,8 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
   // Sort the conflicts from largest to smallest string
   // this way we can ensure smaller strings that are a substring
   // of the larger string are able to be replaced appropriately
-  std::sort(global_result.begin(), global_result.end(),
-            [](const std::string& first, const std::string& second) {
-              return first.size() > second.size();
-            });
+  std::ranges::sort(global_result, std::ranges::greater{},
+                    [](const std::string& s) { return s.size(); });
   return global_result;
 }
 
