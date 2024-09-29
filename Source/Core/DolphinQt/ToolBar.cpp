@@ -146,7 +146,7 @@ void ToolBar::MakeActions()
   std::ranges::transform(items, std::back_inserter(widths),
                          [](QWidget* item) { return item->sizeHint().width(); });
 
-  const int min_width = *std::max_element(widths.begin(), widths.end()) * 0.85;
+  const int min_width = *std::ranges::max_element(widths) * 0.85;
   for (QWidget* widget : items)
     widget->setMinimumWidth(min_width);
 }
