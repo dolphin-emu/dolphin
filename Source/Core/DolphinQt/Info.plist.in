@@ -30,7 +30,7 @@
         </dict>
     </array>
     <key>CFBundleExecutable</key>
-    <string>Dolphin</string>
+    <string>DolphinQt</string>
     <key>CFBundleIconFile</key>
     <string>Dolphin.icns</string>
     <key>CFBundleIdentifier</key>

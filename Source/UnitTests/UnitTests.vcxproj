@@ -71,6 +71,7 @@
     <ClCompile Include="Core\IOS\USB\SkylandersTest.cpp" />
     <ClCompile Include="Core\MMIOTest.cpp" />
     <ClCompile Include="Core\PageFaultTest.cpp" />
+    <ClCompile Include="Core\PatchAllowlistTest.cpp" />
     <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
     <ClCompile Include="StubHost.cpp" />
@@ -102,10 +103,19 @@
   </ItemGroup>
   <Import Project="$(ExternalsDir)Bochs_disasm\exports.props" />
   <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)picojson\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <Target Name="ExecUnitTests" AfterTargets="AfterBuild;CopyDeps" Condition="'$(RunUnitTests)'=='true'">
+  <ItemGroup>
+    <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
+  </ItemGroup>
+  <Target Name="AfterBuild">
+    <Message Text="Copying Data directory..." Importance="High" />
+    <RemoveDir Directories="$(TargetDir)Sys" />
+    <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(TargetDir)%(RecursiveDir)" SkipUnchangedFiles="True" />
+  </Target>
+  <Target Name="ExecUnitTests" AfterTargets="AfterBuild" Condition="'$(RunUnitTests)'=='true'">
     <!--This is only executed via msbuild, VS test runner automatically does this-->
     <Exec Command="$(TargetPath)" />
   </Target>

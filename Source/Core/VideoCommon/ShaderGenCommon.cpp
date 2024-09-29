@@ -379,6 +379,11 @@ void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)
   out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
              static_cast<u32>(AttenuationFunc::Spot));
 
+  out->Write("struct CustomShaderOutput\n");
+  out->Write("{{\n");
+  out->Write("\tfloat4 main_rt;\n");
+  out->Write("}};\n\n");
+
   out->Write("struct CustomShaderLightData\n");
   out->Write("{{\n");
   out->Write("\tfloat3 position;\n");

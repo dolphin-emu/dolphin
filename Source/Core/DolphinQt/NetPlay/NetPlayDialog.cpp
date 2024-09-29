@@ -264,7 +264,7 @@ void NetPlayDialog::CreateMainLayout()
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
-
+  m_buffer_size_box->setFixedSize(100, 20);
   setLayout(m_main_layout);
 }
 
@@ -665,7 +665,7 @@ void NetPlayDialog::UpdateGUI()
 
     auto* name_item = new QTableWidgetItem(QString::fromStdString(p->name));
     name_item->setToolTip(name_item->text());
-    const auto& status_info = player_status.count(p->game_status) ?
+    const auto& status_info = player_status.contains(p->game_status) ?
                                   player_status.at(p->game_status) :
                                   std::make_pair(QStringLiteral("?"), QStringLiteral("?"));
     auto* status_item = new QTableWidgetItem(status_info.first);
@@ -978,7 +978,7 @@ void NetPlayDialog::`(u32 frame, const std::string& player)
                  "red", OSD::Duration::VERY_LONG);
 
   OSD::AddTypedMessage(OSD::MessageType::NetPlayDesync,
-                       "Possible desync detected at frame %2. Game restart advised.",
+                       "Possible desync detected. Game restart advised.",
                        OSD::Duration::VERY_LONG, OSD::Color::RED);
 }
 
@@ -1287,4 +1287,14 @@ void NetPlayDialog::SetHostWiiSyncData(std::vector<u64> titles, std::string redi
   auto client = Settings::Instance().GetNetPlayClient();
   if (client)
     client->SetWiiSyncData(nullptr, std::move(titles), std::move(redirect_folder));
+}
+
+void NetPlayDialog::OnActiveGeckoCodes(std::string codeStr)
+{
+  DisplayMessage(QString::fromStdString(codeStr), "cornflowerblue");
+}
+
+void NetPlayDialog::OnActiveARCodes(std::string codeStr)
+{
+  DisplayMessage(QString::fromStdString(codeStr), "cornflowerblue");
 }

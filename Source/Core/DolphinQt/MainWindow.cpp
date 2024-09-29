@@ -67,7 +67,6 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
-
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/RiivolutionPatcher.h"
@@ -81,6 +80,7 @@
 #include "DolphinQt/Config/LogConfigWidget.h"
 #include "DolphinQt/Config/LogWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/Config/PropertiesDialog.h"
 #include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Debugger/AssemblerWidget.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
@@ -229,8 +229,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   setAcceptDrops(true);
   setAttribute(Qt::WA_NativeWindow);
 
-  InitControllers();
-
   CreateComponents();
 
   ConnectGameList();
@@ -239,6 +237,17 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectRenderWidget();
   ConnectStack();
   ConnectMenuBar();
+
+  QSettings& settings = Settings::GetQSettings();
+  restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
+  restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
+  if (!Settings::Instance().IsBatchModeEnabled())
+  {
+    SetQWidgetWindowDecorations(this);
+    show();
+  }
+
+  InitControllers();
   ConnectHotkeys();
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
@@ -291,11 +300,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   m_state_slot =
       std::clamp(Settings::Instance().GetStateSlot(), 1, static_cast<int>(State::NUM_STATES));
 
-  QSettings& settings = Settings::GetQSettings();
-
-  restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
-  restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
-
   m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
 
   // Restoring of window states can sometimes go wrong, resulting in widgets being visible when they
@@ -321,6 +325,12 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   }
 
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
+
+  if (m_pending_boot != nullptr)
+  {
+    StartGame(std::move(m_pending_boot));
+    m_pending_boot.reset();
+  }
 }
 
 MainWindow::~MainWindow()
@@ -347,8 +357,11 @@ MainWindow::~MainWindow()
 
   QSettings& settings = Settings::GetQSettings();
 
-  settings.setValue(QStringLiteral("mainwindow/state"), saveState());
-  settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  if (!Settings::Instance().IsBatchModeEnabled())
+  {
+    settings.setValue(QStringLiteral("mainwindow/state"), saveState());
+    settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  }
 
   settings.setValue(QStringLiteral("renderwidget/geometry"), m_render_widget_geometry);
 
@@ -645,6 +658,10 @@ void MainWindow::ConnectHotkeys()
     movie.SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_hotkey_scheduler, &HotkeyScheduler::OpenAchievements, this,
+          &MainWindow::ShowAchievementsWindow, Qt::QueuedConnection);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StepOver, m_code_widget, &CodeWidget::StepOver);
@@ -682,7 +699,7 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
 
   connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
-
+  connect(m_tool_bar, &ToolBar::ViewGeckoCodes, this, &MainWindow::ShowGeckoCodes);
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
   connect(m_tool_bar, &ToolBar::StepOutPressed, m_code_widget, &CodeWidget::StepOut);
@@ -1005,9 +1022,9 @@ bool MainWindow::RequestStop()
 
 bool MainWindow::RequestStopNetplay()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(Core::System::GetInstance()))
   {
-    Core::QueueHostJob([this] { OnStopComplete(); }, true);
+    Core::QueueHostJob([this](Core::System&) { OnStopComplete(); }, true);
     return true;
   }
 
@@ -1030,13 +1047,13 @@ bool MainWindow::RequestStopNetplay()
 
     Common::ScopeGuard confirm_lock([this] { m_stop_confirm_showing = false; });
 
-    const Core::State state = Core::GetState();
+    const Core::State state = Core::GetState(Core::System::GetInstance());
 
     // Only pause the game, if NetPlay is not running
     bool pause = !Settings::Instance().GetNetPlayClient();
 
     if (pause)
-      Core::SetState(Core::State::Paused);
+      Core::SetState(Core::System::GetInstance(), Core::State::Paused);
 
     if (rendered_widget_was_active)
     {
@@ -1068,7 +1085,7 @@ bool MainWindow::RequestStopNetplay()
       m_render_widget->SetWaitingForMessageBox(false);
 
       if (pause)
-        Core::SetState(state);
+        Core::SetState(Core::System::GetInstance(), state);
 
       return false;
     }
@@ -1089,8 +1106,8 @@ bool MainWindow::RequestStopNetplay()
 
     // Unpause because gracefully shutting down needs the game to actually request a shutdown.
     // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
-    if (Core::GetState() == Core::State::Paused)
-      Core::SetState(Core::State::Running);
+    if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+      Core::SetState(Core::System::GetInstance(), Core::State::Running);
 
     // Tell NetPlay about the power event
     if (NetPlay::IsNetPlayRunning())
@@ -1910,7 +1927,7 @@ void MainWindow::OnImportNANDBackup()
     return;
 
   QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+      DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"), QDir::currentPath(),
                                          tr("BootMii NAND backup file (*.bin);;"
                                             "All Files (*)"));
 
@@ -1936,7 +1953,7 @@ void MainWindow::OnImportNANDBackup()
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
             return DolphinFileDialog::getOpenFileName(
-                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       this, tr("Select Keys File (OTP/SEEPROM Dump)"), QDir::currentPath(),
                        tr("BootMii keys file (*.bin);;"
                           "All Files (*)"))
                 .toStdString();
@@ -1985,7 +2002,7 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if ((!Core::IsRunningAndStarted() && Core::IsRunning(system)) || movie.IsRecordingInput() ||
+  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;
@@ -2176,18 +2193,15 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   StartGame(std::move(boot_params));
 }
 
-void MainWindow::Show()
+void MainWindow::ShowGeckoCodes()
 {
-  if (!Settings::Instance().IsBatchModeEnabled())
+  if (!m_gecko_dialog)
   {
-    SetQWidgetWindowDecorations(this);
-    QWidget::show();
+    m_gecko_dialog = new GeckoDialog(this);
+    InstallHotkeyFilter(m_gecko_dialog);
   }
 
-  // If the booting of a game was requested on start up, do that now
-  if (m_pending_boot != nullptr)
-  {
-    StartGame(std::move(m_pending_boot));
-    m_pending_boot.reset();
-  }
+  m_gecko_dialog->show();
+  m_gecko_dialog->raise();
+  m_gecko_dialog->activateWindow();
 }

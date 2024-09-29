@@ -135,15 +135,16 @@ void UndeclareAsHostThread();
 std::string StopMessage(bool main_thread, std::string_view message);
 
 bool IsRunning(Core::System& system);
-bool IsRunningAndStarted();  // is running and the CPU loop has been entered
-bool IsCPUThread();          // this tells us whether we are the CPU thread.
+bool IsRunningOrStarting(Core::System& system);
+bool IsCPUThread();  // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 bool IsHostThread();
 
 bool WantsDeterminism();
 
 // [NOT THREADSAFE] For use by Host only
-void SetState(Core::System& system, State state, bool report_state_change = true);
+void SetState(Core::System& system, State state, bool report_state_change = true,
+              bool initial_execution_state = false);
 State GetState(Core::System& system);
 
 void SaveScreenShot();
@@ -191,4 +192,14 @@ void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
 void UpdateTitle(Core::System& system);
 
+enum class GameName : u8 {
+  UnknownGame = 0,
+  MarioParty4 = 1,
+  MarioParty5 = 2,
+  MarioParty6 = 3,
+  MarioParty7 = 4,
+  MarioParty8 = 5
+};
+
+std::optional<std::pair<u32,u32>> getGameFreeMemory();
 }  // namespace Core

@@ -13,6 +13,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
 namespace Common
 {
@@ -33,7 +34,11 @@ enum class Region;
 struct Partition;
 class Volume;
 }  // namespace DiscIO
-
+namespace Config
+{
+// Define the configuration option
+extern const Info<int> MAIN_CODE_HANDLER;
+}  // namespace Config
 namespace IOS::ES
 {
 class TMDReader;
@@ -45,7 +50,7 @@ struct SConfig
 {
   // Settings
   bool bBootToPause = false;
-
+  
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 

@@ -281,7 +281,10 @@ public:
   void SingleStep();
   void CheckExceptions();
   void CheckExternalExceptions();
-  void CheckBreakPoints();
+  // Evaluate the breakpoints in order to log. Returns whether it would break.
+  bool CheckBreakPoints();
+  // Evaluate the breakpoints in order to log and/or break. Returns whether it breaks.
+  bool CheckAndHandleBreakPoints();
   void RunLoop();
 
   u64 ReadFullTimeBaseValue() const;
@@ -313,6 +316,7 @@ private:
   CoreMode m_mode = CoreMode::Interpreter;
 
   BreakPoints m_breakpoints;
+  void ClearAllTemporary();
   MemChecks m_memchecks;
   PPCSymbolDB m_symbol_db;
   PPCDebugInterface m_debug_interface;
@@ -330,7 +334,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
 
 void CheckExceptionsFromJIT(PowerPCManager& power_pc);
 void CheckExternalExceptionsFromJIT(PowerPCManager& power_pc);
-void CheckBreakPointsFromJIT(PowerPCManager& power_pc);
+void CheckAndHandleBreakPointsFromJIT(PowerPCManager& power_pc);
 
 // Easy register access macros.
 #define HID0(ppc_state) ((UReg_HID0&)(ppc_state).spr[SPR_HID0])

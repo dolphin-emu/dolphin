@@ -15,11 +15,16 @@
 #include <Windows.h>
 #include <arm64intr.h>
 #include "Common/WindowsRegistry.h"
-#else
-#ifndef __FreeBSD__
+#elif defined(__linux__)
 #include <asm/hwcap.h>
-#endif
 #include <sys/auxv.h>
+#elif defined(__FreeBSD__)
+#include <sys/auxv.h>
+#elif defined(__OpenBSD__)
+#include <machine/armreg.h>
+#include <machine/cpu.h>
+#include <sys/sysctl.h>
+#include <sys/types.h>
 #endif
 
 #include <fmt/format.h>
@@ -183,7 +188,7 @@ static bool Read_MIDR_EL1(u64* value)
 
 #endif
 
-#ifndef __APPLE__
+#if defined(_WIN32) || defined(__linux__) || defined(__FreeBSD__)
 
 static std::string MIDRToString(u64 midr)
 {
@@ -248,7 +253,7 @@ void CPUInfo::Detect()
   {
     cpu_id = MIDRToString(reg);
   }
-#else
+#elif defined(__linux__) || defined(__FreeBSD__)
   // Linux, Android, and FreeBSD
 
 #if defined(__FreeBSD__)
@@ -276,6 +281,33 @@ void CPUInfo::Detect()
   if (Read_MIDR_EL1(&midr))
   {
     cpu_id = MIDRToString(midr);
+  }
+#elif defined(__OpenBSD__)
+  // OpenBSD
+  int mib[2];
+  size_t len;
+  char hwmodel[256];
+  uint64_t isar0;
+
+  mib[0] = CTL_HW;
+  mib[1] = HW_MODEL;
+  len = std::size(hwmodel);
+  if (sysctl(mib, 2, &hwmodel, &len, nullptr, 0) != -1)
+    model_name = std::string(hwmodel, len - 1);
+
+  mib[0] = CTL_MACHDEP;
+  mib[1] = CPU_ID_AA64ISAR0;
+  len = sizeof(isar0);
+  if (sysctl(mib, 2, &isar0, &len, nullptr, 0) != -1)
+  {
+    if (ID_AA64ISAR0_AES(isar0) >= ID_AA64ISAR0_AES_BASE)
+      bAES = true;
+    if (ID_AA64ISAR0_SHA1(isar0) >= ID_AA64ISAR0_SHA1_BASE)
+      bSHA1 = true;
+    if (ID_AA64ISAR0_SHA2(isar0) >= ID_AA64ISAR0_SHA2_BASE)
+      bSHA2 = true;
+    if (ID_AA64ISAR0_CRC32(isar0) >= ID_AA64ISAR0_CRC32_BASE)
+      bCRC32 = true;
   }
 #endif
 

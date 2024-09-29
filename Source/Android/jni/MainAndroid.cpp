@@ -173,6 +173,11 @@ bool Host_RendererIsFullscreen()
   return false;
 }
 
+bool Host_TASInputHasFocus()
+{
+  return false;
+}
+
 void Host_YieldToUI()
 {
 }
@@ -279,7 +284,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunnin
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndStarted(JNIEnv*,
                                                                                             jclass)
 {
-  return static_cast<jboolean>(Core::IsRunningAndStarted());
+  return static_cast<jboolean>(Core::IsRunning(Core::System::GetInstance()));
 }
 
 JNIEXPORT jboolean JNICALL
@@ -412,11 +417,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteJitBloc
   HostThreadLock guard;
   auto& system = Core::System::GetInstance();
   auto& jit_interface = system.GetJitInterface();
+  const Core::CPUThreadGuard cpu_guard(system);
   if (jit_interface.GetCore() == nullptr)
   {
     env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
-                              ToJString(env, Common::GetStringT("JIT is not active")),
-                              static_cast<jboolean>(false));
+                              ToJString(env, Common::GetStringT("JIT is not active")), JNI_FALSE);
     return;
   }
   const std::string filename = fmt::format("{}{}.txt", File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX),
@@ -427,13 +432,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteJitBloc
     env->CallStaticVoidMethod(
         native_library_class, IDCache::GetDisplayToastMsg(),
         ToJString(env, Common::FmtFormatT("Failed to open \"{0}\" for writing.", filename)),
-        static_cast<jboolean>(false));
+        JNI_FALSE);
     return;
   }
-  jit_interface.JitBlockLogDump(Core::CPUThreadGuard{system}, f.GetHandle());
+  jit_interface.JitBlockLogDump(cpu_guard, f.GetHandle());
   env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
                             ToJString(env, Common::FmtFormatT("Wrote to \"{0}\".", filename)),
-                            static_cast<jboolean>(false));
+                            JNI_FALSE);
 }
 
 // Surface Handling
@@ -696,7 +701,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertD
     blob_reader = DiscIO::CreateBlobReader(in_path);
 
   if (!blob_reader)
-    return static_cast<jboolean>(false);
+    return JNI_FALSE;
 
   jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
   Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });

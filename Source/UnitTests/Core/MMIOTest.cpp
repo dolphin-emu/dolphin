@@ -19,13 +19,13 @@ TEST(UniqueID, UniqueEnough)
   for (u32 i = 0x0C000000; i < 0x0C010000; ++i)
   {
     u32 unique_id = MMIO::UniqueID(i);
-    EXPECT_EQ(ids.end(), ids.find(unique_id));
+    EXPECT_FALSE(ids.contains(unique_id));
     ids.insert(unique_id);
   }
   for (u32 i = 0x0D000000; i < 0x0D010000; ++i)
   {
     u32 unique_id = MMIO::UniqueID(i);
-    EXPECT_EQ(ids.end(), ids.find(unique_id));
+    EXPECT_FALSE(ids.contains(unique_id));
     ids.insert(unique_id);
   }
 }

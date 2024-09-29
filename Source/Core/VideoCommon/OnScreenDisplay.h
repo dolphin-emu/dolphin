@@ -10,12 +10,15 @@
 
 #include "Common/CommonTypes.h"
 
+#include "VideoCommon/Assets/CustomTextureData.h"
+
 namespace OSD
 {
 enum class MessageType
 {
   NetPlayPing,
   NetPlayBuffer,
+  NetPlayDesync,
 
   // This entry must be kept last so that persistent typed messages are
   // displayed before other messages
@@ -28,27 +31,21 @@ constexpr u32 CYAN = 0xFF00FFFF;
 constexpr u32 GREEN = 0xFF00FF00;
 constexpr u32 RED = 0xFFFF0000;
 constexpr u32 YELLOW = 0xFFFFFF30;
-};  // namespace Color
+}  // namespace Color
 
 namespace Duration
 {
 constexpr u32 SHORT = 2000;
 constexpr u32 NORMAL = 5000;
 constexpr u32 VERY_LONG = 10000;
-};  // namespace Duration
-
-struct Icon
-{
-  std::vector<u8> rgba_data;
-  u32 width = 0;
-  u32 height = 0;
-};  // struct Icon
+}  // namespace Duration
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,
-                std::unique_ptr<Icon> icon = nullptr);
+                const VideoCommon::CustomTextureData::ArraySlice::Level* icon = nullptr);
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
-                     u32 argb = Color::YELLOW, std::unique_ptr<Icon> icon = nullptr);
+                     u32 argb = Color::YELLOW,
+                     const VideoCommon::CustomTextureData::ArraySlice::Level* icon = nullptr);
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();

@@ -13,7 +13,7 @@
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 namespace Core::Debug
 {

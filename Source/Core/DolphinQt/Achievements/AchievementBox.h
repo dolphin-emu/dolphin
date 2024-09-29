@@ -20,11 +20,13 @@ class AchievementBox final : public QGroupBox
 public:
   explicit AchievementBox(QWidget* parent, rc_client_achievement_t* achievement);
   void UpdateData();
+  void UpdateProgress();
 
 private:
   QLabel* m_badge;
   QLabel* m_status;
   QProgressBar* m_progress_bar;
+  QLabel* m_progress_label;
 
   rc_client_achievement_t* m_achievement;
 };

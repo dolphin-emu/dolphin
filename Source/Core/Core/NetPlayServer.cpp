@@ -286,7 +286,7 @@ void NetPlayServer::ThreadFunc()
         auto& e = m_async_queue.Front();
         if (e.target_mode == TargetMode::Only)
         {
-          if (m_players.find(e.target_pid) != m_players.end())
+          if (m_players.contains(e.target_pid))
             Send(m_players.at(e.target_pid).socket, e.packet, e.channel_id);
         }
         else
@@ -526,15 +526,11 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
       {
         std::lock_guard lkg(m_crit.game);
         m_is_running = false;
-
-        sf::Packet spac;
-        spac << MessageID::DisableGame;
-        // this thread doesn't need players lock
-        SendToClients(spac);
         break;
       }
     }
   }
+
 
   if (m_start_pending)
   {
@@ -790,11 +786,25 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 cid;
     packet >> cid;
 
-    if (m_chunked_data_complete_count.find(cid) != m_chunked_data_complete_count.end())
+    if (m_chunked_data_complete_count.contains(cid))
     {
       m_chunked_data_complete_count[cid]++;
       m_chunked_data_complete_event.Set();
     }
+  }
+  break;
+
+  case MessageID::SendCodes:
+  {
+    std::string codes;
+    packet >> codes;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << MessageID::SendCodes;
+    spac << codes;
+
+    SendToClients(spac);
   }
   break;
 
@@ -835,7 +845,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_host_input_authority)
     {
       // Prevent crash before game stop if the golfer disconnects
-      if (m_current_golfer != 0 && m_players.find(m_current_golfer) != m_players.end())
+      if (m_current_golfer != 0 && m_players.contains(m_current_golfer))
         Send(m_players.at(m_current_golfer).socket, spac);
     }
     else
@@ -920,7 +930,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     packet >> pid;
 
     // Check if player ID is valid and sender isn't a spectator
-    if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
+    if (!m_players.contains(pid) || !PlayerHasControllerMapped(player.pid))
       break;
 
     if (m_host_input_authority && m_settings.golf_mode && m_pending_golfer == 0 &&
@@ -2143,6 +2153,7 @@ bool NetPlayServer::SyncCodes()
       sf::Packet pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
+      std::vector<std::string> v_ActiveGeckoCodes = {};
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
@@ -2162,6 +2173,7 @@ bool NetPlayServer::SyncCodes()
         codeStr += "• " + code + "\n";
       packet << codeStr;
       SendAsyncToClients(std::move(pac));
+      
     }
   }
 
@@ -2201,6 +2213,7 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
+      std::vector<std::string> v_ActiveARCodes = {};
       for (const ActionReplay::ARCode& active_code : s_active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
@@ -2484,7 +2497,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
         if (e.target_mode == TargetMode::Only)
         {
-          if (m_players.find(e.target_pid) == m_players.end())
+          if (!m_players.contains(e.target_pid))
           {
             skip_wait = true;
             break;

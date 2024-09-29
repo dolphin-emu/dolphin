@@ -1,7 +1,7 @@
 [main]
 host = https://www.transifex.com
 
-[o:delroth:p:dolphin-emu:r:emulator]
+[o:dolphinemu:p:dolphin-emu:r:emulator]
 file_filter = Languages/po/<lang>.po
 source_file = Languages/po/dolphin-mpn.pot
 source_lang = en-US

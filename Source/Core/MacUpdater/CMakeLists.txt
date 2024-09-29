@@ -12,14 +12,12 @@ set(SOURCES
 
 add_executable(MacUpdater ${SOURCES})
 
-set(MacUpdater_NAME "Dolphin Updater")
-set(MacUpdater_BIN_DIR ${CMAKE_BINARY_DIR}/Binaries)
-set(MacUpdater_BUNDLE_PATH ${MacUpdater_BIN_DIR}/${MacUpdater_NAME}.app)
+add_dependencies(MacUpdater dolphin_scmrev)
 
 set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE true
-  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-  OUTPUT_NAME ${MacUpdater_NAME})
+  MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+  OUTPUT_NAME "Dolphin Updater")
 
 target_compile_options(MacUpdater PRIVATE -x objective-c++)
 
@@ -55,11 +53,23 @@ foreach(sb ${STORYBOARDS})
     COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
-if(MACOS_CODE_SIGNING)
-  if (MACOS_CODE_SIGNING_IDENTITY_UPDATER STREQUAL "")
-    set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "${MACOS_CODE_SIGNING_IDENTITY}")
-  endif()
+if(NOT SKIP_POSTPROCESS_BUNDLE)
+  # Update library references to make the bundle portable
+  include(DolphinPostprocessBundle)
+  dolphin_postprocess_bundle(MacUpdater)
 
-  add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime $<TARGET_BUNDLE_DIR:MacUpdater>)
+  # Fix rpath
+  add_custom_command(TARGET MacUpdater
+    POST_BUILD COMMAND
+    ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
+    $<TARGET_FILE:MacUpdater>)
+endif()
+
+if(MACOS_CODE_SIGNING)
+  add_custom_command(TARGET MacUpdater
+    POST_BUILD
+    COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
+    "${MACOS_CODE_SIGNING_IDENTITY}"
+    "$<TARGET_BUNDLE_DIR:MacUpdater>"
+  )
 endif()

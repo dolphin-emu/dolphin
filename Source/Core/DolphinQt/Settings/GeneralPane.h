@@ -28,12 +28,13 @@ private:
   void CreateLayout();
   void ConnectLayout();
   void CreateBasic();
-  //void CreateAutoUpdate();
+  // void CreateAutoUpdate();
   void CreateFallbackRegion();
-
   void LoadConfig();
   void OnSaveConfig();
   void OnEmulationStateChanged(Core::State state);
+  void CreateCheats();
+  void OnCodeHandlerChanged(int index);
 
   // Widgets
   QVBoxLayout* m_main_layout;
@@ -44,6 +45,7 @@ private:
   QCheckBox* m_checkbox_cheats;
   QCheckBox* m_checkbox_override_region_settings;
   QCheckBox* m_checkbox_auto_disc_change;
+  QComboBox* m_combobox_codehandler;
 #ifdef USE_DISCORD_PRESENCE
   QCheckBox* m_checkbox_discord_presence;
 #endif

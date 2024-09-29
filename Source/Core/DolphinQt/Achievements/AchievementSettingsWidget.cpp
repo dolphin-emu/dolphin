@@ -13,9 +13,11 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+#include "UICommon/DiscordPresence.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -94,16 +96,15 @@ void AchievementSettingsWidget::CreateLayout()
          "submitted to the server.<br><br>If this is on at game launch, it will not be turned off "
          "until game close, because a RetroAchievements session will not be created.<br><br>If "
          "this is off at game launch, it can be toggled freely while the game is running."));
+  m_common_discord_presence_enabled_input = new ToolTipCheckBox(tr("Enable Discord Presence"));
+  m_common_discord_presence_enabled_input->SetDescription(
+      tr("Use RetroAchievements rich presence in your Discord status.<br><br>Show Current Game on "
+         "Discord must be enabled."));
   m_common_progress_enabled_input = new ToolTipCheckBox(tr("Enable Progress Notifications"));
   m_common_progress_enabled_input->SetDescription(
       tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
          "whenever the player makes progress on an achievement that tracks an accumulated value, "
          "such as 60 out of 120 stars."));
-  m_common_badges_enabled_input = new ToolTipCheckBox(tr("Enable Achievement Badges"));
-  m_common_badges_enabled_input->SetDescription(
-      tr("Enable achievement badges.<br><br>Displays icons for the player, game, and achievements. "
-         "Simple visual option, but will require a small amount of extra memory and time to "
-         "download the images."));
 
   m_common_layout->addWidget(m_common_integration_enabled_input);
   m_common_layout->addWidget(m_common_username_label);
@@ -113,14 +114,18 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_login_button);
   m_common_layout->addWidget(m_common_logout_button);
   m_common_layout->addWidget(m_common_login_failed);
+  // i18n: Settings that affect the functionality of unlocking achievements.
   m_common_layout->addWidget(new QLabel(tr("Function Settings")));
   m_common_layout->addWidget(m_common_hardcore_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
   m_common_layout->addWidget(m_common_spectator_enabled_input);
+  // i18n: Settings that affect how achievements are displayed while playing.
   m_common_layout->addWidget(new QLabel(tr("Display Settings")));
+#ifdef USE_DISCORD_PRESENCE
+  m_common_layout->addWidget(m_common_discord_presence_enabled_input);
+#endif  // USE_DISCORD_PRESENCE
   m_common_layout->addWidget(m_common_progress_enabled_input);
-  m_common_layout->addWidget(m_common_badges_enabled_input);
 
   m_common_layout->setAlignment(Qt::AlignTop);
   setLayout(m_common_layout);
@@ -130,8 +135,8 @@ void AchievementSettingsWidget::ConnectWidgets()
 {
   connect(m_common_integration_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleRAIntegration);
-  connect(m_common_login_button, &QPushButton::pressed, this, &AchievementSettingsWidget::Login);
-  connect(m_common_logout_button, &QPushButton::pressed, this, &AchievementSettingsWidget::Logout);
+  connect(m_common_login_button, &QPushButton::clicked, this, &AchievementSettingsWidget::Login);
+  connect(m_common_logout_button, &QPushButton::clicked, this, &AchievementSettingsWidget::Logout);
   connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleHardcore);
   connect(m_common_unofficial_enabled_input, &QCheckBox::toggled, this,
@@ -140,10 +145,10 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleEncore);
   connect(m_common_spectator_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleSpectator);
+  connect(m_common_discord_presence_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleProgress);
-  connect(m_common_badges_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleBadges);
 }
 
 void AchievementSettingsWidget::OnControllerInterfaceConfigure()
@@ -173,6 +178,15 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
   SignalBlocking(m_common_login_button)
       ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
+  if (enabled && Core::IsRunning(Core::System::GetInstance()))
+  {
+    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
+  }
+  else
+  {
+    SignalBlocking(m_common_login_button)->setText(tr("Log In"));
+  }
+
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
@@ -195,12 +209,14 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
   SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
 
+  SignalBlocking(m_common_discord_presence_enabled_input)
+      ->setChecked(Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED));
+  SignalBlocking(m_common_discord_presence_enabled_input)
+      ->setEnabled(enabled && Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
-
-  SignalBlocking(m_common_badges_enabled_input)->setChecked(Config::Get(Config::RA_BADGES_ENABLED));
-  SignalBlocking(m_common_badges_enabled_input)->setEnabled(enabled);
 }
 
 void AchievementSettingsWidget::SaveSettings()
@@ -215,9 +231,10 @@ void AchievementSettingsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
                            m_common_spectator_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
+                           m_common_discord_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_BADGES_ENABLED, m_common_badges_enabled_input->isChecked());
   Config::Save();
 }
 
@@ -231,7 +248,10 @@ void AchievementSettingsWidget::ToggleRAIntegration()
   else
     instance.Shutdown();
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
     emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+    emit Settings::Instance().HardcoreStateChanged();
+  }
 }
 
 void AchievementSettingsWidget::Login()
@@ -257,10 +277,11 @@ void AchievementSettingsWidget::ToggleHardcore()
     if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
       Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
-    Settings::Instance().SetCheatsEnabled(false);
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
     Settings::Instance().SetDebugModeEnabled(false);
   }
   emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  emit Settings::Instance().HardcoreStateChanged();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
@@ -279,16 +300,15 @@ void AchievementSettingsWidget::ToggleSpectator()
   AchievementManager::GetInstance().SetSpectatorMode();
 }
 
+void AchievementSettingsWidget::ToggleDiscordPresence()
+{
+  SaveSettings();
+  Discord::UpdateDiscordPresence();
+}
+
 void AchievementSettingsWidget::ToggleProgress()
 {
   SaveSettings();
-}
-
-void AchievementSettingsWidget::ToggleBadges()
-{
-  SaveSettings();
-  AchievementManager::GetInstance().FetchPlayerBadge();
-  AchievementManager::GetInstance().FetchGameBadges();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS

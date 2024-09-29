@@ -394,10 +394,10 @@ public:
   u8* AlignCode4();
   u8* AlignCode16();
   u8* AlignCodePage();
-  const u8* GetCodePtr() const;
-  u8* GetWritableCodePtr();
-  const u8* GetCodeEnd() const;
-  u8* GetWritableCodeEnd();
+  const u8* GetCodePtr() const { return code; }
+  u8* GetWritableCodePtr() { return code; }
+  const u8* GetCodeEnd() const { return m_code_end; }
+  u8* GetWritableCodeEnd() { return m_code_end; }
 
   void LockFlags() { flags_locked = true; }
   void UnlockFlags() { flags_locked = false; }
@@ -1079,14 +1079,6 @@ public:
   void ABI_CallFunctionP(FunctionPointer func, const void* param1)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPP(FunctionPointer func, const void* param1, const void* param2)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
     ABI_CallFunction(func);
   }
 

@@ -122,7 +122,7 @@ void GameDigestDialog::SetProgress(int pid, int progress)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
-  if (!m_status_labels.count(pid))
+  if (!m_status_labels.contains(pid))
     return;
 
   m_status_labels[pid]->setText(
@@ -134,7 +134,7 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
-  if (!m_status_labels.count(pid))
+  if (!m_status_labels.contains(pid))
     return;
 
   m_status_labels[pid]->setText(

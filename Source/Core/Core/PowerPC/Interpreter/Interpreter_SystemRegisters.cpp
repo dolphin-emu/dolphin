@@ -358,8 +358,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
       INFO_LOG_FMT(POWERPC, "Flush Instruction Cache! ICE={}", HID0(ppc_state).ICE);
       // this is rather slow
       // most games do it only once during initialization
-      auto& jit_interface = interpreter.m_system.GetJitInterface();
-      ppc_state.iCache.Reset(jit_interface);
+      ppc_state.iCache.Reset();
     }
   }
   break;

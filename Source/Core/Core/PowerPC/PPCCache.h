@@ -10,16 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 
-class JitInterface;
-namespace Memory
-{
-class MemoryManager;
-}
 class PointerWrap;
-namespace PowerPC
-{
-struct PowerPCState;
-}
 
 namespace PowerPC
 {
@@ -51,22 +42,22 @@ struct Cache
   std::vector<u8> lookup_table_ex{};
   std::vector<u8> lookup_table_vmem{};
 
-  void Store(Memory::MemoryManager& memory, u32 addr);
-  void Invalidate(Memory::MemoryManager& memory, u32 addr);
-  void Flush(Memory::MemoryManager& memory, u32 addr);
-  void Touch(Memory::MemoryManager& memory, u32 addr, bool store);
+  void Store(u32 addr);
+  void Invalidate(u32 addr);
+  void Flush(u32 addr);
+  void Touch(u32 addr, bool store);
 
-  void FlushAll(Memory::MemoryManager& memory);
+  void FlushAll();
 
-  std::pair<u32, u32> GetCache(Memory::MemoryManager& memory, u32 addr, bool locked);
+  std::pair<u32, u32> GetCache(u32 addr, bool locked);
 
-  void Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, bool locked);
-  void Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, bool locked);
+  void Read(u32 addr, void* buffer, u32 len, bool locked);
+  void Write(u32 addr, const void* buffer, u32 len, bool locked);
 
-  void Init(Memory::MemoryManager& memory);
+  void Init();
   void Reset();
 
-  void DoState(Memory::MemoryManager& memory, PointerWrap& p);
+  void DoState(PointerWrap& p);
 };
 
 struct InstructionCache : public Cache
@@ -77,10 +68,10 @@ struct InstructionCache : public Cache
 
   InstructionCache() = default;
   ~InstructionCache();
-  u32 ReadInstruction(Memory::MemoryManager& memory, PowerPC::PowerPCState& ppc_state, u32 addr);
-  void Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface, u32 addr);
-  void Init(Memory::MemoryManager& memory);
-  void Reset(JitInterface& jit_interface);
+  u32 ReadInstruction(u32 addr);
+  void Invalidate(u32 addr);
+  void Init();
+  void Reset();
   void RefreshConfig();
 };
 }  // namespace PowerPC

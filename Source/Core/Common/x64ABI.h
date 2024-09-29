@@ -50,7 +50,7 @@
 // FIXME: avoid pushing all 16 XMM registers when possible? most functions we call probably
 // don't actually clobber them.
 #define ABI_ALL_CALLER_SAVED (BitSet32{RAX, RCX, RDX, RDI, RSI, R8, R9, R10, R11} | ABI_ALL_FPRS)
-#endif  // WIN32
+#endif  // _WIN32
 
 #define ABI_ALL_CALLEE_SAVED (~ABI_ALL_CALLER_SAVED)
 

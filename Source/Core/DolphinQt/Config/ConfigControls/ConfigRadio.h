@@ -13,6 +13,12 @@ class ConfigRadioInt : public ToolTipRadioButton
 public:
   ConfigRadioInt(const QString& label, const Config::Info<int>& setting, int value);
 
+signals:
+  // Since selecting a new radio button deselects the old one, ::toggled will generate two signals.
+  // These are convenience functions so you can receive only one signal if desired.
+  void OnSelected(int new_value);
+  void OnDeselected(int old_value);
+
 private:
   void Update();
 

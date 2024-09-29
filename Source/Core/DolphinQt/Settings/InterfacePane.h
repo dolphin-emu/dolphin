@@ -5,51 +5,51 @@
 
 #include <QWidget>
 
-class QCheckBox;
-class QComboBox;
+class ConfigBool;
+class ConfigRadioInt;
+class ConfigStringChoice;
 class QLabel;
-class QRadioButton;
 class QVBoxLayout;
 class ToolTipCheckBox;
+class ToolTipComboBox;
 
 class InterfacePane final : public QWidget
 {
   Q_OBJECT
 public:
   explicit InterfacePane(QWidget* parent = nullptr);
+  ToolTipComboBox* m_combobox_userstyle;
+  ConfigStringChoice* m_combobox_theme;
 
 private:
   void CreateLayout();
   void CreateUI();
   void CreateInGame();
+  void AddDescriptions();
   void ConnectLayout();
-  void LoadConfig();
-  void OnSaveConfig();
-  void OnCursorVisibleMovement();
-  void OnCursorVisibleNever();
-  void OnCursorVisibleAlways();
+  void UpdateShowDebuggingCheckbox();
+  void LoadUserStyle();
+  void OnUserStyleChanged();
+  void OnLanguageChanged();
 
   QVBoxLayout* m_main_layout;
-  QComboBox* m_combobox_language;
+  ConfigStringChoice* m_combobox_language;
 
-  QComboBox* m_combobox_theme;
-  QComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
-  QCheckBox* m_checkbox_top_window;
-  QCheckBox* m_checkbox_use_builtin_title_database;
-  QCheckBox* m_checkbox_use_userstyle;
+  ConfigBool* m_checkbox_top_window;
+  ConfigBool* m_checkbox_use_builtin_title_database;
   ToolTipCheckBox* m_checkbox_show_debugging_ui;
-  QCheckBox* m_checkbox_focused_hotkeys;
-  QCheckBox* m_checkbox_use_covers;
-  QCheckBox* m_checkbox_disable_screensaver;
+  ConfigBool* m_checkbox_focused_hotkeys;
+  ConfigBool* m_checkbox_use_covers;
+  ConfigBool* m_checkbox_disable_screensaver;
 
-  QCheckBox* m_checkbox_confirm_on_stop;
-  QCheckBox* m_checkbox_use_panic_handlers;
-  QCheckBox* m_checkbox_enable_osd;
-  QCheckBox* m_checkbox_show_active_title;
-  QCheckBox* m_checkbox_pause_on_focus_lost;
-  QRadioButton* m_radio_cursor_visible_movement;
-  QRadioButton* m_radio_cursor_visible_never;
-  QRadioButton* m_radio_cursor_visible_always;
-  QCheckBox* m_checkbox_lock_mouse;
+  ConfigBool* m_checkbox_confirm_on_stop;
+  ConfigBool* m_checkbox_use_panic_handlers;
+  ConfigBool* m_checkbox_enable_osd;
+  ConfigBool* m_checkbox_show_active_title;
+  ConfigBool* m_checkbox_pause_on_focus_lost;
+  ConfigRadioInt* m_radio_cursor_visible_movement;
+  ConfigRadioInt* m_radio_cursor_visible_never;
+  ConfigRadioInt* m_radio_cursor_visible_always;
+  ConfigBool* m_checkbox_lock_mouse;
 };

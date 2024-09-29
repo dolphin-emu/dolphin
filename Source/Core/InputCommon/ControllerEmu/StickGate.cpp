@@ -275,6 +275,14 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
   ControlGroup::SaveConfig(section, default_device, base_name);
 
   const std::string group(base_name + name + '/');
+
+  // Special handling for "Modifier" button "Range" settings which default to 50% instead of 100%.
+  if (const auto* modifier_input = GetModifierInput())
+  {
+    section->Set(group + modifier_input->name + "/Range", modifier_input->control_ref->range * 100,
+                 50.0);
+  }
+
   std::vector<std::string> save_data(m_calibration.size());
   std::transform(
       m_calibration.begin(), m_calibration.end(), save_data.begin(),

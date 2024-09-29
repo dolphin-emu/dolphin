@@ -1,6 +1,8 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
+
 #include <cstring>
 #include <optional>
 #include <type_traits>
@@ -9,7 +11,6 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
-#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"

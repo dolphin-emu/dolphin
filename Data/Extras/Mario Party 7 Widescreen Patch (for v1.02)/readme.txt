@@ -1,1 +1,0 @@
-Place the Mario Party 7 (USA) (v1.02) ISO in the script's directory and run the patch script to patch it.

@@ -23,3 +23,13 @@ signals:
   void OpenAchievementSettings();
 #endif  // USE_RETRO_ACHIEVEMENTS
 };
+
+class GeckoDialog final : public QDialog
+{
+  Q_OBJECT
+public:
+  explicit GeckoDialog(QWidget* parent);
+
+signals:
+  void OpenGeneralSettings();
+};

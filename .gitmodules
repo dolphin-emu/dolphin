@@ -1,6 +1,6 @@
 [submodule "Externals/Qt"]
 	path = Externals/Qt
-	url = https://github.com/dolphin-emu/ext-win-qt.git
+	url = https://github.com/MarioPartyNetplay/QtWin32-Dolphin-MPN.git
 	branch = master
 	shallow = true
 [submodule "Externals/mGBA/mgba"]
@@ -78,3 +78,9 @@
 [submodule "Externals/tinygltf/tinygltf"]
 	path = Externals/tinygltf/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+[submodule "Externals/minizip-ng/minizip-ng"]
+	path = Externals/minizip-ng/minizip-ng
+	url = https://github.com/zlib-ng/minizip-ng
+[submodule "Externals/Vulkan-Headers"]
+	path = Externals/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git

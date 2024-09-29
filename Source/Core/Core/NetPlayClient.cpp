@@ -540,7 +540,7 @@ void NetPlayClient::OnPlayerLeave(sf::Packet& packet)
     const auto& player = it->second;
     INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", player.name, pid);
     m_dialog->OnPlayerDisconnect(player.name);
-    m_players.erase(m_players.find(pid));
+    m_players.erase(it);
   }
 
   m_dialog->Update();
@@ -981,6 +981,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
   m_dialog->OnMsgStopGame(player.name);
 }
 
+
 void NetPlayClient::OnPowerButton()
 {
   InvokeStop();
@@ -1076,6 +1077,8 @@ void NetPlayClient::OnSendCodesMsg(sf::Packet& packet)
   auto ss = std::stringstream{codeStr};
 
   v_ActiveGeckoCodes = {};
+  v_ActiveARCodes = {};
+
   for (std::string line; std::getline(ss, line, '\n');)
     v_ActiveGeckoCodes.push_back(line);
 
@@ -1084,6 +1087,16 @@ void NetPlayClient::OnSendCodesMsg(sf::Packet& packet)
   m_dialog->OnActiveGeckoCodes(firstLine);
   for (const std::string code : v_ActiveGeckoCodes)
     m_dialog->OnActiveGeckoCodes(code);
+
+  for (std::string line; std::getline(ss, line, '\n');)
+    v_ActiveARCodes.push_back(line);
+
+  // add to chat
+  std::string firstLineAR = "Active AR Codes:";
+  m_dialog->OnActiveARCodes(firstLineAR);
+  for (const std::string code : v_ActiveARCodes)
+    m_dialog->OnActiveARCodes(code);
+
 }
 
 
@@ -2504,7 +2517,7 @@ void NetPlayClient::RequestGolfControl()
 std::string NetPlayClient::GetCurrentGolfer()
 {
   std::lock_guard lkp(m_crit.players);
-  if (m_players.count(m_current_golfer))
+  if (m_players.contains(m_current_golfer))
     return m_players[m_current_golfer].name;
   return "";
 }

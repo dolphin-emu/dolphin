@@ -69,4 +69,4 @@ OSVERSIONINFOW GetOSVersion()
   }
   return info;
 }
-};  // namespace WindowsRegistry
+}  // namespace WindowsRegistry

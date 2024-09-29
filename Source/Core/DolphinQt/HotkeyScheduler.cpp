@@ -113,7 +113,9 @@ static void HandleFrameStepHotkeys()
 
     if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
     {
-      Core::DoFrameStep(Core::System::GetInstance());
+      if (frame_step_count > 0)
+        Settings::Instance().SetIsContinuouslyFrameStepping(true);
+      Core::QueueHostJob([](auto& system) { Core::DoFrameStep(system); });
       frame_step_hold = true;
     }
 
@@ -138,6 +140,8 @@ static void HandleFrameStepHotkeys()
     frame_step_count = 0;
     frame_step_hold = false;
     frame_step_delay_count = 0;
+    Settings::Instance().SetIsContinuouslyFrameStepping(false);
+    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
   }
 }
 
@@ -159,7 +163,8 @@ void HotkeyScheduler::Run()
     if (!HotkeyManagerEmu::IsEnabled())
       continue;
 
-    if (Core::GetState(Core::System::GetInstance()) != Core::State::Stopping)
+    Core::System& system = Core::System::GetInstance();
+    if (Core::GetState(system) != Core::State::Stopping)
     {
       // Obey window focus (config permitting) before checking hotkeys.
       Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
@@ -187,7 +192,12 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
 
-      if (!Core::IsRunningAndStarted())
+#ifdef USE_RETRO_ACHIEVEMENTS
+      if (IsHotkey(HK_OPEN_ACHIEVEMENTS))
+        emit OpenAchievements();
+#endif  // USE_RETRO_ACHIEVEMENTS
+
+      if (!Core::IsRunning(system))
       {
         // Only check for Play Recording hotkey when no game is running
         if (IsHotkey(HK_PLAY_RECORDING))
@@ -472,9 +482,14 @@ void HotkeyScheduler::Run()
 
       auto ShowEmulationSpeed = []() {
         const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
-        OSD::AddMessage(emulation_speed <= 0 ?
-                            "Speed Limit: Unlimited" :
-                            fmt::format("Speed Limit: {}%", std::lround(emulation_speed * 100.f)));
+        if (!AchievementManager::GetInstance().IsHardcoreModeActive() ||
+            Config::Get(Config::MAIN_EMULATION_SPEED) >= 1.0f ||
+            Config::Get(Config::MAIN_EMULATION_SPEED) <= 0.0f)
+        {
+          OSD::AddMessage(emulation_speed <= 0 ? "Speed Limit: Unlimited" :
+                                                 fmt::format("Speed Limit: {}%",
+                                                             std::lround(emulation_speed * 100.f)));
+        }
       };
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
@@ -589,15 +604,12 @@ void HotkeyScheduler::Run()
     {
       const bool new_value = !Config::Get(Config::FREE_LOOK_ENABLED);
       Config::SetCurrent(Config::FREE_LOOK_ENABLED, new_value);
-#ifdef USE_RETRO_ACHIEVEMENTS
+
       const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
       if (hardcore)
         OSD::AddMessage("Free Look is Disabled in Hardcore Mode");
       else
         OSD::AddMessage(fmt::format("Free Look: {}", new_value ? "Enabled" : "Disabled"));
-#else   // USE_RETRO_ACHIEVEMENTS
-      OSD::AddMessage(fmt::format("Free Look: {}", new_value ? "Enabled" : "Disabled"));
-#endif  // USE_RETRO_ACHIEVEMENTS
     }
 
     // Savestates

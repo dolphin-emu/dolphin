@@ -81,7 +81,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   m_collection_path = QDir::toNativeSeparators(skylanders_folder.path()) + QDir::separator();
   m_last_skylander_path = m_collection_path;
   m_path_edit->setText(m_collection_path);
-};
+}
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
 
@@ -554,7 +554,7 @@ void SkylanderPortalWindow::LoadFromFile()
   const u8 slot = GetCurrentSlot();
   const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), m_last_skylander_path,
-                                         tr("Skylander (*.sky);;All Files (*)"));
+                                         tr("Skylander (*.sky *.bin *.dmp *.dump);;All Files (*)"));
   ;
   if (file_path.isEmpty())
   {
@@ -708,7 +708,9 @@ void SkylanderPortalWindow::RefreshList()
   {
     const QDir collection = QDir(m_collection_path);
     auto& system = Core::System::GetInstance();
-    for (const auto& file : collection.entryInfoList(QStringList(QStringLiteral("*.sky"))))
+    for (const auto& file : collection.entryInfoList(
+             QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
+                           << QStringLiteral("*.dmp") << QStringLiteral("*.dump")))
     {
       File::IOFile sky_file(file.filePath().toStdString(), "r+b");
       if (!sky_file)
@@ -910,7 +912,9 @@ QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var) const
 {
   const QDir collection = QDir(m_collection_path);
   auto& system = Core::System::GetInstance();
-  for (const auto& file : collection.entryInfoList(QStringList(QStringLiteral("*.sky"))))
+  for (const auto& file : collection.entryInfoList(
+           QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
+                         << QStringLiteral("*.dmp") << QStringLiteral("*.dump")))
   {
     File::IOFile sky_file(file.filePath().toStdString(), "r+b");
     if (!sky_file)

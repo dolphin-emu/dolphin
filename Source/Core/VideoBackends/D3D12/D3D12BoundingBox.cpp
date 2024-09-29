@@ -125,4 +125,4 @@ bool D3D12BoundingBox::CreateBuffers()
 
   return true;
 }
-};  // namespace DX12
+}  // namespace DX12

@@ -1,1 +1,0 @@
-Place the Mario Party 4 (USA) (v1.00) ISO in the script's directory and run the patch script to patch it.

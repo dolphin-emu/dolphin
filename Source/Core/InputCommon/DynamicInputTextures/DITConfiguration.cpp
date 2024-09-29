@@ -12,6 +12,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
@@ -23,18 +24,9 @@ namespace InputCommon::DynamicInputTextures
 {
 Configuration::Configuration(const std::string& json_path)
 {
-  std::string json_data;
-  if (!File::ReadFileToString(json_path, json_data))
-  {
-    ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}'", json_path);
-    m_valid = false;
-    return;
-  }
-
   picojson::value root;
-  const auto error = picojson::parse(root, json_data);
-
-  if (!error.empty())
+  std::string error;
+  if (!JsonFromFile(json_path, &root, &error))
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}' due to parse error: {}",
                   json_path, error);

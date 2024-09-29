@@ -47,13 +47,13 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # perfer printing GCC instead of GNU
 endif()
 
-# Enforce minimium compiler versions that support the c++20 features we use
-set (GCC_min_version 10)
-set (Clang_min_version 12)
-set (AppleClang_min_version 13.0.0)
-set (min_xcode_version "13.0") # corrosponding xcode version for AppleClang_min_version
+# Enforce minimum compiler versions that support the c++20 features we use
+set (GCC_min_version 11)
+set (Clang_min_version 14)
+set (AppleClang_min_version 14.0.3)
+set (min_xcode_version "14.0") # corresponding xcode version for AppleClang_min_version
 set (MSVC_min_version 14.32)
-set (min_vs_version "2022 17.2.3") # corrosponding Visual Studio version for MSVC_min_version
+set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 
@@ -104,7 +104,6 @@ option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
-option(STEAM "Creates a build for Steam" OFF)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -138,7 +137,6 @@ if(APPLE)
   option(MACOS_CODE_SIGNING "Enable codesigning" ON)
   option(USE_BUNDLED_MOLTENVK "Build MoltenVK from Externals with Dolphin-specific patches" ON)
   set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
-  set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "-" CACHE STRING "The identity used for codesigning, for the updater.")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -392,7 +390,7 @@ if(ENABLE_LTO)
 endif()
 
 if(UNIX)
-  if(LINUX_LOCAL_DEV OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM))
+  if(LINUX_LOCAL_DEV)
     add_definitions(-DLINUX_LOCAL_DEV)
   endif()
 endif()
@@ -587,7 +585,7 @@ if(UNIX)
 endif()
 
 if(ENABLE_SDL)
-  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.26.0)
+  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.28.5)
 endif()
 
 if(ENABLE_ANALYTICS)
@@ -628,7 +626,9 @@ if (_M_X86_64)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 
-dolphin_find_optional_system_library(fmt Externals/fmt 10.1)
+dolphin_find_optional_system_library_pkgconfig(FMT
+  fmt>=10.1 fmt::fmt Externals/fmt
+)
 
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
@@ -674,9 +674,9 @@ dolphin_find_optional_system_library_pkgconfig(ZSTD libzstd>=1.4.0 zstd::zstd Ex
 
 dolphin_find_optional_system_library_pkgconfig(ZLIB zlib-ng ZLIB::ZLIB Externals/zlib-ng)
 
-# https://github.com/zlib-ng/minizip-ng/commit/6c5f265a55f1a12a7a016cd2962feff91cff5d2e
-add_definitions(-DMZ_COMPAT_VERSION=110)  # This macro is for forwards compatibility with 4.0.4+
-dolphin_find_optional_system_library_pkgconfig(MINIZIP minizip>=3.0.0 minizip::minizip Externals/minizip)
+dolphin_find_optional_system_library_pkgconfig(MINIZIP
+  "minizip>=4.0.4" minizip::minizip Externals/minizip-ng
+)
 
 dolphin_find_optional_system_library(LZO Externals/LZO)
 
@@ -703,7 +703,9 @@ include_directories(Externals/soundtouch)
 dolphin_find_optional_system_library(CUBEB Externals/cubeb)
 
 if(NOT ANDROID)
-  dolphin_find_optional_system_library(LibUSB Externals/libusb)
+  dolphin_find_optional_system_library_pkgconfig(
+    LibUSB libusb-1.0 LibUSB::LibUSB Externals/libusb
+  )
   add_definitions(-D__LIBUSB__)
 endif()
 
@@ -750,10 +752,6 @@ else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
-if(STEAM)
-  add_definitions(-DSTEAM)
-endif()
-
 if (WIN32)
   include_directories(Externals/WIL/include)
   include_directories(Externals/OpenAL/include)
@@ -784,14 +782,26 @@ if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
 	file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
 endif()
 
+if(APPLE)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt)
+  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist)
+    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist)
+  endif()
+
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater)
+  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist)
+    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist)
+  endif()
+endif()
+
 find_package(Git)
 if(NOT GIT_FOUND)
 	set(GIT_EXECUTABLE "")
 endif()
 add_custom_target(
 	dolphin_scmrev
-	${CMAKE_COMMAND} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR} -DDISTRIBUTOR=${DISTRIBUTOR} -DDOLPHIN_DEFAULT_UPDATE_TRACK=${DOLPHIN_DEFAULT_UPDATE_TRACK} -DGIT_FOUND=${GIT_FOUND} -DGIT_EXECUTABLE=${GIT_EXECUTABLE} -DDOLPHIN_WC_REVISION=${DOLPHIN_WC_REVISION} -DDOLPHIN_WC_DESCRIBE=${DOLPHIN_WC_DESCRIBE} -DDOLPHIN_WC_BRANCH=${DOLPHIN_WC_BRANCH} -P ${CMAKE_CURRENT_SOURCE_DIR}/CMake/ScmRevGen.cmake
-	BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h
+	${CMAKE_COMMAND} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR} -DDISTRIBUTOR=${DISTRIBUTOR} -DDOLPHIN_DEFAULT_UPDATE_TRACK=${DOLPHIN_DEFAULT_UPDATE_TRACK} -DGIT_FOUND=${GIT_FOUND} -DGIT_EXECUTABLE=${GIT_EXECUTABLE} -DDOLPHIN_WC_REVISION=${DOLPHIN_WC_REVISION} -DDOLPHIN_WC_DESCRIBE=${DOLPHIN_WC_DESCRIBE} -DDOLPHIN_WC_BRANCH=${DOLPHIN_WC_BRANCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET} -P ${CMAKE_CURRENT_SOURCE_DIR}/CMake/ScmRevGen.cmake
+	BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h" "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist" "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist"
 	VERBATIM
 )
 

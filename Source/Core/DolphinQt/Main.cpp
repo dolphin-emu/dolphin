@@ -259,7 +259,6 @@ int main(int argc, char* argv[])
     Settings::Instance().ApplyStyle();
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
-    win.Show();
 
 
 
@@ -282,7 +281,7 @@ int main(int argc, char* argv[])
                       "efforts. It also helps us identify rare configurations that are "
                       "causing bugs, performance and stability issues.\n"
                       "This authorization can be revoked at any time through Dolphin's "
-                      "settings."));
+                      "settings.\n\nNone of this information will be sent to the staff at Mario Party Netplay."));
 
       SetQWidgetWindowDecorations(&analytics_prompt);
       const int answer = analytics_prompt.exec();

@@ -143,7 +143,7 @@ void GameConfigEdit::OnSelectionChanged()
 {
   const QString& keyword = m_edit->textCursor().selectedText();
 
-  if (m_keyword_map.count(keyword))
+  if (m_keyword_map.contains(keyword))
     QWhatsThis::showText(QCursor::pos(), m_keyword_map[keyword], this);
 }
 

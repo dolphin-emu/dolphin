@@ -67,13 +67,12 @@ void GeneralPane::CreateLayout()
   m_main_layout = new QVBoxLayout;
   // Create layout here
   CreateBasic();
-
   CreateFallbackRegion();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   CreateAnalytics();
 #endif
-
+  CreateCheats();
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
 }
@@ -100,6 +99,8 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_combobox_codehandler, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &GeneralPane::OnCodeHandlerChanged);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -133,11 +134,8 @@ void GeneralPane::CreateBasic()
   basic_group->setLayout(basic_group_layout);
   m_main_layout->addWidget(basic_group);
 
-  m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedup)"));
+  m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speed-hack)"));
   basic_group_layout->addWidget(m_checkbox_dualcore);
-
-  m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
-  basic_group_layout->addWidget(m_checkbox_cheats);
 
   m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
   basic_group_layout->addWidget(m_checkbox_override_region_settings);
@@ -213,6 +211,31 @@ void GeneralPane::CreateAnalytics()
 }
 #endif
 
+void GeneralPane::CreateCheats()
+{
+  auto* cheats_group = new QGroupBox(tr("Cheats Settings"));
+  auto* cheats_group_layout = new QVBoxLayout;
+  cheats_group->setLayout(cheats_group_layout);
+  m_main_layout->addWidget(cheats_group);
+
+  m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
+  cheats_group_layout->addWidget(m_checkbox_cheats);
+
+  // Add dropdown for code handler selection
+  auto* code_handler_layout = new QFormLayout();
+  auto* code_handler_label = new QLabel(tr("Code Handler:"));
+  m_combobox_codehandler = new QComboBox();
+  m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(0));
+  m_combobox_codehandler->addItem(tr("MPN (Extended)"), QVariant(1));
+  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
+  code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
+
+  cheats_group_layout->addLayout(code_handler_layout);
+
+  code_handler_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  code_handler_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+}
+
 void GeneralPane::LoadConfig()
 {
   const QSignalBlocker blocker(this);
@@ -220,11 +243,12 @@ void GeneralPane::LoadConfig()
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  SignalBlocking(m_checkbox_enable_analytics)
-      ->setChecked(Settings::Instance().IsAnalyticsEnabled());
+    SignalBlocking(m_checkbox_enable_analytics)
+        ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
   SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
   SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
+  SignalBlocking(m_combobox_codehandler)->setCurrentIndex(Config::Get(Config::MAIN_CODE_HANDLER));
   SignalBlocking(m_checkbox_override_region_settings)
       ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
   SignalBlocking(m_checkbox_auto_disc_change)
@@ -340,3 +364,10 @@ void GeneralPane::GenerateNewIdentity()
   message_box.exec();
 }
 #endif
+
+void GeneralPane::OnCodeHandlerChanged(int index)
+{
+  int code_handler_value = m_combobox_codehandler->itemData(index).toInt();
+  Config::SetBaseOrCurrent(Config::MAIN_CODE_HANDLER, code_handler_value);
+  Config::Save();
+}

@@ -101,10 +101,6 @@ namespace Core
 static bool s_wants_determinism;
 
 // Declarations and definitions
-static bool s_is_stopping = false;
-static bool s_hardware_initialized = false;
-static bool s_is_started = false;
-static Common::Flag s_is_booting;
 static std::thread s_emu_thread;
 static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
@@ -113,6 +109,10 @@ static bool s_is_throttler_temp_disabled = false;
 static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
+
+// The value Paused is never stored in this variable. The core is considered to be in
+// the Paused state if this variable is Running and the CPU reports that it's stepping.
+static std::atomic<State> s_state = State::Uninitialized;
 
 #ifdef USE_MEMORYWATCHER
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
@@ -190,7 +190,7 @@ std::string StopMessage(bool main_thread, std::string_view message)
 
 void DisplayMessage(std::string message, int time_in_ms)
 {
-  if (!IsRunning(Core::System::GetInstance()))
+  if (!IsRunningOrStarting(Core::System::GetInstance()))
     return;
 
   // Actually displaying non-ASCII could cause things to go pear-shaped
@@ -202,12 +202,13 @@ void DisplayMessage(std::string message, int time_in_ms)
 
 bool IsRunning(Core::System& system)
 {
-  return (GetState(system) != State::Uninitialized || s_hardware_initialized) && !s_is_stopping;
+  return s_state.load() == State::Running;
 }
 
-bool IsRunningAndStarted()
+bool IsRunningOrStarting(Core::System& system)
 {
-  return s_is_started && !s_is_stopping;
+  const State state = s_state.load();
+  return state == State::Running || state == State::Starting;
 }
 
 bool IsCPUThread()
@@ -262,7 +263,7 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
   g_video_backend->PrepareWindow(prepared_wsi);
 
   // Start the emu thread
-  s_is_booting.Set();
+  s_state.store(State::Starting);
   s_emu_thread = std::thread(EmuThread, std::ref(system), std::move(boot), prepared_wsi);
   return true;
 }
@@ -281,17 +282,13 @@ static void ResetRumble()
 // Called from GUI thread
 void Stop(Core::System& system)  // - Hammertime!
 {
-  if (const State state = GetState(system);
-      state == State::Stopping || state == State::Uninitialized)
-  {
+  const State state = s_state.load();
+  if (state == State::Stopping || state == State::Uninitialized)
     return;
-  }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().CloseGame();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
-  s_is_stopping = true;
+  s_state.store(State::Stopping);
 
   CallOnStateChangedCallbacks(State::Stopping);
 
@@ -356,7 +353,7 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
   // SetState must be called on the host thread, so we defer it for later.
   QueueHostJob([force_paused](Core::System& system) {
     bool paused = SConfig::GetInstance().bBootToPause || force_paused;
-    SetState(system, paused ? State::Paused : State::Running);
+    SetState(system, paused ? State::Paused : State::Running, true, true);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
     Host_Message(HostMessageID::WMUserCreate);
@@ -396,11 +393,15 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
       File::Delete(*savestate_path);
   }
 
-  s_is_started = true;
+  // If s_state is Starting, change it to Running. But if it's already been set to Stopping
+  // by the host thread, don't change it.
+  State expected = State::Starting;
+  s_state.compare_exchange_strong(expected, State::Running);
+
   {
 #ifndef _WIN32
     std::string gdb_socket = Config::Get(Config::MAIN_GDB_SOCKET);
-    if (!gdb_socket.empty())
+    if (!gdb_socket.empty() && !AchievementManager::GetInstance().IsHardcoreModeActive())
     {
       GDBStub::InitLocal(gdb_socket.data());
       CPUSetInitialExecutionState(true);
@@ -409,7 +410,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 #endif
     {
       int gdb_port = Config::Get(Config::MAIN_GDB_PORT);
-      if (gdb_port > 0)
+      if (gdb_port > 0 && !AchievementManager::GetInstance().IsHardcoreModeActive())
       {
         GDBStub::Init(gdb_port);
         CPUSetInitialExecutionState(true);
@@ -427,8 +428,6 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher.reset();
 #endif
-
-  s_is_started = false;
 
   if (exception_handler)
     EMM::UninstallExceptionHandler();
@@ -455,12 +454,15 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   if (auto cpu_core = system.GetFifoPlayer().GetCPUCore())
   {
     system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
-    s_is_started = true;
+
+    // If s_state is Starting, change it to Running. But if it's already been set to Stopping
+    // by the host thread, don't change it.
+    State expected = State::Starting;
+    s_state.compare_exchange_strong(expected, State::Running);
 
     CPUSetInitialExecutionState();
     system.GetCPU().Run();
 
-    s_is_started = false;
     system.GetPowerPC().InjectExternalCPUCore(nullptr);
     system.GetFifoPlayer().Close();
   }
@@ -481,10 +483,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 {
   CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
-    s_is_booting.Clear();
-    s_is_started = false;
-    s_is_stopping = false;
-    s_wants_determinism = false;
+    s_state.store(State::Uninitialized);
 
     CallOnStateChangedCallbacks(State::Uninitialized);
 
@@ -562,8 +561,6 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     NetPlay::NetPlay_RegisterEvents();
 
   Common::ScopeGuard hw_guard{[&system] {
-    // We must set up this flag before executing HW::Shutdown()
-    s_hardware_initialized = false;
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
     HW::Shutdown(system);
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
@@ -606,10 +603,6 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   }
 
   AudioCommon::PostInitSoundStream(system);
-
-  // The hardware is initialized.
-  s_hardware_initialized = true;
-  s_is_booting.Clear();
 
   // Set execution state to known values (CPU/FIFO/Audio Paused)
   system.GetCPU().Break();
@@ -703,24 +696,32 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 
 // Set or get the running state
 
-void SetState(Core::System& system, State state, bool report_state_change)
+void SetState(Core::System& system, State state, bool report_state_change,
+              bool initial_execution_state)
 {
   // State cannot be controlled until the CPU Thread is operational
-  if (!IsRunningAndStarted())
+  if (s_state.load() != State::Running)
     return;
 
   switch (state)
   {
   case State::Paused:
+#ifdef USE_RETRO_ACHIEVEMENTS
+    if (!initial_execution_state && !AchievementManager::GetInstance().CanPause())
+      return;
+#endif  // USE_RETRO_ACHIEVEMENTS
     // NOTE: GetState() will return State::Paused immediately, even before anything has
     //   stopped (including the CPU).
-    system.GetCPU().EnableStepping(true);  // Break
+    system.GetCPU().SetStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
+#ifdef USE_RETRO_ACHIEVEMENTS
+    AchievementManager::GetInstance().DoIdle();
+#endif  // USE_RETRO_ACHIEVEMENTS
     break;
   case State::Running:
   {
-    system.GetCPU().EnableStepping(false);
+    system.GetCPU().SetStepping(false);
     Wiimote::Resume();
     break;
   }
@@ -737,21 +738,11 @@ void SetState(Core::System& system, State state, bool report_state_change)
 
 State GetState(Core::System& system)
 {
-  if (s_is_stopping)
-    return State::Stopping;
-
-  if (s_hardware_initialized)
-  {
-    if (system.GetCPU().IsStepping())
-      return State::Paused;
-
-    return State::Running;
-  }
-
-  if (s_is_booting.IsSet())
-    return State::Starting;
-
-  return State::Uninitialized;
+  const State state = s_state.load();
+  if (state == State::Running && system.GetCPU().IsStepping())
+    return State::Paused;
+  else
+    return state;
 }
 
 static std::string GenerateScreenshotFolderPath()
@@ -805,7 +796,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 
-  if (!IsRunningAndStarted())
+  if (!IsRunning(system))
     return true;
 
   bool was_unpaused = true;
@@ -833,7 +824,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
     // The CPU is responsible for managing the Audio and FIFO state so we use its
     // mechanism to unpause them. If we unpaused the systems above when releasing
     // the locks then they could call CPU::Break which would require detecting it
-    // and re-pausing with CPU::EnableStepping.
+    // and re-pausing with CPU::SetStepping.
     was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
   }
 
@@ -911,9 +902,7 @@ void Callback_NewField(Core::System& system)
     }
   }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().DoFrame();
-#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void UpdateTitle(Core::System& system)
@@ -1034,13 +1023,12 @@ void HostDispatchJobs(Core::System& system)
     HostJob job = std::move(s_host_jobs_queue.front());
     s_host_jobs_queue.pop();
 
-    // NOTE: Memory ordering is important. The booting flag needs to be
-    //   checked first because the state transition is:
-    //   Core::State::Uninitialized: s_is_booting -> s_hardware_initialized
-    //   We need to check variables in the same order as the state
-    //   transition, otherwise we race and get transient failures.
-    if (!job.run_after_stop && !s_is_booting.IsSet() && !IsRunning(system))
-      continue;
+    if (!job.run_after_stop)
+    {
+      const State state = s_state.load();
+      if (state == State::Stopping || state == State::Uninitialized)
+        continue;
+    }
 
     guard.unlock();
     job.job(system);
@@ -1051,13 +1039,11 @@ void HostDispatchJobs(Core::System& system)
 // NOTE: Host Thread
 void DoFrameStep(Core::System& system)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
   {
     OSD::AddMessage("Frame stepping is disabled in RetroAchievements hardcore mode");
     return;
   }
-#endif  // USE_RETRO_ACHIEVEMENTS
   if (GetState(system) == State::Paused)
   {
     // if already paused, frame advance for 1 frame
@@ -1076,7 +1062,8 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
 {
   // If the user accepts background input, controls should pass even if an on screen interface is on
   const bool focus_passes =
-      !require_focus || (Host_RendererHasFocus() && !Host_UIBlocksControllerState());
+      !require_focus ||
+      ((Host_RendererHasFocus() || Host_TASInputHasFocus()) && !Host_UIBlocksControllerState());
   // Ignore full focus if we don't require basic focus
   const bool full_focus_passes =
       !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
@@ -1094,6 +1081,33 @@ CPUThreadGuard::~CPUThreadGuard()
 {
   if (!m_was_cpu_thread)
     PauseAndLock(m_system, false, m_was_unpaused);
+}
+
+static GameName mGameBeingPlayed = GameName::UnknownGame;
+const std::map<std::string, GameName> mGameMap = {{"GMPE01", GameName::MarioParty4},
+                                                  {"GP5E01", GameName::MarioParty5},
+                                                  {"GP6E01", GameName::MarioParty6},
+                                                  {"GP7E01", GameName::MarioParty7},
+                                                  {"RM8E01", GameName::MarioParty8}};
+
+std::optional<std::pair<u32,u32>> getGameFreeMemory()
+{
+  switch (mGameBeingPlayed) {
+  case GameName::MarioParty4:
+    return std::nullopt;
+  case GameName::MarioParty5:
+    return std::make_pair(0x801A811C, 0x801A9B5C);
+  case GameName::MarioParty6:
+    return std::make_pair(0x80213974, 0x80216014);
+  case GameName::MarioParty7:
+    return std::make_pair(0x8023CF6C, 0x8023F9D0);
+  case GameName::MarioParty8:
+    return std::make_pair(0x802D5100, 0x802D9500);
+  case GameName::UnknownGame:
+    return std::nullopt;
+  default:
+    return std::nullopt;
+  }
 }
 
 }  // namespace Core

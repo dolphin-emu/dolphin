@@ -9,6 +9,8 @@
 
 namespace Common
 {
+#define EMULATOR_NAME "Dolphin"
+
 #ifdef _DEBUG
 #define BUILD_TYPE_STR "Debug "
 #elif defined DEBUGFAST
@@ -16,13 +18,6 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
-
-const std::string& GetScmRevStr()
-{
-  #define MPN_REV_STR "02/27/2022"
-  static const std::string scm_rev_str = "Dolphin MPN";
-  return scm_rev_str;
-}
 
 const std::string& GetScmRevGitStr()
 {
@@ -34,12 +29,24 @@ const std::string& GetScmDescStr()
 {
   static const std::string scm_desc_str = SCM_DESC_STR;
   return scm_desc_str;
+
+}
+const std::string& GetScmRevStr()
+{
+  static const std::string scm_rev_str = std::string("Dolphin MPN (") + SCM_DESC_STR + ")";
+  return scm_rev_str;
 }
 
 const std::string& GetScmBranchStr()
 {
   static const std::string scm_branch_str = SCM_BRANCH_STR;
   return scm_branch_str;
+}
+
+const std::string& GetUserAgentStr()
+{
+  static const std::string user_agent_str = EMULATOR_NAME "/" SCM_DESC_STR;
+  return user_agent_str;
 }
 
 const std::string& GetScmDistributorStr()

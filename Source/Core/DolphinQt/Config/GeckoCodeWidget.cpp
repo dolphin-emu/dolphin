@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include <algorithm>
 #include <utility>
@@ -31,6 +30,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
 
@@ -89,9 +89,6 @@ void GeckoCodeWidget::CreateWidgets()
   m_add_code = new NonDefaultQPushButton(tr("&Add New Code..."));
   m_edit_code = new NonDefaultQPushButton(tr("&Edit Code..."));
   m_remove_code = new NonDefaultQPushButton(tr("&Remove Code"));
-  m_download_codes = new NonDefaultQPushButton(tr("Download Codes"));
-
-  m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 
   m_code_list->setEnabled(!m_game_id.empty());
   m_name_label->setEnabled(!m_game_id.empty());
@@ -102,7 +99,6 @@ void GeckoCodeWidget::CreateWidgets()
   m_add_code->setEnabled(!m_game_id.empty());
   m_edit_code->setEnabled(false);
   m_remove_code->setEnabled(false);
-  m_download_codes->setEnabled(!m_game_id.empty());
 
   auto* layout = new QVBoxLayout;
 
@@ -135,7 +131,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_add_code);
   btn_layout->addWidget(m_edit_code);
   btn_layout->addWidget(m_remove_code);
-  btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
 
@@ -155,7 +150,6 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_add_code, &QPushButton::clicked, this, &GeckoCodeWidget::AddCode);
   connect(m_remove_code, &QPushButton::clicked, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::clicked, this, &GeckoCodeWidget::EditCode);
-  connect(m_download_codes, &QPushButton::clicked, this, &GeckoCodeWidget::DownloadCodes);
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -345,44 +339,4 @@ void GeckoCodeWidget::UpdateList()
   }
 
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
-}
-
-void GeckoCodeWidget::DownloadCodes()
-{
-  bool success;
-
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
-
-  if (!success)
-  {
-    ModalMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
-    return;
-  }
-
-  if (codes.empty())
-  {
-    ModalMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
-    return;
-  }
-
-  size_t added_count = 0;
-
-  for (const auto& code : codes)
-  {
-    auto it = std::find(m_gecko_codes.begin(), m_gecko_codes.end(), code);
-
-    if (it == m_gecko_codes.end())
-    {
-      m_gecko_codes.push_back(code);
-      added_count++;
-    }
-  }
-
-  UpdateList();
-  SaveCodes();
-
-  ModalMessageBox::information(
-      this, tr("Download complete"),
-      tr("Downloaded %1 codes. (added %2)")
-          .arg(QString::number(codes.size()), QString::number(added_count)));
 }

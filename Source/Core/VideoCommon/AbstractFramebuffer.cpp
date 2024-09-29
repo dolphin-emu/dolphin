@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/AbstractFramebuffer.h"
+
 #include "VideoCommon/AbstractTexture.h"
 
 AbstractFramebuffer::AbstractFramebuffer(AbstractTexture* color_attachment,

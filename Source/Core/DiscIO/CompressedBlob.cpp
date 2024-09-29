@@ -272,7 +272,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
   }
 
   return ConversionResultCode::Success;
-};
+}
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
                   const std::string& outfile_path, u32 sub_type, int block_size,

@@ -136,15 +136,6 @@ void RenderWidget::dropEvent(QDropEvent* event)
 
 void RenderWidget::OnHandleChanged(void* handle)
 {
-  if (handle)
-  {
-#ifdef _WIN32
-    // Remove rounded corners from the render window on Windows 11
-    const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
-    DwmSetWindowAttribute(reinterpret_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
-                          &corner_preference, sizeof(corner_preference));
-#endif
-  }
   Host::GetInstance()->SetRenderHandle(handle);
 }
 
@@ -513,7 +504,7 @@ bool RenderWidget::event(QEvent* event)
 
 void RenderWidget::PassEventToPresenter(const QEvent* event)
 {
-  if (!Core::IsRunningAndStarted())
+  if (!Core::IsRunning(Core::System::GetInstance()))
     return;
 
   switch (event->type())

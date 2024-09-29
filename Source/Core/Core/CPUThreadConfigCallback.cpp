@@ -38,7 +38,7 @@ void OnConfigChanged()
   }
 }
 
-};  // namespace
+}  // namespace
 
 namespace CPUThreadConfigCallback
 {
@@ -73,4 +73,4 @@ void CheckForConfigChanges()
     RunCallbacks();
 }
 
-};  // namespace CPUThreadConfigCallback
+}  // namespace CPUThreadConfigCallback

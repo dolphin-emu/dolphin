@@ -143,7 +143,7 @@ protected:
       pb_mem[update_off] = update_val;
     }
 
-    Common::BitCastFromArray<u16>(pb_mem, pb);
+    pb = std::bit_cast<PBType>(pb_mem);
   }
 
   virtual void HandleCommandList();

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)minizip-ng\minizip-ng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)minizip-ng\minizip-ng.vcxproj">
+      <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

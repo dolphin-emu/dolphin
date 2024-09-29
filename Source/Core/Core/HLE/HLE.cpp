@@ -8,8 +8,10 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -66,17 +68,39 @@ constexpr std::array<Hook, 23> os_patches{{
 void Patch(Core::System& system, u32 addr, std::string_view func_name)
 {
   auto& ppc_state = system.GetPPCState();
-  auto& memory = system.GetMemory();
-  auto& jit_interface = system.GetJitInterface();
   for (u32 i = 1; i < os_patches.size(); ++i)
   {
     if (os_patches[i].name == func_name)
     {
       s_hooked_addresses[addr] = i;
-      ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+      ppc_state.iCache.Invalidate(addr);
       return;
     }
   }
+}
+
+const char* GetGeckoCodeHandlerPath()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  switch (code_handler_value)
+  {
+    case 0: return GECKO_CODE_HANDLER; // Dolphin (Stock)
+    case 1: return GECKO_CODE_HANDLER_MPN; // MPN (Extended)
+    case 2: return GECKO_CODE_HANDLER_MPN_SUPER; // MPN (Super Extended)
+    default: return GECKO_CODE_HANDLER; // Fallback
+  }
+}
+
+bool IsGeckoCodeHandlerEnabled()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  return code_handler_value == 1 || code_handler_value == 2; // Return true for 1 and 2
+}
+
+bool IsGeckoCodeHandlerSUPER()
+{
+  int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
+  return code_handler_value == 2; // Return true for 1 and 2
 }
 
 void PatchFixedFunctions(Core::System& system)
@@ -100,7 +124,28 @@ void PatchFixedFunctions(Core::System& system)
 
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
-  Patch(system, Gecko::ENTRY_POINT, "GeckoCodehandler");
+
+  const bool is_mpn_handler_and_game_id_gp7e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
+  const bool is_mpn_handler_and_game_id_gp6e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP6E01");
+  const bool is_mpn_handler_and_game_id_gp5e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP5E01");
+
+  u32 codelist_hook = is_mpn_handler_and_game_id_gp7e01 ?
+                          Gecko::ENTRY_POINT_MP7 :
+                          is_mpn_handler_and_game_id_gp6e01 ?
+                          Gecko::ENTRY_POINT_MP6 :
+                          is_mpn_handler_and_game_id_gp5e01 ?
+                          Gecko::ENTRY_POINT_MP5 :
+                                                          Gecko::ENTRY_POINT;
+
+
+  Patch(system, codelist_hook, "GeckoCodehandler");
+
+
+
+
   // This has to always be installed even if cheats are not enabled because of the possiblity of
   // loading a savestate where PC is inside the code handler while cheats are disabled.
   Patch(system, Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
@@ -110,8 +155,6 @@ void PatchFunctions(Core::System& system)
 {
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
-  auto& memory = system.GetMemory();
-  auto& jit_interface = system.GetJitInterface();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
   // Remove all hooks that aren't fixed address hooks
@@ -119,7 +162,7 @@ void PatchFunctions(Core::System& system)
   {
     if (os_patches[i->second].flags != HookFlag::Fixed)
     {
-      ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
+      ppc_state.iCache.Invalidate(i->first);
       i = s_hooked_addresses.erase(i);
     }
     else
@@ -139,7 +182,7 @@ void PatchFunctions(Core::System& system)
       for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
       {
         s_hooked_addresses[addr] = i;
-        ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+        ppc_state.iCache.Invalidate(addr);
       }
       INFO_LOG_FMT(OSHLE, "Patching {} {:08x}", os_patches[i].name, symbol->address);
     }
@@ -238,8 +281,6 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
 
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
-  auto& memory = system.GetMemory();
-  auto& jit_interface = system.GetJitInterface();
 
   if (patch->flags == HookFlag::Fixed)
   {
@@ -251,7 +292,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
       if (i->second == patch_idx)
       {
         addr = i->first;
-        ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
+        ppc_state.iCache.Invalidate(i->first);
         i = s_hooked_addresses.erase(i);
       }
       else
@@ -269,7 +310,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
     {
       s_hooked_addresses.erase(addr);
-      ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+      ppc_state.iCache.Invalidate(addr);
     }
     return symbol->address;
   }
@@ -280,8 +321,6 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
 u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
 {
   auto& ppc_state = system.GetPPCState();
-  auto& memory = system.GetMemory();
-  auto& jit_interface = system.GetJitInterface();
 
   u32 count = 0;
 
@@ -290,7 +329,7 @@ u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
   {
     INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
                  os_patches[i->second].name, i->first);
-    ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
+    ppc_state.iCache.Invalidate(i->first);
     i = s_hooked_addresses.erase(i);
     count += 1;
   }

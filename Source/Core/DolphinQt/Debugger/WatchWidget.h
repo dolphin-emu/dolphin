@@ -18,7 +18,7 @@ namespace Core
 {
 class CPUThreadGuard;
 class System;
-};  // namespace Core
+}  // namespace Core
 
 class WatchWidget : public QDockWidget
 {

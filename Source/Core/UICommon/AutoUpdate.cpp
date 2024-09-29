@@ -29,10 +29,6 @@
 #include <sys/stat.h>
 #endif
 
-#if defined(_WIN32) || defined(__APPLE__)
-#define OS_SUPPORTS_UPDATER
-#endif
-
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
 namespace
@@ -49,15 +45,13 @@ const char UPDATER_LOG_FILE[] = "Updater.log";
 
 std::string UpdaterPath(bool relocated = false)
 {
-  std::string path(File::GetExeDirectory() + DIR_SEP);
 #ifdef __APPLE__
   if (relocated)
-    path += ".Dolphin Updater.2.app";
+    return File::GetExeDirectory() + DIR_SEP + ".Dolphin Updater.2.app";
   else
-    path += "Dolphin Updater.app";
-  return path;
+    return File::GetBundleDirectory() + DIR_SEP + "Contents/Helpers/Dolphin Updater.app";
 #else
-  return path + "Updater.exe";
+  return File::GetExeDirectory() + DIR_SEP + "Updater.exe";
 #endif
 }
 
@@ -80,14 +74,6 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
   }
   return cmdline;
 }
-
-#ifdef __APPLE__
-void CleanupFromPreviousUpdate()
-{
-  // Remove the relocated updater file.
-  File::DeleteDirRecursively(UpdaterPath(true));
-}
-#endif
 
 #endif
 
@@ -170,25 +156,12 @@ static std::string GetUpdateServerUrl()
   return "https://dolphin-emu.org";
 }
 
-static u32 GetOwnProcessId()
-{
-#ifdef _WIN32
-  return GetCurrentProcessId();
-#else
-  return getpid();
-#endif
-}
-
 void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
                                        std::string_view hash_override, const CheckType check_type)
 {
   // Don't bother checking if updates are not supported or not enabled.
   if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
-
-#ifdef __APPLE__
-  CleanupFromPreviousUpdate();
-#endif
 
   std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
   std::string url = fmt::format("{}/update/check/v1/{}/{}/{}", GetUpdateServerUrl(), update_track,

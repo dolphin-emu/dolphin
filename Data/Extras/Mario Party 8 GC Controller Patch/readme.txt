@@ -1,1 +1,0 @@
-Place the Mario Party 8 ISO or WBFS in the script's directory and run the patch script to patch it.

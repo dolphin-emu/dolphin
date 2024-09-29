@@ -17,7 +17,7 @@ class XFStateManager;
 namespace AudioInterface
 {
 class AudioInterfaceManager;
-};
+}
 namespace CPU
 {
 class CPUManager;
@@ -42,7 +42,7 @@ class DVDThread;
 namespace ExpansionInterface
 {
 class ExpansionInterfaceManager;
-};
+}
 namespace Fifo
 {
 class FifoManager;
@@ -69,15 +69,15 @@ namespace IOS::HLE::USB
 {
 class SkylanderPortal;
 class InfinityBase;
-};  // namespace IOS::HLE::USB
+}  // namespace IOS::HLE::USB
 namespace Memory
 {
 class MemoryManager;
-};
+}
 namespace MemoryInterface
 {
 class MemoryInterfaceManager;
-};
+}
 namespace Movie
 {
 class MovieManager;
@@ -85,7 +85,7 @@ class MovieManager;
 namespace PixelEngine
 {
 class PixelEngineManager;
-};
+}
 namespace PowerPC
 {
 class MMU;
@@ -100,7 +100,7 @@ class ProcessorInterfaceManager;
 namespace SerialInterface
 {
 class SerialInterfaceManager;
-};
+}
 namespace SystemTimers
 {
 class SystemTimersManager;
@@ -112,7 +112,7 @@ class CustomAssetLoader;
 namespace VideoInterface
 {
 class VideoInterfaceManager;
-};
+}
 
 namespace Core
 {
