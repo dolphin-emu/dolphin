@@ -30,7 +30,7 @@ static bool IsValidUSBIDString(const std::string& string)
 {
   if (string.empty() || string.length() > 4)
     return false;
-  return std::all_of(string.begin(), string.end(), Common::IsXDigit);
+  return std::ranges::all_of(string, Common::IsXDigit);
 }
 
 USBDeviceAddToWhitelistDialog::USBDeviceAddToWhitelistDialog(QWidget* parent) : QDialog(parent)

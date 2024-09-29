@@ -377,15 +377,15 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto selected_games = GetSelectedGames();
 
-    if (std::all_of(selected_games.begin(), selected_games.end(),
-                    [](const auto& game) { return game->ShouldAllowConversion(); }))
+    if (std::ranges::all_of(selected_games,
+                            [](const auto& game) { return game->ShouldAllowConversion(); }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
     }
 
-    if (std::all_of(selected_games.begin(), selected_games.end(),
-                    [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
+    if (std::ranges::all_of(selected_games,
+                            [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
     {
       menu->addAction(tr("Export Wii Saves"), this, &GameList::ExportWiiSave);
       menu->addSeparator();

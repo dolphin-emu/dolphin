@@ -461,8 +461,7 @@ ResultCode HostFileSystem::Format(Uid uid)
 ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
                                                  FileAttribute attr, Modes modes, bool is_file)
 {
-  if (!IsValidNonRootPath(path) ||
-      !std::all_of(path.begin(), path.end(), Common::IsPrintableCharacter))
+  if (!IsValidNonRootPath(path) || !std::ranges::all_of(path, Common::IsPrintableCharacter))
   {
     return ResultCode::Invalid;
   }
