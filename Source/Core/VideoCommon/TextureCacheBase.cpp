@@ -2028,8 +2028,7 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
   if (candidates.empty())
     return;
 
-  std::sort(candidates.begin(), candidates.end(),
-            [](const TCacheEntry* a, const TCacheEntry* b) { return a->id < b->id; });
+  std::ranges::sort(candidates, {}, &TCacheEntry::id);
 
   // We only upscale when necessary to preserve resolution. i.e. when there are upscaled partial
   // copies to be stitched together.
