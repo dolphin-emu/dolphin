@@ -1538,9 +1538,7 @@ void NetPlayClient::DisplayPlayersPing()
 
 u32 NetPlayClient::GetPlayersMaxPing() const
 {
-  return std::max_element(
-             m_players.begin(), m_players.end(),
-             [](const auto& a, const auto& b) { return a.second.ping < b.second.ping; })
+  return std::ranges::max_element(m_players, {}, [](const auto& kv) { return kv.second.ping; })
       ->second.ping;
 }
 
