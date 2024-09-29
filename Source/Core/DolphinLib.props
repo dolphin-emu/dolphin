@@ -38,6 +38,7 @@
     <ClInclude Include="Common\Config\ConfigInfo.h" />
     <ClInclude Include="Common\Config\Enums.h" />
     <ClInclude Include="Common\Config\Layer.h" />
+    <ClInclude Include="Common\Contains.h" />
     <ClInclude Include="Common\CPUDetect.h" />
     <ClInclude Include="Common\Crypto\AES.h" />
     <ClInclude Include="Common\Crypto\bn.h" />
