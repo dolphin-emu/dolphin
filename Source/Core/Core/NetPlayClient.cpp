@@ -2543,7 +2543,7 @@ bool NetPlayClient::DoAllPlayersHaveGame()
 {
   std::lock_guard lkp(m_crit.players);
 
-  return std::all_of(std::begin(m_players), std::end(m_players), [](auto entry) {
+  return std::ranges::all_of(m_players, [](const auto& entry) {
     return entry.second.game_status == SyncIdentifierComparison::SameGame;
   });
 }

@@ -298,7 +298,7 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  if (std::all_of(std::begin(game_id), std::end(game_id), Common::IsPrintableCharacter))
+  if (std::ranges::all_of(game_id, Common::IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());

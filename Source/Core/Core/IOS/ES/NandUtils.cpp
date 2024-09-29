@@ -79,7 +79,7 @@ static bool IsValidPartOfTitleID(const std::string& string)
 {
   if (string.length() != 8)
     return false;
-  return std::all_of(string.begin(), string.end(), Common::IsXDigit);
+  return std::ranges::all_of(string, Common::IsXDigit);
 }
 
 static std::vector<u64> GetTitlesInTitleOrImport(FS::FileSystem* fs, const std::string& titles_dir)
