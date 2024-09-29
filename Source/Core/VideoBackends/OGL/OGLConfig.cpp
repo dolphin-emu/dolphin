@@ -631,10 +631,10 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_Config.backend_info.AAModes.clear();
       g_Config.backend_info.AAModes.reserve(std::min(color_aa_modes.size(), depth_aa_modes.size()));
       // We only want AA modes that are supported for both the color and depth textures. Probably
-      // the support is the same, though. rbegin/rend are used to swap the order ahead of time.
-      std::set_intersection(color_aa_modes.rbegin(), color_aa_modes.rend(), depth_aa_modes.rbegin(),
-                            depth_aa_modes.rend(),
-                            std::back_inserter(g_Config.backend_info.AAModes));
+      // the support is the same, though. views::reverse is used to swap the order ahead of time.
+      std::ranges::set_intersection(color_aa_modes | std::views::reverse,
+                                    depth_aa_modes | std::views::reverse,
+                                    std::back_inserter(g_Config.backend_info.AAModes));
     }
     else
     {
