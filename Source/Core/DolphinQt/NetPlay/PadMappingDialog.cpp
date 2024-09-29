@@ -24,35 +24,63 @@ PadMappingDialog::PadMappingDialog(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 }
 
-void PadMappingDialog::CreateWidgets()
+int PadMappingDialog::exec()
 {
-  m_main_layout = new QGridLayout;
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto client = Settings::Instance().GetNetPlayClient();
+  auto server = Settings::Instance().GetNetPlayServer();
 
-  for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
+  // Load Settings
+  m_players = client->GetPlayers();
+  m_pad_mapping = server->GetPadMapping();
+  m_gba_config = server->GetGBAConfig();
+  m_wii_mapping = server->GetWiimoteMapping();
+
+  QStringList players;
+
+  players.append(tr("None"));
+
+  for (const auto& player : m_players)
   {
-    m_gc_boxes[i] = new QComboBox;
-    m_gba_boxes[i] = new QCheckBox(tr("GBA Port %1").arg(i + 1));
-    m_wii_boxes[i] = new QComboBox;
-
-    m_main_layout->addWidget(new QLabel(tr("GC Port %1").arg(i + 1)), 0, i);
-    m_main_layout->addWidget(m_gc_boxes[i], 1, i);
-#ifdef HAS_LIBMGBA
-    m_main_layout->addWidget(m_gba_boxes[i], 2, i);
-#endif
-    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 3, i);
-    m_main_layout->addWidget(m_wii_boxes[i], 4, i);
+    players.append(
+        QStringLiteral("%1 (%2)").arg(QString::fromStdString(player->name)).arg(player->pid));
   }
 
-  m_main_layout->addWidget(m_button_box, 5, 0, 1, -1);
+  for (size_t i = 0; i < 4; i++)
+  {
+    const QSignalBlocker blocker1(m_gc_boxes_player1[i]);
+    const QSignalBlocker blocker2(m_gc_boxes_player2[i]);
+    const QSignalBlocker blocker3(m_wii_boxes_player1[i]);
+    const QSignalBlocker blocker4(m_wii_boxes_player2[i]);
 
-  setLayout(m_main_layout);
+    m_gc_boxes_player1[i]->clear();
+    m_gc_boxes_player2[i]->clear();
+    m_wii_boxes_player1[i]->clear();
+    m_wii_boxes_player2[i]->clear();
+
+    m_gc_boxes_player1[i]->addItems(players);
+    m_gc_boxes_player2[i]->addItems(players);
+    m_wii_boxes_player1[i]->addItems(players);
+    m_wii_boxes_player2[i]->addItems(players);
+
+    m_gc_boxes_player1[i]->setCurrentIndex(m_pad_mapping[i].first);
+    m_gc_boxes_player2[i]->setCurrentIndex(m_pad_mapping[i].second);
+    m_wii_boxes_player1[i]->setCurrentIndex(m_wii_mapping[i].first);
+    m_wii_boxes_player2[i]->setCurrentIndex(m_wii_mapping[i].second);
+  }
+
+  for (size_t i = 0; i < m_gba_boxes.size(); i++)
+  {
+    const QSignalBlocker blocker(m_gba_boxes[i]);
+    m_gba_boxes[i]->setChecked(m_gba_config[i].enabled);
+  }
+
+  return QDialog::exec();
 }
 
 void PadMappingDialog::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
-  for (const auto& combo_group : {m_gc_boxes, m_wii_boxes})
+  for (const auto& combo_group : {m_gc_boxes_player1, m_gc_boxes_player2, m_wii_boxes_player1, m_wii_boxes_player2})
   {
     for (const auto& combo : combo_group)
     {
@@ -69,6 +97,7 @@ int PadMappingDialog::exec()
 {
   auto client = Settings::Instance().GetNetPlayClient();
   auto server = Settings::Instance().GetNetPlayServer();
+
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();
@@ -131,11 +160,29 @@ void PadMappingDialog::OnMappingChanged()
 {
   for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
   {
-    int gc_id = m_gc_boxes[i]->currentIndex();
-    int wii_id = m_wii_boxes[i]->currentIndex();
+    int gc_id1 = m_gc_boxes_player1[i]->currentIndex();
+    int gc_id2 = m_gc_boxes_player2[i]->currentIndex();
+    int wii_id1 = m_wii_boxes_player1[i]->currentIndex();
+    int wii_id2 = m_wii_boxes_player2[i]->currentIndex();
 
-    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
-    m_gba_config[i].enabled = m_gba_boxes[i]->isChecked();
-    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : 0;
+    m_pad_mapping[i] = {
+      gc_id1 > 0 ? m_players[gc_id1 - 1]->pid : 0,
+      gc_id2 > 0 ? m_players[gc_id2 - 1]->pid : 0
+    };
+    m_wii_mapping[i] = {
+      wii_id1 > 0 ? m_players[wii_id1 - 1]->pid : 0,
+      wii_id2 > 0 ? m_players[wii_id2 - 1]->pid : 0
+    };  
   }
+}
+
+// Update getter functions to return the new mapping format
+std::array<std::pair<u32, u32>, 4> PadMappingDialog::GetGCPadArray()
+{
+  return m_pad_mapping;
+}
+
+std::array<std::pair<u32, u32>, 4> PadMappingDialog::GetWiimoteArray()
+{
+  return m_wii_mapping;
 }
