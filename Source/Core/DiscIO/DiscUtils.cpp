@@ -40,7 +40,7 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
                                       static_cast<char>((partition_type >> 16) & 0xFF),
                                       static_cast<char>((partition_type >> 8) & 0xFF),
                                       static_cast<char>(partition_type & 0xFF)};
-    if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(), Common::IsAlnum))
+    if (std::ranges::all_of(type_as_game_id, Common::IsAlnum))
     {
       return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }

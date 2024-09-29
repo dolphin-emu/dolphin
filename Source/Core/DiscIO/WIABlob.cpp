@@ -1126,7 +1126,7 @@ bool WIARVZFileReader<RVZ>::TryReuse(std::map<ReuseID, GroupEntry>* reusable_gro
 
 static bool AllAre(const std::vector<u8>& data, u8 x)
 {
-  return std::all_of(data.begin(), data.end(), [x](u8 y) { return x == y; });
+  return std::ranges::all_of(data, [x](u8 y) { return x == y; });
 }
 
 static bool AllAre(const u8* begin, const u8* end, u8 x)
@@ -1379,8 +1379,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
       }
     }
 
-    if (!std::all_of(output_entries.begin(), output_entries.end(),
-                     [](const OutputParametersEntry& entry) { return entry.reused_group; }))
+    if (!std::ranges::all_of(output_entries,
+                             [](const auto& entry) { return entry.reused_group.has_value(); }))
     {
       const u64 number_of_exception_lists =
           chunks_per_wii_group == 1 ? exception_lists_per_chunk : chunks;

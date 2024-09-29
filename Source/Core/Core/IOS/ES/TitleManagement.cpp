@@ -464,7 +464,7 @@ static bool HasAllRequiredContents(Kernel& ios, const ES::TMDReader& tmd)
   const u64 title_id = tmd.GetTitleId();
   const std::vector<ES::Content> contents = tmd.GetContents();
   const ES::SharedContentMap shared_content_map{ios.GetFSCore()};
-  return std::all_of(contents.cbegin(), contents.cend(), [&](const ES::Content& content) {
+  return std::ranges::all_of(contents, [&](const ES::Content& content) {
     if (content.IsOptional())
       return true;
 

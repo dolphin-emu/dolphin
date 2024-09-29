@@ -52,8 +52,8 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   m_format->addItem(QStringLiteral("GCZ"), static_cast<int>(DiscIO::BlobType::GCZ));
   m_format->addItem(QStringLiteral("WIA"), static_cast<int>(DiscIO::BlobType::WIA));
   m_format->addItem(QStringLiteral("RVZ"), static_cast<int>(DiscIO::BlobType::RVZ));
-  if (std::all_of(m_files.begin(), m_files.end(),
-                  [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
+  if (std::ranges::all_of(
+          m_files, [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
   {
     m_format->setCurrentIndex(m_format->count() - 1);
   }
@@ -153,7 +153,7 @@ void ConvertDialog::OnFormatChanged()
     // To support legacy versions of dolphin, we have to check the GCZ block size
     // See DiscIO::IsGCZBlockSizeLegacyCompatible() for details
     const auto block_size_ok = [this](int block_size) {
-      return std::all_of(m_files.begin(), m_files.end(), [block_size](const auto& file) {
+      return std::ranges::all_of(m_files, [block_size](const auto& file) {
         return DiscIO::IsGCZBlockSizeLegacyCompatible(block_size, file->GetVolumeSize());
       });
     };
