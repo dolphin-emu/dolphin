@@ -1667,11 +1667,8 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
   if (!assets_data.empty())
   {
     const auto calculate_max_levels = [&]() {
-      const auto max_element = std::max_element(
-          assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs->m_texture.m_slices[0].m_levels.size() <
-                   rhs->m_texture.m_slices[0].m_levels.size();
-          });
+      const auto max_element = std::ranges::max_element(
+          assets_data, {}, [](const auto& v) { return v->m_texture.m_slices[0].m_levels.size(); });
       return (*max_element)->m_texture.m_slices[0].m_levels.size();
     };
     const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
