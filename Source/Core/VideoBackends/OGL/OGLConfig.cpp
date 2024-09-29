@@ -4,6 +4,7 @@
 #include "VideoBackends/OGL/OGLConfig.h"
 
 #include <cstdio>
+#include <ranges>
 #include <string>
 #include <string_view>
 
@@ -585,7 +586,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat, GL_SAMPLES,
                                 num_color_sample_counts,
                                 reinterpret_cast<GLint*>(color_aa_modes.data()));
-          ASSERT_MSG(VIDEO, std::is_sorted(color_aa_modes.rbegin(), color_aa_modes.rend()),
+          ASSERT_MSG(VIDEO, std::ranges::is_sorted(color_aa_modes | std::views::reverse),
                      "GPU driver didn't return sorted color AA modes: [{}]",
                      fmt::join(color_aa_modes, ", "));
         }
@@ -614,7 +615,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat, GL_SAMPLES,
                                 num_depth_sample_counts,
                                 reinterpret_cast<GLint*>(depth_aa_modes.data()));
-          ASSERT_MSG(VIDEO, std::is_sorted(depth_aa_modes.rbegin(), depth_aa_modes.rend()),
+          ASSERT_MSG(VIDEO, std::ranges::is_sorted(depth_aa_modes | std::views::reverse),
                      "GPU driver didn't return sorted depth AA modes: [{}]",
                      fmt::join(depth_aa_modes, ", "));
         }
