@@ -655,12 +655,12 @@ std::string GetEscapedHtml(std::string html)
 
 void ToLower(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(Common::ToLower));
 }
 
 void ToUpper(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(Common::ToUpper));
 }
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
