@@ -107,7 +107,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   if constexpr (os_separator != DIR_SEP_CHR)
   {
     for (auto& path : result)
-      std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+      std::ranges::replace(path, '\\', DIR_SEP_CHR);
   }
 
   return result;

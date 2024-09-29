@@ -234,8 +234,8 @@ std::string_view StripQuotes(std::string_view s)
 // Turns "\n\rhello" into "  hello".
 void ReplaceBreaksWithSpaces(std::string& str)
 {
-  std::replace(str.begin(), str.end(), '\r', ' ');
-  std::replace(str.begin(), str.end(), '\n', ' ');
+  std::ranges::replace(str, '\r', ' ');
+  std::ranges::replace(str, '\n', ' ');
 }
 
 void TruncateToCString(std::string* s)
