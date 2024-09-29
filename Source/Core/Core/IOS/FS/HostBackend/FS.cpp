@@ -686,17 +686,17 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
 
   // Now sort in reverse order because Nintendo traverses a linked list
   // in which new elements are inserted at the front.
-  std::sort(host_entry.children.begin(), host_entry.children.end(),
-            [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
-              const int key1 = get_key(one.virtualName);
-              const int key2 = get_key(two.virtualName);
-              if (key1 != key2)
-                return key1 > key2;
+  std::ranges::sort(host_entry.children,
+                    [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
+                      const int key1 = get_key(one.virtualName);
+                      const int key2 = get_key(two.virtualName);
+                      if (key1 != key2)
+                        return key1 > key2;
 
-              // For files that are not in the FST, sort lexicographically to ensure that
-              // results are consistent no matter what the underlying filesystem is.
-              return one.virtualName > two.virtualName;
-            });
+                      // For files that are not in the FST, sort lexicographically to ensure that
+                      // results are consistent no matter what the underlying filesystem is.
+                      return one.virtualName > two.virtualName;
+                    });
 
   std::vector<std::string> output;
   for (const File::FSTEntry& child : host_entry.children)

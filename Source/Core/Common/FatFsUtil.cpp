@@ -485,10 +485,7 @@ static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& e
 
 static void SortFST(File::FSTEntry* root)
 {
-  std::sort(root->children.begin(), root->children.end(),
-            [](const File::FSTEntry& lhs, const File::FSTEntry& rhs) {
-              return lhs.virtualName < rhs.virtualName;
-            });
+  std::ranges::sort(root->children, {}, &File::FSTEntry::virtualName);
   for (auto& child : root->children)
     SortFST(&child);
 }

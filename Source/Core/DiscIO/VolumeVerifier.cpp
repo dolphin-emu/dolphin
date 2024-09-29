@@ -1053,8 +1053,7 @@ void VolumeVerifier::SetUpHashing()
     m_scrubber.SetupScrub(m_volume);
   }
 
-  std::sort(m_groups.begin(), m_groups.end(),
-            [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
+  std::ranges::sort(m_groups, {}, &GroupToVerify::offset);
 
   if (m_hashes_to_calculate.crc32)
     m_crc32_context = Common::StartCRC32();

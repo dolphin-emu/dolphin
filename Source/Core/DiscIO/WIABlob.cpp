@@ -941,8 +941,7 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
   if (volume && volume->HasWiiHashes() && volume->HasWiiEncryption())
     partitions = volume->GetPartitions();
 
-  std::sort(partitions.begin(), partitions.end(),
-            [](const Partition& a, const Partition& b) { return a.offset < b.offset; });
+  std::ranges::sort(partitions, {}, &Partition::offset);
 
   *total_groups = 0;
 
