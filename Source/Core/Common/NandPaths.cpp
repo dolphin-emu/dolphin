@@ -171,6 +171,6 @@ std::string UnescapeFileName(const std::string& filename)
 bool IsFileNameSafe(const std::string_view filename)
 {
   return !filename.empty() && !std::ranges::all_of(filename, [](char c) { return c == '.'; }) &&
-         std::none_of(filename.begin(), filename.end(), IsIllegalCharacter);
+         std::ranges::none_of(filename, IsIllegalCharacter);
 }
 }  // namespace Common
