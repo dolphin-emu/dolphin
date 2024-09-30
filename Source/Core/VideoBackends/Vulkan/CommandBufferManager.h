@@ -78,6 +78,7 @@ public:
   void WaitForFenceCounter(u64 fence_counter);
 
   void SubmitCommandBuffer(bool submit_on_worker_thread, bool wait_for_completion,
+                           bool advance_to_next_frame = false,
                            VkSwapchainKHR present_swap_chain = VK_NULL_HANDLE,
                            uint32_t present_image_index = 0xFFFFFFFF);
 

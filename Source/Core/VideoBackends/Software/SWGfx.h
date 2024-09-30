@@ -26,7 +26,7 @@ public:
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
                     std::vector<AbstractTexture*> additional_color_attachments) override;
 
-  void BindBackbuffer(const ClearColor& clear_color = {}) override;
+  bool BindBackbuffer(const ClearColor& clear_color = {}) override;
 
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
                                                          std::string_view name) override;
