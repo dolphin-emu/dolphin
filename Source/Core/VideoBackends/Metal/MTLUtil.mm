@@ -559,6 +559,9 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   options.platform = spirv_cross::CompilerMSL::Options::macOS;
 #elif TARGET_OS_IOS
   options.platform = spirv_cross::CompilerMSL::Options::iOS;
+  // Otherwise SPIRV-Cross will try to compile subgroup ops to quad ops instead
+  // (And crash because there's no quad_min or quad_max)
+  options.ios_use_simdgroup_functions = Metal::g_features.subgroup_ops;
 #else
   #error What platform is this?
 #endif
