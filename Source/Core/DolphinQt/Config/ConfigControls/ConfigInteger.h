@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <QLabel>
+#include <QPointer>
+
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSpinBox.h"
 
@@ -27,4 +30,15 @@ protected:
 
 private:
   const Config::Info<int>& m_setting;
+};
+
+class ConfigIntegerLabel final : public QLabel
+{
+  Q_OBJECT
+
+public:
+  ConfigIntegerLabel(const QString& text, ConfigInteger* widget);
+
+private:
+  QPointer<ConfigInteger> m_widget;
 };
