@@ -236,9 +236,9 @@ void EnhancementsWidget::CreateWidgets()
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth:")), 1, 0);
+  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Depth:"), m_3d_depth), 1, 0);
   stereoscopy_layout->addWidget(m_3d_depth, 1, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 2, 0);
+  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Convergence:"), m_3d_convergence), 2, 0);
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
   stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);

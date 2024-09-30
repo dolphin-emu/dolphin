@@ -29,3 +29,13 @@ void ConfigInteger::OnConfigChanged()
 {
   setValue(ReadValue(m_setting));
 }
+
+ConfigIntegerLabel::ConfigIntegerLabel(const QString& text, ConfigInteger* widget)
+    : QLabel(text), m_widget(QPointer<ConfigInteger>(widget))
+{
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this]() {
+    // Label shares font changes with ConfigInteger to mark game ini settings.
+    if (m_widget)
+      setFont(m_widget->font());
+  });
+}

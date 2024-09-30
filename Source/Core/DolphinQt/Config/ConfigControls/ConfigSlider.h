@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <QLabel>
+#include <QPointer>
+
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
@@ -27,4 +30,15 @@ protected:
 
 private:
   const Config::Info<int>& m_setting;
+};
+
+class ConfigSliderLabel final : public QLabel
+{
+  Q_OBJECT
+
+public:
+  ConfigSliderLabel(const QString& text, ConfigSlider* slider);
+
+private:
+  QPointer<ConfigSlider> m_slider;
 };

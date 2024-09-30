@@ -152,9 +152,11 @@ void GameConfigWidget::CreateWidgets()
   m_use_monoscopic_shadows->setToolTip(
       tr("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth Percentage:")), 0, 0);
+  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Depth Percentage:"), m_depth_slider), 0,
+                                0);
   stereoscopy_layout->addWidget(m_depth_slider, 0, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 1, 0);
+  stereoscopy_layout->addWidget(new ConfigIntegerLabel(tr("Convergence:"), m_convergence_spin), 1,
+                                0);
   stereoscopy_layout->addWidget(m_convergence_spin, 1, 1);
   stereoscopy_layout->addWidget(m_use_monoscopic_shadows, 2, 0);
 
