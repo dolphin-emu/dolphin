@@ -305,9 +305,10 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
     return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1));
   };
 
-  return std::any_of(it, it_end, [&](auto& s) {
-    return std::none_of(begin(ignore_modifiers), end(ignore_modifiers),
-                        [&](auto& m) { return is_same_modifier(m->GetInput(), s.first.second); });
+  return std::any_of(it, it_end, [&](const auto& s) {
+    return std::ranges::none_of(ignore_modifiers, [&](const auto& m) {
+      return is_same_modifier(m->GetInput(), s.first.second);
+    });
   });
 }
 

@@ -248,9 +248,8 @@ void ConvertDialog::OnFormatChanged()
   m_compression->setEnabled(m_compression->count() > 1);
 
   // Block scrubbing of RVZ containers and Datel discs
-  const bool scrubbing_allowed =
-      format != DiscIO::BlobType::RVZ &&
-      std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc));
+  const bool scrubbing_allowed = format != DiscIO::BlobType::RVZ &&
+                                 std::ranges::none_of(m_files, &UICommon::GameFile::IsDatelDisc);
 
   m_scrub->setEnabled(scrubbing_allowed);
   if (!scrubbing_allowed)
