@@ -754,6 +754,5 @@ void RegCache::Realize(preg_t preg)
 
 bool RegCache::IsAnyConstraintActive() const
 {
-  return std::any_of(m_constraints.begin(), m_constraints.end(),
-                     [](const auto& c) { return c.IsActive(); });
+  return std::ranges::any_of(m_constraints, &RCConstraint::IsActive);
 }

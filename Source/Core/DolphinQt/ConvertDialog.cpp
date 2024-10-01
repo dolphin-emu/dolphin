@@ -309,7 +309,7 @@ void ConvertDialog::Convert()
   }
 
   if (!scrub && format == DiscIO::BlobType::GCZ &&
-      std::any_of(m_files.begin(), m_files.end(), [](const auto& file) {
+      std::ranges::any_of(m_files, [](const auto& file) {
         return file->GetPlatform() == DiscIO::Platform::WiiDisc && !file->IsDatelDisc();
       }))
   {
@@ -321,7 +321,7 @@ void ConvertDialog::Convert()
     }
   }
 
-  if (std::any_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsNKit)))
+  if (std::ranges::any_of(m_files, &UICommon::GameFile::IsNKit))
   {
     if (!ShowAreYouSureDialog(
             tr("Dolphin can't convert NKit files to non-NKit files. Converting an NKit file in "
