@@ -130,6 +130,11 @@ long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void*
   if (Core::GetState(Core::System::GetInstance()) != Core::State::Running)
     return nframes;
 
+  // Skip data when HLE Wii Speak is muted
+  // TODO: Update cubeb and use cubeb_stream_set_input_mute
+  if (Config::Get(Config::MAIN_WII_SPEAK_MUTED))
+    return nframes;
+
   auto* mic = static_cast<Microphone*>(user_data);
   const auto& sampler = mic->GetSampler();
 
@@ -184,7 +189,7 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 
 bool Microphone::HasData() const
 {
-  return m_samples_avail > 0 && !Config::Get(Config::MAIN_WII_SPEAK_MUTED);
+  return m_samples_avail > 0;
 }
 
 const WiiSpeakState& Microphone::GetSampler() const
