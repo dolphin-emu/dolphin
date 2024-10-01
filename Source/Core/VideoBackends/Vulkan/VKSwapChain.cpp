@@ -498,6 +498,8 @@ VkResult SwapChain::AcquireNextImage()
                                        g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
                                        VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   m_current_swap_chain_image_is_valid = res >= 0;
+  if (IsCurrentImageValid())
+    g_command_buffer_mgr->MarkCurrentCommandBufferSemaphoreUsed();
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 
