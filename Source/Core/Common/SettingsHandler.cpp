@@ -17,72 +17,74 @@
 
 namespace Common
 {
-SettingsHandler::SettingsHandler() : m_buffer{}, m_position{0}, m_key{INITIAL_SEED}, decoded{""}
+namespace
+{
+// Key used to encrypt/decrypt setting.txt contents
+constexpr u32 INITIAL_SEED = 0x73B5DBFA;
+}  // namespace
+
+SettingsWriter::SettingsWriter() : m_buffer{}, m_position{0}, m_key{INITIAL_SEED}
 {
 }
 
-SettingsHandler::SettingsHandler(const Buffer& buffer) : SettingsHandler()
-{
-  m_buffer = buffer;
-  Decrypt();
-}
-
-const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
+const SettingsBuffer& SettingsWriter::GetBytes() const
 {
   return m_buffer;
 }
 
-std::string SettingsHandler::GetValue(std::string_view key) const
+std::string SettingsReader::GetValue(std::string_view key) const
 {
   constexpr char delim[] = "\n";
   std::string toFind = std::string(delim).append(key).append("=");
-  size_t found = decoded.find(toFind);
+  size_t found = m_decoded.find(toFind);
 
   if (found != std::string_view::npos)
   {
-    size_t delimFound = decoded.find(delim, found + toFind.length());
+    size_t delimFound = m_decoded.find(delim, found + toFind.length());
     if (delimFound == std::string_view::npos)
-      delimFound = decoded.length() - 1;
-    return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
+      delimFound = m_decoded.length() - 1;
+    return m_decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
   }
   else
   {
     toFind = std::string(key).append("=");
-    found = decoded.find(toFind);
+    found = m_decoded.find(toFind);
     if (found == 0)
     {
-      size_t delimFound = decoded.find(delim, found + toFind.length());
+      size_t delimFound = m_decoded.find(delim, found + toFind.length());
       if (delimFound == std::string_view::npos)
-        delimFound = decoded.length() - 1;
-      return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
+        delimFound = m_decoded.length() - 1;
+      return m_decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
     }
   }
 
   return "";
 }
 
-void SettingsHandler::Decrypt()
+SettingsReader::SettingsReader(const SettingsBuffer& buffer) : m_decoded{""}
 {
-  while (m_position < m_buffer.size())
+  u32 position = 0;
+  u32 key = INITIAL_SEED;
+  while (position < buffer.size())
   {
-    decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
-    m_position++;
-    m_key = (m_key >> 31) | (m_key << 1);
+    m_decoded.push_back((u8)(buffer[position] ^ key));
+    position++;
+    key = (key >> 31) | (key << 1);
   }
 
   // The decoded data normally uses CRLF line endings, but occasionally
   // (see the comment in WriteLine), lines can be separated by CRLFLF.
   // To handle this, we remove every CR and treat LF as the line ending.
   // (We ignore empty lines.)
-  std::erase(decoded, '\x0d');
+  std::erase(m_decoded, '\x0d');
 }
 
-void SettingsHandler::AddSetting(std::string_view key, std::string_view value)
+void SettingsWriter::AddSetting(std::string_view key, std::string_view value)
 {
   WriteLine(fmt::format("{}={}\r\n", key, value));
 }
 
-void SettingsHandler::WriteLine(std::string_view str)
+void SettingsWriter::WriteLine(std::string_view str)
 {
   const u32 old_position = m_position;
   const u32 old_key = m_key;
@@ -106,7 +108,7 @@ void SettingsHandler::WriteLine(std::string_view str)
   }
 }
 
-void SettingsHandler::WriteByte(u8 b)
+void SettingsWriter::WriteByte(u8 b)
 {
   if (m_position >= m_buffer.size())
     return;
@@ -116,7 +118,7 @@ void SettingsHandler::WriteByte(u8 b)
   m_key = (m_key >> 31) | (m_key << 1);
 }
 
-std::string SettingsHandler::GenerateSerialNumber()
+std::string SettingsWriter::GenerateSerialNumber()
 {
   const std::time_t t = std::time(nullptr);
 
