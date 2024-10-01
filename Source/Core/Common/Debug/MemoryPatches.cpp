@@ -91,7 +91,7 @@ void MemoryPatches::DisablePatch(const Core::CPUThreadGuard& guard, std::size_t 
 
 bool MemoryPatches::HasEnabledPatch(u32 address) const
 {
-  return std::any_of(m_patches.begin(), m_patches.end(), [address](const MemoryPatch& patch) {
+  return std::ranges::any_of(m_patches, [address](const MemoryPatch& patch) {
     return patch.address == address && patch.is_enabled == MemoryPatch::State::Enabled;
   });
 }

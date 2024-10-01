@@ -223,15 +223,14 @@ bool IsTitleInstalled(u64 title_id)
   // Since this isn't IOS and we only need a simple way to figure out if a title is installed,
   // we make the (reasonable) assumption that having more than just the TMD in the content
   // directory means that the title is installed.
-  return std::any_of(entries->begin(), entries->end(),
-                     [](const std::string& file) { return file != "title.tmd"; });
+  return std::ranges::any_of(*entries, [](const std::string& file) { return file != "title.tmd"; });
 }
 
 bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, u64 title_id)
 {
   const auto entries = fs.ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
-  return entries && std::any_of(entries->begin(), entries->end(),
-                                [](const std::string& file) { return file == "title.tmd"; });
+  return entries &&
+         std::ranges::any_of(*entries, [](const std::string& file) { return file == "title.tmd"; });
 }
 
 IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
@@ -947,8 +946,8 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
 
     const auto installed_contents = es.GetStoredContentsFromTMD(tmd);
-    const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
-                                          [](const auto& content) { return !content.IsShared(); });
+    const bool is_installed = std::ranges::any_of(
+        installed_contents, [](const auto& content) { return !content.IsShared(); });
 
     if (is_installed && installed_contents != tmd.GetContents() &&
         (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_DATA) == 0)

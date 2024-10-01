@@ -138,8 +138,8 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 void RemoveSpuriousTriggerCombinations(
     std::vector<ciface::Core::DeviceContainer::InputDetection>* detections)
 {
-  const auto is_spurious = [&](auto& detection) {
-    return std::any_of(detections->begin(), detections->end(), [&](auto& d) {
+  const auto is_spurious = [&](const auto& detection) {
+    return std::ranges::any_of(*detections, [&](const auto& d) {
       // This is a spurious digital detection if a "smooth" (analog) detection is temporally near.
       return &d != &detection && d.smoothness > 1 && d.smoothness > detection.smoothness &&
              abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
