@@ -234,7 +234,7 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
 
 bool OH0::HasDeviceWithVidPid(const u16 vid, const u16 pid) const
 {
-  return std::any_of(m_devices.begin(), m_devices.end(), [=](const auto& device) {
+  return std::ranges::any_of(m_devices, [=](const auto& device) {
     return device.second->GetVid() == vid && device.second->GetPid() == pid;
   });
 }

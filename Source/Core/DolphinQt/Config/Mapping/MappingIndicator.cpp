@@ -610,9 +610,9 @@ void ShakeMappingIndicator::Draw()
   }
 
   // Grid line.
-  if (m_grid_line_position ||
-      std::any_of(m_position_samples.begin(), m_position_samples.end(),
-                  [](const Common::Vec3& v) { return v.LengthSquared() != 0.0; }))
+  if (m_grid_line_position || std::ranges::any_of(m_position_samples, [](const Common::Vec3& v) {
+        return v.LengthSquared() != 0.0;
+      }))
   {
     // Only start moving the line if there's non-zero data.
     m_grid_line_position = (m_grid_line_position + 1) % HISTORY_COUNT;
