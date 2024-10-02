@@ -4,6 +4,9 @@
 #include "Core/IOS/USB/Emulated/Microphone.h"
 
 #include <algorithm>
+#include <cmath>
+#include <ranges>
+#include <span>
 
 #ifdef HAVE_CUBEB
 #include <cubeb/cubeb.h>
@@ -12,6 +15,7 @@
 #endif
 
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -158,10 +162,10 @@ long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const 
     return nframes;
 
   auto* mic = static_cast<Microphone*>(user_data);
-  return mic->DataCallback(static_cast<const s16*>(input_buffer), nframes);
+  return mic->DataCallback(static_cast<const SampleType*>(input_buffer), nframes);
 }
 
-long Microphone::DataCallback(const s16* input_buffer, long nframes)
+long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
 {
   std::lock_guard lock(m_ring_lock);
 
@@ -169,10 +173,16 @@ long Microphone::DataCallback(const s16* input_buffer, long nframes)
   if (!m_sampler.sample_on || m_sampler.mute)
     return nframes;
 
-  const s16* buff_in = static_cast<const s16*>(input_buffer);
-  for (long i = 0; i < nframes; i++)
+  std::span<const SampleType> buffer(input_buffer, nframes);
+  const auto gain = ComputeGain(Config::Get(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER));
+  const auto apply_gain = [gain](SampleType sample) {
+    return MathUtil::SaturatingCast<SampleType>(sample * gain);
+  };
+
+  for (const SampleType le_sample : std::ranges::transform_view(buffer, apply_gain))
   {
-    m_stream_buffer[m_stream_wpos] = Common::swap16(buff_in[i]);
+    UpdateLoudness(le_sample);
+    m_stream_buffer[m_stream_wpos] = Common::swap16(le_sample);
     m_stream_wpos = (m_stream_wpos + 1) % STREAM_SIZE;
   }
 
@@ -213,9 +223,148 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
   return static_cast<u16>(ptr - begin);
 }
 
+u16 Microphone::GetLoudnessLevel() const
+{
+  if (m_sampler.mute || Config::Get(Config::MAIN_WII_SPEAK_MUTED))
+    return 0;
+  return m_loudness_level;
+}
+
+// Based on graphical cues on Monster Hunter 3, the level seems properly displayed with values
+// between 0 and 0x3a00.
+//
+// TODO: Proper hardware testing, documentation, formulas...
+void Microphone::UpdateLoudness(const SampleType sample)
+{
+  // Based on MH3 graphical cues, let's use a 0x4000 window
+  static const u32 WINDOW = 0x4000;
+  static const FloatType UNIT = (m_loudness.DB_MAX - m_loudness.DB_MIN) / WINDOW;
+
+  m_loudness.Update(sample);
+
+  if (m_loudness.samples_count >= m_loudness.SAMPLES_NEEDED)
+  {
+    const FloatType amp_db = m_loudness.GetAmplitudeDb();
+    m_loudness_level = static_cast<u16>((amp_db - m_loudness.DB_MIN) / UNIT);
+
+#ifdef WII_SPEAK_LOG_STATS
+    m_loudness.LogStats();
+#endif
+
+    m_loudness.Reset();
+  }
+}
+
 bool Microphone::HasData(u32 sample_count = BUFF_SIZE_SAMPLES) const
 {
   std::lock_guard lock(m_ring_lock);
   return m_samples_avail >= sample_count;
+}
+
+Microphone::FloatType Microphone::ComputeGain(FloatType relative_db) const
+{
+  return m_loudness.ComputeGain(relative_db);
+}
+
+const Microphone::FloatType Microphone::Loudness::DB_MIN =
+    20 * std::log10(FloatType(1) / MAX_AMPLITUDE);
+const Microphone::FloatType Microphone::Loudness::DB_MAX = 20 * std::log10(FloatType(1));
+
+void Microphone::Loudness::Update(const SampleType sample)
+{
+  ++samples_count;
+
+  peak_min = std::min(sample, peak_min);
+  peak_max = std::max(sample, peak_max);
+  absolute_sum += std::abs(sample);
+  square_sum += std::pow(FloatType(sample), FloatType(2));
+}
+
+Microphone::SampleType Microphone::Loudness::GetPeak() const
+{
+  return std::max(std::abs(peak_min), std::abs(peak_max));
+}
+
+Microphone::FloatType Microphone::Loudness::GetDecibel(FloatType value)
+{
+  return 20 * std::log10(value);
+}
+
+Microphone::FloatType Microphone::Loudness::GetAmplitude() const
+{
+  return GetPeak() / MAX_AMPLITUDE;
+}
+
+Microphone::FloatType Microphone::Loudness::GetAmplitudeDb() const
+{
+  return GetDecibel(GetAmplitude());
+}
+
+Microphone::FloatType Microphone::Loudness::GetAbsoluteMean() const
+{
+  return FloatType(absolute_sum) / samples_count;
+}
+
+Microphone::FloatType Microphone::Loudness::GetAbsoluteMeanDb() const
+{
+  return GetDecibel(GetAbsoluteMean());
+}
+
+Microphone::FloatType Microphone::Loudness::GetRootMeanSquare() const
+{
+  return std::sqrt(square_sum / samples_count);
+}
+
+Microphone::FloatType Microphone::Loudness::GetRootMeanSquareDb() const
+{
+  return GetDecibel(GetRootMeanSquare());
+}
+
+Microphone::FloatType Microphone::Loudness::GetCrestFactor() const
+{
+  const auto rms = GetRootMeanSquare();
+  if (rms == 0)
+    return FloatType(0);
+  return GetPeak() / rms;
+}
+
+Microphone::FloatType Microphone::Loudness::GetCrestFactorDb() const
+{
+  return GetDecibel(GetCrestFactor());
+}
+
+Microphone::FloatType Microphone::Loudness::ComputeGain(FloatType db)
+{
+  return std::pow(FloatType(10), db / 20);
+}
+
+void Microphone::Loudness::Reset()
+{
+  samples_count = 0;
+  absolute_sum = 0;
+  square_sum = FloatType(0);
+  peak_min = 0;
+  peak_max = 0;
+}
+
+void Microphone::Loudness::LogStats()
+{
+  const auto amplitude = GetAmplitude();
+  const auto amplitude_db = GetDecibel(amplitude);
+  const auto rms = GetRootMeanSquare();
+  const auto rms_db = GetDecibel(rms);
+  const auto abs_mean = GetAbsoluteMean();
+  const auto abs_mean_db = GetDecibel(abs_mean);
+  const auto crest_factor = GetCrestFactor();
+  const auto crest_factor_db = GetDecibel(crest_factor);
+
+  INFO_LOG_FMT(IOS_USB,
+               "Wii Speak loudness stats (sample count: {}/{}):\n"
+               " - min={} max={} amplitude={} ({} dB)\n"
+               " - rms={} ({} dB) \n"
+               " - abs_mean={} ({} dB)\n"
+               " - crest_factor={} ({} dB)",
+               samples_count, SAMPLES_NEEDED, peak_min, peak_max, amplitude, amplitude_db, rms,
+               rms_db, abs_mean, abs_mean_db, crest_factor, crest_factor_db);
 }
 }  // namespace IOS::HLE::USB

@@ -601,6 +601,8 @@ const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
     {System::Main, "EmulatedUSBDevices", "WiiSpeakMicrophone"}, ""};
 
 const Info<bool> MAIN_WII_SPEAK_MUTED{{System::Main, "EmulatedUSBDevices", "WiiSpeakMuted"}, true};
+const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakVolumeModifier"}, 0};
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.

@@ -398,7 +398,9 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
     case SP_SIN:
       break;
     case SP_SOUT:
-      memory.Write_U16(0x39B0, arg2);  // 6dB
+      // TODO: Find how it was measured and how accurate it was
+      // memory.Write_U16(0x39B0, arg2);  // 6dB
+      memory.Write_U16(m_microphone->GetLoudnessLevel(), arg2);
       break;
     case SP_RIN:
       break;
