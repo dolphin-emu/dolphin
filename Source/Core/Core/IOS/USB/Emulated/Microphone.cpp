@@ -187,9 +187,9 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
   return static_cast<u16>(ptr - begin);
 }
 
-bool Microphone::HasData() const
+bool Microphone::HasData(u32 sample_count = BUFF_SIZE_SAMPLES) const
 {
-  return m_samples_avail > 0;
+  return m_samples_avail >= sample_count;
 }
 
 const WiiSpeakState& Microphone::GetSampler() const

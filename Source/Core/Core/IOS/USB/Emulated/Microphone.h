@@ -23,7 +23,7 @@ public:
   Microphone(const WiiSpeakState& sampler);
   ~Microphone();
 
-  bool HasData() const;
+  bool HasData(u32 sample_count) const;
   u16 ReadIntoBuffer(u8* ptr, u32 size);
   const WiiSpeakState& GetSampler() const;
 

@@ -191,7 +191,7 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   {
     // Transfer: Wii Speak -> Wii
     u16 size = 0;
-    if (m_microphone && m_microphone->HasData())
+    if (m_microphone && m_microphone->HasData(cmd->length / sizeof(s16)))
       size = m_microphone->ReadIntoBuffer(packets, cmd->length);
     for (std::size_t i = 0; i < cmd->num_packets; i++)
     {
