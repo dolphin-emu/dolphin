@@ -749,6 +749,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = result});
     return;
   }
 
@@ -760,6 +761,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   if (!user)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
     return;
   }
 
@@ -778,6 +780,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
       INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.",
                    user->username, Config::Get(Config::RA_USERNAME));
       rc_client_logout(client);
+      AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
       return;
     }
   }
@@ -830,6 +833,15 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
   AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  if (result == RC_API_FAILURE)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Load data request rejected for old Dolphin version.");
+    OSD::AddMessage("RetroAchievements no longer supports this version of Dolphin.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    return;
+  }
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
