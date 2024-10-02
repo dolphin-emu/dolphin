@@ -183,7 +183,7 @@ void Interpreter::ps_rsqrte(Interpreter& interpreter, UGeckoInstruction inst)
   const double ps0 = ppc_state.ps[inst.FB].PS0AsDouble();
   double ps1 = ppc_state.ps[inst.FB].PS1AsReciprocalDouble();
 
-  if (ps1 >= 0)
+  if (ps1 > 0.0)
   {
     // If ps1 is <0, we want the result to remain NaN even for
     // the smallest of subnormals which would be truncated to 0
