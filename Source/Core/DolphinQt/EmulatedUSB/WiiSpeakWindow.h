@@ -11,6 +11,7 @@
 class QCheckBox;
 class QComboBox;
 class QGroupBox;
+class QLabel;
 
 class WiiSpeakWindow : public QWidget
 {
@@ -29,4 +30,5 @@ private:
   QCheckBox* m_checkbox_enabled;
   QComboBox* m_combobox_microphones;
   QGroupBox* m_config_group;
+  QLabel* m_slider_label;
 };

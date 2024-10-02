@@ -3,8 +3,12 @@
 
 #include "DolphinQt/EmulatedUSB/WiiSpeakWindow.h"
 
+#include <algorithm>
+#include <limits>
+
 #include <QCheckBox>
 #include <QComboBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -61,7 +65,33 @@ void WiiSpeakWindow::CreateMainWindow()
   checkbox_mic_muted->setChecked(Config::Get(Config::MAIN_WII_SPEAK_MUTED));
   connect(checkbox_mic_muted, &QCheckBox::toggled, this,
           &WiiSpeakWindow::SetWiiSpeakConnectionState);
+  checkbox_mic_muted->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   config_layout->addWidget(checkbox_mic_muted);
+
+  auto* volume_layout = new QGridLayout();
+  static constexpr int FILTER_MIN = -50;
+  static constexpr int FILTER_MAX = 50;
+  const int volume_modifier =
+      std::clamp<int>(Config::Get(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER), FILTER_MIN, FILTER_MAX);
+  auto filter_slider = new QSlider(Qt::Horizontal, this);
+  m_slider_label = new QLabel(tr("Volume modifier (value: %1dB)").arg(volume_modifier));
+  connect(filter_slider, &QSlider::valueChanged, this, [this](int value) {
+    Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER, value);
+    m_slider_label->setText(tr("Volume modifier (value: %1dB)").arg(value));
+  });
+  filter_slider->setMinimum(FILTER_MIN);
+  filter_slider->setMaximum(FILTER_MAX);
+  filter_slider->setValue(volume_modifier);
+  filter_slider->setTickPosition(QSlider::TicksBothSides);
+  filter_slider->setTickInterval(10);
+  filter_slider->setSingleStep(1);
+  volume_layout->addWidget(new QLabel(QStringLiteral("%1dB").arg(FILTER_MIN)), 0, 0, Qt::AlignLeft);
+  volume_layout->addWidget(m_slider_label, 0, 1, Qt::AlignCenter);
+  volume_layout->addWidget(new QLabel(QStringLiteral("%1dB").arg(FILTER_MAX)), 0, 2,
+                           Qt::AlignRight);
+  volume_layout->addWidget(filter_slider, 1, 0, 1, 3);
+  config_layout->addLayout(volume_layout);
+  config_layout->setStretch(1, 3);
 
   m_combobox_microphones = new QComboBox();
   m_combobox_microphones->addItem(QLatin1String("(%1)").arg(tr("Autodetect preferred microphone")),
