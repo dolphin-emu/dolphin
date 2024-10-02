@@ -57,7 +57,7 @@ TEST(JitArm64, Fres)
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
   TestFres test(Core::System::GetInstance());
-  const UReg_FPSCR fpscr;
+  const UReg_FPSCR fpscr = UReg_FPSCR(0);
 
   for (const u64 ivalue : double_test_values)
   {
