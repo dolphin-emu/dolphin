@@ -30,8 +30,8 @@ public:
 
     AllocCodeSpace(4096);
 
-    const u8* raw_fres = GetCodePtr();
-    GenerateFres();
+    // const u8* raw_fres = GetCodePtr();
+    // GenerateFres();
 
     fres = std::bit_cast<u64 (*)(u64)>(GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
