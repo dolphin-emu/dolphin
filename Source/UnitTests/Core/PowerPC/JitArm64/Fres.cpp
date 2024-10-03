@@ -60,7 +60,7 @@ TEST(JitArm64, Fres)
   TestFres test(Core::System::GetInstance());
 
   // FPSCR with NI set
-  const UReg_FPSCR fpscr = UReg_FPSCR(0x00000008);
+  const UReg_FPSCR fpscr = UReg_FPSCR(0x00000004);
 
   for (const u64 ivalue : double_test_values)
   {
