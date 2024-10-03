@@ -130,11 +130,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderParamTest, PositionAll)
 {
-  VertexComponentFormat addr;
-  ComponentFormat format;
-  CoordComponentCount elements;
-  int frac;
-  std::tie(addr, format, elements, frac) = GetParam();
+  auto [addr, format, elements, frac] = GetParam();
   this->m_vtx_desc.low.Position = addr;
   this->m_vtx_attr.g0.PosFormat = format;
   this->m_vtx_attr.g0.PosElements = elements;
@@ -278,9 +274,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 {
-  ComponentFormat format;
-  int elements_i;
-  std::tie(format, elements_i) = GetParam();
+  auto [format, elements_i] = GetParam();
   CoordComponentCount elements = static_cast<CoordComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
@@ -295,9 +289,7 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 
 TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 {
-  ComponentFormat format;
-  int elements_i;
-  std::tie(format, elements_i) = GetParam();
+  auto [format, elements_i] = GetParam();
   TexComponentCount elements = static_cast<TexComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == TexComponentCount::S ? 1 : 2;
@@ -561,11 +553,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderNormalTest, NormalAll)
 {
-  VertexComponentFormat addr;
-  ComponentFormat format;
-  NormalComponentCount elements;
-  bool index3;
-  std::tie(addr, format, elements, index3) = GetParam();
+  auto [addr, format, elements, index3] = GetParam();
 
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
   m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
@@ -783,8 +771,7 @@ INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedColorsTest,
 
 TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
 {
-  bool enable_color_0, enable_color_1;
-  std::tie(enable_color_0, enable_color_1) = GetParam();
+  auto [enable_color_0, enable_color_1] = GetParam();
 
   size_t input_size = 1;
   size_t output_size = 3 * sizeof(float);
