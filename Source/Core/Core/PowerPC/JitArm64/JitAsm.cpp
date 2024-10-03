@@ -293,9 +293,9 @@ void JitArm64::GenerateFres()
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
   LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W2);
-  MOV(ARM64Reg::X0, ARM64Reg::X1);
-  RET();
   LSR(ARM64Reg::W1, ARM64Reg::W1, 1);
+  MOV(ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
+  RET();
   AND(ARM64Reg::X0, ARM64Reg::X0,
       LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, GPRSize::B64));
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
