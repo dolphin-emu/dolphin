@@ -453,6 +453,9 @@
     <ClInclude Include="Core\PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\SignatureDB.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptInterface\InternalAPIs\FileUtility_APIs.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\InternalAPIDefinitions\FileUtility_API_Implementations.h" />
+    <ClInclude Include="Core\Scripting\ScriptUtilities.h" />
     <ClInclude Include="Core\State.h" />
     <ClInclude Include="Core\SyncIdentifier.h" />
     <ClInclude Include="Core\SysConf.h" />
@@ -1119,6 +1122,8 @@
     <ClCompile Include="Core\PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\SignatureDB.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\InternalAPIDefinitions\FileUtility_API_Implementations.cpp" />
+    <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
     <ClCompile Include="Core\State.cpp" />
     <ClCompile Include="Core\SysConf.cpp" />
     <ClCompile Include="Core\System.cpp" />

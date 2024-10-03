@@ -533,6 +533,11 @@ add_library(core
   PowerPC/SignatureDB/MEGASignatureDB.h
   PowerPC/SignatureDB/SignatureDB.cpp
   PowerPC/SignatureDB/SignatureDB.h
+  Scripting/CoreScriptInterface/InternalAPIs/FileUtility_APIs.h
+  Scripting/HelperClasses/InternalAPIDefinitions/FileUtility_API_Implementations.cpp
+  Scripting/HelperClasses/InternalAPIDefinitions/FileUtility_API_Implementations.h
+  Scripting/ScriptUtilities.cpp
+  Scripting/ScriptUtilities.h
   State.cpp
   State.h
   SyncIdentifier.h
