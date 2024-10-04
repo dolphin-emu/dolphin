@@ -63,12 +63,17 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <rcheevos/include/rc_client_raintegration.h>
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
@@ -267,8 +272,14 @@ void MenuBar::AddToolsMenu()
   tools_menu->addSeparator();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
-
+  m_achievements_action =
+      tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  m_achievements_dev_menu = tools_menu->addMenu(tr("RetroAchievements Development"));
+  AchievementManager::GetInstance().SetDevMenuUpdateCallback(
+      [this]() { QueueOnObject(this, [this] { this->UpdateToolsAchievements(); }); });
+  m_achievements_dev_menu->menuAction()->setVisible(false);
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   tools_menu->addSeparator();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
@@ -1098,6 +1109,38 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
       wii_remote->setChecked(bt->AccessWiimoteByIndex(i)->IsConnected());
   }
 }
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+void MenuBar::UpdateToolsAchievements()
+{
+  auto* dev_menu = AchievementManager::GetInstance().GetDevelopmentMenu();
+  if (dev_menu)
+  {
+    m_achievements_dev_menu->menuAction()->setVisible(true);
+    m_achievements_dev_menu->clear();
+    for (u32 ix = 0; ix < dev_menu->num_items; ix++)
+    {
+      const auto& menu_item = dev_menu->items[ix];
+      if (menu_item.label == nullptr)
+      {
+        m_achievements_dev_menu->addSeparator();
+        continue;
+      }
+      auto* ra_dev_menu_item =
+          m_achievements_dev_menu->addAction(tr(menu_item.label), this, [menu_item]() {
+            AchievementManager::GetInstance().ActivateDevMenuItem(menu_item.id);
+          });
+      ra_dev_menu_item->setEnabled(menu_item.enabled);
+      ra_dev_menu_item->setCheckable(menu_item.checked);
+      ra_dev_menu_item->setChecked(menu_item.checked);
+    }
+  }
+  else
+  {
+    m_achievements_dev_menu->menuAction()->setVisible(false);
+  }
+}
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 void MenuBar::InstallWAD()
 {
