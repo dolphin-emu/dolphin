@@ -412,6 +412,56 @@ void AXUCode::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16
   }
 }
 
+// Determines if this version of the UCode has a PBLowPassFilter in its AXPB layout.
+static bool HasLpf(u32 crc)
+{
+  return crc != 0x4E8A8B21;
+}
+
+// Read a PB from MRAM/ARAM
+void AXUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb)
+{
+  if (HasLpf(m_crc))
+  {
+    u16* dst = (u16*)&pb;
+    memory.CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
+  }
+  else
+  {
+    // Skip lpf field.
+
+    char* dst = (char*)&pb;
+
+    constexpr size_t lpf_off = offsetof(AXPB, lpf);
+    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
+
+    memory.CopyFromEmuSwapped<u16>((u16*)dst, addr, lpf_off);
+    memset(dst + lpf_off, 0, lc_off - lpf_off);
+    memory.CopyFromEmuSwapped<u16>((u16*)(dst + lc_off), addr + lpf_off, sizeof(pb) - lc_off);
+  }
+}
+
+// Write a PB back to MRAM/ARAM
+void AXUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb)
+{
+  if (HasLpf(m_crc))
+  {
+    const u16* src = (const u16*)&pb;
+    memory.CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
+  }
+  else
+  {
+    // We skip lpf in this layout.
+
+    const char* src = (const char*)&pb;
+    constexpr size_t lpf_off = offsetof(AXPB, lpf);
+    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
+
+    memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, lpf_off);
+    memory.CopyToEmuSwapped<u16>(addr + lpf_off, (const u16*)(src + lc_off), sizeof(pb) - lc_off);
+  }
+}
+
 void AXUCode::ProcessPBList(u32 pb_addr)
 {
   // Samples per millisecond. In theory DSP sampling rate can be changed from
@@ -427,10 +477,9 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                           m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
                           m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround}};
 
-    ReadPB(memory, pb_addr, pb, m_crc);
+    ReadPB(memory, pb_addr, pb);
 
-    u32 updates_addr = HILO_TO_32(pb.updates.data);
-    u16* updates = (u16*)HLEMemory_Get_Pointer(memory, updates_addr);
+    PBUpdateData updates = LoadPBUpdates(memory, pb);
 
     for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
     {
@@ -445,7 +494,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
         ptr += spms;
     }
 
-    WritePB(memory, pb_addr, pb, m_crc);
+    WritePB(memory, pb_addr, pb);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
 }
