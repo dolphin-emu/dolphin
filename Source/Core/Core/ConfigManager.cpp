@@ -114,7 +114,7 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   }
   else
   {
-    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(),
+    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(partition),
                            volume.GetTitleID(partition).value_or(0),
                            volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
