@@ -330,8 +330,3 @@ void GraphicsModConfig::DeserializeFromProfile(const picojson::object& obj)
     }
   }
 }
-
-bool GraphicsModConfig::operator<(const GraphicsModConfig& other) const
-{
-  return m_weight < other.m_weight;
-}
