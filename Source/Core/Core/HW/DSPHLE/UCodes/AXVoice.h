@@ -12,6 +12,7 @@
 #endif
 
 #include <algorithm>
+#include <bit>
 #include <functional>
 #include <memory>
 
@@ -46,6 +47,34 @@ namespace
 {
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
 #define HILO_TO_32(name) ((u32(name##_hi) << 16) | name##_lo)
+
+PBUpdateData LoadPBUpdates(Memory::MemoryManager& memory, const PB_TYPE& pb)
+{
+  PBUpdateData updates;
+  u32 updates_addr = HILO_TO_32(pb.updates.data);
+  memory.CopyFromEmuSwapped((u16*)updates.data(), updates_addr, sizeof(updates));
+  return updates;
+}
+
+// Apply updates to a PB.
+void ApplyUpdatesForMs(int curr_ms, PB_TYPE& pb, u16* num_updates, const PBUpdateData& updates)
+{
+  auto pb_mem = Common::BitCastToArray<u16>(pb);
+
+  u32 start_idx = 0;
+  for (int i = 0; i < curr_ms; ++i)
+    start_idx += num_updates[i];
+
+  for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
+  {
+    u16 update_off = updates[i].pb_offset;
+    u16 update_val = updates[i].new_value;
+
+    pb_mem[update_off] = update_val;
+  }
+
+  pb = std::bit_cast<PB_TYPE>(pb_mem);
+}
 
 // Used to pass a large amount of buffers to the mixing function.
 union AXBuffers
@@ -83,68 +112,13 @@ union AXBuffers
 #ifdef AX_GC
   int* ptrs[9];
 #else
-  int* ptrs[20];
+  struct
+  {
+    int* regular_ptrs[12];
+    int* wiimote_ptrs[8];
+  };
 #endif
 };
-
-// Determines if this version of the UCode has a PBLowPassFilter in its AXPB layout.
-bool HasLpf(u32 crc)
-{
-  switch (crc)
-  {
-  case 0x4E8A8B21:
-    return false;
-  default:
-    return true;
-  }
-}
-
-// Read a PB from MRAM/ARAM
-void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
-{
-  if (HasLpf(crc))
-  {
-    u16* dst = (u16*)&pb;
-    memory.CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
-  }
-  else
-  {
-    // The below is a terrible hack in order to support two different AXPB layouts.
-    // We skip lpf in this layout.
-
-    char* dst = (char*)&pb;
-
-    constexpr size_t lpf_off = offsetof(AXPB, lpf);
-    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
-
-    memory.CopyFromEmuSwapped<u16>((u16*)dst, addr, lpf_off);
-    memset(dst + lpf_off, 0, lc_off - lpf_off);
-    memory.CopyFromEmuSwapped<u16>((u16*)(dst + lc_off), addr + lpf_off, sizeof(pb) - lc_off);
-  }
-}
-
-// Write a PB back to MRAM/ARAM
-void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc)
-{
-  if (HasLpf(crc))
-  {
-    const u16* src = (const u16*)&pb;
-    memory.CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
-  }
-  else
-  {
-    // The below is a terrible hack in order to support two different AXPB layouts.
-    // We skip lpf in this layout.
-
-    const char* src = (const char*)&pb;
-
-    constexpr size_t lpf_off = offsetof(AXPB, lpf);
-    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
-
-    memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, lpf_off);
-    memory.CopyToEmuSwapped<u16>(addr + lpf_off, (const u16*)(src + lc_off), sizeof(pb) - lc_off);
-  }
-}
 
 // Simulated accelerator state.
 class HLEAccelerator final : public Accelerator
