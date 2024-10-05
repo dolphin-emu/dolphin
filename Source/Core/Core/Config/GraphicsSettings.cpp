@@ -90,6 +90,7 @@ const Info<bool> GFX_BORDERLESS_FULLSCREEN{{System::GFX, "Settings", "Borderless
                                            false};
 const Info<bool> GFX_ENABLE_VALIDATION_LAYER{{System::GFX, "Settings", "EnableValidationLayer"},
                                              false};
+const Info<bool> GFX_ENABLE_BREADCRUMBS{{System::GFX, "Settings", "EnableBreadcrumbs"}, false};
 
 const Info<bool> GFX_BACKEND_MULTITHREADING{{System::GFX, "Settings", "BackendMultithreading"},
                                             true};
