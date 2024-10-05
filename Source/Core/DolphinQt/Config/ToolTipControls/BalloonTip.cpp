@@ -81,6 +81,9 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
                   QStringLiteral("<font color=\"#%1\"><b>").arg(dolphin_emphasis.rgba(), 0, 16));
   message.replace(QStringLiteral("</dolphin_emphasis>"), QStringLiteral("</b></font>"));
 
+  // Save parent to reference the window borders of
+  this->m_parent = parent;
+
   auto* const balloontip_layout = new QVBoxLayout;
   balloontip_layout->setSizeConstraint(QLayout::SetFixedSize);
   setLayout(balloontip_layout);
@@ -175,18 +178,14 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   // the left edge of the arrow interior; otherwise the distance between the right edges.
   const int arrow_nearest_edge_x_offset =
       std::min(adjusted_arrow_x_offset, centered_arrow_x_offset);
-  const int arrow_tip_x_offset = arrow_nearest_edge_x_offset + arrow_half_width;
 
-  // The BalloonTip should be contained entirely within the screen that contains the target
-  // position.
-  QScreen* screen = QGuiApplication::screenAt(target_arrow_tip_position);
-  if (screen == nullptr)
-  {
-    // If the target position isn't on any screen (which can happen if the window is partly off the
-    // screen and the user hovers over the label) then use the screen containing the cursor instead.
-    screen = QGuiApplication::screenAt(QCursor::pos());
-  }
-  const QRect screen_rect = screen->geometry();
+  // Get the window's bounds to draw the tool tip within.
+  // Just using window->geometry(), will return invalid geometry until the window is moved
+  // updateGeometry does not work 100% of the time for this, so mapToGlobal was used.
+  const QWidget* window = m_parent->window();
+  const QPoint top_left = window->mapToGlobal(window->rect().topLeft());
+  const QPoint bottom_right = window->mapToGlobal(window->rect().bottomRight());
+  const QRect parent_rect = QRect(top_left, bottom_right);
 
   QPainterPath rect_path;
   rect_path.addRoundedRect(rect_left, rect_top, rect_width, rect_height, corner_outer_radius,
@@ -226,9 +225,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   mask_painter.drawPath(rect_path);
 
   const bool arrow_at_bottom =
-      target_arrow_tip_position.y() - size_hint.height() + arrow_height >= 0;
-  const bool arrow_at_left =
-      target_arrow_tip_position.x() + size_hint.width() - arrow_tip_x_offset < screen_rect.width();
+      target_arrow_tip_position.y() - size_hint.height() + arrow_height >= parent_rect.top();
+  const bool arrow_at_left = true;
 
   const float arrow_base_y =
       arrow_at_bottom ? rect_bottom - border_half_width : rect_top + border_half_width;
@@ -242,6 +240,27 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
                       size_hint.width() - arrow_nearest_edge_x_offset - arrow_full_width;
   const float arrow_base_right_edge_x = arrow_base_left_edge_x + arrow_full_width;
   const float arrow_tip_x = arrow_base_left_edge_x + arrow_half_width;
+
+  // We will calculate the global position of the bubble before we draw the arrow
+  // so that we know where it needs to point.
+  // Place the arrow tip at the target position whether the arrow tip is drawn or not
+  const int target_balloontip_global_x =
+      target_arrow_tip_position.x() - static_cast<int>(arrow_tip_x);
+  const int rightmost_valid_balloontip_global_x =
+      parent_rect.left() + parent_rect.width() - size_hint.width();
+  // If the balloon would extend off the screen, push it left or right until it's not
+  const int actual_balloontip_global_x =
+      std::max(parent_rect.left(),
+               std::min(rightmost_valid_balloontip_global_x, target_balloontip_global_x));
+
+  // With the bubble now contained within the parent window, its important that no
+  // matter how it gets placed, that the arrow still points to the control point
+  // This will offset the drawn error to line up agin.
+  const float unclamped_arrow_tip_local_x_offset =
+      target_balloontip_global_x - actual_balloontip_global_x;
+  const float arrow_tip_local_x_offset =
+      std::min(std::max(unclamped_arrow_tip_local_x_offset, base_arrow_x_offset - arrow_tip_x),
+               (size_hint.width() - base_arrow_x_offset) - arrow_tip_x);
 
   if (show_arrow == ShowArrow::Yes)
   {
@@ -270,8 +289,10 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
       const float border_y_end = border_y_start + y_end_offset;
       const float interior_y_start = arrow_base_y;
       const float interior_y_end = border_y_start;
-      const float left_line_x = arrow_base_left_edge_x + x_offset_from_arrow_base_edge;
-      const float right_line_x = arrow_base_right_edge_x - x_offset_from_arrow_base_edge;
+      const float left_line_x =
+          arrow_base_left_edge_x + x_offset_from_arrow_base_edge + arrow_tip_local_x_offset;
+      const float right_line_x =
+          arrow_base_right_edge_x - x_offset_from_arrow_base_edge + arrow_tip_local_x_offset;
 
       arrow_border_path.moveTo(left_line_x, border_y_start);
       arrow_border_path.lineTo(left_line_x, border_y_end);
@@ -286,12 +307,13 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
       arrow_interior_fill_path.lineTo(right_line_x, interior_y_end);
     }
     // The middle border line
-    arrow_border_path.moveTo(arrow_tip_x, arrow_tip_interior_y);
-    arrow_border_path.lineTo(arrow_tip_x, arrow_tip_interior_y + y_end_offset);
+    arrow_border_path.moveTo(arrow_tip_x + arrow_tip_local_x_offset, arrow_tip_interior_y);
+    arrow_border_path.lineTo(arrow_tip_x + arrow_tip_local_x_offset,
+                             arrow_tip_interior_y + y_end_offset);
 
     // The middle interior line
-    arrow_interior_fill_path.moveTo(arrow_tip_x, arrow_base_y);
-    arrow_interior_fill_path.lineTo(arrow_tip_x, arrow_tip_interior_y);
+    arrow_interior_fill_path.moveTo(arrow_tip_x + arrow_tip_local_x_offset, arrow_base_y);
+    arrow_interior_fill_path.lineTo(arrow_tip_x + arrow_tip_local_x_offset, arrow_tip_interior_y);
 
     border_pen.setWidth(1);
 
@@ -312,22 +334,18 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
   setMask(mask_bitmap);
 
-  // Place the arrow tip at the target position whether the arrow tip is drawn or not
-  const int target_balloontip_global_x =
-      target_arrow_tip_position.x() - static_cast<int>(arrow_tip_x);
-  const int rightmost_valid_balloontip_global_x =
-      screen_rect.left() + screen_rect.width() - size_hint.width();
-  // If the balloon would extend off the screen, push it left or right until it's not
-  const int actual_balloontip_global_x =
-      std::max(screen_rect.left(),
-               std::min(rightmost_valid_balloontip_global_x, target_balloontip_global_x));
   // The tip pixel should be in the middle of the control, and arrow_tip_exterior_y is at the bottom
   // of that pixel. When arrow_at_bottom is true the arrow is above arrow_tip_exterior_y and so the
   // tip pixel is in the right place, but when it's false the arrow is below arrow_tip_exterior_y
   // so the tip pixel would be the one below that. Make this adjustment to fix that.
   const int tip_pixel_adjustment = arrow_at_bottom ? 0 : 1;
-  const int actual_balloontip_global_y =
-      target_arrow_tip_position.y() - arrow_tip_exterior_y - tip_pixel_adjustment;
+
+  // Make it so the tip renders a bit offset from the box to make it hover
+  // just above the set control point.
+  const int tip_vertical_offset = arrow_at_bottom ? 10 : -10;
+
+  const int actual_balloontip_global_y = target_arrow_tip_position.y() - arrow_tip_exterior_y -
+                                         tip_pixel_adjustment - tip_vertical_offset;
 
   move(actual_balloontip_global_x, actual_balloontip_global_y);
 
