@@ -349,6 +349,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
   g_Config.backend_info.bSupportsTextureQueryLevels =
       GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
+  g_Config.backend_info.bSupportsUnrestrictedDepthRange =
+      GLExtensions::Supports("GL_NV_depth_buffer_float");
 
   if (GLExtensions::Supports("GL_ARB_shader_storage_buffer_object"))
   {

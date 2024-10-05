@@ -118,6 +118,16 @@ static void APIENTRY ClearDepthf(GLfloat depthval)
   glClearDepth(depthval);
 }
 
+// Two small overrides to support unrestricted depth range
+static void APIENTRY DepthRangefNV(GLfloat neardepth, GLfloat fardepth)
+{
+  glDepthRangedNV(neardepth, fardepth);
+}
+static void APIENTRY ClearDepthfNV(GLfloat depthval)
+{
+  glClearDepthdNV(depthval);
+}
+
 OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
     : m_main_gl_context(std::move(main_gl_context)),
       m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
@@ -137,11 +147,16 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
 
   if (!m_main_gl_context->IsGLES())
   {
-    // OpenGL 3 doesn't provide GLES like float functions for depth.
-    // They are in core in OpenGL 4.1, so almost every driver should support them.
-    // But for the oldest ones, we provide fallbacks to the old double functions.
-    if (!GLExtensions::Supports("GL_ARB_ES2_compatibility"))
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
     {
+      glDepthRangef = DepthRangefNV;
+      glClearDepthf = ClearDepthfNV;
+    }
+    else if (!GLExtensions::Supports("GL_ARB_ES2_compatibility"))
+    {
+      // OpenGL 3 doesn't provide GLES like float functions for depth.
+      // They are in core in OpenGL 4.1, so almost every driver should support them.
+      // But for the oldest ones, we provide fallbacks to the old double functions.
       glDepthRangef = DepthRangef;
       glClearDepthf = ClearDepthf;
     }
@@ -387,7 +402,7 @@ void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEn
   if (zEnable)
   {
     glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
-    glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+    glClearDepthf(float(z & 0xFFFFFF) / 16777215.0f);
     clear_mask |= GL_DEPTH_BUFFER_BIT;
   }
 

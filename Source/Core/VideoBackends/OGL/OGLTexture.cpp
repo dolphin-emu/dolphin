@@ -44,9 +44,15 @@ GLenum OGLTexture::GetGLInternalFormatForTextureFormat(AbstractTextureFormat for
   case AbstractTextureFormat::D24_S8:
     return GL_DEPTH24_STENCIL8;
   case AbstractTextureFormat::D32F:
-    return GL_DEPTH_COMPONENT32F;
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      return GL_DEPTH_COMPONENT32F_NV;
+    else
+      return GL_DEPTH_COMPONENT32F;
   case AbstractTextureFormat::D32F_S8:
-    return GL_DEPTH32F_STENCIL8;
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      return GL_DEPTH32F_STENCIL8_NV;
+    else
+      return GL_DEPTH32F_STENCIL8;
   default:
     PanicAlertFmt("Unhandled texture format.");
     return storage ? GL_RGBA8 : GL_RGBA;
