@@ -1310,7 +1310,7 @@ void JitArm64::subfcx(UGeckoInstruction inst)
     u32 a_imm = gpr.GetImm(a), b_imm = gpr.GetImm(b);
 
     gpr.SetImmediate(d, b_imm - a_imm);
-    ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(b_imm, 0u - a_imm));
+    ComputeCarry(b_imm >= a_imm);
 
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
@@ -1381,14 +1381,14 @@ void JitArm64::subfic(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
 
   int a = inst.RA, d = inst.RD;
-  s32 imm = inst.SIMM_16;
+  u32 imm = s32(inst.SIMM_16);
 
   if (gpr.IsImm(a))
   {
     u32 a_imm = gpr.GetImm(a);
 
     gpr.SetImmediate(d, imm - a_imm);
-    ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(imm, 0u - a_imm));
+    ComputeCarry(imm >= a_imm);
   }
   else
   {
