@@ -1,0 +1,493 @@
+MP4 - Item Shop Odds Modifier:
+This Gecko Code allows you to change the odds of items appearing on the MP4DX shops to your liking! It only works on the mod, do not use on the vanilla game. The total sum of item odds in one shop type must not exceed 0x64 (100).
+There must be at least 5 items with non-zero odds. Skeleton Key is hardcoded to always appear, and Mushroom and Poison Mushroom are hardcoded to have a 50% chance of appearing. Unless you're using the code to disable the hardcoding, it is recommended to make Skeleton Key's, Mushroom's and Poison Mushroom's odds zero.
+
+NTSC:
+04071f30 QaQbQcQd
+04071f34 QeQfQgQh
+04071f38 QiQjQkQl
+04071f3C QmQnQoQp
+04071f40 QqQrQsQt
+04071f44 QuQvQwQx
+04071f48 QyQzQ0Q1
+04071f4C Q2Q3Q4Q5
+04071f50 Q6Q7Q8Q9
+
+02071f62 0000RaRb
+04071f64 RcRdReRf
+04071f68 RgRhRiRj
+04071f6C RkRlRmRn
+04071f70 RoRpRqRr
+04071f74 RsRtRuRv
+04071f78 RwRxRyRz
+04071f7C R0R1R2R3
+04071f80 R4R5R6R7
+04071f84 R8R90000
+
+04071F94 SaSbScSd
+04071f98 SeSfSgSh
+04071f9C SiSjSkSl
+04071fA0 SmSnSoSp
+04071fA4 SqSrSsSt
+04071fA8 SuSvSwSx
+04071fAC SySzS0S1
+04071fB0 S2S3S4S5
+04071fB4 S6S7S8S9
+
+02071FC6 0000TaTb
+04071fC8 TcTdTeTf
+04071fCC TgThTiTj
+04071fD0 TkTlTmTn
+04071fD4 ToTpTqTr
+04071fD8 TsTtTuTv
+04071fDC TwTxTyTz
+04071fE0 T0T1T2T3
+04071fE4 T4T5T6T7
+04071fE8 T8T90000
+
+04071Ff8 UaUbUcUd
+04071ffc UeUfUgUh
+04072000 UiUjUkUl
+04072004 UmUnUoUp
+04072008 UqUrUsUt
+0407200c UuUvUwUx
+04072010 UyUzU0U1
+04072014 U2U3U4U5
+04072018 U6U7U8U9
+
+0207202A 0000VaVb
+0407202C VcVdVeVf
+04072030 VgVhViVj
+04072034 VkVlVmVn
+04072038 VoVpVqVr
+0407203C VsVtVuVv
+04072040 VwVxVyVz
+04072044 V0V1V2V3
+04072048 V4V5V6V7
+0407204C V8V90000
+
+0407205C WaWbWcWd
+04072060 WeWfWgWh
+04072064 WiWjWkWl
+04072068 WmWnWoWp
+0407206C WqWrWsWt
+04072070 WuWvWwWx
+04072074 WyWzW0W1
+04072078 W2W3W4W5
+0407207C W6W7W8W9
+
+0207208E 0000XaXb
+04072090 XcXdXeXf
+04072094 XgXhXiXj
+04072098 XkXlXmXn
+0407209C XoXpXqXr
+040720A0 XsXtXuXv
+040720A4 XwXxXyXz
+040720A8 X0X1X2X3
+040720AC X4X5X6X7
+040720B0 X8X90000
+
+040720C0 YaYbYcYd
+040720C4 YeYfYgYh
+040720C8 YiYjYkYl
+040720CC YmYnYoYp
+040720D0 YqYrYsYt
+040720D4 YuYvYwYx
+040720D8 YyYzY0Y1
+040720DC Y2Y3Y4Y5
+040720E0 Y6Y7Y8Y9
+
+020720F2 0000ZaZb
+040720F4 ZcZdZeZf
+040720F8 ZgZhZiZj
+04072100 ZkZlZmZn
+04072104 ZoZpZqZr
+04072108 ZsZtZuZv
+0407210C ZwZxZyZz
+04072110 Z0Z1Z2Z3
+04072114 Z4Z5Z6Z7
+04072118 Z8Z90000
+
+Shop A-1: Early Game Shop for players with less than 30 Coins.
+Shop B-1: Midgame Shop for 1st place player w/ less than 30 Coins.
+Shop C-1: Midgame Shop for all other players w/ less than 30 Coins.
+Shop D-1: Late Game Shop for 1st place player w/ less than 30 Coins.
+Shop E-1: Late Game Shop for all other players w/ less than 30 Coins.
+
+Shop A-2: Early Game Shop.
+Shop B-2: Midgame Shop for 1st place player.
+Shop C-2: Midgame Shop for all other players.
+Shop D-2: Late Game Shop for 1st place player.
+Shop E-2: Late Game Shop for all other players.
+
+
+Qa = Mini Mushroom Odds on Shop A-1
+Qb = Mega Mushroom Odds on Shop A-1
+Qc = Super Mini Mushroom Odds on Shop A-1
+Qd = Super Mega Mushroom Odds on Shop A-1
+Qe = MiniMega Hammer Odds on Shop A-1
+Qf = Warp Pipe Odds on Shop A-1
+Qg = Swap Card Odds on Shop A-1
+Qh = Sparky Sticker Odds on Shop A-1
+Qi = Gaddlight Odds on Shop A-1
+Qj = Chomp Call Odds on Shop A-1
+Qk = Bowser Suit Odds on Shop A-1
+Ql = Boo's Crystal Ball Odds on Shop A-1
+Qm = Magic Lamp Odds on Shop A-1
+Qn = Item Bag Odds on Shop A-1
+Qo = Bowser Phone Odds on Shop A-1
+Qp = Mushroom Odds on Shop A-1
+Qq = Golden Mushroom Odds on Shop A-1
+Qr = Hidden Block Card Odds on Shop A-1
+Qs = Cellular Shopper Odds on Shop A-1
+Qt = Barter Box Odds on Shop A-1
+Qu = Super Warp Pipe Odds on Shop A-1
+Qv = Chance Time Charm Odds on Shop A-1
+Qw = Wacky Watch Odds on Shop A-1
+Qx = Plunder Chest Odds on Shop A-1
+Qy = Gaddbrush Odds on Shop A-1
+Qz = Skeleton Key Odds on Shop A-1
+Q0 = Warp Block Odds on Shop A-1
+Q1 = Fly Guy Odds on Shop A-1
+Q2 = Plus Block Odds on Shop A-1
+Q3 = Minus Block Odds on Shop A-1
+Q4 = Speed Block Odds on Shop A-1
+Q5 = Slow Block Odds on Shop A-1
+Q6 = Poison Shroom Odds on Shop A-1
+Q7 = Triple Poison Shroom Odds on Shop A-1
+Q8 = Double Dip odds on Shop A-1
+Q9 = Reverse Mushroom Odds on Shop A-1
+
+Ra = Mini Mushroom Odds on Shop B-1
+Rb = Mega Mushroom Odds on Shop B-1
+Rc = Super Mini Mushroom Odds on Shop B-1
+Rd = Super Mega Mushroom Odds on Shop B-1
+Re = MiniMega Hammer Odds on Shop B-1
+Rf = Warp Pipe Odds on Shop B-1
+Rg = Swap Card Odds on Shop B-1
+Rh = Sparky Sticker Odds on Shop B-1
+Ri = Gaddlight Odds on Shop B-1
+Rj = Chomp Call Odds on Shop B-1
+Rk = Bowser Suit Odds on Shop B-1
+Rl = Boo's Crystal Ball Odds on Shop B-1
+Rm = Magic Lamp Odds on Shop B-1
+Rn = Item Bag Odds on Shop B-1
+Ro = Bowser Phone Odds on Shop B-1
+Rp = Mushroom Odds on Shop B-1
+Rq = Golden Mushroom Odds on Shop B-1
+Rr = Hidden Block Card Odds on Shop B-1
+Rs = Cellular Shopper Odds on Shop B-1
+Rt = Barter Box Odds on Shop B-1
+Ru = Super Warp Pipe Odds on Shop B-1
+Rv = Chance Time Charm Odds on Shop B-1
+Rw = Wacky Watch Odds on Shop B-1
+Rx = Plunder Chest Odds on Shop B-1
+Ry = Gaddbrush Odds on Shop B-1
+Rz = Skeleton Key Odds on Shop B-1
+R0 = Warp Block Odds on Shop B-1
+R1 = Fly Guy Odds on Shop B-1
+R2 = Plus Block Odds on Shop B-1
+R3 = Minus Block Odds on Shop B-1
+R4 = Speed Block Odds on Shop B-1
+R5 = Slow Block Odds on Shop B-1
+R6 = Poison Shroom Odds on Shop B-1
+R7 = Triple Poison Shroom Odds on Shop B-1
+R8 = Double Dip odds on Shop B-1
+R9 = Reverse Mushroom Odds on Shop B-1
+
+Sa = Mini Mushroom Odds on Shop C-1
+Sb = Mega Mushroom Odds on Shop C-1
+Sc = Super Mini Mushroom Odds on Shop C-1
+Sd = Super Mega Mushroom Odds on Shop C-1
+Se = MiniMega Hammer Odds on Shop C-1
+Sf = Warp Pipe Odds on Shop C-1
+Sg = Swap Card Odds on Shop C-1
+Sh = Sparky Sticker Odds on Shop C-1
+Si = Gaddlight Odds on Shop C-1
+Sj = Chomp Call Odds on Shop C-1
+Sk = Bowser Suit Odds on Shop C-1
+Sl = Boo's Crystal Ball Odds on Shop C-1
+Sm = Magic Lamp Odds on Shop C-1
+Sn = Item Bag Odds on Shop C-1
+So = Bowser Phone Odds on Shop C-1
+Sp = Mushroom Odds on Shop C-1
+Sq = Golden Mushroom Odds on Shop C-1
+Sr = Hidden Block Card Odds on Shop C-1
+Ss = Cellular Shopper Odds on Shop C-1
+St = Barter Box Odds on Shop C-1
+Su = Super Warp Pipe Odds on Shop C-1
+Sv = Chance Time Charm Odds on Shop C-1
+Sw = Wacky Watch Odds on Shop C-1
+Sx = Plunder Chest Odds on Shop C-1
+Sy = Gaddbrush Odds on Shop C-1
+Sz = Skeleton Key Odds on Shop C-1
+S0 = Warp Block Odds on Shop C-1
+S1 = Fly Guy Odds on Shop C-1
+S2 = Plus Block Odds on Shop C-1
+S3 = Minus Block Odds on Shop C-1
+S4 = Speed Block Odds on Shop C-1
+S5 = Slow Block Odds on Shop C-1
+S6 = Poison Shroom Odds on Shop C-1
+S7 = Triple Poison Shroom Odds on Shop C-1
+S8 = Double Dip odds on Shop C-1
+S9 = Reverse Mushroom Odds on Shop C-1
+
+
+Ta = Mini Mushroom Odds on Shop D-1
+Tb = Mega Mushroom Odds on Shop D-1
+Tc = Super Mini Mushroom Odds on Shop D-1
+Td = Super Mega Mushroom Odds on Shop D-1
+Te = MiniMega Hammer Odds on Shop D-1
+Tf = Warp Pipe Odds on Shop D-1
+Tg = Swap Card Odds on Shop D-1
+Th = Sparky Sticker Odds on Shop D-1
+Ti = Gaddlight Odds on Shop D-1
+Tj = Chomp Call Odds on Shop D-1
+Tk = Bowser Suit Odds on Shop D-1
+Tl = Boo's Crystal Ball Odds on Shop D-1
+Tm = Magic Lamp Odds on Shop D-1
+Tn = Item Bag Odds on Shop D-1
+To = Bowser Phone Odds on Shop D-1
+Tp = Mushroom Odds on Shop D-1
+Tq = Golden Mushroom Odds on Shop D-1
+Tr = Hidden Block Card Odds on Shop D-1
+Ts = Cellular Shopper Odds on Shop D-1
+Tt = Barter Box Odds on Shop D-1
+Tu = Super Warp Pipe Odds on Shop D-1
+Tv = Chance Time Charm Odds on Shop D-1
+Tw = Wacky Watch Odds on Shop D-1
+Tx = Plunder Chest Odds on Shop D-1
+Ty = Gaddbrush Odds on Shop D-1
+Tz = Skeleton Key Odds on Shop D-1
+T0 = Warp Block Odds on Shop D-1
+T1 = Fly Guy Odds on Shop D-1
+T2 = Plus Block Odds on Shop D-1
+T3 = Minus Block Odds on Shop D-1
+T4 = Speed Block Odds on Shop D-1
+T5 = Slow Block Odds on Shop D-1
+T6 = Poison Shroom Odds on Shop D-1
+T7 = Triple Poison Shroom Odds on Shop D-1
+T8 = Double Dip odds on Shop D-1
+T9 = Reverse Mushroom Odds on Shop D-1
+
+Ua = Mini Mushroom Odds on Shop E-1
+Ub = Mega Mushroom Odds on Shop E-1
+Uc = Super Mini Mushroom Odds on Shop E-1
+Ud = Super Mega Mushroom Odds on Shop E-1
+Ue = MiniMega Hammer Odds on Shop E-1
+Uf = Warp Pipe Odds on Shop E-1
+Ug = Swap Card Odds on Shop E-1
+Uh = Sparky Sticker Odds on Shop E-1
+Ui = Gaddlight Odds on Shop E-1
+Uj = Chomp Call Odds on Shop E-1
+Uk = Bowser Suit Odds on Shop E-1
+Ul = Boo's Crystal Ball Odds on Shop E-1
+Um = Magic Lamp Odds on Shop E-1
+Un = Item Bag Odds on Shop E-1
+Uo = Bowser Phone Odds on Shop E-1
+Up = Mushroom Odds on Shop E-1
+Uq = Golden Mushroom Odds on Shop E-1
+Ur = Hidden Block Card Odds on Shop E-1
+Us = Cellular Shopper Odds on Shop E-1
+Ut = Barter Box Odds on Shop E-1
+Uu = Super Warp Pipe Odds on Shop E-1
+Uv = Chance Time Charm Odds on Shop E-1
+Uw = Wacky Watch Odds on Shop E-1
+Ux = Plunder Chest Odds on Shop E-1
+Uy = Gaddbrush Odds on Shop E-1
+Uz = Skeleton Key Odds on Shop E-1
+U0 = Warp Block Odds on Shop E-1
+U1 = Fly Guy Odds on Shop E-1
+U2 = Plus Block Odds on Shop E-1
+U3 = Minus Block Odds on Shop E-1
+U4 = Speed Block Odds on Shop E-1
+U5 = Slow Block Odds on Shop E-1
+U6 = Poison Shroom Odds on Shop E-1
+U7 = Triple Poison Shroom Odds on Shop E-1
+U8 = Double Dip odds on Shop E-1
+U9 = Reverse Mushroom Odds on Shop E-1
+
+Va = Mini Mushroom Odds on Shop A-2
+Vb = Mega Mushroom Odds on Shop A-2
+Vc = Super Mini Mushroom Odds on Shop A-2
+Vd = Super Mega Mushroom Odds on Shop A-2
+Ve = MiniMega Hammer Odds on Shop A-2
+Vf = Warp Pipe Odds on Shop A-2
+Vg = Swap Card Odds on Shop A-2
+Vh = Sparky Sticker Odds on Shop A-2
+Vi = Gaddlight Odds on Shop A-2
+Vj = Chomp Call Odds on Shop A-2
+Vk = Bowser Suit Odds on Shop A-2
+Vl = Boo's Crystal Ball Odds on Shop A-2
+Vm = Magic Lamp Odds on Shop A-2
+Vn = Item Bag Odds on Shop A-2
+Vo = Bowser Phone Odds on Shop A-2
+Vp = Mushroom Odds on Shop A-2
+Vq = Golden Mushroom Odds on Shop A-2
+Vr = Hidden Block Card Odds on Shop A-2
+Vs = Cellular Shopper Odds on Shop A-2
+Vt = Barter Box Odds on Shop A-2
+Vu = Super Warp Pipe Odds on Shop A-2
+Vv = Chance Time Charm Odds on Shop A-2
+Vw = Wacky Watch Odds on Shop A-2
+Vx = Plunder Chest Odds on Shop A-2
+Vy = Gaddbrush Odds on Shop A-2
+Vz = Skeleton Key Odds on Shop A-2
+V0 = Warp Block Odds on Shop A-2
+V1 = Fly Guy Odds on Shop A-2
+V2 = Plus Block Odds on Shop A-2
+V3 = Minus Block Odds on Shop A-2
+V4 = Speed Block Odds on Shop A-2
+V5 = Slow Block Odds on Shop A-2
+V6 = Poison Shroom Odds on Shop A-2
+V7 = Triple Poison Shroom Odds on Shop A-2
+V8 = Double Dip odds on Shop A-2
+V9 = Reverse Mushroom Odds on Shop A-2
+
+Wa = Mini Mushroom Odds on Shop B-2
+Wb = Mega Mushroom Odds on Shop B-2
+Wc = Super Mini Mushroom Odds on Shop B-2
+Wd = Super Mega Mushroom Odds on Shop B-2
+We = MiniMega Hammer Odds on Shop B-2
+Wf = Warp Pipe Odds on Shop B-2
+Wg = Swap Card Odds on Shop B-2
+Wh = Sparky Sticker Odds on Shop B-2
+Wi = Gaddlight Odds on Shop B-2
+Wj = Chomp Call Odds on Shop B-2
+Wk = Bowser Suit Odds on Shop B-2
+Wl = Boo's Crystal Ball Odds on Shop B-2
+Wm = Magic Lamp Odds on Shop B-2
+Wn = Item Bag Odds on Shop B-2
+Wo = Bowser Phone Odds on Shop B-2
+Wp = Mushroom Odds on Shop B-2
+Wq = Golden Mushroom Odds on Shop B-2
+Wr = Hidden Block Card Odds on Shop B-2
+Ws = Cellular Shopper Odds on Shop B-2
+Wt = Barter Box Odds on Shop B-2
+Wu = Super Warp Pipe Odds on Shop B-2
+Wv = Chance Time Charm Odds on Shop B-2
+Ww = Wacky Watch Odds on Shop B-2
+Wx = Plunder Chest Odds on Shop B-2
+Wy = Gaddbrush Odds on Shop B-2
+Wz = Skeleton Key Odds on Shop B-2
+W0 = Warp Block Odds on Shop B-2
+W1 = Fly Guy Odds on Shop B-2
+W2 = Plus Block Odds on Shop B-2
+W3 = Minus Block Odds on Shop B-2
+W4 = Speed Block Odds on Shop B-2
+W5 = Slow Block Odds on Shop B-2
+W6 = Poison Shroom Odds on Shop B-2
+W7 = Triple Poison Shroom Odds on Shop B-2
+W8 = Double Dip odds on Shop B-2
+W9 = Reverse Mushroom Odds on Shop B-2
+
+Xa = Mini Mushroom Odds on Shop C-2
+Xb = Mega Mushroom Odds on Shop C-2
+Xc = Super Mini Mushroom Odds on Shop C-2
+Xd = Super Mega Mushroom Odds on Shop C-2
+Xe = MiniMega Hammer Odds on Shop C-2
+Xf = Warp Pipe Odds on Shop C-2
+Xg = Swap Card Odds on Shop C-2
+Xh = Sparky Sticker Odds on Shop C-2
+Xi = Gaddlight Odds on Shop C-2
+Xj = Chomp Call Odds on Shop C-2
+Xk = Bowser Suit Odds on Shop C-2
+Xl = Boo's Crystal Ball Odds on Shop C-2
+Xm = Magic Lamp Odds on Shop C-2
+Xn = Item Bag Odds on Shop C-2
+Oo = Bowser Phone Odds on Shop C-2
+Xp = Mushroom Odds on Shop C-2
+Xq = Golden Mushroom Odds on Shop C-2
+Xr = Hidden Block Card Odds on Shop C-2
+Xs = Cellular Shopper Odds on Shop C-2
+Xt = Barter Box Odds on Shop C-2
+Xu = Super Warp Pipe Odds on Shop C-2
+Xv = Chance Time Charm Odds on Shop C-2
+Xw = Wacky Watch Odds on Shop C-2
+Xx = Plunder Chest Odds on Shop C-2
+Xy = Gaddbrush Odds on Shop C-2
+Xz = Skeleton Key Odds on Shop C-2
+X0 = Warp Block Odds on Shop C-2
+X1 = Fly Guy Odds on Shop C-2
+X2 = Plus Block Odds on Shop C-2
+X3 = Minus Block Odds on Shop C-2
+X4 = Speed Block Odds on Shop C-2
+X5 = Slow Block Odds on Shop C-2
+X6 = Poison Shroom Odds on Shop C-2
+X7 = Triple Poison Shroom Odds on Shop C-2
+X8 = Double Dip odds on Shop C-2
+X9 = Reverse Mushroom Odds on Shop C-2
+
+Ya = Mini Mushroom Odds on Shop D-2
+Yb = Mega Mushroom Odds on Shop D-2
+Yc = Super Mini Mushroom Odds on Shop D-2
+Yd = Super Mega Mushroom Odds on Shop D-2
+Ye = MiniMega Hammer Odds on Shop D-2
+Yf = Warp Pipe Odds on Shop D-2
+Yg = Swap Card Odds on Shop D-2
+Yh = Sparky Sticker Odds on Shop D-2
+Yi = Gaddlight Odds on Shop D-2
+Yj = Chomp Call Odds on Shop D-2
+Yk = Bowser Suit Odds on Shop D-2
+Yl = Boo's Crystal Ball Odds on Shop D-2
+Ym = Magic Lamp Odds on Shop D-2
+Yn = Item Bag Odds on Shop D-2
+Oo = Bowser Phone Odds on Shop D-2
+Yp = Mushroom Odds on Shop D-2
+Yq = Golden Mushroom Odds on Shop D-2
+Yr = Hidden Block Card Odds on Shop D-2
+Ys = Cellular Shopper Odds on Shop D-2
+Yt = Barter Box Odds on Shop D-2
+Yu = Super Warp Pipe Odds on Shop D-2
+Yv = Chance Time Charm Odds on Shop D-2
+Yw = Wacky Watch Odds on Shop D-2
+Yx = Plunder Chest Odds on Shop D-2
+Yy = Gaddbrush Odds on Shop D-2
+Yz = Skeleton Key Odds on Shop D-2
+Y0 = Warp Block Odds on Shop D-2
+Y1 = Fly Guy Odds on Shop D-2
+Y2 = Plus Block Odds on Shop D-2
+Y3 = Minus Block Odds on Shop D-2
+Y4 = Speed Block Odds on Shop D-2
+Y5 = Slow Block Odds on Shop D-2
+Y6 = Poison Shroom Odds on Shop D-2
+Y7 = Triple Poison Shroom Odds on Shop D-2
+Y8 = Double Dip odds on Shop D-2
+Y9 = Reverse Mushroom Odds on Shop D-2
+
+Za = Mini Mushroom Odds on Shop E-2
+Zb = Mega Mushroom Odds on Shop E-2
+Zc = Super Mini Mushroom Odds on Shop E-2
+Zd = Super Mega Mushroom Odds on Shop E-2
+Ze = MiniMega Hammer Odds on Shop E-2
+Zf = Warp Pipe Odds on Shop E-2
+Zg = Swap Card Odds on Shop E-2
+Zh = Sparky Sticker Odds on Shop E-2
+Zi = Gaddlight Odds on Shop E-2
+Zj = Chomp Call Odds on Shop E-2
+Zk = Bowser Suit Odds on Shop E-2
+Zl = Boo's Crystal Ball Odds on Shop E-2
+Zm = Magic Lamp Odds on Shop E-2
+Zn = Item Bag Odds on Shop E-2
+Oo = Bowser Phone Odds on Shop E-2
+Zp = Mushroom Odds on Shop E-2
+Zq = Golden Mushroom Odds on Shop E-2
+Zr = Hidden Block Card Odds on Shop E-2
+Zs = Cellular Shopper Odds on Shop E-2
+Zt = Barter Box Odds on Shop E-2
+Zu = Super Warp Pipe Odds on Shop E-2
+Zv = Chance Time Charm Odds on Shop E-2
+Zw = Wacky Watch Odds on Shop E-2
+Zx = Plunder Chest Odds on Shop E-2
+Zy = Gaddbrush Odds on Shop E-2
+Zz = Skeleton Key Odds on Shop E-2
+Z0 = Warp Block Odds on Shop E-2
+Z1 = Fly Guy Odds on Shop E-2
+Z2 = Plus Block Odds on Shop E-2
+Z3 = Minus Block Odds on Shop E-2
+Z4 = Speed Block Odds on Shop E-2
+Z5 = Slow Block Odds on Shop E-2
+Z6 = Poison Shroom Odds on Shop E-2
+Z7 = Triple Poison Shroom Odds on Shop E-2
+Z8 = Double Dip odds on Shop E-2
+Z9 = Reverse Mushroom Odds on Shop E-2

@@ -1,0 +1,48 @@
+MP4DX - Item Price Modifier: This Gecko Code allows you to change the prices on MP4DX to your liking! It only works on the mod, do not use on the vanilla game. To have the updated price text display in-game, you must hex-edit board_e.dat.
+04071F08 AwBwCwDw
+04071F0C EwFwGwHw
+04071F10 IwJwKwLw
+04071F14 MwNwOwPw
+04071F18 QwRwSwTw
+04071F1C UwVwWwXw
+04071F20 YwZwAxBx
+04071F24 CxDxExFx
+04071F28 GxHxIxJx
+
+ITEMS:
+Aw = Mini Mushroom
+Bw = Mega Mushroom
+Cw = Super Mini Mushroom
+Dw = Super Mega Mushroom
+Ew = MiniMega Hammer
+Fw = Warp Pipe 
+Gw = Swap Card 
+Hw = Sparky Sticker 
+Iw = Gaddlight 
+Jw = Chomp Call 
+Kw = Bowser Suit 
+Lw = Boo Crystal Ball 
+Mw = Magic Lamp 
+Nw = Item Bag
+Ow = Bowser Phone
+Pw = Mushroom
+Qw = Golden Mushroom
+Rw = Hidden Block Card 
+Sw = Cellular Shopper
+Tw = Barter Box
+Uw = Super Warp Pipe
+Vw = Chance Time Charm
+Ww = Wacky Watch
+Xw = Plunder Chest
+Yw = Gaddbrush
+Zw = Skeleton Key
+Ax = Warp Block
+Bx = Fly Guy
+Cx = Plus Block
+Dx = Minus Block
+Ex = Speed Block 
+Fx = Slow Block
+Gx = Poison Shroom 
+Hx = Triple Poison Shroom
+Ix = Double Dip
+Jx = Reverse Mushroom

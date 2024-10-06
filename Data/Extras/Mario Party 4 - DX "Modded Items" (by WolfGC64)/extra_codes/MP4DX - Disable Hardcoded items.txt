@@ -1,0 +1,5 @@
+MP4DX - Disable Hardcoded Items
+C207980C 00000001
+7C602214 00000000
+
+Disable the hardcoded items completely, making all 7 shop items completely random! -Do not use with the Hardcoded items modifier code also enabled.
