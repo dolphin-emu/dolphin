@@ -197,7 +197,7 @@ void HotkeyScheduler::Run()
         emit OpenAchievements();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
-      if (!Core::IsRunning(system))
+      if (Core::IsUninitialized(system))
       {
         // Only check for Play Recording hotkey when no game is running
         if (IsHotkey(HK_PLAY_RECORDING))
