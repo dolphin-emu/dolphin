@@ -827,35 +827,27 @@ void MainWindow::Open()
 
 void MainWindow::Play(const std::optional<std::string>& savestate_path)
 {
-  // If we're in a paused game, start it up again.
-  // Otherwise, play the selected game, if there is one.
+  // Play the selected game, if there is one.
   // Otherwise, play the default game.
   // Otherwise, play the last played game, if there is one.
   // Otherwise, prompt for a new game.
-  if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+  std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
+  if (selection)
   {
-    Core::SetState(Core::System::GetInstance(), Core::State::Running);
+    StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
+              std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
   }
   else
   {
-    std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
-    if (selection)
+    const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
+    if (!default_path.isEmpty() && QFile::exists(default_path))
     {
-      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
+      StartGame(default_path, ScanForSecondDisc::Yes,
                 std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
     }
     else
     {
-      const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
-      if (!default_path.isEmpty() && QFile::exists(default_path))
-      {
-        StartGame(default_path, ScanForSecondDisc::Yes,
-                  std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
-      }
-      else
-      {
-        Open();
-      }
+      Open();
     }
   }
 }
