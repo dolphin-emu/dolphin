@@ -208,6 +208,8 @@ const Info<bool> MAIN_DISABLE_ICACHE{{System::Main, "Core", "DisableICache"}, fa
 const Info<float> MAIN_EMULATION_SPEED{{System::Main, "Core", "EmulationSpeed"}, 1.0f};
 const Info<float> MAIN_OVERCLOCK{{System::Main, "Core", "Overclock"}, 1.0f};
 const Info<bool> MAIN_OVERCLOCK_ENABLE{{System::Main, "Core", "OverclockEnable"}, false};
+const Info<float> MAIN_VI_OVERCLOCK{{System::Main, "Core", "VIOverclock"}, 1.0f};
+const Info<bool> MAIN_VI_OVERCLOCK_ENABLE{{System::Main, "Core", "VIOverclockEnable"}, false};
 const Info<bool> MAIN_RAM_OVERRIDE_ENABLE{{System::Main, "Core", "RAMOverrideEnable"}, false};
 const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_SIZE_RETAIL};
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
