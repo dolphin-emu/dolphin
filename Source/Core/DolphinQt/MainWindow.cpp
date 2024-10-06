@@ -47,6 +47,7 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/Config/WiimoteSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -832,22 +833,29 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   // Otherwise, play the last played game, if there is one.
   // Otherwise, prompt for a new game.
   std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
-  if (selection)
+  if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused && 
+    selection->GetGameID() == SConfig::GetInstance().GetGameID())
   {
-    StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
-              std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
+    Core::SetState(Core::System::GetInstance(), Core::State::Running);
   }
-  else
-  {
-    const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
-    if (!default_path.isEmpty() && QFile::exists(default_path))
+  else {
+    if (selection)
     {
-      StartGame(default_path, ScanForSecondDisc::Yes,
+      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
                 std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
     }
     else
     {
-      Open();
+      const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
+      if (!default_path.isEmpty() && QFile::exists(default_path))
+      {
+        StartGame(default_path, ScanForSecondDisc::Yes,
+                  std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
+      }
+      else
+      {
+        Open();
+      }
     }
   }
 }
