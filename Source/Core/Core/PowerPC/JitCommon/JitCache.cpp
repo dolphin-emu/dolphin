@@ -57,7 +57,7 @@ void JitBaseBlockCache::Init()
   m_entry_points_ptr = nullptr;
 #ifdef _ARCH_64
   if (Config::Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP))
-    m_entry_points_ptr = reinterpret_cast<u8**>(m_entry_points_arena.Create(FAST_BLOCK_MAP_SIZE));
+    m_entry_points_ptr = static_cast<u8**>(m_entry_points_arena.Create(FAST_BLOCK_MAP_SIZE));
 #endif
 
   Clear();

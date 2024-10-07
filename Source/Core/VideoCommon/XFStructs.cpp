@@ -267,7 +267,7 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
   auto& fifo = system.GetFifo();
   if (fifo.UseDeterministicGPUThread())
   {
-    newData = reinterpret_cast<u32*>(fifo.PopFifoAuxBuffer(buf_size));
+    newData = static_cast<u32*>(fifo.PopFifoAuxBuffer(buf_size));
   }
   else
   {
