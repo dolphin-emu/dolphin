@@ -399,9 +399,11 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Infinity.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\Microphone.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\WiiSpeak.h" />
     <ClInclude Include="Core\IOS\USB\Host.h" />
     <ClInclude Include="Core\IOS\USB\LibusbDevice.h" />
     <ClInclude Include="Core\IOS\USB\OH0\OH0.h" />
@@ -1063,9 +1065,11 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Infinity.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\Microphone.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\WiiSpeak.cpp" />
     <ClCompile Include="Core\IOS\USB\Host.cpp" />
     <ClCompile Include="Core\IOS\USB\LibusbDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\OH0\OH0.cpp" />

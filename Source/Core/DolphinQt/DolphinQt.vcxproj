@@ -156,6 +156,7 @@
     <ClCompile Include="Debugger\WatchWidget.cpp" />
     <ClCompile Include="DiscordHandler.cpp" />
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
+    <ClCompile Include="EmulatedUSB\WiiSpeakWindow.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
@@ -369,6 +370,7 @@
     <QtMoc Include="Debugger\WatchWidget.h" />
     <QtMoc Include="DiscordHandler.h" />
     <QtMoc Include="DiscordJoinRequestDialog.h" />
+    <QtMoc Include="EmulatedUSB\WiiSpeakWindow.h" />
     <QtMoc Include="FIFO\FIFOAnalyzer.h" />
     <QtMoc Include="FIFO\FIFOPlayerWindow.h" />
     <QtMoc Include="GameList\GameList.h" />

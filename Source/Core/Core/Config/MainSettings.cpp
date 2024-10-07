@@ -572,6 +572,14 @@ const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
 const Info<bool> MAIN_EMULATE_INFINITY_BASE{
     {System::Main, "EmulatedUSBDevices", "EmulateInfinityBase"}, false};
 
+const Info<bool> MAIN_EMULATE_WII_SPEAK{{System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"},
+                                        false};
+
+const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakMicrophone"}, ""};
+
+const Info<bool> MAIN_WII_SPEAK_MUTED{{System::Main, "EmulatedUSBDevices", "WiiSpeakMuted"}, true};
+
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
 DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
