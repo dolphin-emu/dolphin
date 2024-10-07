@@ -130,7 +130,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 
   if (uncompressed)
   {
-    std::copy(m_zlib_buffer.begin(), m_zlib_buffer.begin() + comp_block_size, out_ptr);
+    std::copy_n(m_zlib_buffer.begin(), comp_block_size, out_ptr);
   }
   else
   {

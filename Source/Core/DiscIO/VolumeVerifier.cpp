@@ -1302,7 +1302,7 @@ void VolumeVerifier::Finish()
       m_result.hashes.crc32 = std::vector<u8>(4);
       const u32 crc32_be = Common::swap32(m_crc32_context);
       const u8* crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
-      std::copy(crc32_be_ptr, crc32_be_ptr + 4, m_result.hashes.crc32.begin());
+      std::copy_n(crc32_be_ptr, 4, m_result.hashes.crc32.begin());
     }
 
     if (m_hashes_to_calculate.md5)
