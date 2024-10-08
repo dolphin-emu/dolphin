@@ -1226,6 +1226,24 @@ class SettingsFragmentPresenter(
                 MenuTag.getWiimoteMenuTag(3)
             )
         )
+        sl.add(SwitchSetting(context, object : AbstractBooleanSetting {
+            override val isOverridden: Boolean = IntSetting.WIIMOTE_BB_SOURCE.isOverridden
+
+            override val isRuntimeEditable: Boolean = IntSetting.WIIMOTE_BB_SOURCE.isRuntimeEditable
+
+            override fun delete(settings: Settings): Boolean {
+                return IntSetting.WIIMOTE_BB_SOURCE.delete(settings)
+            }
+
+            override val boolean: Boolean get() = IntSetting.WIIMOTE_BB_SOURCE.int == 2
+
+            override fun setBoolean(settings: Settings, newValue: Boolean) {
+                // 0 == None
+                // 1 == Emulated
+                // 2 == Real
+                IntSetting.WIIMOTE_BB_SOURCE.setInt(settings, if (newValue) 2 else 0)
+            }
+        }, R.string.real_balance_board, 0))
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {

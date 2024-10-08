@@ -23,6 +23,8 @@
     <string name="wiimote_extension_2">Wii Remote Extension 3</string>
     <string name="wiimote_extension_3">Wii Remote Extension 4</string>
 
+    <string name="real_balance_board">Real Balance Board</string>
+
     <string name="wiimote">Wii Remote</string>
     <string name="wiimote_general">Buttons</string>
     <string name="wiimote_motion_simulation">Motion Simulation</string>
