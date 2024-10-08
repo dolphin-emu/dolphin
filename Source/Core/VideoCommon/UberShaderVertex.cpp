@@ -438,8 +438,8 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   // divide, because some games will use a depth range larger than what is allowed by the
   // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
   // games effectively add a depth bias to the values written to the depth buffer.
-  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
-            "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+  out.Write("o.pos.z = o.pos.w * " I_PIXELPOSITIONCORRECTION ".w - "
+            "o.pos.z * " I_PIXELPOSITIONCORRECTION ".z;\n");
 
   if (!host_config.backend_clip_control)
   {
@@ -451,15 +451,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
 
   // Correct for negative viewports by mirroring all vertices. We need to negate the height here,
   // since the viewport height is already negated by the render backend.
-  out.Write("o.pos.xy *= sign(" I_PIXELCENTERCORRECTION ".xy * float2(1.0, -1.0));\n");
-
-  // The console GPU places the pixel center at 7/12 in screen space unless
-  // antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
-  // in some primitives being placed one pixel too far to the bottom-right,
-  // which in turn can be critical if it happens for clear quads.
-  // Hence, we compensate for this pixel center difference so that primitives
-  // get rasterized correctly.
-  out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
+  out.Write("o.pos.xy *= sign(" I_PIXELPOSITIONCORRECTION ".xy * float2(1.0, -1.0));\n");
 
   if (vertex_rounding)
   {
