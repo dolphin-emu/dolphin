@@ -37,7 +37,7 @@ for %%F in (%iso_files%) do (
     REM Copy files using xcopy
     xcopy "mp8motion" "!dest_dir!" /s /y /e
 
-    "tools/wit" copy "temp" "..\Mario Party 8 (USA) [GameCube Controller v6].wbfs"
+    "tools/wit" copy "temp" "..\Mario Party 8 (USA) [GameCube Controller v7].wbfs"
     rmdir /s /q temp
     echo Press Enter to continue.
     pause
