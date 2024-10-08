@@ -12,11 +12,13 @@ enum class DPL2Quality;
 
 class QCheckBox;
 class QComboBox;
+class QGroupBox;
 class QHBoxLayout;
 class QLabel;
 class QRadioButton;
 class QSlider;
 class QSpinBox;
+class QStackedWidget;
 class SettingsWindow;
 
 class AudioPane final : public QWidget
@@ -71,9 +73,17 @@ private:
   QComboBox* m_wasapi_device_combo;
 #endif
 
-  // Audio Stretching
-  QCheckBox* m_stretching_enable;
-  QLabel* m_stretching_buffer_label;
+  // Audio Options
+  QGroupBox* m_audio_group;
+  QComboBox* m_audio_resampling_box;
+  QComboBox* m_audio_playback_mode_box;
+  QStackedWidget* m_audio_playback_mode_stack;
+
+  QGroupBox* m_direct_playback_box;
+  QSlider* m_direct_playback_latency;
+  QLabel* m_direct_playback_indicator;
+
+  QGroupBox* m_stretching_box;
   QSlider* m_stretching_buffer_slider;
   QLabel* m_stretching_buffer_indicator;
 };

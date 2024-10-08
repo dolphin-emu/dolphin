@@ -12,7 +12,7 @@
 
 namespace AudioCommon
 {
-AudioStretcher::AudioStretcher(unsigned int sample_rate) : m_sample_rate(sample_rate)
+AudioStretcher::AudioStretcher(u64 sample_rate) : m_sample_rate(sample_rate)
 {
   m_sound_touch.setChannels(2);
   m_sound_touch.setSampleRate(sample_rate);
@@ -25,46 +25,45 @@ void AudioStretcher::Clear()
   m_sound_touch.clear();
 }
 
-void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsigned int num_out)
+void AudioStretcher::ProcessSamples(const s16* in, u32 num_in, u32 num_out)
 {
-  const double time_delta = static_cast<double>(num_out) / m_sample_rate;  // seconds
+  const double time_delta = static_cast<double>(num_out) / m_sample_rate;
+  double current_ratio = static_cast<double>(num_in) / num_out;  // Current sample ratio.
 
-  // We were given actual_samples number of samples, and num_samples were requested from us.
-  double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
+  // Calculate maximum allowable backlog based on configured maximum latency.
+  const double max_latency = Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY) / 1000.0;
+  const double max_backlog = m_sample_rate * max_latency;  // Max number of samples in the backlog.
+  const double num_samples = m_sound_touch.numSamples();
 
-  const double max_latency = Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
-  const double max_backlog = m_sample_rate * max_latency / 1000.0 / m_stretch_ratio;
-  const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
-  if (backlog_fullness > 5.0)
-  {
-    // Too many samples in backlog: Don't push anymore on
+  // Prevent backlog from growing too large.
+  if (num_samples >= 5.0 * max_backlog)
     num_in = 0;
-  }
 
-  // We ideally want the backlog to be about 50% full.
-  // This gives some headroom both ways to prevent underflow and overflow.
-  // We tweak current_ratio to encourage this.
-  constexpr double tweak_time_scale = 0.5;  // seconds
-  current_ratio *= 1.0 + 2.0 * (backlog_fullness - 0.5) * (time_delta / tweak_time_scale);
+  // Target for backlog to be about 50% full to allow flexibility.
+  const double low_watermark = 0.5 * max_backlog;
+  const double requested_samples = m_stretch_ratio * num_out;
+  const double num_left = num_samples - requested_samples;
 
-  // This low-pass filter smoothes out variance in the calculated stretch ratio.
-  // The time-scale determines how responsive this filter is.
-  constexpr double lpf_time_scale = 1.0;  // seconds
-  const double lpf_gain = 1.0 - std::exp(-time_delta / lpf_time_scale);
+  // Adjustment parameters similar to those used in Mixer for pitch adjustment.
+  const double lpf_time_scale = 1.0 / 16.0;
+  const double control_effort = 1.0 / 16.0;
+  current_ratio *= 1.0 + control_effort * (num_left - low_watermark) / requested_samples;
+  current_ratio = std::clamp(current_ratio, 0.1, 10.0);
+
+  // Calculate target sample ratio and apply low-pass filter to smooth changes.
+  const double lpf_gain = -std::expm1(-time_delta / lpf_time_scale);
   m_stretch_ratio += lpf_gain * (current_ratio - m_stretch_ratio);
-
-  // Place a lower limit of 10% speed.  When a game boots up, there will be
-  // many silence samples.  These do not need to be timestretched.
-  m_stretch_ratio = std::max(m_stretch_ratio, 0.1);
   m_sound_touch.setTempo(m_stretch_ratio);
 
-  DEBUG_LOG_FMT(AUDIO, "Audio stretching: samples:{}/{} ratio:{} backlog:{} gain: {}", num_in,
-                num_out, m_stretch_ratio, backlog_fullness, lpf_gain);
+  // Debug log to monitor stretching stats.
+  DEBUG_LOG_FMT(AUDIO, "Audio stretching: samples:{}/{} ratio:{} backlog:{} gain:{}", num_in,
+                num_out, m_stretch_ratio, num_samples / max_backlog, lpf_gain);
 
+  // Add new samples to the processor for stretching.
   m_sound_touch.putSamples(in, num_in);
 }
 
-void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
+void AudioStretcher::GetStretchedSamples(s16* out, u32 num_out)
 {
   const size_t samples_received = m_sound_touch.receiveSamples(out, num_out);
 
@@ -80,6 +79,12 @@ void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
     out[i * 2 + 0] = m_last_stretched_sample[0];
     out[i * 2 + 1] = m_last_stretched_sample[1];
   }
+}
+
+DT AudioStretcher::AvailableSamplesTime() const
+{
+  const u32 backlog = m_sound_touch.numSamples();
+  return std::chrono::duration_cast<DT>(DT_s(backlog) / m_sample_rate);
 }
 
 }  // namespace AudioCommon
