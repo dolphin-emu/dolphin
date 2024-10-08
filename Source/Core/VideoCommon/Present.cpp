@@ -8,6 +8,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/System.h"
+#include "Core/NetPlayClient.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -857,7 +858,7 @@ void Presenter::Present()
     RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
   }
 
-  if (m_onscreen_ui)
+  if (m_onscreen_ui && !NetPlay::IsRollingBack())
   {
     m_onscreen_ui->Finalize();
     if (backbuffer_bound)
@@ -877,7 +878,7 @@ void Presenter::Present()
     SetSuggestedWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
   }
 
-  if (m_onscreen_ui)
+  if (m_onscreen_ui && !NetPlay::IsRollingBack())
     m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
 
   g_gfx->EndUtilityDrawing();
