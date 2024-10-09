@@ -101,8 +101,12 @@ android {
     defaultConfig {
         externalNativeBuild {
             cmake {
-                arguments("-DANDROID_STL=c++_static", "-DCMAKE_BUILD_TYPE=RelWithDebInfo")
-                // , "-DENABLE_GENERIC=ON"
+                arguments(
+                    "-DANDROID_STL=c++_static",
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+                    "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+                    // , "-DENABLE_GENERIC=ON"
+                )
                 abiFilters("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
 
                 // Uncomment the line below if you don't want to build the C++ unit tests
