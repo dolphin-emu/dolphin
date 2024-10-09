@@ -18,7 +18,10 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
+#include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 
 struct GameHashes
@@ -42,7 +45,7 @@ TEST(PatchAllowlist, VerifyHashes)
   const auto& list_filepath = fmt::format("{}{}{}", sys_directory, DIR_SEP, APPROVED_LIST_FILENAME);
   ASSERT_TRUE(JsonFromFile(list_filepath, &json_tree, &error))
       << "Failed to open file at " << list_filepath;
-  // Parse allowlist - Map<game id, Map<hash, name>
+  // Parse allowlist - Map<game id, Map<hash, name>>
   ASSERT_TRUE(json_tree.is<picojson::object>());
   std::map<std::string /*ID*/, GameHashes> allow_list;
   for (const auto& entry : json_tree.get<picojson::object>())
@@ -67,12 +70,22 @@ TEST(PatchAllowlist, VerifyHashes)
     Common::IniFile ini_file;
     ini_file.Load(file.physicalName, true);
     std::string game_id = file.virtualName.substr(0, file.virtualName.find_first_of('.'));
+    std::map<std::string /*hash*/, std::string /*name*/> hashes;
     std::vector<PatchEngine::Patch> patches;
     PatchEngine::LoadPatchSection("OnFrame", &patches, ini_file, Common::IniFile());
+    std::vector<Gecko::GeckoCode> geckos = Gecko::LoadCodes(Common::IniFile(), ini_file);
+    std::vector<ActionReplay::ARCode> action_replays =
+        ActionReplay::LoadCodes(Common::IniFile(), ini_file);
     // Filter patches for RetroAchievements approved
     ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "OnFrame", false, &patches);
     ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "Patches_RetroAchievements_Verified", true,
                                               &patches);
+    ReadEnabledOrDisabled<Gecko::GeckoCode>(ini_file, "Gecko", false, &geckos);
+    ReadEnabledOrDisabled<Gecko::GeckoCode>(ini_file, "Gecko_RetroAchievements_Verified", true,
+                                            &geckos);
+    ReadEnabledOrDisabled<ActionReplay::ARCode>(ini_file, "ActionReplay", false, &action_replays);
+    ReadEnabledOrDisabled<ActionReplay::ARCode>(ini_file, "AR_RetroAchievements_Verified", true,
+                                                &action_replays);
     // Get game section from allow list
     auto game_itr = allow_list.find(game_id);
     // Iterate over approved patches
@@ -92,23 +105,58 @@ TEST(PatchAllowlist, VerifyHashes)
         context->Update(Common::BitCastToArray<u8>(entry.conditional));
       }
       auto digest = context->Finish();
-      std::string hash = Common::SHA1::DigestToString(digest);
+      hashes.emplace(Common::SHA1::DigestToString(digest), patch.name);
+    }
+    // Iterate over approved geckos
+    for (const auto& code : geckos)
+    {
+      if (!code.enabled)
+        continue;
+      // Hash patch
+      auto context = Common::SHA1::CreateContext();
+      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.codes.size())));
+      for (const auto& entry : code.codes)
+      {
+        context->Update(Common::BitCastToArray<u8>(entry.address));
+        context->Update(Common::BitCastToArray<u8>(entry.data));
+      }
+      auto digest = context->Finish();
+      hashes.emplace(Common::SHA1::DigestToString(digest), code.name);
+    }
+    // Iterate over approved AR codes
+    for (const auto& code : action_replays)
+    {
+      if (!code.enabled)
+        continue;
+      // Hash patch
+      auto context = Common::SHA1::CreateContext();
+      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.ops.size())));
+      for (const auto& entry : code.ops)
+      {
+        context->Update(Common::BitCastToArray<u8>(entry.cmd_addr));
+        context->Update(Common::BitCastToArray<u8>(entry.value));
+      }
+      auto digest = context->Finish();
+      hashes.emplace(Common::SHA1::DigestToString(digest), code.name);
+    }
+    for (const auto& hash : hashes)
+    {
       // Check patch in list
       if (game_itr == allow_list.end())
       {
         // Report: no patches in game found in list
         ADD_FAILURE() << "Approved hash missing from list." << std::endl
                       << "Game ID: " << game_id << std::endl
-                      << "Patch: \"" << hash << "\" : \"" << patch.name << "\"";
+                      << "Code: \"" << hash.first << "\": \"" << hash.second << "\"";
         continue;
       }
-      auto hash_itr = game_itr->second.hashes.find(hash);
+      auto hash_itr = game_itr->second.hashes.find(hash.first);
       if (hash_itr == game_itr->second.hashes.end())
       {
         // Report: patch not found in list
         ADD_FAILURE() << "Approved hash missing from list." << std::endl
                       << "Game ID: " << game_id << ":" << game_itr->second.game_title << std::endl
-                      << "Patch: \"" << hash << "\" : \"" << patch.name << "\"";
+                      << "Code: \"" << hash.first << "\": \"" << hash.second << "\"";
       }
       else
       {
@@ -123,7 +171,7 @@ TEST(PatchAllowlist, VerifyHashes)
     {
       ADD_FAILURE() << "Hash in list not approved in ini." << std::endl
                     << "Game ID: " << game_id << ":" << game_itr->second.game_title << std::endl
-                    << "Patch: " << remaining_hashes.second << ":" << remaining_hashes.first;
+                    << "Code: " << remaining_hashes.second << ":" << remaining_hashes.first;
     }
     //    Remove section from map
     allow_list.erase(game_itr);

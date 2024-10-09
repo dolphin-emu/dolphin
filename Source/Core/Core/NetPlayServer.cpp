@@ -31,6 +31,7 @@
 #include "Common/UPnP.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -2067,9 +2068,17 @@ bool NetPlayServer::SyncCodes()
   }
   // Sync Gecko Codes
   {
+    std::vector<Gecko::GeckoCode> s_codes = Gecko::LoadCodes(globalIni, localIni);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    {
+      std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+      AchievementManager::GetInstance().FilterApprovedGeckoCodes(s_codes, game_id);
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
+
     // Create a Gecko Code Vector with just the active codes
-    std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    std::vector<Gecko::GeckoCode> s_active_codes = Gecko::SetAndReturnActiveCodes(s_codes);
 
     // Determine Codelist Size
     u16 codelines = 0;
@@ -2117,9 +2126,15 @@ bool NetPlayServer::SyncCodes()
 
   // Sync AR Codes
   {
+    std::vector<ActionReplay::ARCode> s_codes = ActionReplay::LoadCodes(globalIni, localIni);
+#ifdef USE_RETRO_ACHIEVEMENTS
+    {
+      std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+      AchievementManager::GetInstance().FilterApprovedARCodes(s_codes, game_id);
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
     // Create an AR Code Vector with just the active codes
-    std::vector<ActionReplay::ARCode> s_active_codes =
-        ActionReplay::ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
+    std::vector<ActionReplay::ARCode> s_active_codes = ActionReplay::ApplyAndReturnCodes(s_codes);
 
     // Determine Codelist Size
     u16 codelines = 0;

@@ -148,6 +148,10 @@
     "title": "Gladius",
     "3D0894616C9A7FA5ED91C1D2F461BF14DF47ECEC": "Fix freeze in opening cutscene"
   },
+  "GMSE01": {
+    "title": "Super Mario Sunshine",
+    "BD718F961DBA5372B1D0257D454D535746C453A0": "Widescreen"
+  },
   "GNHE5d": {
     "title": "NHL HITZ 2002",
     "89393A24E2336841AA4CD0AD3BE1C9A66B89E9EF": "Nop Hack"
@@ -223,6 +227,18 @@
   "HAL": {
     "title": "Region Select",
     "AD12237401ABE9FE4A545AADB5C5AE10355E2076": "RSAPatch"
+  },
+  "HATE01": {
+    "title": "Nintendo Channel (NTSC-U)",
+    "664CA137FE090EF9C5C21FD0A0CB094A1603B6AA": "SSL Patch"
+  },
+  "HATJ01": {
+    "title": "Nintendo Channel (NTSC-J)",
+    "FD38FA8E6DBFCF977814E226F6B539C48F1FF05D": "SSL Patch"
+  },
+  "HATP01": {
+    "title": "Nintendo Channel (PAL)",
+    "0582D8B3E3A2C17AD2BF8B56C52A482F93183489": "SSL Patch"
   },
   "RELJAB": {
     "title": "SegaBoot",

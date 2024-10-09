@@ -197,8 +197,17 @@ void LoadPatches()
   }
   else
   {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+    auto gecko_codes = Gecko::LoadCodes(globalIni, localIni);
+    auto ar_codes = ActionReplay::LoadCodes(globalIni, localIni);
+#ifdef USE_RETRO_ACHIEVEMENTS
+    {
+      std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+      AchievementManager::GetInstance().FilterApprovedGeckoCodes(gecko_codes, sconfig.GetGameID());
+      AchievementManager::GetInstance().FilterApprovedARCodes(ar_codes, sconfig.GetGameID());
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
+    Gecko::SetActiveCodes(gecko_codes);
+    ActionReplay::ApplyCodes(ar_codes);
   }
 }
 
@@ -245,9 +254,6 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
 static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
                                std::span<const std::size_t> memory_patch_indices)
 {
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return;
-
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
   {
