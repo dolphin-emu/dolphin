@@ -13,7 +13,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Desktop
 
 * OS
-    * Windows (10 or higher).
+    * Windows (10 1703 or higher).
     * Linux.
     * macOS (10.15 Catalina or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
