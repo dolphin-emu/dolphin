@@ -67,6 +67,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/QtUtils/ViewportLock.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
@@ -115,6 +116,8 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
   connect(m_grid, &QListView::doubleClicked, this, &GameList::GameSelected);
   connect(&m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
   connect(&m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
+
+  m_viewportLock = new ViewportLock(this, m_list_proxy, m_list);
 
   addWidget(m_list);
   addWidget(m_grid);
