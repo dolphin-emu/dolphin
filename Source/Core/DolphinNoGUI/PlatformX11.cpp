@@ -26,6 +26,7 @@ static constexpr auto X_None = None;
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+#include "UICommon/UICommon.h"
 #include "UICommon/X11Utils.h"
 #include "VideoCommon/Present.h"
 
@@ -110,7 +111,7 @@ bool PlatformX11::Init()
   ProcessEvents();
 
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
-    X11Utils::InhibitScreensaver(m_window, true);
+    UICommon::InhibitScreenSaver(true);
 
 #ifdef HAVE_XRANDR
   m_xrr_config = new X11Utils::XRRConfiguration(m_display, m_window);
