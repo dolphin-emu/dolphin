@@ -144,7 +144,7 @@ Metal::StateTracker::Map Metal::StateTracker::AllocateForTextureUpload(size_t am
   CPUBuffer& buffer = m_texture_upload_buffer;
   u64 last_draw = m_last_finished_draw.load(std::memory_order_acquire);
   bool needs_new = buffer.usage.PrepareForAllocation(last_draw, amt);
-  if (__builtin_expect(needs_new, false))
+  if (needs_new) [[unlikely]]
   {
     // Orphan buffer
     size_t newsize = std::max<size_t>(buffer.usage.Size() * 2, 4096);
@@ -187,7 +187,7 @@ std::pair<void*, size_t> Metal::StateTracker::Preallocate(UploadBuffer buffer_id
     }
     buffer.last_upload = 0;
   }
-  if (__builtin_expect(needs_new, false))
+  if (needs_new) [[unlikely]]
   {
     // Orphan buffer
     size_t newsize = std::max<size_t>(buffer.usage.Size() * 2, 4096);
