@@ -192,7 +192,6 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 siz
                           bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time);
 
 bool operator==(const HeaderData& lhs, const HeaderData& rhs);
-bool operator!=(const HeaderData& lhs, const HeaderData& rhs);
 
 struct Header
 {

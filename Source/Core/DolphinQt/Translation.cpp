@@ -80,7 +80,6 @@ public:
 
   // Needed for InputIterator concept
   bool operator==(const MoIterator& other) const { return distance_to(other) == 0; }
-  bool operator!=(const MoIterator& other) const { return !(*this == other); }
   pointer operator->() const { return dereference(); }
   MoIterator operator++(int)
   {

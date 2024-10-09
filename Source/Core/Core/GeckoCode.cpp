@@ -30,19 +30,9 @@ bool operator==(const GeckoCode& lhs, const GeckoCode& rhs)
   return lhs.codes == rhs.codes;
 }
 
-bool operator!=(const GeckoCode& lhs, const GeckoCode& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
 bool operator==(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
 {
   return std::tie(lhs.address, lhs.data) == std::tie(rhs.address, rhs.data);
-}
-
-bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
-{
-  return !operator==(lhs, rhs);
 }
 
 enum class Installation

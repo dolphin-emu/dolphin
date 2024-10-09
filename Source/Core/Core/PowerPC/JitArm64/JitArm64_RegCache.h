@@ -151,7 +151,6 @@ public:
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
 
   bool operator==(Arm64Gen::ARM64Reg reg) const { return reg == m_reg; }
-  bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
 
 private:
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
