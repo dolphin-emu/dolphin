@@ -20,9 +20,16 @@
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+// List of graphics settings that are linked:
+// Graphics backend - Adapter, Antialiasing, other enhancements.
+// GPU texture decoding blocks Arbritrary mipmap detection.
+// Manual texture sampling (GFX_HACK_FAST_TEXTURE_SAMPLING = false) blocks texture filtering
+// 3D mode affects what shaders are available.
 
 GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_window(parent)
 {
@@ -31,7 +38,14 @@ GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_win
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this]() {
+    setWindowTitle(
+        tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));
+  });
+
+  // Make sure everything loads properly.
+  emit Config::OnConfigChanged();
+  OnBackendChanged();
 }
 
 void GraphicsWindow::CreateMainLayout()
@@ -65,12 +79,12 @@ void GraphicsWindow::CreateMainLayout()
   setLayout(main_layout);
 }
 
-void GraphicsWindow::OnBackendChanged(const QString& backend_name)
+void GraphicsWindow::OnBackendChanged()
 {
   VideoBackendBase::PopulateBackendInfo(m_main_window->GetWindowSystemInfo());
 
   setWindowTitle(
       tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));
 
-  emit BackendChanged(backend_name);
+  emit BackendChanged();
 }

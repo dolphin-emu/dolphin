@@ -7,27 +7,43 @@
 
 #include <QWidget>
 
+#include "Common/CommonTypes.h"
+
 class ConfigBool;
 class ConfigChoice;
+template <typename T1, typename T2>
+class ConfigComplexChoice;
 class ConfigSlider;
+class GameConfigWidget;
 class GraphicsWindow;
-class QCheckBox;
-class QComboBox;
 class QPushButton;
-class QSlider;
 class ToolTipComboBox;
 class ToolTipPushButton;
 enum class StereoMode : int;
+enum class TextureFilteringMode : int;
+namespace Config
+{
+template <typename T>
+class Info;
+class Layer;
+}  // namespace Config
 
 class EnhancementsWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit EnhancementsWidget(GraphicsWindow* parent);
+  EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
   void LoadSettings();
-  void SaveSettings();
+  void UpdateAAModes();
+
+  template <typename T>
+  T ReadSetting(const Config::Info<T>& setting) const;
+
+  template <typename T>
+  void WriteSetting(const Config::Info<T>& setting, const T& value);
 
   void CreateWidgets();
   void ConnectWidgets();
@@ -38,9 +54,9 @@ private:
 
   // Enhancements
   ConfigChoice* m_ir_combo;
-  ToolTipComboBox* m_aa_combo;
-  ToolTipComboBox* m_texture_filtering_combo;
-  ToolTipComboBox* m_output_resampling_combo;
+  ConfigComplexChoice<u32, bool>* m_aa_combo;
+  ConfigComplexChoice<int, TextureFilteringMode>* m_texture_filtering_combo;
+  ConfigChoice* m_output_resampling_combo;
   ToolTipComboBox* m_pp_effect;
   ToolTipPushButton* m_configure_color_correction;
   QPushButton* m_configure_pp_effect;
@@ -60,6 +76,6 @@ private:
   ConfigBool* m_3d_swap_eyes;
   ConfigBool* m_3d_per_eye_resolution;
 
+  Config::Layer* m_game_layer = nullptr;
   int m_msaa_modes;
-  bool m_block_save;
 };
