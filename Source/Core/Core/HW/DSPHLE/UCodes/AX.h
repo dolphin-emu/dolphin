@@ -30,6 +30,7 @@ class Accelerator;
 
 namespace DSP::HLE
 {
+struct AXPB;
 class DSPHLE;
 
 // We can't directly use the mixer_control field from the PB because it does
@@ -125,27 +126,6 @@ protected:
   // versions of AX.
   AXMixControl ConvertMixerControl(u32 mixer_control);
 
-  // Apply updates to a PB. Generic, used in AX GC and AX Wii.
-  template <typename PBType>
-  void ApplyUpdatesForMs(int curr_ms, PBType& pb, u16* num_updates, u16* updates)
-  {
-    auto pb_mem = Common::BitCastToArray<u16>(pb);
-
-    u32 start_idx = 0;
-    for (int i = 0; i < curr_ms; ++i)
-      start_idx += num_updates[i];
-
-    for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
-    {
-      u16 update_off = Common::swap16(updates[2 * i]);
-      u16 update_val = Common::swap16(updates[2 * i + 1]);
-
-      pb_mem[update_off] = update_val;
-    }
-
-    pb = std::bit_cast<PBType>(pb_mem);
-  }
-
   virtual void HandleCommandList();
   void SignalWorkEnd();
 
@@ -195,6 +175,9 @@ protected:
   void DoAXState(PointerWrap& p);
 
 private:
+  void ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb);
+  void WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb);
+
   enum CmdType
   {
     CMD_SETUP = 0x00,
