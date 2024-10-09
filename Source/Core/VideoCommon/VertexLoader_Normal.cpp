@@ -49,7 +49,9 @@ void ReadIndirect(VertexLoader* loader, const T* data)
     const float value = FracAdjust(Common::FromBigEndian(data[i]));
     if (loader->m_remaining == 0)
     {
-      if (i >= 3 && i < 6)
+      if (i < 3)
+        VertexLoaderManager::normal_cache[i] = value;
+      else if (i >= 3 && i < 6)
         VertexLoaderManager::tangent_cache[i - 3] = value;
       else if (i >= 6 && i < 9)
         VertexLoaderManager::binormal_cache[i - 6] = value;

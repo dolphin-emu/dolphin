@@ -164,6 +164,13 @@ void VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentFor
     m_float_emit.STR(128, coords, EncodeRegTo64(scratch2_reg), ArithOption(remaining_reg, true));
     SetJumpTarget(dont_store);
   }
+  else if (native_format == &m_native_vtx_decl.normals[0])
+  {
+    FixupBranch dont_store = CBNZ(remaining_reg);
+    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::normal_cache.data());
+    m_float_emit.STR(128, IndexType::Unsigned, coords, EncodeRegTo64(scratch2_reg), 0);
+    SetJumpTarget(dont_store);
+  }
   else if (native_format == &m_native_vtx_decl.normals[1])
   {
     FixupBranch dont_store = CBNZ(remaining_reg);

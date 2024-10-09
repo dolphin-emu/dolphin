@@ -558,7 +558,7 @@ void VertexManagerBase::Flush()
     pixel_shader_manager.constants.time_ms = seconds_elapsed * 1000;
   }
 
-  CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
+  CalculateNormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
   const auto used_textures = UsedTextures();
   std::vector<std::string> texture_names;
@@ -699,6 +699,7 @@ void VertexManagerBase::DoState(PointerWrap& p)
   }
 
   p.Do(m_zslope);
+  p.Do(VertexLoaderManager::normal_cache);
   p.Do(VertexLoaderManager::tangent_cache);
   p.Do(VertexLoaderManager::binormal_cache);
 }
@@ -769,7 +770,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   m_zslope.dirty = true;
 }
 
-void VertexManagerBase::CalculateBinormals(NativeVertexFormat* format)
+void VertexManagerBase::CalculateNormals(NativeVertexFormat* format)
 {
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
@@ -792,6 +793,16 @@ void VertexManagerBase::CalculateBinormals(NativeVertexFormat* format)
   if (vertex_shader_manager.constants.cached_binormal != VertexLoaderManager::binormal_cache)
   {
     vertex_shader_manager.constants.cached_binormal = VertexLoaderManager::binormal_cache;
+    vertex_shader_manager.dirty = true;
+  }
+
+  if (vert_decl.normals[0].enable)
+    return;
+
+  VertexLoaderManager::normal_cache[3] = 0;
+  if (vertex_shader_manager.constants.cached_normal != VertexLoaderManager::normal_cache)
+  {
+    vertex_shader_manager.constants.cached_normal = VertexLoaderManager::normal_cache;
     vertex_shader_manager.dirty = true;
   }
 }
