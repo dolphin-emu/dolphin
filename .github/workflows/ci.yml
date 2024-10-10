@@ -17,7 +17,6 @@ jobs:
         sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         sudo flatpak install org.kde.Sdk//5.15 org.kde.Platform//5.15 -y
         sudo dnf install libusb1-devel cmake git gcc-c++ libXext-devel libgudev qt6-qtbase-devel systemd-devel openal-soft-devel libevdev-devel libao-devel SOIL-devel libXrandr-devel pulseaudio-libs-devel bluez-libs-devel p7zip SDL2-devel -y
-
     - name: Build
       run: flatpak-builder --user --install --force-clean build-dir Distribution/flatpak.yml
 
@@ -25,4 +24,69 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: DolphinMPN-flatpak
-        path: build-dir
+        path: Distribution/OUT/
+
+  build_appimage:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Submodules
+      run: git submodule update --init --recursive
+
+    - name: Setup Packages
+      run: sudo apt install desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
+
+    - name: Build
+      run: |
+        mkdir -p build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCMAKE_INSTALL_PREFIX=/usr -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DolphinMPN-AppImage
+        path: root/
+
+  build_macos:
+    runs-on: macos-13
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Submodules
+      run: git submodule update --init --recursive
+
+    - name: Setup Packages
+      run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
+
+    - name: Build
+      run: |
+        mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DolphinMPN-macOS
+        path: build/Binaries/
+
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Submodules
+      run: git submodule update --init --recursive
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vs-version: '16.6.2'
+
+    - name: Build
+      run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DolphinMPN-win32
+        path: Binary/x64/
