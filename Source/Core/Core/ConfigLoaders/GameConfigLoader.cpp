@@ -22,6 +22,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Projection.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -147,8 +148,7 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
 static std::pair<std::string, std::string> GetINILocationFromConfig(const Location& location)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
-  const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
-                               [&location](const auto& entry) { return entry.second == location; });
+  const auto it = std::ranges::find(ini_to_location, location, Common::Projection::Value{});
   if (it != ini_to_location.end())
     return it->first;
 

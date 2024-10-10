@@ -864,10 +864,7 @@ static std::vector<u8> ExtractNodeToVector(std::vector<FSTBuilderNode>* nodes, v
                                            DirectoryBlobReader* blob)
 {
   std::vector<u8> data;
-  const auto it =
-      std::find_if(nodes->begin(), nodes->end(), [&userdata](const FSTBuilderNode& node) {
-        return node.m_user_data == userdata;
-      });
+  const auto it = std::ranges::find(*nodes, userdata, &FSTBuilderNode::m_user_data);
   if (it == nodes->end() || !it->IsFile())
     return data;
 
@@ -1197,15 +1194,16 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
   std::vector<FSTBuilderNode>& sorted_entries = *parent_entries;
 
   // Sort for determinism
-  std::sort(sorted_entries.begin(), sorted_entries.end(),
-            [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
-              std::string one_upper = one.m_filename;
-              std::string two_upper = two.m_filename;
-              Common::ToUpper(&one_upper);
-              Common::ToUpper(&two_upper);
-              return one_upper == two_upper ? one.m_filename < two.m_filename :
-                                              one_upper < two_upper;
-            });
+  std::ranges::sort(
+      sorted_entries,
+      [](const std::string& one, const std::string& two) {
+        std::string one_upper = one;
+        std::string two_upper = two;
+        Common::ToUpper(&one_upper);
+        Common::ToUpper(&two_upper);
+        return one_upper == two_upper ? one < two : one_upper < two_upper;
+      },
+      &FSTBuilderNode::m_filename);
 
   for (FSTBuilderNode& entry : sorted_entries)
   {
