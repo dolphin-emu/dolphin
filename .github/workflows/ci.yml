@@ -37,7 +37,7 @@ jobs:
 
     - name: Setup Packages
       if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'AppImage'
-      run: sudo apt install ninja desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
+      run: sudo apt install ninja-build desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
 
     - name: Setup Packages
       if: matrix.os == 'macos-13'
