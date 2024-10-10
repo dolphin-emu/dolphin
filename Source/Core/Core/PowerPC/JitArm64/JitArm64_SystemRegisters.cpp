@@ -477,7 +477,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
   }
 
   // OK, this is easy.
-  ARM64Reg RD = gpr.R(inst.RD);
+  ARM64Reg RD = gpr.IsImm(inst.RD, 0) ? ARM64Reg::WZR : gpr.R(inst.RD);
   STR(IndexType::Unsigned, RD, PPC_REG, PPCSTATE_OFF_SPR(iIndex));
 }
 
