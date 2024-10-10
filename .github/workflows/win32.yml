@@ -30,7 +30,7 @@ jobs:
       run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release  /property:Platform=x64
     # Upload Artifact
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: DolphinMPN-win32
         path: D:\a\Dolphin-MPN\Dolphin-MPN\Binary\x64
