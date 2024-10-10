@@ -497,8 +497,12 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
-                              symbol->address, 0, symbol->name));
+    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address,
+                                   symbol->size, symbol->address, 0, symbol->name);
+    // Also write the object name if it exists
+    if (symbol->has_object_name)
+      line += fmt::format(" {0}", symbol->object_name);
+    f.WriteString(line);
   }
 
   // Write .data section
