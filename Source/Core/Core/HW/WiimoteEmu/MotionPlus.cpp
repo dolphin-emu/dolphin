@@ -44,7 +44,7 @@ struct MPI : mbedtls_mpi
     if (mbedtls_mpi_write_binary(this, out_data->data(), out_data->size()))
       return false;
 
-    std::reverse(out_data->begin(), out_data->end());
+    std::ranges::reverse(*out_data);
     return true;
   }
 

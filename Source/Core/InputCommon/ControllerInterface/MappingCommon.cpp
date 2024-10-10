@@ -101,7 +101,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
     }
     else
     {
-      std::sort(alternation.begin(), alternation.end());
+      std::ranges::sort(alternation);
       alternations.push_back(fmt::to_string(fmt::join(alternation, "&")));
     }
   };
@@ -128,7 +128,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
   handle_release();
 
   // Remove duplicates
-  std::sort(alternations.begin(), alternations.end());
+  std::ranges::sort(alternations);
   alternations.erase(std::unique(alternations.begin(), alternations.end()), alternations.end());
 
   return fmt::to_string(fmt::join(alternations, "|"));

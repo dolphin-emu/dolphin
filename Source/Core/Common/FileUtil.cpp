@@ -446,7 +446,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     // about with directory separators (for host paths - emulated paths may require it) and instead
     // use fs::path to interact with them.
     auto wpath = path.wstring();
-    std::replace(wpath.begin(), wpath.end(), L'\\', L'/');
+    std::ranges::replace(wpath, L'\\', L'/');
     return WStringToUTF8(wpath);
 #else
     return PathToString(path);

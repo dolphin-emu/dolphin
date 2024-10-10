@@ -36,10 +36,10 @@ MACAddress GenerateMacAddress(const MACConsumer type)
   switch (type)
   {
   case MACConsumer::BBA:
-    std::copy(oui_bba.begin(), oui_bba.end(), mac.begin());
+    std::ranges::copy(oui_bba, mac.begin());
     break;
   case MACConsumer::IOS:
-    std::copy(oui_ios.begin(), oui_ios.end(), mac.begin());
+    std::ranges::copy(oui_ios, mac.begin());
     break;
   }
 

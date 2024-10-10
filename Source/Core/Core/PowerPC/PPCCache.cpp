@@ -100,9 +100,9 @@ void Cache::Reset()
   valid.fill(0);
   plru.fill(0);
   modified.fill(0);
-  std::fill(lookup_table.begin(), lookup_table.end(), 0xFF);
-  std::fill(lookup_table_ex.begin(), lookup_table_ex.end(), 0xFF);
-  std::fill(lookup_table_vmem.begin(), lookup_table_vmem.end(), 0xFF);
+  std::ranges::fill(lookup_table, 0xFF);
+  std::ranges::fill(lookup_table_ex, 0xFF);
+  std::ranges::fill(lookup_table_vmem, 0xFF);
 }
 
 void InstructionCache::Reset(JitInterface& jit_interface)

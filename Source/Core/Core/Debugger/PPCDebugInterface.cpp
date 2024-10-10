@@ -266,7 +266,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
 
   const u32 prev_addr = active_thread->Data().thread_link.prev;
   insert_threads(prev_addr, [](const auto& thread) { return thread.Data().thread_link.prev; });
-  std::reverse(threads.begin(), threads.end());
+  std::ranges::reverse(threads);
 
   const u32 next_addr = active_thread->Data().thread_link.next;
   threads.emplace_back(std::move(active_thread));

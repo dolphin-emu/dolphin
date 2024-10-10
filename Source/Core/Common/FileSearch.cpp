@@ -97,7 +97,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // Remove duplicates (occurring because caller gave e.g. duplicate or overlapping directories -
   // not because std::filesystem returns duplicates). Also note that this pathname-based uniqueness
   // isn't as thorough as std::filesystem::equivalent.
-  std::sort(result.begin(), result.end());
+  std::ranges::sort(result);
   result.erase(std::unique(result.begin(), result.end()), result.end());
 
   // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
@@ -107,7 +107,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   if constexpr (os_separator != DIR_SEP_CHR)
   {
     for (auto& path : result)
-      std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+      std::ranges::replace(path, '\\', DIR_SEP_CHR);
   }
 
   return result;

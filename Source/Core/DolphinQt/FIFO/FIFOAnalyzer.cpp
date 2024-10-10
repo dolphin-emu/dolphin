@@ -191,8 +191,7 @@ void FIFOAnalyzer::UpdateTree()
     // We shouldn't end on a Command (it should end with an EFB copy)
     ASSERT(part_start == frame_info.parts.size());
     // The counts we computed should match the frame's counts
-    ASSERT(std::equal(frame_info.part_type_counts.begin(), frame_info.part_type_counts.end(),
-                      part_counts.begin()));
+    ASSERT(std::ranges::equal(frame_info.part_type_counts, part_counts));
   }
 }
 

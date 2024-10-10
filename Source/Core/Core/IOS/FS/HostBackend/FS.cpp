@@ -467,7 +467,7 @@ ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::st
     return ResultCode::Invalid;
   }
 
-  if (!is_file && std::count(path.begin(), path.end(), '/') > int(MaxPathDepth))
+  if (!is_file && std::ranges::count(path, '/') > int(MaxPathDepth))
     return ResultCode::TooManyPathComponents;
 
   const auto split_path = SplitPathAndBasename(path);

@@ -613,11 +613,10 @@ bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
       "S6T",
       "SDQ",
   };
-  static_assert(std::is_sorted(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end()));
+  static_assert(std::ranges::is_sorted(two_disc_game_id_prefixes));
 
   std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
-  return std::binary_search(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end(),
-                            game_id_prefix);
+  return std::ranges::binary_search(two_disc_game_id_prefixes, game_id_prefix);
 }
 
 std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) const

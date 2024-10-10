@@ -130,8 +130,7 @@ void InterfacePane::CreateUI()
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
   std::vector<std::string> theme_names;
   theme_names.reserve(theme_paths.size());
-  std::transform(theme_paths.cbegin(), theme_paths.cend(), std::back_inserter(theme_names),
-                 PathToFileName);
+  std::ranges::transform(theme_paths, std::back_inserter(theme_names), PathToFileName);
 
   // Theme Combobox
   m_combobox_theme = new ConfigStringChoice(theme_names, Config::MAIN_THEME_NAME);

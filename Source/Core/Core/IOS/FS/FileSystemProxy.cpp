@@ -143,7 +143,7 @@ enum class FileLookupMode
 static SystemTimers::TimeBaseTick EstimateFileLookupTicks(const std::string& path,
                                                           FileLookupMode mode)
 {
-  const size_t number_of_path_components = std::count(path.cbegin(), path.cend(), '/');
+  const size_t number_of_path_components = std::ranges::count(path, '/');
   if (number_of_path_components == 0)
     return 0_tbticks;
 

@@ -128,10 +128,10 @@ void PowerPCManager::DoState(PointerWrap& p)
 
 void PowerPCManager::ResetRegisters()
 {
-  std::fill(std::begin(m_ppc_state.ps), std::end(m_ppc_state.ps), PairedSingle{});
-  std::fill(std::begin(m_ppc_state.sr), std::end(m_ppc_state.sr), 0U);
-  std::fill(std::begin(m_ppc_state.gpr), std::end(m_ppc_state.gpr), 0U);
-  std::fill(std::begin(m_ppc_state.spr), std::end(m_ppc_state.spr), 0U);
+  std::ranges::fill(m_ppc_state.ps, PairedSingle{});
+  std::ranges::fill(m_ppc_state.sr, 0U);
+  std::ranges::fill(m_ppc_state.gpr, 0U);
+  std::ranges::fill(m_ppc_state.spr, 0U);
 
   // Gamecube:
   // 0x00080200 = lonestar 2.0

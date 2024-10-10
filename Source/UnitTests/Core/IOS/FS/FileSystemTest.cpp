@@ -121,7 +121,7 @@ TEST_F(FileSystemTest, CreateFile)
 
   const Result<std::vector<std::string>> tmp_files = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp");
   ASSERT_TRUE(tmp_files.Succeeded());
-  EXPECT_EQ(std::count(tmp_files->begin(), tmp_files->end(), "f"), 1u);
+  EXPECT_EQ(std::ranges::count(*tmp_files, "f"), 1u);
 
   // Test invalid paths
   // Unprintable characters

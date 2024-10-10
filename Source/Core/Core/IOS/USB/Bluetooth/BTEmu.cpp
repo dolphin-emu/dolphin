@@ -51,8 +51,8 @@ BluetoothEmuDevice::BluetoothEmuDevice(EmulationKernel& ios, const std::string& 
     const bdaddr_t tmp_bd = {0x11, 0x02, 0x19, 0x79, 0, i};
 
     // Previous records can be safely overwritten, since they are backed up
-    std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.active[i].bdaddr));
-    std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.registered[i].bdaddr));
+    std::ranges::copy(tmp_bd, std::rbegin(bt_dinf.active[i].bdaddr));
+    std::ranges::copy(tmp_bd, std::rbegin(bt_dinf.registered[i].bdaddr));
 
     const auto& wm_name =
         (i == WIIMOTE_BALANCE_BOARD) ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01";

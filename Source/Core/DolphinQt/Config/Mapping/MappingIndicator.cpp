@@ -913,7 +913,7 @@ CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
   m_informative_timer = new QTimer(this);
   connect(m_informative_timer, &QTimer::timeout, this, [this] {
     // If the user has started moving we'll assume they know what they are doing.
-    if (*std::max_element(m_calibration_data.begin(), m_calibration_data.end()) > 0.5)
+    if (*std::ranges::max_element(m_calibration_data) > 0.5)
       return;
 
     ModalMessageBox::information(

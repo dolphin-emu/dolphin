@@ -817,7 +817,7 @@ ReturnCode ESCore::ExportContentData(Context& context, u32 content_fd, u8* data,
   if (encrypt_ret != IPC_SUCCESS)
     return encrypt_ret;
 
-  std::copy(output.cbegin(), output.cend(), data);
+  std::ranges::copy(output, data);
   return IPC_SUCCESS;
 }
 
