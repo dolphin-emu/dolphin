@@ -689,7 +689,13 @@ std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
 
   if (!device)
   {
-    ERROR_LOG_FMT(IOS, "Unknown device: {}", request.path);
+    constexpr std::string_view cios_devices[] = {"/dev/flash", "/dev/mload", "/dev/sdio/sdhc",
+                                                 "/dev/usb123", "/dev/usb2"};
+    static_assert(std::ranges::is_sorted(cios_devices));
+    if (std::ranges::binary_search(cios_devices, request.path))
+      WARN_LOG_FMT(IOS, "Possible anti-piracy check for cIOS device {}", request.path);
+    else
+      ERROR_LOG_FMT(IOS, "Unknown device: {}", request.path);
     return IPCReply{IPC_ENOENT, 3700_tbticks};
   }
 
