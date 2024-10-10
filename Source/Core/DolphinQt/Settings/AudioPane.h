@@ -76,4 +76,7 @@ private:
   QLabel* m_stretching_buffer_label;
   QSlider* m_stretching_buffer_slider;
   QLabel* m_stretching_buffer_indicator;
+
+  // Misc Settings
+  QCheckBox* m_turbo_mute_enable;
 };
