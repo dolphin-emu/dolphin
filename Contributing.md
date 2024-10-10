@@ -189,7 +189,7 @@ Summary:
 
 ## <a name="cpp-code-general"></a>General
 - The codebase currently uses C++20, though not all compilers support all C++20 features.
-  - See CMakeLists.txt "Enforce minimium compiler versions" for the currently supported compilers.
+  - See CMakeLists.txt "Enforce minimum compiler versions" for the currently supported compilers.
 - Use the [nullptr](https://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
 - If a [range-based for loop](https://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.
 - Obviously, try not to use `goto` unless you have a *really* good reason for it.
@@ -227,7 +227,7 @@ Summary:
 
 ## <a name="cpp-code-functions"></a>Functions
 - If a function parameter is a pointer or reference and its value or data isn't intended to be changed, please mark that parameter as `const`.
-- Functions that specifically modify their parameters should have the respective parameter(s) marked as a pointer so that the variables being modified are syntaxically obvious.
+- Functions that specifically modify their parameters should have the respective parameter(s) marked as a pointer so that the variables being modified are syntactically obvious.
   - What not to do:
 
     ```c++
