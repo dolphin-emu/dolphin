@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.utils
 
-import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import org.dolphinemu.dolphinemu.R
 import android.os.Build
@@ -14,11 +13,8 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.elevation.ElevationOverlayProvider
 import com.google.android.material.color.MaterialColors
-import android.graphics.Color
 import androidx.annotation.ColorInt
-import androidx.annotation.RequiresApi
 import androidx.preference.PreferenceManager
-import kotlin.math.roundToInt
 
 object ThemeHelper {
 
@@ -31,8 +27,6 @@ object ThemeHelper {
     const val MATERIAL_DEFAULT = 2
     const val GREEN = 3
     const val PINK = 4
-
-    const val NAV_BAR_ALPHA = 0.9f
 
     @JvmStatic
     fun setTheme(activity: AppCompatActivity) {
@@ -167,32 +161,6 @@ object ThemeHelper {
     }
 
     @JvmStatic
-    fun setNavigationBarColor(activity: Activity, @ColorInt color: Int) {
-        val gestureType = InsetsHelper.getSystemGestureType(activity.applicationContext)
-        val orientation = activity.resources.configuration.orientation
-
-        // Use black if the Android version is too low to support changing button colors
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
-            activity.window.navigationBarColor =
-                ContextCompat.getColor(activity.applicationContext, android.R.color.black)
-        } else if ((gestureType == InsetsHelper.THREE_BUTTON_NAVIGATION ||
-                    gestureType == InsetsHelper.TWO_BUTTON_NAVIGATION) &&
-            orientation == Configuration.ORIENTATION_LANDSCAPE
-        ) {
-            activity.window.navigationBarColor = color
-        } else if (gestureType == InsetsHelper.THREE_BUTTON_NAVIGATION ||
-            gestureType == InsetsHelper.TWO_BUTTON_NAVIGATION
-        ) {
-            activity.window.navigationBarColor = getColorWithOpacity(color, NAV_BAR_ALPHA)
-        } else {
-            activity.window.navigationBarColor = ContextCompat.getColor(
-                activity.applicationContext,
-                android.R.color.transparent
-            )
-        }
-    }
-
-    @JvmStatic
     fun enableScrollTint(
         activity: AppCompatActivity, toolbar: MaterialToolbar, appBarLayout: AppBarLayout
     ) {
@@ -231,14 +199,5 @@ object ThemeHelper {
                 setStatusBarColor(activity, statusBarColor)
             }
         }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O_MR1)
-    @ColorInt
-    private fun getColorWithOpacity(@ColorInt color: Int, alphaFactor: Float): Int {
-        return Color.argb(
-            (alphaFactor * Color.alpha(color)).roundToInt(), Color.red(color),
-            Color.green(color), Color.blue(color)
-        )
     }
 }

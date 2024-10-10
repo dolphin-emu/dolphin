@@ -10,10 +10,10 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
@@ -51,6 +51,7 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
+        enableEdgeToEdge()
 
         super.onCreate(savedInstanceState)
 
@@ -68,8 +69,6 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
 
         binding = ActivityCheatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         cheatListLastFocus = binding.cheatList
         cheatDetailsLastFocus = binding.cheatDetails
@@ -225,10 +224,6 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
             binding.cheatDetails.layoutParams = mlpDetails
 
             InsetsHelper.applyNavbarWorkaround(barInsets.bottom, binding.workaroundView)
-            ThemeHelper.setNavigationBarColor(
-                this,
-                MaterialColors.getColor(binding.appbarCheats, R.attr.colorSurface)
-            )
 
             windowInsets
         }
