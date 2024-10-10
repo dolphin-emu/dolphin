@@ -1,0 +1,57 @@
+MP4DX - Toggle allowed Items for "All Items you can carry" event [Wolf]:
+02071C74 0000AABB
+04071C44 CCDDEEFF
+04071C48 GGHHIIJJ
+04071C4C KKLLMMNN
+04071C50 OOPPQQRR
+04071C54 SSTTUUVV
+04071C58 WWXXYYZZ
+04071C5C axbxcxdx
+04071C60 exfxgxhx
+04071C64 ixjx0000
+
+Allows you to allow or forbid specific items from appearing in the event a player receives multiple items from an Item Space on the same turn.
+
+Items:
+AA = Mini Mushroom (Not allowed by default)
+BB = Mega Mushroom 
+CC = Super Mini Mushroom 
+DD = Super Mega Mushroom 
+EE = MiniMega Hammer 
+FF = Warp Pipe 
+GG = Swap Card 
+HH = Sparky Sticker 
+II = Gaddlight 
+JJ = Chomp Call 
+KK = Bowser Suit 
+LL = Boo Crystal Ball  
+MM = Magic Lamp 
+NN = Item Bag (Not allowed by default)
+OO = Bowser Phone 
+PP = Mushroom 
+QQ = Golden Mushroom 
+RR = Hidden Block Card (Not allowed by default)
+SS = Cellular Shopper 
+TT = Barter Box (Not allowed by default)
+UU = Super Warp Pipe (Not allowed by default)
+VV = Chance Time Charm (Not allowed by default)
+WW = Wacky Watch (Not allowed by default)
+XX = Plunder Chest 
+YY = Gaddbrush (Not allowed by default)
+ZZ = Skeleton Key 
+ax = Fly Guy (Not allowed by default)
+bx = Warp Block 
+cx = Plus Block 
+dx = Minus Block 
+ex = Speed Block 
+fx = Slow Block 
+gx = Poison Shroom 
+hx = Poison Shroom Bunch (Not allowed by default)
+ix = Double Dip (Not allowed by default)
+jx = Reverse Shroom 
+
+Possible values:
+00 = Not allowed
+01 = Allowed
+
+

@@ -1,0 +1,54 @@
+MP4DX: Item Space Odds Modifier [Wolf, Rain]:
+02071C42 0000AABB
+04071C44 CCDDEEFF
+04071C48 GGHHIIJJ
+04071C4C KKLLMMNN
+04071C50 OOPPQQRR
+04071C54 SSTTUUVV
+04071C58 WWXXYYZZ
+04071C5C axbxcxdx
+04071C60 exfxgxhx
+04071C64 ixjx0000
+
+This Gecko Code allows you to customize the item space odds on MP4DX. A higher number makes an specific item more likely to appear while a lower number lowers its chances of showing up. 
+
+Rare Items will not appear on Item Spaces until the Last 10 Turns.
+
+Values to fill the code with:
+Item Odds:
+AA = Mini Mushroom odds
+BB = Mega Mushroom odds
+CC = Super Mini Mushroom odds
+DD = Super Mega Mushroom odds
+EE = MiniMega Hammer odds
+FF = Warp Pipe odds
+GG = Swap Card odds
+HH = Sparky Sticker odds
+II = Gaddlight odds
+JJ = Chomp Call odds
+KK = Bowser Suit odds
+LL = Boo Crystal Ball odds 
+MM = Magic Lamp odds
+NN = "All the items you can carry" odds
+OO = Bowser Phone odds
+PP = Mushroom odds
+QQ = Golden Mushroom odds
+RR = Hidden Block Card odds 
+SS = Cellular Shopper odds
+TT = Barter Box odds 
+UU = Super Warp Pipe odds 
+VV = Chance Time Charm Odds 
+WW = Wacky Watch Odds
+XX = Plunder Chest Odds
+YY = Gaddbrush Odds
+ZZ = Skeleton Key Odds
+ax = Fly Guy Odds
+bx = Warp Block Odds
+cx = Plus Block Odds
+dx = Minus Block Odds
+ex = Speed Block Odds
+fx = Slow Block Odds
+gx = Poison Shroom Odds
+hx = Poison Shroom Bunch Odds
+ix = Double Dip Odds
+jx = Reverse Shroom Odds
