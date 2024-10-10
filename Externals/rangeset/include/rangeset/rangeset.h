@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <map>
+#include <utility>
 
 namespace HyoutaUtilities {
 template <typename T> class RangeSet {
@@ -254,7 +255,31 @@ public:
     return !(*this == other);
   }
 
+  // Get free size and fragmentation ratio
+  std::pair<std::size_t, double> get_stats() const {
+    std::size_t free_total = 0;
+    if (begin() == end())
+      return {free_total, 1.0};
+    std::size_t largest_size = 0;
+    for (auto iter = begin(); iter != end(); ++iter) {
+      const std::size_t size = calc_size(iter.from(), iter.to());
+      if (size > largest_size)
+        largest_size = size;
+      free_total += size;
+    }
+    return {free_total, static_cast<double>(free_total - largest_size) / free_total};
+  }
+
 private:
+  static std::size_t calc_size(T from, T to) {
+    if constexpr (std::is_pointer_v<T>) {
+      // For pointers we don't want pointer arithmetic here, else void* breaks.
+      return reinterpret_cast<std::size_t>(to) - reinterpret_cast<std::size_t>(from);
+    } else {
+      return static_cast<std::size_t>(to - from);
+    }
+  }
+
   // Assumptions that can be made about the data:
   // - Range are stored in the form [from, to[
   //   That is, the starting value is inclusive, and the end value is exclusive.

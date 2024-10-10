@@ -1990,6 +1990,16 @@ class SettingsFragmentPresenter(
         sl.add(
             RunRunnable(
                 context,
+                R.string.debug_jit_wipe_block_profiling_data,
+                0,
+                R.string.debug_jit_wipe_block_profiling_data_alert,
+                0,
+                true
+            ) { NativeLibrary.WipeJitBlockProfilingData() }
+        )
+        sl.add(
+            RunRunnable(
+                context,
                 R.string.debug_jit_write_block_log_dump,
                 0,
                 0,

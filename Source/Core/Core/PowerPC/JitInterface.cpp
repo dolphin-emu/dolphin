@@ -182,46 +182,24 @@ void JitInterface::JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE*
   }
 }
 
-std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>
-JitInterface::GetHostCode(u32 address) const
+void JitInterface::WipeBlockProfilingData(const Core::CPUThreadGuard& guard)
 {
-  if (!m_jit)
-  {
-    return GetHostCodeError::NoJitActive;
-  }
+  if (m_jit)
+    m_jit->GetBlockCache()->WipeBlockProfilingData(guard);
+}
 
-  auto& ppc_state = m_system.GetPPCState();
-  JitBlock* block =
-      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.feature_flags);
-  if (!block)
-  {
-    for (int i = 0; i < 500; i++)
-    {
-      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
-                                                               ppc_state.feature_flags);
-      if (block)
-        break;
-    }
+void JitInterface::RunOnBlocks(const Core::CPUThreadGuard& guard,
+                               std::function<void(const JitBlock&)> f) const
+{
+  if (m_jit)
+    m_jit->GetBlockCache()->RunOnBlocks(guard, std::move(f));
+}
 
-    if (block)
-    {
-      if (!(block->effectiveAddress <= address &&
-            block->originalSize + block->effectiveAddress >= address))
-        block = nullptr;
-    }
-
-    // Do not merge this "if" with the above - block changes inside it.
-    if (!block)
-    {
-      return GetHostCodeError::NoTranslation;
-    }
-  }
-
-  GetHostCodeResult result;
-  result.code = block->normalEntry;
-  result.code_size = block->codeSize;
-  result.entry_address = block->effectiveAddress;
-  return result;
+std::size_t JitInterface::GetBlockCount() const
+{
+  if (m_jit)
+    return m_jit->GetBlockCache()->GetBlockCount();
+  return 0;
 }
 
 bool JitInterface::HandleFault(uintptr_t access_address, SContext* ctx)
@@ -255,6 +233,33 @@ void JitInterface::ClearSafe()
 {
   if (m_jit)
     m_jit->GetBlockCache()->Clear();
+}
+
+void JitInterface::EraseSingleBlock(const JitBlock& block)
+{
+  if (m_jit)
+    m_jit->EraseSingleBlock(block);
+}
+
+std::vector<JitBase::MemoryStats> JitInterface::GetMemoryStats() const
+{
+  if (m_jit)
+    return m_jit->GetMemoryStats();
+  return {};
+}
+
+std::size_t JitInterface::DisasmNearCode(const JitBlock& block, std::ostream& stream) const
+{
+  if (m_jit)
+    return m_jit->DisasmNearCode(block, stream);
+  return 0;
+}
+
+std::size_t JitInterface::DisasmFarCode(const JitBlock& block, std::ostream& stream) const
+{
+  if (m_jit)
+    return m_jit->DisasmFarCode(block, stream);
+  return 0;
 }
 
 void JitInterface::InvalidateICache(u32 address, u32 size, bool forced)

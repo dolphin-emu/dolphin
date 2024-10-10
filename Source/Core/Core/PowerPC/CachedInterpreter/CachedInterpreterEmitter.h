@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <iosfwd>
 #include <type_traits>
 
 #include "Common/CodeBlock.h"
@@ -25,11 +26,31 @@ protected:
   using AnyCallback = s32 (*)(PowerPC::PowerPCState& ppc_state, const void* operands);
 
   template <class Operands>
+  static consteval Callback<Operands> CallbackCast(Callback<Operands> callback)
+  {
+    return callback;
+  }
+  template <class Operands>
   static AnyCallback AnyCallbackCast(Callback<Operands> callback)
   {
     return reinterpret_cast<AnyCallback>(callback);
   }
   static consteval AnyCallback AnyCallbackCast(AnyCallback callback) { return callback; }
+
+  // Disassemble callbacks will always return the distance to the next callback.
+  template <class Operands>
+  using Disassemble = s32 (*)(std::ostream& stream, const Operands& operands);
+  using AnyDisassemble = s32 (*)(std::ostream& stream, const void* operands);
+
+  template <class Operands>
+  static AnyDisassemble AnyDisassembleCast(Disassemble<Operands> disassemble)
+  {
+    return reinterpret_cast<AnyDisassemble>(disassemble);
+  }
+  static consteval AnyDisassemble AnyDisassembleCast(AnyDisassemble disassemble)
+  {
+    return disassemble;
+  }
 
 public:
   CachedInterpreterEmitter() = default;
@@ -63,6 +84,7 @@ public:
   }
 
   static s32 PoisonCallback(PowerPC::PowerPCState& ppc_state, const void* operands);
+  static s32 PoisonCallback(std::ostream& stream, const void* operands);
 
 private:
   void Write(AnyCallback callback, const void* operands, std::size_t size);
