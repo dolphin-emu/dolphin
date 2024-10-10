@@ -17,7 +17,7 @@ jobs:
           - os: ubuntu-latest
             build_type: AppImage
           - os: macos-13
-            build_type: macOS
+            build_type: darwin
           - os: windows-latest
             build_type: win32
 
@@ -37,7 +37,7 @@ jobs:
 
     - name: Setup Packages
       if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'AppImage'
-      run: sudo apt install desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
+      run: sudo apt install ninja desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
 
     - name: Setup Packages
       if: matrix.os == 'macos-13'
@@ -55,7 +55,7 @@ jobs:
           flatpak-builder --user --install --force-clean build-dir Distribution/flatpak.yml
         elif [ "${{ matrix.build_type }}" == "AppImage" ]; then
           mkdir -p build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCMAKE_INSTALL_PREFIX=/usr -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
-        elif [ "${{ matrix.build_type }}" == "macOS" ]; then
+        elif [ "${{ matrix.build_type }}" == "darwin" ]; then
           mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
         elif [ "${{ matrix.build_type }}" == "win32" ]; then
           msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
