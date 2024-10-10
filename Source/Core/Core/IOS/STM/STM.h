@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -54,15 +55,18 @@ class STMEventHookDevice final : public EmulationDevice
 {
 public:
   using EmulationDevice::EmulationDevice;
-  ~STMEventHookDevice() override;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 
   bool HasHookInstalled() const;
-  void ResetButton() const;
-  void PowerButton() const;
+  void ResetButton();
+  void PowerButton();
 
 private:
-  void TriggerEvent(u32 event) const;
+  friend class STMImmediateDevice;
+
+  void TriggerEvent(u32 event);
+
+  std::optional<u32> m_event_hook_request;
 };
 }  // namespace IOS::HLE

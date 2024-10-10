@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
@@ -91,7 +92,7 @@ protected:
 
   bool m_has_pending_changes = true;
   std::mutex m_devicechange_hook_address_mutex;
-  std::unique_ptr<IOCtlRequest> m_devicechange_hook_request;
+  std::optional<u32> m_devicechange_hook_request;
 
   // Each interface of a USB device is internally considered as a unique device.
   // USBv5 resource managers can handle up to 32 devices/interfaces.
