@@ -7,24 +7,30 @@ on:
 jobs:
   build_flatpak:
     runs-on: ubuntu-latest
-    container: bilelmoussaoui/flatpak-github-actions:gnome-44
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-44
+      options: --privileged
 
     steps:
+
     - uses: actions/checkout@v2
 
+    - name: Purge .git for space reasons
+      run: rm -rf /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.git
+
     - name: Setup Packages
-      run: |
-        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-        sudo flatpak install org.kde.Sdk//5.15 org.kde.Platform//5.15 -y
-        sudo dnf install libusb1-devel cmake git gcc-c++ libXext-devel libgudev qt6-qtbase-devel systemd-devel openal-soft-devel libevdev-devel libao-devel SOIL-devel libXrandr-devel pulseaudio-libs-devel bluez-libs-devel p7zip SDL2-devel -y
-    - name: Build
-      run: flatpak-builder --user --install --force-clean build-dir Distribution/flatpak.yml
+      run: sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && sudo flatpak install org.kde.Sdk//5.15 org.kde.Platform//5.15 -y && sudo dnf install libusb1-devel cmake git gcc-c++ libXext-devel libgudev qt6-qtbase-devel systemd-devel openal-soft-devel libevdev-devel libao-devel SOIL-devel libXrandr-devel pulseaudio-libs-devel bluez-libs-devel p7zip SDL2-devel -y
+    - name: Run Flatpak Builder
+      uses: flatpak/flatpak-github-actions@v2
+      with:
+        manifest-path: Distribution/flatpak.yml
+        bundle: DolphinMPN-linux.flatpak
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DolphinMPN-flatpak
-        path: Distribution/OUT/
+        name: DolphinMPN-Linux-flatpak
+        path: /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/Distribution/OUT
 
   build_appimage:
     runs-on: ubuntu-latest
