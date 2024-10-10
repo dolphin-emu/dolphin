@@ -146,8 +146,8 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     if (!gci_file.ReadBytes(&gci.m_gci_header, Memcard::DENTRY_SIZE))
       continue;
 
-    const auto same_identity_save_it = std::find_if(
-        loaded_saves.begin(), loaded_saves.end(), [&gci](const Memcard::DEntry& entry) {
+    const auto same_identity_save_it =
+        std::ranges::find_if(loaded_saves, [&gci](const Memcard::DEntry& entry) {
           return Memcard::HasSameIdentity(gci.m_gci_header, entry);
         });
     if (same_identity_save_it != loaded_saves.end())

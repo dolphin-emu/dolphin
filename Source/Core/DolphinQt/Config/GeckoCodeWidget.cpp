@@ -396,7 +396,7 @@ void GeckoCodeWidget::DownloadCodes()
 
   for (const auto& code : codes)
   {
-    auto it = std::find(m_gecko_codes.begin(), m_gecko_codes.end(), code);
+    auto it = std::ranges::find(m_gecko_codes, code);
 
     if (it == m_gecko_codes.end())
     {

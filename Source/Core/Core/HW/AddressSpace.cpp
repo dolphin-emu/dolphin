@@ -331,18 +331,16 @@ private:
   std::vector<AccessorMapping>::iterator FindAppropriateAccessor(const Core::CPUThreadGuard& guard,
                                                                  u32 address)
   {
-    return std::find_if(m_accessor_mappings.begin(), m_accessor_mappings.end(),
-                        [&guard, address](const AccessorMapping& a) {
-                          return a.accessors->IsValidAddress(guard, address - a.base);
-                        });
+    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a) {
+      return a.accessors->IsValidAddress(guard, address - a.base);
+    });
   }
   std::vector<AccessorMapping>::const_iterator
   FindAppropriateAccessor(const Core::CPUThreadGuard& guard, u32 address) const
   {
-    return std::find_if(m_accessor_mappings.begin(), m_accessor_mappings.end(),
-                        [&guard, address](const AccessorMapping& a) {
-                          return a.accessors->IsValidAddress(guard, address - a.base);
-                        });
+    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a) {
+      return a.accessors->IsValidAddress(guard, address - a.base);
+    });
   }
 };
 
