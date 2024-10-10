@@ -1,0 +1,72 @@
+name: Combined CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        include:
+          - os: ubuntu-latest
+            container: bilelmoussaoui/flatpak-github-actions:gnome-44
+            build_type: flatpak
+          - os: ubuntu-latest
+            build_type: AppImage
+          - os: macos-13
+            build_type: macOS
+          - os: windows-latest
+            build_type: win32
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Submodules
+      if: matrix.build_type != 'flatpak'
+      run: git submodule update --init --recursive
+
+    - name: Setup Packages
+      if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'flatpak'
+      run: |
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install org.kde.Sdk//5.15 org.kde.Platform//5.15 -y
+        sudo dnf install libusb1-devel cmake git gcc-c++ libXext-devel libgudev qt6-qtbase-devel systemd-devel openal-soft-devel libevdev-devel libao-devel SOIL-devel libXrandr-devel pulseaudio-libs-devel bluez-libs-devel p7zip SDL2-devel -y
+
+    - name: Setup Packages
+      if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'AppImage'
+      run: sudo apt install desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
+
+    - name: Setup Packages
+      if: matrix.os == 'macos-13'
+      run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
+
+    - name: Setup MSBuild
+      if: matrix.os == 'windows-latest'
+      uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vs-version: '16.6.2'
+
+    - name: Build
+      run: |
+        if [ "${{ matrix.build_type }}" == "flatpak" ]; then
+          flatpak-builder --user --install --force-clean build-dir Distribution/flatpak.yml
+        elif [ "${{ matrix.build_type }}" == "AppImage" ]; then
+          mkdir -p build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCMAKE_INSTALL_PREFIX=/usr -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
+        elif [ "${{ matrix.build_type }}" == "macOS" ]; then
+          mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
+        elif [ "${{ matrix.build_type }}" == "win32" ]; then
+          msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+        fi
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DolphinMPN-${{ matrix.build_type }}
+        path: |
+          ${{ matrix.build_type == 'macOS' && github.workspace }}/build/Binaries/
+          ${{ matrix.build_type == 'win32' && github.workspace }}/Binary/x64/
+          ${{ matrix.build_type == 'AppImage' && github.workspace }}/root/
+          ${{ matrix.build_type == 'flatpak' && github.workspace }}/Distribution/OUT/
