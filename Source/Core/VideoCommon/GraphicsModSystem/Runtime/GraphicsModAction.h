@@ -17,7 +17,7 @@ public:
 
   virtual void OnDrawStarted(GraphicsModActionData::DrawStarted*) {}
   virtual void OnEFB(GraphicsModActionData::EFB*) {}
-  virtual void OnXFB() {}
+  virtual void OnXFB(GraphicsModActionData::XFB*) {}
   virtual void OnProjection(GraphicsModActionData::Projection*) {}
   virtual void OnProjectionAndTexture(GraphicsModActionData::Projection*) {}
   virtual void OnTextureLoad(GraphicsModActionData::TextureLoad*) {}
