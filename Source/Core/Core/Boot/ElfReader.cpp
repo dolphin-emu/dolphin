@@ -218,7 +218,7 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_
       default:
         continue;
       }
-      ppc_symbol_db.AddKnownSymbol(guard, value, size, name, symtype);
+      ppc_symbol_db.AddKnownSymbol(guard, value, size, name, "", symtype);
       hasSymbols = true;
     }
   }

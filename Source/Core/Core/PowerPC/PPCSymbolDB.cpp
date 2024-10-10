@@ -49,7 +49,8 @@ Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 
 }
 
 void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                                 const std::string& name, Common::Symbol::Type type)
+                                 const std::string& name, const std::string& objectName,
+                                 Common::Symbol::Type type)
 {
   auto iter = m_functions.find(startAddr);
   if (iter != m_functions.end())
@@ -57,16 +58,22 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
     // already got it, let's just update name, checksum & size to be sure.
     Common::Symbol* tempfunc = &iter->second;
     tempfunc->Rename(name);
+    tempfunc->object_name = objectName;
     tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
     tempfunc->type = type;
     tempfunc->size = size;
+    if (objectName != "")
+      tempfunc->has_object_name = true;
   }
   else
   {
     // new symbol. run analyze.
     auto& new_symbol = m_functions.emplace(startAddr, name).first->second;
+    new_symbol.object_name = objectName;
     new_symbol.type = type;
     new_symbol.address = startAddr;
+    if (objectName != "")
+      new_symbol.has_object_name = true;
 
     if (new_symbol.type == Common::Symbol::Type::Function)
     {
@@ -399,6 +406,23 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     if (name[strlen(name) - 1] == '\r')
       name[strlen(name) - 1] = 0;
 
+    // Split the current name string into separate parts, and get the object name
+    // if it exists.
+    std::string processed_name = TabsToSpaces(0, name); // Remove tabs
+    std::vector<std::string> parts = SplitString(processed_name, ' ');
+
+    std::string name_string = parts[0];
+    std::string object_filename_string = "";
+
+    for (int i = 1; i < parts.size(); i++)
+    {
+      // If the current part is the object filename, save it
+      if (parts[i].find(".o") != std::string::npos)
+      {
+        object_filename_string = parts[i];
+      }
+    }
+
     // Check if this is a valid entry.
     if (strlen(name) > 0)
     {
@@ -435,7 +459,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       if (good)
       {
         ++good_count;
-        AddKnownSymbol(guard, vaddress, size, name, type);
+        AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type);
       }
       else
       {
@@ -473,8 +497,13 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
-                              symbol->address, 0, symbol->name));
+    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address,
+                                   symbol->size, symbol->address, 0, symbol->name);
+    // Also write the object name if it exists
+    if (symbol->has_object_name)
+      line += fmt::format(" {0}", symbol->object_name);
+    line += "\n";
+    f.WriteString(line);
   }
 
   // Write .data section
@@ -482,8 +511,13 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : data_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
-                              symbol->address, 0, symbol->name));
+    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address,
+                                   symbol->size, symbol->address, 0, symbol->name);
+    // Also write the object name if it exists
+    if (symbol->has_object_name)
+      line += fmt::format(" {0}", symbol->object_name);
+    line += "\n";
+    f.WriteString(line);
   }
 
   return true;
