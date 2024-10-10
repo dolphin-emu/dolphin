@@ -111,7 +111,7 @@ void GraphicsModGroupConfig::Load()
     try_add_mod(graphics_mod_directory, GraphicsModConfig::Source::System);
   }
 
-  std::sort(m_graphics_mods.begin(), m_graphics_mods.end());
+  std::ranges::sort(m_graphics_mods, {}, &GraphicsModConfig::m_weight);
   for (auto& mod : m_graphics_mods)
   {
     m_path_to_graphics_mod[mod.GetAbsolutePath()] = &mod;

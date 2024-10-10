@@ -43,6 +43,4 @@ struct GraphicsModConfig
 
   void SerializeToProfile(picojson::object* value) const;
   void DeserializeFromProfile(const picojson::object& value);
-
-  bool operator<(const GraphicsModConfig& other) const;
 };
