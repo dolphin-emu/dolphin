@@ -399,6 +399,15 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     if (name[strlen(name) - 1] == '\r')
       name[strlen(name) - 1] = 0;
 
+    // Check if the name has a space in it. If so, the symbols likely has .o/.a filenames following
+    // the symbol name (CodeWarrior format), so add a terminator at the space to remove them.
+    const char* spacepos = strstr(name, " ");
+    if (spacepos != nullptr)
+    {
+      int index = (u32)(spacepos - name);
+      name[index] = 0;
+    }
+
     // Check if this is a valid entry.
     if (strlen(name) > 0)
     {
