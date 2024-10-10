@@ -13,16 +13,72 @@ GPRRegCache::GPRRegCache(Jit64& jit) : RegCache{jit}
 {
 }
 
+bool GPRRegCache::IsImm(preg_t preg) const
+{
+  return m_jit.GetConstantPropagation().HasGPR(preg);
+}
+
+u32 GPRRegCache::Imm32(preg_t preg) const
+{
+  ASSERT(m_jit.GetConstantPropagation().HasGPR(preg));
+  return m_jit.GetConstantPropagation().GetGPR(preg);
+}
+
+s32 GPRRegCache::SImm32(preg_t preg) const
+{
+  ASSERT(m_jit.GetConstantPropagation().HasGPR(preg));
+  return m_jit.GetConstantPropagation().GetGPR(preg);
+}
+
+OpArg GPRRegCache::R(preg_t preg) const
+{
+  if (m_regs[preg].IsInHostRegister())
+  {
+    return ::Gen::R(m_regs[preg].GetHostRegister());
+  }
+  else if (m_jit.GetConstantPropagation().HasGPR(preg))
+  {
+    return ::Gen::Imm32(m_jit.GetConstantPropagation().GetGPR(preg));
+  }
+  else
+  {
+    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} missing!", preg);
+    return m_regs[preg].GetDefaultLocation();
+  }
+}
+
 void GPRRegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
 {
-  ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
-  m_emitter->MOV(32, new_loc, m_regs[preg].Location().value());
+  if (m_regs[preg].IsInHostRegister())
+  {
+    m_emitter->MOV(32, new_loc, ::Gen::R(m_regs[preg].GetHostRegister()));
+  }
+  else
+  {
+    ASSERT_MSG(DYNA_REC, m_jit.GetConstantPropagation().HasGPR(preg),
+               "GPR {} not in host register or constant propagation", preg);
+    m_emitter->MOV(32, new_loc, ::Gen::Imm32(m_jit.GetConstantPropagation().GetGPR(preg)));
+  }
 }
 
 void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
-  ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
-  m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].Location().value());
+  const JitCommon::ConstantPropagation& constant_propagation = m_jit.GetConstantPropagation();
+  if (constant_propagation.HasGPR(preg))
+  {
+    m_emitter->MOV(32, ::Gen::R(new_loc), ::Gen::Imm32(constant_propagation.GetGPR(preg)));
+  }
+  else
+  {
+    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} not in default location",
+               preg);
+    m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].GetDefaultLocation());
+  }
+}
+
+void GPRRegCache::DiscardImm(preg_t preg)
+{
+  m_jit.GetConstantPropagation().ClearGPR(preg);
 }
 
 OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
@@ -48,8 +104,9 @@ void GPRRegCache::SetImmediate32(preg_t preg, u32 imm_value, bool dirty)
 {
   // "dirty" can be false to avoid redundantly flushing an immediate when
   // processing speculative constants.
-  DiscardRegContentsIfCached(preg);
-  m_regs[preg].SetToImm32(imm_value, dirty);
+  m_jit.GetConstantPropagation().SetGPR(preg, imm_value);
+  if (dirty)
+    DiscardRegister(preg);
 }
 
 BitSet32 GPRRegCache::GetRegUtilization() const

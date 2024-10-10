@@ -16,6 +16,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
+#include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -351,13 +352,14 @@ protected:
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u32 imm);
+  void GenerateConstantOverflow(bool overflow);
   void ComputeCarry(Arm64Gen::ARM64Reg reg);  // reg must contain 0 or 1
   void ComputeCarry(bool carry);
   void ComputeCarry();
   void LoadCarry();
   void FlushCarry();
 
-  void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+  void reg_imm(u32 d, u32 a, u32 value,
                void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
                                          Arm64Gen::ARM64Reg),
                bool Rc = false);
@@ -370,6 +372,8 @@ protected:
   std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
+
+  JitCommon::ConstantPropagation m_constant_propagation;
 
   JitArm64BlockCache blocks{*this};
 

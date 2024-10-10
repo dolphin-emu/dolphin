@@ -39,6 +39,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+#include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -901,6 +902,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   gpr.Start();
   fpr.Start();
 
+  m_constant_propagation.Clear();
+
   js.downcountAmount = 0;
   js.skipInstructions = 0;
   js.carryFlag = CarryFlag::InPPCState;
@@ -1085,21 +1088,55 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       {
         gpr.Flush();
         fpr.Flush();
+        m_constant_propagation.Clear();
+
+        CompileInstruction(op);
       }
       else
       {
-        // If we have an input register that is going to be used again, load it pre-emptively,
-        // even if the instruction doesn't strictly need it in a register, to avoid redundant
-        // loads later. Of course, don't do this if we're already out of registers.
-        // As a bit of a heuristic, make sure we have at least one register left over for the
-        // output, which needs to be bound in the actual instruction compilation.
-        // TODO: make this smarter in the case that we're actually register-starved, i.e.
-        // prioritize the more important registers.
-        gpr.PreloadRegisters(op.regsIn & op.gprInUse & ~op.gprDiscardable);
-        fpr.PreloadRegisters(op.fregsIn & op.fprInXmm & ~op.fprDiscardable);
-      }
+        const JitCommon::ConstantPropagationResult constant_propagation_result =
+            m_constant_propagation.EvaluateInstruction(op.inst, opinfo->flags);
 
-      CompileInstruction(op);
+        if (!constant_propagation_result.instruction_fully_executed)
+        {
+          if (!bJITRegisterCacheOff)
+          {
+            // If we have an input register that is going to be used again, load it pre-emptively,
+            // even if the instruction doesn't strictly need it in a register, to avoid redundant
+            // loads later. Of course, don't do this if we're already out of registers.
+            // As a bit of a heuristic, make sure we have at least one register left over for the
+            // output, which needs to be bound in the actual instruction compilation.
+            // TODO: make this smarter in the case that we're actually register-starved, i.e.
+            // prioritize the more important registers.
+            gpr.PreloadRegisters(op.regsIn & op.gprInUse & ~op.gprDiscardable);
+            fpr.PreloadRegisters(op.fregsIn & op.fprInXmm & ~op.fprDiscardable);
+          }
+
+          CompileInstruction(op);
+        }
+
+        m_constant_propagation.Apply(constant_propagation_result, {});
+
+        if (constant_propagation_result.gpr >= 0)
+        {
+          // Mark the GPR as dirty in the register cache
+          gpr.SetImmediate32(constant_propagation_result.gpr,
+                             constant_propagation_result.gpr_value);
+        }
+
+        if (constant_propagation_result.instruction_fully_executed)
+        {
+          if (constant_propagation_result.carry)
+            FinalizeCarry(*constant_propagation_result.carry);
+
+          if (constant_propagation_result.overflow)
+            GenerateConstantOverflow(*constant_propagation_result.overflow);
+
+          // FinalizeImmediateRC is called last, because it may trigger branch merging
+          if (constant_propagation_result.compute_rc)
+            FinalizeImmediateRC(constant_propagation_result.gpr_value);
+        }
+      }
 
       js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
