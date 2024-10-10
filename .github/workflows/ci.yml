@@ -50,7 +50,7 @@ jobs:
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DolphinMPN-AppImage
+        name: DolphinMPN-Linux-AppImage
         path: root/
 
   build_macos:
