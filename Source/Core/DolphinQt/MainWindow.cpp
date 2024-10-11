@@ -1682,12 +1682,7 @@ void MainWindow::UpdateScreenSaverInhibition()
 
   m_is_screensaver_inhibited = inhibit;
 
-#ifdef HAVE_X11
-  if (GetWindowSystemType() == WindowSystemType::X11)
-    UICommon::InhibitScreenSaver(winId(), inhibit);
-#else
   UICommon::InhibitScreenSaver(inhibit);
-#endif
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
