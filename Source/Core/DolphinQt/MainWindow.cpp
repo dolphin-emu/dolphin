@@ -250,7 +250,11 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
-          [](Qt::ColorScheme colorScheme) { Settings::Instance().ApplyStyle(); });
+          [this](Qt::ColorScheme colorScheme) {
+            Settings::Instance().ApplyStyle();
+            if (m_skylander_window)
+              m_skylander_window->RefreshList();
+          });
 #endif
 
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
@@ -1764,36 +1768,6 @@ QSize MainWindow::sizeHint() const
 {
   return QSize(800, 600);
 }
-
-#ifdef _WIN32
-bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
-{
-  auto* msg = reinterpret_cast<MSG*>(message);
-  if (msg && msg->message == WM_SETTINGCHANGE && msg->lParam != NULL &&
-      std::wstring_view(L"ImmersiveColorSet")
-              .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
-  {
-    // Windows light/dark theme has changed. Update our flag and refresh the theme.
-    auto& settings = Settings::Instance();
-    const bool was_dark_before = settings.IsSystemDark();
-    settings.UpdateSystemDark();
-    if (settings.IsSystemDark() != was_dark_before)
-    {
-      settings.ApplyStyle();
-
-      // force the colors in the Skylander window to update
-      if (m_skylander_window)
-        m_skylander_window->RefreshList();
-    }
-
-    // TODO: When switching from light to dark, the window decorations remain light. Qt seems very
-    // convinced that it needs to change these in response to this message, so even if we set them
-    // to dark here, Qt sets them back to light afterwards.
-  }
-
-  return false;
-}
-#endif
 
 void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
 {
