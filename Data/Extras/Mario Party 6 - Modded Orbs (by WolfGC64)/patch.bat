@@ -1,9 +1,10 @@
 @echo off
+title Mario Party 6 - Modded Orbs Patcher
 
-title Mario Party 6 - Custom Orb Expansion Patcher
+set VERSION="24.02.08"
 
 echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-echo Mario Party 6 - Custom Orb Expansion Patcher!
+echo Mario Party 6 - DX Patcher!
 echo How do you wish to export your game.
 echo.
 echo 1: RVZ (Recommended for Dolphin)
@@ -12,9 +13,9 @@ echo 3: Exit Patcher
 echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 choice /c 123 > NUL
-if errorlevel 3 exit
-if errorlevel 2 set PATCHER=ISO
 if errorlevel 1 set PATCHER=RVZ
+if errorlevel 2 set PATCHER=ISO
+if errorlevel 3 exit
 
 echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 echo Setting up patcher!
@@ -66,9 +67,8 @@ for %%F in ("%~dp0*.rvz") do (
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     echo Rebuilding! This may take awhile depending on computer speed...
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-    "tools/pyisotools" tmp/root/ B "--dest=../../game.iso"
-    
-    rmdir /s /q tmp
+    "tools/pyisotools" tmp/root/ B "--dest=../game.iso"
+    goto end
 )
 
 for %%F in ("%~dp0*.iso") do (
@@ -88,27 +88,32 @@ for %%F in ("%~dp0*.iso") do (
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     echo Rebuilding! This may take awhile depending on computer speed...
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-    "tools/pyisotools" tmp/root/ B "--dest=../../game.iso"
-    
-    rmdir /s /q tmp
+    "tools/pyisotools" tmp/root/ B "--dest=../../tmp/game.iso"
+    goto end
 )
 
+:end
 if "%PATCHER%"=="RVZ" (
     cls
-    "tools/dolphintool" convert -i "game.iso" -o "Mario Party 6 (USA) [Custom Orb Expansion].rvz" -f "rvz" -b "131072" -c "zstd" -l "5"
-    del "game.iso"
+    "tools/dolphintool" convert -i "tmp/game.iso" -o "Mario Party 6 (USA) [Modded Orbs] (%VERSION%).rvz" -f "rvz" -b "131062" -c "zstd" -l "5"
+    del "tmp\game.iso"
+    cls
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-    echo Success! Your game is located in "Mario Party 6 (USA) [Custom Orb Expansion].rvz" 
+    echo Success! Your game is located in "Mario Party 6 (USA) [Modded Orbs] (%VERSION%).rvz" 
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 )
 
 if "%PATCHER%"=="ISO" (
     cls
-    move "game.iso" "Mario Party 6 (USA) [Custom Orb Expansion].iso"
+    move "tmp\game.iso" "Mario Party 6 (USA) [Modded Orbs] (%VERSION%).iso"
+    cls
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-    echo Success! Your game is located in "Mario Party 6 (USA) [Custom Orb Expansion].iso" 
+    echo Success! Your game is located in "Mario Party 6 (USA) [Modded Orbs] (%VERSION%).iso" 
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 )
+
+rmdir /s /q tmp
+
 echo.
 echo Press any key to exit...
 pause > NUL
