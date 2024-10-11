@@ -669,8 +669,7 @@ IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u
 
 IOSC::KeyEntries::iterator IOSC::FindFreeEntry()
 {
-  return std::find_if(m_key_entries.begin(), m_key_entries.end(),
-                      [](const auto& entry) { return !entry.in_use; });
+  return std::ranges::find_if(m_key_entries, [](const auto& entry) { return !entry.in_use; });
 }
 
 IOSC::KeyEntry* IOSC::FindEntry(Handle handle)
