@@ -80,8 +80,6 @@ public:
     return memcmp(GetUidData(), obj.GetUidData(), GetUidDataSize()) == 0;
   }
 
-  bool operator!=(const ShaderUid& obj) const { return !operator==(obj); }
-
   // determines the storage order inside STL containers
   bool operator<(const ShaderUid& obj) const
   {

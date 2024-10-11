@@ -73,11 +73,6 @@ bool operator==(const Content& lhs, const Content& rhs)
   return fields(lhs) == fields(rhs);
 }
 
-bool operator!=(const Content& lhs, const Content& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
 SignedBlobReader::SignedBlobReader(std::vector<u8> bytes) : m_bytes(std::move(bytes))
 {
 }

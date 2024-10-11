@@ -227,19 +227,9 @@ bool DeviceQualifier::operator==(const Device* const dev) const
   return false;
 }
 
-bool DeviceQualifier::operator!=(const Device* const dev) const
-{
-  return !operator==(dev);
-}
-
 bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
 {
   return std::tie(cid, name, source) == std::tie(devq.cid, devq.name, devq.source);
-}
-
-bool DeviceQualifier::operator!=(const DeviceQualifier& devq) const
-{
-  return !operator==(devq);
 }
 
 std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq) const

@@ -39,10 +39,8 @@ public:
 };
 
 bool operator==(const GeckoCode& lhs, const GeckoCode& rhs);
-bool operator!=(const GeckoCode& lhs, const GeckoCode& rhs);
 
 bool operator==(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs);
-bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs);
 
 // Installation address for codehandler.bin in the Game's RAM
 constexpr u32 INSTALLER_BASE_ADDRESS = 0x80001800;
