@@ -153,8 +153,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
     u32 can_read = m_block_size * cache->num_blocks - read_offset;
     u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
 
-    std::copy(cache->data.begin() + read_offset, cache->data.begin() + read_offset + was_read,
-              out_ptr);
+    std::copy_n(cache->data.begin() + read_offset, was_read, out_ptr);
 
     offset += was_read;
     out_ptr += was_read;
@@ -204,7 +203,7 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
     {
       if (!GetBlock(block_num + i, buffer))
       {
-        std::fill(buffer, buffer + (cnt_blocks - i) * m_block_size, 0u);
+        std::fill_n(buffer, (cnt_blocks - i) * m_block_size, 0u);
         return i;
       }
       buffer += m_block_size;
