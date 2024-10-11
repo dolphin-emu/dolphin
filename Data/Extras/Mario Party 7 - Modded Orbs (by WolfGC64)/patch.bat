@@ -1,10 +1,10 @@
 @echo off
 title Mario Party 7 - Modded Orbs Patcher
 
-set VERSION="24.07.11"
+set VERSION=24.07.11
 
 echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-echo Mario Party 7 - DX Patcher!
+echo Mario Party 7 - Modded Orbs Patcher!
 echo How do you wish to export your game.
 echo.
 echo 1: RVZ (Recommended for Dolphin)
