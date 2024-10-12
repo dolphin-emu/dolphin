@@ -392,11 +392,19 @@ bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& 
 bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
 {
   // CRC32 hashes of the IPL file, obtained from Redump
+  // DOL-001(USA) / DOL-001(JPN) / DOT-001 / SL-GC10 (NTSC Revision 1.0)
   constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
+  // DOL-001(USA) / DOL-001(JPN) / DOT-001 (NTSC Revision 1.1)
   constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
-  constexpr u32 NTSC_v1_2 = 0x86573808;
-  constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
+  // DOL-001(USA) / DOL-001(JPN) (NTSC Revision 1.2)
+  constexpr u32 NTSC_v1_2_001 = 0xD235E3F9;
+  // DOL-101(USA) / DOL-101(JPN) (NTSC Revision 1.2)
+  constexpr u32 NTSC_v1_2_101 = 0x86573808;
+  // DOL-002(BRA) (MPAL Revision 1.1)
+  constexpr u32 MPAL_v1_1 = 0x667D0B64;
+  // DOL-001(EUR) / DOT-001P (PAL Revision 1.0)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
+  // DOL-101(EUR) (PAL Revision 1.2)
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
   // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
@@ -419,7 +427,8 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   {
   case NTSC_v1_0:
   case NTSC_v1_1:
-  case NTSC_v1_2:
+  case NTSC_v1_2_001:
+  case NTSC_v1_2_101:
   case MPAL_v1_1:
     known_ipl = true;
     break;
