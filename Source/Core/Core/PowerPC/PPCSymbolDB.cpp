@@ -64,8 +64,6 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
     tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
     tempfunc->type = type;
     tempfunc->size = size;
-    if (!object_name.empty())
-      tempfunc->has_object_name = true;
   }
   else
   {
@@ -74,8 +72,6 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
     new_symbol.object_name = object_name;
     new_symbol.type = type;
     new_symbol.address = startAddr;
-    if (!object_name.empty())
-      new_symbol.has_object_name = true;
 
     if (new_symbol.type == Common::Symbol::Type::Function)
     {
@@ -510,7 +506,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
     std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address,
                                    symbol->size, symbol->address, 0, symbol->name);
     // Also write the object name if it exists
-    if (symbol->has_object_name)
+    if (!symbol->object_name.empty())
       line += fmt::format(" {0}", symbol->object_name);
     line += "\n";
     f.WriteString(line);
@@ -524,7 +520,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
     std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address,
                                    symbol->size, symbol->address, 0, symbol->name);
     // Also write the object name if it exists
-    if (symbol->has_object_name)
+    if (!symbol->object_name.empty())
       line += fmt::format(" {0}", symbol->object_name);
     line += "\n";
     f.WriteString(line);
