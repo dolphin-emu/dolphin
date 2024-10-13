@@ -338,14 +338,14 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     if (column_count == 4)
     {
       static const std::regex four_column_regex(
-          "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8}) ([0-9a-f]{8})(\\s+\\d+ "
-          "|\\s+)(\\S+)(?: \\(entry of (\\S+)\\)|)"
+          "([0-9A-Fa-f]{8}) ([0-9A-Fa-f]{6}) ([0-9A-Fa-f]{8}) ([0-9A-Fa-f]{8})"
+          "\\s+(\\d+)?\\s*(?: \\(entry of (\\S+)\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
 
       if (!std::regex_search(line, match, four_column_regex))
       {
-        //Line was invalid, continue
+        // Line was invalid, continue
         continue;
       }
 
@@ -374,8 +374,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     else if (column_count == 3)
     {
       static const std::regex three_column_regex(
-          "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8})(\\s+\\d+ "
-          "|\\s+)(\\S+|.+?\\)(?:const|))(?: \\(entry of (\\S+)\\)|)"
+          "([0-9A-Fa-f]{8}) ([0-9A-Fa-f]{6}) ([0-9A-Fa-f]{8})
+          "\\s+(\\d+)?\\s*(\\S+|.+?\\)(?:const|))(?: \\(entry of (\\S+)\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
 
@@ -408,7 +408,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     }
     else if (column_count == 2)
     {
-      static const std::regex two_column_regex("([0-9a-f]{8}) (\\S+)");
+      static const std::regex two_column_regex("([0-9A-Fa-f]{8}) (\\S+)");
       std::smatch match;
 
       if (!std::regex_search(line, match, two_column_regex))
