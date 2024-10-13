@@ -339,7 +339,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     {
       static const std::regex four_column_regex(
           "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8}) ([0-9a-f]{8})(\\s+\\d+ "
-          "|\\s+)([0-9A-Za-z_<>$@.,*\\\\]+)(?: \\(entry of \\S+\\)|)"
+          "|\\s+)(\S+)(?: \\(entry of \\S+\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
 
@@ -369,7 +369,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     {
       static const std::regex three_column_regex(
           "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8})(\\s+\\d+ "
-          "|\\s+)([0-9A-Za-z_<>$@.,*\\\\]+|.+?\\)(?:const|))(?: \\(entry of \\S+\\)|)"
+          "|\\s+)(\S+|.+?\\)(?:const|))(?: \\(entry of \\S+\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
 
