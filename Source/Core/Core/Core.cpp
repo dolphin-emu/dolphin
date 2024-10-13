@@ -915,9 +915,10 @@ void UpdateTitle(Core::System& system)
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
 
   if (Config::Get(Config::MAIN_STATIC_TITLE))
-    message = "Render";
-
-  if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
+  {
+    message = "Dolphin Render Window";
+  }
+  else if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
     if (!title.empty())

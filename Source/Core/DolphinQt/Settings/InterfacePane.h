@@ -29,6 +29,7 @@ private:
   void LoadUserStyle();
   void OnUserStyleChanged();
   void OnLanguageChanged();
+  void UpdateShowActiveTitleEnabled();
 
   QVBoxLayout* m_main_layout;
   ConfigStringChoice* m_combobox_language;

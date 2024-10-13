@@ -12,6 +12,7 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <qcheckbox.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -256,6 +257,8 @@ void InterfacePane::ConnectLayout()
           &Settings::CursorVisibilityChanged);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::LockCursorChanged);
+  connect(m_checkbox_static_title, &QCheckBox::stateChanged,
+          [this](int) { UpdateShowActiveTitleEnabled(); });
 }
 
 void InterfacePane::UpdateShowDebuggingCheckbox()
@@ -357,9 +360,7 @@ void InterfacePane::AddDescriptions()
                  "disappear after several seconds."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static constexpr char TR_STATIC_WINDOW_TITLE[] =
-      QT_TR_NOOP("The render window's title will always be \"Render\"."
-                 " If \"Show Active Title in Window Title\" is enabled "
-                 "then it will also display the game name."
+      QT_TR_NOOP("The render window's title will always be \"Dolphin Render Window\"."
                   "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_SHOW_ACTIVE_TITLE_DESCRIPTION[] =
       QT_TR_NOOP("Shows the active game title in the render window's title bar."
@@ -424,4 +425,14 @@ void InterfacePane::AddDescriptions()
 
   m_combobox_userstyle->SetTitle(tr("Style"));
   m_combobox_userstyle->SetDescription(tr(TR_USER_STYLE_DESCRIPTION));
+}
+
+void InterfacePane::UpdateShowActiveTitleEnabled()
+{
+
+  const bool enabled = m_checkbox_static_title->isChecked();
+
+  m_checkbox_show_active_title->setChecked(false);
+
+  m_checkbox_show_active_title->setEnabled(!enabled);
 }
