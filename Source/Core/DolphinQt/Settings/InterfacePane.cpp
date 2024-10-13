@@ -14,7 +14,6 @@
 #include <QWidget>
 
 #include "Common/CommonPaths.h"
-#include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"

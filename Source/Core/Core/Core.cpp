@@ -14,7 +14,6 @@
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
-#include "Common/Config/Config.h"
 
 #ifdef _WIN32
 #include <windows.h>
