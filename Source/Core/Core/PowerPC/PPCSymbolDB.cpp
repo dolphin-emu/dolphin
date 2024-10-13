@@ -339,7 +339,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     {
       static const std::regex four_column_regex(
           "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8}) ([0-9a-f]{8})(\\s+\\d+ "
-          "|\\s+)(\S+)(?: \\(entry of \\S+\\)|)"
+          "|\\s+)(\\S+)(?: \\(entry of (\\S+)\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
 
@@ -354,9 +354,10 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
        sscanf(match[3].str().c_str(), "%08x", &vaddress);
        sscanf(match[4].str().c_str(), "%08x", &offset);
        name = match[6].str();
-       object_name = match[8].str();
+       object_name = match[9].str();
 
        std::string alignment_match(StripWhitespace(match[5].str()));
+       std::string entry_of_match = match[7].str();
 
        // sometimes there is no alignment value, and sometimes it is because it is an entry of
        // something else
@@ -364,12 +365,17 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
        {
          sscanf(alignment_match.c_str(), "%i", &alignment);
        }
+
+       if (entry_of_match != "" && entry_of_match[0] != '.')
+       {
+         name = entry_of_match + "::" + name;
+       }
     }
     else if (column_count == 3)
     {
       static const std::regex three_column_regex(
           "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8})(\\s+\\d+ "
-          "|\\s+)(\S+|.+?\\)(?:const|))(?: \\(entry of \\S+\\)|)"
+          "|\\s+)(\\S+|.+?\\)(?:const|))(?: \\(entry of (\\S+)\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
 
@@ -383,15 +389,21 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       sscanf(match[2].str().c_str(), "%08x", &size);
       sscanf(match[3].str().c_str(), "%08x", &vaddress);
       name = match[5].str();
-      object_name = match[7].str();
+      object_name = match[8].str();
 
       std::string alignment_match(StripWhitespace(match[4].str()));
+      std::string entry_of_match = match[6].str();
 
       // sometimes there is no alignment value, and sometimes it is because it is an entry of
       // something else
       if (alignment_match != "")
       {
         sscanf(alignment_match.c_str(), "%i", &alignment);
+      }
+
+      if (entry_of_match != "" && entry_of_match[0] != '.')
+      {
+        name = entry_of_match + "::" + name;
       }
     }
     else if (column_count == 2)
