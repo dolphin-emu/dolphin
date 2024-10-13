@@ -7,6 +7,7 @@
 #include <array>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -596,7 +597,9 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       ppc_state.pc = executable.reader->GetEntryPoint();
 
-      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB()))
+      std::string filename = PathToString(StringToPath(executable.path).filename());
+
+      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB(), filename))
       {
         Host_PPCSymbolsChanged();
         HLE::PatchFunctions(system);

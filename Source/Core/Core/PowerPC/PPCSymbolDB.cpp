@@ -51,7 +51,7 @@ Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 
 }
 
 void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                                 const std::string& name, const std::string& objectName,
+                                 const std::string& name, const std::string& object_name,
                                  Common::Symbol::Type type)
 {
   auto iter = m_functions.find(startAddr);
@@ -60,21 +60,21 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
     // already got it, let's just update name, checksum & size to be sure.
     Common::Symbol* tempfunc = &iter->second;
     tempfunc->Rename(name);
-    tempfunc->object_name = objectName;
+    tempfunc->object_name = object_name;
     tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
     tempfunc->type = type;
     tempfunc->size = size;
-    if (objectName != "")
+    if (!object_name.empty())
       tempfunc->has_object_name = true;
   }
   else
   {
     // new symbol. run analyze.
     auto& new_symbol = m_functions.emplace(startAddr, name).first->second;
-    new_symbol.object_name = objectName;
+    new_symbol.object_name = object_name;
     new_symbol.type = type;
     new_symbol.address = startAddr;
-    if (objectName != "")
+    if (!object_name.empty())
       new_symbol.has_object_name = true;
 
     if (new_symbol.type == Common::Symbol::Type::Function)
@@ -374,7 +374,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     else if (column_count == 3)
     {
       static const std::regex three_column_regex(
-          "([0-9A-Fa-f]{8}) ([0-9A-Fa-f]{6}) ([0-9A-Fa-f]{8})
+          "([0-9A-Fa-f]{8}) ([0-9A-Fa-f]{6}) ([0-9A-Fa-f]{8})"
           "\\s+(\\d+)?\\s*(\\S+|.+?\\)(?:const|))(?: \\(entry of (\\S+)\\)|)"
           "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
       std::smatch match;
