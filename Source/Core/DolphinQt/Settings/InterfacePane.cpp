@@ -12,7 +12,6 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <qcheckbox.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
