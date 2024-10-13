@@ -5,7 +5,9 @@
 
 #include <algorithm>
 #include <cstring>
+#include <fstream>
 #include <map>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -229,8 +231,8 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // bad=true means carefully load map files that might not be from exactly the right version
 bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad)
 {
-  File::IOFile f(filename, "r");
-  if (!f)
+  std::ifstream f(filename);
+  if (!f.good())
     return false;
 
   // Two columns are used by Super Smash Bros. Brawl Korean map file
@@ -240,22 +242,22 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
   int good_count = 0;
   int bad_count = 0;
 
-  char line[512];
+  std::string line;
   std::string section_name;
-  while (fgets(line, 512, f.GetHandle()))
+  while (std::getline(f, line))
   {
-    size_t length = strlen(line);
+    size_t length = line.length();
     if (length < 4)
       continue;
 
     char temp[256]{};
-    sscanf(line, "%255s", temp);
+    sscanf(line.c_str(), "%255s", temp);
 
     if (strcmp(temp, "UNUSED") == 0)
       continue;
 
     // Support CodeWarrior and Dolphin map
-    if (std::string_view{line}.ends_with(" section layout\n") || strcmp(temp, ".text") == 0 ||
+    if (std::string_view{line}.ends_with(" section layout") || strcmp(temp, ".text") == 0 ||
         strcmp(temp, ".init") == 0)
     {
       section_name = temp;
@@ -274,7 +276,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       continue;
     if (strcmp(temp, "address") == 0)
       continue;
-    if (strcmp(temp, "-----------------------") == 0)
+    if (strstr(temp, "-----------------------") != nullptr)
       continue;
 
     // Skip link map.
@@ -332,66 +334,80 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     }
 
     u32 address, vaddress, size, offset, alignment;
-    char name[512], container[512];
+    std::string name, object_name;
     if (column_count == 4)
     {
-      // sometimes there is no alignment value, and sometimes it is because it is an entry of
-      // something else
-      if (length > 37 && line[37] == ' ')
+      static const std::regex four_column_regex(
+          "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8}) ([0-9a-f]{8})(\\s+\\d+ "
+          "|\\s+)([0-9A-Za-z_<>$@.,*\\\\]+)(?: \\(entry of \\S+\\)|)"
+          "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
+      std::smatch match;
+
+      if (!std::regex_search(line, match, four_column_regex))
       {
-        alignment = 0;
-        sscanf(line, "%08x %08x %08x %08x %511s", &address, &size, &vaddress, &offset, name);
-        char* s = strstr(line, "(entry of ");
-        if (s)
-        {
-          sscanf(s + 10, "%511s", container);
-          char* s2 = (strchr(container, ')'));
-          if (s2 && container[0] != '.')
-          {
-            s2[0] = '\0';
-            strcat(container, "::");
-            strcat(container, name);
-            strcpy(name, container);
-          }
-        }
+        //Line was invalid, continue
+        continue;
       }
-      else
-      {
-        sscanf(line, "%08x %08x %08x %08x %i %511s", &address, &size, &vaddress, &offset,
-               &alignment, name);
-      }
+
+       sscanf(match[1].str().c_str(), "%08x", &address);
+       sscanf(match[2].str().c_str(), "%08x", &size);
+       sscanf(match[3].str().c_str(), "%08x", &vaddress);
+       sscanf(match[4].str().c_str(), "%08x", &offset);
+       name = match[6].str();
+       object_name = match[8].str();
+
+       std::string alignment_match(StripWhitespace(match[5].str()));
+
+       // sometimes there is no alignment value, and sometimes it is because it is an entry of
+       // something else
+       if (alignment_match != "")
+       {
+         sscanf(alignment_match.c_str(), "%i", &alignment);
+       }
     }
     else if (column_count == 3)
     {
-      // some entries in the table have a function name followed by " (entry of " followed by a
-      // container name, followed by ")"
-      // instead of a space followed by a number followed by a space followed by a name
-      if (length > 27 && line[27] != ' ' && strstr(line, "(entry of "))
+      static const std::regex three_column_regex(
+          "([0-9a-f]{8}) ([0-9a-f]{6}) ([0-9a-f]{8})(\\s+\\d+ "
+          "|\\s+)([0-9A-Za-z_<>$@.,*\\\\]+|.+?\\)(?:const|))(?: \\(entry of \\S+\\)|)"
+          "(?:\\s|$)\\s*(\\S+\\.a|)\\s*(\\S+\\.[a-z]+|)");
+      std::smatch match;
+
+      if (!std::regex_search(line, match, three_column_regex))
       {
-        alignment = 0;
-        sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
-        char* s = strstr(line, "(entry of ");
-        if (s)
-        {
-          sscanf(s + 10, "%511s", container);
-          char* s2 = (strchr(container, ')'));
-          if (s2 && container[0] != '.')
-          {
-            s2[0] = '\0';
-            strcat(container, "::");
-            strcat(container, name);
-            strcpy(name, container);
-          }
-        }
+        // Line was invalid, continue
+        continue;
       }
-      else
+
+      sscanf(match[1].str().c_str(), "%08x", &address);
+      sscanf(match[2].str().c_str(), "%08x", &size);
+      sscanf(match[3].str().c_str(), "%08x", &vaddress);
+      name = match[5].str();
+      object_name = match[7].str();
+
+      std::string alignment_match(StripWhitespace(match[4].str()));
+
+      // sometimes there is no alignment value, and sometimes it is because it is an entry of
+      // something else
+      if (alignment_match != "")
       {
-        sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &alignment, name);
+        sscanf(alignment_match.c_str(), "%i", &alignment);
       }
     }
     else if (column_count == 2)
     {
-      sscanf(line, "%08x %511s", &address, name);
+      static const std::regex two_column_regex("([0-9a-f]{8}) (\\S+)");
+      std::smatch match;
+
+      if (!std::regex_search(line, match, two_column_regex))
+      {
+        // Line was invalid, continue
+        continue;
+      }
+
+      sscanf(match[1].str().c_str(), "%08x", &address);
+      name = match[2].str();
+
       vaddress = address;
       size = 0;
     }
@@ -399,32 +415,9 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     {
       break;
     }
-    const char* namepos = strstr(line, name);
-    if (namepos != nullptr)  // would be odd if not :P
-      strcpy(name, namepos);
-    name[strlen(name) - 1] = 0;
-    if (name[strlen(name) - 1] == '\r')
-      name[strlen(name) - 1] = 0;
-
-    // Split the current name string into separate parts, and get the object name
-    // if it exists.
-    std::string processed_name = TabsToSpaces(0, name); // Remove tabs
-    std::vector<std::string> parts = SplitString(processed_name, ' ');
-
-    std::string name_string = parts[0];
-    std::string object_filename_string = "";
-
-    for (int i = 1; i < parts.size(); i++)
-    {
-      // If the current part is the object filename, save it
-      if (parts[i].find(".o") != std::string::npos)
-      {
-        object_filename_string = parts[i];
-      }
-    }
 
     // Check if this is a valid entry.
-    if (strlen(name) > 0)
+    if (name.length() > 0)
     {
       bool good;
       const Common::Symbol::Type type = section_name == ".text" || section_name == ".init" ?
@@ -459,7 +452,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       if (good)
       {
         ++good_count;
-        AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type);
+        AddKnownSymbol(guard, vaddress, size, name, object_name, type);
       }
       else
       {
