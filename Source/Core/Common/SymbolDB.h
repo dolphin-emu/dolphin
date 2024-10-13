@@ -55,7 +55,6 @@ struct Symbol
   Type type = Type::Function;
   int index = 0;  // only used for coloring the disasm view
   bool analyzed = false;
-  bool has_object_name = false;
 };
 
 enum
