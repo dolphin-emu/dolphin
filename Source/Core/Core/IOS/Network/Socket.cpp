@@ -770,7 +770,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     fd_set read_fds;
     fd_set write_fds;
     fd_set except_fds;
-    struct timeval t = {0, 0};
+    timeval t = {0, 0};
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
@@ -998,7 +998,7 @@ void WiiSockMan::Update()
 {
   s32 nfds = 0;
   fd_set read_fds, write_fds, except_fds;
-  struct timeval t = {0, 0};
+  timeval t = {0, 0};
   FD_ZERO(&read_fds);
   FD_ZERO(&write_fds);
   FD_ZERO(&except_fds);
