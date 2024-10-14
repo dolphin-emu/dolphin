@@ -651,6 +651,7 @@ enum class BooleanSetting(
     SYSCONF_PROGRESSIVE_SCAN(Settings.FILE_SYSCONF, "IPL", "PGS", true),
     SYSCONF_PAL60(Settings.FILE_SYSCONF, "IPL", "E60", true),
     SYSCONF_WIIMOTE_MOTOR(Settings.FILE_SYSCONF, "BT", "MOT", true),
+    GFX_VSYNC(Settings.FILE_GFX, Settings.SECTION_GFX_HARDWARE, "VSync", false),
     GFX_WIDESCREEN_HACK(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "wideScreenHack", false),
     GFX_CROP(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "Crop", false),
     GFX_SHOW_FPS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowFPS", false),

@@ -1798,6 +1798,14 @@ class SettingsFragmentPresenter(
         sl.add(
             SwitchSetting(
                 context,
+                BooleanSetting.GFX_VSYNC,
+                R.string.vsync,
+                R.string.vsync_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
                 BooleanSetting.GFX_BACKEND_MULTITHREADING,
                 R.string.backend_multithreading,
                 R.string.backend_multithreading_description
