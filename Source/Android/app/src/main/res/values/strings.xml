@@ -332,6 +332,8 @@
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>
     <string name="progressive_scan">Enable Progressive Scan</string>
+    <string name="vsync">V-Sync</string>
+    <string name="vsync_description">This setting is unnecessary on most Android devices, because Android always enables V-Sync. If unsure, leave this unchecked.</string>
     <string name="backend_multithreading">Backend Multithreading</string>
     <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this checked.</string>
     <string name="prefer_vs_for_point_line_expansion">Prefer VS for Point/Line Expansion</string>
