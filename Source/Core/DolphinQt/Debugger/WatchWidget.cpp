@@ -481,7 +481,7 @@ void WatchWidget::DeleteSelectedWatches()
     }
 
     // Sort greatest to smallest, so we don't stomp on existing indices
-    std::sort(row_indices.begin(), row_indices.end(), std::greater{});
+    std::ranges::sort(row_indices, std::ranges::greater{});
     for (const int row : row_indices)
     {
       DeleteWatch(guard, row);

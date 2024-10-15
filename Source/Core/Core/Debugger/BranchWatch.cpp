@@ -307,8 +307,7 @@ void BranchWatch::UpdateHitsSnapshot()
 
 void BranchWatch::ClearSelectionInspection()
 {
-  std::for_each(m_selection.begin(), m_selection.end(),
-                [](Selection::value_type& value) { value.inspection = {}; });
+  std::ranges::for_each(m_selection, [](Selection::value_type& value) { value.inspection = {}; });
 }
 
 void BranchWatch::SetSelectedInspected(std::size_t idx, SelectionInspection inspection)

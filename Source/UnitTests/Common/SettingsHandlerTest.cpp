@@ -47,7 +47,7 @@ TEST(SettingsHandlerTest, EncryptSingleSetting)
   handler.AddSetting("key", "val");
   Common::SettingsHandler::Buffer buffer = handler.GetBytes();
 
-  EXPECT_TRUE(std::equal(buffer.begin(), buffer.end(), BUFFER_A.begin(), BUFFER_A.end()));
+  EXPECT_TRUE(std::ranges::equal(buffer, BUFFER_A));
 }
 
 TEST(SettingsHandlerTest, DecryptSingleSetting)
@@ -64,7 +64,7 @@ TEST(SettingsHandlerTest, EncryptMultipleSettings)
   handler.AddSetting("foo", "bar");
   Common::SettingsHandler::Buffer buffer = handler.GetBytes();
 
-  EXPECT_TRUE(std::equal(buffer.begin(), buffer.end(), BUFFER_B.begin(), BUFFER_B.end()));
+  EXPECT_TRUE(std::ranges::equal(buffer, BUFFER_B));
 }
 
 TEST(SettingsHandlerTest, DecryptMultipleSettings)
@@ -88,7 +88,7 @@ TEST(SettingsHandlerTest, EncryptAddsLFOnNullChar)
   handler.AddSetting("\xFA", "a");
   Common::SettingsHandler::Buffer buffer = handler.GetBytes();
 
-  EXPECT_TRUE(std::equal(buffer.begin(), buffer.end(), BUFFER_C.begin(), BUFFER_C.end()));
+  EXPECT_TRUE(std::ranges::equal(buffer, BUFFER_C));
 }
 
 TEST(SettingsHandlerTest, EncryptAddsLFOnNullCharTwice)
@@ -97,7 +97,7 @@ TEST(SettingsHandlerTest, EncryptAddsLFOnNullCharTwice)
   handler.AddSetting("\xFA\xE9", "a");
   Common::SettingsHandler::Buffer buffer = handler.GetBytes();
 
-  EXPECT_TRUE(std::equal(buffer.begin(), buffer.end(), BUFFER_D.begin(), BUFFER_D.end()));
+  EXPECT_TRUE(std::ranges::equal(buffer, BUFFER_D));
 }
 
 TEST(SettingsHandlerTest, DecryptSingleAddedLF)

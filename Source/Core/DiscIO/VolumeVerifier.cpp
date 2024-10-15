@@ -721,8 +721,7 @@ bool VolumeVerifier::ShouldHaveChannelPartition() const
   };
   static_assert(std::ranges::is_sorted(channel_discs));
 
-  return std::binary_search(channel_discs.cbegin(), channel_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(channel_discs, m_volume.GetGameID());
 }
 
 bool VolumeVerifier::ShouldHaveInstallPartition() const
@@ -754,8 +753,7 @@ bool VolumeVerifier::ShouldBeDualLayer() const
   };
   static_assert(std::ranges::is_sorted(dual_layer_discs));
 
-  return std::binary_search(dual_layer_discs.cbegin(), dual_layer_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(dual_layer_discs, m_volume.GetGameID());
 }
 
 void VolumeVerifier::CheckVolumeSize()

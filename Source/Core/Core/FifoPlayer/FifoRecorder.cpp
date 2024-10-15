@@ -240,8 +240,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   m_Ram.resize(memory.GetRamSize());
   m_ExRam.resize(memory.GetExRamSize());
 
-  std::fill(m_Ram.begin(), m_Ram.end(), 0);
-  std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
+  std::ranges::fill(m_Ram, 0);
+  std::ranges::fill(m_ExRam, 0);
 
   m_File->SetIsWii(m_system.IsWii());
 

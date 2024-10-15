@@ -623,16 +623,15 @@ void DirectoryBlobReader::SetWiiRegionData(const std::vector<u8>& wii_region_dat
 
 void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partitions)
 {
-  std::sort(partitions.begin(), partitions.end(),
-            [](const PartitionWithType& lhs, const PartitionWithType& rhs) {
-              if (lhs.type == rhs.type)
-                return lhs.partition.GetRootDirectory() < rhs.partition.GetRootDirectory();
+  std::ranges::sort(partitions, [](const PartitionWithType& lhs, const PartitionWithType& rhs) {
+    if (lhs.type == rhs.type)
+      return lhs.partition.GetRootDirectory() < rhs.partition.GetRootDirectory();
 
-              // Ascending sort by partition type, except Update (1) comes before before Game (0)
-              return (lhs.type > PartitionType::Update || rhs.type > PartitionType::Update) ?
-                         lhs.type < rhs.type :
-                         lhs.type > rhs.type;
-            });
+    // Ascending sort by partition type, except Update (1) comes before before Game (0)
+    return (lhs.type > PartitionType::Update || rhs.type > PartitionType::Update) ?
+               lhs.type < rhs.type :
+               lhs.type > rhs.type;
+  });
 
   u32 subtable_1_size = 0;
   while (subtable_1_size < partitions.size() && subtable_1_size < 3 &&
