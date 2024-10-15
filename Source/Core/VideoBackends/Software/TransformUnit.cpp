@@ -218,22 +218,24 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   switch (chan.attnfunc)
   {
   case AttenuationFunc::None:
+  {
+    PanicAlertFmt("None lighting in use!");
+    ldir = ldir.Normalized();
+    break;
+  }
   case AttenuationFunc::Dir:
   {
     ldir = ldir.Normalized();
-    if (ldir == Vec3(0.0f, 0.0f, 0.0f))
-      ldir = normal;
     break;
   }
   case AttenuationFunc::Spec:
   {
+    PanicAlertFmt("Specular lighting in use!");
     ldir = ldir.Normalized();
     attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
     Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
-    if (chan.diffusefunc != DiffuseFunc::None)
-      distAttn = distAttn.Normalized();
 
     attn = SafeDivide(std::max(0.0f, attLen * cosAttn), attLen * distAttn);
     break;
