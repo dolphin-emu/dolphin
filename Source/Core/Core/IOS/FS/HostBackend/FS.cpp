@@ -461,8 +461,7 @@ ResultCode HostFileSystem::Format(Uid uid)
 ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
                                                  FileAttribute attr, Modes modes, bool is_file)
 {
-  if (!IsValidNonRootPath(path) ||
-      !std::all_of(path.begin(), path.end(), Common::IsPrintableCharacter))
+  if (!IsValidNonRootPath(path) || !std::ranges::all_of(path, Common::IsPrintableCharacter))
   {
     return ResultCode::Invalid;
   }
@@ -516,14 +515,14 @@ ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& 
 
 bool HostFileSystem::IsFileOpened(const std::string& path) const
 {
-  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+  return std::ranges::any_of(m_handles, [&path](const Handle& handle) {
     return handle.opened && handle.wii_path == path;
   });
 }
 
 bool HostFileSystem::IsDirectoryInUse(const std::string& path) const
 {
-  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+  return std::ranges::any_of(m_handles, [&path](const Handle& handle) {
     return handle.opened && handle.wii_path.starts_with(path);
   });
 }

@@ -1059,14 +1059,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       // we have all records for this frame
 
-      if (!std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> pair) {
+      if (!std::ranges::all_of(timebases, [&](std::pair<PlayerId, u64> pair) {
             return pair.second == timebases[0].second;
           }))
       {
         int pid_to_blame = 0;
         for (auto pair : timebases)
         {
-          if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+          if (std::ranges::all_of(timebases, [&](std::pair<PlayerId, u64> other) {
                 return other.first == pair.first || other.second != pair.second;
               }))
           {
@@ -1465,14 +1465,12 @@ bool NetPlayServer::SetupNetSettings()
 
 bool NetPlayServer::DoAllPlayersHaveIPLDump() const
 {
-  return std::all_of(m_players.begin(), m_players.end(),
-                     [](const auto& p) { return p.second.has_ipl_dump; });
+  return std::ranges::all_of(m_players, [](const auto& p) { return p.second.has_ipl_dump; });
 }
 
 bool NetPlayServer::DoAllPlayersHaveHardwareFMA() const
 {
-  return std::all_of(m_players.begin(), m_players.end(),
-                     [](const auto& p) { return p.second.has_hardware_fma; });
+  return std::ranges::all_of(m_players, [](const auto& p) { return p.second.has_hardware_fma; });
 }
 
 struct SaveSyncInfo
@@ -2223,8 +2221,8 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 {
   const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
 
-  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
-         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+  return std::ranges::any_of(m_pad_map, mapping_matches_player_id) ||
+         std::ranges::any_of(m_wiimote_map, mapping_matches_player_id);
 }
 
 void NetPlayServer::AssignNewUserAPad(const Client& player)
