@@ -345,10 +345,9 @@ bool GetParentDevice(const DEVINST& child_device_instance, HDEVINFO* parent_devi
 {
   ULONG status;
   ULONG problem_number;
-  CONFIGRET result;
 
   // Check if that device instance has device node present
-  result = CM_Get_DevNode_Status(&status, &problem_number, child_device_instance, 0);
+  CONFIGRET result = CM_Get_DevNode_Status(&status, &problem_number, child_device_instance, 0);
   if (result != CR_SUCCESS)
   {
     return false;
