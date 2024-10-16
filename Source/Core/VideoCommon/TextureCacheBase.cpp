@@ -2925,8 +2925,10 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   //         Statistically, that could happen.
   const u32 top_coord = clamp_top ? framebuffer_rect.top : 0;
   uniforms.clamp_top = (static_cast<float>(top_coord) + .5f) * rcp_efb_height;
+  uniforms.clamp_top -= uniforms.src_top;
   const u32 bottom_coord = (clamp_bottom ? framebuffer_rect.bottom : efb_height) - 1;
-  uniforms.clamp_bottom = (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
+  uniforms.clamp_bottom = (uniforms.src_top + uniforms.src_height);
+  uniforms.clamp_bottom -= (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
   uniforms.pixel_height = g_ActiveConfig.bCopyEFBScaled ? rcp_efb_height : 1.0f / EFB_HEIGHT;
   uniforms.padding = 0;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
@@ -2974,6 +2976,7 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   // Fill uniform buffer.
   struct Uniforms
   {
+    float src_left, src_top, src_width, src_height;
     std::array<s32, 4> position_uniform;
     float y_scale;
     float gamma_rcp;
@@ -2983,8 +2986,13 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
     u32 padding;
   };
   Uniforms encoder_params;
+  const float rcp_efb_width = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBWidth());
   const u32 efb_height = g_framebuffer_manager->GetEFBHeight();
   const float rcp_efb_height = 1.0f / static_cast<float>(efb_height);
+  encoder_params.src_left = framebuffer_rect.left * rcp_efb_width;
+  encoder_params.src_top = framebuffer_rect.top * rcp_efb_height;
+  encoder_params.src_width = framebuffer_rect.GetWidth() * rcp_efb_width;
+  encoder_params.src_height = framebuffer_rect.GetHeight() * rcp_efb_height;
   encoder_params.position_uniform[0] = src_rect.left;
   encoder_params.position_uniform[1] = src_rect.top;
   encoder_params.position_uniform[2] = static_cast<s32>(native_width);
@@ -2998,8 +3006,10 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   //         Statistically, that could happen.
   const u32 top_coord = clamp_top ? framebuffer_rect.top : 0;
   encoder_params.clamp_top = (static_cast<float>(top_coord) + .5f) * rcp_efb_height;
+  encoder_params.clamp_top -= encoder_params.src_top;
   const u32 bottom_coord = (clamp_bottom ? framebuffer_rect.bottom : efb_height) - 1;
-  encoder_params.clamp_bottom = (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
+  encoder_params.clamp_bottom = (encoder_params.src_top + encoder_params.src_height);
+  encoder_params.clamp_bottom -= (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
   encoder_params.filter_coefficients = filter_coefficients;
   g_vertex_manager->UploadUtilityUniforms(&encoder_params, sizeof(encoder_params));
 
