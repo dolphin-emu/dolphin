@@ -258,7 +258,7 @@ void SysConf::InsertDefaultEntries()
   AddEntry({Entry::Type::BigArray, "BT.DINF", std::vector<u8>(0x460 + 1)});
   AddEntry({Entry::Type::BigArray, "BT.CDIF", std::vector<u8>(0x204 + 1)});
   AddEntry({Entry::Type::Long, "BT.SENS", {0, 0, 0, 3}});
-  AddEntry({Entry::Type::Byte, "BT.BAR", {1}});
+  AddEntry({Entry::Type::Byte, "BT.BAR", {0}});
   AddEntry({Entry::Type::Byte, "BT.SPKV", {0x58}});
   AddEntry({Entry::Type::Byte, "BT.MOT", {1}});
 
