@@ -29,6 +29,7 @@ private:
   void LoadUserStyle();
   void OnUserStyleChanged();
   void OnLanguageChanged();
+  void UpdateShowActiveTitleEnabled();
 
   QVBoxLayout* m_main_layout;
   ConfigStringChoice* m_combobox_language;
@@ -46,6 +47,7 @@ private:
   ConfigBool* m_checkbox_confirm_on_stop;
   ConfigBool* m_checkbox_use_panic_handlers;
   ConfigBool* m_checkbox_enable_osd;
+  ConfigBool* m_checkbox_static_title;
   ConfigBool* m_checkbox_show_active_title;
   ConfigBool* m_checkbox_pause_on_focus_lost;
   ConfigRadioInt* m_radio_cursor_visible_movement;
