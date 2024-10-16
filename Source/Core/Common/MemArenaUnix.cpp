@@ -30,20 +30,20 @@ MemArena::~MemArena() = default;
 
 void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  const std::string file_name = fmt::format("/{}.{}", base_name, getpid());
-  m_shm_fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+  m_seg_name = fmt::format("/{}.{}", base_name, getpid());
+  m_shm_fd = shm_open(m_seg_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
   if (m_shm_fd == -1)
   {
     ERROR_LOG_FMT(MEMMAP, "shm_open failed: {}", strerror(errno));
     return;
   }
-  shm_unlink(file_name.c_str());
   if (ftruncate(m_shm_fd, size) < 0)
     ERROR_LOG_FMT(MEMMAP, "Failed to allocate low memory space");
 }
 
 void MemArena::ReleaseSHMSegment()
 {
+  shm_unlink(m_seg_name.c_str());
   close(m_shm_fd);
 }
 
