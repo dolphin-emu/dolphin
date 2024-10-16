@@ -81,7 +81,7 @@ public:
 
   id<MTLSamplerState> GetSampler(SamplerSelector sel)
   {
-    if (__builtin_expect(!m_samplers[sel.value], false))
+    if (!m_samplers[sel.value]) [[unlikely]]
       m_samplers[sel.value] = CreateSampler(sel);
     return m_samplers[sel.value];
   }
