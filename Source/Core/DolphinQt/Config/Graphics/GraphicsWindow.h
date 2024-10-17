@@ -23,13 +23,11 @@ public:
   explicit GraphicsWindow(MainWindow* parent);
 
 signals:
-  void BackendChanged(const QString& backend);
-  void UseFastTextureSamplingChanged();
-  void UseGPUTextureDecodingChanged();
+  void BackendChanged();
 
 private:
   void CreateMainLayout();
-  void OnBackendChanged(const QString& backend);
+  void OnBackendChanged();
 
   MainWindow* const m_main_window;
 };

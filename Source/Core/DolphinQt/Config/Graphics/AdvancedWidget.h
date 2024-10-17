@@ -8,17 +8,24 @@
 class ConfigBool;
 class ConfigChoice;
 class ConfigInteger;
+class GameConfigWidget;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
 class QSpinBox;
 class ToolTipCheckBox;
 
+namespace Config
+{
+class Layer;
+}  // namespace Config
+
 class AdvancedWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit AdvancedWidget(GraphicsWindow* parent);
+  AdvancedWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
   void LoadSettings();
@@ -76,4 +83,6 @@ private:
   // Experimental
   ConfigBool* m_defer_efb_access_invalidation;
   ConfigBool* m_manual_texture_sampling;
+
+  Config::Layer* m_game_layer = nullptr;
 };
