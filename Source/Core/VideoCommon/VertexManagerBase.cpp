@@ -7,6 +7,8 @@
 #include <cmath>
 #include <memory>
 
+#include <fmt/ranges.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
@@ -1052,16 +1054,10 @@ void VertexManagerBase::OnEndFrame()
   }
 
 #if 0
-  {
-    std::ostringstream ss;
-    std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
-    WARN_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}", ss.str());
-  }
-  {
-    std::ostringstream ss;
-    std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
-    WARN_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}", ss.str());
-  }
+  WARN_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}",
+               fmt::join(m_cpu_accesses_this_frame, ","));
+  WARN_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}",
+               fmt::join(m_scheduled_command_buffer_kicks, ","));
 #endif
 
   m_cpu_accesses_this_frame.clear();
