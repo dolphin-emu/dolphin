@@ -20,6 +20,8 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+class HostDisassembler;
+
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
@@ -47,6 +49,12 @@ public:
 
   void Jit(u32 em_address) override;
   void Jit(u32 em_address, bool clear_cache_and_retry_on_failure);
+
+  void EraseSingleBlock(const JitBlock& block) override;
+  std::vector<MemoryStats> GetMemoryStats() const override;
+
+  std::size_t DisasmNearCode(const JitBlock& block, std::ostream& stream) const override;
+  std::size_t DisasmFarCode(const JitBlock& block, std::ostream& stream) const override;
 
   const char* GetName() const override { return "JITARM64"; }
 
@@ -294,10 +302,13 @@ protected:
   void Cleanup();
   void ResetStack();
 
+  void FreeRanges();
   void GenerateAsmAndResetFreeMemoryRanges();
   void ResetFreeMemoryRanges(size_t routines_near_size, size_t routines_far_size);
 
   void IntializeSpeculativeConstants();
+
+  void LogGeneratedCode() const;
 
   // AsmRoutines
   void GenerateAsm();
@@ -409,4 +420,6 @@ protected:
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near_1;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far_0;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far_1;
+
+  std::unique_ptr<HostDisassembler> m_disassembler;
 };
