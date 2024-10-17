@@ -531,6 +531,7 @@
     <ClInclude Include="InputCommon\ControllerInterface\MappingCommon.h" />
     <ClInclude Include="InputCommon\ControllerInterface\WGInput\WGInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\WiiUAdapter\WiiUAdapter.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="InputCommon\ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\SDL\SDL.h" />
@@ -1191,6 +1192,7 @@
     <ClCompile Include="InputCommon\ControllerInterface\MappingCommon.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\WGInput\WGInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\WiiUAdapter\WiiUAdapter.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\SDL\SDL.cpp" />

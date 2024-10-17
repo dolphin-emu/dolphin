@@ -142,15 +142,6 @@ static Common::Event s_hotplug_event;
 
 static std::function<void(void)> s_detect_callback;
 
-#if defined(__FreeBSD__) && __FreeBSD__ >= 11
-static bool s_libusb_hotplug_enabled = true;
-#else
-static bool s_libusb_hotplug_enabled = false;
-#endif
-#if LIBUSB_API_HAS_HOTPLUG
-static libusb_hotplug_callback_handle s_hotplug_handle;
-#endif
-
 static std::unique_ptr<LibusbUtils::Context> s_libusb_context;
 
 static u8 s_endpoint_in = 0;
@@ -346,24 +337,32 @@ static void ScanThreadFunc()
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #if LIBUSB_API_HAS_HOTPLUG
-#ifndef __FreeBSD__
-  s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
+
+#if defined(__FreeBSD__)
+#if __FreeBSD__ >= 11
+  bool hotplug_enabled = true;
+#else
+  bool hotplug_enabled = false;
 #endif
-  if (s_libusb_hotplug_enabled)
+#else
+  bool hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
+#endif
+  libusb_hotplug_callback_handle hotplug_handle = {};
+  if (hotplug_enabled)
   {
     const int error = libusb_hotplug_register_callback(
         *s_libusb_context,
         (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                                LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
         LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
-        nullptr, &s_hotplug_handle);
+        nullptr, &hotplug_handle);
     if (error == LIBUSB_SUCCESS)
     {
       NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Using libUSB hotplug detection");
     }
     else
     {
-      s_libusb_hotplug_enabled = false;
+      hotplug_enabled = false;
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "Failed to add libUSB hotplug detection callback: {}",
                     LibusbUtils::ErrorWrap(error));
     }
@@ -378,11 +377,17 @@ static void ScanThreadFunc()
       Setup();
     }
 
-    if (s_libusb_hotplug_enabled)
+    if (hotplug_enabled)
       s_hotplug_event.Wait();
     else
       Common::SleepCurrentThread(500);
   }
+
+#if LIBUSB_API_HAS_HOTPLUG
+  if (hotplug_enabled)
+    libusb_hotplug_deregister_callback(*s_libusb_context, hotplug_handle);
+#endif
+
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   JNIEnv* const env = IDCache::GetEnvForThread();
 
@@ -410,12 +415,14 @@ void SetAdapterCallback(std::function<void(void)> func)
 
 static void RefreshConfig()
 {
-  s_is_adapter_wanted = false;
+  s_is_adapter_wanted = Config::Get(Config::MAIN_USE_GC_ADAPTER_FOR_CONTROLLER_INTERFACE);
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     s_is_adapter_wanted |= Config::Get(Config::GetInfoForSIDevice(i)) ==
                            SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
+
+    // TODO: ControllerInterface shouldn't obey this setting.
     s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
   }
 }
@@ -676,12 +683,6 @@ static void AddGCAdapter(libusb_device* device)
 void Shutdown()
 {
   StopScanThread();
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-#if LIBUSB_API_HAS_HOTPLUG
-  if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
-#endif
-#endif
   Reset();
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -764,6 +765,18 @@ GCPadStatus Input(int chan)
   }
 
   return pad_state.status;
+}
+
+GCPadStatus PeekInput(int chan)
+{
+  std::lock_guard lk(s_read_mutex);
+  return s_port_states[chan].status;
+}
+
+GCPadStatus GetOrigin(int chan)
+{
+  std::lock_guard lk(s_read_mutex);
+  return s_port_states[chan].origin;
 }
 
 // Get ControllerType from first byte in input payload.
