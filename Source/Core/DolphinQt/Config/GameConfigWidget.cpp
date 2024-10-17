@@ -16,6 +16,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Config/Layer.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -60,9 +61,12 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   m_global_layer = std::make_unique<Config::Layer>(
       ConfigLoaders::GenerateGlobalGameConfigLoader(m_game_id, m_game.GetRevision()));
 
+  if (m_layer == nullptr || m_global_layer == nullptr)
+    PanicAlertFmtT("Could not load either the local or system game ini.");
+
   CreateWidgets();
-  LoadSettings();
-  ConnectWidgets();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GameConfigWidget::LoadSettings);
 
   PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
               m_game.GetRevision(), true);
@@ -84,31 +88,28 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
         false);
     m_local_tab->addTab(edit, QString::fromStdString(m_game_id + ".ini"));
   }
-
-  // Make sure things get bolded.
-  Config::OnConfigChanged();
 }
 
 void GameConfigWidget::CreateWidgets()
 {
-  Config::Layer* layer = m_layer.get();
   // Core
   auto* core_box = new QGroupBox(tr("Core"));
   auto* core_layout = new QGridLayout;
   core_box->setLayout(core_layout);
 
-  m_enable_dual_core = new ConfigBool(tr("Enable Dual Core"), Config::MAIN_CPU_THREAD, layer);
-  m_enable_mmu = new ConfigBool(tr("Enable MMU"), Config::MAIN_MMU, layer);
-  m_enable_fprf = new ConfigBool(tr("Enable FPRF"), Config::MAIN_FPRF, layer);
-  m_sync_gpu = new ConfigBool(tr("Synchronize GPU thread"), Config::MAIN_SYNC_GPU, layer);
+  m_enable_dual_core =
+      new ConfigBool(tr("Enable Dual Core"), Config::MAIN_CPU_THREAD, m_layer.get());
+  m_enable_mmu = new ConfigBool(tr("Enable MMU"), Config::MAIN_MMU, m_layer.get());
+  m_enable_fprf = new ConfigBool(tr("Enable FPRF"), Config::MAIN_FPRF, m_layer.get());
+  m_sync_gpu = new ConfigBool(tr("Synchronize GPU thread"), Config::MAIN_SYNC_GPU, m_layer.get());
   m_emulate_disc_speed =
-      new ConfigBool(tr("Emulate Disc Speed"), Config::MAIN_FAST_DISC_SPEED, layer, true);
-  m_use_dsp_hle = new ConfigBool(tr("DSP HLE (fast)"), Config::MAIN_DSP_HLE, layer);
+      new ConfigBool(tr("Emulate Disc Speed"), Config::MAIN_FAST_DISC_SPEED, m_layer.get(), true);
+  m_use_dsp_hle = new ConfigBool(tr("DSP HLE (fast)"), Config::MAIN_DSP_HLE, m_layer.get());
 
   const std::vector<std::string> choice{tr("auto").toStdString(), tr("none").toStdString(),
                                         tr("fake-completion").toStdString()};
   m_deterministic_dual_core =
-      new ConfigStringChoice(choice, Config::MAIN_GPU_DETERMINISM_MODE, layer);
+      new ConfigStringChoice(choice, Config::MAIN_GPU_DETERMINISM_MODE, m_layer.get());
 
   m_enable_mmu->setToolTip(tr(
       "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
@@ -136,10 +137,11 @@ void GameConfigWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout;
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_depth_slider = new ConfigSlider(100, 200, Config::GFX_STEREO_DEPTH_PERCENTAGE, layer);
-  m_convergence_spin = new ConfigInteger(0, INT32_MAX, Config::GFX_STEREO_CONVERGENCE, layer);
+  m_depth_slider = new ConfigSlider(100, 200, Config::GFX_STEREO_DEPTH_PERCENTAGE, m_layer.get());
+  m_convergence_spin =
+      new ConfigInteger(0, INT32_MAX, Config::GFX_STEREO_CONVERGENCE, m_layer.get());
   m_use_monoscopic_shadows =
-      new ConfigBool(tr("Monoscopic Shadows"), Config::GFX_STEREO_EFB_MONO_DEPTH, layer);
+      new ConfigBool(tr("Monoscopic Shadows"), Config::GFX_STEREO_EFB_MONO_DEPTH, m_layer.get());
 
   m_depth_slider->setToolTip(
       tr("This value is multiplied with the depth set in the graphics configuration."));
@@ -254,8 +256,10 @@ void GameConfigWidget::CreateWidgets()
 
   auto help_icon = style()->standardIcon(QStyle::SP_MessageBoxQuestion);
   auto* help_label = new QLabel(tr("These settings override core Dolphin settings."));
-  help_label->setToolTip(tr("Italics mark a default game setting, bold marks user "
-                            "settings.\nRight-click to remove user settings."));
+  help_label->setToolTip(
+      tr("Italics mark a default game setting, bold marks user "
+         "settings.\nRight-click to remove user settings.\n AA settings are disabled when the "
+         "global backend doesn't match the game setting."));
   auto help_label_icon = new QLabel();
   help_label_icon->setPixmap(help_icon.pixmap(12, 12));
   help_label_icon->setToolTip(
@@ -282,7 +286,6 @@ GameConfigWidget::~GameConfigWidget()
     m_layer->Save();
     local_layer->DeleteAllKeys();
     local_layer->Load();
-    Config::OnConfigChanged();
   }
 
   // Delete empty configs
@@ -290,13 +293,9 @@ GameConfigWidget::~GameConfigWidget()
     File::Delete(m_gameini_local_path.toStdString());
 }
 
-void GameConfigWidget::ConnectWidgets()
-{
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GameConfigWidget::LoadSettings);
-}
-
 void GameConfigWidget::LoadSettings()
 {
+  PanicAlertFmt("Before Load Settings");
   // Load globals
   auto update_bool = [this](auto config, bool reverse = false) {
     const Config::Location& setting = config->GetLocation();
@@ -339,6 +338,7 @@ void GameConfigWidget::LoadSettings()
 
   update_int(m_depth_slider);
   update_int(m_convergence_spin);
+  PanicAlertFmt("After Load Settings");
 }
 
 void GameConfigWidget::SetItalics()

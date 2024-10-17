@@ -33,7 +33,6 @@ public:
 
 private:
   void CreateWidgets();
-  void ConnectWidgets();
   void SetItalics();
 
   void LoadSettings();
