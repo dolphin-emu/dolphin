@@ -25,3 +25,23 @@ private:
   Config::Info<int> m_setting;
   int m_value;
 };
+
+class ConfigRadioBool : public ToolTipRadioButton
+{
+  Q_OBJECT
+public:
+  ConfigRadioBool(const QString& label, const Config::Info<bool>& setting);
+  ConfigRadioBool(const QString& label, const Config::Info<bool>& setting, bool value);
+
+signals:
+  // Since selecting a new radio button deselects the old one, ::toggled will generate two signals.
+  // These are convenience functions so you can receive only one signal if desired.
+  void OnSelected(bool new_value);
+  void OnDeselected(bool old_value);
+
+private:
+  void Update();
+
+  Config::Info<bool> m_setting;
+  bool m_value;
+};

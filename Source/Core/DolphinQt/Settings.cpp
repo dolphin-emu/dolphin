@@ -439,22 +439,17 @@ int Settings::GetVolume() const
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
-  {
     Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
-    emit VolumeChanged(volume);
-  }
 }
 
 void Settings::IncreaseVolume(int volume)
 {
   AudioCommon::IncreaseVolume(Core::System::GetInstance(), volume);
-  emit VolumeChanged(GetVolume());
 }
 
 void Settings::DecreaseVolume(int volume)
 {
   AudioCommon::DecreaseVolume(Core::System::GetInstance(), volume);
-  emit VolumeChanged(GetVolume());
 }
 
 bool Settings::IsLogVisible() const

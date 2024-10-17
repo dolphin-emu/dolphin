@@ -5,11 +5,11 @@
 
 namespace AudioCommon
 {
-enum class DPL2Quality
+enum class DPL2Quality : int
 {
-  Lowest = 0,
-  Low = 1,
-  High = 2,
-  Highest = 3
+  Lowest,
+  Low,
+  High,
+  Highest
 };
 }  // namespace AudioCommon

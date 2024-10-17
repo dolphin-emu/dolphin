@@ -10,13 +10,14 @@ namespace AudioCommon
 enum class DPL2Quality;
 }
 
-class QCheckBox;
-class QComboBox;
+class ConfigBool;
+class ConfigChoice;
+class ConfigRadioBool;
+class ConfigSlider;
+class ConfigStringChoice;
 class QHBoxLayout;
 class QLabel;
 class QRadioButton;
-class QSlider;
-class QSpinBox;
 class SettingsWindow;
 
 class AudioPane final : public QWidget
@@ -28,52 +29,44 @@ public:
 private:
   void CreateWidgets();
   void ConnectWidgets();
-
-  void LoadSettings();
-  void SaveSettings();
+  void AddDescriptions();
 
   void OnEmulationStateChanged(bool running);
   void OnBackendChanged();
   void OnDspChanged();
-  void OnVolumeChanged(int volume);
 
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;
 
-  QString GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const;
-  QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const;
-  void EnableDolbyQualityWidgets(bool enabled) const;
-
   QHBoxLayout* m_main_layout;
 
   // DSP Engine
-  QRadioButton* m_dsp_hle;
-  QRadioButton* m_dsp_lle;
-  QRadioButton* m_dsp_interpreter;
+  ConfigRadioBool* m_dsp_hle;
+  ConfigRadioBool* m_dsp_lle;
+  ConfigRadioBool* m_dsp_interpreter;
 
   // Volume
-  QSlider* m_volume_slider;
+  ConfigSlider* m_volume_slider;
   QLabel* m_volume_indicator;
 
   // Backend
   QLabel* m_backend_label;
-  QComboBox* m_backend_combo;
-  QCheckBox* m_dolby_pro_logic;
+  ConfigStringChoice* m_backend_combo;
+
+  ConfigBool* m_dolby_pro_logic;
   QLabel* m_dolby_quality_label;
-  QSlider* m_dolby_quality_slider;
-  QLabel* m_dolby_quality_low_label;
-  QLabel* m_dolby_quality_highest_label;
-  QLabel* m_dolby_quality_latency_label;
+  ConfigChoice* m_dolby_quality_combo;
+
   QLabel* m_latency_label;
-  QSpinBox* m_latency_spin;
+  ConfigSlider* m_latency_slider;
 #ifdef _WIN32
   QLabel* m_wasapi_device_label;
-  QComboBox* m_wasapi_device_combo;
+  ConfigStringChoice* m_wasapi_device_combo;
 #endif
 
   // Audio Stretching
-  QCheckBox* m_stretching_enable;
+  ConfigBool* m_stretching_enable;
   QLabel* m_stretching_buffer_label;
-  QSlider* m_stretching_buffer_slider;
+  ConfigSlider* m_stretching_buffer_slider;
   QLabel* m_stretching_buffer_indicator;
 };
