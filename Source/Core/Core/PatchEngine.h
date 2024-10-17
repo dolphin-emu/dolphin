@@ -61,7 +61,7 @@ void RemoveMemoryPatch(std::size_t index);
 
 bool ApplyFramePatches(Core::System& system);
 void Shutdown();
-void Reload();
+void Reload(Core::System& system);
 
 inline int GetPatchTypeCharLength(PatchType type)
 {
