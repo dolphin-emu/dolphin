@@ -364,7 +364,7 @@ Packet& Packet::operator >>(String& data)
         {
             Uint32 character = 0;
             *this >> character;
-            data += character;
+            data += (char32_t)character;
         }
     }
 
