@@ -4,9 +4,12 @@
 #include "Core/HW/WiimoteReal/IOWin.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <optional>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -424,6 +427,23 @@ WinWriteMethod GetInitialWriteMethod(bool IsUsingToshibaStack)
                                 WWM_WRITE_FILE_ACTUAL_REPORT_SIZE);
 }
 
+std::optional<std::string> TryGetDeviceName(HANDLE handle)
+{
+  // Buffers larger than 4093 bytes may cause HidD_GetProductString to fail according to
+  // https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/hidsdi/nf-hidsdi-hidd_getproductstring
+  // USB devices have a maximum string length of 127 (with null terminator) but the maximum length
+  // for Bluetooth or SPI devices isn't listed, so use the biggest valid buffer to be safe.
+  static constexpr auto PRODUCT_STRING_BUFFER_SIZE = 4093;
+  std::array<WCHAR, PRODUCT_STRING_BUFFER_SIZE> product_string_buffer;
+
+  const bool read_successful = pHidD_GetProductString(
+      handle, static_cast<PVOID>(product_string_buffer.data()), PRODUCT_STRING_BUFFER_SIZE);
+  if (!read_successful)
+    return std::nullopt;
+
+  return WStringToUTF8(product_string_buffer.data());
+}
+
 int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, size_t size)
 {
   OVERLAPPED hid_overlap_write = OVERLAPPED();
@@ -454,6 +474,13 @@ int ReadFromHandle(HANDLE& dev_handle, u8* buf)
   return read;
 }
 
+bool IsValidVendorIDAndProductID(const u16 vendor_id, const u16 product_id)
+{
+  if (vendor_id != 0x057e)
+    return false;
+  return product_id == 0x0306 || product_id == 0x0330;
+}
+
 bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& method)
 {
   using namespace WiimoteCommon;
@@ -465,6 +492,29 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
     return false;
 
   Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
+
+  const std::optional<std::string> device_name_opt = TryGetDeviceName(dev_handle);
+  const std::string name = device_name_opt ? *device_name_opt : "NO_NAME";
+  const bool name_is_valid = device_name_opt && IsValidDeviceName(name);
+
+  HIDD_ATTRIBUTES attributes;
+  const bool read_successful = pHidD_GetAttributes(dev_handle, &attributes);
+  const u16 vendor_id = read_successful ? attributes.VendorID : 0;
+  const u16 product_id = read_successful ? attributes.ProductID : 0;
+  const bool is_valid_vendor_and_product = IsValidVendorIDAndProductID(vendor_id, product_id);
+
+  DEBUG_LOG_FMT(WIIMOTE, "IsWiimote() vendor_id: {:04x} product_id: {:04x} name: {}", vendor_id,
+                product_id, name);
+
+  if (!name_is_valid && !is_valid_vendor_and_product)
+    return false;
+
+  // The rest of this function is unnecessary but harmless for official Wii Remotes, but the
+  // DolphinBar doesn't properly sync until it responds correctly to a status request (which
+  // sometimes takes more than one attempt). We could return early if the name, vendor_id, and
+  // product_id all match those of an official Wii Remote, but it's possible some third party remote
+  // appears identical to an official one but also requires the following behavior. To be safe, go
+  // ahead and do it regardless.
 
   u8 buf[MAX_PAYLOAD];
   u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
