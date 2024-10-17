@@ -280,6 +280,8 @@ GameConfigWidget::~GameConfigWidget()
   if (local_layer && SConfig::GetInstance().GetGameID() == m_game_id)
   {
     m_layer->Save();
+    m_layer.release();
+    m_global_layer.release();
     local_layer->DeleteAllKeys();
     local_layer->Load();
     Config::OnConfigChanged();
