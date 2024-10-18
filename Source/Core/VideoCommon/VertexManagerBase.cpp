@@ -1043,12 +1043,10 @@ void VertexManagerBase::OnEndFrame()
     }
   }
 
-#if 0
-  WARN_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}",
+  INFO_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}",
                fmt::join(m_cpu_accesses_this_frame, ","));
-  WARN_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}",
+  INFO_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}",
                fmt::join(m_scheduled_command_buffer_kicks, ","));
-#endif
 
   m_cpu_accesses_this_frame.clear();
 
