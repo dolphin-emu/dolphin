@@ -62,7 +62,7 @@ bool IsPathAndroidContent(std::string_view uri)
 std::string OpenModeToAndroid(std::string mode)
 {
   // The 'b' specifier is not supported by Android. Since we're on POSIX, it's fine to just skip it.
-  mode.erase(std::remove(mode.begin(), mode.end(), 'b'));
+  std::erase(mode, 'b');
 
   if (mode == "r")
     return "r";
