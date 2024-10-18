@@ -159,10 +159,22 @@ void AudioPane::CreateWidgets()
 
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+  auto* misc_box = new QGroupBox(tr("Miscellaneous Settings"));
+  auto* misc_layout = new QGridLayout;
+  misc_box->setLayout(misc_layout);
+
+  m_speed_up_mute_enable = new QCheckBox(tr("Mute When Disabling Speed Limit."));
+  m_speed_up_mute_enable->setToolTip(
+      tr("Mutes the audio when overriding the emulation speed limit (default hotkey: Tab)."));
+
+  misc_layout->addWidget(m_speed_up_mute_enable, 0, 0, 1, 1);
+
   auto* const main_vbox_layout = new QVBoxLayout;
+
   main_vbox_layout->addWidget(dsp_box);
   main_vbox_layout->addWidget(backend_box);
   main_vbox_layout->addWidget(stretching_box);
+  main_vbox_layout->addWidget(misc_box);
 
   m_main_layout = new QHBoxLayout;
   m_main_layout->addLayout(main_vbox_layout);
@@ -187,6 +199,7 @@ void AudioPane::ConnectWidgets()
   connect(m_dsp_hle, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_lle, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_interpreter, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
+  connect(m_speed_up_mute_enable, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
 
 #ifdef _WIN32
   connect(m_wasapi_device_combo, &QComboBox::currentIndexChanged, this, &AudioPane::SaveSettings);
@@ -249,6 +262,9 @@ void AudioPane::LoadSettings()
   m_stretching_buffer_slider->setEnabled(m_stretching_enable->isChecked());
   m_stretching_buffer_indicator->setEnabled(m_stretching_enable->isChecked());
   m_stretching_buffer_indicator->setText(tr("%1 ms").arg(m_stretching_buffer_slider->value()));
+
+  // Misc
+  m_speed_up_mute_enable->setChecked(Config::Get(Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT));
 
 #ifdef _WIN32
   if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
@@ -318,6 +334,10 @@ void AudioPane::SaveSettings()
   m_stretching_buffer_indicator->setEnabled(m_stretching_enable->isChecked());
   m_stretching_buffer_indicator->setText(
       tr("%1 ms").arg(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY)));
+
+  // Misc
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT,
+                           m_speed_up_mute_enable->isChecked());
 
 #ifdef _WIN32
   std::string device = "default";

@@ -360,7 +360,7 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
       {
-        AudioCommon::ToggleMuteVolume(Core::System::GetInstance());
+        AudioCommon::ToggleMuteVolume(system);
         ShowVolume();
       }
 
@@ -482,6 +482,20 @@ void HotkeyScheduler::Run()
         Config::SetCurrent(Config::GFX_HIRES_TEXTURES, !Config::Get(Config::GFX_HIRES_TEXTURES));
 
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
+
+      if (IsHotkey(HK_TOGGLE_THROTTLE, true) && !Config::Get(Config::MAIN_AUDIO_MUTED) &&
+          Config::Get(Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT))
+      {
+        Config::SetCurrent(Config::MAIN_AUDIO_MUTED, true);
+        AudioCommon::UpdateSoundStream(system);
+      }
+      else if (!IsHotkey(HK_TOGGLE_THROTTLE, true) && Config::Get(Config::MAIN_AUDIO_MUTED) &&
+               Config::GetActiveLayerForConfig(Config::MAIN_AUDIO_MUTED) ==
+                   Config::LayerType::CurrentRun)
+      {
+        Config::DeleteKey(Config::LayerType::CurrentRun, Config::MAIN_AUDIO_MUTED);
+        AudioCommon::UpdateSoundStream(system);
+      }
 
       auto ShowEmulationSpeed = []() {
         const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
