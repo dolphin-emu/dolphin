@@ -409,9 +409,10 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 
     if (call_symbol)
     {
-      const QString name = QString::fromStdString(fmt::format("> {} ({}{:08x})", call_symbol->name,
-          !call_symbol->object_name.empty() ? fmt::format("{}, ", call_symbol->object_name) : "",
-          addr));
+      const QString name = QString::fromStdString(fmt::format(
+        "> {} ({}{:08x})", call_symbol->name,
+        !call_symbol->object_name.empty() ? fmt::format("{}, ", call_symbol->object_name) : "",
+        addr));
       if (!name.contains(filter, Qt::CaseInsensitive))
         continue;
 
@@ -434,8 +435,10 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 
     if (caller_symbol)
     {
-      const QString name = QString::fromStdString(fmt::format("< {} ({}{:08x})", caller_symbol->name,
-          !caller_symbol->object_name.empty() ? fmt::format("{}, ",  caller_symbol->object_name) : "", addr));
+      const QString name = QString::fromStdString(fmt::format(
+        "< {} ({}{:08x})", caller_symbol->name,
+        !caller_symbol->object_name.empty() ? fmt::format("{}, ",  caller_symbol->object_name) :
+        "", addr));
 
       if (!name.contains(filter, Qt::CaseInsensitive))
         continue;

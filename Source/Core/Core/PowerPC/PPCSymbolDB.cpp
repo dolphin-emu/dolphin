@@ -411,19 +411,19 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     size_t num_parts = parts.size();
 
     std::string object_filename_string = "";
-    std::string name_string = name; //Default to the full line
+    std::string name_string = name; // Default to the full line
 
     if (num_parts > 0)
     {
       // If the first part does not contain a left bracket (not a demangled symbol), use the first
       // part
-      if (!parts[0].contains('('))
+      if (parts[0].find('(') == std::string::npos)
       {
         name_string = parts[0];
       }
 
       // If the last part contains a ., it has to be the object name
-      if (parts[num_parts - 1].contains('.'))
+      if (parts[num_parts - 1].find('.') != std::string::npos)
       {
         object_filename_string = parts[num_parts - 1];
       }
@@ -503,8 +503,8 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address,
-                                   symbol->size, symbol->address, 0, symbol->name);
+    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address, symbol->size,
+                                   symbol->address, 0, symbol->name);
     // Also write the object name if it exists
     if (!symbol->object_name.empty())
       line += fmt::format(" {0}", symbol->object_name);
@@ -517,8 +517,8 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : data_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address,
-                                   symbol->size, symbol->address, 0, symbol->name);
+    std::string line = fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}", symbol->address, symbol->size,
+                                   symbol->address, 0, symbol->name);
     // Also write the object name if it exists
     if (!symbol->object_name.empty())
       line += fmt::format(" {0}", symbol->object_name);
