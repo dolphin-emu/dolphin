@@ -46,6 +46,14 @@ public:
   void Jit(u32 address, bool clear_cache_and_retry_on_failure);
   bool DoJit(u32 address, JitBlock* b, u32 nextPC);
 
+  void EraseSingleBlock(const JitBlock& block) override;
+  std::vector<MemoryStats> GetMemoryStats() const override;
+
+  static std::size_t Disassemble(const JitBlock& block, std::ostream& stream);
+
+  std::size_t DisasmNearCode(const JitBlock& block, std::ostream& stream) const override;
+  std::size_t DisasmFarCode(const JitBlock& block, std::ostream& stream) const override;
+
   JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }
   const char* GetName() const override { return "Cached Interpreter"; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
@@ -63,6 +71,8 @@ private:
   void FreeRanges();
   void ResetFreeMemoryRanges();
 
+  void LogGeneratedCode() const;
+
   struct StartProfiledBlockOperands;
   template <bool profiled>
   struct EndBlockOperands;
@@ -74,20 +84,33 @@ private:
   struct CheckIdleOperands;
 
   static s32 StartProfiledBlock(PowerPC::PowerPCState& ppc_state,
-                                const StartProfiledBlockOperands& profile_data);
+                                const StartProfiledBlockOperands& operands);
+  static s32 StartProfiledBlock(std::ostream& stream, const StartProfiledBlockOperands& operands);
   template <bool profiled>
   static s32 EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlockOperands<profiled>& operands);
+  template <bool profiled>
+  static s32 EndBlock(std::ostream& stream, const EndBlockOperands<profiled>& operands);
   template <bool write_pc>
   static s32 Interpret(PowerPC::PowerPCState& ppc_state, const InterpretOperands& operands);
   template <bool write_pc>
+  static s32 Interpret(std::ostream& stream, const InterpretOperands& operands);
+  template <bool write_pc>
   static s32 InterpretAndCheckExceptions(PowerPC::PowerPCState& ppc_state,
                                          const InterpretAndCheckExceptionsOperands& operands);
+  template <bool write_pc>
+  static s32 InterpretAndCheckExceptions(std::ostream& stream,
+                                         const InterpretAndCheckExceptionsOperands& operands);
   static s32 HLEFunction(PowerPC::PowerPCState& ppc_state, const HLEFunctionOperands& operands);
+  static s32 HLEFunction(std::ostream& stream, const HLEFunctionOperands& operands);
   static s32 WriteBrokenBlockNPC(PowerPC::PowerPCState& ppc_state,
                                  const WriteBrokenBlockNPCOperands& operands);
+  static s32 WriteBrokenBlockNPC(std::ostream& stream, const WriteBrokenBlockNPCOperands& operands);
   static s32 CheckFPU(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
+  static s32 CheckFPU(std::ostream& stream, const CheckHaltOperands& operands);
   static s32 CheckBreakpoint(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
+  static s32 CheckBreakpoint(std::ostream& stream, const CheckHaltOperands& operands);
   static s32 CheckIdle(PowerPC::PowerPCState& ppc_state, const CheckIdleOperands& operands);
+  static s32 CheckIdle(std::ostream& stream, const CheckIdleOperands& operands);
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges;
   CachedInterpreterBlockCache m_block_cache;
