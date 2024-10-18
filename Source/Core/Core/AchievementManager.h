@@ -45,6 +45,16 @@ namespace PatchEngine
 struct Patch;
 }  // namespace PatchEngine
 
+namespace Gecko
+{
+class GeckoCode;
+}  // namespace Gecko
+
+namespace ActionReplay
+{
+struct ARCode;
+}  // namespace ActionReplay
+
 class AchievementManager
 {
 public:
@@ -70,8 +80,8 @@ public:
   static constexpr std::string_view BLUE = "#0B71C1";
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
   static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0x50, 0x2F, 0x58, 0x02, 0x94, 0x60, 0x1B, 0x9F, 0x92, 0xC7,
-      0x04, 0x17, 0x50, 0x2E, 0xF3, 0x09, 0x8C, 0x8C, 0xD6, 0xC0};
+      0x8E, 0x8C, 0xDC, 0x3C, 0x5B, 0xB6, 0x0D, 0xA6, 0x48, 0x70,
+      0x8E, 0x46, 0x1F, 0x4E, 0xF6, 0x25, 0xB8, 0xB0, 0x02, 0x9E};
 
   struct LeaderboardEntry
   {
@@ -125,8 +135,14 @@ public:
   void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
   void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
+
   void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                              const std::string& game_ini_id) const;
+  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
+                                const std::string& game_ini_id) const;
+  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
+                             const std::string& game_ini_id) const;
+
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
@@ -180,6 +196,12 @@ private:
   static void ChangeMediaCallback(int result, const char* error_message, rc_client_t* client,
                                   void* userdata);
   void DisplayWelcomeMessage();
+
+  template <typename T>
+  void FilterApprovedIni(std::vector<T>& patches, const std::string& game_ini_id) const;
+  Common::SHA1::Digest GetPatchHash(const PatchEngine::Patch& patch) const;
+  Common::SHA1::Digest GetPatchHash(const Gecko::GeckoCode& patch) const;
+  Common::SHA1::Digest GetPatchHash(const ActionReplay::ARCode& patch) const;
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
                                          rc_client_leaderboard_entry_list_t* list,
