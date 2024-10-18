@@ -63,6 +63,8 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
   g_Config.backend_info.bSupportsSettingObjectNames = false;
   g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
   g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  g_Config.backend_info.bSupportsUnrestrictedDepthRange = false;
+  g_Config.backend_info.bSupportsDepthClampControl = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();

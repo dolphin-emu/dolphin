@@ -127,8 +127,11 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       code.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
 
-    code.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n"
-               "  return uint4((depth >> 16) & 255u, (depth >> 8) & 255u, depth & 255u, 255u);\n"
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      code.Write("  uint depth = uint(tex_sample.x);\n");
+    else
+      code.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n");
+    code.Write("  return uint4((depth >> 16) & 255u, (depth >> 8) & 255u, depth & 255u, 255u);\n"
                "}}\n");
   }
   else
