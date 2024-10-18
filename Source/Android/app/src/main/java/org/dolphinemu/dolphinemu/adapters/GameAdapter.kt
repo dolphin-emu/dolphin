@@ -23,6 +23,7 @@ import org.dolphinemu.dolphinemu.databinding.CardGameBinding
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.utils.CoilUtils
+import org.dolphinemu.dolphinemu.utils.HapticListener
 import java.util.ArrayList
 
 class GameAdapter : RecyclerView.Adapter<GameViewHolder>(),
@@ -39,7 +40,7 @@ class GameAdapter : RecyclerView.Adapter<GameViewHolder>(),
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context))
         binding.root.apply {
-            setOnClickListener(this@GameAdapter)
+            setOnClickListener(HapticListener.wrapOnClickListener(this@GameAdapter))
             setOnLongClickListener(this@GameAdapter)
         }
 
