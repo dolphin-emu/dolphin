@@ -15,6 +15,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"
@@ -29,12 +30,15 @@ HacksWidget::HacksWidget(GraphicsWindow* parent)
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
-  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
-  connect(m_gpu_texture_decoding, &QCheckBox::toggled, [this, parent] {
-    SaveSettings();
-    emit parent->UseGPUTextureDecodingChanged();
-  });
+}
+
+HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
+{
+  CreateWidgets();
+  LoadSettings();
+  ConnectWidgets();
+  AddDescriptions();
 }
 
 void HacksWidget::CreateWidgets()
@@ -45,14 +49,14 @@ void HacksWidget::CreateWidgets()
   auto* efb_box = new QGroupBox(tr("Embedded Frame Buffer (EFB)"));
   auto* efb_layout = new QGridLayout();
   efb_box->setLayout(efb_layout);
-  m_skip_efb_cpu =
-      new ConfigBool(tr("Skip EFB Access from CPU"), Config::GFX_HACK_EFB_ACCESS_ENABLE, true);
-  m_ignore_format_changes = new ConfigBool(tr("Ignore Format Changes"),
-                                           Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, true);
-  m_store_efb_copies =
-      new ConfigBool(tr("Store EFB Copies to Texture Only"), Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  m_defer_efb_copies =
-      new ConfigBool(tr("Defer EFB Copies to RAM"), Config::GFX_HACK_DEFER_EFB_COPIES);
+  m_skip_efb_cpu = new ConfigBool(tr("Skip EFB Access from CPU"),
+                                  Config::GFX_HACK_EFB_ACCESS_ENABLE, m_game_layer, true);
+  m_ignore_format_changes = new ConfigBool(
+      tr("Ignore Format Changes"), Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, m_game_layer, true);
+  m_store_efb_copies = new ConfigBool(tr("Store EFB Copies to Texture Only"),
+                                      Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, m_game_layer);
+  m_defer_efb_copies = new ConfigBool(tr("Defer EFB Copies to RAM"),
+                                      Config::GFX_HACK_DEFER_EFB_COPIES, m_game_layer);
 
   efb_layout->addWidget(m_skip_efb_cpu, 0, 0);
   efb_layout->addWidget(m_ignore_format_changes, 0, 1);
@@ -69,8 +73,8 @@ void HacksWidget::CreateWidgets()
   m_accuracy->setMaximum(2);
   m_accuracy->setPageStep(1);
   m_accuracy->setTickPosition(QSlider::TicksBelow);
-  m_gpu_texture_decoding =
-      new ConfigBool(tr("GPU Texture Decoding"), Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  m_gpu_texture_decoding = new ConfigBool(tr("GPU Texture Decoding"),
+                                          Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
 
   auto* safe_label = new QLabel(tr("Safe"));
   safe_label->setAlignment(Qt::AlignRight);
@@ -88,11 +92,12 @@ void HacksWidget::CreateWidgets()
   auto* xfb_layout = new QVBoxLayout();
   xfb_box->setLayout(xfb_layout);
 
-  m_store_xfb_copies =
-      new ConfigBool(tr("Store XFB Copies to Texture Only"), Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  m_immediate_xfb = new ConfigBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
-  m_skip_duplicate_xfbs =
-      new ConfigBool(tr("Skip Presenting Duplicate Frames"), Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
+  m_store_xfb_copies = new ConfigBool(tr("Store XFB Copies to Texture Only"),
+                                      Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, m_game_layer);
+  m_immediate_xfb =
+      new ConfigBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB, m_game_layer);
+  m_skip_duplicate_xfbs = new ConfigBool(tr("Skip Presenting Duplicate Frames"),
+                                         Config::GFX_HACK_SKIP_DUPLICATE_XFBS, m_game_layer);
 
   xfb_layout->addWidget(m_store_xfb_copies);
   xfb_layout->addWidget(m_immediate_xfb);
@@ -104,13 +109,14 @@ void HacksWidget::CreateWidgets()
   other_box->setLayout(other_layout);
 
   m_fast_depth_calculation =
-      new ConfigBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC);
+      new ConfigBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC, m_game_layer);
   m_disable_bounding_box =
-      new ConfigBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
-  m_vertex_rounding = new ConfigBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
-  m_save_texture_cache_state =
-      new ConfigBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
-  m_vi_skip = new ConfigBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP);
+      new ConfigBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, m_game_layer, true);
+  m_vertex_rounding =
+      new ConfigBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING, m_game_layer);
+  m_save_texture_cache_state = new ConfigBool(
+      tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE, m_game_layer);
+  m_vi_skip = new ConfigBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP, m_game_layer);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
@@ -130,7 +136,7 @@ void HacksWidget::CreateWidgets()
   UpdateSkipPresentingDuplicateFramesEnabled();
 }
 
-void HacksWidget::OnBackendChanged(const QString& backend_name)
+void HacksWidget::OnBackendChanged()
 {
   const bool bbox = g_Config.backend_info.bSupportsBBox;
   const bool gpu_texture_decoding = g_Config.backend_info.bSupportsGPUTextureDecoding;
@@ -139,7 +145,7 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
   m_disable_bounding_box->setEnabled(bbox);
 
   const QString tooltip = tr("%1 doesn't support this feature on your system.")
-                              .arg(tr(backend_name.toStdString().c_str()));
+                              .arg(tr(Config::Get(Config::MAIN_GFX_BACKEND).c_str()));
 
   m_gpu_texture_decoding->setToolTip(!gpu_texture_decoding ? tooltip : QString{});
   m_disable_bounding_box->setToolTip(!bbox ? tooltip : QString{});
