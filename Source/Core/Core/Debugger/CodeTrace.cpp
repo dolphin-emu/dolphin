@@ -267,8 +267,8 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
 
   // Checks if the intstruction is a type that needs special handling.
   const auto CompareInstruction = [](std::string_view instruction, const auto& type_compare) {
-    return std::any_of(type_compare.begin(), type_compare.end(),
-                       [&instruction](std::string_view s) { return instruction.starts_with(s); });
+    return std::ranges::any_of(
+        type_compare, [&instruction](std::string_view s) { return instruction.starts_with(s); });
   };
 
   // Exclusions from updating tracking logic. mt operations are too complex and specialized.
