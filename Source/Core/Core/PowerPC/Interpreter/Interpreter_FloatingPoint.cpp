@@ -515,7 +515,7 @@ void Interpreter::fresx(Interpreter& interpreter, UGeckoInstruction inst)
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
 
   const auto compute_result = [&ppc_state, inst](double value) {
-    const double result = Common::ApproximateReciprocal(value);
+    const double result = Common::ApproximateReciprocal(ppc_state.fpscr, value);
     ppc_state.ps[inst.FD].Fill(result);
     ppc_state.UpdateFPRFSingle(float(result));
   };
