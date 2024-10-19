@@ -24,6 +24,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/IOS/USB/Emulated/WiiSpeak.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
@@ -196,6 +197,9 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
     auto infinity_base = std::make_unique<USB::InfinityUSB>(GetEmulationKernel(), "Infinity Base");
     CheckAndAddDevice(std::move(infinity_base), new_devices, hooks, always_add_hooks);
   }
+
+  auto wii_speak = std::make_unique<USB::WiiSpeak>(GetEmulationKernel(), "Wii Speak");
+  CheckAndAddDevice(std::move(wii_speak), new_devices, hooks, always_add_hooks);
 }
 
 void USBHost::CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
