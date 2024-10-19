@@ -11,7 +11,7 @@ class StickWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit StickWidget(QWidget* parent, u16 width, u16 height);
+  explicit StickWidget(QWidget* parent, u16 max_x, u16 max_y);
 
 signals:
   void ChangedX(u16 x);
