@@ -91,6 +91,8 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsDynamicVertexLoader = true;
   g_Config.backend_info.bSupportsVSLinePointExpand = true;
   g_Config.backend_info.bSupportsHDROutput = true;
+  g_Config.backend_info.bSupportsUnrestrictedDepthRange = false;
+  g_Config.backend_info.bSupportsDepthClampControl = false;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)
