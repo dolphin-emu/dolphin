@@ -1192,6 +1192,12 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     WriteExit(nextPC);
   }
 
+  // When linking to an entry point immediately following it in memory, a JIT block's furthest
+  // exit can, as a micro-optimization, overwrite the JMP instruction with a multibyte NOP.
+  // See: 'JitBlockCache::WriteLinkBlock'
+  // In order to do this in a non-sketchy way, a JIT block must own the alignment padding bytes.
+  AlignCode4();  // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
+
   if (HasWriteFailed() || m_far_code.HasWriteFailed())
   {
     if (HasWriteFailed())
@@ -1218,30 +1224,7 @@ std::vector<JitBase::MemoryStats> Jit64::GetMemoryStats() const
 
 std::size_t Jit64::DisassembleNearCode(const JitBlock& block, std::ostream& stream) const
 {
-  // The last element of the JitBlock::linkData vector is not necessarily the furthest exit.
-  // See: Jit64::JustWriteExit
-  const auto iter = std::ranges::max_element(block.linkData, {}, &JitBlock::LinkData::exitPtrs);
-
-  // Link data is not guaranteed, e.g. Jit64::WriteRfiExitDestInRSCRATCH
-  if (iter == block.linkData.end())
-    return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream);
-
-  // A JitBlock's near_end only records where the XEmitter was after DoJit concludes. However, a
-  // JitBlock's exits will be modified by block linking. If Block A wants to link its final exit
-  // to the entry_point of Block B, and Block B follows Block A in memory, then the final exit's
-  // JMP will not have its destination modified but will instead be overwritten by a multibyte NOP.
-  // Trickily, Block A's near_end does not necessarily equal Block B's entry_point because Block B's
-  // entry_point is aligned to the next multiple of 4! This means the multibyte NOP may need to
-  // extend past Block A's near_end, complicating host code disassembly. If the opcode of a JMP
-  // instruction is found at the final exit, the block will be disassembled like normal. If one
-  // is not, the exit is assumed to be overwritten, and special action is taken.
-  const u8* const furthest_exit = iter->exitPtrs;
-  if (*furthest_exit == 0xE9)
-    return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream);
-
-  const auto inst_count = m_disassembler->Disassemble(block.normalEntry, furthest_exit, stream);
-  fmt::println(stream, "{}\tmultibyte nop", fmt::ptr(furthest_exit));
-  return inst_count + 1;
+  return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream);
 }
 
 std::size_t Jit64::DisassembleFarCode(const JitBlock& block, std::ostream& stream) const
