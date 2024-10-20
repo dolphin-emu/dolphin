@@ -391,7 +391,7 @@ void RegCache::Discard(BitSet32 pregs)
   }
 }
 
-void RegCache::Flush(BitSet32 pregs)
+void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   ASSERT_MSG(
       DYNA_REC,
@@ -410,7 +410,8 @@ void RegCache::Flush(BitSet32 pregs)
     case PPCCachedReg::LocationType::Default:
       break;
     case PPCCachedReg::LocationType::Discarded:
-      ASSERT_MSG(DYNA_REC, false, "Attempted to flush discarded PPC reg {}", i);
+      ASSERT_MSG(DYNA_REC, ignore_discarded_registers != IgnoreDiscardedRegisters::No,
+                 "Attempted to flush discarded PPC reg {}", i);
       break;
     case PPCCachedReg::LocationType::SpeculativeImmediate:
       // We can have a cached value without a host register through speculative constants.
