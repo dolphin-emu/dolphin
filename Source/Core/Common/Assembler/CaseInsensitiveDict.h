@@ -47,7 +47,7 @@ private:
     std::array<uint32_t, 36 + sizeof...(ExtraMatches)> _conns;
     std::optional<V> _val;
 
-    TrieEntry() { std::fill(_conns.begin(), _conns.end(), INVALID_CONN); }
+    TrieEntry() { _conns.fill(INVALID_CONN); }
   };
 
   constexpr size_t IndexOf(char c) const

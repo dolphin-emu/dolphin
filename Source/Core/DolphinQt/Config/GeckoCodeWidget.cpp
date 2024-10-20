@@ -314,20 +314,14 @@ void GeckoCodeWidget::SortAlphabetically()
 
 void GeckoCodeWidget::SortEnabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
-    return a.enabled && a.enabled != b.enabled;
-  });
-
+  std::ranges::stable_partition(m_gecko_codes, std::identity{}, &Gecko::GeckoCode::enabled);
   UpdateList();
   SaveCodes();
 }
 
 void GeckoCodeWidget::SortDisabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
-    return !a.enabled && a.enabled != b.enabled;
-  });
-
+  std::ranges::stable_partition(m_gecko_codes, std::logical_not{}, &Gecko::GeckoCode::enabled);
   UpdateList();
   SaveCodes();
 }
