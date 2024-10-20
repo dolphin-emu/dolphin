@@ -136,15 +136,14 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
   if (!std::isnan(num))
   {
     u32 address = static_cast<u32>(num);
-    return std::any_of(stack.begin(), stack.end(),
-                       [address](const auto& s) { return s.vAddress == address; });
+    return std::ranges::any_of(stack, [address](const auto& s) { return s.vAddress == address; });
   }
 
   const char* cstr = expr_get_str(&vec_nth(args, 0));
   if (cstr != nullptr)
   {
-    return std::any_of(stack.begin(), stack.end(),
-                       [cstr](const auto& s) { return s.Name.find(cstr) != std::string::npos; });
+    return std::ranges::any_of(
+        stack, [cstr](const auto& s) { return s.Name.find(cstr) != std::string::npos; });
   }
 
   return 0;

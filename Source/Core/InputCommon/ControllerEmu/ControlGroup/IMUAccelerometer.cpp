@@ -25,8 +25,8 @@ IMUAccelerometer::IMUAccelerometer(std::string name_, std::string ui_name_)
 
 bool IMUAccelerometer::AreInputsBound() const
 {
-  return std::all_of(controls.begin(), controls.end(),
-                     [](const auto& control) { return control->control_ref->BoundCount() > 0; });
+  return std::ranges::all_of(
+      controls, [](const auto& control) { return control->control_ref->BoundCount() > 0; });
 }
 
 std::optional<IMUAccelerometer::StateData> IMUAccelerometer::GetState() const
