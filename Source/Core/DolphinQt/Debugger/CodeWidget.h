@@ -43,6 +43,7 @@ public:
   void SetPC();
 
   void OnBranchWatchDialog();
+  void OnSetCodeAddress(u32 address);
   void ToggleBreakpoint();
   void AddBreakpoint();
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
@@ -50,7 +51,7 @@ public:
   void Update();
   void UpdateSymbols();
 signals:
-  void RequestPPCComparison(u32 addr);
+  void RequestPPCComparison(u32 address, bool translate_address);
   void ShowMemory(u32 address);
 
 private:

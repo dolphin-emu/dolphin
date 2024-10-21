@@ -127,6 +127,7 @@ signals:
 
 private:
   void OnEmulationStateChanged(Core::State state);
+  void OnConfigChanged();
 
   void AddFileMenu();
 
@@ -185,6 +186,7 @@ private:
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
+  void OnWipeJitBlockProfilingData();
   void OnWriteJitBlockLogDump();
 
   QString GetSignatureSelector() const;
@@ -270,6 +272,7 @@ private:
   QAction* m_jit_log_coverage;
   QAction* m_jit_search_instruction;
   QAction* m_jit_profile_blocks;
+  QAction* m_jit_wipe_profiling_data;
   QAction* m_jit_write_cache_log_dump;
   QAction* m_jit_off;
   QAction* m_jit_loadstore_off;

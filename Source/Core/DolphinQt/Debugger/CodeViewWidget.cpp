@@ -881,7 +881,7 @@ void CodeViewWidget::OnPPCComparison()
 {
   const u32 addr = GetContextAddress();
 
-  emit RequestPPCComparison(addr);
+  emit RequestPPCComparison(addr, m_system.GetPPCState().msr.IR);
 }
 
 void CodeViewWidget::OnAddFunction()

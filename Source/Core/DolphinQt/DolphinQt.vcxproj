@@ -145,6 +145,7 @@
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
     <ClCompile Include="Debugger\GekkoSyntaxHighlight.cpp" />
+    <ClCompile Include="Debugger\JitBlockTableModel.cpp" />
     <ClCompile Include="Debugger\JITWidget.cpp" />
     <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="Debugger\MemoryWidget.cpp" />
@@ -249,6 +250,7 @@
     <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ClearLayoutRecursively.h" />
+    <QtMoc Include="QtUtils\ClickableStatusBar.h" />
     <ClInclude Include="QtUtils\DolphinFileDialog.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
@@ -359,6 +361,7 @@
     <QtMoc Include="Debugger\CodeViewWidget.h" />
     <QtMoc Include="Debugger\CodeWidget.h" />
     <QtMoc Include="Debugger\GekkoSyntaxHighlight.h" />
+    <QtMoc Include="Debugger\JitBlockTableModel.h" />
     <QtMoc Include="Debugger\JITWidget.h" />
     <QtMoc Include="Debugger\MemoryViewWidget.h" />
     <QtMoc Include="Debugger\MemoryWidget.h" />

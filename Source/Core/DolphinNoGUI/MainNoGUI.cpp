@@ -86,6 +86,14 @@ void Host_UpdateDisasmDialog()
 {
 }
 
+void Host_JitCacheCleared()
+{
+}
+
+void Host_JitProfileDataWiped()
+{
+}
+
 void Host_UpdateMainFrame()
 {
   s_update_main_frame_event.Set();

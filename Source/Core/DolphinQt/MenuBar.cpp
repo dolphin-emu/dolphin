@@ -13,6 +13,7 @@
 #include <QFontDialog>
 #include <QInputDialog>
 #include <QMap>
+#include <QSignalBlocker>
 #include <QUrl>
 
 #include <fmt/format.h>
@@ -95,6 +96,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=, this](Core::State state) { OnEmulationStateChanged(state); });
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &MenuBar::OnConfigChanged);
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
           [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
 
@@ -155,7 +157,8 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
-  m_jit_write_cache_log_dump->setEnabled(running && jit_exists);
+  m_jit_wipe_profiling_data->setEnabled(jit_exists);
+  m_jit_write_cache_log_dump->setEnabled(jit_exists);
 
   // Symbols
   m_symbols->setEnabled(running);
@@ -164,6 +167,12 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   UpdateToolsMenu(state);
 
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+}
+
+void MenuBar::OnConfigChanged()
+{
+  const QSignalBlocker blocker(m_jit_profile_blocks);
+  m_jit_profile_blocks->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
 }
 
 void MenuBar::OnDebugModeToggled(bool enabled)
@@ -194,6 +203,12 @@ void MenuBar::OnDebugModeToggled(bool enabled)
     removeAction(m_jit->menuAction());
     removeAction(m_symbols->menuAction());
   }
+}
+
+void MenuBar::OnWipeJitBlockProfilingData()
+{
+  auto& system = Core::System::GetInstance();
+  system.GetJitInterface().WipeBlockProfilingData(Core::CPUThreadGuard{system});
 }
 
 void MenuBar::OnWriteJitBlockLogDump()
@@ -922,6 +937,8 @@ void MenuBar::AddJITMenu()
   connect(m_jit_profile_blocks, &QAction::toggled, [](bool enabled) {
     Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
   });
+  m_jit_wipe_profiling_data = m_jit->addAction(tr("Wipe JIT Block Profiling Data"), this,
+                                               &MenuBar::OnWipeJitBlockProfilingData);
   m_jit_write_cache_log_dump =
       m_jit->addAction(tr("Write JIT Block Log Dump"), this, &MenuBar::OnWriteJitBlockLogDump);
 
