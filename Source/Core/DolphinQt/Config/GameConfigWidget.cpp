@@ -363,4 +363,15 @@ void GameConfigWidget::SetItalics()
     italics(config);
   for (auto* config : findChildren<ConfigStringChoice*>())
     italics(config);
+
+  for (auto* config : findChildren<ConfigComplexChoice*>())
+  {
+    std::pair<Config::Location, Config::Location> location = config->GetLocation();
+    if (m_global_layer->Exists(location.first) || m_global_layer->Exists(location.second))
+    {
+      QFont ifont = config->font();
+      ifont.setItalic(true);
+      config->setFont(ifont);
+    }
+  }
 }
