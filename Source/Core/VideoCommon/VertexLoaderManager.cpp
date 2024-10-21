@@ -376,6 +376,22 @@ static void CheckCPConfiguration(int vtx_attr_group)
   }
 }
 
+static bool CanSplit(OpcodeDecoder::Primitive primitive)
+{
+  // Splitting is currently only implemented for the easy cases (individual lines/points/triangles)
+  switch (primitive)
+  {
+  case OpcodeDecoder::Primitive::GX_DRAW_QUADS:
+  case OpcodeDecoder::Primitive::GX_DRAW_QUADS_2:
+  case OpcodeDecoder::Primitive::GX_DRAW_TRIANGLES:
+  case OpcodeDecoder::Primitive::GX_DRAW_LINES:
+  case OpcodeDecoder::Primitive::GX_DRAW_POINTS:
+    return true;
+  default:
+    return false;
+  }
+}
+
 template <bool IsPreprocess>
 int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src)
 {
@@ -414,9 +430,9 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 
     // CPUCull's performance increase comes from encoding fewer GPU commands, not sending less data
     // Therefore it's only useful to check if culling could remove a flush
-    const bool can_cpu_cull = g_ActiveConfig.bCPUCull &&
-                              primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES &&
-                              !g_vertex_manager->HasSendableVertices();
+    bool can_cpu_cull = g_ActiveConfig.bCPUCull &&
+                        primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES &&
+                        !g_vertex_manager->HasSendableVertices();
 
     // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
     // They still need to go through vertex loading, because we need to calculate a zfreeze
@@ -425,24 +441,33 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
                           primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
 
     const int stride = loader->m_native_vtx_decl.stride;
-    DataReader dst = g_vertex_manager->PrepareForAdditionalData(primitive, count, stride,
-                                                                cullall || can_cpu_cull);
-
-    count = loader->RunVertices(src, dst.GetPointer(), count);
-
-    if (can_cpu_cull && !cullall)
+    do
     {
-      if (!g_vertex_manager->AreAllVerticesCulled(loader, primitive, dst.GetPointer(), count))
+      const int max_vertices = 16380;  // Max is 16383, but 16380 is divisible by both 4 and 3
+      int run = CanSplit(primitive) && count > max_vertices ? max_vertices : count;
+      count -= run;
+      DataReader dst = g_vertex_manager->PrepareForAdditionalData(primitive, run, stride,
+                                                                  cullall || can_cpu_cull);
+
+      run = loader->RunVertices(src, dst.GetPointer(), run);
+      src += loader->m_vertex_size * max_vertices;
+
+      if (can_cpu_cull && !cullall)
       {
-        DataReader new_dst = g_vertex_manager->DisableCullAll(stride);
-        memmove(new_dst.GetPointer(), dst.GetPointer(), count * stride);
+        if (!g_vertex_manager->AreAllVerticesCulled(loader, primitive, dst.GetPointer(), run))
+        {
+          DataReader new_dst = g_vertex_manager->DisableCullAll(stride);
+          memmove(new_dst.GetPointer(), dst.GetPointer(), run * stride);
+          can_cpu_cull = false;
+        }
       }
-    }
 
-    g_vertex_manager->AddIndices(primitive, count);
-    g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
+      g_vertex_manager->AddIndices(primitive, run);
+      g_vertex_manager->FlushData(run, stride);
 
-    ADDSTAT(g_stats.this_frame.num_prims, count);
+      ADDSTAT(g_stats.this_frame.num_prims, run);
+    } while (count);
+
     INCSTAT(g_stats.this_frame.num_primitive_joins);
   }
   return size;
