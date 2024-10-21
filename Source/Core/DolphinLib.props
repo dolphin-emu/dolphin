@@ -378,7 +378,9 @@
     <ClInclude Include="Core\IOS\Network\KD\VFF\VFFUtil.h" />
     <ClInclude Include="Core\IOS\Network\KD\WC24File.h" />
     <ClInclude Include="Core\IOS\Network\KD\Mail\MailCommon.h" />
+    <ClInclude Include="Core\IOS\Network\KD\Mail\MailParser.h" />
     <ClInclude Include="Core\IOS\Network\KD\Mail\WC24FriendList.h" />
+    <ClInclude Include="Core\IOS\Network\KD\Mail\WC24Receive.h" />
     <ClInclude Include="Core\IOS\Network\KD\Mail\WC24Send.h" />
     <ClInclude Include="Core\IOS\Network\MACUtils.h" />
     <ClInclude Include="Core\IOS\Network\NCD\Manage.h" />
@@ -1045,7 +1047,9 @@
     <ClCompile Include="Core\IOS\Network\KD\NWC24Config.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\NWC24DL.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\VFF\VFFUtil.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\Mail\MailParser.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\Mail\WC24FriendList.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\Mail\WC24Receive.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\Mail\WC24Send.cpp" />
     <ClCompile Include="Core\IOS\Network\MACUtils.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\Manage.cpp" />
