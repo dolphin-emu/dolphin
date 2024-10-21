@@ -15,7 +15,22 @@ struct Location;
 
 namespace ConfigLoaders
 {
+enum class WriteBackChangedValues
+{
+  No,
+  Yes,
+};
+
+enum class SkipIfControlledByGuest
+{
+  No,
+  Yes,
+};
+
+void TransferSYSCONFControlToGuest();
+void TransferSYSCONFControlFromGuest(WriteBackChangedValues write_back_changed_values);
 void SaveToSYSCONF(Config::LayerType layer,
+                   SkipIfControlledByGuest skip = SkipIfControlledByGuest::Yes,
                    std::function<bool(const Config::Location&)> predicate = {});
 std::unique_ptr<Config::ConfigLayerLoader> GenerateBaseConfigLoader();
 }  // namespace ConfigLoaders
