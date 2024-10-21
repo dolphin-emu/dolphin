@@ -254,8 +254,12 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
       // We've got two guest registers in a row to store
       OpArg& reg1 = m_guest_registers[GUEST_GPR_OFFSET + i];
       OpArg& reg2 = m_guest_registers[GUEST_GPR_OFFSET + i + 1];
-      if (reg1.IsDirty() && reg2.IsDirty() && reg1.GetType() == RegType::Register &&
-          reg2.GetType() == RegType::Register)
+      const bool reg1_imm = reg1.GetType() == RegType::Immediate;
+      const bool reg2_imm = reg2.GetType() == RegType::Immediate;
+      const bool flush_all = mode == FlushMode::All;
+      if (reg1.IsDirty() && reg2.IsDirty() &&
+          (reg1.GetType() == RegType::Register || (reg1_imm && flush_all)) &&
+          (reg2.GetType() == RegType::Register || (reg2_imm && flush_all)))
       {
         const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
         if (ppc_offset <= 252)
@@ -263,7 +267,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
           ARM64Reg RX1 = R(GetGuestByIndex(i));
           ARM64Reg RX2 = R(GetGuestByIndex(i + 1));
           m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
-          if (mode == FlushMode::All)
+          if (flush_all)
           {
             UnlockRegister(EncodeRegTo32(RX1));
             UnlockRegister(EncodeRegTo32(RX2));
