@@ -9,19 +9,19 @@
 
 class ConfigBool;
 class ConfigChoice;
+class ConfigComplexChoice;
+class ConfigStringChoice;
 class ConfigSlider;
 class GameConfigWidget;
 class GraphicsWindow;
-class QCheckBox;
-class QComboBox;
 class QPushButton;
-class QSlider;
-class ToolTipComboBox;
 class ToolTipPushButton;
 enum class StereoMode : int;
 
 namespace Config
 {
+template <typename T>
+class Info;
 class Layer;
 }  // namespace Config
 
@@ -33,22 +33,28 @@ public:
   EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
-  void LoadSettings();
-  void SaveSettings();
+  template <typename T>
+  T ReadSetting(const Config::Info<T>& setting) const;
 
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+
+  void OnBackendChanged();
+  void UpdateAAOptions();
+  void LoadPPShaders();
+  void ShaderChanged();
+  void OnConfigChanged();
+
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
-  void LoadPPShaders(StereoMode stereo_mode);
 
   // Enhancements
   ConfigChoice* m_ir_combo;
-  ToolTipComboBox* m_aa_combo;
-  ToolTipComboBox* m_texture_filtering_combo;
-  ToolTipComboBox* m_output_resampling_combo;
-  ToolTipComboBox* m_pp_effect;
+  ConfigComplexChoice* m_aa_combo;
+  ConfigComplexChoice* m_texture_filtering_combo;
+  ConfigChoice* m_output_resampling_combo;
+  ConfigStringChoice* m_pp_effect;
   ToolTipPushButton* m_configure_color_correction;
   QPushButton* m_configure_pp_effect;
   ConfigBool* m_scaled_efb_copy;
@@ -68,6 +74,4 @@ private:
   ConfigBool* m_3d_per_eye_resolution;
 
   Config::Layer* m_game_layer = nullptr;
-  int m_msaa_modes;
-  bool m_block_save;
 };
