@@ -400,6 +400,7 @@ const Info<ShowCursor> MAIN_SHOW_CURSOR{{System::Main, "Interface", "CursorVisib
                                         ShowCursor::OnMovement};
 const Info<bool> MAIN_LOCK_CURSOR{{System::Main, "Interface", "LockCursor"}, false};
 const Info<std::string> MAIN_INTERFACE_LANGUAGE{{System::Main, "Interface", "LanguageCode"}, ""};
+const Info<bool> MAIN_STATIC_TITLE{{System::Main, "Interface", "StaticTitle"}, false};
 const Info<bool> MAIN_SHOW_ACTIVE_TITLE{{System::Main, "Interface", "ShowActiveTitle"}, true};
 const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE{
     {System::Main, "Interface", "UseBuiltinTitleDatabase"}, true};
