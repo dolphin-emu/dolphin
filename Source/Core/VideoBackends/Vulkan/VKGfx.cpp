@@ -260,9 +260,6 @@ bool VKGfx::BindBackbuffer(const ClearColor& clear_color)
 
   if (res != VK_SUCCESS)
   {
-    // Execute cmdbuffer before resizing, as the last frame could still be presenting.
-    ExecuteCommandBuffer(false, true);
-
     // Was this a lost exclusive fullscreen?
     if (res == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
     {
