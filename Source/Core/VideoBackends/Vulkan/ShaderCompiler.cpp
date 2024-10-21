@@ -1,11 +1,16 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Hash.h"
+#include "Common/Logging/Log.h"
+
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 
 #include <cstddef>
 #include <string>
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/VKDebug.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Spirv.h"
@@ -121,27 +126,75 @@ static glslang::EShTargetLanguageVersion GetLanguageVersion()
   return glslang::EShTargetSpv_1_0;
 }
 
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code)
+std::optional<CompiledSPIRV> CompileVertexShader(std::string_view source_code)
 {
-  return SPIRV::CompileVertexShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                    GetLanguageVersion());
+  std::string code = GetShaderCode(source_code, SHADER_HEADER);
+  u64 hash = Common::GetHash64(reinterpret_cast<const u8*>(code.c_str()), u32(code.size()), 128);
+  std::optional<SPIRVCodeVector> spirv =
+      SPIRV::CompileVertexShader(code, APIType::Vulkan, GetLanguageVersion());
+
+  if (spirv != std::nullopt)
+  {
+    if (g_command_buffer_mgr->GetDebug().IsEnabled())
+    {
+      INFO_LOG_FMT(HOST_GPU, "Vertex Shader: HASH: {}; Code: {}", hash, code);
+    }
+    return std::make_optional<CompiledSPIRV>(CompiledSPIRV{std::move(spirv.value()), hash});
+  }
+  return std::nullopt;
 }
 
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code)
+std::optional<CompiledSPIRV> CompileGeometryShader(std::string_view source_code)
 {
-  return SPIRV::CompileGeometryShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                      GetLanguageVersion());
+  std::string code = GetShaderCode(source_code, SHADER_HEADER);
+  u64 hash = Common::GetHash64(reinterpret_cast<const u8*>(code.c_str()), u32(code.size()), 128);
+  std::optional<SPIRVCodeVector> spirv =
+      SPIRV::CompileGeometryShader(code, APIType::Vulkan, GetLanguageVersion());
+
+  if (spirv != std::nullopt)
+  {
+    if (g_command_buffer_mgr->GetDebug().IsEnabled())
+    {
+      INFO_LOG_FMT(HOST_GPU, "Geometry Shader: HASH: {}; Code: {}", hash, code);
+    }
+    return std::make_optional<CompiledSPIRV>(CompiledSPIRV{std::move(spirv.value()), hash});
+  }
+  return std::nullopt;
 }
 
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code)
+std::optional<CompiledSPIRV> CompileFragmentShader(std::string_view source_code)
 {
-  return SPIRV::CompileFragmentShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                      GetLanguageVersion());
+  std::string code = GetShaderCode(source_code, SHADER_HEADER);
+  u64 hash = Common::GetHash64(reinterpret_cast<const u8*>(code.c_str()), u32(code.size()), 128);
+  std::optional<SPIRVCodeVector> spirv =
+      SPIRV::CompileFragmentShader(code, APIType::Vulkan, GetLanguageVersion());
+
+  if (spirv != std::nullopt)
+  {
+    if (g_command_buffer_mgr->GetDebug().IsEnabled())
+    {
+      INFO_LOG_FMT(HOST_GPU, "Fragment Shader: HASH: {}; Code: {}", hash, code);
+    }
+    return std::make_optional<CompiledSPIRV>(CompiledSPIRV{std::move(spirv.value()), hash});
+  }
+  return std::nullopt;
 }
 
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code)
+std::optional<CompiledSPIRV> CompileComputeShader(std::string_view source_code)
 {
-  return SPIRV::CompileComputeShader(GetShaderCode(source_code, COMPUTE_SHADER_HEADER),
-                                     APIType::Vulkan, GetLanguageVersion());
+  std::string code = GetShaderCode(source_code, SHADER_HEADER);
+  u64 hash = Common::GetHash64(reinterpret_cast<const u8*>(code.c_str()), u32(code.size()), 128);
+  std::optional<SPIRVCodeVector> spirv =
+      SPIRV::CompileComputeShader(code, APIType::Vulkan, GetLanguageVersion());
+
+  if (spirv != std::nullopt)
+  {
+    if (g_command_buffer_mgr->GetDebug().IsEnabled())
+    {
+      INFO_LOG_FMT(HOST_GPU, "Compute Shader: HASH: {}; Code: {}", hash, code);
+    }
+    return std::make_optional<CompiledSPIRV>(CompiledSPIRV{std::move(spirv.value()), hash});
+  }
+  return std::nullopt;
 }
 }  // namespace Vulkan::ShaderCompiler

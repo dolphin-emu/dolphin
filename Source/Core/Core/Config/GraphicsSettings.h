@@ -84,6 +84,7 @@ extern const Info<bool> GFX_ENABLE_WIREFRAME;
 extern const Info<bool> GFX_DISABLE_FOG;
 extern const Info<bool> GFX_BORDERLESS_FULLSCREEN;
 extern const Info<bool> GFX_ENABLE_VALIDATION_LAYER;
+extern const Info<bool> GFX_ENABLE_BREADCRUMBS;
 extern const Info<bool> GFX_BACKEND_MULTITHREADING;
 extern const Info<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL;
 extern const Info<bool> GFX_SHADER_CACHE;
