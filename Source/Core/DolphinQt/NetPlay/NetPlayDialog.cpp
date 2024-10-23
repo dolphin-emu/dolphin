@@ -975,7 +975,7 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
   });
 }
 
-void NetPlayDialog::OnPossibleDesync(u32 frame, const std::string& player)
+void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
 {
   DisplayMessage(tr("Possible desync detected: %1 might have desynced at frame %2. Game restart advised.")
                      .arg(QString::fromStdString(player), QString::number(frame)),
