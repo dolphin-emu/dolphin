@@ -422,7 +422,7 @@ public:
       if (data)
       {
         std::vector<u8> file_data_enc(Common::AlignUp(data->size(), BLOCK_SZ));
-        std::copy(data->cbegin(), data->cend(), file_data_enc.begin());
+        std::ranges::copy(*data, file_data_enc.begin());
         m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr.iv.data(), file_data_enc.data(),
                        file_data_enc.size(), file_data_enc.data(), IOS::PID_ES);
         if (!m_file.WriteBytes(file_data_enc.data(), file_data_enc.size()))

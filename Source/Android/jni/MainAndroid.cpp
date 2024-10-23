@@ -118,8 +118,7 @@ void Host_Message(HostMessageID id)
   }
   else if (id == HostMessageID::WMUserStop)
   {
-    if (Core::IsRunning(Core::System::GetInstance()))
-      Core::QueueHostJob(&Core::Stop);
+    Core::QueueHostJob(&Core::Stop);
   }
 }
 
@@ -144,6 +143,14 @@ bool Host_UpdateDiscordPresenceRaw(const std::string& details, const std::string
 }
 
 void Host_UpdateDisasmDialog()
+{
+}
+
+void Host_JitCacheCleared()
+{
+}
+
+void Host_JitProfileDataWiped()
 {
 }
 
@@ -277,13 +284,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetIsBooting
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunning(JNIEnv*, jclass)
 {
-  return s_is_booting.IsSet() ||
-         static_cast<jboolean>(Core::IsRunning(Core::System::GetInstance()));
-}
-
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndStarted(JNIEnv*,
-                                                                                            jclass)
-{
   return static_cast<jboolean>(Core::IsRunning(Core::System::GetInstance()));
 }
 
@@ -291,6 +291,13 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndUnpaused(JNIEnv*, jclass)
 {
   return static_cast<jboolean>(Core::GetState(Core::System::GetInstance()) == Core::State::Running);
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsUninitialized(JNIEnv*,
+                                                                                        jclass)
+{
+  return static_cast<jboolean>(Core::IsUninitialized(Core::System::GetInstance()) &&
+                               !s_is_booting.IsSet());
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
@@ -409,6 +416,22 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDefaultGraphicsBackendName(JNIEn
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv*, jclass)
 {
   return static_cast<jint>(Common::Log::MAX_LOGLEVEL);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WipeJitBlockProfilingData(
+    JNIEnv* env, jclass native_library_class)
+{
+  HostThreadLock guard;
+  auto& system = Core::System::GetInstance();
+  auto& jit_interface = system.GetJitInterface();
+  const Core::CPUThreadGuard cpu_guard(system);
+  if (jit_interface.GetCore() == nullptr)
+  {
+    env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
+                              ToJString(env, Common::GetStringT("JIT is not active")), JNI_FALSE);
+    return;
+  }
+  jit_interface.WipeBlockProfilingData(cpu_guard);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteJitBlockLogDump(

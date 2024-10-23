@@ -19,6 +19,8 @@ void CachedInterpreterEmitter::Write(AnyCallback callback, const void* operands,
   }
   std::memcpy(m_code, &callback, sizeof(callback));
   m_code += sizeof(callback);
+  if (size == 0)
+    return;
   std::memcpy(m_code, operands, size);
   m_code += size;
 }

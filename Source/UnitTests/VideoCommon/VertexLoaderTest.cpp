@@ -702,6 +702,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     input_with_expected_type(i / 32.f);
 
   // Pre-fill these values to detect if they're modified
+  VertexLoaderManager::normal_cache = {-42.f, -43.f, -44.f, -45.f};
   VertexLoaderManager::binormal_cache = {42.f, 43.f, 44.f, 45.f};
   VertexLoaderManager::tangent_cache = {46.f, 47.f, 48.f, 49.f};
 
@@ -738,6 +739,9 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     ExpectOut(10 / 32.f);
     ExpectOut(11 / 32.f);
     ExpectOut(12 / 32.f);
+    EXPECT_EQ(VertexLoaderManager::normal_cache[0], 10 / 32.f);
+    EXPECT_EQ(VertexLoaderManager::normal_cache[1], 11 / 32.f);
+    EXPECT_EQ(VertexLoaderManager::normal_cache[2], 12 / 32.f);
     if (elements == NormalComponentCount::NTB)
     {
       // Tangent
@@ -759,6 +763,14 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
   }
 
+  if (addr == VertexComponentFormat::NotPresent)
+  {
+    // Expect these to not be written
+    EXPECT_EQ(VertexLoaderManager::normal_cache[0], -42.f);
+    EXPECT_EQ(VertexLoaderManager::normal_cache[1], -43.f);
+    EXPECT_EQ(VertexLoaderManager::normal_cache[2], -44.f);
+    EXPECT_EQ(VertexLoaderManager::normal_cache[3], -45.f);
+  }
   if (addr == VertexComponentFormat::NotPresent || elements == NormalComponentCount::N)
   {
     // Expect these to not be written

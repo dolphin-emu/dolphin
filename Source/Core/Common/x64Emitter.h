@@ -122,7 +122,6 @@ struct OpArg
     return std::tie(scale, offsetOrBaseReg, indexReg, offset, operandReg) ==
            std::tie(b.scale, b.offsetOrBaseReg, b.indexReg, b.offset, b.operandReg);
   }
-  constexpr bool operator!=(const OpArg& b) const { return !operator==(b); }
   u64 Imm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);

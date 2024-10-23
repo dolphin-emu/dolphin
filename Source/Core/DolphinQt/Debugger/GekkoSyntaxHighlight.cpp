@@ -162,10 +162,9 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
   }
   else if (m_mode == 1)
   {
-    auto paren_it = std::find_if(info->parens.begin(), info->parens.end(),
-                                 [this](const std::pair<int, int>& p) {
-                                   return p.first == m_cursor_loc || p.second == m_cursor_loc;
-                                 });
+    auto paren_it = std::ranges::find_if(info->parens, [this](const std::pair<int, int>& p) {
+      return p.first == m_cursor_loc || p.second == m_cursor_loc;
+    });
     if (paren_it != info->parens.end())
     {
       HighlightSubstr(paren_it->first, 1, HighlightFormat::Paren);

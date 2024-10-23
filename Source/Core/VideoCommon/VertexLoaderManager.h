@@ -62,6 +62,10 @@ void UpdateVertexArrayPointers();
 // These arrays are in reverse order.
 extern std::array<std::array<float, 4>, 3> position_cache;
 extern std::array<u32, 3> position_matrix_index_cache;
+// Needed for the game "LIT", which has text that has lighting enabled, but doesn't have normal
+// vectors.  The normals from the last drawn object are used instead.
+// See https://bugs.dolphin-emu.org/issues/13635
+extern std::array<float, 4> normal_cache;
 // Store the tangent and binormal vectors for games that use emboss texgens when the vertex format
 // doesn't include them (e.g. RS2 and RS3).  These too are 4 floats each for SIMD overwrites.
 extern std::array<float, 4> tangent_cache;

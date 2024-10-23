@@ -30,7 +30,6 @@ struct CameraPoint
   {
     return this->position == other.position && this->size == other.size;
   }
-  constexpr bool operator!=(const CameraPoint& other) const { return !(*this == other); }
 };
 
 // Four bytes for two objects. Filled with 0xFF if empty

@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 
+class CheatCodeEditor;
 class CheatWarningWidget;
 #ifdef USE_RETRO_ACHIEVEMENTS
 class HardcoreWarningWidget;
@@ -33,6 +34,8 @@ public:
                            bool restart_required = true);
   ~GeckoCodeWidget() override;
 
+  void ChangeGame(std::string game_id, std::string gametdb_id, u16 game_revision);
+
 signals:
   void OpenGeneralSettings();
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -52,6 +55,7 @@ private:
   void EditCode();
   void RemoveCode();
   void DownloadCodes();
+  void LoadCodes();
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();
@@ -74,6 +78,7 @@ private:
   QPushButton* m_edit_code;
   QPushButton* m_remove_code;
   QPushButton* m_download_codes;
+  CheatCodeEditor* m_cheat_code_editor;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
   bool m_restart_required;
 };

@@ -54,7 +54,7 @@ abstract class SettingsItem {
 
     open val isEditable: Boolean
         get() {
-            if (!NativeLibrary.IsRunning()) return true
+            if (NativeLibrary.IsUninitialized()) return true
             val setting = setting
             return setting != null && setting.isRuntimeEditable
         }

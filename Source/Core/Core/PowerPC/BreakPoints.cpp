@@ -352,10 +352,9 @@ void MemChecks::Clear()
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
-  const auto iter =
-      std::find_if(m_mem_checks.begin(), m_mem_checks.end(), [address, size](const auto& mc) {
-        return mc.end_address >= address && address + size - 1 >= mc.start_address;
-      });
+  const auto iter = std::ranges::find_if(m_mem_checks, [address, size](const auto& mc) {
+    return mc.end_address >= address && address + size - 1 >= mc.start_address;
+  });
 
   // None found
   if (iter == m_mem_checks.cend())

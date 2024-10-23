@@ -32,16 +32,6 @@
 
 namespace CoreTiming
 {
-// Sort by time, unless the times are the same, in which case sort by the order added to the queue
-static bool operator>(const Event& left, const Event& right)
-{
-  return std::tie(left.time, left.fifo_order) > std::tie(right.time, right.fifo_order);
-}
-static bool operator<(const Event& left, const Event& right)
-{
-  return std::tie(left.time, left.fifo_order) < std::tie(right.time, right.fifo_order);
-}
-
 static constexpr int MAX_SLICE_LENGTH = 20000;
 
 static void EmptyTimedCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -205,7 +195,7 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // When loading from a save state, we must assume the Event order is random and meaningless.
     // The exact layout of the heap in memory is implementation defined, therefore it is platform
     // and library version specific.
-    std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::make_heap(m_event_queue, std::ranges::greater{});
 
     // The stave state has changed the time, so our previous Throttle targets are invalid.
     // Especially when global_time goes down; So we create a fake throttle update.
@@ -266,7 +256,7 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
       ForceExceptionCheck(cycles_into_future);
 
     m_event_queue.emplace_back(Event{timeout, m_event_fifo_id++, userdata, event_type});
-    std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::push_heap(m_event_queue, std::ranges::greater{});
   }
   else
   {
@@ -309,7 +299,7 @@ void CoreTimingManager::RemoveEvent(EventType* event_type)
   // Removing random items breaks the invariant so we have to re-establish it.
   if (erased != 0)
   {
-    std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::make_heap(m_event_queue, std::ranges::greater{});
   }
 }
 
@@ -338,7 +328,7 @@ void CoreTimingManager::MoveEvents()
   {
     ev.fifo_order = m_event_fifo_id++;
     m_event_queue.emplace_back(std::move(ev));
-    std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::push_heap(m_event_queue, std::ranges::greater{});
   }
 
   for (Event ev; m_external_pending_queue.Pop(ev);)
@@ -369,7 +359,7 @@ void CoreTimingManager::Advance()
   while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
     Event evt = std::move(m_event_queue.front());
-    std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::pop_heap(m_event_queue, std::ranges::greater{});
     m_event_queue.pop_back();
 
     Throttle(evt.time);
@@ -478,7 +468,7 @@ bool CoreTimingManager::UseSyncOnSkipIdle() const
 void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;
-  std::sort(clone.begin(), clone.end());
+  std::ranges::sort(clone);
   for (const Event& ev : clone)
   {
     INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, ev.time,
@@ -521,7 +511,7 @@ std::string CoreTimingManager::GetScheduledEventsSummary() const
   text.reserve(1000);
 
   auto clone = m_event_queue;
-  std::sort(clone.begin(), clone.end());
+  std::ranges::sort(clone);
   for (const Event& ev : clone)
   {
     text += fmt::format("{} : {} {:016x}\n", *ev.type->name, ev.time, ev.userdata);

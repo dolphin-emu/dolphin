@@ -150,9 +150,6 @@ public:
   void Unlock() { m_locked = false; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
 
-  bool operator==(Arm64Gen::ARM64Reg reg) const { return reg == m_reg; }
-  bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
-
 private:
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   bool m_locked = false;
@@ -285,6 +282,8 @@ public:
 
   // Gets the immediate that a register is set to. Only valid for guest GPRs.
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
+
+  bool IsImm(size_t preg, u32 imm) { return IsImm(preg) && GetImm(preg) == imm; }
 
   // Binds a guest GPR to a host register, optionally loading its value.
   //

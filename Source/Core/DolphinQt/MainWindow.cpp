@@ -252,7 +252,11 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
-          [](Qt::ColorScheme colorScheme) { Settings::Instance().ApplyStyle(); });
+          [this](Qt::ColorScheme colorScheme) {
+            Settings::Instance().ApplyStyle();
+            if (m_skylander_window)
+              m_skylander_window->RefreshList();
+          });
 #endif
 
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
@@ -461,7 +465,7 @@ void MainWindow::CreateComponents()
     m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
 
-  m_jit_widget = new JITWidget(this);
+  m_jit_widget = new JITWidget(Core::System::GetInstance(), this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_memory_widget = new MemoryWidget(Core::System::GetInstance(), this);
@@ -486,6 +490,7 @@ void MainWindow::CreateComponents()
     m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   };
 
+  connect(m_jit_widget, &JITWidget::SetCodeAddress, m_code_widget, &CodeWidget::OnSetCodeAddress);
   connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
   connect(m_watch_widget, &WatchWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
@@ -498,21 +503,14 @@ void MainWindow::CreateComponents()
   connect(m_thread_widget, &ThreadWidget::RequestViewInMemory, request_view_in_memory);
   connect(m_thread_widget, &ThreadWidget::RequestViewInCode, request_view_in_code);
 
-  connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
-          &BreakpointWidget::Update);
-  connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget, &JITWidget::Compare);
+  connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget,
+          &JITWidget::OnRequestPPCComparison);
   connect(m_code_widget, &CodeWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
-  connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
-          &BreakpointWidget::Update);
   connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
     m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
   connect(m_memory_widget, &MemoryWidget::RequestWatch, request_watch);
 
-  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
-          &CodeWidget::Update);
-  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
-          &MemoryWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::ShowCode, [this](u32 address) {
     if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
@@ -920,14 +918,15 @@ void MainWindow::OnStopComplete()
 
 bool MainWindow::RequestStop()
 {
-  if (!Core::IsRunning(Core::System::GetInstance()))
+  if (Core::IsUninitialized(Core::System::GetInstance()))
   {
     Core::QueueHostJob([this](Core::System&) { OnStopComplete(); }, true);
     return true;
   }
 
   const bool rendered_widget_was_active =
-      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
+      Settings::Instance().IsKeepWindowOnTopEnabled() ||
+      (m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen());
   QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
                                 m_render_widget :
                                 static_cast<QWidget*>(this);
@@ -1231,7 +1230,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   }
 
   // If we're running, only start a new game once we've stopped the last.
-  if (Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized)
+  if (!Core::IsUninitialized(Core::System::GetInstance()))
   {
     if (!RequestStop())
       return;
@@ -1656,7 +1655,7 @@ void MainWindow::NetPlayInit()
 
 bool MainWindow::NetPlayJoin()
 {
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (!Core::IsUninitialized(Core::System::GetInstance()))
   {
     ModalMessageBox::critical(nullptr, tr("Error"),
                               tr("Can't start a NetPlay Session while a game is still running!"));
@@ -1723,7 +1722,7 @@ bool MainWindow::NetPlayJoin()
 
 bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (!Core::IsUninitialized(Core::System::GetInstance()))
   {
     ModalMessageBox::critical(nullptr, tr("Error"),
                               tr("Can't start a NetPlay Session while a game is still running!"));
@@ -1792,12 +1791,7 @@ void MainWindow::UpdateScreenSaverInhibition()
 
   m_is_screensaver_inhibited = inhibit;
 
-#ifdef HAVE_X11
-  if (GetWindowSystemType() == WindowSystemType::X11)
-    UICommon::InhibitScreenSaver(winId(), inhibit);
-#else
   UICommon::InhibitScreenSaver(inhibit);
-#endif
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
@@ -1879,36 +1873,6 @@ QSize MainWindow::sizeHint() const
   return QSize(800, 600);
 }
 
-#ifdef _WIN32
-bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
-{
-  auto* msg = reinterpret_cast<MSG*>(message);
-  if (msg && msg->message == WM_SETTINGCHANGE && msg->lParam != NULL &&
-      std::wstring_view(L"ImmersiveColorSet")
-              .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
-  {
-    // Windows light/dark theme has changed. Update our flag and refresh the theme.
-    auto& settings = Settings::Instance();
-    const bool was_dark_before = settings.IsSystemDark();
-    settings.UpdateSystemDark();
-    if (settings.IsSystemDark() != was_dark_before)
-    {
-      settings.ApplyStyle();
-
-      // force the colors in the Skylander window to update
-      if (m_skylander_window)
-        m_skylander_window->RefreshList();
-    }
-
-    // TODO: When switching from light to dark, the window decorations remain light. Qt seems very
-    // convinced that it needs to change these in response to this message, so even if we set them
-    // to dark here, Qt sets them back to light afterwards.
-  }
-
-  return false;
-}
-#endif
-
 void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
@@ -1970,7 +1934,7 @@ void MainWindow::OnImportNANDBackup()
 
   result.wait();
 
-  m_menu_bar->UpdateToolsMenu(Core::IsRunning(Core::System::GetInstance()));
+  m_menu_bar->UpdateToolsMenu(Core::State::Uninitialized);
 }
 
 void MainWindow::OnPlayRecording()
@@ -2002,7 +1966,8 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
+  if (Core::GetState(system) == Core::State::Starting ||
+      Core::GetState(system) == Core::State::Stopping || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;
@@ -2034,7 +1999,7 @@ void MainWindow::OnStartRecording()
   {
     emit RecordingStatusChanged(true);
 
-    if (!Core::IsRunning(system))
+    if (Core::IsUninitialized(system))
       Play();
   }
 }

@@ -791,7 +791,7 @@ bool AssemblerWidget::SaveEditor(AsmEditor* editor)
 
 void AssemblerWidget::OnEmulationStateChanged(Core::State state)
 {
-  m_inject->setEnabled(state != Core::State::Uninitialized);
+  m_inject->setEnabled(state == Core::State::Running || state == Core::State::Paused);
 }
 
 void AssemblerWidget::OnTabClose(int index)
@@ -846,7 +846,7 @@ void AssemblerWidget::CloseTab(int index, AsmEditor* editor)
 
 int AssemblerWidget::AllocateTabNum()
 {
-  auto min_it = std::min_element(m_free_editor_nums.begin(), m_free_editor_nums.end());
+  auto min_it = std::ranges::min_element(m_free_editor_nums);
   if (min_it == m_free_editor_nums.end())
   {
     return m_unnamed_editor_count++;

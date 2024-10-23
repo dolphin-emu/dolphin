@@ -18,6 +18,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/ENet.h"

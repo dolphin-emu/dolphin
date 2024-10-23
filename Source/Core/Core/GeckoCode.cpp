@@ -34,27 +34,9 @@ bool operator==(const GeckoCode& lhs, const GeckoCode& rhs)
   return lhs.codes == rhs.codes;
 }
 
-bool operator!=(const GeckoCode& lhs, const GeckoCode& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
 bool operator==(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
 {
   return std::tie(lhs.address, lhs.data) == std::tie(rhs.address, rhs.data);
-}
-
-bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
-// return true if a code exists
-bool GeckoCode::Exist(u32 address, u32 data) const
-{
-  return std::find_if(codes.begin(), codes.end(), [&](const Code& code) {
-           return code.address == address && code.data == data;
-         }) != codes.end();
 }
 
 enum class Installation

@@ -447,7 +447,7 @@ void Metal::Gfx::DispatchComputeShader(const AbstractShader* shader,  //
   }
 }
 
-void Metal::Gfx::BindBackbuffer(const ClearColor& clear_color)
+bool Metal::Gfx::BindBackbuffer(const ClearColor& clear_color)
 {
   @autoreleasepool
   {
@@ -456,6 +456,7 @@ void Metal::Gfx::BindBackbuffer(const ClearColor& clear_color)
     m_drawable = MRCRetain([m_layer nextDrawable]);
     m_backbuffer->UpdateBackbufferTexture([m_drawable texture]);
     SetAndClearFramebuffer(m_backbuffer.get(), clear_color);
+    return m_drawable != nullptr;
   }
 }
 

@@ -239,10 +239,11 @@ void AdvancedPane::ConnectLayout()
 
 void AdvancedPane::Update()
 {
-  const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
+  const bool is_uninitialized = Core::IsUninitialized(Core::System::GetInstance());
   const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
+  const bool enable_custom_rtc_widgets =
+      Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && is_uninitialized;
 
   const auto available_cpu_cores = PowerPC::AvailableCPUCores();
   const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
@@ -251,9 +252,9 @@ void AdvancedPane::Update()
     if (available_cpu_cores[i] == cpu_core)
       m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
-  m_cpu_emulation_engine_combobox->setEnabled(!running);
-  m_enable_mmu_checkbox->setEnabled(!running);
-  m_pause_on_panic_checkbox->setEnabled(!running);
+  m_cpu_emulation_engine_combobox->setEnabled(is_uninitialized);
+  m_enable_mmu_checkbox->setEnabled(is_uninitialized);
+  m_pause_on_panic_checkbox->setEnabled(is_uninitialized);
 
   {
     QFont bf = font();
@@ -282,11 +283,11 @@ void AdvancedPane::Update()
     return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 
-  m_ram_override_checkbox->setEnabled(!running);
+  m_ram_override_checkbox->setEnabled(is_uninitialized);
   SignalBlocking(m_ram_override_checkbox)->setChecked(enable_ram_override_widgets);
 
-  m_mem1_override_slider->setEnabled(enable_ram_override_widgets && !running);
-  m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
+  m_mem1_override_slider->setEnabled(enable_ram_override_widgets && is_uninitialized);
+  m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && is_uninitialized);
 
   {
     const QSignalBlocker blocker(m_mem1_override_slider);
@@ -299,8 +300,8 @@ void AdvancedPane::Update()
     return tr("%1 MB (MEM1)").arg(QString::number(mem1_size));
   }());
 
-  m_mem2_override_slider->setEnabled(enable_ram_override_widgets && !running);
-  m_mem2_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
+  m_mem2_override_slider->setEnabled(enable_ram_override_widgets && is_uninitialized);
+  m_mem2_override_slider_label->setEnabled(enable_ram_override_widgets && is_uninitialized);
 
   {
     const QSignalBlocker blocker(m_mem2_override_slider);
@@ -313,7 +314,7 @@ void AdvancedPane::Update()
     return tr("%1 MB (MEM2)").arg(QString::number(mem2_size));
   }());
 
-  m_custom_rtc_checkbox->setEnabled(!running);
+  m_custom_rtc_checkbox->setEnabled(is_uninitialized);
   SignalBlocking(m_custom_rtc_checkbox)->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
 
   QDateTime initial_date_time;

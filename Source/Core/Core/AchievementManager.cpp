@@ -204,6 +204,22 @@ void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
     DoIdle();
 }
 
+std::string AchievementManager::CalculateHash(const std::string& file_path)
+{
+  char hash_result[33] = "0";
+  rc_hash_filereader volume_reader{
+      .open = &AchievementManager::FilereaderOpenByFilepath,
+      .seek = &AchievementManager::FilereaderSeek,
+      .tell = &AchievementManager::FilereaderTell,
+      .read = &AchievementManager::FilereaderRead,
+      .close = &AchievementManager::FilereaderClose,
+  };
+  rc_hash_init_custom_filereader(&volume_reader);
+  rc_hash_generate_from_file(hash_result, RC_CONSOLE_GAMECUBE, file_path.c_str());
+
+  return std::string(hash_result);
+}
+
 void AchievementManager::FetchPlayerBadge()
 {
   FetchBadge(&m_player_badge, RC_IMAGE_TYPE_USER,
@@ -733,6 +749,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = result});
     return;
   }
 
@@ -744,6 +761,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   if (!user)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
     return;
   }
 
@@ -762,6 +780,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
       INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.",
                    user->username, Config::Get(Config::RA_USERNAME));
       rc_client_logout(client);
+      AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
       return;
     }
   }
@@ -814,6 +833,15 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
   AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  if (result == RC_API_FAILURE)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Load data request rejected for old Dolphin version.");
+    OSD::AddMessage("RetroAchievements no longer supports this version of Dolphin.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    return;
+  }
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");

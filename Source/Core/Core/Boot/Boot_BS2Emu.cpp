@@ -163,7 +163,7 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
 
   const bool resume_branch_watch = branch_watch.GetRecordingActive();
   if (system.IsBranchWatchIgnoreApploader())
-    branch_watch.Pause();
+    branch_watch.SetRecordingActive(guard, false);
 
   // Call iAppLoaderEntry.
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderEntry");
@@ -226,7 +226,7 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   // return
   ppc_state.pc = ppc_state.gpr[3];
 
-  branch_watch.SetRecordingActive(resume_branch_watch);
+  branch_watch.SetRecordingActive(guard, resume_branch_watch);
 
   return true;
 }

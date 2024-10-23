@@ -19,6 +19,7 @@ public:
   ~Shader();
 
   id<MTLFunction> GetShader() const { return m_shader; }
+  const std::string& GetMSL() const { return m_msl; }
   BinaryData GetBinary() const override;
 
 private:

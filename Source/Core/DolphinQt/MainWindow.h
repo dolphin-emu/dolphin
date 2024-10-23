@@ -216,11 +216,6 @@ private:
   QSize sizeHint() const override;
   void ShowGeckoCodes();
 
-#ifdef _WIN32
-  // This gets called for each event from the Windows message queue.
-  bool nativeEvent(const QByteArray& eventType, void* message, qintptr* result) override;
-#endif
-
 #ifdef HAVE_XRANDR
   std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
 #endif

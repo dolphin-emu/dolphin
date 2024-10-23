@@ -63,7 +63,6 @@ struct TextureAndTLUTFormat
     return texfmt == other.texfmt;
   }
 
-  bool operator!=(const TextureAndTLUTFormat& other) const { return !operator==(other); }
   TextureFormat texfmt;
   TLUTFormat tlutfmt;
 };

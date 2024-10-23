@@ -213,7 +213,11 @@ void EnhancementsWidget::CreateWidgets()
   m_3d_depth = new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
   m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
                                       Config::GFX_STEREO_CONVERGENCE, 100);
+
   m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+
+  m_3d_per_eye_resolution =
+      new ConfigBool(tr("Use Full Resolution Per Eye"), Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
@@ -222,6 +226,11 @@ void EnhancementsWidget::CreateWidgets()
   stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 2, 0);
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
+  stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);
+
+  auto current_stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+  if (current_stereo_mode != StereoMode::SBS && current_stereo_mode != StereoMode::TAB)
+    m_3d_per_eye_resolution->hide();
 
   main_layout->addWidget(enhancements_box);
   main_layout->addWidget(stereoscopy_box);
@@ -241,9 +250,16 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_3d_mode, &QComboBox::currentIndexChanged, [this] {
     m_block_save = true;
     m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-    LoadPPShaders(static_cast<StereoMode>(m_3d_mode->currentIndex()));
-    m_block_save = false;
 
+    auto current_stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+    LoadPPShaders(current_stereo_mode);
+
+    if (current_stereo_mode == StereoMode::SBS || current_stereo_mode == StereoMode::TAB)
+      m_3d_per_eye_resolution->show();
+    else
+      m_3d_per_eye_resolution->hide();
+
+    m_block_save = false;
     SaveSettings();
   });
   connect(m_configure_color_correction, &QPushButton::clicked, this,
@@ -530,8 +546,8 @@ void EnhancementsWidget::AddDescriptions()
       "Adjust the texture filtering. Anisotropic filtering enhances the visual quality of textures "
       "that are at oblique viewing angles. Force Nearest and Force Linear override the texture "
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
-      "of the game's textures and might cause issues in a small number of "
-      "games.<br><br>This option is incompatible with Manual Texture Sampling.<br><br>"
+      "of the game's textures and might cause issues in a small number of games.<br><br>This "
+      "setting is disabled when Manual Texture Sampling is enabled.<br><br>"
       "<dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
       QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
@@ -609,6 +625,10 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
       "Swaps the left and right eye. Most useful in side-by-side stereoscopy "
       "mode.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_3D_PER_EYE_RESOLUTION_DESCRIPTION[] =
+      QT_TR_NOOP("Whether each eye gets full or half image resolution when using side-by-side "
+                 "or above-and-below 3D."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_FORCE_24BIT_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to render the RGB color channels in 24-bit, thereby increasing "
       "quality by reducing color banding.<br><br>Has no impact on performance and causes "
@@ -625,8 +645,8 @@ void EnhancementsWidget::AddDescriptions()
       "effects.<br><br>May have false positives that result in blurry textures at increased "
       "internal "
       "resolution, such as in games that use very low resolution mipmaps. Disabling this can also "
-      "reduce stutter in games that frequently load new textures. This feature is not compatible "
-      "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
+      "reduce stutter in games that frequently load new textures.<br><br>This setting is disabled "
+      "when GPU Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
   static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
@@ -678,6 +698,8 @@ void EnhancementsWidget::AddDescriptions()
 
   m_3d_convergence->SetTitle(tr("Convergence"));
   m_3d_convergence->SetDescription(tr(TR_3D_CONVERGENCE_DESCRIPTION));
+
+  m_3d_per_eye_resolution->SetDescription(tr(TR_3D_PER_EYE_RESOLUTION_DESCRIPTION));
 
   m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
 }

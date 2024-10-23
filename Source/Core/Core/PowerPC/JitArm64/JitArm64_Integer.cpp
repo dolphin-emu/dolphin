@@ -649,7 +649,7 @@ void JitArm64::cmp(UGeckoInstruction inst)
     SXTW(CR, gpr.R(b));
     NEG(CR, CR);
   }
-  else if (gpr.IsImm(a) && gpr.GetImm(a) == 0xFFFFFFFF)
+  else if (gpr.IsImm(a, 0xFFFFFFFF))
   {
     SXTW(CR, gpr.R(b));
     MVN(CR, CR);
@@ -1640,7 +1640,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(imm_d);
   }
-  else if (gpr.IsImm(a) && gpr.GetImm(a) == 0)
+  else if (gpr.IsImm(a, 0))
   {
     // Zero divided by anything is always zero
     gpr.SetImmediate(d, 0);
@@ -1829,7 +1829,7 @@ void JitArm64::slwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }
-  else if (gpr.IsImm(s) && gpr.GetImm(s) == 0)
+  else if (gpr.IsImm(s, 0))
   {
     gpr.SetImmediate(a, 0);
     if (inst.Rc)
@@ -1934,7 +1934,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
       ComputeRC0(gpr.GetImm(a));
     return;
   }
-  else if (gpr.IsImm(s) && gpr.GetImm(s) == 0)
+  else if (gpr.IsImm(s, 0))
   {
     gpr.SetImmediate(a, 0);
     ComputeCarry(false);
