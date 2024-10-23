@@ -140,20 +140,14 @@ void ARCodeWidget::SortAlphabetically()
 
 void ARCodeWidget::SortEnabledCodesFirst()
 {
-  std::stable_sort(m_ar_codes.begin(), m_ar_codes.end(), [](const auto& a, const auto& b) {
-    return a.enabled && a.enabled != b.enabled;
-  });
-
+  std::ranges::stable_partition(m_ar_codes, std::identity{}, &ActionReplay::ARCode::enabled);
   UpdateList();
   SaveCodes();
 }
 
 void ARCodeWidget::SortDisabledCodesFirst()
 {
-  std::stable_sort(m_ar_codes.begin(), m_ar_codes.end(), [](const auto& a, const auto& b) {
-    return !a.enabled && a.enabled != b.enabled;
-  });
-
+  std::ranges::stable_partition(m_ar_codes, std::logical_not{}, &ActionReplay::ARCode::enabled);
   UpdateList();
   SaveCodes();
 }

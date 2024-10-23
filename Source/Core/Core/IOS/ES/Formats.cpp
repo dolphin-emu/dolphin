@@ -10,6 +10,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -575,7 +576,7 @@ SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
   if (it == m_entries.end())
     return {};
 
-  const std::string id_string(it->id.begin(), it->id.end());
+  const std::string_view id_string(reinterpret_cast<const char*>(it->id.data()), it->id.size());
   return fmt::format("/shared1/{}.app", id_string);
 }
 
@@ -591,20 +592,22 @@ std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
 
 std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
 {
-  auto filename = GetFilenameFromSHA1(sha1);
-  if (filename)
-    return *filename;
+  if (auto filename = GetFilenameFromSHA1(sha1))
+    return *std::move(filename);
 
-  const std::string id = fmt::format("{:08x}", m_last_id);
-  Entry entry;
-  std::copy(id.cbegin(), id.cend(), entry.id.begin());
+  Entry& entry = m_entries.emplace_back();
+  static_assert(sizeof(m_last_id) == 4,
+                "'m_last_id' must be represented by 8 characters when formatted in hexadecimal.");
+  static_assert(std::tuple_size_v<decltype(entry.id)> == sizeof(m_last_id) * 2,
+                "'entry.id' must be a std::array capable of storing every nibble of 'm_last_id'.");
+  fmt::format_to(entry.id.data(), "{:08x}", m_last_id);
   entry.sha1 = sha1;
-  m_entries.push_back(entry);
 
   WriteEntries();
-  filename = fmt::format("/shared1/{}.app", id);
   m_last_id++;
-  return *filename;
+
+  const std::string_view id_string(reinterpret_cast<const char*>(entry.id.data()), entry.id.size());
+  return fmt::format("/shared1/{}.app", id_string);
 }
 
 bool SharedContentMap::DeleteSharedContent(const std::array<u8, 20>& sha1)

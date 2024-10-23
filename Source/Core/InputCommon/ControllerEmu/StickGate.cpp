@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ranges>
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
@@ -284,11 +285,10 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
                  50.0);
   }
 
-  std::vector<std::string> save_data(m_calibration.size());
-  std::transform(
-      m_calibration.begin(), m_calibration.end(), save_data.begin(),
-      [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
-  section->Set(group + CALIBRATION_CONFIG_NAME, fmt::to_string(fmt::join(save_data, " ")), "");
+  const std::ranges::transform_view scaled_calibration(
+      m_calibration, [](ControlState val) { return val * CALIBRATION_CONFIG_SCALE; });
+  section->Set(group + CALIBRATION_CONFIG_NAME,
+               fmt::format("{:.2f}", fmt::join(scaled_calibration, " ")), "");
 
   // Save center value.
   static constexpr char center_format[] = "{:.2f} {:.2f}";
