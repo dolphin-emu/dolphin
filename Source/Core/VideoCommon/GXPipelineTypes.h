@@ -43,7 +43,6 @@ struct GXPipelineUid
   {
     return std::memcmp(this, &rhs, sizeof(*this)) == 0;
   }
-  bool operator!=(const GXPipelineUid& rhs) const { return !operator==(rhs); }
 };
 struct GXUberPipelineUid
 {
@@ -64,7 +63,6 @@ struct GXUberPipelineUid
   {
     return std::memcmp(this, &rhs, sizeof(*this)) == 0;
   }
-  bool operator!=(const GXUberPipelineUid& rhs) const { return !operator==(rhs); }
 };
 
 // Disk cache of pipeline UIDs. We can't use the whole UID as a type as it contains pointers.

@@ -222,6 +222,8 @@ add_executable(dolphin-mpn
   Debugger/CodeWidget.h
   Debugger/GekkoSyntaxHighlight.cpp
   Debugger/GekkoSyntaxHighlight.h
+  Debugger/JitBlockTableModel.cpp
+  Debugger/JitBlockTableModel.h
   Debugger/JITWidget.cpp
   Debugger/JITWidget.h
   Debugger/MemoryViewWidget.cpp
@@ -297,6 +299,7 @@ add_executable(dolphin-mpn
   QtUtils/BlockUserInputFilter.h
   QtUtils/ClearLayoutRecursively.cpp
   QtUtils/ClearLayoutRecursively.h
+  QtUtils/ClickableStatusBar.h
   QtUtils/DolphinFileDialog.cpp
   QtUtils/DolphinFileDialog.h
   QtUtils/DoubleClickEventFilter.cpp

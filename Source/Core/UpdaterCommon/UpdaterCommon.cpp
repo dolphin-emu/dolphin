@@ -3,6 +3,7 @@
 
 #include "UpdaterCommon/UpdaterCommon.h"
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <optional>
@@ -150,7 +151,7 @@ Manifest::Hash ComputeHash(const std::string& contents)
                      false);
 
   Manifest::Hash out;
-  std::copy(full.begin(), full.begin() + 16, out.begin());
+  std::copy_n(full.begin(), 16, out.begin());
   return out;
 }
 

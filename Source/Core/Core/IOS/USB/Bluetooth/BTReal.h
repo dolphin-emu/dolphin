@@ -23,6 +23,7 @@
 class PointerWrap;
 struct libusb_device;
 struct libusb_device_handle;
+struct libusb_device_descriptor;
 struct libusb_transfer;
 
 namespace IOS::HLE
@@ -116,7 +117,7 @@ private:
   void LoadLinkKeys();
   void SaveLinkKeys();
 
-  bool OpenDevice(libusb_device* device);
+  bool OpenDevice(const libusb_device_descriptor& device_descriptor, libusb_device* device);
 };
 }  // namespace IOS::HLE
 

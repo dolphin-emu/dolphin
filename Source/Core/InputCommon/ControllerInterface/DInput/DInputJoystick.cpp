@@ -176,15 +176,14 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
   std::list<DIDEVICEOBJECTINSTANCE> objects;
   if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
   {
-    const int num_ff_axes =
-        std::count_if(std::begin(objects), std::end(objects),
-                      [](const auto& pdidoi) { return (pdidoi.dwFlags & DIDOI_FFACTUATOR) != 0; });
+    const int num_ff_axes = std::ranges::count_if(
+        objects, [](const auto& pdidoi) { return (pdidoi.dwFlags & DIDOI_FFACTUATOR) != 0; });
     InitForceFeedback(m_device, num_ff_axes);
   }
 
   // Set hats to center:
   // "The center position is normally reported as -1" -MSDN
-  std::fill(std::begin(m_state_in.rgdwPOV), std::end(m_state_in.rgdwPOV), -1);
+  std::ranges::fill(m_state_in.rgdwPOV, -1);
 }
 
 Joystick::~Joystick()

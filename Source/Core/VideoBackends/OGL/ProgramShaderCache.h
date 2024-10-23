@@ -48,7 +48,6 @@ struct PipelineProgramKey
   u64 pixel_shader_id;
 
   bool operator==(const PipelineProgramKey& rhs) const;
-  bool operator!=(const PipelineProgramKey& rhs) const;
   bool operator<(const PipelineProgramKey& rhs) const;
 };
 

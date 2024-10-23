@@ -33,14 +33,14 @@ std::optional<IPCReply> ShaDevice::Open(const OpenRequest& request)
 
 static void ConvertContext(const ShaDevice::ShaContext& src, mbedtls_sha1_context* dest)
 {
-  std::copy(std::begin(src.length), std::end(src.length), std::begin(dest->total));
-  std::copy(std::begin(src.states), std::end(src.states), std::begin(dest->state));
+  std::ranges::copy(src.length, std::begin(dest->total));
+  std::ranges::copy(src.states, std::begin(dest->state));
 }
 
 static void ConvertContext(const mbedtls_sha1_context& src, ShaDevice::ShaContext* dest)
 {
-  std::copy(std::begin(src.total), std::end(src.total), std::begin(dest->length));
-  std::copy(std::begin(src.state), std::end(src.state), std::begin(dest->states));
+  std::ranges::copy(src.total, std::begin(dest->length));
+  std::ranges::copy(src.state, std::begin(dest->states));
 }
 
 HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request)

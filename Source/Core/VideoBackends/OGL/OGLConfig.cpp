@@ -4,8 +4,11 @@
 #include "VideoBackends/OGL/OGLConfig.h"
 
 #include <cstdio>
+#include <ranges>
 #include <string>
 #include <string_view>
+
+#include <fmt/ranges.h>
 
 #include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
@@ -583,7 +586,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat, GL_SAMPLES,
                                 num_color_sample_counts,
                                 reinterpret_cast<GLint*>(color_aa_modes.data()));
-          ASSERT_MSG(VIDEO, std::is_sorted(color_aa_modes.rbegin(), color_aa_modes.rend()),
+          ASSERT_MSG(VIDEO, std::ranges::is_sorted(color_aa_modes | std::views::reverse),
                      "GPU driver didn't return sorted color AA modes: [{}]",
                      fmt::join(color_aa_modes, ", "));
         }
@@ -612,7 +615,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat, GL_SAMPLES,
                                 num_depth_sample_counts,
                                 reinterpret_cast<GLint*>(depth_aa_modes.data()));
-          ASSERT_MSG(VIDEO, std::is_sorted(depth_aa_modes.rbegin(), depth_aa_modes.rend()),
+          ASSERT_MSG(VIDEO, std::ranges::is_sorted(depth_aa_modes | std::views::reverse),
                      "GPU driver didn't return sorted depth AA modes: [{}]",
                      fmt::join(depth_aa_modes, ", "));
         }
@@ -628,10 +631,10 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_Config.backend_info.AAModes.clear();
       g_Config.backend_info.AAModes.reserve(std::min(color_aa_modes.size(), depth_aa_modes.size()));
       // We only want AA modes that are supported for both the color and depth textures. Probably
-      // the support is the same, though. rbegin/rend are used to swap the order ahead of time.
-      std::set_intersection(color_aa_modes.rbegin(), color_aa_modes.rend(), depth_aa_modes.rbegin(),
-                            depth_aa_modes.rend(),
-                            std::back_inserter(g_Config.backend_info.AAModes));
+      // the support is the same, though. views::reverse is used to swap the order ahead of time.
+      std::ranges::set_intersection(color_aa_modes | std::views::reverse,
+                                    depth_aa_modes | std::views::reverse,
+                                    std::back_inserter(g_Config.backend_info.AAModes));
     }
     else
     {
@@ -658,7 +661,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       }
       g_Config.backend_info.AAModes.push_back(1);
       // The UI wants ascending order
-      std::reverse(g_Config.backend_info.AAModes.begin(), g_Config.backend_info.AAModes.end());
+      std::ranges::reverse(g_Config.backend_info.AAModes);
     }
   }
   else

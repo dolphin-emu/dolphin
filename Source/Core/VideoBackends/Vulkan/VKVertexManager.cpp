@@ -92,8 +92,8 @@ bool VertexManager::Initialize()
   // Prefer an 8MB buffer if possible, but use less if the device doesn't support this.
   // This buffer is potentially going to be addressed as R8s in the future, so we assume
   // that one element is one byte.
-  const u32 texel_buffer_size = std::min(
-      TEXEL_STREAM_BUFFER_SIZE, g_vulkan_context->GetDeviceLimits().maxTexelBufferElements);
+  const u32 texel_buffer_size =
+      std::min(TEXEL_STREAM_BUFFER_SIZE, g_vulkan_context->GetDeviceInfo().maxTexelBufferElements);
   m_texel_stream_buffer =
       StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, texel_buffer_size);
   if (!m_texel_stream_buffer)

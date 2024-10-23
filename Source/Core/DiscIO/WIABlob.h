@@ -264,7 +264,6 @@ private:
              std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
     }
 
-    bool operator!=(const ReuseID& other) const { return !operator==(other); }
     bool operator>=(const ReuseID& other) const { return !operator<(other); }
     bool operator<=(const ReuseID& other) const { return !operator>(other); }
 

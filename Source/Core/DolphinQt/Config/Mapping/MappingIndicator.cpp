@@ -29,6 +29,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Settings.h"
 
 namespace
 {
@@ -96,7 +97,7 @@ QColor MappingIndicator::GetCenterColor() const
 
 QColor MappingIndicator::GetDeadZoneColor() const
 {
-  QColor color = GetBBoxBrush().color().valueF() > 0.5 ? Qt::black : Qt::white;
+  QColor color = Settings::Instance().IsThemeDark() ? Qt::white : Qt::black;
   color.setAlphaF(0.25);
   return color;
 }
@@ -126,7 +127,7 @@ QColor MappingIndicator::GetAltTextColor() const
 
 void MappingIndicator::AdjustGateColor(QColor* color)
 {
-  if (GetBBoxBrush().color().valueF() < 0.5)
+  if (Settings::Instance().IsThemeDark())
     color->setHsvF(color->hueF(), color->saturationF(), 1 - color->valueF());
 }
 
@@ -913,7 +914,7 @@ CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
   m_informative_timer = new QTimer(this);
   connect(m_informative_timer, &QTimer::timeout, this, [this] {
     // If the user has started moving we'll assume they know what they are doing.
-    if (*std::max_element(m_calibration_data.begin(), m_calibration_data.end()) > 0.5)
+    if (*std::ranges::max_element(m_calibration_data) > 0.5)
       return;
 
     ModalMessageBox::information(

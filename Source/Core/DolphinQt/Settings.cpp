@@ -16,16 +16,8 @@
 #include <QRadioButton>
 #include <QSize>
 #include <QStyle>
+#include <QStyleHints>
 #include <QWidget>
-
-#ifdef _WIN32
-#include <fmt/format.h>
-
-#include <winrt/Windows.UI.ViewManagement.h>
-
-#include <QTabBar>
-#include <QToolButton>
-#endif
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -52,7 +44,6 @@
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 
-static bool s_system_dark = false;
 static std::unique_ptr<QPalette> s_default_palette;
 
 Settings::Settings()
@@ -147,30 +138,13 @@ void Settings::InitDefaultPalette()
   s_default_palette = std::make_unique<QPalette>(qApp->palette());
 }
 
-void Settings::UpdateSystemDark()
-{
-#ifdef _WIN32
-  // Check if the system is set to dark mode so we can set the default theme and window
-  // decorations accordingly.
-  {
-    using namespace winrt::Windows::UI::ViewManagement;
-    const UISettings settings;
-    const auto& color = settings.GetColorValue(UIColorType::Foreground);
-
-    const bool is_system_dark = 5 * color.G + 2 * color.R + color.B > 8 * 128;
-    Settings::Instance().SetSystemDark(is_system_dark);
-  }
-#endif
-}
-
-void Settings::SetSystemDark(bool dark)
-{
-  s_system_dark = dark;
-}
-
 bool Settings::IsSystemDark()
 {
-  return s_system_dark;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  return (qApp->styleHints()->colorScheme() == Qt::ColorScheme::Dark);
+#else
+  return false;
+#endif
 }
 
 bool Settings::IsThemeDark()

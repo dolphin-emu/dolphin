@@ -119,13 +119,6 @@ void AXUCode::HandleCommandList()
 
   u32 pb_addr = 0;
 
-#if 0
-	INFO_LOG_FMT(DSPHLE, "Command list:");
-	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-		INFO_LOG_FMT(DSPHLE, "{:04x}", m_cmdlist[i]);
-	INFO_LOG_FMT(DSPHLE, "-------------");
-#endif
-
   u32 curr_idx = 0;
   bool end = false;
   while (!end)
@@ -412,6 +405,56 @@ void AXUCode::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16
   }
 }
 
+// Determines if this version of the UCode has a PBLowPassFilter in its AXPB layout.
+static bool HasLpf(u32 crc)
+{
+  return crc != 0x4E8A8B21;
+}
+
+// Read a PB from MRAM/ARAM
+void AXUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb)
+{
+  if (HasLpf(m_crc))
+  {
+    u16* dst = (u16*)&pb;
+    memory.CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
+  }
+  else
+  {
+    // Skip lpf field.
+
+    char* dst = (char*)&pb;
+
+    constexpr size_t lpf_off = offsetof(AXPB, lpf);
+    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
+
+    memory.CopyFromEmuSwapped<u16>((u16*)dst, addr, lpf_off);
+    memset(dst + lpf_off, 0, lc_off - lpf_off);
+    memory.CopyFromEmuSwapped<u16>((u16*)(dst + lc_off), addr + lpf_off, sizeof(pb) - lc_off);
+  }
+}
+
+// Write a PB back to MRAM/ARAM
+void AXUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb)
+{
+  if (HasLpf(m_crc))
+  {
+    const u16* src = (const u16*)&pb;
+    memory.CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
+  }
+  else
+  {
+    // We skip lpf in this layout.
+
+    const char* src = (const char*)&pb;
+    constexpr size_t lpf_off = offsetof(AXPB, lpf);
+    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
+
+    memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, lpf_off);
+    memory.CopyToEmuSwapped<u16>(addr + lpf_off, (const u16*)(src + lc_off), sizeof(pb) - lc_off);
+  }
+}
+
 void AXUCode::ProcessPBList(u32 pb_addr)
 {
   // Samples per millisecond. In theory DSP sampling rate can be changed from
@@ -427,10 +470,9 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                           m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
                           m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround}};
 
-    ReadPB(memory, pb_addr, pb, m_crc);
+    ReadPB(memory, pb_addr, pb);
 
-    u32 updates_addr = HILO_TO_32(pb.updates.data);
-    u16* updates = (u16*)HLEMemory_Get_Pointer(memory, updates_addr);
+    PBUpdateData updates = LoadPBUpdates(memory, pb);
 
     for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
     {
@@ -438,14 +480,14 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 
       ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
                    ConvertMixerControl(pb.mixer_control),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
+                   m_coeffs_checksum ? m_coeffs.data() : nullptr, false);
 
       // Forward the buffers
       for (auto& ptr : buffers.ptrs)
         ptr += spms;
     }
 
-    WritePB(memory, pb_addr, pb, m_crc);
+    WritePB(memory, pb_addr, pb);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
 }
@@ -578,8 +620,8 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
   // Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
   for (u32 i = 0; i < 5 * 32; ++i)
   {
-    int left = std::clamp(m_samples_main_left[i], -32767, 32767);
-    int right = std::clamp(m_samples_main_right[i], -32767, 32767);
+    s16 left = ClampS16(m_samples_main_left[i]);
+    s16 right = ClampS16(m_samples_main_right[i]);
 
     buffer[2 * i + 0] = Common::swap16(right);
     buffer[2 * i + 1] = Common::swap16(left);

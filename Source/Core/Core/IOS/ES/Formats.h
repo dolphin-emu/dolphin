@@ -101,7 +101,6 @@ struct Content
 };
 static_assert(sizeof(Content) == 36, "Content has the wrong size");
 bool operator==(const Content&, const Content&);
-bool operator!=(const Content&, const Content&);
 
 struct TimeLimit
 {

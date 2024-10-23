@@ -9,12 +9,12 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StringUtil.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -420,8 +420,8 @@ ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(HotkeyGroup group) co
 
 int HotkeyManager::FindGroupByID(int id) const
 {
-  const auto i = std::find_if(s_groups_info.begin(), s_groups_info.end(),
-                              [id](const auto& entry) { return entry.last >= id; });
+  const auto i =
+      std::ranges::find_if(s_groups_info, [id](const auto& entry) { return entry.last >= id; });
 
   return static_cast<int>(std::distance(s_groups_info.begin(), i));
 }
@@ -442,7 +442,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   };
 
   auto hotkey_string = [](std::vector<std::string> inputs) {
-    return "@(" + JoinStrings(inputs, "+") + ')';
+    return fmt::format("@({})", fmt::join(inputs, "+"));
   };
 
   // General hotkeys

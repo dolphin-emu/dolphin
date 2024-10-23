@@ -39,8 +39,24 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
     ToggleHardcore();
 }
 
-void AchievementSettingsWidget::UpdateData()
+void AchievementSettingsWidget::UpdateData(int login_failed_code)
 {
+  if (login_failed_code != RC_OK)
+  {
+    switch (login_failed_code)
+    {
+    case RC_INVALID_CREDENTIALS:
+      m_common_login_failed->setText(tr("Login Failed - Invalid Username/Password"));
+      break;
+    case RC_NO_RESPONSE:
+      m_common_login_failed->setText(tr("Login Failed - No Internet Connection"));
+      break;
+    default:
+      m_common_login_failed->setText(tr("Login Failed - Server Error"));
+      break;
+    }
+    m_common_login_failed->setVisible(true);
+  }
   LoadSettings();
 }
 
@@ -161,6 +177,8 @@ void AchievementSettingsWidget::OnControllerInterfaceConfigure()
 
 void AchievementSettingsWidget::LoadSettings()
 {
+  Core::System& system = Core::System::GetInstance();
+
   bool enabled = Config::Get(Config::RA_ENABLED);
   bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
@@ -176,27 +194,20 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_password_input)->setVisible(logged_out);
   SignalBlocking(m_common_password_input)->setEnabled(enabled);
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
-  SignalBlocking(m_common_login_button)
-      ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
-  if (enabled && Core::IsRunning(Core::System::GetInstance()))
-  {
-    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
-  }
-  else
-  {
+  SignalBlocking(m_common_login_button)->setEnabled(enabled && Core::IsUninitialized(system));
+  if (!enabled || Core::IsUninitialized(system))
     SignalBlocking(m_common_login_button)->setText(tr("Log In"));
-  }
+  else
+    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
 
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
-  auto& system = Core::System::GetInstance();
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setEnabled(enabled &&
-                   (hardcore_enabled || (Core::GetState(system) == Core::State::Uninitialized &&
-                                         !system.GetMovie().IsPlayingInput())));
+      ->setEnabled(enabled && (hardcore_enabled || (Core::IsUninitialized(system) &&
+                                                    !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
@@ -256,6 +267,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 
 void AchievementSettingsWidget::Login()
 {
+  m_common_login_failed->setVisible(false);
   Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
   AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());

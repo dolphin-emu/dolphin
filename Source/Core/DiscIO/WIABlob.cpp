@@ -765,7 +765,14 @@ bool WIARVZFileReader<RVZ>::Chunk::Decompress()
     const size_t bytes_to_move = m_out.bytes_written - m_out_bytes_used_for_exceptions;
 
     DecompressionBuffer in{std::vector<u8>(bytes_to_move), bytes_to_move};
-    std::memcpy(in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions, bytes_to_move);
+
+    // Copying to a null pointer is undefined behaviour, so only copy when we
+    // actually have data to copy.
+    if (bytes_to_move > 0)
+    {
+      std::memcpy(in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions,
+                  bytes_to_move);
+    }
 
     m_out.bytes_written = m_out_bytes_used_for_exceptions;
 
@@ -1249,7 +1256,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chun
       {
         if (next_junk_start == end_offset)
         {
-          // Storing this chunk without RVZ packing would be inefficient, so store it without
+          // Storing this chunk with RVZ packing would be inefficient, so store it without
           PushBack(&entry.main_data, in + current_offset, in + end_offset);
           break;
         }
@@ -1628,7 +1635,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
       const size_t size = state->compressor->GetSize();
 
       entry.main_data.resize(size);
-      std::copy(data, data + size, entry.main_data.data());
+      std::copy_n(data, size, entry.main_data.data());
 
       if (compressed_exception_lists)
         entry.exception_lists.clear();

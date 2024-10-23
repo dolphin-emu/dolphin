@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
@@ -67,6 +68,7 @@ public:
         VertexLoaderManager::position_matrix_index_cache;
     const std::array<std::array<float, 4>, 3> old_position_cache =
         VertexLoaderManager::position_cache;
+    const std::array<float, 4> old_normal_cache = VertexLoaderManager::normal_cache;
     const std::array<float, 4> old_tangent_cache = VertexLoaderManager::tangent_cache;
     const std::array<float, 4> old_binormal_cache = VertexLoaderManager::binormal_cache;
 
@@ -76,12 +78,14 @@ public:
         VertexLoaderManager::position_matrix_index_cache;
     const std::array<std::array<float, 4>, 3> a_position_cache =
         VertexLoaderManager::position_cache;
+    const std::array<float, 4> a_normal_cache = VertexLoaderManager::normal_cache;
     const std::array<float, 4> a_tangent_cache = VertexLoaderManager::tangent_cache;
     const std::array<float, 4> a_binormal_cache = VertexLoaderManager::binormal_cache;
 
     // Reset state before running b
     VertexLoaderManager::position_matrix_index_cache = old_position_matrix_index_cache;
     VertexLoaderManager::position_cache = old_position_cache;
+    VertexLoaderManager::normal_cache = old_normal_cache;
     VertexLoaderManager::tangent_cache = old_tangent_cache;
     VertexLoaderManager::binormal_cache = old_binormal_cache;
 
@@ -91,6 +95,7 @@ public:
         VertexLoaderManager::position_matrix_index_cache;
     const std::array<std::array<float, 4>, 3> b_position_cache =
         VertexLoaderManager::position_cache;
+    const std::array<float, 4> b_normal_cache = VertexLoaderManager::normal_cache;
     const std::array<float, 4> b_tangent_cache = VertexLoaderManager::tangent_cache;
     const std::array<float, 4> b_binormal_cache = VertexLoaderManager::binormal_cache;
 
@@ -139,6 +144,12 @@ public:
                fmt::join(b_position_cache[1], ", "), fmt::join(b_position_cache[2], ", "));
 
     // The last element is allowed to be garbage for SIMD overwrites
+    ASSERT_MSG(VIDEO,
+               std::equal(a_normal_cache.begin(), a_normal_cache.begin() + 3,
+                          b_normal_cache.begin(), b_normal_cache.begin() + 3, bit_equal),
+               "Expected matching normal caches after loading (a: {}; b: {})",
+               fmt::join(a_normal_cache, ", "), fmt::join(b_normal_cache, ", "));
+
     ASSERT_MSG(VIDEO,
                std::equal(a_tangent_cache.begin(), a_tangent_cache.begin() + 3,
                           b_tangent_cache.begin(), b_tangent_cache.begin() + 3, bit_equal),

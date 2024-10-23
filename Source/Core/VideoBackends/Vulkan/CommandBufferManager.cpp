@@ -300,7 +300,7 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
 }
 
 void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
-                                               bool wait_for_completion,
+                                               bool wait_for_completion, bool advance_to_next_frame,
                                                VkSwapchainKHR present_swap_chain,
                                                uint32_t present_image_index)
 {
@@ -334,7 +334,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
       WaitForCommandBufferCompletion(m_current_cmd_buffer);
   }
 
-  if (present_swap_chain != VK_NULL_HANDLE)
+  if (advance_to_next_frame)
   {
     m_current_frame = (m_current_frame + 1) % NUM_FRAMES_IN_FLIGHT;
 

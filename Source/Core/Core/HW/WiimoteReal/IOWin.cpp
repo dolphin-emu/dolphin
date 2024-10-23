@@ -275,7 +275,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
   // This is currently needed by the Toshiba Bluetooth Stack.
   if ((write_method == WWM_WRITE_FILE_LARGEST_REPORT_SIZE) && (MAX_PAYLOAD > len))
   {
-    std::copy(buf, buf + len, resized_buffer);
+    std::copy_n(buf, len, resized_buffer);
     std::fill(resized_buffer + len, resized_buffer + MAX_PAYLOAD, 0);
     write_buffer = resized_buffer + 1;
     bytes_to_write = MAX_PAYLOAD - 1;
@@ -497,17 +497,6 @@ WiimoteScannerWindows::WiimoteScannerWindows()
   init_lib();
 }
 
-WiimoteScannerWindows::~WiimoteScannerWindows()
-{
-// TODO: what do we want here?
-#if 0
-	ProcessWiimotes(false, [](HANDLE, BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
-	{
-		RemoveWiimote(btdi);
-	});
-#endif
-}
-
 void WiimoteScannerWindows::Update()
 {
   if (!s_loaded_ok)
@@ -636,39 +625,6 @@ bool WiimoteWindows::ConnectInternal()
     m_dev_handle = nullptr;
     return false;
   }
-
-#if 0
-	TCHAR name[128] = {};
-	pHidD_GetProductString(dev_handle, name, 128);
-
-	if (!IsValidBluetoothName(TStrToUTF8(name)))
-	{
-		CloseHandle(dev_handle);
-		dev_handle = 0;
-		return false;
-	}
-#endif
-
-#if 0
-	HIDD_ATTRIBUTES attr;
-	attr.Size = sizeof(attr);
-	if (!pHidD_GetAttributes(dev_handle, &attr))
-	{
-		CloseHandle(dev_handle);
-		dev_handle = 0;
-		return false;
-	}
-#endif
-
-  // TODO: thread isn't started here now, do this elsewhere
-  // This isn't as drastic as it sounds, since the process in which the threads
-  // reside is normal priority. Needed for keeping audio reports at a decent rate
-  /*
-    if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
-    {
-      ERROR_LOG_FMT(WIIMOTE, "Failed to set Wiimote thread priority");
-    }
-  */
 
   return true;
 }
