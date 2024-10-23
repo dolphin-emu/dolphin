@@ -24,13 +24,7 @@ jobs:
       uses: flatpak/flatpak-github-actions@v2
       with:
         manifest-path: Distribution/flatpak.yml
-        bundle: DolphinMPN-linux.flatpak
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DolphinMPN-Flatpak-x86_64
-        path: /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/Distribution/OUT
-
+        bundle: DolphinMPN-linux-x86_64.flatpak
   build_appimage:
     runs-on: ubuntu-latest
     steps:
