@@ -979,7 +979,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
 
   INFO_LOG_FMT(NETPLAY, "Game stopped");
   StopGame();
-  m_dialog->OnMsgStopGame(player.name);
+  m_dialog->OnMsgStopGame();
 }
 
 
