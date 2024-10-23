@@ -273,18 +273,14 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Added device: {}", device->GetQualifiedName());
     m_devices.emplace_back(std::move(device));
 
-    // We can't (and don't want) to control the order in which devices are added, but we
-    // need their order to be consistent, and we need the same one to always be the first, where
-    // present (the keyboard and mouse device usually). This is because when defaulting a
-    // controller profile, it will automatically select the first device in the list as its default.
-    std::stable_sort(m_devices.begin(), m_devices.end(),
-                     [](const std::shared_ptr<ciface::Core::Device>& a,
-                        const std::shared_ptr<ciface::Core::Device>& b) {
-                       // It would be nice to sort devices by Source then Name then ID but it's
-                       // better to leave them sorted by the add order, which also avoids breaking
-                       // the order on other platforms that are less tested.
-                       return a->GetSortPriority() > b->GetSortPriority();
-                     });
+    // We can't (and don't want) to control the order in which devices are added, but we need
+    // their order to be consistent, and we need the same one to always be the first, where present
+    // (the keyboard and mouse device usually). This is because when defaulting a controller
+    // profile, it will automatically select the first device in the list as its default. It would
+    // be nice to sort devices by Source then Name then ID, but it's better to leave them sorted by
+    // the add order. This also avoids breaking the order on other platforms that are less tested.
+    std::ranges::stable_sort(m_devices, std::ranges::greater{},
+                             &ciface::Core::Device::GetSortPriority);
   }
 
   if (!m_populating_devices_counter)

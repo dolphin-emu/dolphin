@@ -525,8 +525,7 @@ std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> s_ext_op_table;
 template <size_t N>
 auto FindByName(std::string_view name, const std::array<DSPOPCTemplate, N>& data)
 {
-  return std::find_if(data.cbegin(), data.cend(),
-                      [&name](const auto& info) { return name == info.name; });
+  return std::ranges::find(data, name, &DSPOPCTemplate::name);
 }
 }  // Anonymous namespace
 
