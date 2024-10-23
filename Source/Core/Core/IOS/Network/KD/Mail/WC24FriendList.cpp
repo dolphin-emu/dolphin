@@ -58,8 +58,8 @@ bool WC24FriendList::CheckFriendList() const
 
 bool WC24FriendList::DoesFriendExist(u64 friend_id) const
 {
-  return std::any_of(m_data.friend_codes.cbegin(), m_data.friend_codes.cend(),
-                     [&friend_id](const u64 v) { return v == friend_id; });
+  return std::ranges::any_of(m_data.friend_codes,
+                             [&friend_id](const u64 v) { return v == friend_id; });
 }
 
 std::vector<u64> WC24FriendList::GetUnconfirmedFriends() const
