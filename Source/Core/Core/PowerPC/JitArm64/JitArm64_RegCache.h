@@ -60,15 +60,12 @@ static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 
 enum class RegType
 {
-  NotLoaded,
-  Discarded,   // Reg is in ConstantPropagation, or isn't loaded at all
-  Register,    // Reg type is register
-  LowerPair,   // Only the lower pair of a paired register
-  Duplicated,  // The lower reg is the same as the upper one (physical upper doesn't actually have
-               // the duplicated value)
-  Single,      // Both registers are loaded as single
-  LowerPairSingle,   // Only the lower pair of a paired register, as single
-  DuplicatedSingle,  // The lower one contains both registers, as single
+  Register,          // PS0 and PS1, each 64-bit
+  LowerPair,         // PS0 only, 64-bit
+  Duplicated,        // PS0 and PS1 are identical, host register only stores one lane (64-bit)
+  Single,            // PS0 and PS1, each 32-bit
+  LowerPairSingle,   // PS0 only, 32-bit
+  DuplicatedSingle,  // PS0 and PS1 are identical, host register only stores one lane (32-bit)
 };
 
 enum class FlushMode : bool
@@ -91,19 +88,21 @@ class OpArg
 public:
   OpArg() = default;
 
-  RegType GetType() const { return m_type; }
+  RegType GetFPRType() const { return m_fpr_type; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
-  void Load(Arm64Gen::ARM64Reg reg, RegType type = RegType::Register)
+  void Load(Arm64Gen::ARM64Reg reg, RegType format = RegType::Register)
   {
-    m_type = type;
     m_reg = reg;
+    m_fpr_type = format;
+    m_in_host_register = true;
   }
   void Discard()
   {
     // Invalidate any previous information
-    m_type = RegType::Discarded;
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
-    m_dirty = true;
+    m_fpr_type = RegType::Register;
+    m_in_ppc_state = false;
+    m_in_host_register = false;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -111,9 +110,10 @@ public:
   void Flush()
   {
     // Invalidate any previous information
-    m_type = RegType::NotLoaded;
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
-    m_dirty = false;
+    m_fpr_type = RegType::Register;
+    m_in_ppc_state = true;
+    m_in_host_register = false;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -122,17 +122,18 @@ public:
   u32 GetLastUsed() const { return m_last_used; }
   void ResetLastUsed() { m_last_used = 0; }
   void IncrementLastUsed() { ++m_last_used; }
-  void SetDirty(bool dirty) { m_dirty = dirty; }
-  bool IsDirty() const { return m_dirty; }
+  void SetDirty(bool dirty) { m_in_ppc_state = !dirty; }
+  bool IsInPPCState() const { return m_in_ppc_state; }
+  bool IsInHostRegister() const { return m_in_host_register; }
 
 private:
-  // For REG_REG
-  RegType m_type = RegType::NotLoaded;                         // store type
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;  // host register we are in
+  RegType m_fpr_type = RegType::Register;                      // for FPRs only
 
   u32 m_last_used = 0;
 
-  bool m_dirty = false;
+  bool m_in_ppc_state = true;
+  bool m_in_host_register = false;
 };
 
 class HostReg
@@ -444,9 +445,9 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  Arm64Gen::ARM64Reg R(size_t preg, RegType type);
+  Arm64Gen::ARM64Reg R(size_t preg, RegType format);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type, bool set_dirty = true);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType format, bool set_dirty = true);
 
   BitSet32 GetCallerSavedUsed() const override;
 
