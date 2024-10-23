@@ -923,7 +923,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     return IPCReply{IPC_SUCCESS};
   }
 
-  Common::SettingsHandler::Buffer data;
+  Common::SettingsBuffer data;
   if (!file->Read(data.data(), data.size()))
   {
     WriteReturnValue(memory, NWC24::WC24_ERR_FILE_READ, request.buffer_out);
@@ -931,8 +931,8 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     return IPCReply{IPC_SUCCESS};
   }
 
-  const Common::SettingsHandler gen{data};
-  const std::string serno = gen.GetValue("SERNO");
+  const Common::SettingsReader settings_reader{data};
+  const std::string serno = settings_reader.GetValue("SERNO");
   const std::string form_data =
       fmt::format("mlid=w{}&hdid={}&rgncd={}", m_config.Id(), m_ios.GetIOSC().GetDeviceId(), serno);
   const Common::HttpRequest::Response response = m_http.Post(m_config.GetAccountURL(), form_data);
@@ -1076,12 +1076,12 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
       const auto fs = m_ios.GetFS();
       if (const auto file = fs->OpenFile(PID_KD, PID_KD, settings_file_path, FS::Mode::Read))
       {
-        Common::SettingsHandler::Buffer data;
+        Common::SettingsBuffer data;
         if (file->Read(data.data(), data.size()))
         {
-          const Common::SettingsHandler gen{data};
-          area = gen.GetValue("AREA");
-          model = gen.GetValue("MODEL");
+          const Common::SettingsReader settings_reader{data};
+          area = settings_reader.GetValue("AREA");
+          model = settings_reader.GetValue("MODEL");
         }
       }
 
