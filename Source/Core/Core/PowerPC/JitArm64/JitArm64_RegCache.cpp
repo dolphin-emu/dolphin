@@ -189,7 +189,8 @@ Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestByIndex(size_t index)
   return GetGuestGPR(0);
 }
 
-void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg)
+void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg,
+                                  IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
@@ -246,6 +247,12 @@ void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg
     if (mode == FlushMode::All)
       reg.Flush();
   }
+  else
+  {
+    ASSERT_MSG(DYNA_REC,
+               ignore_discarded_registers != IgnoreDiscardedRegisters::No || reg.IsInPPCState(),
+               "Attempted to flush discarded register");
+  }
 }
 
 void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_reg,
@@ -254,11 +261,6 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
   for (auto iter = regs.begin(); iter != regs.end(); ++iter)
   {
     const int i = *iter;
-    OpArg& reg = m_guest_registers[GUEST_GPR_OFFSET + i];
-    ASSERT_MSG(DYNA_REC,
-               ignore_discarded_registers != IgnoreDiscardedRegisters::No || reg.IsInPPCState() ||
-                   reg.IsInHostRegister() || IsImm(i),
-               "Attempted to flush discarded register");
 
     if (i + 1 < int(GUEST_GPR_COUNT) && regs[i + 1])
     {
@@ -295,7 +297,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
       }
     }
 
-    FlushRegister(GUEST_GPR_OFFSET + i, mode, tmp_reg);
+    FlushRegister(GUEST_GPR_OFFSET + i, mode, tmp_reg, ignore_discarded_registers);
   }
 }
 
@@ -303,15 +305,7 @@ void Arm64GPRCache::FlushCRRegisters(BitSet8 regs, FlushMode mode, ARM64Reg tmp_
                                      IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   for (int i : regs)
-  {
-    OpArg& reg = m_guest_registers[GUEST_CR_OFFSET + i];
-    ASSERT_MSG(DYNA_REC,
-               ignore_discarded_registers != IgnoreDiscardedRegisters::No || reg.IsInPPCState() ||
-                   reg.IsInHostRegister(),
-               "Attempted to flush discarded register");
-
-    FlushRegister(GUEST_CR_OFFSET + i, mode, tmp_reg);
-  }
+    FlushRegister(GUEST_CR_OFFSET + i, mode, tmp_reg, ignore_discarded_registers);
 }
 
 void Arm64GPRCache::DiscardCRRegisters(BitSet8 regs)
@@ -513,19 +507,7 @@ void Arm64FPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg,
                           IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   for (size_t i = 0; i < m_guest_registers.size(); ++i)
-  {
-    if (m_guest_registers[i].IsInHostRegister())
-    {
-      FlushRegister(i, mode, tmp_reg);
-    }
-    else
-    {
-      ASSERT_MSG(DYNA_REC,
-                 ignore_discarded_registers != IgnoreDiscardedRegisters::No ||
-                     m_guest_registers[i].IsInPPCState(),
-                 "Attempted to flush discarded register");
-    }
-  }
+    FlushRegister(i, mode, tmp_reg, ignore_discarded_registers);
 }
 
 ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
@@ -809,12 +791,21 @@ bool Arm64FPRCache::IsTopHalfUsed(ARM64Reg reg) const
   return false;
 }
 
-void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
+void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg,
+                                  IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   OpArg& reg = m_guest_registers[preg];
   const ARM64Reg host_reg = reg.GetReg();
   const bool dirty = !reg.IsInPPCState();
   RegType type = reg.GetFPRType();
+
+  if (!reg.IsInHostRegister())
+  {
+    ASSERT_MSG(DYNA_REC,
+               ignore_discarded_registers != IgnoreDiscardedRegisters::No || reg.IsInPPCState(),
+               "Attempted to flush discarded register");
+    return;
+  }
 
   bool allocated_tmp_reg = false;
   if (tmp_reg != ARM64Reg::INVALID_REG)

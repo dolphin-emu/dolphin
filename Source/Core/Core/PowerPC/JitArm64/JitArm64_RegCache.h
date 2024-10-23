@@ -275,7 +275,9 @@ protected:
                            Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) = 0;
 
   void DiscardRegister(size_t preg);
-  virtual void FlushRegister(size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) = 0;
+  virtual void FlushRegister(
+      size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) = 0;
 
   void IncrementAllUsed()
   {
@@ -400,7 +402,9 @@ protected:
   void FlushByHost(Arm64Gen::ARM64Reg host_reg,
                    Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
 
-  void FlushRegister(size_t index, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
+  void FlushRegister(
+      size_t index, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) override;
 
 private:
   bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
@@ -468,7 +472,9 @@ protected:
   void FlushByHost(Arm64Gen::ARM64Reg host_reg,
                    Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
 
-  void FlushRegister(size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
+  void FlushRegister(
+      size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) override;
 
 private:
   bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
