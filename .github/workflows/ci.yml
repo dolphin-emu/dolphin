@@ -68,8 +68,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup Submodules
       run: git submodule update --init --recursive
-    - name: Setup Packages
-      run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
+    #- name: Setup Packages
+    #  run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
     - name: Build
       run: |
         mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
