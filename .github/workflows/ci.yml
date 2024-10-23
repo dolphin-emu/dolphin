@@ -42,6 +42,9 @@ jobs:
     - name: Build
       run: |
         mkdir -p build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCMAKE_INSTALL_PREFIX=/usr -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
+    - name: Compile AppImage
+      run: |
+        sh ./Distribution/appimage.sh
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
