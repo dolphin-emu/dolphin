@@ -45,6 +45,16 @@ namespace PatchEngine
 struct Patch;
 }  // namespace PatchEngine
 
+namespace Gecko
+{
+class GeckoCode;
+}  // namespace Gecko
+
+namespace ActionReplay
+{
+struct ARCode;
+}  // namespace ActionReplay
+
 class AchievementManager
 {
 public:
@@ -70,8 +80,8 @@ public:
   static constexpr std::string_view BLUE = "#0B71C1";
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
   static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0x50, 0x2F, 0x58, 0x02, 0x94, 0x60, 0x1B, 0x9F, 0x92, 0xC7,
-      0x04, 0x17, 0x50, 0x2E, 0xF3, 0x09, 0x8C, 0x8C, 0xD6, 0xC0};
+      0x82, 0xB8, 0x90, 0x36, 0xBE, 0xAB, 0x65, 0x28, 0x7E, 0x19,
+      0x6C, 0xA9, 0x4C, 0x15, 0xCC, 0x3D, 0x18, 0xFB, 0x24, 0xF4};
 
   struct LeaderboardEntry
   {
@@ -125,8 +135,16 @@ public:
   void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
   void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
+
   void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                              const std::string& game_ini_id) const;
+  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
+                                const std::string& game_ini_id) const;
+  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
+                             const std::string& game_ini_id) const;
+  bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_ini_id) const;
+  bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_ini_id) const;
+
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
@@ -180,6 +198,14 @@ private:
   static void ChangeMediaCallback(int result, const char* error_message, rc_client_t* client,
                                   void* userdata);
   void DisplayWelcomeMessage();
+
+  template <typename T>
+  void FilterApprovedIni(std::vector<T>& codes, const std::string& game_ini_id) const;
+  template <typename T>
+  bool CheckApprovedCode(const T& code, const std::string& game_ini_id) const;
+  Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
+  Common::SHA1::Digest GetCodeHash(const Gecko::GeckoCode& code) const;
+  Common::SHA1::Digest GetCodeHash(const ActionReplay::ARCode& code) const;
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
                                          rc_client_leaderboard_entry_list_t* list,
@@ -264,6 +290,18 @@ public:
   }
 
   constexpr bool IsHardcoreModeActive() { return false; }
+
+  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
+                                        const std::string& game_ini_id)
+  {
+    return true;
+  };
+
+  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code,
+                                     const std::string& game_ini_id)
+  {
+    return true;
+  };
 
   constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
 
