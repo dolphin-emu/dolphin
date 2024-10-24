@@ -3,6 +3,7 @@
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
+#include <cfenv>
 #include <cstddef>
 #include <limits>
 
@@ -44,6 +45,9 @@ DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive pri
 
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
+  const auto round_mode = std::fegetround();
+  std::fesetround(FE_TOWARDZERO);
+
   using OpcodeDecoder::Primitive;
   Primitive primitive_type = Primitive::GX_DRAW_QUADS;
   switch (m_current_primitive_type)
@@ -92,6 +96,8 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   }
 
   INCSTAT(g_stats.this_frame.num_drawn_objects);
+
+  std::fesetround(round_mode);
 }
 
 void SWVertexLoader::SetFormat()
