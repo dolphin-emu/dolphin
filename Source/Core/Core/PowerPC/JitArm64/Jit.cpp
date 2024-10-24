@@ -197,7 +197,7 @@ void JitArm64::GenerateAsmAndResetFreeMemoryRanges()
   ResetFreeMemoryRanges(routines_near_end - routines_near_start,
                         routines_far_end - routines_far_start);
 
-  Host_JitCacheCleared();
+  Host_JitCacheInvalidation();
 }
 
 void JitArm64::FreeRanges()
