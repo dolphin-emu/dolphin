@@ -1326,7 +1326,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   if (host_config.fast_depth_calc)
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (host_config.backend_unrestricted_depth_range)
+      out.Write("  int zCoord = int(rawpos.z);\n");
+    else if (!host_config.backend_reversed_depth_range)
       out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("  int zCoord = int(rawpos.z * 16777216.0);\n");
@@ -1382,7 +1384,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     out.Write("  // If early depth is enabled, write to zbuffer before depth textures\n"
               "  // If early depth isn't enabled, we write to the zbuffer here\n"
               "  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
-    if (!host_config.backend_reversed_depth_range)
+    if (host_config.backend_unrestricted_depth_range)
+      out.Write("  depth = float(zbuffer_zCoord);\n");
+    else if (!host_config.backend_reversed_depth_range)
       out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
     else
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
