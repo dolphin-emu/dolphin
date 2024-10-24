@@ -23,7 +23,7 @@ jobs:
       uses: flatpak/flatpak-github-actions@v2
       with:
         manifest-path: Distribution/flatpak.yml
-        bundle: DolphinMPN-linux-x86_64.flatpak
+        bundle: DolphinMPN-flatpak-linux-x86_64.flatpak
 
   build_macos:
     runs-on: macos11-x64-nayla
