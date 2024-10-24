@@ -107,6 +107,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
       with:
         vs-version: '16.6.2'
+        vswhere-path: 'C:\vswhere.exe'
+        msbuild-architecture: 'arm64'
     - name: Build
       run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
     - name: Upload Build Artifact
