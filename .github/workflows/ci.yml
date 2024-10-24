@@ -104,7 +104,7 @@ jobs:
     - name: Setup Submodules
       run: git submodule update --init --recursive
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v2
       with:
         vs-version: '16.6.2'
         vswhere-path: 'C:/vswhere.exe'
