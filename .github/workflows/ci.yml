@@ -25,25 +25,6 @@ jobs:
       with:
         manifest-path: Distribution/flatpak.yml
         bundle: DolphinMPN-linux-x86_64.flatpak
-  build_appimage:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup Submodules
-      run: git submodule update --init --recursive
-    - name: Setup Packages
-      run: sudo apt install ninja-build desktop-file-utils git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
-    - name: Build
-      run: |
-        mkdir -p build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCMAKE_INSTALL_PREFIX=/usr -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
-    - name: Compile AppImage
-      run: |
-        sh ./Distribution/appimage.sh
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DolphinMPN-AppImage-x86_64
-        path: root/
 
   build_macos:
     runs-on: macos-13 # TODO: Upgrade to 14, this is the latest version that supports building with an intel machine.
