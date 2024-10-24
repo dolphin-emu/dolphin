@@ -96,3 +96,21 @@ jobs:
       with:
         name: DolphinMPN-win32-x86_64
         path: Binary/x64/
+
+  build_windows_arm64:
+    runs-on: win11-arm64-nayla
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Submodules
+      run: git submodule update --init --recursive
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vs-version: '16.6.2'
+    - name: Build
+      run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DolphinMPN-win32-arm64
+        path: Binary/x64/
