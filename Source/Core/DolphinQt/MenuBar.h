@@ -44,6 +44,9 @@ public:
   explicit MenuBar(QWidget* parent = nullptr);
 
   void UpdateToolsMenu(Core::State state);
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  void UpdateToolsAchievements();
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
@@ -205,6 +208,10 @@ private:
   QAction* m_wad_install_action;
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;
+  QAction* m_achievements_action;
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  QMenu* m_achievements_dev_menu;
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   QAction* m_ntscj_ipl;
   QAction* m_ntscu_ipl;
   QAction* m_pal_ipl;
