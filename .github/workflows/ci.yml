@@ -10,7 +10,6 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-44
       options: --privileged
-
     steps:
     - uses: actions/checkout@v2
     - name: Purge .git for space reasons
@@ -27,13 +26,11 @@ jobs:
         bundle: DolphinMPN-linux-x86_64.flatpak
 
   build_macos:
-    runs-on: macos-13 # TODO: Upgrade to 14, this is the latest version that supports building with an intel machine.
+    runs-on: macos11-x64-nayla
     steps:
     - uses: actions/checkout@v2
     - name: Setup Submodules
       run: git submodule update --init --recursive
-    - name: Setup Packages
-      run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
     - name: Build
       run: |
         mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
@@ -49,8 +46,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup Submodules
       run: git submodule update --init --recursive
-    #- name: Setup Packages
-    #  run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
     - name: Build
       run: |
         mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
@@ -84,12 +79,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup Submodules
       run: git submodule update --init --recursive
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-      with:
-        vs-version: '16.6.2'
-        vswhere-path: 'C:/vswhere.exe'
-        msbuild-architecture: 'arm64'
     - name: Build
       run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
     - name: Upload Build Artifact
