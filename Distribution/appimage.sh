@@ -25,14 +25,12 @@ wget -N https://github.com/AppImage/appimagetool/releases/download/continuous/ap
 
 
 chmod a+x linuxdeploy-x86_64.AppImage
-chmod a+x linuxdeploy-plugin-qt-x86_64.AppImage
 chmod a+x linuxdeploy-plugin-checkrt-x86_64.sh
 chmod a+x appimagetool-x86_64.AppImage
 
 # Build the AppImage
 ./linuxdeploy-x86_64.AppImage \
   --appdir AppDir \
-  --plugin qt \
   --plugin checkrt
 
 mkdir -p ./AppDir/apprun-hooks
