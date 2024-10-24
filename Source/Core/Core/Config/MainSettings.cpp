@@ -145,16 +145,35 @@ const Info<std::string> MAIN_BBA_BUILTIN_IP{{System::Main, "Core", "BBA_BUILTIN_
 
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
+  // Added on 2022-03-07 to migrate parameters, remove will be possible in a future version
   static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
-                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
-                                       SerialInterface::SIDEVICE_NONE},
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice2"},
-                                       SerialInterface::SIDEVICE_NONE},
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
-                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice1"},
+                                       Config::Get(Info<SerialInterface::SIDevices>{
+                                        {System::Main, "Core", "SIDevice0"},SerialInterface::SIDEVICE_GC_CONTROLLER})},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice2"},
+                                       Config::Get(Info<SerialInterface::SIDevices>{
+                                        {System::Main, "Core", "SIDevice1"},SerialInterface::SIDEVICE_NONE})},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice3"},
+                                       Config::Get(Info<SerialInterface::SIDevices>{
+                                        {System::Main, "Core", "SIDevice2"},SerialInterface::SIDEVICE_NONE})},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice4"},
+                                       Config::Get(Info<SerialInterface::SIDevices>{
+                                        {System::Main, "Core", "SIDevice3"},SerialInterface::SIDEVICE_NONE})},
   };
+
+  // Next version that will replace the above
+  /*
+  static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice1"},
+                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice2"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice3"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SerialDevice4"},
+                                       SerialInterface::SIDEVICE_NONE},
+  };*/
+
   return infos[channel];
 }
 
