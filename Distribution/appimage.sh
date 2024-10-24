@@ -33,7 +33,4 @@ chmod a+x appimagetool-x86_64.AppImage
   --appdir AppDir \
   --plugin checkrt
 
-mkdir -p ./AppDir/apprun-hooks
-echo 'export QT_QPA_PLATFORM=xcb' >> ./AppDir/apprun-hooks/linuxdeploy-plugin-qt-hook.sh
-
 ./appimagetool-x86_64.AppImage -n ./AppDir root/
