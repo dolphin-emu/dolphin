@@ -66,11 +66,11 @@ jobs:
       with:
         vs-version: '16.6.2'
     - name: Build
-      run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+      run: msbuild "Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DolphinMPN-win32-x86_64
+        name: DolphinMPN-windows-x86_64
         path: Binary/x64/
 
   build_windows_arm64:
@@ -84,9 +84,9 @@ jobs:
       with:
        arch: arm64
     - name: Build
-      run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+      run: msbuild "Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=ARM64
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DolphinMPN-win32-arm64
+        name: DolphinMPN-windows-arm64
         path: Binary/x64/
