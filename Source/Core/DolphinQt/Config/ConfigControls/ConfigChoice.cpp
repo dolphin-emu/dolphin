@@ -87,3 +87,66 @@ void ConfigStringChoice::Load()
   const QSignalBlocker blocker(this);
   setCurrentIndex(index);
 }
+
+ConfigComplexChoice::ConfigComplexChoice(const InfoVariant setting1, const InfoVariant setting2)
+    : m_setting1(setting1), m_setting2(setting2)
+{
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &ConfigComplexChoice::Refresh);
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigComplexChoice::SaveValue);
+}
+
+void ConfigComplexChoice::Refresh()
+{
+  auto& location = GetLocation();
+
+  QFont bf = font();
+  bf.setBold(Config::GetActiveLayerForConfig(location.first) != Config::LayerType::Base ||
+             Config::GetActiveLayerForConfig(location.second) != Config::LayerType::Base);
+
+  setFont(bf);
+
+  UpdateComboIndex();
+}
+
+void ConfigComplexChoice::Add(const QString& name, const OptionVariant option1,
+                              const OptionVariant option2)
+{
+  const QSignalBlocker blocker(this);
+  addItem(name);
+  m_options.push_back(std::make_pair(option1, option2));
+}
+
+void ConfigComplexChoice::Reset()
+{
+  clear();
+  m_options.clear();
+}
+
+void ConfigComplexChoice::SaveValue(int choice)
+{
+  auto Set = [this, choice](auto& setting, auto& value) {
+    Config::SetBaseOrCurrent(setting, value);
+  };
+
+  std::visit(Set, m_setting1, m_options[choice].first);
+  std::visit(Set, m_setting2, m_options[choice].second);
+}
+
+void ConfigComplexChoice::UpdateComboIndex()
+{
+  auto Get = [this](auto& setting) { return static_cast<OptionVariant>(Config::Get(setting)); };
+
+  std::pair<OptionVariant, OptionVariant> values =
+      std::make_pair(std::visit(Get, m_setting1), std::visit(Get, m_setting2));
+  auto it = std::find(m_options.begin(), m_options.end(), values);
+  int index = static_cast<int>(std::distance(m_options.begin(), it));
+
+  const QSignalBlocker blocker(this);
+  setCurrentIndex(index);
+}
+
+const std::pair<Config::Location, Config::Location> ConfigComplexChoice::GetLocation() const
+{
+  auto visit = [](auto& v) { return v.GetLocation(); };
+  return {std::visit(visit, m_setting1), std::visit(visit, m_setting2)};
+}
