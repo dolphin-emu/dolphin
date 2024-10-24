@@ -44,6 +44,7 @@ struct Symbol
 
   std::string name;
   std::string function_name;   // stripped function name
+  std::string object_name;     // name of object/source file symbol belongs to
   std::vector<SCall> callers;  // addresses of functions that call this function
   std::vector<SCall> calls;    // addresses of functions that are called by this function
   u32 hash = 0;                // use for HLE function finding

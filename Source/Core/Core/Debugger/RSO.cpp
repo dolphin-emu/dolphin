@@ -393,7 +393,8 @@ void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) c
       else
       {
         // Data symbol
-        symbol_db->AddKnownSymbol(guard, address, 0, export_name, Common::Symbol::Type::Data);
+        symbol_db->AddKnownSymbol(guard, address, 0, export_name, GetName(),
+                                  Common::Symbol::Type::Data);
       }
     }
   }

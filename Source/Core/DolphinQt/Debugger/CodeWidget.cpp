@@ -379,6 +379,12 @@ void CodeWidget::UpdateSymbols()
   {
     QString name = QString::fromStdString(symbol.second.name);
 
+    // If the symbol has an object name, add it to the entry name.
+    if (!symbol.second.object_name.empty())
+    {
+      name += fmt::format(" ({})", symbol.second.object_name);
+    }
+
     auto* item = new QListWidgetItem(name);
     if (name == selection)
       item->setSelected(true);
@@ -408,11 +414,13 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 
     if (call_symbol)
     {
-      const QString name =
-          QString::fromStdString(fmt::format("> {} ({:08x})", call_symbol->name, addr));
+      QString name;
 
-      if (!name.contains(filter, Qt::CaseInsensitive))
-        continue;
+      if (!call_symbol->object_name.empty())
+        name = QString::fromStdString(
+            fmt::format("< {} ({}, {:08x})", call_symbol->name, call_symbol->object_name, addr));
+      else
+        name = QString::fromStdString(fmt::format("< {} ({:08x})", call_symbol->name, addr));
 
       auto* item = new QListWidgetItem(name);
       item->setData(Qt::UserRole, addr);
@@ -433,8 +441,13 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 
     if (caller_symbol)
     {
-      const QString name =
-          QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
+      QString name;
+
+      if (!caller_symbol->object_name.empty())
+        name = QString::fromStdString(fmt::format("< {} ({}, {:08x})", caller_symbol->name,
+                                                  caller_symbol->object_name, addr));
+      else
+        name = QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
 
       if (!name.contains(filter, Qt::CaseInsensitive))
         continue;
