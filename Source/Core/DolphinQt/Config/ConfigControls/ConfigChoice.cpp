@@ -2,88 +2,112 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-
 #include <QSignalBlocker>
 
-#include "Common/Config/Config.h"
-
-#include "DolphinQt/Settings.h"
-
-ConfigChoice::ConfigChoice(const QStringList& options, const Config::Info<int>& setting)
-    : m_setting(setting)
+ConfigChoice::ConfigChoice(const QStringList& options, const Config::Info<int>& setting,
+                           Config::Layer* layer)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting)
 {
   addItems(options);
+  setCurrentIndex(ReadValue(setting));
+
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigChoice::Update);
-  setCurrentIndex(Config::Get(m_setting));
-
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
-    QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
-    setFont(bf);
-
-    const QSignalBlocker blocker(this);
-    setCurrentIndex(Config::Get(m_setting));
-  });
 }
 
 void ConfigChoice::Update(int choice)
 {
-  Config::SetBaseOrCurrent(m_setting, choice);
+  SaveValue(m_setting, choice);
+}
+
+void ConfigChoice::OnConfigChanged()
+{
+  setCurrentIndex(ReadValue(m_setting));
 }
 
 ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
-                                       const Config::Info<std::string>& setting)
-    : m_setting(setting), m_text_is_data(true)
+                                       const Config::Info<std::string>& setting,
+                                       Config::Layer* layer)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting), m_text_is_data(true)
 {
   for (const auto& op : options)
     addItem(QString::fromStdString(op));
 
-  Connect();
   Load();
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
 ConfigStringChoice::ConfigStringChoice(const std::vector<std::pair<QString, QString>>& options,
-                                       const Config::Info<std::string>& setting)
-    : m_setting(setting), m_text_is_data(false)
+                                       const Config::Info<std::string>& setting,
+                                       Config::Layer* layer)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting), m_text_is_data(false)
 {
   for (const auto& [option_text, option_data] : options)
     addItem(option_text, option_data);
 
-  Connect();
-  Load();
-}
-
-void ConfigStringChoice::Connect()
-{
-  const auto on_config_changed = [this]() {
-    QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
-    setFont(bf);
-
-    Load();
-  };
-
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, on_config_changed);
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
+  Load();
 }
 
 void ConfigStringChoice::Update(int index)
 {
   if (m_text_is_data)
-  {
-    Config::SetBaseOrCurrent(m_setting, itemText(index).toStdString());
-  }
+    SaveValue(m_setting, itemText(index).toStdString());
   else
-  {
-    Config::SetBaseOrCurrent(m_setting, itemData(index).toString().toStdString());
-  }
+    SaveValue(m_setting, itemData(index).toString().toStdString());
 }
 
 void ConfigStringChoice::Load()
 {
-  const QString setting_value = QString::fromStdString(Config::Get(m_setting));
-
+  const QString setting_value = QString::fromStdString(ReadValue(m_setting));
   const int index = m_text_is_data ? findText(setting_value) : findData(setting_value);
-  const QSignalBlocker blocker(this);
+
+  // This can be called publicly.
+  const QSignalBlocker block(this);
   setCurrentIndex(index);
 }
+
+void ConfigStringChoice::OnConfigChanged()
+{
+  Load();
+}
+
+BaseConfigComplexChoice::BaseConfigComplexChoice(Config::Layer* layer) : m_layer(layer)
+{
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &BaseConfigComplexChoice::Refresh);
+  connect(this, &QComboBox::currentIndexChanged, this, &BaseConfigComplexChoice::SaveValue);
+}
+
+void BaseConfigComplexChoice::Refresh()
+{
+  auto& location = GetLocation();
+
+  QFont bf = font();
+  if (m_layer == nullptr)
+  {
+    bf.setBold(Config::GetActiveLayerForConfig(location.first) != Config::LayerType::Base ||
+               Config::GetActiveLayerForConfig(location.second) != Config::LayerType::Base);
+  }
+  else
+  {
+    bf.setBold(m_layer->Exists(location.first) || m_layer->Exists(location.second));
+  }
+  setFont(bf);
+
+  const QSignalBlocker blocker(this);
+  UpdateComboIndex();
+}
+
+void BaseConfigComplexChoice::mousePressEvent(QMouseEvent* event)
+{
+  if (event->button() == Qt::RightButton && m_layer != nullptr)
+  {
+    auto& location = GetLocation();
+    m_layer->DeleteKey(location.first);
+    m_layer->DeleteKey(location.second);
+    Config::OnConfigChanged();
+  }
+  else
+  {
+    QComboBox::mousePressEvent(event);
+  }
+};
