@@ -187,7 +187,9 @@ void JitBlockTableModel::OnUpdateDisasmDialog()
 
 void JitBlockTableModel::OnPPCSymbolsUpdated()
 {
-  UpdateSymbols();
+  // Previously, this was only a call to `UpdateSymbols`, but HLE patch engine code can
+  // invalidate JIT blocks when specific symbols are loaded. What can be done about it?
+  Update(Core::GetState(m_system));
 }
 
 void JitBlockTableModel::OnPPCBreakpointsChanged()
