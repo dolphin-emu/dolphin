@@ -17,6 +17,9 @@ struct PowerPCState;
 
 class CachedInterpreterEmitter
 {
+  // Note: Turning the constexpr `CallbackCast` functions consteval causes error C7595 "call
+  // to immediate function is not a constant expression" on MSVC... and only for some people.
+
 protected:
   // The return value of most callbacks is the distance in memory to the next callback.
   // If a callback returns 0, the block will be exited. The return value is signed to
@@ -26,7 +29,7 @@ protected:
   using AnyCallback = s32 (*)(PowerPC::PowerPCState& ppc_state, const void* operands);
 
   template <class Operands>
-  static consteval Callback<Operands> CallbackCast(Callback<Operands> callback)
+  static constexpr Callback<Operands> CallbackCast(Callback<Operands> callback)
   {
     return callback;
   }
@@ -35,7 +38,7 @@ protected:
   {
     return reinterpret_cast<AnyCallback>(callback);
   }
-  static consteval AnyCallback AnyCallbackCast(AnyCallback callback) { return callback; }
+  static constexpr AnyCallback AnyCallbackCast(AnyCallback callback) { return callback; }
 
   // Disassemble callbacks will always return the distance to the next callback.
   template <class Operands>
@@ -47,7 +50,7 @@ protected:
   {
     return reinterpret_cast<AnyDisassemble>(disassemble);
   }
-  static consteval AnyDisassemble AnyDisassembleCast(AnyDisassemble disassemble)
+  static constexpr AnyDisassemble AnyDisassembleCast(AnyDisassemble disassemble)
   {
     return disassemble;
   }
