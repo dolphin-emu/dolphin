@@ -102,7 +102,7 @@ private:
   void OnStatusBarPressed();
 
   // Conditionally connected slots (external signals)
-  void OnJitCacheCleared();
+  void OnJitCacheInvalidation();
   void OnUpdateDisasmDialog();
   void OnPPCSymbolsUpdated();
   void OnPPCBreakpointsChanged();

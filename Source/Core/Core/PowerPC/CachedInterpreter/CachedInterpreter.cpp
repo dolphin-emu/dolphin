@@ -442,7 +442,7 @@ void CachedInterpreter::ClearCache()
   ClearCodeSpace();
   ResetFreeMemoryRanges();
   RefreshConfig();
-  Host_JitCacheCleared();
+  Host_JitCacheInvalidation();
 }
 
 void CachedInterpreter::LogGeneratedCode() const

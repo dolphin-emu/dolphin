@@ -313,7 +313,7 @@ void Jit64::ClearCache()
   RefreshConfig();
   asm_routines.Regenerate();
   ResetFreeMemoryRanges();
-  Host_JitCacheCleared();
+  Host_JitCacheInvalidation();
 }
 
 void Jit64::FreeRanges()

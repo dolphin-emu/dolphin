@@ -57,6 +57,7 @@ static void InvalidateCacheThreadSafe(Core::System& system, u64 userdata, s64 cy
 {
   system.GetPPCState().iCache.Invalidate(system.GetMemory(), system.GetJitInterface(),
                                          static_cast<u32>(userdata));
+  Host_JitCacheInvalidation();
 }
 
 PowerPCManager::PowerPCManager(Core::System& system)
@@ -296,6 +297,7 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
   {
     m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(),
                                   static_cast<u32>(address));
+    Host_JitCacheInvalidation();
   }
 }
 

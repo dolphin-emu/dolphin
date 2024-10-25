@@ -106,7 +106,7 @@ private:
   void Hide();
 
   // Conditionally connected slots (external signals)
-  void OnJitCacheCleared();
+  void OnJitCacheInvalidation();
   void OnJitProfileDataWiped();
   void OnUpdateDisasmDialog();
   void OnPPCSymbolsUpdated();

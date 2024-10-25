@@ -112,7 +112,7 @@ void JitBlockTableModel::UpdateSymbols()
 void JitBlockTableModel::ConnectSlots()
 {
   auto* const host = Host::GetInstance();
-  connect(host, &Host::JitCacheCleared, this, &JitBlockTableModel::OnJitCacheCleared);
+  connect(host, &Host::JitCacheInvalidation, this, &JitBlockTableModel::OnJitCacheInvalidation);
   connect(host, &Host::JitProfileDataWiped, this, &JitBlockTableModel::OnJitProfileDataWiped);
   connect(host, &Host::UpdateDisasmDialog, this, &JitBlockTableModel::OnUpdateDisasmDialog);
   connect(host, &Host::PPCSymbolsChanged, this, &JitBlockTableModel::OnPPCSymbolsUpdated);
@@ -125,7 +125,7 @@ void JitBlockTableModel::ConnectSlots()
 void JitBlockTableModel::DisconnectSlots()
 {
   auto* const host = Host::GetInstance();
-  disconnect(host, &Host::JitCacheCleared, this, &JitBlockTableModel::OnJitCacheCleared);
+  disconnect(host, &Host::JitCacheInvalidation, this, &JitBlockTableModel::OnJitCacheInvalidation);
   disconnect(host, &Host::JitProfileDataWiped, this, &JitBlockTableModel::OnJitProfileDataWiped);
   disconnect(host, &Host::UpdateDisasmDialog, this, &JitBlockTableModel::OnUpdateDisasmDialog);
   disconnect(host, &Host::PPCSymbolsChanged, this, &JitBlockTableModel::OnPPCSymbolsUpdated);
@@ -169,7 +169,7 @@ void JitBlockTableModel::OnFilterSymbolTextChanged(const QString& string)
   m_filtering_by_symbols = !string.isEmpty();
 }
 
-void JitBlockTableModel::OnJitCacheCleared()
+void JitBlockTableModel::OnJitCacheInvalidation()
 {
   Update(Core::GetState(m_system));
 }
@@ -187,7 +187,9 @@ void JitBlockTableModel::OnUpdateDisasmDialog()
 
 void JitBlockTableModel::OnPPCSymbolsUpdated()
 {
-  UpdateSymbols();
+  // Previously, this was only a call to `UpdateSymbols`, but HLE patch engine code can
+  // invalidate JIT blocks when specific symbols are loaded. What can be done about it?
+  Update(Core::GetState(m_system));
 }
 
 void JitBlockTableModel::OnPPCBreakpointsChanged()
