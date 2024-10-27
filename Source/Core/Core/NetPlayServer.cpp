@@ -31,6 +31,7 @@
 #include "Common/UPnP.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -1358,6 +1359,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
   settings.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   settings.enable_cheats = Config::AreCheatsEnabled();
+  settings.enable_hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   settings.selected_language = Config::Get(Config::MAIN_GC_LANGUAGE);
   settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
   settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);
@@ -1586,6 +1588,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.cpu_thread;
   spac << m_settings.cpu_core;
   spac << m_settings.enable_cheats;
+  spac << m_settings.enable_hardcore;
   spac << m_settings.selected_language;
   spac << m_settings.override_region_settings;
   spac << m_settings.dsp_enable_jit;
