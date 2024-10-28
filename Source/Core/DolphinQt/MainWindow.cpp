@@ -273,6 +273,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().Init();
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
+    Settings::Instance().SetDebugModeEnabled(false);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)

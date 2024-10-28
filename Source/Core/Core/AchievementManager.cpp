@@ -24,6 +24,8 @@
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
@@ -62,7 +64,7 @@ void AchievementManager::Init()
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
-    rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+    SetHardcoreMode();
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
@@ -361,6 +363,13 @@ std::recursive_mutex& AchievementManager::GetLock()
 void AchievementManager::SetHardcoreMode()
 {
   rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
+  }
 }
 
 bool AchievementManager::IsHardcoreModeActive() const
