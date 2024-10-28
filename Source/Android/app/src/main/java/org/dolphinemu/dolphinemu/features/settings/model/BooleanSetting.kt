@@ -789,7 +789,7 @@ enum class BooleanSetting(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_HACKS,
         "EFBAccessEnable",
-        true
+        false
     ),
     GFX_HACK_EFB_DEFER_INVALIDATION(
         Settings.FILE_GFX,

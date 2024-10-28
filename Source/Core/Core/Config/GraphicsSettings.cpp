@@ -177,7 +177,7 @@ const Info<int> GFX_STEREO_DEPTH_PERCENTAGE{{System::GFX, "Stereoscopy", "Stereo
 
 // Graphics.Hacks
 
-const Info<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, true};
+const Info<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, false};
 const Info<bool> GFX_HACK_EFB_DEFER_INVALIDATION{
     {System::GFX, "Hacks", "EFBAccessDeferInvalidation"}, false};
 const Info<int> GFX_HACK_EFB_ACCESS_TILE_SIZE{{System::GFX, "Hacks", "EFBAccessTileSize"}, 64};
