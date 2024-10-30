@@ -244,10 +244,10 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
   case ALL_SEND_CID:
   case SEND_CID:
     INFO_LOG_FMT(IOS_SD, "(ALL_)SEND_CID");
-    memory.Write_U32(0x80114d1c, buffer_out);
-    memory.Write_U32(0x80080000, buffer_out + 4);
-    memory.Write_U32(0x8007b520, buffer_out + 8);
-    memory.Write_U32(0x80080000, buffer_out + 12);
+    memory.Write_U32(0x00D0444F, buffer_out + 12);
+    memory.Write_U32(0x4C504849, buffer_out + 8);
+    memory.Write_U32(0x4E430403, buffer_out + 4);
+    memory.Write_U32(0xAC68006B, buffer_out + 0);
     break;
 
   case SET_BLOCKLEN:
@@ -488,11 +488,15 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
   // Evaluate whether a card is currently inserted (config value).
   // Make sure we don't modify m_status so we don't lose track of whether the card is SDHC.
   const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
-  const u32 status = sd_card_inserted ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
+  const bool sd_card_locked = !Config::Get(Config::MAIN_ALLOW_SD_WRITES);
+  const u32 status = sd_card_inserted ?
+                         (m_status | CARD_INSERTED | (sd_card_locked ? CARD_LOCKED : 0)) :
+                         CARD_NOT_EXIST;
 
-  INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}",
+  INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}{}",
                (status & CARD_SDHC) ? "SDHC" : "SD",
                (status & CARD_INSERTED) ? "inserted" : "not present",
+               (status & CARD_LOCKED) ? " and locked" : "",
                (status & CARD_INITIALIZED) ? " and initialized" : "");
 
   auto& system = GetSystem();
