@@ -16,6 +16,7 @@
 #include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
+#include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -74,6 +75,7 @@ void Patch(Core::System& system, u32 addr, std::string_view func_name)
     {
       s_hooked_addresses[addr] = i;
       ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+      Host_JitCacheInvalidation();
       return;
     }
   }
@@ -144,6 +146,8 @@ void PatchFunctions(Core::System& system)
       INFO_LOG_FMT(OSHLE, "Patching {} {:08x}", os_patches[i].name, symbol->address);
     }
   }
+
+  Host_JitCacheInvalidation();
 }
 
 void Clear()
@@ -264,6 +268,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
         ++i;
       }
     }
+    Host_JitCacheInvalidation();
     return addr;
   }
 
@@ -276,6 +281,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
       s_hooked_addresses.erase(addr);
       ppc_state.iCache.Invalidate(memory, jit_interface, addr);
     }
+    Host_JitCacheInvalidation();
     return symbol->address;
   }
 
@@ -299,6 +305,7 @@ u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
     i = s_hooked_addresses.erase(i);
     count += 1;
   }
+  Host_JitCacheInvalidation();
 
   return count;
 }
