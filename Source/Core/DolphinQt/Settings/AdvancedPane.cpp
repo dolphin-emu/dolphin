@@ -24,6 +24,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -168,13 +169,7 @@ void AdvancedPane::CreateLayout()
   m_custom_rtc_datetime->setDisplayFormat(m_custom_rtc_datetime->displayFormat().replace(
       QStringLiteral("mm"), QStringLiteral("mm:ss")));
 
-  if (!m_custom_rtc_datetime->displayFormat().contains(QStringLiteral("yyyy")))
-  {
-    // Always show the full year, no matter what the locale specifies. Otherwise, two-digit years
-    // will always be interpreted as in the 21st century.
-    m_custom_rtc_datetime->setDisplayFormat(m_custom_rtc_datetime->displayFormat().replace(
-        QStringLiteral("yy"), QStringLiteral("yyyy")));
-  }
+  QtUtils::ShowFourDigitYear(m_custom_rtc_datetime);
   m_custom_rtc_datetime->setDateTimeRange(QDateTime({2000, 1, 1}, {0, 0, 0}, Qt::UTC),
                                           QDateTime({2099, 12, 31}, {23, 59, 59}, Qt::UTC));
   m_custom_rtc_datetime->setTimeSpec(Qt::UTC);

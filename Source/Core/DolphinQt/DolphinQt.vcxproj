@@ -197,6 +197,7 @@
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
     <ClCompile Include="QtUtils\NonDefaultQPushButton.cpp" />
     <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
+    <ClCompile Include="QtUtils\QtUtils.cpp" />
     <ClCompile Include="QtUtils\SetWindowDecorations.cpp" />
     <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
@@ -404,6 +405,7 @@
     <ClInclude Include="QtUtils\FromStdString.h" />
     <QtMoc Include="QtUtils\ParallelProgressDialog.h" />
     <QtMoc Include="QtUtils\PartiallyClosableTabWidget.h" />
+    <ClInclude Include="QtUtils\QtUtils.h" />
     <ClInclude Include="QtUtils\SetWindowDecorations.h" />
     <QtMoc Include="QtUtils\UTF8CodePointCountValidator.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
