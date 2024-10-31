@@ -26,6 +26,13 @@ class QPaintEvent;
 class QTimer;
 
 class CalibrationWidget;
+class MappingWidget;
+
+namespace ciface::MappingCommon
+{
+class ReshapableInputMapper;
+class CalibrationBuilder;
+}  // namespace ciface::MappingCommon
 
 class MappingIndicator : public QWidget
 {
@@ -79,15 +86,16 @@ class ReshapableInputIndicator : public SquareIndicator
 public:
   void SetCalibrationWidget(CalibrationWidget* widget);
 
+  virtual QColor GetGateBrushColor() const = 0;
+
 protected:
-  void DrawReshapableInput(ControllerEmu::ReshapableInput& group, QColor gate_color,
+  void DrawReshapableInput(ControllerEmu::ReshapableInput& group,
                            std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
 
   virtual void DrawUnderGate(QPainter&) {}
 
   bool IsCalibrating() const;
 
-  void DrawCalibration(QPainter& p, Common::DVec2 point);
   void UpdateCalibrationWidget(Common::DVec2 point);
 
 private:
@@ -99,6 +107,8 @@ class AnalogStickIndicator : public ReshapableInputIndicator
 public:
   explicit AnalogStickIndicator(ControllerEmu::ReshapableInput& stick) : m_group(stick) {}
 
+  QColor GetGateBrushColor() const final;
+
 private:
   void Draw() override;
 
@@ -109,6 +119,8 @@ class TiltIndicator : public ReshapableInputIndicator
 {
 public:
   explicit TiltIndicator(ControllerEmu::Tilt& tilt) : m_group(tilt) {}
+
+  QColor GetGateBrushColor() const final;
 
 private:
   void Draw() override;
@@ -122,6 +134,8 @@ class CursorIndicator : public ReshapableInputIndicator
 {
 public:
   explicit CursorIndicator(ControllerEmu::Cursor& cursor) : m_cursor_group(cursor) {}
+
+  QColor GetGateBrushColor() const final;
 
 private:
   void Draw() override;
@@ -144,6 +158,8 @@ class SwingIndicator : public ReshapableInputIndicator
 {
 public:
   explicit SwingIndicator(ControllerEmu::Force& swing) : m_swing_group(swing) {}
+
+  QColor GetGateBrushColor() const final;
 
 private:
   void Draw() override;
@@ -219,28 +235,46 @@ private:
 
   ControllerEmu::IRPassthrough& m_ir_group;
 };
+
 class CalibrationWidget : public QToolButton
 {
+  Q_OBJECT
 public:
-  CalibrationWidget(ControllerEmu::ReshapableInput& input, ReshapableInputIndicator& indicator);
+  CalibrationWidget(MappingWidget& mapping_widget, ControllerEmu::ReshapableInput& input,
+                    ReshapableInputIndicator& indicator);
+  ~CalibrationWidget() override;
 
   void Update(Common::DVec2 point);
 
-  double GetCalibrationRadiusAtAngle(double angle) const;
+  void Draw(QPainter& p, Common::DVec2 point);
 
-  Common::DVec2 GetCenter() const;
+  bool IsActive() const;
 
-  bool IsCalibrating() const;
+signals:
+  void CalibrationIsSensible();
 
 private:
-  void StartCalibration();
-  void SetupActions();
+  void DrawInProgressMapping(QPainter& p);
+  void DrawInProgressCalibration(QPainter& p, Common::DVec2 point);
 
+  bool IsMapping() const;
+  bool IsCalibrating() const;
+
+  void StartMappingAndCalibration();
+  void StartCalibration(std::optional<Common::DVec2> center = Common::DVec2{});
+
+  void ResetActions();
+  void DeleteAllActions();
+
+  MappingWidget& m_mapping_widget;
   ControllerEmu::ReshapableInput& m_input;
   ReshapableInputIndicator& m_indicator;
-  QAction* m_completion_action;
-  ControllerEmu::ReshapableInput::CalibrationData m_calibration_data;
-  QTimer* m_informative_timer;
-  std::optional<Common::DVec2> m_new_center;
-  Common::DVec2 m_prev_point;
+
+  std::unique_ptr<ciface::MappingCommon::ReshapableInputMapper> m_mapper;
+  std::unique_ptr<ciface::MappingCommon::CalibrationBuilder> m_calibrator;
+
+  double GetAnimationElapsedSeconds() const;
+  void RestartAnimation();
+
+  Clock::time_point m_animation_start_time{};
 };

@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 
+#include <algorithm>
 #include <deque>
 #include <memory>
 
