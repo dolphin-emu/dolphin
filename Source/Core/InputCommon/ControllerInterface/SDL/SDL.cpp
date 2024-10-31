@@ -263,18 +263,16 @@ private:
   };
 
 public:
-  GameController(SDL_GameController* const gamecontroller, SDL_Joystick* const joystick,
-                 const int sdl_index);
+  GameController(SDL_GameController* const gamecontroller, SDL_Joystick* const joystick);
   ~GameController();
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  int GetSDLIndex() const;
+  int GetSDLInstanceID() const;
 
 private:
   SDL_GameController* const m_gamecontroller;
   std::string m_name;
-  int m_sdl_index;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
 };
@@ -318,7 +316,7 @@ void InputBackend::OpenAndAddDevice(int index)
       // SDL tries parsing these as Joysticks
       return;
     }
-    auto gamecontroller = std::make_shared<GameController>(gc, js, index);
+    auto gamecontroller = std::make_shared<GameController>(gc, js);
     if (!gamecontroller->Inputs().empty() || !gamecontroller->Outputs().empty())
       GetControllerInterface().AddDevice(std::move(gamecontroller));
   }
@@ -326,25 +324,20 @@ void InputBackend::OpenAndAddDevice(int index)
 
 bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
 {
-  if (e.type == SDL_CONTROLLERDEVICEADDED || e.type == SDL_JOYDEVICEADDED)
+  if (e.type == SDL_JOYDEVICEADDED)
   {
-    // Avoid handling the event twice on a GameController
-    if (e.type == SDL_JOYDEVICEADDED && SDL_IsGameController(e.jdevice.which))
-    {
-      return true;
-    }
+    // NOTE: SDL_JOYDEVICEADDED's `jdevice.which` is a device index in SDL2.
+    // It will change to an "instance ID" in SDL3.
+    // OpenAndAddDevice impl and calls will need refactoring when changing to SDL3.
+    static_assert(!SDL_VERSION_ATLEAST(3, 0, 0), "Refactoring is needed for SDL3.");
     OpenAndAddDevice(e.jdevice.which);
   }
-  else if (e.type == SDL_CONTROLLERDEVICEREMOVED || e.type == SDL_JOYDEVICEREMOVED)
+  else if (e.type == SDL_JOYDEVICEREMOVED)
   {
-    // Avoid handling the event twice on a GameController
-    if (e.type == SDL_JOYDEVICEREMOVED && SDL_IsGameController(e.jdevice.which))
-    {
-      return true;
-    }
+    // NOTE: SDL_JOYDEVICEREMOVED's `jdevice.which` is an "instance ID".
     GetControllerInterface().RemoveDevice([&e](const auto* device) {
       return device->GetSource() == "SDL" &&
-             static_cast<const GameController*>(device)->GetSDLIndex() == e.jdevice.which;
+             static_cast<const GameController*>(device)->GetSDLInstanceID() == e.jdevice.which;
     });
   }
   else if (e.type == m_populate_event_type)
@@ -585,8 +578,8 @@ static constexpr SDLMotionAxisList SDL_AXES_GYRO = {{
 // clang-format on
 
 GameController::GameController(SDL_GameController* const gamecontroller,
-                               SDL_Joystick* const joystick, const int sdl_index)
-    : m_gamecontroller(gamecontroller), m_sdl_index(sdl_index), m_joystick(joystick)
+                               SDL_Joystick* const joystick)
+    : m_gamecontroller(gamecontroller), m_joystick(joystick)
 {
   const char* name;
   if (gamecontroller)
@@ -809,9 +802,9 @@ std::string GameController::GetSource() const
   return "SDL";
 }
 
-int GameController::GetSDLIndex() const
+int GameController::GetSDLInstanceID() const
 {
-  return m_sdl_index;
+  return SDL_JoystickInstanceID(m_joystick);
 }
 
 std::string GameController::Button::GetName() const
