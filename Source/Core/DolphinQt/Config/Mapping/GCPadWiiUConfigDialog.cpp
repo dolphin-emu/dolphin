@@ -32,7 +32,7 @@ GCPadWiiUConfigDialog::~GCPadWiiUConfigDialog()
 
 void GCPadWiiUConfigDialog::CreateLayout()
 {
-  setWindowTitle(tr("GameCube Adapter for Wii U at Port %1").arg(m_port + 1));
+  setWindowTitle(tr("GameCube Controller Adapter at Port %1").arg(m_port + 1));
 
   m_layout = new QVBoxLayout();
   m_status_label = new QLabel();
