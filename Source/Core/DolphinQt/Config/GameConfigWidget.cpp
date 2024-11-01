@@ -213,7 +213,7 @@ void GameConfigWidget::ConnectWidgets()
   for (QCheckBox* box :
        {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
         m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
-    connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
+    connect(box, &QCheckBox::checkStateChanged, this, &GameConfigWidget::SaveSettings);
 
   connect(m_deterministic_dual_core, &QComboBox::currentIndexChanged, this,
           &GameConfigWidget::SaveSettings);
