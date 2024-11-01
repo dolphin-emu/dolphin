@@ -77,8 +77,13 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
   connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
 
   ok->setEnabled(false);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(checkbox_accept, &QCheckBox::checkStateChanged,
+          [ok](Qt::CheckState state) { ok->setEnabled(state == Qt::Checked); });
+#else
   connect(checkbox_accept, &QCheckBox::stateChanged,
           [ok](int state) { ok->setEnabled(state == Qt::Checked); });
+#endif
 
   connect(this, &QDialog::accepted, [checkbox_skip] {
     Config::SetBase(Config::MAIN_SKIP_NKIT_WARNING, checkbox_skip->isChecked());

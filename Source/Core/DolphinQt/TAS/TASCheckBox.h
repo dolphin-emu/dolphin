@@ -25,7 +25,11 @@ protected:
   void mousePressEvent(QMouseEvent* event) override;
 
 private slots:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  void OnUIValueChanged(Qt::CheckState new_value);
+#else
   void OnUIValueChanged(int new_value);
+#endif
   void ApplyControllerValueChange();
 
 private:

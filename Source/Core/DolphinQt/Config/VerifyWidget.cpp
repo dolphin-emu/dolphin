@@ -120,8 +120,13 @@ void VerifyWidget::ConnectWidgets()
 {
   connect(m_verify_button, &QPushButton::clicked, this, &VerifyWidget::Verify);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(m_md5_checkbox, &QCheckBox::checkStateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
+  connect(m_sha1_checkbox, &QCheckBox::checkStateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
+#else
   connect(m_md5_checkbox, &QCheckBox::stateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
   connect(m_sha1_checkbox, &QCheckBox::stateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
+#endif
 }
 
 static void SetHash(QLineEdit* line_edit, const std::vector<u8>& hash)
