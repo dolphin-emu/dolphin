@@ -150,13 +150,13 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 
 void HacksWidget::ConnectWidgets()
 {
-  connect(m_store_efb_copies, &QCheckBox::stateChanged,
+  connect(m_store_efb_copies, &QCheckBox::checkStateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_store_xfb_copies, &QCheckBox::stateChanged,
+  connect(m_store_xfb_copies, &QCheckBox::checkStateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_immediate_xfb, &QCheckBox::stateChanged,
+  connect(m_immediate_xfb, &QCheckBox::checkStateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-  connect(m_vi_skip, &QCheckBox::stateChanged,
+  connect(m_vi_skip, &QCheckBox::checkStateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 }
 
