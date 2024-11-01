@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 13:12+0100\n"
+"POT-Creation-Date: 2024-11-01 15:00+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2024\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/dolphinemu/dolphin-"
@@ -60,7 +60,7 @@ msgstr ""
 #. of bytes (e.g. MiB), %2 is its untranslated name, and %3 is its fragmentation percentage.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:189
 msgid " %1 %2 (%3% fragmented)"
-msgstr ""
+msgstr "%1 %2 (%3% 碎片)"
 
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:102
 msgid " (Disc %1)"
@@ -175,11 +175,11 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr "%1 图形配置"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:300
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:295
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (内存1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:309
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (内存2)"
 
@@ -256,7 +256,7 @@ msgstr "已找到 %1 个会话"
 msgid "%1%"
 msgstr "%1%"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:283
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:278
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
@@ -403,7 +403,7 @@ msgstr "无边框窗口(&B)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:498
 msgid "&Branch Type"
-msgstr ""
+msgstr "分支类型(&B)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:444
 msgid "&Break on Hit"
@@ -443,7 +443,7 @@ msgstr "代码(&C)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:500
 msgid "&Condition"
-msgstr ""
+msgstr "条件(&C)"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:392
 msgid "&Connected"
@@ -480,7 +480,7 @@ msgid "&Delete Watches"
 msgstr "删除监视(&D)"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:67
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:195
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:189
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:100
 msgid "&Edit Code..."
 msgstr "编辑代码...(&E)"
@@ -499,7 +499,7 @@ msgstr "模拟(&E)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:626
 msgid "&Erase Block(s)"
-msgstr ""
+msgstr "擦除区块(&E)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:259
 msgid "&Export"
@@ -627,7 +627,7 @@ msgstr "内存(&M)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:501
 msgid "&Misc. Controls"
-msgstr ""
+msgstr "其他控件(&M)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:794
 msgid "&Movie"
@@ -656,7 +656,7 @@ msgstr "选项(&O)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:499
 msgid "&Origin and Destination"
-msgstr ""
+msgstr "起始和目标(&O)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1071
 msgid "&Patch HLE Functions"
@@ -746,7 +746,7 @@ msgstr "工具(&T)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:530
 msgid "&Toolbar Visibility"
-msgstr ""
+msgstr "工具栏可见性(&T)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:265
 msgid "&Tools"
@@ -1116,8 +1116,8 @@ msgstr "<span style=\"color:#ffcc00\">警告</span>无效的基地址，默认�
 msgid "> Greater-than"
 msgstr "> 大于"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1561
-#: Source/Core/DolphinQt/MainWindow.cpp:1628
+#: Source/Core/DolphinQt/MainWindow.cpp:1563
+#: Source/Core/DolphinQt/MainWindow.cpp:1630
 msgid "A NetPlay Session is already in progress!"
 msgstr "已经有一个联机会话正在进行！"
 
@@ -1151,7 +1151,7 @@ msgstr "一些使颜色更准确的功能，使其与 Wii 和 GC 游戏的色彩
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "载入保存状态必须指定要启动的游戏"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:965
+#: Source/Core/DolphinQt/MainWindow.cpp:967
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1460,6 +1460,11 @@ msgid ""
 "setting is disabled when Manual Texture Sampling is enabled."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"调整纹理过滤。各向异性过滤增强了倾斜视角下纹理的视觉质量。强制邻近和强制线性"
+"会覆盖游戏自身选定的纹理缩放滤镜。<br><br>除“默认”之外的任何选项都会改变游戏"
+"纹理的外观，并可能导致少数游戏出现问题。<br><br>开启手动纹理采样时则此设置会"
+"被禁用。<br><br><dolphin_emphasis>如无法确定，请选择“默认”。</"
+"dolphin_emphasis>"
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:107
@@ -1479,7 +1484,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>如无法确定，请将滑块拖动至最右端。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:151
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:152
 msgid ""
 "Adjusts the amount of RAM in the emulated console.\n"
 "\n"
@@ -1490,7 +1495,7 @@ msgstr ""
 "\n"
 "警告：启用此功能会使很多游戏彻底奔溃。只有少数游戏可以从中受益。"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:110
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:111
 msgid ""
 "Adjusts the emulated CPU's clock rate.\n"
 "\n"
@@ -1594,7 +1599,7 @@ msgstr "所有双精度"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:440
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:591
-#: Source/Core/DolphinQt/MainWindow.cpp:791
+#: Source/Core/DolphinQt/MainWindow.cpp:793
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:139
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:345
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1611,7 +1616,7 @@ msgstr "所有文件 (*)"
 msgid "All Float"
 msgstr "所有浮点数"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:790
+#: Source/Core/DolphinQt/MainWindow.cpp:792
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "所有 GC/Wii 文件"
@@ -1620,8 +1625,8 @@ msgstr "所有 GC/Wii 文件"
 msgid "All Hexadecimal"
 msgstr "全十六进制"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1436
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "所有状态存档 (*.sav *.s##);; 所有文件 (*)"
 
@@ -1769,9 +1774,17 @@ msgstr "确定要删除该文件吗?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "确定要删除这个包吗？"
 
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+msgid "Are you sure you want to log out of RetroAchievements?"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:502
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "确定要退出联机吗？"
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+msgid "Are you sure you want to turn hardcore mode off?"
+msgstr ""
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:284
 msgid "Are you sure?"
@@ -2152,11 +2165,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "引导后暂停"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1788
+#: Source/Core/DolphinQt/MainWindow.cpp:1790
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND 备份文件 (*.bin);; 所有文件 (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1814
+#: Source/Core/DolphinQt/MainWindow.cpp:1816
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii 密钥文件 (*.bin);; 所有文件 (*)"
 
@@ -2425,11 +2438,11 @@ msgstr "创建签名文件...(&R)"
 msgid "CP register "
 msgstr "CP 寄存器"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:63
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:64
 msgid "CPU Emulation Engine:"
 msgstr "CPU 模拟引擎:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:52
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:53
 msgid "CPU Options"
 msgstr "CPU 选项"
 
@@ -2437,7 +2450,7 @@ msgstr "CPU 选项"
 msgid "CRC32:"
 msgstr "CRC32:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:33
 msgid "Cached Interpreter (slower)"
 msgstr "缓存解释器（较慢）"
 
@@ -2508,11 +2521,11 @@ msgstr "镜头视野（影响指向的灵敏度）。"
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "只能为虚拟内存中的数值生成 AR 代码。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:101
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:102
 msgid "Can't be modified yet!"
 msgstr "现在还不能进行修改！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:296
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:298
 msgid "Can't edit villains for this trophy!"
 msgstr "无法对此奖杯编辑反派角色！"
 
@@ -2520,8 +2533,8 @@ msgstr "无法对此奖杯编辑反派角色！"
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "不能按照连接句柄 {0:02x} 找到 Wii 遥控器"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1554
-#: Source/Core/DolphinQt/MainWindow.cpp:1621
+#: Source/Core/DolphinQt/MainWindow.cpp:1556
+#: Source/Core/DolphinQt/MainWindow.cpp:1623
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "游戏运行时无法启动联机会话！"
 
@@ -2590,7 +2603,7 @@ msgstr "找不到 GC IPL，无法启动游戏。"
 
 #. i18n: "Captured" is a participle here. This string is used when listing villains, not when a
 #. villain was just captured
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:319
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:321
 msgid "Captured villain %1:"
 msgstr "已捕获的反派 %1:"
 
@@ -2783,11 +2796,11 @@ msgstr "清除缓存"
 msgid "Clear Slot"
 msgstr "清除插槽"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:90
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:91
 msgid "Clock Override"
 msgstr "时钟频率覆盖"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:195
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:189
 msgid "Clone and &Edit Code..."
 msgstr "复制并编辑代码...(&E)"
 
@@ -2805,13 +2818,13 @@ msgid "Code"
 msgstr "代码"
 
 #. i18n: Code Buffer Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
 msgid "Code Buff. Size"
-msgstr ""
+msgstr "代码缓冲大小"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:636
 msgid "Code Buffer Size"
-msgstr ""
+msgstr "代码缓冲区大小"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:266
 msgid "Code Path Not Taken"
@@ -3068,11 +3081,19 @@ msgstr "配置输出"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:964
-#: Source/Core/DolphinQt/MainWindow.cpp:1754
+#: Source/Core/DolphinQt/MainWindow.cpp:966
+#: Source/Core/DolphinQt/MainWindow.cpp:1756
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "确定"
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+msgid "Confirm Hardcore Off"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+msgid "Confirm Logout"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:202
 msgid "Confirm backend change"
@@ -3501,7 +3522,7 @@ msgstr ""
 msgid "Could not recognize file {0}"
 msgstr "无法识别文件 {0}"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:278
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:280
 msgid "Could not save your changes!"
 msgstr "无法保存您所做的更改！"
 
@@ -3657,7 +3678,7 @@ msgstr "自定义宽高比宽度"
 msgid "Custom Aspect Ratio:"
 msgstr "自定义宽高比："
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:158
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:159
 msgid "Custom RTC Options"
 msgstr "自定义 RTC 选项"
 
@@ -3670,30 +3691,30 @@ msgid "Customize"
 msgstr "自定义"
 
 #. i18n: Cycles Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
 msgid "Cycles %"
-msgstr ""
+msgstr "周期 %"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:647
 msgid "Cycles Average"
-msgstr ""
+msgstr "平均周期数"
 
 #. i18n: Cycles Average
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 msgid "Cycles Avg."
-msgstr ""
+msgstr "平均周期"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:649
 msgid "Cycles Percent"
-msgstr ""
+msgstr "周期百分比"
 
 #. i18n: "Cycles" means instruction cycles.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:645
 msgid "Cycles Spent"
-msgstr ""
+msgstr "耗费周期"
 
 #: Source/Core/Core/HW/GBAPadEmu.h:39 Source/Core/Core/HW/GCPadEmu.h:59
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:223
@@ -4132,7 +4153,7 @@ msgid "Discard"
 msgstr "丢弃"
 
 #. i18n: Settings that affect how achievements are displayed while playing.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:140
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:141
 msgid "Display Settings"
 msgstr "显示设置"
 
@@ -4169,7 +4190,7 @@ msgstr "从中间位置移动的距离。"
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "是否授权 Dolphin 向开发者报告信息?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1755
+#: Source/Core/DolphinQt/MainWindow.cpp:1757
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "是否要添加 \"%1\" 到游戏路径列表?"
 
@@ -4183,7 +4204,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr "是否要删除 %n 已选定的存档文件？"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:968
+#: Source/Core/DolphinQt/MainWindow.cpp:970
 msgid "Do you want to stop the current emulation?"
 msgstr "您确定是否停止当前模拟?"
 
@@ -4218,8 +4239,8 @@ msgstr "Dolphin 签名 CSV 文件"
 msgid "Dolphin Signature File"
 msgstr "Dolphin 签名文件"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
-#: Source/Core/DolphinQt/MainWindow.cpp:1916
+#: Source/Core/DolphinQt/MainWindow.cpp:1838
+#: Source/Core/DolphinQt/MainWindow.cpp:1918
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS 电影 (*.dtm)"
 
@@ -4331,11 +4352,11 @@ msgstr "从 WiiRD 数据库中下载代码"
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "从 GameTDB.com 下载游戏封面以便在网格模式下使用"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:412
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:406
 msgid "Download complete"
 msgstr "下载完成"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:413
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:407
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "已下载 %1 代码。(已添加 %2)"
 
@@ -4550,9 +4571,9 @@ msgid "Editor"
 msgstr "编辑器"
 
 #. i18n: Effective Address
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
 msgid "Eff. Address"
-msgstr ""
+msgstr "有效地址"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:79
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:160
@@ -4568,11 +4589,11 @@ msgstr "有效"
 #. i18n: "Effective" means this memory address might be translated within the MMU.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:635
 msgid "Effective Address"
-msgstr ""
+msgstr "有效的地址"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:370
 msgid "Effective address %1 has no physical address translation."
-msgstr ""
+msgstr "有效地址 %1 没有进行物理地址转换。"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:189
 msgid "Effective priority"
@@ -4672,7 +4693,7 @@ msgstr "启用金手指"
 msgid "Enable Controller Inpu&t"
 msgstr "启用控制器输入(&T)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:162
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:163
 msgid "Enable Custom RTC"
 msgstr "启用自定义 RTC"
 
@@ -4680,7 +4701,7 @@ msgstr "启用自定义 RTC"
 msgid "Enable Debugging UI"
 msgstr "启用调试页面"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:115
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Enable Discord Presence"
 msgstr "启用 Discord 状态"
 
@@ -4692,15 +4713,15 @@ msgstr "启用双核心"
 msgid "Enable Dual Core (speedhack)"
 msgstr "启用双核心（速度破解）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:95
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:96
 msgid "Enable Emulated CPU Clock Override"
 msgstr "启用模拟 CPU 频率覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:125
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:126
 msgid "Enable Emulated Memory Size Override"
 msgstr "启用模拟内存大小覆盖"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:102
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:103
 msgid "Enable Encore Achievements"
 msgstr "启用硬核成就"
 
@@ -4712,11 +4733,11 @@ msgstr "启用 FPRF"
 msgid "Enable Graphics Mods"
 msgstr "启用图形模组"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:82
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:83
 msgid "Enable Hardcore Mode"
 msgstr "启用硬核模式"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:84
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:85
 msgid ""
 "Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended "
 "to provide an experience as close to gaming on the original hardware as "
@@ -4748,11 +4769,11 @@ msgid "Enable JIT Block Profiling"
 msgstr "启用 JIT 区块分析"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:69
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:70
 msgid "Enable MMU"
 msgstr "启用 MMU"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:119
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
 msgid "Enable Progress Notifications"
 msgstr "启用成就进度通知"
 
@@ -4760,7 +4781,7 @@ msgstr "启用成就进度通知"
 msgid "Enable Progressive Scan"
 msgstr "启用逐行扫描"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:67
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:68
 msgid "Enable RetroAchievements.org Integration"
 msgstr "启用 RetroAchievements.org 集成"
 
@@ -4777,11 +4798,11 @@ msgstr "允许屏幕保护程序"
 msgid "Enable Speaker Data"
 msgstr "启用扬声器"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:108
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:109
 msgid "Enable Spectator Mode"
 msgstr "启用观看模式"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:96
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:97
 msgid "Enable Unofficial Achievements"
 msgstr "启用非官方成就"
 
@@ -4797,7 +4818,7 @@ msgstr "通过 WiiLink 启用 WiiConnect24"
 msgid "Enable Wireframe"
 msgstr "启用线框"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:83
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:84
 msgid "Enable Write-Back Cache (slow)"
 msgstr "使用回写缓存 (慢速)"
 
@@ -4809,7 +4830,7 @@ msgstr ""
 "启用模拟光盘速度。禁用此功能可能导致某些游戏出现崩溃和其他问题。(ON = 兼容，"
 "OFF = 未锁定)"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:69
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:70
 msgid ""
 "Enable integration with RetroAchievements for earning achievements and "
 "competing in leaderboards.<br><br>Must log in with a RetroAchievements "
@@ -4820,7 +4841,7 @@ msgstr ""
 "RetroAchievements 帐户登录才能使用。Dolphin 不会在本地保存您的密码，而是使用 "
 "API 令牌来维持登录。"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:121
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:122
 msgid ""
 "Enable progress notifications on achievements.<br><br>Displays a brief popup "
 "message whenever the player makes progress on an achievement that tracks an "
@@ -4829,7 +4850,7 @@ msgstr ""
 "启用成就进度通知。<br><br>每当玩家在需要累积值的成就上取得进展时，显示一条简"
 "短的弹出消息，例如已获得 120 颗星中的 60 颗星。"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:104
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:105
 msgid ""
 "Enable unlocking achievements in Encore Mode.<br><br>Encore Mode re-enables "
 "achievements the player has already unlocked on the site so that the player "
@@ -4841,7 +4862,7 @@ msgstr ""
 "就，以便玩家再次满足解锁条件时会收到通知，这对于自定义速通标准很有用或者只是"
 "为了好玩。<br><br>设置在下次游戏加载时生效。"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:110
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:111
 msgid ""
 "Enable unlocking achievements in Spectator Mode.<br><br>While in Spectator "
 "Mode, achievements and leaderboards will be processed and displayed on "
@@ -4855,7 +4876,7 @@ msgstr ""
 "闭时才能关掉，因为没有创建 RetroAchievements 会话。<br><br>如果在游戏启动时此"
 "选项为关，则可以在游戏运行时自由切换。"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:98
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:99
 msgid ""
 "Enable unlocking unofficial achievements as well as official achievements."
 "<br><br>Unofficial achievements may be optional or unfinished achievements "
@@ -4888,8 +4909,13 @@ msgid ""
 "Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"启用对非常规多级纹理的检测。一些游戏使用这一技术实现基于距离的特殊效果。"
+"<br><br>可能存在误判而导致高内部分辨率下的纹理模糊，例如在使用很低分辨率的多"
+"级纹理的游戏中。禁用此功能还可以在频繁加载新纹理的游戏中减少卡顿。<br><br>开"
+"启 GPU 纹理解码时则此设置会被禁用。<br><br><dolphin_emphasis>如无法确定，请不"
+"要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:85
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
 msgid ""
 "Enables emulation of the CPU write-back cache.<br>Enabling will have a "
 "significant impact on performance.<br>This should be left disabled unless "
@@ -4946,6 +4972,9 @@ msgid ""
 "Detection will be disabled.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"启用 GPU 而非 CPU 进行纹理解码。<br><br>这将在某些场景下，或 CPU 成为瓶颈的系"
+"统中带来性能提升。<br><br>如果此设置开启，则特殊多级纹理检测会被禁用。"
+"<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:100
 msgid ""
@@ -4953,7 +4982,7 @@ msgid ""
 "OFF = Fast)"
 msgstr "启用内存管理单元。一些游戏需要（开 = 兼容，关 = 快速）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:71
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:72
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -5082,8 +5111,8 @@ msgstr "请输入 RSO 模块地址:"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:262
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:386
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:379
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:391
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:539
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
@@ -5118,14 +5147,14 @@ msgstr "请输入 RSO 模块地址:"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
-#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:313
-#: Source/Core/DolphinQt/MainWindow.cpp:321
-#: Source/Core/DolphinQt/MainWindow.cpp:1144
-#: Source/Core/DolphinQt/MainWindow.cpp:1553
-#: Source/Core/DolphinQt/MainWindow.cpp:1560
-#: Source/Core/DolphinQt/MainWindow.cpp:1620
-#: Source/Core/DolphinQt/MainWindow.cpp:1627
-#: Source/Core/DolphinQt/MainWindow.cpp:1733
+#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:315
+#: Source/Core/DolphinQt/MainWindow.cpp:323
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1555
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
+#: Source/Core/DolphinQt/MainWindow.cpp:1622
+#: Source/Core/DolphinQt/MainWindow.cpp:1629
+#: Source/Core/DolphinQt/MainWindow.cpp:1735
 #: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1275
 #: Source/Core/DolphinQt/MenuBar.cpp:1365
 #: Source/Core/DolphinQt/MenuBar.cpp:1388
@@ -5187,7 +5216,7 @@ msgstr "加载选定语言错误。正在退回系统默认。"
 msgid "Error obtaining session list: %1"
 msgstr "获取会话列表时出错: %1"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:314
+#: Source/Core/DolphinQt/MainWindow.cpp:316
 msgid "Error occurred while loading some texture packs"
 msgstr "加载一些纹理包时发生错误"
 
@@ -5544,7 +5573,7 @@ msgstr "无法删除所选文件。"
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "分离蓝牙直通内核驱动失败: {0}"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:379
 msgid "Failed to download codes."
 msgstr "下载代码失败。"
 
@@ -5615,7 +5644,7 @@ msgstr ""
 "导入存档文件失败。您的 NAND 可能已损坏，或某些因素阻止访问里面的文件。请尝试"
 "修复 NAND（工具 -> 管理 NAND -> 校验 NAND...），然后再次导入存档。"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1144
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
 msgid "Failed to init core"
 msgstr "初始化核心失败"
 
@@ -5642,7 +5671,7 @@ msgstr "安装包失败: %1"
 msgid "Failed to install this title to the NAND."
 msgstr "无法将该游戏安装到 NAND。"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1655
+#: Source/Core/DolphinQt/MainWindow.cpp:1657
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5700,14 +5729,14 @@ msgid "Failed to open \"{0}\" for writing."
 msgstr "打开 “{0}” 进行写入失败。"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1733
+#: Source/Core/DolphinQt/MainWindow.cpp:1735
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "无法打开 '%1'"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:648
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
-msgstr ""
+msgstr "打开蓝牙设备失败 {:04x}:{:04x}: {}"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1101
 msgid "Failed to open Branch Watch snapshot \"%1\""
@@ -5741,7 +5770,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "打开文件失败。"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1654
+#: Source/Core/DolphinQt/MainWindow.cpp:1656
 msgid "Failed to open server"
 msgstr "打开服务器失败"
 
@@ -6056,7 +6085,7 @@ msgstr "文件大小"
 msgid "File Size:"
 msgstr "文件大小:"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:391
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
 msgid "File contained no codes."
 msgstr "文件未包含代码。"
 
@@ -6348,7 +6377,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:183
 msgid "Free memory:"
-msgstr ""
+msgstr "空闲内存: "
 
 #: Source/Core/Core/FreeLookManager.cpp:318
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:25
@@ -6398,7 +6427,7 @@ msgid "Function"
 msgstr "函数"
 
 #. i18n: Settings that affect the functionality of unlocking achievements.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:134
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:135
 msgid "Function Settings"
 msgstr "功能设置"
 
@@ -6909,7 +6938,7 @@ msgstr "头"
 msgid "Help"
 msgstr "帮助"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:130
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:131
 msgid "Hero level:"
 msgstr "英雄等级："
 
@@ -7001,36 +7030,36 @@ msgid "Host Code:"
 msgstr "主机代码 :"
 
 #. i18n: Host Far Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
 msgid "Host F. Size"
-msgstr ""
+msgstr "主机 F. 大小"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:614
 msgid "Host Far Code Cache"
-msgstr ""
+msgstr "主机远代码缓存"
 
 #. i18n: "Far Code" refers to the far code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Host Far Code Size"
-msgstr ""
+msgstr "主机远代码大小"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:193
 msgid "Host Input Authority"
 msgstr "主机输入优先权"
 
 #. i18n: Host Near Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
 msgid "Host N. Size"
-msgstr ""
+msgstr "主机 N. 大小"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:613
 msgid "Host Near Code Cache"
-msgstr ""
+msgstr "主机近代码缓存"
 
 #. i18n: "Near Code" refers to the near code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:640
 msgid "Host Near Code Size"
-msgstr ""
+msgstr "主机近代码大小"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:195
 msgid ""
@@ -7057,7 +7086,7 @@ msgstr "主机输入优先权已启用"
 #. recompilation was when considering the host instruction count vs the PPC instruction count.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:241
 msgid "Host instruction count: %1 near %2 far (%3% blowup)"
-msgstr ""
+msgstr "主机指令数: %1 近 %2 远 (%3% 放大)"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:527
 msgid "Host with NetPlay"
@@ -7299,11 +7328,8 @@ msgid ""
 "Ignores any requests from the CPU to read from or write to the EFB. "
 "<br><br>Improves performance in some games, but will disable all EFB-based "
 "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If "
-"unsure, leave this unchecked.</dolphin_emphasis>"
+"unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"忽略 CPU 对 EFB 的任何读写请求。<br><br>在一些游戏中可提高性能，但会禁用所有"
-"基于 EFB 的图形效果或与游戏相关的特性。<br><br><dolphin_emphasis>如无法确定，"
-"请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:93
 msgid "Immediately Present XFB"
@@ -7341,11 +7367,11 @@ msgstr "导入存档文件"
 msgid "Import Wii Save..."
 msgstr "导入 Wii 存档..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1797
+#: Source/Core/DolphinQt/MainWindow.cpp:1799
 msgid "Importing NAND backup"
 msgstr "正在导入 NAND 备份"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1807
+#: Source/Core/DolphinQt/MainWindow.cpp:1809
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7381,27 +7407,27 @@ msgstr ""
 "纹理与物体缺失或模糊的问题，但会加长存/读档时间。<br><br><dolphin_emphasis>如"
 "无法确定，请选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:223
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:225
 msgid "Incorrect hero level value!"
 msgstr "错误的英雄等级！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:246
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:248
 msgid "Incorrect last placed time!"
 msgstr "上次放置的时间不正确！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:240
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:242
 msgid "Incorrect last reset time!"
 msgstr "上次重置的时间不正确！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:217
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:219
 msgid "Incorrect money value!"
 msgstr "金钱数量不正确！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:229
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:231
 msgid "Incorrect nickname!"
 msgstr "昵称错误！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:235
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:237
 msgid "Incorrect playtime value!"
 msgstr "错误的游玩时间！"
 
@@ -7647,7 +7673,7 @@ msgstr "内部分辨率："
 msgid "Internal error while generating AR code."
 msgstr "生成 AR 代码时出现内部错误。"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
 msgid "Interpreter (slowest)"
 msgstr "解释器（最慢）"
 
@@ -7667,7 +7693,7 @@ msgstr "从自动更新服务接收到无效的 JSON 数据：{0}"
 msgid "Invalid Mixed Code"
 msgstr "无效混合代码"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:322
+#: Source/Core/DolphinQt/MainWindow.cpp:324
 msgid "Invalid Pack %1 provided: %2"
 msgstr "包 %1 无效: %2"
 
@@ -7743,11 +7769,11 @@ msgstr "无效监视地址： %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:421
 msgid "Invert &Condition"
-msgstr ""
+msgstr "倒置条件(&C)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:425
 msgid "Invert &Decrement Check"
-msgstr ""
+msgstr "倒置递减检测(&D)"
 
 #: Source/Core/DiscIO/Enums.cpp:92
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:88
@@ -7820,11 +7846,11 @@ msgstr "关闭 JIT (JIT 核心)"
 msgid "JIT Paired Off"
 msgstr "关闭 JIT 配对"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
 msgid "JIT Recompiler for ARM64 (recommended)"
 msgstr "适用于 ARM64 的 JIT 重编译器（推荐）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:33
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "适用于 x86-64 的 JIT 重编译器（推荐）"
 
@@ -7867,7 +7893,7 @@ msgstr "日语"
 msgid "Japanese (Shift-JIS)"
 msgstr "日本 (Shift-JIS)"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:297
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:299
 msgid ""
 "Kaos is the only villain for this trophy and is always unlocked. No need to "
 "edit anything!"
@@ -7959,12 +7985,12 @@ msgid "Last Value"
 msgstr "上个值"
 
 #. i18n: A timestamp for when the Skylander was most recently used
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:158
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:159
 msgid "Last placed:"
 msgstr "上次放置："
 
 #. i18n: A timestamp for when the Skylander was most recently reset
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:148
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:149
 msgid "Last reset:"
 msgstr "上次重置："
 
@@ -8348,8 +8374,8 @@ msgstr "日志"
 msgid "Log Configuration"
 msgstr "日志设置"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:77
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:199
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:200
 msgid "Log In"
 msgstr "登录"
 
@@ -8357,7 +8383,7 @@ msgstr "登录"
 msgid "Log JIT Instruction Coverage"
 msgstr "记录 JIT 指令范围"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
 msgid "Log Out"
 msgstr "注销"
 
@@ -8373,21 +8399,21 @@ msgstr "日志类型"
 msgid "Logger Outputs"
 msgstr "日志输出"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:80
 msgid "Login Failed"
 msgstr "登录失败"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:49
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
-msgstr ""
+msgstr "登录失败 - 用户名或密码无效"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:52
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:53
 msgid "Login Failed - No Internet Connection"
-msgstr ""
+msgstr "登录失败 - 没有互联网连接"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:55
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Login Failed - Server Error"
-msgstr ""
+msgstr "登录失败 - 服务器错误"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:295
 msgid ""
@@ -8444,29 +8470,29 @@ msgstr "主摇杆"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:429
 msgid "Make &Unconditional"
-msgstr ""
+msgstr "设为无条件(&U)"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:224
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:226
 msgid "Make sure that the hero level value is between 0 and 100!"
 msgstr "请确保英雄等级在 0 至 100 之间！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:247
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:249
 msgid "Make sure that the last placed datetime value is valid!"
 msgstr "请确保上次放置的时间是有效的！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:241
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:243
 msgid "Make sure that the last reset datetime value is valid!"
 msgstr "请确保上次重置的时间是有效的！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:218
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:220
 msgid "Make sure that the money value is between 0 and 65000!"
 msgstr "请确保金钱数量在 0 至 65000 之间！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:230
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:232
 msgid "Make sure that the nickname is between 0 and 15 characters long!"
 msgstr "请确保昵称长度为 0 至 15 个字符！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:236
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:238
 msgid "Make sure that the playtime value is valid!"
 msgstr "请确保游玩时间是有效的！"
 
@@ -8523,7 +8549,7 @@ msgstr "最大缓冲区:"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:574
 msgid "Max Effective Address"
-msgstr ""
+msgstr "最大有效地址"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:931
 msgid "Max buffer size changed to %1"
@@ -8563,7 +8589,7 @@ msgstr "存储卡管理器"
 msgid "Memory Card Path:"
 msgstr "存储卡路径："
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:120
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:121
 msgid "Memory Override"
 msgstr "内存覆盖"
 
@@ -8583,7 +8609,7 @@ msgstr "MemoryCard: 在无效源地址 ({0:#x}) 中读取调用"
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "MemoryCard: 在无效目标地址 ({0:#x}) 中写入调用"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1778
+#: Source/Core/DolphinQt/MainWindow.cpp:1780
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -8605,7 +8631,7 @@ msgstr "麦克风"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
-msgstr ""
+msgstr "最小有效地址"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:411
@@ -8626,7 +8652,7 @@ msgstr "其他控件"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:162
 msgid "Miscellaneous Settings"
-msgstr ""
+msgstr "其他设置"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:844
 msgid "Mismatch between free block count in header and actually unused blocks."
@@ -8677,7 +8703,7 @@ msgid "Modify Slot"
 msgstr "修改插槽"
 
 #. i18n: %1 is a name
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:62
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:63
 msgid "Modifying Skylander: %1"
 msgstr "修改 Skylander: %1"
 
@@ -8686,7 +8712,7 @@ msgstr "修改 Skylander: %1"
 msgid "Modules found: %1"
 msgstr "已找到模块: %1"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:126
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:127
 msgid "Money:"
 msgstr "金钱："
 
@@ -8746,13 +8772,13 @@ msgstr "多重分插器"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:166
 msgid "Mute When Disabling Speed Limit"
-msgstr ""
+msgstr "禁用速度限制时静音"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:168
 msgid ""
 "Mutes the audio when overriding the emulation speed limit (default hotkey: "
 "Tab)."
-msgstr ""
+msgstr "当超出模拟速度限制时静音（默认热键：Tab）。"
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
@@ -8962,7 +8988,7 @@ msgid "Nickname is too long."
 msgstr "昵称太长。"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:199
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:136
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:137
 msgid "Nickname:"
 msgstr "昵称："
 
@@ -8998,7 +9024,7 @@ msgstr "无匹配"
 msgid "No Save Data"
 msgstr "无存档数据"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:84
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:85
 msgid "No data to modify!"
 msgstr "没有可修改的数据！"
 
@@ -9498,17 +9524,17 @@ msgid "PNG image file (*.png);; All Files (*)"
 msgstr "PNG 图像文件 (*.png);; 所有文件 (*)"
 
 #. i18n: PPC Feature Flags
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:384
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
 msgid "PPC Feat. Flags"
-msgstr ""
+msgstr "PPC 功能标记"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:633
 msgid "PPC Feature Flags"
-msgstr ""
+msgstr "PPC 功能的标记"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:611
 msgid "PPC Instruction Coverage"
-msgstr ""
+msgstr "PPC 指令范围"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "PPC vs Host"
@@ -9544,7 +9570,7 @@ msgstr "被动"
 msgid "Passthrough a Bluetooth adapter"
 msgstr "直通蓝牙适配器"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:74
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:75
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:166
 msgid "Password"
 msgstr "密码"
@@ -9594,11 +9620,11 @@ msgstr "在影片末尾暂停"
 msgid "Pause on Focus Loss"
 msgstr "窗口非活动时暂停"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:75
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:76
 msgid "Pause on Panic"
 msgstr "宕机时暂停"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:77
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:78
 msgid ""
 "Pauses the emulation if a Read/Write or Unknown Instruction panic occurs."
 "<br>Enabling will affect performance.<br>The performance impact is the same "
@@ -9747,10 +9773,10 @@ msgstr "玩家"
 #: Source/Core/UICommon/DBusUtils.cpp:56 Source/Core/UICommon/DBusUtils.cpp:77
 #: Source/Core/UICommon/DBusUtils.cpp:97 Source/Core/UICommon/DBusUtils.cpp:120
 msgid "Playing a game"
-msgstr ""
+msgstr "正在玩游戏"
 
 #. i18n: The total amount of time the Skylander has been used for
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:142
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:143
 msgid "Playtime:"
 msgstr "游玩时间："
 
@@ -9986,7 +10012,7 @@ msgstr "DPLII 解码器的质量。质量越高音频延迟越大。"
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1777
+#: Source/Core/DolphinQt/MainWindow.cpp:1779
 msgid "Question"
 msgstr "询问"
 
@@ -10058,7 +10084,7 @@ msgstr "替换指令(&P)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:600
 msgid "Re-initialize software JIT block profiling data."
-msgstr ""
+msgstr "重新初始化软件 JIT 区块分析数据。"
 
 #. i18n: This is a selectable condition when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:134
@@ -10113,7 +10139,7 @@ msgstr "回到中心"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:577
 msgid "Recompiles Physical Address"
-msgstr ""
+msgstr "重新编译物理地址"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:157
 msgid "Record"
@@ -10284,14 +10310,14 @@ msgstr ""
 "</dolphin_emphasis>"
 
 #. i18n: Repeat Instructions
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
 msgid "Repeat Instr."
-msgstr ""
+msgstr "重复指令"
 
 #. i18n: This means to say it is a count of PPC instructions recompiled more than once.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:638
 msgid "Repeat Instructions"
-msgstr ""
+msgstr "重编译指令数"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:408
 msgid "Report: GCIFolder Writing to unallocated block {0:#x}"
@@ -10509,6 +10535,30 @@ msgid ""
 "All context menus have the action to delete the selected row(s) from the "
 "candidates."
 msgstr ""
+"可以左键单击表中的起始、目标和符号列，以在代码视图中查看关联的地址。右键单击"
+"所选行将弹出上下文菜单。\n"
+"\n"
+"如果右键单击起始、目标或符号列，则可以执行将相关地址复制到剪贴板，并执行在相"
+"关地址设置断点的操作。请注意，对于起始/目标符号列，只有当所选行中的每一行都有"
+"符号时，才会启用这些操作。\n"
+"\n"
+"如果右键单击所选行的指令列，则可以执行倒置分支指令条件化和倒置分支指令递减检"
+"测的操作，但前提是分支指令是有条件的。\n"
+"\n"
+" 如果右键单击所选行的条件列，则可以执行使分支指令无条件的操作，但前提是分支指"
+"令是有条件的。\n"
+"\n"
+"如果右键单击所选行的起始列，将可以执行用 NOP 指令（无操作）替换起始处的分支指"
+"令操作。\n"
+"\n"
+"如果右键单击所选行的目标列，则可以执行将目标处的指令替换为 BLR 指令（分支到链"
+"接寄存器）的操作，但只有当每个起始处的分支指令都更新链接寄存器时，才会启用该"
+"操作。\n"
+"\n"
+"如果右键单击所选行的起始/目标符号列，则可以使用 BLR 指令替换符号最开始的指"
+"令，但只有当所选行中的每一行都有符号时才会启用。\n"
+"\n"
+"所有上下文菜单都具有从候选中删除所选行的操作。"
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
@@ -10521,10 +10571,10 @@ msgstr "震动"
 msgid "Run &to Here"
 msgstr "运行到此处(&T)"
 
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:395
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:643
 msgid "Run Count"
-msgstr ""
+msgstr "运行次数"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:203
 msgid "Run GBA Cores in Dedicated Threads"
@@ -10695,7 +10745,7 @@ msgstr "保存到最早状态存档"
 msgid "Save Preset"
 msgstr "保存预设"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1916
+#: Source/Core/DolphinQt/MainWindow.cpp:1918
 msgid "Save Recording File As"
 msgstr "录制文件另存为"
 
@@ -10936,7 +10986,7 @@ msgstr "选择 GBA ROM"
 msgid "Select GBA Saves Path"
 msgstr "选择 GBA 存档路径"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1813
+#: Source/Core/DolphinQt/MainWindow.cpp:1815
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr "选择密钥文件 (OTP/SEEPROM 转储)"
 
@@ -10948,7 +10998,7 @@ msgstr "选择最近状态"
 msgid "Select Load Path"
 msgstr "选择加载路径"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1787
+#: Source/Core/DolphinQt/MainWindow.cpp:1789
 msgid "Select NAND Backup"
 msgstr "选择 NAND 备份"
 
@@ -11049,9 +11099,9 @@ msgstr "选择目录"
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:583
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
-#: Source/Core/DolphinQt/MainWindow.cpp:786
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1436
+#: Source/Core/DolphinQt/MainWindow.cpp:788
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "Select a File"
 msgstr "选择文件"
 
@@ -11079,7 +11129,7 @@ msgstr "选择 e-Reader 卡"
 msgid "Select the RSO module address:"
 msgstr "选择 RSO 模块地址:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
+#: Source/Core/DolphinQt/MainWindow.cpp:1838
 msgid "Select the Recording File to Play"
 msgstr "选择要播放的录制文件"
 
@@ -11393,7 +11443,7 @@ msgstr ""
 msgid "Settings"
 msgstr "设置"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:439
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:440
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: 无法创建 setting.txt 文件"
 
@@ -12092,7 +12142,7 @@ msgstr "开始新的金手指搜索"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Start Profiling"
-msgstr ""
+msgstr "开始分析"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:796
 msgid "Start Re&cording Input"
@@ -12214,7 +12264,7 @@ msgstr "停止播放/录制输入"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Stop Profiling"
-msgstr ""
+msgstr "停止分析"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:412
 msgid "Stopped game"
@@ -12412,7 +12462,7 @@ msgid "Switch to B"
 msgstr "转换到 B"
 
 #. i18n: "Symbol" means debugging symbol (its name in particular).
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:406
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:656
 msgid "Symbol"
 msgstr "符号"
@@ -12423,7 +12473,7 @@ msgstr "符号终止地址 (%1):"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:581
 msgid "Symbol Name"
-msgstr ""
+msgstr "符号名"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:937
 msgid "Symbol Name:"
@@ -12629,7 +12679,7 @@ msgstr ""
 "TMD 文件未正确签名。如果你将此游戏移动或复制到 SD 卡，Wii 系统菜单将不再运行"
 "该游戏，并且也会拒绝将其复制或移动回 NAND。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:177
 msgid "The amount of money this Skylander has. Between 0 and 65000"
 msgstr "此 Skylander 拥有的金钱数量。介于 0 至 65000 之间"
 
@@ -12761,7 +12811,7 @@ msgstr ""
 "文件 %1 已经存在。\n"
 "是否替换?"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:279
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:281
 msgid ""
 "The file associated to this file was closed! Did you clear the slot before "
 "saving?"
@@ -12855,7 +12905,7 @@ msgstr "哈希值不匹配！"
 msgid "The hashes match!"
 msgstr "哈希值匹配！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
 msgid ""
 "The hero level of this Skylander. Only seen in Skylanders: Spyro's "
 "Adventures. Between 0 and 100"
@@ -12874,11 +12924,11 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr "缺少安装分区。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:183
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:185
 msgid "The last time the figure has been placed on a portal"
 msgstr "最近一次将角色放置在传送门上的时间"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:181
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:183
 msgid ""
 "The last time the figure has been reset. If the figure has never been reset, "
 "the first time the figure was placed on a portal"
@@ -12896,7 +12946,7 @@ msgstr ""
 "影片指示应将存储卡插入 {0:n}，但当前未插入存储卡（而是插入了 {1}）。为使影片"
 "正确同步，请将所选设备更改为存储卡或 GCI 文件夹。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
 msgid "The nickname for this Skylander. Limited to 15 characters"
 msgstr "Skylander 的昵称。不能超过 15 个字符"
 
@@ -12985,11 +13035,11 @@ msgstr "目标存储卡已包含文件 “%1”。"
 msgid "The ticket is not correctly signed."
 msgstr "ticket 文件未正确签名。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:182
 msgid "The total time this figure has been used inside a game in seconds"
 msgstr "在游戏中使用此角色的总时间（以秒为单位）"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:174
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
 msgid "The toy code for this figure. Only available for real figures."
 msgstr "此角色的玩具代码。仅适用于真实存在的角色玩具。"
 
@@ -12997,15 +13047,15 @@ msgstr "此角色的玩具代码。仅适用于真实存在的角色玩具。"
 msgid "The type of a partition could not be read."
 msgstr "无法读取的分区类型。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:85
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:86
 msgid "The type of this Skylander does not have any data that can be modified!"
 msgstr "此 Skylander 类型没有任何数据可供修改！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:92
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:93
 msgid "The type of this Skylander is unknown!"
 msgstr "此 Skylander 的类型未知！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:100
 msgid ""
 "The type of this Skylander is unknown, or can't be modified at this time!"
 msgstr "此 Skylander 的类型未知，或当前还无法修改。"
@@ -13115,7 +13165,7 @@ msgid ""
 msgstr ""
 "此韩语游戏设置为使用通常不在韩版主机上用到的 IOS。 这很可能导致错误 #002。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:102
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:103
 msgid "This Skylander type can't be modified yet!"
 msgstr "此 Skylander 类型现在还无法修改！"
 
@@ -13270,7 +13320,7 @@ msgstr "这仅适用于模拟软件的初始启动。"
 msgid "This session requires a password:"
 msgstr "此会话需要密码："
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:184
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:179
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -13381,29 +13431,29 @@ msgid "Tilt"
 msgstr "倾斜"
 
 #. i18n: Time Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
 msgid "Time %"
-msgstr ""
+msgstr "时间 %"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:653
 msgid "Time Average (ns)"
-msgstr ""
+msgstr "时间平均值（纳秒）"
 
 #. i18n: Time Average (ns)
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Time Avg. (ns)"
-msgstr ""
+msgstr "平均时间（纳秒）"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:654
 msgid "Time Percent"
-msgstr ""
+msgstr "时间百分比"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:401
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:651
 msgid "Time Spent (ns)"
-msgstr ""
+msgstr "耗费时间（纳秒）"
 
 #. i18n: Refers to the "Calibration" setting of gyroscope input.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:49
@@ -13425,7 +13475,7 @@ msgstr "标题"
 msgid "To"
 msgstr "至"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:201
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:202
 msgid "To log in, stop the current emulation."
 msgstr "要登录，须停止当前模拟。"
 
@@ -13514,7 +13564,7 @@ msgstr "切换 XFB 立即模式"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:590
 msgid "Toggle software JIT block profiling (will clear the JIT cache)."
-msgstr ""
+msgstr "切换软件 JIT 区块分析（将清除 JIT 缓存）。"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:966
 msgid "Tokenizing failed."
@@ -13574,7 +13624,7 @@ msgstr "总共移动距离。"
 msgid "Touch"
 msgstr "接触"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:121
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:122
 msgid "Toy code:"
 msgstr "玩具代码："
 
@@ -13726,7 +13776,7 @@ msgstr "无法连接更新服务器。"
 msgid "Unable to create updater copy."
 msgstr "无法创建更新程序副本。"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:98
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
 msgid "Unable to modify Skylander!"
 msgstr "无法修改 Skylander！"
 
@@ -13824,7 +13874,7 @@ msgid "Unknown"
 msgstr "未知"
 
 #. i18n: "Var" is short for "variant"
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:57
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:58
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:857
 msgid "Unknown (Id:%1 Var:%2)"
 msgstr "未知 (Id:%1 Var:%2)"
@@ -13853,7 +13903,7 @@ msgid ""
 "player!"
 msgstr "收到未知的 同步_存档_数据 消息，ID：{0} 来自玩家：{1} 剔除玩家！"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:91
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:92
 msgid "Unknown Skylander type!"
 msgstr "未知的 Skylander 类型！"
 
@@ -14057,7 +14107,7 @@ msgstr "使用 PAL60 模式 (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "使用警告程序"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:117
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
 "Use RetroAchievements rich presence in your Discord status.<br><br>Show "
 "Current Game on Discord must be enabled."
@@ -14078,6 +14128,12 @@ msgid ""
 "setting is enabled, the Texture Filtering setting will be disabled."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"手动进行纹理采样而不是用图形后端的内置功能。<br><br>此设置可以修复部分 GPU 上"
+"一些游戏中的图形问题，最常见的是 FMV 视频中的垂直线。除此之外，启用手动纹理采"
+"样将允许在特殊情况下正确模拟纹理打包（在 1x 内部分辨率或禁用缩放 EFB 时，并禁"
+"用自定义纹理）并更好地模拟细节级别计算。<br><br>代价是性能消耗可能会更大，尤"
+"其是在更高的内部分辨率下。<br><br>如果此设置开启，则纹理过滤设置会被禁用。"
+"<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:141
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -14117,7 +14173,7 @@ msgstr ""
 "你可以使用其来保存或检索同一个\n"
 "父控制器输入和输出之间的值。"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:72
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:73
 msgid "Username"
 msgstr "用户名"
 
@@ -14275,7 +14331,7 @@ msgstr "视频"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:625
 msgid "View &Code"
-msgstr ""
+msgstr "查看代码(&C)"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:142
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:132
@@ -14680,11 +14736,11 @@ msgstr "擦除检验数据(&I)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:940
 msgid "Wipe JIT Block Profiling Data"
-msgstr ""
+msgstr "擦除 JIT 块分析数据"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:599
 msgid "Wipe Profiling"
-msgstr ""
+msgstr "擦除分析"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:399
 msgid "Wipe Recent Hits"
@@ -15127,7 +15183,7 @@ msgstr "未对齐"
 msgid "{0} (Masterpiece)"
 msgstr "{0} (Masterpiece)"
 
-#: Source/Core/UICommon/GameFile.cpp:843
+#: Source/Core/UICommon/GameFile.cpp:840
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 

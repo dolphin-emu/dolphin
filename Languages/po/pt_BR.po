@@ -46,7 +46,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 13:12+0100\n"
+"POT-Creation-Date: 2024-11-01 15:00+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2024\n"
 "Language-Team: Portuguese (Brazil) (http://app.transifex.com/dolphinemu/"
@@ -87,7 +87,7 @@ msgstr ""
 #. of bytes (e.g. MiB), %2 is its untranslated name, and %3 is its fragmentation percentage.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:189
 msgid " %1 %2 (%3% fragmented)"
-msgstr ""
+msgstr " %1 %2 (%3% fragmentado)"
 
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:102
 msgid " (Disc %1)"
@@ -202,11 +202,11 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr "Configuração de Gráficos %1"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:300
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:295
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:309
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (MEM2)"
 
@@ -283,7 +283,7 @@ msgstr "%1 sessões encontradas"
 msgid "%1%"
 msgstr "%1%"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:283
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:278
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
@@ -430,7 +430,7 @@ msgstr "Janela Sem &Bordas"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:498
 msgid "&Branch Type"
-msgstr ""
+msgstr "Tipo de &Branch"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:444
 msgid "&Break on Hit"
@@ -470,7 +470,7 @@ msgstr "&Código"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:500
 msgid "&Condition"
-msgstr ""
+msgstr "&Condição"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:392
 msgid "&Connected"
@@ -507,7 +507,7 @@ msgid "&Delete Watches"
 msgstr "&Apagar Relógios"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:67
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:195
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:189
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:100
 msgid "&Edit Code..."
 msgstr "&Editar  Código..."
@@ -526,7 +526,7 @@ msgstr "&Emulação"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:626
 msgid "&Erase Block(s)"
-msgstr ""
+msgstr "&Excluir Bloco(s)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:259
 msgid "&Export"
@@ -654,7 +654,7 @@ msgstr "&Memória"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:501
 msgid "&Misc. Controls"
-msgstr ""
+msgstr "&Outros Controles"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:794
 msgid "&Movie"
@@ -683,7 +683,7 @@ msgstr "&Opções"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:499
 msgid "&Origin and Destination"
-msgstr ""
+msgstr "&Origem e Destino"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1071
 msgid "&Patch HLE Functions"
@@ -773,7 +773,7 @@ msgstr "&Ferramenta"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:530
 msgid "&Toolbar Visibility"
-msgstr ""
+msgstr "&Ferramentas Visíveis"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:265
 msgid "&Tools"
@@ -1150,8 +1150,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> Maior que"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1561
-#: Source/Core/DolphinQt/MainWindow.cpp:1628
+#: Source/Core/DolphinQt/MainWindow.cpp:1563
+#: Source/Core/DolphinQt/MainWindow.cpp:1630
 msgid "A NetPlay Session is already in progress!"
 msgstr "Uma sessão do NetPlay já está em progresso!"
 
@@ -1190,7 +1190,7 @@ msgstr ""
 "Não é possível carregar um estado salvo sem especificar um jogo para "
 "executar."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:965
+#: Source/Core/DolphinQt/MainWindow.cpp:967
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1510,6 +1510,14 @@ msgid ""
 "setting is disabled when Manual Texture Sampling is enabled."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"Ajusta a filtragem das texturas. A filtragem anisotrópica melhora a "
+"qualidade visual de texturas que estão em ângulos de visualização oblíquos. "
+"\"Forçar Pelo Mais Próximo\" e \"Forçar Linear\" substituirão o filtro de "
+"escala de textura especificado pelo jogo.<br><br>Qualquer opção diferente de "
+"\"Padrão\" alterará a aparência das texturas e poderá causar problemas em um "
+"pequeno número de jogos.<br><br>Essa opção é desativada quando \"Amostragem "
+"Manual de Texturas\" está ativada.<br><br><dolphin_emphasis>Na dúvida, "
+"selecione \"Padrão\".</dolphin_emphasis>"
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:107
@@ -1530,7 +1538,7 @@ msgstr ""
 "alguns jogos ilegível.<br><br><dolphin_emphasis>Na dúvida, selecione o valor "
 "mais próximo da direita.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:151
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:152
 msgid ""
 "Adjusts the amount of RAM in the emulated console.\n"
 "\n"
@@ -1542,7 +1550,7 @@ msgstr ""
 "AVISO: Ativar essa opção causará sérios problemas na maioria dos jogos. "
 "Apenas um pequeno número deles consegue tirar proveito desse recurso."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:110
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:111
 msgid ""
 "Adjusts the emulated CPU's clock rate.\n"
 "\n"
@@ -1656,7 +1664,7 @@ msgstr "Tudo Duplo"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:440
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:591
-#: Source/Core/DolphinQt/MainWindow.cpp:791
+#: Source/Core/DolphinQt/MainWindow.cpp:793
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:139
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:345
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1673,7 +1681,7 @@ msgstr "Todos os arquivos (*)"
 msgid "All Float"
 msgstr "Todos Flutuantes"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:790
+#: Source/Core/DolphinQt/MainWindow.cpp:792
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "Todos os arquivos do GC/Wii"
@@ -1682,8 +1690,8 @@ msgstr "Todos os arquivos do GC/Wii"
 msgid "All Hexadecimal"
 msgstr "Tudo Hexadecimal"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1436
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Todos os Estados Salvos (*.sav *.s##);;Todos os arquivos (*)"
 
@@ -1831,9 +1839,17 @@ msgstr "Tem certeza de que deseja excluir este arquivo?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "Tem certeza de que deseja excluir esse pacote?"
 
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+msgid "Are you sure you want to log out of RetroAchievements?"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:502
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Você tem certeza que você quer sair do NetPlay?"
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+msgid "Are you sure you want to turn hardcore mode off?"
+msgstr ""
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:284
 msgid "Are you sure?"
@@ -2227,11 +2243,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "Do Início até a Pausa"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1788
+#: Source/Core/DolphinQt/MainWindow.cpp:1790
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "Arquivo de backup da NAND do BootMii (*.bin);;Todos os arquivos (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1814
+#: Source/Core/DolphinQt/MainWindow.cpp:1816
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "Arquivo de chaves do BootMii (*.bin);;Todos os arquivos (*)"
 
@@ -2510,11 +2526,11 @@ msgstr "C&riar Arquivo de Assinatura..."
 msgid "CP register "
 msgstr "Registrador CP"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:63
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:64
 msgid "CPU Emulation Engine:"
 msgstr "Mecanismo de Emulação da CPU:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:52
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:53
 msgid "CPU Options"
 msgstr "Opções da CPU"
 
@@ -2522,7 +2538,7 @@ msgstr "Opções da CPU"
 msgid "CRC32:"
 msgstr "CRC32:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:33
 msgid "Cached Interpreter (slower)"
 msgstr "Interpretador com Cache (lento)"
 
@@ -2596,11 +2612,11 @@ msgstr "Campo de visão da câmera (afeta a sensibilidade da pontaria)."
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "Só é possível gerar códigos AR para valores na memória virtual."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:101
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:102
 msgid "Can't be modified yet!"
 msgstr "Ainda não pode ser modificado!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:296
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:298
 msgid "Can't edit villains for this trophy!"
 msgstr "Não consegue editar os vilões pra esse troféu!"
 
@@ -2609,8 +2625,8 @@ msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr ""
 "Não foi possível encontrar o Wii Remote pelo identificador de conexão {0:02x}"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1554
-#: Source/Core/DolphinQt/MainWindow.cpp:1621
+#: Source/Core/DolphinQt/MainWindow.cpp:1556
+#: Source/Core/DolphinQt/MainWindow.cpp:1623
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr ""
 "Não é possível iniciar uma sessão do NetPlay enquanto um jogo está em "
@@ -2684,7 +2700,7 @@ msgstr ""
 
 #. i18n: "Captured" is a participle here. This string is used when listing villains, not when a
 #. villain was just captured
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:319
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:321
 msgid "Captured villain %1:"
 msgstr "Vilão capturado %1:"
 
@@ -2884,11 +2900,11 @@ msgstr "Limpar Cache"
 msgid "Clear Slot"
 msgstr "Limpar Slot"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:90
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:91
 msgid "Clock Override"
 msgstr "Velocidade de Clock"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:195
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:189
 msgid "Clone and &Edit Code..."
 msgstr "Duplicar e &Editar Código..."
 
@@ -2906,13 +2922,13 @@ msgid "Code"
 msgstr "Código"
 
 #. i18n: Code Buffer Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
 msgid "Code Buff. Size"
-msgstr ""
+msgstr "Tam. Buf. Código"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:636
 msgid "Code Buffer Size"
-msgstr ""
+msgstr "Tamanho do Buffer de Código"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:266
 msgid "Code Path Not Taken"
@@ -3180,11 +3196,19 @@ msgstr "Configurar a Saída dos Dados"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:964
-#: Source/Core/DolphinQt/MainWindow.cpp:1754
+#: Source/Core/DolphinQt/MainWindow.cpp:966
+#: Source/Core/DolphinQt/MainWindow.cpp:1756
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Confirmar"
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+msgid "Confirm Hardcore Off"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+msgid "Confirm Logout"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:202
 msgid "Confirm backend change"
@@ -3647,7 +3671,7 @@ msgstr ""
 msgid "Could not recognize file {0}"
 msgstr "Não foi possível reconhecer o arquivo {0}"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:278
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:280
 msgid "Could not save your changes!"
 msgstr "Não foi possível salvar as alterações!"
 
@@ -3808,7 +3832,7 @@ msgstr "Largura da proporção de tela personalizada"
 msgid "Custom Aspect Ratio:"
 msgstr "Proporção de Tela Personalizada:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:158
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:159
 msgid "Custom RTC Options"
 msgstr "Opções do RTC Personalizado"
 
@@ -3821,30 +3845,30 @@ msgid "Customize"
 msgstr "Personalizar"
 
 #. i18n: Cycles Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
 msgid "Cycles %"
-msgstr ""
+msgstr "% de Ciclos"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:647
 msgid "Cycles Average"
-msgstr ""
+msgstr "Média de Ciclos"
 
 #. i18n: Cycles Average
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 msgid "Cycles Avg."
-msgstr ""
+msgstr "Méd. Ciclos"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:649
 msgid "Cycles Percent"
-msgstr ""
+msgstr "Porcentagem de Ciclos"
 
 #. i18n: "Cycles" means instruction cycles.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:645
 msgid "Cycles Spent"
-msgstr ""
+msgstr "Ciclos Gastos"
 
 #: Source/Core/Core/HW/GBAPadEmu.h:39 Source/Core/Core/HW/GCPadEmu.h:59
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:223
@@ -4296,7 +4320,7 @@ msgid "Discard"
 msgstr "Descartar"
 
 #. i18n: Settings that affect how achievements are displayed while playing.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:140
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:141
 msgid "Display Settings"
 msgstr "Configurações de Exibição"
 
@@ -4337,7 +4361,7 @@ msgstr ""
 "Você autoriza o Dolphin a enviar estatísticas de uso para a equipe de "
 "desenvolvimento?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1755
+#: Source/Core/DolphinQt/MainWindow.cpp:1757
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Você quer adicionar '%1' a lista de caminhos dos jogos?"
 
@@ -4351,7 +4375,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr "Deseja excluir %n arquivo(s) de jogo salvo selecionado(s)?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:968
+#: Source/Core/DolphinQt/MainWindow.cpp:970
 msgid "Do you want to stop the current emulation?"
 msgstr "Deseja parar a emulação atual?"
 
@@ -4386,8 +4410,8 @@ msgstr "Arquivo CSV de Assinatura do Dolphin"
 msgid "Dolphin Signature File"
 msgstr "Arquivo de Assinatura do Dolphin"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
-#: Source/Core/DolphinQt/MainWindow.cpp:1916
+#: Source/Core/DolphinQt/MainWindow.cpp:1838
+#: Source/Core/DolphinQt/MainWindow.cpp:1918
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Gravações TAS do Dolphin (*.dtm)"
 
@@ -4503,11 +4527,11 @@ msgstr "Baixar Códigos da Base de Dados do WiiRD"
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "Mostrar Capas de Jogos Baixadas do GameTDB.com no Modo Grade"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:412
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:406
 msgid "Download complete"
 msgstr "Download completo"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:413
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:407
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "%1 códigos baixados (%2 adicionados)"
 
@@ -4732,9 +4756,9 @@ msgid "Editor"
 msgstr "Editor"
 
 #. i18n: Effective Address
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
 msgid "Eff. Address"
-msgstr ""
+msgstr "End. Efetivo"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:79
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:160
@@ -4750,11 +4774,11 @@ msgstr "Efetivo"
 #. i18n: "Effective" means this memory address might be translated within the MMU.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:635
 msgid "Effective Address"
-msgstr ""
+msgstr "Endereço Efetivo"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:370
 msgid "Effective address %1 has no physical address translation."
-msgstr ""
+msgstr "Endereço efetivo %1 não possui tradução para endereço físico."
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:189
 msgid "Effective priority"
@@ -4856,7 +4880,7 @@ msgstr "Ativar Cheats"
 msgid "Enable Controller Inpu&t"
 msgstr "Ativar Entrada do Control&e"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:162
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:163
 msgid "Enable Custom RTC"
 msgstr "Ativar RTC Personalizado"
 
@@ -4864,7 +4888,7 @@ msgstr "Ativar RTC Personalizado"
 msgid "Enable Debugging UI"
 msgstr "Ativar Interface de Depuração"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:115
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Enable Discord Presence"
 msgstr "Ativar Status do Discord"
 
@@ -4876,15 +4900,15 @@ msgstr "Ativar Dual Core"
 msgid "Enable Dual Core (speedhack)"
 msgstr "Ativar Dual Core (hack de velocidade)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:95
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:96
 msgid "Enable Emulated CPU Clock Override"
 msgstr "Ativar Ajuste de Clock da CPU Emulada"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:125
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:126
 msgid "Enable Emulated Memory Size Override"
 msgstr "Ativar Ajuste de Memória do Console Emulado"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:102
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:103
 msgid "Enable Encore Achievements"
 msgstr "Ativar Conquistas Encore"
 
@@ -4896,11 +4920,11 @@ msgstr "Ativar FPRF"
 msgid "Enable Graphics Mods"
 msgstr "Ativar Mods Gráficos"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:82
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:83
 msgid "Enable Hardcore Mode"
 msgstr "Ativar Modo Hardcore"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:84
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:85
 msgid ""
 "Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended "
 "to provide an experience as close to gaming on the original hardware as "
@@ -4939,11 +4963,11 @@ msgid "Enable JIT Block Profiling"
 msgstr "Ativar Perfilamento de Bloco JIT"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:69
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:70
 msgid "Enable MMU"
 msgstr "Ativar MMU"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:119
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
 msgid "Enable Progress Notifications"
 msgstr "Ativar Notificações de Progresso"
 
@@ -4951,7 +4975,7 @@ msgstr "Ativar Notificações de Progresso"
 msgid "Enable Progressive Scan"
 msgstr "Ativar Varredura Progressiva"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:67
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:68
 msgid "Enable RetroAchievements.org Integration"
 msgstr "Ativar Integração RetroAchievements.org"
 
@@ -4968,11 +4992,11 @@ msgstr "Ativar Proteção de Tela"
 msgid "Enable Speaker Data"
 msgstr "Ativar Dados do Auto-Falante"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:108
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:109
 msgid "Enable Spectator Mode"
 msgstr "Ativar Modo Espectador"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:96
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:97
 msgid "Enable Unofficial Achievements"
 msgstr "Ativar Conquistas Não Oficiais"
 
@@ -4988,7 +5012,7 @@ msgstr "Ativar WiiConnect24 via WiiLink"
 msgid "Enable Wireframe"
 msgstr "Ativar Wireframe"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:83
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:84
 msgid "Enable Write-Back Cache (slow)"
 msgstr "Ativar Cache Write-Back (lento)"
 
@@ -5000,7 +5024,7 @@ msgstr ""
 "Ativa a emulação de velocidade do disco. Pode causar travamentos e outros "
 "problemas em alguns jogos (ON = Compatível, OFF = Desbloqueada)"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:69
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:70
 msgid ""
 "Enable integration with RetroAchievements for earning achievements and "
 "competing in leaderboards.<br><br>Must log in with a RetroAchievements "
@@ -5012,7 +5036,7 @@ msgstr ""
 "para ser utilizada. Dolphin não salva sua senha localmente, utilizando um "
 "token de API para manter o acesso."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:121
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:122
 msgid ""
 "Enable progress notifications on achievements.<br><br>Displays a brief popup "
 "message whenever the player makes progress on an achievement that tracks an "
@@ -5022,7 +5046,7 @@ msgstr ""
 "mensagem popup quando o jogador progride em uma conquista que monitora um "
 "valor acumulado, por exemplo, 60 de 120 estrelas."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:104
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:105
 msgid ""
 "Enable unlocking achievements in Encore Mode.<br><br>Encore Mode re-enables "
 "achievements the player has already unlocked on the site so that the player "
@@ -5037,7 +5061,7 @@ msgstr ""
 "diversão.<br><br>Essa opção será aplicada na próxima vez que um jogo for "
 "iniciado."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:110
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:111
 msgid ""
 "Enable unlocking achievements in Spectator Mode.<br><br>While in Spectator "
 "Mode, achievements and leaderboards will be processed and displayed on "
@@ -5055,7 +5079,7 @@ msgstr ""
 "iniciar um jogo, o Modo Espectador poderá ser ligado/desligado a qualquer "
 "momento enquanto o jogo estiver em execução."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:98
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:99
 msgid ""
 "Enable unlocking unofficial achievements as well as official achievements."
 "<br><br>Unofficial achievements may be optional or unfinished achievements "
@@ -5094,8 +5118,17 @@ msgid ""
 "Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ativa a detecção de mipmaps arbitrários, que alguns jogos utilizam para "
+"renderizar efeitos gráficos especiais baseados na distância da câmera."
+"<br><br>Pode causar falsos positivos, resultando em texturas borradas em "
+"resoluções internas maiores, como em jogos que utilizam mipmaps de resolução "
+"muito baixa. Desativar essa opção também pode reduzir engasgos em jogos que "
+"frequentemente carregam novas texturas.<br><br>Essa opção é desativada "
+"quando \"Decodificação de Texturas na GPU\" está ativada."
+"<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção desativada.</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:85
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
 msgid ""
 "Enables emulation of the CPU write-back cache.<br>Enabling will have a "
 "significant impact on performance.<br>This should be left disabled unless "
@@ -5162,6 +5195,11 @@ msgid ""
 "Detection will be disabled.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ativa a decodificação de texturas usando a GPU ao invés da CPU.<br><br>Isso "
+"pode melhorar o desempenho em algumas situações, ou em sistemas com gargalos "
+"de CPU.<br><br>Se essa opção for ativada, \"Detecção de Mipmaps Arbitrários"
+"\" será desativada.<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção "
+"desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:100
 msgid ""
@@ -5171,7 +5209,7 @@ msgstr ""
 "Ativa a Unidade de Gerenciamento de Memória, necessária para alguns jogos. "
 "(ON = Compatível, OFF = Rápido)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:71
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:72
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -5308,8 +5346,8 @@ msgstr "Insira o endereço do módulo do RSO:"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:262
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:386
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:379
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:391
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:539
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
@@ -5344,14 +5382,14 @@ msgstr "Insira o endereço do módulo do RSO:"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
-#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:313
-#: Source/Core/DolphinQt/MainWindow.cpp:321
-#: Source/Core/DolphinQt/MainWindow.cpp:1144
-#: Source/Core/DolphinQt/MainWindow.cpp:1553
-#: Source/Core/DolphinQt/MainWindow.cpp:1560
-#: Source/Core/DolphinQt/MainWindow.cpp:1620
-#: Source/Core/DolphinQt/MainWindow.cpp:1627
-#: Source/Core/DolphinQt/MainWindow.cpp:1733
+#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:315
+#: Source/Core/DolphinQt/MainWindow.cpp:323
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1555
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
+#: Source/Core/DolphinQt/MainWindow.cpp:1622
+#: Source/Core/DolphinQt/MainWindow.cpp:1629
+#: Source/Core/DolphinQt/MainWindow.cpp:1735
 #: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1275
 #: Source/Core/DolphinQt/MenuBar.cpp:1365
 #: Source/Core/DolphinQt/MenuBar.cpp:1388
@@ -5413,7 +5451,7 @@ msgstr "Erro ao carregar o idioma selecionado. Voltando ao padrão do sistema."
 msgid "Error obtaining session list: %1"
 msgstr "Erro ao obter a lista da sessão: %1"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:314
+#: Source/Core/DolphinQt/MainWindow.cpp:316
 msgid "Error occurred while loading some texture packs"
 msgstr "Um erro ocorreu enquanto carregava alguns pacotes de texturas"
 
@@ -5777,7 +5815,7 @@ msgstr ""
 "Falha ao descarregar o driver do kernel para o redirecionamento Bluetooth: "
 "{0}"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:379
 msgid "Failed to download codes."
 msgstr "Falha ao baixar os códigos."
 
@@ -5854,7 +5892,7 @@ msgstr ""
 "NAND (Ferramentas -> Gerenciar NAND -> Verificar NAND...) , então importe os "
 "dados salvos novamente."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1144
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
 msgid "Failed to init core"
 msgstr "Falha ao inicializar o núcleo"
 
@@ -5881,7 +5919,7 @@ msgstr "Falha ao instalar pacote: %1"
 msgid "Failed to install this title to the NAND."
 msgstr "Falha ao instalar esse software na NAND."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1655
+#: Source/Core/DolphinQt/MainWindow.cpp:1657
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5943,14 +5981,14 @@ msgid "Failed to open \"{0}\" for writing."
 msgstr "Falha ao abrir \"{0}\" para escrita."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1733
+#: Source/Core/DolphinQt/MainWindow.cpp:1735
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "Falha ao abrir '%1'"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:648
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
-msgstr ""
+msgstr "Falha ao acessar o dispositivo Bluetooth {:04x}:{:04x}: {}"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1101
 msgid "Failed to open Branch Watch snapshot \"%1\""
@@ -5985,7 +6023,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "Falha ao abrir o arquivo."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1654
+#: Source/Core/DolphinQt/MainWindow.cpp:1656
 msgid "Failed to open server"
 msgstr "Falha ao abrir o servidor"
 
@@ -6312,7 +6350,7 @@ msgstr "Tamanho"
 msgid "File Size:"
 msgstr "Tamanho do Arquivo:"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:391
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
 msgid "File contained no codes."
 msgstr "O arquivo não continha códigos."
 
@@ -6621,7 +6659,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:183
 msgid "Free memory:"
-msgstr ""
+msgstr "Memória disponível:"
 
 #: Source/Core/Core/FreeLookManager.cpp:318
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:25
@@ -6671,7 +6709,7 @@ msgid "Function"
 msgstr "Função"
 
 #. i18n: Settings that affect the functionality of unlocking achievements.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:134
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:135
 msgid "Function Settings"
 msgstr "Configurações de Funcionamento"
 
@@ -7190,7 +7228,7 @@ msgstr "Cabeça"
 msgid "Help"
 msgstr "Ajuda"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:130
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:131
 msgid "Hero level:"
 msgstr "Nível do herói:"
 
@@ -7283,36 +7321,36 @@ msgid "Host Code:"
 msgstr "Código da Sala:"
 
 #. i18n: Host Far Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
 msgid "Host F. Size"
-msgstr ""
+msgstr "Tam. Cache HFC"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:614
 msgid "Host Far Code Cache"
-msgstr ""
+msgstr "Cache Far Code do Host"
 
 #. i18n: "Far Code" refers to the far code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Host Far Code Size"
-msgstr ""
+msgstr "Tamanho Far Code do Host"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:193
 msgid "Host Input Authority"
 msgstr "Host Autoritário"
 
 #. i18n: Host Near Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
 msgid "Host N. Size"
-msgstr ""
+msgstr "Tam. Cache HNC"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:613
 msgid "Host Near Code Cache"
-msgstr ""
+msgstr "Cache Near Code do Host"
 
 #. i18n: "Near Code" refers to the near code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:640
 msgid "Host Near Code Size"
-msgstr ""
+msgstr "Tamanho Near Code do Host"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:195
 msgid ""
@@ -7341,7 +7379,7 @@ msgstr "Host autoritário ativado"
 #. recompilation was when considering the host instruction count vs the PPC instruction count.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:241
 msgid "Host instruction count: %1 near %2 far (%3% blowup)"
-msgstr ""
+msgstr "Contagem de instruções do host: %1 near %2 far (%3% overhead)"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:527
 msgid "Host with NetPlay"
@@ -7608,12 +7646,8 @@ msgid ""
 "Ignores any requests from the CPU to read from or write to the EFB. "
 "<br><br>Improves performance in some games, but will disable all EFB-based "
 "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If "
-"unsure, leave this unchecked.</dolphin_emphasis>"
+"unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"Ignora quaisquer pedidos da CPU para ler ou escrever no EFB.<br><br>Melhora "
-"o desempenho em alguns jogos, mas pode desabilitar alguns efeitos gráficos "
-"ou algumas funções relacionadas à jogabilidade.<br><br><dolphin_emphasis>Na "
-"dúvida, mantenha essa opção desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:93
 msgid "Immediately Present XFB"
@@ -7653,11 +7687,11 @@ msgstr "Importar Arquivo(s) de Jogo Salvo"
 msgid "Import Wii Save..."
 msgstr "Importar Dados Salvos do Wii..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1797
+#: Source/Core/DolphinQt/MainWindow.cpp:1799
 msgid "Importing NAND backup"
 msgstr "Importando backup da NAND"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1807
+#: Source/Core/DolphinQt/MainWindow.cpp:1809
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7697,27 +7731,27 @@ msgstr ""
 "salvar ou carregar um estado salvo.<br><br><dolphin_emphasis>Na dúvida, "
 "mantenha essa opção ativada.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:223
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:225
 msgid "Incorrect hero level value!"
 msgstr "Valor incorreto do nível do herói!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:246
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:248
 msgid "Incorrect last placed time!"
 msgstr "Hora incorreta da última colocação!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:240
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:242
 msgid "Incorrect last reset time!"
 msgstr "Hora incorreta da último reset!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:217
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:219
 msgid "Incorrect money value!"
 msgstr "Valor do dinheiro incorreto!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:229
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:231
 msgid "Incorrect nickname!"
 msgstr "Apelido incorreto!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:235
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:237
 msgid "Incorrect playtime value!"
 msgstr "Valor do tempo de jogo incorreto!"
 
@@ -7966,7 +8000,7 @@ msgstr "Resolução Interna:"
 msgid "Internal error while generating AR code."
 msgstr "Erro interno enquanto gera o código AR."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
 msgid "Interpreter (slowest)"
 msgstr "Interpretador (muito lento)"
 
@@ -7986,7 +8020,7 @@ msgstr "JSON inválido recebido do serviço de atualizações automáticas: {0}"
 msgid "Invalid Mixed Code"
 msgstr "Código Misturado Inválido"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:322
+#: Source/Core/DolphinQt/MainWindow.cpp:324
 msgid "Invalid Pack %1 provided: %2"
 msgstr "O pacote %1 fornecido é inválido: %2"
 
@@ -8064,11 +8098,11 @@ msgstr "Endereço da observação inválido: %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:421
 msgid "Invert &Condition"
-msgstr ""
+msgstr "Inverter &Condição"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:425
 msgid "Invert &Decrement Check"
-msgstr ""
+msgstr "Inverter Verificação de &Decremento"
 
 #: Source/Core/DiscIO/Enums.cpp:92
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:88
@@ -8141,11 +8175,11 @@ msgstr "JIT Desligado (Núcleo do JIT)"
 msgid "JIT Paired Off"
 msgstr "Emparelhamento do JIT Desligado"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
 msgid "JIT Recompiler for ARM64 (recommended)"
 msgstr "Recompilador JIT ARM64 (recomendado)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:33
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "Recompilador JIT x86-64 (recomendado)"
 
@@ -8189,7 +8223,7 @@ msgstr "Japonês"
 msgid "Japanese (Shift-JIS)"
 msgstr "Japonesa (Shift-JIS)"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:297
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:299
 msgid ""
 "Kaos is the only villain for this trophy and is always unlocked. No need to "
 "edit anything!"
@@ -8283,12 +8317,12 @@ msgid "Last Value"
 msgstr "Último Valor"
 
 #. i18n: A timestamp for when the Skylander was most recently used
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:158
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:159
 msgid "Last placed:"
 msgstr "Último uso:"
 
 #. i18n: A timestamp for when the Skylander was most recently reset
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:148
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:149
 msgid "Last reset:"
 msgstr "Último reset:"
 
@@ -8678,8 +8712,8 @@ msgstr "Log"
 msgid "Log Configuration"
 msgstr "Configurações"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:77
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:199
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:200
 msgid "Log In"
 msgstr "Entrar"
 
@@ -8687,7 +8721,7 @@ msgstr "Entrar"
 msgid "Log JIT Instruction Coverage"
 msgstr "Registrar Cobertura das Instruções do JIT"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
 msgid "Log Out"
 msgstr "Sair"
 
@@ -8703,21 +8737,21 @@ msgstr "Tipos de Log"
 msgid "Logger Outputs"
 msgstr "Saída de Dados"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:80
 msgid "Login Failed"
 msgstr "Falha no Login"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:49
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
-msgstr ""
+msgstr "Falha no Login - Usuário/Senha Inválidos"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:52
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:53
 msgid "Login Failed - No Internet Connection"
-msgstr ""
+msgstr "Falha no Login - Sem Conexão à Internet"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:55
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Login Failed - Server Error"
-msgstr ""
+msgstr "Falha no Login - Erro no Servidor"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:295
 msgid ""
@@ -8775,29 +8809,29 @@ msgstr "Eixo Principal"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:429
 msgid "Make &Unconditional"
-msgstr ""
+msgstr "Criar &Incondicional"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:224
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:226
 msgid "Make sure that the hero level value is between 0 and 100!"
 msgstr "Certifique-se que o valor do nível de herói esteja entre 0 e 100!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:247
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:249
 msgid "Make sure that the last placed datetime value is valid!"
 msgstr "Certifique-se que o último valor de data e hora colocado seja válido!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:241
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:243
 msgid "Make sure that the last reset datetime value is valid!"
 msgstr "Certifique-se que o valor da data e hora do último reset seja válido!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:218
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:220
 msgid "Make sure that the money value is between 0 and 65000!"
 msgstr "Certifique-se que o valor do dinheiro esteja entre 0 e 65.000!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:230
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:232
 msgid "Make sure that the nickname is between 0 and 15 characters long!"
 msgstr "Certifique-se que o apelido tenha entre 0 e 15 caracteres de tamanho!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:236
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:238
 msgid "Make sure that the playtime value is valid!"
 msgstr "Certifique-se que o valor do tempo de jogo seja válido!"
 
@@ -8856,7 +8890,7 @@ msgstr "Buffer Máximo:"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:574
 msgid "Max Effective Address"
-msgstr ""
+msgstr "Endereço Efetivo Máximo"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:931
 msgid "Max buffer size changed to %1"
@@ -8896,7 +8930,7 @@ msgstr "Gerenciador de Memory Cards"
 msgid "Memory Card Path:"
 msgstr "Local do Memory Card:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:120
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:121
 msgid "Memory Override"
 msgstr "Alocação de Memória"
 
@@ -8916,7 +8950,7 @@ msgstr "MemoryCard: Leitura chamada com endereço inválido da fonte ({0:#x})"
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "MemoryCard: Gravação chamada com endereço de destino inválido ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1778
+#: Source/Core/DolphinQt/MainWindow.cpp:1780
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -8940,7 +8974,7 @@ msgstr "Microfone"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
-msgstr ""
+msgstr "Endereço Efetivo Mínimo"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:411
@@ -8961,7 +8995,7 @@ msgstr "Outros Controles"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:162
 msgid "Miscellaneous Settings"
-msgstr ""
+msgstr "Configurações Diversas"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:844
 msgid "Mismatch between free block count in header and actually unused blocks."
@@ -9016,7 +9050,7 @@ msgid "Modify Slot"
 msgstr "Modificar Slot"
 
 #. i18n: %1 is a name
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:62
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:63
 msgid "Modifying Skylander: %1"
 msgstr "Modificando o Skylander: %1"
 
@@ -9025,7 +9059,7 @@ msgstr "Modificando o Skylander: %1"
 msgid "Modules found: %1"
 msgstr "Módulos achados: %1"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:126
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:127
 msgid "Money:"
 msgstr "Dinheiro:"
 
@@ -9087,13 +9121,15 @@ msgstr "Multiplicador"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:166
 msgid "Mute When Disabling Speed Limit"
-msgstr ""
+msgstr "Silenciar ao Desativar Limite de Velocidade"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:168
 msgid ""
 "Mutes the audio when overriding the emulation speed limit (default hotkey: "
 "Tab)."
 msgstr ""
+"Silencia o áudio quando o limite de velocidade de emulação é desativado "
+"(tecla de atalho padrão: Tab)"
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
@@ -9306,7 +9342,7 @@ msgid "Nickname is too long."
 msgstr "O apelido é muito longo."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:199
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:136
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:137
 msgid "Nickname:"
 msgstr "Apelido:"
 
@@ -9342,7 +9378,7 @@ msgstr "Sem Combinação"
 msgid "No Save Data"
 msgstr "Não Utilizar Dados Salvos"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:84
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:85
 msgid "No data to modify!"
 msgstr "Não há dados pra modificar!"
 
@@ -9857,17 +9893,17 @@ msgid "PNG image file (*.png);; All Files (*)"
 msgstr "Arquivo de imagem PNG (*.png);;Todos os arquivos (*)"
 
 #. i18n: PPC Feature Flags
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:384
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
 msgid "PPC Feat. Flags"
-msgstr ""
+msgstr "Flags de Rec. PPC"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:633
 msgid "PPC Feature Flags"
-msgstr ""
+msgstr "Flags de Recursos PPC"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:611
 msgid "PPC Instruction Coverage"
-msgstr ""
+msgstr "Cobertura de Instruções PPC"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "PPC vs Host"
@@ -9903,7 +9939,7 @@ msgstr "Passivo"
 msgid "Passthrough a Bluetooth adapter"
 msgstr "Redirecionar um adaptador Bluetooth"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:74
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:75
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:166
 msgid "Password"
 msgstr "Senha"
@@ -9953,11 +9989,11 @@ msgstr "&Pausar no Fim do Replay"
 msgid "Pause on Focus Loss"
 msgstr "Pausar ao Perder Foco"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:75
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:76
 msgid "Pause on Panic"
 msgstr "Pausar ao Detectar Erros"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:77
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:78
 msgid ""
 "Pauses the emulation if a Read/Write or Unknown Instruction panic occurs."
 "<br>Enabling will affect performance.<br>The performance impact is the same "
@@ -10109,10 +10145,10 @@ msgstr "Jogadores"
 #: Source/Core/UICommon/DBusUtils.cpp:56 Source/Core/UICommon/DBusUtils.cpp:77
 #: Source/Core/UICommon/DBusUtils.cpp:97 Source/Core/UICommon/DBusUtils.cpp:120
 msgid "Playing a game"
-msgstr ""
+msgstr "Reproduzindo um jogo"
 
 #. i18n: The total amount of time the Skylander has been used for
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:142
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:143
 msgid "Playtime:"
 msgstr "Tempo de jogo:"
 
@@ -10363,7 +10399,7 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1777
+#: Source/Core/DolphinQt/MainWindow.cpp:1779
 msgid "Question"
 msgstr "Pergunta"
 
@@ -10435,7 +10471,7 @@ msgstr "Su&bstituir Instrução"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:600
 msgid "Re-initialize software JIT block profiling data."
-msgstr ""
+msgstr "Reinicializar dados de perfilamento de bloco JIT do software"
 
 #. i18n: This is a selectable condition when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:134
@@ -10490,7 +10526,7 @@ msgstr "Re-centralizar"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:577
 msgid "Recompiles Physical Address"
-msgstr ""
+msgstr "Recompila Endereços Físicos"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:157
 msgid "Record"
@@ -10666,14 +10702,14 @@ msgstr ""
 "mantenha essa opção desativada.</dolphin_emphasis>"
 
 #. i18n: Repeat Instructions
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
 msgid "Repeat Instr."
-msgstr ""
+msgstr "Inst. Repetidas"
 
 #. i18n: This means to say it is a count of PPC instructions recompiled more than once.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:638
 msgid "Repeat Instructions"
-msgstr ""
+msgstr "Instruções Repetidas"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:408
 msgid "Report: GCIFolder Writing to unallocated block {0:#x}"
@@ -10894,6 +10930,47 @@ msgid ""
 "All context menus have the action to delete the selected row(s) from the "
 "candidates."
 msgstr ""
+"Linhas da tabela podem ser clicadas com o botão esquerdo nas colunas de "
+"origem, destino e símbolo para mostrar o endereço correspondente no painel "
+"de Código. Clicar com o botão direito na(s) linha(s) selecionada(s) mostrará "
+"um menu de contexto.\n"
+"\n"
+"Se a coluna de origem, destino ou símbolo forem clicadas com o botão "
+"direito, uma ação para copiar o(s) endereço(s) relevante(s) para a área de "
+"transferência estará disponível, e uma ação para definir um ponto de "
+"interrupção no(s) endereço(s) relevante(s) também estará disponível. Observe "
+"que para as colunas de símbolo de origem / destino, essas ações só estarão "
+"disponíveis se todas as linhas selecionadas contiverem um símbolo.\n"
+"\n"
+"Se a coluna de instruções de um conjunto de linhas selecionadas for clicada "
+"com o botão direito, uma ação para inverter a condição da instrução de "
+"branch condicional e uma ação para inverter a condição da instrução de "
+"verificação de decremento estarão disponíveis, mas somente se a instrução de "
+"branch selecionada for condicional.\n"
+"\n"
+"Se a coluna de condição de um conjunto de linhas selecionadas for clicada "
+"com o botão direito, uma ação para transformar a instrução de branch em "
+"incondicional estará disponível, mas somente se a instrução de branch "
+"selecionada for condicional.\n"
+"\n"
+"Se a coluna de origem em uma linha da tabela for clicada com o botão "
+"direito, uma ação para substituir a instrução no(s) destino(s) com uma "
+"instrução NOP (No Operation) estará disponível.\n"
+"\n"
+"Se a coluna de destino em uma linha da tabela for clicada com o botão "
+"direito, uma ação para substituir a instrução no(s) destino(s) com uma "
+"instrução BLR (Branch para Registrador de Link) estará disponível, mas "
+"somente se a instrução de branch em cada origem salva o registrador de link, "
+"e uma ação para copiar o(s) endereço(s) para a área de transferência estará "
+"disponível.\n"
+"\n"
+"Se a coluna do símbolo de origem / destino em uma linha da tabela for "
+"clicada com o botão direito, uma ação para substituir a(s) instrução(ões) no "
+"início do símbolo com uma instrução BLR estará disponível, mas somente se "
+"linha selecionada contiver um símbolo. \n"
+"\n"
+"Todos os menus de contexto tem uma ação para excluir a(s) linha(s) "
+"selecionada(s) da lista de candidatos."
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
@@ -10906,10 +10983,10 @@ msgstr "Vibração"
 msgid "Run &to Here"
 msgstr "Executar A&té Aqui"
 
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:395
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:643
 msgid "Run Count"
-msgstr ""
+msgstr "Contagem de Execução"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:203
 msgid "Run GBA Cores in Dedicated Threads"
@@ -11080,7 +11157,7 @@ msgstr "Salvar Estado Mais Antigo"
 msgid "Save Preset"
 msgstr "Salvar Predefinição"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1916
+#: Source/Core/DolphinQt/MainWindow.cpp:1918
 msgid "Save Recording File As"
 msgstr "Salvar o Arquivo da Gravação Como"
 
@@ -11330,7 +11407,7 @@ msgstr "Selecionar a ROM do GBA"
 msgid "Select GBA Saves Path"
 msgstr "Selecione o Caminho dos Saves do GBA"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1813
+#: Source/Core/DolphinQt/MainWindow.cpp:1815
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr "Selecione Arquivo de Chaves (Backup da OTP/SEEPROM)"
 
@@ -11342,7 +11419,7 @@ msgstr "Selecionar"
 msgid "Select Load Path"
 msgstr "Selecione o Caminho Pra Carregar"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1787
+#: Source/Core/DolphinQt/MainWindow.cpp:1789
 msgid "Select NAND Backup"
 msgstr "Selecione Backup da NAND"
 
@@ -11443,9 +11520,9 @@ msgstr "Selecione um Diretório"
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:583
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
-#: Source/Core/DolphinQt/MainWindow.cpp:786
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1436
+#: Source/Core/DolphinQt/MainWindow.cpp:788
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "Select a File"
 msgstr "Selecione um Arquivo"
 
@@ -11473,7 +11550,7 @@ msgstr "Selecione os Cartões do e-Reader"
 msgid "Select the RSO module address:"
 msgstr "Selecione o endereço do módulo do RSO:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
+#: Source/Core/DolphinQt/MainWindow.cpp:1838
 msgid "Select the Recording File to Play"
 msgstr "Selecione o Arquivo da Gravação a Executar"
 
@@ -11829,7 +11906,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Configurações"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:439
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:440
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Não foi possível criar o arquivo setting.txt"
 
@@ -12552,7 +12629,7 @@ msgstr "Iniciar Nova Pesquisa"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Start Profiling"
-msgstr ""
+msgstr "Iniciar Perfilamento"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:796
 msgid "Start Re&cording Input"
@@ -12674,7 +12751,7 @@ msgstr "Parar a Reprodução/Gravação de Replay"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Stop Profiling"
-msgstr ""
+msgstr "Parar Perfilamento"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:412
 msgid "Stopped game"
@@ -12877,7 +12954,7 @@ msgid "Switch to B"
 msgstr "Alternar para B"
 
 #. i18n: "Symbol" means debugging symbol (its name in particular).
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:406
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:656
 msgid "Symbol"
 msgstr "Símbolo"
@@ -12888,7 +12965,7 @@ msgstr "Endereço Final do Símbolo (%1):"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:581
 msgid "Symbol Name"
-msgstr ""
+msgstr "Nome do Símbolo"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:937
 msgid "Symbol Name:"
@@ -13106,7 +13183,7 @@ msgstr ""
 "para o Cartão SD, o Wii System Menu deixará de executá-lo e também se "
 "recusará a copiar ou mover o software de volta para a NAND."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:177
 msgid "The amount of money this Skylander has. Between 0 and 65000"
 msgstr "A quantidade de dinheiro que esse Skylander possui. Entre 0 e 65000"
 
@@ -13247,7 +13324,7 @@ msgstr ""
 "O arquivo %1 já existe.\n"
 "Você deseja substituí-lo?"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:279
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:281
 msgid ""
 "The file associated to this file was closed! Did you clear the slot before "
 "saving?"
@@ -13354,7 +13431,7 @@ msgstr "Os hashes não combinam!"
 msgid "The hashes match!"
 msgstr "Os hashes combinam!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
 msgid ""
 "The hero level of this Skylander. Only seen in Skylanders: Spyro's "
 "Adventures. Between 0 and 100"
@@ -13374,11 +13451,11 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr "A partição de instalação está ausente."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:183
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:185
 msgid "The last time the figure has been placed on a portal"
 msgstr "A última vez que a figura foi colocada em um portal"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:181
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:183
 msgid ""
 "The last time the figure has been reset. If the figure has never been reset, "
 "the first time the figure was placed on a portal"
@@ -13398,7 +13475,7 @@ msgstr ""
 "corretamente, por favor troque o dispositivo indicado para \"Memory Card\" "
 "ou \"Pasta GCI\"."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
 msgid "The nickname for this Skylander. Limited to 15 characters"
 msgstr "O apelido para esse Skylander. Limitado a 15 caracteres"
 
@@ -13493,11 +13570,11 @@ msgstr "O memory card alvo já contém um arquivo: \"%1\"."
 msgid "The ticket is not correctly signed."
 msgstr "O ticket não foi assinado corretamente."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:182
 msgid "The total time this figure has been used inside a game in seconds"
 msgstr "O tempo total que esta figura foi usada em um jogo em segundos"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:174
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
 msgid "The toy code for this figure. Only available for real figures."
 msgstr ""
 "O código do brinquedo pra esta figura. Só está disponível pra figuras reais."
@@ -13506,16 +13583,16 @@ msgstr ""
 msgid "The type of a partition could not be read."
 msgstr "O tipo de partição não pôde ser lido."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:85
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:86
 msgid "The type of this Skylander does not have any data that can be modified!"
 msgstr ""
 "O tipo deste Skylander não tem quaisquer dados que possam ser modificados!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:92
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:93
 msgid "The type of this Skylander is unknown!"
 msgstr "O tipo deste Skylander é desconhecido!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:100
 msgid ""
 "The type of this Skylander is unknown, or can't be modified at this time!"
 msgstr ""
@@ -13630,7 +13707,7 @@ msgstr ""
 "Esse jogo coreano está configurado para utilizar um IOS que normalmente não "
 "está presente em consoles coreanos. É provável que isso cause o ERROR #002."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:102
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:103
 msgid "This Skylander type can't be modified yet!"
 msgstr "Este tipo de Skylander ainda não pode ser modificado!"
 
@@ -13804,7 +13881,7 @@ msgstr "Aplicável apenas ao boot inicial do software emulado."
 msgid "This session requires a password:"
 msgstr "Esta sessão requer uma senha:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:184
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:179
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -13927,29 +14004,29 @@ msgid "Tilt"
 msgstr "Inclinar"
 
 #. i18n: Time Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
 msgid "Time %"
-msgstr ""
+msgstr "% de Tempo"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:653
 msgid "Time Average (ns)"
-msgstr ""
+msgstr "Média de Tempo (ns)"
 
 #. i18n: Time Average (ns)
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Time Avg. (ns)"
-msgstr ""
+msgstr "Méd. Tempo (ns)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:654
 msgid "Time Percent"
-msgstr ""
+msgstr "Porcentagem de Tempo"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:401
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:651
 msgid "Time Spent (ns)"
-msgstr ""
+msgstr "Tempo Gasto (ns)"
 
 #. i18n: Refers to the "Calibration" setting of gyroscope input.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:49
@@ -13973,7 +14050,7 @@ msgstr "Título"
 msgid "To"
 msgstr "Até"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:201
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:202
 msgid "To log in, stop the current emulation."
 msgstr "Para entrar, pare a emulação em execução."
 
@@ -14062,7 +14139,7 @@ msgstr "Ativar/Desativar Exibição Imediata do XFB"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:590
 msgid "Toggle software JIT block profiling (will clear the JIT cache)."
-msgstr ""
+msgstr "Alterna perfilamento de bloco JIT do software (limpará o cache JIT)"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:966
 msgid "Tokenizing failed."
@@ -14122,7 +14199,7 @@ msgstr "Total da distância de viagem."
 msgid "Touch"
 msgstr "Toque"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:121
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:122
 msgid "Toy code:"
 msgstr "Código do brinquedo:"
 
@@ -14281,7 +14358,7 @@ msgstr "Não foi possível contactar o servidor de atualizações."
 msgid "Unable to create updater copy."
 msgstr "Não foi possível criar cópia do atualizador."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:98
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
 msgid "Unable to modify Skylander!"
 msgstr "Não foi possível modificar o Skylander!"
 
@@ -14381,7 +14458,7 @@ msgid "Unknown"
 msgstr "Desconhecido"
 
 #. i18n: "Var" is short for "variant"
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:57
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:58
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:857
 msgid "Unknown (Id:%1 Var:%2)"
 msgstr "Desconhecido (ID: %1 Var.: %2)"
@@ -14414,7 +14491,7 @@ msgstr ""
 "Mensagem SYNC_SAVE_DATA desconhecida com ID:{0} recebida do Jogador:{1} "
 "Expulsando jogador!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:91
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:92
 msgid "Unknown Skylander type!"
 msgstr "Tipo de Skylander desconhecido!"
 
@@ -14619,7 +14696,7 @@ msgstr "Usar Modo PAL60 (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Usar Gerenciadores de Pânico"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:117
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
 "Use RetroAchievements rich presence in your Discord status.<br><br>Show "
 "Current Game on Discord must be enabled."
@@ -14641,6 +14718,19 @@ msgid ""
 "setting is enabled, the Texture Filtering setting will be disabled."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Usa uma implementação manual da amostragem de texturas ao invés de utilizar "
+"a funcionalidade embutida no backend gráfico.<br><br>Essa opção pode "
+"corrigir problemas gráficos em alguns jogos em determinadas GPUs, o mais "
+"comum sendo linhas verticais em sequências FMV. Adicionalmente, ativar a "
+"amostragem manual de texturas permite emular corretamente casos especiais do "
+"mapeamento de texturas (na resolução interna nativa ou quando \"Cópia em "
+"Escala do EFB\" e \"Carregar Texturas Customizadas\" estão desativadas) e "
+"emula com mais precisão o cálculo do nível de detalhe (LOD).<br><br>Ativar "
+"essa opção acarretará em desempenho potencialmente reduzido, especialmente "
+"se usado em conjunto com resoluções internas maiores.<br><br>Se essa opção "
+"for ativada, \"Filtragem de Textura\" será desativada."
+"<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção desativada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:141
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -14682,7 +14772,7 @@ msgstr ""
 "Você pode usá-las pra salvar ou recuperar os valores entre\n"
 "as entradas e saídas do mesmo controle principal."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:72
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:73
 msgid "Username"
 msgstr "Nome do Usuário"
 
@@ -14845,7 +14935,7 @@ msgstr "Vídeo"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:625
 msgid "View &Code"
-msgstr ""
+msgstr "Ver &Código"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:142
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:132
@@ -15287,11 +15377,11 @@ msgstr "Limpar Dados de &Inspeção"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:940
 msgid "Wipe JIT Block Profiling Data"
-msgstr ""
+msgstr "Limpar Dados de Perfilamento de Bloco JIT"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:599
 msgid "Wipe Profiling"
-msgstr ""
+msgstr "Limpar Perfilamento"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:399
 msgid "Wipe Recent Hits"
@@ -15752,7 +15842,7 @@ msgstr "desalinhado"
 msgid "{0} (Masterpiece)"
 msgstr "{0} (Masterpiece)"
 
-#: Source/Core/UICommon/GameFile.cpp:843
+#: Source/Core/UICommon/GameFile.cpp:840
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 

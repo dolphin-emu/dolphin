@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 13:12+0100\n"
+"POT-Creation-Date: 2024-11-01 15:00+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Jaakko Saarikko <jaakko.saarikko@protonmail.com>, "
 "2022-2024\n"
@@ -168,11 +168,11 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr "%1 grafiikka-asetukset"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:300
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:295
 msgid "%1 MB (MEM1)"
 msgstr "%1 Mt (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:309
 msgid "%1 MB (MEM2)"
 msgstr "%1 Mt (MEM2)"
 
@@ -249,7 +249,7 @@ msgstr "%1 istuntoa löytyi"
 msgid "%1%"
 msgstr "%1%"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:283
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:278
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
@@ -473,7 +473,7 @@ msgid "&Delete Watches"
 msgstr "&Poista vahdit"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:67
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:195
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:189
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:100
 msgid "&Edit Code..."
 msgstr "&Muokkaa koodia..."
@@ -1113,8 +1113,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> Suurempi kuin"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1561
-#: Source/Core/DolphinQt/MainWindow.cpp:1628
+#: Source/Core/DolphinQt/MainWindow.cpp:1563
+#: Source/Core/DolphinQt/MainWindow.cpp:1630
 msgid "A NetPlay Session is already in progress!"
 msgstr "Nettipeli-istunto on jo käynnissä!"
 
@@ -1150,7 +1150,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "Tilantallennusta ei voi ladata määräämättä peliä, joka käynnistetään."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:965
+#: Source/Core/DolphinQt/MainWindow.cpp:967
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1492,7 +1492,7 @@ msgstr ""
 "tietyissä peleissä.<br><br><dolphin_emphasis>Ellet ole varma, valitse "
 "oikeanpuoleisin vaihtoehto.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:151
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:152
 msgid ""
 "Adjusts the amount of RAM in the emulated console.\n"
 "\n"
@@ -1504,7 +1504,7 @@ msgstr ""
 "VAROITUS: Säätäminen voi helposti aiheuttaa ongelmia peleissä. Vain pieni "
 "määrä pelejä voi hyötyä tästä."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:110
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:111
 msgid ""
 "Adjusts the emulated CPU's clock rate.\n"
 "\n"
@@ -1620,7 +1620,7 @@ msgstr "Kaikki 64-bittisinä liukulukuina"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:440
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:591
-#: Source/Core/DolphinQt/MainWindow.cpp:791
+#: Source/Core/DolphinQt/MainWindow.cpp:793
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:139
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:345
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1637,7 +1637,7 @@ msgstr "Kaikki tiedostot (*)"
 msgid "All Float"
 msgstr "Kaikki 32-bittisinä liukulukuina"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:790
+#: Source/Core/DolphinQt/MainWindow.cpp:792
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "Kaikki GC-/Wii-tiedostot"
@@ -1646,8 +1646,8 @@ msgstr "Kaikki GC-/Wii-tiedostot"
 msgid "All Hexadecimal"
 msgstr "Kaikki heksadesimaalisina"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1436
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Kaikki tilatallennukset (*.sav *.s##);; Kaikki tiedostot (*)"
 
@@ -1795,9 +1795,17 @@ msgstr "Haluatko varmasti poistaa tämän tiedoston?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "Oletko varma, että haluat poistaa tämän paketin?"
 
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+msgid "Are you sure you want to log out of RetroAchievements?"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:502
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Oletko varma, että haluat lopettaa nettipelin?"
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+msgid "Are you sure you want to turn hardcore mode off?"
+msgstr ""
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:284
 msgid "Are you sure?"
@@ -2188,11 +2196,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "Käynnistä keskeytettynä"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1788
+#: Source/Core/DolphinQt/MainWindow.cpp:1790
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMiin NAND-varmuuskopiotiedosto (*.bin);;Kaikki tiedostot (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1814
+#: Source/Core/DolphinQt/MainWindow.cpp:1816
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMiin avaintiedosto (*.bin);;Kaikki tiedostot (*)"
 
@@ -2471,11 +2479,11 @@ msgstr "L&uo allekirjoitustiedosto..."
 msgid "CP register "
 msgstr "CP-rekisteri "
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:63
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:64
 msgid "CPU Emulation Engine:"
 msgstr "Suorittimen emulointimoottori:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:52
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:53
 msgid "CPU Options"
 msgstr "Suoritinasetukset"
 
@@ -2483,7 +2491,7 @@ msgstr "Suoritinasetukset"
 msgid "CRC32:"
 msgstr "CRC32:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:33
 msgid "Cached Interpreter (slower)"
 msgstr "Välimuistillinen tulkki (hitaampi)"
 
@@ -2558,11 +2566,11 @@ msgstr "Kameran näkökenttä (vaikuttaa osoituksen herkkyyteen)."
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "Vain virtuaalisessa muistissa oleville arvoille voi luoda AR-koodeja."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:101
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:102
 msgid "Can't be modified yet!"
 msgstr "Tätä asetusta ei voi vielä vaihtaa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:296
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:298
 msgid "Can't edit villains for this trophy!"
 msgstr "Tämän palkinnon roistoja ei voi muuttaa!"
 
@@ -2570,8 +2578,8 @@ msgstr "Tämän palkinnon roistoja ei voi muuttaa!"
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Wii Remote -ohjainta ei löydy yhteystunnisteella {0:02x}"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1554
-#: Source/Core/DolphinQt/MainWindow.cpp:1621
+#: Source/Core/DolphinQt/MainWindow.cpp:1556
+#: Source/Core/DolphinQt/MainWindow.cpp:1623
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Nettipeli-istuntoa ei voi käynnistää, kun peli on vielä käynnissä!"
 
@@ -2643,7 +2651,7 @@ msgstr "Peliä ei voi käynnistää, koska GC-IPL:ää ei löydy."
 
 #. i18n: "Captured" is a participle here. This string is used when listing villains, not when a
 #. villain was just captured
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:319
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:321
 msgid "Captured villain %1:"
 msgstr "Vangittu roisto %1:"
 
@@ -2846,11 +2854,11 @@ msgstr "Tyhjennä välimuisti"
 msgid "Clear Slot"
 msgstr "Tyhjennä paikka"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:90
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:91
 msgid "Clock Override"
 msgstr "Kellotaajuuden korvaus"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:195
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:189
 msgid "Clone and &Edit Code..."
 msgstr "Kloonaa ja &muokkaa koodia..."
 
@@ -2868,7 +2876,7 @@ msgid "Code"
 msgstr "Koodi"
 
 #. i18n: Code Buffer Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
 msgid "Code Buff. Size"
 msgstr ""
 
@@ -3140,11 +3148,19 @@ msgstr "Ulostuloasetukset"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:964
-#: Source/Core/DolphinQt/MainWindow.cpp:1754
+#: Source/Core/DolphinQt/MainWindow.cpp:966
+#: Source/Core/DolphinQt/MainWindow.cpp:1756
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Vahvista"
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+msgid "Confirm Hardcore Off"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+msgid "Confirm Logout"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:202
 msgid "Confirm backend change"
@@ -3600,7 +3616,7 @@ msgstr ""
 msgid "Could not recognize file {0}"
 msgstr "Tiedoston {0} tunnistus epäonnistui"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:278
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:280
 msgid "Could not save your changes!"
 msgstr "Muutoksia ei voinut tallentaa!"
 
@@ -3761,7 +3777,7 @@ msgstr "Muokatun kuvasuhteen leveys"
 msgid "Custom Aspect Ratio:"
 msgstr "Muokattu kuvasuhde:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:158
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:159
 msgid "Custom RTC Options"
 msgstr "Mukautetun reaaliaikaisen kellon asetukset"
 
@@ -3774,7 +3790,7 @@ msgid "Customize"
 msgstr "Muokkaa"
 
 #. i18n: Cycles Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
 msgid "Cycles %"
 msgstr ""
 
@@ -3784,7 +3800,7 @@ msgid "Cycles Average"
 msgstr ""
 
 #. i18n: Cycles Average
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 msgid "Cycles Avg."
 msgstr ""
 
@@ -3794,7 +3810,7 @@ msgid "Cycles Percent"
 msgstr ""
 
 #. i18n: "Cycles" means instruction cycles.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:645
 msgid "Cycles Spent"
 msgstr ""
@@ -4252,7 +4268,7 @@ msgid "Discard"
 msgstr "Hylkä"
 
 #. i18n: Settings that affect how achievements are displayed while playing.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:140
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:141
 msgid "Display Settings"
 msgstr "Näyttämisen asetukset"
 
@@ -4291,7 +4307,7 @@ msgstr "Matkaetäisyys neutraalipaikasta."
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "Sallitko Dolphinin lähettävän tietoja Dolphinin kehittäjille?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1755
+#: Source/Core/DolphinQt/MainWindow.cpp:1757
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Haluatko lisätä polun \"%1\" pelipolkujen listaan?"
 
@@ -4306,7 +4322,7 @@ msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 "Haluatko poistaa %n valitun tallennustiedoston/valittua tallennustiedostoa?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:968
+#: Source/Core/DolphinQt/MainWindow.cpp:970
 msgid "Do you want to stop the current emulation?"
 msgstr "Haluatko lopettaa nykyisen emulaation?"
 
@@ -4341,8 +4357,8 @@ msgstr "Dolphinin allekirjoitusten CSV-tiedosto"
 msgid "Dolphin Signature File"
 msgstr "Dolphinin allekirjoitustiedosto"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
-#: Source/Core/DolphinQt/MainWindow.cpp:1916
+#: Source/Core/DolphinQt/MainWindow.cpp:1838
+#: Source/Core/DolphinQt/MainWindow.cpp:1918
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS-nauhoitus (*.dtm)"
 
@@ -4456,11 +4472,11 @@ msgstr "Lataa koodeja WiiRD -tietokannasta"
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "Lataa kansikuvia GameTDB.comista ruudukkonäkymään"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:412
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:406
 msgid "Download complete"
 msgstr "Lataus valmis"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:413
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:407
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "Ladattu %1 koodia. (lisätty %2)"
 
@@ -4685,7 +4701,7 @@ msgid "Editor"
 msgstr "Muokkain"
 
 #. i18n: Effective Address
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
 msgid "Eff. Address"
 msgstr ""
 
@@ -4809,7 +4825,7 @@ msgstr "Ota huijauskoodit käyttöön"
 msgid "Enable Controller Inpu&t"
 msgstr "Ota ohjainsyö&te käyttöön"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:162
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:163
 msgid "Enable Custom RTC"
 msgstr "Ota mukautettu reaaliaikainen kello käyttöön"
 
@@ -4817,7 +4833,7 @@ msgstr "Ota mukautettu reaaliaikainen kello käyttöön"
 msgid "Enable Debugging UI"
 msgstr "Ota virheenkorjauskäyttöliittymä käyttöön"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:115
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Enable Discord Presence"
 msgstr "Ilmoita Discordiin pelaustiedot"
 
@@ -4829,15 +4845,15 @@ msgstr "Ota kaksiydinsuoritin käyttöön"
 msgid "Enable Dual Core (speedhack)"
 msgstr "Ota kaksiydinsuoritin käyttöön (nopeusniksi)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:95
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:96
 msgid "Enable Emulated CPU Clock Override"
 msgstr "Ota kellotaajuuden säätö käyttöön"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:125
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:126
 msgid "Enable Emulated Memory Size Override"
 msgstr "Ota emuloidun muistin määrän säätö käyttöön"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:102
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:103
 msgid "Enable Encore Achievements"
 msgstr "Ota Encore-saavutukset käyttöön"
 
@@ -4849,11 +4865,11 @@ msgstr "Ota FPRF käyttöön"
 msgid "Enable Graphics Mods"
 msgstr "Käytä grafiikkamodeja"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:82
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:83
 msgid "Enable Hardcore Mode"
 msgstr "Ota Hardcore-tila käyttöön"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:84
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:85
 msgid ""
 "Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended "
 "to provide an experience as close to gaming on the original hardware as "
@@ -4894,11 +4910,11 @@ msgid "Enable JIT Block Profiling"
 msgstr "Käytä JIT-lohkojen seurantaa"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:69
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:70
 msgid "Enable MMU"
 msgstr "Ota MMU käyttöön"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:119
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
 msgid "Enable Progress Notifications"
 msgstr "Ota edistymisilmoitukset käyttöön"
 
@@ -4906,7 +4922,7 @@ msgstr "Ota edistymisilmoitukset käyttöön"
 msgid "Enable Progressive Scan"
 msgstr "Ota progressiivinen kuva käyttöön"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:67
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:68
 msgid "Enable RetroAchievements.org Integration"
 msgstr "Ota RetroAchievements.org-yhteys käyttöön"
 
@@ -4923,11 +4939,11 @@ msgstr "Ota näytönsäästäjä käyttöön"
 msgid "Enable Speaker Data"
 msgstr "Käytä kaiutindataa"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:108
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:109
 msgid "Enable Spectator Mode"
 msgstr "Ota katselutila käyttöön"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:96
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:97
 msgid "Enable Unofficial Achievements"
 msgstr "Ota epäviralliset saavutukset käyttöön"
 
@@ -4943,7 +4959,7 @@ msgstr "Käytä WiiLink-palvelua WiiConnect24:n apuna"
 msgid "Enable Wireframe"
 msgstr "Ota rautalankatila käyttöön"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:83
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:84
 msgid "Enable Write-Back Cache (slow)"
 msgstr "Käytä takaisinkirjoitusvälimuistia (hidas)"
 
@@ -4956,7 +4972,7 @@ msgstr ""
 "johtaa kaatumisiin ja muihin ongelmiin joissakin peleissä. (PÄÄLLÄ = "
 "Yhteensopivuus, POIS = Rajoittamaton)"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:69
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:70
 msgid ""
 "Enable integration with RetroAchievements for earning achievements and "
 "competing in leaderboards.<br><br>Must log in with a RetroAchievements "
@@ -4969,7 +4985,7 @@ msgstr ""
 "tallenna salasanaasi ja käyttää sen sijaan API-avainta käyttäjän "
 "muistamiseen."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:121
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:122
 msgid ""
 "Enable progress notifications on achievements.<br><br>Displays a brief popup "
 "message whenever the player makes progress on an achievement that tracks an "
@@ -4980,7 +4996,7 @@ msgstr ""
 "sellaista saavutusta kohden, joka perustuu kertyvään arvoon, esimerkiksi kun "
 "pelajaa saa 60 tähteä 120:stä."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:104
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:105
 msgid ""
 "Enable unlocking achievements in Encore Mode.<br><br>Encore Mode re-enables "
 "achievements the player has already unlocked on the site so that the player "
@@ -4994,7 +5010,7 @@ msgstr ""
 "hyödyllinen esimerkiksi speedrun-kriteerien seurantaan.<br><br>Asetus tulee "
 "voimaan seuraavan kerran, kun peli käynnistetään."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:110
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:111
 msgid ""
 "Enable unlocking achievements in Spectator Mode.<br><br>While in Spectator "
 "Mode, achievements and leaderboards will be processed and displayed on "
@@ -5011,7 +5027,7 @@ msgstr ""
 "asetus on poissa käytöstä pelin käynnistyessä, sitä voi vapaasti vaihdella "
 "pelin ollessa yhä käynnissä."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:98
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:99
 msgid ""
 "Enable unlocking unofficial achievements as well as official achievements."
 "<br><br>Unofficial achievements may be optional or unfinished achievements "
@@ -5051,7 +5067,7 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:85
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
 msgid ""
 "Enables emulation of the CPU write-back cache.<br>Enabling will have a "
 "significant impact on performance.<br>This should be left disabled unless "
@@ -5127,7 +5143,7 @@ msgstr ""
 "Ottaa MMU:n käyttöön. Jotkin pelit vaativat sitä. (PÄÄLLÄ = Yhteensopiva, "
 "POIS = Nopea)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:71
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:72
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -5262,8 +5278,8 @@ msgstr "Syötä RSO-moduulin osoite:"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:262
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:386
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:379
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:391
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:539
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
@@ -5298,14 +5314,14 @@ msgstr "Syötä RSO-moduulin osoite:"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
-#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:313
-#: Source/Core/DolphinQt/MainWindow.cpp:321
-#: Source/Core/DolphinQt/MainWindow.cpp:1144
-#: Source/Core/DolphinQt/MainWindow.cpp:1553
-#: Source/Core/DolphinQt/MainWindow.cpp:1560
-#: Source/Core/DolphinQt/MainWindow.cpp:1620
-#: Source/Core/DolphinQt/MainWindow.cpp:1627
-#: Source/Core/DolphinQt/MainWindow.cpp:1733
+#: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:315
+#: Source/Core/DolphinQt/MainWindow.cpp:323
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1555
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
+#: Source/Core/DolphinQt/MainWindow.cpp:1622
+#: Source/Core/DolphinQt/MainWindow.cpp:1629
+#: Source/Core/DolphinQt/MainWindow.cpp:1735
 #: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1275
 #: Source/Core/DolphinQt/MenuBar.cpp:1365
 #: Source/Core/DolphinQt/MenuBar.cpp:1388
@@ -5368,7 +5384,7 @@ msgstr ""
 msgid "Error obtaining session list: %1"
 msgstr "Virhe istuntolistan hakemisessa: %1"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:314
+#: Source/Core/DolphinQt/MainWindow.cpp:316
 msgid "Error occurred while loading some texture packs"
 msgstr "Virheitä tapahtui joidenkin tekstuuripakettien latauksessa"
 
@@ -5728,7 +5744,7 @@ msgstr "Valitun tiedoston poisto epäonnistui."
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "Bluetooth-läpipääsyn ydinohjaimen irrottaminen epäonnistui: {0}"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:379
 msgid "Failed to download codes."
 msgstr "Koodien lataaminen epäonnistui."
 
@@ -5806,7 +5822,7 @@ msgstr ""
 "(Työkalut -> Hallitse NAND-muistia -> Tarkista NAND...), ja yritä "
 "tallennustiedoston tuontia sitten uudelleen."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1144
+#: Source/Core/DolphinQt/MainWindow.cpp:1146
 msgid "Failed to init core"
 msgstr "Ytimen alustus epäonnistui"
 
@@ -5833,7 +5849,7 @@ msgstr "Paketin asennus epäonnistui: %1"
 msgid "Failed to install this title to the NAND."
 msgstr "Tämän julkaisun asennus NAND-muistiin epäonnistui."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1655
+#: Source/Core/DolphinQt/MainWindow.cpp:1657
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5894,7 +5910,7 @@ msgid "Failed to open \"{0}\" for writing."
 msgstr "Tiedoston \"{0}\" avaaminen kirjoittamista varten epäonnistui."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1733
+#: Source/Core/DolphinQt/MainWindow.cpp:1735
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "Kohteen '%1' avaus epäonnistui"
@@ -5935,7 +5951,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "Tiedoston avaaminen epäonnistui."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1654
+#: Source/Core/DolphinQt/MainWindow.cpp:1656
 msgid "Failed to open server"
 msgstr "Palvelimen avaaminen epäonnistui"
 
@@ -6258,7 +6274,7 @@ msgstr "Tiedostokoko"
 msgid "File Size:"
 msgstr "Tiedostokoko:"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:391
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:385
 msgid "File contained no codes."
 msgstr "Tiedostossa ei ollut koodeja."
 
@@ -6608,7 +6624,7 @@ msgid "Function"
 msgstr "Funktio"
 
 #. i18n: Settings that affect the functionality of unlocking achievements.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:134
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:135
 msgid "Function Settings"
 msgstr "Toimintoasetukset"
 
@@ -7128,7 +7144,7 @@ msgstr "Pää"
 msgid "Help"
 msgstr "Ohje"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:130
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:131
 msgid "Hero level:"
 msgstr "Sankarin taso:"
 
@@ -7220,7 +7236,7 @@ msgid "Host Code:"
 msgstr "Isäntäkoneen koodi:"
 
 #. i18n: Host Far Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
 msgid "Host F. Size"
 msgstr ""
 
@@ -7238,7 +7254,7 @@ msgid "Host Input Authority"
 msgstr "Isäntäkone vastaa syötteestä"
 
 #. i18n: Host Near Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
 msgid "Host N. Size"
 msgstr ""
 
@@ -7540,13 +7556,8 @@ msgid ""
 "Ignores any requests from the CPU to read from or write to the EFB. "
 "<br><br>Improves performance in some games, but will disable all EFB-based "
 "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If "
-"unsure, leave this unchecked.</dolphin_emphasis>"
+"unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"Sivuuttaa kaikki suorittimen pyynnöt lukea tai kirjoittaa EFB:tä."
-"<br><br>Parantaa monien pelien suorituskykyä, mutta poistaa kaikki EFB-"
-"pohjaiset grafiikkatehosteet tai jopa pelin ominaisuudet."
-"<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä valitsematta.</"
-"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:93
 msgid "Immediately Present XFB"
@@ -7586,11 +7597,11 @@ msgstr "Tuo tallennustiedosto(ja)"
 msgid "Import Wii Save..."
 msgstr "Tuo Wii-tallennustiedosto..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1797
+#: Source/Core/DolphinQt/MainWindow.cpp:1799
 msgid "Importing NAND backup"
 msgstr "NAND-varmuuskopion tuonti käynnissä"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1807
+#: Source/Core/DolphinQt/MainWindow.cpp:1809
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7630,27 +7641,27 @@ msgstr ""
 "palauttamisen aikaa.<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä "
 "valitsematta.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:223
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:225
 msgid "Incorrect hero level value!"
 msgstr "Sankarin taso ei kelpaa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:246
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:248
 msgid "Incorrect last placed time!"
 msgstr "Edellisen sijoituksen aika ei kelpaa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:240
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:242
 msgid "Incorrect last reset time!"
 msgstr "Edellisen nollauksen aika ei kelpaa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:217
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:219
 msgid "Incorrect money value!"
 msgstr "Rahan määrä ei kelpaa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:229
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:231
 msgid "Incorrect nickname!"
 msgstr "Nimimerkki ei kelpaa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:235
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:237
 msgid "Incorrect playtime value!"
 msgstr "Peliaika ei kelpaa!"
 
@@ -7901,7 +7912,7 @@ msgstr "Sisäinen kuvatarkkuus:"
 msgid "Internal error while generating AR code."
 msgstr "Sisäinen virhe AR-koodia luonnissa."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
 msgid "Interpreter (slowest)"
 msgstr "Tulkki (hitain)"
 
@@ -7921,7 +7932,7 @@ msgstr "Automaattisen päivityksen palvelu palautti virheellistä JSONia: {0}"
 msgid "Invalid Mixed Code"
 msgstr "Virheellinen sekakoodi"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:322
+#: Source/Core/DolphinQt/MainWindow.cpp:324
 msgid "Invalid Pack %1 provided: %2"
 msgstr "Virheellinen paketti %1 annettu: %2"
 
@@ -8074,11 +8085,11 @@ msgstr "JIT pois (JIT-ydin)"
 msgid "JIT Paired Off"
 msgstr "JIT-paritettu pois"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
 msgid "JIT Recompiler for ARM64 (recommended)"
 msgstr "JIT-kääntäjä ARM64-alustalle (suositus)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:33
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "JIT-kääntäjä x86-64-alustalle (suositus)"
 
@@ -8122,7 +8133,7 @@ msgstr "Japani"
 msgid "Japanese (Shift-JIS)"
 msgstr "Japani (Shift-JIS)"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:297
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:299
 msgid ""
 "Kaos is the only villain for this trophy and is always unlocked. No need to "
 "edit anything!"
@@ -8216,12 +8227,12 @@ msgid "Last Value"
 msgstr "Edellinen arvo"
 
 #. i18n: A timestamp for when the Skylander was most recently used
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:158
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:159
 msgid "Last placed:"
 msgstr "Viimeksi sijoitettu:"
 
 #. i18n: A timestamp for when the Skylander was most recently reset
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:148
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:149
 msgid "Last reset:"
 msgstr "Viimeksi nollattu:"
 
@@ -8611,8 +8622,8 @@ msgstr "Loki"
 msgid "Log Configuration"
 msgstr "Lokiasetukset"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:77
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:199
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:200
 msgid "Log In"
 msgstr "Kirjaudu sisään"
 
@@ -8620,7 +8631,7 @@ msgstr "Kirjaudu sisään"
 msgid "Log JIT Instruction Coverage"
 msgstr "Kirjoita JIT:n käskykattavuus lokiin"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
 msgid "Log Out"
 msgstr "Kirjaudu ulo"
 
@@ -8636,19 +8647,19 @@ msgstr "Lokityypit"
 msgid "Logger Outputs"
 msgstr "Lokin ulostulot"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:80
 msgid "Login Failed"
 msgstr "Sisäänkirjautuminen epäonnistui"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:49
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:52
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:53
 msgid "Login Failed - No Internet Connection"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:55
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Login Failed - Server Error"
 msgstr ""
 
@@ -8710,27 +8721,27 @@ msgstr "Pääohjainsauva"
 msgid "Make &Unconditional"
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:224
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:226
 msgid "Make sure that the hero level value is between 0 and 100!"
 msgstr "Varmista, että sankarin taso on välillä 0–100!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:247
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:249
 msgid "Make sure that the last placed datetime value is valid!"
 msgstr "Varmista, että edellisen sijoituksen päivämäärä ja aika ovat oikein!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:241
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:243
 msgid "Make sure that the last reset datetime value is valid!"
 msgstr "Varmista, että edellisen nollauksen päivämäärä ja aika ovat oikein!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:218
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:220
 msgid "Make sure that the money value is between 0 and 65000!"
 msgstr "Varmista, että rahan määrä on välillä 0–65000!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:230
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:232
 msgid "Make sure that the nickname is between 0 and 15 characters long!"
 msgstr "Varmista, että nimimerkki on 0–15 merkkiä pitkä!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:236
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:238
 msgid "Make sure that the playtime value is valid!"
 msgstr "Varmista, että peliaika on oikein!"
 
@@ -8830,7 +8841,7 @@ msgstr "Muistikorttien hallinta"
 msgid "Memory Card Path:"
 msgstr "Muistikorttipolku:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:120
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:121
 msgid "Memory Override"
 msgstr "Muistin korvaus"
 
@@ -8853,7 +8864,7 @@ msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 "MemoryCard: Write-kutsu tapahtui virheellisellä kohdeosoitteella ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1778
+#: Source/Core/DolphinQt/MainWindow.cpp:1780
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -8953,7 +8964,7 @@ msgid "Modify Slot"
 msgstr "Muokkaa paikkaa"
 
 #. i18n: %1 is a name
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:62
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:63
 msgid "Modifying Skylander: %1"
 msgstr "Muokataan Skylanderia: %1"
 
@@ -8962,7 +8973,7 @@ msgstr "Muokataan Skylanderia: %1"
 msgid "Modules found: %1"
 msgstr "Löydetyt moduulit: %1"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:126
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:127
 msgid "Money:"
 msgstr "Raha:"
 
@@ -9244,7 +9255,7 @@ msgid "Nickname is too long."
 msgstr "Nimimerkki on liian pitkä."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:199
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:136
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:137
 msgid "Nickname:"
 msgstr "Nimimerkki:"
 
@@ -9280,7 +9291,7 @@ msgstr "Ei hakutuloksia"
 msgid "No Save Data"
 msgstr "Ei tallennustiedostoja"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:84
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:85
 msgid "No data to modify!"
 msgstr "Ei muokattavaa dataa!"
 
@@ -9794,7 +9805,7 @@ msgid "PNG image file (*.png);; All Files (*)"
 msgstr "PNG-kuvatiedosto (*.png);; Kaikki tiedostot (*)"
 
 #. i18n: PPC Feature Flags
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:384
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
 msgid "PPC Feat. Flags"
 msgstr ""
 
@@ -9840,7 +9851,7 @@ msgstr "Passiivinen"
 msgid "Passthrough a Bluetooth adapter"
 msgstr "Bluetooth-sovittimen läpipäästö"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:74
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:75
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:166
 msgid "Password"
 msgstr "Salasana"
@@ -9890,11 +9901,11 @@ msgstr "Keskeytä nauhoituksen loputtua"
 msgid "Pause on Focus Loss"
 msgstr "Keskeytä, kun ikkuna ei ole kohdistettuna"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:75
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:76
 msgid "Pause on Panic"
 msgstr "Keskeytä paniikin tapahtuessa"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:77
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:78
 msgid ""
 "Pauses the emulation if a Read/Write or Unknown Instruction panic occurs."
 "<br>Enabling will affect performance.<br>The performance impact is the same "
@@ -10049,7 +10060,7 @@ msgid "Playing a game"
 msgstr ""
 
 #. i18n: The total amount of time the Skylander has been used for
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:142
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:143
 msgid "Playtime:"
 msgstr "Peliaika:"
 
@@ -10296,7 +10307,7 @@ msgstr "DPLII-purkamisen laatu. Ääniviive kasvaa laadun myötä."
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1777
+#: Source/Core/DolphinQt/MainWindow.cpp:1779
 msgid "Question"
 msgstr "Kysymys"
 
@@ -10599,7 +10610,7 @@ msgstr ""
 "varma, jätä tämä valitsematta.</dolphin_emphasis>"
 
 #. i18n: Repeat Instructions
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
 msgid "Repeat Instr."
 msgstr ""
 
@@ -10840,7 +10851,7 @@ msgstr "Tärinä"
 msgid "Run &to Here"
 msgstr "Jatka &tähän"
 
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:395
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:643
 msgid "Run Count"
 msgstr ""
@@ -11014,7 +11025,7 @@ msgstr "Tallenna tila vanhimpaan"
 msgid "Save Preset"
 msgstr "Tallenna esiasetukset"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1916
+#: Source/Core/DolphinQt/MainWindow.cpp:1918
 msgid "Save Recording File As"
 msgstr "Tallenna nauhoitustiedosto nimellä"
 
@@ -11264,7 +11275,7 @@ msgstr "Valitse GBA-ROM"
 msgid "Select GBA Saves Path"
 msgstr "Valitse GBA-tallennustiedostojen polku"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1813
+#: Source/Core/DolphinQt/MainWindow.cpp:1815
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr "Valitse avaintiedosto (OTP-/SEEPROM-vedos)"
 
@@ -11276,7 +11287,7 @@ msgstr "Valitse viimeisin tilatallennus"
 msgid "Select Load Path"
 msgstr "Valitse latauspolk"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1787
+#: Source/Core/DolphinQt/MainWindow.cpp:1789
 msgid "Select NAND Backup"
 msgstr "Valitse NAND-varmuuskopio"
 
@@ -11377,9 +11388,9 @@ msgstr "Valitse hakemisto"
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:583
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
-#: Source/Core/DolphinQt/MainWindow.cpp:786
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1436
+#: Source/Core/DolphinQt/MainWindow.cpp:788
+#: Source/Core/DolphinQt/MainWindow.cpp:1426
+#: Source/Core/DolphinQt/MainWindow.cpp:1438
 msgid "Select a File"
 msgstr "Valitse tiedosto"
 
@@ -11407,7 +11418,7 @@ msgstr "Valitse e-Reader-kortti"
 msgid "Select the RSO module address:"
 msgstr "Valitse RSO-moduulin osoite"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1836
+#: Source/Core/DolphinQt/MainWindow.cpp:1838
 msgid "Select the Recording File to Play"
 msgstr "Valitse toistettava nauhoitustiedosto"
 
@@ -11761,7 +11772,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Asetukset"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:439
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:440
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: settings.txt-tiedoston luonti epäonnistui"
 
@@ -12807,7 +12818,7 @@ msgid "Switch to B"
 msgstr "Vaihda B:hen"
 
 #. i18n: "Symbol" means debugging symbol (its name in particular).
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:406
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:656
 msgid "Symbol"
 msgstr "Symboli"
@@ -13034,7 +13045,7 @@ msgstr ""
 "SD-kortille, Wii-järjestelmävalikko ei käynnistä sitä enää, eikä se myöskään "
 "suostu kopioimaan tai siirtämään sitä takaisin NAND-muistiin."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:177
 msgid "The amount of money this Skylander has. Between 0 and 65000"
 msgstr "Tämän Skylanderin omistaman rahan määrä, välillä 0–65000"
 
@@ -13170,7 +13181,7 @@ msgstr ""
 "Tiedosto %1 on jo olemassa.\n"
 "Haluatko korvata sen?"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:279
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:281
 msgid ""
 "The file associated to this file was closed! Did you clear the slot before "
 "saving?"
@@ -13271,7 +13282,7 @@ msgstr "Tiivisteet eivät täsmää!"
 msgid "The hashes match!"
 msgstr "Tiivisteet täsmäävät!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
 msgid ""
 "The hero level of this Skylander. Only seen in Skylanders: Spyro's "
 "Adventures. Between 0 and 100"
@@ -13291,11 +13302,11 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr "Asennusosio puuttuu."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:183
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:185
 msgid "The last time the figure has been placed on a portal"
 msgstr "Edellinen ajanhetki, jona hahmo on asetettu portaaliin"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:181
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:183
 msgid ""
 "The last time the figure has been reset. If the figure has never been reset, "
 "the first time the figure was placed on a portal"
@@ -13316,7 +13327,7 @@ msgstr ""
 "nauhoitus toimii oikein, vaihda valittu laite muistikortiksi tai GCI-"
 "kansioksi."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
 msgid "The nickname for this Skylander. Limited to 15 characters"
 msgstr "Tämän Skylanderin lempinimi, korkeintaan 15 merkkiä"
 
@@ -13414,11 +13425,11 @@ msgstr "Kohdemuistikortilla on jo tiedosto \"%1\"."
 msgid "The ticket is not correctly signed."
 msgstr "Lipun allekirjoitus on virheellinen."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:182
 msgid "The total time this figure has been used inside a game in seconds"
 msgstr "Kokonaisaika, jonka verran hahmoa on käytetty pelissä, sekunteina"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:174
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
 msgid "The toy code for this figure. Only available for real figures."
 msgstr "Hahmon lelukoodi. Tieto on käytettävissä vain oikeissa hahmoissa."
 
@@ -13426,15 +13437,15 @@ msgstr "Hahmon lelukoodi. Tieto on käytettävissä vain oikeissa hahmoissa."
 msgid "The type of a partition could not be read."
 msgstr "Osion tyypin lukeminen epäonnistui."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:85
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:86
 msgid "The type of this Skylander does not have any data that can be modified!"
 msgstr "Tällaisella hahmolla ei ole muokattavaa dataa!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:92
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:93
 msgid "The type of this Skylander is unknown!"
 msgstr "Skylanderin tyyppi on tuntematon!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:100
 msgid ""
 "The type of this Skylander is unknown, or can't be modified at this time!"
 msgstr ""
@@ -13550,7 +13561,7 @@ msgstr ""
 "korealaisissa konsoleissa. Tämä luultavasti johtaa virheilmoitukseen \"ERROR "
 "#002\"."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:102
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:103
 msgid "This Skylander type can't be modified yet!"
 msgstr "Tällaista Skylanderia ei voi vielä muokata!"
 
@@ -13716,7 +13727,7 @@ msgstr "Ominaisuus vaikuttaa vain emuloidun ohjelmiston alustukseen."
 msgid "This session requires a password:"
 msgstr "Tämä istunto vaatii salasanan:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:184
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:179
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -13835,7 +13846,7 @@ msgid "Tilt"
 msgstr "Kallistus"
 
 #. i18n: Time Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
 msgid "Time %"
 msgstr ""
 
@@ -13845,7 +13856,7 @@ msgid "Time Average (ns)"
 msgstr ""
 
 #. i18n: Time Average (ns)
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Time Avg. (ns)"
 msgstr ""
 
@@ -13854,7 +13865,7 @@ msgid "Time Percent"
 msgstr ""
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:401
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:651
 msgid "Time Spent (ns)"
 msgstr ""
@@ -13880,7 +13891,7 @@ msgstr "Julkaisu"
 msgid "To"
 msgstr "Minne"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:201
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:202
 msgid "To log in, stop the current emulation."
 msgstr "Lopeta emulaatio kirjautuaksesi"
 
@@ -14029,7 +14040,7 @@ msgstr "Matkaetäisyys yhteensä."
 msgid "Touch"
 msgstr "Kosketus"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:121
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:122
 msgid "Toy code:"
 msgstr "Lelukoodi:"
 
@@ -14189,7 +14200,7 @@ msgstr "Yhteys päivityspalvelimeen epäonnistui."
 msgid "Unable to create updater copy."
 msgstr "Kopion luominen päivittimestä epäonnistui."
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:98
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
 msgid "Unable to modify Skylander!"
 msgstr "Skylanderin muokkaus ei onnistunut!"
 
@@ -14290,7 +14301,7 @@ msgid "Unknown"
 msgstr "Tuntematon"
 
 #. i18n: "Var" is short for "variant"
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:57
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:58
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:857
 msgid "Unknown (Id:%1 Var:%2)"
 msgstr "Tuntematon (Tunnus:%1 Muuttuja:%2)"
@@ -14323,7 +14334,7 @@ msgstr ""
 "Tuntematon SYNC_SAVE_DATA-viesti tunnisteella {0} saapui pelaajalta {1}. "
 "Pelaaja tulee poistetuksi!"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:91
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:92
 msgid "Unknown Skylander type!"
 msgstr "Tuntematon Skylanderin tyyppi!"
 
@@ -14531,7 +14542,7 @@ msgstr "Käytä PAL60-tilaa (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Käytä paniikkikäsittelijöitä"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:117
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
 "Use RetroAchievements rich presence in your Discord status.<br><br>Show "
 "Current Game on Discord must be enabled."
@@ -14594,7 +14605,7 @@ msgstr ""
 "Niitä voi käyttää arvojen hakemiseksi ja tallentamiseksi saman ohjaimen "
 "syötteiden ja ulostulojen kesken."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:72
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:73
 msgid "Username"
 msgstr "Käyttäjänimi"
 
@@ -15646,7 +15657,7 @@ msgstr "kohdistamaton"
 msgid "{0} (Masterpiece)"
 msgstr "{0} (Masterpiece)"
 
-#: Source/Core/UICommon/GameFile.cpp:843
+#: Source/Core/UICommon/GameFile.cpp:840
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
