@@ -269,10 +269,10 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
           m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
           if (flush_all)
           {
-            if (!reg1_zero)
-              UnlockRegister(EncodeRegTo32(RX1));
-            if (!reg2_zero)
-              UnlockRegister(EncodeRegTo32(RX2));
+            if (reg1.GetType() == RegType::Register)
+              UnlockRegister(reg1.GetReg());
+            if (reg2.GetType() == RegType::Register)
+              UnlockRegister(reg2.GetReg());
             reg1.Flush();
             reg2.Flush();
           }
