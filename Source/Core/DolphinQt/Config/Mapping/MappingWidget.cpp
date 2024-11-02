@@ -20,7 +20,6 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
@@ -340,10 +339,10 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
       setting.SetExpressionFromValue();
 
     // Ensure the UI has the game-controller indicator while editing the expression.
+    // And cancel in-progress mappings.
     ConfigChanged();
 
-    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
-    SetQWidgetWindowDecorations(&io);
+    IOWindow io(GetParent(), GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
     io.exec();
 
     setting.SimplifyIfPossible();
