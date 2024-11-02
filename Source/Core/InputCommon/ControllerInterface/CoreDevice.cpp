@@ -164,6 +164,14 @@ bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
   return old_name == name;
 }
 
+void Device::AddFullAnalogSurfaceInputs(Input* low, Input* high)
+{
+  AddInput(low);
+  AddInput(high);
+  AddInput(new FullAnalogSurface(low, high));
+  AddInput(new FullAnalogSurface(high, low));
+}
+
 void Device::AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs)
 {
   AddInput(new CombinedInput(std::move(name), {FindInput(inputs.first), FindInput(inputs.second)}));
