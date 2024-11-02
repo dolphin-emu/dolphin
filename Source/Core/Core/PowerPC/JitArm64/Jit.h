@@ -355,7 +355,7 @@ protected:
              Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
-  void GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out, bool negate = false);
+  void GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out);
   void SetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg in, bool negate = false);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
