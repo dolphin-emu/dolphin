@@ -20,7 +20,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::GetCRFieldBit(int field, int bit, ARM64Reg out, bool negate)
+void JitArm64::GetCRFieldBit(int field, int bit, ARM64Reg out)
 {
   ARM64Reg CR = gpr.CR(field);
   ARM64Reg WCR = EncodeRegTo32(CR);
@@ -29,24 +29,20 @@ void JitArm64::GetCRFieldBit(int field, int bit, ARM64Reg out, bool negate)
   {
   case PowerPC::CR_SO_BIT:  // check bit 59 set
     UBFX(out, CR, PowerPC::CR_EMU_SO_BIT, 1);
-    if (negate)
-      EOR(out, out, LogicalImm(1, GPRSize::B64));
     break;
 
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     CMP(WCR, ARM64Reg::WZR);
-    CSET(out, negate ? CC_NEQ : CC_EQ);
+    CSET(out, CC_EQ);
     break;
 
   case PowerPC::CR_GT_BIT:  // check val > 0
     CMP(CR, ARM64Reg::ZR);
-    CSET(out, negate ? CC_LE : CC_GT);
+    CSET(out, CC_GT);
     break;
 
   case PowerPC::CR_LT_BIT:  // check bit 62 set
     UBFX(out, CR, PowerPC::CR_EMU_LT_BIT, 1);
-    if (negate)
-      EOR(out, out, LogicalImm(1, GPRSize::B64));
     break;
 
   default:
@@ -620,7 +616,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     {
       auto WA = gpr.GetScopedReg();
       ARM64Reg XA = EncodeRegTo64(WA);
-      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, false);
+      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA);
       SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA, false);
       return;
     }
@@ -629,7 +625,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     {
       auto WA = gpr.GetScopedReg();
       ARM64Reg XA = EncodeRegTo64(WA);
-      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, false);
+      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA);
       SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA, true);
       return;
     }
@@ -645,8 +641,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     auto WB = gpr.GetScopedReg();
     ARM64Reg XB = EncodeRegTo64(WB);
 
-    GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, false);
-    GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), XB, false);
+    GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA);
+    GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), XB);
 
     // Compute combined bit
     switch (inst.SUBOP10)
