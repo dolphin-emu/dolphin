@@ -181,7 +181,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   if (!jo.fastmem)
     gpr.Lock(ARM64Reg::W0);
 
-  ARM64Reg RS = gpr.R(value);
+  // Don't materialize zero.
+  ARM64Reg RS = gpr.IsImm(value, 0) ? ARM64Reg::WZR : gpr.R(value);
 
   ARM64Reg reg_dest = ARM64Reg::INVALID_REG;
   ARM64Reg reg_off = ARM64Reg::INVALID_REG;
