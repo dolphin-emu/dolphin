@@ -54,6 +54,11 @@ class WatchWidget;
 class WiiTASInputWindow;
 struct WindowSystemInfo;
 
+namespace Core
+{
+class System;
+}
+
 namespace DiscIO
 {
 enum class Region;
@@ -74,7 +79,7 @@ class MainWindow final : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit MainWindow(std::unique_ptr<BootParameters> boot_parameters,
+  explicit MainWindow(Core::System& system, std::unique_ptr<BootParameters> boot_parameters,
                       const std::string& movie_path);
   ~MainWindow();
 
@@ -212,6 +217,8 @@ private:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
+
+  Core::System& m_system;
 
 #ifdef HAVE_XRANDR
   std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
