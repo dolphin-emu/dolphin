@@ -163,21 +163,6 @@ protected:
   void AddInput(Input* const i);
   void AddOutput(Output* const o);
 
-  class FullAnalogSurface final : public Input
-  {
-  public:
-    FullAnalogSurface(Input* low, Input* high) : m_low(*low), m_high(*high) {}
-    ControlState GetState() const override;
-    std::string GetName() const override;
-    bool IsDetectable() const override;
-    bool IsHidden() const override;
-    bool IsMatchingName(std::string_view name) const override;
-
-  private:
-    Input& m_low;
-    Input& m_high;
-  };
-
   // Pass Inputs for center-neutral (- and +) directions of some axis.
   // This function adds those Inputs and also a FullAnalogSurface Input for each direction.
   // This is only needed when it's not known if the particular axis is neutral in the center
