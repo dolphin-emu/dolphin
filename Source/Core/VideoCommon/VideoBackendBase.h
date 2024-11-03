@@ -64,7 +64,7 @@ public:
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 
-  static std::string GetDefaultBackendName();
+  static std::string GetDefaultBackendConfigName();
   static const std::vector<std::unique_ptr<VideoBackendBase>>& GetAvailableBackends();
   static void ActivateBackend(const std::string& name);
 
