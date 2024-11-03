@@ -1086,18 +1086,10 @@ std::map<unsigned, std::vector<float>> chn_ysf;
 std::map<unsigned, std::vector<channel_id>> chn_id;
 
 bool init_maps() {
-  chn_angle[cs_5point1] = std::vector<float>(
-      &map_5point1_ang[0],
-      &map_5point1_ang[sizeof(map_5point1_ang) / sizeof(map_5point1_ang[0])]);
-  chn_xsf[cs_5point1] = std::vector<float>(
-      &map_5point1_xsf[0],
-      &map_5point1_xsf[sizeof(map_5point1_xsf) / sizeof(map_5point1_xsf[0])]);
-  chn_ysf[cs_5point1] = std::vector<float>(
-      &map_5point1_ysf[0],
-      &map_5point1_ysf[sizeof(map_5point1_ysf) / sizeof(map_5point1_ysf[0])]);
-  chn_id[cs_5point1] = std::vector<channel_id>(
-      &map_5point1_id[0],
-      &map_5point1_id[sizeof(map_5point1_id) / sizeof(map_5point1_id[0])]);
+  chn_angle[cs_5point1] = std::vector(std::begin(map_5point1_ang), std::end(map_5point1_ang));
+  chn_xsf[cs_5point1] = std::vector(std::begin(map_5point1_xsf), std::end(map_5point1_xsf));
+  chn_ysf[cs_5point1] = std::vector(std::begin(map_5point1_ysf), std::end(map_5point1_ysf));
+  chn_id[cs_5point1] = std::vector(std::begin(map_5point1_id), std::end(map_5point1_id));
   chn_alloc[cs_5point1].push_back(
       std::vector<float *>(&map_5point1_lf[0], &map_5point1_lf[21]));
   chn_alloc[cs_5point1].push_back(
@@ -1111,18 +1103,10 @@ bool init_maps() {
   chn_alloc[cs_5point1].push_back(
       std::vector<float *>(&map_lfe_lfe[0], &map_lfe_lfe[21]));
 
-  chn_angle[cs_7point1] = std::vector<float>(
-      &map_7point1_ang[0],
-      &map_7point1_ang[sizeof(map_7point1_ang) / sizeof(map_7point1_ang[0])]);
-  chn_xsf[cs_7point1] = std::vector<float>(
-      &map_7point1_xsf[0],
-      &map_7point1_xsf[sizeof(map_7point1_xsf) / sizeof(map_7point1_xsf[0])]);
-  chn_ysf[cs_7point1] = std::vector<float>(
-      &map_7point1_ysf[0],
-      &map_7point1_ysf[sizeof(map_7point1_ysf) / sizeof(map_7point1_ysf[0])]);
-  chn_id[cs_7point1] = std::vector<channel_id>(
-      &map_7point1_id[0],
-      &map_7point1_id[sizeof(map_7point1_id) / sizeof(map_7point1_id[0])]);
+  chn_angle[cs_7point1] = std::vector(std::begin(map_7point1_ang), std::end(map_7point1_ang));
+  chn_xsf[cs_7point1] = std::vector(std::begin(map_7point1_xsf), std::end(map_7point1_xsf));
+  chn_ysf[cs_7point1] = std::vector(std::begin(map_7point1_ysf), std::end(map_7point1_ysf));
+  chn_id[cs_7point1] = std::vector(std::begin(map_7point1_id), std::end(map_7point1_id));
   chn_alloc[cs_7point1].push_back(
       std::vector<float *>(&map_7point1_lf[0], &map_7point1_lf[21]));
   chn_alloc[cs_7point1].push_back(
