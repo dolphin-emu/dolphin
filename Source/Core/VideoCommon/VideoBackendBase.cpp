@@ -228,6 +228,12 @@ std::string VideoBackendBase::GetDefaultBackendConfigName()
   return default_backend ? default_backend->GetName() : "";
 }
 
+std::string VideoBackendBase::GetDefaultBackendDisplayName()
+{
+  auto* const default_backend = GetDefaultVideoBackend();
+  return default_backend ? default_backend->GetDisplayName() : "";
+}
+
 const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvailableBackends()
 {
   static auto s_available_backends = [] {
