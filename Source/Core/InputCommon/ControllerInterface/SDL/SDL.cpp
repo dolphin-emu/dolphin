@@ -710,8 +710,8 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     const bool is_registered = registered_axes.contains(i);
 
     // each axis gets a negative and a positive input instance associated with it
-    AddAnalogInputs(new LegacyAxis(m_joystick, i, -32768, is_registered),
-                    new LegacyAxis(m_joystick, i, 32767, is_registered));
+    AddFullAnalogSurfaceInputs(new LegacyAxis(m_joystick, i, -32768, is_registered),
+                               new LegacyAxis(m_joystick, i, 32767, is_registered));
   }
 
   // Hats
