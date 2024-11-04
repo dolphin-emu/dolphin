@@ -154,24 +154,24 @@ void Init()
     }
 
     PXInputGetCapabilities =
-        (XInputGetCapabilities_t)::GetProcAddress(hXInput, "XInputGetCapabilities");
-    PXInputSetState = (XInputSetState_t)::GetProcAddress(hXInput, "XInputSetState");
+        (XInputGetCapabilities_t)GetProcAddress(hXInput, "XInputGetCapabilities");
+    PXInputSetState = (XInputSetState_t)GetProcAddress(hXInput, "XInputSetState");
     PXInputGetBatteryInformation =
-        (XInputGetBatteryInformation_t)::GetProcAddress(hXInput, "XInputGetBatteryInformation");
+        (XInputGetBatteryInformation_t)GetProcAddress(hXInput, "XInputGetBatteryInformation");
 
     // Ordinal 100 is the same as XInputGetState, except it doesn't dummy out the guide
     // button info. Try loading it and fall back if needed.
-    PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, (LPCSTR)100);
+    PXInputGetState = (XInputGetState_t)GetProcAddress(hXInput, (LPCSTR)100);
 
     s_have_guide_button = PXInputGetState != nullptr;
 
     if (!PXInputGetState)
-      PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, "XInputGetState");
+      PXInputGetState = (XInputGetState_t)GetProcAddress(hXInput, "XInputGetState");
 
     if (!PXInputGetCapabilities || !PXInputSetState || !PXInputGetState ||
         !PXInputGetBatteryInformation)
     {
-      ::FreeLibrary(hXInput);
+      FreeLibrary(hXInput);
       hXInput = nullptr;
       return;
     }
@@ -195,7 +195,7 @@ void DeInit()
 {
   if (hXInput)
   {
-    ::FreeLibrary(hXInput);
+    FreeLibrary(hXInput);
     hXInput = nullptr;
   }
 }

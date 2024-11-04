@@ -37,7 +37,7 @@ public:
   void Init();
   void Regenerate();
 
-  void ResetStack(Gen::X64CodeBlock& emitter);
+  void ResetStack(X64CodeBlock& emitter);
 
 private:
   void Generate();

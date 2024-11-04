@@ -172,16 +172,16 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
 }
 
 static bool
-ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+ParseShaderProperties(const CustomAssetLibrary::AssetID& asset_id,
                       const picojson::array& properties_data,
-                      std::map<std::string, VideoCommon::ShaderProperty>* shader_properties)
+                      std::map<std::string, ShaderProperty>* shader_properties)
 {
   if (!shader_properties) [[unlikely]]
     return false;
 
   for (const auto& property_data : properties_data)
   {
-    VideoCommon::ShaderProperty property;
+    ShaderProperty property;
     if (!property_data.is<picojson::object>())
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, property is not the right json type",
@@ -258,7 +258,7 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 
-bool PixelShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+bool PixelShaderData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                                const picojson::object& json, PixelShaderData* data)
 {
   const auto properties_iter = json.find("properties");

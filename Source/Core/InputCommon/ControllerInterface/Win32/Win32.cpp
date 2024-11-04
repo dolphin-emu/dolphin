@@ -98,15 +98,15 @@ void InputBackend::PopulateDevices()
 {
   std::lock_guard lk_population(s_populate_mutex);
   s_first_populate_devices_asked.Set();
-  ciface::DInput::PopulateDevices(GetHWND());
-  ciface::XInput::PopulateDevices();
-  ciface::WGInput::PopulateDevices();
+  DInput::PopulateDevices(GetHWND());
+  XInput::PopulateDevices();
+  WGInput::PopulateDevices();
 }
 
 void InputBackend::HandleWindowChange()
 {
   std::lock_guard lk_population(s_populate_mutex);
-  ciface::DInput::ChangeWindow(GetHWND());
+  DInput::ChangeWindow(GetHWND());
 }
 
 InputBackend::~InputBackend()

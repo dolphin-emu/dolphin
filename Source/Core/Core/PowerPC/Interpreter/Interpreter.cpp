@@ -191,7 +191,7 @@ int Interpreter::SingleStepInner()
 
   UpdatePC();
 
-  PowerPC::UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
+  UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
                                     (opinfo->flags & FL_USE_FPU) != 0, m_ppc_state);
   return opinfo->num_cycles;
 }

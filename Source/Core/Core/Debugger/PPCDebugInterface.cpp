@@ -350,7 +350,7 @@ u32 PPCDebugInterface::ReadInstruction(const Core::CPUThreadGuard& guard, u32 ad
 
 bool PPCDebugInterface::IsAlive() const
 {
-  return Core::IsRunning(m_system);
+  return IsRunning(m_system);
 }
 
 bool PPCDebugInterface::IsBreakpoint(u32 address) const
@@ -512,9 +512,9 @@ void PPCDebugInterface::RunTo(u32 address)
 
 std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()
 {
-  const bool has_ssl = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) ||
-                       Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
-  const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
+  const bool has_ssl = Get(Config::MAIN_NETWORK_SSL_DUMP_READ) ||
+                       Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
+  const bool is_pcap = Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
   const auto current_capture_type = [&] {
     if (is_pcap)
       return Core::NetworkCaptureType::PCAP;

@@ -93,7 +93,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
 {
   std::array<u8, 20> revision_bytes{};
 
-  if (revision.size() % 2 == 0 && std::all_of(revision.begin(), revision.end(), ::isxdigit))
+  if (revision.size() % 2 == 0 && std::all_of(revision.begin(), revision.end(), isxdigit))
   {
     // The revision string normally contains a git commit hash,
     // which is 40 hexadecimal digits long. In DTM files, each pair of
@@ -141,7 +141,7 @@ std::string MovieManager::GetInputDisplay()
         m_controllers[i] = ControllerType::GC;
       else
         m_controllers[i] = ControllerType::None;
-      m_wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+      m_wiimotes[i] = Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
     }
   }
 
@@ -425,17 +425,17 @@ bool MovieManager::IsNetPlayRecording() const
 // NOTE: Host Thread
 void MovieManager::ChangePads()
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   ControllerTypeArray controllers{};
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    const SerialInterface::SIDevices si_device = Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
       controllers[i] = ControllerType::GBA;
-    else if (SerialInterface::SIDevice_IsGCController(si_device))
+    else if (SIDevice_IsGCController(si_device))
       controllers[i] = ControllerType::GC;
     else
       controllers[i] = ControllerType::None;
@@ -454,8 +454,8 @@ void MovieManager::ChangePads()
     }
     else if (IsUsingPad(i))
     {
-      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-      if (SerialInterface::SIDevice_IsGCController(si_device))
+      const SerialInterface::SIDevices si_device = Get(Config::GetInfoForSIDevice(i));
+      if (SIDevice_IsGCController(si_device))
       {
         device = si_device;
       }
@@ -477,7 +477,7 @@ void MovieManager::ChangeWiiPads(bool instantly)
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    wiimotes[i] = Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
@@ -489,7 +489,7 @@ void MovieManager::ChangeWiiPads(bool instantly)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
-    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
+    SetCurrent(Config::GetInfoForWiimoteSource(i),
                        is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
     if (bt != nullptr)
       bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
@@ -518,9 +518,9 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
       m_net_play = true;
       m_recording_start_time = ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime();
     }
-    else if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
+    else if (Get(Config::MAIN_CUSTOM_RTC_ENABLE))
     {
-      m_recording_start_time = Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
+      m_recording_start_time = Get(Config::MAIN_CUSTOM_RTC_VALUE);
     }
     else
     {
@@ -531,12 +531,12 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
 
     for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
-      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+      const SerialInterface::SIDevices si_device = Get(Config::GetInfoForSIDevice(i));
       if (si_device == SerialInterface::SIDEVICE_GC_TARUKONGA)
         m_bongos |= (1 << i);
     }
 
-    if (Core::IsRunning(m_system))
+    if (IsRunning(m_system))
     {
       const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
       if (File::Exists(save_path))
@@ -551,14 +551,14 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     }
 
     // Wiimotes cause desync issues if they're not reset before launching the game
-    if (!Core::IsRunning(m_system))
+    if (!IsRunning(m_system))
     {
       // This will also reset the Wiimotes for GameCube games, but that shouldn't do anything
       Wiimote::ResetAllWiimotes();
     }
 
     m_play_mode = PlayMode::Recording;
-    m_author = Config::Get(Config::MAIN_MOVIE_MOVIE_AUTHOR);
+    m_author = Get(Config::MAIN_MOVIE_MOVIE_AUTHOR);
     m_temp_input.clear();
 
     m_current_byte = 0;
@@ -570,12 +570,12 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     // taken from base settings as expected)
     static DTMHeader header = {.bWii = true};
     ConfigLoaders::SaveToDTM(&header);
-    Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
+    AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
 
-    if (Core::IsRunning(m_system))
-      Core::UpdateWantDeterminism(m_system);
+    if (IsRunning(m_system))
+      UpdateWantDeterminism(m_system);
   };
-  Core::RunOnCPUThread(m_system, start_recording, true);
+  RunOnCPUThread(m_system, start_recording, true);
 
   Core::DisplayMessage("Starting movie recording", 2000);
   return true;
@@ -730,7 +730,7 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
   }
 
   // Nunchuk
-  if (rpt.HasExt() && ext == ExtensionNumber::NUNCHUK)
+  if (rpt.HasExt() && ext == NUNCHUK)
   {
     const u8* const extData = rpt.GetExtDataPtr();
 
@@ -751,7 +751,7 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
   }
 
   // Classic controller
-  if (rpt.HasExt() && ext == ExtensionNumber::CLASSIC)
+  if (rpt.HasExt() && ext == CLASSIC)
   {
     const u8* const extData = rpt.GetExtDataPtr();
 
@@ -903,7 +903,7 @@ void MovieManager::ReadHeader()
   if (m_temp_header.bSaveConfig)
   {
     m_save_config = true;
-    Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&m_temp_header));
+    AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&m_temp_header));
     m_clear_save = m_temp_header.bClearSave;
     m_memcards = m_temp_header.memcards;
     m_bongos = m_temp_header.bongos;
@@ -957,7 +957,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
   // Wiimotes cause desync issues if they're not reset before launching the game
   Wiimote::ResetAllWiimotes();
 
-  Core::UpdateWantDeterminism(m_system);
+  UpdateWantDeterminism(m_system);
 
   m_temp_input.resize(recording_file.GetSize() - 256);
   recording_file.ReadBytes(m_temp_input.data(), m_temp_input.size());
@@ -983,7 +983,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
 #ifdef USE_RETRO_ACHIEVEMENTS
     // On the chance someone tries to re-enable before the TAS can start
-    Config::SetBase(Config::RA_HARDCORE_ENABLED, false);
+    SetBase(Config::RA_HARDCORE_ENABLED, false);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
     LoadInput(movie_path);
@@ -1151,7 +1151,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
       if (m_play_mode != PlayMode::Playing)
       {
         m_play_mode = PlayMode::Playing;
-        Core::UpdateWantDeterminism(m_system);
+        UpdateWantDeterminism(m_system);
         Core::DisplayMessage("Switched to playback", 2000);
       }
     }
@@ -1160,7 +1160,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
       if (m_play_mode != PlayMode::Recording)
       {
         m_play_mode = PlayMode::Recording;
-        Core::UpdateWantDeterminism(m_system);
+        UpdateWantDeterminism(m_system);
         Core::DisplayMessage("Switched to recording", 2000);
       }
     }
@@ -1275,7 +1275,7 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-bool MovieManager::PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
+bool MovieManager::PlayWiimote(int wiimote, DataReportBuilder& rpt,
                                ExtensionNumber ext, const EncryptionKey& key)
 {
   if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || m_temp_input.empty())
@@ -1339,22 +1339,22 @@ void MovieManager::EndPlayInput(bool cont)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
     auto& cpu = m_system.GetCPU();
-    const bool was_running = Core::IsRunning(m_system) && !cpu.IsStepping();
-    if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
+    const bool was_running = IsRunning(m_system) && !cpu.IsStepping();
+    if (was_running && Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
       cpu.Break();
     m_rerecords = 0;
     m_current_byte = 0;
     m_play_mode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
     m_recording_from_save_state = false;
-    Config::RemoveLayer(Config::LayerType::Movie);
+    RemoveLayer(Config::LayerType::Movie);
     // we don't clear these things because otherwise we can't resume playback if we load a movie
     // state later
     // m_total_frames = s_totalBytes = 0;
     // delete tmpInput;
     // tmpInput = nullptr;
 
-    Core::QueueHostJob([](Core::System& system) { Core::UpdateWantDeterminism(system); });
+    Core::QueueHostJob([](Core::System& system) { UpdateWantDeterminism(system); });
   }
 }
 
@@ -1439,8 +1439,8 @@ void MovieManager::SetGraphicsConfig()
 void MovieManager::GetSettings()
 {
   using ExpansionInterface::EXIDeviceType;
-  const EXIDeviceType slot_a_type = Config::Get(Config::MAIN_SLOT_A);
-  const EXIDeviceType slot_b_type = Config::Get(Config::MAIN_SLOT_B);
+  const EXIDeviceType slot_a_type = Get(Config::MAIN_SLOT_A);
+  const EXIDeviceType slot_b_type = Get(Config::MAIN_SLOT_B);
   const bool slot_a_has_raw_memcard = slot_a_type == EXIDeviceType::MemoryCard;
   const bool slot_a_has_gci_folder = slot_a_type == EXIDeviceType::MemoryCardFolder;
   const bool slot_b_has_raw_memcard = slot_b_type == EXIDeviceType::MemoryCard;
@@ -1452,7 +1452,7 @@ void MovieManager::GetSettings()
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
     m_clear_save = !File::Exists(
-        Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Session) + "/banner.bin");
+        GetTitleDataPath(title_id, Common::FromWhichRoot::Session) + "/banner.bin");
   }
   else
   {
@@ -1476,7 +1476,7 @@ void MovieManager::GetSettings()
 
   m_revision = ConvertGitRevisionToBytes(Common::GetScmRevGitStr());
 
-  if (!Config::Get(Config::MAIN_DSP_HLE))
+  if (!Get(Config::MAIN_DSP_HLE))
   {
     std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
     std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;

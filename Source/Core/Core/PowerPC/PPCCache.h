@@ -77,7 +77,7 @@ struct InstructionCache : public Cache
 
   InstructionCache() = default;
   ~InstructionCache();
-  u32 ReadInstruction(Memory::MemoryManager& memory, PowerPC::PowerPCState& ppc_state, u32 addr);
+  u32 ReadInstruction(Memory::MemoryManager& memory, PowerPCState& ppc_state, u32 addr);
   void Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface, u32 addr);
   void Init(Memory::MemoryManager& memory);
   void Reset(JitInterface& jit_interface);

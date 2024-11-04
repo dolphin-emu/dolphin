@@ -53,7 +53,7 @@ std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
   return std::nullopt;
 }
 
-bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+bool ParseSampler(const CustomAssetLibrary::AssetID& asset_id,
                   const picojson::object& json, SamplerState* sampler)
 {
   if (!sampler) [[unlikely]]
@@ -176,7 +176,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
 
   if (type == "texture2d")
   {
-    data->m_type = TextureData::Type::Type_Texture2D;
+    data->m_type = Type::Type_Texture2D;
 
     if (!ParseSampler(asset_id, json, &data->m_sampler))
     {
@@ -185,7 +185,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   }
   else if (type == "texturecube")
   {
-    data->m_type = TextureData::Type::Type_TextureCube;
+    data->m_type = Type::Type_TextureCube;
   }
   else
   {
@@ -207,13 +207,13 @@ void TextureData::ToJson(picojson::object* obj, const TextureData& data)
   auto& json_obj = *obj;
   switch (data.m_type)
   {
-  case TextureData::Type::Type_Texture2D:
+  case Type::Type_Texture2D:
     json_obj.emplace("type", "texture2d");
     break;
-  case TextureData::Type::Type_TextureCube:
+  case Type::Type_TextureCube:
     json_obj.emplace("type", "texturecube");
     break;
-  case TextureData::Type::Type_Undefined:
+  case Type::Type_Undefined:
     break;
   };
 
@@ -309,7 +309,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
 
   // Verify that the aspect ratio of the texture hasn't changed, as this could have
   // side-effects.
-  const VideoCommon::CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
+  const CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
   if (first_mip.width * native_height != first_mip.height * native_width)
   {
     // Note: this feels like this should return an error but

@@ -57,7 +57,7 @@ NetworkCaptureType DummyNetworkCaptureLogger::GetCaptureType() const
 
 void BinarySSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
     return;
   const std::string filename =
       File::GetUserPath(D_DUMPSSL_IDX) + SConfig::GetInstance().GetGameID() + "_read.bin";
@@ -66,7 +66,7 @@ void BinarySSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s3
 
 void BinarySSLCaptureLogger::LogSSLWrite(const void* data, std::size_t length, s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
     return;
   const std::string filename =
       File::GetUserPath(D_DUMPSSL_IDX) + SConfig::GetInstance().GetGameID() + "_write.bin";
@@ -97,14 +97,14 @@ void PCAPSSLCaptureLogger::OnNewSocket(s32 socket)
 
 void PCAPSSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
     return;
   Log(LogType::Read, data, length, socket, nullptr);
 }
 
 void PCAPSSLCaptureLogger::LogSSLWrite(const void* data, std::size_t length, s32 socket)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
     return;
   Log(LogType::Write, data, length, socket, nullptr);
 }
@@ -121,7 +121,7 @@ void PCAPSSLCaptureLogger::LogWrite(const void* data, std::size_t length, s32 so
 
 void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
 {
-  if (!Config::Get(Config::MAIN_NETWORK_DUMP_BBA))
+  if (!Get(Config::MAIN_NETWORK_DUMP_BBA))
     return;
 
   // Concurrency between CEXIETHERNET's RecvHandlePacket and SendFromDirectFIFO
@@ -133,7 +133,7 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
                                sockaddr* other)
 {
   const auto state = Common::SaveNetworkErrorState();
-  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+  Common::ScopeGuard guard([&state] { RestoreNetworkErrorState(state); });
   sockaddr_in sock;
   sockaddr_in peer;
   sockaddr_in* from;
@@ -182,7 +182,7 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   };
 
   Common::EthernetHeader ethernet_header(0x800);
-  auto mac = Common::StringToMacAddress(Config::Get(Config::MAIN_WIRELESS_MAC));
+  auto mac = Common::StringToMacAddress(Get(Config::MAIN_WIRELESS_MAC));
   if (mac)
   {
     auto& mac_address =

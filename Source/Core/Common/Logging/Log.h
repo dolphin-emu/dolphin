@@ -82,7 +82,7 @@ enum class LogLevel : int
 };
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LDEBUG;
+constexpr auto MAX_LOGLEVEL = LogLevel::LDEBUG;
 #else
 constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LINFO;
 #endif  // logging

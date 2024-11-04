@@ -34,13 +34,13 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
   AchievementManager::GetInstance().SetUpdateCallback(
       [this](AchievementManager::UpdatedItems updated_items) {
         QueueOnObject(this, [this, updated_items = std::move(updated_items)] {
-          AchievementsWindow::UpdateData(std::move(updated_items));
+          UpdateData(std::move(updated_items));
         });
       });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this] { m_settings_widget->UpdateData(RC_OK); });
   connect(&Settings::Instance(), &Settings::HardcoreStateChanged, this,
-          [this] { AchievementsWindow::UpdateData({.all = true}); });
+          [this] { UpdateData({.all = true}); });
 }
 
 void AchievementsWindow::showEvent(QShowEvent* event)

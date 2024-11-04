@@ -42,7 +42,7 @@ static bool IsVSyncActive(bool enabled)
 {
   // Vsync is disabled when the throttler is disabled by the tab key.
   return enabled && !Core::GetIsThrottlerTempDisabled() &&
-         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0;
+         Get(Config::MAIN_EMULATION_SPEED) == 1.0;
 }
 
 void UpdateActiveConfig()
@@ -66,7 +66,7 @@ void VideoConfig::Refresh()
     CPUThreadConfigCallback::AddConfigChangedCallback([]() {
       auto& system = Core::System::GetInstance();
 
-      const bool lock_gpu_thread = Core::IsRunning(system);
+      const bool lock_gpu_thread = IsRunning(system);
       if (lock_gpu_thread)
         system.GetFifo().PauseAndLock(true, false);
 
@@ -79,132 +79,132 @@ void VideoConfig::Refresh()
     s_has_registered_callback = true;
   }
 
-  bVSync = Config::Get(Config::GFX_VSYNC);
-  iAdapter = Config::Get(Config::GFX_ADAPTER);
-  iManuallyUploadBuffers = Config::Get(Config::GFX_MTL_MANUALLY_UPLOAD_BUFFERS);
-  iUsePresentDrawable = Config::Get(Config::GFX_MTL_USE_PRESENT_DRAWABLE);
+  bVSync = Get(Config::GFX_VSYNC);
+  iAdapter = Get(Config::GFX_ADAPTER);
+  iManuallyUploadBuffers = Get(Config::GFX_MTL_MANUALLY_UPLOAD_BUFFERS);
+  iUsePresentDrawable = Get(Config::GFX_MTL_USE_PRESENT_DRAWABLE);
 
-  bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
-  custom_aspect_width = Config::Get(Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH);
-  custom_aspect_height = Config::Get(Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT);
-  suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
+  bWidescreenHack = Get(Config::GFX_WIDESCREEN_HACK);
+  aspect_mode = Get(Config::GFX_ASPECT_RATIO);
+  custom_aspect_width = Get(Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH);
+  custom_aspect_height = Get(Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT);
+  suggested_aspect_mode = Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
   widescreen_heuristic_transition_threshold =
-      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD);
+      Get(Config::GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD);
   widescreen_heuristic_aspect_ratio_slop =
-      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP);
+      Get(Config::GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP);
   widescreen_heuristic_standard_ratio =
-      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO);
+      Get(Config::GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO);
   widescreen_heuristic_widescreen_ratio =
-      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO);
-  bCrop = Config::Get(Config::GFX_CROP);
-  iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-  bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
-  bShowFTimes = Config::Get(Config::GFX_SHOW_FTIMES);
-  bShowVPS = Config::Get(Config::GFX_SHOW_VPS);
-  bShowVTimes = Config::Get(Config::GFX_SHOW_VTIMES);
-  bShowGraphs = Config::Get(Config::GFX_SHOW_GRAPHS);
-  bShowSpeed = Config::Get(Config::GFX_SHOW_SPEED);
-  bShowSpeedColors = Config::Get(Config::GFX_SHOW_SPEED_COLORS);
-  iPerfSampleUSec = Config::Get(Config::GFX_PERF_SAMP_WINDOW) * 1000;
-  bShowNetPlayPing = Config::Get(Config::GFX_SHOW_NETPLAY_PING);
-  bShowNetPlayMessages = Config::Get(Config::GFX_SHOW_NETPLAY_MESSAGES);
-  bLogRenderTimeToFile = Config::Get(Config::GFX_LOG_RENDER_TIME_TO_FILE);
-  bOverlayStats = Config::Get(Config::GFX_OVERLAY_STATS);
-  bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
-  bOverlayScissorStats = Config::Get(Config::GFX_OVERLAY_SCISSOR_STATS);
-  bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
-  bDumpMipmapTextures = Config::Get(Config::GFX_DUMP_MIP_TEXTURES);
-  bDumpBaseTextures = Config::Get(Config::GFX_DUMP_BASE_TEXTURES);
-  bHiresTextures = Config::Get(Config::GFX_HIRES_TEXTURES);
-  bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
-  bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
-  bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
-  bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
-  bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
-  sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
-  sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
-  sDumpPixelFormat = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
-  sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
-  sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
-  iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
-  frame_dumps_resolution_type = Config::Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE);
-  bEnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
-  bPreferVSForLinePointExpansion = Config::Get(Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
-  bEnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
-  bFastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
-  iMultisamples = Config::Get(Config::GFX_MSAA);
-  bSSAA = Config::Get(Config::GFX_SSAA);
-  iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
-  bTexFmtOverlayEnable = Config::Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
-  bTexFmtOverlayCenter = Config::Get(Config::GFX_TEXFMT_OVERLAY_CENTER);
-  bWireFrame = Config::Get(Config::GFX_ENABLE_WIREFRAME);
-  bDisableFog = Config::Get(Config::GFX_DISABLE_FOG);
-  bBorderlessFullscreen = Config::Get(Config::GFX_BORDERLESS_FULLSCREEN);
-  bEnableValidationLayer = Config::Get(Config::GFX_ENABLE_VALIDATION_LAYER);
-  bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
-  iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
-  bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
-  bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
-  iShaderCompilationMode = Config::Get(Config::GFX_SHADER_COMPILATION_MODE);
-  iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
-  iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
-  bCPUCull = Config::Get(Config::GFX_CPU_CULL);
+      Get(Config::GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO);
+  bCrop = Get(Config::GFX_CROP);
+  iSafeTextureCache_ColorSamples = Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  bShowFPS = Get(Config::GFX_SHOW_FPS);
+  bShowFTimes = Get(Config::GFX_SHOW_FTIMES);
+  bShowVPS = Get(Config::GFX_SHOW_VPS);
+  bShowVTimes = Get(Config::GFX_SHOW_VTIMES);
+  bShowGraphs = Get(Config::GFX_SHOW_GRAPHS);
+  bShowSpeed = Get(Config::GFX_SHOW_SPEED);
+  bShowSpeedColors = Get(Config::GFX_SHOW_SPEED_COLORS);
+  iPerfSampleUSec = Get(Config::GFX_PERF_SAMP_WINDOW) * 1000;
+  bShowNetPlayPing = Get(Config::GFX_SHOW_NETPLAY_PING);
+  bShowNetPlayMessages = Get(Config::GFX_SHOW_NETPLAY_MESSAGES);
+  bLogRenderTimeToFile = Get(Config::GFX_LOG_RENDER_TIME_TO_FILE);
+  bOverlayStats = Get(Config::GFX_OVERLAY_STATS);
+  bOverlayProjStats = Get(Config::GFX_OVERLAY_PROJ_STATS);
+  bOverlayScissorStats = Get(Config::GFX_OVERLAY_SCISSOR_STATS);
+  bDumpTextures = Get(Config::GFX_DUMP_TEXTURES);
+  bDumpMipmapTextures = Get(Config::GFX_DUMP_MIP_TEXTURES);
+  bDumpBaseTextures = Get(Config::GFX_DUMP_BASE_TEXTURES);
+  bHiresTextures = Get(Config::GFX_HIRES_TEXTURES);
+  bCacheHiresTextures = Get(Config::GFX_CACHE_HIRES_TEXTURES);
+  bDumpEFBTarget = Get(Config::GFX_DUMP_EFB_TARGET);
+  bDumpXFBTarget = Get(Config::GFX_DUMP_XFB_TARGET);
+  bDumpFramesAsImages = Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
+  bUseFFV1 = Get(Config::GFX_USE_FFV1);
+  sDumpFormat = Get(Config::GFX_DUMP_FORMAT);
+  sDumpCodec = Get(Config::GFX_DUMP_CODEC);
+  sDumpPixelFormat = Get(Config::GFX_DUMP_PIXEL_FORMAT);
+  sDumpEncoder = Get(Config::GFX_DUMP_ENCODER);
+  sDumpPath = Get(Config::GFX_DUMP_PATH);
+  iBitrateKbps = Get(Config::GFX_BITRATE_KBPS);
+  frame_dumps_resolution_type = Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE);
+  bEnableGPUTextureDecoding = Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  bPreferVSForLinePointExpansion = Get(Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
+  bEnablePixelLighting = Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
+  bFastDepthCalc = Get(Config::GFX_FAST_DEPTH_CALC);
+  iMultisamples = Get(Config::GFX_MSAA);
+  bSSAA = Get(Config::GFX_SSAA);
+  iEFBScale = Get(Config::GFX_EFB_SCALE);
+  bTexFmtOverlayEnable = Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
+  bTexFmtOverlayCenter = Get(Config::GFX_TEXFMT_OVERLAY_CENTER);
+  bWireFrame = Get(Config::GFX_ENABLE_WIREFRAME);
+  bDisableFog = Get(Config::GFX_DISABLE_FOG);
+  bBorderlessFullscreen = Get(Config::GFX_BORDERLESS_FULLSCREEN);
+  bEnableValidationLayer = Get(Config::GFX_ENABLE_VALIDATION_LAYER);
+  bBackendMultithreading = Get(Config::GFX_BACKEND_MULTITHREADING);
+  iCommandBufferExecuteInterval = Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
+  bShaderCache = Get(Config::GFX_SHADER_CACHE);
+  bWaitForShadersBeforeStarting = Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
+  iShaderCompilationMode = Get(Config::GFX_SHADER_COMPILATION_MODE);
+  iShaderCompilerThreads = Get(Config::GFX_SHADER_COMPILER_THREADS);
+  iShaderPrecompilerThreads = Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
+  bCPUCull = Get(Config::GFX_CPU_CULL);
 
-  texture_filtering_mode = Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
-  iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
-  output_resampling_mode = Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
-  sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
-  bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
-  bDisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  texture_filtering_mode = Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
+  iMaxAnisotropy = Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  output_resampling_mode = Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
+  sPostProcessingShader = Get(Config::GFX_ENHANCE_POST_SHADER);
+  bForceTrueColor = Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  bDisableCopyFilter = Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  bArbitraryMipmapDetection = Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
   fArbitraryMipmapDetectionThreshold =
-      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
-  bHDR = Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT);
+      Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
+  bHDR = Get(Config::GFX_ENHANCE_HDR_OUTPUT);
 
-  color_correction.bCorrectColorSpace = Config::Get(Config::GFX_CC_CORRECT_COLOR_SPACE);
-  color_correction.game_color_space = Config::Get(Config::GFX_CC_GAME_COLOR_SPACE);
-  color_correction.bCorrectGamma = Config::Get(Config::GFX_CC_CORRECT_GAMMA);
-  color_correction.fGameGamma = Config::Get(Config::GFX_CC_GAME_GAMMA);
-  color_correction.bSDRDisplayGammaSRGB = Config::Get(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB);
-  color_correction.fSDRDisplayCustomGamma = Config::Get(Config::GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA);
-  color_correction.fHDRPaperWhiteNits = Config::Get(Config::GFX_CC_HDR_PAPER_WHITE_NITS);
+  color_correction.bCorrectColorSpace = Get(Config::GFX_CC_CORRECT_COLOR_SPACE);
+  color_correction.game_color_space = Get(Config::GFX_CC_GAME_COLOR_SPACE);
+  color_correction.bCorrectGamma = Get(Config::GFX_CC_CORRECT_GAMMA);
+  color_correction.fGameGamma = Get(Config::GFX_CC_GAME_GAMMA);
+  color_correction.bSDRDisplayGammaSRGB = Get(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB);
+  color_correction.fSDRDisplayCustomGamma = Get(Config::GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA);
+  color_correction.fHDRPaperWhiteNits = Get(Config::GFX_CC_HDR_PAPER_WHITE_NITS);
 
-  stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
-  stereo_per_eye_resolution_full = Config::Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
-  iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
-  iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
-  bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
-  iStereoConvergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
-  bStereoEFBMonoDepth = Config::Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
-  iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
+  stereo_mode = Get(Config::GFX_STEREO_MODE);
+  stereo_per_eye_resolution_full = Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
+  iStereoDepth = Get(Config::GFX_STEREO_DEPTH);
+  iStereoConvergencePercentage = Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
+  bStereoSwapEyes = Get(Config::GFX_STEREO_SWAP_EYES);
+  iStereoConvergence = Get(Config::GFX_STEREO_CONVERGENCE);
+  bStereoEFBMonoDepth = Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
+  iStereoDepthPercentage = Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
 
-  bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
-  bBBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
-  bForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
-  bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  bDisableCopyToVRAM = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
-  bDeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
-  bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
-  bVISkip = Config::Get(Config::GFX_HACK_VI_SKIP);
-  bSkipPresentingDuplicateXFBs = bVISkip || Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
-  bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
-  bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
-  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
-  iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
-  iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
-  bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
+  bEFBAccessEnable = Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  bEFBAccessDeferInvalidation = Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+  bBBoxEnable = Get(Config::GFX_HACK_BBOX_ENABLE);
+  bForceProgressive = Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+  bSkipEFBCopyToRam = Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  bSkipXFBCopyToRam = Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  bDisableCopyToVRAM = Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+  bDeferEFBCopies = Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  bImmediateXFB = Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  bVISkip = Get(Config::GFX_HACK_VI_SKIP);
+  bSkipPresentingDuplicateXFBs = bVISkip || Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
+  bCopyEFBScaled = Get(Config::GFX_HACK_COPY_EFB_SCALED);
+  bEFBEmulateFormatChanges = Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  bVertexRounding = Get(Config::GFX_HACK_VERTEX_ROUNDING);
+  iEFBAccessTileSize = Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
+  iMissingColorValue = Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
+  bFastTextureSampling = Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 #ifdef __APPLE__
   bNoMipmapping = Config::Get(Config::GFX_HACK_NO_MIPMAPPING);
 #endif
 
-  bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+  bPerfQueriesEnable = Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
+  bGraphicMods = Get(Config::GFX_MODS_ENABLE);
 
-  customDriverLibraryName = Config::Get(Config::GFX_DRIVER_LIB_NAME);
+  customDriverLibraryName = Get(Config::GFX_DRIVER_LIB_NAME);
 }
 
 void VideoConfig::VerifyValidity()
@@ -271,7 +271,7 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
 
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
-  else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION))
+  else if (!HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION))
     return GetNumAutoShaderPreCompilerThreads();
   else
     return 1;

@@ -34,7 +34,7 @@ static ReturnCode WriteTicket(FS::FileSystem* fs, const ES::TicketReader& ticket
   fs->CreateFullPath(PID_KERNEL, PID_KERNEL, path, 0, ticket_modes);
   const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, path, ticket_modes);
   if (!file)
-    return FS::ConvertResult(file.Error());
+    return ConvertResult(file.Error());
 
   const std::vector<u8>& raw_ticket = ticket.GetBytes();
   return file->Write(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
@@ -440,7 +440,7 @@ ReturnCode ESCore::ImportContentEnd(Context& context, u32 content_fd)
   {
     fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
     ERROR_LOG_FMT(IOS_ES, "ImportContentEnd: Failed to move content to {}", content_path);
-    return FS::ConvertResult(rename_result);
+    return ConvertResult(rename_result);
   }
 
   context.title_import_export.content = {};
@@ -559,7 +559,7 @@ ReturnCode ESCore::DeleteTitle(u64 title_id)
     return ES_EINVAL;
 
   const std::string title_dir = Common::GetTitlePath(title_id);
-  return FS::ConvertResult(m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, title_dir));
+  return ConvertResult(m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, title_dir));
 }
 
 IPCReply ESDevice::DeleteTitle(const IOCtlVRequest& request)
@@ -642,7 +642,7 @@ ReturnCode ESCore::DeleteTitleContent(u64 title_id) const
   const std::string content_dir = Common::GetTitleContentPath(title_id);
   const auto files = m_ios.GetFS()->ReadDirectory(PID_KERNEL, PID_KERNEL, content_dir);
   if (!files)
-    return FS::ConvertResult(files.Error());
+    return ConvertResult(files.Error());
 
   for (const std::string& file_name : *files)
   {
@@ -678,7 +678,7 @@ ReturnCode ESCore::DeleteContent(u64 title_id, u32 content_id) const
 
   const std::string path =
       fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content_id);
-  return FS::ConvertResult(m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, path));
+  return ConvertResult(m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, path));
 }
 
 IPCReply ESDevice::DeleteContent(const IOCtlVRequest& request)
@@ -879,7 +879,7 @@ ReturnCode ESCore::DeleteSharedContent(const std::array<u8, 20>& sha1) const
   // Check whether the shared content is used by a system title.
   const std::vector<u64> titles = GetInstalledTitles();
   const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&](u64 id) {
-    if (!ES::IsTitleType(id, ES::TitleType::System))
+    if (!IsTitleType(id, ES::TitleType::System))
       return false;
 
     const auto tmd = FindInstalledTMD(id);
@@ -898,7 +898,7 @@ ReturnCode ESCore::DeleteSharedContent(const std::array<u8, 20>& sha1) const
   // Delete the shared content and update the content map.
   const auto delete_result = m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, *content_path);
   if (delete_result != FS::ResultCode::Success)
-    return FS::ConvertResult(delete_result);
+    return ConvertResult(delete_result);
 
   if (!map.DeleteSharedContent(sha1))
     return ES_EIO;

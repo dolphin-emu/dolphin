@@ -29,7 +29,7 @@ HacksWidget::HacksWidget(GraphicsWindow* parent)
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
-  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  OnBackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
   connect(m_gpu_texture_decoding, &QCheckBox::toggled, [this, parent] {
     SaveSettings();
@@ -161,7 +161,7 @@ void HacksWidget::ConnectWidgets()
 void HacksWidget::LoadSettings()
 {
   const QSignalBlocker blocker(m_accuracy);
-  auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  auto samples = Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
 
   // Re-enable the slider in case it was disabled because of a custom value
   m_accuracy->setEnabled(true);
@@ -188,7 +188,7 @@ void HacksWidget::LoadSettings()
 
   QFont bf = m_accuracy_label->font();
 
-  bf.setBold(Config::GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) !=
+  bf.setBold(GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) !=
              Config::LayerType::Base);
 
   m_accuracy_label->setFont(bf);
@@ -213,7 +213,7 @@ void HacksWidget::SaveSettings()
       samples = 128;
     }
 
-    Config::SetBaseOrCurrent(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, samples);
+    SetBaseOrCurrent(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, samples);
   }
 }
 

@@ -148,7 +148,7 @@ private:
     ScanningForAOSSAccessPoint,
     ScanningForDS,
   };
-  friend struct fmt::formatter<IOS::HLE::NetWDCommandDevice::Status>;
+  friend struct fmt::formatter<Status>;
 
   void ProcessRecvRequests();
   void HandleStateChange();

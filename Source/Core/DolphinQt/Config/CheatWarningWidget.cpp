@@ -23,12 +23,12 @@ CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this,
-          [this] { Update(Core::IsRunning(Core::System::GetInstance())); });
+          [this] { Update(IsRunning(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     Update(state == Core::State::Running || state == Core::State::Paused);
   });
 
-  Update(Core::IsRunning(Core::System::GetInstance()));
+  Update(IsRunning(Core::System::GetInstance()));
 }
 
 void CheatWarningWidget::CreateWidgets()

@@ -223,7 +223,7 @@ const Info<s32> MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}
 
 GPUDeterminismMode GetGPUDeterminismMode()
 {
-  auto mode = Config::Get(Config::MAIN_GPU_DETERMINISM_MODE);
+  auto mode = Get(MAIN_GPU_DETERMINISM_MODE);
   if (mode == "auto")
     return GPUDeterminismMode::Auto;
   if (mode == "none")
@@ -312,18 +312,18 @@ const Info<std::string> MAIN_SKYLANDERS_PATH{{System::Main, "General", "Skylande
 
 static Info<std::string> MakeISOPathConfigInfo(size_t idx)
 {
-  return Config::Info<std::string>{{Config::System::Main, "General", fmt::format("ISOPath{}", idx)},
+  return Config::Info<std::string>{{System::Main, "General", fmt::format("ISOPath{}", idx)},
                                    ""};
 }
 
 std::vector<std::string> GetIsoPaths()
 {
-  size_t count = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  size_t count = MathUtil::SaturatingCast<size_t>(Get(MAIN_ISO_PATH_COUNT));
   std::vector<std::string> paths;
   paths.reserve(count);
   for (size_t i = 0; i < count; ++i)
   {
-    std::string iso_path = Config::Get(MakeISOPathConfigInfo(i));
+    std::string iso_path = Get(MakeISOPathConfigInfo(i));
     if (!iso_path.empty())
       paths.emplace_back(std::move(iso_path));
   }
@@ -332,7 +332,7 @@ std::vector<std::string> GetIsoPaths()
 
 void SetIsoPaths(const std::vector<std::string>& paths)
 {
-  size_t old_size = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  size_t old_size = MathUtil::SaturatingCast<size_t>(Get(MAIN_ISO_PATH_COUNT));
   size_t new_size = paths.size();
 
   size_t current_path_idx = 0;
@@ -344,17 +344,17 @@ void SetIsoPaths(const std::vector<std::string>& paths)
       continue;
     }
 
-    Config::SetBase(MakeISOPathConfigInfo(current_path_idx), p);
+    SetBase(MakeISOPathConfigInfo(current_path_idx), p);
     ++current_path_idx;
   }
 
   for (size_t i = current_path_idx; i < old_size; ++i)
   {
     // TODO: This actually needs a Config::Erase().
-    Config::SetBase(MakeISOPathConfigInfo(i), "");
+    SetBase(MakeISOPathConfigInfo(i), "");
   }
 
-  Config::SetBase(Config::MAIN_ISO_PATH_COUNT, MathUtil::SaturatingCast<int>(new_size));
+  SetBase(MAIN_ISO_PATH_COUNT, MathUtil::SaturatingCast<int>(new_size));
 }
 
 // Main.GBA
@@ -558,12 +558,12 @@ static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>&
 
 std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
 {
-  return LoadUSBWhitelistFromString(Config::Get(Config::MAIN_USB_PASSTHROUGH_DEVICES));
+  return LoadUSBWhitelistFromString(Get(MAIN_USB_PASSTHROUGH_DEVICES));
 }
 
 void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
 {
-  Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
+  SetBase(MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
 }
 
 // Main.EmulatedUSBDevices
@@ -589,7 +589,7 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
 const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle style)
 {
   if (region == DiscIO::Region::Unknown)
-    region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
+    region = ToGameCubeRegion(Get(MAIN_FALLBACK_REGION));
 
   switch (region)
   {
@@ -625,7 +625,7 @@ std::string GetBootROMPath(const std::string& region_directory)
 std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region,
                            u16 size_mb)
 {
-  return GetMemcardPath(Config::Get(GetInfoForMemcardPath(slot)), slot, region, size_mb);
+  return GetMemcardPath(Get(GetInfoForMemcardPath(slot)), slot, region, size_mb);
 }
 
 std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
@@ -639,8 +639,8 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   {
     // Use default memcard path if there is no user defined one.
     const bool is_slot_a = slot == ExpansionInterface::Slot::A;
-    const std::string region_string = Config::GetDirectoryForRegion(
-        Config::ToGameCubeRegion(region ? *region : Config::Get(Config::MAIN_FALLBACK_REGION)));
+    const std::string region_string = GetDirectoryForRegion(
+        ToGameCubeRegion(region ? *region : Get(MAIN_FALLBACK_REGION)));
     return fmt::format("{}{}.{}{}.raw", File::GetUserPath(D_GCUSER_IDX),
                        is_slot_a ? GC_MEMCARDA : GC_MEMCARDB, region_string, blocks_string);
   }
@@ -678,20 +678,20 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   }
 
   const DiscIO::Region used_region =
-      region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
+      region ? *region : (path_region ? *path_region : Get(MAIN_FALLBACK_REGION));
   return fmt::format("{}{}.{}{}{}", dir, name,
-                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)),
+                     GetDirectoryForRegion(ToGameCubeRegion(used_region)),
                      blocks_string, ext);
 }
 
 bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot)
 {
-  return Config::Get(GetInfoForMemcardPath(slot)).empty();
+  return Get(GetInfoForMemcardPath(slot)).empty();
 }
 
 std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region)
 {
-  return GetGCIFolderPath(Config::Get(GetInfoForGCIPath(slot)), slot, region);
+  return GetGCIFolderPath(Get(GetInfoForGCIPath(slot)), slot, region);
 }
 
 std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
@@ -699,8 +699,8 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
 {
   if (configured_folder.empty())
   {
-    const auto region_dir = Config::GetDirectoryForRegion(
-        Config::ToGameCubeRegion(region ? *region : Config::Get(Config::MAIN_FALLBACK_REGION)));
+    const auto region_dir = GetDirectoryForRegion(
+        ToGameCubeRegion(region ? *region : Get(MAIN_FALLBACK_REGION)));
     const bool is_slot_a = slot == ExpansionInterface::Slot::A;
     return fmt::format("{}{}/Card {}", File::GetUserPath(D_GCUSER_IDX), region_dir,
                        is_slot_a ? 'A' : 'B');
@@ -738,26 +738,26 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   }
 
   const DiscIO::Region used_region =
-      region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
+      region ? *region : (path_region ? *path_region : Get(MAIN_FALLBACK_REGION));
   return fmt::format("{}/{}", base_path,
-                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region),
-                                                   Config::RegionDirectoryStyle::Modern));
+                     GetDirectoryForRegion(ToGameCubeRegion(used_region),
+                                                   RegionDirectoryStyle::Modern));
 }
 
 bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
 {
-  return Config::Get(GetInfoForGCIPath(slot)).empty();
+  return Get(GetInfoForGCIPath(slot)).empty();
 }
 
 bool AreCheatsEnabled()
 {
-  return Config::Get(::Config::MAIN_ENABLE_CHEATS) &&
+  return Get(MAIN_ENABLE_CHEATS) &&
          !AchievementManager::GetInstance().IsHardcoreModeActive();
 }
 
 bool IsDebuggingEnabled()
 {
-  return Config::Get(::Config::MAIN_ENABLE_DEBUGGING) &&
+  return Get(MAIN_ENABLE_DEBUGGING) &&
          !AchievementManager::GetInstance().IsHardcoreModeActive();
 }
 

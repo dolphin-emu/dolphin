@@ -16,7 +16,7 @@ namespace HSP
 {
 CHSPDevice_ARAMExpansion::CHSPDevice_ARAMExpansion(HSPDeviceType device) : IHSPDevice(device)
 {
-  m_size = MathUtil::NextPowerOf2(Config::Get(Config::MAIN_ARAM_EXPANSION_SIZE));
+  m_size = MathUtil::NextPowerOf2(Get(Config::MAIN_ARAM_EXPANSION_SIZE));
   m_mask = m_size - 1;
   m_ptr = static_cast<u8*>(Common::AllocateMemoryPages(m_size));
 }

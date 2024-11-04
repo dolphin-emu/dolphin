@@ -88,7 +88,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
 
-  if (reg_data.format == SpeakerLogic::DATA_FORMAT_PCM)
+  if (reg_data.format == DATA_FORMAT_PCM)
   {
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
@@ -101,7 +101,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     volume_divisor = 0xff;
     sample_length = (unsigned int)length;
   }
-  else if (reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
+  else if (reg_data.format == DATA_FORMAT_ADPCM)
   {
     // 4 bit Yamaha ADPCM (same as dreamcast)
     for (int i = 0; i < length; ++i)

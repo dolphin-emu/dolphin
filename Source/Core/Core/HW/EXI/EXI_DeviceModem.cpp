@@ -33,13 +33,13 @@ CEXIModem::CEXIModem(Core::System& system, ModemDeviceType type) : IEXIDevice(sy
   {
   case ModemDeviceType::TAPSERVER:
     m_network_interface = std::make_unique<TAPServerNetworkInterface>(
-        this, Config::Get(Config::MAIN_MODEM_TAPSERVER_DESTINATION));
+        this, Get(Config::MAIN_MODEM_TAPSERVER_DESTINATION));
     INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
   }
 
-  m_regs[Register::DEVICE_TYPE] = 0x02;
-  m_regs[Register::INTERRUPT_MASK] = 0x02;
+  m_regs[DEVICE_TYPE] = 0x02;
+  m_regs[INTERRUPT_MASK] = 0x02;
 }
 
 CEXIModem::~CEXIModem()
@@ -60,7 +60,7 @@ void CEXIModem::SetCS(int cs)
 
 bool CEXIModem::IsInterruptSet()
 {
-  return !!(m_regs[Register::INTERRUPT_MASK] & m_regs[Register::PENDING_INTERRUPT_MASK]);
+  return !!(m_regs[INTERRUPT_MASK] & m_regs[PENDING_INTERRUPT_MASK]);
 }
 
 void CEXIModem::ImmWrite(u32 data, u32 size)
@@ -93,7 +93,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
     for (; size && reg_num < m_regs.size(); size--)
     {
       should_update_interrupts |=
-          ((reg_num == Register::INTERRUPT_MASK) || (reg_num == Register::PENDING_INTERRUPT_MASK));
+          ((reg_num == INTERRUPT_MASK) || (reg_num == PENDING_INTERRUPT_MASK));
       m_regs[reg_num++] = (data >> 24);
       data <<= 8;
     }
@@ -216,8 +216,8 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_at_reply_data.size());
     std::memcpy(data, m_at_reply_data.data(), bytes_to_copy);
     m_at_reply_data = m_at_reply_data.substr(bytes_to_copy);
-    m_regs[Register::AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
-    SetInterruptFlag(Interrupt::AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
+    m_regs[AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
+    SetInterruptFlag(AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
   }
   else if ((m_transfer_descriptor & 0x0F000000) == 0x08000000)
   {
@@ -254,7 +254,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
   {  // AT command buffer
     m_at_command_data.append(reinterpret_cast<const char*>(data), size);
     RunAllPendingATCommands();
-    m_regs[Register::AT_COMMAND_SIZE] = static_cast<u8>(m_at_command_data.size());
+    m_regs[AT_COMMAND_SIZE] = static_cast<u8>(m_at_command_data.size());
   }
   else if ((m_transfer_descriptor & 0x0F000000) == 0x08000000)
   {  // Packet send buffer
@@ -263,7 +263,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
     // FIFO has enough space; however, we can clear the send FIFO "instantly"
     // from the emulated program's perspective, so we always tell it the send
     // FIFO is empty.
-    SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
+    SetInterruptFlag(SEND_BUFFER_BELOW_THRESHOLD, true, true);
     m_network_interface->SendAndRemoveAllHDLCFrames(&m_send_buffer);
   }
   else
@@ -288,23 +288,23 @@ void CEXIModem::DoState(PointerWrap& p)
 
 u16 CEXIModem::GetTxThreshold() const
 {
-  return (m_regs[Register::TX_THRESHOLD_HIGH] << 8) | m_regs[Register::TX_THRESHOLD_LOW];
+  return (m_regs[TX_THRESHOLD_HIGH] << 8) | m_regs[TX_THRESHOLD_LOW];
 }
 
 u16 CEXIModem::GetRxThreshold() const
 {
-  return (m_regs[Register::RX_THRESHOLD_HIGH] << 8) | m_regs[Register::RX_THRESHOLD_LOW];
+  return (m_regs[RX_THRESHOLD_HIGH] << 8) | m_regs[RX_THRESHOLD_LOW];
 }
 
 void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
 {
   if (enabled)
   {
-    m_regs[Register::PENDING_INTERRUPT_MASK] |= what;
+    m_regs[PENDING_INTERRUPT_MASK] |= what;
   }
   else
   {
-    m_regs[Register::PENDING_INTERRUPT_MASK] &= (~what);
+    m_regs[PENDING_INTERRUPT_MASK] &= (~what);
   }
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(
       from_cpu ? CoreTiming::FromThread::CPU : CoreTiming::FromThread::NON_CPU, 0);
@@ -315,9 +315,9 @@ void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
   // The caller is expected to hold m_receive_buffer_lock when calling this.
   const u16 bytes_available =
       static_cast<u16>(std::min<std::size_t>(m_receive_buffer.size(), 0x200));
-  m_regs[Register::BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
-  m_regs[Register::BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
-  SetInterruptFlag(Interrupt::RECEIVE_BUFFER_ABOVE_THRESHOLD,
+  m_regs[BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
+  m_regs[BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
+  SetInterruptFlag(RECEIVE_BUFFER_ABOVE_THRESHOLD,
                    m_receive_buffer.size() >= GetRxThreshold(), from_cpu);
   // TODO: There is a second interrupt here, which the GameCube modem library
   // expects to be used when large frames are received. However, the correct
@@ -331,7 +331,7 @@ void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
 void CEXIModem::SendComplete()
 {
   // See comment in HandleWriteModemTransfer about why this is always true.
-  SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
+  SetInterruptFlag(SEND_BUFFER_BELOW_THRESHOLD, true, true);
 }
 
 void CEXIModem::AddToReceiveBuffer(std::string&& data)
@@ -351,8 +351,8 @@ void CEXIModem::AddToReceiveBuffer(std::string&& data)
 void CEXIModem::AddATReply(const std::string& data)
 {
   m_at_reply_data += data;
-  m_regs[Register::AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
-  SetInterruptFlag(Interrupt::AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
+  m_regs[AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
+  SetInterruptFlag(AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
 }
 
 void CEXIModem::RunAllPendingATCommands()

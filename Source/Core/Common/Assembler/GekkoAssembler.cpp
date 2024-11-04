@@ -117,8 +117,8 @@ void CodeBlock::PushBigEndian(u32 val)
 FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
                                            u32 current_instruction_address)
 {
-  FailureOr<detail::GekkoIR> parse_result =
-      detail::ParseToIR(instruction, current_instruction_address);
+  FailureOr<GekkoIR> parse_result =
+      ParseToIR(instruction, current_instruction_address);
   if (IsFailure(parse_result))
   {
     return GetFailure(parse_result);
@@ -128,14 +128,14 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
   const auto& operands = GetT(parse_result).operand_pool;
   std::vector<CodeBlock> out_blocks;
 
-  for (const detail::IRBlock& parsed_block : parsed_blocks)
+  for (const IRBlock& parsed_block : parsed_blocks)
   {
     CodeBlock new_block(parsed_block.block_address);
-    for (const detail::ChunkVariant& chunk : parsed_block.chunks)
+    for (const ChunkVariant& chunk : parsed_block.chunks)
     {
-      if (std::holds_alternative<detail::InstChunk>(chunk))
+      if (std::holds_alternative<InstChunk>(chunk))
       {
-        for (const detail::GekkoInstruction& parsed_inst : std::get<detail::InstChunk>(chunk))
+        for (const GekkoInstruction& parsed_inst : std::get<InstChunk>(chunk))
         {
           OperandList adjusted_ops;
           ASSERT(parsed_inst.op_interval.len <= MAX_OPERANDS);
@@ -162,15 +162,15 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
           new_block.PushBigEndian(GetT(inst));
         }
       }
-      else if (std::holds_alternative<detail::ByteChunk>(chunk))
+      else if (std::holds_alternative<ByteChunk>(chunk))
       {
-        detail::ByteChunk byte_arr = std::get<detail::ByteChunk>(chunk);
+        ByteChunk byte_arr = std::get<ByteChunk>(chunk);
         new_block.instructions.insert(new_block.instructions.end(), byte_arr.begin(),
                                       byte_arr.end());
       }
-      else if (std::holds_alternative<detail::PadChunk>(chunk))
+      else if (std::holds_alternative<PadChunk>(chunk))
       {
-        detail::PadChunk pad_len = std::get<detail::PadChunk>(chunk);
+        PadChunk pad_len = std::get<PadChunk>(chunk);
         new_block.instructions.insert(new_block.instructions.end(), pad_len, 0);
       }
       else

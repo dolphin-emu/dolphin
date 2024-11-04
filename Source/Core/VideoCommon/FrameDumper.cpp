@@ -25,7 +25,7 @@ static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
                                             frame.stride,
-                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
+                                            Get(Config::GFX_PNG_COMPRESSION_LEVEL));
 }
 
 FrameDumper::FrameDumper()
@@ -235,7 +235,7 @@ void FrameDumper::FrameDumpThreadFunc()
       m_screenshot_completed.Set();
     }
 
-    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+    if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     {
       if (!frame_dump_started)
       {
@@ -246,7 +246,7 @@ void FrameDumper::FrameDumpThreadFunc()
 
         // Stop frame dumping if we fail to start.
         if (!frame_dump_started)
-          Config::SetCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, false);
+          SetCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, false);
       }
 
       // If we failed to start frame dumping, don't write a frame.
@@ -317,7 +317,7 @@ std::string FrameDumper::GetFrameDumpNextImageFileName() const
 bool FrameDumper::StartFrameDumpToImage(const FrameData&)
 {
   m_frame_dump_image_counter = 1;
-  if (!Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT))
+  if (!Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT))
   {
     // Only check for the presence of the first image to confirm overwriting.
     // A previous run will always have at least one image, and it's safe to assume that if the user
@@ -351,7 +351,7 @@ bool FrameDumper::IsFrameDumping() const
   if (m_screenshot_request.IsSet())
     return true;
 
-  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+  if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return true;
 
   return false;
@@ -359,7 +359,7 @@ bool FrameDumper::IsFrameDumping() const
 
 int FrameDumper::GetRequiredResolutionLeastCommonMultiple() const
 {
-  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+  if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return VIDEO_ENCODER_LCM;
   return 1;
 }

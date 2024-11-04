@@ -217,7 +217,7 @@ bool Jit64::BackPatch(SContext* ctx)
   // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
   // swap it back so that the swap can happen again (this double swap isn't ideal but
   // only happens the first time we fault).
-  if (info.nonAtomicSwapStoreSrc != Gen::INVALID_REG)
+  if (info.nonAtomicSwapStoreSrc != INVALID_REG)
   {
     u64* ptr = ContextRN(ctx, info.nonAtomicSwapStoreSrc);
     switch (info.accessSize << 3)
@@ -464,7 +464,7 @@ bool Jit64::Cleanup()
   if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+    ABI_CallFunctionCCCP(UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
                          js.numFloatingPointInst, &m_ppc_state);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
@@ -656,7 +656,7 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   Cleanup();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunctionP(CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -678,7 +678,7 @@ void Jit64::WriteExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunctionP(CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -691,7 +691,7 @@ void Jit64::WriteExternalExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunctionP(CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -1055,7 +1055,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
+        ABI_CallFunctionP(CheckAndHandleBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
         CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));
@@ -1296,7 +1296,7 @@ void Jit64::IntializeSpeculativeConstants()
 
 bool Jit64::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::JIT);
+  const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, CoreMode::JIT);
   if (!result)
     return false;
 

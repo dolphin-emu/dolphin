@@ -82,7 +82,7 @@ void ASndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 

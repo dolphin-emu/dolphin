@@ -90,12 +90,12 @@ std::string SerializeLine(const PatchEntry& entry)
   if (entry.conditional)
   {
     return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
+                       PatchTypeAsString(entry.type), entry.value, entry.comparand);
   }
   else
   {
     return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value);
+                       PatchTypeAsString(entry.type), entry.value);
   }
 }
 
@@ -190,14 +190,14 @@ void LoadPatches()
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // Check if I'm syncing Codes
-  if (Config::Get(Config::SESSION_CODE_SYNC_OVERRIDE))
+  if (Get(Config::SESSION_CODE_SYNC_OVERRIDE))
   {
     Gecko::SetSyncedCodesAsActive();
     ActionReplay::SetSyncedCodesAsActive();
   }
   else
   {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
     ActionReplay::LoadAndApplyCodes(globalIni, localIni);
   }
 }

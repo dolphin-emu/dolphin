@@ -152,7 +152,7 @@ std::pair<std::string /* path */, bool /* migrate */>
 CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder,
                                  Movie::MovieManager& movie)
 {
-  std::string path_override = Config::Get(Config::GetInfoForGCIPathOverride(card_slot));
+  std::string path_override = Get(Config::GetInfoForGCIPathOverride(card_slot));
 
   if (!path_override.empty())
     return {std::move(path_override), false};
@@ -265,7 +265,7 @@ void CEXIMemoryCard::TransferComplete()
 {
   // Transfer complete, send interrupt
   m_system.GetExpansionInterface()
-      .GetChannel(ExpansionInterface::SlotToEXIChannel(m_card_slot))
+      .GetChannel(SlotToEXIChannel(m_card_slot))
       ->SendTransferComplete();
 }
 

@@ -136,7 +136,7 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   // Ask to delete file.
   if (File::Exists(path))
   {
-    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
+    if (Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", path))
     {
       File::Delete(path);

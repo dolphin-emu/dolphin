@@ -47,12 +47,12 @@ void DiscordHandler::Stop()
 void DiscordHandler::DiscordJoinRequest(const char* id, const std::string& discord_tag,
                                         const char* avatar)
 {
-  emit DiscordHandler::JoinRequest(id, discord_tag, avatar);
+  emit JoinRequest(id, discord_tag, avatar);
 }
 
 void DiscordHandler::DiscordJoin()
 {
-  emit DiscordHandler::Join();
+  emit Join();
 }
 
 void DiscordHandler::ShowNewJoinRequest(const std::string& id, const std::string& discord_tag,

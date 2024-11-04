@@ -133,7 +133,7 @@ public:
 private:
   void ThreadLoop()
   {
-    Common::SetCurrentThreadName(m_thread_name.c_str());
+    SetCurrentThreadName(m_thread_name.c_str());
 
     while (true)
     {

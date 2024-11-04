@@ -69,7 +69,7 @@ void CPUManager::Run()
 
   // Updating the host CPU's rounding mode must be done on the CPU thread.
   // We can't rely on PowerPC::Init doing it, since it's called from EmuThread.
-  PowerPC::RoundingModeUpdated(power_pc.GetPPCState());
+  RoundingModeUpdated(power_pc.GetPPCState());
 
   std::unique_lock state_lock(m_state_change_lock);
   while (m_state != State::PowerDown)
@@ -118,7 +118,7 @@ void CPUManager::Run()
         if (GDBStub::IsActive() && GDBStub::HasControl())
         {
           if (!GDBStub::JustConnected())
-            GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
+            SendSignal(GDBStub::Signal::Sigtrap);
           GDBStub::ProcessCommands(true);
           // If we are still going to step, emulate the fact we just sent a step command
           if (GDBStub::HasControl())
@@ -291,7 +291,7 @@ void CPUManager::Break()
 void CPUManager::Continue()
 {
   SetStepping(false);
-  Core::CallOnStateChangedCallbacks(Core::State::Running);
+  CallOnStateChangedCallbacks(Core::State::Running);
 }
 
 bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)

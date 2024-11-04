@@ -34,7 +34,7 @@ void FreeLookWidget::CreateLayout()
   auto* layout = new QVBoxLayout();
 
   m_enable_freelook = new ToolTipCheckBox(tr("Enable"));
-  m_enable_freelook->setChecked(Config::Get(Config::FREE_LOOK_ENABLED));
+  m_enable_freelook->setChecked(Get(Config::FREE_LOOK_ENABLED));
   m_enable_freelook->SetDescription(
       tr("Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If unsure, "
          "leave this unchecked.</dolphin_emphasis>"));
@@ -69,7 +69,7 @@ void FreeLookWidget::CreateLayout()
   description->setOpenExternalLinks(true);
 
   m_freelook_background_input = new QCheckBox(tr("Background Input"));
-  m_freelook_background_input->setChecked(Config::Get(Config::FREE_LOOK_BACKGROUND_INPUT));
+  m_freelook_background_input->setChecked(Get(Config::FREE_LOOK_BACKGROUND_INPUT));
 
   auto* hlayout = new QHBoxLayout();
   hlayout->addWidget(new QLabel(tr("Camera 1")));
@@ -98,7 +98,7 @@ void FreeLookWidget::ConnectWidgets()
 
 void FreeLookWidget::OnFreeLookControllerConfigured()
 {
-  if (m_freelook_controller_configure_button != QObject::sender())
+  if (m_freelook_controller_configure_button != sender())
     return;
   const int index = 0;
   MappingWindow* window = new MappingWindow(this, MappingWindow::Type::MAPPING_FREELOOK, index);
@@ -110,7 +110,7 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
 
 void FreeLookWidget::LoadSettings()
 {
-  const bool checked = Config::Get(Config::FREE_LOOK_ENABLED);
+  const bool checked = Get(Config::FREE_LOOK_ENABLED);
   m_enable_freelook->setChecked(checked);
 #ifdef USE_RETRO_ACHIEVEMENTS
   const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
@@ -124,8 +124,8 @@ void FreeLookWidget::LoadSettings()
 void FreeLookWidget::SaveSettings()
 {
   const bool checked = m_enable_freelook->isChecked();
-  Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, checked);
-  Config::SetBaseOrCurrent(Config::FREE_LOOK_BACKGROUND_INPUT,
+  SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, checked);
+  SetBaseOrCurrent(Config::FREE_LOOK_BACKGROUND_INPUT,
                            m_freelook_background_input->isChecked());
   m_freelook_control_type->setEnabled(checked);
   m_freelook_controller_configure_button->setEnabled(checked);

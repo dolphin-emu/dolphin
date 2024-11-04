@@ -29,7 +29,7 @@ mffsx: 80036650 (huh?)
 static void FPSCRUpdated(PowerPC::PowerPCState& ppc_state)
 {
   UpdateFPExceptionSummary(ppc_state);
-  PowerPC::RoundingModeUpdated(ppc_state);
+  RoundingModeUpdated(ppc_state);
 }
 
 void Interpreter::mtfsb0x(Interpreter& interpreter, UGeckoInstruction inst)
@@ -181,7 +181,7 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.msr.Hex = ppc_state.gpr[inst.RS];
 
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 
   // FE0/FE1 may have been set
   CheckFPExceptions(ppc_state);

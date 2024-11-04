@@ -32,6 +32,6 @@ public:
   };
 
 private:
-  HLE::ReturnCode ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request);
+  ReturnCode ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request);
 };
 }  // namespace IOS::HLE

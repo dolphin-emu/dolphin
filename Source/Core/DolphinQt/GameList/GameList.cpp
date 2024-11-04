@@ -87,7 +87,7 @@ protected:
     // last column, unless control is held in which case it ALSO moves to the first/last row.
     // Columns are irrelevant for the game list, so treat the home/end press as if control were
     // held.
-    if (cursorAction == CursorAction::MoveHome || cursorAction == CursorAction::MoveEnd)
+    if (cursorAction == MoveHome || cursorAction == MoveEnd)
       return QTableView::moveCursor(cursorAction, modifiers | Qt::ControlModifier);
     else
       return QTableView::moveCursor(cursorAction, modifiers);
@@ -225,7 +225,7 @@ void GameList::MakeListView()
 
   m_list->verticalHeader()->hide();
   m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  m_list->setFrameStyle(QFrame::NoFrame);
+  m_list->setFrameStyle(NoFrame);
 
   hor_header->setSectionsMovable(true);
   hor_header->setHighlightSections(false);
@@ -259,20 +259,20 @@ void GameList::UpdateColumnVisibility()
   };
 
   using Column = GameListModel::Column;
-  SetVisiblity(Column::Platform, Config::Get(Config::MAIN_GAMELIST_COLUMN_PLATFORM));
-  SetVisiblity(Column::Banner, Config::Get(Config::MAIN_GAMELIST_COLUMN_BANNER));
-  SetVisiblity(Column::Title, Config::Get(Config::MAIN_GAMELIST_COLUMN_TITLE));
-  SetVisiblity(Column::Description, Config::Get(Config::MAIN_GAMELIST_COLUMN_DESCRIPTION));
-  SetVisiblity(Column::Maker, Config::Get(Config::MAIN_GAMELIST_COLUMN_MAKER));
-  SetVisiblity(Column::ID, Config::Get(Config::MAIN_GAMELIST_COLUMN_GAME_ID));
-  SetVisiblity(Column::Country, Config::Get(Config::MAIN_GAMELIST_COLUMN_REGION));
-  SetVisiblity(Column::Size, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_SIZE));
-  SetVisiblity(Column::FileName, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME));
-  SetVisiblity(Column::FilePath, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_PATH));
-  SetVisiblity(Column::FileFormat, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
-  SetVisiblity(Column::BlockSize, Config::Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
-  SetVisiblity(Column::Compression, Config::Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
-  SetVisiblity(Column::Tags, Config::Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
+  SetVisiblity(Column::Platform, Get(Config::MAIN_GAMELIST_COLUMN_PLATFORM));
+  SetVisiblity(Column::Banner, Get(Config::MAIN_GAMELIST_COLUMN_BANNER));
+  SetVisiblity(Column::Title, Get(Config::MAIN_GAMELIST_COLUMN_TITLE));
+  SetVisiblity(Column::Description, Get(Config::MAIN_GAMELIST_COLUMN_DESCRIPTION));
+  SetVisiblity(Column::Maker, Get(Config::MAIN_GAMELIST_COLUMN_MAKER));
+  SetVisiblity(Column::ID, Get(Config::MAIN_GAMELIST_COLUMN_GAME_ID));
+  SetVisiblity(Column::Country, Get(Config::MAIN_GAMELIST_COLUMN_REGION));
+  SetVisiblity(Column::Size, Get(Config::MAIN_GAMELIST_COLUMN_FILE_SIZE));
+  SetVisiblity(Column::FileName, Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME));
+  SetVisiblity(Column::FilePath, Get(Config::MAIN_GAMELIST_COLUMN_FILE_PATH));
+  SetVisiblity(Column::FileFormat, Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
+  SetVisiblity(Column::BlockSize, Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
+  SetVisiblity(Column::Compression, Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
+  SetVisiblity(Column::Tags, Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
 }
 
 void GameList::MakeEmptyView()
@@ -333,7 +333,7 @@ void GameList::MakeGridView()
   m_grid->setResizeMode(QListView::Adjust);
   m_grid->setUniformItemSizes(true);
   m_grid->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_grid->setFrameStyle(QFrame::NoFrame);
+  m_grid->setFrameStyle(NoFrame);
 
   // Work around a Qt bug where clicking in the background (below the last game) as the first action
   // and then pressing a key (e.g. page down or end) selects the first entry in the list instead of
@@ -406,7 +406,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addSeparator();
 
-    if (!is_mod_descriptor && DiscIO::IsDisc(platform))
+    if (!is_mod_descriptor && IsDisc(platform))
     {
       menu->addAction(tr("Start with Riivolution Patches..."), this,
                       &GameList::StartWithRiivolution);
@@ -421,8 +421,8 @@ void GameList::ShowContextMenu(const QPoint&)
       QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
 
       connect(&Settings::Instance(), &Settings::EmulationStateChanged, change_disc,
-              [&system, change_disc] { change_disc->setEnabled(Core::IsRunning(system)); });
-      change_disc->setEnabled(Core::IsRunning(system));
+              [&system, change_disc] { change_disc->setEnabled(IsRunning(system)); });
+      change_disc->setEnabled(IsRunning(system));
 
       menu->addSeparator();
     }
@@ -436,7 +436,7 @@ void GameList::ShowContextMenu(const QPoint&)
                                                     // system menu, trigger a refresh.
                                                     Settings::Instance().NANDRefresh();
                                                   });
-      perform_disc_update->setEnabled(Core::IsUninitialized(system) || !system.IsWii());
+      perform_disc_update->setEnabled(IsUninitialized(system) || !system.IsWii());
     }
 
     if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)
@@ -449,10 +449,10 @@ void GameList::ShowContextMenu(const QPoint&)
 
       for (QAction* a : {wad_install_action, wad_uninstall_action})
       {
-        a->setEnabled(Core::IsUninitialized(system));
+        a->setEnabled(IsUninitialized(system));
         menu->addAction(a);
       }
-      if (Core::IsUninitialized(system))
+      if (IsUninitialized(system))
         wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
 
       connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu,
@@ -473,8 +473,8 @@ void GameList::ShowContextMenu(const QPoint&)
       QAction* export_wii_save =
           menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
 
-      open_wii_save_folder->setEnabled(Core::IsUninitialized(system));
-      export_wii_save->setEnabled(Core::IsUninitialized(system));
+      open_wii_save_folder->setEnabled(IsUninitialized(system));
+      export_wii_save->setEnabled(IsUninitialized(system));
 
       menu->addSeparator();
     }
@@ -531,7 +531,7 @@ void GameList::ShowContextMenu(const QPoint&)
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       netplay_host->setEnabled(state == Core::State::Uninitialized);
     });
-    netplay_host->setEnabled(Core::IsUninitialized(system));
+    netplay_host->setEnabled(IsUninitialized(system));
 
     menu->addAction(netplay_host);
   }
@@ -736,12 +736,12 @@ void GameList::OpenGCSaveFolder()
   {
     QUrl url;
     const ExpansionInterface::EXIDeviceType current_exi_device =
-        Config::Get(Config::GetInfoForEXIDevice(slot));
+        Get(Config::GetInfoForEXIDevice(slot));
     switch (current_exi_device)
     {
     case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
-      std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
+      std::string override_path = Get(Config::GetInfoForGCIPathOverride(slot));
       QDir dir(QString::fromStdString(override_path.empty() ?
                                           Config::GetGCIFolderPath(slot, game->GetRegion()) :
                                           override_path));

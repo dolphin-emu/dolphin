@@ -164,9 +164,8 @@ void Settings::ApplyStyle()
   {
     // Load custom user stylesheet
     QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
-    QFile stylesheet(directory.filePath(stylesheet_name));
 
-    if (stylesheet.open(QFile::ReadOnly))
+    if (QFile stylesheet(directory.filePath(stylesheet_name)); stylesheet.open(QFile::ReadOnly))
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
   }
 
@@ -179,8 +178,7 @@ void Settings::ApplyStyle()
     // So manually check if the user wants dark mode and, if yes, load our embedded dark theme.
     if (style_type == StyleType::Dark || (style_type != StyleType::Light && IsSystemDark()))
     {
-      QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
-      if (file.open(QFile::ReadOnly))
+      if (QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss")); file.open(QFile::ReadOnly))
         stylesheet_contents = QString::fromUtf8(file.readAll().data());
 
       QPalette palette = qApp->style()->standardPalette();
@@ -236,9 +234,9 @@ Settings::StyleType Settings::GetStyleType() const
   if (GetQSettings().contains(QStringLiteral("userstyle/styletype")))
   {
     bool ok = false;
-    const int type_int = GetQSettings().value(QStringLiteral("userstyle/styletype")).toInt(&ok);
-    if (ok && type_int >= static_cast<int>(StyleType::MinValue) &&
-        type_int <= static_cast<int>(StyleType::MaxValue))
+    if (const int type_int = GetQSettings().value(QStringLiteral("userstyle/styletype")).toInt(&ok);
+      ok && type_int >= static_cast<int>(StyleType::MinValue) &&
+      type_int <= static_cast<int>(StyleType::MaxValue))
     {
       return static_cast<StyleType>(type_int);
     }
@@ -267,7 +265,7 @@ void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
   const bool brightness_over_threshold = brightness > 128;
   const QColor emphasis_text_color_1 = Qt::yellow;
   const QColor emphasis_text_color_2 = QColor(QStringLiteral("#0090ff"));  // ~light blue
-  if (Config::Get(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS))
+  if (Get(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS))
   {
     window_color = brightness_over_threshold ? QColor(72, 72, 72) : Qt::white;
     text_color = brightness_over_threshold ? Qt::white : Qt::black;
@@ -360,14 +358,14 @@ void Settings::SetAutoRefreshEnabled(bool enabled)
 
 QString Settings::GetDefaultGame() const
 {
-  return QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
+  return QString::fromStdString(Get(Config::MAIN_DEFAULT_ISO));
 }
 
 void Settings::SetDefaultGame(QString path)
 {
   if (GetDefaultGame() != path)
   {
-    Config::SetBase(Config::MAIN_DEFAULT_ISO, path.toStdString());
+    SetBase(Config::MAIN_DEFAULT_ISO, path.toStdString());
     emit DefaultGameChanged(path);
   }
 }
@@ -394,12 +392,12 @@ void Settings::SetStateSlot(int slot)
 
 Config::ShowCursor Settings::GetCursorVisibility() const
 {
-  return Config::Get(Config::MAIN_SHOW_CURSOR);
+  return Get(Config::MAIN_SHOW_CURSOR);
 }
 
 bool Settings::GetLockCursor() const
 {
-  return Config::Get(Config::MAIN_LOCK_CURSOR);
+  return Get(Config::MAIN_LOCK_CURSOR);
 }
 
 void Settings::SetKeepWindowOnTop(bool top)
@@ -412,12 +410,12 @@ void Settings::SetKeepWindowOnTop(bool top)
 
 bool Settings::IsKeepWindowOnTopEnabled() const
 {
-  return Config::Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
+  return Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
 }
 
 bool Settings::GetGraphicModsEnabled() const
 {
-  return Config::Get(Config::GFX_MODS_ENABLE);
+  return Get(Config::GFX_MODS_ENABLE);
 }
 
 void Settings::SetGraphicModsEnabled(bool enabled)
@@ -427,20 +425,20 @@ void Settings::SetGraphicModsEnabled(bool enabled)
     return;
   }
 
-  Config::SetBaseOrCurrent(Config::GFX_MODS_ENABLE, enabled);
+  SetBaseOrCurrent(Config::GFX_MODS_ENABLE, enabled);
   emit EnableGfxModsChanged(enabled);
 }
 
 int Settings::GetVolume() const
 {
-  return Config::Get(Config::MAIN_AUDIO_VOLUME);
+  return Get(Config::MAIN_AUDIO_VOLUME);
 }
 
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
   {
-    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
+    SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
     emit VolumeChanged(volume);
   }
 }
@@ -510,7 +508,7 @@ void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 
 bool Settings::GetCheatsEnabled() const
 {
-  return Config::Get(Config::MAIN_ENABLE_CHEATS);
+  return Get(Config::MAIN_ENABLE_CHEATS);
 }
 
 void Settings::SetDebugModeEnabled(bool enabled)
@@ -519,7 +517,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
     enabled = false;
   if (IsDebugModeEnabled() != enabled)
   {
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
+    SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
     emit DebugModeToggled(enabled);
     if (enabled)
       SetCodeVisible(true);
@@ -528,7 +526,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 
 bool Settings::IsDebugModeEnabled() const
 {
-  return Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  return Get(Config::MAIN_ENABLE_DEBUGGING);
 }
 
 void Settings::SetRegistersVisible(bool enabled)
@@ -691,14 +689,14 @@ void Settings::SetAutoUpdateTrack(const QString& mode)
   if (mode == GetAutoUpdateTrack())
     return;
 
-  Config::SetBase(Config::MAIN_AUTOUPDATE_UPDATE_TRACK, mode.toStdString());
+  SetBase(Config::MAIN_AUTOUPDATE_UPDATE_TRACK, mode.toStdString());
 
   emit AutoUpdateTrackChanged(mode);
 }
 
 QString Settings::GetAutoUpdateTrack() const
 {
-  return QString::fromStdString(Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
+  return QString::fromStdString(Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 }
 
 void Settings::SetFallbackRegion(const DiscIO::Region& region)
@@ -706,14 +704,14 @@ void Settings::SetFallbackRegion(const DiscIO::Region& region)
   if (region == GetFallbackRegion())
     return;
 
-  Config::SetBase(Config::MAIN_FALLBACK_REGION, region);
+  SetBase(Config::MAIN_FALLBACK_REGION, region);
 
   emit FallbackRegionChanged(region);
 }
 
 DiscIO::Region Settings::GetFallbackRegion() const
 {
-  return Config::Get(Config::MAIN_FALLBACK_REGION);
+  return Get(Config::MAIN_FALLBACK_REGION);
 }
 
 void Settings::SetAnalyticsEnabled(bool enabled)
@@ -721,14 +719,14 @@ void Settings::SetAnalyticsEnabled(bool enabled)
   if (enabled == IsAnalyticsEnabled())
     return;
 
-  Config::SetBase(Config::MAIN_ANALYTICS_ENABLED, enabled);
+  SetBase(Config::MAIN_ANALYTICS_ENABLED, enabled);
 
   emit AnalyticsToggled(enabled);
 }
 
 bool Settings::IsAnalyticsEnabled() const
 {
-  return Config::Get(Config::MAIN_ANALYTICS_ENABLED);
+  return Get(Config::MAIN_ANALYTICS_ENABLED);
 }
 
 void Settings::SetToolBarVisible(bool visible)
@@ -772,28 +770,28 @@ void Settings::SetBatchModeEnabled(bool batch)
 
 bool Settings::IsSDCardInserted() const
 {
-  return Config::Get(Config::MAIN_WII_SD_CARD);
+  return Get(Config::MAIN_WII_SD_CARD);
 }
 
 void Settings::SetSDCardInserted(bool inserted)
 {
   if (IsSDCardInserted() != inserted)
   {
-    Config::SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
+    SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
     emit SDCardInsertionChanged(inserted);
   }
 }
 
 bool Settings::IsUSBKeyboardConnected() const
 {
-  return Config::Get(Config::MAIN_WII_KEYBOARD);
+  return Get(Config::MAIN_WII_KEYBOARD);
 }
 
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
   if (IsUSBKeyboardConnected() != connected)
   {
-    Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
+    SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
 }

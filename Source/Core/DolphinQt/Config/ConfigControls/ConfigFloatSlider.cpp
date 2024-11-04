@@ -16,7 +16,7 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
   const float range = maximum - minimum;
   const int steps = std::round(range / step);
   const int interval = std::round(range / steps);
-  const int current_value = std::round((Config::Get(m_setting) - minimum) / step);
+  const int current_value = std::round((Get(m_setting) - minimum) / step);
 
   setMinimum(0);
   setMaximum(steps);
@@ -27,11 +27,11 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    const int value = std::round((Config::Get(m_setting) - m_minimum) / m_step);
+    const int value = std::round((Get(m_setting) - m_minimum) / m_step);
     setValue(value);
   });
 }
@@ -39,7 +39,7 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
 void ConfigFloatSlider::Update(int value)
 {
   const float current_value = (m_step * value) + m_minimum;
-  Config::SetBaseOrCurrent(m_setting, current_value);
+  SetBaseOrCurrent(m_setting, current_value);
 }
 
 float ConfigFloatSlider::GetValue() const

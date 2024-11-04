@@ -390,7 +390,7 @@ void MappingWindow::OnGlobalDevicesChanged()
   }
 }
 
-void MappingWindow::SetMappingType(MappingWindow::Type type)
+void MappingWindow::SetMappingType(Type type)
 {
   MappingWidget* widget;
 

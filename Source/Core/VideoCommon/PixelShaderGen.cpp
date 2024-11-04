@@ -1473,7 +1473,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
                   n, mtxidx, n, mtxidx + 1, n);
 
         // TODO: should use a shader uid branch for this for better performance
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
+        if (HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
         {
           out.Write("\tint indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
@@ -1494,7 +1494,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
         out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n,
                   texcoord, n);
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
+        if (HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
         {
           out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
@@ -1516,7 +1516,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n,
                   texcoord, n);
 
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
+        if (HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
         {
           out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
@@ -1664,7 +1664,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (ac.dest >= TevOutput::Color0)
     out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
+  if (HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
     out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.a],
               tev_a_input_table[ac.a]);
@@ -1890,7 +1890,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
 
   out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
+  if (HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
     out.Write("\tif(( ");
   else
     out.Write("\tif(!( ");
@@ -1904,7 +1904,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   // Lookup the second component from the alpha function table
   write_alpha_func(uid_data->alpha_test_comp1, alpha_ref[1]);
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
+  if (HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
     out.Write(") == false) {{\n");
   else
     out.Write(")) {{\n");

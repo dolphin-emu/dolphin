@@ -125,20 +125,20 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   GCPadStatus pad_status{};
   if (!NetPlay::IsNetPlayRunning())
     pad_status = Pad::GetGBAStatus(m_device_number);
-  SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
+  CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
                                                                 m_device_number, &pad_status);
 
   static constexpr std::array<PadButton, 10> buttons_map = {
-      PadButton::PAD_BUTTON_A,      // A
-      PadButton::PAD_BUTTON_B,      // B
-      PadButton::PAD_TRIGGER_Z,     // Select
-      PadButton::PAD_BUTTON_START,  // Start
-      PadButton::PAD_BUTTON_RIGHT,  // Right
-      PadButton::PAD_BUTTON_LEFT,   // Left
-      PadButton::PAD_BUTTON_UP,     // Up
-      PadButton::PAD_BUTTON_DOWN,   // Down
-      PadButton::PAD_TRIGGER_R,     // R
-      PadButton::PAD_TRIGGER_L,     // L
+      PAD_BUTTON_A,      // A
+      PAD_BUTTON_B,      // B
+      PAD_TRIGGER_Z,     // Select
+      PAD_BUTTON_START,  // Start
+      PAD_BUTTON_RIGHT,  // Right
+      PAD_BUTTON_LEFT,   // Left
+      PAD_BUTTON_UP,     // Up
+      PAD_BUTTON_DOWN,   // Down
+      PAD_TRIGGER_R,     // R
+      PAD_TRIGGER_L,     // L
   };
 
   m_keys = 0;
@@ -146,7 +146,7 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
     m_keys |= static_cast<u16>(static_cast<bool>((pad_status.button & buttons_map[i]))) << i;
 
   // Use X button as a reset signal for NetPlay/Movies
-  if (pad_status.button & PadButton::PAD_BUTTON_X)
+  if (pad_status.button & PAD_BUTTON_X)
     m_core->Reset();
 
   return false;

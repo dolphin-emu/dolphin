@@ -143,7 +143,7 @@ void ResourcePackManager::RepopulateTable()
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      if (ResourcePack::IsInstalled(pack))
+      if (IsInstalled(pack))
       {
         item->setBackground(QColor(Qt::green));
 
@@ -177,7 +177,7 @@ void ResourcePackManager::Change()
   if (items.empty())
     return;
 
-  if (ResourcePack::IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]))
+  if (IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]))
   {
     Uninstall();
   }
@@ -316,7 +316,7 @@ void ResourcePackManager::SelectionChanged()
   if (has_selection)
   {
     m_change_button->setText(
-        ResourcePack::IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]) ?
+        IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]) ?
             tr("Uninstall") :
             tr("Install"));
   }

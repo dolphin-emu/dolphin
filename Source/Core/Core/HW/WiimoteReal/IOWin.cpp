@@ -106,7 +106,7 @@ bool load_hid()
 
     if (s_hid_lib)
     {
-      ::FreeLibrary(s_hid_lib);
+      FreeLibrary(s_hid_lib);
       s_hid_lib = nullptr;
     }
   }
@@ -156,7 +156,7 @@ bool load_bthprops()
 
     if (s_bthprops_lib)
     {
-      ::FreeLibrary(s_bthprops_lib);
+      FreeLibrary(s_bthprops_lib);
       s_bthprops_lib = nullptr;
     }
   }

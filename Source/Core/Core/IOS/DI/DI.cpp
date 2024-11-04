@@ -348,7 +348,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
         mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xA8000000);
         mmio->Write<u32>(system, ADDRESS_DICMDBUF1, position);
         mmio->Write<u32>(system, ADDRESS_DICMDBUF2, length);
-        if (range.is_error_001_range && Config::Get(Config::SESSION_SHOULD_FAKE_ERROR_001))
+        if (range.is_error_001_range && Get(Config::SESSION_SHOULD_FAKE_ERROR_001))
         {
           mmio->Write<u32>(system, ADDRESS_DIMAR, request.buffer_out);
           m_last_length = length;

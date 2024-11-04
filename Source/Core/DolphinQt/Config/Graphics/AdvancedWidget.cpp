@@ -43,7 +43,7 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
   });
 
   OnBackendChanged();
-  OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
+  OnEmulationStateChanged(!IsUninitialized(Core::System::GetInstance()));
 }
 
 void AdvancedWidget::CreateWidgets()
@@ -220,24 +220,24 @@ void AdvancedWidget::ConnectWidgets()
 
 void AdvancedWidget::LoadSettings()
 {
-  m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
-  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
+  m_prefetch_custom_textures->setEnabled(Get(Config::GFX_HIRES_TEXTURES));
+  m_dump_bitrate->setEnabled(!Get(Config::GFX_USE_FFV1));
 
-  m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
-  m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
-  m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
+  m_enable_prog_scan->setChecked(Get(Config::SYSCONF_PROGRESSIVE_SCAN));
+  m_dump_mip_textures->setEnabled(Get(Config::GFX_DUMP_TEXTURES));
+  m_dump_base_textures->setEnabled(Get(Config::GFX_DUMP_TEXTURES));
 
   SignalBlocking(m_enable_graphics_mods)->setChecked(Settings::Instance().GetGraphicModsEnabled());
 }
 
 void AdvancedWidget::SaveSettings()
 {
-  m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
-  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
+  m_prefetch_custom_textures->setEnabled(Get(Config::GFX_HIRES_TEXTURES));
+  m_dump_bitrate->setEnabled(!Get(Config::GFX_USE_FFV1));
 
-  Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
-  m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
-  m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
+  SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
+  m_dump_mip_textures->setEnabled(Get(Config::GFX_DUMP_TEXTURES));
+  m_dump_base_textures->setEnabled(Get(Config::GFX_DUMP_TEXTURES));
   Settings::Instance().SetGraphicModsEnabled(m_enable_graphics_mods->isChecked());
 }
 

@@ -157,7 +157,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     return false;
   }
 
-  auto gfx = std::make_unique<DX11::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
+  auto gfx = std::make_unique<Gfx>(std::move(swap_chain), wsi.render_surface_scale);
   auto vertex_manager = std::make_unique<VertexManager>();
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<D3DBoundingBox>();

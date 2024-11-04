@@ -414,9 +414,9 @@ static void RefreshConfig()
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    s_is_adapter_wanted |= Config::Get(Config::GetInfoForSIDevice(i)) ==
+    s_is_adapter_wanted |= Get(Config::GetInfoForSIDevice(i)) ==
                            SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
-    s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
+    s_config_rumble_enabled[i] = Get(Config::GetInfoForAdapterRumble(i));
   }
 }
 
@@ -433,7 +433,7 @@ void Init()
 #endif
 
   auto& system = Core::System::GetInstance();
-  if (const Core::State state = Core::GetState(system);
+  if (const Core::State state = GetState(system);
       state != Core::State::Uninitialized && state != Core::State::Starting)
   {
     auto& core_timing = system.GetCoreTiming();
@@ -691,7 +691,7 @@ void Shutdown()
 
   if (s_config_callback_id)
   {
-    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    RemoveConfigChangedCallback(*s_config_callback_id);
     s_config_callback_id = std::nullopt;
   }
 }

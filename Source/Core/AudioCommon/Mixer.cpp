@@ -34,7 +34,7 @@ static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 Mixer::Mixer(unsigned int BackendSampleRate)
     : m_sampleRate(BackendSampleRate), m_stretcher(BackendSampleRate),
       m_surround_decoder(BackendSampleRate,
-                         DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY)))
+                         DPL2QualityToFrameBlockSize(Get(Config::MAIN_DPL2_QUALITY)))
 {
   m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
   RefreshConfig();
@@ -44,7 +44,7 @@ Mixer::Mixer(unsigned int BackendSampleRate)
 
 Mixer::~Mixer()
 {
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+  RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 void Mixer::DoState(PointerWrap& p)
@@ -455,9 +455,9 @@ void Mixer::StopLogDSPAudio()
 
 void Mixer::RefreshConfig()
 {
-  m_config_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
-  m_config_timing_variance = Config::Get(Config::MAIN_TIMING_VARIANCE);
-  m_config_audio_stretch = Config::Get(Config::MAIN_AUDIO_STRETCH);
+  m_config_emulation_speed = Get(Config::MAIN_EMULATION_SPEED);
+  m_config_timing_variance = Get(Config::MAIN_TIMING_VARIANCE);
+  m_config_audio_stretch = Get(Config::MAIN_AUDIO_STRETCH);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)

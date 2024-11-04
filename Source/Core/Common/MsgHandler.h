@@ -31,11 +31,11 @@ void RegisterStringTranslator(StringTranslator translator);
 
 [[nodiscard]] std::string GetStringT(const char* string);
 
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Log::LogType log_type, const char* file,
                      int line, fmt::string_view format, const fmt::format_args& args);
 
 template <std::size_t NumFields, typename S, typename... Args>
-bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+bool MsgAlertFmt(bool yes_no, MsgType style, Log::LogType log_type, const char* file,
                  int line, const S& format, const Args&... args)
 {
   static_assert(NumFields == sizeof...(args),
@@ -51,7 +51,7 @@ bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, cons
 }
 
 template <std::size_t NumFields, bool has_non_positional_args, typename S, typename... Args>
-bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+bool MsgAlertFmtT(bool yes_no, MsgType style, Log::LogType log_type, const char* file,
                   int line, const S& format, fmt::string_view translated_format,
                   const Args&... args)
 {
@@ -76,7 +76,7 @@ void SetAbortOnPanicAlert(bool should_abort);
 template <typename... Args>
 std::string FmtFormatT(const char* string, Args&&... args)
 {
-  return fmt::format(fmt::runtime(Common::GetStringT(string)), std::forward<Args>(args)...);
+  return fmt::format(fmt::runtime(GetStringT(string)), std::forward<Args>(args)...);
 }
 }  // namespace Common
 

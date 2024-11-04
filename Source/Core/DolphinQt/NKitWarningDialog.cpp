@@ -19,12 +19,12 @@
 
 bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
 {
-  if (Config::Get(Config::MAIN_SKIP_NKIT_WARNING))
+  if (Get(Config::MAIN_SKIP_NKIT_WARNING))
     return true;
 
   NKitWarningDialog dialog(parent);
   SetQWidgetWindowDecorations(&dialog);
-  return dialog.exec() == QDialog::Accepted;
+  return dialog.exec() == Accepted;
 }
 
 NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
@@ -84,6 +84,6 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
           [ok](int state) { ok->setEnabled(state == Qt::Checked); });
 
   connect(this, &QDialog::accepted, [checkbox_skip] {
-    Config::SetBase(Config::MAIN_SKIP_NKIT_WARNING, checkbox_skip->isChecked());
+    SetBase(Config::MAIN_SKIP_NKIT_WARNING, checkbox_skip->isChecked());
   });
 }

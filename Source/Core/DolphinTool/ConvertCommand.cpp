@@ -225,7 +225,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       return EXIT_FAILURE;
     }
 
-    if (!DiscIO::IsDiscImageBlockSizeValid(block_size_o.value(), format))
+    if (!IsDiscImageBlockSizeValid(block_size_o.value(), format))
     {
       fmt::print(std::cerr, "Error: Block size is not valid for this format\n");
       return EXIT_FAILURE;
@@ -287,7 +287,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       }
 
       const std::pair<int, int> range =
-          DiscIO::GetAllowedCompressionLevels(compression_o.value(), false);
+          GetAllowedCompressionLevels(compression_o.value(), false);
       if (compression_level_o.value() < range.first || compression_level_o.value() > range.second)
       {
         fmt::print(std::cerr, "Error: Compression level not in acceptable range\n");
@@ -305,7 +305,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
   case DiscIO::BlobType::PLAIN:
   {
-    success = DiscIO::ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
+    success = ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
                                      NOOP_STATUS_CALLBACK);
     break;
   }
@@ -320,7 +320,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       else if (volume->GetVolumeType() == DiscIO::Platform::WiiDisc)
         sub_type = 1;
     }
-    success = DiscIO::ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
+    success = ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
                                    block_size_o.value(), NOOP_STATUS_CALLBACK);
     break;
   }
@@ -328,7 +328,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   case DiscIO::BlobType::WIA:
   case DiscIO::BlobType::RVZ:
   {
-    success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
+    success = ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
                                         format == DiscIO::BlobType::RVZ, compression_o.value(),
                                         compression_level_o.value(), block_size_o.value(),
                                         NOOP_STATUS_CALLBACK);

@@ -70,7 +70,7 @@ int HeaderCommand(const std::vector<std::string>& args)
     return EXIT_FAILURE;
   }
   // Open the volume
-  const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(blob_reader->CopyReader());
+  const std::unique_ptr<DiscIO::Volume> volume = CreateVolume(blob_reader->CopyReader());
 
   if (enable_json)
   {
@@ -100,9 +100,9 @@ int HeaderCommand(const std::vector<std::string>& args)
       if (const std::optional<u64> title_id = volume->GetTitleID())
         json["title_id"] = picojson::value((double)title_id.value());
 
-      json["region"] = picojson::value(DiscIO::GetName(volume->GetRegion(), false));
+      json["region"] = picojson::value(GetName(volume->GetRegion(), false));
 
-      json["country"] = picojson::value(DiscIO::GetName(volume->GetCountry(), false));
+      json["country"] = picojson::value(GetName(volume->GetCountry(), false));
     }
 
     // Print
@@ -161,9 +161,9 @@ int HeaderCommand(const std::vector<std::string>& args)
       if (const std::optional<u64> title_id = volume->GetTitleID())
         fmt::print(std::cout, "Title ID: {:016x}\n", title_id.value());
 
-      fmt::print(std::cout, "Region: {}\n", DiscIO::GetName(volume->GetRegion(), false));
+      fmt::print(std::cout, "Region: {}\n", GetName(volume->GetRegion(), false));
 
-      fmt::print(std::cout, "Country: {}\n", DiscIO::GetName(volume->GetCountry(), false));
+      fmt::print(std::cout, "Country: {}\n", GetName(volume->GetCountry(), false));
     }
   }
 

@@ -36,7 +36,7 @@ auto RunOnObject(QObject* object, F&& functor)
   {
   public:
     FnInvokeEvent(F&& functor, QObject* obj, Common::Event& event, OptionalResultT& result)
-        : QEvent(QEvent::None), m_func(std::move(functor)), m_obj(obj), m_event(event),
+        : QEvent(None), m_func(std::move(functor)), m_obj(obj), m_event(event),
           m_result(result)
     {
     }

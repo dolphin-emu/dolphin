@@ -147,7 +147,7 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
   alloc_create_info.preferredFlags = 0;
   alloc_create_info.requiredFlags = 0;
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_CACHED_READBACK_MEMORY)) [[unlikely]]
+  if (HasBug(DriverDetails::BUG_SLOW_CACHED_READBACK_MEMORY)) [[unlikely]]
   {
     // If there is no memory type that is both CACHED and COHERENT,
     // pick the one that is COHERENT

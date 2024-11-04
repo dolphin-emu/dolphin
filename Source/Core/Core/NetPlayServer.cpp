@@ -156,7 +156,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
     {
-      m_server->mtu = std::min(m_server->mtu, NetPlay::MAX_ENET_MTU);
+      m_server->mtu = std::min(m_server->mtu, MAX_ENET_MTU);
       m_server->intercept = Common::ENet::InterceptCallback;
     }
 
@@ -193,17 +193,17 @@ static void ClearPeerPlayerId(ENetPeer* peer)
 
 void NetPlayServer::SetupIndex()
 {
-  if (!Config::Get(Config::NETPLAY_USE_INDEX) || Config::Get(Config::NETPLAY_INDEX_NAME).empty() ||
-      Config::Get(Config::NETPLAY_INDEX_REGION).empty())
+  if (!Get(Config::NETPLAY_USE_INDEX) || Get(Config::NETPLAY_INDEX_NAME).empty() ||
+      Get(Config::NETPLAY_INDEX_REGION).empty())
   {
     return;
   }
 
   NetPlaySession session;
 
-  session.name = Config::Get(Config::NETPLAY_INDEX_NAME);
-  session.region = Config::Get(Config::NETPLAY_INDEX_REGION);
-  session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
+  session.name = Get(Config::NETPLAY_INDEX_NAME);
+  session.region = Get(Config::NETPLAY_INDEX_REGION);
+  session.has_password = !Get(Config::NETPLAY_INDEX_PASSWORD).empty();
   session.method = m_traversal_client ? "traversal" : "direct";
   session.game_id = m_selected_game_name.empty() ? "UNKNOWN" : m_selected_game_name;
   session.player_count = static_cast<int>(m_players.size());
@@ -231,7 +231,7 @@ void NetPlayServer::SetupIndex()
     session.server_id = std::string(response->begin(), response->end());
   }
 
-  session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
+  session.EncryptID(Get(Config::NETPLAY_INDEX_PASSWORD));
 
   bool success = m_index.Add(session);
   if (m_dialog != nullptr)
@@ -495,7 +495,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
                          static_cast<u8>(existing_player.second.game_status));
   }
 
-  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
+  if (Get(Config::NETPLAY_ENABLE_QOS))
     new_player.qos_session = Common::QoSSession(new_player.socket);
 
   {
@@ -613,7 +613,7 @@ void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, bool update_rom
       auto& config = m_gba_config[i];
       if (!config.enabled)
         continue;
-      std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[i]);
+      std::string rom_path = Get(Config::MAIN_GBA_ROM_PATHS[i]);
       config.has_rom = HW::GBA::Core::GetRomInfo(rom_path.c_str(), config.hash, config.title);
     }
   }
@@ -1346,29 +1346,29 @@ bool NetPlayServer::SetupNetSettings()
   INFO_LOG_FMT(NETPLAY, "Loading game settings for {:02x}.",
                fmt::join(m_selected_game_identifier.sync_hash, ""));
 
-  NetPlay::NetSettings settings;
+  NetSettings settings;
 
   // Load GameINI so we can sync the settings from it
-  Config::AddLayer(
+  AddLayer(
       ConfigLoaders::GenerateGlobalGameConfigLoader(game->GetGameID(), game->GetRevision()));
-  Config::AddLayer(
+  AddLayer(
       ConfigLoaders::GenerateLocalGameConfigLoader(game->GetGameID(), game->GetRevision()));
 
   // Copy all relevant settings
-  settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
-  settings.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
+  settings.cpu_thread = Get(Config::MAIN_CPU_THREAD);
+  settings.cpu_core = Get(Config::MAIN_CPU_CORE);
   settings.enable_cheats = Config::AreCheatsEnabled();
-  settings.selected_language = Config::Get(Config::MAIN_GC_LANGUAGE);
-  settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
-  settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);
-  settings.dsp_enable_jit = Config::Get(Config::MAIN_DSP_JIT);
-  settings.ram_override_enable = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  settings.mem1_size = Config::Get(Config::MAIN_MEM1_SIZE);
-  settings.mem2_size = Config::Get(Config::MAIN_MEM2_SIZE);
-  settings.fallback_region = Config::Get(Config::MAIN_FALLBACK_REGION);
-  settings.allow_sd_writes = Config::Get(Config::MAIN_ALLOW_SD_WRITES);
-  settings.oc_enable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
-  settings.oc_factor = Config::Get(Config::MAIN_OVERCLOCK);
+  settings.selected_language = Get(Config::MAIN_GC_LANGUAGE);
+  settings.override_region_settings = Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
+  settings.dsp_hle = Get(Config::MAIN_DSP_HLE);
+  settings.dsp_enable_jit = Get(Config::MAIN_DSP_JIT);
+  settings.ram_override_enable = Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
+  settings.mem1_size = Get(Config::MAIN_MEM1_SIZE);
+  settings.mem2_size = Get(Config::MAIN_MEM2_SIZE);
+  settings.fallback_region = Get(Config::MAIN_FALLBACK_REGION);
+  settings.allow_sd_writes = Get(Config::MAIN_ALLOW_SD_WRITES);
+  settings.oc_enable = Get(Config::MAIN_OVERCLOCK_ENABLE);
+  settings.oc_factor = Get(Config::MAIN_OVERCLOCK);
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
@@ -1380,12 +1380,12 @@ bool NetPlayServer::SetupNetSettings()
     }
     else
     {
-      device = Config::Get(Config::GetInfoForEXIDevice(slot));
+      device = Get(Config::GetInfoForEXIDevice(slot));
     }
     settings.exi_device[slot] = device;
   }
 
-  settings.memcard_size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+  settings.memcard_size_override = Get(Config::MAIN_MEMORY_CARD_SIZE);
 
   for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
   {
@@ -1397,66 +1397,66 @@ bool NetPlayServer::SetupNetSettings()
         Config::SYSCONF_SETTINGS[i].config_info);
   }
 
-  settings.efb_access_enable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  settings.bbox_enable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
-  settings.force_progressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
-  settings.efb_to_texture_enable = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  settings.xfb_to_texture_enable = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  settings.disable_copy_to_vram = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
-  settings.immediate_xfb_enable = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
-  settings.efb_emulate_format_changes = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  settings.efb_access_enable = Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  settings.bbox_enable = Get(Config::GFX_HACK_BBOX_ENABLE);
+  settings.force_progressive = Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+  settings.efb_to_texture_enable = Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  settings.xfb_to_texture_enable = Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  settings.disable_copy_to_vram = Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+  settings.immediate_xfb_enable = Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  settings.efb_emulate_format_changes = Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   settings.safe_texture_cache_color_samples =
-      Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-  settings.perf_queries_enable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
-  settings.float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
-  settings.divide_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
-  settings.fprf = Config::Get(Config::MAIN_FPRF);
-  settings.accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
-  settings.disable_icache = Config::Get(Config::MAIN_DISABLE_ICACHE);
-  settings.sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
-  settings.sync_gpu = Config::Get(Config::MAIN_SYNC_GPU);
-  settings.sync_gpu_max_distance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
-  settings.sync_gpu_min_distance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
-  settings.sync_gpu_overclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
-  settings.jit_follow_branch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
-  settings.fast_disc_speed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
-  settings.mmu = Config::Get(Config::MAIN_MMU);
-  settings.fastmem = Config::Get(Config::MAIN_FASTMEM);
-  settings.skip_ipl = Config::Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
-  settings.load_ipl_dump = Config::Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
-  settings.vertex_rounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
-  settings.internal_resolution = Config::Get(Config::GFX_EFB_SCALE);
-  settings.efb_scaled_copy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
-  settings.fast_depth_calc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
-  settings.enable_pixel_lighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
-  settings.widescreen_hack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  settings.force_texture_filtering = Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
-  settings.max_anisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
-  settings.force_true_color = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
-  settings.disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  settings.disable_fog = Config::Get(Config::GFX_DISABLE_FOG);
-  settings.arbitrary_mipmap_detection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+      Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  settings.perf_queries_enable = Get(Config::GFX_PERF_QUERIES_ENABLE);
+  settings.float_exceptions = Get(Config::MAIN_FLOAT_EXCEPTIONS);
+  settings.divide_by_zero_exceptions = Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
+  settings.fprf = Get(Config::MAIN_FPRF);
+  settings.accurate_nans = Get(Config::MAIN_ACCURATE_NANS);
+  settings.disable_icache = Get(Config::MAIN_DISABLE_ICACHE);
+  settings.sync_on_skip_idle = Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  settings.sync_gpu = Get(Config::MAIN_SYNC_GPU);
+  settings.sync_gpu_max_distance = Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  settings.sync_gpu_min_distance = Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  settings.sync_gpu_overclock = Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+  settings.jit_follow_branch = Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+  settings.fast_disc_speed = Get(Config::MAIN_FAST_DISC_SPEED);
+  settings.mmu = Get(Config::MAIN_MMU);
+  settings.fastmem = Get(Config::MAIN_FASTMEM);
+  settings.skip_ipl = Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
+  settings.load_ipl_dump = Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
+  settings.vertex_rounding = Get(Config::GFX_HACK_VERTEX_ROUNDING);
+  settings.internal_resolution = Get(Config::GFX_EFB_SCALE);
+  settings.efb_scaled_copy = Get(Config::GFX_HACK_COPY_EFB_SCALED);
+  settings.fast_depth_calc = Get(Config::GFX_FAST_DEPTH_CALC);
+  settings.enable_pixel_lighting = Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
+  settings.widescreen_hack = Get(Config::GFX_WIDESCREEN_HACK);
+  settings.force_texture_filtering = Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
+  settings.max_anisotropy = Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  settings.force_true_color = Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  settings.disable_copy_filter = Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  settings.disable_fog = Get(Config::GFX_DISABLE_FOG);
+  settings.arbitrary_mipmap_detection = Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
   settings.arbitrary_mipmap_detection_threshold =
-      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
-  settings.enable_gpu_texture_decoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
-  settings.defer_efb_copies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
-  settings.efb_access_tile_size = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
-  settings.efb_access_defer_invalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+      Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
+  settings.enable_gpu_texture_decoding = Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  settings.defer_efb_copies = Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  settings.efb_access_tile_size = Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
+  settings.efb_access_defer_invalidation = Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
 
-  settings.savedata_load = Config::Get(Config::NETPLAY_SAVEDATA_LOAD);
-  settings.savedata_write = settings.savedata_load && Config::Get(Config::NETPLAY_SAVEDATA_WRITE);
+  settings.savedata_load = Get(Config::NETPLAY_SAVEDATA_LOAD);
+  settings.savedata_write = settings.savedata_load && Get(Config::NETPLAY_SAVEDATA_WRITE);
   settings.savedata_sync_all_wii =
-      settings.savedata_load && Config::Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
+      settings.savedata_load && Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
 
-  settings.strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
-  settings.sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
-  settings.golf_mode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
+  settings.strict_settings_sync = Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
+  settings.sync_codes = Get(Config::NETPLAY_SYNC_CODES);
+  settings.golf_mode = Get(Config::NETPLAY_NETWORK_MODE) == "golf";
   settings.use_fma = DoAllPlayersHaveHardwareFMA();
-  settings.hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  settings.hide_remote_gbas = Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
   // Unload GameINI to restore things to normal
-  Config::RemoveLayer(Config::LayerType::GlobalGame);
-  Config::RemoveLayer(Config::LayerType::LocalGame);
+  RemoveLayer(Config::LayerType::GlobalGame);
+  RemoveLayer(Config::LayerType::LocalGame);
 
   m_settings = settings;
 
@@ -1702,7 +1702,7 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
       INFO_LOG_FMT(NETPLAY, "Adding memory card (raw) in slot {}.", slot);
       ++sync_info.save_count;
     }
-    else if (Config::Get(Config::GetInfoForEXIDevice(slot)) ==
+    else if (Get(Config::GetInfoForEXIDevice(slot)) ==
              ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       INFO_LOG_FMT(NETPLAY, "Adding memory card (folder) in slot {}.", slot);
@@ -1727,7 +1727,7 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
     sync_info.has_wii_save = true;
     ++sync_info.save_count;
 
-    sync_info.configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+    sync_info.configured_fs = MakeFileSystem(IOS::HLE::FS::Location::Configured);
     if (m_settings.savedata_sync_all_wii)
     {
       IOS::HLE::Kernel ios;
@@ -1771,7 +1771,7 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
       if (boot_params)
       {
         sync_info.redirected_save =
-            DiscIO::Riivolution::ExtractSavegameRedirect(boot_params->riivolution_patches);
+            ExtractSavegameRedirect(boot_params->riivolution_patches);
       }
     }
   }
@@ -1852,7 +1852,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
       SendChunkedToClients(std::move(pac), 1,
                            fmt::format("Memory Card {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
-    else if (Config::Get(Config::GetInfoForEXIDevice(slot)) ==
+    else if (Get(Config::GetInfoForEXIDevice(slot)) ==
              ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       const std::string path = Config::GetGCIFolderPath(slot, gamecube_region);
@@ -2006,7 +2006,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
       std::string path;
 #ifdef HAS_LIBMGBA
-      path = HW::GBA::Core::GetSavePath(Config::Get(Config::MAIN_GBA_ROM_PATHS[i]),
+      path = HW::GBA::Core::GetSavePath(Get(Config::MAIN_GBA_ROM_PATHS[i]),
                                         static_cast<int>(i));
 #endif
       if (File::Exists(path))
@@ -2069,7 +2069,7 @@ bool NetPlayServer::SyncCodes()
   {
     // Create a Gecko Code Vector with just the active codes
     std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+        SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
 
     // Determine Codelist Size
     u16 codelines = 0;
@@ -2119,7 +2119,7 @@ bool NetPlayServer::SyncCodes()
   {
     // Create an AR Code Vector with just the active codes
     std::vector<ActionReplay::ARCode> s_active_codes =
-        ActionReplay::ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
+        ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
 
     // Determine Codelist Size
     u16 codelines = 0;
@@ -2183,8 +2183,8 @@ void NetPlayServer::CheckSyncAndStartGame()
 
 u64 NetPlayServer::GetInitialNetPlayRTC() const
 {
-  if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
-    return Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
+  if (Get(Config::MAIN_CUSTOM_RTC_ENABLE))
+    return Get(Config::MAIN_CUSTOM_RTC_VALUE);
 
   return Common::Timer::GetLocalTimeSinceJan1970();
 }
@@ -2405,9 +2405,9 @@ void NetPlayServer::ChunkedDataThreadFunc()
           m_dialog->ShowChunkedProgressDialog(e.title, e.packet.getDataSize(), players);
       }
 
-      const bool enable_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+      const bool enable_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
       const float bytes_per_second =
-          (std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
+          (std::max(Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
       const std::chrono::duration<double> send_interval(CHUNKED_DATA_UNIT_SIZE / bytes_per_second);
       bool skip_wait = false;
       size_t index = 0;

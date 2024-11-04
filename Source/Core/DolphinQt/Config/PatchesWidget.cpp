@@ -29,7 +29,7 @@ PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
   Common::IniFile game_ini_default =
       SConfig::GetInstance().LoadDefaultGameIni(m_game_id, m_game_revision);
 
-  PatchEngine::LoadPatchSection("OnFrame", &m_patches, game_ini_default, game_ini_local);
+  LoadPatchSection("OnFrame", &m_patches, game_ini_default, game_ini_local);
 
   CreateWidgets();
   ConnectWidgets();
@@ -160,7 +160,7 @@ void PatchesWidget::SavePatches()
 
   Common::IniFile game_ini_local;
   game_ini_local.Load(ini_path);
-  PatchEngine::SavePatchSection(&game_ini_local, m_patches);
+  SavePatchSection(&game_ini_local, m_patches);
   game_ini_local.Save(ini_path);
 }
 

@@ -32,7 +32,7 @@ Profiler::Profiler(const std::string& name)
     : m_name(name), m_usecs(0), m_usecs_min(UINT64_MAX), m_usecs_max(0), m_usecs_quad(0),
       m_calls(0), m_depth(0)
 {
-  m_time = Common::Timer::NowUs();
+  m_time = Timer::NowUs();
   s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
 
   std::lock_guard<std::mutex> lk(s_mutex);
@@ -64,7 +64,7 @@ std::string Profiler::ToString()
   if (s_all_profilers.empty())
     return "";
 
-  u64 end = Common::Timer::NowUs();
+  u64 end = Timer::NowUs();
   s_usecs_frame = end - s_frame_time;
   s_frame_time = end;
 
@@ -101,7 +101,7 @@ void Profiler::Start()
 {
   if (!m_depth++)
   {
-    m_time = Common::Timer::NowUs();
+    m_time = Timer::NowUs();
   }
 }
 
@@ -109,7 +109,7 @@ void Profiler::Stop()
 {
   if (!--m_depth)
   {
-    u64 end = Common::Timer::NowUs();
+    u64 end = Timer::NowUs();
 
     u64 diff = end - m_time;
 

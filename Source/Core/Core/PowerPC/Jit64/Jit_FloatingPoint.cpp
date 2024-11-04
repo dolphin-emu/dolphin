@@ -365,7 +365,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   // There is one circumstance where the software FMA path does get used: when an input recording
   // is created on a CPU that has FMA instructions and then gets played back on a CPU that doesn't.
   // (Or if the user just really wants to override the setting and knows how to do so.)
-  const bool use_fma = Config::Get(Config::SESSION_USE_FMA);
+  const bool use_fma = Get(Config::SESSION_USE_FMA);
   const bool software_fma = use_fma && !cpu_info.bFMA;
 
   int a = inst.FA;
@@ -408,12 +408,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     {
       result_xmm_guard = fpr.Scratch();
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard, result_xmm_guard);
-      result_xmm = Gen::X64Reg(result_xmm_guard);
+      result_xmm = X64Reg(result_xmm_guard);
     }
     else
     {
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard);
-      result_xmm = packed ? Gen::X64Reg(Rd) : XMM0;
+      result_xmm = packed ? X64Reg(Rd) : XMM0;
     }
   }
   else

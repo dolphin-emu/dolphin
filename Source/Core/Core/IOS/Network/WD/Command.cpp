@@ -243,7 +243,7 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
 
   if (state == 0)
   {
-    if (!WD::IsValidMode(m_mode))
+    if (!IsValidMode(m_mode))
       return IPCReply(u32(ResultCode::UnavailableCommand));
 
     m_target_status = Status::Idle;
@@ -254,7 +254,7 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
     if (state != 1)
       return IPCReply(u32(ResultCode::IllegalParameter));
 
-    if (!WD::IsValidMode(m_mode))
+    if (!IsValidMode(m_mode))
       return IPCReply(u32(ResultCode::UnavailableCommand));
 
     const auto target_status = GetTargetStatusForMode(m_mode);
@@ -271,7 +271,7 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
 IPCReply NetWDCommandDevice::GetLinkState(const IOCtlVRequest& request) const
 {
   INFO_LOG_FMT(IOS_NET, "WD_GetLinkState called (status={}, mode={})", m_status, m_mode);
-  if (!WD::IsValidMode(m_mode))
+  if (!IsValidMode(m_mode))
     return IPCReply(u32(ResultCode::UnavailableCommand));
 
   // Contrary to what the name of the ioctl suggests, this returns a boolean, not the current state.

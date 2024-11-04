@@ -1035,8 +1035,8 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
   {
   case 0xb003:  // dns server table
   {
-    const u32 default_main_dns_resolver = ntohl(::inet_addr("8.8.8.8"));
-    const u32 default_backup_dns_resolver = ntohl(::inet_addr("8.8.4.4"));
+    const u32 default_main_dns_resolver = ntohl(inet_addr("8.8.8.8"));
+    const u32 default_backup_dns_resolver = ntohl(inet_addr("8.8.4.4"));
     u32 address = 0;
 #ifdef _WIN32
     if (!Core::WantsDeterminism())
@@ -1137,7 +1137,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
 
   case 0x1004:  // mac address
   {
-    const Common::MACAddress address = IOS::Net::GetMACAddress();
+    const Common::MACAddress address = Net::GetMACAddress();
     memory.CopyToEmu(request.io_vectors[0].address, address.data(), address.size());
     break;
   }
@@ -1264,7 +1264,7 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   {
     nodeNameStr = memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
     if (std::optional<std::string> patch =
-            WC24PatchEngine::GetNetworkPatch(nodeNameStr, WC24PatchEngine::IsKD{false}))
+            GetNetworkPatch(nodeNameStr, WC24PatchEngine::IsKD{false}))
     {
       nodeNameStr = patch.value();
     }

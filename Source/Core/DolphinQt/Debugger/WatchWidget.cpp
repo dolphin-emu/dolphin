@@ -143,7 +143,7 @@ void WatchWidget::UpdateButtonsEnabled()
   if (!isVisible())
     return;
 
-  const bool is_enabled = Core::IsRunning(m_system);
+  const bool is_enabled = IsRunning(m_system);
   m_new->setEnabled(is_enabled);
   m_delete->setEnabled(is_enabled);
   m_clear->setEnabled(is_enabled);
@@ -158,7 +158,7 @@ void WatchWidget::Update()
 
   m_updating = true;
 
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
   {
     m_table->setDisabled(true);
     m_updating = false;
@@ -195,7 +195,7 @@ void WatchWidget::Update()
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    const bool core_is_running = Core::IsRunning(m_system);
+    const bool core_is_running = IsRunning(m_system);
     if (!core_is_running || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 

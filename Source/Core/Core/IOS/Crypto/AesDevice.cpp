@@ -34,7 +34,7 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  HLE::ReturnCode return_code = IPC_EINVAL;
+  ReturnCode return_code = IPC_EINVAL;
   AesIoctlv command = static_cast<AesIoctlv>(request.request);
 
   switch (command)
@@ -47,7 +47,7 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
     std::vector<u8> input = std::vector<u8>(request.in_vectors[0].size);
     memory.CopyFromEmu(input.data(), request.in_vectors[0].address, input.size());
     memory.CopyToEmu(request.io_vectors[0].address, input.data(), input.size());
-    return_code = ReturnCode::IPC_SUCCESS;
+    return_code = IPC_SUCCESS;
     break;
   }
   case AesIoctlv::Decrypt:
@@ -78,7 +78,7 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
 
     memory.CopyToEmu(request.io_vectors[0].address, output.data(), output.size());
     memory.CopyToEmu(request.io_vectors[1].address, iv.data(), iv.size());
-    return_code = ReturnCode::IPC_SUCCESS;
+    return_code = IPC_SUCCESS;
     break;
   }
   }

@@ -88,7 +88,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
 }
 
 Cursor::StateData Cursor::GetState(const bool adjusted,
-                                   const ControllerEmu::InputOverrideFunction& override_func)
+                                   const InputOverrideFunction& override_func)
 {
   StateData state = GetState(adjusted);
   if (!override_func)
@@ -102,7 +102,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted,
   return state;
 }
 
-Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
+Cursor::StateData Cursor::UpdateState(ReshapeData input)
 {
   // TODO: Using system time is ugly.
   // Kill this after state is moved into wiimote rather than this class.

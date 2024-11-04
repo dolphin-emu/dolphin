@@ -125,7 +125,7 @@ protected:
       std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
     }
 
-    Common::BigEndianValue<u64> msg_bitlen(msg_len * 8);
+    BigEndianValue<u64> msg_bitlen(msg_len * 8);
     std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
 
     ProcessBlock(&block[0]);

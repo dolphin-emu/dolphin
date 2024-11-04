@@ -460,7 +460,7 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
   doc.save(stream);
   const std::string request = stream.str();
 
-  std::string base_url = Config::Get(Config::MAIN_WII_NUS_SHOP_URL);
+  std::string base_url = Get(Config::MAIN_WII_NUS_SHOP_URL);
   if (base_url.empty())
   {
     // The NUS servers for the Wii are offline (https://bugs.dolphin-emu.org/issues/12865),
@@ -564,7 +564,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 
   // Download and import any required system title first.
   const u64 ios_id = tmd.first.GetIOSId();
-  if (ios_id != 0 && IOS::ES::IsTitleType(ios_id, IOS::ES::TitleType::System))
+  if (ios_id != 0 && IsTitleType(ios_id, IOS::ES::TitleType::System))
   {
     if (!es.FindInstalledTMD(ios_id).IsValid())
     {
@@ -872,7 +872,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 
   // Check for NANDs that were used with old Dolphin versions.
   const std::string sys_replace_path =
-      Common::RootUserPath(Common::FromWhichRoot::Configured) + "/sys/replace";
+      RootUserPath(Common::FromWhichRoot::Configured) + "/sys/replace";
   if (File::Exists(sys_replace_path))
   {
     ERROR_LOG_FMT(CORE,
@@ -884,7 +884,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
   }
 
   // Clean up after a bug fixed in https://github.com/dolphin-emu/dolphin/pull/8802
-  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FromWhichRoot::Configured);
+  const std::string rfl_db_path = GetMiiDatabasePath(Common::FromWhichRoot::Configured);
   const File::FileInfo rfl_db(rfl_db_path);
   if (rfl_db.Exists() && rfl_db.GetSize() == 0)
   {
@@ -897,7 +897,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 
   for (const u64 title_id : es.GetInstalledTitles())
   {
-    const std::string title_dir = Common::GetTitlePath(title_id, Common::FromWhichRoot::Configured);
+    const std::string title_dir = GetTitlePath(title_id, Common::FromWhichRoot::Configured);
     const std::string content_dir = title_dir + "/content";
     const std::string data_dir = title_dir + "/data";
 
@@ -1011,14 +1011,14 @@ static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
 
 std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice()
 {
-  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     return nullptr;
   return std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(GetBluetoothDevice());
 }
 
 std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice()
 {
-  if (!Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (!Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     return nullptr;
   return std::static_pointer_cast<IOS::HLE::BluetoothRealDevice>(GetBluetoothDevice());
 }

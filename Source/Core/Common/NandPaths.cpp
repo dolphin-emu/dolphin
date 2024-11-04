@@ -90,8 +90,8 @@ bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64
   }
 
   u32 title_id_high, title_id_low;
-  if (Common::FromChars(components[0], title_id_high, 16).ec != std::errc{} ||
-      Common::FromChars(components[1], title_id_low, 16).ec != std::errc{})
+  if (FromChars(components[0], title_id_high, 16).ec != std::errc{} ||
+      FromChars(components[1], title_id_low, 16).ec != std::errc{})
   {
     return false;
   }
@@ -156,7 +156,7 @@ std::string UnescapeFileName(const std::string& filename)
   {
     u32 character;
     if (pos + 6 <= result.size() && result[pos + 4] == '_' && result[pos + 5] == '_')
-      if (Common::FromChars(std::string_view{result}.substr(pos + 2, 2), character, 16).ec ==
+      if (FromChars(std::string_view{result}.substr(pos + 2, 2), character, 16).ec ==
           std::errc{})
       {
         result.replace(pos, 6, {static_cast<char>(character)});

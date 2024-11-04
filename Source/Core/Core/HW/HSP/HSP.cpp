@@ -16,7 +16,7 @@ HSPManager::~HSPManager() = default;
 
 void HSPManager::Init()
 {
-  AddDevice(Config::Get(Config::MAIN_HSP_DEVICE));
+  AddDevice(Get(Config::MAIN_HSP_DEVICE));
 }
 
 void HSPManager::Shutdown()

@@ -313,9 +313,9 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
     {
       const SIDevices device = m_system.GetSerialInterface().GetDeviceType(pad_num);
       if (type == 1)
-        CSIDevice_GCController::Rumble(pad_num, 1.0, device);
+        Rumble(pad_num, 1.0, device);
       else
-        CSIDevice_GCController::Rumble(pad_num, 0.0, device);
+        Rumble(pad_num, 0.0, device);
     }
 
     if (poll == 0)

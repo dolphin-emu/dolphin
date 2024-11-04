@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
 {
   Core::DeclareAsHostThread();
 
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
+  auto parser = CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   parser->add_option("-p", "--platform")
       .action("store")
       .help("Window platform to use [%choices]")
@@ -329,9 +329,9 @@ int main(int argc, char* argv[])
 #endif
 
   s_platform->MainLoop();
-  Core::Stop(Core::System::GetInstance());
+  Stop(Core::System::GetInstance());
 
-  Core::Shutdown(Core::System::GetInstance());
+  Shutdown(Core::System::GetInstance());
   s_platform.reset();
 
   return 0;

@@ -178,7 +178,7 @@ std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
   });
 }
 
-FSCore::ScopedFd FSCore::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
+FSCore::ScopedFd FSCore::Open(Uid uid, Gid gid, const std::string& path, Mode mode,
                               std::optional<u32> ipc_fd, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
@@ -386,7 +386,7 @@ s32 FSCore::Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffe
 std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
 {
   return MakeIPCReply([&](Ticks t) {
-    return m_core.Seek(request.fd, request.offset, HLE::FS::SeekMode(request.mode), t);
+    return m_core.Seek(request.fd, request.offset, FS::SeekMode(request.mode), t);
   });
 }
 
@@ -638,7 +638,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
-FS::ResultCode FSCore::DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks)
+ResultCode FSCore::DeleteFile(Uid uid, Gid gid, const std::string& path, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -662,7 +662,7 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
   });
 }
 
-FS::ResultCode FSCore::RenameFile(FS::Uid uid, FS::Gid gid, const std::string& old_path,
+ResultCode FSCore::RenameFile(Uid uid, Gid gid, const std::string& old_path,
                                   const std::string& new_path, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
@@ -688,8 +688,8 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
   });
 }
 
-FS::ResultCode FSCore::CreateFile(FS::Uid uid, FS::Gid gid, const std::string& path,
-                                  FS::FileAttribute attribute, FS::Modes modes, Ticks ticks)
+ResultCode FSCore::CreateFile(Uid uid, Gid gid, const std::string& path,
+                                  FileAttribute attribute, Modes modes, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -743,7 +743,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
   });
 }
 
-FS::Result<FS::FileStatus> FSCore::GetFileStatus(u64 fd, Ticks ticks)
+Result<FileStatus> FSCore::GetFileStatus(u64 fd, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
   const auto& handle = m_fd_map[fd];

@@ -34,7 +34,7 @@ public:
   constexpr EnumMap& operator=(EnumMap&& other) = default;
 
   // Constructor that accepts exactly size Vs (enforcing that all must be specified).
-  template <typename... T, typename = std::enable_if_t<Common::IsNOf<V, s_size, T...>::value>>
+  template <typename... T, typename = std::enable_if_t<IsNOf<V, s_size, T...>::value>>
   constexpr EnumMap(T... values) : m_array{static_cast<V>(values)...}
   {
   }

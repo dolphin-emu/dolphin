@@ -170,7 +170,7 @@ private:
   using AckReportHandler = std::function<ReportHandler::HandlerResult(const InputReportAck& reply)>;
 
   static AckReportHandler MakeAckHandler(OutputReportID report_id,
-                                         std::function<void(WiimoteCommon::ErrorCode)> callback);
+                                         std::function<void(ErrorCode)> callback);
 
   // TODO: Make parameter const. (need to modify DataReportManipulator)
   void ProcessInputReport(WiimoteReal::Report& report);

@@ -106,13 +106,13 @@ std::string GetStringT(const char* string)
   return s_str_translator(string);
 }
 
-static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::LogType log_type,
+static bool ShowMessageAlert(std::string_view text, bool yes_no, Log::LogType log_type,
                              MsgType style, const char* file, int line)
 {
   const char* caption = GetCaption(style);
   // Directly call GenericLogFmt rather than using the normal log macros so that we can use the
   // caller's line file and line number
-  Common::Log::GenericLogFmt<2>(Common::Log::LogLevel::LERROR, log_type, file, line,
+  Common::Log::GenericLogFmt<2>(Log::LogLevel::LERROR, log_type, file, line,
                                 FMT_STRING("{}: {}"), caption, text);
 
   // Panic alerts.
@@ -133,7 +133,7 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::Lo
 
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown, when using fmt
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Log::LogType log_type, const char* file,
                      int line, fmt::string_view format, const fmt::format_args& args)
 {
   const auto message = fmt::vformat(format, args);

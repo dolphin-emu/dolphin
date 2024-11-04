@@ -63,7 +63,7 @@ public:
 protected:
   void InterruptDataInputCallback(const u8* data, u32 size)
   {
-    InterruptCallback((WiimoteCommon::HID_TYPE_DATA << 4) | WiimoteCommon::HID_PARAM_INPUT, data,
+    InterruptCallback((HID_TYPE_DATA << 4) | HID_PARAM_INPUT, data,
                       size);
   }
 

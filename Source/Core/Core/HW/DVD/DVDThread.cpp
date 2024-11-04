@@ -210,21 +210,21 @@ void DVDThread::WaitUntilIdle()
 }
 
 void DVDThread::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                          DVD::ReplyType reply_type, s64 ticks_until_completion)
+                          ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(false, 0, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
 void DVDThread::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                                        const DiscIO::Partition& partition,
-                                       DVD::ReplyType reply_type, s64 ticks_until_completion)
+                                       ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(true, output_address, dvd_offset, length, partition, reply_type,
                     ticks_until_completion);
 }
 
 void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                                  const DiscIO::Partition& partition, DVD::ReplyType reply_type,
+                                  const DiscIO::Partition& partition, ReplyType reply_type,
                                   s64 ticks_until_completion)
 {
   ASSERT(Core::IsCPUThread());
@@ -304,14 +304,14 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
                     (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
   auto& dvd_interface = m_system.GetDVDInterface();
-  DVD::DIInterruptType interrupt;
+  DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
     PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
                    request.dvd_offset + request.length);
 
-    dvd_interface.SetDriveError(DVD::DriveError::ReadError);
-    interrupt = DVD::DIInterruptType::DEINT;
+    dvd_interface.SetDriveError(DriveError::ReadError);
+    interrupt = DIInterruptType::DEINT;
   }
   else
   {
@@ -321,7 +321,7 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
       memory.CopyToEmu(request.output_address, buffer.data(), request.length);
     }
 
-    interrupt = DVD::DIInterruptType::TCINT;
+    interrupt = DIInterruptType::TCINT;
   }
 
   // Notify the emulated software that the command has been executed

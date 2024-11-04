@@ -27,7 +27,7 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_STM_IDLE:
   case IOCTL_STM_SHUTDOWN:
     NOTICE_LOG_FMT(IOS_STM, "IOCTL_STM_IDLE or IOCTL_STM_SHUTDOWN received, shutting down");
-    Core::QueueHostJob(&Core::Stop, false);
+    QueueHostJob(&Core::Stop, false);
     break;
 
   case IOCTL_STM_RELEASE_EH:

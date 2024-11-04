@@ -271,9 +271,9 @@ void OnScreenUI::DrawImGui()
 void OnScreenUI::DrawDebugText()
 {
   const bool show_movie_window =
-      Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_RTC) || Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
+      Get(Config::MAIN_SHOW_FRAME_COUNT) || Get(Config::MAIN_SHOW_LAG) ||
+      Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
+      Get(Config::MAIN_MOVIE_SHOW_RTC) || Get(Config::MAIN_MOVIE_SHOW_RERECORD);
   if (show_movie_window)
   {
     // Position under the FPS display.
@@ -293,19 +293,19 @@ void OnScreenUI::DrawDebugText()
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, movie.GetCurrentInputCount(),
                     movie.GetTotalInputCount());
       }
-      else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
+      else if (Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
         ImGui::Text("Frame: %" PRIu64, movie.GetCurrentFrame());
         if (movie.IsRecordingInput())
           ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
       }
-      if (Config::Get(Config::MAIN_SHOW_LAG))
+      if (Get(Config::MAIN_SHOW_LAG))
         ImGui::Text("Lag: %" PRIu64 "\n", movie.GetCurrentLagCount());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
+      if (Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
         ImGui::TextUnformatted(movie.GetInputDisplay().c_str());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_RTC))
+      if (Get(Config::MAIN_MOVIE_SHOW_RTC))
         ImGui::TextUnformatted(movie.GetRTCDisplay().c_str());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD))
+      if (Get(Config::MAIN_MOVIE_SHOW_RERECORD))
         ImGui::TextUnformatted(movie.GetRerecords().c_str());
     }
     ImGui::End();
@@ -317,7 +317,7 @@ void OnScreenUI::DrawDebugText()
   if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
     g_netplay_chat_ui->Display();
 
-  if (Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
+  if (Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
     g_netplay_golf_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
@@ -333,7 +333,7 @@ void OnScreenUI::DrawDebugText()
 
 void OnScreenUI::DrawChallengesAndLeaderboards()
 {
-  if (!Config::Get(Config::MAIN_OSD_MESSAGES))
+  if (!Get(Config::MAIN_OSD_MESSAGES))
     return;
 #ifdef USE_RETRO_ACHIEVEMENTS
   auto& instance = AchievementManager::GetInstance();

@@ -141,7 +141,7 @@ void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enab
 
   // Anything left over, fall back to clear triangle.
   if (color_enable || alpha_enable || z_enable)
-    ::AbstractGfx::ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
+    AbstractGfx::ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
 }
 
 void Gfx::SetPipeline(const AbstractPipeline* pipeline)

@@ -265,7 +265,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
     RegCache::Realize(reg_cycle_count, reg_downcount, loop_counter);
 
     // This must be true in order for us to pick up the DIV results and not trash any data.
-    static_assert(RSCRATCH == Gen::EAX && RSCRATCH2 == Gen::EDX);
+    static_assert(RSCRATCH == EAX && RSCRATCH2 == EDX);
 
     // Alright, now figure out how many loops we want to do.
     const u8 cycle_count_per_loop =

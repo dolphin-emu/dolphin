@@ -210,22 +210,22 @@ void NetworkWidget::ConnectWidgets()
   connect(m_dump_format_combo, &QComboBox::currentIndexChanged, this,
           &NetworkWidget::OnDumpFormatComboChanged);
   connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
   });
   connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
   });
   connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
   });
   connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
   });
   connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
+    SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
   });
   connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
+    SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
   connect(m_open_dump_folder, &QPushButton::clicked, [] {
     const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
@@ -240,7 +240,7 @@ void NetworkWidget::Update()
     return;
 
   auto& system = Core::System::GetInstance();
-  if (Core::GetState(system) != Core::State::Paused)
+  if (GetState(system) != Core::State::Paused)
   {
     m_socket_table->setDisabled(true);
     m_ssl_table->setDisabled(true);
@@ -294,16 +294,16 @@ void NetworkWidget::Update()
   }
   m_ssl_table->resizeColumnsToContents();
 
-  const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
-  const bool is_ssl_read = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ);
-  const bool is_ssl_write = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
+  const bool is_pcap = Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
+  const bool is_ssl_read = Get(Config::MAIN_NETWORK_SSL_DUMP_READ);
+  const bool is_ssl_write = Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
 
   m_dump_ssl_read_checkbox->setChecked(is_ssl_read);
   m_dump_ssl_write_checkbox->setChecked(is_ssl_write);
-  m_dump_root_ca_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA));
-  m_dump_peer_cert_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT));
+  m_dump_root_ca_checkbox->setChecked(Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA));
+  m_dump_peer_cert_checkbox->setChecked(Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT));
   m_verify_certificates_checkbox->setChecked(
-      Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES));
+      Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES));
 
   const int combo_index = int([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
     if (is_pcap)
@@ -465,5 +465,5 @@ void NetworkWidget::OnDumpFormatComboChanged(int index)
   m_dump_ssl_read_checkbox->setEnabled(is_pcap);
   m_dump_ssl_write_checkbox->setEnabled(is_pcap);
   m_dump_bba_checkbox->setEnabled(is_pcap);
-  Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_AS_PCAP, is_pcap);
+  SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_AS_PCAP, is_pcap);
 }

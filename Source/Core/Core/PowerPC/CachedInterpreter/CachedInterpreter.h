@@ -131,7 +131,7 @@ struct CachedInterpreter::EndBlockOperands<false>
 };
 
 template <>
-struct CachedInterpreter::EndBlockOperands<true> : CachedInterpreter::EndBlockOperands<false>
+struct CachedInterpreter::EndBlockOperands<true> : EndBlockOperands<false>
 {
   JitBlock::ProfileData* profile_data;
 };

@@ -366,7 +366,7 @@ void FIFOAnalyzer::UpdateDetails()
     const u32 start_offset = object_offset;
     m_object_data_offsets.push_back(start_offset);
 
-    object_offset += OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + start_offset],
+    object_offset += RunCommand(&fifo_frame.fifoData[object_start + start_offset],
                                                object_size - start_offset, callback);
 
     QString new_label =
@@ -772,7 +772,7 @@ void FIFOAnalyzer::UpdateDescription()
   const u32 entry_start = m_object_data_offsets[entry_nr];
 
   auto callback = DescriptionCallback(frame_info.parts[end_part_nr].m_cpmem);
-  OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + entry_start],
+  RunCommand(&fifo_frame.fifoData[object_start + entry_start],
                             object_size - entry_start, callback);
   m_entry_detail_browser->setText(callback.text);
 }

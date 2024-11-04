@@ -30,22 +30,22 @@ SDIOSlot0Device::SDIOSlot0Device(EmulationKernel& ios, const std::string& device
     : EmulationDevice(ios, device_name),
       m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
 {
-  if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+  if (!Get(Config::MAIN_ALLOW_SD_WRITES))
     INFO_LOG_FMT(IOS_SD, "Writes to SD card disabled by user");
 
   m_config_callback_id =
       CPUThreadConfigCallback::AddConfigChangedCallback([this] { RefreshConfig(); });
-  m_sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+  m_sd_card_inserted = Get(Config::MAIN_WII_SD_CARD);
 }
 
 SDIOSlot0Device::~SDIOSlot0Device()
 {
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_config_callback_id);
+  RemoveConfigChangedCallback(m_config_callback_id);
 }
 
 void SDIOSlot0Device::RefreshConfig()
 {
-  const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+  const bool sd_card_inserted = Get(Config::MAIN_WII_SD_CARD);
   if (m_sd_card_inserted != sd_card_inserted)
   {
     m_sd_card_inserted = sd_card_inserted;
@@ -309,7 +309,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     INFO_LOG_FMT(IOS_SD, "{}Write {} Block(s) from {:#010x} bsize {} to offset {:#010x}!",
                  req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-    if (m_card && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    if (m_card && Get(Config::MAIN_ALLOW_SD_WRITES))
     {
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
@@ -487,7 +487,7 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
 
   // Evaluate whether a card is currently inserted (config value).
   // Make sure we don't modify m_status so we don't lose track of whether the card is SDHC.
-  const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+  const bool sd_card_inserted = Get(Config::MAIN_WII_SD_CARD);
   const u32 status = sd_card_inserted ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
 
   INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}",

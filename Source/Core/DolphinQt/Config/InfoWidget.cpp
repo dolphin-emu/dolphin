@@ -111,7 +111,7 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
 
-  QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
+  QLineEdit* country = CreateValueDisplay(GetName(m_game.GetCountry(), true));
 
   const std::string game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
 
@@ -159,7 +159,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
     layout->addRow(tr("Description:"), m_description = new QTextEdit());
     m_description->setReadOnly(true);
   }
-  else if (DiscIO::IsWii(m_game.GetPlatform()))
+  else if (IsWii(m_game.GetPlatform()))
   {
     layout->addRow(tr("Name:"), m_name = CreateValueDisplay());
   }
@@ -214,13 +214,13 @@ QLineEdit* InfoWidget::CreateValueDisplay(const std::string& value)
 
 void InfoWidget::CreateLanguageSelector()
 {
-  const bool is_wii = DiscIO::IsWii(m_game.GetPlatform());
+  const bool is_wii = IsWii(m_game.GetPlatform());
   const DiscIO::Language preferred_language = SConfig::GetInstance().GetCurrentLanguage(is_wii);
 
   m_language_selector = new QComboBox();
   for (DiscIO::Language language : m_game.GetLanguages())
   {
-    m_language_selector->addItem(QString::fromStdString(DiscIO::GetName(language, true)),
+    m_language_selector->addItem(QString::fromStdString(GetName(language, true)),
                                  static_cast<int>(language));
     if (language == preferred_language)
       m_language_selector->setCurrentIndex(m_language_selector->count() - 1);

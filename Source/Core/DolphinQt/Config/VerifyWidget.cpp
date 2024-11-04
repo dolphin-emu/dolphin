@@ -45,7 +45,7 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &VerifyWidget::OnEmulationStateChanged);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 }
 
 void VerifyWidget::OnEmulationStateChanged(Core::State state)
@@ -82,7 +82,7 @@ void VerifyWidget::CreateWidgets()
   m_sha1_checkbox->setChecked(default_to_calculate.sha1);
 
   m_redump_layout = new QFormLayout;
-  if (DiscIO::IsDisc(m_volume->GetVolumeType()))
+  if (IsDisc(m_volume->GetVolumeType()))
   {
     std::tie(m_redump_checkbox, m_redump_line_edit) =
         AddHashLine(m_redump_layout, tr("Redump.org Status:"));

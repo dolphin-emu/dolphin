@@ -234,7 +234,7 @@ TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, u32 addr
 
 bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode)
 {
-  return flag != HLE::HookFlag::Debug || Config::IsDebuggingEnabled() ||
+  return flag != HookFlag::Debug || Config::IsDebuggingEnabled() ||
          mode == PowerPC::CoreMode::Interpreter;
 }
 

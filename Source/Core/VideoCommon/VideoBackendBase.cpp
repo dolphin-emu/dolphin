@@ -286,14 +286,14 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
 {
   // If the core has been initialized, the backend info will have been populated already. Doing it
   // again would be unnecessary and could cause the UI thread to race with the GPU thread.
-  if (!Core::IsUninitialized(Core::System::GetInstance()))
+  if (!IsUninitialized(Core::System::GetInstance()))
     return;
 
   g_Config.Refresh();
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
   // a value from the previously used renderer
   g_Config.backend_info = {};
-  ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  ActivateBackend(Get(Config::MAIN_GFX_BACKEND));
   g_Config.backend_info.DisplayName = g_video_backend->GetDisplayName();
   g_video_backend->InitBackendInfo(wsi);
   // We validate the config after initializing the backend info, as system-specific settings

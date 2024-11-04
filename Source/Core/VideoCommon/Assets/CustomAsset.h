@@ -96,7 +96,7 @@ template <typename AssetType>
 struct CachedAsset
 {
   std::shared_ptr<AssetType> m_asset;
-  VideoCommon::CustomAssetLibrary::TimeType m_cached_write_time;
+  CustomAssetLibrary::TimeType m_cached_write_time;
 };
 
 }  // namespace VideoCommon

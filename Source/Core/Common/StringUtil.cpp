@@ -655,24 +655,24 @@ std::string GetEscapedHtml(std::string html)
 
 void ToLower(std::string* str)
 {
-  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(Common::ToLower));
+  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(ToLower));
 }
 
 void ToUpper(std::string* str)
 {
-  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(Common::ToUpper));
+  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(ToUpper));
 }
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
 {
   return std::ranges::equal(
-      a, b, [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+      a, b, [](char ca, char cb) { return ToLower(ca) == ToLower(cb); });
 }
 
 bool CaseInsensitiveLess::operator()(std::string_view a, std::string_view b) const
 {
   return std::ranges::lexicographical_compare(
-      a, b, [](char ca, char cb) { return Common::ToLower(ca) < Common::ToLower(cb); });
+      a, b, [](char ca, char cb) { return ToLower(ca) < ToLower(cb); });
 }
 
 std::string BytesToHexString(std::span<const u8> bytes)

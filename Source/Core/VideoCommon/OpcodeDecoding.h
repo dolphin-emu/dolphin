@@ -94,7 +94,7 @@ public:
   // Called on any indexed XF load command.
   virtual void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) = 0;
   // Called on any primitive command.
-  virtual void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
+  virtual void OnPrimitiveCommand(Primitive primitive, u8 vat, u32 vertex_size,
                                   u16 num_vertices, const u8* vertex_data) = 0;
   // Called on a display list.
   virtual void OnDisplayList(u32 address, u32 size) = 0;
@@ -228,9 +228,9 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
         return 0;
 
       const u8 cmdbyte = static_cast<u8>(cmd);
-      const OpcodeDecoder::Primitive primitive = static_cast<OpcodeDecoder::Primitive>(
-          (cmdbyte & OpcodeDecoder::GX_PRIMITIVE_MASK) >> OpcodeDecoder::GX_PRIMITIVE_SHIFT);
-      const u8 vat = cmdbyte & OpcodeDecoder::GX_VAT_MASK;
+      const Primitive primitive = static_cast<Primitive>(
+          (cmdbyte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT);
+      const u8 vat = cmdbyte & GX_VAT_MASK;
 
       const u32 vertex_size = callback.GetVertexSize(vat);
       const u16 num_vertices = Common::swap16(&data[1]);

@@ -60,7 +60,7 @@ void EmuCodeBlock::MemoryExceptionCheck()
   {
     if (js.trampolineExceptionHandler)
     {
-      TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
+      TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
       J_CC(CC_NZ, js.trampolineExceptionHandler);
     }
     return;
@@ -71,8 +71,8 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // exception check.
   if (m_jit.jo.memcheck && !js.fastmemLoadStore && !js.fixupExceptionHandler)
   {
-    TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-    js.exceptionHandler = J_CC(Gen::CC_NZ, Jump::Near);
+    TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+    js.exceptionHandler = J_CC(CC_NZ, Jump::Near);
     js.fixupExceptionHandler = true;
   }
 }
@@ -157,8 +157,8 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
   }
 }
 
-void EmuCodeBlock::UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                                       s32 offset, bool swap, Gen::MovInfo* info)
+void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
+                                       s32 offset, bool swap, MovInfo* info)
 {
   UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
 }
@@ -209,8 +209,8 @@ template <typename T>
 class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
-  MMIOReadCodeGenerator(Core::System* system, Gen::X64CodeBlock* code, BitSet32 registers_in_use,
-                        Gen::X64Reg dst_reg, u32 address, bool sign_extend)
+  MMIOReadCodeGenerator(Core::System* system, X64CodeBlock* code, BitSet32 registers_in_use,
+                        X64Reg dst_reg, u32 address, bool sign_extend)
       : m_system(system), m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
         m_address(address), m_sign_extend(sign_extend)
   {
@@ -237,12 +237,12 @@ private:
       u32 sign = !!(value & (1 << (sbits - 1)));
       value |= sign * ((0xFFFFFFFF >> sbits) << sbits);
     }
-    m_code->MOV(32, R(m_dst_reg), Gen::Imm32(value));
+    m_code->MOV(32, R(m_dst_reg), Imm32(value));
   }
 
   // Generate the proper MOV instruction depending on whether the read should
   // be sign extended or zero extended.
-  void MoveOpArgToReg(int sbits, const Gen::OpArg& arg)
+  void MoveOpArgToReg(int sbits, const OpArg& arg)
   {
     if (m_sign_extend)
       m_code->MOVSX(32, sbits, m_dst_reg, arg);
@@ -279,14 +279,14 @@ private:
   }
 
   Core::System* m_system;
-  Gen::X64CodeBlock* m_code;
+  X64CodeBlock* m_code;
   BitSet32 m_registers_in_use;
-  Gen::X64Reg m_dst_reg;
+  X64Reg m_dst_reg;
   u32 m_address;
   bool m_sign_extend;
 };
 
-void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
+void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, X64Reg reg_value,
                                  BitSet32 registers_in_use, u32 address, int access_size,
                                  bool sign_extend)
 {
@@ -316,7 +316,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
   }
 }
 
-void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
+void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
@@ -618,7 +618,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   }
 }
 
-void EmuCodeBlock::SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
+void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
                                      s32 offset, BitSet32 registersInUse, int flags)
 {
   SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
@@ -913,7 +913,7 @@ alignas(16) static const u32 psFloatNoSign[4] = {~Common::FLOAT_SIGN, 0, 0, 0};
 // than for integers though, because there's 32 possible FPRF bit combinations but only 9 categories
 // of floating point values. Fortunately, PPCAnalyzer can optimize out a large portion of FPRF
 // calculations, so maybe this isn't quite that necessary.
-void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
+void EmuCodeBlock::SetFPRF(X64Reg xmm, bool single)
 {
   const int input_size = single ? 32 : 64;
 

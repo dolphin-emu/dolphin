@@ -60,8 +60,8 @@ Quaternion Quaternion::RotateZ(float rad)
 Quaternion Quaternion::RotateXYZ(const Vec3& rads)
 {
   const auto length = rads.Length();
-  return length ? Common::Quaternion::Rotate(length, rads / length) :
-                  Common::Quaternion::Identity();
+  return length ? Rotate(length, rads / length) :
+                  Identity();
 }
 
 Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
@@ -322,7 +322,7 @@ Matrix44 Matrix44::FromArray(const std::array<float, 16>& arr)
 
 Matrix44 Matrix44::Translate(const Vec3& vec)
 {
-  Matrix44 mtx = Matrix44::Identity();
+  Matrix44 mtx = Identity();
   mtx.data[3] = vec.x;
   mtx.data[7] = vec.y;
   mtx.data[11] = vec.z;
@@ -331,7 +331,7 @@ Matrix44 Matrix44::Translate(const Vec3& vec)
 
 Matrix44 Matrix44::Shear(const float a, const float b)
 {
-  Matrix44 mtx = Matrix44::Identity();
+  Matrix44 mtx = Identity();
   mtx.data[2] = a;
   mtx.data[6] = b;
   return mtx;

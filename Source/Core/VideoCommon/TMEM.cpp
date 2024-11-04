@@ -239,7 +239,7 @@ bool TextureUnitState::BankConfig::Overlaps(const BankConfig& other) const
 
 bool TextureUnitState::Overlaps(const TextureUnitState& other) const
 {
-  if (state == TextureUnitState::State::INVALID || other.state == TextureUnitState::State::INVALID)
+  if (state == State::INVALID || other.state == State::INVALID)
     return false;
   return even.Overlaps(other.even) || even.Overlaps(other.odd) || odd.Overlaps(other.even) ||
          odd.Overlaps(other.odd);

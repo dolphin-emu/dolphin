@@ -42,7 +42,7 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
   {
     if (movie.IsUsingMemcard(slot))
     {
-      memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
+      memorycard_device = Get(Config::GetInfoForEXIDevice(slot));
       if (memorycard_device != EXIDeviceType::MemoryCardFolder &&
           memorycard_device != EXIDeviceType::MemoryCard)
       {
@@ -60,7 +60,7 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
   }
   else
   {
-    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
+    memorycard_device = Get(Config::GetInfoForEXIDevice(slot));
   }
 
   m_channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
@@ -117,7 +117,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
 
   {
     u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
-    int size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+    int size_override = Get(Config::MAIN_MEMORY_CARD_SIZE);
     if (size_override >= 0 && size_override <= 4)
       size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
     const bool shift_jis =
@@ -126,12 +126,12 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     const u32 rtc_bias = sram.settings.rtc_bias;
     const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =
-        Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
+        Common::Timer::GetLocalTimeSinceJan1970() - CEXIIPL::GC_EPOCH;
 
     for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
     {
       Memcard::HeaderData header_data;
-      Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
+      InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
                                     sram_language, format_time + i);
       m_channels[i] = std::make_unique<CEXIChannel>(m_system, i, header_data);
     }
@@ -141,7 +141,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     AddMemoryCard(slot);
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
-  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
+  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Get(Config::MAIN_SERIAL_PORT_1),
                                                      SlotToEXIDevice(Slot::SP1));
   m_channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 

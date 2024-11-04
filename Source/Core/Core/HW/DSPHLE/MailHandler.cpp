@@ -11,7 +11,7 @@
 
 namespace DSP::HLE
 {
-CMailHandler::CMailHandler(DSP::DSPManager& dsp) : m_dsp(dsp)
+CMailHandler::CMailHandler(DSPManager& dsp) : m_dsp(dsp)
 {
 }
 
@@ -25,7 +25,7 @@ void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
   {
     if (m_pending_mails.empty())
     {
-      m_dsp.GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP, cycles_into_future);
+      m_dsp.GenerateDSPInterruptFromDSPEmu(INT_DSP, cycles_into_future);
     }
     else
     {
@@ -58,7 +58,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 
     if (generate_interrupt)
     {
-      m_dsp.GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+      m_dsp.GenerateDSPInterruptFromDSPEmu(INT_DSP);
     }
   }
   // Clear the top bit of the high mail word after the mail has been read.

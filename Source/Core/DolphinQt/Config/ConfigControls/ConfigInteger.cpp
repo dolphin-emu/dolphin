@@ -16,20 +16,20 @@ ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& 
   setMaximum(maximum);
   setSingleStep(step);
 
-  setValue(Config::Get(setting));
+  setValue(Get(setting));
 
   connect(this, &ConfigInteger::valueChanged, this, &ConfigInteger::Update);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    bf.setBold(GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    setValue(Config::Get(m_setting));
+    setValue(Get(m_setting));
   });
 }
 
 void ConfigInteger::Update(int value)
 {
-  Config::SetBaseOrCurrent(m_setting, value);
+  SetBaseOrCurrent(m_setting, value);
 }

@@ -29,7 +29,7 @@
 GraphicsModListWidget::GraphicsModListWidget(const UICommon::GameFile& game)
     : m_game_id(game.GetGameID()), m_mod_group(m_game_id)
 {
-  CalculateGameRunning(Core::GetState(Core::System::GetInstance()));
+  CalculateGameRunning(GetState(Core::System::GetInstance()));
   if (m_loaded_game_is_running && g_Config.graphics_mod_config)
   {
     m_mod_group.SetChangeCount(g_Config.graphics_mod_config->GetChangeCount());

@@ -133,19 +133,19 @@ u32 VertexManagerBase::GetRemainingSize() const
   return static_cast<u32>(m_end_buffer_pointer - m_cur_buffer_pointer);
 }
 
-void VertexManagerBase::AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices)
+void VertexManagerBase::AddIndices(Primitive primitive, u32 num_vertices)
 {
   m_index_generator.AddIndices(primitive, num_vertices);
 }
 
 bool VertexManagerBase::AreAllVerticesCulled(VertexLoaderBase* loader,
-                                             OpcodeDecoder::Primitive primitive, const u8* src,
+                                             Primitive primitive, const u8* src,
                                              u32 count)
 {
   return m_cpu_cull.AreAllVerticesCulled(loader, primitive, src, count);
 }
 
-DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive,
+DataReader VertexManagerBase::PrepareForAdditionalData(Primitive primitive,
                                                        u32 count, u32 stride, bool cullall)
 {
   // Flush all EFB pokes. Since the buffer is shared, we can't draw pokes+primitives concurrently.
@@ -234,7 +234,7 @@ void VertexManagerBase::FlushData(u32 count, u32 stride)
   m_cur_buffer_pointer += count * stride;
 }
 
-u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) const
+u32 VertexManagerBase::GetRemainingIndices(Primitive primitive) const
 {
   const u32 index_len = MAXIBUFFERSIZE - m_index_generator.GetIndexLen();
 

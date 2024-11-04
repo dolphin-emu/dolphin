@@ -212,7 +212,7 @@ bool SysConf::Save() const
 
 SysConf::Entry::Entry(Type type_, std::string name_) : type(type_), name(std::move(name_))
 {
-  if (type != Type::SmallArray && type != Type::BigArray)
+  if (type != SmallArray && type != BigArray)
     bytes.resize(GetNonArrayEntrySize(type));
 }
 

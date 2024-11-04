@@ -94,7 +94,7 @@ OctagonAnalogStick::OctagonAnalogStick(const char* name_, ControlState gate_radi
 
 OctagonAnalogStick::OctagonAnalogStick(const char* name_, const char* ui_name_,
                                        ControlState gate_radius)
-    : AnalogStick(name_, ui_name_, std::make_unique<ControllerEmu::OctagonStickGate>(1.0))
+    : AnalogStick(name_, ui_name_, std::make_unique<OctagonStickGate>(1.0))
 {
   AddVirtualNotchSetting(&m_virtual_notch_setting, 45);
 

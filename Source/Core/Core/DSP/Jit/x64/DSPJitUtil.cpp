@@ -71,7 +71,7 @@ void DSPEmitter::dsp_reg_stack_pop(StackRegister stack_reg)
   MOV(8, M_SDSP_reg_stack_ptrs(reg_index), R(AL));
 }
 
-void DSPEmitter::dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg)
+void DSPEmitter::dsp_reg_store_stack(StackRegister stack_reg, X64Reg host_sreg)
 {
   if (host_sreg != EDX)
   {
@@ -84,7 +84,7 @@ void DSPEmitter::dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_s
   MOV(16, M_SDSP_r_st(static_cast<size_t>(stack_reg)), R(EDX));
 }
 
-void DSPEmitter::dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg)
+void DSPEmitter::dsp_reg_load_stack(StackRegister stack_reg, X64Reg host_dreg)
 {
   // u16 val = g_dsp.r[DSP_REG_ST0 + stack_reg];
   MOV(16, R(EDX), M_SDSP_r_st(static_cast<size_t>(stack_reg)));
@@ -105,7 +105,7 @@ void DSPEmitter::dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val)
   MOV(16, M_SDSP_r_st(static_cast<size_t>(stack_reg)), Imm16(val));
 }
 
-void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
+void DSPEmitter::dsp_op_write_reg(int reg, X64Reg host_sreg)
 {
   switch (reg & 0x1f)
   {
@@ -196,7 +196,7 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
   }
 }
 
-void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, RegisterExtension extend)
+void DSPEmitter::dsp_op_read_reg(int reg, X64Reg host_dreg, RegisterExtension extend)
 {
   switch (reg & 0x1f)
   {
@@ -662,7 +662,7 @@ void DSPEmitter::set_long_prod()
 }
 
 // s64 -> s40 in long_acc
-void DSPEmitter::dsp_convert_long_acc(Gen::X64Reg long_acc)
+void DSPEmitter::dsp_convert_long_acc(X64Reg long_acc)
 {
   // return ((long_acc << (64 - 40)) >> (64 - 40))
   SHL(64, R(long_acc), Imm8(64 - 40));  // sign extend

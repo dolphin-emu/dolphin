@@ -59,7 +59,7 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
 bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
              u32 height, u32 stride, int level)
 {
-  Common::Timer timer;
+  Timer timer;
   timer.Start();
 
   spng_color_type color_type;

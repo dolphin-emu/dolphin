@@ -574,7 +574,7 @@ void BranchWatchDialog::OnStartPause(bool checked) const
   if (checked)
   {
     m_btn_start_pause->setText(tr("Pause Branch Watch"));
-    if (Core::GetState(m_system) > Core::State::Paused)
+    if (GetState(m_system) > Core::State::Paused)
       m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   }
   else
@@ -982,7 +982,7 @@ void BranchWatchDialog::Show()
 {
   ConnectSlots();
   // Hit every slot that may have missed a signal while this widget was hidden.
-  OnEmulationStateChanged(Core::GetState(m_system));
+  OnEmulationStateChanged(GetState(m_system));
   OnThemeChanged();
   m_table_model->OnDebugFontChanged(Settings::Instance().GetDebugFont());
   m_table_model->OnPPCSymbolsChanged();
@@ -1188,7 +1188,7 @@ void BranchWatchDialog::SetBreakpointMenuActionsIcons() const
 
 QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
 {
-  const bool core_initialized = Core::GetState(m_system) != Core::State::Uninitialized;
+  const bool core_initialized = GetState(m_system) != Core::State::Uninitialized;
   switch (index.column())
   {
   case Column::Instruction:

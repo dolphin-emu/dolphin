@@ -83,7 +83,7 @@ static void TryToFillWiimoteSlot(u32 index)
   std::lock_guard lk(g_wiimotes_mutex);
 
   if (g_wiimotes[index] ||
-      Config::Get(Config::GetInfoForWiimoteSource(index)) != WiimoteSource::Real)
+      Get(Config::GetInfoForWiimoteSource(index)) != WiimoteSource::Real)
   {
     return;
   }
@@ -118,7 +118,7 @@ void ProcessWiimotePool()
   for (u32 index = 0; index != MAX_WIIMOTES; ++index)
     TryToFillWiimoteSlot(index);
 
-  if (Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
+  if (Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
   {
     for (auto& entry : s_wiimote_pool)
       ciface::WiimoteController::AddDevice(std::move(entry.wiimote));
@@ -162,7 +162,7 @@ Wiimote::Wiimote()
 
 Wiimote::~Wiimote()
 {
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+  RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 void Wiimote::Shutdown()
@@ -184,7 +184,7 @@ void Wiimote::WriteReport(Report rpt)
   {
     bool const new_rumble_state = (rpt[2] & 0x1) != 0;
 
-    switch (WiimoteCommon::OutputReportID(rpt[1]))
+    switch (OutputReportID(rpt[1]))
     {
     case OutputReportID::Rumble:
       // If this is a rumble report and the rumble state didn't change, we can drop this report.
@@ -212,7 +212,7 @@ void Wiimote::WriteReport(Report rpt)
 }
 
 // to be called from CPU thread
-void Wiimote::QueueReport(WiimoteCommon::OutputReportID rpt_id, const void* data, unsigned int size)
+void Wiimote::QueueReport(OutputReportID rpt_id, const void* data, unsigned int size)
 {
   auto const queue_data = static_cast<const u8*>(data);
 
@@ -486,7 +486,7 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
   // Unfortunately this breaks detection of motion gestures in some games.
   // e.g. Sonic and the Secret Rings, Jett Rocket
   const bool repeat_reports_to_maintain_200hz =
-      Config::Get(Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS);
+      Get(Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS);
 
   const Report& rpt = ProcessReadQueue(repeat_reports_to_maintain_200hz);
 
@@ -562,7 +562,7 @@ static unsigned int CalculateWantedWiimotes()
   unsigned int wanted_wiimotes = 0;
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Real && !g_wiimotes[i])
+    if (Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Real && !g_wiimotes[i])
       ++wanted_wiimotes;
   }
   return wanted_wiimotes;
@@ -572,7 +572,7 @@ static unsigned int CalculateWantedBB()
 {
   std::lock_guard lk(g_wiimotes_mutex);
   unsigned int wanted_bb = 0;
-  if (Config::Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real &&
+  if (Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real &&
       !g_wiimotes[WIIMOTE_BALANCE_BOARD])
   {
     ++wanted_bb;
@@ -718,12 +718,12 @@ void WiimoteScanner::ThreadFunc()
       continue;
 
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
-    if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
+    if (!Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
     {
       auto& system = Core::System::GetInstance();
       // We don't want any remotes in passthrough mode or running in GC mode.
-      const bool core_running = Core::GetState(system) != Core::State::Uninitialized;
-      if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED) ||
+      const bool core_running = GetState(system) != Core::State::Uninitialized;
+      if (Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED) ||
           (core_running && !system.IsWii()))
       {
         continue;
@@ -850,8 +850,8 @@ void Wiimote::ThreadFunc()
 
 void Wiimote::RefreshConfig()
 {
-  m_speaker_enabled_in_dolphin_config = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
-  m_balance_board_dump_port = Config::Get(Config::MAIN_BB_DUMP_PORT);
+  m_speaker_enabled_in_dolphin_config = Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
+  m_balance_board_dump_port = Get(Config::MAIN_BB_DUMP_PORT);
 }
 
 int Wiimote::GetIndex() const
@@ -867,7 +867,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     s_wiimote_scanner.StartThread();
   }
 
-  if (Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
+  if (Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
@@ -934,7 +934,7 @@ void Pause()
 // Called from the Wiimote scanner thread (or UI thread on source change)
 static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int i)
 {
-  if (Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::Real || g_wiimotes[i])
+  if (Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::Real || g_wiimotes[i])
     return false;
 
   if (!wm->Connect(i))
@@ -953,7 +953,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
   {
     const Core::CPUThreadGuard guard(Core::System::GetInstance());
     g_wiimotes[i] = std::move(wm);
-    WiimoteCommon::UpdateSource(i);
+    UpdateSource(i);
   }
 
   NOTICE_LOG_FMT(WIIMOTE, "Connected real wiimote to slot {}.", i + 1);
@@ -975,13 +975,13 @@ static void HandleWiimoteDisconnect(int index)
   // The Wii Remote object must exist through the call to UpdateSource
   // to prevent WiimoteDevice from having a dangling HIDWiimote pointer.
   const auto temp_real_wiimote = std::move(g_wiimotes[index]);
-  WiimoteCommon::UpdateSource(index);
+  UpdateSource(index);
 }
 
 // This is called from the GUI thread
 void Refresh()
 {
-  if (!Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
+  if (!Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 

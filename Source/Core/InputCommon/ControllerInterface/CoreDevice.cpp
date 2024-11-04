@@ -24,7 +24,7 @@ constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 class CombinedInput final : public Device::Input
 {
 public:
-  using Inputs = std::pair<Device::Input*, Device::Input*>;
+  using Inputs = std::pair<Input*, Input*>;
 
   CombinedInput(std::string name, const Inputs& inputs) : m_name(std::move(name)), m_inputs(inputs)
   {
@@ -50,17 +50,17 @@ public:
 
 private:
   const std::string m_name;
-  const std::pair<Device::Input*, Device::Input*> m_inputs;
+  const std::pair<Input*, Input*> m_inputs;
 };
 
 Device::~Device()
 {
   // delete inputs
-  for (Device::Input* input : m_inputs)
+  for (Input* input : m_inputs)
     delete input;
 
   // delete outputs
-  for (Device::Output* output : m_outputs)
+  for (Output* output : m_outputs)
     delete output;
 }
 
@@ -69,12 +69,12 @@ std::optional<int> Device::GetPreferredId() const
   return {};
 }
 
-void Device::AddInput(Device::Input* const i)
+void Device::AddInput(Input* const i)
 {
   m_inputs.push_back(i);
 }
 
-void Device::AddOutput(Device::Output* const o)
+void Device::AddOutput(Output* const o)
 {
   m_outputs.push_back(o);
 }
@@ -336,9 +336,9 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
 {
   struct InputState
   {
-    InputState(ciface::Core::Device::Input* input_) : input{input_} { stats.Push(0.0); }
+    InputState(Device::Input* input_) : input{input_} { stats.Push(0.0); }
 
-    ciface::Core::Device::Input* input;
+    Device::Input* input;
     ControlState initial_state = input->GetState();
     ControlState last_state = initial_state;
     MathUtil::RunningVariance<ControlState> stats;

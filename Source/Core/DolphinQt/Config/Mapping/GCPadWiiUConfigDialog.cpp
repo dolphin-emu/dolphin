@@ -87,12 +87,12 @@ void GCPadWiiUConfigDialog::UpdateAdapterStatus()
 
 void GCPadWiiUConfigDialog::LoadSettings()
 {
-  m_rumble->setChecked(Config::Get(Config::GetInfoForAdapterRumble(m_port)));
-  m_simulate_bongos->setChecked(Config::Get(Config::GetInfoForSimulateKonga(m_port)));
+  m_rumble->setChecked(Get(Config::GetInfoForAdapterRumble(m_port)));
+  m_simulate_bongos->setChecked(Get(Config::GetInfoForSimulateKonga(m_port)));
 }
 
 void GCPadWiiUConfigDialog::SaveSettings()
 {
-  Config::SetBaseOrCurrent(Config::GetInfoForAdapterRumble(m_port), m_rumble->isChecked());
-  Config::SetBaseOrCurrent(Config::GetInfoForSimulateKonga(m_port), m_simulate_bongos->isChecked());
+  SetBaseOrCurrent(Config::GetInfoForAdapterRumble(m_port), m_rumble->isChecked());
+  SetBaseOrCurrent(Config::GetInfoForSimulateKonga(m_port), m_simulate_bongos->isChecked());
 }

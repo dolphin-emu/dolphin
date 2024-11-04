@@ -83,7 +83,7 @@ void EnhancementsWidget::CreateWidgets()
   // If the current scale is greater than the max scale in the ini, add sufficient options so that
   // when the settings are saved we don't lose the user-modified value from the ini.
   const int max_efb_scale =
-      std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
+      std::max(Get(Config::GFX_EFB_SCALE), Get(Config::GFX_MAX_EFB_SCALE));
   for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
   {
     const QString scale_text = QString::number(scale);
@@ -228,7 +228,7 @@ void EnhancementsWidget::CreateWidgets()
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
   stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);
 
-  auto current_stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+  auto current_stereo_mode = Get(Config::GFX_STEREO_MODE);
   if (current_stereo_mode != StereoMode::SBS && current_stereo_mode != StereoMode::TAB)
     m_3d_per_eye_resolution->hide();
 
@@ -251,7 +251,7 @@ void EnhancementsWidget::ConnectWidgets()
     m_block_save = true;
     m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
-    auto current_stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+    auto current_stereo_mode = Get(Config::GFX_STEREO_MODE);
     LoadPPShaders(current_stereo_mode);
 
     if (current_stereo_mode == StereoMode::SBS || current_stereo_mode == StereoMode::TAB)
@@ -270,7 +270,7 @@ void EnhancementsWidget::ConnectWidgets()
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     const QSignalBlocker blocker(this);
     m_block_save = true;
-    LoadPPShaders(Config::Get(Config::GFX_STEREO_MODE));
+    LoadPPShaders(Get(Config::GFX_STEREO_MODE));
     m_block_save = false;
   });
 }
@@ -292,7 +292,7 @@ void EnhancementsWidget::LoadPPShaders(StereoMode stereo_mode)
   if (stereo_mode != StereoMode::Anaglyph && stereo_mode != StereoMode::Passive)
     m_pp_effect->addItem(tr("(off)"));
 
-  auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  auto selected_shader = Get(Config::GFX_ENHANCE_POST_SHADER);
 
   bool found = false;
 
@@ -321,7 +321,7 @@ void EnhancementsWidget::LoadPPShaders(StereoMode stereo_mode)
     else
       m_pp_effect->setCurrentIndex(0);
 
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, selected_shader);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, selected_shader);
   }
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
@@ -347,16 +347,16 @@ void EnhancementsWidget::LoadPPShaders(StereoMode stereo_mode)
 void EnhancementsWidget::LoadSettings()
 {
   m_block_save = true;
-  m_texture_filtering_combo->setEnabled(Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
-  m_arbitrary_mipmap_detection->setEnabled(!Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
+  m_texture_filtering_combo->setEnabled(Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
+  m_arbitrary_mipmap_detection->setEnabled(!Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
 
   // Anti-Aliasing
 
-  const u32 aa_selection = Config::Get(Config::GFX_MSAA);
-  const bool ssaa = Config::Get(Config::GFX_SSAA);
-  const int aniso = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  const u32 aa_selection = Get(Config::GFX_MSAA);
+  const bool ssaa = Get(Config::GFX_SSAA);
+  const int aniso = Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   const TextureFilteringMode tex_filter_mode =
-      Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
+      Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
 
   m_aa_combo->clear();
 
@@ -407,7 +407,7 @@ void EnhancementsWidget::LoadSettings()
 
   // Resampling
   const OutputResamplingMode output_resampling_mode =
-      Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
+      Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
   m_output_resampling_combo->setCurrentIndex(
       m_output_resampling_combo->findData(static_cast<int>(output_resampling_mode)));
 
@@ -417,7 +417,7 @@ void EnhancementsWidget::LoadSettings()
   m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
   // Post Processing Shader
-  LoadPPShaders(Config::Get(Config::GFX_STEREO_MODE));
+  LoadPPShaders(Get(Config::GFX_STEREO_MODE));
 
   // Stereoscopy
   const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
@@ -439,84 +439,84 @@ void EnhancementsWidget::SaveSettings()
   const u32 aa_value = static_cast<u32>(std::abs(m_aa_combo->currentData().toInt()));
   const bool is_ssaa = m_aa_combo->currentData().toInt() < 0;
 
-  Config::SetBaseOrCurrent(Config::GFX_MSAA, aa_value);
-  Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
+  SetBaseOrCurrent(Config::GFX_MSAA, aa_value);
+  SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
   const int texture_filtering_selection = m_texture_filtering_combo->currentData().toInt();
   switch (texture_filtering_selection)
   {
   case TEXTURE_FILTERING_DEFAULT:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_2X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_4X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_8X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_ANISO_16X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Default);
     break;
   case TEXTURE_FILTERING_FORCE_NEAREST:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Nearest);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 0);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_2X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 1);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_4X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 2);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_8X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 3);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   case TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X:
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
-    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+    SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, 4);
+    SetBaseOrCurrent(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
                              TextureFilteringMode::Linear);
     break;
   }
 
   const int output_resampling_selection = m_output_resampling_combo->currentData().toInt();
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_OUTPUT_RESAMPLING,
+  SetBaseOrCurrent(Config::GFX_ENHANCE_OUTPUT_RESAMPLING,
                            static_cast<OutputResamplingMode>(output_resampling_selection));
 
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
+  SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
                            (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
                                "" :
                                m_pp_effect->currentText().toStdString());
 
   VideoCommon::PostProcessingConfiguration pp_shader;
-  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "")
+  if (Get(Config::GFX_ENHANCE_POST_SHADER) != "")
   {
-    pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
+    pp_shader.LoadShader(Get(Config::GFX_ENHANCE_POST_SHADER));
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
   else
@@ -713,7 +713,7 @@ void EnhancementsWidget::ConfigureColorCorrection()
 
 void EnhancementsWidget::ConfigurePostProcessingShader()
 {
-  const std::string shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  const std::string shader = Get(Config::GFX_ENHANCE_POST_SHADER);
   PostProcessingConfigWindow dialog(this, shader);
   SetQWidgetWindowDecorations(&dialog);
   dialog.exec();

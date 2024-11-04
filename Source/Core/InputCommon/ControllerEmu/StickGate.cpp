@@ -223,7 +223,7 @@ const ReshapableInput::ReshapeData& ReshapableInput::GetCenter() const
   return m_center;
 }
 
-void ReshapableInput::SetCenter(ReshapableInput::ReshapeData center)
+void ReshapableInput::SetCenter(ReshapeData center)
 {
   m_center = center;
 }
@@ -288,7 +288,7 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
   const std::ranges::transform_view scaled_calibration(
       m_calibration, [](ControlState val) { return val * CALIBRATION_CONFIG_SCALE; });
   section->Set(group + CALIBRATION_CONFIG_NAME,
-               fmt::format("{:.2f}", fmt::join(scaled_calibration, " ")), "");
+               format("{:.2f}", fmt::join(scaled_calibration, " ")), "");
 
   // Save center value.
   static constexpr char center_format[] = "{:.2f} {:.2f}";

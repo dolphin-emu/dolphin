@@ -36,19 +36,19 @@ NetPlaySetupDialog::NetPlaySetupDialog(const GameListModel& game_list_model, QWi
 
   CreateMainLayout();
 
-  bool use_index = Config::Get(Config::NETPLAY_USE_INDEX);
-  std::string index_region = Config::Get(Config::NETPLAY_INDEX_REGION);
-  std::string index_name = Config::Get(Config::NETPLAY_INDEX_NAME);
-  std::string index_password = Config::Get(Config::NETPLAY_INDEX_PASSWORD);
-  std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
-  std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  int connect_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
-  int host_port = Config::Get(Config::NETPLAY_HOST_PORT);
-  int host_listen_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
-  bool enable_chunked_upload_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
-  u32 chunked_upload_limit = Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
+  bool use_index = Get(Config::NETPLAY_USE_INDEX);
+  std::string index_region = Get(Config::NETPLAY_INDEX_REGION);
+  std::string index_name = Get(Config::NETPLAY_INDEX_NAME);
+  std::string index_password = Get(Config::NETPLAY_INDEX_PASSWORD);
+  std::string nickname = Get(Config::NETPLAY_NICKNAME);
+  std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  int connect_port = Get(Config::NETPLAY_CONNECT_PORT);
+  int host_port = Get(Config::NETPLAY_HOST_PORT);
+  int host_listen_port = Get(Config::NETPLAY_LISTEN_PORT);
+  bool enable_chunked_upload_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+  u32 chunked_upload_limit = Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
 #ifdef USE_UPNP
-  bool use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
+  bool use_upnp = Get(Config::NETPLAY_USE_UPNP);
 
   m_host_upnp->setChecked(use_upnp);
 #endif
@@ -262,31 +262,31 @@ void NetPlaySetupDialog::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
-  Config::SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
+  SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
+  SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
                                                                     Config::NETPLAY_HOST_CODE,
                            m_ip_edit->text().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT,
+  SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT,
                            static_cast<u16>(m_connect_port_box->value()));
-  Config::SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(m_host_port_box->value()));
+  SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(m_host_port_box->value()));
 #ifdef USE_UPNP
-  Config::SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, m_host_upnp->isChecked());
+  SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, m_host_upnp->isChecked());
 #endif
 
   if (m_host_force_port_check->isChecked())
-    Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT,
+    SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT,
                              static_cast<u16>(m_host_force_port_box->value()));
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT,
+  SetBaseOrCurrent(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT,
                            m_host_chunked_upload_limit_check->isChecked());
-  Config::SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
+  SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
                            m_host_chunked_upload_limit_box->value());
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, m_host_server_browser->isChecked());
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION,
+  SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, m_host_server_browser->isChecked());
+  SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION,
                            m_host_server_region->currentData().toString().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_host_server_name->text().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD,
+  SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_host_server_name->text().toStdString());
+  SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD,
                            m_host_server_password->text().toStdString());
 }
 
@@ -306,12 +306,12 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
   m_reset_traversal_button->setHidden(index == 0);
 
   std::string address =
-      index == 0 ? Config::Get(Config::NETPLAY_ADDRESS) : Config::Get(Config::NETPLAY_HOST_CODE);
+      index == 0 ? Get(Config::NETPLAY_ADDRESS) : Get(Config::NETPLAY_HOST_CODE);
 
   m_ip_label->setText(index == 0 ? tr("IP Address:") : tr("Host Code:"));
   m_ip_edit->setText(QString::fromStdString(address));
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE,
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE,
                            std::string(index == 0 ? "direct" : "traversal"));
 }
 
@@ -382,9 +382,9 @@ void NetPlaySetupDialog::PopulateGameList()
 
 void NetPlaySetupDialog::ResetTraversalHost()
 {
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_SERVER,
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_SERVER,
                            Config::NETPLAY_TRAVERSAL_SERVER.GetDefaultValue());
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
                            Config::NETPLAY_TRAVERSAL_PORT.GetDefaultValue());
 
   ModalMessageBox::information(

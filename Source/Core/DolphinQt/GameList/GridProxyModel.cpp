@@ -37,10 +37,10 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
 
     const auto& buffer = model->GetGameFile(source_index.row())->GetCoverImage().buffer;
 
-    QSize size = Config::Get(Config::MAIN_USE_GAME_COVERS) ? QSize(160, 224) : LARGE_BANNER_SIZE;
+    QSize size = Get(Config::MAIN_USE_GAME_COVERS) ? QSize(160, 224) : LARGE_BANNER_SIZE;
     QPixmap pixmap(size * model->GetScale() * QPixmap().devicePixelRatio());
 
-    if (buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+    if (buffer.empty() || !Get(Config::MAIN_USE_GAME_COVERS))
     {
       QPixmap banner = model
                            ->data(model->index(source_index.row(),

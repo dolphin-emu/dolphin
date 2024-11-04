@@ -90,7 +90,7 @@ bool WriteImage(const std::string& path, const ImagePixelData& image)
     }
   }
 
-  return Common::SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width,
+  return SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width,
                          image.height, image.width * 4);
 }
 

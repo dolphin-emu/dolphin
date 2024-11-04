@@ -20,7 +20,7 @@ inline bool ReadFileFromZip(unzFile file, u8* destination, u64 len)
   if (unzOpenCurrentFile(file) != UNZ_OK)
     return false;
 
-  Common::ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
+  ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
 
   u64 bytes_to_go = len;
   while (bytes_to_go > 0)

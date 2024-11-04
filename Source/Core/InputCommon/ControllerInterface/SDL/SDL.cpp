@@ -65,7 +65,7 @@ class GameController : public Core::Device
 {
 private:
   // GameController inputs
-  class Button : public Core::Device::Input
+  class Button : public Input
   {
   public:
     std::string GetName() const override;
@@ -78,7 +78,7 @@ private:
     const SDL_GameControllerButton m_button;
   };
 
-  class Axis : public Core::Device::Input
+  class Axis : public Input
   {
   public:
     std::string GetName() const override;
@@ -95,7 +95,7 @@ private:
   };
 
   // Legacy inputs
-  class LegacyButton : public Core::Device::Input
+  class LegacyButton : public Input
   {
   public:
     std::string GetName() const override { return GetLegacyButtonName(m_index); }
@@ -107,7 +107,7 @@ private:
     const int m_index;
   };
 
-  class LegacyAxis : public Core::Device::Input
+  class LegacyAxis : public Input
   {
   public:
     std::string GetName() const override { return GetLegacyAxisName(m_index, m_range); }
@@ -283,7 +283,7 @@ public:
   InputBackend(ControllerInterface* controller_interface);
   ~InputBackend();
   void PopulateDevices() override;
-  void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove) override;
+  void UpdateInput(std::vector<std::weak_ptr<Core::Device>>& devices_to_remove) override;
 
 private:
   void OpenAndAddDevice(int index);
@@ -790,7 +790,7 @@ GameController::~GameController()
   SDL_JoystickClose(m_joystick);
 }
 
-void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove)
+void InputBackend::UpdateInput(std::vector<std::weak_ptr<Core::Device>>& devices_to_remove)
 {
   SDL_GameControllerUpdate();
 }

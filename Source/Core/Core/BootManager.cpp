@@ -93,40 +93,40 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     if (!netplay_settings)
       return false;
 
-    Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(*netplay_settings));
+    AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(*netplay_settings));
     StartUp.bCopyWiiSaveNetplay = netplay_settings->savedata_load;
   }
 
   // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
-  if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
+  if (!Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
   {
-    Config::SetCurrent(
+    SetCurrent(
         Config::MAIN_GC_LANGUAGE,
-        DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region)));
+        ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region)));
 
     if (system.IsWii())
     {
       const u32 wii_language =
           static_cast<u32>(StartUp.GetLanguageAdjustedForRegion(true, StartUp.m_region));
-      if (wii_language != Config::Get(Config::SYSCONF_LANGUAGE))
-        Config::SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
+      if (wii_language != Get(Config::SYSCONF_LANGUAGE))
+        SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
 
-      const u8 country_code = static_cast<u8>(Config::Get(Config::SYSCONF_COUNTRY));
+      const u8 country_code = static_cast<u8>(Get(Config::SYSCONF_COUNTRY));
       if (StartUp.m_region != DiscIO::SysConfCountryToRegion(country_code))
       {
         switch (StartUp.m_region)
         {
         case DiscIO::Region::NTSC_J:
-          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x01);  // Japan
+          SetCurrent(Config::SYSCONF_COUNTRY, 0x01);  // Japan
           break;
         case DiscIO::Region::NTSC_U:
-          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x31);  // United States
+          SetCurrent(Config::SYSCONF_COUNTRY, 0x31);  // United States
           break;
         case DiscIO::Region::PAL:
-          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x6c);  // Switzerland
+          SetCurrent(Config::SYSCONF_COUNTRY, 0x6c);  // Switzerland
           break;
         case DiscIO::Region::NTSC_K:
-          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x88);  // South Korea
+          SetCurrent(Config::SYSCONF_COUNTRY, 0x88);  // South Korea
           break;
         case DiscIO::Region::Unknown:
           break;
@@ -137,16 +137,16 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
 
   // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
   // 1942 (Virtual Console) crash if the PAL60 option is enabled
-  if (system.IsWii() && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
-    Config::SetCurrent(Config::SYSCONF_PAL60, false);
+  if (system.IsWii() && IsNTSC(StartUp.m_region) && Get(Config::SYSCONF_PAL60))
+    SetCurrent(Config::SYSCONF_PAL60, false);
 
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
   if (!boot->riivolution_patches.empty())
-    Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
+    SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
 
   system.Initialize();
 
-  Core::UpdateWantDeterminism(system, /*initial*/ true);
+  UpdateWantDeterminism(system, /*initial*/ true);
 
   if (system.IsWii())
   {
@@ -161,18 +161,18 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     else
     {
       ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta, [](const Config::Location& location) {
-        return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
+        return GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
       });
     }
   }
 
   AchievementManager::GetInstance().CloseGame();
 
-  const bool load_ipl = !system.IsWii() && !Config::Get(Config::MAIN_SKIP_IPL) &&
+  const bool load_ipl = !system.IsWii() && !Get(Config::MAIN_SKIP_IPL) &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {
-    return Core::Init(
+    return Init(
         system,
         std::make_unique<BootParameters>(
             BootParameters::IPL{StartUp.m_region,
@@ -180,7 +180,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
             std::move(boot->boot_session_data)),
         wsi);
   }
-  return Core::Init(system, std::move(boot), wsi);
+  return Init(system, std::move(boot), wsi);
 }
 
 // SYSCONF can be modified during emulation by the user and internally, which makes it
@@ -218,15 +218,15 @@ void RestoreConfig()
 
   if (!Core::WiiRootIsTemporary())
   {
-    Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
+    RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
     RestoreSYSCONF();
   }
 
   Config::ClearCurrentRunLayer();
-  Config::RemoveLayer(Config::LayerType::Movie);
-  Config::RemoveLayer(Config::LayerType::Netplay);
-  Config::RemoveLayer(Config::LayerType::GlobalGame);
-  Config::RemoveLayer(Config::LayerType::LocalGame);
+  RemoveLayer(Config::LayerType::Movie);
+  RemoveLayer(Config::LayerType::Netplay);
+  RemoveLayer(Config::LayerType::GlobalGame);
+  RemoveLayer(Config::LayerType::LocalGame);
   SConfig::GetInstance().ResetRunningGameMetadata();
 }
 

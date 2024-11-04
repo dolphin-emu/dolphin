@@ -36,7 +36,7 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
           &AchievementSettingsWidget::LoadSettings);
 
   // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (Get(Config::RA_HARDCORE_ENABLED))
     UpdateHardcoreMode();
 }
 
@@ -180,10 +180,10 @@ void AchievementSettingsWidget::LoadSettings()
 {
   Core::System& system = Core::System::GetInstance();
 
-  bool enabled = Config::Get(Config::RA_ENABLED);
-  bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
-  bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
-  std::string username = Config::Get(Config::RA_USERNAME);
+  bool enabled = Get(Config::RA_ENABLED);
+  bool hardcore_enabled = Get(Config::RA_HARDCORE_ENABLED);
+  bool logged_out = Get(Config::RA_API_TOKEN).empty();
+  std::string username = Get(Config::RA_USERNAME);
 
   SignalBlocking(m_common_integration_enabled_input)->setChecked(enabled);
   SignalBlocking(m_common_username_label)->setEnabled(enabled);
@@ -195,8 +195,8 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_password_input)->setVisible(logged_out);
   SignalBlocking(m_common_password_input)->setEnabled(enabled);
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
-  SignalBlocking(m_common_login_button)->setEnabled(enabled && Core::IsUninitialized(system));
-  if (!enabled || Core::IsUninitialized(system))
+  SignalBlocking(m_common_login_button)->setEnabled(enabled && IsUninitialized(system));
+  if (!enabled || IsUninitialized(system))
     SignalBlocking(m_common_login_button)->setText(tr("Log In"));
   else
     SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
@@ -205,29 +205,29 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
+      ->setChecked(Get(Config::RA_HARDCORE_ENABLED));
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setEnabled(enabled && (hardcore_enabled || (Core::IsUninitialized(system) &&
+      ->setEnabled(enabled && (hardcore_enabled || (IsUninitialized(system) &&
                                                     !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_unofficial_enabled_input)
-      ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
+      ->setChecked(Get(Config::RA_UNOFFICIAL_ENABLED));
   SignalBlocking(m_common_unofficial_enabled_input)->setEnabled(enabled);
 
-  SignalBlocking(m_common_encore_enabled_input)->setChecked(Config::Get(Config::RA_ENCORE_ENABLED));
+  SignalBlocking(m_common_encore_enabled_input)->setChecked(Get(Config::RA_ENCORE_ENABLED));
   SignalBlocking(m_common_encore_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_spectator_enabled_input)
-      ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
+      ->setChecked(Get(Config::RA_SPECTATOR_ENABLED));
   SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_discord_presence_enabled_input)
-      ->setChecked(Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED));
+      ->setChecked(Get(Config::RA_DISCORD_PRESENCE_ENABLED));
   SignalBlocking(m_common_discord_presence_enabled_input)
-      ->setEnabled(enabled && Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+      ->setEnabled(enabled && Get(Config::MAIN_USE_DISCORD_PRESENCE));
 
   SignalBlocking(m_common_progress_enabled_input)
-      ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
+      ->setChecked(Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
 }
 
@@ -235,17 +235,17 @@ void AchievementSettingsWidget::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBaseOrCurrent(Config::RA_ENABLED, m_common_integration_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
+  SetBaseOrCurrent(Config::RA_ENABLED, m_common_integration_enabled_input->isChecked());
+  SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
                            m_common_hardcore_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
+  SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
                            m_common_unofficial_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
+  SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
+  SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
                            m_common_spectator_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
+  SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
                            m_common_discord_presence_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
+  SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
   Config::Save();
 }
@@ -255,7 +255,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
   SaveSettings();
 
   auto& instance = AchievementManager::GetInstance();
-  if (Config::Get(Config::RA_ENABLED))
+  if (Get(Config::RA_ENABLED))
     instance.Init();
   else
     instance.Shutdown();
@@ -265,7 +265,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 void AchievementSettingsWidget::Login()
 {
   m_common_login_failed->setVisible(false);
-  Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
+  SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
   AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());
   SaveSettings();
@@ -285,7 +285,7 @@ void AchievementSettingsWidget::Logout()
 
 void AchievementSettingsWidget::ToggleHardcore()
 {
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (Get(Config::RA_HARDCORE_ENABLED))
   {
     auto confirm = ModalMessageBox::question(
         this, tr("Confirm Hardcore Off"), tr("Are you sure you want to turn hardcore mode off?"),
@@ -330,11 +330,11 @@ void AchievementSettingsWidget::ToggleProgress()
 void AchievementSettingsWidget::UpdateHardcoreMode()
 {
   AchievementManager::GetInstance().SetHardcoreMode();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (Get(Config::RA_HARDCORE_ENABLED))
   {
     Settings::Instance().SetDebugModeEnabled(false);
   }
-  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  emit Settings::Instance().EmulationStateChanged(GetState(Core::System::GetInstance()));
   emit Settings::Instance().HardcoreStateChanged();
 }
 

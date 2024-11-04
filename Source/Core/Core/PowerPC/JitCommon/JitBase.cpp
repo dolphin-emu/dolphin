@@ -107,7 +107,7 @@ JitBase::JitBase(Core::System& system)
 
 JitBase::~JitBase()
 {
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
 bool JitBase::DoesConfigNeedRefresh()
@@ -120,7 +120,7 @@ bool JitBase::DoesConfigNeedRefresh()
 void JitBase::RefreshConfig()
 {
   for (const auto& [member, config_info] : JIT_SETTINGS)
-    this->*member = Config::Get(*config_info);
+    this->*member = Get(*config_info);
 
   if (m_accurate_cpu_cache_enabled)
   {
@@ -145,7 +145,7 @@ void JitBase::RefreshConfig()
 void JitBase::InitFastmemArena()
 {
   auto& memory = m_system.GetMemory();
-  jo.fastmem_arena = Config::Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
+  jo.fastmem_arena = Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
 }
 
 void JitBase::InitBLROptimization()

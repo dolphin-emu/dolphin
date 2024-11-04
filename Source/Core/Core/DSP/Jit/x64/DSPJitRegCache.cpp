@@ -25,7 +25,7 @@ constexpr std::array<X64Reg, 15> s_allocation_order = {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
-static Gen::OpArg GetRegisterPointer(size_t reg)
+static OpArg GetRegisterPointer(size_t reg)
 {
   switch (reg)
   {
@@ -829,7 +829,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
         // (if at all)
 
         // Clear SR_100, which always reads back as 0
-        m_emitter.AND(16, R(oparg.GetSimpleReg()), Gen::Imm16(~SR_100));
+        m_emitter.AND(16, R(oparg.GetSimpleReg()), Imm16(~SR_100));
       }
       else if (oparg.IsImm())
       {
@@ -839,7 +839,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
       else
       {
         // Clear SR_100, which always reads back as 0
-        m_emitter.AND(16, m_regs[reg].loc, Gen::Imm16(~SR_100));
+        m_emitter.AND(16, m_regs[reg].loc, Imm16(~SR_100));
       }
     }
     break;

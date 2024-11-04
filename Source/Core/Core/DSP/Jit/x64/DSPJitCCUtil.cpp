@@ -13,7 +13,7 @@ namespace DSP::JIT::x64
 {
 // In: val: s64 _Value
 // Clobbers scratch
-void DSPEmitter::Update_SR_Register(Gen::X64Reg val, Gen::X64Reg scratch)
+void DSPEmitter::Update_SR_Register(X64Reg val, X64Reg scratch)
 {
   ASSERT(val != scratch);
 
@@ -57,7 +57,7 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val, Gen::X64Reg scratch)
 
 // In: val: s64 _Value
 // Clobbers scratch
-void DSPEmitter::Update_SR_Register64(Gen::X64Reg val, Gen::X64Reg scratch)
+void DSPEmitter::Update_SR_Register64(X64Reg val, X64Reg scratch)
 {
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
@@ -68,8 +68,8 @@ void DSPEmitter::Update_SR_Register64(Gen::X64Reg val, Gen::X64Reg scratch)
 
 // Updates SR based on a 64-bit value computed by result = val1 + val2 or result = val1 - val2
 // Clobbers scratch
-void DSPEmitter::UpdateSR64AddSub(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result,
-                                  Gen::X64Reg scratch, bool subtract)
+void DSPEmitter::UpdateSR64AddSub(X64Reg val1, X64Reg val2, X64Reg result,
+                                  X64Reg scratch, bool subtract)
 {
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   // g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
@@ -152,8 +152,8 @@ void DSPEmitter::Update_SR_Register16(X64Reg val)
 // In: RAX: s16 _Value (middle)
 // In: RDX: s64 _FullValue
 // Clobbers scratch
-void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val, Gen::X64Reg full_val,
-                                              Gen::X64Reg scratch)
+void DSPEmitter::Update_SR_Register16_OverS32(X64Reg val, X64Reg full_val,
+                                              X64Reg scratch)
 {
   Update_SR_Register16(val);
 

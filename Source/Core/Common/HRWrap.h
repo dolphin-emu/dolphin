@@ -26,7 +26,7 @@ struct HRWrap
 template <>
 struct fmt::formatter<Common::HRWrap>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const Common::HRWrap& hr, FormatContext& ctx) const
   {
@@ -38,7 +38,7 @@ struct fmt::formatter<Common::HRWrap>
 template <>
 struct fmt::formatter<winrt::hresult>
 {
-  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const winrt::hresult& hr, FormatContext& ctx) const
   {

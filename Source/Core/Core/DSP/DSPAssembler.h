@@ -98,7 +98,7 @@ private:
     std::optional<std::string> included_file_path;
   };
 
-  friend struct ::fmt::formatter<DSP::DSPAssembler::LocationContext>;
+  friend struct fmt::formatter<LocationContext>;
 
   // Utility functions
   s32 ParseValue(const char* str);

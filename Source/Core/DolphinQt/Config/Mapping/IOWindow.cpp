@@ -190,8 +190,8 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
   // This doesn't need to be run for every "block", but it works.
   if (ciface::ExpressionParser::ParseStatus::Successful == tokenize_status)
   {
-    ciface::ExpressionParser::RemoveInertTokens(&tokens);
-    const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
+    RemoveInertTokens(&tokens);
+    const auto parse_status = ParseTokens(tokens);
 
     if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
     {
@@ -229,7 +229,7 @@ private:
 };
 
 IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,
-                   ControlReference* ref, IOWindow::Type type)
+                   ControlReference* ref, Type type)
     : QDialog(parent), m_reference(ref), m_original_expression(ref->GetExpression()),
       m_controller(controller), m_type(type)
 {
@@ -239,7 +239,7 @@ IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* con
   connect(parent->GetParent(), &MappingWindow::ConfigChanged, this, &IOWindow::ConfigChanged);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &IOWindow::ConfigChanged);
 
-  setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
+  setWindowTitle(type == Type::Input ? tr("Configure Input") : tr("Configure Output"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   ConfigChanged();

@@ -47,7 +47,7 @@ static void DeleteShouldNotRemoveDirectory(const std::string& path, File::IfAbse
 {
   File::CreateDir(path);
   EXPECT_FALSE(File::Delete(path, behavior));
-  File::DeleteDir(path, behavior);
+  DeleteDir(path, behavior);
 }
 
 static void DeleteShouldRemoveFile(const std::string& path, File::IfAbsentBehavior behavior)
@@ -72,7 +72,7 @@ static void DeleteDirShouldNotRemoveFile(const std::string& path, File::IfAbsent
 {
   File::CreateEmptyFile(path);
   EXPECT_FALSE(File::DeleteDir(path, behavior));
-  File::Delete(path, behavior);
+  Delete(path, behavior);
 }
 
 static void DeleteDirShouldReturnTrueForInvalidPath(const std::string& path,

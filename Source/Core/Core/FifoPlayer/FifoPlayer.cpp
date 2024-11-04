@@ -92,7 +92,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
     while (offset < frame.fifoData.size())
     {
-      const u32 cmd_size = OpcodeDecoder::RunCommand(&frame.fifoData[offset],
+      const u32 cmd_size = RunCommand(&frame.fifoData[offset],
                                                      u32(frame.fifoData.size()) - offset, analyzer);
 
       if (analyzer.m_start_of_primitives)
@@ -180,7 +180,7 @@ FifoPlayer::FifoPlayer(Core::System& system) : m_system(system)
 
 FifoPlayer::~FifoPlayer()
 {
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+  RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 bool FifoPlayer::Open(const std::string& filename)
@@ -212,7 +212,7 @@ void FifoPlayer::Close()
 
 bool FifoPlayer::IsPlaying() const
 {
-  return GetFile() != nullptr && Core::IsRunning(m_system);
+  return GetFile() != nullptr && IsRunning(m_system);
 }
 
 class FifoPlayer::CPUCore final : public CPUCoreBase
@@ -313,8 +313,8 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
 
 void FifoPlayer::RefreshConfig()
 {
-  m_Loop = Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY);
-  m_EarlyMemoryUpdates = Config::Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES);
+  m_Loop = Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY);
+  m_EarlyMemoryUpdates = Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES);
 }
 
 void FifoPlayer::SetFileLoadedCallback(CallbackFunc callback)
@@ -650,7 +650,7 @@ void FifoPlayer::LoadMemory()
     HID4(ppc_state).SBE = 1;
   }
 
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 
   auto& mmu = m_system.GetMMU();
   mmu.DBATUpdated();

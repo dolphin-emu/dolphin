@@ -218,7 +218,7 @@ void NetPlayDialog::CreateMainLayout()
     GameListDialog gld(m_game_list_model, this);
 
     SetQWidgetWindowDecorations(&gld);
-    if (gld.exec() != QDialog::Accepted)
+    if (gld.exec() != Accepted)
       return;
     Settings::Instance().GetNetPlayServer()->ComputeGameDigest(
         gld.GetSelectedGame().GetSyncIdentifier());
@@ -386,7 +386,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_game_button, &QPushButton::clicked, [this] {
     GameListDialog gld(m_game_list_model, this);
     SetQWidgetWindowDecorations(&gld);
-    if (gld.exec() == QDialog::Accepted)
+    if (gld.exec() == Accepted)
     {
       Settings& settings = Settings::Instance();
 
@@ -476,7 +476,7 @@ void NetPlayDialog::OnStart()
       return;
   }
 
-  if (m_strict_settings_sync_action->isChecked() && Config::Get(Config::GFX_EFB_SCALE) == 0)
+  if (m_strict_settings_sync_action->isChecked() && Get(Config::GFX_EFB_SCALE) == 0)
   {
     ModalMessageBox::critical(
         this, tr("Error"),
@@ -581,7 +581,7 @@ void NetPlayDialog::UpdateDiscordPresence()
                                    m_current_game_name);
   };
 
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (IsRunning(Core::System::GetInstance()))
     return use_default();
 
   if (IsHosting())
@@ -669,7 +669,7 @@ void NetPlayDialog::UpdateGUI()
     auto* ping_item = new QTableWidgetItem(QStringLiteral("%1 ms").arg(p->ping));
     ping_item->setToolTip(ping_item->text());
     auto* mapping_item =
-        new QTableWidgetItem(QString::fromStdString(NetPlay::GetPlayerMappingString(
+        new QTableWidgetItem(QString::fromStdString(GetPlayerMappingString(
             p->pid, client->GetPadMapping(), client->GetGBAConfig(), client->GetWiimoteMapping())));
     mapping_item->setToolTip(mapping_item->text());
     auto* revision_item = new QTableWidgetItem(QString::fromStdString(p->revision));
@@ -805,7 +805,7 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 
   QColor c(color.empty() ? QStringLiteral("white") : QString::fromStdString(color));
 
-  if (g_ActiveConfig.bShowNetPlayMessages && Core::IsRunning(Core::System::GetInstance()))
+  if (g_ActiveConfig.bShowNetPlayMessages && IsRunning(Core::System::GetInstance()))
   {
     g_netplay_chat_ui->AppendChat(msg.toStdString(),
                                   {static_cast<float>(c.redF()), static_cast<float>(c.greenF()),
@@ -907,7 +907,7 @@ void NetPlayDialog::OnMsgStopGame()
 
 void NetPlayDialog::OnMsgPowerButton()
 {
-  if (!Core::IsRunning(Core::System::GetInstance()))
+  if (!IsRunning(Core::System::GetInstance()))
     return;
   QueueOnObject(this, [] { UICommon::TriggerSTMPowerEvent(); });
 }
@@ -964,7 +964,7 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
     if (enabled)
     {
       const QSignalBlocker blocker(m_buffer_size_box);
-      m_buffer_size_box->setValue(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
+      m_buffer_size_box->setValue(Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
     }
   });
 }
@@ -1093,7 +1093,7 @@ std::string NetPlayDialog::FindGBARomPath(const std::array<u8, 20>& hash, std::s
     std::string rom_title;
     for (size_t i = device_number; i < static_cast<size_t>(device_number) + 4; ++i)
     {
-      rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[i % 4]);
+      rom_path = Get(Config::MAIN_GBA_ROM_PATHS[i % 4]);
       if (!rom_path.empty() && HW::GBA::Core::GetRomInfo(rom_path.c_str(), rom_hash, rom_title) &&
           rom_hash == hash && rom_title == title)
       {
@@ -1130,15 +1130,15 @@ std::string NetPlayDialog::FindGBARomPath(const std::array<u8, 20>& hash, std::s
 
 void NetPlayDialog::LoadSettings()
 {
-  const int buffer_size = Config::Get(Config::NETPLAY_BUFFER_SIZE);
-  const bool savedata_load = Config::Get(Config::NETPLAY_SAVEDATA_LOAD);
-  const bool savedata_write = Config::Get(Config::NETPLAY_SAVEDATA_WRITE);
-  const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
-  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
-  const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
-  const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
-  const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
-  const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  const int buffer_size = Get(Config::NETPLAY_BUFFER_SIZE);
+  const bool savedata_load = Get(Config::NETPLAY_SAVEDATA_LOAD);
+  const bool savedata_write = Get(Config::NETPLAY_SAVEDATA_WRITE);
+  const bool sync_all_wii_saves = Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
+  const bool sync_codes = Get(Config::NETPLAY_SYNC_CODES);
+  const bool record_inputs = Get(Config::NETPLAY_RECORD_INPUTS);
+  const bool strict_settings_sync = Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
+  const bool golf_mode_overlay = Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
+  const bool hide_remote_gbas = Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
   m_buffer_size_box->setValue(buffer_size);
 
@@ -1156,7 +1156,7 @@ void NetPlayDialog::LoadSettings()
   m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
   m_hide_remote_gbas_action->setChecked(hide_remote_gbas);
 
-  const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
+  const std::string network_mode = Get(Config::NETPLAY_NETWORK_MODE);
 
   if (network_mode == "fixeddelay")
   {
@@ -1182,22 +1182,22 @@ void NetPlayDialog::SaveSettings()
   Config::ConfigChangeCallbackGuard config_guard;
 
   if (m_host_input_authority)
-    Config::SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, m_buffer_size_box->value());
+    SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, m_buffer_size_box->value());
   else
-    Config::SetBase(Config::NETPLAY_BUFFER_SIZE, m_buffer_size_box->value());
+    SetBase(Config::NETPLAY_BUFFER_SIZE, m_buffer_size_box->value());
 
   const bool write_savedata = m_savedata_load_and_write_action->isChecked();
   const bool load_savedata = write_savedata || m_savedata_load_only_action->isChecked();
-  Config::SetBase(Config::NETPLAY_SAVEDATA_LOAD, load_savedata);
-  Config::SetBase(Config::NETPLAY_SAVEDATA_WRITE, write_savedata);
+  SetBase(Config::NETPLAY_SAVEDATA_LOAD, load_savedata);
+  SetBase(Config::NETPLAY_SAVEDATA_WRITE, write_savedata);
 
-  Config::SetBase(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII,
+  SetBase(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII,
                   m_savedata_all_wii_saves_action->isChecked());
-  Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
-  Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
-  Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
-  Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
-  Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
+  SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
+  SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
+  SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
+  SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
+  SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())
@@ -1213,7 +1213,7 @@ void NetPlayDialog::SaveSettings()
     network_mode = "golf";
   }
 
-  Config::SetBase(Config::NETPLAY_NETWORK_MODE, network_mode);
+  SetBase(Config::NETPLAY_NETWORK_MODE, network_mode);
 }
 
 void NetPlayDialog::ShowGameDigestDialog(const std::string& title)
@@ -1257,7 +1257,7 @@ void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u6
 {
   QueueOnObject(this, [this, title, data_size, players] {
     if (m_chunked_progress_dialog->isVisible())
-      m_chunked_progress_dialog->done(QDialog::Accepted);
+      m_chunked_progress_dialog->done(Accepted);
 
     m_chunked_progress_dialog->show(QString::fromStdString(title), data_size, players);
   });
@@ -1265,7 +1265,7 @@ void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u6
 
 void NetPlayDialog::HideChunkedProgressDialog()
 {
-  QueueOnObject(this, [this] { m_chunked_progress_dialog->done(QDialog::Accepted); });
+  QueueOnObject(this, [this] { m_chunked_progress_dialog->done(Accepted); });
 }
 
 void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)

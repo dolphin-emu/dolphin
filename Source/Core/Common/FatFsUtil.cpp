@@ -515,7 +515,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   if (!CheckIfFATCompatible(root))
     return false;
 
-  u64 size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
+  u64 size = Get(Config::MAIN_WII_SD_CARD_FILESIZE);
   if (size == 0)
   {
     size = GetSize(root);
@@ -527,7 +527,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   std::lock_guard lk(s_fatfs_mutex);
   SDCardFatFsCallbacks callbacks;
   s_callbacks = &callbacks;
-  Common::ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
+  ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
 
   File::IOFile image;
   callbacks.m_image = &image;
@@ -541,7 +541,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   }
 
   // delete temp file in failure case
-  Common::ScopeGuard image_delete_guard{[&] {
+  ScopeGuard image_delete_guard{[&] {
     image.Close();
     File::Delete(temp_image_path);
   }};
@@ -577,7 +577,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
                   FatFsErrorToString(mount_error_code));
     return false;
   }
-  Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+  ScopeGuard unmount_guard{[] { f_unmount(""); }};
 
   if (!Pack(cancelled, root, true, tmp_buffer))
   {
@@ -775,7 +775,7 @@ bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled)
   std::lock_guard lk(s_fatfs_mutex);
   SDCardFatFsCallbacks callbacks;
   s_callbacks = &callbacks;
-  Common::ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
+  ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
 
   INFO_LOG_FMT(COMMON, "Starting SD card conversion from file {} to folder {}", image_path,
                target_dir);
@@ -801,7 +801,7 @@ bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled)
                   FatFsErrorToString(mount_error_code));
     return false;
   }
-  Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+  ScopeGuard unmount_guard{[] { f_unmount(""); }};
 
   // Unpack() and GetTempFilenameForAtomicWrite() don't want the trailing separator.
   const std::string target_dir_without_slash = target_dir.substr(0, target_dir.length() - 1);
@@ -848,7 +848,7 @@ void RunInFatFsContext(FatFsCallbacks& callbacks, const std::function<void()>& f
 {
   std::lock_guard lk(s_fatfs_mutex);
   s_callbacks = &callbacks;
-  Common::ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
+  ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
   function();
 }
 }  // namespace Common

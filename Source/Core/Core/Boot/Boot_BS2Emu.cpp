@@ -75,7 +75,7 @@ void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)
   ppc_state.msr.DR = 1;
   ppc_state.msr.IR = 1;
   ppc_state.msr.FP = 1;
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 }
 
 void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii)
@@ -208,7 +208,7 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
                  ram_address, length);
     DVDRead(system, volume, dvd_offset, ram_address, length, partition);
 
-    DiscIO::Riivolution::ApplyApploaderMemoryPatches(guard, riivolution_patches, ram_address,
+    ApplyApploaderMemoryPatches(guard, riivolution_patches, ram_address,
                                                      length);
 
     ppc_state.gpr[3] = 0x81300004;
@@ -248,7 +248,7 @@ void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guar
   PowerPC::MMU::HostWrite_U32(guard, console_type, 0x8000002C);
 
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
-  PowerPC::MMU::HostWrite_U32(guard, DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1,
+  PowerPC::MMU::HostWrite_U32(guard, IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1,
                               0x800000CC);
 
   // ARAM Size. 16MB main + 4/16/32MB external. (retail consoles have no external ARAM)
@@ -315,7 +315,7 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
     system.GetDVDInterface().AudioBufferConfig(false, 0);
   }
 
-  const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
+  const bool ntsc = IsNTSC(SConfig::GetInstance().m_region);
 
   // Setup pointers like real BS2 does
 
@@ -381,7 +381,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
       model = settings_reader.GetValue("MODEL");
 
       bool region_matches = false;
-      if (Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
+      if (Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
       {
         region_matches = true;
       }
@@ -495,7 +495,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   memory.Write_U32(0x80000000, 0x00003184);  // GameID Address
 
   // Fake the VI Init of the IPL
-  memory.Write_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x000000CC);
+  memory.Write_U32(IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x000000CC);
 
   // Clear exception handler. Why? Don't we begin with only zeros?
   for (int i = 0x3000; i <= 0x3038; i += 4)
@@ -563,7 +563,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   memory.Write_U32(0, 0x3194);
   memory.Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
-  const s32 ios_override = Config::Get(Config::MAIN_OVERRIDE_BOOT_IOS);
+  const s32 ios_override = Get(Config::MAIN_OVERRIDE_BOOT_IOS);
   const u64 ios = ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
 
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
@@ -600,7 +600,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
     return false;
 
   // The Apploader probably just overwrote values needed for RAM Override.  Run this again!
-  IOS::HLE::RAMOverrideForIOSMemoryValues(memory, IOS::HLE::MemorySetupType::IOSReload);
+  RAMOverrideForIOSMemoryValues(memory, IOS::HLE::MemorySetupType::IOSReload);
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!

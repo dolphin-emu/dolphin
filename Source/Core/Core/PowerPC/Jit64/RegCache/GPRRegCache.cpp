@@ -22,7 +22,7 @@ void GPRRegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
 void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
   ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
-  m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].Location().value());
+  m_emitter->MOV(32, Gen::R(new_loc), m_regs[preg].Location().value());
 }
 
 OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const

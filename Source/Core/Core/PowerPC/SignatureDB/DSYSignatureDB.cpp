@@ -38,7 +38,7 @@ bool DSYSignatureDB::Load(const std::string& file_path)
     f.ReadArray(&temp, 1);
     temp.name[sizeof(temp.name) - 1] = 0;
 
-    HashSignatureDB::DBFunc func;
+    DBFunc func;
     func.name = temp.name;
     func.size = temp.size;
     m_database[temp.checksum] = func;

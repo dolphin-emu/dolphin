@@ -108,9 +108,9 @@ System::~System() = default;
 
 void System::Initialize()
 {
-  m_separate_cpu_and_gpu_threads = Config::Get(Config::MAIN_CPU_THREAD);
-  m_mmu_enabled = Config::Get(Config::MAIN_MMU);
-  m_pause_on_panic_enabled = Config::Get(Config::MAIN_PAUSE_ON_PANIC);
+  m_separate_cpu_and_gpu_threads = Get(Config::MAIN_CPU_THREAD);
+  m_mmu_enabled = Get(Config::MAIN_MMU);
+  m_pause_on_panic_enabled = Get(Config::MAIN_PAUSE_ON_PANIC);
 }
 
 SoundStream* System::GetSoundStream() const

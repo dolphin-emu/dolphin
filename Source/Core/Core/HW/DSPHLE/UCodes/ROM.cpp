@@ -100,9 +100,9 @@ void ROMUCode::BootUCode()
       static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_current_ucode.m_ram_address)),
       m_current_ucode.m_length);
 
-  if (Config::Get(Config::MAIN_DUMP_UCODE))
+  if (Get(Config::MAIN_DUMP_UCODE))
   {
-    DSP::DumpDSPCode(static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_current_ucode.m_ram_address)),
+    DumpDSPCode(static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_current_ucode.m_ram_address)),
                      m_current_ucode.m_length, ector_crc);
   }
 

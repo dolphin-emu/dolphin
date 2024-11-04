@@ -266,15 +266,15 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
     return {};
   }
   BuildInfos build_infos;
-  build_infos.next = Platform::BuildInfo(build_info_content);
+  build_infos.next = BuildInfo(build_info_content);
 
   build_info_path = install_base_path + DIR_SEP + "build_info.txt";
-  build_infos.current = Platform::BuildInfo();
+  build_infos.current = BuildInfo();
   if (File::ReadFileToString(build_info_path, build_info_content))
   {
     if (op.old_hash != ComputeHash(build_info_content))
       LogToFile("Using modified existing BuildInfo %s.\n", build_info_path.c_str());
-    build_infos.current = Platform::BuildInfo(build_info_content);
+    build_infos.current = BuildInfo(build_info_content);
   }
   return build_infos;
 }

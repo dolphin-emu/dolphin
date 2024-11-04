@@ -255,7 +255,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddBool(PostProcessingConfigWindow*
 {
   m_checkbox = new QCheckBox();
   m_checkbox->setChecked(m_config_option->m_bool_value);
-  QObject::connect(m_checkbox, &QCheckBox::toggled,
+  connect(m_checkbox, &QCheckBox::toggled,
                    [this, parent](bool checked) { parent->UpdateBool(this, checked); });
   grid->addWidget(m_checkbox, row, 2);
 
@@ -286,7 +286,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
     slider->setMaximum(steps);
     slider->setValue(current_value);
     slider->setTickInterval(range / steps);
-    QObject::connect(slider, &QSlider::valueChanged,
+    connect(slider, &QSlider::valueChanged,
                      [this, parent](int value) { parent->UpdateInteger(this, value); });
 
     auto* const value_box = new QLineEdit(QString::number(m_config_option->m_integer_values[i]));
@@ -325,7 +325,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
     slider->setMaximum(steps);
     slider->setValue(current_value);
     slider->setTickInterval(range / steps);
-    QObject::connect(slider, &QSlider::valueChanged,
+    connect(slider, &QSlider::valueChanged,
                      [this, parent](int value) { parent->UpdateFloat(this, value); });
 
     auto* const value_box =

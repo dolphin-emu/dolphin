@@ -116,7 +116,7 @@ void RiivolutionBootWidget::LoadMatchingXMLs()
     if (!parsed || !parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
       continue;
     if (config)
-      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+      ApplyConfigDefaults(&*parsed, *config);
     MakeGUIForParsedFile(path, riivolution_dir, *parsed);
   }
 }
@@ -163,7 +163,7 @@ void RiivolutionBootWidget::OpenXML()
     auto root = FindRoot(p);
     const auto config = LoadConfigXML(root);
     if (config)
-      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+      ApplyConfigDefaults(&*parsed, *config);
     MakeGUIForParsedFile(p, std::move(root), *parsed);
   }
 }
@@ -275,7 +275,7 @@ void RiivolutionBootWidget::SaveConfigXMLs()
 
   for (const auto& config : map)
   {
-    DiscIO::Riivolution::WriteConfigFile(
+    WriteConfigFile(
         fmt::format("{}/riivolution/config/{}.xml", config.first, m_game_id.substr(0, 4)),
         config.second);
   }
@@ -350,5 +350,5 @@ void RiivolutionBootWidget::SaveAsPreset()
   auto dot = descriptor.display_name.rfind('.');
   if (dot != std::string::npos)
     descriptor.display_name = descriptor.display_name.substr(0, dot);
-  DiscIO::WriteGameModDescriptorFile(target_path.toStdString(), descriptor, true);
+  WriteGameModDescriptorFile(target_path.toStdString(), descriptor, true);
 }

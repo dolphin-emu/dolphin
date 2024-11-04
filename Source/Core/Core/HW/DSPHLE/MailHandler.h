@@ -19,7 +19,7 @@ namespace DSP::HLE
 class CMailHandler
 {
 public:
-  explicit CMailHandler(DSP::DSPManager& dsp);
+  explicit CMailHandler(DSPManager& dsp);
   CMailHandler(const CMailHandler& other) = delete;
   CMailHandler(CMailHandler&& other) = delete;
   CMailHandler& operator=(const CMailHandler& other) = delete;
@@ -53,6 +53,6 @@ private:
   // When halted, the DSP itself is not running, but the last mail can be read.
   bool m_halted = false;
 
-  DSP::DSPManager& m_dsp;
+  DSPManager& m_dsp;
 };
 }  // namespace DSP::HLE

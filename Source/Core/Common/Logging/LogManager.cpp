@@ -82,7 +82,7 @@ static size_t DeterminePathCutOffPoint()
   constexpr const char* pattern2 = "\\source\\core\\";
 #endif
   std::string path = __FILE__;
-  Common::ToLower(&path);
+  ToLower(&path);
   size_t pos = path.find(pattern);
 #ifdef _WIN32
   if (pos == std::string::npos)
@@ -155,16 +155,16 @@ LogManager::LogManager()
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
   // Set up log listeners
-  LogLevel verbosity = Config::Get(LOGGER_VERBOSITY);
+  LogLevel verbosity = Get(LOGGER_VERBOSITY);
 
   SetLogLevel(verbosity);
-  EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
-  EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
-  EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
+  EnableListener(LogListener::FILE_LISTENER, Get(LOGGER_WRITE_TO_FILE));
+  EnableListener(LogListener::CONSOLE_LISTENER, Get(LOGGER_WRITE_TO_CONSOLE));
+  EnableListener(LogListener::LOG_WINDOW_LISTENER, Get(LOGGER_WRITE_TO_WINDOW));
 
   for (auto& container : m_log)
   {
-    container.m_enable = Config::Get(
+    container.m_enable = Get(
         Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
   }
 
@@ -182,17 +182,17 @@ void LogManager::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
+  SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
+  SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
+  SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
                            IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
+  SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
 
   for (const auto& container : m_log)
   {
     const Config::Info<bool> info{{Config::System::Logger, "Logs", container.m_short_name}, false};
-    Config::SetBaseOrCurrent(info, container.m_enable);
+    SetBaseOrCurrent(info, container.m_enable);
   }
 
   Config::Save();

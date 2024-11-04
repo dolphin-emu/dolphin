@@ -46,13 +46,13 @@ void MappingDouble::ConfigChanged()
   if (m_setting.IsSimpleValue())
   {
     setRange(m_setting.GetMinValue(), m_setting.GetMaxValue());
-    setButtonSymbols(ButtonSymbols::UpDownArrows);
+    setButtonSymbols(UpDownArrows);
   }
   else
   {
     constexpr auto inf = std::numeric_limits<double>::infinity();
     setRange(-inf, inf);
-    setButtonSymbols(ButtonSymbols::NoButtons);
+    setButtonSymbols(NoButtons);
     suffix += QString::fromUtf8(" 🎮");
   }
 

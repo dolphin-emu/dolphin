@@ -60,14 +60,14 @@ bool UseGameCovers()
   // It's best if we disable the C++ cover code on Android to avoid duplicated data and such.
   return false;
 #else
-  return Config::Get(Config::MAIN_USE_GAME_COVERS);
+  return Get(Config::MAIN_USE_GAME_COVERS);
 #endif
 }
 }  // Anonymous namespace
 
 DiscIO::Language GameFile::GetConfigLanguage() const
 {
-  return SConfig::GetInstance().GetLanguageAdjustedForRegion(DiscIO::IsWii(m_platform), m_region);
+  return SConfig::GetInstance().GetLanguageAdjustedForRegion(IsWii(m_platform), m_region);
 }
 
 const std::string& GameFile::Lookup(DiscIO::Language language,
@@ -238,7 +238,7 @@ void GameFile::DownloadDefaultCover()
     return;
 
   const std::string region_code =
-      SConfig::GetInstance().GetGameTDBImageRegionCode(DiscIO::IsWii(GetPlatform()), m_region);
+      SConfig::GetInstance().GetGameTDBImageRegionCode(IsWii(GetPlatform()), m_region);
 
   Common::HttpRequest request;
   static constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
@@ -408,7 +408,7 @@ bool GameFile::WiiBannerChanged()
 
   if (!m_volume_banner.empty())
     return false;
-  if (!DiscIO::IsWii(m_platform))
+  if (!IsWii(m_platform))
     return false;
 
   m_pending.volume_banner.buffer =
@@ -790,7 +790,7 @@ GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) 
 std::string GameFile::GetWiiFSPath() const
 {
   ASSERT(DiscIO::IsWii(m_platform));
-  return Common::GetTitleDataPath(m_title_id, Common::FromWhichRoot::Configured);
+  return GetTitleDataPath(m_title_id, Common::FromWhichRoot::Configured);
 }
 
 bool GameFile::ShouldShowFileFormatDetails() const
@@ -845,7 +845,7 @@ std::string GameFile::GetFileFormatName() const
 
 bool GameFile::ShouldAllowConversion() const
 {
-  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
+  return IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
 }
 
 bool GameFile::IsModDescriptor() const

@@ -37,7 +37,7 @@ void StateManager::Apply()
   {
     if (g_ActiveConfig.backend_info.bSupportsBBox)
     {
-      D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+      context->OMSetRenderTargetsAndUnorderedAccessViews(
           m_pending.framebuffer->GetNumRTVs(),
           m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
                                       m_pending.framebuffer->GetRTVArray(),
@@ -46,7 +46,7 @@ void StateManager::Apply()
     }
     else
     {
-      D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
+      context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
                                        m_pending.use_integer_rtv ?
                                            m_pending.framebuffer->GetIntegerRTVArray() :
                                            m_pending.framebuffer->GetRTVArray(),
@@ -77,7 +77,7 @@ void StateManager::Apply()
         count++;
       if (m_pending.pixelConstants[2])
         count++;
-      D3D::context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
+      context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
       m_current.pixelConstants[0] = m_pending.pixelConstants[0];
       m_current.pixelConstants[1] = m_pending.pixelConstants[1];
       m_current.pixelConstants[2] = m_pending.pixelConstants[2];
@@ -85,14 +85,14 @@ void StateManager::Apply()
 
     if (m_current.vertexConstants != m_pending.vertexConstants)
     {
-      D3D::context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
-      D3D::context->VSSetConstantBuffers(1, 1, &m_pending.vertexConstants);
+      context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
+      context->VSSetConstantBuffers(1, 1, &m_pending.vertexConstants);
       m_current.vertexConstants = m_pending.vertexConstants;
     }
 
     if (m_current.geometryConstants != m_pending.geometryConstants)
     {
-      D3D::context->GSSetConstantBuffers(0, 1, &m_pending.geometryConstants);
+      context->GSSetConstantBuffers(0, 1, &m_pending.geometryConstants);
       m_current.geometryConstants = m_pending.geometryConstants;
     }
   }
@@ -103,7 +103,7 @@ void StateManager::Apply()
         m_current.vertexBufferStride != m_pending.vertexBufferStride ||
         m_current.vertexBufferOffset != m_pending.vertexBufferOffset)
     {
-      D3D::context->IASetVertexBuffers(0, 1, &m_pending.vertexBuffer, &m_pending.vertexBufferStride,
+      context->IASetVertexBuffers(0, 1, &m_pending.vertexBuffer, &m_pending.vertexBufferStride,
                                        &m_pending.vertexBufferOffset);
       m_current.vertexBuffer = m_pending.vertexBuffer;
       m_current.vertexBufferStride = m_pending.vertexBufferStride;
@@ -112,19 +112,19 @@ void StateManager::Apply()
 
     if (m_current.indexBuffer != m_pending.indexBuffer)
     {
-      D3D::context->IASetIndexBuffer(m_pending.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+      context->IASetIndexBuffer(m_pending.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
       m_current.indexBuffer = m_pending.indexBuffer;
     }
 
     if (m_current.topology != m_pending.topology)
     {
-      D3D::context->IASetPrimitiveTopology(m_pending.topology);
+      context->IASetPrimitiveTopology(m_pending.topology);
       m_current.topology = m_pending.topology;
     }
 
     if (m_current.inputLayout != m_pending.inputLayout)
     {
-      D3D::context->IASetInputLayout(m_pending.inputLayout);
+      context->IASetInputLayout(m_pending.inputLayout);
       m_current.inputLayout = m_pending.inputLayout;
     }
   }
@@ -133,36 +133,36 @@ void StateManager::Apply()
   {
     if (m_current.pixelShader != m_pending.pixelShader)
     {
-      D3D::context->PSSetShader(m_pending.pixelShader, nullptr, 0);
+      context->PSSetShader(m_pending.pixelShader, nullptr, 0);
       m_current.pixelShader = m_pending.pixelShader;
     }
 
     if (m_current.vertexShader != m_pending.vertexShader)
     {
-      D3D::context->VSSetShader(m_pending.vertexShader, nullptr, 0);
+      context->VSSetShader(m_pending.vertexShader, nullptr, 0);
       m_current.vertexShader = m_pending.vertexShader;
     }
 
     if (m_current.geometryShader != m_pending.geometryShader)
     {
-      D3D::context->GSSetShader(m_pending.geometryShader, nullptr, 0);
+      context->GSSetShader(m_pending.geometryShader, nullptr, 0);
       m_current.geometryShader = m_pending.geometryShader;
     }
   }
 
   if (m_dirtyFlags.test(DirtyFlag_BlendState))
   {
-    D3D::context->OMSetBlendState(m_pending.blendState, nullptr, 0xFFFFFFFF);
+    context->OMSetBlendState(m_pending.blendState, nullptr, 0xFFFFFFFF);
     m_current.blendState = m_pending.blendState;
   }
   if (m_dirtyFlags.test(DirtyFlag_DepthState))
   {
-    D3D::context->OMSetDepthStencilState(m_pending.depthState, 0);
+    context->OMSetDepthStencilState(m_pending.depthState, 0);
     m_current.depthState = m_pending.depthState;
   }
   if (m_dirtyFlags.test(DirtyFlag_RasterizerState))
   {
-    D3D::context->RSSetState(m_pending.rasterizerState);
+    context->RSSetState(m_pending.rasterizerState);
     m_current.rasterizerState = m_pending.rasterizerState;
   }
 
@@ -180,7 +180,7 @@ void StateManager::ApplyTextures()
     {
       if (m_current.textures[i] != m_pending.textures[i])
       {
-        D3D::context->PSSetShaderResources(i, 1, &m_pending.textures[i]);
+        context->PSSetShaderResources(i, 1, &m_pending.textures[i]);
         m_current.textures[i] = m_pending.textures[i];
       }
       m_dirtyFlags.reset(flag);
@@ -194,7 +194,7 @@ void StateManager::ApplyTextures()
     {
       if (m_current.samplers[i] != m_pending.samplers[i])
       {
-        D3D::context->PSSetSamplers(i, 1, &m_pending.samplers[i]);
+        context->PSSetSamplers(i, 1, &m_pending.samplers[i]);
         m_current.samplers[i] = m_pending.samplers[i];
       }
       m_dirtyFlags.reset(flag);
@@ -234,7 +234,7 @@ void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
     return;
 
   m_compute_images[index] = uav;
-  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
+  context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
                                           m_compute_images.data(), nullptr);
 }
 
@@ -244,7 +244,7 @@ void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
     return;
 
   m_compute_shader = shader;
-  D3D::context->CSSetShader(shader, nullptr, 0);
+  context->CSSetShader(shader, nullptr, 0);
 }
 
 void StateManager::SyncComputeBindings()
@@ -252,7 +252,7 @@ void StateManager::SyncComputeBindings()
   if (m_compute_constants != m_pending.pixelConstants[0])
   {
     m_compute_constants = m_pending.pixelConstants[0];
-    D3D::context->CSSetConstantBuffers(0, 1, &m_compute_constants);
+    context->CSSetConstantBuffers(0, 1, &m_compute_constants);
   }
 
   for (u32 start = 0; start < static_cast<u32>(m_compute_textures.size());)
@@ -274,7 +274,7 @@ void StateManager::SyncComputeBindings()
       m_compute_textures[end] = m_pending.textures[end];
     }
 
-    D3D::context->CSSetShaderResources(start, end - start, &m_compute_textures[start]);
+    context->CSSetShaderResources(start, end - start, &m_compute_textures[start]);
     start = end;
   }
 
@@ -297,7 +297,7 @@ void StateManager::SyncComputeBindings()
       m_compute_samplers[end] = m_pending.samplers[end];
     }
 
-    D3D::context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
+    context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
     start = end;
   }
 }

@@ -547,7 +547,7 @@ void Interpreter::dcbz(Interpreter& interpreter, UGeckoInstruction inst)
     // Hack to stop dcbz/dcbi over low MEM1 trashing memory. This is not needed if data cache
     // emulation is enabled.
     if ((dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000) &&
-        Config::Get(Config::MAIN_LOW_DCBZ_HACK))
+        Get(Config::MAIN_LOW_DCBZ_HACK))
     {
       return;
     }

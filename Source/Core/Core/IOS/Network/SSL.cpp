@@ -62,7 +62,7 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
   const int ret = mbedtls_net_send(fd, buf, len);
 
   // Log raw SSL packets if we don't dump unencrypted SSL writes
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
   {
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(
         buf, ret, *fd, nullptr);
@@ -78,7 +78,7 @@ int SSLRecv(void* ctx, unsigned char* buf, size_t len)
   const int ret = mbedtls_net_recv(fd, buf, len);
 
   // Log raw SSL packets if we don't dump unencrypted SSL reads
-  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
+  if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
   {
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(
         buf, ret, *fd, nullptr);
@@ -273,7 +273,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       mbedtls_ssl_conf_cert_profile(&ssl->config, &mbedtls_x509_crt_profile_wii);
       mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
 
-      if (Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption)
+      if (Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption)
         mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_REQUIRED);
       else
         mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
@@ -353,7 +353,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       int ret = mbedtls_x509_crt_parse_der(
           &ssl->cacert, memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
 
-      if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
+      if (Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
       {
         std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
         File::IOFile(filename, "wb")

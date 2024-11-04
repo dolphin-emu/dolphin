@@ -64,7 +64,7 @@ void RedumpVerifier::Start(const Volume& volume)
   m_disc_number = volume.GetDiscNumber().value_or(0);
   m_size = volume.GetDataSize();
 
-  const DiscIO::Platform platform = volume.GetVolumeType();
+  const Platform platform = volume.GetVolumeType();
 
   m_future = std::async(std::launch::async, [this, platform]() -> std::vector<PotentialMatch> {
     std::string system;
@@ -629,7 +629,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   if (blank_contents)
     return false;
 
-  const DiscIO::FileSystem* filesystem = m_volume.GetFileSystem(partition);
+  const FileSystem* filesystem = m_volume.GetFileSystem(partition);
   if (!filesystem)
   {
     if (m_is_datel)
@@ -761,7 +761,7 @@ void VolumeVerifier::CheckVolumeSize()
   u64 volume_size = m_volume.GetDataSize();
   const bool is_disc = IsDisc(m_volume.GetVolumeType());
   const bool should_be_dual_layer = is_disc && ShouldBeDualLayer();
-  bool volume_size_roughly_known = m_data_size_type != DiscIO::DataSizeType::UpperBound;
+  bool volume_size_roughly_known = m_data_size_type != DataSizeType::UpperBound;
 
   if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
@@ -772,7 +772,7 @@ void VolumeVerifier::CheckVolumeSize()
                    "This problem generally only exists in illegal copies of games."));
   }
 
-  if (m_data_size_type != DiscIO::DataSizeType::Accurate)
+  if (m_data_size_type != DataSizeType::Accurate)
   {
     AddProblem(Severity::Low,
                Common::GetStringT("The format that the disc image is saved in does not "
@@ -805,7 +805,7 @@ void VolumeVerifier::CheckVolumeSize()
   // The reason why this condition is checking for m_data_size_type != UpperBound instead of
   // m_data_size_type == Accurate is because we want to show the warning about input recordings and
   // NetPlay for NFS disc images (which are the only disc images that have it set to LowerBound).
-  if (is_disc && m_data_size_type != DiscIO::DataSizeType::UpperBound && !m_is_tgc)
+  if (is_disc && m_data_size_type != DataSizeType::UpperBound && !m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
     const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
@@ -1024,7 +1024,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   // bytes are zeroes like in good dumps, the game works correctly, but otherwise it can freeze
   // (depending on the exact values of the extra bytes). https://bugs.dolphin-emu.org/issues/11900
 
-  const DiscIO::Partition partition = m_volume.GetGamePartition();
+  const Partition partition = m_volume.GetGamePartition();
   const FileSystem* fs = m_volume.GetFileSystem(partition);
   if (!fs)
     return;

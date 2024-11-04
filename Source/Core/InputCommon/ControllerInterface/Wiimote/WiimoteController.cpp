@@ -318,7 +318,7 @@ Device::~Device()
   m_wiimote->EmuStop();
 
   INFO_LOG_FMT(WIIMOTE, "WiiRemote: Returning remote to pool.");
-  WiimoteReal::AddWiimoteToPool(std::move(m_wiimote));
+  AddWiimoteToPool(std::move(m_wiimote));
 }
 
 std::string Device::GetName() const
@@ -886,7 +886,7 @@ bool Device::IRState::IsFullyConfigured() const
 u32 Device::IRState::GetDesiredIRSensitivity()
 {
   // Wii stores values from 1 to 5. (subtract 1)
-  const u32 configured_level = Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY) - 1;
+  const u32 configured_level = Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY) - 1;
 
   if (configured_level < IR_SENSITIVITY_LEVEL_COUNT)
     return configured_level;
@@ -1622,7 +1622,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
 {
   m_callbacks.emplace_back([handler = std::move(handler)](const WiimoteReal::Report& report) {
     if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != u8(T::REPORT_ID))
-      return ReportHandler::HandlerResult::NotHandled;
+      return HandlerResult::NotHandled;
 
     T data;
 
@@ -1644,7 +1644,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
     if constexpr (std::is_same_v<decltype(handler(data)), void>)
     {
       handler(data);
-      return ReportHandler::HandlerResult::Handled;
+      return HandlerResult::Handled;
     }
     else
     {
@@ -1670,7 +1670,7 @@ bool Device::ReportHandler::IsExpired() const
 }
 
 auto Device::MakeAckHandler(OutputReportID report_id,
-                            std::function<void(WiimoteCommon::ErrorCode)> callback)
+                            std::function<void(ErrorCode)> callback)
     -> AckReportHandler
 {
   return [report_id, callback = std::move(callback)](const InputReportAck& reply) {

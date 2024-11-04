@@ -140,7 +140,7 @@ void JitBlockTableModel::Show()
 {
   ConnectSlots();
   // Every slot that may have missed a signal while this model was hidden can be handled by:
-  Update(Core::GetState(m_system));
+  Update(GetState(m_system));
 }
 
 void JitBlockTableModel::Hide()
@@ -171,7 +171,7 @@ void JitBlockTableModel::OnFilterSymbolTextChanged(const QString& string)
 
 void JitBlockTableModel::OnJitCacheInvalidation()
 {
-  Update(Core::GetState(m_system));
+  Update(GetState(m_system));
 }
 
 void JitBlockTableModel::OnJitProfileDataWiped()
@@ -182,19 +182,19 @@ void JitBlockTableModel::OnJitProfileDataWiped()
 void JitBlockTableModel::OnUpdateDisasmDialog()
 {
   // This should hopefully catch all the little things that lead to stale JitBlock references.
-  Update(Core::GetState(m_system));
+  Update(GetState(m_system));
 }
 
 void JitBlockTableModel::OnPPCSymbolsUpdated()
 {
   // Previously, this was only a call to `UpdateSymbols`, but HLE patch engine code can
   // invalidate JIT blocks when specific symbols are loaded. What can be done about it?
-  Update(Core::GetState(m_system));
+  Update(GetState(m_system));
 }
 
 void JitBlockTableModel::OnPPCBreakpointsChanged()
 {
-  Update(Core::GetState(m_system));
+  Update(GetState(m_system));
 }
 
 void JitBlockTableModel::OnEmulationStateChanged(Core::State state)

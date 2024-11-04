@@ -84,7 +84,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
       tab_widget->addTab(GetWrappedWidget(verify, this, padding_width, padding_height),
                          tr("Verify"));
 
-      if (DiscIO::IsDisc(game.GetPlatform()))
+      if (IsDisc(game.GetPlatform()))
       {
         FilesystemWidget* filesystem = new FilesystemWidget(volume);
         tab_widget->addTab(GetWrappedWidget(filesystem, this, padding_width, padding_height),

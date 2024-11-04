@@ -134,7 +134,7 @@ static void AddConfigLayer(const optparse::Values& options)
   if (options.is_set_by_user("config"))
     config_args = options.all("config");
 
-  Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
+  AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
       std::move(config_args), static_cast<const char*>(options.get("video_backend")),
       static_cast<const char*>(options.get("audio_emulation")),
       static_cast<bool>(options.get("batch")), static_cast<bool>(options.get("debugger"))));

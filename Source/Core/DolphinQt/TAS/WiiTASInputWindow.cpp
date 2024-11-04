@@ -348,7 +348,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   setLayout(layout);
 
-  if (Core::IsRunning(Core::System::GetInstance()))
+  if (IsRunning(Core::System::GetInstance()))
   {
     m_active_extension = GetWiimote()->GetActiveExtensionNumber();
     m_is_motion_plus_attached = GetWiimote()->IsMotionPlusAttached();

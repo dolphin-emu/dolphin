@@ -113,7 +113,7 @@ ESDevice::ESDevice(EmulationKernel& ios, ESCore& core, const std::string& device
     : EmulationDevice(ios, device_name), m_core(core)
 {
   auto& system = ios.GetSystem();
-  if (Core::IsRunning(system))
+  if (IsRunning(system))
   {
     auto& core_timing = system.GetCoreTiming();
     core_timing.RemoveEvent(s_finish_init_event);
@@ -446,7 +446,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     }
 
     const u64 required_ios = tmd.GetIOSId();
-    if (!Core::IsRunning(system))
+    if (!IsRunning(system))
       return LaunchTitle(required_ios, HangPPC::Yes);
     core_timing.RemoveEvent(s_reload_ios_for_ppc_launch_event);
     core_timing.ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
@@ -475,7 +475,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     return false;
 
   m_pending_ppc_boot_content_path = m_core.GetContentPath(tmd.GetTitleId(), content);
-  if (!Core::IsRunning(system))
+  if (!IsRunning(system))
     return BootstrapPPC();
 
   INFO_LOG_FMT(ACHIEVEMENTS,
@@ -805,7 +805,7 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& t
   {
     const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, internal_modes);
     if (!file)
-      return FS::ConvertResult(file.Error());
+      return ConvertResult(file.Error());
     if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
       return ES_EIO;
   }
@@ -815,10 +815,10 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& t
   constexpr FS::Modes parent_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read};
   const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, tmd_path, 0, parent_modes);
   if (result != FS::ResultCode::Success)
-    return FS::ConvertResult(result);
+    return ConvertResult(result);
 
   fs->SetMetadata(PID_KERNEL, tmd_dir, PID_KERNEL, PID_KERNEL, 0, internal_modes);
-  return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
+  return ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
 }
 
 ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket)
@@ -857,7 +857,7 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
   // Might already exist, so we only need to check whether the second operation succeeded.
   constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
   fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, data_dir_modes);
-  return FS::ConvertResult(fs->SetMetadata(0, data_dir, GetEmulationKernel().GetUidForPPC(),
+  return ConvertResult(fs->SetMetadata(0, data_dir, GetEmulationKernel().GetUidForPPC(),
                                            GetEmulationKernel().GetGidForPPC(), 0, data_dir_modes));
 }
 
@@ -1031,7 +1031,7 @@ ReturnCode ESCore::ReadCertStore(std::vector<u8>* buffer) const
   const auto store_file =
       m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
   if (!store_file)
-    return FS::ConvertResult(store_file.Error());
+    return ConvertResult(store_file.Error());
 
   buffer->resize(store_file->GetStatus()->size);
   if (!store_file->Read(buffer->data(), buffer->size()))

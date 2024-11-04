@@ -146,7 +146,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type {}, continue install: {}",
                  Common::ToUnderlying(m_patch_type), m_continue_install ? "true" : "false");
 
-    if (m_patch_type == PatchType::PATCH_TYPE_2)
+    if (m_patch_type == PATCH_TYPE_2)
     {
       const std::string content_dir = fmt::format("/vol/{}/title/{}/{}/content", m_device_name,
                                                   m_current_group_id_str, m_current_title_id_str);
@@ -178,9 +178,9 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 
     SetImportTitleIdAndGroupId(m_tmd.GetTitleId(), m_tmd.GetGroupId());
 
-    if (m_patch_type == PatchType::PATCH_TYPE_1)
+    if (m_patch_type == PATCH_TYPE_1)
       CancelPatchImport(m_continue_install);
-    else if (m_patch_type == PatchType::NOT_A_PATCH)
+    else if (m_patch_type == NOT_A_PATCH)
       CancelTitleImport(m_continue_install);
 
     break;
@@ -372,9 +372,9 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL");
 
     const bool continue_install = memory.Read_U32(request.buffer_in) != 0;
-    if (m_patch_type == PatchType::NOT_A_PATCH)
+    if (m_patch_type == NOT_A_PATCH)
       return_error_code = CancelTitleImport(continue_install);
-    else if (m_patch_type == PatchType::PATCH_TYPE_1 || m_patch_type == PatchType::PATCH_TYPE_2)
+    else if (m_patch_type == PATCH_TYPE_1 || m_patch_type == PATCH_TYPE_2)
       return_error_code = CancelPatchImport(continue_install);
     else
       return_error_code = WFS_EINVAL;
@@ -606,7 +606,7 @@ s32 WFSIDevice::CancelPatchImport(bool continue_install)
         WFS::NativePath(fmt::format("/vol/{}/title/{}/{}/_patch", m_device_name,
                                     m_current_group_id_str, m_current_title_id_str)));
 
-    if (m_patch_type == PatchType::PATCH_TYPE_2)
+    if (m_patch_type == PATCH_TYPE_2)
     {
       // Move back _default.dol to default.dol.
       const std::string content_dir = fmt::format("/vol/{}/title/{}/{}/content", m_device_name,

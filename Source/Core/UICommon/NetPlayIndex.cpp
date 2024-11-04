@@ -31,7 +31,7 @@ static std::optional<picojson::value> ParseResponse(const std::vector<u8>& respo
 
   picojson::value json;
 
-  const auto error = picojson::parse(json, response_string);
+  const auto error = parse(json, response_string);
 
   if (!error.empty())
     return {};
@@ -44,7 +44,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 {
   Common::HttpRequest request;
 
-  std::string list_url = Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/list";
+  std::string list_url = Get(Config::NETPLAY_INDEX_URL) + "/v0/list";
 
   if (!filters.empty())
   {
@@ -129,7 +129,7 @@ void NetPlayIndex::NotificationLoop()
   {
     Common::HttpRequest request;
     auto response = request.Get(
-        Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
+        Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
             "&player_count=" + std::to_string(m_player_count) +
             "&game=" + request.EscapeComponent(m_game) + "&in_game=" + std::to_string(m_in_game),
         {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
@@ -163,7 +163,7 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
 {
   Common::HttpRequest request;
   auto response = request.Get(
-      Config::Get(Config::NETPLAY_INDEX_URL) +
+      Get(Config::NETPLAY_INDEX_URL) +
           "/v0/session/add?name=" + request.EscapeComponent(session.name) +
           "&region=" + request.EscapeComponent(session.region) +
           "&game=" + request.EscapeComponent(session.game_id) +
@@ -237,7 +237,7 @@ void NetPlayIndex::Remove()
 
   // We don't really care whether this fails or not
   Common::HttpRequest request;
-  request.Get(Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
+  request.Get(Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
               {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
   m_secret.clear();

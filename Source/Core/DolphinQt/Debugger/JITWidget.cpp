@@ -149,7 +149,7 @@ JitBlockProxyModel::~JitBlockProxyModel() = default;
 void JITWidget::UpdateProfilingButton()
 {
   const QSignalBlocker blocker(m_toggle_profiling_button);
-  const bool enabled = Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING);
+  const bool enabled = Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING);
   m_toggle_profiling_button->setText(enabled ? tr("Stop Profiling") : tr("Start Profiling"));
   m_toggle_profiling_button->setChecked(enabled);
 }
@@ -255,7 +255,7 @@ void JITWidget::CrossDisassemble(const QModelIndex& index)
     CrossDisassemble(m_table_proxy->GetJitBlock(index));
     return;
   }
-  UpdateContent(Core::GetState(m_system));
+  UpdateContent(GetState(m_system));
 }
 
 void JITWidget::CrossDisassemble()
@@ -346,7 +346,7 @@ void JITWidget::Show()
   // OnPPCBreakpointsChanged() can be skipped.
   OnConfigChanged();
   OnDebugFontChanged(Settings::Instance().GetDebugFont());
-  OnEmulationStateChanged(Core::GetState(m_system));
+  OnEmulationStateChanged(GetState(m_system));
 }
 
 void JITWidget::Hide()
@@ -387,7 +387,7 @@ void JITWidget::OnDebugModeToggled(bool enabled)
 
 void JITWidget::OnToggleProfiling(bool enabled)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
+  SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
 }
 
 void JITWidget::OnClearCache()
@@ -442,13 +442,13 @@ void JITWidget::OnTableMenuEraseBlocks()
 
 void JITWidget::OnStatusBarPressed()
 {
-  if (Core::GetState(m_system) == Core::State::Paused)
+  if (GetState(m_system) == Core::State::Paused)
     ShowFreeMemoryStatus();
 }
 
 void JITWidget::OnJitCacheInvalidation()
 {
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
     return;
   ClearDisassembly();
   ShowFreeMemoryStatus();
@@ -456,14 +456,14 @@ void JITWidget::OnJitCacheInvalidation()
 
 void JITWidget::OnUpdateDisasmDialog()
 {
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
     return;
   CrossDisassemble();
 }
 
 void JITWidget::OnPPCSymbolsUpdated()
 {
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
     return;
   CrossDisassemble();
 }

@@ -216,7 +216,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, host_config);
 
     if (host_config.backend_depth_clamp &&
-        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CLIP_DISTANCE))
+        HasBug(DriverDetails::BUG_BROKEN_CLIP_DISTANCE))
     {
       // On certain GPUs we have to consume the clip distance from the vertex shader
       // or else the other vertex shader outputs will get corrupted.

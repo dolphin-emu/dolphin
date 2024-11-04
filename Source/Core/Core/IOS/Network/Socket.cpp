@@ -477,7 +477,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             // mbedtls_ssl_get_peer_cert(ctx) seems not to work if handshake failed
             // Below is an alternative to dump the peer certificate
-            if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT) &&
+            if (Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT) &&
                 ctx->session_negotiate != nullptr)
             {
               const mbedtls_x509_crt* cert = ctx->session_negotiate->peer_cert;
@@ -750,7 +750,7 @@ void WiiSocket::UpdateConnectingState(s32 connect_rv)
 WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
 {
   const auto state = Common::SaveNetworkErrorState();
-  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+  Common::ScopeGuard guard([&state] { RestoreNetworkErrorState(state); });
 
 #ifdef _WIN32
   constexpr int (*get_errno)() = &WSAGetLastError;
@@ -827,7 +827,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
 bool WiiSocket::IsTCP() const
 {
   const auto state = Common::SaveNetworkErrorState();
-  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+  Common::ScopeGuard guard([&state] { RestoreNetworkErrorState(state); });
 
   int socket_type;
   socklen_t option_length = sizeof(socket_type);
@@ -841,7 +841,7 @@ const WiiSocket::Timeout& WiiSocket::GetTimeout()
   if (!timeout.has_value())
   {
     timeout = std::chrono::steady_clock::now() +
-              std::chrono::seconds(Config::Get(Config::MAIN_NETWORK_TIMEOUT));
+              std::chrono::seconds(Get(Config::MAIN_NETWORK_TIMEOUT));
   }
   return *timeout;
 }
@@ -904,7 +904,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     if (!is_rw)
     {
       const auto state = Common::SaveNetworkErrorState();
-      Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+      Common::ScopeGuard guard([&state] { RestoreNetworkErrorState(state); });
 
       int socket_type;
       socklen_t option_length = sizeof(socket_type);
@@ -1219,7 +1219,7 @@ void WiiSockMan::UpdateWantDeterminism(bool want)
     Clean();
 }
 
-void WiiSocket::Abort(WiiSocket::sockop* op, s32 value) const
+void WiiSocket::Abort(sockop* op, s32 value) const
 {
   op->is_aborted = true;
   m_socket_manager.EnqueueIPCReply(op->request, value);

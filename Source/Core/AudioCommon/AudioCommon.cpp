@@ -47,7 +47,7 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 
 void InitSoundStream(Core::System& system)
 {
-  std::string backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
+  std::string backend = Get(Config::MAIN_AUDIO_BACKEND);
   std::unique_ptr<SoundStream> sound_stream = CreateSoundStreamForBackend(backend);
 
   if (!sound_stream)
@@ -75,7 +75,7 @@ void PostInitSoundStream(Core::System& system)
   UpdateSoundStream(system);
   SetSoundStreamRunning(system, true);
 
-  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
+  if (Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
     StartAudioDump(system);
 }
 
@@ -83,7 +83,7 @@ void ShutdownSoundStream(Core::System& system)
 {
   INFO_LOG_FMT(AUDIO, "Shutting down sound stream");
 
-  if (Config::Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
+  if (Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
     StopAudioDump(system);
 
   SetSoundStreamRunning(system, false);
@@ -165,7 +165,7 @@ void UpdateSoundStream(Core::System& system)
 
   if (sound_stream)
   {
-    int volume = Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
+    int volume = Get(Config::MAIN_AUDIO_MUTED) ? 0 : Get(Config::MAIN_AUDIO_VOLUME);
     sound_stream->SetVolume(volume);
   }
 }
@@ -196,9 +196,9 @@ void SendAIBuffer(Core::System& system, const short* samples, unsigned int num_s
   if (!sound_stream)
     return;
 
-  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
+  if (Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
     StartAudioDump(system);
-  else if (!Config::Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
+  else if (!Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
     StopAudioDump(system);
 
   Mixer* mixer = sound_stream->GetMixer();
@@ -242,30 +242,30 @@ void StopAudioDump(Core::System& system)
 
 void IncreaseVolume(Core::System& system, unsigned short offset)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
-  int currentVolume = Config::Get(Config::MAIN_AUDIO_VOLUME);
+  SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
+  int currentVolume = Get(Config::MAIN_AUDIO_VOLUME);
   currentVolume += offset;
   if (currentVolume > AUDIO_VOLUME_MAX)
     currentVolume = AUDIO_VOLUME_MAX;
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, currentVolume);
+  SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, currentVolume);
   UpdateSoundStream(system);
 }
 
 void DecreaseVolume(Core::System& system, unsigned short offset)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
-  int currentVolume = Config::Get(Config::MAIN_AUDIO_VOLUME);
+  SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
+  int currentVolume = Get(Config::MAIN_AUDIO_VOLUME);
   currentVolume -= offset;
   if (currentVolume < AUDIO_VOLUME_MIN)
     currentVolume = AUDIO_VOLUME_MIN;
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, currentVolume);
+  SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, currentVolume);
   UpdateSoundStream(system);
 }
 
 void ToggleMuteVolume(Core::System& system)
 {
-  bool isMuted = Config::Get(Config::MAIN_AUDIO_MUTED);
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, !isMuted);
+  bool isMuted = Get(Config::MAIN_AUDIO_MUTED);
+  SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, !isMuted);
   UpdateSoundStream(system);
 }
 }  // namespace AudioCommon

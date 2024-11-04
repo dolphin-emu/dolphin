@@ -264,7 +264,7 @@ void ConvertDialog::OnCompressionChanged()
   const auto compression_type =
       static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
 
-  const std::pair<int, int> range = DiscIO::GetAllowedCompressionLevels(compression_type, true);
+  const std::pair<int, int> range = GetAllowedCompressionLevels(compression_type, true);
 
   for (int i = range.first; i <= range.second; ++i)
   {
@@ -416,10 +416,10 @@ void ConvertDialog::Convert()
       }
     }
 
-    if (std::filesystem::exists(StringToPath(dst_path.toStdString())))
+    if (exists(StringToPath(dst_path.toStdString())))
     {
       std::error_code ec;
-      if (std::filesystem::equivalent(StringToPath(dst_path.toStdString()),
+      if (equivalent(StringToPath(dst_path.toStdString()),
                                       StringToPath(original_path), ec))
       {
         ModalMessageBox::critical(
@@ -487,7 +487,7 @@ void ConvertDialog::Convert()
       {
       case DiscIO::BlobType::PLAIN:
         success = std::async(std::launch::async, [&] {
-          const bool good = DiscIO::ConvertToPlain(blob_reader.get(), original_path,
+          const bool good = ConvertToPlain(blob_reader.get(), original_path,
                                                    dst_path.toStdString(), callback);
           progress_dialog.Reset();
           return good;
@@ -496,7 +496,7 @@ void ConvertDialog::Convert()
 
       case DiscIO::BlobType::GCZ:
         success = std::async(std::launch::async, [&] {
-          const bool good = DiscIO::ConvertToGCZ(
+          const bool good = ConvertToGCZ(
               blob_reader.get(), original_path, dst_path.toStdString(),
               file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
           progress_dialog.Reset();
@@ -508,7 +508,7 @@ void ConvertDialog::Convert()
       case DiscIO::BlobType::RVZ:
         success = std::async(std::launch::async, [&] {
           const bool good =
-              DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
+              ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
                                         format == DiscIO::BlobType::RVZ, compression,
                                         compression_level, block_size, callback);
           progress_dialog.Reset();

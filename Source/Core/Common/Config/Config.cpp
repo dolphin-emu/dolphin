@@ -31,7 +31,7 @@ static void AddLayerInternal(std::shared_ptr<Layer> layer)
   {
     WriteLock lock(s_layers_rw_lock);
 
-    const Config::LayerType layer_type = layer->GetLayer();
+    const LayerType layer_type = layer->GetLayer();
     s_layers.insert_or_assign(layer_type, std::move(layer));
   }
   OnConfigChanged();

@@ -22,7 +22,7 @@ class DSPHLE;
 class AESndAccelerator final : public Accelerator
 {
 public:
-  explicit AESndAccelerator(DSP::DSPManager& dsp);
+  explicit AESndAccelerator(DSPManager& dsp);
   AESndAccelerator(const AESndAccelerator&) = delete;
   AESndAccelerator(AESndAccelerator&&) = delete;
   AESndAccelerator& operator=(const AESndAccelerator&) = delete;
@@ -35,7 +35,7 @@ protected:
   void WriteMemory(u32 address, u8 value) override;
 
 private:
-  DSP::DSPManager& m_dsp;
+  DSPManager& m_dsp;
 };
 
 class AESndUCode final : public UCodeInterface

@@ -212,7 +212,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   INFO_LOG_FMT(COMMON, "Auto-update JSON response: {}", contents);
 
   picojson::value json;
-  const std::string err = picojson::parse(json, contents);
+  const std::string err = parse(json, contents);
   if (!err.empty())
   {
     CriticalAlertFmtT("Invalid JSON received from auto-update service : {0}", err);
@@ -249,8 +249,8 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   }
 }
 
-void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
-                                      const AutoUpdateChecker::RestartMode restart_mode)
+void AutoUpdateChecker::TriggerUpdate(const NewVersionInformation& info,
+                                      const RestartMode restart_mode)
 {
   // Check to make sure we don't already have an update triggered
   if (s_update_triggered)

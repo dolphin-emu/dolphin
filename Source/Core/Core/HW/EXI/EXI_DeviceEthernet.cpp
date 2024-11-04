@@ -31,16 +31,16 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string mac_addr_setting = Config::Get(Config::MAIN_BBA_MAC);
+  std::string mac_addr_setting = Get(Config::MAIN_BBA_MAC);
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
   Common::ToLower(&mac_addr_setting);
 
   if (!mac_addr)
   {
-    mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+    mac_addr = GenerateMacAddress(Common::MACConsumer::BBA);
     mac_addr_setting = Common::MacAddressToString(mac_addr.value());
-    Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, mac_addr_setting);
+    SetBaseOrCurrent(Config::MAIN_BBA_MAC, mac_addr_setting);
     Config::Save();
   }
 
@@ -52,12 +52,12 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     break;
   case BBADeviceType::TAPSERVER:
     m_network_interface = std::make_unique<TAPServerNetworkInterface>(
-        this, Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
+        this, Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
     INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
   case BBADeviceType::BuiltIn:
     m_network_interface = std::make_unique<BuiltInBBAInterface>(
-        this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS), Config::Get(Config::MAIN_BBA_BUILTIN_IP));
+        this, Get(Config::MAIN_BBA_BUILTIN_DNS), Get(Config::MAIN_BBA_BUILTIN_IP));
     INFO_LOG_FMT(SP1, "Created Built in network interface.");
     break;
   case BBADeviceType::XLINK:
@@ -77,9 +77,9 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
     // perspective so lets use "dolphin<bba mac>"
     m_network_interface =
-        std::make_unique<XLinkNetworkInterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
-                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
-                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
+        std::make_unique<XLinkNetworkInterface>(this, Get(Config::MAIN_BBA_XLINK_IP), 34523,
+                                                "dolphin" + Get(Config::MAIN_BBA_MAC),
+                                                Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
                  Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;

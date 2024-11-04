@@ -17,7 +17,7 @@ namespace IOS::Net
 {
 static void SaveMACAddress(const Common::MACAddress& mac)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_WIRELESS_MAC, Common::MacAddressToString(mac));
+  SetBaseOrCurrent(Config::MAIN_WIRELESS_MAC, Common::MacAddressToString(mac));
   Config::Save();
 }
 
@@ -25,7 +25,7 @@ Common::MACAddress GetMACAddress()
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string wireless_mac = Config::Get(Config::MAIN_WIRELESS_MAC);
+  std::string wireless_mac = Get(Config::MAIN_WIRELESS_MAC);
 
   if (Core::WantsDeterminism())
     wireless_mac = "12:34:56:78:9a:bc";
@@ -34,7 +34,7 @@ Common::MACAddress GetMACAddress()
 
   if (!mac)
   {
-    mac = Common::GenerateMacAddress(Common::MACConsumer::IOS);
+    mac = GenerateMacAddress(Common::MACConsumer::IOS);
     SaveMACAddress(mac.value());
     if (!wireless_mac.empty())
     {

@@ -23,10 +23,9 @@ QList<QIcon> Resources::m_misc;
 QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
 {
   const QString base_path = dir + QLatin1Char{'/'} + QString::fromLatin1(name);
-  const QString svg_path = base_path + QStringLiteral(".svg");
 
   // Prefer svg
-  if (m_svg_supported && QFileInfo(svg_path).exists())
+  if (const QString svg_path = base_path + QStringLiteral(".svg"); m_svg_supported && QFileInfo(svg_path).exists())
     return QIcon(svg_path);
 
   QIcon icon;
@@ -36,8 +35,7 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
     if (scale > 1)
       suffix = QString::fromLatin1("@%1x.png").arg(scale);
 
-    QPixmap pixmap(base_path + suffix);
-    if (!pixmap.isNull())
+    if (QPixmap pixmap(base_path + suffix); !pixmap.isNull())
     {
       pixmap.setDevicePixelRatio(scale);
       icon.addPixmap(pixmap);
@@ -57,7 +55,7 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
 
 static QString GetCurrentThemeDir()
 {
-  return QString::fromStdString(File::GetThemeDir(Config::Get(Config::MAIN_THEME_NAME)));
+  return QString::fromStdString(File::GetThemeDir(Get(Config::MAIN_THEME_NAME)));
 }
 
 static QString GetResourcesDir()

@@ -463,7 +463,7 @@ void* LazyMemoryRegion::Create(size_t size)
     return nullptr;
 
   // reserve block of memory
-  const size_t memory_size = Common::AlignUp(size, BLOCK_SIZE);
+  const size_t memory_size = AlignUp(size, BLOCK_SIZE);
   const size_t block_count = memory_size / BLOCK_SIZE;
   u8* memory =
       static_cast<u8*>(static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(

@@ -77,7 +77,7 @@ public:
                                  const AbstractTexture* source_texture,
                                  const MathUtil::Rectangle<int>& source_rc);
 
-  VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
+  PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
@@ -151,8 +151,8 @@ private:
   int m_last_window_request_width = 0;
   int m_last_window_request_height = 0;
 
-  std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
-  std::unique_ptr<VideoCommon::OnScreenUI> m_onscreen_ui;
+  std::unique_ptr<PostProcessing> m_post_processor;
+  std::unique_ptr<OnScreenUI> m_onscreen_ui;
 
   u64 m_frame_count = 0;
   u64 m_present_count = 0;

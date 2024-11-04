@@ -414,8 +414,8 @@ void InputBackend::Restart()
 
 void InputBackend::ConfigChanged()
 {
-  const bool servers_enabled = Config::Get(Settings::SERVERS_ENABLED);
-  const std::string servers_setting = Config::Get(Settings::SERVERS);
+  const bool servers_enabled = Get(Settings::SERVERS_ENABLED);
+  const std::string servers_setting = Get(Settings::SERVERS);
 
   std::string new_servers_setting;
   for (const auto& server : m_servers)
@@ -458,18 +458,18 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
     : ciface::InputBackend(controller_interface)
 {
   // The following is added for backwards compatibility
-  const auto server_address_setting = Config::Get(Settings::SERVER_ADDRESS);
-  const auto server_port_setting = Config::Get(Settings::SERVER_PORT);
+  const auto server_address_setting = Get(Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Get(Settings::SERVER_PORT);
 
   if (!server_address_setting.empty() && server_port_setting != 0)
   {
-    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+    const auto& servers_setting = Get(Settings::SERVERS);
+    SetBaseOrCurrent(Settings::SERVERS,
                              servers_setting + fmt::format("{}:{}:{};", "DS4",
                                                            server_address_setting,
                                                            server_port_setting));
-    Config::SetBase(Settings::SERVER_ADDRESS, "");
-    Config::SetBase(Settings::SERVER_PORT, 0);
+    SetBase(Settings::SERVER_ADDRESS, "");
+    SetBase(Settings::SERVER_PORT, 0);
   }
 
   m_config_change_callback_id =
@@ -512,7 +512,7 @@ void InputBackend::PopulateDevices()
 
 InputBackend::~InputBackend()
 {
-  Config::RemoveConfigChangedCallback(m_config_change_callback_id);
+  RemoveConfigChangedCallback(m_config_change_callback_id);
   StopHotplugThread();
 }
 

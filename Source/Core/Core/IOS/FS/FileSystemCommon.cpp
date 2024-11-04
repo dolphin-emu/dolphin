@@ -44,7 +44,7 @@ std::unique_ptr<FileSystem> MakeFileSystem(Location location,
   return std::make_unique<HostFileSystem>(nand_root, std::move(nand_redirects));
 }
 
-IOS::HLE::ReturnCode ConvertResult(ResultCode code)
+ReturnCode ConvertResult(ResultCode code)
 {
   if (code == ResultCode::Success)
     return IPC_SUCCESS;

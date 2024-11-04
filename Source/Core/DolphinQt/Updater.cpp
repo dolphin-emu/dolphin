@@ -32,20 +32,20 @@ Updater::Updater(QWidget* parent, std::string update_track, std::string hash_ove
 void Updater::run()
 {
   AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
-                                    AutoUpdateChecker::CheckType::Automatic);
+                                    CheckType::Automatic);
 }
 
 void Updater::CheckForUpdate()
 {
   AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
-                                    AutoUpdateChecker::CheckType::Manual);
+                                    CheckType::Manual);
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   if (std::getenv("DOLPHIN_UPDATE_SERVER_URL"))
   {
-    TriggerUpdate(info, AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    TriggerUpdate(info, RestartMode::RESTART_AFTER_UPDATE);
     RunOnObject(m_parent, [this] {
       m_parent->close();
       return 0;
@@ -108,8 +108,8 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
   if (choice && *choice == QDialog::Accepted)
   {
-    TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
-                                AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    TriggerUpdate(info, later ? RestartMode::NO_RESTART_AFTER_UPDATE :
+                                RestartMode::RESTART_AFTER_UPDATE);
 
     if (!later)
     {

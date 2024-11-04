@@ -189,7 +189,7 @@ private:
 template <typename value_type>
 struct fmt::formatter<Common::BigEndianValue<value_type>>
 {
-  fmt::formatter<value_type> m_formatter;
+  formatter<value_type> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
   auto format(const Common::BigEndianValue<value_type>& value, FormatContext& ctx) const

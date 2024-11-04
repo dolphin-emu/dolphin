@@ -451,7 +451,7 @@ void RegisterWidget::PopulateTable()
       23, 5, RegisterType::msr, "MSR", [this] { return m_system.GetPPCState().msr.Hex; },
       [this](u64 value) {
         m_system.GetPPCState().msr.Hex = value;
-        PowerPC::MSRUpdated(m_system.GetPPCState());
+        MSRUpdated(m_system.GetPPCState());
       });
 
   // SRR 0-1
@@ -534,7 +534,7 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
 
 void RegisterWidget::Update()
 {
-  if (isVisible() && Core::GetState(m_system) == Core::State::Paused)
+  if (isVisible() && GetState(m_system) == Core::State::Paused)
   {
     m_updating = true;
     emit UpdateTable();

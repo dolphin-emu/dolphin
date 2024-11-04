@@ -49,7 +49,7 @@ InfinityBaseWindow::InfinityBaseWindow(QWidget* parent) : QWidget(parent)
 
   installEventFilter(this);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 }
 
 InfinityBaseWindow::~InfinityBaseWindow() = default;
@@ -62,7 +62,7 @@ void InfinityBaseWindow::CreateMainWindow()
   auto* checkbox_layout = new QHBoxLayout();
   checkbox_layout->setAlignment(Qt::AlignHCenter);
   m_checkbox = new QCheckBox(tr("Emulate Infinity Base"), this);
-  m_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE));
+  m_checkbox->setChecked(Get(Config::MAIN_EMULATE_INFINITY_BASE));
   connect(m_checkbox, &QCheckBox::toggled, this, &InfinityBaseWindow::EmulateBase);
   checkbox_layout->addWidget(m_checkbox);
   checkbox_group->setLayout(checkbox_layout);
@@ -100,7 +100,7 @@ void InfinityBaseWindow::CreateMainWindow()
   m_group_figures->setLayout(vbox_group);
   scroll_area->setWidget(m_group_figures);
   scroll_area->setWidgetResizable(true);
-  m_group_figures->setVisible(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE));
+  m_group_figures->setVisible(Get(Config::MAIN_EMULATE_INFINITY_BASE));
   main_layout->addWidget(scroll_area);
   setLayout(main_layout);
 }
@@ -327,7 +327,7 @@ QString CreateFigureDialog::GetFilePath() const
 
 void InfinityBaseWindow::EmulateBase(bool emulate)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
+  SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
   m_group_figures->setVisible(emulate);
 }
 

@@ -156,16 +156,14 @@ public:
       return;
     }
 
-    const u32 magic = ReadU32(&m_data[0]);
-    if (magic != MO_MAGIC_NUMBER)
+    if (const u32 magic = ReadU32(&m_data[0]); magic != MO_MAGIC_NUMBER)
     {
       ERROR_LOG_FMT(COMMON, "MO file '{}' has bad magic number {:x}\n", filename, magic);
       m_data = {};
       return;
     }
 
-    const u16 version_major = ReadU16(&m_data[4]);
-    if (version_major > 1)
+    if (const u16 version_major = ReadU16(&m_data[4]); version_major > 1)
     {
       ERROR_LOG_FMT(COMMON, "MO file '{}' has unsupported version number {}", filename,
                     version_major);
@@ -260,11 +258,9 @@ static QStringList FindPossibleLanguageCodes(const QString& exact_language_code)
   // On macOS, Chinese (Simplified) and Chinese (Traditional) are represented as zh-Hans and
   // zh-Hant, but on Linux they're represented as zh-CN and zh-TW. Qt should probably include the
   // script subtags on Linux, but it doesn't.
-  const int hans_index = possible_language_codes.indexOf(QStringLiteral("zh_Hans"));
-  if (hans_index != -1)
+  if (const int hans_index = possible_language_codes.indexOf(QStringLiteral("zh_Hans")); hans_index != -1)
     possible_language_codes.insert(hans_index + 1, QStringLiteral("zh_CN"));
-  const int hant_index = possible_language_codes.indexOf(QStringLiteral("zh_Hant"));
-  if (hant_index != -1)
+  if (const int hant_index = possible_language_codes.indexOf(QStringLiteral("zh_Hant")); hant_index != -1)
     possible_language_codes.insert(hant_index + 1, QStringLiteral("zh_TW"));
 
   return possible_language_codes;
@@ -311,8 +307,7 @@ void Translation::Initialize()
       [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
-  std::string configured_language = Config::Get(Config::MAIN_INTERFACE_LANGUAGE);
-  if (!configured_language.empty())
+  if (std::string configured_language = Get(Config::MAIN_INTERFACE_LANGUAGE); !configured_language.empty())
   {
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
       return;
@@ -320,7 +315,7 @@ void Translation::Initialize()
     ModalMessageBox::warning(
         nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
-    Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
+    SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
   }
 
   for (const auto& lang : QLocale::system().uiLanguages())

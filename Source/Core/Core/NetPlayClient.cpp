@@ -144,7 +144,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    m_client->mtu = std::min(m_client->mtu, NetPlay::MAX_ENET_MTU);
+    m_client->mtu = std::min(m_client->mtu, MAX_ENET_MTU);
 
     ENetAddress addr;
     enet_address_set_host(&addr, address.c_str());
@@ -820,7 +820,7 @@ void NetPlayClient::OnChangeGame(sf::Packet& packet)
   sf::Packet client_capabilities_packet;
   client_capabilities_packet << MessageID::ClientCapabilities;
   client_capabilities_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
-  client_capabilities_packet << Config::Get(Config::SESSION_USE_FMA);
+  client_capabilities_packet << Get(Config::SESSION_USE_FMA);
   Send(client_capabilities_packet);
 }
 
@@ -1408,7 +1408,7 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
     synced_codes.clear();
 
   // Copy this to the vector located in GeckoCode.cpp
-  Gecko::UpdateSyncedCodes(synced_codes);
+  UpdateSyncedCodes(synced_codes);
 }
 
 void NetPlayClient::OnSyncCodesNotifyAR(sf::Packet& packet)
@@ -1474,7 +1474,7 @@ void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
     synced_codes.clear();
 
   // Copy this to the vector located in ActionReplay.cpp
-  ActionReplay::UpdateSyncedCodes(synced_codes);
+  UpdateSyncedCodes(synced_codes);
 }
 
 void NetPlayClient::OnComputeGameDigest(sf::Packet& packet)
@@ -1531,7 +1531,7 @@ void NetPlayClient::DisplayPlayersPing()
   if (!g_ActiveConfig.bShowNetPlayPing)
     return;
 
-  OSD::AddTypedMessage(OSD::MessageType::NetPlayPing, fmt::format("Ping: {}", GetPlayersMaxPing()),
+  AddTypedMessage(OSD::MessageType::NetPlayPing, fmt::format("Ping: {}", GetPlayersMaxPing()),
                        OSD::Duration::SHORT, OSD::Color::CYAN);
 }
 
@@ -1587,7 +1587,7 @@ void NetPlayClient::ThreadFunc()
   INFO_LOG_FMT(NETPLAY, "NetPlayClient starting.");
 
   Common::QoSSession qos_session;
-  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
+  if (Get(Config::NETPLAY_ENABLE_QOS))
   {
     qos_session = Common::QoSSession(m_server);
 
@@ -1785,7 +1785,7 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   for (unsigned int i = 0; i < 4; ++i)
   {
-    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
+    SetCurrent(Config::GetInfoForWiimoteSource(i),
                        m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
   }
 
@@ -1810,7 +1810,7 @@ bool NetPlayClient::StartGame(const std::string& path)
                                       if (File::Exists(redirect_path))
                                         File::DeleteDirRecursively(redirect_path);
                                     });
-  boot_session_data->SetNetplaySettings(std::make_unique<NetPlay::NetSettings>(m_net_settings));
+  boot_session_data->SetNetplaySettings(std::make_unique<NetSettings>(m_net_settings));
 
   m_dialog->BootGame(path, std::move(boot_session_data));
 
@@ -1896,8 +1896,8 @@ void NetPlayClient::UpdateDevices()
     {
       // Use local controller types for local controllers if they are compatible
       const SerialInterface::SIDevices si_device =
-          Config::Get(Config::GetInfoForSIDevice(local_pad));
-      if (SerialInterface::SIDevice_IsGCController(si_device))
+          Get(Config::GetInfoForSIDevice(local_pad));
+      if (SIDevice_IsGCController(si_device))
       {
         si.ChangeDevice(si_device, pad);
 
@@ -2092,13 +2092,13 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
       if (time_diff.count() >= 1.0 || !buffer_over_target)
       {
         // run fast if the buffer is overfilled, otherwise run normal speed
-        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, buffer_over_target ? 0.0f : 1.0f);
+        SetCurrent(Config::MAIN_EMULATION_SPEED, buffer_over_target ? 0.0f : 1.0f);
       }
     }
     else
     {
       // Set normal speed when we're the host, otherwise it can get stuck at unlimited
-      Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+      SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     }
   }
 
@@ -2184,7 +2184,7 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   {
     pad_status = Pad::GetGBAStatus(local_pad);
   }
-  else if (Config::Get(Config::GetInfoForSIDevice(local_pad)) ==
+  else if (Get(Config::GetInfoForSIDevice(local_pad)) ==
            SerialInterface::SIDEVICE_WIIU_ADAPTER)
   {
     pad_status = GCAdapter::Input(local_pad);
@@ -2701,7 +2701,7 @@ std::string GetGBASavePath(int pad_num)
   if (!netplay_client || netplay_client->GetNetSettings().is_hosting)
   {
 #ifdef HAS_LIBMGBA
-    std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
+    std::string rom_path = Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
     return HW::GBA::Core::GetSavePath(rom_path, pad_num);
 #else
     return {};
