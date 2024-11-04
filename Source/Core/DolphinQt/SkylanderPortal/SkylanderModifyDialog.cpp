@@ -17,6 +17,7 @@
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/System.h"
 
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
@@ -168,8 +169,9 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   edit_nick->setValidator(
       new QRegularExpressionValidator(QRegularExpression(QStringLiteral("^\\p{L}{0,15}$")), this));
   edit_playtime->setValidator(new QIntValidator(0, INT_MAX, this));
-  edit_last_reset->setDisplayFormat(QStringLiteral("dd/MM/yyyy hh:mm"));
-  edit_last_placed->setDisplayFormat(QStringLiteral("dd/MM/yyyy hh:mm"));
+
+  QtUtils::ShowFourDigitYear(edit_last_reset);
+  QtUtils::ShowFourDigitYear(edit_last_placed);
 
   edit_toy_code->setToolTip(tr("The toy code for this figure. Only available for real figures."));
   edit_money->setToolTip(tr("The amount of money this Skylander has. Between 0 and 65000"));

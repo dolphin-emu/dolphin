@@ -223,7 +223,7 @@ void HacksWidget::AddDescriptions()
       "Ignores any requests from the CPU to read from or write to the EFB. "
       "<br><br>Improves performance in some games, but will disable all EFB-based "
       "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If unsure, "
-      "leave this unchecked.</dolphin_emphasis>");
+      "leave this checked.</dolphin_emphasis>");
   static const char TR_IGNORE_FORMAT_CHANGE_DESCRIPTION[] = QT_TR_NOOP(
       "Ignores any changes to the EFB format.<br><br>Improves performance in many games "
       "without "

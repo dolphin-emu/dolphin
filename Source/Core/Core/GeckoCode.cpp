@@ -17,6 +17,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "ConfigManager.h"
@@ -272,6 +273,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   {
     ppc_state.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
   }
+  Host_JitCacheInvalidation();
   return Installation::Installed;
 }
 

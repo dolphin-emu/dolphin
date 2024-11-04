@@ -61,7 +61,7 @@ void Host_UpdateDisasmDialog()
 {
 }
 
-void Host_JitCacheCleared()
+void Host_JitCacheInvalidation()
 {
 }
 
