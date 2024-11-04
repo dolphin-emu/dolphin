@@ -45,7 +45,7 @@ enum class StringSetting(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,
         "GFXBackend",
-        NativeLibrary.GetDefaultGraphicsBackendName()
+        NativeLibrary.GetDefaultGraphicsBackendConfigName()
     ),
     MAIN_DUMP_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "DumpPath", ""),
     MAIN_LOAD_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "LoadPath", ""),

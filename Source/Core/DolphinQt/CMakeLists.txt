@@ -318,6 +318,8 @@ add_executable(dolphin-mpn
   QtUtils/ParallelProgressDialog.h
   QtUtils/PartiallyClosableTabWidget.cpp
   QtUtils/PartiallyClosableTabWidget.h
+  QtUtils/QtUtils.cpp
+  QtUtils/QtUtils.h
   QtUtils/SetWindowDecorations.cpp
   QtUtils/SetWindowDecorations.h
   QtUtils/SignalBlocking.h

@@ -167,8 +167,8 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
       const LONG& ax = (&m_state_in.lX)[offset];
 
       // each axis gets a negative and a positive input instance associated with it
-      AddAnalogInputs(new Axis(offset, ax, base, range.lMin - base),
-                      new Axis(offset, ax, base, range.lMax - base));
+      AddFullAnalogSurfaceInputs(new Axis(offset, ax, base, range.lMin - base),
+                                 new Axis(offset, ax, base, range.lMax - base));
     }
   }
 

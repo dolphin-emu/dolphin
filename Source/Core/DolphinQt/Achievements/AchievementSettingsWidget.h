@@ -39,6 +39,8 @@ private:
   void ToggleDiscordPresence();
   void ToggleProgress();
 
+  void UpdateHardcoreMode();
+
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
   ToolTipCheckBox* m_common_integration_enabled_input;

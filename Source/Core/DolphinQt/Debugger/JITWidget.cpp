@@ -313,7 +313,7 @@ void JITWidget::SaveQSettings() const
 void JITWidget::ConnectSlots()
 {
   auto* const host = Host::GetInstance();
-  connect(host, &Host::JitCacheCleared, this, &JITWidget::OnJitCacheCleared);
+  connect(host, &Host::JitCacheInvalidation, this, &JITWidget::OnJitCacheInvalidation);
   connect(host, &Host::UpdateDisasmDialog, this, &JITWidget::OnUpdateDisasmDialog);
   connect(host, &Host::PPCSymbolsChanged, this, &JITWidget::OnPPCSymbolsUpdated);
   connect(host, &Host::PPCBreakpointsChanged, this, &JITWidget::OnPPCBreakpointsChanged);
@@ -326,7 +326,7 @@ void JITWidget::ConnectSlots()
 void JITWidget::DisconnectSlots()
 {
   auto* const host = Host::GetInstance();
-  disconnect(host, &Host::JitCacheCleared, this, &JITWidget::OnJitCacheCleared);
+  disconnect(host, &Host::JitCacheInvalidation, this, &JITWidget::OnJitCacheInvalidation);
   disconnect(host, &Host::UpdateDisasmDialog, this, &JITWidget::OnUpdateDisasmDialog);
   disconnect(host, &Host::PPCSymbolsChanged, this, &JITWidget::OnPPCSymbolsUpdated);
   disconnect(host, &Host::PPCBreakpointsChanged, this, &JITWidget::OnPPCBreakpointsChanged);
@@ -340,7 +340,7 @@ void JITWidget::Show()
 {
   ConnectSlots();
   // Handle every slot that may have missed a signal while this widget was hidden.
-  // OnJitCacheCleared() can be skipped.
+  // OnJitCacheInvalidation() can be skipped.
   // OnUpdateDisasmDialog() can be skipped.
   // OnPPCSymbolsUpdated() can be skipped.
   // OnPPCBreakpointsChanged() can be skipped.
@@ -446,7 +446,7 @@ void JITWidget::OnStatusBarPressed()
     ShowFreeMemoryStatus();
 }
 
-void JITWidget::OnJitCacheCleared()
+void JITWidget::OnJitCacheInvalidation()
 {
   if (Core::GetState(m_system) != Core::State::Paused)
     return;

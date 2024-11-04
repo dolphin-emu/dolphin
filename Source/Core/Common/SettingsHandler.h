@@ -13,34 +13,35 @@
 
 namespace Common
 {
-class SettingsHandler
+using SettingsBuffer = std::array<u8, 0x100>;
+
+class SettingsWriter
 {
 public:
-  enum
-  {
-    SETTINGS_SIZE = 0x100,
-    // Key used to encrypt/decrypt setting.txt contents
-    INITIAL_SEED = 0x73B5DBFA
-  };
-
-  using Buffer = std::array<u8, SETTINGS_SIZE>;
-  SettingsHandler();
-  explicit SettingsHandler(const Buffer& buffer);
+  SettingsWriter();
 
   void AddSetting(std::string_view key, std::string_view value);
 
-  const Buffer& GetBytes() const;
-  std::string GetValue(std::string_view key) const;
+  const SettingsBuffer& GetBytes() const;
 
   static std::string GenerateSerialNumber();
 
 private:
-  void Decrypt();
   void WriteLine(std::string_view str);
   void WriteByte(u8 b);
 
-  std::array<u8, SETTINGS_SIZE> m_buffer;
+  SettingsBuffer m_buffer;
   u32 m_position, m_key;
-  std::string decoded;
+};
+
+class SettingsReader
+{
+public:
+  explicit SettingsReader(const SettingsBuffer& buffer);
+
+  std::string GetValue(std::string_view key) const;
+
+private:
+  std::string m_decoded;
 };
 }  // namespace Common

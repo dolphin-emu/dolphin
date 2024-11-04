@@ -256,9 +256,9 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
-void Host_JitCacheCleared()
+void Host_JitCacheInvalidation()
 {
-  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->JitCacheCleared(); });
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->JitCacheInvalidation(); });
 }
 
 void Host_JitProfileDataWiped()

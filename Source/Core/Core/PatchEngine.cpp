@@ -296,6 +296,13 @@ void RemoveMemoryPatch(std::size_t index)
   std::erase(s_on_frame_memory, index);
 }
 
+static void ApplyStartupPatches(Core::System& system)
+{
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard(system);
+  ApplyPatches(guard, s_on_frame);
+}
+
 bool ApplyFramePatches(Core::System& system)
 {
   const auto& ppc_state = system.GetPPCState();
@@ -335,10 +342,11 @@ void Shutdown()
   Gecko::Shutdown();
 }
 
-void Reload()
+void Reload(Core::System& system)
 {
   Shutdown();
   LoadPatches();
+  ApplyStartupPatches(system);
 }
 
 }  // namespace PatchEngine

@@ -10,7 +10,6 @@
 #include <iterator>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -18,6 +17,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <pugixml.hpp>
 
 #include "Common/BitUtils.h"
@@ -642,10 +642,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   }
   if (info.empty())
     return name;
-  std::ostringstream ss;
-  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
-  ss << info.back();
-  return name + " (" + ss.str() + ")";
+  return fmt::format("{} ({})", name, fmt::join(info, ", "));
 }
 
 static Common::SHA1::Digest GetHash(u32 value)
