@@ -125,6 +125,8 @@
 #include "DolphinQt/ToolBar.h"
 #include "DolphinQt/WiiUpdate.h"
 
+#include "PropertiesDialog.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -697,7 +699,7 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
-
+  connect(m_tool_bar, &ToolBar::ViewGeckoCodes, this, &MainWindow::ShowGeckoCodes);
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
   connect(m_tool_bar, &ToolBar::StepOutPressed, m_code_widget, &CodeWidget::StepOut);
@@ -2044,4 +2046,16 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 
   AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
   StartGame(std::move(boot_params));
+}
+
+void MainWindow::ShowGeckoCodes()
+{
+  if (!m_gecko_dialog)
+  {
+    m_gecko_dialog = new GeckoDialog(this);
+    InstallHotkeyFilter(m_gecko_dialog);
+  }
+  m_gecko_dialog->show();
+  m_gecko_dialog->raise();
+  m_gecko_dialog->activateWindow();
 }
