@@ -33,10 +33,12 @@ void CommonControllersWidget::CreateLayout()
   m_common_box = new QGroupBox(tr("Common"));
   m_common_layout = new QVBoxLayout();
   m_common_bg_input = new QCheckBox(tr("Background Input"));
+  m_common_sdl_ps5_player_led = new QCheckBox(tr("Enable DualSense Player LED"));
   m_common_configure_controller_interface =
       new NonDefaultQPushButton(tr("Alternate Input Sources"));
 
   m_common_layout->addWidget(m_common_bg_input);
+  m_common_layout->addWidget(m_common_sdl_ps5_player_led);
   m_common_layout->addWidget(m_common_configure_controller_interface);
 
   m_common_box->setLayout(m_common_layout);
@@ -51,6 +53,8 @@ void CommonControllersWidget::CreateLayout()
 void CommonControllersWidget::ConnectWidgets()
 {
   connect(m_common_bg_input, &QCheckBox::toggled, this, &CommonControllersWidget::SaveSettings);
+  connect(m_common_sdl_ps5_player_led, &QCheckBox::toggled, this,
+          &CommonControllersWidget::SaveSettings);
   connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
           &CommonControllersWidget::OnControllerInterfaceConfigure);
 }
@@ -67,10 +71,14 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
 void CommonControllersWidget::LoadSettings()
 {
   SignalBlocking(m_common_bg_input)->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
+  SignalBlocking(m_common_sdl_ps5_player_led)
+      ->setChecked(Config::Get(Config::MAIN_INPUT_SDL_PS5_PLAYER_LED));
 }
 
 void CommonControllersWidget::SaveSettings()
 {
   Config::SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_INPUT_SDL_PS5_PLAYER_LED,
+                           m_common_sdl_ps5_player_led->isChecked());
   Config::Save();
 }

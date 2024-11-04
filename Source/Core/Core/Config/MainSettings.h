@@ -320,6 +320,7 @@ extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
 // Main.Input
 
 extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+extern const Info<bool> MAIN_INPUT_SDL_PS5_PLAYER_LED;
 
 // Main.Debug
 
