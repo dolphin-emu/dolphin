@@ -313,14 +313,29 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
                                   bool indicator)
 {
-  auto* button = new MappingButton(this, control->control_ref.get(), indicator);
-
+  auto* const button = new MappingButton(this, control->control_ref.get(), indicator);
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
   const bool translate = control->translate == ControllerEmu::Translatability::Translate;
   const QString translated_name =
       translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
-  layout->addRow(translated_name, button);
+
+  if (indicator && control->control_ref->IsInput())
+  {
+    auto* const button_indicator = new ButtonIndicator{control->control_ref.get()};
+    connect(this, &MappingWidget::Update, button_indicator, qOverload<>(&MappingIndicator::update));
+
+    auto* const hbox = new QHBoxLayout;
+    hbox->setSpacing(0);
+    hbox->addWidget(button_indicator);
+    hbox->addWidget(button);
+    layout->addRow(translated_name, hbox);
+  }
+  else
+  {
+    layout->addRow(translated_name, button);
+  }
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const
