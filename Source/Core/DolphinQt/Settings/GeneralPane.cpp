@@ -37,6 +37,7 @@
 #ifdef USE_DISCORD_PRESENCE
 #include "UICommon/DiscordPresence.h"
 #endif
+#include <UICommon/AutoUpdate.h>
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
 constexpr int AUTO_UPDATE_BETA_INDEX = 1;
