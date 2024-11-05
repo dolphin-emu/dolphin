@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 
+class QFont;
 class QPoint;
 class QScrollBar;
 
@@ -53,11 +54,11 @@ public:
     WriteOnly
   };
 
-  explicit MemoryViewWidget(QWidget* parent = nullptr);
+  explicit MemoryViewWidget(Core::System& system, QWidget* parent = nullptr);
 
   void CreateTable();
   void Update();
-  void UpdateFont();
+  void UpdateFont(const QFont& font);
   void ToggleBreakpoint(u32 addr, bool row);
 
   std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text) const;

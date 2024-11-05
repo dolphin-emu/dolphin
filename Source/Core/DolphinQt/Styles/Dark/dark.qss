@@ -493,3 +493,10 @@ QTableCornerButton::section {
     border-left: 0px;
     border-bottom: 0px;
 }
+
+QProgressBar {
+     border: 2px solid grey;
+     border-radius: 5px;
+     background-color: #202020;
+ }
+ 

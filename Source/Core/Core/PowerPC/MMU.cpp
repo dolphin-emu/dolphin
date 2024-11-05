@@ -222,7 +222,7 @@ T MMU::ReadFromHardware(u32 em_address)
     }
     else
     {
-      m_ppc_state.dCache.Read(em_address, &value, sizeof(T),
+      m_ppc_state.dCache.Read(m_memory, em_address, &value, sizeof(T),
                               HID0(m_ppc_state).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
@@ -241,7 +241,7 @@ T MMU::ReadFromHardware(u32 em_address)
     }
     else
     {
-      m_ppc_state.dCache.Read(em_address + 0x10000000, &value, sizeof(T),
+      m_ppc_state.dCache.Read(m_memory, em_address + 0x10000000, &value, sizeof(T),
                               HID0(m_ppc_state).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
@@ -414,7 +414,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     em_address &= m_memory.GetRamMask();
 
     if (m_ppc_state.m_enable_dcache && !wi)
-      m_ppc_state.dCache.Write(em_address, &swapped_data, size, HID0(m_ppc_state).DLOCK);
+      m_ppc_state.dCache.Write(m_memory, em_address, &swapped_data, size, HID0(m_ppc_state).DLOCK);
 
     if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
       std::memcpy(&m_memory.GetRAM()[em_address], &swapped_data, size);
@@ -429,7 +429,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
 
     if (m_ppc_state.m_enable_dcache && !wi)
     {
-      m_ppc_state.dCache.Write(em_address + 0x10000000, &swapped_data, size,
+      m_ppc_state.dCache.Write(m_memory, em_address + 0x10000000, &swapped_data, size,
                                HID0(m_ppc_state).DLOCK);
     }
 
@@ -499,7 +499,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
   }
   else
   {
-    hex = m_ppc_state.iCache.ReadInstruction(address);
+    hex = m_ppc_state.iCache.ReadInstruction(m_memory, m_ppc_state, address);
   }
   return TryReadInstResult{true, from_bat, hex, address};
 }
@@ -823,8 +823,7 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 
   mc->num_hits++;
 
-  const bool pause = mc->Action(m_system, &m_power_pc.GetDebugInterface(), var, address, write,
-                                size, m_ppc_state.pc);
+  const bool pause = mc->Action(m_system, var, address, write, size, m_ppc_state.pc);
   if (!pause)
     return;
 
@@ -934,7 +933,7 @@ std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard&
   const auto result = HostTryReadUX<u32>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<float>(result->translated, Common::BitCast<float>(result->value));
+  return ReadResult<float>(result->translated, std::bit_cast<float>(result->value));
 }
 
 std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard& guard,
@@ -943,7 +942,7 @@ std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard
   const auto result = HostTryReadUX<u64>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<double>(result->translated, Common::BitCast<double>(result->value));
+  return ReadResult<double>(result->translated, std::bit_cast<double>(result->value));
 }
 
 void MMU::Write_U8(const u32 var, const u32 address)
@@ -1011,14 +1010,14 @@ float MMU::HostRead_F32(const Core::CPUThreadGuard& guard, const u32 address)
 {
   const u32 integral = HostRead_U32(guard, address);
 
-  return Common::BitCast<float>(integral);
+  return std::bit_cast<float>(integral);
 }
 
 double MMU::HostRead_F64(const Core::CPUThreadGuard& guard, const u32 address)
 {
   const u64 integral = HostRead_U64(guard, address);
 
-  return Common::BitCast<double>(integral);
+  return std::bit_cast<double>(integral);
 }
 
 void MMU::HostWrite_U8(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
@@ -1048,14 +1047,14 @@ void MMU::HostWrite_U64(const Core::CPUThreadGuard& guard, const u64 var, const 
 
 void MMU::HostWrite_F32(const Core::CPUThreadGuard& guard, const float var, const u32 address)
 {
-  const u32 integral = Common::BitCast<u32>(var);
+  const u32 integral = std::bit_cast<u32>(var);
 
   HostWrite_U32(guard, integral, address);
 }
 
 void MMU::HostWrite_F64(const Core::CPUThreadGuard& guard, const double var, const u32 address)
 {
-  const u64 integral = Common::BitCast<u64>(var);
+  const u64 integral = std::bit_cast<u64>(var);
 
   HostWrite_U64(guard, integral, address);
 }
@@ -1118,14 +1117,14 @@ std::optional<WriteResult> MMU::HostTryWriteU64(const Core::CPUThreadGuard& guar
 std::optional<WriteResult> MMU::HostTryWriteF32(const Core::CPUThreadGuard& guard, const float var,
                                                 const u32 address, RequestedAddressSpace space)
 {
-  const u32 integral = Common::BitCast<u32>(var);
+  const u32 integral = std::bit_cast<u32>(var);
   return HostTryWriteU32(guard, integral, address, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteF64(const Core::CPUThreadGuard& guard, const double var,
                                                 const u32 address, RequestedAddressSpace space)
 {
-  const u64 integral = Common::BitCast<u64>(var);
+  const u64 integral = std::bit_cast<u64>(var);
   return HostTryWriteU64(guard, integral, address, space);
 }
 
@@ -1310,18 +1309,11 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   }
 
   const u8* src = m_memory.GetL1Cache() + (cache_address & 0x3FFFF);
-  u8* dst = m_memory.GetPointer(mem_address);
-  if (dst == nullptr)
-    return;
-
-  memcpy(dst, src, 32 * num_blocks);
+  m_memory.CopyToEmu(mem_address, src, 32 * num_blocks);
 }
 
 void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks)
 {
-  const u8* src = m_memory.GetPointer(mem_address);
-  u8* dst = m_memory.GetL1Cache() + (cache_address & 0x3FFFF);
-
   // No known game uses this; here for completeness.
   // TODO: Refactor.
   if ((mem_address & 0x0F000000) == 0x08000000)
@@ -1347,10 +1339,8 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
     return;
   }
 
-  if (src == nullptr)
-    return;
-
-  memcpy(dst, src, 32 * num_blocks);
+  u8* dst = m_memory.GetL1Cache() + (cache_address & 0x3FFFF);
+  m_memory.CopyFromEmu(dst, mem_address, 32 * num_blocks);
 }
 
 static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* wi)
@@ -1412,7 +1402,7 @@ void MMU::StoreDCacheLine(u32 address)
   }
 
   if (m_ppc_state.m_enable_dcache)
-    m_ppc_state.dCache.Store(address);
+    m_ppc_state.dCache.Store(m_memory, address);
 }
 
 void MMU::InvalidateDCacheLine(u32 address)
@@ -1434,7 +1424,7 @@ void MMU::InvalidateDCacheLine(u32 address)
   }
 
   if (m_ppc_state.m_enable_dcache)
-    m_ppc_state.dCache.Invalidate(address);
+    m_ppc_state.dCache.Invalidate(m_memory, address);
 }
 
 void MMU::FlushDCacheLine(u32 address)
@@ -1458,7 +1448,7 @@ void MMU::FlushDCacheLine(u32 address)
   }
 
   if (m_ppc_state.m_enable_dcache)
-    m_ppc_state.dCache.Flush(address);
+    m_ppc_state.dCache.Flush(m_memory, address);
 }
 
 void MMU::TouchDCacheLine(u32 address, bool store)
@@ -1482,7 +1472,7 @@ void MMU::TouchDCacheLine(u32 address, bool store)
   }
 
   if (m_ppc_state.m_enable_dcache)
-    m_ppc_state.dCache.Touch(address, store);
+    m_ppc_state.dCache.Touch(m_memory, address, store);
 }
 
 u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
@@ -1811,7 +1801,6 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
       // (input & ~BL_mask) == BEPI. For now, assume it's
       // implemented this way for invalid BATs as well.
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: BEPI overlaps BL");
-      continue;
     }
     if ((batl.BRPN & batu.BL) != 0)
     {

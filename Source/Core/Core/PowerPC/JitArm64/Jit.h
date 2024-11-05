@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <tuple>
 
 #include <rangeset/rangesizeset.h>
@@ -285,14 +286,16 @@ protected:
   void Trace();
 
   // Finds a free memory region and sets the near and far code emitters to point at that region.
-  // Returns false if no free memory region can be found for either of the two.
-  bool SetEmitterStateToFreeCodeRegion();
+  // On success, returns the index of the memory region (either 0 or 1).
+  // If either near code or far code is full, returns std::nullopt.
+  std::optional<size_t> SetEmitterStateToFreeCodeRegion();
 
   void DoDownCount();
   void Cleanup();
   void ResetStack();
 
-  void ResetFreeMemoryRanges();
+  void GenerateAsmAndResetFreeMemoryRanges();
+  void ResetFreeMemoryRanges(size_t routines_near_size, size_t routines_far_size);
 
   void IntializeSpeculativeConstants();
 
@@ -307,13 +310,19 @@ protected:
   void GenerateQuantizedLoads();
   void GenerateQuantizedStores();
 
-  // Profiling
-  void BeginTimeProfile(JitBlock* b);
-  void EndTimeProfile(JitBlock* b);
-
   void EmitUpdateMembase();
   void MSRUpdated(u32 msr);
   void MSRUpdated(Arm64Gen::ARM64Reg msr);
+
+  // Branch Watch
+  template <bool condition>
+  void WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst,
+                        Arm64Gen::ARM64Reg reg_a, Arm64Gen::ARM64Reg reg_b,
+                        BitSet32 gpr_caller_save, BitSet32 fpr_caller_save);
+  void WriteBranchWatchDestInRegister(u32 origin, Arm64Gen::ARM64Reg destination,
+                                      UGeckoInstruction inst, Arm64Gen::ARM64Reg reg_a,
+                                      Arm64Gen::ARM64Reg reg_b, BitSet32 gpr_caller_save,
+                                      BitSet32 fpr_caller_save);
 
   // Exits
   void
@@ -341,7 +350,7 @@ protected:
   void UpdateRoundingMode();
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
-  void ComputeRC0(u64 imm);
+  void ComputeRC0(u32 imm);
   void ComputeCarry(Arm64Gen::ARM64Reg reg);  // reg must contain 0 or 1
   void ComputeCarry(bool carry);
   void ComputeCarry();
@@ -366,6 +375,28 @@ protected:
 
   Arm64Gen::ARM64FloatEmitter m_float_emit;
 
+  // Because B instructions can't jump farther than +/- 128 MiB, code memory is allocated like this:
+  //
+  // m_far_code_0: x MiB of unused space, followed by 64 - x MiB of far code
+  // m_near_code_0: 64 MiB of near code
+  // m_near_code_1: x MiB of asm routines, followed by 64 - x MiB of near code
+  // m_far_code_1: 64 MiB of far code
+  //
+  // This ensures that:
+  //
+  // * Any code in m_near_code_0 can reach any code in m_far_code_0, and vice versa
+  // * Any code in m_near_code_1 can reach any code in m_far_code_1, and vice versa
+  // * Any near code can reach any near code
+  // * Any code can reach any asm routine
+  //
+  // m_far_code_0 and m_far_code_1 can't reach each other, but that isn't needed, because all blocks
+  // have their entry points in near code.
+
+  Arm64Gen::ARM64CodeBlock m_near_code_0;
+  Arm64Gen::ARM64CodeBlock m_near_code_1;
+  Arm64Gen::ARM64CodeBlock m_far_code_0;
+  Arm64Gen::ARM64CodeBlock m_far_code_1;
+
   Arm64Gen::ARM64CodeBlock m_far_code;
   bool m_in_far_code = false;
 
@@ -374,6 +405,8 @@ protected:
   u8* m_near_code_end = nullptr;
   bool m_near_code_write_failed = false;
 
-  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
-  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near_0;
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near_1;
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far_0;
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far_1;
 };

@@ -520,15 +520,21 @@ void VertexManagerBase::Flush()
     auto& counts =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;
 
+    const auto& projection = xfmem.projection.rawProjection;
     // TODO: Potentially the viewport size could be used as weight for the flush count average.
     // This way a small minimap would have less effect than a fullscreen projection.
+    const auto& viewport = xfmem.viewport;
 
-    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport, g_ActiveConfig))
+    // FYI: This average is based on flushes.
+    // It doesn't look at vertex counts like the heuristic does.
+    counts.average_ratio.Push(CalculateProjectionViewportRatio(projection, viewport));
+
+    if (IsAnamorphicProjection(projection, viewport, g_ActiveConfig))
     {
       ++counts.anamorphic_flush_count;
       counts.anamorphic_vertex_count += m_index_generator.GetIndexLen();
     }
-    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport, g_ActiveConfig))
+    else if (IsNormalProjection(projection, viewport, g_ActiveConfig))
     {
       ++counts.normal_flush_count;
       counts.normal_vertex_count += m_index_generator.GetIndexLen();
@@ -557,13 +563,19 @@ void VertexManagerBase::Flush()
   const auto used_textures = UsedTextures();
   std::vector<std::string> texture_names;
   Common::SmallVector<u32, 8> texture_units;
+  std::array<SamplerState, 8> samplers;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
     {
       for (const u32 i : used_textures)
       {
-        g_texture_cache->Load(TextureInfo::FromStage(i));
+        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        if (!cache_entry)
+          continue;
+        const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
+        samplers[i] = TextureCacheBase::GetSamplerState(
+            i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
       }
     }
     else
@@ -579,6 +591,10 @@ void VertexManagerBase::Flush()
             texture_names.push_back(cache_entry->texture_info_name);
             texture_units.push_back(i);
           }
+
+          const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
+          samplers[i] = TextureCacheBase::GetSamplerState(
+              i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
         }
       }
     }
@@ -627,7 +643,7 @@ void VertexManagerBase::Flush()
     // Texture loading can cause palettes to be applied (-> uniforms -> draws).
     // Palette application does not use vertices, only a full-screen quad, so this is okay.
     // Same with GPU texture decoding, which uses compute shaders.
-    g_texture_cache->BindTextures(used_textures);
+    g_texture_cache->BindTextures(used_textures, samplers);
 
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);

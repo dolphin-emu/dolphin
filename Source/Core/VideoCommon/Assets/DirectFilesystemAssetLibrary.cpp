@@ -4,13 +4,17 @@
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
 #include <algorithm>
+#include <vector>
 
 #include <fmt/std.h>
 
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
+#include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/RenderState.h"
@@ -130,24 +134,16 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
     return {};
   }
 
-  std::string json_data;
-  if (!File::ReadFileToString(PathToString(metadata->second), json_data))
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the json file '{}',", asset_id,
-                  PathToString(metadata->second));
-    return {};
-  }
-
   picojson::value root;
-  const auto error = picojson::parse(root, json_data);
-
-  if (!error.empty())
+  std::string error;
+  if (!JsonFromFile(PathToString(metadata->second), &root, &error))
   {
     ERROR_LOG_FMT(VIDEO,
                   "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
                   asset_id, PathToString(metadata->second), error);
     return {};
   }
+
   if (!root.is<picojson::object>())
   {
     ERROR_LOG_FMT(
@@ -178,18 +174,21 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
   }
   const auto& asset_path = asset_map.begin()->second;
 
-  std::string json_data;
-  if (!File::ReadFileToString(PathToString(asset_path), json_data))
+  std::size_t metadata_size;
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  material failed to load the json file '{}',",
-                  asset_id, PathToString(asset_path));
-    return {};
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(asset_path, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get material file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
   }
 
   picojson::value root;
-  const auto error = picojson::parse(root, json_data);
-
-  if (!error.empty())
+  std::string error;
+  if (!JsonFromFile(PathToString(asset_path), &root, &error))
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -217,7 +216,102 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
     return {};
   }
 
-  return LoadInfo{json_data.size(), GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{metadata_size, GetLastAssetWriteTime(asset_id)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetID& asset_id,
+                                                                    MeshData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Asset map for a mesh is the mesh and some metadata
+  if (asset_map.size() != 2)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have two files mapped!", asset_id);
+    return {};
+  }
+
+  const auto metadata = asset_map.find("metadata");
+  const auto mesh = asset_map.find("mesh");
+  if (metadata == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a metadata entry mapped!", asset_id);
+    return {};
+  }
+
+  if (mesh == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a mesh entry mapped!", asset_id);
+    return {};
+  }
+
+  std::size_t metadata_size;
+  {
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(metadata->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' error - failed to get mesh metadata file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+  std::size_t mesh_size;
+  {
+    std::error_code ec;
+    mesh_size = std::filesystem::file_size(mesh->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get mesh file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+  const auto approx_mem_size = metadata_size + mesh_size;
+
+  File::IOFile file(PathToString(mesh->second), "rb");
+  if (!file.IsOpen())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to open mesh file '{}'!", asset_id,
+                  PathToString(mesh->second));
+    return {};
+  }
+
+  std::vector<u8> bytes;
+  bytes.reserve(file.GetSize());
+  file.ReadBytes(bytes.data(), file.GetSize());
+  if (!MeshData::FromDolphinMesh(bytes, data))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the mesh file '{}'!", asset_id,
+                  PathToString(mesh->second));
+    return {};
+  }
+
+  picojson::value root;
+  std::string error;
+  if (!JsonFromFile(PathToString(metadata->second), &root, &error))
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
+                  asset_id, PathToString(metadata->second), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
+        asset_id, PathToString(metadata->second));
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!MeshData::FromJson(asset_id, root_obj, data))
+    return {};
+
+  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
@@ -255,18 +349,9 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
       return {};
     }
 
-    std::string json_data;
-    if (!File::ReadFileToString(PathToString(metadata->second), json_data))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the json file '{}',", asset_id,
-                    PathToString(metadata->second));
-      return {};
-    }
-
     picojson::value root;
-    const auto error = picojson::parse(root, json_data);
-
-    if (!error.empty())
+    std::string error;
+    if (!JsonFromFile(PathToString(metadata->second), &root, &error))
     {
       ERROR_LOG_FMT(VIDEO,
                     "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",

@@ -11,6 +11,7 @@
 namespace VideoCommon
 {
 struct MaterialData;
+struct MeshData;
 struct PixelShaderData;
 struct TextureData;
 
@@ -48,5 +49,8 @@ public:
 
   // Loads a material
   virtual LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) = 0;
+
+  // Loads a mesh
+  virtual LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) = 0;
 };
 }  // namespace VideoCommon

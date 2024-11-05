@@ -149,7 +149,7 @@ private:
   bool LinkChannel(u16 psm);
   u16 GenerateChannelID() const;
 
-  bool DoesChannelExist(u16 scid) const { return m_channels.count(scid) != 0; }
+  bool DoesChannelExist(u16 scid) const { return m_channels.contains(scid); }
   void SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data);
 
   void SignalChannel(u8* data, u32 size);

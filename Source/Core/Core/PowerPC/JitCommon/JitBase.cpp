@@ -57,7 +57,7 @@
 // After resetting the stack to the top, we call _resetstkoflw() to restore
 // the guard page at the 256kb mark.
 
-const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JitBase::JIT_SETTINGS{{
+const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitBase::JIT_SETTINGS{{
     {&JitBase::bJITOff, &Config::MAIN_DEBUG_JIT_OFF},
     {&JitBase::bJITLoadStoreOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF},
     {&JitBase::bJITLoadStorelXzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF},
@@ -71,6 +71,7 @@ const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JitB
     {&JitBase::bJITSystemRegistersOff, &Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF},
     {&JitBase::bJITBranchOff, &Config::MAIN_DEBUG_JIT_BRANCH_OFF},
     {&JitBase::bJITRegisterCacheOff, &Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF},
+    {&JitBase::m_enable_profiling, &Config::MAIN_DEBUG_JIT_ENABLE_PROFILING},
     {&JitBase::m_enable_debugging, &Config::MAIN_ENABLE_DEBUGGING},
     {&JitBase::m_enable_branch_following, &Config::MAIN_JIT_FOLLOW_BRANCH},
     {&JitBase::m_enable_float_exceptions, &Config::MAIN_FLOAT_EXCEPTIONS},
@@ -94,7 +95,8 @@ void JitTrampoline(JitBase& jit, u32 em_address)
 
 JitBase::JitBase(Core::System& system)
     : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState()),
-      m_mmu(system.GetMMU())
+      m_mmu(system.GetMMU()), m_branch_watch(system.GetPowerPC().GetBranchWatch()),
+      m_ppc_symbol_db(system.GetPPCSymbolDB())
 {
   m_registered_config_callback_id = CPUThreadConfigCallback::AddConfigChangedCallback([this] {
     if (DoesConfigNeedRefresh())
@@ -149,7 +151,7 @@ void JitBase::InitFastmemArena()
 void JitBase::InitBLROptimization()
 {
   m_enable_blr_optimization =
-      jo.enableBlocklink && !m_enable_debugging && EMM::IsExceptionHandlerSupported();
+      jo.enableBlocklink && !IsDebuggingEnabled() && EMM::IsExceptionHandlerSupported();
   m_cleanup_after_stackfault = false;
 }
 
@@ -265,13 +267,11 @@ bool JitBase::CanMergeNextInstructions(int count) const
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (m_enable_debugging &&
+    if (IsDebuggingEnabled() &&
         m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(js.op[i].address))
     {
       return false;
     }
-    if (js.op[i].isBranchTarget)
-      return false;
   }
   return true;
 }

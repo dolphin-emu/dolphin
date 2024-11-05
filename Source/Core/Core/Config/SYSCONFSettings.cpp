@@ -15,7 +15,7 @@ const Info<u32> SYSCONF_LANGUAGE{{System::SYSCONF, "IPL", "LNG"},
 const Info<u32> SYSCONF_COUNTRY{{System::SYSCONF, "IPL", "SADR"}, GetDefaultCountry()};
 const Info<bool> SYSCONF_WIDESCREEN{{System::SYSCONF, "IPL", "AR"}, true};
 const Info<bool> SYSCONF_PROGRESSIVE_SCAN{{System::SYSCONF, "IPL", "PGS"}, true};
-const Info<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, 0x01};
+const Info<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, true};
 const Info<u32> SYSCONF_SOUND_MODE{{System::SYSCONF, "IPL", "SND"}, 0x01};
 
 // SYSCONF.BT

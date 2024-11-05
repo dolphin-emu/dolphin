@@ -26,11 +26,7 @@
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/System.h"
 
-PPCSymbolDB g_symbolDB;
-
-PPCSymbolDB::PPCSymbolDB() : debugger{&Core::System::GetInstance().GetPowerPC().GetDebugInterface()}
-{
-}
+PPCSymbolDB::PPCSymbolDB() = default;
 
 PPCSymbolDB::~PPCSymbolDB() = default;
 
@@ -38,7 +34,7 @@ PPCSymbolDB::~PPCSymbolDB() = default;
 Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
 {
   // It's already in the list
-  if (m_functions.find(start_addr) != m_functions.end())
+  if (m_functions.contains(start_addr))
     return nullptr;
 
   Common::Symbol symbol;
@@ -112,13 +108,11 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-std::string PPCSymbolDB::GetDescription(u32 addr)
+std::string_view PPCSymbolDB::GetDescription(u32 addr)
 {
-  Common::Symbol* symbol = GetSymbolFromAddr(addr);
-  if (symbol)
+  if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))
     return symbol->name;
-  else
-    return " --- ";
+  return " --- ";
 }
 
 void PPCSymbolDB::FillInCallers()
@@ -510,6 +504,8 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
   // Write ".text" at the top
   f.WriteString(".text\n");
 
+  const auto& ppc_debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
+
   u32 next_address = 0;
   for (const auto& function : m_functions)
   {
@@ -530,7 +526,7 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
     // Write the code
     for (u32 address = symbol.address; address < next_address; address += 4)
     {
-      const std::string disasm = debugger->Disassemble(&guard, address);
+      const std::string disasm = ppc_debug_interface.Disassemble(&guard, address);
       f.WriteString(fmt::format("{0:08x} {1:<{2}.{3}} {4}\n", address, symbol.name,
                                 SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT, disasm));
     }

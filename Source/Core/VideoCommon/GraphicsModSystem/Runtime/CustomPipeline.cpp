@@ -306,7 +306,7 @@ void CustomPipeline::UpdatePixelData(
         if (texture_asset->m_texture)
         {
           g_gfx->SetTexture(sampler_index, texture_asset->m_texture.get());
-          g_gfx->SetSamplerState(sampler_index, RenderState::GetLinearSamplerState());
+          g_gfx->SetSamplerState(sampler_index, texture_data->m_sampler);
         }
         else
         {
@@ -336,17 +336,20 @@ void CustomPipeline::UpdatePixelData(
               first_slice.m_levels[0].format, 0, texture_type);
           texture_asset->m_texture = g_gfx->CreateTexture(
               texture_config, fmt::format("Custom shader texture '{}'", property.m_code_name));
-          for (std::size_t slice_index = 0; slice_index < texture_data->m_texture.m_slices.size();
-               slice_index++)
+          if (texture_asset->m_texture)
           {
-            auto& slice = texture_data->m_texture.m_slices[slice_index];
-            for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size());
-                 ++level_index)
+            for (std::size_t slice_index = 0; slice_index < texture_data->m_texture.m_slices.size();
+                 slice_index++)
             {
-              auto& level = slice.m_levels[level_index];
-              texture_asset->m_texture->Load(level_index, level.width, level.height,
-                                             level.row_length, level.data.data(), level.data.size(),
-                                             static_cast<u32>(slice_index));
+              auto& slice = texture_data->m_texture.m_slices[slice_index];
+              for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size());
+                   ++level_index)
+              {
+                auto& level = slice.m_levels[level_index];
+                texture_asset->m_texture->Load(level_index, level.width, level.height,
+                                               level.row_length, level.data.data(),
+                                               level.data.size(), static_cast<u32>(slice_index));
+              }
             }
           }
         }

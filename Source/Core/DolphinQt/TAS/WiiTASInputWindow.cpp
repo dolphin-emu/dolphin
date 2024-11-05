@@ -25,6 +25,7 @@
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/System.h"
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
@@ -347,7 +348,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   setLayout(layout);
 
-  if (Core::IsRunning())
+  if (Core::IsRunning(Core::System::GetInstance()))
   {
     m_active_extension = GetWiimote()->GetActiveExtensionNumber();
     m_is_motion_plus_attached = GetWiimote()->IsMotionPlusAttached();

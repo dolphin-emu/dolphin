@@ -16,7 +16,7 @@ class PPCSymbolDB;
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 struct RSOEntry
 {

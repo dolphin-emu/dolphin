@@ -525,7 +525,7 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
 void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 {
   auto& memory = m_system.GetMemory();
-  m_memory_card->Read(m_address, size, memory.GetPointer(addr));
+  m_memory_card->Read(m_address, size, memory.GetPointerForRange(addr, size));
 
   if ((m_address + size) % Memcard::BLOCK_SIZE == 0)
   {
@@ -543,7 +543,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 {
   auto& memory = m_system.GetMemory();
-  m_memory_card->Write(m_address, size, memory.GetPointer(addr));
+  m_memory_card->Write(m_address, size, memory.GetPointerForRange(addr, size));
 
   if (((m_address + size) % Memcard::BLOCK_SIZE) == 0)
   {

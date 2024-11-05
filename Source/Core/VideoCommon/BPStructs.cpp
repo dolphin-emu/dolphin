@@ -412,7 +412,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     static_assert(MAX_LOADABLE_TMEM_ADDR + MAX_TMEM_LINE_COUNT < TMEM_SIZE);
 
     auto& memory = system.GetMemory();
-    memory.CopyFromEmu(texMem + tmem_addr, addr, tmem_transfer_count);
+    memory.CopyFromEmu(s_tex_mem.data() + tmem_addr, addr, tmem_transfer_count);
 
     if (OpcodeDecoder::g_record_fifo_data)
       system.GetFifoRecorder().UseMemory(addr, tmem_transfer_count, MemoryUpdate::Type::TMEM);
@@ -601,19 +601,21 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
       if (tmem_cfg.preload_tile_info.type != 3)
       {
-        bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
-        if (tmem_addr_even + bytes_read > TMEM_SIZE)
-          bytes_read = TMEM_SIZE - tmem_addr_even;
+        if (tmem_addr_even < TMEM_SIZE)
+        {
+          bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+          if (tmem_addr_even + bytes_read > TMEM_SIZE)
+            bytes_read = TMEM_SIZE - tmem_addr_even;
 
-        auto& system = Core::System::GetInstance();
-        auto& memory = system.GetMemory();
-        memory.CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
+          auto& system = Core::System::GetInstance();
+          auto& memory = system.GetMemory();
+          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr, bytes_read);
+        }
       }
       else  // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
       {
         auto& system = Core::System::GetInstance();
         auto& memory = system.GetMemory();
-        u8* src_ptr = memory.GetPointer(src_addr);
 
         // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
         // everything
@@ -623,10 +625,14 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
         {
           if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
               tmem_addr_odd + TMEM_LINE_SIZE > TMEM_SIZE)
+          {
             break;
+          }
 
-          memcpy(texMem + tmem_addr_even, src_ptr + bytes_read, TMEM_LINE_SIZE);
-          memcpy(texMem + tmem_addr_odd, src_ptr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr + bytes_read,
+                             TMEM_LINE_SIZE);
+          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_odd,
+                             src_addr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
           tmem_addr_even += TMEM_LINE_SIZE;
           tmem_addr_odd += TMEM_LINE_SIZE;
           bytes_read += TMEM_LINE_SIZE * 2;

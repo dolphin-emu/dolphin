@@ -61,9 +61,7 @@ public:
 
 private:
   void DrawDebugText();
-#ifdef USE_RETRO_ACHIEVEMENTS
-  void DrawChallenges();
-#endif  // USE_RETRO_ACHIEVEMENTS
+  void DrawChallengesAndLeaderboards();
 
   // ImGui resources.
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
@@ -78,7 +76,7 @@ private:
   float m_backbuffer_scale = 1.0;
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  std::map<std::string, std::unique_ptr<AbstractTexture>, std::less<>> m_challenge_texture_map;
+  std::map<int, std::unique_ptr<AbstractTexture>, std::less<>> m_challenge_texture_map;
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   bool m_ready = false;

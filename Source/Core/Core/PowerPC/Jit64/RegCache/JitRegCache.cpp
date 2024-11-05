@@ -109,19 +109,6 @@ OpArg RCOpArg::Location() const
   return {};
 }
 
-OpArg RCOpArg::ExtractWithByteOffset(int offset)
-{
-  if (offset == 0)
-    return Location();
-
-  ASSERT(rc);
-  const preg_t preg = std::get<preg_t>(contents);
-  rc->StoreFromRegister(preg, RegCache::FlushMode::MaintainState);
-  OpArg result = rc->GetDefaultLocation(preg);
-  result.AddMemOffset(offset);
-  return result;
-}
-
 void RCOpArg::Unlock()
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))

@@ -17,7 +17,7 @@ class XFStateManager;
 namespace AudioInterface
 {
 class AudioInterfaceManager;
-};
+}
 namespace CPU
 {
 class CPUManager;
@@ -42,7 +42,7 @@ class DVDThread;
 namespace ExpansionInterface
 {
 class ExpansionInterfaceManager;
-};
+}
 namespace Fifo
 {
 class FifoManager;
@@ -52,6 +52,10 @@ class FifoRecorder;
 namespace GPFifo
 {
 class GPFifoManager;
+}
+namespace IOS::HLE
+{
+class EmulationKernel;
 }
 namespace HSP
 {
@@ -65,15 +69,15 @@ namespace IOS::HLE::USB
 {
 class SkylanderPortal;
 class InfinityBase;
-};  // namespace IOS::HLE::USB
+}  // namespace IOS::HLE::USB
 namespace Memory
 {
 class MemoryManager;
-};
+}
 namespace MemoryInterface
 {
 class MemoryInterfaceManager;
-};
+}
 namespace Movie
 {
 class MovieManager;
@@ -81,13 +85,14 @@ class MovieManager;
 namespace PixelEngine
 {
 class PixelEngineManager;
-};
+}
 namespace PowerPC
 {
 class MMU;
 class PowerPCManager;
 struct PowerPCState;
 }  // namespace PowerPC
+class PPCSymbolDB;
 namespace ProcessorInterface
 {
 class ProcessorInterfaceManager;
@@ -95,7 +100,7 @@ class ProcessorInterfaceManager;
 namespace SerialInterface
 {
 class SerialInterfaceManager;
-};
+}
 namespace SystemTimers
 {
 class SystemTimersManager;
@@ -107,7 +112,7 @@ class CustomAssetLoader;
 namespace VideoInterface
 {
 class VideoInterfaceManager;
-};
+}
 
 namespace Core
 {
@@ -137,9 +142,11 @@ public:
   bool IsPauseOnPanicMode() const { return m_pause_on_panic_enabled; }
   bool IsMIOS() const { return m_is_mios; }
   bool IsWii() const { return m_is_wii; }
+  bool IsBranchWatchIgnoreApploader() { return m_branch_watch_ignore_apploader; }
 
   void SetIsMIOS(bool is_mios) { m_is_mios = is_mios; }
   void SetIsWii(bool is_wii) { m_is_wii = is_wii; }
+  void SetIsBranchWatchIgnoreApploader(bool enable) { m_branch_watch_ignore_apploader = enable; }
 
   SoundStream* GetSoundStream() const;
   void SetSoundStream(std::unique_ptr<SoundStream> sound_stream);
@@ -147,6 +154,9 @@ public:
   void SetSoundStreamRunning(bool running);
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
+
+  IOS::HLE::EmulationKernel* GetIOS() const;
+  void SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios);
 
   AudioInterface::AudioInterfaceManager& GetAudioInterface() const;
   CPU::CPUManager& GetCPU() const;
@@ -175,6 +185,7 @@ public:
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCManager& GetPowerPC() const;
   PowerPC::PowerPCState& GetPPCState() const;
+  PPCSymbolDB& GetPPCSymbolDB() const;
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
@@ -195,5 +206,6 @@ private:
   bool m_pause_on_panic_enabled = false;
   bool m_is_mios = false;
   bool m_is_wii = false;
+  bool m_branch_watch_ignore_apploader = false;
 };
 }  // namespace Core

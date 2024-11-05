@@ -13,8 +13,5 @@
 	<!-- This is needed to use adhoc signed linked libraries -->
  	<key>com.apple.security.cs.disable-library-validation</key> 
   	<true/>
-	<!-- Allows the Steam overlay library to be injected into our process -->
-	<key>com.apple.security.cs.allow-dyld-environment-variables</key>
-	<true/>
 </dict>
 </plist>

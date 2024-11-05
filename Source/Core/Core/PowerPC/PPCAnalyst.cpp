@@ -187,12 +187,12 @@ bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-static void AnalyzeFunction2(Common::Symbol* func)
+static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [](const auto& call) {
-    const Common::Symbol* called_func = g_symbolDB.GetSymbolFromAddr(call.function);
+  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [&](const auto& call) {
+    const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
     return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
   });
 
@@ -202,21 +202,27 @@ static void AnalyzeFunction2(Common::Symbol* func)
   func->flags = flags;
 }
 
+static bool IsMfspr(UGeckoInstruction inst)
+{
+  return inst.OPCD == 31 && inst.SUBOP10 == 339;
+}
+
 static bool IsMtspr(UGeckoInstruction inst)
 {
   return inst.OPCD == 31 && inst.SUBOP10 == 467;
 }
 
-static bool IsSprInstructionUsingMmcr(UGeckoInstruction inst)
+static u32 GetSPRIndex(UGeckoInstruction inst)
 {
-  const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-  return index == SPR_MMCR0 || index == SPR_MMCR1;
+  DEBUG_ASSERT(IsMfspr(inst) || IsMtspr(inst));
+  return (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 }
 
 static bool InstructionCanEndBlock(const CodeOp& op)
 {
   return (op.opinfo->flags & FL_ENDBLOCK) &&
-         (!IsMtspr(op.inst) || IsSprInstructionUsingMmcr(op.inst));
+         (!IsMtspr(op.inst) || GetSPRIndex(op.inst) == SPR_MMCR0 ||
+          GetSPRIndex(op.inst) == SPR_MMCR1);
 }
 
 bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
@@ -408,7 +414,7 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
       WARN_LOG_FMT(SYMBOLS, "Weird function");
       continue;
     }
-    AnalyzeFunction2(&(func.second));
+    AnalyzeFunction2(func_db, &(func.second));
     Common::Symbol& f = func.second;
     if (f.name.substr(0, 3) == "zzz")
     {
@@ -590,7 +596,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   }
   else if (opinfo->flags & FL_READ_CR_BI)
   {
-    code->crIn[code->inst.BI] = true;
+    code->crIn[code->inst.BI >> 2] = true;
   }
   else if (opinfo->type == OpType::CR)
   {
@@ -637,10 +643,10 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
 
   // mfspr/mtspr can affect/use XER, so be super careful here
   // we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag
-  if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 339)  // mfspr
-    code->wantsCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
-  if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 467)  // mtspr
-    code->outputCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
+  if (IsMfspr(code->inst))
+    code->wantsCA = GetSPRIndex(code->inst) == SPR_XER;
+  if (IsMtspr(code->inst))
+    code->outputCA = GetSPRIndex(code->inst) == SPR_XER;
 
   code->regsIn = BitSet32(0);
   code->regsOut = BitSet32(0);
@@ -824,7 +830,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
   const bool enable_follow = m_enable_branch_following;
 
-  auto& mmu = Core::System::GetInstance().GetMMU();
+  auto& system = Core::System::GetInstance();
+  auto& mmu = system.GetMMU();
   for (std::size_t i = 0; i < block_size; ++i)
   {
     auto result = mmu.TryReadInstruction(address);
@@ -891,7 +898,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           // Through it would be easy to track the upper level of call/return,
           // we can't guarantee the LR value. The PPC ABI forces all functions to push
           // the LR value on the stack as there are no spare registers. So we'd need
-          // to check all store instruction to not alias with the stack.
+          // to check all store instructions to not alias with the stack.
           follow = true;
           found_call = false;
           code[i].skip = true;
@@ -900,16 +907,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           code[caller].skipLRStack = true;
         }
       }
-      else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
+      else if (IsMtspr(inst) && GetSPRIndex(inst) == SPR_LR)
       {
-        // mtspr, skip CALL/RET merging as LR is overwritten.
-        const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-        if (index == SPR_LR)
-        {
-          // We give up to follow the return address
-          // because we have to check the register usage.
-          found_call = false;
-        }
+        // LR has been overwritten, so we give up on following the return address.
+        found_call = false;
       }
     }
 
@@ -961,8 +962,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       }
       if (conditional_continue)
       {
-        // If we skip any conditional branch, we can't garantee to get the matching CALL/RET pair.
-        // So we stop inling the RET here and let the BLR optitmization handle this case.
+        // If we skip any conditional branch, we can't guarantee to get the matching CALL/RET pair.
+        // So we stop inlining the RET here and let the BLR optimization handle this case.
         found_call = false;
       }
     }
@@ -979,6 +980,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     block->m_broken = true;
   }
 
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_symbol_db = power_pc.GetSymbolDB();
   // Scan for flag dependencies; assume the next block (or any branch that can leave the block)
   // wants flags, to be safe.
   bool wantsFPRF = true;
@@ -998,9 +1001,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       crDiscardable = BitSet8{};
     }
 
-    const auto ppc_mode = Core::System::GetInstance().GetPowerPC().GetMode();
-    const bool hle = !!HLE::TryReplaceFunction(op.address, ppc_mode);
-    const bool may_exit_block = hle || op.canEndBlock || op.canCauseException;
+    const auto ppc_mode = power_pc.GetMode();
+    const bool hle = !!HLE::TryReplaceFunction(ppc_symbol_db, op.address, ppc_mode);
+    const bool breakpoint = power_pc.GetBreakPoints().IsAddressBreakPoint(op.address);
+    const bool may_exit_block = hle || breakpoint || op.canEndBlock || op.canCauseException;
 
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
@@ -1026,7 +1030,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
 
-    if (hle)
+    if (hle || breakpoint)
     {
       gprInUse = BitSet32{};
       fprInUse = BitSet32{};
@@ -1138,9 +1142,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       gqrUsed[gqr] = true;
     }
 
-    if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 467)  // mtspr
+    if (IsMtspr(op.inst))
     {
-      const int gqr = ((op.inst.SPRU << 5) | op.inst.SPRL) - SPR_GQR0;
+      const int gqr = GetSPRIndex(op.inst) - SPR_GQR0;
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }

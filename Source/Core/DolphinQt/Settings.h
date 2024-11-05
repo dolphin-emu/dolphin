@@ -51,7 +51,7 @@ public:
   static QSettings& GetQSettings();
 
   // UI
-  void SetThemeName(const QString& theme_name);
+  void TriggerThemeChanged();
   void InitDefaultPalette();
   void UpdateSystemDark();
   void SetSystemDark(bool dark);
@@ -104,7 +104,6 @@ public:
   void RefreshGameList();
   void NotifyRefreshGameListStarted();
   void NotifyRefreshGameListComplete();
-  void RefreshMetadata();
   void NotifyMetadataRefreshComplete();
   void ReloadTitleDB();
   bool IsAutoRefreshEnabled() const;
@@ -124,10 +123,11 @@ public:
   bool IsUSBKeyboardConnected() const;
   void SetUSBKeyboardConnected(bool connected);
 
+  void SetIsContinuouslyFrameStepping(bool is_stepping);
+  bool GetIsContinuouslyFrameStepping() const;
+
   // Graphics
-  void SetCursorVisibility(Config::ShowCursor hideCursor);
   Config::ShowCursor GetCursorVisibility() const;
-  void SetLockCursor(bool lock_cursor);
   bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
   bool IsKeepWindowOnTopEnabled() const;
@@ -148,7 +148,6 @@ public:
 
   // Cheats
   bool GetCheatsEnabled() const;
-  void SetCheatsEnabled(bool enabled);
 
   // Debug
   void SetDebugModeEnabled(bool enabled);
@@ -220,7 +219,7 @@ signals:
   void JITVisibilityChanged(bool visible);
   void AssemblerVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
-  void DebugFontChanged(QFont font);
+  void DebugFontChanged(const QFont& font);
   void AutoUpdateTrackChanged(const QString& mode);
   void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
@@ -229,11 +228,14 @@ signals:
   void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);
   void EnableGfxModsChanged(bool enabled);
+  void HardcoreStateChanged();
 
 private:
   Settings();
 
   bool m_batch = false;
+  std::atomic<bool> m_continuously_frame_stepping = false;
+
   std::shared_ptr<NetPlay::NetPlayClient> m_client;
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
   ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;

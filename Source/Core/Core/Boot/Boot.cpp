@@ -236,7 +236,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
   static const std::unordered_set<std::string> disc_image_extensions = {
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
-  if (disc_image_extensions.find(extension) != disc_image_extensions.end())
+  if (disc_image_extensions.contains(extension))
   {
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
@@ -352,11 +352,6 @@ bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, 
   return true;
 }
 
-void CBoot::UpdateDebugger_MapLoaded()
-{
-  Host_NotifyMapLoaded();
-}
-
 // Get map file paths for the active title.
 bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
 {
@@ -377,13 +372,13 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
   return false;
 }
 
-bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard)
+bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db)
 {
   std::string strMapFilename;
   bool found = FindMapFile(&strMapFilename, nullptr);
-  if (found && g_symbolDB.LoadMap(guard, strMapFilename))
+  if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
   {
-    UpdateDebugger_MapLoaded();
+    Host_PPCSymbolsChanged();
     return true;
   }
 
@@ -515,10 +510,10 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 {
   SConfig& config = SConfig::GetInstance();
 
-  if (!g_symbolDB.IsEmpty())
+  if (auto& ppc_symbol_db = system.GetPPCSymbolDB(); !ppc_symbol_db.IsEmpty())
   {
-    g_symbolDB.Clear();
-    UpdateDebugger_MapLoaded();
+    ppc_symbol_db.Clear();
+    Host_PPCSymbolsChanged();
   }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
@@ -574,17 +569,14 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
-        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
+        system.GetIOS()->BootIOS(Titles::IOS(58));
       }
       else
       {
         SetupGCMemory(system, guard);
       }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-      AchievementManager::GetInstance().HashGame(executable.path,
-                                                 [](AchievementManager::ResponseType r_type) {});
-#endif  // USE_RETRO_ACHIEVEMENTS
+      AchievementManager::GetInstance().LoadGame(executable.path, nullptr);
 
       if (!executable.reader->LoadIntoMemory(system))
       {
@@ -596,9 +588,9 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       ppc_state.pc = executable.reader->GetEntryPoint();
 
-      if (executable.reader->LoadSymbols(guard))
+      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB()))
       {
-        UpdateDebugger_MapLoaded();
+        Host_PPCSymbolsChanged();
         HLE::PatchFunctions(system);
       }
       return true;
@@ -705,7 +697,7 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 {
   CreateSystemMenuTitleDirs();
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;
-  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
                                           {rw_mode, rw_mode, rw_mode});
@@ -725,7 +717,7 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 
 void CreateSystemMenuTitleDirs()
 {
-  const auto& es = IOS::HLE::GetIOS()->GetESCore();
+  const auto& es = Core::System::GetInstance().GetIOS()->GetESCore();
   es.CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
 }
 

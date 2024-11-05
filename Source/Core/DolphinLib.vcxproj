@@ -50,7 +50,7 @@
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />
   <Import Project="$(ExternalsDir)miniupnpc\exports.props" />
-  <Import Project="$(ExternalsDir)minizip\exports.props" />
+  <Import Project="$(ExternalsDir)minizip-ng\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
   <Import Project="$(ExternalsDir)pugixml\exports.props" />
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />
@@ -58,6 +58,7 @@
   <Import Project="$(ExternalsDir)SFML\exports.props" />
   <Import Project="$(ExternalsDir)soundtouch\exports.props" />
   <Import Project="$(ExternalsDir)spirv_cross\exports.props" />
+  <Import Project="$(ExternalsDir)tinygltf\exports.props" />
   <Import Project="$(ExternalsDir)xxhash\exports.props" />
   <Import Project="$(ExternalsDir)zlib-ng\exports.props" />
   <Import Project="$(ExternalsDir)zstd\exports.props" />

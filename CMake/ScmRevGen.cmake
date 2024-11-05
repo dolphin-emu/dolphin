@@ -18,16 +18,22 @@ if(GIT_FOUND)
   execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
       OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
       OUTPUT_STRIP_TRAILING_WHITESPACE)
+  # defines DOLPHIN_WC_COMMITS_AHEAD_MASTER
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD ^master
+      OUTPUT_VARIABLE DOLPHIN_WC_COMMITS_AHEAD_MASTER
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  # defines DOLPHIN_WC_TAG
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --exact-match HEAD
+    OUTPUT_VARIABLE DOLPHIN_WC_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
 endif()
 
 # version number
-set(DOLPHIN_VERSION_MAJOR "5")
+set(DOLPHIN_VERSION_MAJOR "2409")
 set(DOLPHIN_VERSION_MINOR "0")
-if(DOLPHIN_WC_BRANCH STREQUAL "stable")
-  set(DOLPHIN_VERSION_PATCH "0")
-else()
-  set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
-endif()
+set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
 
 # If Dolphin is not built from a Git repository, default the version info to
 # reasonable values.
@@ -35,19 +41,30 @@ if(NOT DOLPHIN_WC_REVISION)
   set(DOLPHIN_WC_DESCRIBE "${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}")
   set(DOLPHIN_WC_REVISION "${DOLPHIN_WC_DESCRIBE} (no further info)")
   set(DOLPHIN_WC_BRANCH "master")
+  set(DOLPHIN_WC_COMMITS_AHEAD_MASTER 0)
 endif()
 
-if(DOLPHIN_WC_BRANCH STREQUAL "master" OR DOLPHIN_WC_BRANCH STREQUAL "stable")
-  set(DOLPHIN_WC_IS_STABLE "1")
-else()
-  set(DOLPHIN_WC_IS_STABLE "0")
+# If this is a tag (i.e. a release), then set the current patch version and
+# the number of commits ahead to zero.
+if(DOLPHIN_WC_TAG)
+  set(DOLPHIN_VERSION_PATCH "0")
+  set(DOLPHIN_WC_COMMITS_AHEAD_MASTER 0)
 endif()
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h.in"
-  "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp"
-)
+function(configure_source_file path)
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${path}.in"
+    "${PROJECT_BINARY_DIR}/${path}.tmp"
+  )
 
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp" "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h")
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/${path}.tmp" "${PROJECT_BINARY_DIR}/${path}")
 
-file(REMOVE "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp")
+  file(REMOVE "${PROJECT_BINARY_DIR}/${path}.tmp")
+endfunction()
+
+configure_source_file("Source/Core/Common/scmrev.h")
+
+if(APPLE)
+  configure_source_file("Source/Core/DolphinQt/Info.plist")
+  configure_source_file("Source/Core/MacUpdater/Info.plist")
+endif()

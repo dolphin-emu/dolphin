@@ -13,7 +13,7 @@ std::vector<std::string> Host_GetPreferredLocales()
 {
   return {};
 }
-void Host_NotifyMapLoaded()
+void Host_PPCSymbolsChanged()
 {
 }
 void Host_RefreshDSPDebuggerWindow()
@@ -56,6 +56,10 @@ bool Host_RendererHasFullFocus()
   return false;
 }
 bool Host_RendererIsFullscreen()
+{
+  return false;
+}
+bool Host_TASInputHasFocus()
 {
   return false;
 }

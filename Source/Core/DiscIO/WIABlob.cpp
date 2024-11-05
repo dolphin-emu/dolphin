@@ -765,7 +765,14 @@ bool WIARVZFileReader<RVZ>::Chunk::Decompress()
     const size_t bytes_to_move = m_out.bytes_written - m_out_bytes_used_for_exceptions;
 
     DecompressionBuffer in{std::vector<u8>(bytes_to_move), bytes_to_move};
-    std::memcpy(in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions, bytes_to_move);
+
+    // Copying to a null pointer is undefined behaviour, so only copy when we
+    // actually have data to copy.
+    if (bytes_to_move > 0)
+    {
+      std::memcpy(in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions,
+                  bytes_to_move);
+    }
 
     m_out.bytes_written = m_out_bytes_used_for_exceptions;
 
@@ -1120,27 +1127,27 @@ bool WIARVZFileReader<RVZ>::TryReuse(std::map<ReuseID, GroupEntry>* reusable_gro
 static bool AllAre(const std::vector<u8>& data, u8 x)
 {
   return std::all_of(data.begin(), data.end(), [x](u8 y) { return x == y; });
-};
+}
 
 static bool AllAre(const u8* begin, const u8* end, u8 x)
 {
   return std::all_of(begin, end, [x](u8 y) { return x == y; });
-};
+}
 
 static bool AllZero(const std::vector<u8>& data)
 {
   return AllAre(data, 0);
-};
+}
 
 static bool AllSame(const std::vector<u8>& data)
 {
   return AllAre(data, data.front());
-};
+}
 
 static bool AllSame(const u8* begin, const u8* end)
 {
   return AllAre(begin, end, *begin);
-};
+}
 
 template <typename OutputParametersEntry>
 static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chunk, size_t chunks,

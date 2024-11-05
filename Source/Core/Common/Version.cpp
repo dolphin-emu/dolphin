@@ -9,6 +9,8 @@
 
 namespace Common
 {
+#define EMULATOR_NAME "Dolphin"
+
 #ifdef _DEBUG
 #define BUILD_TYPE_STR "Debug "
 #elif defined DEBUGFAST
@@ -23,12 +25,6 @@ namespace Common
 #define SLIPPI_REV_STR "3.2.0"  // playback version
 #endif
 
-const std::string& GetSemVerStr()
-{
-  static const std::string sem_ver_str = SLIPPI_REV_STR;
-  return sem_ver_str;
-}
-
 const std::string& GetScmRevStr()
 {
 #ifndef IS_PLAYBACK
@@ -38,6 +34,12 @@ const std::string& GetScmRevStr()
       "Mainline - Slippi (" SLIPPI_REV_STR ") - Playback" BUILD_TYPE_STR;
 #endif
   return scm_rev_str;
+}
+
+const std::string& GetSemVerStr()
+{
+  static const std::string sem_ver_str = SLIPPI_REV_STR;
+  return sem_ver_str;
 }
 
 const std::string& GetScmRevGitStr()
@@ -56,6 +58,12 @@ const std::string& GetScmBranchStr()
 {
   static const std::string scm_branch_str = SCM_BRANCH_STR;
   return scm_branch_str;
+}
+
+const std::string& GetUserAgentStr()
+{
+  static const std::string user_agent_str = EMULATOR_NAME "/" SCM_DESC_STR;
+  return user_agent_str;
 }
 
 const std::string& GetScmDistributorStr()
@@ -80,6 +88,12 @@ const std::string& GetNetplayDolphinVer()
   static const std::string netplay_dolphin_ver = "Slippi-" SCM_DESC_STR " Lin";
 #endif
   return netplay_dolphin_ver;
+}
+
+int GetScmCommitsAheadMaster()
+{
+  // Note this macro can be empty if the master branch does not exist.
+  return SCM_COMMITS_AHEAD_MASTER + 0;
 }
 
 }  // namespace Common

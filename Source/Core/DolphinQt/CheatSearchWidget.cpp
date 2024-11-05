@@ -41,6 +41,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
@@ -54,8 +55,10 @@ constexpr int ADDRESS_TABLE_COLUMN_INDEX_ADDRESS = 1;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_LAST_VALUE = 2;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE = 3;
 
-CheatSearchWidget::CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionBase> session)
-    : m_session(std::move(session))
+CheatSearchWidget::CheatSearchWidget(Core::System& system,
+                                     std::unique_ptr<Cheats::CheatSearchSessionBase> session,
+                                     QWidget* parent)
+    : QWidget(parent), m_system(system), m_session(std::move(session))
 {
   setAttribute(Qt::WA_DeleteOnClose);
   CreateWidgets();
@@ -172,6 +175,7 @@ void CheatSearchWidget::CreateWidgets()
     }
     QString aligned = m_session->GetAligned() ? tr("aligned") : tr("unaligned");
     session_info_label->setText(tr("%1, %2, %3, %4").arg(ranges).arg(space).arg(type).arg(aligned));
+    session_info_label->setWordWrap(true);
   }
 
   // i18n: This label is followed by a dropdown where the user can select things like "is equal to"
@@ -254,7 +258,8 @@ void CheatSearchWidget::CreateWidgets()
   layout->addWidget(m_info_label_1);
   layout->addWidget(m_info_label_2);
   layout->addWidget(m_address_table);
-  setLayout(layout);
+
+  WrapInScrollArea(this, layout);
 }
 
 void CheatSearchWidget::ConnectWidgets()
@@ -275,13 +280,10 @@ void CheatSearchWidget::ConnectWidgets()
 
 void CheatSearchWidget::OnNextScanClicked()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   const bool had_old_results = m_session->WasFirstSearchDone();
-  const size_t old_count = m_session->GetResultCount();
 
   const auto filter_type = m_value_source_dropdown->currentData().value<Cheats::FilterType>();
-  if (filter_type == Cheats::FilterType::CompareAgainstLastValue &&
-      !m_session->WasFirstSearchDone())
+  if (filter_type == Cheats::FilterType::CompareAgainstLastValue && !had_old_results)
   {
     m_info_label_1->setText(tr("Cannot compare against last value on first search."));
     return;
@@ -301,7 +303,8 @@ void CheatSearchWidget::OnNextScanClicked()
     }
   }
 
-  const Cheats::SearchErrorCode error_code = m_session->RunSearch(guard);
+  const size_t old_count = m_session->GetResultCount();
+  const Cheats::SearchErrorCode error_code = m_session->RunSearch(Core::CPUThreadGuard{m_system});
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {
@@ -416,11 +419,11 @@ void CheatSearchWidget::UpdateTableVisibleCurrentValues(const UpdateSource sourc
   if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
     return;
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (m_address_table->rowCount() == 0)
     return;
 
-  UpdateTableRows(guard, GetVisibleRowsBeginIndex(), GetVisibleRowsEndIndex(), source);
+  UpdateTableRows(Core::CPUThreadGuard{m_system}, GetVisibleRowsBeginIndex(),
+                  GetVisibleRowsEndIndex(), source);
 }
 
 bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
@@ -428,7 +431,6 @@ bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
   if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
     return false;
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   const size_t result_count = m_address_table->rowCount();
   if (result_count == 0)
   {
@@ -437,7 +439,7 @@ bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
     return false;
   }
 
-  return UpdateTableRows(guard, 0, result_count, source);
+  return UpdateTableRows(Core::CPUThreadGuard{m_system}, 0, result_count, source);
 }
 
 void CheatSearchWidget::OnRefreshClicked()
@@ -447,7 +449,6 @@ void CheatSearchWidget::OnRefreshClicked()
 
 void CheatSearchWidget::OnResetClicked()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   m_session->ResetResults();
   m_address_table_current_values.clear();
 
@@ -494,13 +495,14 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
 
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
   menu->addAction(tr("Add to watch"), this, [this, address] {
     const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
     emit RequestWatch(name, address);
   });
-  menu->addAction(tr("Generate Action Replay Code"), this, &CheatSearchWidget::GenerateARCode);
+  menu->addAction(tr("Generate Action Replay Code(s)"), this, &CheatSearchWidget::GenerateARCodes);
 
   menu->exec(QCursor::pos());
 }
@@ -519,41 +521,70 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
     return;
 
   // If the game is running CheatsManager::OnFrameEnd will update values automatically.
-  if (Core::GetState() != Core::State::Running)
+  if (Core::GetState(m_system) != Core::State::Running)
     UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
-void CheatSearchWidget::GenerateARCode()
+void CheatSearchWidget::GenerateARCodes()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (m_address_table->selectedItems().isEmpty())
     return;
 
-  auto* item = m_address_table->selectedItems()[0];
-  if (!item)
-    return;
+  bool had_success = false;
+  bool had_error = false;
+  std::optional<Cheats::GenerateActionReplayCodeErrorCode> error_code;
 
-  const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
-  auto result = Cheats::GenerateActionReplayCode(*m_session, index);
-  if (result)
+  for (auto* const item : m_address_table->selectedItems())
   {
-    emit ActionReplayCodeGenerated(*result);
-    m_info_label_1->setText(tr("Generated AR code."));
-  }
-  else
-  {
-    switch (result.Error())
+    const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
+    auto result = Cheats::GenerateActionReplayCode(*m_session, index);
+    if (result)
     {
-    case Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory:
-      m_info_label_1->setText(tr("Can only generate AR code for values in virtual memory."));
-      break;
-    case Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress:
-      m_info_label_1->setText(tr("Cannot generate AR code for this address."));
-      break;
-    default:
-      m_info_label_1->setText(tr("Internal error while generating AR code."));
-      break;
+      emit ActionReplayCodeGenerated(*result);
+      had_success = true;
     }
+    else
+    {
+      const auto new_error_code = result.Error();
+      if (!had_error)
+      {
+        error_code = new_error_code;
+      }
+      else if (error_code != new_error_code)
+      {
+        // If we have a different error code signify multiple errors with an empty optional<>.
+        error_code.reset();
+      }
+
+      had_error = true;
+    }
+  }
+
+  if (had_error)
+  {
+    if (error_code.has_value())
+    {
+      switch (*error_code)
+      {
+      case Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory:
+        m_info_label_1->setText(tr("Can only generate AR code for values in virtual memory."));
+        break;
+      case Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress:
+        m_info_label_1->setText(tr("Cannot generate AR code for this address."));
+        break;
+      default:
+        m_info_label_1->setText(tr("Internal error while generating AR code."));
+        break;
+      }
+    }
+    else
+    {
+      m_info_label_1->setText(tr("Multiple errors while generating AR codes."));
+    }
+  }
+  else if (had_success)
+  {
+    m_info_label_1->setText(tr("Generated AR code(s)."));
   }
 }
 

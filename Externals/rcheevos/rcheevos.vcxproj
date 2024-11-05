@@ -22,7 +22,6 @@
     <ClCompile Include="rcheevos\src\rapi\rc_api_runtime.c" />
     <ClCompile Include="rcheevos\src\rapi\rc_api_user.c" />
     <ClCompile Include="rcheevos\src\rcheevos\alloc.c" />
-    <ClCompile Include="rcheevos\src\rcheevos\compat.c" />
     <ClCompile Include="rcheevos\src\rcheevos\condition.c" />
     <ClCompile Include="rcheevos\src\rcheevos\condset.c" />
     <ClCompile Include="rcheevos\src\rcheevos\consoleinfo.c" />
@@ -36,9 +35,16 @@
     <ClCompile Include="rcheevos\src\rcheevos\runtime_progress.c" />
     <ClCompile Include="rcheevos\src\rcheevos\trigger.c" />
     <ClCompile Include="rcheevos\src\rcheevos\value.c" />
+    <ClCompile Include="rcheevos\src\rhash\aes.c" />
+    <ClCompile Include="rcheevos\src\rhash\cdreader.c" />
     <ClCompile Include="rcheevos\src\rhash\hash.c" />
     <ClCompile Include="rcheevos\src\rhash\md5.c" />
     <ClCompile Include="rcheevos\src\rurl\url.c" />
+    <ClCompile Include="rcheevos\src\rc_client.c" />
+    <ClCompile Include="rcheevos\src\rc_client_raintegration.c" />
+    <ClCompile Include="rcheevos\src\rc_compat.c" />
+    <ClCompile Include="rcheevos\src\rc_util.c" />
+    <ClCompile Include="rcheevos\src\rc_version.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rcheevos\include\rcheevos.h" />
@@ -47,21 +53,30 @@
     <ClInclude Include="rcheevos\include\rc_api_request.h" />
     <ClInclude Include="rcheevos\include\rc_api_runtime.h" />
     <ClInclude Include="rcheevos\include\rc_api_user.h" />
+    <ClInclude Include="rcheevos\include\rc_client.h" />
+    <ClInclude Include="rcheevos\include\rc_client_raintegration.h" />
     <ClInclude Include="rcheevos\include\rc_consoles.h" />
     <ClInclude Include="rcheevos\include\rc_error.h" />
+    <ClInclude Include="rcheevos\include\rc_export.h" />
     <ClInclude Include="rcheevos\include\rc_hash.h" />
     <ClInclude Include="rcheevos\include\rc_runtime.h" />
     <ClInclude Include="rcheevos\include\rc_runtime_types.h" />
     <ClInclude Include="rcheevos\include\rc_url.h" />
+    <ClInclude Include="rcheevos\include\rc_util.h" />
     <ClInclude Include="rcheevos\src\rapi\rc_api_common.h" />
-    <ClInclude Include="rcheevos\src\rcheevos\rc_compat.h" />
     <ClInclude Include="rcheevos\src\rcheevos\rc_internal.h" />
     <ClInclude Include="rcheevos\src\rcheevos\rc_validate.h" />
+    <ClInclude Include="rcheevos\src\rhash\aes.h" />
     <ClInclude Include="rcheevos\src\rhash\md5.h" />
+    <ClInclude Include="rcheevos\src\rc_client_external.h" />
+    <ClInclude Include="rcheevos\src\rc_client_internal.h" />
+    <ClInclude Include="rcheevos\src\rc_client_raintegration_internal.h" />
+    <ClInclude Include="rcheevos\src\rc_compat.h" />
+    <ClInclude Include="rcheevos\src\rc_version.h" />
   </ItemGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;RC_CLIENT_SUPPORTS_HASH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)rcheevos\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>

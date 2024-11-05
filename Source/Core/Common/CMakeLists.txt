@@ -89,6 +89,7 @@ add_library(common
   JitRegister.cpp
   JitRegister.h
   JsonUtil.h
+  JsonUtil.cpp
   Lazy.h
   LinearDiskCache.h
   Logging/ConsoleListener.h
@@ -110,8 +111,6 @@ add_library(common
   Network.h
   PcapFile.cpp
   PcapFile.h
-  PerformanceCounter.cpp
-  PerformanceCounter.h
   Profiler.cpp
   Profiler.h
   QoSSession.cpp
@@ -130,6 +129,7 @@ add_library(common
   SmallVector.h
   SocketContext.cpp
   SocketContext.h
+  SpanUtils.h
   SPSCQueue.h
   StringLiteral.h
   StringUtil.cpp
@@ -140,10 +140,13 @@ add_library(common
   Thread.h
   Timer.cpp
   Timer.h
+  TimeUtil.cpp
+  TimeUtil.h
   TraversalClient.cpp
   TraversalClient.h
   TraversalProto.h
   TypeUtils.h
+  Unreachable.h
   UPnP.cpp
   UPnP.h
   VariantUtil.h

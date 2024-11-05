@@ -213,7 +213,11 @@ void EnhancementsWidget::CreateWidgets()
   m_3d_depth = new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
   m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
                                       Config::GFX_STEREO_CONVERGENCE, 100);
+
   m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+
+  m_3d_per_eye_resolution =
+      new ConfigBool(tr("Use Full Resolution Per Eye"), Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
@@ -222,6 +226,11 @@ void EnhancementsWidget::CreateWidgets()
   stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 2, 0);
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
+  stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);
+
+  auto current_stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+  if (current_stereo_mode != StereoMode::SBS && current_stereo_mode != StereoMode::TAB)
+    m_3d_per_eye_resolution->hide();
 
   main_layout->addWidget(enhancements_box);
   main_layout->addWidget(stereoscopy_box);
@@ -241,32 +250,46 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_3d_mode, &QComboBox::currentIndexChanged, [this] {
     m_block_save = true;
     m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-    LoadPPShaders();
-    m_block_save = false;
 
+    auto current_stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+    LoadPPShaders(current_stereo_mode);
+
+    if (current_stereo_mode == StereoMode::SBS || current_stereo_mode == StereoMode::TAB)
+      m_3d_per_eye_resolution->show();
+    else
+      m_3d_per_eye_resolution->hide();
+
+    m_block_save = false;
     SaveSettings();
   });
   connect(m_configure_color_correction, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigureColorCorrection);
   connect(m_configure_pp_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
+    const QSignalBlocker blocker(this);
+    m_block_save = true;
+    LoadPPShaders(Config::Get(Config::GFX_STEREO_MODE));
+    m_block_save = false;
+  });
 }
 
-void EnhancementsWidget::LoadPPShaders()
+void EnhancementsWidget::LoadPPShaders(StereoMode stereo_mode)
 {
   std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
-  if (g_Config.stereo_mode == StereoMode::Anaglyph)
+  if (stereo_mode == StereoMode::Anaglyph)
   {
     shaders = VideoCommon::PostProcessing::GetAnaglyphShaderList();
   }
-  else if (g_Config.stereo_mode == StereoMode::Passive)
+  else if (stereo_mode == StereoMode::Passive)
   {
     shaders = VideoCommon::PostProcessing::GetPassiveShaderList();
   }
 
   m_pp_effect->clear();
 
-  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
+  if (stereo_mode != StereoMode::Anaglyph && stereo_mode != StereoMode::Passive)
     m_pp_effect->addItem(tr("(off)"));
 
   auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
@@ -283,10 +306,23 @@ void EnhancementsWidget::LoadPPShaders()
     }
   }
 
-  if (g_Config.stereo_mode == StereoMode::Anaglyph && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
-  else if (g_Config.stereo_mode == StereoMode::Passive && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
+  if (!found)
+  {
+    if (stereo_mode == StereoMode::Anaglyph)
+      selected_shader = "dubois";
+    else if (stereo_mode == StereoMode::Passive)
+      selected_shader = "horizontal";
+    else
+      selected_shader = "";
+
+    int index = m_pp_effect->findText(QString::fromStdString(selected_shader));
+    if (index >= 0)
+      m_pp_effect->setCurrentIndex(index);
+    else
+      m_pp_effect->setCurrentIndex(0);
+
+    Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, selected_shader);
+  }
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
@@ -372,7 +408,8 @@ void EnhancementsWidget::LoadSettings()
   // Resampling
   const OutputResamplingMode output_resampling_mode =
       Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
-  m_output_resampling_combo->setCurrentIndex(static_cast<int>(output_resampling_mode));
+  m_output_resampling_combo->setCurrentIndex(
+      m_output_resampling_combo->findData(static_cast<int>(output_resampling_mode)));
 
   m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
@@ -380,7 +417,7 @@ void EnhancementsWidget::LoadSettings()
   m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
   // Post Processing Shader
-  LoadPPShaders();
+  LoadPPShaders(Config::Get(Config::GFX_STEREO_MODE));
 
   // Stereoscopy
   const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
@@ -527,20 +564,20 @@ void EnhancementsWidget::AddDescriptions()
 
                  "<br><br><b>Bicubic</b> - [16 samples]"
                  "<br>Gamma corrected cubic interpolation between pixels."
-                 "<br>Good when rescaling between close resolutions. i.e 1080p and 1440p."
+                 "<br>Good when rescaling between close resolutions, e.g. 1080p and 1440p."
                  "<br>Comes in various flavors:"
                  "<br><b>B-Spline</b>: Blurry, but avoids all lobing artifacts"
                  "<br><b>Mitchell-Netravali</b>: Good middle ground between blurry and lobing"
                  "<br><b>Catmull-Rom</b>: Sharper, but can cause lobing artifacts"
 
                  "<br><br><b>Sharp Bilinear</b> - [1-4 samples]"
-                 "<br>Similarly to \"Nearest Neighbor\", it maintains a sharp look,"
+                 "<br>Similar to \"Nearest Neighbor\", it maintains a sharp look,"
                  "<br>but also does some blending to avoid shimmering."
                  "<br>Works best with 2D games at low resolutions."
 
                  "<br><br><b>Area Sampling</b> - [up to 324 samples]"
-                 "<br>Weights pixels by the percentage of area they occupy. Gamma corrected."
-                 "<br>Best for down scaling by more than 2x."
+                 "<br>Weighs pixels by the percentage of area they occupy. Gamma corrected."
+                 "<br>Best for downscaling by more than 2x."
 
                  "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
@@ -588,6 +625,10 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
       "Swaps the left and right eye. Most useful in side-by-side stereoscopy "
       "mode.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_3D_PER_EYE_RESOLUTION_DESCRIPTION[] =
+      QT_TR_NOOP("Whether each eye gets full or half image resolution when using side-by-side "
+                 "or above-and-below 3D."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_FORCE_24BIT_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to render the RGB color channels in 24-bit, thereby increasing "
       "quality by reducing color banding.<br><br>Has no impact on performance and causes "
@@ -657,6 +698,8 @@ void EnhancementsWidget::AddDescriptions()
 
   m_3d_convergence->SetTitle(tr("Convergence"));
   m_3d_convergence->SetDescription(tr(TR_3D_CONVERGENCE_DESCRIPTION));
+
+  m_3d_per_eye_resolution->SetDescription(tr(TR_3D_PER_EYE_RESOLUTION_DESCRIPTION));
 
   m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
 }

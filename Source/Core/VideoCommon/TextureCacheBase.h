@@ -27,11 +27,13 @@
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureInfo.h"
+#include "VideoCommon/TextureUtils.h"
 #include "VideoCommon/VideoEvents.h"
 
 class AbstractFramebuffer;
 class AbstractStagingTexture;
 class PointerWrap;
+struct SamplerState;
 struct VideoConfig;
 
 namespace VideoCommon
@@ -281,7 +283,7 @@ public:
   RcTcacheEntry GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                               MathUtil::Rectangle<int>* display_rect);
 
-  virtual void BindTextures(BitSet32 used_textures);
+  virtual void BindTextures(BitSet32 used_textures, const std::array<SamplerState, 8>& samplers);
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy,
                                  const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
@@ -306,6 +308,10 @@ public:
 
   static bool AllCopyFilterCoefsNeeded(const std::array<u32, 3>& coefficients);
   static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
+
+  // Get a new sampler state
+  static SamplerState GetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
+                                      bool has_arbitrary_mips);
 
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
@@ -460,6 +466,8 @@ private:
 
   Common::EventHook m_frame_event =
       AfterFrameEvent::Register([this](Core::System&) { OnFrameEnd(); }, "TextureCache");
+
+  VideoCommon::TextureUtils::TextureDumper m_texture_dumper;
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

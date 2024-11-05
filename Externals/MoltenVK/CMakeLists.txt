@@ -1,6 +1,6 @@
 include(ExternalProject)
 
-set(MOLTENVK_VERSION "v1.2.3")
+set(MOLTENVK_VERSION "v1.2.8")
 
 ExternalProject_Add(MoltenVK
   GIT_REPOSITORY https://github.com/KhronosGroup/MoltenVK.git
@@ -12,7 +12,7 @@ ExternalProject_Add(MoltenVK
 
   BUILD_COMMAND make -C <SOURCE_DIR> macos
   BUILD_IN_SOURCE ON
-  BUILD_BYPRODUCTS <SOURCE_DIR>/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib
+  BUILD_BYPRODUCTS <SOURCE_DIR>/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib
 
   INSTALL_COMMAND ""
 

@@ -137,7 +137,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 28> GAME_QUIRKS_NAMES{
+constexpr std::array<const char*, 34> GAME_QUIRKS_NAMES{
     "directly-reads-wiimote-input",
     "uses-DVDLowStopLaser",
     "uses-DVDLowOffset",
@@ -158,6 +158,8 @@ constexpr std::array<const char*, 28> GAME_QUIRKS_NAMES{
     "uses-cp-perf-command",
     "uses-unimplemented-ax-command",
     "uses-ax-initial-time-delay",
+    "uses-ax-wiimote-lowpass",
+    "uses-ax-wiimote-biquad",
     "sets-xf-clipdisable-bit-0",
     "sets-xf-clipdisable-bit-1",
     "sets-xf-clipdisable-bit-2",
@@ -166,6 +168,10 @@ constexpr std::array<const char*, 28> GAME_QUIRKS_NAMES{
     "mismatched-gpu-tex-coords-between-cp-and-xf",
     "mismatched-gpu-matrix-indices-between-cp-and-xf",
     "reads-bounding-box",
+    "invalid-position-component-format",
+    "invalid-normal-component-format",
+    "invalid-texture-coordinate-component-format",
+    "invalid-color-component-format",
 };
 static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
               "Game quirks names and enum definition are out of sync.");
@@ -381,6 +387,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-internal-resolution", g_Config.iEFBScale);
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
   builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(g_Config.stereo_mode));
+  builder.AddData("cfg-gfx-stereo-per-eye-resolution-full",
+                  g_Config.stereo_per_eye_resolution_full);
   builder.AddData("cfg-gfx-hdr", static_cast<int>(g_Config.bHDR));
   builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
   builder.AddData("cfg-gfx-shader-compilation-mode", GetShaderCompilationMode(g_Config));

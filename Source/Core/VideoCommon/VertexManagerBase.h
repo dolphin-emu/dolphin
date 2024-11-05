@@ -45,7 +45,7 @@ enum TexelBufferFormat : u32
 namespace OpcodeDecoder
 {
 enum class Primitive : u8;
-};
+}
 
 class VertexManagerBase
 {
@@ -79,6 +79,8 @@ private:
       {
         return normal_vertex_count + anamorphic_vertex_count + other_vertex_count;
       }
+
+      MathUtil::RunningMean<float> average_ratio;
     };
 
     ProjectionCounts perspective;
@@ -247,7 +249,7 @@ private:
   bool m_allow_background_execution = true;
 
   std::unique_ptr<CustomShaderCache> m_custom_shader_cache;
-  u64 m_ticks_elapsed;
+  u64 m_ticks_elapsed = 0;
 
   Common::EventHook m_frame_end_event;
   Common::EventHook m_after_present_event;

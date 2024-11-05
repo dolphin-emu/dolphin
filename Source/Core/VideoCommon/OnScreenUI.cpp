@@ -298,7 +298,8 @@ void OnScreenUI::DrawDebugText()
       else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
         ImGui::Text("Frame: %" PRIu64, movie.GetCurrentFrame());
-        ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
+        if (movie.IsRecordingInput())
+          ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
       }
       if (Config::Get(Config::MAIN_SHOW_LAG))
         ImGui::Text("Lag: %" PRIu64 "\n", movie.GetCurrentLagCount());
@@ -349,66 +350,74 @@ void OnScreenUI::DrawDebugText()
   }
 }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-void OnScreenUI::DrawChallenges()
+void OnScreenUI::DrawChallengesAndLeaderboards()
 {
-  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  const auto& challenge_icons = AchievementManager::GetInstance().GetChallengeIcons();
-  if (challenge_icons.empty())
+  if (!Config::Get(Config::MAIN_OSD_MESSAGES))
     return;
-
-  const std::string window_name = "Challenges";
-
-  u32 sum_of_icon_heights = 0;
-  u32 max_icon_width = 0;
-  for (const auto& [name, icon] : challenge_icons)
+#ifdef USE_RETRO_ACHIEVEMENTS
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.GetLock()};
+  if (instance.AreChallengesUpdated())
   {
-    // These *should* all be the same square size but you never know.
-    if (icon->width > max_icon_width)
-      max_icon_width = icon->width;
-    sum_of_icon_heights += icon->height;
-  }
-  ImGui::SetNextWindowPos(
-      ImVec2(ImGui::GetIO().DisplaySize.x - 20.f * m_backbuffer_scale - max_icon_width,
-             ImGui::GetIO().DisplaySize.y - 20.f * m_backbuffer_scale - sum_of_icon_heights));
-  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-  if (ImGui::Begin(window_name.c_str(), nullptr,
-                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
-  {
-    for (const auto& [name, icon] : challenge_icons)
+    instance.ResetChallengesUpdated();
+    const auto& challenges = instance.GetActiveChallenges();
+    m_challenge_texture_map.clear();
+    for (const auto& name : challenges)
     {
-      if (m_challenge_texture_map.find(name) != m_challenge_texture_map.end())
-        continue;
-      const u32 width = icon->width;
-      const u32 height = icon->height;
+      const auto& icon = instance.GetAchievementBadge(name, false);
+      const u32 width = icon.width;
+      const u32 height = icon.height;
       TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
                                AbstractTextureType::Texture_2DArray);
       auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
-      res.first->second->Load(0, width, height, width, icon->rgba_data.data(),
+      res.first->second->Load(0, width, height, width, icon.data.data(),
                               sizeof(u32) * width * height);
-    }
-    for (auto& [name, texture] : m_challenge_texture_map)
-    {
-      auto icon_itr = challenge_icons.find(name);
-      if (icon_itr == challenge_icons.end())
-      {
-        m_challenge_texture_map.erase(name);
-        continue;
-      }
-      if (texture)
-      {
-        ImGui::Image(texture.get(), ImVec2(static_cast<float>(icon_itr->second->width),
-                                           static_cast<float>(icon_itr->second->height)));
-      }
     }
   }
 
-  ImGui::End();
-}
+  float leaderboard_y = ImGui::GetIO().DisplaySize.y;
+  if (!m_challenge_texture_map.empty())
+  {
+    float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0,
+                            ImVec2(1, 1));
+    if (ImGui::Begin("Challenges", nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+    {
+      for (auto& [name, texture] : m_challenge_texture_map)
+      {
+        ImGui::Image(texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
+                                           static_cast<float>(texture->GetHeight()) * scale));
+        ImGui::SameLine();
+      }
+    }
+    leaderboard_y -= ImGui::GetWindowHeight();
+    ImGui::End();
+  }
+
+  const auto& leaderboard_progress = instance.GetActiveLeaderboards();
+  if (!leaderboard_progress.empty())
+  {
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, leaderboard_y), 0,
+                            ImVec2(1.0, 1.0));
+    ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+    if (ImGui::Begin("Leaderboards", nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+    {
+      for (const auto& value : leaderboard_progress)
+        ImGui::TextUnformatted(value.c_str());
+    }
+    ImGui::End();
+  }
 #endif  // USE_RETRO_ACHIEVEMENTS
+}
 
 void OnScreenUI::Finalize()
 {
@@ -417,9 +426,7 @@ void OnScreenUI::Finalize()
   g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
-#ifdef USE_RETRO_ACHIEVEMENTS
-  DrawChallenges();
-#endif  // USE_RETRO_ACHIEVEMENTS
+  DrawChallengesAndLeaderboards();
   ImGui::Render();
 }
 
@@ -483,8 +490,7 @@ void OnScreenUI::SetMousePos(float x, float y)
 {
   auto lock = GetImGuiLock();
 
-  ImGui::GetIO().MousePos.x = x;
-  ImGui::GetIO().MousePos.y = y;
+  ImGui::GetIO().AddMousePosEvent(x, y);
 }
 
 void OnScreenUI::SetMousePress(u32 button_mask)
@@ -492,7 +498,9 @@ void OnScreenUI::SetMousePress(u32 button_mask)
   auto lock = GetImGuiLock();
 
   for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
-    ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
+  {
+    ImGui::GetIO().AddMouseButtonEvent(static_cast<int>(i), (button_mask & (1u << i)) != 0);
+  }
 }
 
 }  // namespace VideoCommon

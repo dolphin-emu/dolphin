@@ -141,8 +141,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     result_reg = reg_encoder(V1Q);
   }
 
-  const ARM64Reg temp_gpr = m_accurate_nans && !singles ? gpr.GetReg() : ARM64Reg::INVALID_REG;
-
   if (m_accurate_nans)
   {
     if (V0Q == ARM64Reg::INVALID_REG)
@@ -304,8 +302,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     fpr.Unlock(V1Q);
   if (V2Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V2Q);
-  if (temp_gpr != ARM64Reg::INVALID_REG)
-    gpr.Unlock(temp_gpr);
 
   ASSERT_MSG(DYNA_REC, singles == singles_func(),
              "Register allocation turned singles into doubles in the middle of ps_arith");

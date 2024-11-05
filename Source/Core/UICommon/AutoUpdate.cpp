@@ -49,15 +49,13 @@ const char UPDATER_LOG_FILE[] = "Updater.log";
 
 std::string UpdaterPath(bool relocated = false)
 {
-  std::string path(File::GetExeDirectory() + DIR_SEP);
 #ifdef __APPLE__
   if (relocated)
-    path += ".Dolphin Updater.2.app";
+    return File::GetExeDirectory() + DIR_SEP + ".Dolphin Updater.2.app";
   else
-    path += "Dolphin Updater.app";
-  return path;
+    return File::GetBundleDirectory() + DIR_SEP + "Contents/Helpers/Dolphin Updater.app";
 #else
-  return path + "Updater.exe";
+  return File::GetExeDirectory() + DIR_SEP + "Updater.exe";
 #endif
 }
 
@@ -86,6 +84,12 @@ void CleanupFromPreviousUpdate()
 {
   // Remove the relocated updater file.
   File::DeleteDirRecursively(UpdaterPath(true));
+
+  // Remove the old (non-embedded) updater app bundle.
+  // While the update process will delete the files within the old bundle after updating to a
+  // version with an embedded updater, it won't delete the folder structure of the bundle, so
+  // we should clean those leftovers up.
+  File::DeleteDirRecursively(File::GetExeDirectory() + DIR_SEP + "Dolphin Updater.app");
 }
 #endif
 

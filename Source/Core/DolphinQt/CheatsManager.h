@@ -26,13 +26,14 @@ class PartiallyClosableTabWidget;
 namespace Core
 {
 enum class State;
-}
+class System;
+}  // namespace Core
 
 class CheatsManager : public QDialog
 {
   Q_OBJECT
 public:
-  explicit CheatsManager(QWidget* parent = nullptr);
+  explicit CheatsManager(Core::System& system, QWidget* parent = nullptr);
   ~CheatsManager();
 
 signals:
@@ -63,6 +64,8 @@ private:
   std::string m_game_id;
   std::string m_game_tdb_id;
   u16 m_revision = 0;
+
+  Core::System& m_system;
 
   QDialogButtonBox* m_button_box;
   PartiallyClosableTabWidget* m_tab_widget = nullptr;

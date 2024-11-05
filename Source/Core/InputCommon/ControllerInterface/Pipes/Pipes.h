@@ -31,7 +31,7 @@ namespace ciface::Pipes
 // SET {L, R} [0, 1]
 // SET {MAIN, C} [0, 1] [0, 1]
 
-void PopulateDevices();
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
 
 class PipeDevice : public Core::Device
 {

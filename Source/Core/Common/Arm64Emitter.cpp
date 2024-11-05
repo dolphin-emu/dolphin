@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cstring>
 #include <optional>
 #include <tuple>
@@ -15,7 +16,6 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
@@ -51,12 +51,12 @@ float FPImm8ToFloat(u8 bits)
   const u32 mantissa = (bits & 0xF) << 19;
   const u32 f = (sign << 31) | (exp << 23) | mantissa;
 
-  return Common::BitCast<float>(f);
+  return std::bit_cast<float>(f);
 }
 
 std::optional<u8> FPImm8FromFloat(float value)
 {
-  const u32 f = Common::BitCast<u32>(value);
+  const u32 f = std::bit_cast<u32>(value);
   const u32 mantissa4 = (f & 0x7FFFFF) >> 19;
   const u32 exponent = (f >> 23) & 0xFF;
   const u32 sign = f >> 31;
@@ -85,26 +85,6 @@ void ARM64XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
 {
   SetCodePtrUnsafe(ptr, end, write_failed);
   m_lastCacheFlushEnd = ptr;
-}
-
-const u8* ARM64XEmitter::GetCodePtr() const
-{
-  return m_code;
-}
-
-u8* ARM64XEmitter::GetWritableCodePtr()
-{
-  return m_code;
-}
-
-const u8* ARM64XEmitter::GetCodeEnd() const
-{
-  return m_code_end;
-}
-
-u8* ARM64XEmitter::GetWritableCodeEnd()
-{
-  return m_code_end;
 }
 
 void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
@@ -1809,16 +1789,16 @@ void ARM64XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
   {
     bool removed_moves_during_this_loop_iteration = false;
 
-    RegisterMove* move = end;
-    while (move != begin)
+    RegisterMove* current_move = end;
+    while (current_move != begin)
     {
-      RegisterMove* prev_move = move;
-      --move;
-      if ((*source_gpr_usages)[DecodeReg(move->dst)] == 0)
+      RegisterMove* prev_move = current_move;
+      --current_move;
+      if ((*source_gpr_usages)[DecodeReg(current_move->dst)] == 0)
       {
-        MOV(move->dst, move->src);
-        (*source_gpr_usages)[DecodeReg(move->src)]--;
-        std::move(prev_move, end, move);
+        MOV(current_move->dst, current_move->src);
+        (*source_gpr_usages)[DecodeReg(current_move->src)]--;
+        std::move(prev_move, end, current_move);
         --end;
         removed_moves_during_this_loop_iteration = true;
       }
@@ -1832,7 +1812,7 @@ void ARM64XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
       while ((*source_gpr_usages)[temp_reg] != 0)
       {
         ++temp_reg;
-        ASSERT_MSG(COMMON, temp_reg != temp_reg_end, "Out of registers");
+        ASSERT_MSG(DYNA_REC, temp_reg != temp_reg_end, "Out of registers");
       }
 
       const ARM64Reg src = begin->src;
@@ -3893,6 +3873,8 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 
   if (bundled_loadstore && tmp != ARM64Reg::INVALID_REG)
   {
+    DEBUG_ASSERT_MSG(DYNA_REC, Is64Bit(tmp), "Expected a 64-bit temporary register!");
+
     int num_regs = registers.Count();
     m_emit->SUB(ARM64Reg::SP, ARM64Reg::SP, num_regs * 16);
     m_emit->ADD(tmp, ARM64Reg::SP, 0);
@@ -4222,9 +4204,15 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
   // Special path for zeroes
   if (imm == 0 && !flags)
   {
-    if (Rd != Rn)
+    if (Rd == Rn)
+    {
+      return;
+    }
+    else if (DecodeReg(Rd) != DecodeReg(ARM64Reg::SP) && DecodeReg(Rn) != DecodeReg(ARM64Reg::SP))
+    {
       MOV(Rd, Rn);
-    return;
+      return;
+    }
   }
 
   // Regular fast paths, aarch64 immediate instructions
@@ -4404,7 +4392,7 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
     if (negate)
       value = -value;
 
-    const u32 ival = Common::BitCast<u32>(value);
+    const u32 ival = std::bit_cast<u32>(value);
     m_emit->MOVI2R(scratch, ival);
     FMOV(Rd, scratch);
   }

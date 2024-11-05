@@ -50,6 +50,15 @@ enum class OutputReportID : u8
   IRLogicEnable2 = 0x1a,
 };
 
+enum class IRReportFormat : u8
+{
+  None,
+  Basic,     // from ReportCoreIR10Ext9 or ReportCoreAccelIR10Ext6
+  Extended,  // from ReportCoreAccelIR12
+  Full1,     // from ReportInterleave1
+  Full2,     // from ReportInterleave2
+};
+
 enum class LED : u8
 {
   None = 0x00,

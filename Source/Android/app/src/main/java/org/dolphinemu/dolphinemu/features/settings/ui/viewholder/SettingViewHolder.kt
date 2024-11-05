@@ -28,8 +28,13 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
         val overridden = settingsItem.isOverridden
         textView.setTypeface(null, if (overridden) Typeface.BOLD else Typeface.NORMAL)
 
-        if (!settingsItem.isEditable) textView.paintFlags =
-            textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        if (settingsItem.isEditable) {
+            textView.paintFlags =
+                textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+        } else {
+            textView.paintFlags =
+                textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        }
     }
 
     /**

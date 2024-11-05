@@ -134,49 +134,49 @@ private:
   void ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_message);
 
   // OGF 0x01 - Link control commands and return parameters
-  void CommandWriteInquiryMode(const u8* input);
-  void CommandWritePageScanType(const u8* input);
-  void CommandHostBufferSize(const u8* input);
-  void CommandInquiryCancel(const u8* input);
-  void CommandRemoteNameReq(const u8* input);
-  void CommandCreateCon(const u8* input);
-  void CommandAcceptCon(const u8* input);
-  void CommandReadClockOffset(const u8* input);
-  void CommandReadRemoteVerInfo(const u8* input);
-  void CommandReadRemoteFeatures(const u8* input);
-  void CommandAuthenticationRequested(const u8* input);
-  void CommandInquiry(const u8* input);
-  void CommandDisconnect(const u8* input);
-  void CommandLinkKeyNegRep(const u8* input);
-  void CommandLinkKeyRep(const u8* input);
-  void CommandDeleteStoredLinkKey(const u8* input);
-  void CommandChangeConPacketType(const u8* input);
+  void CommandWriteInquiryMode(u32 input_address);
+  void CommandWritePageScanType(u32 input_address);
+  void CommandHostBufferSize(u32 input_address);
+  void CommandInquiryCancel(u32 input_address);
+  void CommandRemoteNameReq(u32 input_address);
+  void CommandCreateCon(u32 input_address);
+  void CommandAcceptCon(u32 input_address);
+  void CommandReadClockOffset(u32 input_address);
+  void CommandReadRemoteVerInfo(u32 input_address);
+  void CommandReadRemoteFeatures(u32 input_address);
+  void CommandAuthenticationRequested(u32 input_address);
+  void CommandInquiry(u32 input_address);
+  void CommandDisconnect(u32 input_address);
+  void CommandLinkKeyNegRep(u32 input_address);
+  void CommandLinkKeyRep(u32 input_address);
+  void CommandDeleteStoredLinkKey(u32 input_address);
+  void CommandChangeConPacketType(u32 input_address);
 
   // OGF 0x02 - Link policy commands and return parameters
-  void CommandWriteLinkPolicy(const u8* input);
-  void CommandSniffMode(const u8* input);
+  void CommandWriteLinkPolicy(u32 input_address);
+  void CommandSniffMode(u32 input_address);
 
   // OGF 0x03 - Host Controller and Baseband commands and return parameters
-  void CommandReset(const u8* input);
-  void CommandWriteLocalName(const u8* input);
-  void CommandWritePageTimeOut(const u8* input);
-  void CommandWriteScanEnable(const u8* input);
-  void CommandWriteUnitClass(const u8* input);
-  void CommandReadStoredLinkKey(const u8* input);
-  void CommandWritePinType(const u8* input);
-  void CommandSetEventFilter(const u8* input);
-  void CommandWriteInquiryScanType(const u8* input);
-  void CommandWriteLinkSupervisionTimeout(const u8* input);
+  void CommandReset(u32 input_address);
+  void CommandWriteLocalName(u32 input_address);
+  void CommandWritePageTimeOut(u32 input_address);
+  void CommandWriteScanEnable(u32 input_address);
+  void CommandWriteUnitClass(u32 input_address);
+  void CommandReadStoredLinkKey(u32 input_address);
+  void CommandWritePinType(u32 input_address);
+  void CommandSetEventFilter(u32 input_address);
+  void CommandWriteInquiryScanType(u32 input_address);
+  void CommandWriteLinkSupervisionTimeout(u32 input_address);
 
   // OGF 0x04 - Informational commands and return parameters
-  void CommandReadBufferSize(const u8* input);
-  void CommandReadLocalVer(const u8* input);
-  void CommandReadLocalFeatures(const u8* input);
-  void CommandReadBDAdrr(const u8* input);
+  void CommandReadBufferSize(u32 input_address);
+  void CommandReadLocalVer(u32 input_address);
+  void CommandReadLocalFeatures(u32 input_address);
+  void CommandReadBDAdrr(u32 input_address);
 
   // OGF 0x3F - Vendor specific
-  void CommandVendorSpecific_FC4C(const u8* input, u32 size);
-  void CommandVendorSpecific_FC4F(const u8* input, u32 size);
+  void CommandVendorSpecific_FC4C(u32 input_address, u32 size);
+  void CommandVendorSpecific_FC4F(u32 input_address, u32 size);
 
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10

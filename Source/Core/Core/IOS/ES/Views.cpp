@@ -162,9 +162,9 @@ IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  return IPCReply(m_core.GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
-                                           memory.GetPointer(request.io_vectors[0].address),
-                                           nullptr, 0));
+  return IPCReply(m_core.GetTicketFromView(
+      memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView)),
+      memory.GetPointerForRange(request.io_vectors[0].address, sizeof(ES::Ticket)), nullptr, 0));
 }
 
 IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
@@ -179,8 +179,9 @@ IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  const ReturnCode ret = m_core.GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
-                                                  nullptr, &ticket_size, std::nullopt);
+  const ReturnCode ret = m_core.GetTicketFromView(
+      memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView)), nullptr,
+      &ticket_size, std::nullopt);
   memory.Write_U32(ticket_size, request.io_vectors[0].address);
   return IPCReply(ret);
 }
@@ -201,9 +202,10 @@ IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
   if (ticket_size != request.io_vectors[0].size)
     return IPCReply(ES_EINVAL);
 
-  return IPCReply(m_core.GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
-                                           memory.GetPointer(request.io_vectors[0].address),
-                                           &ticket_size, std::nullopt));
+  return IPCReply(m_core.GetTicketFromView(
+      memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView)),
+      memory.GetPointerForRange(request.io_vectors[0].address, ticket_size), &ticket_size,
+      std::nullopt));
 }
 
 IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)

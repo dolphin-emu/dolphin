@@ -227,7 +227,7 @@ void NetworkWidget::ConnectWidgets()
   connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
-  connect(m_open_dump_folder, &QPushButton::pressed, [] {
+  connect(m_open_dump_folder, &QPushButton::clicked, [] {
     const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
     const QUrl url = QUrl::fromLocalFile(QString::fromStdString(location));
     QDesktopServices::openUrl(url);
@@ -239,7 +239,8 @@ void NetworkWidget::Update()
   if (!isVisible())
     return;
 
-  if (Core::GetState() != Core::State::Paused)
+  auto& system = Core::System::GetInstance();
+  if (Core::GetState(system) != Core::State::Paused)
   {
     m_socket_table->setDisabled(true);
     m_ssl_table->setDisabled(true);
@@ -250,9 +251,9 @@ void NetworkWidget::Update()
   m_ssl_table->setDisabled(false);
 
   // needed because there's a race condition on the IOS instance otherwise
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(system);
 
-  auto* ios = IOS::HLE::GetIOS();
+  auto* ios = system.GetIOS();
   if (!ios)
     return;
 

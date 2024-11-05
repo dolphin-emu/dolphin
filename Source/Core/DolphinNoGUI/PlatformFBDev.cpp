@@ -9,6 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #include <climits>
 #include <cstdio>
@@ -78,7 +79,7 @@ void PlatformFBDev::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs();
+    Core::HostDispatchJobs(Core::System::GetInstance());
 
     // TODO: Is this sleep appropriate?
     std::this_thread::sleep_for(std::chrono::milliseconds(1));

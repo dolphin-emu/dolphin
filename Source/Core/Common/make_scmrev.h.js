@@ -5,6 +5,8 @@ var outfile			= "./scmrev.h";
 var cmd_revision	= " rev-parse HEAD";
 var cmd_describe	= " describe --always --long --dirty";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
+var cmd_commits_ahead = " rev-list --count HEAD ^master";
+var cmd_get_tag       = " describe --exact-match HEAD";
 
 function GetGitExe()
 {
@@ -58,6 +60,25 @@ function GetFirstStdOutLine(cmd)
 	}
 }
 
+function AttemptToExecuteCommand(cmd)
+{
+	try
+	{
+		var exec = wshShell.Exec(cmd)
+
+		// wait until the command has finished
+		while (exec.Status == 0) {}
+
+		return exec.ExitCode;
+	}
+	catch (e)
+	{
+		// catch "the system cannot find the file specified" error
+		WScript.Echo("Failed to exec " + cmd + " this should never happen");
+		WScript.Quit(1);
+	}
+}
+
 function GetFileContents(f)
 {
 	try
@@ -76,7 +97,7 @@ var gitexe = GetGitExe();
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
-var isStable = +("master" == branch || "stable" == branch);
+var commits_ahead = GetFirstStdOutLine(gitexe + cmd_commits_ahead);
 
 // Get environment information.
 var distributor = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DISTRIBUTOR%");
@@ -87,11 +108,17 @@ if (default_update_track == "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_tra
 // remove hash (and trailing "-0" if needed) from description
 describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
+// set commits ahead to zero if on a tag
+if (AttemptToExecuteCommand(gitexe + cmd_get_tag) == 0)
+{
+	commits_ahead = "0";
+}
+
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
 	"#define SCM_DESC_STR \"" + describe + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + branch + "\"\n" +
-	"#define SCM_IS_MASTER " + isStable + "\n" +
+	"#define SCM_COMMITS_AHEAD_MASTER " + commits_ahead + "\n" +
 	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n" +
     "#define SCM_UPDATE_TRACK_STR \"" + default_update_track + "\"\n";
 

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <string_view>
+#include <vector>
+
 #include "Common/CommonTypes.h"
 #include "Common/HookableEvent.h"
 
@@ -71,6 +74,8 @@ struct PresentInfo
 
   // Accuracy of actual_present_time
   PresentTimeAccuracy present_time_accuracy = PresentTimeAccuracy::Unimplemented;
+
+  std::vector<std::string_view> xfb_copy_hashes;
 };
 
 // An event called just as a frame is queued for presentation.

@@ -180,7 +180,7 @@ SectionID ElfReader::GetSectionByName(const char* name, int firstSection) const
   return -1;
 }
 
-bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard) const
+bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db) const
 {
   bool hasSymbols = false;
   SectionID sec = GetSectionByName(".symtab");
@@ -218,11 +218,11 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard) const
       default:
         continue;
       }
-      g_symbolDB.AddKnownSymbol(guard, value, size, name, symtype);
+      ppc_symbol_db.AddKnownSymbol(guard, value, size, name, symtype);
       hasSymbols = true;
     }
   }
-  g_symbolDB.Index();
+  ppc_symbol_db.Index();
   return hasSymbols;
 }
 

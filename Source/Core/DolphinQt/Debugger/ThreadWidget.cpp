@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Debugger/ThreadWidget.h"
 
+#include <bit>
+
 #include <QGroupBox>
 #include <QHeaderView>
 #include <QLabel>
@@ -11,12 +13,12 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/BitUtils.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
 #include "DolphinQt/Settings.h"
 
 ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
@@ -118,6 +120,8 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
     return;
 
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
+
   const QString watch_name = QStringLiteral("thread_context_%1").arg(addr, 8, 16, QLatin1Char('0'));
   menu->addAction(tr("Add &breakpoint"), this, [this, addr] { emit RequestBreakpoint(addr); });
   menu->addAction(tr("Add memory breakpoint"), this,
@@ -252,13 +256,14 @@ void ThreadWidget::Update()
   if (!isVisible())
     return;
 
-  const auto emu_state = Core::GetState();
+  auto& system = Core::System::GetInstance();
+  const auto emu_state = Core::GetState(system);
   if (emu_state == Core::State::Stopping)
   {
     m_thread_table->setRowCount(0);
     UpdateThreadContext({});
 
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(system);
     UpdateThreadCallstack(guard, {});
   }
   if (emu_state != Core::State::Paused)
@@ -303,7 +308,7 @@ void ThreadWidget::Update()
   };
 
   {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(system);
 
     // YAGCD - Section 4.2.1.4 Dolphin OS Globals
     m_current_context->setText(format_hex_from(guard, 0x800000D4));
@@ -359,8 +364,7 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
   const auto format_f64_as_u64_idx = [](const auto& table, std::size_t index) {
     if (!table || index >= table->size())
       return QString{};
-    return QStringLiteral("%1").arg(Common::BitCast<u64>(table->at(index)), 16, 16,
-                                    QLatin1Char('0'));
+    return QStringLiteral("%1").arg(std::bit_cast<u64>(table->at(index)), 16, 16, QLatin1Char('0'));
   };
 
   m_context_table->setRowCount(0);
@@ -460,7 +464,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
       m_callstack_table->setItem(
           i, 3,
-          new QTableWidgetItem(QString::fromStdString(
+          new QTableWidgetItem(QtUtils::FromStdString(
               guard.GetSystem().GetPowerPC().GetDebugInterface().GetDescription(lr_save))));
     }
     else

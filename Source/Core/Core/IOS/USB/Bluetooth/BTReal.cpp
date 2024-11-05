@@ -177,7 +177,7 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
           "The emulated console will now stop.",
           m_last_open_error);
     }
-    Core::QueueHostJob(Core::Stop);
+    Core::QueueHostJob(&Core::Stop);
     return IPCReply(IPC_ENOENT);
   }
 
@@ -678,7 +678,7 @@ bool BluetoothRealDevice::OpenDevice(libusb_device* device)
 void BluetoothRealDevice::HandleCtrlTransfer(libusb_transfer* tr)
 {
   std::lock_guard lk(m_transfers_mutex);
-  if (!m_current_transfers.count(tr))
+  if (!m_current_transfers.contains(tr))
     return;
 
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
@@ -706,7 +706,7 @@ void BluetoothRealDevice::HandleCtrlTransfer(libusb_transfer* tr)
 void BluetoothRealDevice::HandleBulkOrIntrTransfer(libusb_transfer* tr)
 {
   std::lock_guard lk(m_transfers_mutex);
-  if (!m_current_transfers.count(tr))
+  if (!m_current_transfers.contains(tr))
     return;
 
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&

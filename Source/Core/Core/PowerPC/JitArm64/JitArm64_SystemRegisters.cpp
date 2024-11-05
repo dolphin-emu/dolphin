@@ -44,9 +44,10 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 
 void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
 {
-  // Gross but necessary; if the input is totally zero and we set SO or LT,
-  // or even just add the (1<<32), GT will suddenly end up set without us
-  // intending to. This can break actual games, so fix it up.
+  // GT is considered unset if the internal representation is <= 0, or in other words,
+  // if the internal representation either has bit 63 set or has all bits set to zero.
+  // If all bits are zero and we set some bit that's unrelated to GT, we need to set bit 63 so GT
+  // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
   ORR(XA, reg, LogicalImm(1ULL << 63, GPRSize::B64));
@@ -672,6 +673,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   ARM64Reg WB = gpr.GetReg();
   ARM64Reg WC = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
+  ARM64Reg XB = EncodeRegTo64(WB);
   ARM64Reg XC = EncodeRegTo64(WC);
 
   for (int i = 0; i < 8; i++)
@@ -683,15 +685,14 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     static_assert(PowerPC::CR_SO_BIT == 0);
     static_assert(PowerPC::CR_LT_BIT == 3);
     static_assert(PowerPC::CR_EMU_LT_BIT - PowerPC::CR_EMU_SO_BIT == 3);
-    UBFX(XC, CR, PowerPC::CR_EMU_SO_BIT, 4);
     if (i == 0)
     {
-      MOVI2R(WB, PowerPC::CR_SO | PowerPC::CR_LT);
-      AND(WA, WC, WB);
+      MOVI2R(XB, PowerPC::CR_SO | PowerPC::CR_LT);
+      AND(XA, XB, CR, ArithOption(CR, ShiftType::LSR, PowerPC::CR_EMU_SO_BIT));
     }
     else
     {
-      AND(WC, WC, WB);
+      AND(XC, XB, CR, ArithOption(CR, ShiftType::LSR, PowerPC::CR_EMU_SO_BIT));
       ORR(XA, XC, XA, ArithOption(XA, ShiftType::LSL, 4));
     }
 
@@ -896,7 +897,8 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
   }
   else if (imm == 0x0)
   {
-    BFI(WA, ARM64Reg::WZR, shift, 4);
+    const u32 inverted_mask = ~mask;
+    AND(WA, WA, LogicalImm(inverted_mask, GPRSize::B32));
   }
   else
   {

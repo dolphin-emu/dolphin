@@ -6,7 +6,9 @@
 #include <cmath>
 #include <utility>
 
+#include <QApplication>
 #include <QCheckBox>
+#include <QEvent>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -17,6 +19,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Resources.h"
@@ -267,4 +270,17 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zer
     spin->OnControllerValueChanged(controller_value);
 
   return (spin->GetValue() - zero) / scale;
+}
+
+void TASInputWindow::changeEvent(QEvent* const event)
+{
+  if (event->type() == QEvent::ActivationChange)
+  {
+    const bool active_window_is_tas_input =
+        qobject_cast<TASInputWindow*>(QApplication::activeWindow()) != nullptr;
+
+    // Switching between TAS Input windows will call SetTASInputFocus(true) twice, but that's fine.
+    Host::GetInstance()->SetTASInputFocus(active_window_is_tas_input);
+  }
+  QDialog::changeEvent(event);
 }

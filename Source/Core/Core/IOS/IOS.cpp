@@ -64,8 +64,6 @@
 
 namespace IOS::HLE
 {
-static std::unique_ptr<EmulationKernel> s_ios;
-
 constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
@@ -284,7 +282,7 @@ Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
 {
   // Until the Wii root and NAND path stuff is entirely managed by IOS and made non-static,
   // using more than one IOS instance at a time is not supported.
-  ASSERT(GetIOS() == nullptr);
+  ASSERT(Core::System::GetInstance().GetIOS() == nullptr);
 
   m_is_responsible_for_nand_root = !Core::WiiRootIsInitialized();
   if (m_is_responsible_for_nand_root)
@@ -477,8 +475,8 @@ private:
 static void FinishIOSBoot(Core::System& system, u64 ios_title_id)
 {
   // Shut down the active IOS first before switching to the new one.
-  s_ios.reset();
-  s_ios = std::make_unique<EmulationKernel>(system, ios_title_id);
+  system.SetIOS(nullptr);
+  system.SetIOS(std::make_unique<EmulationKernel>(system, ios_title_id));
 }
 
 static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
@@ -520,7 +518,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
   if (hang_ppc == HangPPC::Yes)
     ResetAndPausePPC(m_system);
 
-  if (Core::IsRunningAndStarted())
+  if (Core::IsRunning(m_system))
   {
     m_system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
                                            ios_title_id);
@@ -535,7 +533,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
 
 void EmulationKernel::InitIPC()
 {
-  if (!Core::IsRunning())
+  if (Core::GetState(m_system) == Core::State::Uninitialized)
     return;
 
   INFO_LOG_FMT(IOS, "IPC initialised.");
@@ -675,16 +673,16 @@ std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
   request.fd = new_fd;
 
   std::shared_ptr<Device> device;
-  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path) &&
+  if (request.path.starts_with("/dev/usb/oh0/") && !GetDeviceByName(request.path) &&
       !HasFeature(GetVersion(), Feature::NewUSB))
   {
     device = std::make_shared<OH0Device>(*this, request.path);
   }
-  else if (request.path.find("/dev/") == 0)
+  else if (request.path.starts_with("/dev/"))
   {
     device = GetDeviceByName(request.path);
   }
-  else if (request.path.find('/') == 0)
+  else if (request.path.starts_with('/'))
   {
     device = GetDeviceByName("/dev/fs");
   }
@@ -959,8 +957,9 @@ void Init(Core::System& system)
 
   s_event_enqueue =
       core_timing.RegisterEvent("IPCEvent", [](Core::System& system_, u64 userdata, s64) {
-        if (s_ios)
-          s_ios->HandleIPCEvent(userdata);
+        auto* ios = system_.GetIOS();
+        if (ios)
+          ios->HandleIPCEvent(userdata);
       });
 
   ESDevice::InitializeEmulationState(core_timing);
@@ -976,7 +975,7 @@ void Init(Core::System& system)
       core_timing.RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
 
   // Start with IOS80 to simulate part of the Wii boot process.
-  s_ios = std::make_unique<EmulationKernel>(system, Titles::SYSTEM_MENU_IOS);
+  system.SetIOS(std::make_unique<EmulationKernel>(system, Titles::SYSTEM_MENU_IOS));
   // On a Wii, boot2 launches the system menu IOS, which then launches the system menu
   // (which bootstraps the PPC). Bootstrapping the PPC results in memory values being set up.
   // This means that the constants in the 0x3100 region are always set up by the time
@@ -985,15 +984,10 @@ void Init(Core::System& system)
   SetupMemory(system.GetMemory(), Titles::SYSTEM_MENU_IOS, MemorySetupType::Full);
 }
 
-void Shutdown()
+void Shutdown(Core::System& system)
 {
-  s_ios.reset();
+  system.SetIOS(nullptr);
   ESDevice::FinalizeEmulationState();
-}
-
-EmulationKernel* GetIOS()
-{
-  return s_ios.get();
 }
 
 // Based on a hardware test, a device takes at least ~2700 ticks to reply to an IPC request.

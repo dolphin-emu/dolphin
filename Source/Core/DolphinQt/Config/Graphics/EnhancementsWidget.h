@@ -17,6 +17,7 @@ class QPushButton;
 class QSlider;
 class ToolTipComboBox;
 class ToolTipPushButton;
+enum class StereoMode : int;
 
 class EnhancementsWidget final : public QWidget
 {
@@ -33,7 +34,7 @@ private:
   void AddDescriptions();
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
-  void LoadPPShaders();
+  void LoadPPShaders(StereoMode stereo_mode);
 
   // Enhancements
   ConfigChoice* m_ir_combo;
@@ -57,6 +58,7 @@ private:
   ConfigSlider* m_3d_depth;
   ConfigSlider* m_3d_convergence;
   ConfigBool* m_3d_swap_eyes;
+  ConfigBool* m_3d_per_eye_resolution;
 
   int m_msaa_modes;
   bool m_block_save;

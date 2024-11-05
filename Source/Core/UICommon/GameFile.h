@@ -81,6 +81,7 @@ public:
   u16 GetRevision() const { return m_revision; }
   // 0 is the first disc, 1 is the second disc
   u8 GetDiscNumber() const { return m_disc_number; }
+  bool IsTwoDiscGame() const { return m_is_two_disc_game; }
   std::string GetNetPlayName(const Core::TitleDatabase& title_database) const;
 
   // This function is slow
@@ -134,6 +135,7 @@ private:
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
   bool TryLoadGameModDescriptorBanner();
+  bool CheckIfTwoDiscGame(const std::string& game_id) const;
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and
@@ -168,6 +170,7 @@ private:
   std::string m_compression_method{};
   u16 m_revision{};
   u8 m_disc_number{};
+  bool m_is_two_disc_game{};
   std::string m_apploader_date;
 
   std::string m_custom_name;

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HLE/HLE_VarArgs.h"
-#include "Core/Core.h"
-#include "Core/System.h"
 
 #include "Common/Logging/Log.h"
+
+#include "Core/Core.h"
+#include "Core/System.h"
 
 HLE::SystemVABI::VAList::~VAList() = default;
 

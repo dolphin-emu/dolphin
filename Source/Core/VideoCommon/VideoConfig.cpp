@@ -66,7 +66,7 @@ void VideoConfig::Refresh()
     CPUThreadConfigCallback::AddConfigChangedCallback([]() {
       auto& system = Core::System::GetInstance();
 
-      const bool lock_gpu_thread = Core::IsRunningAndStarted();
+      const bool lock_gpu_thread = Core::IsRunning(system);
       if (lock_gpu_thread)
         system.GetFifo().PauseAndLock(true, false);
 
@@ -128,7 +128,7 @@ void VideoConfig::Refresh()
   sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
   sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
-  bInternalResolutionFrameDumps = Config::Get(Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
+  frame_dumps_resolution_type = Config::Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE);
   bEnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
   bPreferVSForLinePointExpansion = Config::Get(Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
   bEnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
@@ -171,6 +171,7 @@ void VideoConfig::Refresh()
   color_correction.fHDRPaperWhiteNits = Config::Get(Config::GFX_CC_HDR_PAPER_WHITE_NITS);
 
   stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+  stereo_per_eye_resolution_full = Config::Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);

@@ -102,7 +102,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       .action("store")
       .help("Compression method to use when converting to WIA/RVZ. Suggested value for RVZ: zstd "
             "[%choices]")
-      .choices({"none", "zstd", "bzip", "lzma", "lzma2"});
+      .choices({"none", "zstd", "bzip2", "lzma", "lzma2"});
 
   parser.add_option("-l", "--compression_level")
       .type("int")
@@ -260,7 +260,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
     if (!compression_o.has_value())
     {
-      fmt::print(std::cerr, "Error: Compression format must be set for WIA or RVZ\n");
+      fmt::print(std::cerr, "Error: Compression method must be set for WIA or RVZ\n");
       return EXIT_FAILURE;
     }
 

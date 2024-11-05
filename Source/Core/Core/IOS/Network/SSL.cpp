@@ -350,13 +350,14 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      int ret =
-          mbedtls_x509_crt_parse_der(&ssl->cacert, memory.GetPointer(BufferOut2), BufferOutSize2);
+      int ret = mbedtls_x509_crt_parse_der(
+          &ssl->cacert, memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
 
       if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
       {
         std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
-        File::IOFile(filename, "wb").WriteBytes(memory.GetPointer(BufferOut2), BufferOutSize2);
+        File::IOFile(filename, "wb")
+            .WriteBytes(memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
       }
 
       if (ret)

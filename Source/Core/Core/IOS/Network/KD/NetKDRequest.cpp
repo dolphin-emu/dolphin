@@ -884,6 +884,19 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   // Always 0 for some reason, never modified anywhere else
   memory.Write_U32(0, request.buffer_out + 4);
 
+  if (m_ios.GetIOSC().IsUsingDefaultId())
+  {
+    // If the user is using the default console ID, the below will always throw an error if it needs
+    // to be registered. Due to the high likelihood of multiple users having the same Wii Number,
+    // Nintendo's register endpoint will most likely return a duplicate registration error.
+    m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
+    m_config.WriteConfig();
+    m_config.WriteCBK();
+
+    WriteReturnValue(memory, NWC24::WC24_OK, request.buffer_out);
+    return IPCReply{IPC_SUCCESS};
+  }
+
   // First check if the message config file is in the correct state to handle this.
   if (m_config.IsRegistered())
   {
@@ -918,7 +931,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     return IPCReply{IPC_SUCCESS};
   }
 
-  const Common::SettingsHandler gen{std::move(data)};
+  const Common::SettingsHandler gen{data};
   const std::string serno = gen.GetValue("SERNO");
   const std::string form_data =
       fmt::format("mlid=w{}&hdid={}&rgncd={}", m_config.Id(), m_ios.GetIOSC().GetDeviceId(), serno);
@@ -936,14 +949,23 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
 
   const std::string response_str = {response->begin(), response->end()};
   const std::string code = GetValueFromCGIResponse(response_str, "cd");
-  if (code != "100")
+  s32 cgi_code{};
+  const bool did_parse = TryParse(code, &cgi_code);
+  if (!did_parse)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server "
+                            "returned invalid CGI response code.");
+    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+  }
+
+  if (cgi_code != 100)
   {
     ERROR_LOG_FMT(IOS_WC24,
                   "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server returned "
                   "non-success code: {}",
-                  code);
+                  cgi_code);
     WriteReturnValue(memory, NWC24::WC24_ERR_SERVER, request.buffer_out);
-    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+    LogError(ErrorType::CGI, cgi_code);
     return IPCReply{IPC_SUCCESS};
   }
 
@@ -1057,7 +1079,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
         Common::SettingsHandler::Buffer data;
         if (file->Read(data.data(), data.size()))
         {
-          const Common::SettingsHandler gen{std::move(data)};
+          const Common::SettingsHandler gen{data};
           area = gen.GetValue("AREA");
           model = gen.GetValue("MODEL");
         }
@@ -1154,6 +1176,25 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     // SOGetInterfaceOpt(0xfffe,0x1003);  // Error
     // Call /dev/net/ip/top 0x1b (SOCleanup), it closes all sockets
     GetEmulationKernel().GetSocketManager()->Clean();
+    return_value = IPC_SUCCESS;
+    break;
+  }
+  case IOCTL_NWC24_KD_GET_TIME_TRIGGERS:
+  {
+    if (request.buffer_out == 0 || request.buffer_out % 4 != 0 || request.buffer_out_size < 12)
+    {
+      return_value = IPC_EINVAL;
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_KD_GET_TIME_TRIGGERS = IPC_EINVAL");
+      break;
+    }
+
+    INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_KD_GET_TIME_TRIGGERS");
+
+    std::lock_guard lg(m_scheduler_buffer_lock);
+    memory.Write_U32(m_mail_span, request.buffer_out + 4);
+    memory.Write_U32(m_download_span, request.buffer_out + 8);
+    WriteReturnValue(memory, NWC24::WC24_OK, request.buffer_out);
+
     return_value = IPC_SUCCESS;
     break;
   }

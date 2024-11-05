@@ -17,7 +17,6 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/TypeUtils.h"
 
 #include "Core/PowerPC/PowerPC.h"
 
@@ -527,14 +526,14 @@ constexpr Tables s_tables = []() consteval
   u32 unknown_op_info = make_info(s_unknown_op_info);
   tables.unknown_op_info = unknown_op_info;
 
-  Common::Fill(tables.primary_table, unknown_op_info);
+  tables.primary_table.fill(unknown_op_info);
   for (auto& tpl : s_primary_table)
   {
     ASSERT(tables.primary_table[tpl.opcode] == unknown_op_info);
     tables.primary_table[tpl.opcode] = make_info(tpl);
   };
 
-  Common::Fill(tables.table4, unknown_op_info);
+  tables.table4.fill(unknown_op_info);
 
   for (const auto& tpl : s_table4_2)
   {
@@ -567,28 +566,28 @@ constexpr Tables s_tables = []() consteval
     tables.table4[op] = make_info(tpl);
   }
 
-  Common::Fill(tables.table19, unknown_op_info);
+  tables.table19.fill(unknown_op_info);
   for (auto& tpl : s_table19)
   {
     ASSERT(tables.table19[tpl.opcode] == unknown_op_info);
     tables.table19[tpl.opcode] = make_info(tpl);
   };
 
-  Common::Fill(tables.table31, unknown_op_info);
+  tables.table31.fill(unknown_op_info);
   for (auto& tpl : s_table31)
   {
     ASSERT(tables.table31[tpl.opcode] == unknown_op_info);
     tables.table31[tpl.opcode] = make_info(tpl);
   };
 
-  Common::Fill(tables.table59, unknown_op_info);
+  tables.table59.fill(unknown_op_info);
   for (auto& tpl : s_table59)
   {
     ASSERT(tables.table59[tpl.opcode] == unknown_op_info);
     tables.table59[tpl.opcode] = make_info(tpl);
   };
 
-  Common::Fill(tables.table63, unknown_op_info);
+  tables.table63.fill(unknown_op_info);
   for (auto& tpl : s_table63)
   {
     ASSERT(tables.table63[tpl.opcode] == unknown_op_info);

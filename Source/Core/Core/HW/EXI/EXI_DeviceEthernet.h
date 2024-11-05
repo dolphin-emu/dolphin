@@ -17,7 +17,9 @@
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
+#include "Common/SocketContext.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
+#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -205,9 +207,7 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
-#if defined(__APPLE__)
   TAPSERVER,
-#endif
   BuiltIn,
 };
 
@@ -364,21 +364,25 @@ private:
 #endif
   };
 
-#if defined(__APPLE__)
-  class TAPServerNetworkInterface : public TAPNetworkInterface
+  class TAPServerNetworkInterface : public NetworkInterface
   {
   public:
-    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref) : TAPNetworkInterface(eth_ref) {}
+    TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
 
   public:
     bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
     bool SendFrame(const u8* frame, u32 size) override;
     bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
 
   private:
-    void ReadThreadHandler();
+    TAPServerConnection m_tapserver_if;
+
+    void HandleReceivedFrame(std::string&& data);
   };
-#endif
 
   class XLinkNetworkInterface : public NetworkInterface
   {
@@ -452,16 +456,15 @@ private:
     sf::TcpListener m_upnp_httpd;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
-                                             // limit of 8 in the gc framework
+    NetworkRef m_network_ref;
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
     void WriteToQueue(const std::vector<u8>& data);
-    StackRef* GetAvailableSlot(u16 port);
-    StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+    bool WillQueueOverrun() const;
+    void PollData(std::size_t* datasize);
     std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
 
     void HandleARP(const Common::ARPPacket& packet);

@@ -6,6 +6,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
@@ -140,8 +141,8 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if ((val >> 2 & 1 && wii_ipc.m_ctrl.IY1) || (val >> 1 & 1 && wii_ipc.m_ctrl.IY2))
                      wii_ipc.m_ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
                    if (wii_ipc.m_ctrl.X1)
-                     HLE::GetIOS()->EnqueueIPCRequest(wii_ipc.m_ppc_msg);
-                   HLE::GetIOS()->UpdateIPC();
+                     system.GetIOS()->EnqueueIPCRequest(wii_ipc.m_ppc_msg);
+                   system.GetIOS()->UpdateIPC();
                    system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
                                                         0);
                  }));
@@ -152,7 +153,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_ppc_irq_flags &= ~val;
-                   HLE::GetIOS()->UpdateIPC();
+                   system.GetIOS()->UpdateIPC();
                    system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
                                                         0);
                  }));
@@ -163,7 +164,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    wii_ipc.m_ppc_irq_masks = val;
                    if (wii_ipc.m_ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
                      wii_ipc.Reset();
-                   HLE::GetIOS()->UpdateIPC();
+                   system.GetIOS()->UpdateIPC();
                    system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
                                                         0);
                  }));
@@ -176,7 +177,8 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     system.GetDVDInterface().EjectDisc(DVD::EjectCause::Software);
+                     system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{system},
+                                                        DVD::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
                    // TODO: AVE, SLOT_LED
@@ -212,7 +214,8 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     system.GetDVDInterface().EjectDisc(DVD::EjectCause::Software);
+                     system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{system},
+                                                        DVD::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
                    // TODO: AVE, SLOT_LED

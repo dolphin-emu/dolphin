@@ -69,7 +69,7 @@ add_library(cubeb
   cubeb/src/cubeb_strings.c
   cubeb/src/cubeb_utils.cpp
 )
-dolphin_disable_warnings_msvc(cubeb)
+dolphin_disable_warnings(cubeb)
 target_include_directories(cubeb
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cubeb/include> $<INSTALL_INTERFACE:include>
 )
@@ -127,7 +127,7 @@ endif()
 
 if(NOT TARGET speex)
   add_library(speex OBJECT cubeb/subprojects/speex/resample.c)
-  dolphin_disable_warnings_msvc(speex)
+  dolphin_disable_warnings(speex)
   set_target_properties(speex PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
   target_include_directories(speex INTERFACE cubeb/subprojects)
   target_compile_definitions(speex PUBLIC

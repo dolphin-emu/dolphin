@@ -106,7 +106,7 @@ void RegisterWidget::ConnectWidgets()
   connect(m_table, &QTableWidget::customContextMenuRequested, this,
           &RegisterWidget::ShowContextMenu);
   connect(m_table, &QTableWidget::itemChanged, this, &RegisterWidget::OnItemChanged);
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &QWidget::setFont);
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &RegisterWidget::setFont);
 }
 
 void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
@@ -118,6 +118,7 @@ void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
 void RegisterWidget::ShowContextMenu()
 {
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto* raw_item = m_table->currentItem();
 
@@ -533,7 +534,7 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
 
 void RegisterWidget::Update()
 {
-  if (isVisible() && Core::GetState() == Core::State::Paused)
+  if (isVisible() && Core::GetState(m_system) == Core::State::Paused)
   {
     m_updating = true;
     emit UpdateTable();

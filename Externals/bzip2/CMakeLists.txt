@@ -70,7 +70,7 @@ set(BZIP2_SRCS
 
 add_library(bzip2 STATIC ${BZIP2_SRCS} ${BZIP2_PUBLIC_HDRS} ${BZIP2_PRIVATE_HDRS})
 add_library(BZip2::BZip2 ALIAS bzip2)
-dolphin_disable_warnings_msvc(bzip2)
+dolphin_disable_warnings(bzip2)
 
 target_include_directories(bzip2
 PUBLIC

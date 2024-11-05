@@ -729,9 +729,7 @@ void AssemblerWidget::NewEditor(const QString& path)
   if (!path.isEmpty() && !new_editor->LoadFromPath())
   {
     ModalMessageBox::warning(this, tr("Failed to open file"),
-                             tr("Failed to read the contents of file\n\n"
-                                "\"%1\"")
-                                 .arg(path));
+                             tr("Failed to read the contents of file:\n%1").arg(path));
     delete new_editor;
     return;
   }
@@ -772,7 +770,7 @@ bool AssemblerWidget::SaveEditor(AsmEditor* editor)
 
     QString selected_filter;
     save_path = DolphinFileDialog::getSaveFileName(
-        this, tr("Save File to"), QString::fromStdString(default_dir),
+        this, tr("Save File To"), QString::fromStdString(default_dir),
         QStringLiteral("%1;;%2").arg(asm_filter).arg(all_filter), &selected_filter);
 
     if (save_path.isEmpty())

@@ -40,6 +40,7 @@
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/IOS/Uids.h"
 #include "Core/SysConf.h"
+#include "Core/System.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
@@ -531,7 +532,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   if (title.id == Titles::BOOT2)
     return UpdateResult::Succeeded;
 
-  if (!ShouldInstallTitle(title) || updated_titles->find(title.id) != updated_titles->end())
+  if (!ShouldInstallTitle(title) || updated_titles->contains(title.id))
     return UpdateResult::Succeeded;
 
   NOTICE_LOG_FMT(CORE, "Updating title {:016x}", title.id);
@@ -1004,7 +1005,7 @@ bool RepairNAND(IOS::HLE::Kernel& ios)
 
 static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
 {
-  auto* ios = IOS::HLE::GetIOS();
+  auto* ios = Core::System::GetInstance().GetIOS();
   return ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
 }
 

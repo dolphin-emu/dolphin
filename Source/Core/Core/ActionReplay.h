@@ -18,7 +18,7 @@ class IniFile;
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 namespace ActionReplay
 {

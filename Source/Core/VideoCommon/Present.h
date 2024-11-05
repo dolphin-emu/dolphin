@@ -107,10 +107,13 @@ private:
 
   void OnBackBufferSizeChanged();
 
+  // Scales a raw XFB resolution to the target (display) aspect ratio,
+  // also accounting for crop and other minor adjustments
   std::tuple<int, int> CalculateOutputDimensions(int width, int height,
                                                  bool allow_stretch = true) const;
   std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
                                                    bool allow_stretch = true) const;
+  // Scales a raw XFB resolution to the target (display) aspect ratio
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
                                                      bool allow_stretch = true) const;
 
@@ -138,7 +141,8 @@ private:
   u32 m_auto_resolution_scale = 1;
 
   RcTcacheEntry m_xfb_entry;
-  MathUtil::Rectangle<int> m_xfb_rect;
+  // Internal resolution multiplier scaled XFB size
+  MathUtil::Rectangle<int> m_xfb_rect{0, 0, MAX_XFB_WIDTH, MAX_XFB_HEIGHT};
 
   // Tracking of XFB textures so we don't render duplicate frames.
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
@@ -156,8 +160,10 @@ private:
   // XFB tracking
   u64 m_last_xfb_ticks = 0;
   u32 m_last_xfb_addr = 0;
+  // Native XFB width
   u32 m_last_xfb_width = MAX_XFB_WIDTH;
   u32 m_last_xfb_stride = 0;
+  // Native XFB height
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 
   Common::EventHook m_config_changed;

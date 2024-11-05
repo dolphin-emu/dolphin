@@ -20,21 +20,23 @@
 
 namespace DSP::HLE
 {
-AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_main_volume(0x8000)
+AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc)
+    : AXUCode(dsphle, crc, false), m_last_main_volume(0x8000)
 {
+  INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode: crc={:08x}", crc);
+
   for (u16& volume : m_last_aux_volumes)
     volume = 0x8000;
 
-  INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode");
+  m_old_axwii = crc == 0xfa450138 || crc == 0x7699af32;
+  m_new_filter = crc == 0x347112ba || crc == 0x4cc52064;
 
-  m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
+  m_accelerator = std::make_unique<HLEAccelerator>(dsphle->GetSystem().GetDSP());
 }
 
 void AXWiiUCode::Initialize()
 {
   InitializeShared();
-
-  m_accelerator = std::make_unique<HLEAccelerator>(m_dsphle->GetSystem().GetDSP());
 }
 
 void AXWiiUCode::HandleCommandList()
@@ -396,7 +398,7 @@ bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* update
   // Remove the updates data from the PB
   memmove(&pb_mem[41], &pb_mem[46], sizeof(pb) - 2 * 46);
 
-  Common::BitCastFromArray<u16>(pb_mem, pb);
+  pb = std::bit_cast<AXPBWii>(pb_mem);
 
   return true;
 }
@@ -415,7 +417,7 @@ void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 update
   pb_mem[44] = updates_addr >> 16;
   pb_mem[45] = updates_addr & 0xFFFF;
 
-  Common::BitCastFromArray<u16>(pb_mem, pb);
+  pb = std::bit_cast<AXPBWii>(pb_mem);
 }
 
 void AXWiiUCode::ProcessPBList(u32 pb_addr)
@@ -449,7 +451,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
         ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
         ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
                      ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                     m_coeffs_checksum ? m_coeffs.data() : nullptr);
+                     m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
 
         // Forward the buffers
         for (auto& ptr : buffers.ptrs)
@@ -461,7 +463,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     {
       ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, 96,
                    ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
+                   m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
     }
 
     WritePB(memory, pb_addr, pb, m_crc);

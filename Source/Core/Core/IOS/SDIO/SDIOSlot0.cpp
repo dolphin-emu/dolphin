@@ -287,7 +287,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       if (!m_card.Seek(address, File::SeekOrigin::Begin))
         ERROR_LOG_FMT(IOS_SD, "Seek failed");
 
-      if (m_card.ReadBytes(memory.GetPointer(req.addr), size))
+      if (m_card.ReadBytes(memory.GetPointerForRange(req.addr, size), size))
       {
         DEBUG_LOG_FMT(IOS_SD, "Outbuffer size {} got {}", rw_buffer_size, size);
       }
@@ -317,7 +317,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       if (!m_card.Seek(address, File::SeekOrigin::Begin))
         ERROR_LOG_FMT(IOS_SD, "Seek failed");
 
-      if (!m_card.WriteBytes(memory.GetPointer(req.addr), size))
+      if (!m_card.WriteBytes(memory.GetPointerForRange(req.addr, size), size))
       {
         ERROR_LOG_FMT(IOS_SD, "Write Failed - error: {}, eof: {}", std::ferror(m_card.GetHandle()),
                       std::feof(m_card.GetHandle()));
