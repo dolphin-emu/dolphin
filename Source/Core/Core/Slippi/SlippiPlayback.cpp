@@ -14,6 +14,7 @@
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/NetPlayClient.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "SlippiPlayback.h"
 
 #define FRAME_INTERVAL 900
@@ -124,14 +125,14 @@ void SlippiPlaybackStatus::resetPlayback()
   in_slippi_playback = false;
 }
 
-void SlippiPlaybackStatus::processInitialState()
+void SlippiPlaybackStatus::processInitialState(Core::System& system)
 {
   INFO_LOG_FMT(SLIPPI, "saving initial_state");
-  State::SaveToBuffer(initial_state);
+  State::SaveToBuffer(system, initial_state);
   // The initial save to curr_state causes a stutter of about 5-10 frames
   // Doing it here to get it out of the way and prevent stutters later
   // Subsequent calls to SaveToBuffer for curr_state take ~1 frame
-  State::SaveToBuffer(curr_state);
+  State::SaveToBuffer(system, curr_state);
   if (Config::Get(Config::SLIPPI_ENABLE_SEEK))
   {
     Config::SetCurrent(Config::MAIN_SHOW_CURSOR, Config::ShowCursor::Constantly);
@@ -140,6 +141,7 @@ void SlippiPlaybackStatus::processInitialState()
 
 void SlippiPlaybackStatus::SavestateThread()
 {
+  Core::System& system = Core::System::GetInstance();
   Common::SetCurrentThreadName("Savestate thread");
   std::unique_lock<std::mutex> interval_lock(mtx);
 
@@ -165,14 +167,14 @@ void SlippiPlaybackStatus::SavestateThread()
 
     if (!in_slippi_playback && is_start_frame)
     {
-      processInitialState();
+      processInitialState(system);
       in_slippi_playback = true;
     }
     else if (Config::Get(Config::SLIPPI_ENABLE_SEEK) && !has_state_been_processed &&
              !is_start_frame)
     {
       INFO_LOG_FMT(SLIPPI, "saving diff at frame: {}", fixed_frame_num);
-      State::SaveToBuffer(curr_state);
+      State::SaveToBuffer(system, curr_state);
 
       future_diffs[fixed_frame_num] = std::async(processDiff, initial_state, curr_state);
     }
@@ -182,7 +184,7 @@ void SlippiPlaybackStatus::SavestateThread()
   INFO_LOG_FMT(SLIPPI, "Exiting savestate thread");
 }
 
-void SlippiPlaybackStatus::seekToFrame()
+void SlippiPlaybackStatus::seekToFrame(Core::System& system)
 {
   if (seek_mtx.try_lock())
   {
@@ -199,9 +201,9 @@ void SlippiPlaybackStatus::seekToFrame()
     if (replay_comm_settings.mode == "queue")
       updateWatchSettingsStartEnd();
 
-    auto prev_state = Core::GetState();
+    auto prev_state = Core::GetState(system);
     if (prev_state != Core::State::Paused)
-      Core::SetState(Core::State::Paused);
+      Core::SetState(system, Core::State::Paused);
 
     s32 closest_state_frame =
         target_frame_num - emod(target_frame_num - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
@@ -212,14 +214,14 @@ void SlippiPlaybackStatus::seekToFrame()
     {
       if (closest_state_frame <= Slippi::PLAYBACK_FIRST_SAVE)
       {
-        State::LoadFromBuffer(initial_state);
+        State::LoadFromBuffer(system, initial_state);
       }
       else
       {
         // If this diff exists, load it
         if (future_diffs.count(closest_state_frame) > 0)
         {
-          loadState(closest_state_frame);
+          loadState(system, closest_state_frame);
         }
         else if (target_frame_num < current_playback_frame)
         {
@@ -227,7 +229,7 @@ void SlippiPlaybackStatus::seekToFrame()
           while (closest_actual_state_frame > Slippi::PLAYBACK_FIRST_SAVE &&
                  future_diffs.count(closest_actual_state_frame) == 0)
             closest_actual_state_frame -= FRAME_INTERVAL;
-          loadState(closest_actual_state_frame);
+          loadState(system, closest_actual_state_frame);
         }
         else if (target_frame_num > current_playback_frame)
         {
@@ -239,7 +241,7 @@ void SlippiPlaybackStatus::seekToFrame()
           // only load a savestate if we find one past our current frame since we are seeking
           // forwards
           if (closest_actual_state_frame > current_playback_frame)
-            loadState(closest_actual_state_frame);
+            loadState(system, closest_actual_state_frame);
         }
       }
     }
@@ -248,9 +250,9 @@ void SlippiPlaybackStatus::seekToFrame()
     if (target_frame_num != closest_state_frame && target_frame_num != last_frame)
     {
       setHardFFW(true);
-      Core::SetState(Core::State::Running);
+      Core::SetState(system, Core::State::Running);
       cv_waiting_for_target_frame.wait(ffw_lock);
-      Core::SetState(Core::State::Paused);
+      Core::SetState(system, Core::State::Paused);
       setHardFFW(false);
     }
 
@@ -258,7 +260,7 @@ void SlippiPlaybackStatus::seekToFrame()
     // be performed
     g_playback_status->current_playback_frame = target_frame_num;
     target_frame_num = INT_MAX;
-    Core::SetState(prev_state);
+    Core::SetState(system, prev_state);
     seek_mtx.unlock();
   }
   else
@@ -284,17 +286,17 @@ void SlippiPlaybackStatus::setHardFFW(bool enable)
   is_hard_FFW = enable;
 }
 
-void SlippiPlaybackStatus::loadState(s32 closest_state_frame)
+void SlippiPlaybackStatus::loadState(Core::System& system, s32 closest_state_frame)
 {
   if (closest_state_frame == Slippi::PLAYBACK_FIRST_SAVE)
-    State::LoadFromBuffer(initial_state);
+    State::LoadFromBuffer(system, initial_state);
   else
   {
     std::string state_string;
     decoder.Decode((char*)initial_state.data(), initial_state.size(),
                    future_diffs[closest_state_frame].get(), &state_string);
     std::vector<u8> state_to_load(state_string.begin(), state_string.end());
-    State::LoadFromBuffer(state_to_load);
+    State::LoadFromBuffer(system, state_to_load);
   }
 }
 

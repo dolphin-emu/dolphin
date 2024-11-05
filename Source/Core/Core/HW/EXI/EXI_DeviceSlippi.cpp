@@ -2569,7 +2569,7 @@ void CEXISlippi::prepareFileLength(u8* payload)
   std::string file_name((char*)&payload[0]);
 
   std::string contents;
-  u32 size = game_file_loader->LoadFile(file_name, contents);
+  u32 size = game_file_loader->LoadFile(this->m_system, file_name, contents);
 
   INFO_LOG_FMT(SLIPPI, "Getting file size for: {} -> {}", file_name.c_str(), size);
 
@@ -2584,7 +2584,7 @@ void CEXISlippi::prepareFileLoad(u8* payload)
   std::string file_name((char*)&payload[0]);
 
   std::string contents;
-  u32 size = game_file_loader->LoadFile(file_name, contents);
+  u32 size = game_file_loader->LoadFile(this->m_system, file_name, contents);
   std::vector<u8> buf(contents.begin(), contents.end());
 
   INFO_LOG_FMT(SLIPPI, "Writing file contents: {} -> {}", file_name.c_str(), size);
@@ -3078,7 +3078,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u8* mem_ptr = memory.GetPointer(_uAddr);
+  u8* mem_ptr = memory.GetPointerForRange(_uAddr, _uSize);
 
   u32 buf_loc = 0;
 

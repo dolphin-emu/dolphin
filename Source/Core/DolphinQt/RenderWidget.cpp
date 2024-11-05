@@ -611,5 +611,5 @@ void RenderWidget::Exit()
 
 void RenderWidget::PlaybackSeek()
 {
-  g_playback_status->seekToFrame();
+  g_playback_status->seekToFrame(Core::System::GetInstance());
 }

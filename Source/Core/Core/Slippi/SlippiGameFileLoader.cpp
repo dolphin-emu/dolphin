@@ -29,7 +29,7 @@ std::string getFilePath(std::string file_name)
   return "";
 }
 
-u32 SlippiGameFileLoader::LoadFile(std::string file_name, std::string& data)
+u32 SlippiGameFileLoader::LoadFile(Core::System& system, std::string file_name, std::string& data)
 {
   if (file_cache.count(file_name))
   {
@@ -53,7 +53,7 @@ u32 SlippiGameFileLoader::LoadFile(std::string file_name, std::string& data)
   // If the file was a diff file and the game is running, load the main file from ISO and apply
   // patch
   if (game_file_path.substr(game_file_path.length() - 5) == ".diff" &&
-      Core::GetState() == Core::State::Running)
+      Core::GetState(system) == Core::State::Running)
   {
     std::vector<u8> buf;
     INFO_LOG_FMT(SLIPPI, "Will process diff");

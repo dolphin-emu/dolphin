@@ -57,7 +57,7 @@ void GeneralWidget::CreateWidgets()
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new ToolTipComboBox();
-  m_aspect_combo = new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Force 73:60 (Melee)")
+  m_aspect_combo = new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Force 73:60 (Melee)"),
                                      tr("Stretch to Window"), tr("Custom"), tr("Custom (Stretch)")},
                                     Config::GFX_ASPECT_RATIO);
   m_custom_aspect_label = new QLabel(tr("Custom Aspect Ratio:"));

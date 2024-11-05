@@ -34,19 +34,19 @@ public:
 
   std::thread m_savestate_thread;
 
-  void startThreads(void);
+  void startThreads();
   void resetPlayback(void);
   bool shouldFFWFrame(s32 frame_idx) const;
   void prepareSlippiPlayback(s32& frame_idx);
   void setHardFFW(bool enable);
   std::unordered_map<u32, bool> getDenylist();
   std::vector<u8> getLegacyCodelist();
-  void seekToFrame();
+  void seekToFrame(Core::System& system);
 
 private:
-  void SavestateThread(void);
-  void loadState(s32 closest_state_frame);
-  void processInitialState();
+  void SavestateThread();
+  void loadState(Core::System& system, s32 closest_state_frame);
+  void processInitialState(Core::System& system);
   void updateWatchSettingsStartEnd();
   void generateDenylist();
   void generateLegacyCodelist();
