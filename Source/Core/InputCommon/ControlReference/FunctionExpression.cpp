@@ -26,7 +26,7 @@ private:
       return ExpectedArguments{"toggle_state_input, [clear_state_input]"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const ControlState inner_value = GetArg(0).GetValue();
 
@@ -48,8 +48,8 @@ private:
     return m_state;
   }
 
-  mutable bool m_released{};
-  mutable bool m_state{};
+  bool m_released{};
+  bool m_state{};
 };
 
 // usage: not(expression)
@@ -65,7 +65,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
+  ControlState GetValue() override { return 1.0 - GetArg(0).GetValue(); }
   void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
 };
 
@@ -82,7 +82,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::abs(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::abs(GetArg(0).GetValue()); }
 };
 
 // usage: sin(expression)
@@ -98,7 +98,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::sin(GetArg(0).GetValue()); }
 };
 
 // usage: cos(expression)
@@ -114,7 +114,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::cos(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::cos(GetArg(0).GetValue()); }
 };
 
 // usage: tan(expression)
@@ -130,7 +130,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::tan(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::tan(GetArg(0).GetValue()); }
 };
 
 // usage: asin(expression)
@@ -146,7 +146,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::asin(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::asin(GetArg(0).GetValue()); }
 };
 
 // usage: acos(expression)
@@ -162,7 +162,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::acos(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::acos(GetArg(0).GetValue()); }
 };
 
 // usage: atan(expression)
@@ -178,7 +178,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::atan(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::atan(GetArg(0).GetValue()); }
 };
 
 // usage: atan2(y, x)
@@ -194,7 +194,7 @@ private:
       return ExpectedArguments{"y, x"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     return std::atan2(GetArg(0).GetValue(), GetArg(1).GetValue());
   }
@@ -213,7 +213,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return std::sqrt(GetArg(0).GetValue()); }
+  ControlState GetValue() override { return std::sqrt(GetArg(0).GetValue()); }
 };
 
 // usage: pow(base, exponent)
@@ -229,10 +229,7 @@ private:
       return ExpectedArguments{"base, exponent"};
   }
 
-  ControlState GetValue() const override
-  {
-    return std::pow(GetArg(0).GetValue(), GetArg(1).GetValue());
-  }
+  ControlState GetValue() override { return std::pow(GetArg(0).GetValue(), GetArg(1).GetValue()); }
 };
 
 // usage: min(a, b)
@@ -248,10 +245,7 @@ private:
       return ExpectedArguments{"a, b"};
   }
 
-  ControlState GetValue() const override
-  {
-    return std::min(GetArg(0).GetValue(), GetArg(1).GetValue());
-  }
+  ControlState GetValue() override { return std::min(GetArg(0).GetValue(), GetArg(1).GetValue()); }
 };
 
 // usage: max(a, b)
@@ -267,10 +261,7 @@ private:
       return ExpectedArguments{"a, b"};
   }
 
-  ControlState GetValue() const override
-  {
-    return std::max(GetArg(0).GetValue(), GetArg(1).GetValue());
-  }
+  ControlState GetValue() override { return std::max(GetArg(0).GetValue(), GetArg(1).GetValue()); }
 };
 
 // usage: clamp(value, min, max)
@@ -286,7 +277,7 @@ private:
       return ExpectedArguments{"value, min, max"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     return std::clamp(GetArg(0).GetValue(), GetArg(1).GetValue(), GetArg(2).GetValue());
   }
@@ -305,7 +296,7 @@ private:
       return ExpectedArguments{"seconds"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const auto now = Clock::now();
     const auto elapsed = now - m_start_time;
@@ -332,7 +323,7 @@ private:
   }
 
 private:
-  mutable Clock::time_point m_start_time = Clock::now();
+  Clock::time_point m_start_time = Clock::now();
 };
 
 // usage: if(condition, true_expression, false_expression)
@@ -348,10 +339,11 @@ private:
       return ExpectedArguments{"condition, true_expression, false_expression"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override { return GetLValue()->GetValue(); }
+
+  Expression* GetLValue() override
   {
-    return (GetArg(0).GetValue() > CONDITION_THRESHOLD) ? GetArg(1).GetValue() :
-                                                          GetArg(2).GetValue();
+    return (GetArg(0).GetValue() > CONDITION_THRESHOLD) ? &GetArg(1) : &GetArg(2);
   }
 };
 
@@ -368,7 +360,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     // Subtraction for clarity:
     return 0.0 - GetArg(0).GetValue();
@@ -388,7 +380,7 @@ private:
       return ExpectedArguments{"expression"};
   }
 
-  ControlState GetValue() const override { return GetArg(0).GetValue(); }
+  ControlState GetValue() override { return GetArg(0).GetValue(); }
 };
 
 // usage: deadzone(input, amount)
@@ -403,7 +395,7 @@ class DeadzoneExpression : public FunctionExpression
       return ExpectedArguments{"input, amount"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const ControlState val = GetArg(0).GetValue();
     const ControlState deadzone = GetArg(1).GetValue();
@@ -424,7 +416,7 @@ class SmoothExpression : public FunctionExpression
       return ExpectedArguments{"input, seconds_up, seconds_down = seconds_up"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const auto now = Clock::now();
     const auto elapsed = now - m_last_update;
@@ -452,8 +444,8 @@ class SmoothExpression : public FunctionExpression
   }
 
 private:
-  mutable ControlState m_value = 0.0;
-  mutable Clock::time_point m_last_update = Clock::now();
+  ControlState m_value = 0.0;
+  Clock::time_point m_last_update = Clock::now();
 };
 
 // usage: hold(input, seconds)
@@ -468,7 +460,7 @@ class HoldExpression : public FunctionExpression
       return ExpectedArguments{"input, seconds"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const auto now = Clock::now();
 
@@ -491,8 +483,8 @@ class HoldExpression : public FunctionExpression
   }
 
 private:
-  mutable bool m_state = false;
-  mutable Clock::time_point m_start_time = Clock::now();
+  bool m_state = false;
+  Clock::time_point m_start_time = Clock::now();
 };
 
 // usage: tap(input, seconds, taps=2)
@@ -507,7 +499,7 @@ class TapExpression : public FunctionExpression
       return ExpectedArguments{"input, seconds, taps = 2"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const auto now = Clock::now();
 
@@ -549,9 +541,9 @@ class TapExpression : public FunctionExpression
   }
 
 private:
-  mutable bool m_released = true;
-  mutable u32 m_taps = 0;
-  mutable Clock::time_point m_start_time = Clock::now();
+  bool m_released = true;
+  u32 m_taps = 0;
+  Clock::time_point m_start_time = Clock::now();
 };
 
 // usage: relative(input, speed, [max_abs_value, [shared_state]])
@@ -567,7 +559,7 @@ class RelativeExpression : public FunctionExpression
       return ExpectedArguments{"input, speed, [max_abs_value, [shared_state]]"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     // There is a lot of funky math in this function but it allows for a variety of uses:
     //
@@ -610,8 +602,8 @@ class RelativeExpression : public FunctionExpression
   }
 
 private:
-  mutable ControlState m_state = 0.0;
-  mutable Clock::time_point m_last_update = Clock::now();
+  ControlState m_state = 0.0;
+  Clock::time_point m_last_update = Clock::now();
 };
 
 // usage: pulse(input, seconds)
@@ -626,7 +618,7 @@ class PulseExpression : public FunctionExpression
       return ExpectedArguments{"input, seconds"};
   }
 
-  ControlState GetValue() const override
+  ControlState GetValue() override
   {
     const auto now = Clock::now();
 
@@ -662,9 +654,9 @@ class PulseExpression : public FunctionExpression
   }
 
 private:
-  mutable bool m_released = false;
-  mutable bool m_state = false;
-  mutable Clock::time_point m_release_time = Clock::now();
+  bool m_released = false;
+  bool m_state = false;
+  Clock::time_point m_release_time = Clock::now();
 };
 
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
@@ -748,11 +740,6 @@ FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args
 }
 
 Expression& FunctionExpression::GetArg(u32 number)
-{
-  return *m_args[number];
-}
-
-const Expression& FunctionExpression::GetArg(u32 number) const
 {
   return *m_args[number];
 }

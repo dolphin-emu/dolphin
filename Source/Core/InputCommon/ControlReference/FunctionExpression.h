@@ -42,7 +42,6 @@ protected:
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) = 0;
 
   Expression& GetArg(u32 number);
-  const Expression& GetArg(u32 number) const;
   u32 GetArgCount() const;
 
 private:
