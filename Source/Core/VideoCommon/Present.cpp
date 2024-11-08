@@ -398,40 +398,68 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
 float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
+  float resulting_aspect_ratio;
 
   if (!allow_stretch && aspect_mode == AspectMode::Stretch)
     aspect_mode = AspectMode::Auto;
 
   // If stretch is enabled, we prefer the aspect ratio of the window.
   if (aspect_mode == AspectMode::Stretch)
-    return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
+  {
+    resulting_aspect_ratio =
+        (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
+  }
+  else
+  {
+    // The actual aspect ratio of the XFB texture is irrelevant, the VI one is the one that matters
+    const auto& vi = Core::System::GetInstance().GetVideoInterface();
+    const float source_aspect_ratio = vi.GetAspectRatio();
 
-  // The actual aspect ratio of the XFB texture is irrelevant, the VI one is the one that matters
-  const auto& vi = Core::System::GetInstance().GetVideoInterface();
-  const float source_aspect_ratio = vi.GetAspectRatio();
+    // This will scale up the source ~4:3 resolution to its equivalent ~16:9 resolution
+    if (aspect_mode == AspectMode::ForceWide ||
+        (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
+    {
+      resulting_aspect_ratio = SourceAspectRatioToWidescreen(source_aspect_ratio);
+    }
+    else if (aspect_mode == AspectMode::Custom)
+    {
+      resulting_aspect_ratio =
+          source_aspect_ratio * (g_ActiveConfig.GetCustomAspectRatio() / (4.0f / 3.0f));
+    }
+    // For the "custom stretch" mode, we force the exact target aspect ratio, without
+    // acknowledging the difference between the source aspect ratio and 4:3.
+    else if (aspect_mode == AspectMode::CustomStretch)
+    {
+      resulting_aspect_ratio = g_ActiveConfig.GetCustomAspectRatio();
+    }
+    else if (aspect_mode == AspectMode::Raw)
+    {
+      resulting_aspect_ratio =
+          m_xfb_entry ? (static_cast<float>(m_last_xfb_width) / m_last_xfb_height) : 1.f;
+    }
+    else
+    {
+      resulting_aspect_ratio = source_aspect_ratio;
+    }
+  }
 
-  // This will scale up the source ~4:3 resolution to its equivalent ~16:9 resolution
-  if (aspect_mode == AspectMode::ForceWide ||
-      (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
+  if (g_ActiveConfig.stereo_per_eye_resolution_full)
   {
-    return SourceAspectRatioToWidescreen(source_aspect_ratio);
-  }
-  else if (aspect_mode == AspectMode::Custom)
-  {
-    return source_aspect_ratio * (g_ActiveConfig.GetCustomAspectRatio() / (4.0f / 3.0f));
-  }
-  // For the "custom stretch" mode, we force the exact target aspect ratio, without
-  // acknowleding the difference between the source aspect ratio and 4:3.
-  else if (aspect_mode == AspectMode::CustomStretch)
-  {
-    return g_ActiveConfig.GetCustomAspectRatio();
-  }
-  else if (aspect_mode == AspectMode::Raw)
-  {
-    return m_xfb_entry ? (static_cast<float>(m_last_xfb_width) / m_last_xfb_height) : 1.f;
+    if (g_ActiveConfig.stereo_mode == StereoMode::SBS)
+    {
+      // Render twice as wide if using side-by-side 3D, since the 3D will halve the horizontal
+      // resolution
+      resulting_aspect_ratio *= 2.0;
+    }
+    else if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
+    {
+      // Render twice as tall if using top-and-bottom 3D, since the 3D will halve the vertical
+      // resolution
+      resulting_aspect_ratio /= 2.0;
+    }
   }
 
-  return source_aspect_ratio;
+  return resulting_aspect_ratio;
 }
 
 void Presenter::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
@@ -816,10 +844,10 @@ void Presenter::Present()
   UpdateDrawRectangle();
 
   g_gfx->BeginUtilityDrawing();
-  g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+  const bool backbuffer_bound = g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
 
   // Render the XFB to the screen.
-  if (m_xfb_entry)
+  if (backbuffer_bound && m_xfb_entry)
   {
     // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
     auto render_target_rc = GetTargetRectangle();
@@ -832,7 +860,8 @@ void Presenter::Present()
   if (m_onscreen_ui)
   {
     m_onscreen_ui->Finalize();
-    m_onscreen_ui->DrawImGui();
+    if (backbuffer_bound)
+      m_onscreen_ui->DrawImGui();
   }
 
   // Present to the window system.

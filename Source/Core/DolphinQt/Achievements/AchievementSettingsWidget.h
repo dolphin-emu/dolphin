@@ -18,7 +18,7 @@ class AchievementSettingsWidget final : public QWidget
   Q_OBJECT
 public:
   explicit AchievementSettingsWidget(QWidget* parent);
-  void UpdateData();
+  void UpdateData(int login_failed_code);
 
 private:
   void OnControllerInterfaceConfigure();
@@ -38,6 +38,8 @@ private:
   void ToggleSpectator();
   void ToggleDiscordPresence();
   void ToggleProgress();
+
+  void UpdateHardcoreMode();
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;

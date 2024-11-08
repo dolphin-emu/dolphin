@@ -240,8 +240,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   m_Ram.resize(memory.GetRamSize());
   m_ExRam.resize(memory.GetExRamSize());
 
-  std::fill(m_Ram.begin(), m_Ram.end(), 0);
-  std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
+  std::ranges::fill(m_Ram, 0);
+  std::ranges::fill(m_ExRam, 0);
 
   m_File->SetIsWii(m_system.IsWii());
 
@@ -382,7 +382,7 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
     memUpdate.fifoPosition = (u32)(m_FifoData.size());
     memUpdate.type = type;
     memUpdate.data.resize(size);
-    std::copy(newData, newData + size, memUpdate.data.begin());
+    std::copy_n(newData, size, memUpdate.data.begin());
 
     m_CurrentFrame.memoryUpdates.push_back(std::move(memUpdate));
   }

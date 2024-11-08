@@ -241,10 +241,10 @@ const char* VkResultToString(VkResult res)
   }
 }
 
-void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResult res,
-                     const char* msg)
+void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, const int line,
+                     VkResult res, const char* msg)
 {
-  GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "({}) {} ({}: {})", func_name, msg,
+  GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "({}:{}) {} ({}: {})", func_name, line, msg,
                   static_cast<int>(res), VkResultToString(res));
 }
 

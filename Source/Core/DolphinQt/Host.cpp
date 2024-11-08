@@ -256,6 +256,16 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
+void Host_JitCacheInvalidation()
+{
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->JitCacheInvalidation(); });
+}
+
+void Host_JitProfileDataWiped()
+{
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->JitProfileDataWiped(); });
+}
+
 void Host_PPCSymbolsChanged()
 {
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });

@@ -72,7 +72,7 @@ public:
     using TriggerRawValue = ControllerEmu::RawValue<TriggerType, TRIGGER_BITS>;
 
     // 6-bit X and Y values (0-63)
-    auto GetLeftStick() const { return LeftStickRawValue{StickType(lx, ly)}; };
+    auto GetLeftStick() const { return LeftStickRawValue{StickType(lx, ly)}; }
     void SetLeftStick(const StickType& value)
     {
       lx = value.x;
@@ -82,7 +82,7 @@ public:
     auto GetRightStick() const
     {
       return RightStickRawValue{StickType(rx1 | rx2 << 1 | rx3 << 3, ry)};
-    };
+    }
     void SetRightStick(const StickType& value)
     {
       rx1 = value.x & 0b1;

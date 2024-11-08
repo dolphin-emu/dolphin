@@ -99,4 +99,4 @@ void D3DBoundingBox::Write(u32 index, std::span<const BBoxType> values)
   D3D::context->UpdateSubresource(m_buffer.Get(), 0, &box, values.data(), 0, 0);
 }
 
-};  // namespace DX11
+}  // namespace DX11

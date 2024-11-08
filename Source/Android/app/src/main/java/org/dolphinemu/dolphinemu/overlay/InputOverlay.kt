@@ -83,7 +83,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
     fun initTouchPointer() {
         // Check if we have all the data we need yet
-        val aspectRatioAvailable = NativeLibrary.IsRunningAndStarted()
+        val aspectRatioAvailable = NativeLibrary.IsRunning()
         if (!aspectRatioAvailable || surfacePosition == null)
             return
 

@@ -150,9 +150,6 @@ public:
   void Unlock() { m_locked = false; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
 
-  bool operator==(Arm64Gen::ARM64Reg reg) const { return reg == m_reg; }
-  bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
-
 private:
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   bool m_locked = false;
@@ -179,6 +176,59 @@ public:
   // Returns a temporary register for use
   // Requires unlocking after done
   Arm64Gen::ARM64Reg GetReg();
+
+  class ScopedARM64Reg
+  {
+  public:
+    inline ScopedARM64Reg() = default;
+    ScopedARM64Reg(const ScopedARM64Reg&) = delete;
+    explicit inline ScopedARM64Reg(Arm64RegCache& cache) : m_reg(cache.GetReg()), m_gpr(&cache) {}
+    inline ScopedARM64Reg(Arm64Gen::ARM64Reg reg) : m_reg(reg) {}
+    inline ScopedARM64Reg(ScopedARM64Reg&& scoped_reg) { *this = std::move(scoped_reg); }
+    inline ~ScopedARM64Reg() { Unlock(); }
+
+    inline ScopedARM64Reg& operator=(const ScopedARM64Reg&) = delete;
+    inline ScopedARM64Reg& operator=(Arm64Gen::ARM64Reg reg)
+    {
+      Unlock();
+      m_reg = reg;
+      return *this;
+    }
+    inline ScopedARM64Reg& operator=(ScopedARM64Reg&& scoped_reg)
+    {
+      // Taking ownership of an existing scoped register, no need to release.
+      m_reg = scoped_reg.m_reg;
+      m_gpr = scoped_reg.m_gpr;
+      scoped_reg.Invalidate();
+      return *this;
+    }
+
+    inline Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
+    inline operator Arm64Gen::ARM64Reg() const { return GetReg(); }
+    inline void Unlock()
+    {
+      // Only unlock the register if GPR is set.
+      if (m_gpr != nullptr)
+      {
+        m_gpr->Unlock(m_reg);
+      }
+      Invalidate();
+    }
+
+  private:
+    inline void Invalidate()
+    {
+      m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+      m_gpr = nullptr;
+    }
+
+    Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    Arm64RegCache* m_gpr = nullptr;
+  };
+
+  // Returns a temporary register
+  // Unlocking is implicitly handled through RAII
+  inline ScopedARM64Reg GetScopedReg() { return ScopedARM64Reg(*this); }
 
   void UpdateLastUsed(BitSet32 regs_used);
 
@@ -285,6 +335,8 @@ public:
 
   // Gets the immediate that a register is set to. Only valid for guest GPRs.
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
+
+  bool IsImm(size_t preg, u32 imm) { return IsImm(preg) && GetImm(preg) == imm; }
 
   // Binds a guest GPR to a host register, optionally loading its value.
   //

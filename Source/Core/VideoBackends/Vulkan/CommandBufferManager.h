@@ -63,11 +63,18 @@ public:
 
   // Returns the semaphore for the current command buffer, which can be used to ensure the
   // swap chain image is ready before the command buffer executes.
+  // Once you've confirmed that the semaphore will be signalled this frame, call
+  // `MarkCurrentCommandBufferSemaphoreUsed`.
   VkSemaphore GetCurrentCommandBufferSemaphore()
   {
-    auto& resources = m_command_buffers[m_current_cmd_buffer];
-    resources.semaphore_used = true;
-    return resources.semaphore;
+    return m_command_buffers[m_current_cmd_buffer].semaphore;
+  }
+
+  // Marks the current command buffer's semaphore as used, so we'll wait on it in the next
+  // command buffer submission.
+  void MarkCurrentCommandBufferSemaphoreUsed()
+  {
+    m_command_buffers[m_current_cmd_buffer].semaphore_used = true;
   }
 
   // Ensure that the worker thread has submitted any previous command buffers and is idle.
@@ -78,6 +85,7 @@ public:
   void WaitForFenceCounter(u64 fence_counter);
 
   void SubmitCommandBuffer(bool submit_on_worker_thread, bool wait_for_completion,
+                           bool advance_to_next_frame = false,
                            VkSwapchainKHR present_swap_chain = VK_NULL_HANDLE,
                            uint32_t present_image_index = 0xFFFFFFFF);
 

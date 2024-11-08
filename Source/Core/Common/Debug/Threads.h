@@ -14,7 +14,7 @@
 namespace Core
 {
 class CPUThreadGuard;
-};
+}
 
 namespace Common::Debug
 {

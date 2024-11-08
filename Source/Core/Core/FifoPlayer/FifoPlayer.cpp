@@ -500,7 +500,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
   else
     mem = &memory.GetRAM()[memUpdate.address & memory.GetRamMask()];
 
-  std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
+  std::ranges::copy(memUpdate.data, mem);
 }
 
 void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
@@ -639,6 +639,16 @@ void FifoPlayer::LoadMemory()
   ppc_state.spr[SPR_DBAT0L] = 0x00000002;
   ppc_state.spr[SPR_DBAT1U] = 0xc0001fff;
   ppc_state.spr[SPR_DBAT1L] = 0x0000002a;
+  if (m_File->GetIsWii())
+  {
+    ppc_state.spr[SPR_IBAT4U] = 0x90001fff;
+    ppc_state.spr[SPR_IBAT4L] = 0x10000002;
+    ppc_state.spr[SPR_DBAT4U] = 0x90001fff;
+    ppc_state.spr[SPR_DBAT4L] = 0x10000002;
+    ppc_state.spr[SPR_DBAT5U] = 0xd0001fff;
+    ppc_state.spr[SPR_DBAT5L] = 0x1000002a;
+    HID4(ppc_state).SBE = 1;
+  }
 
   PowerPC::MSRUpdated(ppc_state);
 

@@ -241,6 +241,7 @@ struct VideoConfig final
 
   // Stereoscopy
   StereoMode stereo_mode{};
+  bool stereo_per_eye_resolution_full = false;
   int iStereoDepth = 0;
   int iStereoConvergence = 0;
   int iStereoConvergencePercentage = 0;

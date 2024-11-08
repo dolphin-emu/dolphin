@@ -538,9 +538,12 @@ void JitArm64::lmw(UGeckoInstruction inst)
   else
     ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
 
-  ARM64Reg addr_base_reg = a_is_addr_base_reg ? ARM64Reg::INVALID_REG : gpr.GetReg();
+  Arm64RegCache::ScopedARM64Reg addr_base_reg;
   if (!a_is_addr_base_reg)
+  {
+    addr_base_reg = gpr.GetScopedReg();
     MOV(addr_base_reg, addr_reg);
+  }
 
   BitSet32 gprs_to_discard{};
   if (!jo.memcheck)
@@ -628,8 +631,6 @@ void JitArm64::lmw(UGeckoInstruction inst)
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
   if (jo.memcheck || !jo.fastmem)
     gpr.Unlock(ARM64Reg::W0);
-  if (!a_is_addr_base_reg)
-    gpr.Unlock(addr_base_reg);
 }
 
 void JitArm64::stmw(UGeckoInstruction inst)
@@ -655,9 +656,12 @@ void JitArm64::stmw(UGeckoInstruction inst)
   else
     ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
 
-  ARM64Reg addr_base_reg = a_is_addr_base_reg ? ARM64Reg::INVALID_REG : gpr.GetReg();
+  Arm64GPRCache::ScopedARM64Reg addr_base_reg;
   if (!a_is_addr_base_reg)
+  {
+    addr_base_reg = gpr.GetScopedReg();
     MOV(addr_base_reg, addr_reg);
+  }
 
   BitSet32 gprs_to_discard{};
   if (!jo.memcheck)
@@ -748,8 +752,6 @@ void JitArm64::stmw(UGeckoInstruction inst)
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   if (!jo.fastmem)
     gpr.Unlock(ARM64Reg::W0);
-  if (!a_is_addr_base_reg)
-    gpr.Unlock(addr_base_reg);
 }
 
 void JitArm64::dcbx(UGeckoInstruction inst)
@@ -786,8 +788,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
     // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
 
-    const ARM64Reg reg_cycle_count = gpr.GetReg();
-    const ARM64Reg reg_downcount = gpr.GetReg();
+    const auto reg_cycle_count = gpr.GetScopedReg();
+    const auto reg_downcount = gpr.GetScopedReg();
 
     // Figure out how many loops we want to do.
     const u8 cycle_count_per_loop =
@@ -855,12 +857,9 @@ void JitArm64::dcbx(UGeckoInstruction inst)
       SetJumpTarget(branch_out);
       SetJumpTarget(branch_over);
     }
-
-    gpr.Unlock(reg_cycle_count, reg_downcount);
   }
 
   constexpr ARM64Reg effective_addr = WB;
-  const ARM64Reg physical_addr = gpr.GetReg();
 
   if (a)
     ADD(effective_addr, gpr.R(a), gpr.R(b));
@@ -873,6 +872,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     // adjusted loop count and we're done reading from Rb.
     ADD(gpr.R(b), gpr.R(b), WA, ArithOption(WA, ShiftType::LSL, 5));  // Rb += (WA * 32)
   }
+
+  auto physical_addr = gpr.GetScopedReg();
 
   // Translate effective address to physical address.
   const u8* loop_start = GetCodePtr();
@@ -939,7 +940,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   SwitchToNearCode();
   SetJumpTarget(near_addr);
 
-  gpr.Unlock(WA, WB, physical_addr);
+  gpr.Unlock(WA, WB);
   if (make_loop)
     gpr.Unlock(loop_counter);
 }

@@ -302,7 +302,7 @@ public final class NativeLibrary
 
   public static native int DefaultCPUCore();
 
-  public static native String GetDefaultGraphicsBackendName();
+  public static native String GetDefaultGraphicsBackendConfigName();
 
   public static native int GetMaxLogLevel();
 
@@ -381,9 +381,20 @@ public final class NativeLibrary
    */
   public static native boolean IsRunning();
 
-  public static native boolean IsRunningAndStarted();
-
+  /**
+   * Returns true if emulation is running and not paused.
+   */
   public static native boolean IsRunningAndUnpaused();
+
+  /**
+   * Returns true if emulation is fully shut down.
+   */
+  public static native boolean IsUninitialized();
+
+  /**
+   * Re-initialize software JitBlock profiling data
+   */
+  public static native void WipeJitBlockProfilingData();
 
   /**
    * Writes out the JitBlock Cache log dump

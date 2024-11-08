@@ -98,6 +98,7 @@ public:
     bool all_leaderboards = false;
     std::set<AchievementId> leaderboards{};
     bool rich_presence = false;
+    int failed_login_code = 0;
   };
   using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
@@ -109,6 +110,8 @@ public:
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
+
+  static std::string CalculateHash(const std::string& file_path);
 
   void FetchPlayerBadge();
   void FetchGameBadges();
@@ -170,7 +173,7 @@ private:
 
   void FetchBoardInfo(AchievementId leaderboard_id);
 
-  std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
+  std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; }
 
   static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
                                void* userdata);

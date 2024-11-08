@@ -59,6 +59,13 @@ struct PBInitialTimeDelay
   u16 targetRight;
 };
 
+struct PBUpdate
+{
+  u16 pb_offset;
+  u16 new_value;
+};
+using PBUpdateData = std::array<PBUpdate, 32>;
+
 // Update data - read these each 1ms subframe and use them!
 // It seems that to provide higher time precisions for MIDI events, some games
 // use this thing to update the parameter blocks per 1ms sub-block (a block is 5ms).
@@ -66,7 +73,15 @@ struct PBInitialTimeDelay
 struct PBUpdates
 {
   u16 num_updates[5];
-  u16 data_hi;  // These point to main RAM. Not sure about the structure of the data.
+  u16 data_hi;  // These point to main RAM.
+  u16 data_lo;
+};
+
+// Same for Wii, where frames are only 3 ms.
+struct PBUpdatesWii
+{
+  u16 num_updates[3];
+  u16 data_hi;
   u16 data_lo;
 };
 
@@ -177,7 +192,7 @@ struct PBADPCMLoopInfo
 
 struct PBLowPassFilter
 {
-  u16 enabled;
+  u16 on;
   s16 yn1;
   u16 a0;
   u16 b0;
@@ -213,22 +228,29 @@ struct AXPB
   u16 padding[24];
 };
 
+struct PBHighPassFilter
+{
+  u16 on;
+  u16 unk[3];
+};
+
 struct PBBiquadFilter
 {
-  u16 on;   // on = 2, off = 0
-  u16 xn1;  // History data
-  u16 xn2;
-  u16 yn1;
-  u16 yn2;
-  u16 b0;  // Filter coefficients
-  u16 b1;
-  u16 b2;
-  u16 a1;
-  u16 a2;
+  u16 on;
+  s16 xn1;  // History data
+  s16 xn2;
+  s16 yn1;
+  s16 yn2;
+  s16 b0;  // Filter coefficients
+  s16 b1;
+  s16 b2;
+  s16 a1;
+  s16 a2;
 };
 
 union PBInfImpulseResponseWM
 {
+  u16 on;  // 0: off, 2: biquad, other: low-pass
   PBLowPassFilter lpf;
   PBBiquadFilter biquad;
 };
@@ -251,13 +273,18 @@ struct AXPBWii
   PBMixerWii mixer;
   PBInitialTimeDelay initial_time_delay;
   PBDpopWii dpop;
+  PBUpdatesWii updates;  // Not present in all versions of the struct.
   PBVolumeEnvelope vol_env;
   PBAudioAddr audio_addr;
   PBADPCMInfo adpcm;
   PBSampleRateConverter src;
   PBADPCMLoopInfo adpcm_loop_info;
   PBLowPassFilter lpf;
-  PBBiquadFilter biquad;
+  union
+  {
+    PBHighPassFilter hpf;
+    PBBiquadFilter biquad;
+  };
 
   // WIIMOTE :D
   u16 remote;
@@ -268,7 +295,7 @@ struct AXPBWii
   PBSampleRateConverterWM remote_src;
   PBInfImpulseResponseWM remote_iir;
 
-  u16 pad[12];  // align us, captain! (32B)
+  u16 pad[2];  // align us, captain! (32B)
 };
 
 // TODO: All these enums have changed a lot for Wii

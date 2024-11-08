@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <ranges>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -215,8 +216,8 @@ void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
       if (interface.bAlternateSetting != 0)
         continue;
 
-      auto it = std::find_if(m_usbv5_devices.rbegin(), m_usbv5_devices.rend(),
-                             [](const USBV5Device& entry) { return !entry.in_use; });
+      auto it = std::ranges::find_if(m_usbv5_devices | std::views::reverse,
+                                     [](const USBV5Device& entry) { return !entry.in_use; });
       if (it == m_usbv5_devices.rend())
         return;
 

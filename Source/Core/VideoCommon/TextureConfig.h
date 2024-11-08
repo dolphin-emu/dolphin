@@ -59,7 +59,6 @@ struct TextureConfig
   }
 
   bool operator==(const TextureConfig& o) const;
-  bool operator!=(const TextureConfig& o) const;
   MathUtil::Rectangle<int> GetRect() const;
   MathUtil::Rectangle<int> GetMipRect(u32 level) const;
   size_t GetStride() const;

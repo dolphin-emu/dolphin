@@ -191,11 +191,6 @@ void SHADER::DestroyShaders()
   }
 }
 
-bool PipelineProgramKey::operator!=(const PipelineProgramKey& rhs) const
-{
-  return !operator==(rhs);
-}
-
 bool PipelineProgramKey::operator==(const PipelineProgramKey& rhs) const
 {
   return std::tie(vertex_shader_id, geometry_shader_id, pixel_shader_id) ==

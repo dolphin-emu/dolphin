@@ -16,7 +16,6 @@ struct ConfigChangedCallbackID
   size_t id = -1;
 
   bool operator==(const ConfigChangedCallbackID&) const = default;
-  bool operator!=(const ConfigChangedCallbackID&) const = default;
 };
 
 // returns an ID that can be passed to RemoveConfigChangedCallback()
@@ -27,4 +26,4 @@ void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id);
 // Should be called regularly from the CPU thread
 void CheckForConfigChanges();
 
-};  // namespace CPUThreadConfigCallback
+}  // namespace CPUThreadConfigCallback

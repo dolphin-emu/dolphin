@@ -36,7 +36,7 @@ class Settings : Closeable {
 
         if (isGameSpecific) {
             // Loading game INIs while the core is running will mess with the game INIs loaded by the core
-            check(!NativeLibrary.IsRunning()) { "Attempted to load game INI while emulating" }
+            check(NativeLibrary.IsUninitialized()) { "Attempted to load game INI while emulating" }
             NativeConfig.loadGameInis(gameId, revision)
         }
     }
@@ -124,6 +124,7 @@ class Settings : Closeable {
         const val SECTION_INI_DSP = "DSP"
         const val SECTION_LOGGER_LOGS = "Logs"
         const val SECTION_LOGGER_OPTIONS = "Options"
+        const val SECTION_GFX_HARDWARE = "Settings"
         const val SECTION_GFX_SETTINGS = "Settings"
         const val SECTION_GFX_ENHANCEMENTS = "Enhancements"
         const val SECTION_GFX_COLOR_CORRECTION = "ColorCorrection"

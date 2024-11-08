@@ -81,9 +81,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     // transform this vertex so that it can be used for rasterization (outVertex)
     OutputVertexData* outVertex = m_setup_unit.GetVertex();
     TransformUnit::TransformPosition(&m_vertex, outVertex);
-    outVertex->normal = {};
-    if (VertexLoaderManager::g_current_components & VB_HAS_NORMAL)
-      TransformUnit::TransformNormal(&m_vertex, outVertex);
+    TransformUnit::TransformNormal(&m_vertex, outVertex);
     TransformUnit::TransformColor(&m_vertex, outVertex);
     TransformUnit::TransformTexCoord(&m_vertex, outVertex);
 
@@ -208,6 +206,14 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
   for (std::size_t i = 0; i < m_vertex.normal.size(); i++)
   {
     ReadVertexAttribute<float>(&m_vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
+  }
+  if (!vdec.normals[0].enable)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    m_vertex.normal[0][0] = vertex_shader_manager.constants.cached_normal[0];
+    m_vertex.normal[0][1] = vertex_shader_manager.constants.cached_normal[1];
+    m_vertex.normal[0][2] = vertex_shader_manager.constants.cached_normal[2];
   }
   if (!vdec.normals[1].enable)
   {

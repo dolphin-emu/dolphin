@@ -63,6 +63,8 @@ enum class BranchWatchSelectionInspection : u8
   SetDestinBLR = 1u << 1,
   SetOriginSymbolBLR = 1u << 2,
   SetDestinSymbolBLR = 1u << 3,
+  InvertBranchOption = 1u << 4,  // Used for both conditions and decrement checks.
+  MakeUnconditional = 1u << 5,
   EndOfEnumeration,
 };
 
@@ -117,9 +119,7 @@ public:
   using SelectionInspection = BranchWatchSelectionInspection;
 
   bool GetRecordingActive() const { return m_recording_active; }
-  void SetRecordingActive(bool active) { m_recording_active = active; }
-  void Start() { SetRecordingActive(true); }
-  void Pause() { SetRecordingActive(false); }
+  void SetRecordingActive(const CPUThreadGuard& guard, bool active) { m_recording_active = active; }
   void Clear(const CPUThreadGuard& guard);
 
   void Save(const CPUThreadGuard& guard, std::FILE* file) const;
@@ -142,7 +142,7 @@ public:
            m_collection_pf.size();
   }
   std::size_t GetBlacklistSize() const { return m_blacklist_size; }
-  Phase GetRecordingPhase() const { return m_recording_phase; };
+  Phase GetRecordingPhase() const { return m_recording_phase; }
 
   // An empty selection in reduction mode can't be reconstructed when loading from a file.
   bool CanSave() const { return !(m_recording_phase == Phase::Reduction && m_selection.empty()); }

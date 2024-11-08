@@ -67,7 +67,7 @@ static std::vector<u8> ReadHexString(std::string_view sv)
     sv = sv.substr(2);
   }
   return result;
-};
+}
 
 std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
 {

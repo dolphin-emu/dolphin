@@ -163,6 +163,8 @@ const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{{System::GFX, "ColorCorrection", "
 // Graphics.Stereoscopy
 
 const Info<StereoMode> GFX_STEREO_MODE{{System::GFX, "Stereoscopy", "StereoMode"}, StereoMode::Off};
+const Info<bool> GFX_STEREO_PER_EYE_RESOLUTION_FULL{
+    {System::GFX, "Stereoscopy", "StereoPerEyeResolutionFull"}, false};
 const Info<int> GFX_STEREO_DEPTH{{System::GFX, "Stereoscopy", "StereoDepth"}, 20};
 const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE{
     {System::GFX, "Stereoscopy", "StereoConvergencePercentage"}, 100};
@@ -175,7 +177,7 @@ const Info<int> GFX_STEREO_DEPTH_PERCENTAGE{{System::GFX, "Stereoscopy", "Stereo
 
 // Graphics.Hacks
 
-const Info<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, true};
+const Info<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, false};
 const Info<bool> GFX_HACK_EFB_DEFER_INVALIDATION{
     {System::GFX, "Hacks", "EFBAccessDeferInvalidation"}, false};
 const Info<int> GFX_HACK_EFB_ACCESS_TILE_SIZE{{System::GFX, "Hacks", "EFBAccessTileSize"}, 64};

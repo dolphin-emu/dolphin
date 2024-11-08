@@ -195,12 +195,11 @@ std::from_chars_result FromChars(std::string_view sv, T& value,
   const char* const last = first + sv.size();
   return std::from_chars(first, last, value, fmt);
 }
-};  // namespace Common
+}  // namespace Common
 
 std::string TabsToSpaces(int tab_size, std::string str);
 
 std::vector<std::string> SplitString(const std::string& str, char delim);
-std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 // This requires forward slashes to be used for the path separators, even on Windows.
@@ -314,5 +313,13 @@ std::string GetEscapedHtml(std::string html);
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b);
+
+// 'std::less'-like comparison function object type for case-insensitive strings.
+struct CaseInsensitiveLess
+{
+  using is_transparent = void;  // Allow heterogenous lookup.
+  bool operator()(std::string_view a, std::string_view b) const;
+};
+
 std::string BytesToHexString(std::span<const u8> bytes);
 }  // namespace Common

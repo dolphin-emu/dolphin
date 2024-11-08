@@ -333,8 +333,6 @@ void MemoryWidget::ConnectWidgets()
 
   connect(m_base_check, &QCheckBox::toggled, this, &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
-  connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
-          &MemoryWidget::BreakpointsChanged);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
 }

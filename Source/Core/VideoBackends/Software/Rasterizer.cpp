@@ -330,7 +330,7 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
 
   // adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
-  // 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match hardware output
+  // 28.4 fixed-point coordinates. rounded to nearest and adjusted to match hardware output
   // could also take floor and adjust -8
   const s32 Y1 = iround(16.0f * (v0->screenPosition.y - scissor.y_off)) - 9;
   const s32 Y2 = iround(16.0f * (v1->screenPosition.y - scissor.y_off)) - 9;
@@ -349,7 +349,7 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
   const s32 DY23 = Y2 - Y3;
   const s32 DY31 = Y3 - Y1;
 
-  // Fixed-pos32 deltas
+  // Fixed-point deltas
   const s32 FDX12 = DX12 * 16;
   const s32 FDX23 = DX23 * 16;
   const s32 FDX31 = DX31 * 16;

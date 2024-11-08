@@ -114,7 +114,7 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   }
   else
   {
-    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(),
+    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(partition),
                            volume.GetTitleID(partition).value_or(0),
                            volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
@@ -211,7 +211,7 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   }
   CBoot::LoadMapFromFilename(guard, ppc_symbol_db);
   HLE::Reload(system);
-  PatchEngine::Reload();
+  PatchEngine::Reload(system);
   HiresTexture::Update();
   WC24PatchEngine::Reload();
 }
@@ -265,7 +265,7 @@ struct SetGameMetadata
     std::string executable_path = executable.path;
     constexpr char BACKSLASH = '\\';
     constexpr char FORWARDSLASH = '/';
-    std::replace(executable_path.begin(), executable_path.end(), BACKSLASH, FORWARDSLASH);
+    std::ranges::replace(executable_path, BACKSLASH, FORWARDSLASH);
     config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
 
     Host_TitleChanged();
