@@ -181,7 +181,19 @@ Token Lexer::NextToken()
   case '*':
     return Token(TOK_MUL);
   case '/':
+  {
+    // Handle /* */ style comments.
+    if (it != expr.end() && *it == '*')
+    {
+      ++it;
+      const auto end_of_comment = expr.find("*/", it - expr.begin());
+      if (end_of_comment == std::string::npos)
+        return Token(TOK_INVALID);
+      it = expr.begin() + end_of_comment + 2;
+      return Token(TOK_COMMENT);
+    }
     return Token(TOK_DIV);
+  }
   case '%':
     return Token(TOK_MOD);
   case '=':
@@ -214,26 +226,10 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 {
   while (true)
   {
-    const std::size_t string_position = it - expr.begin();
+    const std::string::iterator prev_it = it;
     Token tok = NextToken();
-
-    tok.string_position = string_position;
-    tok.string_length = it - expr.begin();
-
-    // Handle /* */ style comments.
-    if (tok.type == TOK_DIV && PeekToken().type == TOK_MUL)
-    {
-      const auto end_of_comment = expr.find("*/", it - expr.begin());
-
-      if (end_of_comment == std::string::npos)
-        return ParseStatus::SyntaxError;
-
-      tok.type = TOK_COMMENT;
-      tok.string_length = end_of_comment + 4;
-
-      it = expr.begin() + end_of_comment + 2;
-    }
-
+    tok.string_position = prev_it - expr.begin();
+    tok.string_length = it - prev_it;
     tokens.push_back(tok);
 
     if (tok.type == TOK_INVALID)
