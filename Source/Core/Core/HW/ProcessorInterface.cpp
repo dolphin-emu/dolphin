@@ -98,6 +98,10 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    {
                      system.GetGPFifo().ResetGatherPipe();
 
+                     // Assume that all bytes that made it into the GPU fifo did in fact execute
+                     // before this MMIO write takes effect.
+                     system.GetFifo().SyncGPUForRegisterAccess();
+
                      // Call Fifo::ResetVideoBuffer() from the video thread. Since that function
                      // resets various pointers used by the video thread, we can't call it directly
                      // from the CPU thread, so queue a task to do it instead. In single-core mode,
