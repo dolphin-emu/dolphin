@@ -40,21 +40,6 @@ jobs:
         name: DolphinMPN-macOS-x86_64
         path: build/Binaries/
 
-  build_macos_arm64:
-    runs-on: macos11-arm64-nayla
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup Submodules
-      run: git submodule update --init --recursive
-    - name: Build
-      run: |
-        mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DolphinMPN-macOS-arm64
-        path: build/Binaries/
-
   build_windows:
     runs-on: windows-latest
     steps:
@@ -72,21 +57,3 @@ jobs:
       with:
         name: DolphinMPN-windows-x86_64
         path: Binary/x64/
-
-  build_windows_arm64:
-    runs-on: win11-arm64-nayla
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup Submodules
-      run: git submodule update --init --recursive
-    - name: Enable Developer Command Prompt
-      uses: ilammy/msvc-dev-cmd@v1.13.0
-      with:
-       arch: arm64
-    - name: Build
-      run: msbuild "Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=ARM64
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DolphinMPN-windows-arm64
-        path: Binary/ARM64/
