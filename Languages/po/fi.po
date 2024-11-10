@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-01 15:00+0100\n"
+"POT-Creation-Date: 2024-11-10 12:23+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Jaakko Saarikko <jaakko.saarikko@protonmail.com>, "
 "2022-2024\n"
@@ -1113,8 +1113,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> Suurempi kuin"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1563
-#: Source/Core/DolphinQt/MainWindow.cpp:1630
+#: Source/Core/DolphinQt/MainWindow.cpp:1559
+#: Source/Core/DolphinQt/MainWindow.cpp:1626
 msgid "A NetPlay Session is already in progress!"
 msgstr "Nettipeli-istunto on jo käynnissä!"
 
@@ -1150,7 +1150,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "Tilantallennusta ei voi ladata määräämättä peliä, joka käynnistetään."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:967
+#: Source/Core/DolphinQt/MainWindow.cpp:965
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1364,7 +1364,7 @@ msgstr "Aktiivisten säikeiden jono"
 msgid "Active threads"
 msgstr "Aktiiviset säikeet"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:316
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:318
 msgid "Adapter"
 msgstr "Sovitin"
 
@@ -1646,8 +1646,8 @@ msgstr "Kaikki GC-/Wii-tiedostot"
 msgid "All Hexadecimal"
 msgstr "Kaikki heksadesimaalisina"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1426
-#: Source/Core/DolphinQt/MainWindow.cpp:1438
+#: Source/Core/DolphinQt/MainWindow.cpp:1422
+#: Source/Core/DolphinQt/MainWindow.cpp:1434
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Kaikki tilatallennukset (*.sav *.s##);; Kaikki tiedostot (*)"
 
@@ -1675,7 +1675,7 @@ msgstr "Kaikkien pelaajien tallennustiedostot synkronoitu."
 msgid "Allow Mismatched Region Settings"
 msgstr "Salli sopimattomat alueasetukset"
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:262
 msgid "Allow Usage Statistics Reporting"
 msgstr "Salli käyttötilastojen raportointi"
 
@@ -1815,7 +1815,7 @@ msgstr "Oletko varma?"
 msgid "Area Sampling"
 msgstr "Alueotanta"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:318
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:320
 msgid "Aspect Ratio"
 msgstr "Kuvasuhde"
 
@@ -2196,11 +2196,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "Käynnistä keskeytettynä"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1790
+#: Source/Core/DolphinQt/MainWindow.cpp:1786
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMiin NAND-varmuuskopiotiedosto (*.bin);;Kaikki tiedostot (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1816
+#: Source/Core/DolphinQt/MainWindow.cpp:1812
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMiin avaintiedosto (*.bin);;Kaikki tiedostot (*)"
 
@@ -2578,8 +2578,8 @@ msgstr "Tämän palkinnon roistoja ei voi muuttaa!"
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Wii Remote -ohjainta ei löydy yhteystunnisteella {0:02x}"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1556
-#: Source/Core/DolphinQt/MainWindow.cpp:1623
+#: Source/Core/DolphinQt/MainWindow.cpp:1552
+#: Source/Core/DolphinQt/MainWindow.cpp:1619
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Nettipeli-istuntoa ei voi käynnistää, kun peli on vielä käynnissä!"
 
@@ -3148,8 +3148,8 @@ msgstr "Ulostuloasetukset"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:966
-#: Source/Core/DolphinQt/MainWindow.cpp:1756
+#: Source/Core/DolphinQt/MainWindow.cpp:964
+#: Source/Core/DolphinQt/MainWindow.cpp:1752
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Vahvista"
@@ -3765,11 +3765,11 @@ msgstr "Oma (venytä)"
 msgid "Custom Address Space"
 msgstr "Nykyinen osoiteavaruus"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:322
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
 msgid "Custom Aspect Ratio Height"
 msgstr "Muokatun kuvasuhteen korkeus"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:321
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:323
 msgid "Custom Aspect Ratio Width"
 msgstr "Muokatun kuvasuhteen leveys"
 
@@ -4303,11 +4303,11 @@ msgstr "Etäisyys"
 msgid "Distance of travel from neutral position."
 msgstr "Matkaetäisyys neutraalipaikasta."
 
-#: Source/Core/DolphinQt/Main.cpp:263
+#: Source/Core/DolphinQt/Main.cpp:264
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "Sallitko Dolphinin lähettävän tietoja Dolphinin kehittäjille?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1757
+#: Source/Core/DolphinQt/MainWindow.cpp:1753
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Haluatko lisätä polun \"%1\" pelipolkujen listaan?"
 
@@ -4322,7 +4322,7 @@ msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 "Haluatko poistaa %n valitun tallennustiedoston/valittua tallennustiedostoa?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:970
+#: Source/Core/DolphinQt/MainWindow.cpp:968
 msgid "Do you want to stop the current emulation?"
 msgstr "Haluatko lopettaa nykyisen emulaation?"
 
@@ -4357,8 +4357,8 @@ msgstr "Dolphinin allekirjoitusten CSV-tiedosto"
 msgid "Dolphin Signature File"
 msgstr "Dolphinin allekirjoitustiedosto"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1838
-#: Source/Core/DolphinQt/MainWindow.cpp:1918
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
+#: Source/Core/DolphinQt/MainWindow.cpp:1912
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS-nauhoitus (*.dtm)"
 
@@ -5316,12 +5316,12 @@ msgstr "Syötä RSO-moduulin osoite:"
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
 #: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:315
 #: Source/Core/DolphinQt/MainWindow.cpp:323
-#: Source/Core/DolphinQt/MainWindow.cpp:1146
-#: Source/Core/DolphinQt/MainWindow.cpp:1555
-#: Source/Core/DolphinQt/MainWindow.cpp:1562
-#: Source/Core/DolphinQt/MainWindow.cpp:1622
-#: Source/Core/DolphinQt/MainWindow.cpp:1629
-#: Source/Core/DolphinQt/MainWindow.cpp:1735
+#: Source/Core/DolphinQt/MainWindow.cpp:1143
+#: Source/Core/DolphinQt/MainWindow.cpp:1551
+#: Source/Core/DolphinQt/MainWindow.cpp:1558
+#: Source/Core/DolphinQt/MainWindow.cpp:1618
+#: Source/Core/DolphinQt/MainWindow.cpp:1625
+#: Source/Core/DolphinQt/MainWindow.cpp:1731
 #: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1275
 #: Source/Core/DolphinQt/MenuBar.cpp:1365
 #: Source/Core/DolphinQt/MenuBar.cpp:1388
@@ -5822,7 +5822,7 @@ msgstr ""
 "(Työkalut -> Hallitse NAND-muistia -> Tarkista NAND...), ja yritä "
 "tallennustiedoston tuontia sitten uudelleen."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1143
 msgid "Failed to init core"
 msgstr "Ytimen alustus epäonnistui"
 
@@ -5836,7 +5836,7 @@ msgstr ""
 "Varmista, että grafiikkasuorittimesi tukee vähintään D3D 10.0:aa\n"
 "{0}"
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:372
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:378
 msgid "Failed to initialize renderer classes"
 msgstr "Hahmonninluokkien alustus epäonnistui"
 
@@ -5849,7 +5849,7 @@ msgstr "Paketin asennus epäonnistui: %1"
 msgid "Failed to install this title to the NAND."
 msgstr "Tämän julkaisun asennus NAND-muistiin epäonnistui."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1657
+#: Source/Core/DolphinQt/MainWindow.cpp:1653
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5905,12 +5905,12 @@ msgstr "Skylanderin muokkaus epäonnistui!"
 msgid "Failed to open \"%1\" for writing."
 msgstr "Tiedoston \"%1\" avaaminen kirjoittamista varten epäonnistui."
 
-#: Source/Android/jni/MainAndroid.cpp:457
+#: Source/Android/jni/MainAndroid.cpp:458
 msgid "Failed to open \"{0}\" for writing."
 msgstr "Tiedoston \"{0}\" avaaminen kirjoittamista varten epäonnistui."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1735
+#: Source/Core/DolphinQt/MainWindow.cpp:1731
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "Kohteen '%1' avaus epäonnistui"
@@ -5951,7 +5951,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "Tiedoston avaaminen epäonnistui."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1656
+#: Source/Core/DolphinQt/MainWindow.cpp:1652
 msgid "Failed to open server"
 msgstr "Palvelimen avaaminen epäonnistui"
 
@@ -7438,7 +7438,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "Identiteetin luonti"
 
-#: Source/Core/DolphinQt/Main.cpp:265
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -7597,11 +7597,11 @@ msgstr "Tuo tallennustiedosto(ja)"
 msgid "Import Wii Save..."
 msgstr "Tuo Wii-tallennustiedosto..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1799
+#: Source/Core/DolphinQt/MainWindow.cpp:1795
 msgid "Importing NAND backup"
 msgstr "NAND-varmuuskopion tuonti käynnissä"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1809
+#: Source/Core/DolphinQt/MainWindow.cpp:1805
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -8112,8 +8112,8 @@ msgstr ""
 "Näin ei pitäisi koskaan tapahtua. Ilmoitathan tästä ongelmasta "
 "vianhallintajärjestelmään. Dolphin sulkeutuu nyt."
 
-#: Source/Android/jni/MainAndroid.cpp:431
-#: Source/Android/jni/MainAndroid.cpp:447
+#: Source/Android/jni/MainAndroid.cpp:432
+#: Source/Android/jni/MainAndroid.cpp:448
 msgid "JIT is not active"
 msgstr "JIT ei ole aktiivinen"
 
@@ -8864,7 +8864,7 @@ msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 "MemoryCard: Write-kutsu tapahtui virheellisellä kohdeosoitteella ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1780
+#: Source/Core/DolphinQt/MainWindow.cpp:1776
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -10307,7 +10307,7 @@ msgstr "DPLII-purkamisen laatu. Ääniviive kasvaa laadun myötä."
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1779
+#: Source/Core/DolphinQt/MainWindow.cpp:1775
 msgid "Question"
 msgstr "Kysymys"
 
@@ -11025,7 +11025,7 @@ msgstr "Tallenna tila vanhimpaan"
 msgid "Save Preset"
 msgstr "Tallenna esiasetukset"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1918
+#: Source/Core/DolphinQt/MainWindow.cpp:1912
 msgid "Save Recording File As"
 msgstr "Tallenna nauhoitustiedosto nimellä"
 
@@ -11275,7 +11275,7 @@ msgstr "Valitse GBA-ROM"
 msgid "Select GBA Saves Path"
 msgstr "Valitse GBA-tallennustiedostojen polku"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1815
+#: Source/Core/DolphinQt/MainWindow.cpp:1811
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr "Valitse avaintiedosto (OTP-/SEEPROM-vedos)"
 
@@ -11287,7 +11287,7 @@ msgstr "Valitse viimeisin tilatallennus"
 msgid "Select Load Path"
 msgstr "Valitse latauspolk"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1789
+#: Source/Core/DolphinQt/MainWindow.cpp:1785
 msgid "Select NAND Backup"
 msgstr "Valitse NAND-varmuuskopio"
 
@@ -11389,8 +11389,8 @@ msgstr "Valitse hakemisto"
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
 #: Source/Core/DolphinQt/MainWindow.cpp:788
-#: Source/Core/DolphinQt/MainWindow.cpp:1426
-#: Source/Core/DolphinQt/MainWindow.cpp:1438
+#: Source/Core/DolphinQt/MainWindow.cpp:1422
+#: Source/Core/DolphinQt/MainWindow.cpp:1434
 msgid "Select a File"
 msgstr "Valitse tiedosto"
 
@@ -11418,7 +11418,7 @@ msgstr "Valitse e-Reader-kortti"
 msgid "Select the RSO module address:"
 msgstr "Valitse RSO-moduulin osoite"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1838
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
 msgid "Select the Recording File to Play"
 msgstr "Valitse toistettava nauhoitustiedosto"
 
@@ -11450,7 +11450,7 @@ msgstr "Valitun säikeen kutsupino"
 msgid "Selected thread context"
 msgstr "Valitun säikeen konteksti"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:370
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:372
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
@@ -11458,7 +11458,7 @@ msgstr ""
 "Valitsee käytettävän laitteistosovittimen.<br><br><dolphin_emphasis>%1 ei "
 "tue tätä ominaisuutta.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:367
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:369
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
 "select the first one.</dolphin_emphasis>"
@@ -11568,15 +11568,8 @@ msgid ""
 "backends are recommended. Different games and different GPUs will behave "
 "differently on each backend, so for the best emulation experience it is "
 "recommended to try each and select the backend that is least problematic."
-"<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>If unsure, select %1.</dolphin_emphasis>"
 msgstr ""
-"Valitsee sisäisesti käytettävän grafiikkarajapinnan."
-"<br><br>Ohjelmistohahmonnin on erittäin hidas ja soveltuu lähinnä "
-"virheenjäljitykseen, joten kaikkia muita rajapintoja suositellaan. Eri pelit "
-"ja eri grafiikkasuorittimet toimivat eri tavoin eri hahmontimilla, joten "
-"parhaan emulointikokemuksen löytämiseksi on suositeltavaa kokeilla jokaista "
-"ja valita se, joka on vähiten ongelmallinen.<br><br><dolphin_emphasis>Ellet "
-"ole varma, valitse OpenGL.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
 msgid ""
@@ -15280,7 +15273,7 @@ msgstr "Väärä revisio"
 msgid "Wrote to \"%1\"."
 msgstr "Kirjoitettu kohteeseen \"%1\"."
 
-#: Source/Android/jni/MainAndroid.cpp:463
+#: Source/Android/jni/MainAndroid.cpp:464
 msgid "Wrote to \"{0}\"."
 msgstr "Kirjoitettu kohteeseen \"{0}\"."
 
