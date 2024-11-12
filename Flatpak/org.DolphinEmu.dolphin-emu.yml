@@ -52,6 +52,7 @@ modules:
 
   - name: dolphin-emu
     buildsystem: cmake-ninja
+    builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DENABLE_ALSA=OFF
