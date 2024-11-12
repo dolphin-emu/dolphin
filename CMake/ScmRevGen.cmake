@@ -30,6 +30,8 @@ if(GIT_FOUND)
     ERROR_QUIET)
 endif()
 
+string(TIMESTAMP DOLPHIN_WC_BUILD_DATE "%Y-%m-%d" UTC)
+
 # version number
 set(DOLPHIN_VERSION_MAJOR "2409")
 set(DOLPHIN_VERSION_MINOR "0")
@@ -67,4 +69,8 @@ configure_source_file("Source/Core/Common/scmrev.h")
 if(APPLE)
   configure_source_file("Source/Core/DolphinQt/Info.plist")
   configure_source_file("Source/Core/MacUpdater/Info.plist")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  configure_source_file("Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml")
 endif()
