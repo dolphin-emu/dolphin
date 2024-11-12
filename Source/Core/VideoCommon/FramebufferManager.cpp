@@ -293,6 +293,10 @@ bool FramebufferManager::CreateEFBFramebuffer()
   g_gfx->SetAndClearFramebuffer(m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
                                 g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f :
                                                                                           0.0f);
+
+  // Pixel Shader uses EFB scale as a constant, dirty that in case it changed
+  Core::System::GetInstance().GetPixelShaderManager().Dirty();
+
   return true;
 }
 
@@ -760,9 +764,9 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   }
 
   m_efb_color_cache.tiles.resize(total_tiles);
-  std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(), EFBCacheTile{false, 0});
+  std::ranges::fill(m_efb_color_cache.tiles, EFBCacheTile{false, 0});
   m_efb_depth_cache.tiles.resize(total_tiles);
-  std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(), EFBCacheTile{false, 0});
+  std::ranges::fill(m_efb_depth_cache.tiles, EFBCacheTile{false, 0});
 
   return true;
 }

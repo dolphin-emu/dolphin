@@ -212,7 +212,7 @@ const Info<bool> MAIN_RAM_OVERRIDE_ENABLE{{System::Main, "Core", "RAMOverrideEna
 const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_SIZE_RETAIL};
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
 const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
-                                         VideoBackendBase::GetDefaultBackendName()};
+                                         VideoBackendBase::GetDefaultBackendConfigName()};
 const Info<HSP::HSPDeviceType> MAIN_HSP_DEVICE{{System::Main, "Core", "HSPDevice"},
                                                HSP::HSPDeviceType::None};
 const Info<u32> MAIN_ARAM_EXPANSION_SIZE{{System::Main, "Core", "ARAMExpansionSize"}, 0x400000};
@@ -280,6 +280,8 @@ const Info<std::string> MAIN_AUDIO_BACKEND{{System::Main, "DSP", "Backend"},
                                            AudioCommon::GetDefaultSoundBackend()};
 const Info<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
 const Info<bool> MAIN_AUDIO_MUTED{{System::Main, "DSP", "Muted"}, false};
+const Info<bool> MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT{
+    {System::Main, "DSP", "MuteOnDisabledSpeedLimit"}, false};
 #ifdef _WIN32
 const Info<std::string> MAIN_WASAPI_DEVICE{{System::Main, "DSP", "WASAPIDevice"}, "Default"};
 #endif

@@ -113,8 +113,7 @@ const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst);
 template <typename T, size_t N>
 auto FindByOpcode(UDSPInstruction opcode, const std::array<T, N>& data)
 {
-  return std::find_if(data.cbegin(), data.cend(), [opcode](const auto& info) {
-    return (opcode & info.opcode_mask) == info.opcode;
-  });
+  return std::ranges::find_if(
+      data, [opcode](const auto& info) { return (opcode & info.opcode_mask) == info.opcode; });
 }
 }  // namespace DSP

@@ -1100,7 +1100,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
                          "read-only mode off. Otherwise you'll probably get a desync.",
                          byte_offset, byte_offset);
 
-          std::copy(movInput.begin(), movInput.end(), m_temp_input.begin());
+          std::ranges::copy(movInput, m_temp_input.begin());
         }
         else
         {

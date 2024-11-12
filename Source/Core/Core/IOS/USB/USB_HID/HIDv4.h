@@ -45,6 +45,7 @@ private:
   static constexpr u8 HID_CLASS = 0x03;
 
   bool m_has_pending_changes = true;
+  bool m_is_shut_down = false;
   std::mutex m_devicechange_hook_address_mutex;
   std::unique_ptr<IOCtlRequest> m_devicechange_hook_request;
 

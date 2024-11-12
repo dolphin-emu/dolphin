@@ -1156,8 +1156,7 @@ void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
     const u32 address = m_table_proxy->data(index, UserRole::ClickRole).value<u32>();
     breakpoints.Add(address, break_on_hit, log_on_hit, {});
   }
-  emit m_code_widget->BreakpointsChanged();
-  m_code_widget->Update();
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void BranchWatchDialog::SetBreakpointMenuActionsIcons() const

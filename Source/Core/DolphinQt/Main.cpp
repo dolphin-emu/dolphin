@@ -247,10 +247,10 @@ int main(int argc, char* argv[])
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
     Settings::Instance().InitDefaultPalette();
-    Settings::Instance().UpdateSystemDark();
     Settings::Instance().ApplyStyle();
 
-    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    MainWindow win{Core::System::GetInstance(), std::move(boot),
+                   static_cast<const char*>(options.get("movie"))};
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))

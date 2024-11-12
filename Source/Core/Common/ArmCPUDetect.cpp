@@ -28,6 +28,7 @@
 #endif
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -332,5 +333,5 @@ std::string CPUInfo::Summarize()
   if (bSHA2)
     sum.push_back("SHA2");
 
-  return JoinStrings(sum, ",");
+  return fmt::to_string(fmt::join(sum, ","));
 }

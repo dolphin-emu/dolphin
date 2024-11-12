@@ -234,8 +234,8 @@ std::string_view StripQuotes(std::string_view s)
 // Turns "\n\rhello" into "  hello".
 void ReplaceBreaksWithSpaces(std::string& str)
 {
-  std::replace(str.begin(), str.end(), '\r', ' ');
-  std::replace(str.begin(), str.end(), '\n', ' ');
+  std::ranges::replace(str, '\r', ' ');
+  std::ranges::replace(str, '\n', ' ');
 }
 
 void TruncateToCString(std::string* s)
@@ -368,21 +368,6 @@ std::vector<std::string> SplitString(const std::string& str, const char delim)
   return output;
 }
 
-std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter)
-{
-  // Check if we can return early, just for speed
-  if (strings.empty())
-    return "";
-
-  std::ostringstream res;
-  std::copy(strings.begin(), strings.end(),
-            std::ostream_iterator<std::string>(res, delimiter.c_str()));
-
-  // Drop the trailing delimiter.
-  std::string joined = res.str();
-  return joined.substr(0, joined.length() - delimiter.length());
-}
-
 std::string TabsToSpaces(int tab_size, std::string str)
 {
   const std::string spaces(tab_size, ' ');
@@ -418,8 +403,7 @@ void StringPopBackIf(std::string* s, char c)
 
 size_t StringUTF8CodePointCount(std::string_view str)
 {
-  return str.size() -
-         std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
+  return str.size() - std::ranges::count_if(str, [](char c) -> bool { return (c & 0xC0) == 0x80; });
 }
 
 #ifdef _WIN32
@@ -671,20 +655,24 @@ std::string GetEscapedHtml(std::string html)
 
 void ToLower(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(Common::ToLower));
 }
 
 void ToUpper(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+  std::ranges::transform(*str, str->begin(), static_cast<char (&)(char)>(Common::ToUpper));
 }
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
 {
-  if (a.size() != b.size())
-    return false;
-  return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+  return std::ranges::equal(
+      a, b, [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+}
+
+bool CaseInsensitiveLess::operator()(std::string_view a, std::string_view b) const
+{
+  return std::ranges::lexicographical_compare(
+      a, b, [](char ca, char cb) { return Common::ToLower(ca) < Common::ToLower(cb); });
 }
 
 std::string BytesToHexString(std::span<const u8> bytes)

@@ -60,7 +60,6 @@ public:
     {
       return m_file_info ? (it.m_file_info && *m_file_info == *it.m_file_info) : (!it.m_file_info);
     }
-    bool operator!=(const const_iterator& it) const { return !operator==(it); }
     // Incrementing or destroying an iterator will invalidate its returned references and
     // pointers, but will not invalidate copies of the iterator or file info object.
     const FileInfo& operator*() const { return *m_file_info.get(); }
@@ -73,7 +72,6 @@ public:
   virtual ~FileInfo();
 
   bool operator==(const FileInfo& other) const { return GetAddress() == other.GetAddress(); }
-  bool operator!=(const FileInfo& other) const { return !operator==(other); }
   virtual std::unique_ptr<FileInfo> clone() const = 0;
   virtual const_iterator cbegin() const { return begin(); }
   virtual const_iterator cend() const { return end(); }

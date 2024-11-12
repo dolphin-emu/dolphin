@@ -27,7 +27,7 @@
 
 static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
 {
-  struct IOS::HLE::NWC24::VFFHeader header;
+  IOS::HLE::NWC24::VFFHeader header;
   if (!vff->Read(&header, 1))
   {
     ERROR_LOG_FMT(IOS_WC24, "Failed to read VFF header.");

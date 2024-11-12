@@ -546,8 +546,8 @@ void EnhancementsWidget::AddDescriptions()
       "Adjust the texture filtering. Anisotropic filtering enhances the visual quality of textures "
       "that are at oblique viewing angles. Force Nearest and Force Linear override the texture "
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
-      "of the game's textures and might cause issues in a small number of "
-      "games.<br><br>This option is incompatible with Manual Texture Sampling.<br><br>"
+      "of the game's textures and might cause issues in a small number of games.<br><br>This "
+      "setting is disabled when Manual Texture Sampling is enabled.<br><br>"
       "<dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
       QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
@@ -645,8 +645,8 @@ void EnhancementsWidget::AddDescriptions()
       "effects.<br><br>May have false positives that result in blurry textures at increased "
       "internal "
       "resolution, such as in games that use very low resolution mipmaps. Disabling this can also "
-      "reduce stutter in games that frequently load new textures. This feature is not compatible "
-      "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
+      "reduce stutter in games that frequently load new textures.<br><br>This setting is disabled "
+      "when GPU Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
   static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."

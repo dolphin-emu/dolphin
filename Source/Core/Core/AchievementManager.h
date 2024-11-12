@@ -70,8 +70,8 @@ public:
   static constexpr std::string_view BLUE = "#0B71C1";
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
   static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0x50, 0x2F, 0x58, 0x02, 0x94, 0x60, 0x1B, 0x9F, 0x92, 0xC7,
-      0x04, 0x17, 0x50, 0x2E, 0xF3, 0x09, 0x8C, 0x8C, 0xD6, 0xC0};
+      0xCC, 0xB4, 0x05, 0x2D, 0x2B, 0xEE, 0xF4, 0x06, 0x4A, 0xC9,
+      0x57, 0x5D, 0xA9, 0xE9, 0xDE, 0xB7, 0x98, 0xF8, 0x1A, 0x6D};
 
   struct LeaderboardEntry
   {
@@ -98,6 +98,7 @@ public:
     bool all_leaderboards = false;
     std::set<AchievementId> leaderboards{};
     bool rich_presence = false;
+    int failed_login_code = 0;
   };
   using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
@@ -109,6 +110,8 @@ public:
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
+
+  static std::string CalculateHash(const std::string& file_path);
 
   void FetchPlayerBadge();
   void FetchGameBadges();

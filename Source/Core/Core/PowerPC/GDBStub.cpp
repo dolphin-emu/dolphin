@@ -258,7 +258,7 @@ static void ReadCommand()
 
 static bool IsDataAvailable()
 {
-  struct timeval t;
+  timeval t;
   fd_set _fds, *fds = &_fds;
 
   FD_ZERO(fds);

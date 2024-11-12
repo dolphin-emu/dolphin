@@ -57,6 +57,7 @@ static void InvalidateCacheThreadSafe(Core::System& system, u64 userdata, s64 cy
 {
   system.GetPPCState().iCache.Invalidate(system.GetMemory(), system.GetJitInterface(),
                                          static_cast<u32>(userdata));
+  Host_JitCacheInvalidation();
 }
 
 PowerPCManager::PowerPCManager(Core::System& system)
@@ -128,10 +129,10 @@ void PowerPCManager::DoState(PointerWrap& p)
 
 void PowerPCManager::ResetRegisters()
 {
-  std::fill(std::begin(m_ppc_state.ps), std::end(m_ppc_state.ps), PairedSingle{});
-  std::fill(std::begin(m_ppc_state.sr), std::end(m_ppc_state.sr), 0U);
-  std::fill(std::begin(m_ppc_state.gpr), std::end(m_ppc_state.gpr), 0U);
-  std::fill(std::begin(m_ppc_state.spr), std::end(m_ppc_state.spr), 0U);
+  std::ranges::fill(m_ppc_state.ps, PairedSingle{});
+  std::ranges::fill(m_ppc_state.sr, 0U);
+  std::ranges::fill(m_ppc_state.gpr, 0U);
+  std::ranges::fill(m_ppc_state.spr, 0U);
 
   // Gamecube:
   // 0x00080200 = lonestar 2.0
@@ -296,6 +297,7 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
   {
     m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(),
                                   static_cast<u32>(address));
+    Host_JitCacheInvalidation();
   }
 }
 

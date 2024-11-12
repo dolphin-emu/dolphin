@@ -60,7 +60,6 @@ struct AbstractPipelineConfig
                     rhs.rasterization_state.hex, rhs.depth_state.hex, rhs.blending_state.hex,
                     rhs.framebuffer_state.hex, rhs.usage);
   }
-  bool operator!=(const AbstractPipelineConfig& rhs) const { return !operator==(rhs); }
   bool operator<(const AbstractPipelineConfig& rhs) const
   {
     return std::tie(vertex_format, vertex_shader, geometry_shader, pixel_shader,

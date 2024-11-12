@@ -190,8 +190,6 @@ void CodeWidget::ConnectWidgets()
           &CodeWidget::OnSelectFunctionCallers);
 
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &CodeWidget::OnPPCSymbolsChanged);
-  connect(m_code_view, &CodeViewWidget::BreakpointsChanged, this,
-          [this] { emit BreakpointsChanged(); });
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
 
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
@@ -210,6 +208,11 @@ void CodeWidget::OnBranchWatchDialog()
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();
+}
+
+void CodeWidget::OnSetCodeAddress(u32 address)
+{
+  SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
 }
 
 void CodeWidget::OnPPCSymbolsChanged()

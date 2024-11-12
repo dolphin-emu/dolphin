@@ -21,6 +21,7 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -36,11 +37,27 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
 
   // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
-    ToggleHardcore();
+    UpdateHardcoreMode();
 }
 
-void AchievementSettingsWidget::UpdateData()
+void AchievementSettingsWidget::UpdateData(int login_failed_code)
 {
+  if (login_failed_code != RC_OK)
+  {
+    switch (login_failed_code)
+    {
+    case RC_INVALID_CREDENTIALS:
+      m_common_login_failed->setText(tr("Login Failed - Invalid Username/Password"));
+      break;
+    case RC_NO_RESPONSE:
+      m_common_login_failed->setText(tr("Login Failed - No Internet Connection"));
+      break;
+    default:
+      m_common_login_failed->setText(tr("Login Failed - Server Error"));
+      break;
+    }
+    m_common_login_failed->setVisible(true);
+  }
   LoadSettings();
 }
 
@@ -161,6 +178,8 @@ void AchievementSettingsWidget::OnControllerInterfaceConfigure()
 
 void AchievementSettingsWidget::LoadSettings()
 {
+  Core::System& system = Core::System::GetInstance();
+
   bool enabled = Config::Get(Config::RA_ENABLED);
   bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
@@ -176,27 +195,20 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_password_input)->setVisible(logged_out);
   SignalBlocking(m_common_password_input)->setEnabled(enabled);
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
-  SignalBlocking(m_common_login_button)
-      ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
-  if (enabled && Core::IsRunning(Core::System::GetInstance()))
-  {
-    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
-  }
-  else
-  {
+  SignalBlocking(m_common_login_button)->setEnabled(enabled && Core::IsUninitialized(system));
+  if (!enabled || Core::IsUninitialized(system))
     SignalBlocking(m_common_login_button)->setText(tr("Log In"));
-  }
+  else
+    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
 
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
-  auto& system = Core::System::GetInstance();
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setEnabled(enabled &&
-                   (hardcore_enabled || (Core::GetState(system) == Core::State::Uninitialized &&
-                                         !system.GetMovie().IsPlayingInput())));
+      ->setEnabled(enabled && (hardcore_enabled || (Core::IsUninitialized(system) &&
+                                                    !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
@@ -247,15 +259,12 @@ void AchievementSettingsWidget::ToggleRAIntegration()
     instance.Init();
   else
     instance.Shutdown();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
-  {
-    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-    emit Settings::Instance().HardcoreStateChanged();
-  }
+  UpdateHardcoreMode();
 }
 
 void AchievementSettingsWidget::Login()
 {
+  m_common_login_failed->setVisible(false);
   Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
   AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());
@@ -264,24 +273,31 @@ void AchievementSettingsWidget::Login()
 
 void AchievementSettingsWidget::Logout()
 {
-  AchievementManager::GetInstance().Logout();
-  SaveSettings();
+  auto confirm = ModalMessageBox::question(
+      this, tr("Confirm Logout"), tr("Are you sure you want to log out of RetroAchievements?"),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+  if (confirm == QMessageBox::Yes)
+  {
+    AchievementManager::GetInstance().Logout();
+    SaveSettings();
+  }
 }
 
 void AchievementSettingsWidget::ToggleHardcore()
 {
-  SaveSettings();
-  AchievementManager::GetInstance().SetHardcoreMode();
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
   {
-    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
-      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
-    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
-    Settings::Instance().SetDebugModeEnabled(false);
+    auto confirm = ModalMessageBox::question(
+        this, tr("Confirm Hardcore Off"), tr("Are you sure you want to turn hardcore mode off?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+    if (confirm != QMessageBox::Yes)
+    {
+      SignalBlocking(m_common_hardcore_enabled_input)->setChecked(true);
+      return;
+    }
   }
-  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-  emit Settings::Instance().HardcoreStateChanged();
+  SaveSettings();
+  UpdateHardcoreMode();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
@@ -309,6 +325,17 @@ void AchievementSettingsWidget::ToggleDiscordPresence()
 void AchievementSettingsWidget::ToggleProgress()
 {
   SaveSettings();
+}
+
+void AchievementSettingsWidget::UpdateHardcoreMode()
+{
+  AchievementManager::GetInstance().SetHardcoreMode();
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    Settings::Instance().SetDebugModeEnabled(false);
+  }
+  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  emit Settings::Instance().HardcoreStateChanged();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS

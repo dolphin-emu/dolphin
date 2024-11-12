@@ -223,7 +223,7 @@ void HacksWidget::AddDescriptions()
       "Ignores any requests from the CPU to read from or write to the EFB. "
       "<br><br>Improves performance in some games, but will disable all EFB-based "
       "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If unsure, "
-      "leave this unchecked.</dolphin_emphasis>");
+      "leave this checked.</dolphin_emphasis>");
   static const char TR_IGNORE_FORMAT_CHANGE_DESCRIPTION[] = QT_TR_NOOP(
       "Ignores any changes to the EFB format.<br><br>Improves performance in many games "
       "without "
@@ -268,7 +268,8 @@ void HacksWidget::AddDescriptions()
   static const char TR_GPU_DECODING_DESCRIPTION[] = QT_TR_NOOP(
       "Enables texture decoding using the GPU instead of the CPU.<br><br>This may result in "
       "performance gains in some scenarios, or on systems where the CPU is the "
-      "bottleneck.<br><br>This option is incompatible with Arbitrary Mipmap Detection.<br><br>"
+      "bottleneck.<br><br>If this setting is enabled, Arbitrary Mipmap Detection will be "
+      "disabled.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_FAST_DEPTH_CALC_DESCRIPTION[] = QT_TR_NOOP(
       "Uses a less accurate algorithm to calculate depth values.<br><br>Causes issues in a few "

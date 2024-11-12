@@ -22,22 +22,113 @@ static constexpr const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validatio
 
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
-VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
-    : m_instance(instance), m_physical_device(physical_device)
+template <typename Chain, typename Element>
+static void InsertIntoChain(Chain* chain, Element* element)
 {
-  // Read device physical memory properties, we need it for allocating buffers
-  vkGetPhysicalDeviceProperties(physical_device, &m_device_properties);
-  vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
+  element->pNext = chain->pNext;
+  chain->pNext = element;
+}
 
-  // Would any drivers be this silly? I hope not...
-  m_device_properties.limits.minUniformBufferOffsetAlignment = std::max(
-      m_device_properties.limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
-  m_device_properties.limits.minTexelBufferOffsetAlignment = std::max(
-      m_device_properties.limits.minTexelBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
-  m_device_properties.limits.optimalBufferCopyOffsetAlignment = std::max(
-      m_device_properties.limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(1));
-  m_device_properties.limits.optimalBufferCopyRowPitchAlignment = std::max(
-      m_device_properties.limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(1));
+VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
+{
+  VkPhysicalDeviceFeatures features;
+  VkPhysicalDeviceProperties2 properties2;
+  VkPhysicalDeviceProperties& properties = properties2.properties;
+
+  vkGetPhysicalDeviceProperties(device, &properties);
+  vkGetPhysicalDeviceFeatures(device, &features);
+  apiVersion = vkGetPhysicalDeviceProperties2 ? properties.apiVersion : VK_API_VERSION_1_0;
+
+  if (apiVersion >= VK_API_VERSION_1_1)
+  {
+    VkPhysicalDeviceSubgroupProperties properties_subgroup = {};
+    VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
+    properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    properties2.pNext = nullptr;
+    properties_subgroup.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+    InsertIntoChain(&properties2, &properties_subgroup);
+
+    if (apiVersion >= VK_API_VERSION_1_2)
+    {
+      properties_vk12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+      InsertIntoChain(&properties2, &properties_vk12);
+    }
+
+    vkGetPhysicalDeviceProperties2(device, &properties2);
+
+    if (apiVersion >= VK_API_VERSION_1_2)
+    {
+      driverID = properties_vk12.driverID;
+    }
+
+    subgroupSize = properties_subgroup.subgroupSize;
+
+    // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
+    // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
+    // Shuffle is enabled as a workaround until SPIR-V >= 1.5 is enabled with broadcast(uniform)
+    // support.
+    constexpr VkSubgroupFeatureFlags required_operations =
+        VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
+        VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT;
+    shaderSubgroupOperations =
+        (properties_subgroup.supportedOperations & required_operations) == required_operations &&
+        properties_subgroup.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
+  }
+
+  memcpy(deviceName, properties.deviceName, sizeof(deviceName));
+  memcpy(pipelineCacheUUID, properties.pipelineCacheUUID, sizeof(pipelineCacheUUID));
+  vendorID = properties.vendorID;
+  deviceID = properties.deviceID;
+  minUniformBufferOffsetAlignment =
+      std::max<VkDeviceSize>(properties.limits.minUniformBufferOffsetAlignment, 1);
+  bufferImageGranularity = std::max<VkDeviceSize>(properties.limits.bufferImageGranularity, 1);
+  maxTexelBufferElements = properties.limits.maxTexelBufferElements;
+  maxImageDimension2D = properties.limits.maxImageDimension2D;
+  framebufferColorSampleCounts = properties.limits.framebufferColorSampleCounts;
+  framebufferDepthSampleCounts = properties.limits.framebufferDepthSampleCounts;
+  memcpy(pointSizeRange, properties.limits.pointSizeRange, sizeof(pointSizeRange));
+  maxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
+
+  dualSrcBlend = features.dualSrcBlend != VK_FALSE;
+  geometryShader = features.geometryShader != VK_FALSE;
+  samplerAnisotropy = features.samplerAnisotropy != VK_FALSE;
+  logicOp = features.logicOp != VK_FALSE;
+  fragmentStoresAndAtomics = features.fragmentStoresAndAtomics != VK_FALSE;
+  sampleRateShading = features.sampleRateShading != VK_FALSE;
+  largePoints = features.largePoints != VK_FALSE;
+  shaderStorageImageMultisample = features.shaderStorageImageMultisample != VK_FALSE;
+  shaderTessellationAndGeometryPointSize =
+      features.shaderTessellationAndGeometryPointSize != VK_FALSE;
+  occlusionQueryPrecise = features.occlusionQueryPrecise != VK_FALSE;
+  shaderClipDistance = features.shaderClipDistance != VK_FALSE;
+  depthClamp = features.depthClamp != VK_FALSE;
+  textureCompressionBC = features.textureCompressionBC != VK_FALSE;
+}
+
+VkPhysicalDeviceFeatures VulkanContext::PhysicalDeviceInfo::features() const
+{
+  VkPhysicalDeviceFeatures features;
+  memset(&features, 0, sizeof(features));
+  features.dualSrcBlend = dualSrcBlend ? VK_TRUE : VK_FALSE;
+  features.geometryShader = geometryShader ? VK_TRUE : VK_FALSE;
+  features.samplerAnisotropy = samplerAnisotropy ? VK_TRUE : VK_FALSE;
+  features.logicOp = logicOp ? VK_TRUE : VK_FALSE;
+  features.fragmentStoresAndAtomics = fragmentStoresAndAtomics ? VK_TRUE : VK_FALSE;
+  features.sampleRateShading = sampleRateShading ? VK_TRUE : VK_FALSE;
+  features.largePoints = largePoints ? VK_TRUE : VK_FALSE;
+  features.shaderStorageImageMultisample = shaderStorageImageMultisample ? VK_TRUE : VK_FALSE;
+  features.shaderTessellationAndGeometryPointSize =
+      shaderTessellationAndGeometryPointSize ? VK_TRUE : VK_FALSE;
+  features.occlusionQueryPrecise = occlusionQueryPrecise ? VK_TRUE : VK_FALSE;
+  features.shaderClipDistance = shaderClipDistance ? VK_TRUE : VK_FALSE;
+  features.depthClamp = depthClamp ? VK_TRUE : VK_FALSE;
+  features.textureCompressionBC = textureCompressionBC ? VK_TRUE : VK_FALSE;
+  return features;
+}
+
+VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
+    : m_instance(instance), m_physical_device(physical_device), m_device_info(physical_device)
+{
 }
 
 VulkanContext::~VulkanContext()
@@ -115,6 +206,27 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   return supports_debug_utils && supports_validation_layers;
 }
 
+static u32 getAPIVersion()
+{
+  u32 supported_version;
+  u32 used_version = VK_API_VERSION_1_0;
+  if (vkEnumerateInstanceVersion && vkEnumerateInstanceVersion(&supported_version) == VK_SUCCESS)
+  {
+    // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
+    if (supported_version >= VK_API_VERSION_1_2)
+      used_version = VK_API_VERSION_1_2;
+    else if (supported_version >= VK_API_VERSION_1_1)
+      used_version = VK_API_VERSION_1_1;
+    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.{}, supported: {}.{}", VK_VERSION_MINOR(used_version),
+                 VK_VERSION_MAJOR(supported_version), VK_VERSION_MINOR(supported_version));
+  }
+  else
+  {
+    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
+  }
+  return used_version;
+}
+
 VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
                                                bool enable_validation_layer,
                                                u32* out_vk_api_version)
@@ -131,31 +243,7 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   app_info.applicationVersion = VK_MAKE_VERSION(5, 0, 0);
   app_info.pEngineName = "Dolphin Emulator";
   app_info.engineVersion = VK_MAKE_VERSION(5, 0, 0);
-  app_info.apiVersion = VK_MAKE_VERSION(1, 0, 0);
-
-  // Try for Vulkan 1.1 if the loader supports it.
-  if (vkEnumerateInstanceVersion)
-  {
-    u32 supported_api_version = 0;
-    VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
-    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
-                              VK_VERSION_MINOR(supported_api_version) >= 1))
-    {
-      // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
-      app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.1, supported: {}.{}",
-                   VK_VERSION_MAJOR(supported_api_version),
-                   VK_VERSION_MINOR(supported_api_version));
-    }
-    else
-    {
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
-    }
-  }
-  else
-  {
-    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
-  }
+  app_info.apiVersion = getAPIVersion();
 
   *out_vk_api_version = app_info.apiVersion;
 
@@ -397,55 +485,49 @@ void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPULi
 }
 
 void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
-                                                const VkPhysicalDeviceProperties& properties,
-                                                const VkPhysicalDeviceFeatures& features)
+                                                const PhysicalDeviceInfo& info)
 {
-  config->backend_info.MaxTextureSize = properties.limits.maxImageDimension2D;
+  config->backend_info.MaxTextureSize = info.maxImageDimension2D;
   config->backend_info.bUsesLowerLeftOrigin = false;
-  config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
-  config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
-  config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
+  config->backend_info.bSupportsDualSourceBlend = info.dualSrcBlend;
+  config->backend_info.bSupportsGeometryShaders = info.geometryShader;
+  config->backend_info.bSupportsGSInstancing = info.geometryShader;
   config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
-      (features.fragmentStoresAndAtomics == VK_TRUE);
-  config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
-  config->backend_info.bSupportsLogicOp = (features.logicOp == VK_TRUE);
+      info.fragmentStoresAndAtomics;
+  config->backend_info.bSupportsSSAA = info.sampleRateShading;
+  config->backend_info.bSupportsLogicOp = info.logicOp;
 
-#ifdef __APPLE__
   // Metal doesn't support this.
-  config->backend_info.bSupportsLodBiasInSampler = false;
-#else
-  config->backend_info.bSupportsLodBiasInSampler = true;
-#endif
+  config->backend_info.bSupportsLodBiasInSampler = info.driverID != VK_DRIVER_ID_MOLTENVK;
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
-  if (!features.shaderTessellationAndGeometryPointSize)
+  if (!info.shaderTessellationAndGeometryPointSize)
   {
     config->backend_info.bSupportsGeometryShaders = VK_FALSE;
     config->backend_info.bSupportsGSInstancing = VK_FALSE;
   }
 
   // Depth clamping implies shaderClipDistance and depthClamp
-  config->backend_info.bSupportsDepthClamp =
-      (features.depthClamp == VK_TRUE && features.shaderClipDistance == VK_TRUE);
+  config->backend_info.bSupportsDepthClamp = info.depthClamp && info.shaderClipDistance;
 
   // textureCompressionBC implies BC1 through BC7, which is a superset of DXT1/3/5, which we need.
-  const bool supports_bc = features.textureCompressionBC == VK_TRUE;
-  config->backend_info.bSupportsST3CTextures = supports_bc;
-  config->backend_info.bSupportsBPTCTextures = supports_bc;
+  config->backend_info.bSupportsST3CTextures = info.textureCompressionBC;
+  config->backend_info.bSupportsBPTCTextures = info.textureCompressionBC;
 
   // Some devices don't support point sizes >1 (e.g. Adreno).
   // If we can't use a point size above our maximum IR, use triangles instead for EFB pokes.
   // This means a 6x increase in the size of the vertices, though.
-  config->backend_info.bSupportsLargePoints = features.largePoints &&
-                                              properties.limits.pointSizeRange[0] <= 1.0f &&
-                                              properties.limits.pointSizeRange[1] >= 16;
+  config->backend_info.bSupportsLargePoints =
+      info.largePoints && info.pointSizeRange[0] <= 1.0f && info.pointSizeRange[1] >= 16;
 
-  std::string device_name = properties.deviceName;
-  u32 vendor_id = properties.vendorID;
+  std::string device_name = info.deviceName;
+  u32 vendor_id = info.vendorID;
+  bool is_moltenvk = info.driverID == VK_DRIVER_ID_MOLTENVK;
 
   // Only Apple family GPUs support framebuffer fetch.
-  if (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos)
+  // We currently use a hacked MoltenVK to implement this, so don't attempt outside of MVK
+  if (is_moltenvk && (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos))
   {
     config->backend_info.bSupportsFramebufferFetch = true;
   }
@@ -465,8 +547,8 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
     config->backend_info.bSupportsDynamicSamplerIndexing = false;
 }
 
-void VulkanContext::PopulateBackendInfoMultisampleModes(
-    VideoConfig* config, VkPhysicalDevice gpu, const VkPhysicalDeviceProperties& properties)
+void VulkanContext::PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice gpu,
+                                                        const PhysicalDeviceInfo& info)
 {
   // Query image support for the EFB texture formats.
   VkImageFormatProperties efb_color_properties = {};
@@ -479,10 +561,9 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 0, &efb_depth_properties);
 
   // We can only support MSAA if it's supported on our render target formats.
-  VkSampleCountFlags supported_sample_counts = properties.limits.framebufferColorSampleCounts &
-                                               properties.limits.framebufferDepthSampleCounts &
-                                               efb_color_properties.sampleCounts &
-                                               efb_depth_properties.sampleCounts;
+  VkSampleCountFlags supported_sample_counts =
+      info.framebufferColorSampleCounts & info.framebufferDepthSampleCounts &
+      efb_color_properties.sampleCounts & efb_depth_properties.sampleCounts;
 
   // No AA
   config->backend_info.AAModes.clear();
@@ -522,7 +603,6 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
 
   // Initialize DriverDetails so that we can check for bugs to disable features if needed.
   context->InitDriverDetails();
-  context->PopulateShaderSubgroupSupport();
 
   // Enable debug messages if the "Host GPU" log category is enabled.
   if (enable_debug_utils)
@@ -599,41 +679,15 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   return true;
 }
 
-bool VulkanContext::SelectDeviceFeatures()
+void VulkanContext::WarnMissingDeviceFeatures()
 {
-  VkPhysicalDeviceProperties properties;
-  vkGetPhysicalDeviceProperties(m_physical_device, &properties);
-
-  VkPhysicalDeviceFeatures available_features;
-  vkGetPhysicalDeviceFeatures(m_physical_device, &available_features);
-
-  // Not having geometry shaders or wide lines will cause issues with rendering.
-  if (!available_features.geometryShader && !available_features.wideLines)
-    WARN_LOG_FMT(VIDEO, "Vulkan: Missing both geometryShader and wideLines features.");
-  if (!available_features.largePoints)
+  if (!m_device_info.largePoints)
     WARN_LOG_FMT(VIDEO, "Vulkan: Missing large points feature. CPU EFB writes will be slower.");
-  if (!available_features.occlusionQueryPrecise)
+  if (!m_device_info.occlusionQueryPrecise)
   {
     WARN_LOG_FMT(VIDEO,
                  "Vulkan: Missing precise occlusion queries. Perf queries will be inaccurate.");
   }
-  // Enable the features we use.
-  m_device_features.dualSrcBlend = available_features.dualSrcBlend;
-  m_device_features.geometryShader = available_features.geometryShader;
-  m_device_features.samplerAnisotropy = available_features.samplerAnisotropy;
-  m_device_features.logicOp = available_features.logicOp;
-  m_device_features.fragmentStoresAndAtomics = available_features.fragmentStoresAndAtomics;
-  m_device_features.sampleRateShading = available_features.sampleRateShading;
-  m_device_features.largePoints = available_features.largePoints;
-  m_device_features.shaderStorageImageMultisample =
-      available_features.shaderStorageImageMultisample;
-  m_device_features.shaderTessellationAndGeometryPointSize =
-      available_features.shaderTessellationAndGeometryPointSize;
-  m_device_features.occlusionQueryPrecise = available_features.occlusionQueryPrecise;
-  m_device_features.shaderClipDistance = available_features.shaderClipDistance;
-  m_device_features.depthClamp = available_features.depthClamp;
-  m_device_features.textureCompressionBC = available_features.textureCompressionBC;
-  return true;
 }
 
 bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer)
@@ -749,11 +803,10 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   device_info.enabledExtensionCount = static_cast<uint32_t>(extension_name_pointers.size());
   device_info.ppEnabledExtensionNames = extension_name_pointers.data();
 
-  // Check for required features before creating.
-  if (!SelectDeviceFeatures())
-    return false;
+  WarnMissingDeviceFeatures();
 
-  device_info.pEnabledFeatures = &m_device_features;
+  VkPhysicalDeviceFeatures device_features = m_device_info.features();
+  device_info.pEnabledFeatures = &device_features;
 
   // Enable debug layer on debug builds
   if (enable_validation_layer)
@@ -880,6 +933,41 @@ bool VulkanContext::SupportsDeviceExtension(const char* name) const
                      [name](const std::string& extension) { return extension == name; });
 }
 
+static bool DriverIsMesa(VkDriverId driver_id)
+{
+  switch (driver_id)
+  {
+  case VK_DRIVER_ID_MESA_RADV:
+  case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+  case VK_DRIVER_ID_MESA_LLVMPIPE:
+  case VK_DRIVER_ID_MESA_TURNIP:
+  case VK_DRIVER_ID_MESA_V3DV:
+  case VK_DRIVER_ID_MESA_PANVK:
+  case VK_DRIVER_ID_MESA_VENUS:
+  case VK_DRIVER_ID_MESA_DOZEN:
+  case VK_DRIVER_ID_MESA_NVK:
+  case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
+  case VK_DRIVER_ID_MESA_HONEYKRISP:
+    return true;
+  default:
+    return false;
+  }
+}
+
+static DriverDetails::Driver GetMesaDriver(VkDriverId driver_id)
+{
+  switch (driver_id)
+  {
+    // clang-format off
+  case VK_DRIVER_ID_MESA_RADV:              return DriverDetails::DRIVER_R600;
+  case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA: return DriverDetails::DRIVER_I965;
+  case VK_DRIVER_ID_MESA_NVK:               return DriverDetails::DRIVER_NOUVEAU;
+  case VK_DRIVER_ID_MESA_TURNIP:            return DriverDetails::DRIVER_FREEDRENO;
+  default:                                  return DriverDetails::DRIVER_UNKNOWN;
+    // clang-format on
+  }
+}
+
 void VulkanContext::InitDriverDetails()
 {
   DriverDetails::Vendor vendor;
@@ -888,9 +976,17 @@ void VulkanContext::InitDriverDetails()
   // String comparisons aren't ideal, but there doesn't seem to be any other way to tell
   // which vendor a driver is for. These names are based on the reports submitted to
   // vulkan.gpuinfo.org, as of 19/09/2017.
-  std::string device_name = m_device_properties.deviceName;
-  u32 vendor_id = m_device_properties.vendorID;
-  if (vendor_id == 0x10DE)
+  std::string device_name = m_device_info.deviceName;
+  u32 vendor_id = m_device_info.vendorID;
+  // Note: driver_id may be 0 on vulkan < 1.2
+  VkDriverId driver_id = m_device_info.driverID;
+
+  if (DriverIsMesa(driver_id))
+  {
+    vendor = DriverDetails::VENDOR_MESA;
+    driver = GetMesaDriver(driver_id);
+  }
+  else if (vendor_id == 0x10DE)
   {
     // Currently, there is only the official NV binary driver.
     // "NVIDIA" does not appear in the device name.
@@ -958,49 +1054,15 @@ void VulkanContext::InitDriverDetails()
     driver = DriverDetails::DRIVER_UNKNOWN;
   }
 
-#ifdef __APPLE__
   // Vulkan on macOS goes through Metal, and is not susceptible to the same bugs
   // as the vendor's native Vulkan drivers. We use a different driver fields to
   // differentiate MoltenVK.
-  driver = DriverDetails::DRIVER_PORTABILITY;
-#endif
+  if (driver_id == VK_DRIVER_ID_MOLTENVK)
+    driver = DriverDetails::DRIVER_PORTABILITY;
 
   DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
-                      static_cast<double>(m_device_properties.driverVersion),
+                      static_cast<double>(m_device_info.driverVersion),
                       DriverDetails::Family::UNKNOWN, std::move(device_name));
-}
-
-void VulkanContext::PopulateShaderSubgroupSupport()
-{
-  // Vulkan 1.1 support is required for vkGetPhysicalDeviceProperties2(), but we can't rely on the
-  // function pointer alone.
-  if (!vkGetPhysicalDeviceProperties2 || (VK_VERSION_MAJOR(m_device_properties.apiVersion) == 1 &&
-                                          VK_VERSION_MINOR(m_device_properties.apiVersion) < 1))
-  {
-    return;
-  }
-
-  VkPhysicalDeviceProperties2 device_properties_2 = {};
-  device_properties_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-
-  VkPhysicalDeviceSubgroupProperties subgroup_properties = {};
-  subgroup_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
-  device_properties_2.pNext = &subgroup_properties;
-
-  vkGetPhysicalDeviceProperties2(m_physical_device, &device_properties_2);
-
-  m_shader_subgroup_size = subgroup_properties.subgroupSize;
-
-  // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
-  // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
-  // Shuffle is enabled as a workaround until SPIR-V >= 1.5 is enabled with broadcast(uniform)
-  // support.
-  constexpr VkSubgroupFeatureFlags required_operations =
-      VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
-      VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT;
-  m_supports_shader_subgroup_operations =
-      (subgroup_properties.supportedOperations & required_operations) == required_operations &&
-      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
 }
 
 bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface)
