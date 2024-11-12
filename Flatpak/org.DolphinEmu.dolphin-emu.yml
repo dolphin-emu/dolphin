@@ -1,6 +1,6 @@
 app-id: org.DolphinEmu.dolphin-emu
 runtime: org.kde.Platform
-runtime-version: '6.7'
+runtime-version: '6.8'
 sdk: org.kde.Sdk
 command: dolphin-emu-wrapper
 rename-desktop-file: dolphin-emu.desktop
@@ -46,9 +46,6 @@ modules:
       - type: archive
         url: https://github.com/Unrud/xdg-screensaver-shim/archive/0.0.2.tar.gz
         sha256: 0ed2a69fe6ee6cbffd2fe16f85116db737f17fb1e79bfb812d893cf15c728399
-
-  # build the vendored SDL2 from Externals until the runtime gets 2.30.6
-  - SDL2/SDL2.json
 
   - name: dolphin-emu
     buildsystem: cmake-ninja
