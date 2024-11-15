@@ -138,7 +138,7 @@ void EnableCompression(bool compression)
   s_use_compression = compression;
 }
 
-static void DoState(Core::System& system, PointerWrap& p)
+static void DoState(Core::System& system, PointerWrap& p, bool delta)
 {
   bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
@@ -187,7 +187,7 @@ static void DoState(Core::System& system, PointerWrap& p)
   p.DoMarker("CoreTiming");
 
   // HW needs to be restored before PowerPC because the data cache might need to be flushed.
-  HW::DoState(system, p);
+  HW::DoState(system, p, delta);
   p.DoMarker("HW");
 
   system.GetPowerPC().DoState(p);
@@ -223,7 +223,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
       [&] {
         u8* ptr = buffer.data();
         PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
-        DoState(system, p);
+        DoState(system, p, false);
       },
       true);
 }
@@ -236,13 +236,13 @@ void SaveToBuffer(Core::System& system, std::vector<u8>& buffer)
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
 
-        DoState(system, p_measure);
+        DoState(system, p_measure, false);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
         buffer.resize(buffer_size);
 
         ptr = buffer.data();
         PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
-        DoState(system, p);
+        DoState(system, p, false);
       },
       true);
 }
@@ -487,7 +487,7 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
         // Measure the size of the buffer.
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
-        DoState(system, p_measure);
+        DoState(system, p_measure, false);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
         // Then actually do the write.
@@ -495,7 +495,7 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
         current_buffer.resize(buffer_size);
         ptr = current_buffer.data();
         PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
-        DoState(system, p);
+        DoState(system, p, true);
 
         if (p.IsWriteMode())
         {
@@ -901,7 +901,7 @@ void LoadAs(Core::System& system, const std::string& filename)
           {
             u8* ptr = buffer.data();
             PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
-            DoState(system, p);
+            DoState(system, p, true);
             loaded = true;
             loadedSuccessfully = p.IsReadMode();
           }
