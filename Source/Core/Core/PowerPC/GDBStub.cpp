@@ -178,6 +178,7 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
     }
   }
+  Host_PPCBreakpointsChanged();
 }
 
 static void Nack()
@@ -896,6 +897,7 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
                  len, addr);
   }
+  Host_PPCBreakpointsChanged();
   return true;
 }
 
