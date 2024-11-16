@@ -250,6 +250,8 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
     m_sampler.sample_on = !!arg1;
     break;
   case SAMPLER_FREQ:
+    WARN_LOG_FMT(IOS_USB, "Wii Speak SAMPLER_FREQ set (arg1={:04x}, arg2={:04x}) not implemented",
+                 arg1, arg2);
     switch (arg1)
     {
     case FREQ_8KHZ:
@@ -271,6 +273,8 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
     }
     break;
   case SAMPLER_GAIN:
+    WARN_LOG_FMT(IOS_USB, "Wii Speak SAMPLER_GAIN set (arg1={:04x}, arg2={:04x}) not implemented",
+                 arg1, arg2);
     switch (arg1 & ~0x300)
     {
     case GAIN_00dB:
