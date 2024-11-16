@@ -271,6 +271,12 @@ void Host_PPCSymbolsChanged()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });
 }
 
+void Host_PPCBreakpointsChanged()
+{
+  QueueOnObject(QApplication::instance(),
+                [] { emit Host::GetInstance()->PPCBreakpointsChanged(); });
+}
+
 // We ignore these, and their purpose should be questioned individually.
 // In particular, RequestRenderWindowSize, RequestFullscreen, and
 // UpdateMainFrame should almost certainly be removed.
