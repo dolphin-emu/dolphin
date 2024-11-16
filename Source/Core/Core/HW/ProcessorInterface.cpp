@@ -20,6 +20,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/AsyncRequests.h"
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 
 namespace ProcessorInterface
@@ -96,11 +97,11 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_FIFO_RESET: {:08x}", val);
                    if ((val & 1) != 0)
                    {
+                     // TODO: Is this still necessary now that we reset the CP registers?
                      system.GetGPFifo().ResetGatherPipe();
 
-                     // Assume that all bytes that made it into the GPU fifo did in fact execute
-                     // before this MMIO write takes effect.
-                     system.GetFifo().SyncGPUForRegisterAccess();
+                     // Reset some CP registers. This may trigger an ad-hoc GPU time slice.
+                     system.GetCommandProcessor().ResetFifo();
 
                      // Call Fifo::ResetVideoBuffer() from the video thread. Since that function
                      // resets various pointers used by the video thread, we can't call it directly

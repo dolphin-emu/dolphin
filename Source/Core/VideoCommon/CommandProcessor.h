@@ -60,6 +60,7 @@ enum
   CTRL_REGISTER = 0x02,
   CLEAR_REGISTER = 0x04,
   PERF_SELECT = 0x06,
+  UNK_0A_REGISTER = 0x0A,
   FIFO_BASE_LO = 0x20,
   FIFO_BASE_HI = 0x22,
   FIFO_END_LO = 0x24,
@@ -142,7 +143,8 @@ union UCPClearReg
   {
     u16 ClearFifoOverflow : 1;
     u16 ClearFifoUnderflow : 1;
-    u16 ClearMetrices : 1;
+    // set by GXClearGPMetric
+    u16 ClearMetrics : 1;
     u16 : 13;
   };
   u16 Hex;
@@ -178,6 +180,7 @@ public:
   void SetCpClearRegister();
   void SetCpControlRegister();
   void SetCpStatusRegister();
+  void ResetFifo();
 
   void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess);
 
@@ -194,6 +197,8 @@ private:
   UCPStatusReg m_cp_status_reg;
   UCPCtrlReg m_cp_ctrl_reg;
   UCPClearReg m_cp_clear_reg;
+  u16 m_perf_select = 0;
+  u16 m_unk_0a_reg = 0;
 
   u16 m_bbox_left = 0;
   u16 m_bbox_top = 0;
