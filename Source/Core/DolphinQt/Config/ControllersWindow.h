@@ -5,6 +5,9 @@
 
 #include <QDialog>
 
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+class DualShockUDPClientWidget;
+#endif
 class CommonControllersWidget;
 class GamecubeControllersWidget;
 class QDialogButtonBox;
@@ -25,7 +28,12 @@ private:
   void ConnectWidgets();
 
   QDialogButtonBox* m_button_box;
+  QTabWidget* m_tab_widget;
   GamecubeControllersWidget* m_gamecube_controllers;
   WiimoteControllersWidget* m_wiimote_controllers;
   CommonControllersWidget* m_common;
+
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+  DualShockUDPClientWidget* m_dsuclient_widget;
+#endif
 };

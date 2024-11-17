@@ -11,6 +11,10 @@
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
+#endif
+
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Controller Settings"));
@@ -31,12 +35,18 @@ void ControllersWindow::showEvent(QShowEvent* event)
 
 void ControllersWindow::CreateMainLayout()
 {
+  m_tab_widget = new QTabWidget();
   auto* layout = new QVBoxLayout();
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
-  layout->addWidget(m_gamecube_controllers);
-  layout->addWidget(m_wiimote_controllers);
-  layout->addWidget(m_common);
+  m_tab_widget->addTab(m_gamecube_controllers, tr("GameCube"));
+  m_tab_widget->addTab(m_wiimote_controllers, tr("Wii"));
+  m_tab_widget->addTab(m_common, tr("Common"));
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+  m_dsuclient_widget = new DualShockUDPClientWidget();
+  m_tab_widget->addTab(m_dsuclient_widget, tr("DSU Client"));  // TODO: use GetWrappedWidget()?
+#endif
+  layout->addWidget(m_tab_widget);
   layout->addStretch();
   layout->addWidget(m_button_box);
 
