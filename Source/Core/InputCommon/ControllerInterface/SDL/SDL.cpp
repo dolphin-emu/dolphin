@@ -434,6 +434,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
   // We want buttons to come in as positions, not labels
   SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "0");
+  // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
+  SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "0");
 
   // Disable DualSense Player LEDs; We already colorize the Primary LED
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
