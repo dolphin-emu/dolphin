@@ -17,6 +17,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -30,27 +31,9 @@ bool operator==(const GeckoCode& lhs, const GeckoCode& rhs)
   return lhs.codes == rhs.codes;
 }
 
-bool operator!=(const GeckoCode& lhs, const GeckoCode& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
 bool operator==(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
 {
   return std::tie(lhs.address, lhs.data) == std::tie(rhs.address, rhs.data);
-}
-
-bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
-// return true if a code exists
-bool GeckoCode::Exist(u32 address, u32 data) const
-{
-  return std::find_if(codes.begin(), codes.end(), [&](const Code& code) {
-           return code.address == address && code.data == data;
-         }) != codes.end();
 }
 
 enum class Installation
@@ -214,6 +197,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   {
     ppc_state.iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
   }
+  Host_JitCacheInvalidation();
   return Installation::Installed;
 }
 

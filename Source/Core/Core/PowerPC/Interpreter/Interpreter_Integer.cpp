@@ -141,10 +141,10 @@ void Interpreter::oris(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
+  const s32 a = s32(ppc_state.gpr[inst.RA]);
   const s32 immediate = inst.SIMM_16;
-  ppc_state.gpr[inst.RD] = u32(immediate - s32(ppc_state.gpr[inst.RA]));
-  ppc_state.SetCarry((ppc_state.gpr[inst.RA] == 0) ||
-                     (Helper_Carry(0 - ppc_state.gpr[inst.RA], u32(immediate))));
+  ppc_state.gpr[inst.RD] = u32(immediate - a);
+  ppc_state.SetCarry((a == 0) || (Helper_Carry(0 - u32(a), u32(immediate))));
 }
 
 void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)

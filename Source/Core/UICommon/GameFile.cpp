@@ -10,7 +10,6 @@
 #include <iterator>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -18,6 +17,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <pugixml.hpp>
 
 #include "Common/BitUtils.h"
@@ -613,11 +613,10 @@ bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
       "S6T",
       "SDQ",
   };
-  static_assert(std::is_sorted(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end()));
+  static_assert(std::ranges::is_sorted(two_disc_game_id_prefixes));
 
   std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
-  return std::binary_search(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end(),
-                            game_id_prefix);
+  return std::ranges::binary_search(two_disc_game_id_prefixes, game_id_prefix);
 }
 
 std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) const
@@ -643,10 +642,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   }
   if (info.empty())
     return name;
-  std::ostringstream ss;
-  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
-  ss << info.back();
-  return name + " (" + ss.str() + ")";
+  return fmt::format("{} ({})", name, fmt::join(info, ", "));
 }
 
 static Common::SHA1::Digest GetHash(u32 value)

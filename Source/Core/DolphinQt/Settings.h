@@ -53,8 +53,6 @@ public:
   // UI
   void TriggerThemeChanged();
   void InitDefaultPalette();
-  void UpdateSystemDark();
-  void SetSystemDark(bool dark);
   bool IsSystemDark();
   bool IsThemeDark();
 

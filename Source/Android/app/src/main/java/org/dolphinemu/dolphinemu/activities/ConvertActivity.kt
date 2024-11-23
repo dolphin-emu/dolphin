@@ -6,11 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.google.android.material.color.MaterialColors
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityConvertBinding
 import org.dolphinemu.dolphinemu.fragments.ConvertFragment
@@ -23,13 +22,12 @@ class ConvertActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
+        enableEdgeToEdge()
 
         super.onCreate(savedInstanceState)
 
         binding = ActivityConvertBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val path = intent.getStringExtra(ARG_GAME_PATH)
 
@@ -62,10 +60,6 @@ class ConvertActivity : AppCompatActivity() {
             binding.scrollViewConvert.setPadding(insets.left, 0, insets.right, insets.bottom)
 
             InsetsHelper.applyNavbarWorkaround(insets.bottom, binding.workaroundView)
-            ThemeHelper.setNavigationBarColor(
-                this,
-                MaterialColors.getColor(binding.appbarConvert, R.attr.colorSurface)
-            )
 
             windowInsets
         }

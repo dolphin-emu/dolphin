@@ -20,7 +20,6 @@ struct ConfigChangedCallbackID
   size_t id = -1;
 
   bool operator==(const ConfigChangedCallbackID&) const = default;
-  bool operator!=(const ConfigChangedCallbackID&) const = default;
 };
 
 using ConfigChangedCallback = std::function<void()>;

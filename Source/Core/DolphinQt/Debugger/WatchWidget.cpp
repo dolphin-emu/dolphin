@@ -195,10 +195,11 @@ void WatchWidget::Update()
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    if (!Core::IsRunning(m_system) || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
+    const bool core_is_running = Core::IsRunning(m_system);
+    if (!core_is_running || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 
-    if (Core::IsRunning(m_system))
+    if (core_is_running)
     {
       if (PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       {
@@ -480,7 +481,7 @@ void WatchWidget::DeleteSelectedWatches()
     }
 
     // Sort greatest to smallest, so we don't stomp on existing indices
-    std::sort(row_indices.begin(), row_indices.end(), std::greater{});
+    std::ranges::sort(row_indices, std::ranges::greater{});
     for (const int row : row_indices)
     {
       DeleteWatch(guard, row);

@@ -69,7 +69,7 @@ class SettingsFragmentPresenter(
         } else if (
             menuTag == MenuTag.GRAPHICS
             && this.gameId.isNullOrEmpty()
-            && !NativeLibrary.IsRunning()
+            && NativeLibrary.IsUninitialized()
             && GpuDriverHelper.supportsCustomDriverLoading()
         ) {
             this.gpuDriver =
@@ -1226,6 +1226,24 @@ class SettingsFragmentPresenter(
                 MenuTag.getWiimoteMenuTag(3)
             )
         )
+        sl.add(SwitchSetting(context, object : AbstractBooleanSetting {
+            override val isOverridden: Boolean = IntSetting.WIIMOTE_BB_SOURCE.isOverridden
+
+            override val isRuntimeEditable: Boolean = IntSetting.WIIMOTE_BB_SOURCE.isRuntimeEditable
+
+            override fun delete(settings: Settings): Boolean {
+                return IntSetting.WIIMOTE_BB_SOURCE.delete(settings)
+            }
+
+            override val boolean: Boolean get() = IntSetting.WIIMOTE_BB_SOURCE.int == 2
+
+            override fun setBoolean(settings: Settings, newValue: Boolean) {
+                // 0 == None
+                // 1 == Emulated
+                // 2 == Real
+                IntSetting.WIIMOTE_BB_SOURCE.setInt(settings, if (newValue) 2 else 0)
+            }
+        }, R.string.real_balance_board, 0))
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
@@ -1303,7 +1321,7 @@ class SettingsFragmentPresenter(
 
         if (
             this.gpuDriver != null && this.gameId.isNullOrEmpty()
-            && !NativeLibrary.IsRunning()
+            && NativeLibrary.IsUninitialized()
             && GpuDriverHelper.supportsCustomDriverLoading()
         ) {
             sl.add(
@@ -1780,6 +1798,14 @@ class SettingsFragmentPresenter(
         sl.add(
             SwitchSetting(
                 context,
+                BooleanSetting.GFX_VSYNC,
+                R.string.vsync,
+                R.string.vsync_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
                 BooleanSetting.GFX_BACKEND_MULTITHREADING,
                 R.string.backend_multithreading,
                 R.string.backend_multithreading_description
@@ -1986,6 +2012,16 @@ class SettingsFragmentPresenter(
                 R.string.debug_jit_enable_block_profiling,
                 0
            )
+        )
+        sl.add(
+            RunRunnable(
+                context,
+                R.string.debug_jit_wipe_block_profiling_data,
+                0,
+                R.string.debug_jit_wipe_block_profiling_data_alert,
+                0,
+                true
+            ) { NativeLibrary.WipeJitBlockProfilingData() }
         )
         sl.add(
             RunRunnable(

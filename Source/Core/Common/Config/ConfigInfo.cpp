@@ -15,11 +15,6 @@ bool Location::operator==(const Location& other) const
          strcasecmp(key.c_str(), other.key.c_str()) == 0;
 }
 
-bool Location::operator!=(const Location& other) const
-{
-  return !(*this == other);
-}
-
 bool Location::operator<(const Location& other) const
 {
   if (system != other.system)

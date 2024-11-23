@@ -103,7 +103,8 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
 
     const libusb_interface& interface = config_descriptor->interface[INTERFACE];
     const libusb_interface_descriptor& descriptor = interface.altsetting[0];
-    if (IsBluetoothDevice(descriptor) && IsWantedDevice(device_descriptor) && OpenDevice(device))
+    if (IsBluetoothDevice(descriptor) && IsWantedDevice(device_descriptor) &&
+        OpenDevice(device_descriptor, device))
     {
       unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
       const int manufacturer_ret = libusb_get_string_descriptor_ascii(
@@ -481,9 +482,9 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
   auto iterator = packet.begin() + sizeof(hci_cmd_hdr_t) + sizeof(hci_write_stored_link_key_cp);
   for (const auto& entry : m_link_keys)
   {
-    std::copy(entry.first.begin(), entry.first.end(), iterator);
+    std::ranges::copy(entry.first, iterator);
     iterator += entry.first.size();
-    std::copy(entry.second.begin(), entry.second.end(), iterator);
+    std::ranges::copy(entry.second, iterator);
     iterator += entry.second.size();
   }
 
@@ -597,7 +598,7 @@ void BluetoothRealDevice::LoadLinkKeys()
     }
 
     auto& mac = address.value();
-    std::reverse(mac.begin(), mac.end());
+    std::ranges::reverse(mac);
 
     const std::string& key_string = pair.substr(index + 1);
     linkkey_t key{};
@@ -620,7 +621,7 @@ void BluetoothRealDevice::SaveLinkKeys()
   {
     bdaddr_t address;
     // Reverse the address so that it is stored in the correct order in the config file
-    std::reverse_copy(entry.first.begin(), entry.first.end(), address.begin());
+    std::ranges::reverse_copy(entry.first, address.begin());
     oss << Common::MacAddressToString(address);
     oss << '=';
     oss << std::hex;
@@ -637,14 +638,16 @@ void BluetoothRealDevice::SaveLinkKeys()
   Config::SetBase(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS, config_string);
 }
 
-bool BluetoothRealDevice::OpenDevice(libusb_device* device)
+bool BluetoothRealDevice::OpenDevice(const libusb_device_descriptor& device_descriptor,
+                                     libusb_device* device)
 {
   m_device = libusb_ref_device(device);
   const int ret = libusb_open(m_device, &m_handle);
   if (ret != LIBUSB_SUCCESS)
   {
-    m_last_open_error =
-        Common::FmtFormatT("Failed to open Bluetooth device: {0}", LibusbUtils::ErrorWrap(ret));
+    m_last_open_error = Common::FmtFormatT("Failed to open Bluetooth device {:04x}:{:04x}: {}",
+                                           device_descriptor.idVendor, device_descriptor.idProduct,
+                                           LibusbUtils::ErrorWrap(ret));
     return false;
   }
 
@@ -734,7 +737,7 @@ void BluetoothRealDevice::HandleBulkOrIntrTransfer(libusb_transfer* tr)
       hci_link_key_notification_ep notification;
       std::memcpy(&notification, tr->buffer + sizeof(hci_event_hdr_t), sizeof(notification));
       linkkey_t key;
-      std::copy(std::begin(notification.key), std::end(notification.key), std::begin(key));
+      std::ranges::copy(notification.key, std::begin(key));
       m_link_keys[notification.bdaddr] = key;
     }
     else if (event == HCI_EVENT_COMMAND_COMPL)

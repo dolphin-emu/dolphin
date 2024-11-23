@@ -365,10 +365,11 @@ void Gfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u
   m_dirty_bits |= DirtyState_Pipeline;
 }
 
-void Gfx::BindBackbuffer(const ClearColor& clear_color)
+bool Gfx::BindBackbuffer(const ClearColor& clear_color)
 {
   CheckForSwapChainChanges();
   SetAndClearFramebuffer(m_swap_chain->GetCurrentFramebuffer(), clear_color);
+  return true;
 }
 
 void Gfx::CheckForSwapChainChanges()

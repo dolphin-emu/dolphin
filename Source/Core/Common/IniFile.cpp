@@ -85,7 +85,7 @@ bool IniFile::Section::Delete(std::string_view key)
     return false;
 
   values.erase(it);
-  keys_order.erase(std::find(keys_order.begin(), keys_order.end(), key));
+  keys_order.erase(std::ranges::find(keys_order, key));
   return true;
 }
 
@@ -130,7 +130,7 @@ const IniFile::Section* IniFile::GetSection(std::string_view section_name) const
 {
   for (const Section& sect : sections)
   {
-    if (CaseInsensitiveStringCompare::IsEqual(sect.name, section_name))
+    if (CaseInsensitiveEquals(sect.name, section_name))
       return &sect;
   }
 
@@ -141,7 +141,7 @@ IniFile::Section* IniFile::GetSection(std::string_view section_name)
 {
   for (Section& sect : sections)
   {
-    if (CaseInsensitiveStringCompare::IsEqual(sect.name, section_name))
+    if (CaseInsensitiveEquals(sect.name, section_name))
       return &sect;
   }
 

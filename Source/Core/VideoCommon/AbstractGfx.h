@@ -101,7 +101,10 @@ public:
   // Binds the backbuffer for rendering. The buffer will be cleared immediately after binding.
   // This is where any window size changes are detected, therefore m_backbuffer_width and/or
   // m_backbuffer_height may change after this function returns.
-  virtual void BindBackbuffer(const ClearColor& clear_color = {}) {}
+  // If this returns false, a problem occurred binding the backbuffer.
+  // Don't render anything to it, but still call `PresentBackbuffer`, which will reset any
+  // per-frame resources and prepare for the next frame.
+  virtual bool BindBackbuffer(const ClearColor& clear_color = {}) { return true; }
 
   // Presents the backbuffer to the window system, or "swaps buffers".
   virtual void PresentBackbuffer() {}

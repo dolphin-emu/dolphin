@@ -77,7 +77,7 @@ std::optional<PatchEntry> DeserializeLine(std::string line)
     entry.conditional = true;
   }
 
-  const auto iter = std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
+  const auto iter = std::ranges::find(s_patch_type_strings, items[1]);
   if (iter == s_patch_type_strings.end())
     return std::nullopt;
   entry.type = static_cast<PatchType>(std::distance(s_patch_type_strings.begin(), iter));
@@ -295,6 +295,13 @@ void RemoveMemoryPatch(std::size_t index)
   std::erase(s_on_frame_memory, index);
 }
 
+static void ApplyStartupPatches(Core::System& system)
+{
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard(system);
+  ApplyPatches(guard, s_on_frame);
+}
+
 bool ApplyFramePatches(Core::System& system)
 {
   const auto& ppc_state = system.GetPPCState();
@@ -332,10 +339,11 @@ void Shutdown()
   Gecko::Shutdown();
 }
 
-void Reload()
+void Reload(Core::System& system)
 {
   Shutdown();
   LoadPatches();
+  ApplyStartupPatches(system);
 }
 
 }  // namespace PatchEngine

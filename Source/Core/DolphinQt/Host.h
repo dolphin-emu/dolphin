@@ -40,7 +40,10 @@ signals:
   void RequestStop();
   void RequestRenderSize(int w, int h);
   void UpdateDisasmDialog();
+  void JitCacheInvalidation();
+  void JitProfileDataWiped();
   void PPCSymbolsChanged();
+  void PPCBreakpointsChanged();
 
 private:
   Host();

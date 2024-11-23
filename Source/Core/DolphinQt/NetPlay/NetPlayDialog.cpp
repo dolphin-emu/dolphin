@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <sstream>
 
+#include <fmt/ranges.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/HttpRequest.h"
@@ -805,9 +807,11 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
   QColor c(color.empty() ? QStringLiteral("white") : QString::fromStdString(color));
 
   if (g_ActiveConfig.bShowNetPlayMessages && Core::IsRunning(Core::System::GetInstance()))
+  {
     g_netplay_chat_ui->AppendChat(msg.toStdString(),
                                   {static_cast<float>(c.redF()), static_cast<float>(c.greenF()),
                                    static_cast<float>(c.blueF())});
+  }
 }
 
 void NetPlayDialog::AppendChat(const std::string& msg)

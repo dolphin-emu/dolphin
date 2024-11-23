@@ -1228,11 +1228,6 @@ bool operator==(const HeaderData& lhs, const HeaderData& rhs)
   return std::memcmp(&lhs, &rhs, sizeof(HeaderData)) == 0;
 }
 
-bool operator!=(const HeaderData& lhs, const HeaderData& rhs)
-{
-  return !(lhs == rhs);
-}
-
 Header::Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
                u32 sram_language, u64 format_time)
 {

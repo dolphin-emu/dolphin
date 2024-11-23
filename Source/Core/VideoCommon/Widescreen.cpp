@@ -15,9 +15,8 @@ std::unique_ptr<WidescreenManager> g_widescreen;
 
 WidescreenManager::WidescreenManager()
 {
-  std::optional<bool> is_game_widescreen = GetWidescreenOverride();
-  if (is_game_widescreen.has_value())
-    m_is_game_widescreen = is_game_widescreen.value();
+  if (std::optional<bool> is_game_widescreen = GetWidescreenOverride())
+    m_is_game_widescreen = *is_game_widescreen;
 
   // Throw a warning as unsupported aspect ratio modes have no specific behavior to them
   const bool is_valid_suggested_aspect_mode =
@@ -34,14 +33,13 @@ WidescreenManager::WidescreenManager()
       [this](u32 bits) {
         if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
         {
-          std::optional<bool> is_game_widescreen = GetWidescreenOverride();
           // If the widescreen flag isn't being overridden by any settings,
           // reset it to default if heuristic aren't running or to the last
           // heuristic value if they were running.
-          if (!is_game_widescreen.has_value())
-            is_game_widescreen = (m_heuristic_state == HeuristicState::Active_Found_Anamorphic);
-          if (is_game_widescreen.has_value())
-            m_is_game_widescreen = is_game_widescreen.value();
+          if (std::optional<bool> is_game_widescreen = GetWidescreenOverride())
+            m_is_game_widescreen = *is_game_widescreen;
+          else
+            m_is_game_widescreen = (m_heuristic_state == HeuristicState::Active_Found_Anamorphic);
         }
       },
       "Widescreen");

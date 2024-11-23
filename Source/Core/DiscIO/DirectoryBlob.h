@@ -140,7 +140,6 @@ public:
   bool Read(u64* offset, u64* length, u8** buffer, DirectoryBlobReader* blob) const;
 
   bool operator==(const DiscContent& other) const { return GetEndOffset() == other.GetEndOffset(); }
-  bool operator!=(const DiscContent& other) const { return !(*this == other); }
   bool operator<(const DiscContent& other) const { return GetEndOffset() < other.GetEndOffset(); }
   bool operator>(const DiscContent& other) const { return other < *this; }
   bool operator<=(const DiscContent& other) const { return !(*this > other); }

@@ -120,7 +120,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
     return PowerPC::MMU::HostRead_F32(guard, address);
-  };
+  }
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const
@@ -331,18 +331,16 @@ private:
   std::vector<AccessorMapping>::iterator FindAppropriateAccessor(const Core::CPUThreadGuard& guard,
                                                                  u32 address)
   {
-    return std::find_if(m_accessor_mappings.begin(), m_accessor_mappings.end(),
-                        [&guard, address](const AccessorMapping& a) {
-                          return a.accessors->IsValidAddress(guard, address - a.base);
-                        });
+    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a) {
+      return a.accessors->IsValidAddress(guard, address - a.base);
+    });
   }
   std::vector<AccessorMapping>::const_iterator
   FindAppropriateAccessor(const Core::CPUThreadGuard& guard, u32 address) const
   {
-    return std::find_if(m_accessor_mappings.begin(), m_accessor_mappings.end(),
-                        [&guard, address](const AccessorMapping& a) {
-                          return a.accessors->IsValidAddress(guard, address - a.base);
-                        });
+    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a) {
+      return a.accessors->IsValidAddress(guard, address - a.base);
+    });
   }
 };
 

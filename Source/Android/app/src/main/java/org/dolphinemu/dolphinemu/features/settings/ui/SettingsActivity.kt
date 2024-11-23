@@ -14,17 +14,16 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding
@@ -32,11 +31,9 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
-import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
-import org.dolphinemu.dolphinemu.utils.ThemeHelper.setNavigationBarColor
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setTheme
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
@@ -55,6 +52,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(this)
+        enableEdgeToEdge()
 
         super.onCreate(savedInstanceState)
 
@@ -68,8 +66,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val launcher = intent
         var gameID = launcher.getStringExtra(ARG_GAME_ID)
@@ -291,10 +287,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             )
 
             InsetsHelper.applyNavbarWorkaround(insets.bottom, binding!!.workaroundView)
-            setNavigationBarColor(
-                this,
-                MaterialColors.getColor(binding!!.appbarSettings, R.attr.colorSurface)
-            )
 
             windowInsets
         }

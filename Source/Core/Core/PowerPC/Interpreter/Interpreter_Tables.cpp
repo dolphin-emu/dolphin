@@ -6,7 +6,6 @@
 #include <array>
 
 #include "Common/Assert.h"
-#include "Common/TypeUtils.h"
 #include "Core/PowerPC/Gekko.h"
 
 namespace
@@ -341,7 +340,7 @@ constexpr std::array<InterpreterOpTemplate, 10> s_table63_2{{
 constexpr std::array<Interpreter::Instruction, 64> s_interpreter_op_table = []() consteval
 {
   std::array<Interpreter::Instruction, 64> table{};
-  Common::Fill(table, Interpreter::unknown_instruction);
+  table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_primary_table)
   {
     ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
@@ -353,7 +352,7 @@ constexpr std::array<Interpreter::Instruction, 64> s_interpreter_op_table = []()
 constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = []() consteval
 {
   std::array<Interpreter::Instruction, 1024> table{};
-  Common::Fill(table, Interpreter::unknown_instruction);
+  table.fill(Interpreter::unknown_instruction);
 
   for (u32 i = 0; i < 32; i++)
   {
@@ -390,7 +389,7 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = [
 constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table19 = []() consteval
 {
   std::array<Interpreter::Instruction, 1024> table{};
-  Common::Fill(table, Interpreter::unknown_instruction);
+  table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table19)
   {
     ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
@@ -402,7 +401,7 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table19 = 
 constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table31 = []() consteval
 {
   std::array<Interpreter::Instruction, 1024> table{};
-  Common::Fill(table, Interpreter::unknown_instruction);
+  table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table31)
   {
     ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
@@ -414,7 +413,7 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table31 = 
 constexpr std::array<Interpreter::Instruction, 32> s_interpreter_op_table59 = []() consteval
 {
   std::array<Interpreter::Instruction, 32> table{};
-  Common::Fill(table, Interpreter::unknown_instruction);
+  table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table59)
   {
     ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);
@@ -426,7 +425,7 @@ constexpr std::array<Interpreter::Instruction, 32> s_interpreter_op_table59 = []
 constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table63 = []() consteval
 {
   std::array<Interpreter::Instruction, 1024> table{};
-  Common::Fill(table, Interpreter::unknown_instruction);
+  table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table63)
   {
     ASSERT(table[tpl.opcode] == Interpreter::unknown_instruction);

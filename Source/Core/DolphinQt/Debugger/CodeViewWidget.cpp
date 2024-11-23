@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include <QApplication>
 #include <QClipboard>
@@ -186,6 +187,8 @@ CodeViewWidget::CodeViewWidget()
     Update();
   });
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this,
+          qOverload<>(&CodeViewWidget::Update));
+  connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this,
           qOverload<>(&CodeViewWidget::Update));
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this,
@@ -562,7 +565,7 @@ void CodeViewWidget::OnContextMenu()
   QMenu* menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
-  const bool running = Core::GetState(m_system) != Core::State::Uninitialized;
+  const bool running = Core::IsRunning(m_system);
   const bool paused = Core::GetState(m_system) == Core::State::Paused;
 
   const u32 addr = GetContextAddress();
@@ -585,7 +588,7 @@ void CodeViewWidget::OnContextMenu()
   auto* show_target_memory =
       menu->addAction(tr("Show Target in Memor&y"), this, &CodeViewWidget::OnShowTargetInMemory);
   auto* copy_target_memory =
-      menu->addAction(tr("Copy Tar&get Sddress"), this, &CodeViewWidget::OnCopyTargetAddress);
+      menu->addAction(tr("Copy Tar&get Address"), this, &CodeViewWidget::OnCopyTargetAddress);
   menu->addSeparator();
 
   auto* symbol_rename_action =
@@ -878,7 +881,7 @@ void CodeViewWidget::OnPPCComparison()
 {
   const u32 addr = GetContextAddress();
 
-  emit RequestPPCComparison(addr);
+  emit RequestPPCComparison(addr, m_system.GetPPCState().msr.IR);
 }
 
 void CodeViewWidget::OnAddFunction()
@@ -1138,16 +1141,14 @@ void CodeViewWidget::ToggleBreakpoint()
 {
   m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(GetContextAddress());
 
-  emit BreakpointsChanged();
-  Update();
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void CodeViewWidget::AddBreakpoint()
 {
   m_system.GetPowerPC().GetBreakPoints().Add(GetContextAddress());
 
-  emit BreakpointsChanged();
-  Update();
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 u32 CodeViewWidget::GetContextAddress() const

@@ -13,11 +13,6 @@ bool TextureConfig::operator==(const TextureConfig& o) const
          std::tie(o.width, o.height, o.levels, o.layers, o.samples, o.format, o.flags, o.type);
 }
 
-bool TextureConfig::operator!=(const TextureConfig& o) const
-{
-  return !operator==(o);
-}
-
 MathUtil::Rectangle<int> TextureConfig::GetRect() const
 {
   return {0, 0, static_cast<int>(width), static_cast<int>(height)};

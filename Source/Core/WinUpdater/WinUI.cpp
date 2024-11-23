@@ -47,7 +47,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-};  // namespace
+}  // namespace
 
 constexpr int PROGRESSBAR_FLAGS = WS_VISIBLE | WS_CHILD | PBS_SMOOTH | PBS_SMOOTHREVERSE;
 constexpr int WINDOW_FLAGS = WS_CLIPCHILDREN;
@@ -305,4 +305,4 @@ void SetVisible(bool visible)
   ShowWindow(window_handle, visible ? SW_SHOW : SW_HIDE);
 }
 
-};  // namespace UI
+}  // namespace UI
