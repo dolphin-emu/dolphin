@@ -6,11 +6,11 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
 
 #include <fmt/format.h>
 
@@ -456,34 +456,30 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   if (!f)
     return false;
 
-  std::vector<const Common::Symbol*> function_symbols;
-  std::vector<const Common::Symbol*> data_symbols;
-
-  for (const auto& function : m_functions)
-  {
-    const Common::Symbol& symbol = function.second;
-    if (symbol.type == Common::Symbol::Type::Function)
-      function_symbols.push_back(&symbol);
-    else
-      data_symbols.push_back(&symbol);
-  }
-
   // Write .text section
+  auto function_symbols =
+      m_functions |
+      std::views::filter([](auto f) { return f.second.type == Common::Symbol::Type::Function; }) |
+      std::views::transform([](auto f) { return f.second; });
   f.WriteString(".text section layout\n");
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
-                              symbol->address, 0, symbol->name));
+    f.WriteString(fmt::format("{:08x} {:08x} {:08x} {} {}\n", symbol.address, symbol.size,
+                              symbol.address, 0, symbol.name));
   }
 
   // Write .data section
+  auto data_symbols =
+      m_functions |
+      std::views::filter([](auto f) { return f.second.type == Common::Symbol::Type::Data; }) |
+      std::views::transform([](auto f) { return f.second; });
   f.WriteString("\n.data section layout\n");
   for (const auto& symbol : data_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
-                              symbol->address, 0, symbol->name));
+    f.WriteString(fmt::format("{:08x} {:08x} {:08x} {} {}\n", symbol.address, symbol.size,
+                              symbol.address, 0, symbol.name));
   }
 
   return true;
