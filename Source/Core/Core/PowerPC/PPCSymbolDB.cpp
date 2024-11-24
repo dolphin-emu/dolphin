@@ -328,7 +328,26 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     }
 
     u32 address, vaddress, size, offset, alignment;
-    char name[512], container[512];
+    char name[512];
+    static constexpr char ENTRY_OF_STRING[] = "(entry of ";
+    static constexpr std::string_view ENTRY_OF_VIEW(ENTRY_OF_STRING);
+    auto parse_entry_of = [](const char* line, char* name) {
+      const char* s = strstr(line, ENTRY_OF_STRING);
+      if (s)
+      {
+        char container[512];
+        sscanf(s + ENTRY_OF_VIEW.size(), "%511s", container);
+        char* s2 = strchr(container, ')');
+        // Skip sections, those start with a dot, e.g. (entry of .text)
+        if (s2 && container[0] != '.')
+        {
+          s2[0] = '\0';
+          strcat(container, "::");
+          strcat(container, name);
+          strcpy(name, container);
+        }
+      }
+    };
     if (column_count == 4)
     {
       // sometimes there is no alignment value, and sometimes it is because it is an entry of
@@ -337,19 +356,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       {
         alignment = 0;
         sscanf(line, "%08x %08x %08x %08x %511s", &address, &size, &vaddress, &offset, name);
-        char* s = strstr(line, "(entry of ");
-        if (s)
-        {
-          sscanf(s + 10, "%511s", container);
-          char* s2 = (strchr(container, ')'));
-          if (s2 && container[0] != '.')
-          {
-            s2[0] = '\0';
-            strcat(container, "::");
-            strcat(container, name);
-            strcpy(name, container);
-          }
-        }
+        parse_entry_of(line, name);
       }
       else
       {
@@ -362,23 +369,11 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       // some entries in the table have a function name followed by " (entry of " followed by a
       // container name, followed by ")"
       // instead of a space followed by a number followed by a space followed by a name
-      if (length > 27 && line[27] != ' ' && strstr(line, "(entry of "))
+      if (length > 27 && line[27] != ' ' && strstr(line, ENTRY_OF_STRING))
       {
         alignment = 0;
         sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
-        char* s = strstr(line, "(entry of ");
-        if (s)
-        {
-          sscanf(s + 10, "%511s", container);
-          char* s2 = (strchr(container, ')'));
-          if (s2 && container[0] != '.')
-          {
-            s2[0] = '\0';
-            strcat(container, "::");
-            strcat(container, name);
-            strcpy(name, container);
-          }
-        }
+        parse_entry_of(line, name);
       }
       else
       {
