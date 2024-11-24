@@ -18,6 +18,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/Unreachable.h"
 #include "Core/Core.h"
 #include "Core/Debugger/DebugInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -310,7 +311,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
         continue;
       column_count = 2;
 
-      // Three columns format:
+      // Three columns format (with optional alignment):
       //  Starting        Virtual
       //  address  Size   address
       //  -----------------------
@@ -319,7 +320,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       else
         iss.str("");
 
-      // Four columns format:
+      // Four columns format (with optional alignment):
       //  Starting        Virtual  File
       //  address  Size   address  offset
       //  ---------------------------------
@@ -327,75 +328,72 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
         column_count = 4;
     }
 
-    u32 address, vaddress, size, offset, alignment;
-    char name[512];
-    static constexpr char ENTRY_OF_STRING[] = "(entry of ";
+    u32 address;
+    u32 vaddress;
+    u32 size = 0;
+    u32 offset = 0;
+    u32 alignment = 0;
+    char name[512]{};
+    static constexpr char ENTRY_OF_STRING[] = " (entry of ";
     static constexpr std::string_view ENTRY_OF_VIEW(ENTRY_OF_STRING);
-    auto parse_entry_of = [](const char* line, char* name) {
-      const char* s = strstr(line, ENTRY_OF_STRING);
-      if (s)
+    auto parse_entry_of = [](char* name) {
+      if (char* s1 = strstr(name, ENTRY_OF_STRING); s1 != nullptr)
       {
         char container[512];
-        sscanf(s + ENTRY_OF_VIEW.size(), "%511s", container);
-        char* s2 = strchr(container, ')');
+        char* ptr = s1 + ENTRY_OF_VIEW.size();
+        sscanf(ptr, "%511s", container);
         // Skip sections, those start with a dot, e.g. (entry of .text)
-        if (s2 && container[0] != '.')
+        if (char* s2 = strchr(container, ')'); s2 != nullptr && *container != '.')
         {
-          s2[0] = '\0';
+          ptr += strlen(container);
+          // Preserve data after the entry part, usually it contains object names
+          strcpy(s1, ptr);
+          *s2 = '\0';
           strcat(container, "::");
           strcat(container, name);
           strcpy(name, container);
         }
       }
     };
-    if (column_count == 4)
+    auto was_alignment = [](const char* name) {
+      return *name == ' ' || (*name >= '0' && *name <= '9');
+    };
+    auto parse_alignment = [](char* name, u32* alignment) {
+      const std::string buffer(StripWhitespace(name));
+      return sscanf(buffer.c_str(), "%i %511[^\r\n]", alignment, name);
+    };
+    switch (column_count)
     {
+    case 4:
       // sometimes there is no alignment value, and sometimes it is because it is an entry of
       // something else
-      if (length > 37 && line[37] == ' ')
-      {
-        alignment = 0;
-        sscanf(line, "%08x %08x %08x %08x %511s", &address, &size, &vaddress, &offset, name);
-        parse_entry_of(line, name);
-      }
-      else
-      {
-        sscanf(line, "%08x %08x %08x %08x %i %511s", &address, &size, &vaddress, &offset,
-               &alignment, name);
-      }
-    }
-    else if (column_count == 3)
-    {
+      sscanf(line, "%08x %08x %08x %08x %511[^\r\n]", &address, &size, &vaddress, &offset, name);
+      if (was_alignment(name))
+        parse_alignment(name, &alignment);
+      // The `else` statement was omitted to handle symbol already saved in Dolphin symbol map
+      // since it doesn't omit the alignment on save for such case.
+      parse_entry_of(name);
+      break;
+    case 3:
       // some entries in the table have a function name followed by " (entry of " followed by a
       // container name, followed by ")"
       // instead of a space followed by a number followed by a space followed by a name
-      if (length > 27 && line[27] != ' ' && strstr(line, ENTRY_OF_STRING))
-      {
-        alignment = 0;
-        sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
-        parse_entry_of(line, name);
-      }
-      else
-      {
-        sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &alignment, name);
-      }
-    }
-    else if (column_count == 2)
-    {
-      sscanf(line, "%08x %511s", &address, name);
+      sscanf(line, "%08x %08x %08x %511[^\r\n]", &address, &size, &vaddress, name);
+      if (was_alignment(name))
+        parse_alignment(name, &alignment);
+      // The `else` statement was omitted to handle symbol already saved in Dolphin symbol map
+      // since it doesn't omit the alignment on save for such case.
+      parse_entry_of(name);
+      break;
+    case 2:
+      sscanf(line, "%08x %511[^\r\n]", &address, name);
       vaddress = address;
-      size = 0;
-    }
-    else
-    {
+      break;
+    default:
+      // Should never happen
+      Common::Unreachable();
       break;
     }
-    const char* namepos = strstr(line, name);
-    if (namepos != nullptr)  // would be odd if not :P
-      strcpy(name, namepos);
-    name[strlen(name) - 1] = 0;
-    if (name[strlen(name) - 1] == '\r')
-      name[strlen(name) - 1] = 0;
 
     // Split the current name string into separate parts, and get the object name
     // if it exists.
