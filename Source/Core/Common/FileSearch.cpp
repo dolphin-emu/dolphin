@@ -98,7 +98,8 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // not because std::filesystem returns duplicates). Also note that this pathname-based uniqueness
   // isn't as thorough as std::filesystem::equivalent.
   std::ranges::sort(result);
-  result.erase(std::unique(result.begin(), result.end()), result.end());
+  const auto unique_result = std::ranges::unique(result);
+  result.erase(unique_result.begin(), unique_result.end());
 
   // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
   // std::filesystem uses the OS separator.
