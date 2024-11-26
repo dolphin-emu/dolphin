@@ -27,7 +27,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  QGroupBox* m_common_box;
+  QWidget* m_common_widget;
   QVBoxLayout* m_common_layout;
   QCheckBox* m_common_bg_input;
   QPushButton* m_common_configure_controller_interface;

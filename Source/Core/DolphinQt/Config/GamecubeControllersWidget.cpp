@@ -74,7 +74,7 @@ GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(
 
 void GamecubeControllersWidget::CreateLayout()
 {
-  m_gc_box = new QGroupBox(tr("GameCube Controllers"));
+  m_gc_widget = new QWidget();
   m_gc_layout = new QGridLayout();
   m_gc_layout->setVerticalSpacing(7);
   m_gc_layout->setColumnStretch(1, 1);
@@ -95,12 +95,12 @@ void GamecubeControllersWidget::CreateLayout()
     m_gc_layout->addWidget(gc_box, controller_row, 1);
     m_gc_layout->addWidget(gc_button, controller_row, 2);
   }
-  m_gc_box->setLayout(m_gc_layout);
+  m_gc_widget->setLayout(m_gc_layout);
 
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
-  layout->addWidget(m_gc_box);
+  layout->addWidget(m_gc_widget);
   setLayout(layout);
 }
 

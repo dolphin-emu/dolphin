@@ -35,7 +35,7 @@ private:
   void ConnectWidgets();
 
   // Gamecube
-  QGroupBox* m_gc_box;
+  QWidget* m_gc_widget;
   QGridLayout* m_gc_layout;
   std::array<QComboBox*, 4> m_gc_controller_boxes;
   std::array<QPushButton*, 4> m_gc_buttons;

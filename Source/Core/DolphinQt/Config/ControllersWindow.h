@@ -4,6 +4,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QTabWidget>
 
 #if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
 class DualShockUDPClientWidget;

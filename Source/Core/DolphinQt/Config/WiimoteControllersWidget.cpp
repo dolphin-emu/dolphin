@@ -100,8 +100,8 @@ static int GetLayoutHorizontalSpacing(const QGridLayout* layout)
 void WiimoteControllersWidget::CreateLayout()
 {
   m_wiimote_layout = new QGridLayout();
-  m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
-  m_wiimote_box->setLayout(m_wiimote_layout);
+  m_wiimote_widget = new QWidget();
+  m_wiimote_widget->setLayout(m_wiimote_layout);
 
   m_wiimote_passthrough = new QRadioButton(tr("Passthrough a Bluetooth adapter"));
   m_wiimote_sync = new NonDefaultQPushButton(tr("Sync"));
@@ -165,7 +165,7 @@ void WiimoteControllersWidget::CreateLayout()
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
-  layout->addWidget(m_wiimote_box);
+  layout->addWidget(m_wiimote_widget);
   setLayout(layout);
 }
 

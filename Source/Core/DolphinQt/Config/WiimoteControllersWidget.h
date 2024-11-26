@@ -40,7 +40,7 @@ private:
   void ConnectWidgets();
   void LoadSettings(Core::State state);
 
-  QGroupBox* m_wiimote_box;
+  QWidget* m_wiimote_widget;
   QGridLayout* m_wiimote_layout;
   std::array<QLabel*, 4> m_wiimote_labels;
   std::array<QComboBox*, 4> m_wiimote_boxes;
