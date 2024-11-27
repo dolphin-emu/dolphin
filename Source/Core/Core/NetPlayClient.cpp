@@ -147,8 +147,12 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     m_client->mtu = std::min(m_client->mtu, NetPlay::MAX_ENET_MTU);
 
     ENetAddress addr;
-    enet_address_set_host(&addr, address.c_str());
+    if (auto parsed_addr = Common::ENet::AddressFromString(address))
+    {
+      addr.host = *parsed_addr;
+    }
     addr.port = port;
+    addr.sin6_scope_id = 0;
 
     m_server = enet_host_connect(m_client, &addr, CHANNEL_COUNT, 0);
 
