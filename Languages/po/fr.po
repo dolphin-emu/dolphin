@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-10 12:23+0100\n"
+"POT-Creation-Date: 2024-11-30 20:46+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Pascal <pascal2j-language@yahoo.com>, 2013-2024\n"
 "Language-Team: French (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -1484,6 +1484,14 @@ msgid ""
 "setting is disabled when Manual Texture Sampling is enabled."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"Ajuste le filtrage de texture. Le filtrage anisotropique améliore la qualité "
+"visuelle des texture qui sont à des angles de vue obliques. Forcer au plus "
+"proche et Forcer linéaire remplacent le filtre de mise à l'échelle "
+"sélectionné par le jeu.<br><br>Toutes les options exceptée \"Par défaut\" "
+"altéreront le look des textures du jeu et peuvent provoquer des pépins dans "
+"un petit nombre de jeux.<br><br>Cette option est désactivée lorsque "
+"l'échantillonnage manuel de texture est actif.<br><br><dolphin_emphasis>Dans "
+"le doute, sélectionnez \"Par défaut\".</dolphin_emphasis> "
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:107
@@ -1675,11 +1683,11 @@ msgstr "Tout Entier Non-signé"
 msgid "All files (*)"
 msgstr "Tous les fichiers (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1211
+#: Source/Core/Core/NetPlayServer.cpp:1212
 msgid "All players' codes synchronized."
 msgstr "Les codes de tous les joueurs ont été synchronisés."
 
-#: Source/Core/Core/NetPlayServer.cpp:1153
+#: Source/Core/Core/NetPlayServer.cpp:1154
 msgid "All players' saves synchronized."
 msgstr "Les sauvegardes de tous les joueurs ont été synchronisées."
 
@@ -1810,7 +1818,7 @@ msgstr "Êtes-vous sûr de vouloir supprimer ce pack ?"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
 msgid "Are you sure you want to log out of RetroAchievements?"
-msgstr ""
+msgstr "Êtes-vous sûr(e) de vouloir vous déconnecter de RetroAchievements ?"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:502
 msgid "Are you sure you want to quit NetPlay?"
@@ -1818,7 +1826,7 @@ msgstr "Êtes-vous sûr de vouloir quitter NetPlay ?"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
 msgid "Are you sure you want to turn hardcore mode off?"
-msgstr ""
+msgstr "Êtes-vous sûr(e) de vouloir arrêter le mode hardcore ?"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:284
 msgid "Are you sure?"
@@ -2901,11 +2909,11 @@ msgstr "Code"
 #. i18n: Code Buffer Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
 msgid "Code Buff. Size"
-msgstr ""
+msgstr "Taille du code tampon"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:636
 msgid "Code Buffer Size"
-msgstr ""
+msgstr "Taille du code tampon"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:266
 msgid "Code Path Not Taken"
@@ -2919,7 +2927,7 @@ msgstr "\"Le chemin de code a été pris\""
 msgid "Code:"
 msgstr "Code :"
 
-#: Source/Core/Core/NetPlayClient.cpp:1866
+#: Source/Core/Core/NetPlayClient.cpp:1867
 msgid "Codes received!"
 msgstr "Codes reçus !"
 
@@ -3182,7 +3190,7 @@ msgstr "Confirmer"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
 msgid "Confirm Hardcore Off"
-msgstr ""
+msgstr "Confirmer arrêt mode hardcore"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
 msgid "Confirm Logout"
@@ -3949,7 +3957,7 @@ msgstr "Données dans un format non reconnu ou corrompues."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "Incohérence de données dans GCMemcardManager, abandon de l'action."
 
-#: Source/Core/Core/NetPlayClient.cpp:1824
+#: Source/Core/Core/NetPlayClient.cpp:1825
 msgid "Data received!"
 msgstr "Données reçues !"
 
@@ -4734,7 +4742,7 @@ msgstr "Éditeur"
 #. i18n: Effective Address
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
 msgid "Eff. Address"
-msgstr ""
+msgstr "Adresse eff."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:79
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:160
@@ -4750,11 +4758,11 @@ msgstr "Effective"
 #. i18n: "Effective" means this memory address might be translated within the MMU.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:635
 msgid "Effective Address"
-msgstr ""
+msgstr "Adresse effective"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:370
 msgid "Effective address %1 has no physical address translation."
-msgstr ""
+msgstr "L'adresse effective %1 n'a aucune adresse physique traduite."
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:189
 msgid "Effective priority"
@@ -5093,6 +5101,15 @@ msgid ""
 "Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Active la détection des mipmaps arbitraires, que certains jeux utilisent "
+"pour des effets spéciaux basés sur la distance.<br><br>Il peut y avoir avoir "
+"des faux positifs qui produiront des textures floues dans une résolution "
+"interne élevée, par exemple pour des jeux qui utilisent des mipmaps dans une "
+"résolution très basse. Désactiver ceci peut aussi réduire les saccades dans "
+"les jeux qui chargent fréquemment de nouvelles textures. <br><br>Cette "
+"fonctionnalité est désactivée lorsque le décodage des textures par le GPU "
+"est actif.<dolphin_emphasis>Dans le doute, décochez cette case.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
 msgid ""
@@ -5163,6 +5180,11 @@ msgid ""
 "Detection will be disabled.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Active le décodage des textures par le GPU à la place du CPU.<br><br> Ceci "
+"peut entraîner des gains de performance dans certains cas, ou pour les "
+"systèmes où le CPU n'est pas assez puissant.<br><br>Si cette option est "
+"activée, la détection des mipmaps arbitraires sera désactivée."
+"<dolphin_emphasis>Dans le doute, décochez cette case.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:100
 msgid ""
@@ -5253,7 +5275,7 @@ msgstr ""
 msgid "End Addr"
 msgstr "Addr Fin"
 
-#: Source/Core/Core/NetPlayServer.cpp:127
+#: Source/Core/Core/NetPlayServer.cpp:128
 msgid "Enet Didn't Initialize"
 msgstr "Enet ne s'est pas initialisé"
 
@@ -5398,7 +5420,7 @@ msgstr "Rapport d'erreurs"
 msgid "Error Opening Adapter: %1"
 msgstr "Erreur lors de l'ouverture de l'adaptateur : %1"
 
-#: Source/Core/Core/NetPlayServer.cpp:1504
+#: Source/Core/Core/NetPlayServer.cpp:1506
 msgid "Error collecting save data!"
 msgstr "Erreur lors de la récupération des données de sauvegarde !"
 
@@ -5423,11 +5445,11 @@ msgid "Error occurred while loading some texture packs"
 msgstr ""
 "Une erreur est survenue lors de l'ouverture de certains packs de texture"
 
-#: Source/Core/Core/NetPlayClient.cpp:1853
+#: Source/Core/Core/NetPlayClient.cpp:1854
 msgid "Error processing codes."
 msgstr "Erreur lors du traitement des codes."
 
-#: Source/Core/Core/NetPlayClient.cpp:1825
+#: Source/Core/Core/NetPlayClient.cpp:1826
 msgid "Error processing data."
 msgstr "Erreur lors du traitement des données."
 
@@ -5435,11 +5457,11 @@ msgstr "Erreur lors du traitement des données."
 msgid "Error reading file: {0}"
 msgstr "Erreur de lecture du fichier : {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1540
+#: Source/Core/Core/NetPlayServer.cpp:1542
 msgid "Error synchronizing cheat codes!"
 msgstr "Erreur lors de la synchronisation des cheat codes !"
 
-#: Source/Core/Core/NetPlayServer.cpp:1526
+#: Source/Core/Core/NetPlayServer.cpp:1528
 msgid "Error synchronizing save data!"
 msgstr "Erreur lors de la synchronisation des données !"
 
@@ -5762,14 +5784,14 @@ msgstr ""
 "\n"
 "Le Skylander est peut-être déjà sur le portail."
 
-#: Source/Core/Core/NetPlayClient.cpp:1293
+#: Source/Core/Core/NetPlayClient.cpp:1294
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr ""
 "Impossible de supprimer le fichier de sauvegarde NetPlay GBA{0}. Vérifiez "
 "que vous avez les droits d'écriture."
 
-#: Source/Core/Core/NetPlayClient.cpp:1083
+#: Source/Core/Core/NetPlayClient.cpp:1084
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 "Impossible de créer la carte mémoire pour NetPlay. Vérifier vos permissions "
@@ -5944,7 +5966,7 @@ msgstr "Impossible de modifier Skylander !"
 msgid "Failed to open \"%1\" for writing."
 msgstr "Impossible d'ouvrir \"%1\" en écriture."
 
-#: Source/Android/jni/MainAndroid.cpp:458
+#: Source/Android/jni/MainAndroid.cpp:462
 msgid "Failed to open \"{0}\" for writing."
 msgstr "Impossible d'ouvrir \"{0}\" en écriture."
 
@@ -5956,7 +5978,7 @@ msgstr "Impossible d'ouvrir \"%1\""
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:648
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
-msgstr ""
+msgstr "Impossible d'ouvrir l'appareil Bluetooth {:04x}:{:04x}: {}"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1101
 msgid "Failed to open Branch Watch snapshot \"%1\""
@@ -6133,19 +6155,19 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "Impossible de supprimer ce titre de la NAND."
 
-#: Source/Core/Core/NetPlayClient.cpp:1107
+#: Source/Core/Core/NetPlayClient.cpp:1108
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr ""
 "Impossible de réinitialiser le dossier GCI pour NetPlay. Vérifiez vos "
 "permissions d'écriture."
 
-#: Source/Core/Core/NetPlayClient.cpp:1138
+#: Source/Core/Core/NetPlayClient.cpp:1139
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 "Impossible de réinitialiser le dossier NAND pour NetPlay. Vérifiez vos "
 "permissions d'écriture."
 
-#: Source/Core/Core/NetPlayClient.cpp:1144
+#: Source/Core/Core/NetPlayClient.cpp:1145
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr ""
 "Impossible de réinitialiser le dossier de redirection de NetPlay. Vérifiez "
@@ -6196,11 +6218,11 @@ msgstr "Impossible de désinstaller le pack %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Impossible d'écrire BT.DINF vers SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:1174
+#: Source/Core/Core/NetPlayClient.cpp:1175
 msgid "Failed to write Mii data."
 msgstr "Impossible d'écrire les données du Mii."
 
-#: Source/Core/Core/NetPlayClient.cpp:1259
+#: Source/Core/Core/NetPlayClient.cpp:1260
 msgid "Failed to write Wii save."
 msgstr "Impossible d'écrire la sauvegarde Wii."
 
@@ -6214,7 +6236,7 @@ msgstr "Impossible d'écrire le fichier de configuration !"
 msgid "Failed to write modified memory card to disk."
 msgstr "Impossible d'écrire la carte mémoire modifiée sur le disque."
 
-#: Source/Core/Core/NetPlayClient.cpp:1272
+#: Source/Core/Core/NetPlayClient.cpp:1273
 msgid "Failed to write redirected save."
 msgstr "Impossible d'écrire la sauvegarde redirigée."
 
@@ -6928,7 +6950,7 @@ msgstr "Le jeu a un numéro de disque différent"
 msgid "Game has a different revision"
 msgstr "Le jeu a une révision différente"
 
-#: Source/Core/Core/NetPlayClient.cpp:1750
+#: Source/Core/Core/NetPlayClient.cpp:1751
 msgid "Game is already running!"
 msgstr "Le jeu est déjà en cours d'émulation !"
 
@@ -7289,16 +7311,16 @@ msgstr "Code de l'hôte :"
 #. i18n: Host Far Code Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
 msgid "Host F. Size"
-msgstr ""
+msgstr "Taille F. hôte"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:614
 msgid "Host Far Code Cache"
-msgstr ""
+msgstr "Cache du Far code de l'hôte"
 
 #. i18n: "Far Code" refers to the far code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Host Far Code Size"
-msgstr ""
+msgstr "Taille du Far code de l'hôte"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:193
 msgid "Host Input Authority"
@@ -7307,16 +7329,16 @@ msgstr "Autorité de l'hôte sur les entrées"
 #. i18n: Host Near Code Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
 msgid "Host N. Size"
-msgstr ""
+msgstr "Taille N. hôte"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:613
 msgid "Host Near Code Cache"
-msgstr ""
+msgstr "Cache Near code de l'hôte"
 
 #. i18n: "Near Code" refers to the near code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:640
 msgid "Host Near Code Size"
-msgstr ""
+msgstr "Taille Near code de l'hôte"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:195
 msgid ""
@@ -7345,7 +7367,7 @@ msgstr "Autorité de l'hôte sur les entrées activée"
 #. recompilation was when considering the host instruction count vs the PPC instruction count.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:241
 msgid "Host instruction count: %1 near %2 far (%3% blowup)"
-msgstr ""
+msgstr "Décompte des instructions de l'hôte : %1 near, %2 far (%3% perdu)"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:527
 msgid "Host with NetPlay"
@@ -7612,6 +7634,11 @@ msgid ""
 "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If "
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"Ignore toues les requêtes de lecture ou d'écriture du CPU vers l'EFB."
+"<br><br>Améliore les performances dans certains jeux, mais désactivera tous "
+"les effets graphiques ou fonctionnalités de gameplay basés sur l'EFB."
+"<br><br><dolphin_emphasis>Dans le doute, décochez cette case.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:93
 msgid "Immediately Present XFB"
@@ -8014,7 +8041,7 @@ msgstr "Sommes de contrôle non valides."
 msgid "Invalid game."
 msgstr "Jeu non valide."
 
-#: Source/Core/Core/NetPlayClient.cpp:1985
+#: Source/Core/Core/NetPlayClient.cpp:1986
 msgid "Invalid host"
 msgstr "Hôte non valide"
 
@@ -8067,11 +8094,11 @@ msgstr "Adresse à surveiller non valide : %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:421
 msgid "Invert &Condition"
-msgstr ""
+msgstr "Inverser &condition"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:425
 msgid "Invert &Decrement Check"
-msgstr ""
+msgstr "Vérification inversion &décrémentation"
 
 #: Source/Core/DiscIO/Enums.cpp:92
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:88
@@ -8171,8 +8198,8 @@ msgstr ""
 "ne devrait jamais arriver. Veuillez transmettre cet incident au suivi de "
 "bugs. Dolphin va maintenant quitter."
 
-#: Source/Android/jni/MainAndroid.cpp:432
-#: Source/Android/jni/MainAndroid.cpp:448
+#: Source/Android/jni/MainAndroid.cpp:436
+#: Source/Android/jni/MainAndroid.cpp:452
 msgid "JIT is not active"
 msgstr "JIT n'est pas actif"
 
@@ -8712,15 +8739,15 @@ msgstr "Échec de la connection"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
-msgstr ""
+msgstr "Connexion échouée : utilisateur / mot de passe non valide"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:53
 msgid "Login Failed - No Internet Connection"
-msgstr ""
+msgstr "Connexion échouée : pas de connexion à internet"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Login Failed - Server Error"
-msgstr ""
+msgstr "Connexion échouée : erreur serveur"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:295
 msgid ""
@@ -8778,7 +8805,7 @@ msgstr "Stick principal"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:429
 msgid "Make &Unconditional"
-msgstr ""
+msgstr "Rendre &inconditionnel"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:226
 msgid "Make sure that the hero level value is between 0 and 100!"
@@ -8861,7 +8888,7 @@ msgstr "Tampon maxi :"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:574
 msgid "Max Effective Address"
-msgstr ""
+msgstr "Adresse effective max"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:931
 msgid "Max buffer size changed to %1"
@@ -8949,7 +8976,7 @@ msgstr "Micro"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
-msgstr ""
+msgstr "Adresse effective mini"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:411
@@ -8970,7 +8997,7 @@ msgstr "Contrôles divers"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:162
 msgid "Miscellaneous Settings"
-msgstr ""
+msgstr "Paramètres divers"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:844
 msgid "Mismatch between free block count in header and actually unused blocks."
@@ -9096,13 +9123,15 @@ msgstr "Multiplicateur"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:166
 msgid "Mute When Disabling Speed Limit"
-msgstr ""
+msgstr "Muet lorsque la limite de vitesse est désactivée"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:168
 msgid ""
 "Mutes the audio when overriding the emulation speed limit (default hotkey: "
 "Tab)."
 msgstr ""
+"Désactive le son lorsque la limite de vitesse de l'émulation est levée "
+"(raccourci clavier par défaut : Tab)."
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
@@ -9871,15 +9900,15 @@ msgstr "Fichier d'image PNG (*.png);; Tous le fichiers (*)"
 #. i18n: PPC Feature Flags
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
 msgid "PPC Feat. Flags"
-msgstr ""
+msgstr "Drapeaux fonc. PPC"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:633
 msgid "PPC Feature Flags"
-msgstr ""
+msgstr "Drapeaux de fonctionnalités PPC"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:611
 msgid "PPC Instruction Coverage"
-msgstr ""
+msgstr "Couverture des instructions PPC"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "PPC vs Host"
@@ -10120,7 +10149,7 @@ msgstr "Joueurs"
 #: Source/Core/UICommon/DBusUtils.cpp:56 Source/Core/UICommon/DBusUtils.cpp:77
 #: Source/Core/UICommon/DBusUtils.cpp:97 Source/Core/UICommon/DBusUtils.cpp:120
 msgid "Playing a game"
-msgstr ""
+msgstr "Joue à un jeu"
 
 #. i18n: The total amount of time the Skylander has been used for
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:143
@@ -10358,11 +10387,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1601
+#: Source/Core/Core/NetPlayClient.cpp:1602
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "La Qualité de Service (QoS) n'a pas pu être activée."
 
-#: Source/Core/Core/NetPlayClient.cpp:1597
+#: Source/Core/Core/NetPlayClient.cpp:1598
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "La Qualité de Service (QoS) a été activée avec succès."
 
@@ -10447,7 +10476,7 @@ msgstr "Rem&placer l'instruction"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:600
 msgid "Re-initialize software JIT block profiling data."
-msgstr ""
+msgstr "Réinitialise les données de profilage du bloc JIT du logiciel"
 
 #. i18n: This is a selectable condition when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:134
@@ -10502,7 +10531,7 @@ msgstr "Recentrer"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:577
 msgid "Recompiles Physical Address"
-msgstr ""
+msgstr "Recompile l'adresse physique"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:157
 msgid "Record"
@@ -10681,12 +10710,12 @@ msgstr ""
 #. i18n: Repeat Instructions
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
 msgid "Repeat Instr."
-msgstr ""
+msgstr "Instr. répétées"
 
 #. i18n: This means to say it is a count of PPC instructions recompiled more than once.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:638
 msgid "Repeat Instructions"
-msgstr ""
+msgstr "Instructions répétées"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:408
 msgid "Report: GCIFolder Writing to unallocated block {0:#x}"
@@ -10907,6 +10936,54 @@ msgid ""
 "All context menus have the action to delete the selected row(s) from the "
 "candidates."
 msgstr ""
+"Vous pouvez faire un clic gauche sur les lignes du tableau sur les colonnes "
+"d'origine, de destination et de symbole pour afficher l'adresse associée "
+"dans la vue Code. Un clic droit sur la ou les lignes sélectionnées fera "
+"apparaître un menu contextuel.\n"
+"\n"
+"Si les colonnes d'origine, de destination ou de symbole sont cliquées avec "
+"le bout droit, une action de copie des adresses associées vers le presse-"
+"papiers sera disponible, et une action pour définir un point d'arrêt aux "
+"adresses associées sera disponible. Notez que pour les colonnes d'origine / "
+"destination, ces actions ne seront activées que si chaque ligne de la "
+"sélection contient un symbole.\n"
+"\n"
+"Si la colonne d'instructions d'une ligne sélectionnée est cliquée avec le "
+"bouton droit, une action pour inverser les conditions d'instructions de la "
+"branche et une action pour inverser la vérification de la décrémentation de "
+"la branche seront disponibles, mais uniquement si l'instruction de la "
+"branche est une conditionnelle.\n"
+"\n"
+"Si la colonne de condition d'une ligne sélectionnée est cliquée avec le "
+"bouton droit, une action pour rendre l'instruction de branche "
+"inconditionnelle sera disponible, mais uniquement si l'instruction de "
+"branche est une conditionnelle.\n"
+"\n"
+"Si vous cliquez avec le bouton droit sur les colonnes d'origine, de "
+"destination ou de symbole, une action de copie de l'adresse associée vers le "
+"presse-papiers sera disponible, et une action pour définir le point d'arrêt "
+"aux adresses associées sera disponible. Notez que, pour les colonnes de "
+"symbole d'origine / destination, ces actions ne seront activées que si "
+"chaque ligne dans la sélection contient un symbole.\n"
+"\n"
+"Si la colonne d'origine d'une sélection de ligne est cliquée avec le bouton "
+"droit, une action pour remplacer l'instruction de la Branche à/aux "
+"origine(s) avec une instruction NOP (No Operation - Aucune Opération) sera "
+"disponible.\n"
+"\n"
+"Si la colonne de destination d'une sélection de ligne est cliquée avec le "
+"bouton droit, une action pour remplacer l'instruction à/aux destination(s) "
+"avec une instruction BLR (Branch to Link Register - Branche vers Registre de "
+"Liens) sera disponible, mais uniquement si l'instruction de la branche à "
+"chaque origine met à jour le registre de lien.\n"
+"\n"
+"Si la colonne de symbole d'origine ou de destination d'une sélection de "
+"ligne est cliquée avec le bouton droit, une action pour remplacer le(s) "
+"instruction(s) au début du symbole avec une instruction BLR sera disponible, "
+"mais seulement si chaque symbole d'origine ou de destination est trouvé.\n"
+"\n"
+"Tous les menus contextuels ont l'action de supprimer le(s) lignes "
+"sélectionnée(s) depuis les candidates."
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
@@ -10922,7 +10999,7 @@ msgstr "Exécu&ter jusqu'ici"
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:643
 msgid "Run Count"
-msgstr ""
+msgstr "Décompte"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:203
 msgid "Run GBA Cores in Dedicated Threads"
@@ -11503,9 +11580,9 @@ msgstr "Police sélectionnée"
 msgid "Selected controller profile does not exist"
 msgstr "Le profil de contrôleur sélectionné n'existe pas"
 
-#: Source/Core/Core/NetPlayServer.cpp:1342
-#: Source/Core/Core/NetPlayServer.cpp:1716
-#: Source/Core/Core/NetPlayServer.cpp:2044
+#: Source/Core/Core/NetPlayServer.cpp:1343
+#: Source/Core/Core/NetPlayServer.cpp:1719
+#: Source/Core/Core/NetPlayServer.cpp:2047
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:491
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:895
 msgid "Selected game doesn't exist in game list!"
@@ -11641,6 +11718,13 @@ msgid ""
 "recommended to try each and select the backend that is least problematic."
 "<br><br><dolphin_emphasis>If unsure, select %1.</dolphin_emphasis>"
 msgstr ""
+"Sélectionne le moteur graphique à utiliser.<br><br>Le Rendu logiciel est "
+"très lent et uniquement utilisé à des fins de débogage, donc n'importe quel "
+"autre moteur est recommandé. Certains jeux et certains GPU ont un "
+"comportement différent selon le moteur choisi, pour obtenir le meilleur "
+"résultat il est recommandé de tester chaque moteur et de choisir celui qui "
+"convient le mieux.<br><br><dolphin_emphasis>Dans le doute, sélectionnez %1.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
 msgid ""
@@ -11725,7 +11809,7 @@ msgstr "Adresse IP du serveur"
 msgid "Server Port"
 msgstr "Port du serveur"
 
-#: Source/Core/Core/NetPlayClient.cpp:1982
+#: Source/Core/Core/NetPlayClient.cpp:1983
 msgid "Server rejected traversal attempt"
 msgstr "Le serveur a rejeté la tentative traversal"
 
@@ -12569,7 +12653,7 @@ msgstr "Démarrer une nouvelle recherche de cheat"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Start Profiling"
-msgstr ""
+msgstr "Démarrer le profilage"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:796
 msgid "Start Re&cording Input"
@@ -12691,7 +12775,7 @@ msgstr "Arrêter de jouer/enregistrer l'entrée"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Stop Profiling"
-msgstr ""
+msgstr "Arrêter le profilage"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:412
 msgid "Stopped game"
@@ -12906,7 +12990,7 @@ msgstr "Adresse de fin du symbole (%1) :"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:581
 msgid "Symbol Name"
-msgstr ""
+msgstr "Nom du symbole"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:937
 msgid "Symbol Name:"
@@ -12954,15 +13038,15 @@ msgstr ""
 "Synchronise la carte SD avec le dossier de synchronisation de carte SD lors "
 "du démarrage et l'arrêt de l'émulation."
 
-#: Source/Core/Core/NetPlayClient.cpp:1435
+#: Source/Core/Core/NetPlayClient.cpp:1436
 msgid "Synchronizing AR codes..."
 msgstr "Synchronisation des codes AR..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1368
+#: Source/Core/Core/NetPlayClient.cpp:1369
 msgid "Synchronizing Gecko codes..."
 msgstr "Synchronisation des codes Gecko..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1051
+#: Source/Core/Core/NetPlayClient.cpp:1052
 msgid "Synchronizing save data..."
 msgstr "Synchronisation des données de sauvegarde..."
 
@@ -13949,27 +14033,27 @@ msgstr "Tilt"
 #. i18n: Time Percent
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
 msgid "Time %"
-msgstr ""
+msgstr "% temps"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:653
 msgid "Time Average (ns)"
-msgstr ""
+msgstr "Temps moyen (ns)"
 
 #. i18n: Time Average (ns)
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Time Avg. (ns)"
-msgstr ""
+msgstr "Temps moy. (ns)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:654
 msgid "Time Percent"
-msgstr ""
+msgstr "Pourcentage temps"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:651
 msgid "Time Spent (ns)"
-msgstr ""
+msgstr "Temps utilisé (ns)"
 
 #. i18n: Refers to the "Calibration" setting of gyroscope input.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:49
@@ -14083,6 +14167,7 @@ msgstr "Activer le mode XFB immédiat"
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:590
 msgid "Toggle software JIT block profiling (will clear the JIT cache)."
 msgstr ""
+"Active le profilage des blocs JIT du logiciel (ceci effacera le cache JIT)."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:966
 msgid "Tokenizing failed."
@@ -14176,7 +14261,7 @@ msgstr "Erreur de Traversal"
 msgid "Traversal Server"
 msgstr "Traversal Server"
 
-#: Source/Core/Core/NetPlayClient.cpp:1979
+#: Source/Core/Core/NetPlayClient.cpp:1980
 msgid "Traversal server timed out connecting to the host"
 msgstr "Le serveur traveral n'a pas répondu lors de la connexion à l'hôte"
 
@@ -14411,11 +14496,11 @@ msgstr "Inconnu (Id :%1  Var :%2)"
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "Commande DVD inconnue {0:08x} - erreur fatale"
 
-#: Source/Core/Core/NetPlayClient.cpp:1335
+#: Source/Core/Core/NetPlayClient.cpp:1336
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "Message SYNC_CODES inconnu reçu avec l'id : {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1240
+#: Source/Core/Core/NetPlayServer.cpp:1241
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -14423,11 +14508,11 @@ msgstr ""
 "Message SYNC_GECKO_CODES inconnu avec comme ID : {0}, reçu du joueur {1} . "
 "Exclusion du joueur !"
 
-#: Source/Core/Core/NetPlayClient.cpp:1036
+#: Source/Core/Core/NetPlayClient.cpp:1037
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Message SYNC_SAVE_DATA inconnu reçu avec l'ID : {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1183
+#: Source/Core/Core/NetPlayServer.cpp:1184
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -14459,7 +14544,7 @@ msgstr "Disque inconnu"
 msgid "Unknown error occurred."
 msgstr "Une erreur inconnue est survenue."
 
-#: Source/Core/Core/NetPlayClient.cpp:1988
+#: Source/Core/Core/NetPlayClient.cpp:1989
 msgid "Unknown error {0:x}"
 msgstr "Erreur inconnue {0:x}"
 
@@ -14471,7 +14556,7 @@ msgstr "Erreur inconnue."
 msgid "Unknown message received with id : {0}"
 msgstr "Reception d'un message inconnu avec l'ID : {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1248
+#: Source/Core/Core/NetPlayServer.cpp:1249
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 "Message inconnu avec l'ID {0} reçu du joueur {1}. Exclusion du joueur !"
@@ -14662,6 +14747,18 @@ msgid ""
 "setting is enabled, the Texture Filtering setting will be disabled."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Utilise une implémentation manuelle d'échantillonnage de texture au lieu de "
+"celle intégrée au moteur graphique. <br><br>Ce réglage peut corriger des "
+"problèmes graphiques dans quelques jeux sur certains GPU, la plupart du "
+"temps des lignes verticales sur des FMV. De plus, activer l'Échantillonnage "
+"manuel de texture va permettre une émulation correcte de cas particuliers "
+"d'emballage de texture (à 1x IR ou lorsque la mise à l'échelle de l'EFB est "
+"désactivée, et avec les textures personnalisées désactivées) et émule mieux "
+"les calculs de niveaux de détail. <br><br>Cela peut entraîner des pertes de "
+"performance, particulièrement à des résolutions internes élevées.<br><br>Si "
+"ce réglage est activé, le Réglage de texture sera désactivé."
+"<br><br><dolphin_emphasis>Dans le doute, décochez cette case.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:141
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -14870,7 +14967,7 @@ msgstr "Affichage"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:625
 msgid "View &Code"
-msgstr ""
+msgstr "Voir &code"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:142
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:132
@@ -15313,11 +15410,11 @@ msgstr "Effacer les données d'&inspection"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:940
 msgid "Wipe JIT Block Profiling Data"
-msgstr ""
+msgstr "Effacer les données du profilage des blocs JIT"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:599
 msgid "Wipe Profiling"
-msgstr ""
+msgstr "Effacer le profilage"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:399
 msgid "Wipe Recent Hits"
@@ -15390,7 +15487,7 @@ msgstr "Mauvaise révision"
 msgid "Wrote to \"%1\"."
 msgstr "Écrit vers \"%1\"."
 
-#: Source/Android/jni/MainAndroid.cpp:464
+#: Source/Android/jni/MainAndroid.cpp:468
 msgid "Wrote to \"{0}\"."
 msgstr "Écrit vers \"{0}\"."
 
@@ -15782,11 +15879,11 @@ msgstr "{0} (NKit)"
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr "IPL {0} trouvé dans le dossier {1}. Le disque peut ne pas être reconnu"
 
-#: Source/Core/Core/NetPlayServer.cpp:1232
+#: Source/Core/Core/NetPlayServer.cpp:1233
 msgid "{0} failed to synchronize codes."
 msgstr "{0} n'a pas pu synchroniser les codes."
 
-#: Source/Core/Core/NetPlayServer.cpp:1174
+#: Source/Core/Core/NetPlayServer.cpp:1175
 msgid "{0} failed to synchronize."
 msgstr "{0} n'a pas pu synchroniser."
 
