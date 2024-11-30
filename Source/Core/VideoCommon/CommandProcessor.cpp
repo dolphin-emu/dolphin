@@ -87,11 +87,6 @@ void CommandProcessorManager::DoState(PointerWrap& p)
   p.Do(m_cp_status_reg);
   p.Do(m_cp_ctrl_reg);
   p.Do(m_cp_clear_reg);
-  p.Do(m_bbox_left);
-  p.Do(m_bbox_top);
-  p.Do(m_bbox_right);
-  p.Do(m_bbox_bottom);
-  p.Do(m_token_reg);
   m_fifo.DoState(p);
 
   p.Do(m_interrupt_set);
@@ -118,13 +113,6 @@ void CommandProcessorManager::Init()
 
   m_cp_clear_reg.Hex = 0;
 
-  m_bbox_left = 0;
-  m_bbox_top = 0;
-  m_bbox_right = 640;
-  m_bbox_bottom = 480;
-
-  m_token_reg = 0;
-
   m_fifo.Init();
 
   m_is_fifo_error_seen = false;
@@ -138,8 +126,6 @@ void CommandProcessorManager::Init()
 
 void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  constexpr u16 WMASK_NONE = 0x0000;
-  constexpr u16 WMASK_ALL = 0xffff;
   constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
   const u16 WMASK_HI_RESTRICT = GetPhysicalAddressMask(m_system.IsWii()) >> 16;
 
@@ -153,13 +139,6 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     // For _HI registers in this range, only bits 0x03ff can be set on GCN and 0x1fff on Wii
     u16 wmask;
   } directly_mapped_vars[] = {
-      {FIFO_TOKEN_REGISTER, &m_token_reg, false, WMASK_ALL},
-
-      // Bounding box registers are read only.
-      {FIFO_BOUNDING_BOX_LEFT, &m_bbox_left, true, WMASK_NONE},
-      {FIFO_BOUNDING_BOX_RIGHT, &m_bbox_right, true, WMASK_NONE},
-      {FIFO_BOUNDING_BOX_TOP, &m_bbox_top, true, WMASK_NONE},
-      {FIFO_BOUNDING_BOX_BOTTOM, &m_bbox_bottom, true, WMASK_NONE},
       {FIFO_BASE_LO, MMIO::Utils::LowPart(&m_fifo.CPBase), false, WMASK_LO_ALIGN_32BIT},
       {FIFO_BASE_HI, MMIO::Utils::HighPart(&m_fifo.CPBase), false, WMASK_HI_RESTRICT},
       {FIFO_END_LO, MMIO::Utils::LowPart(&m_fifo.CPEnd), false, WMASK_LO_ALIGN_32BIT},
