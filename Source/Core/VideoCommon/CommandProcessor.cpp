@@ -133,40 +133,32 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     u32 addr;
     u16* ptr;
-    bool readonly;
     // FIFO mmio regs in the range [cc000020-cc00003e] have certain bits that always read as 0
     // For _LO registers in this range, only bits 0xffe0 can be set
     // For _HI registers in this range, only bits 0x03ff can be set on GCN and 0x1fff on Wii
     u16 wmask;
   } directly_mapped_vars[] = {
-      {FIFO_BASE_LO, MMIO::Utils::LowPart(&m_fifo.CPBase), false, WMASK_LO_ALIGN_32BIT},
-      {FIFO_BASE_HI, MMIO::Utils::HighPart(&m_fifo.CPBase), false, WMASK_HI_RESTRICT},
-      {FIFO_END_LO, MMIO::Utils::LowPart(&m_fifo.CPEnd), false, WMASK_LO_ALIGN_32BIT},
-      {FIFO_END_HI, MMIO::Utils::HighPart(&m_fifo.CPEnd), false, WMASK_HI_RESTRICT},
-      {FIFO_HI_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPHiWatermark), false,
-       WMASK_LO_ALIGN_32BIT},
-      {FIFO_HI_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPHiWatermark), false,
-       WMASK_HI_RESTRICT},
-      {FIFO_LO_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPLoWatermark), false,
-       WMASK_LO_ALIGN_32BIT},
-      {FIFO_LO_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPLoWatermark), false,
-       WMASK_HI_RESTRICT},
+      {FIFO_BASE_LO, MMIO::Utils::LowPart(&m_fifo.CPBase), WMASK_LO_ALIGN_32BIT},
+      {FIFO_BASE_HI, MMIO::Utils::HighPart(&m_fifo.CPBase), WMASK_HI_RESTRICT},
+      {FIFO_END_LO, MMIO::Utils::LowPart(&m_fifo.CPEnd), WMASK_LO_ALIGN_32BIT},
+      {FIFO_END_HI, MMIO::Utils::HighPart(&m_fifo.CPEnd), WMASK_HI_RESTRICT},
+      {FIFO_HI_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPHiWatermark), WMASK_LO_ALIGN_32BIT},
+      {FIFO_HI_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPHiWatermark), WMASK_HI_RESTRICT},
+      {FIFO_LO_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPLoWatermark), WMASK_LO_ALIGN_32BIT},
+      {FIFO_LO_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPLoWatermark), WMASK_HI_RESTRICT},
       // FIFO_RW_DISTANCE has some complex read code different for
       // single/dual core.
-      {FIFO_WRITE_POINTER_LO, MMIO::Utils::LowPart(&m_fifo.CPWritePointer), false,
-       WMASK_LO_ALIGN_32BIT},
-      {FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&m_fifo.CPWritePointer), false,
-       WMASK_HI_RESTRICT},
+      {FIFO_WRITE_POINTER_LO, MMIO::Utils::LowPart(&m_fifo.CPWritePointer), WMASK_LO_ALIGN_32BIT},
+      {FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&m_fifo.CPWritePointer), WMASK_HI_RESTRICT},
       // FIFO_READ_POINTER has different code for single/dual core.
-      {FIFO_BP_LO, MMIO::Utils::LowPart(&m_fifo.CPBreakpoint), false, WMASK_LO_ALIGN_32BIT},
-      {FIFO_BP_HI, MMIO::Utils::HighPart(&m_fifo.CPBreakpoint), false, WMASK_HI_RESTRICT},
+      {FIFO_BP_LO, MMIO::Utils::LowPart(&m_fifo.CPBreakpoint), WMASK_LO_ALIGN_32BIT},
+      {FIFO_BP_HI, MMIO::Utils::HighPart(&m_fifo.CPBreakpoint), WMASK_HI_RESTRICT},
   };
 
   for (auto& mapped_var : directly_mapped_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   mapped_var.readonly ? MMIO::InvalidWrite<u16>() :
-                                         MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask));
+                   MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask));
   }
 
   // Timing and metrics MMIOs are stubbed with fixed values.
