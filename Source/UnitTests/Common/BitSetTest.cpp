@@ -70,12 +70,12 @@ TEST(BitSet, Count)
 
 TEST(BitSet, BitOps)
 {
-  BitSet32 a(3), b(5), c;
+  BitSet32 a(3), b(5);
   EXPECT_EQ(BitSet32(7), a | b);
   EXPECT_EQ(BitSet32(6), a ^ b);
   EXPECT_EQ(BitSet32(1), a & b);
   EXPECT_EQ(BitSet32(0xfffffffc), ~a);
-  c = a;
+  BitSet32 c = a;
   c |= b;
   EXPECT_EQ(BitSet32(7), c);
   c = a;
