@@ -66,7 +66,13 @@ static void AddGCAdapter(libusb_device* device);
 static void ResetRumbleLockNeeded();
 #endif
 
-static void Reset();
+enum class CalledFromReadThread
+{
+  No,
+  Yes,
+};
+
+static void Reset(CalledFromReadThread called_from_read_thread);
 static void Setup();
 static void ProcessInputPayload(const u8* data, std::size_t size);
 static void ReadThreadFunc();
@@ -123,6 +129,7 @@ static std::atomic<int> s_controller_write_payload_size{0};
 
 static std::thread s_read_adapter_thread;
 static Common::Flag s_read_adapter_thread_running;
+static Common::Flag s_read_adapter_thread_needs_joining;
 static std::thread s_write_adapter_thread;
 static Common::Flag s_write_adapter_thread_running;
 static Common::Event s_write_happened;
@@ -324,7 +331,7 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
   else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
   {
     if (s_handle != nullptr && libusb_get_device(s_handle) == dev)
-      Reset();
+      Reset(CalledFromReadThread::No);
 
     // Reset a potential error status now that the adapter is unplugged
     if (s_status == AdapterStatus::Error)
@@ -516,8 +523,11 @@ static void Setup()
   s_detected = true;
 
   // Make sure the thread isn't in the middle of shutting down while starting a new one
-  if (s_read_adapter_thread_running.TestAndClear())
+  if (s_read_adapter_thread_needs_joining.TestAndClear() ||
+      s_read_adapter_thread_running.TestAndClear())
+  {
     s_read_adapter_thread.join();
+  }
 
   s_read_adapter_thread_running.Set(true);
   s_read_adapter_thread = std::thread(ReadThreadFunc);
@@ -682,7 +692,7 @@ void Shutdown()
     libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
 #endif
-  Reset();
+  Reset(CalledFromReadThread::No);
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   s_libusb_context.reset();
@@ -696,7 +706,7 @@ void Shutdown()
   }
 }
 
-static void Reset()
+static void Reset(CalledFromReadThread called_from_read_thread)
 {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   std::unique_lock lock(s_init_mutex, std::defer_lock);
@@ -709,8 +719,16 @@ static void Reset()
     return;
 #endif
 
-  if (s_read_adapter_thread_running.TestAndClear())
-    s_read_adapter_thread.join();
+  if (called_from_read_thread == CalledFromReadThread::No)
+  {
+    if (s_read_adapter_thread_running.TestAndClear())
+      s_read_adapter_thread.join();
+  }
+  else
+  {
+    s_read_adapter_thread_needs_joining.Set();
+    s_read_adapter_thread_running.Clear();
+  }
   // The read thread will close the write thread
 
   s_port_states.fill({});
@@ -790,7 +808,7 @@ void ProcessInputPayload(const u8* data, std::size_t size)
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "error reading payload (size: {}, type: {:02x})", size,
                   data[0]);
 #if GCADAPTER_USE_ANDROID_IMPLEMENTATION
-    Reset();
+    Reset(CalledFromReadThread::Yes);
 #endif
   }
   else
