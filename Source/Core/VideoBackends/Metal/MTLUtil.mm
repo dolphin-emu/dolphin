@@ -79,6 +79,7 @@ void Metal::Util::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsVSLinePointExpand = true;
   config->backend_info.bSupportsHDROutput =
       1.0 < [[NSScreen deepestScreen] maximumPotentialExtendedDynamicRangeColorComponentValue];
+  config->backend_info.bSupportsUnrestrictedDepthRange = false;
 }
 
 void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
