@@ -3,6 +3,7 @@
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
+#include <cfenv>
 #include <cstddef>
 #include <limits>
 
@@ -78,12 +79,18 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     SetFormat();
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
 
+    // At least the position transform uses round-to-zero.
+    const auto round_mode = std::fegetround();
+    std::fesetround(FE_TOWARDZERO);
+
     // transform this vertex so that it can be used for rasterization (outVertex)
     OutputVertexData* outVertex = m_setup_unit.GetVertex();
     TransformUnit::TransformPosition(&m_vertex, outVertex);
     TransformUnit::TransformNormal(&m_vertex, outVertex);
     TransformUnit::TransformColor(&m_vertex, outVertex);
     TransformUnit::TransformTexCoord(&m_vertex, outVertex);
+
+    std::fesetround(round_mode);
 
     // assemble and rasterize the primitive
     m_setup_unit.SetupVertex();
