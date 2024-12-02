@@ -751,8 +751,7 @@ bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
 
 bool AreCheatsEnabled()
 {
-  return Config::Get(::Config::MAIN_ENABLE_CHEATS) &&
-         !AchievementManager::GetInstance().IsHardcoreModeActive();
+  return Config::Get(::Config::MAIN_ENABLE_CHEATS);
 }
 
 bool IsDebuggingEnabled()

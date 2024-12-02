@@ -88,10 +88,9 @@ void GeneralPane::CreateLayout()
 void GeneralPane::OnEmulationStateChanged(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
-  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
 
   m_checkbox_dualcore->setEnabled(!running);
-  m_checkbox_cheats->setEnabled(!running && !hardcore);
+  m_checkbox_cheats->setEnabled(!running);
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
