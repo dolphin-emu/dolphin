@@ -111,12 +111,29 @@ const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot
 
 const Info<int> MAIN_MEMORY_CARD_SIZE{{System::Main, "Core", "MemoryCardSize"}, -1};
 
+const Info<std::string> MAIN_SLOT_A_SD_CARD_PATH{{System::Main, "Core", "SlotASDCardPath"}, ""};
+const Info<std::string> MAIN_SLOT_B_SD_CARD_PATH{{System::Main, "Core", "SlotBSDCardPath"}, ""};
+const Info<std::string> MAIN_SP2_SD_CARD_PATH{{System::Main, "Core", "SP2SDCardPath"}, ""};
+const Info<std::string>& GetInfoForSDCardPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(slot != ExpansionInterface::Slot::SP1);
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_SLOT> infos{
+      &MAIN_SLOT_A_SD_CARD_PATH,
+      &MAIN_SLOT_B_SD_CARD_PATH,
+      nullptr,
+      &MAIN_SP2_SD_CARD_PATH,
+  };
+  return *infos[slot];
+}
+
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
     {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
                                                           ExpansionInterface::EXIDeviceType::None};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_2{
+    {System::Main, "Core", "SerialPort2"}, ExpansionInterface::EXIDeviceType::None};
 
 const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
 {
@@ -126,6 +143,7 @@ const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInte
           &MAIN_SLOT_A,
           &MAIN_SLOT_B,
           &MAIN_SERIAL_PORT_1,
+          &MAIN_SERIAL_PORT_2,
       };
   return *infos[slot];
 }
