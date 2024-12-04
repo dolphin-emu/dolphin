@@ -10,7 +10,7 @@ ExternalProject_Add(MoltenVK
 
   PATCH_COMMAND ${CMAKE_CURRENT_LIST_DIR}/patch.sh ${CMAKE_SOURCE_DIR}/Externals/MoltenVK/patches/ ${MOLTENVK_VERSION}
 
-  BUILD_COMMAND make -C <SOURCE_DIR> macos
+  BUILD_COMMAND make -C <SOURCE_DIR> macos MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0
   BUILD_IN_SOURCE ON
   BUILD_BYPRODUCTS <SOURCE_DIR>/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib
 
