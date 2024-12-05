@@ -139,6 +139,10 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
 
 bool VertexShaderManager::UseVertexDepthRange()
 {
+  // Backend has full native support for the depth range including clamping the depth.
+  if (g_ActiveConfig.backend_info.bSupportsDepthClampControl)
+    return false;
+
   // We can't compute the depth range in the vertex shader if we don't support depth clamp.
   if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
     return false;

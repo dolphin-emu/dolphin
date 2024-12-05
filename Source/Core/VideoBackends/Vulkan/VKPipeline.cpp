@@ -368,12 +368,19 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       GetVulkanColorBlendState(config.blending_state, blend_attachment_states.data(),
                                static_cast<uint32_t>(blend_attachment_states.size()));
 
+  static const VkDepthClampRangeEXT clamp_range = {0.0f, 16777215.0f};
+  static const VkPipelineViewportDepthClampControlCreateInfoEXT depth_clamp_state = {
+      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLAMP_CONTROL_CREATE_INFO_EXT, nullptr,
+      VK_DEPTH_CLAMP_MODE_USER_DEFINED_RANGE_EXT,  // VkDepthClampModeEXT            depthClampMode
+      &clamp_range  // const VkDepthClampRangeEXT*    pDepthClampRange
+  };
+
   // This viewport isn't used, but needs to be specified anyway.
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
   static const VkRect2D scissor = {{0, 0}, {1, 1}};
   static const VkPipelineViewportStateCreateInfo viewport_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-      nullptr,
+      &depth_clamp_state,
       0,          // VkPipelineViewportStateCreateFlags    flags;
       1,          // uint32_t                              viewportCount
       &viewport,  // const VkViewport*                     pViewports
