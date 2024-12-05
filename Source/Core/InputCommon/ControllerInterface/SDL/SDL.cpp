@@ -56,6 +56,38 @@ bool IsTriggerAxis(int index)
   return index >= 4;
 }
 
+ControlState GetBatteryValueFromSDLPowerLevel(SDL_JoystickPowerLevel sdl_power_level)
+{
+  // Values come from comments in SDL_joystick.h
+  // A proper percentage will be exposed in SDL3.
+  ControlState result;
+  switch (sdl_power_level)
+  {
+  case SDL_JOYSTICK_POWER_EMPTY:
+    result = 0.025;
+    break;
+  case SDL_JOYSTICK_POWER_LOW:
+    result = 0.125;
+    break;
+  case SDL_JOYSTICK_POWER_MEDIUM:
+    result = 0.45;
+    break;
+  case SDL_JOYSTICK_POWER_FULL:
+    result = 0.85;
+    break;
+  case SDL_JOYSTICK_POWER_WIRED:
+  case SDL_JOYSTICK_POWER_MAX:
+    result = 1.0;
+    break;
+  case SDL_JOYSTICK_POWER_UNKNOWN:
+  default:
+    result = 0.0;
+    break;
+  }
+
+  return result * ciface::BATTERY_INPUT_MAX_VALUE;
+}
+
 }  // namespace
 
 namespace ciface::SDL
@@ -140,6 +172,18 @@ private:
     SDL_Joystick* const m_js;
     const int m_index;
     const u8 m_direction;
+  };
+
+  class BatteryInput final : public Input
+  {
+  public:
+    explicit BatteryInput(const ControlState* battery_value) : m_battery_value(*battery_value) {}
+    std::string GetName() const override { return "Battery"; }
+    ControlState GetState() const override { return m_battery_value; }
+    bool IsDetectable() const override { return false; }
+
+  private:
+    const ControlState& m_battery_value;
   };
 
   // Rumble
@@ -269,12 +313,18 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
   int GetSDLInstanceID() const;
+  Core::DeviceRemoval UpdateInput() override
+  {
+    m_battery_value = GetBatteryValueFromSDLPowerLevel(SDL_JoystickCurrentPowerLevel(m_joystick));
+    return Core::DeviceRemoval::Keep;
+  }
 
 private:
   SDL_GameController* const m_gamecontroller;
   std::string m_name;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
+  ControlState m_battery_value;
 };
 
 class InputBackend final : public ciface::InputBackend
@@ -768,6 +818,17 @@ GameController::GameController(SDL_GameController* const gamecontroller,
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
       }
     }
+  }
+
+  // Needed to make the below power level not "UNKNOWN".
+  SDL_JoystickUpdate();
+
+  // Battery
+  if (SDL_JoystickPowerLevel const power_level = SDL_JoystickCurrentPowerLevel(m_joystick);
+      power_level != SDL_JOYSTICK_POWER_UNKNOWN)
+  {
+    m_battery_value = GetBatteryValueFromSDLPowerLevel(power_level);
+    AddInput(new BatteryInput{&m_battery_value});
   }
 }
 
