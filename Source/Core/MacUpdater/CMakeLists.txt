@@ -16,7 +16,7 @@ add_dependencies(MacUpdater dolphin_scmrev)
 
 set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE true
-  MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+  MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
   OUTPUT_NAME "Dolphin Updater")
 
 target_compile_options(MacUpdater PRIVATE -x objective-c++)
@@ -52,6 +52,9 @@ foreach(sb ${STORYBOARDS})
     DEPENDS ${input}
     COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
+
+include(DolphinInjectVersionInfo)
+dolphin_inject_version_info(MacUpdater)
 
 if(NOT SKIP_POSTPROCESS_BUNDLE)
   # Update library references to make the bundle portable
