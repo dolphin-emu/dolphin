@@ -61,6 +61,11 @@ static void WriteHeader(APIType api_type, ShaderCode& out)
             "  float gamma_rcp;\n"
             "  float2 clamp_tb;\n"
             "  float pixel_height;\n"
+            "  float rcp_pixel_width;\n"
+            "  float rcp_pixel_height;\n"
+            "  float efb_scale;\n"
+            "  uint efb_copy_scaled;\n"
+            "  uint linear_filter;\n"
             "}};\n");
 }
 
@@ -105,9 +110,30 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
   out.Write("uint4 SampleEFB(float3 uv, float y_offset) {{\n"
-            "  float4 tex_sample = texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * "
-            "pixel_height), clamp_tb.x, clamp_tb.y), {}));\n",
+            "  float clamp_top = src_offset.y + clamp_tb.x;\n"
+            "  float clamp_bottom = (src_offset.y + src_size.y) - clamp_tb.y;\n"
+            "  float shift_x = 0.0f;\n"
+            "  float shift_y = 0.0f;\n");
+
+  // Linear filtering half pixel offset for even IRs
+  out.Write("  if(linear_filter == 1 && efb_copy_scaled == 0 && mod(efb_scale, 2.0f) == 0){{\n"
+            "    shift_x = rcp_pixel_width / 2.f;\n"
+            "    shift_y = rcp_pixel_height / 2.f;\n"
+            "  }}\n");
+
+  // Reverse the direction for OpenGL
+  if (api_type == APIType::OpenGL)
+  {
+    out.Write("  clamp_top = src_offset.y + clamp_tb.y;\n"
+              "  clamp_bottom = (src_offset.y + src_size.y) - clamp_tb.x;\n"
+              "  y_offset = -y_offset;\n"
+              "  shift_y = -shift_y;\n");
+  }
+
+  out.Write("  float clamp_y = clamp(uv.y + shift_y + (y_offset * pixel_height), clamp_top, clamp_bottom);\n"
+            "  float4 tex_sample = texture(samp0, float3(uv.x + shift_x, clamp_y, {}));\n",
             mono_depth ? "0.0" : "uv.z");
+
   if (uid_data->is_depth_copy)
   {
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
