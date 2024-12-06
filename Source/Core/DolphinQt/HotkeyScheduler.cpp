@@ -80,9 +80,6 @@ static bool IsHotkey(int id, bool held = false)
 
 static void HandleFrameStepHotkeys()
 {
-  constexpr int MAX_FRAME_STEP_DELAY = 60;
-  constexpr int FRAME_STEP_DELAY = 30;
-
   static int frame_step_count = 0;
   static int frame_step_delay = 1;
   static int frame_step_delay_count = 0;
@@ -96,6 +93,7 @@ static void HandleFrameStepHotkeys()
 
   if (IsHotkey(HK_FRAME_ADVANCE_DECREASE_SPEED))
   {
+    constexpr int MAX_FRAME_STEP_DELAY = 60;
     frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_STEP_DELAY);
     return;
   }
@@ -108,6 +106,7 @@ static void HandleFrameStepHotkeys()
 
   if (IsHotkey(HK_FRAME_ADVANCE, true))
   {
+    constexpr int FRAME_STEP_DELAY = 30;
     if (frame_step_delay_count < frame_step_delay && frame_step_hold)
       frame_step_delay_count++;
 

@@ -332,9 +332,9 @@ void EnhancementsWidget::LoadPPShaders(StereoMode stereo_mode)
                               tr("%1 doesn't support this feature.")
                                   .arg(tr(g_video_backend->GetDisplayName().c_str())));
 
-  VideoCommon::PostProcessingConfiguration pp_shader;
   if (selected_shader != "" && supports_postprocessing)
   {
+    VideoCommon::PostProcessingConfiguration pp_shader;
     pp_shader.LoadShader(selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
@@ -513,9 +513,9 @@ void EnhancementsWidget::SaveSettings()
                                "" :
                                m_pp_effect->currentText().toStdString());
 
-  VideoCommon::PostProcessingConfiguration pp_shader;
   if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "")
   {
+    VideoCommon::PostProcessingConfiguration pp_shader;
     pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }

@@ -71,10 +71,10 @@ private:
     painter->setClipRect(option.rect);
     painter->setPen(m_parent->palette().text().color());
 
-    constexpr u32 x_offset_in_branch_for_vertical_line = 10;
     const u32 addr = m_parent->AddressForRow(index.row());
     for (const CodeViewBranch& branch : m_parent->m_branches)
     {
+      constexpr u32 x_offset_in_branch_for_vertical_line = 10;
       const int y_center = option.rect.top() + option.rect.height() / 2;
       const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * branch.indentation;
       const int x_right = x_left + x_offset_in_branch_for_vertical_line;

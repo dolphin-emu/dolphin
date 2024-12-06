@@ -519,8 +519,8 @@ void CodeWidget::StepOut()
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
   {
+    auto& ppc_state = power_pc.GetPPCState();
     Core::CPUThreadGuard guard(m_system);
 
     PowerPC::CoreMode old_mode = power_pc.GetMode();
