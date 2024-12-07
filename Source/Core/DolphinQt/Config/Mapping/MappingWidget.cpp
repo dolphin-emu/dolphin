@@ -228,6 +228,8 @@ void MappingWidget::AddSettingWidgets(QFormLayout* layout, ControllerEmu::Contro
       const auto hbox = new QHBoxLayout;
 
       hbox->addWidget(setting_widget);
+      setting_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
       hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
 
       layout->addRow(tr(setting->GetUIName()), hbox);
