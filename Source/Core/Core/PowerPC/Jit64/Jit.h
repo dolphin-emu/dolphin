@@ -31,6 +31,7 @@
 #include "Core/PowerPC/Jit64Common/BlockCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+#include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
@@ -81,6 +82,8 @@ public:
 
   void IntializeSpeculativeConstants();
 
+  JitCommon::ConstantPropagation& GetConstantPropagation() { return m_constant_propagation; }
+
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
 
@@ -120,6 +123,7 @@ public:
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
   void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
+  void FinalizeImmediateRC(s32 value);
 
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   void RotateLeft(int bits, Gen::X64Reg regOp, const Gen::OpArg& arg, u8 rotate);
@@ -285,6 +289,8 @@ private:
 
   GPRRegCache gpr{*this};
   FPURegCache fpr{*this};
+
+  JitCommon::ConstantPropagation m_constant_propagation;
 
   Jit64AsmRoutineManager asm_routines{*this};
 
