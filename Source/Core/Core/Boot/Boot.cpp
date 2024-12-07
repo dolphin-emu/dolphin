@@ -605,7 +605,9 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       ppc_state.pc = executable.reader->GetEntryPoint();
 
-      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB()))
+      const std::string filename = PathToFileName(executable.path);
+
+      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB(), filename))
       {
         Host_PPCSymbolsChanged();
         HLE::PatchFunctions(system);
