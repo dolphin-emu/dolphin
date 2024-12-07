@@ -283,6 +283,39 @@ private:
     const Motor m_motor;
   };
 
+  class NormalizedInput : public Input
+  {
+  public:
+    NormalizedInput(const char* name, const float* state) : m_name{std::move(name)}, m_state{*state}
+    {
+    }
+
+    std::string GetName() const override { return std::string{m_name}; }
+    ControlState GetState() const override { return m_state; }
+
+  private:
+    const char* const m_name;
+    const float& m_state;
+  };
+
+  template <int Scale>
+  class NonDetectableDirectionalInput : public Input
+  {
+  public:
+    NonDetectableDirectionalInput(const char* name, const float* state)
+        : m_name{std::move(name)}, m_state{*state}
+    {
+    }
+
+    std::string GetName() const override { return std::string{m_name} + (Scale > 0 ? '+' : '-'); }
+    bool IsDetectable() const override { return false; }
+    ControlState GetState() const override { return m_state * Scale; }
+
+  private:
+    const char* const m_name;
+    const float& m_state;
+  };
+
   class MotionInput : public Input
   {
   public:
@@ -316,6 +349,17 @@ public:
   Core::DeviceRemoval UpdateInput() override
   {
     m_battery_value = GetBatteryValueFromSDLPowerLevel(SDL_JoystickCurrentPowerLevel(m_joystick));
+
+    // We only support one touchpad and one finger.
+    const int touchpad_index = 0;
+    const int finger_index = 0;
+
+    Uint8 state = 0;
+    SDL_GameControllerGetTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, &state,
+                                        &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
+    m_touchpad_x = m_touchpad_x * 2 - 1;
+    m_touchpad_y = m_touchpad_y * 2 - 1;
+
     return Core::DeviceRemoval::Keep;
   }
 
@@ -325,6 +369,9 @@ private:
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
   ControlState m_battery_value;
+  float m_touchpad_x = 0.f;
+  float m_touchpad_y = 0.f;
+  float m_touchpad_pressure = 0.f;
 };
 
 class InputBackend final : public ciface::InputBackend
@@ -710,6 +757,18 @@ GameController::GameController(SDL_GameController* const gamecontroller,
       AddOutput(new Motor(m_gamecontroller));
       AddOutput(new MotorL(m_gamecontroller));
       AddOutput(new MotorR(m_gamecontroller));
+    }
+
+    // Touchpad
+    if (SDL_GameControllerGetNumTouchpads(m_gamecontroller) > 0)
+    {
+      const char* const name_x = "Touchpad X";
+      AddInput(new NonDetectableDirectionalInput<-1>(name_x, &m_touchpad_x));
+      AddInput(new NonDetectableDirectionalInput<+1>(name_x, &m_touchpad_x));
+      const char* const name_y = "Touchpad Y";
+      AddInput(new NonDetectableDirectionalInput<-1>(name_y, &m_touchpad_y));
+      AddInput(new NonDetectableDirectionalInput<+1>(name_y, &m_touchpad_y));
+      AddInput(new NormalizedInput("Touchpad Pressure", &m_touchpad_pressure));
     }
 
     // Motion
