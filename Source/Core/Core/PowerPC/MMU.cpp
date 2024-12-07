@@ -25,6 +25,7 @@
 
 #include "Core/PowerPC/MMU.h"
 
+#include <algorithm>
 #include <bit>
 #include <cstddef>
 #include <cstring>
@@ -43,6 +44,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/GDBStub.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -145,7 +148,7 @@ static void EFB_Write(u32 data, u32 addr)
 }
 
 template <XCheckTLBFlag flag, typename T, bool never_translate>
-T MMU::ReadFromHardware(u32 em_address)
+T MMU::ReadFromHardware(const u32 effective_address, const UGeckoInstruction inst)
 {
   // ReadFromHardware is currently used with XCheckTLBFlag::OpcodeNoException by host instruction
   // functions. Actual instruction decoding (which can raise exceptions and uses icache) is handled
@@ -153,93 +156,104 @@ T MMU::ReadFromHardware(u32 em_address)
   static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Read ||
                 flag == XCheckTLBFlag::OpcodeNoException);
 
-  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
-  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
-  if (em_address_start_page != em_address_end_page)
-  {
-    // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-    // way isn't too terrible.
-    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-    u64 var = 0;
-    for (u32 i = 0; i < sizeof(T); ++i)
-    {
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
-    }
-    return static_cast<T>(var);
-  }
-
-  bool wi = false;
+  u32 physical_address;
+  bool wi;
 
   if (!never_translate &&
       (IsOpcodeFlag(flag) ? m_ppc_state.msr.IR.Value() : m_ppc_state.msr.DR.Value()))
   {
-    auto translated_addr = TranslateAddress<flag>(em_address);
+    auto translated_addr = TranslateAddress<flag>(effective_address);
     if (!translated_addr.Success())
     {
       if (flag == XCheckTLBFlag::Read)
-        GenerateDSIException(em_address, false);
+        GenerateDSIException(effective_address, false);
       return 0;
     }
-    em_address = translated_addr.address;
+    physical_address = translated_addr.address;
     wi = translated_addr.wi;
   }
-
-  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
+  else
   {
-    if (em_address < 0x0c000000)
+    physical_address = effective_address;
+    wi = false;
+  }
+
+  if (flag == XCheckTLBFlag::Read &&
+      AccessCausesAlignmentException(effective_address, sizeof(T) << 3, inst, wi))
+  {
+    GenerateAlignmentException(m_ppc_state, effective_address, inst);
+    return 0;
+  }
+
+  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
+  const u32 effective_end_page = (effective_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
+  if (effective_start_page != effective_end_page)
+  {
+    // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
+    // way isn't too terrible.
+    u64 var = 0;
+    for (u32 i = 0; i < sizeof(T); ++i)
     {
-      return EFB_Read(em_address);
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(effective_address + i, inst);
+    }
+    return static_cast<T>(var);
+  }
+
+  if (flag == XCheckTLBFlag::Read && (physical_address & 0xF8000000) == 0x08000000)
+  {
+    if (physical_address < 0x0c000000)
+    {
+      return EFB_Read(physical_address);
     }
     else
     {
       return static_cast<T>(
-          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
+          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, physical_address));
     }
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (m_memory.GetL1Cache() && (em_address >> 28) == 0xE &&
-      (em_address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && (physical_address >> 28) == 0xE &&
+      (physical_address < (0xE0000000 + m_memory.GetL1CacheSize())))
   {
     T value;
-    std::memcpy(&value, &m_memory.GetL1Cache()[em_address & 0x0FFFFFFF], sizeof(T));
+    std::memcpy(&value, &m_memory.GetL1Cache()[physical_address & 0x0FFFFFFF], sizeof(T));
     return bswap(value);
   }
 
-  if (m_memory.GetRAM() && (em_address & 0xF8000000) == 0x00000000)
+  if (m_memory.GetRAM() && (physical_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     T value;
-    em_address &= m_memory.GetRamMask();
+    physical_address &= m_memory.GetRamMask();
 
     if (!m_ppc_state.m_enable_dcache || wi)
     {
-      std::memcpy(&value, &m_memory.GetRAM()[em_address], sizeof(T));
+      std::memcpy(&value, &m_memory.GetRAM()[physical_address], sizeof(T));
     }
     else
     {
-      m_ppc_state.dCache.Read(m_memory, em_address, &value, sizeof(T),
+      m_ppc_state.dCache.Read(m_memory, physical_address, &value, sizeof(T),
                               HID0(m_ppc_state).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
     return bswap(value);
   }
 
-  if (m_memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
+  if (m_memory.GetEXRAM() && (physical_address >> 28) == 0x1 &&
+      (physical_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
   {
     T value;
-    em_address &= 0x0FFFFFFF;
+    physical_address &= 0x0FFFFFFF;
 
     if (!m_ppc_state.m_enable_dcache || wi)
     {
-      std::memcpy(&value, &m_memory.GetEXRAM()[em_address], sizeof(T));
+      std::memcpy(&value, &m_memory.GetEXRAM()[physical_address], sizeof(T));
     }
     else
     {
-      m_ppc_state.dCache.Read(m_memory, em_address + 0x10000000, &value, sizeof(T),
+      m_ppc_state.dCache.Read(m_memory, physical_address + 0x10000000, &value, sizeof(T),
                               HID0(m_ppc_state).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
@@ -249,58 +263,71 @@ T MMU::ReadFromHardware(u32 em_address)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (m_memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && ((physical_address & 0xFE000000) == 0x7E000000))
   {
     T value;
-    std::memcpy(&value, &m_memory.GetFakeVMEM()[em_address & m_memory.GetFakeVMemMask()],
+    std::memcpy(&value, &m_memory.GetFakeVMEM()[physical_address & m_memory.GetFakeVMemMask()],
                 sizeof(T));
     return bswap(value);
   }
 
-  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, m_ppc_state.pc);
+  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", physical_address, m_ppc_state.pc);
   if (m_system.IsPauseOnPanicMode())
   {
     m_system.GetCPU().Break();
-    m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
   }
   return 0;
 }
 
 template <XCheckTLBFlag flag, bool never_translate>
-void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
+void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32 size,
+                          const UGeckoInstruction inst)
 {
   static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Write);
 
   DEBUG_ASSERT(size <= 4);
 
-  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
-  const u32 em_address_end_page = (em_address + size - 1) & ~HW_PAGE_MASK;
-  if (em_address_start_page != em_address_end_page)
-  {
-    // The write crosses a page boundary. Break it up into two writes.
-    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-    const u32 first_half_size = em_address_end_page - em_address;
-    const u32 second_half_size = size - first_half_size;
-    WriteToHardware<flag, never_translate>(em_address, std::rotr(data, second_half_size * 8),
-                                           first_half_size);
-    WriteToHardware<flag, never_translate>(em_address_end_page, data, second_half_size);
-    return;
-  }
-
-  bool wi = false;
+  u32 physical_address;
+  bool wi;
 
   if (!never_translate && m_ppc_state.msr.DR)
   {
-    auto translated_addr = TranslateAddress<flag>(em_address);
+    auto translated_addr = TranslateAddress<flag>(effective_address);
     if (!translated_addr.Success())
     {
       if (flag == XCheckTLBFlag::Write)
-        GenerateDSIException(em_address, true);
+        GenerateDSIException(effective_address, true);
       return;
     }
-    em_address = translated_addr.address;
+
+    physical_address = translated_addr.address;
     wi = translated_addr.wi;
+  }
+  else
+  {
+    physical_address = effective_address;
+    wi = false;
+  }
+
+  if (flag == XCheckTLBFlag::Write &&
+      AccessCausesAlignmentException(effective_address, size << 3, inst, wi))
+  {
+    GenerateAlignmentException(m_ppc_state, effective_address, inst);
+    return;
+  }
+
+  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
+  const u32 effective_end_page = (effective_address + size - 1) & ~HW_PAGE_MASK;
+  if (effective_start_page != effective_end_page)
+  {
+    // The write crosses a page boundary. Break it up into two writes.
+    const u32 first_half_size = effective_end_page - effective_address;
+    const u32 second_half_size = size - first_half_size;
+    WriteToHardware<flag, never_translate>(effective_address, std::rotr(data, second_half_size * 8),
+                                           first_half_size, inst);
+    WriteToHardware<flag, never_translate>(effective_end_page, data, second_half_size, inst);
+    return;
   }
 
   // Check for a gather pipe write (which are not implemented through the MMIO system).
@@ -314,7 +341,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   // writes which do not exactly match the masking behave differently, but Pac-Man World 3's writes
   // happen to behave correctly.
   if (flag == XCheckTLBFlag::Write &&
-      (em_address & 0xFFFFF000) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
+      (physical_address & 0xFFFFF000) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
   {
     switch (size)
     {
@@ -339,31 +366,32 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     }
   }
 
-  if (flag == XCheckTLBFlag::Write && (em_address & 0xF8000000) == 0x08000000)
+  if (flag == XCheckTLBFlag::Write && (physical_address & 0xF8000000) == 0x08000000)
   {
-    if (em_address < 0x0c000000)
+    if (physical_address < 0x0c000000)
     {
-      EFB_Write(data, em_address);
+      EFB_Write(data, physical_address);
       return;
     }
 
     switch (size)
     {
     case 1:
-      m_memory.GetMMIOMapping()->Write<u8>(m_system, em_address, static_cast<u8>(data));
+      m_memory.GetMMIOMapping()->Write<u8>(m_system, physical_address, static_cast<u8>(data));
       return;
     case 2:
-      m_memory.GetMMIOMapping()->Write<u16>(m_system, em_address, static_cast<u16>(data));
+      m_memory.GetMMIOMapping()->Write<u16>(m_system, physical_address, static_cast<u16>(data));
       return;
     case 4:
-      m_memory.GetMMIOMapping()->Write<u32>(m_system, em_address, data);
+      m_memory.GetMMIOMapping()->Write<u32>(m_system, physical_address, data);
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
-      for (size_t i = size * 8; i > 0; em_address++)
+      for (size_t i = size * 8; i > 0; physical_address++)
       {
         i -= 8;
-        m_memory.GetMMIOMapping()->Write<u8>(m_system, em_address, static_cast<u8>(data >> i));
+        m_memory.GetMMIOMapping()->Write<u8>(m_system, physical_address,
+                                             static_cast<u8>(data >> i));
       }
       return;
     }
@@ -372,14 +400,14 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   const u32 swapped_data = Common::swap32(std::rotr(data, size * 8));
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (m_memory.GetL1Cache() && (em_address >> 28 == 0xE) &&
-      (em_address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && (physical_address >> 28 == 0xE) &&
+      (physical_address < (0xE0000000 + m_memory.GetL1CacheSize())))
   {
-    std::memcpy(&m_memory.GetL1Cache()[em_address & 0x0FFFFFFF], &swapped_data, size);
+    std::memcpy(&m_memory.GetL1Cache()[physical_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
-  if (wi && (size < 4 || (em_address & 0x3)))
+  if (wi && (size < 4 || (physical_address & 0x3)))
   {
     // When a write to memory is performed in hardware, 64 bits of data are sent to the memory
     // controller along with a mask. This mask is encoded using just two bits of data - one for
@@ -392,47 +420,50 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     //       (https://github.com/dolphin-emu/hwtests/pull/42)
     m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
 
-    const u32 rotated_data = std::rotr(data, ((em_address & 0x3) + size) * 8);
+    const u32 rotated_data = std::rotr(data, ((physical_address & 0x3) + size) * 8);
 
-    const u32 start_addr = Common::AlignDown(em_address, 8);
-    const u32 end_addr = Common::AlignUp(em_address + size, 8);
+    const u32 start_addr = Common::AlignDown(physical_address, 8);
+    const u32 end_addr = Common::AlignUp(physical_address + size, 8);
     for (u32 addr = start_addr; addr != end_addr; addr += 8)
     {
-      WriteToHardware<flag, true>(addr, rotated_data, 4);
-      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+      WriteToHardware<flag, true>(addr, rotated_data, 4, inst);
+      WriteToHardware<flag, true>(addr + 4, rotated_data, 4, inst);
     }
 
     return;
   }
 
-  if (m_memory.GetRAM() && (em_address & 0xF8000000) == 0x00000000)
+  if (m_memory.GetRAM() && (physical_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    em_address &= m_memory.GetRamMask();
-
-    if (m_ppc_state.m_enable_dcache && !wi)
-      m_ppc_state.dCache.Write(m_memory, em_address, &swapped_data, size, HID0(m_ppc_state).DLOCK);
-
-    if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
-      std::memcpy(&m_memory.GetRAM()[em_address], &swapped_data, size);
-
-    return;
-  }
-
-  if (m_memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
-  {
-    em_address &= 0x0FFFFFFF;
+    physical_address &= m_memory.GetRamMask();
 
     if (m_ppc_state.m_enable_dcache && !wi)
     {
-      m_ppc_state.dCache.Write(m_memory, em_address + 0x10000000, &swapped_data, size,
+      m_ppc_state.dCache.Write(m_memory, physical_address, &swapped_data, size,
                                HID0(m_ppc_state).DLOCK);
     }
 
     if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
-      std::memcpy(&m_memory.GetEXRAM()[em_address], &swapped_data, size);
+      std::memcpy(&m_memory.GetRAM()[physical_address], &swapped_data, size);
+
+    return;
+  }
+
+  if (m_memory.GetEXRAM() && (physical_address >> 28) == 0x1 &&
+      (physical_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
+  {
+    physical_address &= 0x0FFFFFFF;
+
+    if (m_ppc_state.m_enable_dcache && !wi)
+    {
+      m_ppc_state.dCache.Write(m_memory, physical_address + 0x10000000, &swapped_data, size,
+                               HID0(m_ppc_state).DLOCK);
+    }
+
+    if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
+      std::memcpy(&m_memory.GetEXRAM()[physical_address], &swapped_data, size);
 
     return;
   }
@@ -440,18 +471,18 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (m_memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && ((physical_address & 0xFE000000) == 0x7E000000))
   {
-    std::memcpy(&m_memory.GetFakeVMEM()[em_address & m_memory.GetFakeVMemMask()], &swapped_data,
-                size);
+    std::memcpy(&m_memory.GetFakeVMEM()[physical_address & m_memory.GetFakeVMemMask()],
+                &swapped_data, size);
     return;
   }
 
-  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, m_ppc_state.pc);
+  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", effective_address, m_ppc_state.pc);
   if (m_system.IsPauseOnPanicMode())
   {
     m_system.GetCPU().Break();
-    m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
   }
 }
 // =====================
@@ -505,7 +536,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
 u32 MMU::HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 address)
 {
   return guard.GetSystem().GetMMU().ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(
-      address);
+      address, UGeckoInstruction{});
 }
 
 std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThreadGuard& guard,
@@ -520,19 +551,22 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   {
   case RequestedAddressSpace::Effective:
   {
-    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value =
+        mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
     return ReadResult<u32>(!!mmu.m_ppc_state.msr.IR, value);
   }
   case RequestedAddressSpace::Physical:
   {
-    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
+    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(
+        address, UGeckoInstruction{});
     return ReadResult<u32>(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!mmu.m_ppc_state.msr.IR)
       return std::nullopt;
-    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value =
+        mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
     return ReadResult<u32>(true, value);
   }
   }
@@ -567,40 +601,38 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
   if (GDBStub::IsActive())
     GDBStub::TakeControl();
 
-  // Fake a DSI so that all the code that tests for it in order to skip
-  // the rest of the instruction will apply.  (This means that
+  // Fake an exception so that all the code that tests for it in order to
+  // skip the the rest of the instruction will apply.  (This means that
   // watchpoints will stop the emulator before the offending load/store,
   // not after like GDB does, but that's better anyway.  Just need to
   // make sure resuming after that works.)
-  // It doesn't matter if ReadFromHardware triggers its own DSI because
-  // we'll take it after resuming.
-  m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+  m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
 }
 
-u8 MMU::Read_U8(const u32 address)
+u8 MMU::Read_U8(const u32 address, const UGeckoInstruction inst)
 {
-  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
+  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address, inst);
   Memcheck(address, var, false, 1);
   return var;
 }
 
-u16 MMU::Read_U16(const u32 address)
+u16 MMU::Read_U16(const u32 address, const UGeckoInstruction inst)
 {
-  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
+  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address, inst);
   Memcheck(address, var, false, 2);
   return var;
 }
 
-u32 MMU::Read_U32(const u32 address)
+u32 MMU::Read_U32(const u32 address, const UGeckoInstruction inst)
 {
-  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
+  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address, inst);
   Memcheck(address, var, false, 4);
   return var;
 }
 
-u64 MMU::Read_U64(const u32 address)
+u64 MMU::Read_U64(const u32 address, const UGeckoInstruction inst)
 {
-  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
+  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address, inst);
   Memcheck(address, var, false, 8);
   return var;
 }
@@ -617,19 +649,20 @@ std::optional<ReadResult<T>> MMU::HostTryReadUX(const Core::CPUThreadGuard& guar
   {
   case RequestedAddressSpace::Effective:
   {
-    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
     return ReadResult<T>(!!mmu.m_ppc_state.msr.DR, std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
-    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address);
+    T value =
+        mmu.ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address, UGeckoInstruction{});
     return ReadResult<T>(false, std::move(value));
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!mmu.m_ppc_state.msr.DR)
       return std::nullopt;
-    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
     return ReadResult<T>(true, std::move(value));
   }
   }
@@ -680,65 +713,65 @@ std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard
   return ReadResult<double>(result->translated, std::bit_cast<double>(result->value));
 }
 
-void MMU::Write_U8(const u32 var, const u32 address)
+void MMU::Write_U8(const u32 var, const u32 address, const UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, 1);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 1, inst);
 }
 
-void MMU::Write_U16(const u32 var, const u32 address)
+void MMU::Write_U16(const u32 var, const u32 address, const UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, 2);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 2, inst);
 }
-void MMU::Write_U16_Swap(const u32 var, const u32 address)
+void MMU::Write_U16_Swap(const u32 var, const u32 address, const UGeckoInstruction inst)
 {
-  Write_U16((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address);
+  Write_U16((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address, inst);
 }
 
-void MMU::Write_U32(const u32 var, const u32 address)
+void MMU::Write_U32(const u32 var, const u32 address, const UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, 4);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 4, inst);
 }
-void MMU::Write_U32_Swap(const u32 var, const u32 address)
+void MMU::Write_U32_Swap(const u32 var, const u32 address, const UGeckoInstruction inst)
 {
-  Write_U32(Common::swap32(var), address);
+  Write_U32(Common::swap32(var), address, inst);
 }
 
-void MMU::Write_U64(const u64 var, const u32 address)
+void MMU::Write_U64(const u64 var, const u32 address, const UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
-  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4, inst);
+  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4, inst);
 }
-void MMU::Write_U64_Swap(const u64 var, const u32 address)
+void MMU::Write_U64_Swap(const u64 var, const u32 address, const UGeckoInstruction inst)
 {
-  Write_U64(Common::swap64(var), address);
+  Write_U64(Common::swap64(var), address, inst);
 }
 
 u8 MMU::HostRead_U8(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u8>(address);
+  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u8>(address, UGeckoInstruction{});
 }
 
 u16 MMU::HostRead_U16(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u16>(address);
+  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u16>(address, UGeckoInstruction{});
 }
 
 u32 MMU::HostRead_U32(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u32>(address);
+  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u32>(address, UGeckoInstruction{});
 }
 
 u64 MMU::HostRead_U64(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u64>(address);
+  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, u64>(address, UGeckoInstruction{});
 }
 
 float MMU::HostRead_F32(const Core::CPUThreadGuard& guard, const u32 address)
@@ -758,26 +791,28 @@ double MMU::HostRead_F64(const Core::CPUThreadGuard& guard, const u32 address)
 void MMU::HostWrite_U8(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, 1);
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, 1, UGeckoInstruction{});
 }
 
 void MMU::HostWrite_U16(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, 2);
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, 2, UGeckoInstruction{});
 }
 
 void MMU::HostWrite_U32(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, 4);
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, 4, UGeckoInstruction{});
 }
 
 void MMU::HostWrite_U64(const Core::CPUThreadGuard& guard, const u64 var, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4);
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4);
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4,
+                                                  UGeckoInstruction{});
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4,
+                                                  UGeckoInstruction{});
 }
 
 void MMU::HostWrite_F32(const Core::CPUThreadGuard& guard, const float var, const u32 address)
@@ -805,15 +840,15 @@ std::optional<WriteResult> MMU::HostTryWriteUX(const Core::CPUThreadGuard& guard
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
+    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size, UGeckoInstruction{});
     return WriteResult(!!mmu.m_ppc_state.msr.DR);
   case RequestedAddressSpace::Physical:
-    mmu.WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
+    mmu.WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size, UGeckoInstruction{});
     return WriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!mmu.m_ppc_state.msr.DR)
       return std::nullopt;
-    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
+    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size, UGeckoInstruction{});
     return WriteResult(true);
   }
 
@@ -918,7 +953,8 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
   return ReadResult<std::string>(c->translated, std::move(s));
 }
 
-bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) const
+bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size,
+                                  const UGeckoInstruction inst) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return false;
@@ -928,6 +964,12 @@ bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) cons
 
   if (m_ppc_state.m_enable_dcache)
     return false;
+
+  if ((address & GetAlignmentMask(access_size)) != 0 &&
+      AccessCausesAlignmentExceptionIfMisaligned(inst, access_size))
+  {
+    return false;
+  }
 
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
@@ -1088,7 +1130,7 @@ static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* w
   return true;
 }
 
-void MMU::ClearDCacheLine(u32 address)
+void MMU::ClearDCacheLine(u32 address, UGeckoInstruction inst)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
   if (m_ppc_state.msr.DR)
@@ -1113,7 +1155,7 @@ void MMU::ClearDCacheLine(u32 address)
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 4)
-    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4);
+    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4, inst);
 }
 
 void MMU::StoreDCacheLine(u32 address)
@@ -1229,7 +1271,7 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
-  const bool aligned = (address & ((access_size >> 3) - 1)) == 0;
+  const bool aligned = (address & GetAlignmentMask(access_size)) == 0;
   if (!aligned || !MMIO::IsMMIOAddress(address, m_system.IsWii()))
     return 0;
 
@@ -1279,7 +1321,7 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
     if (m_system.IsPauseOnPanicMode())
     {
       m_system.GetCPU().Break();
-      m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+      m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
     }
     return;
   }
@@ -1472,11 +1514,12 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
     {
       constexpr XCheckTLBFlag pte_read_flag =
           IsNoExceptionFlag(flag) ? XCheckTLBFlag::NoException : XCheckTLBFlag::Read;
-      const u32 pteg = ReadFromHardware<pte_read_flag, u32, true>(pteg_addr);
+      const u32 pteg = ReadFromHardware<pte_read_flag, u32, true>(pteg_addr, UGeckoInstruction{});
 
       if (pte1.Hex == pteg)
       {
-        UPTE_Hi pte2(ReadFromHardware<pte_read_flag, u32, true>(pteg_addr + 4));
+        UPTE_Hi pte2(
+            ReadFromHardware<pte_read_flag, u32, true>(pteg_addr + 4, UGeckoInstruction{}));
 
         // set the access bits
         switch (flag)
@@ -1688,52 +1731,124 @@ std::optional<u32> MMU::GetTranslatedAddress(u32 address)
   return std::optional<u32>(result.address);
 }
 
-void ClearDCacheLineFromJit(MMU& mmu, u32 address)
+void ClearDCacheLineFromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  mmu.ClearDCacheLine(address);
+  mmu.ClearDCacheLine(address, inst);
 }
-u32 ReadU8FromJit(MMU& mmu, u32 address)
+u32 ReadU8FromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  return mmu.Read_U8(address);
+  return mmu.Read_U8(address, inst);
 }
-u32 ReadU16FromJit(MMU& mmu, u32 address)
+u32 ReadU16FromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  return mmu.Read_U16(address);
+  return mmu.Read_U16(address, inst);
 }
-u32 ReadU32FromJit(MMU& mmu, u32 address)
+u32 ReadU32FromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  return mmu.Read_U32(address);
+  return mmu.Read_U32(address, inst);
 }
-u64 ReadU64FromJit(MMU& mmu, u32 address)
+u64 ReadU64FromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  return mmu.Read_U64(address);
+  return mmu.Read_U64(address, inst);
 }
-void WriteU8FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU8FromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U8(var, address);
+  mmu.Write_U8(var, address, inst);
 }
-void WriteU16FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU16FromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U16(var, address);
+  mmu.Write_U16(var, address, inst);
 }
-void WriteU32FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32FromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U32(var, address);
+  mmu.Write_U32(var, address, inst);
 }
-void WriteU64FromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64FromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U64(var, address);
+  mmu.Write_U64(var, address, inst);
 }
-void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U16_Swap(var, address);
+  mmu.Write_U16_Swap(var, address, inst);
 }
-void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U32_Swap(var, address);
+  mmu.Write_U32_Swap(var, address, inst);
 }
-void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U64_Swap(var, address);
+  mmu.Write_U64_Swap(var, address, inst);
 }
+
+static bool IsDcbz(UGeckoInstruction inst)
+{
+  // dcbz, dcbz_l
+  return inst.SUBOP10 == 1014 && (inst.OPCD == 31 || inst.OPCD == 4);
+}
+
+static bool IsFloat(UGeckoInstruction inst, size_t access_size)
+{
+  // Floating loadstore
+  if (inst.OPCD >= 48 && inst.OPCD < 56)
+    return true;
+
+  // Paired non-indexed loadstore
+  if (inst.OPCD >= 56 && inst.OPCD < 62)
+    return access_size == (inst.W ? 32 : 64);
+
+  // Paired indexed loadstore
+  if (inst.OPCD == 4 && inst.SUBOP10 != 1014)
+    return access_size == (inst.Wx ? 32 : 64);
+
+  return false;
+}
+
+static bool IsMultiword(UGeckoInstruction inst)
+{
+  // lmw, stmw
+  if (inst.OPCD == 46 || inst.OPCD == 47)
+    return true;
+
+  if (inst.OPCD != 31)
+    return false;
+
+  // lswx, lswi, stswx, stswi
+  return inst.SUBOP10 == 533 || inst.SUBOP10 == 597 || inst.SUBOP10 == 661 || inst.SUBOP10 == 725;
+}
+
+static bool IsLwarxOrStwcx(UGeckoInstruction inst)
+{
+  // lwarx, stwcx
+  return inst.OPCD == 31 && (inst.SUBOP10 == 20 || inst.SUBOP10 == 150);
+}
+
+static bool IsEciwxOrEcowx(UGeckoInstruction inst)
+{
+  // eciwx, ecowx
+  return inst.OPCD == 31 && (inst.SUBOP10 == 310 || inst.SUBOP10 == 438);
+}
+
+bool AccessCausesAlignmentExceptionIfWi(UGeckoInstruction inst)
+{
+  return IsDcbz(inst);
+}
+
+bool AccessCausesAlignmentExceptionIfMisaligned(UGeckoInstruction inst, size_t access_size)
+{
+  return IsFloat(inst, access_size) || IsMultiword(inst) || IsLwarxOrStwcx(inst) ||
+         IsEciwxOrEcowx(inst);
+}
+
+bool AccessCausesAlignmentException(u32 effective_address, size_t access_size,
+                                    UGeckoInstruction inst, bool wi)
+{
+  if (wi && AccessCausesAlignmentExceptionIfWi(inst))
+    return true;
+
+  if ((effective_address & GetAlignmentMask(access_size)) == 0)
+    return false;
+
+  return AccessCausesAlignmentExceptionIfMisaligned(inst, access_size);
+}
+
 }  // namespace PowerPC
