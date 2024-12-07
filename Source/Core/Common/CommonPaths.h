@@ -153,7 +153,7 @@
 
 #define GECKO_CODE_HANDLER_MPN "codehandler-mpn.bin"
 
-#define GECKO_CODE_HANDLER_MPN_SUPER "codehandler-mpn.bin"
+#define GECKO_CODE_HANDLER_MPN_SUPER "codehandler.bin" // MPN Codehanlder is breaking some textures. 
 
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
