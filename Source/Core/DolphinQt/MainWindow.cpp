@@ -519,6 +519,15 @@ void MainWindow::CreateComponents()
           &MemoryWidget::SetAddress);
   connect(m_cheats_manager, &CheatsManager::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_cheats_manager, &CheatsManager::RequestWatch, request_watch);
+
+  connect(&Settings::Instance(), &Settings::UpdateWiimoteExtension,
+          [this](const int controller_number, const int extension_index) {
+            m_wii_tas_input_windows[controller_number]->UpdateExtension(extension_index);
+          });
+  connect(&Settings::Instance(), &Settings::UpdateWiimoteMotionPlus,
+          [this](const int controller_number, const bool attached) {
+            m_wii_tas_input_windows[controller_number]->UpdateMotionPlus(attached);
+          });
 }
 
 void MainWindow::ConnectMenuBar()

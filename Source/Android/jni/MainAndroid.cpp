@@ -193,6 +193,14 @@ void Host_YieldToUI()
 {
 }
 
+void Host_UpdateWiimoteExtension(int, int)
+{
+}
+
+void Host_UpdateWiimoteMotionPlus(int, bool)
+{
+}
+
 void Host_TitleChanged()
 {
   s_game_metadata_is_valid = true;
