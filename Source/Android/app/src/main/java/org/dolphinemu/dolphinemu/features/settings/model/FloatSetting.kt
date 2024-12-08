@@ -11,6 +11,7 @@ enum class FloatSetting(
     // These entries have the same names and order as in C++, just for consistency.
     MAIN_EMULATION_SPEED(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EmulationSpeed", 1.0f),
     MAIN_OVERCLOCK(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Overclock", 1.0f),
+    MAIN_VI_OVERCLOCK(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "VIOverclock", 1.0f),
     GFX_CC_GAME_GAMMA(Settings.FILE_GFX, Settings.SECTION_GFX_COLOR_CORRECTION, "GameGamma", 2.35f);
 
     override val isOverridden: Boolean

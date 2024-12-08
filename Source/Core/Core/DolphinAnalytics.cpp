@@ -365,6 +365,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
+  builder.AddData("cfg-vi-oc-enable", Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE));
+  builder.AddData("cfg-vi-oc-factor", Config::Get(Config::MAIN_VI_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
