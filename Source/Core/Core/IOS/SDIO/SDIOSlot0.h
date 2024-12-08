@@ -63,6 +63,7 @@ private:
   {
     RET_OK,
     RET_FAIL,
+    RET_LOCKED = -10,
     RET_EVENT_REGISTER,  // internal state only - not actually returned
   };
 

@@ -309,7 +309,12 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     INFO_LOG_FMT(IOS_SD, "{}Write {} Block(s) from {:#010x} bsize {} to offset {:#010x}!",
                  req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-    if (m_card && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    {
+      ERROR_LOG_FMT(IOS_SD, "Write attempted while locked.");
+      ret = RET_LOCKED;
+    }
+    else if (m_card)
     {
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
