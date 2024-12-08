@@ -433,6 +433,7 @@
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterEmitter.h" />
     <ClInclude Include="Core\PowerPC\ConditionRegister.h" />
     <ClInclude Include="Core\PowerPC\CPUCoreBase.h" />
+    <ClInclude Include="Core\PowerPC\CWDemangler.h" />
     <ClInclude Include="Core\PowerPC\Expression.h" />
     <ClInclude Include="Core\PowerPC\GDBStub.h" />
     <ClInclude Include="Core\PowerPC\Gekko.h" />
@@ -1095,6 +1096,7 @@
     <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.cpp" />
     <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreterEmitter.cpp" />
     <ClCompile Include="Core\PowerPC\ConditionRegister.cpp" />
+    <ClCompile Include="Core\PowerPC\CWDemangler.cpp" />
     <ClCompile Include="Core\PowerPC\Expression.cpp" />
     <ClCompile Include="Core\PowerPC\GDBStub.cpp" />
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter_Branch.cpp" />

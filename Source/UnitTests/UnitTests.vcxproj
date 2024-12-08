@@ -71,6 +71,7 @@
     <ClCompile Include="Core\MMIOTest.cpp" />
     <ClCompile Include="Core\PageFaultTest.cpp" />
     <ClCompile Include="Core\PatchAllowlistTest.cpp" />
+    <ClCompile Include="Core\PowerPC\CWDemanglerTest.cpp" />
     <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
     <ClCompile Include="StubHost.cpp" />

@@ -488,6 +488,8 @@ add_library(core
   PowerPC/CachedInterpreter/CachedInterpreterEmitter.h
   PowerPC/ConditionRegister.cpp
   PowerPC/ConditionRegister.h
+  PowerPC/CWDemangler.cpp
+  PowerPC/CWDemangler.h
   PowerPC/Expression.cpp
   PowerPC/Expression.h
   PowerPC/Interpreter/ExceptionUtils.h
