@@ -224,6 +224,8 @@ signals:
   void USBKeyboardConnectionChanged(bool connected);
   void EnableGfxModsChanged(bool enabled);
   void HardcoreStateChanged();
+  void UpdateWiimoteExtension(int controller_number, int extension_index);
+  void UpdateWiimoteMotionPlus(int controller_number, bool attached);
 
 private:
   Settings();
