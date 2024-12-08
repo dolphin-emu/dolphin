@@ -67,30 +67,10 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   DataFormat nc_data = {};
 
   // stick
-  bool override_occurred = false;
   const ControllerEmu::AnalogStick::StateData stick_state =
-      m_stick->GetState(m_input_override_function, &override_occurred);
+      m_stick->GetState(m_input_override_function);
   nc_data.jx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
   nc_data.jy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
-
-  if (!override_occurred)
-  {
-    // Some terribly coded games check whether to move with a check like
-    //
-    //     if (x != 0 && y != 0)
-    //         do_movement(x, y);
-    //
-    // With keyboard controls, these games break if you simply hit one
-    // of the axes. Adjust this if you're hitting one of the axes so that
-    // we slightly tweak the other axis.
-    if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
-    {
-      if (nc_data.jx == STICK_CENTER)
-        ++nc_data.jx;
-      if (nc_data.jy == STICK_CENTER)
-        ++nc_data.jy;
-    }
-  }
 
   // buttons
   u8 buttons = 0;
