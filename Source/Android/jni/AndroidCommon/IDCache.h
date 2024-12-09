@@ -109,6 +109,10 @@ jclass GetCoreDeviceControlClass();
 jfieldID GetCoreDeviceControlPointer();
 jmethodID GetCoreDeviceControlConstructor();
 
+jclass GetPermissionHandlerClass();
+jmethodID GetPermissionHandlerHasRecordAudioPermission();
+jmethodID GetPermissionHandlerRequestRecordAudioPermission();
+
 jmethodID GetRunnableRun();
 
 }  // namespace IDCache
