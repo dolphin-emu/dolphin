@@ -157,7 +157,7 @@ TEST(PatchAllowlist, VerifyHashes)
     {
       ADD_FAILURE() << "Hash in list not approved in ini." << std::endl
                     << "Game ID: " << game_id << ":" << game_itr->second.game_title << std::endl
-                    << "Code: " << remaining_hashes.second << ":" << remaining_hashes.first;
+                    << "Code: " << remaining_hashes.first << ":" << remaining_hashes.second;
     }
     //    Remove section from map
     allow_list.erase(game_itr);
