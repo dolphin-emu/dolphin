@@ -1570,7 +1570,7 @@ bool MainWindow::NetPlayJoin()
   u16 host_port;
   if (server)
   {
-    host_ip = "127.0.0.1";
+    host_ip = "::1";
     host_port = server->GetPort();
   }
   else

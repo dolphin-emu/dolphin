@@ -69,9 +69,6 @@
 [submodule "Externals/xxhash/xxHash"]
 	path = Externals/xxhash/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
-[submodule "Externals/enet/enet"]
-	path = Externals/enet/enet
-	url = https://github.com/lsalzman/enet.git
 [submodule "hidapi-src"]
 	path = Externals/hidapi/hidapi-src
 	url = https://github.com/libusb/hidapi
@@ -84,3 +81,6 @@
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "enet"]
+	path = Externals/enet/enet
+	url = https://github.com/freeminer/enet.git
