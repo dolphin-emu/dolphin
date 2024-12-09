@@ -241,6 +241,7 @@
     -->
   <ItemGroup>
     <ClInclude Include="Config\CheatCodeEditor.h" />
+    <ClInclude Include="Config\ConfigControls\ConfigControl.h" />
     <ClInclude Include="Config\GameConfigEdit.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingIndicator.h" />
