@@ -37,11 +37,9 @@ private:
 
   void accept() override;
 
-  QLabel* m_creator_label;
   QLabel* m_notes_label;
 
   QLineEdit* m_name_edit;
-  QLineEdit* m_creator_edit;
   QTextEdit* m_notes_edit;
   QTextEdit* m_code_edit;
   QDialogButtonBox* m_button_box;

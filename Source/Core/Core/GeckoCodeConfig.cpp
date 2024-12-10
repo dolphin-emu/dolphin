@@ -72,12 +72,9 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
     case 0:
     {
       std::istringstream ssline(line);
-      // stop at [ character (beginning of contributor name)
-      std::getline(ssline, gcode.name, '[');
+      std::getline(ssline, gcode.name);
       gcode.name = StripWhitespace(gcode.name);
       gcode.user_defined = true;
-      // read the code creator name
-      std::getline(ssline, gcode.creator, ']');
       read_state = 1;
     }
     break;
@@ -162,10 +159,8 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
         gcode.user_defined = (ini == &localIni);
         ss.seekg(1, std::ios_base::cur);
         // read the code name
-        std::getline(ss, gcode.name, '[');  // stop at [ character (beginning of contributor name)
+        std::getline(ss, gcode.name);
         gcode.name = StripWhitespace(gcode.name);
-        // read the code creator name
-        std::getline(ss, gcode.creator, ']');
         break;
 
       // notes
@@ -208,14 +203,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
 
 static std::string MakeGeckoCodeTitle(const GeckoCode& code)
 {
-  std::string title = '$' + code.name;
-
-  if (!code.creator.empty())
-  {
-    title += " [" + code.creator + ']';
-  }
-
-  return title;
+  return '$' + code.name;
 }
 
 // used by the SaveGeckoCodes function
