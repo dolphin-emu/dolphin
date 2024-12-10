@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 
+#include <regex>
+
 #include <QDialogButtonBox>
 #include <QFontDatabase>
 #include <QGridLayout>
@@ -251,11 +253,26 @@ bool CheatCodeEditor::AcceptGecko()
     return false;
   }
 
-  m_gecko_code->name = name.toStdString();
-  m_gecko_code->creator = m_creator_edit->text().toStdString();
+  m_gecko_code->name = name.trimmed().toStdString();
+  m_gecko_code->creator = m_creator_edit->text().trimmed().toStdString();
   m_gecko_code->codes = std::move(entries);
   m_gecko_code->notes = SplitString(m_notes_edit->toPlainText().toStdString(), '\n');
   m_gecko_code->user_defined = true;
+
+  {
+    // The creator name is not expected to be present in the cheat code name. It will be extracted
+    // and moved into its dedicated "creator" field.
+    std::smatch matches;
+    static const std::regex s_cheat_code_line_pattern{R"((.*)(\[(.*)\]))"};
+    if (std::regex_search(m_gecko_code->name, matches, s_cheat_code_line_pattern))
+    {
+      m_gecko_code->name = StripWhitespace(matches[1].str());
+      if (m_gecko_code->creator.empty())
+      {
+        m_gecko_code->creator = StripWhitespace(matches[3].str());
+      }
+    }
+  }
 
   return true;
 }
