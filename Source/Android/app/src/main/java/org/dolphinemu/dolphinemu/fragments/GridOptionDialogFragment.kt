@@ -15,6 +15,7 @@ import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsBinding
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsTvBinding
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.ui.main.MainView
+import org.dolphinemu.dolphinemu.utils.HapticListener
 
 class GridOptionDialogFragment : BottomSheetDialogFragment() {
 
@@ -69,13 +70,14 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
         mBindingMobile.rootDownloadCovers.setOnClickListener {
             mBindingMobile.switchDownloadCovers.isChecked = !mBindingMobile.switchDownloadCovers.isChecked
         }
-        mBindingMobile.switchDownloadCovers.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
+        mBindingMobile.switchDownloadCovers.setOnCheckedChangeListener(
+            HapticListener.wrapOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
             BooleanSetting.MAIN_USE_GAME_COVERS.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchDownloadCovers.isChecked
             )
             (mView as Activity).recreate()
-        }
+        })
     }
 
     private fun setUpTitleButtons() {
@@ -83,13 +85,14 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
         mBindingMobile.rootShowTitles.setOnClickListener {
             mBindingMobile.switchShowTitles.isChecked = !mBindingMobile.switchShowTitles.isChecked
         }
-        mBindingMobile.switchShowTitles.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
+        mBindingMobile.switchShowTitles.setOnCheckedChangeListener(
+            HapticListener.wrapOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
             BooleanSetting.MAIN_SHOW_GAME_TITLES.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchShowTitles.isChecked
             )
             mView.reloadGrid()
-        }
+        })
     }
 
     // TODO: Remove this when leanback is removed
