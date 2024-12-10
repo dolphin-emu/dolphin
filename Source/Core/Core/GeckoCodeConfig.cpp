@@ -189,7 +189,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
       gcodes.push_back(gcode);
     }
 
-    ReadEnabledAndDisabled(*ini, "Gecko", &gcodes);
+    ReadEnabledAndDisabled<GeckoCode, true>(*ini, "Gecko", &gcodes);
 
     if (ini == &globalIni)
     {
