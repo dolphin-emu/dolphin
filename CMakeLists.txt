@@ -783,14 +783,9 @@ if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
 endif()
 
 if(APPLE)
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt)
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist)
-  endif()
-
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater)
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core)
+  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
+    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
   endif()
 endif()
 
