@@ -29,7 +29,7 @@ class GeckoCheat : AbstractCheat {
     }
 
     override fun supportsCreator(): Boolean {
-        return true
+        return false
     }
 
     override fun supportsNotes(): Boolean {
@@ -37,8 +37,6 @@ class GeckoCheat : AbstractCheat {
     }
 
     external override fun getName(): String
-
-    external override fun getCreator(): String
 
     external override fun getNotes(): String
 

@@ -56,7 +56,6 @@ void GeckoCodeWidget::ChangeGame(std::string game_id, std::string gametdb_id,
   m_gecko_codes.clear();
   m_code_list->clear();
   m_name_label->clear();
-  m_creator_label->clear();
   m_code_description->clear();
   m_code_view->clear();
 
@@ -78,7 +77,6 @@ void GeckoCodeWidget::CreateWidgets()
 #endif  // USE_RETRO_ACHIEVEMENTS
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
-  m_creator_label = new QLabel;
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -116,12 +114,11 @@ void GeckoCodeWidget::CreateWidgets()
   auto* info_layout = new QFormLayout;
 
   info_layout->addRow(tr("Name:"), m_name_label);
-  info_layout->addRow(tr("Creator:"), m_creator_label);
   info_layout->addRow(tr("Description:"), static_cast<QWidget*>(nullptr));
 
   info_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
 
-  for (QLabel* label : {m_name_label, m_creator_label})
+  for (QLabel* const label : {m_name_label})
   {
     label->setTextInteractionFlags(Qt::TextSelectableByMouse);
     label->setCursor(Qt::IBeamCursor);
@@ -183,7 +180,6 @@ void GeckoCodeWidget::OnSelectionChanged()
   const auto& code = m_gecko_codes[index];
 
   m_name_label->setText(QString::fromStdString(code.name));
-  m_creator_label->setText(QString::fromStdString(code.creator));
 
   m_code_description->clear();
 
@@ -269,7 +265,6 @@ void GeckoCodeWidget::LoadCodes()
 
   m_code_list->setEnabled(!m_game_id.empty());
   m_name_label->setEnabled(!m_game_id.empty());
-  m_creator_label->setEnabled(!m_game_id.empty());
   m_code_description->setEnabled(!m_game_id.empty());
   m_code_view->setEnabled(!m_game_id.empty());
 

@@ -53,12 +53,6 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getName(JNIEnv* 
 }
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getCreator(JNIEnv* env, jobject obj)
-{
-  return ToJString(env, GetPointer(env, obj)->creator);
-}
-
-JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getNotes(JNIEnv* env, jobject obj)
 {
   return ToJString(env, fmt::to_string(fmt::join(GetPointer(env, obj)->notes, "\n")));
@@ -128,7 +122,6 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_Geck
     return Cheats::TRY_SET_FAIL_NO_CODE_LINES;
 
   code->name = GetJString(env, name);
-  code->creator = GetJString(env, creator);
   code->notes = SplitString(GetJString(env, notes), '\n');
   code->codes = std::move(entries);
 

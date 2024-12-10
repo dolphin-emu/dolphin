@@ -30,7 +30,7 @@ public:
   };
 
   std::vector<Code> codes;
-  std::string name, creator;
+  std::string name;
   std::vector<std::string> notes;
 
   bool enabled = false;
