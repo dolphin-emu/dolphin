@@ -43,6 +43,7 @@
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
@@ -265,6 +266,8 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
           &MainWindow::ShowAchievementSettings);
   connect(m_game_list, &GameList::OpenAchievementSettings, this,
           &MainWindow::ShowAchievementSettings);
+  connect(&Settings::Instance(), &Settings::HardcoreStateChanged, this,
+          &MainWindow::ToggleHardcore);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   InitCoreCallbacks();
@@ -272,9 +275,13 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
   NetPlayInit();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance().Init();
+  AchievementManager::GetInstance().Init(reinterpret_cast<void*>(winId()));
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     Settings::Instance().SetDebugModeEnabled(false);
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  AchievementManager::GetInstance().SetHardcoreCallback(
+      [this]() { QueueOnObject(this, [this] { this->ToggleHardcore(); }); });
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -960,13 +967,27 @@ bool MainWindow::RequestStop()
     // This is to avoid any "race conditions" between the "Window Activate" message and the
     // message box returning, which could break cursor locking depending on the order
     m_render_widget->SetWaitingForMessageBox(true);
-    auto confirm = ModalMessageBox::question(
-        confirm_parent, tr("Confirm"),
-        m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
-                              "may be lost if you stop the current emulation "
-                              "before it completes. Force stop?") :
-                           tr("Do you want to stop the current emulation?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+    QString message;
+    if (m_stop_requested)
+    {
+      message = tr("A shutdown is already in progress. Unsaved data "
+                   "may be lost if you stop the current emulation "
+                   "before it completes. Force stop?");
+    }
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    else if (AchievementManager::GetInstance().CheckForModifications())
+    {
+      message = tr(
+          "Do you want to stop the current emulation? Unsaved achievement modifications detected.");
+    }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+    else
+    {
+      message = tr("Do you want to stop the current emulation?");
+    }
+    auto confirm = ModalMessageBox::question(confirm_parent, tr("Confirm"), message,
+                                             QMessageBox::Yes | QMessageBox::No,
+                                             QMessageBox::NoButton, Qt::ApplicationModal);
 
     // If a user confirmed stopping the emulation, we do not capture the cursor again,
     // even if the render widget will stay alive for a while.
@@ -1991,6 +2012,20 @@ void MainWindow::ShowAchievementSettings()
 {
   ShowAchievementsWindow();
   m_achievements_window->ForceSettingsTab();
+}
+
+void MainWindow::ToggleHardcore()
+{
+  AchievementManager::GetInstance().SetHardcoreMode();
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
+    Settings::Instance().SetDebugModeEnabled(false);
+  }
+  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 #endif  // USE_RETRO_ACHIEVEMENTS
 
