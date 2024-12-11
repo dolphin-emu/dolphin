@@ -347,32 +347,6 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   layout->addWidget(m_settings_box);
 
   setLayout(layout);
-
-  if (Core::IsRunning(Core::System::GetInstance()))
-  {
-    m_active_extension = GetWiimote()->GetActiveExtensionNumber();
-    m_is_motion_plus_attached = GetWiimote()->IsMotionPlusAttached();
-  }
-  else
-  {
-    Common::IniFile ini;
-    ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
-    const std::string section_name = "Wiimote" + std::to_string(num + 1);
-
-    std::string extension;
-    ini.GetIfExists(section_name, "Extension", &extension);
-
-    if (extension == "Nunchuk")
-      m_active_extension = WiimoteEmu::ExtensionNumber::NUNCHUK;
-    else if (extension == "Classic")
-      m_active_extension = WiimoteEmu::ExtensionNumber::CLASSIC;
-    else
-      m_active_extension = WiimoteEmu::ExtensionNumber::NONE;
-
-    m_is_motion_plus_attached = true;
-    ini.GetIfExists(section_name, "Extension/Attach MotionPlus", &m_is_motion_plus_attached);
-  }
-  UpdateExt();
 }
 
 WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote()
@@ -392,7 +366,60 @@ WiimoteEmu::Extension* WiiTASInputWindow::GetExtension()
       GetAttachments()->GetAttachmentList()[m_active_extension].get());
 }
 
-void WiiTASInputWindow::UpdateExt()
+void WiiTASInputWindow::UpdateExtension(const int extension)
+{
+  const auto new_extension = static_cast<WiimoteEmu::ExtensionNumber>(extension);
+  if (new_extension == m_active_extension)
+    return;
+
+  m_active_extension = new_extension;
+
+  UpdateControlVisibility();
+  UpdateInputOverrideFunction();
+}
+
+void WiiTASInputWindow::UpdateMotionPlus(const bool attached)
+{
+  if (attached == m_is_motion_plus_attached)
+    return;
+
+  m_is_motion_plus_attached = attached;
+
+  UpdateControlVisibility();
+}
+
+void WiiTASInputWindow::LoadExtensionAndMotionPlus()
+{
+  if (Core::IsRunning(Core::System::GetInstance()))
+  {
+    m_active_extension = GetWiimote()->GetActiveExtensionNumber();
+    m_is_motion_plus_attached = GetWiimote()->IsMotionPlusAttached();
+  }
+  else
+  {
+    Common::IniFile ini;
+    ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
+    const std::string section_name = "Wiimote" + std::to_string(m_num + 1);
+
+    std::string extension;
+    ini.GetIfExists(section_name, "Extension", &extension);
+
+    if (extension == "Nunchuk")
+      m_active_extension = WiimoteEmu::ExtensionNumber::NUNCHUK;
+    else if (extension == "Classic")
+      m_active_extension = WiimoteEmu::ExtensionNumber::CLASSIC;
+    else
+      m_active_extension = WiimoteEmu::ExtensionNumber::NONE;
+
+    m_is_motion_plus_attached = true;
+    ini.GetIfExists(section_name, "Extension/Attach MotionPlus", &m_is_motion_plus_attached);
+  }
+
+  UpdateControlVisibility();
+  UpdateInputOverrideFunction();
+}
+
+void WiiTASInputWindow::UpdateControlVisibility()
 {
   if (m_active_extension == WiimoteEmu::ExtensionNumber::NUNCHUK)
   {
@@ -451,17 +478,30 @@ void WiiTASInputWindow::UpdateExt()
     m_nunchuk_buttons_box->hide();
     m_classic_buttons_box->hide();
   }
+
+  // Without this, switching between attachments can leave the Stick/IR widgets excessively large
+  adjustSize();
+  resize(sizeHint());
 }
 
-void WiiTASInputWindow::hideEvent(QHideEvent* event)
+void WiiTASInputWindow::hideEvent(QHideEvent* const event)
 {
   GetWiimote()->ClearInputOverrideFunction();
   GetExtension()->ClearInputOverrideFunction();
+
+  TASInputWindow::hideEvent(event);
 }
 
-void WiiTASInputWindow::showEvent(QShowEvent* event)
+void WiiTASInputWindow::showEvent(QShowEvent* const event)
 {
-  WiimoteEmu::Wiimote* wiimote = GetWiimote();
+  LoadExtensionAndMotionPlus();
+
+  TASInputWindow::showEvent(event);
+}
+
+void WiiTASInputWindow::UpdateInputOverrideFunction()
+{
+  WiimoteEmu::Wiimote* const wiimote = GetWiimote();
 
   if (m_active_extension != WiimoteEmu::ExtensionNumber::CLASSIC)
     wiimote->SetInputOverrideFunction(m_wiimote_overrider.GetInputOverrideFunction());
