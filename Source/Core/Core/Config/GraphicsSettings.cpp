@@ -89,7 +89,7 @@ const Info<bool> GFX_DISABLE_FOG{{System::GFX, "Settings", "DisableFog"}, false}
 const Info<bool> GFX_BORDERLESS_FULLSCREEN{{System::GFX, "Settings", "BorderlessFullscreen"},
                                            false};
 const Info<bool> GFX_ENABLE_VALIDATION_LAYER{{System::GFX, "Settings", "EnableValidationLayer"},
-                                             false};
+                                             true};
 
 const Info<bool> GFX_BACKEND_MULTITHREADING{{System::GFX, "Settings", "BackendMultithreading"},
                                             true};

@@ -57,11 +57,15 @@ endif()
 
 # Only include the Vulkan headers when building the Vulkan backend
 target_include_directories(videovulkan
-PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/Vulkan-Headers/include
-  ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
-  ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
+        PRIVATE
+        ${CMAKE_SOURCE_DIR}/Externals/Vulkan-Headers/include
+        ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
+        ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
 )
+
+#find_package(volk REQUIRED)
+#target_link_directories(videovulkan PRIVATE volk::volk_headers)
+
 
 if(MSVC)
   # Add precompiled header
