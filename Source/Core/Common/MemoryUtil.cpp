@@ -289,4 +289,15 @@ size_t MemPhysical()
 #endif
 }
 
+size_t PageSize()
+{
+#ifdef _WIN32
+  SYSTEM_INFO sysInfo;
+  GetSystemInfo(&sysInfo);
+  return sysInfo.dwPageSize;
+#else
+  return sysconf(_SC_PAGESIZE);
+#endif
+}
+
 }  // namespace Common
