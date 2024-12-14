@@ -63,10 +63,6 @@ target_include_directories(videovulkan
         ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
 )
 
-#find_package(volk REQUIRED)
-#target_link_directories(videovulkan PRIVATE volk::volk_headers)
-
-
 if(MSVC)
   # Add precompiled header
   target_link_libraries(videovulkan PRIVATE use_pch)
