@@ -76,9 +76,7 @@ TEST(FileSystem, BasicPathValidity)
 
 TEST(FileSystem, PathSplitting)
 {
-  SplitPathResult result;
-
-  result = {"/shared1", "00000042.app"};
+  SplitPathResult result = {"/shared1", "00000042.app"};
   EXPECT_EQ(SplitPathAndBasename("/shared1/00000042.app"), result);
 
   result = {"/shared2/sys", "SYSCONF"};

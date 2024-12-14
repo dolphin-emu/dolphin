@@ -247,11 +247,9 @@ static u8 verifycode(const u32* codes, u16 size)
 
 static void unscramble1(u32* addr, u32* val)
 {
-  u32 tmp;
-
   *val = std::rotl(*val, 4);
 
-  tmp = ((*addr ^ *val) & 0xF0F0F0F0);
+  u32 tmp = ((*addr ^ *val) & 0xF0F0F0F0);
   *addr ^= tmp;
   *val = std::rotr((*val ^ tmp), 0x14);
 
@@ -274,11 +272,9 @@ static void unscramble1(u32* addr, u32* val)
 
 static void unscramble2(u32* addr, u32* val)
 {
-  u32 tmp;
-
   *val = std::rotr(*val, 1);
 
-  tmp = ((*addr ^ *val) & 0xAAAAAAAA);
+  u32 tmp = ((*addr ^ *val) & 0xAAAAAAAA);
   *val ^= tmp;
   *addr = std::rotr((*addr ^ tmp), 9);
 
@@ -302,15 +298,14 @@ static void unscramble2(u32* addr, u32* val)
 static void decryptcode(const u32* seeds, u32* code)
 {
   u32 addr, val;
-  u32 tmp, tmp2;
   int i = 0;
 
   getcode(code, &addr, &val);
   unscramble1(&addr, &val);
   while (i < 32)
   {
-    tmp = (std::rotr(val, 4) ^ seeds[i++]);
-    tmp2 = (val ^ seeds[i++]);
+    u32 tmp = (std::rotr(val, 4) ^ seeds[i++]);
+    u32 tmp2 = (val ^ seeds[i++]);
     addr ^= (table6[tmp & 0x3F] ^ table4[(tmp >> 8) & 0x3F] ^ table2[(tmp >> 16) & 0x3F] ^
              table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
              table3[(tmp2 >> 16) & 0x3F] ^ table1[(tmp2 >> 24) & 0x3F]);
@@ -417,7 +412,6 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
   int ret = 0;
   int org = size + 1;
   u32 bin[2];
-  u8 parity;
 
   for (; size; --size)
   {
@@ -439,7 +433,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
 
     // verify parity bit
     int k = 0;
-    parity = 0;
+    u8 parity = 0;
     for (int i = 0; i < 64; i++)
     {
       if (i == 32)

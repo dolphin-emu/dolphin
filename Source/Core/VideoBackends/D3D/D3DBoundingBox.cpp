@@ -34,8 +34,7 @@ bool D3DBoundingBox::Initialize()
   data.pSysMem = initial_values;
   data.SysMemPitch = NUM_BBOX_VALUES * sizeof(BBoxType);
   data.SysMemSlicePitch = 0;
-  HRESULT hr;
-  hr = D3D::device->CreateBuffer(&desc, &data, &m_buffer);
+  HRESULT hr = D3D::device->CreateBuffer(&desc, &data, &m_buffer);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create BoundingBox Buffer: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return false;

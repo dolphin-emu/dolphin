@@ -33,8 +33,8 @@ void SetCol(VertexLoader* loader, u32 val)
 // BARG -> AABBGGRR
 void SetCol4444(VertexLoader* loader, u16 val_)
 {
-  u32 col, val = val_;
-  col = val & 0x00F0;           // col  = 000000R0;
+  u32 val = val_;
+  u32 col = val & 0x00F0;           // col  = 000000R0;
   col |= (val & 0x000F) << 12;  // col |= 0000G000;
   col |= (val & 0xF000) << 8;   // col |= 00B00000;
   col |= (val & 0x0F00) << 20;  // col |= A0000000;
@@ -58,8 +58,8 @@ void SetCol6666(VertexLoader* loader, u32 val)
 // RRRRRGGG GGGBBBBB
 void SetCol565(VertexLoader* loader, u16 val_)
 {
-  u32 col, val = val_;
-  col = (val >> 8) & 0x0000F8;
+  u32 val = val_;
+  u32 col = (val >> 8) & 0x0000F8;
   col |= (val << 5) & 0x00FC00;
   col |= (val << 19) & 0xF80000;
   col |= (col >> 5) & 0x070007;

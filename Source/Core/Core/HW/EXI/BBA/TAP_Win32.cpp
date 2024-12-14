@@ -15,11 +15,10 @@ namespace Win32TAPHelper
 bool IsTAPDevice(const TCHAR* guid)
 {
   HKEY netcard_key;
-  LONG status;
   DWORD len;
   int i = 0;
 
-  status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTER_KEY, 0, KEY_READ, &netcard_key);
+  LONG status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTER_KEY, 0, KEY_READ, &netcard_key);
 
   if (status != ERROR_SUCCESS)
     return false;
@@ -90,13 +89,12 @@ bool IsTAPDevice(const TCHAR* guid)
 
 bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 {
-  LONG status;
   HKEY control_net_key;
   DWORD len;
   DWORD cSubKeys = 0;
 
-  status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ | KEY_QUERY_VALUE,
-                        &control_net_key);
+  LONG status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0,
+                             KEY_READ | KEY_QUERY_VALUE, &control_net_key);
 
   if (status != ERROR_SUCCESS)
     return false;
