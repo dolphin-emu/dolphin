@@ -179,7 +179,7 @@ static DRESULT vff_ioctl(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE cmd, voi
   case CTRL_SYNC:
     return RES_OK;
   case GET_SECTOR_COUNT:
-    *reinterpret_cast<LBA_t*>(buff) = vff->GetStatus()->size / IOS::HLE::NWC24::SECTOR_SIZE;
+    *static_cast<LBA_t*>(buff) = vff->GetStatus()->size / IOS::HLE::NWC24::SECTOR_SIZE;
     return RES_OK;
   default:
     WARN_LOG_FMT(IOS_WC24, "Unexpected FAT ioctl {}", cmd);

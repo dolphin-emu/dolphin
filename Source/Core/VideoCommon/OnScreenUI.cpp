@@ -251,7 +251,7 @@ void OnScreenUI::DrawImGui()
               static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
               static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)),
           g_gfx->GetCurrentFramebuffer()));
-      g_gfx->SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.TextureId));
+      g_gfx->SetTexture(0, static_cast<const AbstractTexture*>(cmd.TextureId));
       g_gfx->DrawIndexed(base_index, cmd.ElemCount, base_vertex);
       base_index += cmd.ElemCount;
     }

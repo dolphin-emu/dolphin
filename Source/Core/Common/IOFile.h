@@ -87,14 +87,11 @@ public:
     return WriteArray(elements.data(), elements.size());
   }
 
-  bool ReadBytes(void* data, size_t length)
-  {
-    return ReadArray(reinterpret_cast<char*>(data), length);
-  }
+  bool ReadBytes(void* data, size_t length) { return ReadArray(static_cast<char*>(data), length); }
 
   bool WriteBytes(const void* data, size_t length)
   {
-    return WriteArray(reinterpret_cast<const char*>(data), length);
+    return WriteArray(static_cast<const char*>(data), length);
   }
 
   bool WriteString(std::string_view str) { return WriteBytes(str.data(), str.size()); }
