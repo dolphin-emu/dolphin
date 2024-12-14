@@ -36,7 +36,7 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physicalDevice, const WindowSystemInfo& wsi)
+VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physical_device, const WindowSystemInfo& wsi)
 {
 
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
@@ -45,7 +45,7 @@ if (wsi.type == WindowSystemType::DRM)
   // Get the first display
   uint32_t display_count = 1;
   VkDisplayPropertiesKHR display_props;
-  if (VkResult err = vkGetPhysicalDeviceDisplayPropertiesKHR(physicalDevice, &display_count, &display_props); err != VK_SUCCESS && err != VK_INCOMPLETE)
+  if (VkResult err = vkGetPhysicalDeviceDisplayPropertiesKHR(physical_device, &display_count, &display_props); err != VK_SUCCESS && err != VK_INCOMPLETE)
   {
     LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPropertiesKHR failed: ");
     return VK_NULL_HANDLE;
@@ -53,7 +53,7 @@ if (wsi.type == WindowSystemType::DRM)
 
   // Get the first mode of the display
   uint32_t mode_count = 0;
-  if (VkResult err = vkGetDisplayModePropertiesKHR(physicalDevice, display_props.display, &mode_count, nullptr); err != VK_SUCCESS)
+  if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display, &mode_count, nullptr); err != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
     return VK_NULL_HANDLE;
@@ -67,7 +67,7 @@ if (wsi.type == WindowSystemType::DRM)
 
   VkDisplayModePropertiesKHR mode_props;
   mode_count = 1;
-  if (VkResult err = vkGetDisplayModePropertiesKHR(physicalDevice, display_props.display, &mode_count, &mode_props); err != VK_SUCCESS && err != VK_INCOMPLETE)
+  if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display, &mode_count, &mode_props); err != VK_SUCCESS && err != VK_INCOMPLETE)
   {
     LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
     return VK_NULL_HANDLE;
@@ -75,7 +75,7 @@ if (wsi.type == WindowSystemType::DRM)
 
   // Get the list of planes
   uint32_t plane_count = 0;
-  if (VkResult err = vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physicalDevice, &plane_count, nullptr); err != VK_SUCCESS)
+  if (VkResult err = vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physical_device, &plane_count, nullptr); err != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR failed: ");
     return VK_NULL_HANDLE;
@@ -95,7 +95,7 @@ if (wsi.type == WindowSystemType::DRM)
   {
     // Query the number of displays supported by the plane
     display_count = 0;
-    VkResult err = vkGetDisplayPlaneSupportedDisplaysKHR(physicalDevice, plane_index, &display_count, nullptr);
+    VkResult err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index, &display_count, nullptr);
     if (err != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneSupportedDisplaysKHR (count query) failed: ");
@@ -107,7 +107,7 @@ if (wsi.type == WindowSystemType::DRM)
 
     // Allocate memory to hold the supported displays
     std::vector<VkDisplayKHR> displays(display_count);
-    err = vkGetDisplayPlaneSupportedDisplaysKHR(physicalDevice, plane_index, &display_count, displays.data());
+    err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index, &display_count, displays.data());
     if (err != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneSupportedDisplaysKHR (fetch displays) failed: ");
@@ -142,27 +142,27 @@ if (wsi.type == WindowSystemType::DRM)
   }
 
   // Get capabilities of the compatible plane
-  VkDisplayPlaneCapabilitiesKHR planeCaps;
-  if (VkResult err = vkGetDisplayPlaneCapabilitiesKHR(physicalDevice, mode_props.displayMode, compatible_plane_index, &planeCaps); err != VK_SUCCESS)
+  VkDisplayPlaneCapabilitiesKHR plane_capabilities;
+  if (VkResult err = vkGetDisplayPlaneCapabilitiesKHR(physical_device, mode_props.displayMode, compatible_plane_index, &plane_capabilities); err != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneCapabilitiesKHR failed: ");
     return VK_NULL_HANDLE;
   }
 
   // Find a supported alpha mode
-  VkDisplayPlaneAlphaFlagBitsKHR alphaMode = VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR;
-  VkDisplayPlaneAlphaFlagBitsKHR alphaModes[] = {
+  VkDisplayPlaneAlphaFlagBitsKHR alpha_mode = VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR;
+  VkDisplayPlaneAlphaFlagBitsKHR alpha_modes[] = {
     VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR,
     VK_DISPLAY_PLANE_ALPHA_GLOBAL_BIT_KHR,
     VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_BIT_KHR,
     VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_PREMULTIPLIED_BIT_KHR,
   };
 
-  for (uint32_t i = 0; i < sizeof(alphaModes) / sizeof(alphaModes[0]); ++i)
+  for (auto& curr_alpha_mode : alpha_modes)
   {
-    if (planeCaps.supportedAlpha & alphaModes[i])
+    if (plane_capabilities.supportedAlpha & curr_alpha_mode)
     {
-      alphaMode = alphaModes[i];
+      alpha_mode = curr_alpha_mode;
       break;
     }
   }
@@ -175,13 +175,12 @@ if (wsi.type == WindowSystemType::DRM)
   surface_create_info.planeStackIndex = 0;
   surface_create_info.transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
   surface_create_info.globalAlpha = 1.0f;
-  surface_create_info.alphaMode = alphaMode;
+  surface_create_info.alphaMode = alpha_mode;
   surface_create_info.imageExtent.width = display_props.physicalResolution.width;
   surface_create_info.imageExtent.height = display_props.physicalResolution.height;
 
   VkSurfaceKHR surface;
-  VkResult res = vkCreateDisplayPlaneSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
-  if (res != VK_SUCCESS)
+  if (VkResult res = vkCreateDisplayPlaneSurfaceKHR(instance, &surface_create_info, nullptr, &surface); res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDisplayPlaneSurfaceKHR failed: ");
     return VK_NULL_HANDLE;
