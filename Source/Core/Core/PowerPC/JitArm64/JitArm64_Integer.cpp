@@ -1394,23 +1394,34 @@ void JitArm64::subfic(UGeckoInstruction inst)
   else
   {
     const bool will_read = d == a;
-    const bool is_zero = imm == 0;
     gpr.BindToRegister(d, will_read);
-
-    // d = imm - a
     ARM64Reg RD = gpr.R(d);
+
+    if (imm == -1)
     {
-      Arm64GPRCache::ScopedARM64Reg WA(ARM64Reg::WZR);
-      if (!is_zero)
+      // d = -1 - a = ~a
+      MVN(RD, gpr.R(a));
+      // CA is always set in this case
+      ComputeCarry(true);
+    }
+    else
+    {
+      const bool is_zero = imm == 0;
+
+      // d = imm - a
       {
-        WA = will_read ? gpr.GetScopedReg() : Arm64GPRCache::ScopedARM64Reg(RD);
-        MOVI2R(WA, imm);
+        Arm64GPRCache::ScopedARM64Reg WA(ARM64Reg::WZR);
+        if (!is_zero)
+        {
+          WA = will_read ? gpr.GetScopedReg() : Arm64GPRCache::ScopedARM64Reg(RD);
+          MOVI2R(WA, imm);
+        }
+
+        CARRY_IF_NEEDED(SUB, SUBS, RD, WA, gpr.R(a));
       }
 
-      CARRY_IF_NEEDED(SUB, SUBS, RD, WA, gpr.R(a));
+      ComputeCarry();
     }
-
-    ComputeCarry();
   }
 }
 
