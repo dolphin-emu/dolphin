@@ -275,6 +275,16 @@ private:
 
 #include <string>
 
+namespace Gecko
+{
+  class GeckoCode;
+}  // namespace Gecko
+
+namespace ActionReplay
+{
+  struct ARCode;
+}  // namespace ActionReplay
+
 namespace DiscIO
 {
 class Volume;
