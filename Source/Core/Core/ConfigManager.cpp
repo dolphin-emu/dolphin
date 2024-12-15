@@ -68,6 +68,11 @@ SConfig::SConfig()
   LoadDefaults();
   // Make sure we have log manager
   LoadSettings();
+
+  // Check if config exists before saving
+  if (!File::Exists(File::GetUserPath(F_DOLPHINCONFIG_IDX))) {
+    SaveSettings();
+  }
 }
 
 void SConfig::Init()

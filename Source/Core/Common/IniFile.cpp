@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <string>
 #include <string_view>
@@ -317,12 +318,22 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
 bool IniFile::Save(const std::string& filename)
 {
+
+  // Create parent directories if they don't exist
+  std::filesystem::path path(filename);
+  std::filesystem::path parentPath = path.parent_path();
+
+  if (!exists(parentPath) && !create_directories(parentPath)) {
+    std::cerr << "Failed to create directory: " << parentPath << std::endl;
+  }
+
   std::ofstream out;
   std::string temp = File::GetTempFilenameForAtomicWrite(filename);
   File::OpenFStream(out, temp, std::ios::out);
 
   if (out.fail())
   {
+    std::cerr << "Failed to open temporary file for writing: " << temp << std::endl;
     return false;
   }
 
