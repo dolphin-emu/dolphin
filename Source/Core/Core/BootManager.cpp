@@ -32,7 +32,6 @@
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -148,6 +147,8 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
 
   Core::UpdateWantDeterminism(system, /*initial*/ true);
 
+  ConfigLoaders::TransferSYSCONFControlToGuest();
+
   if (system.IsWii())
   {
     Core::InitializeWiiRoot(Core::WantsDeterminism());
@@ -156,13 +157,16 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     if (!Core::WantsDeterminism())
     {
       Core::BackupWiiSettings();
-      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta,
+                                   ConfigLoaders::SkipIfControlledByGuest::No);
     }
     else
     {
-      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta, [](const Config::Location& location) {
-        return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
-      });
+      ConfigLoaders::SaveToSYSCONF(
+          Config::LayerType::Meta, ConfigLoaders::SkipIfControlledByGuest::No,
+          [](const Config::Location& location) {
+            return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
+          });
     }
   }
 
@@ -183,35 +187,6 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
   return Core::Init(system, std::move(boot), wsi);
 }
 
-// SYSCONF can be modified during emulation by the user and internally, which makes it
-// a bad idea to just always overwrite it with the settings from the base layer.
-//
-// Conversely, we also shouldn't just accept any changes to SYSCONF, as it may cause
-// temporary settings (from Movie, Netplay, game INIs, etc.) to stick around.
-//
-// To avoid inconveniences in most cases, we accept changes that aren't being overriden by a
-// non-base layer, and restore only the overriden settings.
-static void RestoreSYSCONF()
-{
-  // This layer contains the new SYSCONF settings (including any temporary settings).
-  Config::Layer temp_layer(Config::LayerType::Base);
-  // Use a separate loader so the temp layer doesn't automatically save
-  ConfigLoaders::GenerateBaseConfigLoader()->Load(&temp_layer);
-
-  for (const auto& setting : Config::SYSCONF_SETTINGS)
-  {
-    std::visit(
-        [&](auto* info) {
-          // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
-          // Otherwise we leave the new value in the SYSCONF.
-          if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
-            Config::SetBase(*info, temp_layer.Get(*info));
-        },
-        setting.config_info);
-  }
-  ConfigLoaders::SaveToSYSCONF(Config::LayerType::Base);
-}
-
 void RestoreConfig()
 {
   Core::ShutdownWiiRoot();
@@ -219,7 +194,11 @@ void RestoreConfig()
   if (!Core::WiiRootIsTemporary())
   {
     Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
-    RestoreSYSCONF();
+    ConfigLoaders::TransferSYSCONFControlFromGuest(ConfigLoaders::WriteBackChangedValues::Yes);
+  }
+  else
+  {
+    ConfigLoaders::TransferSYSCONFControlFromGuest(ConfigLoaders::WriteBackChangedValues::No);
   }
 
   Config::ClearCurrentRunLayer();
