@@ -105,7 +105,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
-option(ENABLE_DRM "Enables DRM support" ON)
+option(ENABLE_DRM "Enables DRM support" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
