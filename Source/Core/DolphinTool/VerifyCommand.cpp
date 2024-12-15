@@ -163,11 +163,14 @@ int VerifyCommand(const std::vector<std::string>& args)
   verifier.Finish();
   const DiscIO::VolumeVerifier::Result& result = verifier.GetResult();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
   // Calculate rcheevos hash
   if (rc_hash_calculate)
   {
     rc_hash_result = AchievementManager::CalculateHash(input_file_path);
   }
+#endif
+
 
   // Print the report
   if (!algorithm_is_set)
