@@ -71,7 +71,7 @@ SConfig::SConfig()
 
   // Check if config exists before saving
   if (!File::Exists(File::GetUserPath(F_DOLPHINCONFIG_IDX))) {
-    Config::Save();
+    SaveSettings();
   }
 }
 
