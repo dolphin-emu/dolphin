@@ -113,7 +113,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       out.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
 
-    out.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n"
+    out.Write("  uint depth = uint(tex_sample.x * 16777215.0);\n"
               "  return uint4((depth >> 16) & 255u, (depth >> 8) & 255u, depth & 255u, 255u);\n"
               "}}\n");
   }
