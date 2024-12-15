@@ -323,7 +323,7 @@ bool IniFile::Save(const std::string& filename)
   std::filesystem::path path(filename);
   std::filesystem::path parentPath = path.parent_path();
 
-  if (!exists(parentPath) && !create_directory(parentPath)) {
+  if (!exists(parentPath) && !create_directories(parentPath)) {
     std::cerr << "Failed to create directory: " << parentPath << std::endl;
   }
 
