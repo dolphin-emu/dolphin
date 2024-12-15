@@ -275,19 +275,19 @@ private:
 
 #include <string>
 
-namespace Gecko
-{
-  class GeckoCode;
-}  // namespace Gecko
-
 namespace ActionReplay
 {
-  struct ARCode;
-}  // namespace ActionReplay
+struct ARCode;
+}
 
 namespace DiscIO
 {
 class Volume;
+}
+
+namespace Gecko
+{
+class GeckoCode;
 }
 
 class AchievementManager
