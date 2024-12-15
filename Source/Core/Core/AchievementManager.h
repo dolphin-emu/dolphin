@@ -275,9 +275,19 @@ private:
 
 #include <string>
 
+namespace ActionReplay
+{
+struct ARCode;
+}
+
 namespace DiscIO
 {
 class Volume;
+}
+
+namespace Gecko
+{
+class GeckoCode;
 }
 
 class AchievementManager

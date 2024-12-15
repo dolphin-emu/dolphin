@@ -133,8 +133,10 @@ int VerifyCommand(const std::vector<std::string>& args)
       hashes_to_calculate.md5 = true;
     else if (algorithm == "sha1")
       hashes_to_calculate.sha1 = true;
+#ifdef USE_RETRO_ACHIEVEMENTS
     else if (algorithm == "rchash")
       rc_hash_calculate = true;
+#endif
   }
 
   if (!hashes_to_calculate.crc32 && !hashes_to_calculate.md5 && !hashes_to_calculate.sha1 &&
@@ -163,11 +165,13 @@ int VerifyCommand(const std::vector<std::string>& args)
   verifier.Finish();
   const DiscIO::VolumeVerifier::Result& result = verifier.GetResult();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
   // Calculate rcheevos hash
   if (rc_hash_calculate)
   {
     rc_hash_result = AchievementManager::CalculateHash(input_file_path);
   }
+#endif
 
   // Print the report
   if (!algorithm_is_set)
