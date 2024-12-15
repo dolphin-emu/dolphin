@@ -1,5 +1,19 @@
 # Dolphin - A GameCube and Wii Emulator
 
+### Debug Build steps
+1. `mkdir build`
+2. `cd build`
+3. `cmake .. -DENABLE_NOGUI=ON -DENABLE_QT=OFF -DENABLE_HEADLESS=ON -DENABLE_ALSA=OFF -DENABLE_PULSEAUDIO=OFF -DENABLE_VULKAN=ON -DFASTLOG=ON -DENABLE_AUTOUPDATE=OFF -DENABLE_SDL=OFF -DENCODE_FRAMEDUMPS=OFF -DENABLE_LLVM=OFF -DENABLE_X11=OFF -DCMAKE_BUILD_TYPE=Debug -DENABLE_EGL=OFF`
+4. `make -j $(nproc)`
+
+### Performance Build steps
+1. `mkdir build`
+2. `cd build`
+3. `cmake .. -DENABLE_NOGUI=ON -DENABLE_QT=OFF -DENABLE_HEADLESS=ON -DENABLE_ALSA=OFF -DENABLE_PULSEAUDIO=OFF -DENABLE_VULKAN=ON -DFASTLOG=OFF -DENABLE_AUTOUPDATE=OFF -DENABLE_SDL=OFF -DENCODE_FRAMEDUMPS=ON -DENABLE_LLVM=OFF -DENABLE_X11=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_EGL=OFF -DENABLE_ANALYTICS=OFF -DCMAKE_CXX_FLAGS="-march=native -mtune=native -flto" -DCMAKE_C_FLAGS="-march=native -mtune=native -flto"`
+4. `make -j $(nproc)'
+
+
+
 [Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci/) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [GitHub Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://app.transifex.com/dolphinemu/dolphin-emu/dashboard/)
 
 Dolphin is an emulator for running GameCube and Wii games on Windows,
