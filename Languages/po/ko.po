@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-01 15:00+0100\n"
+"POT-Creation-Date: 2024-11-30 20:46+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2023\n"
 "Language-Team: Korean (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -1109,8 +1109,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> 보다-큰"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1563
-#: Source/Core/DolphinQt/MainWindow.cpp:1630
+#: Source/Core/DolphinQt/MainWindow.cpp:1559
+#: Source/Core/DolphinQt/MainWindow.cpp:1626
 msgid "A NetPlay Session is already in progress!"
 msgstr "넷플레이 세션이 이미 진행 중입니다!"
 
@@ -1146,7 +1146,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "저장 상태는 시작할 게임 명시 없이는 로드될 수 없습니다."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:967
+#: Source/Core/DolphinQt/MainWindow.cpp:965
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1354,7 +1354,7 @@ msgstr "활성 쓰레드 큐"
 msgid "Active threads"
 msgstr "활성 쓰레드"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:316
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:318
 msgid "Adapter"
 msgstr "어댑터"
 
@@ -1611,8 +1611,8 @@ msgstr "모든 GC/Wii 파일들"
 msgid "All Hexadecimal"
 msgstr "모든 16진수"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1426
-#: Source/Core/DolphinQt/MainWindow.cpp:1438
+#: Source/Core/DolphinQt/MainWindow.cpp:1422
+#: Source/Core/DolphinQt/MainWindow.cpp:1434
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "모든 저장 상태 (*.sav *.s##);; 모든 파일 (*)"
 
@@ -1628,11 +1628,11 @@ msgstr "모든 비부호화 정수"
 msgid "All files (*)"
 msgstr "모든 파일 (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1211
+#: Source/Core/Core/NetPlayServer.cpp:1212
 msgid "All players' codes synchronized."
 msgstr "모든 플레이어의 코드가 동기화되었습니다."
 
-#: Source/Core/Core/NetPlayServer.cpp:1153
+#: Source/Core/Core/NetPlayServer.cpp:1154
 msgid "All players' saves synchronized."
 msgstr "모든 플레이어의 저장이 동기화되었습니다."
 
@@ -1640,7 +1640,7 @@ msgstr "모든 플레이어의 저장이 동기화되었습니다."
 msgid "Allow Mismatched Region Settings"
 msgstr "맞지 않는 지역 설정 허락"
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:262
 msgid "Allow Usage Statistics Reporting"
 msgstr "사용 통계 보고 허용"
 
@@ -1780,7 +1780,7 @@ msgstr "확신합니까?"
 msgid "Area Sampling"
 msgstr "Area Sampling"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:318
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:320
 msgid "Aspect Ratio"
 msgstr "종횡비"
 
@@ -2146,11 +2146,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "부팅하고 멈추기"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1790
+#: Source/Core/DolphinQt/MainWindow.cpp:1786
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND 백업 파일 (*.bin);;모든 파일 (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1816
+#: Source/Core/DolphinQt/MainWindow.cpp:1812
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii 키 파일 (*.bin);;모든 파일 (*)"
 
@@ -2504,8 +2504,8 @@ msgstr "이 트로피를 위해 악당들을 편집할 수 없습니다!"
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "{0:02x} 연결 핸들로 Wii 리모트를 찾을 수 없음"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1556
-#: Source/Core/DolphinQt/MainWindow.cpp:1623
+#: Source/Core/DolphinQt/MainWindow.cpp:1552
+#: Source/Core/DolphinQt/MainWindow.cpp:1619
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작할 수 없습니다!"
 
@@ -2812,7 +2812,7 @@ msgstr ""
 msgid "Code:"
 msgstr "코드:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1866
+#: Source/Core/Core/NetPlayClient.cpp:1867
 msgid "Codes received!"
 msgstr "코드들을 받았습니다!"
 
@@ -3012,8 +3012,8 @@ msgstr "출력 설정"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:966
-#: Source/Core/DolphinQt/MainWindow.cpp:1756
+#: Source/Core/DolphinQt/MainWindow.cpp:964
+#: Source/Core/DolphinQt/MainWindow.cpp:1752
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "확정"
@@ -3605,11 +3605,11 @@ msgstr ""
 msgid "Custom Address Space"
 msgstr "커스텀 주소 공간"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:322
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
 msgid "Custom Aspect Ratio Height"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:321
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:323
 msgid "Custom Aspect Ratio Width"
 msgstr ""
 
@@ -3756,7 +3756,7 @@ msgstr "데이터가 인식불가 형식이거나 오염되었습니다."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "GC메모리메니저에서 데이터 비일관성, 액션을 중단함."
 
-#: Source/Core/Core/NetPlayClient.cpp:1824
+#: Source/Core/Core/NetPlayClient.cpp:1825
 msgid "Data received!"
 msgstr "데이터를 받았습니다!"
 
@@ -4132,11 +4132,11 @@ msgstr "거리"
 msgid "Distance of travel from neutral position."
 msgstr "중립 위치에서 이동 거리"
 
-#: Source/Core/DolphinQt/Main.cpp:263
+#: Source/Core/DolphinQt/Main.cpp:264
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "돌핀이 정보를 돌핀 개발자들에게 보고하도록 허가하시겠습니까?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1757
+#: Source/Core/DolphinQt/MainWindow.cpp:1753
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "\"%1\" 를 게임 경로들의 목록에 추가하고 싶습니까?"
 
@@ -4150,7 +4150,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr "선택된 저장 파일 %n 을 삭제하고 싶습니까?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:970
+#: Source/Core/DolphinQt/MainWindow.cpp:968
 msgid "Do you want to stop the current emulation?"
 msgstr "에뮬레이션을 중단하고 싶습니까?"
 
@@ -4185,8 +4185,8 @@ msgstr "돌핀 서명 CSV 파일"
 msgid "Dolphin Signature File"
 msgstr "돌핀 서명 파일"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1838
-#: Source/Core/DolphinQt/MainWindow.cpp:1918
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
+#: Source/Core/DolphinQt/MainWindow.cpp:1912
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 무비 (*.dtm)"
 
@@ -4987,7 +4987,7 @@ msgstr ""
 msgid "End Addr"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:127
+#: Source/Core/Core/NetPlayServer.cpp:128
 msgid "Enet Didn't Initialize"
 msgstr "Enet이 초기화되지 않았습니다."
 
@@ -5081,12 +5081,12 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
 #: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:315
 #: Source/Core/DolphinQt/MainWindow.cpp:323
-#: Source/Core/DolphinQt/MainWindow.cpp:1146
-#: Source/Core/DolphinQt/MainWindow.cpp:1555
-#: Source/Core/DolphinQt/MainWindow.cpp:1562
-#: Source/Core/DolphinQt/MainWindow.cpp:1622
-#: Source/Core/DolphinQt/MainWindow.cpp:1629
-#: Source/Core/DolphinQt/MainWindow.cpp:1735
+#: Source/Core/DolphinQt/MainWindow.cpp:1143
+#: Source/Core/DolphinQt/MainWindow.cpp:1551
+#: Source/Core/DolphinQt/MainWindow.cpp:1558
+#: Source/Core/DolphinQt/MainWindow.cpp:1618
+#: Source/Core/DolphinQt/MainWindow.cpp:1625
+#: Source/Core/DolphinQt/MainWindow.cpp:1731
 #: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1275
 #: Source/Core/DolphinQt/MenuBar.cpp:1365
 #: Source/Core/DolphinQt/MenuBar.cpp:1388
@@ -5130,7 +5130,7 @@ msgstr ""
 msgid "Error Opening Adapter: %1"
 msgstr "어댑터 열기 에러: %1"
 
-#: Source/Core/Core/NetPlayServer.cpp:1504
+#: Source/Core/Core/NetPlayServer.cpp:1506
 msgid "Error collecting save data!"
 msgstr "저장 데이터 수집 에러!"
 
@@ -5153,11 +5153,11 @@ msgstr "에러가 있는 세션 목록: %1"
 msgid "Error occurred while loading some texture packs"
 msgstr "일부 텍스처 팩을 로딩하는 중에 에러가 발생했습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1853
+#: Source/Core/Core/NetPlayClient.cpp:1854
 msgid "Error processing codes."
 msgstr "코드들 처리 에러."
 
-#: Source/Core/Core/NetPlayClient.cpp:1825
+#: Source/Core/Core/NetPlayClient.cpp:1826
 msgid "Error processing data."
 msgstr "데이터 처리 에러."
 
@@ -5165,11 +5165,11 @@ msgstr "데이터 처리 에러."
 msgid "Error reading file: {0}"
 msgstr "파일 읽기 에러: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1540
+#: Source/Core/Core/NetPlayServer.cpp:1542
 msgid "Error synchronizing cheat codes!"
 msgstr "치트 코드들 동기화 에러!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1526
+#: Source/Core/Core/NetPlayServer.cpp:1528
 msgid "Error synchronizing save data!"
 msgstr "저장 데이터 동기화 에러!"
 
@@ -5485,12 +5485,12 @@ msgid ""
 "The Skylander may already be on the portal."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1293
+#: Source/Core/Core/NetPlayClient.cpp:1294
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr "넷플레이 GBA{0} 저장 파일 삭제에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:1083
+#: Source/Core/Core/NetPlayClient.cpp:1084
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr "넷플레이 메모리 카드를 삭제에 실패했습니다. 쓰기 권한을 검증하세요."
 
@@ -5578,7 +5578,7 @@ msgstr ""
 "것이 그 안에 파일들에 액세스를 막고 있습니다. NAND (도구 -> NAND 관리 -> "
 "NAND 체크...) 를 고쳐 보세요, 그런 후 저장을 다시 가져오세요."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1143
 msgid "Failed to init core"
 msgstr "코어 인식에 실패했습니다"
 
@@ -5592,7 +5592,7 @@ msgstr ""
 "비디오 카드가 적어도 D3D 10.0 지원하는지 확인하세요\n"
 "{0}"
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:372
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:378
 msgid "Failed to initialize renderer classes"
 msgstr "렌더러 클래스 초기화에 실패했습니다"
 
@@ -5605,7 +5605,7 @@ msgstr "팩 설치에 실패했습니다: %1"
 msgid "Failed to install this title to the NAND."
 msgstr "NAND 에 이 타이틀 설치에 실패했습니다."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1657
+#: Source/Core/DolphinQt/MainWindow.cpp:1653
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5660,12 +5660,12 @@ msgstr "스카이랜더 수정에 실패했습니다!"
 msgid "Failed to open \"%1\" for writing."
 msgstr ""
 
-#: Source/Android/jni/MainAndroid.cpp:457
+#: Source/Android/jni/MainAndroid.cpp:462
 msgid "Failed to open \"{0}\" for writing."
 msgstr ""
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1735
+#: Source/Core/DolphinQt/MainWindow.cpp:1731
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "'%1' 를 열기에 실패했습니다"
@@ -5706,7 +5706,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "파일 열기에 실패했습니다."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1656
+#: Source/Core/DolphinQt/MainWindow.cpp:1652
 msgid "Failed to open server"
 msgstr "서버 열기에 실패했습니다"
 
@@ -5828,15 +5828,15 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "NAND 에서 이 타이틀 제거에 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1107
+#: Source/Core/Core/NetPlayClient.cpp:1108
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "넷플레이 GCI 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:1138
+#: Source/Core/Core/NetPlayClient.cpp:1139
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "넷플레이 NAND 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:1144
+#: Source/Core/Core/NetPlayClient.cpp:1145
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr ""
 "넷플레이 리다이렉트 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
@@ -5883,11 +5883,11 @@ msgstr "팩 언인스톨에 실패했습니다: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF를 SYSCONF로 쓰지 못했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1174
+#: Source/Core/Core/NetPlayClient.cpp:1175
 msgid "Failed to write Mii data."
 msgstr "Mii 데이터 쓰기에 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1259
+#: Source/Core/Core/NetPlayClient.cpp:1260
 msgid "Failed to write Wii save."
 msgstr "Wii 저장 쓰기에 실패했습니다."
 
@@ -5901,7 +5901,7 @@ msgstr "환경 파일 쓰기에 실패했습니다!"
 msgid "Failed to write modified memory card to disk."
 msgstr "수정된 메모리 카드를 디스크에 쓰기를 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1272
+#: Source/Core/Core/NetPlayClient.cpp:1273
 msgid "Failed to write redirected save."
 msgstr "리다이렉트된 저장 쓰기에 실패했습니다."
 
@@ -6594,7 +6594,7 @@ msgstr "게임이 다른 디스크 넘버를 가지고 있습니다"
 msgid "Game has a different revision"
 msgstr "게임이 다른 개정을 가지고 있습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1750
+#: Source/Core/Core/NetPlayClient.cpp:1751
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
@@ -7144,7 +7144,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "식별자 생성"
 
-#: Source/Core/DolphinQt/Main.cpp:265
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -7289,11 +7289,11 @@ msgstr "저장 파일(들)을 가져오기"
 msgid "Import Wii Save..."
 msgstr "Wii 저장 가져오기"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1799
+#: Source/Core/DolphinQt/MainWindow.cpp:1795
 msgid "Importing NAND backup"
 msgstr "NAND 백업 가져오기"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1809
+#: Source/Core/DolphinQt/MainWindow.cpp:1805
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7640,7 +7640,7 @@ msgstr "부적합 체크섬"
 msgid "Invalid game."
 msgstr "부적합한 게임."
 
-#: Source/Core/Core/NetPlayClient.cpp:1985
+#: Source/Core/Core/NetPlayClient.cpp:1986
 msgid "Invalid host"
 msgstr "부적합 호스트"
 
@@ -7794,8 +7794,8 @@ msgstr ""
 "JIT 이 캐시 청소후에 코드 공간 찾기에 실패했습니다. 이것은 절대 일어나서는 안"
 "됩니다. 버그 트랙커에 이 사고를 보고해주세요. 돌핀은 지금 나갈 것입니다."
 
-#: Source/Android/jni/MainAndroid.cpp:431
-#: Source/Android/jni/MainAndroid.cpp:447
+#: Source/Android/jni/MainAndroid.cpp:436
+#: Source/Android/jni/MainAndroid.cpp:452
 msgid "JIT is not active"
 msgstr ""
 
@@ -8529,7 +8529,7 @@ msgstr "메모리카드: 부적합 소스 주소로 호출된 읽기 ({0:#x})"
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "메모리카드: 부적합 목적지 주소로 호출된 쓰기 ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1780
+#: Source/Core/DolphinQt/MainWindow.cpp:1776
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -9929,11 +9929,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "QT_레이아웃_방향"
 
-#: Source/Core/Core/NetPlayClient.cpp:1601
+#: Source/Core/Core/NetPlayClient.cpp:1602
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "서비스의 품질 (QoS) 이 활성화될 수 없었습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1597
+#: Source/Core/Core/NetPlayClient.cpp:1598
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "서비스의 품질 (QoS) 이 성공적으로 활성화되었습니다."
 
@@ -9944,7 +9944,7 @@ msgstr "DPLII 디코더의 품질. 오디오 지연이 품질로 증가합니다
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1779
+#: Source/Core/DolphinQt/MainWindow.cpp:1775
 msgid "Question"
 msgstr "질문"
 
@@ -10655,7 +10655,7 @@ msgstr "가장 오래된 상태 저장"
 msgid "Save Preset"
 msgstr "프리셋 저장"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1918
+#: Source/Core/DolphinQt/MainWindow.cpp:1912
 msgid "Save Recording File As"
 msgstr "녹화 파일을 다른 이름으로 저장"
 
@@ -10899,7 +10899,7 @@ msgstr "GBA 롬 선택"
 msgid "Select GBA Saves Path"
 msgstr "GBA 저장 경로 선택"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1815
+#: Source/Core/DolphinQt/MainWindow.cpp:1811
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr ""
 
@@ -10911,7 +10911,7 @@ msgstr "마지막 상태 선택"
 msgid "Select Load Path"
 msgstr "로드 경로 선택"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1789
+#: Source/Core/DolphinQt/MainWindow.cpp:1785
 msgid "Select NAND Backup"
 msgstr ""
 
@@ -11013,8 +11013,8 @@ msgstr "디렉토리 선택"
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
 #: Source/Core/DolphinQt/MainWindow.cpp:788
-#: Source/Core/DolphinQt/MainWindow.cpp:1426
-#: Source/Core/DolphinQt/MainWindow.cpp:1438
+#: Source/Core/DolphinQt/MainWindow.cpp:1422
+#: Source/Core/DolphinQt/MainWindow.cpp:1434
 msgid "Select a File"
 msgstr "파일 선택"
 
@@ -11042,7 +11042,7 @@ msgstr "e-Reader 카드 선택"
 msgid "Select the RSO module address:"
 msgstr "RSO 모듈 주소 선택:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1838
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
 msgid "Select the Recording File to Play"
 msgstr "플레이할 녹화 파일 선택"
 
@@ -11058,9 +11058,9 @@ msgstr "선택된 폰트"
 msgid "Selected controller profile does not exist"
 msgstr "선택된 컨트롤러 프로파일이 존재하지 않습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:1342
-#: Source/Core/Core/NetPlayServer.cpp:1716
-#: Source/Core/Core/NetPlayServer.cpp:2044
+#: Source/Core/Core/NetPlayServer.cpp:1343
+#: Source/Core/Core/NetPlayServer.cpp:1719
+#: Source/Core/Core/NetPlayServer.cpp:2047
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:491
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:895
 msgid "Selected game doesn't exist in game list!"
@@ -11074,7 +11074,7 @@ msgstr "선택된 쓰레드 콜스택"
 msgid "Selected thread context"
 msgstr "선택된 쓰레드 맥락"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:370
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:372
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
@@ -11082,7 +11082,7 @@ msgstr ""
 "사용할 하드웨어 어댑터를 선택하세요.<br><br><dolphin_emphasis>%1 는 이 기능"
 "을 지원하지 않습니다.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:367
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:369
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
 "select the first one.</dolphin_emphasis>"
@@ -11156,14 +11156,8 @@ msgid ""
 "backends are recommended. Different games and different GPUs will behave "
 "differently on each backend, so for the best emulation experience it is "
 "recommended to try each and select the backend that is least problematic."
-"<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>If unsure, select %1.</dolphin_emphasis>"
 msgstr ""
-"내부적으로 어느 그래픽 API를 사용할지 선택합니다.<br><br>소프트웨어 렌더러는 "
-"극히 느리고 디버깅에만 유용합니다, 그래서 다른 백엔드들중 아무거나 추천됩니"
-"다. 다른 게임과 다른 GPU는 각각의 백엔드에서 다르게 행동할 것입니다, 그러니 "
-"최고의 에뮬레이션 경험을 위해서 각각 시도해보기를 권장합니다 그리고나서 문제"
-"가 가장 적은 것을 고르세요.<br><br><dolphin_emphasis>잘 모르겠으면, OpenGL을 "
-"선택하세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
 msgid ""
@@ -11222,7 +11216,7 @@ msgstr "서버 IP 주소"
 msgid "Server Port"
 msgstr "서버 포트"
 
-#: Source/Core/Core/NetPlayClient.cpp:1982
+#: Source/Core/Core/NetPlayClient.cpp:1983
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
@@ -12398,15 +12392,15 @@ msgid ""
 "emulation."
 msgstr "시작과 끝내기 에뮬레이션 때 SD 동기화 폴더와 SD 카드를 동기화합니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1435
+#: Source/Core/Core/NetPlayClient.cpp:1436
 msgid "Synchronizing AR codes..."
 msgstr "AR 코드들을 동기화합니다..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1368
+#: Source/Core/Core/NetPlayClient.cpp:1369
 msgid "Synchronizing Gecko codes..."
 msgstr "Gecko 코드들을 동기화합니다..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1051
+#: Source/Core/Core/NetPlayClient.cpp:1052
 msgid "Synchronizing save data..."
 msgstr "저장 데이터를 동기화합니다..."
 
@@ -13574,7 +13568,7 @@ msgstr "횡단 에러"
 msgid "Traversal Server"
 msgstr "횡단 서버"
 
-#: Source/Core/Core/NetPlayClient.cpp:1979
+#: Source/Core/Core/NetPlayClient.cpp:1980
 msgid "Traversal server timed out connecting to the host"
 msgstr "횡단 서버가 호스트에 연결중 시간이 초과되었습니다."
 
@@ -13805,11 +13799,11 @@ msgstr "알려지지 않음 (Id:%1 Var:%2)"
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
-#: Source/Core/Core/NetPlayClient.cpp:1335
+#: Source/Core/Core/NetPlayClient.cpp:1336
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "알려지지 않은 SYNC_CODES 메시지를 받았습니다 id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1240
+#: Source/Core/Core/NetPlayServer.cpp:1241
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -13817,11 +13811,11 @@ msgstr ""
 "알려지지 않은 SYNC_GECKO_CODES 메시지 id:{0} 를 플레이어:{1} 로 부터 받았습니"
 "다 플레이어 퇴장시키기!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1036
+#: Source/Core/Core/NetPlayClient.cpp:1037
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "알려지지 않은 SYNC_SAVE_DATA 메시지를 받았습니다 id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1183
+#: Source/Core/Core/NetPlayServer.cpp:1184
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -13853,7 +13847,7 @@ msgstr "알려지지 않은 디스크"
 msgid "Unknown error occurred."
 msgstr "알려지지 않은 에러가 발생했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1988
+#: Source/Core/Core/NetPlayClient.cpp:1989
 msgid "Unknown error {0:x}"
 msgstr "알려지지 않은 오류 {0:x}"
 
@@ -13865,7 +13859,7 @@ msgstr "알려지지 않은 오류."
 msgid "Unknown message received with id : {0}"
 msgstr "id : {0} 의 알려지지 않은 메시지를 받았습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:1248
+#: Source/Core/Core/NetPlayServer.cpp:1249
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 "알려지지 않은 메시지 id:{0} 를 플레이어:{1} 로부터 받았습니다 플레이어 강퇴!"
@@ -14749,7 +14743,7 @@ msgstr "잘못된 개정"
 msgid "Wrote to \"%1\"."
 msgstr ""
 
-#: Source/Android/jni/MainAndroid.cpp:463
+#: Source/Android/jni/MainAndroid.cpp:468
 msgid "Wrote to \"{0}\"."
 msgstr ""
 
@@ -15133,11 +15127,11 @@ msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 "{1} 디렉토리에서 {0} IPL이 발견되었습니다. 디스크가 인식되지 않은 것 같습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:1232
+#: Source/Core/Core/NetPlayServer.cpp:1233
 msgid "{0} failed to synchronize codes."
 msgstr " {0} 코드 동기화에 실패했습니다."
 
-#: Source/Core/Core/NetPlayServer.cpp:1174
+#: Source/Core/Core/NetPlayServer.cpp:1175
 msgid "{0} failed to synchronize."
 msgstr "{0} 동기화에 실패했습니다."
 

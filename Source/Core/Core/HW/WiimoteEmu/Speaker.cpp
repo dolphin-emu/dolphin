@@ -8,20 +8,11 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/System.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
-
-//#define WIIMOTE_SPEAKER_DUMP
-#ifdef WIIMOTE_SPEAKER_DUMP
-#include <cstdlib>
-#include <fstream>
-#include "AudioCommon/WaveFile.h"
-#include "Common/FileUtil.h"
-#endif
 
 namespace WiimoteEmu
 {
@@ -59,17 +50,6 @@ static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
   s.step = av_clip(s.step, 127, 24576);
   return s.predictor;
 }
-
-#ifdef WIIMOTE_SPEAKER_DUMP
-std::ofstream ofile;
-WaveFileWriter wav;
-
-void stopdamnwav()
-{
-  wav.Stop();
-  ofile.close();
-}
-#endif
 
 void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 {
@@ -151,28 +131,6 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
   sound_stream->GetMixer()->PushWiimoteSpeakerSamples(
       samples.get(), sample_length, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / (sample_rate * 2));
-
-#ifdef WIIMOTE_SPEAKER_DUMP
-  static int num = 0;
-
-  if (num == 0)
-  {
-    File::Delete("rmtdump.wav");
-    File::Delete("rmtdump.bin");
-    atexit(stopdamnwav);
-    File::OpenFStream(ofile, "rmtdump.bin", ofile.binary | ofile.out);
-    wav.Start("rmtdump.wav", 6000);
-  }
-  wav.AddMonoSamples(samples.get(), length * 2);
-  if (ofile.good())
-  {
-    for (int i = 0; i < length; i++)
-    {
-      ofile << data[i];
-    }
-  }
-  num++;
-#endif
 }
 
 void SpeakerLogic::Reset()

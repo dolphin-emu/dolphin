@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-01 15:00+0100\n"
+"POT-Creation-Date: 2024-11-30 20:46+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Arve Eriksson <031299870@telia.com>, 2017,2019-2022,2024\n"
 "Language-Team: Swedish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -1116,8 +1116,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> Större än"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1563
-#: Source/Core/DolphinQt/MainWindow.cpp:1630
+#: Source/Core/DolphinQt/MainWindow.cpp:1559
+#: Source/Core/DolphinQt/MainWindow.cpp:1626
 msgid "A NetPlay Session is already in progress!"
 msgstr "En nätspelssession pågår redan!"
 
@@ -1154,7 +1154,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "En snabbsparning kan inte laddas utan att ange ett spel att starta."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:967
+#: Source/Core/DolphinQt/MainWindow.cpp:965
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1364,7 +1364,7 @@ msgstr "Aktiv trådkö"
 msgid "Active threads"
 msgstr "Aktiva trådar"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:316
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:318
 msgid "Adapter"
 msgstr "Adapter"
 
@@ -1622,8 +1622,8 @@ msgstr "Alla GC/Wii-filer"
 msgid "All Hexadecimal"
 msgstr "Alla hexadecimala"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1426
-#: Source/Core/DolphinQt/MainWindow.cpp:1438
+#: Source/Core/DolphinQt/MainWindow.cpp:1422
+#: Source/Core/DolphinQt/MainWindow.cpp:1434
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Alla snabbsparningar (*.sav *.s##);; Alla filer (*)"
 
@@ -1639,11 +1639,11 @@ msgstr "Alla uint"
 msgid "All files (*)"
 msgstr "Alla filer (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1211
+#: Source/Core/Core/NetPlayServer.cpp:1212
 msgid "All players' codes synchronized."
 msgstr "Alla spelares koder har synkroniserats."
 
-#: Source/Core/Core/NetPlayServer.cpp:1153
+#: Source/Core/Core/NetPlayServer.cpp:1154
 msgid "All players' saves synchronized."
 msgstr "Alla spelares sparfiler har synkroniserats."
 
@@ -1651,7 +1651,7 @@ msgstr "Alla spelares sparfiler har synkroniserats."
 msgid "Allow Mismatched Region Settings"
 msgstr "Tillåt regionsinställningar som inte matchar"
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:262
 msgid "Allow Usage Statistics Reporting"
 msgstr "Tillåt rapportering av användningsstatistik"
 
@@ -1791,7 +1791,7 @@ msgstr "Är du säker?"
 msgid "Area Sampling"
 msgstr "Områdessampling"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:318
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:320
 msgid "Aspect Ratio"
 msgstr "Bildförhållande"
 
@@ -2163,11 +2163,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "Pausa vid start"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1790
+#: Source/Core/DolphinQt/MainWindow.cpp:1786
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii-NAND-kopia (*bin);;Alla filer (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1816
+#: Source/Core/DolphinQt/MainWindow.cpp:1812
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii-nyckelfil (*bin);;Alla filer (*)"
 
@@ -2523,8 +2523,8 @@ msgstr "Det går inte att redigera skurkar för den här trofén!"
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Kan inte hitta Wii-fjärrkontrollen med anslutnings-handle {0:02x}"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1556
-#: Source/Core/DolphinQt/MainWindow.cpp:1623
+#: Source/Core/DolphinQt/MainWindow.cpp:1552
+#: Source/Core/DolphinQt/MainWindow.cpp:1619
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr ""
 "Det går inte att starta en nätspelssession medan ett spel fortfarande körs!"
@@ -2840,7 +2840,7 @@ msgstr ""
 msgid "Code:"
 msgstr "Kod:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1866
+#: Source/Core/Core/NetPlayClient.cpp:1867
 msgid "Codes received!"
 msgstr "Koder mottagna!"
 
@@ -3086,8 +3086,8 @@ msgstr "Konfigurera utmatning"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:407
 #: Source/Core/DolphinQt/GameList/GameList.cpp:647
 #: Source/Core/DolphinQt/GameList/GameList.cpp:829
-#: Source/Core/DolphinQt/MainWindow.cpp:966
-#: Source/Core/DolphinQt/MainWindow.cpp:1756
+#: Source/Core/DolphinQt/MainWindow.cpp:964
+#: Source/Core/DolphinQt/MainWindow.cpp:1752
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Bekräfta"
@@ -3684,11 +3684,11 @@ msgstr "Anpassad (utsträckt)"
 msgid "Custom Address Space"
 msgstr "Anpassat adressutrymme"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:322
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
 msgid "Custom Aspect Ratio Height"
 msgstr "Höjd för anpassat bildförhållande"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:321
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:323
 msgid "Custom Aspect Ratio Width"
 msgstr "Bredd för anpassat bildförhållande"
 
@@ -3835,7 +3835,7 @@ msgstr "Data i okänt format eller trasig."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "Datainkonsekvens i GCMemcardManager, avbryter åtgärd."
 
-#: Source/Core/Core/NetPlayClient.cpp:1824
+#: Source/Core/Core/NetPlayClient.cpp:1825
 msgid "Data received!"
 msgstr "Data mottagen!"
 
@@ -4215,12 +4215,12 @@ msgstr "Avstånd"
 msgid "Distance of travel from neutral position."
 msgstr "Förflyttningsavstånd från neutral position."
 
-#: Source/Core/DolphinQt/Main.cpp:263
+#: Source/Core/DolphinQt/Main.cpp:264
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 "Godkänner du att Dolphin rapporterar information till Dolphins utvecklare?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1757
+#: Source/Core/DolphinQt/MainWindow.cpp:1753
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Vill du lägga till \"%1\" i listan av spelsökvägar?"
 
@@ -4234,7 +4234,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr "Vill du radera denna/dessa %n markerade sparfil(er)?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:970
+#: Source/Core/DolphinQt/MainWindow.cpp:968
 msgid "Do you want to stop the current emulation?"
 msgstr "Vill du stoppa den aktuella emuleringen?"
 
@@ -4269,8 +4269,8 @@ msgstr "Dolphin-signatur-CSV-fil"
 msgid "Dolphin Signature File"
 msgstr "Dolphin-signaturfil"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1838
-#: Source/Core/DolphinQt/MainWindow.cpp:1918
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
+#: Source/Core/DolphinQt/MainWindow.cpp:1912
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin-TAS-filmer (*.dtm)"
 
@@ -5083,7 +5083,7 @@ msgstr ""
 msgid "End Addr"
 msgstr "Slutadr."
 
-#: Source/Core/Core/NetPlayServer.cpp:127
+#: Source/Core/Core/NetPlayServer.cpp:128
 msgid "Enet Didn't Initialize"
 msgstr "Enet initialiserades inte"
 
@@ -5177,12 +5177,12 @@ msgstr "Ange RSO-moduladressen:"
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:228
 #: Source/Core/DolphinQt/Main.cpp:235 Source/Core/DolphinQt/MainWindow.cpp:315
 #: Source/Core/DolphinQt/MainWindow.cpp:323
-#: Source/Core/DolphinQt/MainWindow.cpp:1146
-#: Source/Core/DolphinQt/MainWindow.cpp:1555
-#: Source/Core/DolphinQt/MainWindow.cpp:1562
-#: Source/Core/DolphinQt/MainWindow.cpp:1622
-#: Source/Core/DolphinQt/MainWindow.cpp:1629
-#: Source/Core/DolphinQt/MainWindow.cpp:1735
+#: Source/Core/DolphinQt/MainWindow.cpp:1143
+#: Source/Core/DolphinQt/MainWindow.cpp:1551
+#: Source/Core/DolphinQt/MainWindow.cpp:1558
+#: Source/Core/DolphinQt/MainWindow.cpp:1618
+#: Source/Core/DolphinQt/MainWindow.cpp:1625
+#: Source/Core/DolphinQt/MainWindow.cpp:1731
 #: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1275
 #: Source/Core/DolphinQt/MenuBar.cpp:1365
 #: Source/Core/DolphinQt/MenuBar.cpp:1388
@@ -5226,7 +5226,7 @@ msgstr "Fellogg"
 msgid "Error Opening Adapter: %1"
 msgstr "Ett fel uppstod när adaptern skulle öppnas: %1"
 
-#: Source/Core/Core/NetPlayServer.cpp:1504
+#: Source/Core/Core/NetPlayServer.cpp:1506
 msgid "Error collecting save data!"
 msgstr "Fel uppstod när spardata samlades in!"
 
@@ -5250,11 +5250,11 @@ msgstr "Ett fel uppstod när sessionslistan skulle hämtas: %1"
 msgid "Error occurred while loading some texture packs"
 msgstr "Ett fel uppstod när vissa texturpaket laddades"
 
-#: Source/Core/Core/NetPlayClient.cpp:1853
+#: Source/Core/Core/NetPlayClient.cpp:1854
 msgid "Error processing codes."
 msgstr "Fel uppstod när koder behandlades."
 
-#: Source/Core/Core/NetPlayClient.cpp:1825
+#: Source/Core/Core/NetPlayClient.cpp:1826
 msgid "Error processing data."
 msgstr "Fel uppstod när data behandlades."
 
@@ -5262,11 +5262,11 @@ msgstr "Fel uppstod när data behandlades."
 msgid "Error reading file: {0}"
 msgstr "Fel uppstod när fil lästes: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1540
+#: Source/Core/Core/NetPlayServer.cpp:1542
 msgid "Error synchronizing cheat codes!"
 msgstr "Ett fel uppstod med att synkronisera fuskkoder!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1526
+#: Source/Core/Core/NetPlayServer.cpp:1528
 msgid "Error synchronizing save data!"
 msgstr "Fel uppstod när spardata synkroniserades!"
 
@@ -5582,14 +5582,14 @@ msgid ""
 "The Skylander may already be on the portal."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1293
+#: Source/Core/Core/NetPlayClient.cpp:1294
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr ""
 "Misslyckades att radera nätspelssparfil för GBA{0}. Kontrollera "
 "skrivrättigheterna."
 
-#: Source/Core/Core/NetPlayClient.cpp:1083
+#: Source/Core/Core/NetPlayClient.cpp:1084
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 "Misslyckades att radera minneskort för nätspel. Bekräfta dina "
@@ -5680,7 +5680,7 @@ msgstr ""
 "minnet (Verktyg -> Hantera NAND -> Kontrollera NAND-minne...) och importera "
 "sedan sparfilen igen."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1146
+#: Source/Core/DolphinQt/MainWindow.cpp:1143
 msgid "Failed to init core"
 msgstr "Misslyckades att initialisera kärnan"
 
@@ -5694,7 +5694,7 @@ msgstr ""
 "Kontrollera att ditt grafikkort stödjer minst D3D 10.0\n"
 "{0}"
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:372
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:378
 msgid "Failed to initialize renderer classes"
 msgstr "Misslyckades att initialisera renderarklasser"
 
@@ -5707,7 +5707,7 @@ msgstr "Misslyckades att installera paket: %1"
 msgid "Failed to install this title to the NAND."
 msgstr "Misslyckades att installera denna titel till NAND-minnet."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1657
+#: Source/Core/DolphinQt/MainWindow.cpp:1653
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5760,12 +5760,12 @@ msgstr "Misslyckades att modifiera Skylander!"
 msgid "Failed to open \"%1\" for writing."
 msgstr "Misslyckades att öppna \"%1\" för att skriva."
 
-#: Source/Android/jni/MainAndroid.cpp:457
+#: Source/Android/jni/MainAndroid.cpp:462
 msgid "Failed to open \"{0}\" for writing."
 msgstr "Misslyckades att öppna \"{0}\" för att skriva."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1735
+#: Source/Core/DolphinQt/MainWindow.cpp:1731
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "Misslyckades att öppna '%1'"
@@ -5806,7 +5806,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "Kunde inte öppna fil."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1656
+#: Source/Core/DolphinQt/MainWindow.cpp:1652
 msgid "Failed to open server"
 msgstr "Misslyckades att öppna servern"
 
@@ -5932,19 +5932,19 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "Kunde inte ta bort denna titel från NAND-minnet."
 
-#: Source/Core/Core/NetPlayClient.cpp:1107
+#: Source/Core/Core/NetPlayClient.cpp:1108
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr ""
 "Misslyckades att nollställa nätspels-GCI-mappen. Kontrollera "
 "skrivrättigheterna."
 
-#: Source/Core/Core/NetPlayClient.cpp:1138
+#: Source/Core/Core/NetPlayClient.cpp:1139
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 "Misslyckades att nollställa nätspels-NAND-mappen. Kontrollera "
 "skrivrättigheterna."
 
-#: Source/Core/Core/NetPlayClient.cpp:1144
+#: Source/Core/Core/NetPlayClient.cpp:1145
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr ""
 "Misslyckades att nollställa nätspelsomdirigeringsmappen. Kontrollera "
@@ -5989,11 +5989,11 @@ msgstr "Misslyckades att avinstallera paket: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Misslyckades att skriva BT.DINF till SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:1174
+#: Source/Core/Core/NetPlayClient.cpp:1175
 msgid "Failed to write Mii data."
 msgstr "Misslyckades att skriva Mii-data."
 
-#: Source/Core/Core/NetPlayClient.cpp:1259
+#: Source/Core/Core/NetPlayClient.cpp:1260
 msgid "Failed to write Wii save."
 msgstr "Misslyckades att skriva Wii-sparning."
 
@@ -6007,7 +6007,7 @@ msgstr "Kunde inte skriva inställningsfil!"
 msgid "Failed to write modified memory card to disk."
 msgstr "Kunde inte skriva ändrat minneskort till disk."
 
-#: Source/Core/Core/NetPlayClient.cpp:1272
+#: Source/Core/Core/NetPlayClient.cpp:1273
 msgid "Failed to write redirected save."
 msgstr "Misslyckades att skriva omdirigerad sparning."
 
@@ -6701,7 +6701,7 @@ msgstr "Spelet har ett annat skivnummer"
 msgid "Game has a different revision"
 msgstr "Spelet har en annan revision"
 
-#: Source/Core/Core/NetPlayClient.cpp:1750
+#: Source/Core/Core/NetPlayClient.cpp:1751
 msgid "Game is already running!"
 msgstr "Spelet körs redan!"
 
@@ -7255,7 +7255,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "Identitetsgenerering"
 
-#: Source/Core/DolphinQt/Main.cpp:265
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -7407,11 +7407,11 @@ msgstr "Importera sparfil(er)"
 msgid "Import Wii Save..."
 msgstr "Importera Wii-sparning…"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1799
+#: Source/Core/DolphinQt/MainWindow.cpp:1795
 msgid "Importing NAND backup"
 msgstr "Importerar NAND-kopia"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1809
+#: Source/Core/DolphinQt/MainWindow.cpp:1805
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7762,7 +7762,7 @@ msgstr "Ogiltiga kontrollsummor."
 msgid "Invalid game."
 msgstr "Ogiltigt spel."
 
-#: Source/Core/Core/NetPlayClient.cpp:1985
+#: Source/Core/Core/NetPlayClient.cpp:1986
 msgid "Invalid host"
 msgstr "Ogiltig värd"
 
@@ -7917,8 +7917,8 @@ msgstr ""
 "aldrig hända. Rapportera gärna detta till utvecklarna. Dolphin kommer nu "
 "avslutas."
 
-#: Source/Android/jni/MainAndroid.cpp:431
-#: Source/Android/jni/MainAndroid.cpp:447
+#: Source/Android/jni/MainAndroid.cpp:436
+#: Source/Android/jni/MainAndroid.cpp:452
 msgid "JIT is not active"
 msgstr "JIT är inte aktivt"
 
@@ -8655,7 +8655,7 @@ msgstr "MemoryCard: Read anropades med ogiltig källadress ({0:#x})"
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "MemoryCard: Write anropades med ogiltig destinationsadress ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1780
+#: Source/Core/DolphinQt/MainWindow.cpp:1776
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -10058,11 +10058,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1601
+#: Source/Core/Core/NetPlayClient.cpp:1602
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "Det gick inte att sätta på Quality of Service (QoS)."
 
-#: Source/Core/Core/NetPlayClient.cpp:1597
+#: Source/Core/Core/NetPlayClient.cpp:1598
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Quality of Service (QoS) har satts på."
 
@@ -10074,7 +10074,7 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:454
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1779
+#: Source/Core/DolphinQt/MainWindow.cpp:1775
 msgid "Question"
 msgstr "Fråga"
 
@@ -10786,7 +10786,7 @@ msgstr "Spara äldsta snabbsparning"
 msgid "Save Preset"
 msgstr "Spara förinställningar"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1918
+#: Source/Core/DolphinQt/MainWindow.cpp:1912
 msgid "Save Recording File As"
 msgstr "Spara inspelning som"
 
@@ -11032,7 +11032,7 @@ msgstr "Välj GBA-ROM"
 msgid "Select GBA Saves Path"
 msgstr "Välj GBA-sparfilssökväg"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1815
+#: Source/Core/DolphinQt/MainWindow.cpp:1811
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr ""
 
@@ -11044,7 +11044,7 @@ msgstr "Välj senaste snabbsparning"
 msgid "Select Load Path"
 msgstr "Välj laddningssökväg"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1789
+#: Source/Core/DolphinQt/MainWindow.cpp:1785
 msgid "Select NAND Backup"
 msgstr ""
 
@@ -11146,8 +11146,8 @@ msgstr "Välj en mapp"
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
 #: Source/Core/DolphinQt/MainWindow.cpp:788
-#: Source/Core/DolphinQt/MainWindow.cpp:1426
-#: Source/Core/DolphinQt/MainWindow.cpp:1438
+#: Source/Core/DolphinQt/MainWindow.cpp:1422
+#: Source/Core/DolphinQt/MainWindow.cpp:1434
 msgid "Select a File"
 msgstr "Välj en fil"
 
@@ -11175,7 +11175,7 @@ msgstr "Välj e-Readerkort"
 msgid "Select the RSO module address:"
 msgstr "Välj RSO-modulens adress:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1838
+#: Source/Core/DolphinQt/MainWindow.cpp:1834
 msgid "Select the Recording File to Play"
 msgstr "Välj inspelning att spela upp"
 
@@ -11191,9 +11191,9 @@ msgstr "Valt teckensnitt"
 msgid "Selected controller profile does not exist"
 msgstr "Den valda kontrollprofilen finns inte"
 
-#: Source/Core/Core/NetPlayServer.cpp:1342
-#: Source/Core/Core/NetPlayServer.cpp:1716
-#: Source/Core/Core/NetPlayServer.cpp:2044
+#: Source/Core/Core/NetPlayServer.cpp:1343
+#: Source/Core/Core/NetPlayServer.cpp:1719
+#: Source/Core/Core/NetPlayServer.cpp:2047
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:491
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:895
 msgid "Selected game doesn't exist in game list!"
@@ -11207,7 +11207,7 @@ msgstr "Markerad tråds anropsstack"
 msgid "Selected thread context"
 msgstr "Markerad tråds kontext"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:370
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:372
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
@@ -11215,7 +11215,7 @@ msgstr ""
 "Väljer en hårdvaruadapter att använda.<br><br><dolphin_emphasis>%1 stöder "
 "inte den här funktionen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:367
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:369
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
 "select the first one.</dolphin_emphasis>"
@@ -11289,16 +11289,8 @@ msgid ""
 "backends are recommended. Different games and different GPUs will behave "
 "differently on each backend, so for the best emulation experience it is "
 "recommended to try each and select the backend that is least problematic."
-"<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>If unsure, select %1.</dolphin_emphasis>"
 msgstr ""
-"Väljer vilket grafik-API som ska användas internt."
-"<br><br>Programvarurenderaren är extremt långsam och är därför bara "
-"användbar för att felsöka, så det rekommenderas att du väljer en annan "
-"backend. Beroende på spel och grafikprocessor kan varje backend bete sig "
-"lite annorlunda, så för att få den bästa upplevelsen rekommenderas det att "
-"prova var och en och välja den backend som har minst problem."
-"<br><br><dolphin_emphasis>Om du är osäker kan du välja OpenGL.</"
-"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
 msgid ""
@@ -11358,7 +11350,7 @@ msgstr "Serverns IP-adress"
 msgid "Server Port"
 msgstr "Serverns port"
 
-#: Source/Core/Core/NetPlayClient.cpp:1982
+#: Source/Core/Core/NetPlayClient.cpp:1983
 msgid "Server rejected traversal attempt"
 msgstr "Servern avvisade traverseringsförsök"
 
@@ -12529,15 +12521,15 @@ msgstr ""
 "Synkroniserar SD-kortet med SD-synkmappen när emulering påbörjas och "
 "avslutas."
 
-#: Source/Core/Core/NetPlayClient.cpp:1435
+#: Source/Core/Core/NetPlayClient.cpp:1436
 msgid "Synchronizing AR codes..."
 msgstr "Synkroniserar AR-koder..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1368
+#: Source/Core/Core/NetPlayClient.cpp:1369
 msgid "Synchronizing Gecko codes..."
 msgstr "Synkroniserar Gecko-koder..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1051
+#: Source/Core/Core/NetPlayClient.cpp:1052
 msgid "Synchronizing save data..."
 msgstr "Synkroniserar spardata..."
 
@@ -13737,7 +13729,7 @@ msgstr "Traverseringsfel"
 msgid "Traversal Server"
 msgstr "Traverseringsserver"
 
-#: Source/Core/Core/NetPlayClient.cpp:1979
+#: Source/Core/Core/NetPlayClient.cpp:1980
 msgid "Traversal server timed out connecting to the host"
 msgstr "Traverseringsserver gjorde en timeout vid anslutning till värden"
 
@@ -13970,11 +13962,11 @@ msgstr "Okänd (Id:%1 Var:%2)"
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "Okänt DVD-kommando {0:08x} - katastrofalt fel"
 
-#: Source/Core/Core/NetPlayClient.cpp:1335
+#: Source/Core/Core/NetPlayClient.cpp:1336
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "Tog emot ett okänt SYNC_CODES-meddelande med id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1240
+#: Source/Core/Core/NetPlayServer.cpp:1241
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -13982,11 +13974,11 @@ msgstr ""
 "Tog emot ett okänt SYNC_GECKO_CODES-meddelande med id:{0} från spelare:{1} "
 "Spelaren sparkas ut!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1036
+#: Source/Core/Core/NetPlayClient.cpp:1037
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Tog emot ett okänt SYNC_SAVE_DATA-meddelande med id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1183
+#: Source/Core/Core/NetPlayServer.cpp:1184
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -14018,7 +14010,7 @@ msgstr "Okänd skiva"
 msgid "Unknown error occurred."
 msgstr "Okänt fel inträffade."
 
-#: Source/Core/Core/NetPlayClient.cpp:1988
+#: Source/Core/Core/NetPlayClient.cpp:1989
 msgid "Unknown error {0:x}"
 msgstr "Okänt fel {0:x}"
 
@@ -14030,7 +14022,7 @@ msgstr "Okänt fel."
 msgid "Unknown message received with id : {0}"
 msgstr "Tog emot ett okänt meddelande med id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1248
+#: Source/Core/Core/NetPlayServer.cpp:1249
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 "Tog emot ett okänt meddelande med id:{0} från spelare:{1} Spelaren sparkas "
@@ -14927,7 +14919,7 @@ msgstr "Fel revision"
 msgid "Wrote to \"%1\"."
 msgstr "Skrev till \"%1\"."
 
-#: Source/Android/jni/MainAndroid.cpp:463
+#: Source/Android/jni/MainAndroid.cpp:468
 msgid "Wrote to \"{0}\"."
 msgstr "Skrev till \"{0}\"."
 
@@ -15319,11 +15311,11 @@ msgstr ""
 "{0}-IPL hittades i {1}-mappen. Det kan hända att skivan inte kommer kunna "
 "kännas igen"
 
-#: Source/Core/Core/NetPlayServer.cpp:1232
+#: Source/Core/Core/NetPlayServer.cpp:1233
 msgid "{0} failed to synchronize codes."
 msgstr "{0} misslyckades att synkronisera koder."
 
-#: Source/Core/Core/NetPlayServer.cpp:1174
+#: Source/Core/Core/NetPlayServer.cpp:1175
 msgid "{0} failed to synchronize."
 msgstr "{0} misslyckades att synkronisera."
 

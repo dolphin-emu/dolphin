@@ -31,6 +31,7 @@
 #include "Common/UPnP.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -1412,6 +1413,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
   settings.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   settings.enable_cheats = Config::AreCheatsEnabled();
+  settings.enable_hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   settings.selected_language = Config::Get(Config::MAIN_GC_LANGUAGE);
   settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
   settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);
@@ -1640,6 +1642,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.cpu_thread;
   spac << m_settings.cpu_core;
   spac << m_settings.enable_cheats;
+  spac << m_settings.enable_hardcore;
   spac << m_settings.selected_language;
   spac << m_settings.override_region_settings;
   spac << m_settings.dsp_enable_jit;
@@ -2121,13 +2124,18 @@ bool NetPlayServer::SyncCodes()
   }
   // Sync Gecko Codes
   {
+    std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(globalIni, localIni);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    AchievementManager::GetInstance().FilterApprovedGeckoCodes(codes, game_id);
+#endif  // USE_RETRO_ACHIEVEMENTS
+
     // Create a Gecko Code Vector with just the active codes
-    std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    std::vector<Gecko::GeckoCode> active_codes = Gecko::SetAndReturnActiveCodes(codes);
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const Gecko::GeckoCode& active_code : s_active_codes)
+    for (const Gecko::GeckoCode& active_code : active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
       for (const Gecko::GeckoCode::Code& code : active_code.codes)
@@ -2156,7 +2164,7 @@ bool NetPlayServer::SyncCodes()
       pac << SyncCodeID::GeckoData;
       std::vector<std::string> v_ActiveGeckoCodes = {};
       // Iterate through the active code vector and send each codeline
-      for (const Gecko::GeckoCode& active_code : s_active_codes)
+      for (const Gecko::GeckoCode& active_code : active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
         for (const Gecko::GeckoCode::Code& code : active_code.codes)
@@ -2180,13 +2188,16 @@ bool NetPlayServer::SyncCodes()
 
   // Sync AR Codes
   {
+    std::vector<ActionReplay::ARCode> codes = ActionReplay::LoadCodes(globalIni, localIni);
+#ifdef USE_RETRO_ACHIEVEMENTS
+    AchievementManager::GetInstance().FilterApprovedARCodes(codes, game_id);
+#endif  // USE_RETRO_ACHIEVEMENTS
     // Create an AR Code Vector with just the active codes
-    std::vector<ActionReplay::ARCode> s_active_codes =
-        ActionReplay::ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
+    std::vector<ActionReplay::ARCode> active_codes = ActionReplay::ApplyAndReturnCodes(codes);
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const ActionReplay::ARCode& active_code : s_active_codes)
+    for (const ActionReplay::ARCode& active_code : active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
       for (const ActionReplay::AREntry& op : active_code.ops)

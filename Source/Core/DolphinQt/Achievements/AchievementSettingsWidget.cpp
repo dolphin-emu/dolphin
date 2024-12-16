@@ -329,7 +329,6 @@ void AchievementSettingsWidget::ToggleProgress()
 
 void AchievementSettingsWidget::UpdateHardcoreMode()
 {
-  AchievementManager::GetInstance().SetHardcoreMode();
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
   {
     Settings::Instance().SetDebugModeEnabled(false);

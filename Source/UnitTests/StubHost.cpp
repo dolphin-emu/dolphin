@@ -16,6 +16,9 @@ std::vector<std::string> Host_GetPreferredLocales()
 void Host_PPCSymbolsChanged()
 {
 }
+void Host_PPCBreakpointsChanged()
+{
+}
 void Host_RefreshDSPDebuggerWindow()
 {
 }

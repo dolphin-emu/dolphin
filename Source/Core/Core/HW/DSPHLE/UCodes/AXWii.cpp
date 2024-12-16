@@ -418,7 +418,7 @@ void AXWiiUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii&
   case 0xadbc06bd:
     memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, updates_begin);
     memory.CopyToEmuSwapped<u16>(addr + updates_begin, (const u16*)(src + updates_end),
-                                 sizeof(PBUpdatesWii));
+                                 gap_begin - updates_end);
     memory.CopyToEmuSwapped<u16>(addr + gap_begin, (const u16*)(src + gap_end),
                                  sizeof(pb) - gap_end);
     break;
