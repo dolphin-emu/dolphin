@@ -52,7 +52,6 @@
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 #include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
@@ -65,7 +64,6 @@
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "Core/NetPlayCommon.h"
 #include "Core/SyncIdentifier.h"
-#include "Core/System.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
@@ -87,7 +85,6 @@
 #endif
 #include <arpa/inet.h>
 #endif
-#include "Core.h"
 
 namespace NetPlay
 {
@@ -440,8 +437,8 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
 {
   std::string netplay_version;
   received_packet >> netplay_version;
-
-
+  if (netplay_version != Common::GetScmRevGitStr())
+    return ConnectionError::VersionMismatch;
 
   if (m_is_running || m_start_pending)
     return ConnectionError::GameRunning;
@@ -528,11 +525,15 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
       {
         std::lock_guard lkg(m_crit.game);
         m_is_running = false;
+
+        sf::Packet spac;
+        spac << MessageID::DisableGame;
+        // this thread doesn't need players lock
+        SendToClients(spac);
         break;
       }
     }
   }
-
 
   if (m_start_pending)
   {
@@ -793,20 +794,6 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       m_chunked_data_complete_count[cid]++;
       m_chunked_data_complete_event.Set();
     }
-  }
-  break;
-
-  case MessageID::SendCodes:
-  {
-    std::string codes;
-    packet >> codes;
-
-    // send codes to other clients
-    sf::Packet spac;
-    spac << MessageID::SendCodes;
-    spac << codes;
-
-    SendToClients(spac);
   }
   break;
 
@@ -1255,47 +1242,6 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
           static_cast<u8>(sub_id), player.pid);
       return 1;
     }
-  }
-  break;
-
-  case MessageID::ScheduleExternalEvent:
-  {
-    ExternalEventID eeid;
-    packet >> eeid;
-
-    sf::Packet spac;
-    spac << MessageID::ScheduleExternalEvent;
-    spac << eeid;
-    const u64 uid = m_external_event_uid_counter++;
-    spac << sf::Uint64(uid);
-    auto& core_timing = Core::System::GetInstance().GetCoreTiming();
-
-    // We schedule the event in the future so that it's likely it will reach all users in time.
-    // There's a syncing logic in place to ensure the event executes at the same timepoint
-    // everywhere even if this packet is a bit too late, but the sync can get tripped up (and
-    // subsequently time out) if there's too large of a time distance between multiple players
-    // executing the sync function, because one of them may be waiting for controller input while
-    // another is waiting for the event timepoint sync.
-    const u64 target_timepoint =
-        static_cast<u64>(core_timing.GetGlobals().global_timer) + Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond();
-    spac << sf::Uint64(target_timepoint);
-    SendToClients(spac);
-  }
-  break;
-
-  case MessageID::SyncTimepointForExternalEvent:
-  {
-    sf::Uint64 uid;
-    packet >> uid;
-    sf::Uint64 timepoint;
-    packet >> timepoint;
-
-    sf::Packet spac;
-    spac << MessageID::SyncTimepointForExternalEvent;
-    spac << player.pid;
-    spac << uid;
-    spac << timepoint;
-    SendToClients(spac, player.pid);
   }
   break;
 
@@ -2162,7 +2108,6 @@ bool NetPlayServer::SyncCodes()
       sf::Packet pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
-      std::vector<std::string> v_ActiveGeckoCodes = {};
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : active_codes)
       {
@@ -2172,17 +2117,9 @@ bool NetPlayServer::SyncCodes()
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
           pac << code.address;
           pac << code.data;
-          v_ActiveGeckoCodes.push_back(active_code.name);
         }
       }
-      sf::Packet packet;
-      packet << MessageID::SendCodes;
-      std::string codeStr = "";
-      for (const std::string code : v_ActiveGeckoCodes)
-        codeStr += "• " + code + "\n";
-      packet << codeStr;
       SendAsyncToClients(std::move(pac));
-
     }
   }
 
@@ -2233,15 +2170,8 @@ bool NetPlayServer::SyncCodes()
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
           pac << op.value;
-          v_ActiveARCodes.push_back(active_code.name);
         }
       }
-      sf::Packet packet;
-      packet << MessageID::SendCodes;
-      std::string codeStr = "";
-      for (const std::string code : v_ActiveARCodes)
-        codeStr += "• " + code + "\n";
-      packet << codeStr;
       SendAsyncToClients(std::move(pac));
     }
   }
