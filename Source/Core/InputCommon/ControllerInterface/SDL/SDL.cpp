@@ -56,6 +56,38 @@ bool IsTriggerAxis(int index)
   return index >= 4;
 }
 
+ControlState GetBatteryValueFromSDLPowerLevel(SDL_JoystickPowerLevel sdl_power_level)
+{
+  // Values come from comments in SDL_joystick.h
+  // A proper percentage will be exposed in SDL3.
+  ControlState result;
+  switch (sdl_power_level)
+  {
+  case SDL_JOYSTICK_POWER_EMPTY:
+    result = 0.025;
+    break;
+  case SDL_JOYSTICK_POWER_LOW:
+    result = 0.125;
+    break;
+  case SDL_JOYSTICK_POWER_MEDIUM:
+    result = 0.45;
+    break;
+  case SDL_JOYSTICK_POWER_FULL:
+    result = 0.85;
+    break;
+  case SDL_JOYSTICK_POWER_WIRED:
+  case SDL_JOYSTICK_POWER_MAX:
+    result = 1.0;
+    break;
+  case SDL_JOYSTICK_POWER_UNKNOWN:
+  default:
+    result = 0.0;
+    break;
+  }
+
+  return result * ciface::BATTERY_INPUT_MAX_VALUE;
+}
+
 }  // namespace
 
 namespace ciface::SDL
@@ -140,6 +172,18 @@ private:
     SDL_Joystick* const m_js;
     const int m_index;
     const u8 m_direction;
+  };
+
+  class BatteryInput final : public Input
+  {
+  public:
+    explicit BatteryInput(const ControlState* battery_value) : m_battery_value(*battery_value) {}
+    std::string GetName() const override { return "Battery"; }
+    ControlState GetState() const override { return m_battery_value; }
+    bool IsDetectable() const override { return false; }
+
+  private:
+    const ControlState& m_battery_value;
   };
 
   // Rumble
@@ -239,6 +283,39 @@ private:
     const Motor m_motor;
   };
 
+  class NormalizedInput : public Input
+  {
+  public:
+    NormalizedInput(const char* name, const float* state) : m_name{std::move(name)}, m_state{*state}
+    {
+    }
+
+    std::string GetName() const override { return std::string{m_name}; }
+    ControlState GetState() const override { return m_state; }
+
+  private:
+    const char* const m_name;
+    const float& m_state;
+  };
+
+  template <int Scale>
+  class NonDetectableDirectionalInput : public Input
+  {
+  public:
+    NonDetectableDirectionalInput(const char* name, const float* state)
+        : m_name{std::move(name)}, m_state{*state}
+    {
+    }
+
+    std::string GetName() const override { return std::string{m_name} + (Scale > 0 ? '+' : '-'); }
+    bool IsDetectable() const override { return false; }
+    ControlState GetState() const override { return m_state * Scale; }
+
+  private:
+    const char* const m_name;
+    const float& m_state;
+  };
+
   class MotionInput : public Input
   {
   public:
@@ -269,12 +346,32 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
   int GetSDLInstanceID() const;
+  Core::DeviceRemoval UpdateInput() override
+  {
+    m_battery_value = GetBatteryValueFromSDLPowerLevel(SDL_JoystickCurrentPowerLevel(m_joystick));
+
+    // We only support one touchpad and one finger.
+    const int touchpad_index = 0;
+    const int finger_index = 0;
+
+    Uint8 state = 0;
+    SDL_GameControllerGetTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, &state,
+                                        &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
+    m_touchpad_x = m_touchpad_x * 2 - 1;
+    m_touchpad_y = m_touchpad_y * 2 - 1;
+
+    return Core::DeviceRemoval::Keep;
+  }
 
 private:
   SDL_GameController* const m_gamecontroller;
   std::string m_name;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
+  ControlState m_battery_value;
+  float m_touchpad_x = 0.f;
+  float m_touchpad_y = 0.f;
+  float m_touchpad_pressure = 0.f;
 };
 
 class InputBackend final : public ciface::InputBackend
@@ -434,6 +531,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
   // We want buttons to come in as positions, not labels
   SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "0");
+  // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
+  SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "0");
 
   // Disable DualSense Player LEDs; We already colorize the Primary LED
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
@@ -660,6 +759,18 @@ GameController::GameController(SDL_GameController* const gamecontroller,
       AddOutput(new MotorR(m_gamecontroller));
     }
 
+    // Touchpad
+    if (SDL_GameControllerGetNumTouchpads(m_gamecontroller) > 0)
+    {
+      const char* const name_x = "Touchpad X";
+      AddInput(new NonDetectableDirectionalInput<-1>(name_x, &m_touchpad_x));
+      AddInput(new NonDetectableDirectionalInput<+1>(name_x, &m_touchpad_x));
+      const char* const name_y = "Touchpad Y";
+      AddInput(new NonDetectableDirectionalInput<-1>(name_y, &m_touchpad_y));
+      AddInput(new NonDetectableDirectionalInput<+1>(name_y, &m_touchpad_y));
+      AddInput(new NormalizedInput("Touchpad Pressure", &m_touchpad_pressure));
+    }
+
     // Motion
     const auto add_sensor = [this](SDL_SensorType type, std::string_view sensor_name,
                                    const SDLMotionAxisList& axes) {
@@ -766,6 +877,17 @@ GameController::GameController(SDL_GameController* const gamecontroller,
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
       }
     }
+  }
+
+  // Needed to make the below power level not "UNKNOWN".
+  SDL_JoystickUpdate();
+
+  // Battery
+  if (SDL_JoystickPowerLevel const power_level = SDL_JoystickCurrentPowerLevel(m_joystick);
+      power_level != SDL_JOYSTICK_POWER_UNKNOWN)
+  {
+    m_battery_value = GetBatteryValueFromSDLPowerLevel(power_level);
+    AddInput(new BatteryInput{&m_battery_value});
   }
 }
 

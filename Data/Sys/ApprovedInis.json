@@ -44,6 +44,18 @@
     "title": "Dead to Rights",
     "E23D98B2CE185C3993A40F2495D37E41B971BF91": "Fix audio issues"
   },
+  "GEDE01": {
+    "title": "Eternal Darkness",
+    "21068C3CE905FB0CFFAA7408A93154AF8A5295A2": "Fix startup hang"
+  },
+  "GEDJ01": {
+    "title": "Eternal Darkness",
+    "7061F3CF11BF64D3BA7F32CCF2BAC42FF3614AB6": "Fix startup hang"
+  },
+  "GEDP01": {
+    "title": "Eternal Darkness",
+    "6F1B00517CBA30BEB738EAA90E71221378CD570D": "Fix startup hang"
+  },
   "GEME7F": {
     "title": "Egg Mania: Eggstreme Madness",
     "CB04E00918C9C0F161715D21D046ED6620F7ADEF": "Force Progressive Scan"
@@ -148,6 +160,10 @@
     "title": "Gladius",
     "3D0894616C9A7FA5ED91C1D2F461BF14DF47ECEC": "Fix freeze in opening cutscene"
   },
+  "GMSE01": {
+    "title": "Super Mario Sunshine",
+    "BD718F961DBA5372B1D0257D454D535746C453A0": "Widescreen"
+  },
   "GNHE5d": {
     "title": "NHL HITZ 2002",
     "89393A24E2336841AA4CD0AD3BE1C9A66B89E9EF": "Nop Hack"
@@ -235,6 +251,14 @@
   "RLEEFS": {
     "title": "Ten Pin Alley 2",
     "793642AC6862C2F3412035A9E3D7172CC4A1D5C7": "Fix crash on main menu"
+  },
+  "RMHE08": {
+    "title": "Monster Hunter Tri",
+    "CCF233DA57B3E75221870DE502955114B0D4E7FA": "Bloom OFF"
+  },
+  "RMHJ08": {
+    "title": "Monster Hunter Tri",
+    "29D3625B7ED577587E56AA07CB0EB8C47C97E823": "Bloom OFF"
   },
   "RMHP08": {
     "title": "Monster Hunter Tri",

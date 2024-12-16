@@ -9,7 +9,7 @@ option(SDL_TEST "Build the SDL2_test library" OFF)
 option(SDL_TEST_ENABLED_BY_DEFAULT "" OFF)
 
 # SDL fails to clean up old headers after version upgrades, so do that manually
-set(EXPECTED_SDL_REVISION "SDL-release-2.28.5-0")
+set(EXPECTED_SDL_REVISION "SDL-release-2.30.9-0")
 if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/SDL/include/SDL2/SDL_revision.h")
   file(READ "${CMAKE_CURRENT_BINARY_DIR}/SDL/include/SDL2/SDL_revision.h" ACTUAL_SDL_REVISION)
   if (NOT "${ACTUAL_SDL_REVISION}" MATCHES "${EXPECTED_SDL_REVISION}")
