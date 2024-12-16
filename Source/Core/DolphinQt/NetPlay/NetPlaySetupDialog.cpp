@@ -605,5 +605,5 @@ void NetPlaySetupDialog::acceptBrowser()
   else
     Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
 
-  emit JoinBrowser();
+  emit Join();
 }
