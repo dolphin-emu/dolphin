@@ -58,7 +58,9 @@ WindowSystemInfo PlatformDRM::GetWindowSystemInfo() const
 }
 }  // namespace
 
+#if HAVE_DRM
 std::unique_ptr<Platform> Platform::CreateDRMPlatform()
 {
   return std::make_unique<PlatformDRM>();
 }
+#endif
