@@ -2182,7 +2182,7 @@ bool NetPlayServer::SyncCodes()
         codeStr += "• " + code + "\n";
       packet << codeStr;
       SendAsyncToClients(std::move(pac));
-      
+
     }
   }
 
@@ -2225,8 +2225,7 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
-      std::vector<std::string> v_ActiveARCodes = {};
-      for (const ActionReplay::ARCode& active_code : s_active_codes)
+      for (const ActionReplay::ARCode& active_code : active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
         for (const ActionReplay::AREntry& op : active_code.ops)
