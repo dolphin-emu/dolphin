@@ -15,6 +15,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionPatcher.h"
@@ -86,6 +87,12 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
   if (disc.m_version != 1)
     return std::nullopt;
   const std::string default_root = wiidisc.attribute("root").as_string();
+
+  const auto riifs_server = wiidisc.child("network");
+  if (riifs_server)
+  {
+    WARN_LOG_FMT(IOS, "Riivolution patch tries to use a RiiFS server - this is not supported.");
+  }
 
   const auto id = wiidisc.child("id");
   if (id)
@@ -213,6 +220,14 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
         memory.m_search = patch_subnode.attribute("search").as_bool(false);
         memory.m_align = patch_subnode.attribute("align").as_uint(1);
       }
+      else if (patch_name == "shift" || patch_name == "dlc")
+      {
+        // "shift" seems to be intended to move a file on disc ("source") to another location
+        // ("destination"), but I'm not sure how exactly it needs to be implemented. Probably needs
+        // to be checked in the Riivolution source code. Same for "dlc", which is used to redirect
+        // DLC read accesses to SD/USB.
+        WARN_LOG_FMT(IOS, "Unsupported Riivolution patch type '{}'", patch_name);
+      }
     }
   }
 
@@ -259,8 +274,18 @@ bool Disc::IsValidForGame(const std::string& game_id, std::optional<u16> revisio
   return true;
 }
 
-std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
+std::vector<Patch> Disc::GeneratePatches(const std::string& game_id, u32 ng_id) const
 {
+  IOS::HLE::Kernel m_ios;
+  if (ng_id == 0)
+  {
+    // If the patch did not include a hard-coded device ID, use the one from the emulated console.
+    ng_id = m_ios.GetIOSC().GetDeviceId();
+  }
+
+  const std::string ng_id_str = fmt::format("{0:08X}", ng_id);
+
+  const std::string_view ng_console_id = std::string_view(ng_id_str);
   const std::string_view game_id_full = std::string_view(game_id);
   const std::string_view game_id_no_region = game_id_full.substr(0, 3);
   const std::string_view game_region = game_id_full.substr(3, 1);
@@ -311,6 +336,7 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
           continue;
 
         std::vector<std::pair<std::string, std::string_view>> replacements;
+        replacements.emplace_back(std::pair{"{$__ngid}", ng_console_id});
         replacements.emplace_back(std::pair{"{$__gameid}", game_id_no_region});
         replacements.emplace_back(std::pair{"{$__region}", game_region});
         replacements.emplace_back(std::pair{"{$__maker}", game_developer});
@@ -377,7 +403,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
       }
     }
 
-    for (auto& p : parsed->GeneratePatches(game_id))
+    for (auto& p : parsed->GeneratePatches(game_id, descriptor.console_ng_id))
     {
       p.m_file_data_loader =
           std::make_shared<FileDataLoaderHostFS>(patch_info.root, parsed->m_xml_path, p.m_root);
@@ -409,7 +435,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string root_d
     if (config)
       ApplyConfigDefaults(&*parsed, *config);
 
-    for (auto& patch : parsed->GeneratePatches(game_id))
+    for (auto& patch : parsed->GeneratePatches(game_id, 0))
     {
       patch.m_file_data_loader =
           std::make_shared<FileDataLoaderHostFS>(root_directory, parsed->m_xml_path, patch.m_root);
