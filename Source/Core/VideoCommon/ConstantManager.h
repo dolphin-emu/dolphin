@@ -70,7 +70,6 @@ struct alignas(16) VertexShaderConstants
   u32 missing_color_hex;    // .w, used for change detection but not directly by shaders
   float4 missing_color_value;
 
-  std::array<float4, 6> posnormalmatrix;
   std::array<float4, 4> projection;
   std::array<int4, 4> materials;
   struct Light
@@ -93,6 +92,8 @@ struct alignas(16) VertexShaderConstants
   // .x - texMtxInfo, .y - postMtxInfo, [0..1].z = color, [0..1].w = alpha
   std::array<uint4, 8> xfmem_pack1;
 
+  // TODO: only first element is currently used
+  std::array<u32, 4> cached_posmtxidx;
   float4 cached_normal;
   float4 cached_tangent;
   float4 cached_binormal;
