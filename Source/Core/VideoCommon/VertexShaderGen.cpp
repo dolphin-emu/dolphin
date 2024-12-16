@@ -306,28 +306,24 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // transforms
-  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  if (uid_data->components & VB_HAS_POSMTXIDX)
   {
-    // Vertex format has a per-vertex matrix
-    out.Write("int posidx = int(posmtx.r);\n"
-              "float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
-              "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
-              "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n"
-              "int normidx = posidx & 31;\n"
-              "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
-              "float3 N1 = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
-              "float3 N2 = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
+    // per-vertex position/normal matrix index
+    out.Write("uint posidx = int(posmtx.r);\n");
   }
   else
   {
-    // One shared matrix
-    out.Write("float4 P0 = " I_POSNORMALMATRIX "[0];\n"
-              "float4 P1 = " I_POSNORMALMATRIX "[1];\n"
-              "float4 P2 = " I_POSNORMALMATRIX "[2];\n"
-              "float3 N0 = " I_POSNORMALMATRIX "[3].xyz;\n"
-              "float3 N1 = " I_POSNORMALMATRIX "[4].xyz;\n"
-              "float3 N2 = " I_POSNORMALMATRIX "[5].xyz;\n");
+    // shared position/normal matrix index
+    out.Write("uint posidx = " I_CACHED_POSMTXIDX ".r;\n");
   }
+
+  out.Write("float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
+            "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
+            "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n"
+            "uint normidx = posidx & 31;\n"
+            "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
+            "float3 N1 = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
+            "float3 N2 = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
 
   out.Write("// Multiply the position vector by the position matrix\n"
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
