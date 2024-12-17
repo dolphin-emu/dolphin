@@ -73,7 +73,7 @@ private:
     void DoState(PointerWrap& p);
     void PushSamples(const short* samples, unsigned int num_samples);
     unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit,
-                     float emulationspeed, int timing_variance);
+                     float emulationspeed, bool should_resync, int timing_variance);
     void SetInputSampleRateDivisor(unsigned int rate_divisor);
     unsigned int GetInputSampleRateDivisor() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
@@ -120,6 +120,7 @@ private:
   float m_config_emulation_speed;
   int m_config_timing_variance;
   bool m_config_audio_stretch;
+  bool m_was_fast_forwarding = false;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
