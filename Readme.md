@@ -31,7 +31,6 @@ cmake .. -G Ninja \
 -DCMAKE_EXE_LINKER_FLAGS="-pipe" \
 -DCMAKE_SHARED_LINKER_FLAGS="-pipe" \
 -DCMAKE_MODULE_LINKER_FLAGS="-pipe" \
--DCMAKE_STATIC_LINKER_FLAGS="-pipe"
 
 ninja -j $(nproc)
 ```
@@ -65,7 +64,6 @@ cmake .. -G Ninja \
 -DCMAKE_EXE_LINKER_FLAGS="-flto -O3 -pipe" \
 -DCMAKE_SHARED_LINKER_FLAGS="-flto -O3 -pipe" \
 -DCMAKE_MODULE_LINKER_FLAGS="-flto -O3 -pipe" \
--DCMAKE_STATIC_LINKER_FLAGS="-flto -O3 -pipe" \
 -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
 
 ninja -j $(nproc)
