@@ -30,7 +30,7 @@ cmake .. -G Ninja \
 -DCMAKE_C_FLAGS="-pipe" \
 -DCMAKE_EXE_LINKER_FLAGS="-pipe" \
 -DCMAKE_SHARED_LINKER_FLAGS="-pipe" \
--DCMAKE_MODULE_LINKER_FLAGS="-pipe" \
+-DCMAKE_MODULE_LINKER_FLAGS="-pipe"
 
 ninja -j $(nproc)
 ```
