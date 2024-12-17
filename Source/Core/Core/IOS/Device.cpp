@@ -98,8 +98,8 @@ bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t 
     return false;
 
   auto IsValidVector = [](const auto& vector) { return vector.size == 0 || vector.address != 0; };
-  return std::all_of(in_vectors.begin(), in_vectors.end(), IsValidVector) &&
-         std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
+  return std::ranges::all_of(in_vectors, IsValidVector) &&
+         std::ranges::all_of(io_vectors, IsValidVector);
 }
 
 void IOCtlRequest::Log(std::string_view device_name, Common::Log::LogType type,

@@ -598,9 +598,8 @@ void ShakeMappingIndicator::Update(float elapsed_seconds)
 
   m_position_samples.push_front(ShakeSample{m_motion_state.position / MAX_DISTANCE});
 
-  const bool any_non_zero_samples =
-      std::any_of(m_position_samples.begin(), m_position_samples.end(),
-                  [](const ShakeSample& s) { return s.state.LengthSquared() != 0.0; });
+  const bool any_non_zero_samples = std::ranges::any_of(
+      m_position_samples, [](const ShakeSample& s) { return s.state.LengthSquared() != 0.0; });
 
   // Only start moving the line if there's non-zero data.
   if (m_grid_line_position || any_non_zero_samples)
