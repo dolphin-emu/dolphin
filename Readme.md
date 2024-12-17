@@ -1,17 +1,149 @@
 # Dolphin - A GameCube and Wii Emulator
 
+---
+
 ### Debug Build steps
-1. `mkdir build`
-2. `cd build`
-3. `cmake .. -G Ninja -DENABLE_NOGUI=ON -DENABLE_QT=OFF -DENABLE_HEADLESS=ON -DENABLE_ALSA=OFF -DENABLE_PULSEAUDIO=OFF -DENABLE_VULKAN=ON -DFASTLOG=ON -DENABLE_AUTOUPDATE=OFF -DENABLE_SDL=OFF -DENCODE_FRAMEDUMPS=OFF -DENABLE_LLVM=OFF -DENABLE_X11=OFF -DENABLE_ANALYTICS=OFF -DCMAKE_BUILD_TYPE=Debug -DENABLE_EGL=OFF -DUSE_RETRO_ACHIEVEMENTS=OFF -DUSE_DISCORD_PRESENCE=OFF`
-4. `ninja -j $(nproc)`
 
+```bash
+mkdir build
+cd build
+
+cmake .. -G Ninja \
+-DENABLE_NOGUI=ON \
+-DENABLE_QT=OFF \
+-DENABLE_HEADLESS=ON \
+-DENABLE_ALSA=OFF \
+-DENABLE_PULSEAUDIO=OFF \
+-DENABLE_VULKAN=ON \
+-DFASTLOG=OFF \
+-DENABLE_AUTOUPDATE=OFF \
+-DENABLE_SDL=OFF \
+-DENCODE_FRAMEDUMPS=ON \
+-DENABLE_LLVM=OFF \
+-DENABLE_X11=OFF \
+-DCMAKE_BUILD_TYPE=Release \
+-DENABLE_EGL=OFF \
+-DENABLE_ANALYTICS=OFF \
+-DUSE_RETRO_ACHIEVEMENTS=OFF \
+-DUSE_DISCORD_PRESENCE=OFF \
+-DCMAKE_CXX_FLAGS="-pipe" \
+-DCMAKE_C_FLAGS="-pipe" \
+-DCMAKE_EXE_LINKER_FLAGS="-pipe" \
+-DCMAKE_SHARED_LINKER_FLAGS="-pipe" \
+-DCMAKE_MODULE_LINKER_FLAGS="-pipe" \
+
+ninja -j $(nproc)
+```
+---
 ### Performance Build steps
-1. `mkdir build`
-2. `cd build`
-3. `cmake .. -G Ninja -DENABLE_NOGUI=ON -DENABLE_QT=OFF -DENABLE_HEADLESS=ON -DENABLE_ALSA=OFF -DENABLE_PULSEAUDIO=OFF -DENABLE_VULKAN=ON -DFASTLOG=OFF -DENABLE_AUTOUPDATE=OFF -DENABLE_SDL=OFF -DENCODE_FRAMEDUMPS=ON -DENABLE_LLVM=OFF -DENABLE_X11=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_EGL=OFF -DENABLE_ANALYTICS=OFF -DUSE_RETRO_ACHIEVEMENTS=OFF -DUSE_DISCORD_PRESENCE=OFF -DCMAKE_CXX_FLAGS="-march=native -mtune=native -flto -O3 -pipe" -DCMAKE_C_FLAGS="-march=native -mtune=native -flto -O3 -pipe"`
-4. `ninja -j $(nproc)`
+```bash
 
+mkdir build
+cd build
+
+cmake .. -G Ninja \
+-DENABLE_NOGUI=ON \
+-DENABLE_QT=OFF \
+-DENABLE_HEADLESS=ON \
+-DENABLE_ALSA=OFF \
+-DENABLE_PULSEAUDIO=OFF \
+-DENABLE_VULKAN=ON \
+-DFASTLOG=OFF \
+-DENABLE_AUTOUPDATE=OFF \
+-DENABLE_SDL=OFF \
+-DENCODE_FRAMEDUMPS=ON \
+-DENABLE_LLVM=OFF \
+-DENABLE_X11=OFF \
+-DCMAKE_BUILD_TYPE=Release \
+-DENABLE_EGL=OFF \
+-DENABLE_ANALYTICS=OFF \
+-DUSE_RETRO_ACHIEVEMENTS=OFF \
+-DUSE_DISCORD_PRESENCE=OFF \
+-DCMAKE_CXX_FLAGS="-march=native -mtune=native -flto -O3 -pipe" \
+-DCMAKE_C_FLAGS="-march=native -mtune=native -flto -O3 -pipe" \
+-DCMAKE_EXE_LINKER_FLAGS="-flto -O3 -pipe" \
+-DCMAKE_SHARED_LINKER_FLAGS="-flto -O3 -pipe" \
+-DCMAKE_MODULE_LINKER_FLAGS="-flto -O3 -pipe" \
+-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+
+ninja -j $(nproc)
+```
+---
+
+### PGO Build (Ultra optimized build)
+
+#### Part 1 (generate profile data)
+```bash
+
+mkdir build
+cd build
+
+cmake .. -G Ninja \
+-DENABLE_NOGUI=ON \
+-DENABLE_QT=OFF \
+-DENABLE_HEADLESS=ON \
+-DENABLE_ALSA=OFF \
+-DENABLE_PULSEAUDIO=OFF \
+-DENABLE_VULKAN=ON \
+-DFASTLOG=OFF \
+-DENABLE_AUTOUPDATE=OFF \
+-DENABLE_SDL=OFF \
+-DENCODE_FRAMEDUMPS=ON \
+-DENABLE_LLVM=OFF \
+-DENABLE_X11=OFF \
+-DCMAKE_BUILD_TYPE=Release \
+-DENABLE_EGL=OFF \
+-DENABLE_ANALYTICS=OFF \
+-DUSE_RETRO_ACHIEVEMENTS=OFF \
+-DUSE_DISCORD_PRESENCE=OFF \
+-DCMAKE_CXX_FLAGS="-march=native -mtune=native -flto -O3 -pipe -fprofile-generate" \
+-DCMAKE_C_FLAGS="-march=native -mtune=native -flto -O3 -pipe -fprofile-generate" \
+-DCMAKE_EXE_LINKER_FLAGS="-flto -fprofile-generate" \
+-DCMAKE_SHARED_LINKER_FLAGS="-flto -fprofile-generate" \
+-DCMAKE_MODULE_LINKER_FLAGS="-flto -fprofile-generate" \
+-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+
+ninja -j $(nproc)
+```
+
+**After building this version, run for a bit and play to generate profiling data, the more, the better.**
+
+#### Part 2 (Merge profile data)
+```bash
+llvm-profdata merge -output=default.profdata *.profraw
+```
+
+#### Part 3 (Build with profile data)
+```bash
+cd build
+
+cmake .. -G Ninja \
+  -DENABLE_NOGUI=ON \
+  -DENABLE_QT=OFF \
+  -DENABLE_HEADLESS=ON \
+  -DENABLE_ALSA=OFF \
+  -DENABLE_PULSEAUDIO=OFF \
+  -DENABLE_VULKAN=ON \
+  -DFASTLOG=OFF \
+  -DENABLE_AUTOUPDATE=OFF \
+  -DENABLE_SDL=OFF \
+  -DENCODE_FRAMEDUMPS=ON \
+  -DENABLE_LLVM=OFF \
+  -DENABLE_X11=OFF \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DENABLE_EGL=OFF \
+  -DENABLE_ANALYTICS=OFF \
+  -DUSE_RETRO_ACHIEVEMENTS=OFF \
+  -DUSE_DISCORD_PRESENCE=OFF \
+  -DCMAKE_CXX_FLAGS="-march=native -mtune=native -flto -O3 -pipe -fprofile-use=default.profdata -fprofile-correction" \
+  -DCMAKE_C_FLAGS="-march=native -mtune=native -flto -O3 -pipe -fprofile-use=default.profdata -fprofile-correction" \
+  -DCMAKE_EXE_LINKER_FLAGS="-flto -O3 -pipe -fprofile-use=default.profdata -fprofile-correction" \
+  -DCMAKE_SHARED_LINKER_FLAGS="-flto -O3 -pipe -fprofile-use=default.profdata -fprofile-correction" \
+  -DCMAKE_MODULE_LINKER_FLAGS="-flto -O3 -pipe -fprofile-use=default.profdata -fprofile-correction" \
+  -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+
+ninja -j $(nproc)
+```
 
 
 [Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci/) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [GitHub Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://app.transifex.com/dolphinemu/dolphin-emu/dashboard/)
