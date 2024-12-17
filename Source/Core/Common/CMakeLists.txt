@@ -113,6 +113,7 @@ add_library(common
   PcapFile.h
   Profiler.cpp
   Profiler.h
+  Projection.h
   QoSSession.cpp
   QoSSession.h
   Random.cpp
