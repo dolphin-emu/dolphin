@@ -1,7 +1,6 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#if HAVE_DRM
 #include <unistd.h>
 
 #include "DolphinNoGUI/Platform.h"
@@ -63,4 +62,3 @@ std::unique_ptr<Platform> Platform::CreateDRMPlatform()
 {
   return std::make_unique<PlatformDRM>();
 }
-#endif
