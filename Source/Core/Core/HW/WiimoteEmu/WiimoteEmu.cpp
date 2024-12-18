@@ -22,6 +22,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
 
@@ -269,7 +270,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // Extension
-  groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
+  groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension"), index));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Classic>());
@@ -282,6 +283,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
+  m_motion_plus_setting.AddCallback(
+      [index](const bool attached) { Host_UpdateWiimoteMotionPlus(index, attached); });
 
   // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
