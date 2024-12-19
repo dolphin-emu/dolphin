@@ -112,18 +112,12 @@ struct Rectangle
 
   constexpr T GetWidth() const { return GetDistance(left, right); }
   constexpr T GetHeight() const { return GetDistance(top, bottom); }
-  // If the rectangle is in a coordinate system with a lower-left origin, use
-  // this Clamp.
-  void ClampLL(T x1, T y1, T x2, T y2)
-  {
-    left = std::clamp(left, x1, x2);
-    right = std::clamp(right, x1, x2);
-    top = std::clamp(top, y2, y1);
-    bottom = std::clamp(bottom, y2, y1);
-  }
 
-  // If the rectangle is in a coordinate system with an upper-left origin,
-  // use this Clamp.
+  // Clamp this rectangle to the given rectangle, specified as coordinates in
+  // a coordinate system with an upper-left origin.
+  //
+  // REQUIRES: x1 <= x2
+  // REQUIRES: y1 <= y2
   void ClampUL(T x1, T y1, T x2, T y2)
   {
     left = std::clamp(left, x1, x2);
