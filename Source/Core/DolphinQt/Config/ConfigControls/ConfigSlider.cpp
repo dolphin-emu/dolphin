@@ -1,36 +1,45 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <QFont>
+
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
-
-#include <QSignalBlocker>
-
-#include "Common/Config/Config.h"
-
 #include "DolphinQt/Settings.h"
 
 ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
-    : ToolTipSlider(Qt::Horizontal), m_setting(setting)
+    : ConfigSlider(minimum, maximum, setting, nullptr, tick)
+{
+}
+
+ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting,
+                           Config::Layer* layer, int tick)
+    : ConfigControl(Qt::Horizontal, setting.GetLocation(), layer), m_setting(setting)
+
 {
   setMinimum(minimum);
   setMaximum(maximum);
   setTickInterval(tick);
-
-  setValue(Config::Get(setting));
+  setValue(ReadValue(setting));
 
   connect(this, &ConfigSlider::valueChanged, this, &ConfigSlider::Update);
-
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
-    QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
-    setFont(bf);
-
-    const QSignalBlocker blocker(this);
-    setValue(Config::Get(m_setting));
-  });
 }
 
 void ConfigSlider::Update(int value)
 {
-  Config::SetBaseOrCurrent(m_setting, value);
+  SaveValue(m_setting, value);
+}
+
+void ConfigSlider::OnConfigChanged()
+{
+  setValue(ReadValue(m_setting));
+}
+
+ConfigSliderLabel::ConfigSliderLabel(const QString& text, ConfigSlider* slider)
+    : QLabel(text), m_slider(QPointer<ConfigSlider>(slider))
+{
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this]() {
+    // Label shares font changes with slider to mark game ini settings.
+    if (m_slider)
+      setFont(m_slider->font());
+  });
 }
