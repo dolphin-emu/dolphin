@@ -8,6 +8,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -243,31 +244,24 @@ bool SwapChain::SelectPresentMode()
                                                   &mode_count, present_modes.data());
   ASSERT(res == VK_SUCCESS);
 
-  // Checks if a particular mode is supported, if it is, returns that mode.
-  auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
-    auto it = std::find_if(present_modes.begin(), present_modes.end(),
-                           [check_mode](VkPresentModeKHR mode) { return check_mode == mode; });
-    return it != present_modes.end();
-  };
-
   // If vsync is enabled, use VK_PRESENT_MODE_FIFO_KHR.
   // This check should not fail with conforming drivers, as the FIFO present mode is mandated by
   // the specification (VK_KHR_swapchain). In case it isn't though, fall through to any other mode.
-  if (m_vsync_enabled && CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
+  if (m_vsync_enabled && Common::Contains(present_modes, VK_PRESENT_MODE_FIFO_KHR))
   {
     m_present_mode = VK_PRESENT_MODE_FIFO_KHR;
     return true;
   }
 
   // Prefer screen-tearing, if possible, for lowest latency.
-  if (CheckForMode(VK_PRESENT_MODE_IMMEDIATE_KHR))
+  if (Common::Contains(present_modes, VK_PRESENT_MODE_IMMEDIATE_KHR))
   {
     m_present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     return true;
   }
 
   // Use optimized-vsync above vsync.
-  if (CheckForMode(VK_PRESENT_MODE_MAILBOX_KHR))
+  if (Common::Contains(present_modes, VK_PRESENT_MODE_MAILBOX_KHR))
   {
     m_present_mode = VK_PRESENT_MODE_MAILBOX_KHR;
     return true;
