@@ -49,6 +49,15 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateXlibSurfaceKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXlibPresentationSupportKHR, false)
 #endif
 
+#if defined(VK_USE_PLATFORM_DISPLAY_KHR)
+VULKAN_INSTANCE_ENTRY_POINT(vkCreateDisplayPlaneSurfaceKHR, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetDisplayPlaneCapabilitiesKHR, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceDisplayPlanePropertiesKHR, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetDisplayPlaneSupportedDisplaysKHR, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetDisplayModePropertiesKHR, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceDisplayPropertiesKHR, true)
+#endif
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateAndroidSurfaceKHR, false)
 #endif
