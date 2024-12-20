@@ -155,10 +155,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
             [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
 
-  const auto advanced_setting_count = std::count_if(
-      group->numeric_settings.begin(), group->numeric_settings.end(), [](auto& setting) {
-        return setting->GetVisibility() == ControllerEmu::SettingVisibility::Advanced;
-      });
+  const auto advanced_setting_count =
+      std::ranges::count(group->numeric_settings, ControllerEmu::SettingVisibility::Advanced,
+                         &ControllerEmu::NumericSettingBase::GetVisibility);
 
   if (advanced_setting_count != 0)
   {
