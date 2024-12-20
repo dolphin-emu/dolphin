@@ -377,7 +377,7 @@ void CodeWidget::UpdateSymbols()
 
   for (const auto& symbol : m_ppc_symbol_db.Symbols())
   {
-    QString name = QString::fromStdString(symbol.second.name);
+    QString name = QString::fromStdString(symbol.second.GetName());
 
     // If the symbol has an object name, add it to the entry name.
     if (!symbol.second.object_name.empty())
@@ -415,15 +415,16 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
     if (call_symbol)
     {
       QString name;
+      const std::string& symbol_name = call_symbol->GetName();
 
       if (!call_symbol->object_name.empty())
       {
         name = QString::fromStdString(
-            fmt::format("< {} ({}, {:08x})", call_symbol->name, call_symbol->object_name, addr));
+            fmt::format("< {} ({}, {:08x})", symbol_name, call_symbol->object_name, addr));
       }
       else
       {
-        name = QString::fromStdString(fmt::format("< {} ({:08x})", call_symbol->name, addr));
+        name = QString::fromStdString(fmt::format("< {} ({:08x})", symbol_name, addr));
       }
 
       if (!name.contains(filter, Qt::CaseInsensitive))
@@ -449,15 +450,16 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
     if (caller_symbol)
     {
       QString name;
+      const std::string& symbol_name = caller_symbol->GetName();
 
       if (!caller_symbol->object_name.empty())
       {
-        name = QString::fromStdString(fmt::format("< {} ({}, {:08x})", caller_symbol->name,
-                                                  caller_symbol->object_name, addr));
+        name = QString::fromStdString(
+            fmt::format("< {} ({}, {:08x})", symbol_name, caller_symbol->object_name, addr));
       }
       else
       {
-        name = QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
+        name = QString::fromStdString(fmt::format("< {} ({:08x})", symbol_name, addr));
       }
 
       if (!name.contains(filter, Qt::CaseInsensitive))
