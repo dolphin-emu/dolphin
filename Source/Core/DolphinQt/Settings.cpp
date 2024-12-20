@@ -309,11 +309,9 @@ void Settings::RemovePath(const QString& qpath)
   std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  auto new_end = std::remove(paths.begin(), paths.end(), path);
-  if (new_end == paths.end())
+  if (std::erase(paths, path) == 0)
     return;
 
-  paths.erase(new_end, paths.end());
   Config::SetIsoPaths(paths);
   emit PathRemoved(qpath);
 }
