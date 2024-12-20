@@ -183,10 +183,7 @@ void LoadPatches()
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  {
-    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-    AchievementManager::GetInstance().FilterApprovedPatches(s_on_frame, sconfig.GetGameID());
-  }
+  AchievementManager::GetInstance().FilterApprovedPatches(s_on_frame, sconfig.GetGameID());
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // Check if I'm syncing Codes
