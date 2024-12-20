@@ -13,4 +13,6 @@ class DolphinVibratorManagerPassthrough(private val vibratorManager: VibratorMan
     override fun getVibrator(vibratorId: Int): Vibrator = vibratorManager.getVibrator(vibratorId)
 
     override fun getVibratorIds(): IntArray = vibratorManager.vibratorIds
+
+    override fun getDefaultVibrator(): Vibrator = vibratorManager.defaultVibrator
 }

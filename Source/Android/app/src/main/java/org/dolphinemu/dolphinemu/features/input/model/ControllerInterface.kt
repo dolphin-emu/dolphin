@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.os.VibratorManager
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -105,27 +104,13 @@ object ControllerInterface {
 
     @Keep
     @JvmStatic
-    private fun getVibratorManager(device: InputDevice): DolphinVibratorManager {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            DolphinVibratorManagerPassthrough(device.vibratorManager)
-        } else {
-            DolphinVibratorManagerCompat(device.vibrator)
-        }
-    }
+    private fun getDeviceVibratorManager(device: InputDevice): DolphinVibratorManager =
+        DolphinVibratorManagerFactory.getDeviceVibratorManager(device)
 
     @Keep
     @JvmStatic
-    private fun getSystemVibratorManager(): DolphinVibratorManager {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = DolphinApplication.getAppContext()
-                .getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager?
-            if (vibratorManager != null)
-                return DolphinVibratorManagerPassthrough(vibratorManager)
-        }
-        val vibrator = DolphinApplication.getAppContext()
-            .getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        return DolphinVibratorManagerCompat(vibrator)
-    }
+    private fun getSystemVibratorManager(): DolphinVibratorManager =
+        DolphinVibratorManagerFactory.getSystemVibratorManager()
 
     @Keep
     @JvmStatic
