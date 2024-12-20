@@ -176,7 +176,7 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
     return m_ticket;
 
   const std::vector<u8> sig = m_ticket.GetSignatureData();
-  if (!std::all_of(sig.cbegin(), sig.cend(), [](u8 a) { return a == 0; }))
+  if (!std::ranges::all_of(sig, [](u8 a) { return a == 0; }))
   {
     // This does not look like a typical "invalid common key index" ticket, so let's assume
     // the index is correct. This saves some time when reading properly signed titles.

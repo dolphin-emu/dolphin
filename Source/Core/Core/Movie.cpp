@@ -93,7 +93,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
 {
   std::array<u8, 20> revision_bytes{};
 
-  if (revision.size() % 2 == 0 && std::all_of(revision.begin(), revision.end(), ::isxdigit))
+  if (revision.size() % 2 == 0 && std::ranges::all_of(revision, Common::IsXDigit))
   {
     // The revision string normally contains a git commit hash,
     // which is 40 hexadecimal digits long. In DTM files, each pair of

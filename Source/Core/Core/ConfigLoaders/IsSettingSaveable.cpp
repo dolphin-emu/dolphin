@@ -27,9 +27,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::WIIMOTE_BB_SOURCE.GetLocation(),
   };
 
-  return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),
-                     [&config_location](const Config::Location* location) {
-                       return *location == config_location;
-                     });
+  return std::ranges::any_of(s_setting_saveable, [&config_location](const auto* location) {
+    return *location == config_location;
+  });
 }
 }  // namespace ConfigLoaders
