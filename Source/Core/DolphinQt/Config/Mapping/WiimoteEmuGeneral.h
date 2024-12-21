@@ -27,6 +27,7 @@ private:
   void OnAttachmentChanged(int index);
   // Selection chosen by user.
   void OnAttachmentSelected(int index);
+  void OnMotionPlusUpdate();
 
   void ConfigChanged();
   void Update();

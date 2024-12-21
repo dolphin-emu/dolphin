@@ -15,6 +15,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
+#include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/InputConfig.h"
@@ -88,6 +89,8 @@ void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
   GetParent()->ShowExtensionMotionTabs(extension == WiimoteEmu::ExtensionNumber::NUNCHUK);
 
   m_extension_widget->ChangeExtensionType(extension);
+
+  Settings::Instance().UpdateWiimoteExtension(GetPort(), extension);
 }
 
 void WiimoteEmuGeneral::OnAttachmentSelected(int extension)
@@ -110,6 +113,7 @@ void WiimoteEmuGeneral::ConfigChanged()
 
   m_extension_combo_dynamic_indicator->setVisible(
       !ce_extension->GetSelectionSetting().IsSimpleValue());
+  OnMotionPlusUpdate();
 }
 
 void WiimoteEmuGeneral::Update()
@@ -128,9 +132,18 @@ void WiimoteEmuGeneral::LoadSettings()
 void WiimoteEmuGeneral::SaveSettings()
 {
   Wiimote::GetConfig()->SaveConfig();
+  OnMotionPlusUpdate();
 }
 
 InputConfig* WiimoteEmuGeneral::GetConfig()
 {
   return Wiimote::GetConfig();
+}
+
+void WiimoteEmuGeneral::OnMotionPlusUpdate()
+{
+  const int port = GetPort();
+  const WiimoteEmu::Wiimote* const wiimote =
+      static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(port));
+  Settings::Instance().UpdateWiimoteMotionPlus(port, wiimote->IsMotionPlusAttached());
 }
