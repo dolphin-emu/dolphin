@@ -36,6 +36,7 @@ static void ResetVulkanLibraryFunctionPointers()
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required) name = nullptr;
 #define VULKAN_DEVICE_ENTRY_POINT(name, required) name = nullptr;
 #include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
+
 #undef VULKAN_DEVICE_ENTRY_POINT
 #undef VULKAN_INSTANCE_ENTRY_POINT
 #undef VULKAN_MODULE_ENTRY_POINT
@@ -108,6 +109,7 @@ bool LoadVulkanLibrary(bool force_system_library)
     return false;                                                                                  \
   }
 #include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
+
 #undef VULKAN_MODULE_ENTRY_POINT
 
   return true;
@@ -135,6 +137,7 @@ bool LoadVulkanInstanceFunctions(VkInstance instance)
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required)                                                \
   LoadFunction(reinterpret_cast<PFN_vkVoidFunction*>(&name), #name, required);
 #include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
+
 #undef VULKAN_INSTANCE_ENTRY_POINT
 
   return !required_functions_missing;
@@ -155,6 +158,7 @@ bool LoadVulkanDeviceFunctions(VkDevice device)
 #define VULKAN_DEVICE_ENTRY_POINT(name, required)                                                  \
   LoadFunction(reinterpret_cast<PFN_vkVoidFunction*>(&name), #name, required);
 #include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
+
 #undef VULKAN_DEVICE_ENTRY_POINT
 
   return !required_functions_missing;
