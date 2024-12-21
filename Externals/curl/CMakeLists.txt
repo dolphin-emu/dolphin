@@ -1,62 +1,49 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/curl/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/curl/lib)
+set(BUILD_CURL_EXE OFF)
+set(BUILD_EXAMPLES OFF)
+set(BUILD_LIBCURL_DOCS OFF)
+set(BUILD_MISC_DOCS OFF)
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_STATIC_LIBS ON)
+set(BUILD_TESTING OFF)
+set(CURL_ENABLE_EXPORT_TARGET OFF)
 
-set(CURL_LIBS MbedTLS::mbedtls zlibstatic)
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(use_core_foundation ON)
+set(HTTP_ONLY ON)
 
-    find_library(SYSTEMCONFIGURATION_FRAMEWORK "SystemConfiguration")
-    if(NOT SYSTEMCONFIGURATION_FRAMEWORK)
-        message(FATAL_ERROR "SystemConfiguration framework not found")
-    endif()
+set(CURL_USE_LIBPSL OFF)
+set(CURL_USE_LIBSSH2 OFF)
+set(CURL_ZLIB OFF CACHE BOOL "" FORCE)
+set(CURL_ZSTD OFF)
+set(USE_LIBIDN2 OFF)
+set(USE_NGHTTP2 OFF)
 
-    list(APPEND CURL_LIBS "-framework SystemConfiguration")
+if(UNIX)
+  # We use mbedtls on Unix(-like) systems and Android.
+  set(CURL_USE_OPENSSL OFF)
+
+  # This is set if the dolphin_find_optional_system_library call from the main CMakeLists.txt
+  # is able to find mbedtls on the system.
+  if(MBEDTLS_FOUND)
+    # We can just enable CURL_USE_MBEDTLS.
+    set(CURL_USE_MBEDTLS ON)
+  else()
+    # HACK: Set some internal variables to pretend like mbedtls was found on the system.
+    # We can't use CURL_USE_MBEDTLS with our copy from Externals, as that flag expects
+    # mbedtls to be installed (the CMakeLists attempts to search for it with find_package).
+    set(_ssl_enabled ON)
+    set(USE_MBEDTLS ON)
+    set(_curl_ca_bundle_supported TRUE)
+  endif()
 endif()
 
-file(GLOB SRCS curl/lib/*.c curl/lib/vauth/*.c curl/lib/vquic/*.c curl/lib/vssh/*.c curl/lib/vtls/*.c)
-add_library(
-        curl
-        STATIC
-        curl/include/curl/curl.h
-        ${SRCS}
-)
-
-set(SEARCH_CA_BUNDLE_PATHS
-        /etc/ssl/certs/ca-certificates.crt
-        /etc/pki/tls/certs/ca-bundle.crt
-        /usr/share/ssl/certs/ca-bundle.crt
-        /usr/local/share/certs/ca-root-nss.crt
-        /etc/ssl/cert.pem)
-
-foreach(SEARCH_CA_BUNDLE_PATH ${SEARCH_CA_BUNDLE_PATHS})
-    if(EXISTS "${SEARCH_CA_BUNDLE_PATH}")
-        message(STATUS "Found CA bundle: ${SEARCH_CA_BUNDLE_PATH}")
-        set(CURL_CA_BUNDLE "${SEARCH_CA_BUNDLE_PATH}")
-        set(CURL_CA_BUNDLE_SET TRUE)
-        break()
-    endif()
-endforeach()
-
-if(NOT CURL_CA_PATH_SET)
-    if(EXISTS "/etc/ssl/certs")
-        set(CURL_CA_PATH "/etc/ssl/certs")
-        set(CURL_CA_PATH_SET TRUE)
-    endif()
+if(WIN32)
+  set(CURL_USE_SCHANNEL ON)
 endif()
 
-dolphin_disable_warnings(curl)
-target_link_libraries(curl ${CURL_LIBS})
-target_include_directories(curl PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/curl/include")
-target_compile_definitions(curl PRIVATE "BUILDING_LIBCURL=1")
-if (WIN32)
-    target_compile_definitions(curl PUBLIC "CURL_STATICLIB=1" "CURL_DISABLE_LDAP" "USE_WINDOWS_SSPI" "USE_SCHANNEL")
-    target_link_libraries(curl Crypt32.lib)
-else()
-    target_compile_definitions(curl PUBLIC "CURL_STATICLIB=1" "USE_MBEDTLS=1" "HAVE_CONFIG_H=1" "CURL_DISABLE_LDAP")
-    if (CURL_CA_PATH_SET)
-        target_compile_definitions(curl PUBLIC CURL_CA_PATH="${CURL_CA_PATH}")
-    endif()
-endif()
+add_subdirectory(curl)
 
-add_library(CURL::libcurl ALIAS curl)
+if(UNIX AND NOT MBEDTLS_FOUND)
+  # HACK: Manually link with the mbedtls libraries.
+  target_link_libraries(libcurl_static PRIVATE
+    MbedTLS::mbedtls
+    MbedTLS::mbedx509)
+endif()
