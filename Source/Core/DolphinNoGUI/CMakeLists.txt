@@ -34,6 +34,12 @@ else()
   set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
 endif()
 
+if(ENABLE_DRM)
+  target_sources(dolphin-nogui PRIVATE PlatformDRM.cpp)
+endif()
+
+set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
+
 target_link_libraries(dolphin-nogui
 PRIVATE
   core
