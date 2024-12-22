@@ -176,7 +176,7 @@ void CPUManager::RunAdjacentSystems(bool running)
   m_system.GetFifo().EmulatorState(running);
   // Core is responsible for shutting down the sound stream.
   if (m_state != State::PowerDown)
-    AudioCommon::SetSoundStreamRunning(m_system, running);
+    running ? AudioCommon::StartSoundStream(m_system) : AudioCommon::StopSoundStream(m_system);
 }
 
 void CPUManager::Stop()
