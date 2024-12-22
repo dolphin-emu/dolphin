@@ -182,7 +182,7 @@ void StartSoundStream(Core::System& system)
 
   system.StartSoundStream();
 
-  if (sound_stream->SetRunning(true))
+  if (sound_stream->Start())
     return;
 
   ERROR_LOG_FMT(AUDIO, "Error starting stream.");
@@ -200,7 +200,7 @@ void StopSoundStream(Core::System& system)
 
   system.StopSoundStream();
 
-  if (sound_stream->SetRunning(false))
+  if (sound_stream->Stop())
     return;
 
   ERROR_LOG_FMT(AUDIO, "Error stopping stream.");

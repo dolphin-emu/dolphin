@@ -168,150 +168,150 @@ bool WASAPIStream::Init()
   return true;
 }
 
-bool WASAPIStream::SetRunning(bool running)
+bool WASAPIStream::Start()
 {
-  if (running)
+  ComPtr<IMMDevice> device;
+
+  HRESULT result;
+
+  if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
   {
-    ComPtr<IMMDevice> device;
+    result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
+  }
+  else
+  {
+    result = S_OK;
+    device = GetDeviceByName(Config::Get(Config::MAIN_WASAPI_DEVICE));
 
-    HRESULT result;
-
-    if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
+    if (!device)
     {
+      ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
+                    Config::Get(Config::MAIN_WASAPI_DEVICE));
       result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
     }
-    else
-    {
-      result = S_OK;
-      device = GetDeviceByName(Config::Get(Config::MAIN_WASAPI_DEVICE));
+  }
 
-      if (!device)
-      {
-        ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
-                      Config::Get(Config::MAIN_WASAPI_DEVICE));
-        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
-      }
-    }
+  if (!HandleWinAPI("Failed to obtain default endpoint", result))
+    return false;
 
-    if (!HandleWinAPI("Failed to obtain default endpoint", result))
+  // Show a friendly name in the log
+  ComPtr<IPropertyStore> device_properties;
+
+  result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
+
+  if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
+    return false;
+
+  wil::unique_prop_variant device_name;
+  device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
+
+  INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", TStrToUTF8(device_name.pwszVal));
+
+  ComPtr<IAudioClient> audio_client;
+
+  // Get IAudioDevice
+  result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
+                            reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
+
+  if (!HandleWinAPI("Failed to activate IAudioClient", result))
+    return false;
+
+  REFERENCE_TIME device_period = 0;
+
+  result = audio_client->GetDevicePeriod(nullptr, &device_period);
+
+  device_period += Config::Get(Config::MAIN_AUDIO_LATENCY) * (10000 / m_format.Format.nChannels);
+  INFO_LOG_FMT(AUDIO, "Audio period set to {}", device_period);
+
+  if (!HandleWinAPI("Failed to obtain device period", result))
+    return false;
+
+  result = audio_client->Initialize(
+      AUDCLNT_SHAREMODE_EXCLUSIVE,
+      AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
+      device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
+
+  if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
+  {
+    OSD::AddMessage("Your current audio device doesn't support 16-bit 48000 hz PCM audio. WASAPI "
+                    "exclusive mode won't work.",
+                    6000U);
+    return false;
+  }
+
+  if (result == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED)
+  {
+    result = audio_client->GetBufferSize(&m_frames_in_buffer);
+
+    if (!HandleWinAPI("Failed to get aligned buffer size", result))
       return false;
-
-    // Show a friendly name in the log
-    ComPtr<IPropertyStore> device_properties;
-
-    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
-
-    if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
-      return false;
-
-    wil::unique_prop_variant device_name;
-    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
-
-    INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", TStrToUTF8(device_name.pwszVal));
-
-    ComPtr<IAudioClient> audio_client;
 
     // Get IAudioDevice
     result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                              reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
+                              reinterpret_cast<LPVOID*>(audio_client.ReleaseAndGetAddressOf()));
 
-    if (!HandleWinAPI("Failed to activate IAudioClient", result))
+    if (!HandleWinAPI("Failed to reactivate IAudioClient", result))
       return false;
 
-    REFERENCE_TIME device_period = 0;
-
-    result = audio_client->GetDevicePeriod(nullptr, &device_period);
-
-    device_period += Config::Get(Config::MAIN_AUDIO_LATENCY) * (10000 / m_format.Format.nChannels);
-    INFO_LOG_FMT(AUDIO, "Audio period set to {}", device_period);
-
-    if (!HandleWinAPI("Failed to obtain device period", result))
-      return false;
+    device_period =
+        static_cast<REFERENCE_TIME>(
+            10000.0 * 1000 * m_frames_in_buffer / m_format.Format.nSamplesPerSec + 0.5) +
+        Config::Get(Config::MAIN_AUDIO_LATENCY) * 10000;
 
     result = audio_client->Initialize(
         AUDCLNT_SHAREMODE_EXCLUSIVE,
         AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
         device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
-
-    if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
-    {
-      OSD::AddMessage("Your current audio device doesn't support 16-bit 48000 hz PCM audio. WASAPI "
-                      "exclusive mode won't work.",
-                      6000U);
-      return false;
-    }
-
-    if (result == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED)
-    {
-      result = audio_client->GetBufferSize(&m_frames_in_buffer);
-
-      if (!HandleWinAPI("Failed to get aligned buffer size", result))
-        return false;
-
-      // Get IAudioDevice
-      result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                reinterpret_cast<LPVOID*>(audio_client.ReleaseAndGetAddressOf()));
-
-      if (!HandleWinAPI("Failed to reactivate IAudioClient", result))
-        return false;
-
-      device_period =
-          static_cast<REFERENCE_TIME>(
-              10000.0 * 1000 * m_frames_in_buffer / m_format.Format.nSamplesPerSec + 0.5) +
-          Config::Get(Config::MAIN_AUDIO_LATENCY) * 10000;
-
-      result = audio_client->Initialize(
-          AUDCLNT_SHAREMODE_EXCLUSIVE,
-          AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
-          device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
-    }
-
-    if (!HandleWinAPI("Failed to initialize IAudioClient", result))
-      return false;
-
-    result = audio_client->GetBufferSize(&m_frames_in_buffer);
-
-    if (!HandleWinAPI("Failed to get buffer size from IAudioClient", result))
-      return false;
-
-    ComPtr<IAudioRenderClient> audio_renderer;
-
-    result = audio_client->GetService(IID_PPV_ARGS(audio_renderer.GetAddressOf()));
-
-    if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
-      return false;
-
-    wil::unique_event_nothrow need_data_event;
-    need_data_event.create();
-
-    audio_client->SetEventHandle(need_data_event.get());
-
-    result = audio_client->Start();
-
-    if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
-      return false;
-
-    INFO_LOG_FMT(AUDIO, "WASAPI: Successfully initialized!");
-
-    // "Commit" audio client and audio renderer now
-    m_audio_client = std::move(audio_client);
-    m_audio_renderer = std::move(audio_renderer);
-    m_need_data_event = std::move(need_data_event);
-
-    m_running.store(true, std::memory_order_relaxed);
-    m_thread = std::thread(&WASAPIStream::SoundLoop, this);
   }
-  else
-  {
-    m_running.store(false, std::memory_order_relaxed);
 
-    if (m_thread.joinable())
-      m_thread.join();
+  if (!HandleWinAPI("Failed to initialize IAudioClient", result))
+    return false;
 
-    m_need_data_event.reset();
-    m_audio_renderer.Reset();
-    m_audio_client.Reset();
-  }
+  result = audio_client->GetBufferSize(&m_frames_in_buffer);
+
+  if (!HandleWinAPI("Failed to get buffer size from IAudioClient", result))
+    return false;
+
+  ComPtr<IAudioRenderClient> audio_renderer;
+
+  result = audio_client->GetService(IID_PPV_ARGS(audio_renderer.GetAddressOf()));
+
+  if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
+    return false;
+
+  wil::unique_event_nothrow need_data_event;
+  need_data_event.create();
+
+  audio_client->SetEventHandle(need_data_event.get());
+
+  result = audio_client->Start();
+
+  if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
+    return false;
+
+  INFO_LOG_FMT(AUDIO, "WASAPI: Successfully initialized!");
+
+  // "Commit" audio client and audio renderer now
+  m_audio_client = std::move(audio_client);
+  m_audio_renderer = std::move(audio_renderer);
+  m_need_data_event = std::move(need_data_event);
+
+  m_running.store(true, std::memory_order_relaxed);
+  m_thread = std::thread(&WASAPIStream::SoundLoop, this);
+
+  return true;
+}
+
+bool WASAPIStream::Stop()
+{
+  m_running.store(false, std::memory_order_relaxed);
+
+  if (m_thread.joinable())
+    m_thread.join();
+
+  m_need_data_event.reset();
+  m_audio_renderer.Reset();
+  m_audio_client.Reset();
 
   return true;
 }
