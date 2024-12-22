@@ -96,7 +96,6 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
     }
 
     // Find a plane compatible with the display
-    // Find a plane compatible with the display
     uint32_t compatible_plane_index = UINT32_MAX;
 
     for (uint32_t plane_index = 0; plane_index < plane_count; plane_index++)
