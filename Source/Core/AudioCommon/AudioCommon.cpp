@@ -180,7 +180,7 @@ void StartSoundStream(Core::System& system)
   if (system.IsSoundStreamRunning())
     return;
 
-  system.SetSoundStreamRunning(true);
+  system.StartSoundStream();
 
   if (sound_stream->SetRunning(true))
     return;
@@ -198,7 +198,7 @@ void StopSoundStream(Core::System& system)
   if (!system.IsSoundStreamRunning())
     return;
 
-  system.SetSoundStreamRunning(false);
+  system.StopSoundStream();
 
   if (sound_stream->SetRunning(false))
     return;
