@@ -38,7 +38,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
-static const char* MC_HDR = "MC_SYSTEM_AREA";
+static constexpr char HEADER_FILENAME[] = "header.bin";
 
 static std::string GenerateDefaultGCIFilename(const Memcard::DEntry& entry,
                                               bool card_encoding_is_shift_jis)
@@ -186,7 +186,21 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
 {
   // Use existing header data if available
   {
-    File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
+    File::IOFile header_file(m_save_directory + HEADER_FILENAME, "rb");
+    if (header_file.IsOpen())
+    {
+      Memcard::Header tmp_hdr;
+      if (header_file.ReadBytes(&tmp_hdr, Memcard::BLOCK_SIZE))
+      {
+        m_hdr = tmp_hdr;
+
+        // Overwrite the memory card size and encoding so that always matches what we want, even if
+        // the header on disk has something different.
+        m_hdr.m_data.m_size_mb = header_data.m_size_mb;
+        m_hdr.m_data.m_encoding = header_data.m_encoding;
+        m_hdr.FixChecksums();
+      }
+    }
   }
 
   const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
@@ -709,12 +723,18 @@ void GCMemcardDirectory::FlushToFile()
       save.m_save_data.clear();
     }
   }
-#if _WRITE_MC_HEADER
-  u8 mc[BLOCK_SIZE * MC_FST_BLOCKS];
-  Read(0, BLOCK_SIZE * MC_FST_BLOCKS, mc);
-  File::IOFile hdrfile(m_save_directory + MC_HDR, "wb");
-  hdrfile.WriteBytes(mc, BLOCK_SIZE * MC_FST_BLOCKS);
-#endif
+
+  std::string header_filename = m_save_directory + HEADER_FILENAME;
+  File::IOFile header_file(header_filename, "wb");
+  if (!header_file.IsOpen())
+  {
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to open file at {} for writing", header_filename);
+    return;
+  }
+  if (!header_file.WriteBytes(&m_hdr, Memcard::BLOCK_SIZE))
+  {
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to write header to {}", header_filename);
+  }
 }
 
 void GCMemcardDirectory::DoState(PointerWrap& p)
