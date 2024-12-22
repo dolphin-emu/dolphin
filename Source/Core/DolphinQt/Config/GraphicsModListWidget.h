@@ -8,7 +8,6 @@
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
 class GraphicsModWarningWidget;

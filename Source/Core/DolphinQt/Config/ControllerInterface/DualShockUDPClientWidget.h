@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <QStringList>
 #include <QWidget>
 
 class QCheckBox;

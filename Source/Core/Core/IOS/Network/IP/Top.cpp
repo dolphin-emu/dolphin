@@ -25,7 +25,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
-#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"

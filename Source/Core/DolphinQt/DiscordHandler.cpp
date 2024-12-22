@@ -6,7 +6,6 @@
 #include "DolphinQt/DiscordHandler.h"
 
 #include <chrono>
-#include <iterator>
 
 #include <QApplication>
 

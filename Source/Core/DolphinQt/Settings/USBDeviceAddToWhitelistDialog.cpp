@@ -5,24 +5,19 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QErrorMessage>
 #include <QHBoxLayout>
-#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QTimer>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Settings/WiiPane.h"
 
 #include "UICommon/USBUtils.h"
 

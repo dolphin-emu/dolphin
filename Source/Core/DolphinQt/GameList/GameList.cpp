@@ -22,13 +22,7 @@
 #include <cmath>
 #include <utility>
 
-#include <fmt/format.h>
-
 #include <QDesktopServices>
-#include <QDir>
-#include <QErrorMessage>
-#include <QFileDialog>
-#include <QFileInfo>
 #include <QFrame>
 #include <QHeaderView>
 #include <QInputDialog>
@@ -36,13 +30,10 @@
 #include <QLabel>
 #include <QListView>
 #include <QMap>
-#include <QMenu>
 #include <QShortcut>
-#include <QSortFilterProxyModel>
 #include <QTableView>
 #include <QUrl>
 
-#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -65,9 +56,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
-#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
 

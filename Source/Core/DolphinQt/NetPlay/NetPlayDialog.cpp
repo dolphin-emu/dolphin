@@ -23,7 +23,8 @@
 #include <QTextBrowser>
 
 #include <algorithm>
-#include <sstream>
+
+#include <fmt/ranges.h>
 
 #include <fmt/ranges.h>
 

@@ -4,7 +4,6 @@
 #pragma once
 
 #if defined(__LIBUSB__)
-#include <cstddef>
 #include <functional>
 #include <map>
 #include <memory>

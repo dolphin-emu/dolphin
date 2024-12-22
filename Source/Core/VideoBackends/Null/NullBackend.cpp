@@ -9,7 +9,6 @@
 #include "VideoBackends/Null/VideoBackend.h"
 
 #include "Common/Common.h"
-#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Null/NullBoundingBox.h"
 #include "VideoBackends/Null/NullGfx.h"
@@ -18,7 +17,6 @@
 #include "VideoBackends/Null/TextureCache.h"
 
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"

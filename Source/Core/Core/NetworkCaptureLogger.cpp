@@ -6,7 +6,6 @@
 #include <array>
 #include <cerrno>
 #include <cstring>
-#include <iterator>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>

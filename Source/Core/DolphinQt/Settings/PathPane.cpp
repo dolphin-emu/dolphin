@@ -4,12 +4,10 @@
 #include "DolphinQt/Settings/PathPane.h"
 
 #include <QCheckBox>
-#include <QDir>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "Common/Config/Config.h"

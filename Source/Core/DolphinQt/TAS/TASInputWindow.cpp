@@ -7,21 +7,15 @@
 #include <utility>
 
 #include <QApplication>
-#include <QCheckBox>
 #include <QEvent>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QShortcut>
 #include <QSlider>
-#include <QSpinBox>
-#include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"

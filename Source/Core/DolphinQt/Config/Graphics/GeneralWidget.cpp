@@ -3,15 +3,12 @@
 
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
 
-#include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QRadioButton>
 #include <QSignalBlocker>
-#include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"

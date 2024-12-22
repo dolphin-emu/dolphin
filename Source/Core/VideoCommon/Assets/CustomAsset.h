@@ -3,12 +3,10 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 #include <memory>
 #include <mutex>
-#include <optional>
 
 namespace VideoCommon
 {

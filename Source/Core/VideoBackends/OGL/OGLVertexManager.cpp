@@ -5,7 +5,6 @@
 
 #include <fstream>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "Common/Align.h"

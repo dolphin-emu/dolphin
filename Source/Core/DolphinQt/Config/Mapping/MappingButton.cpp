@@ -4,8 +4,6 @@
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 
 #include <QApplication>
-#include <QFontMetrics>
-#include <QMouseEvent>
 #include <QString>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
@@ -15,7 +13,6 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 

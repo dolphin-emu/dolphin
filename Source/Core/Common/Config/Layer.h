@@ -8,7 +8,6 @@
 #include <optional>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 #include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"

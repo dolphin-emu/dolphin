@@ -12,7 +12,6 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QStyle>
-#include <QVBoxLayout>
 
 #include <fmt/format.h>
 

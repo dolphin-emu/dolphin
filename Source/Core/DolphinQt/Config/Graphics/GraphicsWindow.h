@@ -4,7 +4,6 @@
 #pragma once
 
 #include <QDialog>
-#include <QHash>
 
 class AdvancedWidget;
 class EnhancementsWidget;

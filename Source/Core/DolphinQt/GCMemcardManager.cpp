@@ -10,7 +10,6 @@
 #include <fmt/format.h>
 
 #include <QDialogButtonBox>
-#include <QDir>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -19,7 +18,6 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPixmap>
-#include <QPushButton>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>

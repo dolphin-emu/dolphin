@@ -13,7 +13,6 @@
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QPalette>
-#include <QRadioButton>
 #include <QSize>
 #include <QStyle>
 #include <QStyleHints>
@@ -23,23 +22,19 @@
 
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 #include "Core/System.h"
 
-#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"

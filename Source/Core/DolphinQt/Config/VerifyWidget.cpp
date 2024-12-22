@@ -13,7 +13,6 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
-#include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"

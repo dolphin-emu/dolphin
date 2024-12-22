@@ -4,9 +4,7 @@
 #include "DolphinQt/GameList/GameTracker.h"
 
 #include <QApplication>
-#include <QDir>
 #include <QDirIterator>
-#include <QFile>
 
 #include "Common/Config/Config.h"
 

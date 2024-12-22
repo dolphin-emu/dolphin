@@ -5,7 +5,6 @@
 
 #include <QCheckBox>
 #include <QGroupBox>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"

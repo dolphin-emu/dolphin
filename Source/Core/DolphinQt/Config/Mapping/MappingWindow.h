@@ -5,7 +5,6 @@
 
 #include <QDialog>
 #include <QString>
-#include <memory>
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 

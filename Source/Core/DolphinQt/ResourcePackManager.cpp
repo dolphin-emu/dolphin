@@ -7,7 +7,6 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHeaderView>
-#include <QPushButton>
 #include <QTableWidget>
 #include <QUrl>
 

@@ -7,7 +7,6 @@
 
 #include <QObject>
 
-#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "InputCommon/InputProfile.h"
 

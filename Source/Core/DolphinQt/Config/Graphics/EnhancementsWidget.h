@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include <QWidget>
 
 class ConfigBool;
