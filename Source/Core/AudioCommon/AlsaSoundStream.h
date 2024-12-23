@@ -23,7 +23,8 @@ public:
   ~AlsaSound() override;
 
   bool Init() override;
-  bool SetRunning(bool running) override;
+  bool Start() override;
+  bool Stop() override;
 
   static bool IsValid() { return true; }
 
