@@ -8,6 +8,7 @@
 class ConfigBool;
 class ConfigChoice;
 class ConfigInteger;
+class ConfigStringChoice;
 class GameConfigWidget;
 class GraphicsWindow;
 
@@ -27,6 +28,9 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+#if defined(HAVE_FFMPEG)
+  void EnableBitrate();
+#endif
   void OnBackendChanged();
   void OnEmulationStateChanged(bool running);
 
@@ -62,6 +66,7 @@ private:
   // Frame dumping
   ConfigBool* m_dump_use_ffv1;
   ConfigChoice* m_frame_dumps_resolution_type;
+  ConfigStringChoice* m_codec_choice;
   ConfigInteger* m_dump_bitrate;
   ConfigInteger* m_png_compression_level;
 

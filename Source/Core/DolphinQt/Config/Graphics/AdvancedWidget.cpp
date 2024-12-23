@@ -185,13 +185,26 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(m_frame_dumps_resolution_type, 0, 1);
 
 #if defined(HAVE_FFMPEG)
-  m_dump_use_ffv1 =
-      new ConfigBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1, m_game_layer);
+  // Update EnableBitrate() if options are changed.
+  const std::vector<std::pair<QString, QString>> options{
+      {tr("Auto"), QStringLiteral("")},
+      {QStringLiteral("Xvid"), QStringLiteral("mpeg4")},
+      {QStringLiteral("Ut Video"), QStringLiteral("utvideo")},
+      {QStringLiteral("FFV1"), QStringLiteral("ffv1")}};
+
+  m_codec_choice = new ConfigStringChoice(options, Config::GFX_DUMP_CODEC, m_game_layer);
+
+  if (m_codec_choice->currentIndex() == -1)
+    m_codec_choice->setCurrentIndex(Config::Get(Config::GFX_USE_FFV1) ? 4 : 0);
+
+  dump_layout->addWidget(new QLabel(tr("Codec:")), 1, 0);
+  dump_layout->addWidget(m_codec_choice, 1, 1);
+
   m_dump_bitrate = new ConfigInteger(0, 1000000, Config::GFX_BITRATE_KBPS, m_game_layer, 1000);
-  m_dump_bitrate->setEnabled(!m_dump_use_ffv1->isChecked());
-  dump_layout->addWidget(m_dump_use_ffv1, 1, 0);
   dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 2, 0);
   dump_layout->addWidget(m_dump_bitrate, 2, 1);
+
+  EnableBitrate();
 #endif
 
   dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 3, 0);
@@ -263,10 +276,33 @@ void AdvancedWidget::ConnectWidgets()
           [this](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
 
 #if defined(HAVE_FFMPEG)
-  connect(m_dump_use_ffv1, &QCheckBox::toggled, this,
-          [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
+  connect(m_codec_choice, &ConfigStringChoice::currentIndexChanged, this,
+          &AdvancedWidget::EnableBitrate);
 #endif
 }
+
+#if defined(HAVE_FFMPEG)
+void AdvancedWidget::EnableBitrate()
+{
+  const QString& choice = m_codec_choice->currentText();
+  const bool enable = choice != QStringLiteral("Ut Video") && choice != QStringLiteral("FFV1");
+
+  if (m_game_layer)
+  {
+    m_dump_bitrate->setEnabled(enable);
+    return;
+  }
+
+  // Toggle off depreciated Use FFV1 option, so it doesn't collide.
+  if (Config::Get(Config::GFX_USE_FFV1))
+  {
+    auto layer = Config::GetActiveLayerForConfig(Config::GFX_USE_FFV1);
+    Config::Set(layer, Config::GFX_USE_FFV1, false);
+  }
+
+  m_dump_bitrate->setEnabled(enable);
+}
+#endif
 
 void AdvancedWidget::OnBackendChanged()
 {
@@ -391,9 +427,13 @@ void AdvancedWidget::AddDescriptions()
       "possible input for external editing software.<br><br><dolphin_emphasis>If unsure, leave "
       "this at \"Aspect Ratio Corrected Internal Resolution\".</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
-  static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
-                 "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_CODEC_CHOICE_DESCRIPTION[] =
+      QT_TR_NOOP("Selects codec for encoding frame dumps."
+                 "<br><b>Xvid</b>: Lossy. Good compression. Can set bitrate."
+                 "<br><b>Ut Video</b>: Lossless. Fast. Poor compression (large file size). Good "
+                 "compatibility with editing programs."
+                 "<br><b>FFV1</b>: Lossless. Good compression. Slow. Poor compatibility."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
   static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
       QT_TR_NOOP("Specifies the zlib compression level to use when saving PNG images (both for "
@@ -483,7 +523,7 @@ void AdvancedWidget::AddDescriptions()
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
   m_frame_dumps_resolution_type->SetDescription(tr(TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION));
 #ifdef HAVE_FFMPEG
-  m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
+  m_codec_choice->SetDescription(tr(TR_CODEC_CHOICE_DESCRIPTION));
 #endif
   m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
