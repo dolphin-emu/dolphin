@@ -29,7 +29,6 @@ public:
   WindowSystemInfo GetWindowSystemInfo() const override;
 };
 
-
 void PlatformDRM::SetTitle(const std::string& string)
 {
   std::fprintf(stdout, "%s\n", string.c_str());

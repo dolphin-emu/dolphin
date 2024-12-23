@@ -11,7 +11,7 @@
 
 #if defined(HAVE_DRM)
 #define VK_USE_PLATFORM_DISPLAY_KHR
-//#define VK_KHR_display
+// #define VK_KHR_display
 #endif
 
 #if defined(HAVE_X11)

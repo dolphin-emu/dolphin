@@ -36,158 +36,217 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physical_device, const WindowSystemInfo& wsi)
+// Custom comparator to sort by resolution
+bool CompareResolutions(const VkDisplayModePropertiesKHR& a, const VkDisplayModePropertiesKHR& b)
 {
+  const auto& params_a = a.parameters.visibleRegion;
+  const auto& params_b = b.parameters.visibleRegion;
 
+  if (params_a.width != params_b.width)
+    return params_a.width < params_b.width; // Sort by width first
+  return params_a.height < params_b.height;   // Then by height
+}
+
+VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physical_device,
+                                            const WindowSystemInfo& wsi)
+{
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
-if (wsi.type == WindowSystemType::DRM)
-{
-  // Get the first display
-  uint32_t display_count = 1;
-  VkDisplayPropertiesKHR display_props;
-  if (VkResult err = vkGetPhysicalDeviceDisplayPropertiesKHR(physical_device, &display_count, &display_props); err != VK_SUCCESS && err != VK_INCOMPLETE)
+  if (wsi.type == WindowSystemType::DRM)
   {
-    LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPropertiesKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  // Get the first mode of the display
-  uint32_t mode_count = 0;
-  if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display, &mode_count, nullptr); err != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  if (mode_count == 0)
-  {
-    ERROR_LOG_FMT(VIDEO, "Cannot find any mode for the display!");
-    return VK_NULL_HANDLE;
-  }
-
-  VkDisplayModePropertiesKHR mode_props;
-  mode_count = 1;
-  if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display, &mode_count, &mode_props); err != VK_SUCCESS && err != VK_INCOMPLETE)
-  {
-    LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  // Get the list of planes
-  uint32_t plane_count = 0;
-  if (VkResult err = vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physical_device, &plane_count, nullptr); err != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  if (plane_count == 0)
-  {
-    ERROR_LOG_FMT(VIDEO, "No display planes found!");
-    return VK_NULL_HANDLE;
-  }
-
-  // Find a plane compatible with the display
-  // Find a plane compatible with the display
-  uint32_t compatible_plane_index = UINT32_MAX;
-
-  for (uint32_t plane_index = 0; plane_index < plane_count; plane_index++)
-  {
-    // Query the number of displays supported by the plane
-    display_count = 0;
-    VkResult err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index, &display_count, nullptr);
-    if (err != VK_SUCCESS)
+    // Get the first display
+    uint32_t display_count = 1;
+    VkDisplayPropertiesKHR display_props;
+    if (VkResult err = vkGetPhysicalDeviceDisplayPropertiesKHR(physical_device, &display_count,
+                                                               &display_props);
+        err != VK_SUCCESS && err != VK_INCOMPLETE)
     {
-      LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneSupportedDisplaysKHR (count query) failed: ");
+      LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPropertiesKHR failed: ");
       return VK_NULL_HANDLE;
     }
 
-    if (display_count == 0)
-      continue; // Skip planes that support no displays
-
-    // Allocate memory to hold the supported displays
-    std::vector<VkDisplayKHR> displays(display_count);
-    err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index, &display_count, displays.data());
-    if (err != VK_SUCCESS)
+    // Get the first mode of the display
+    uint32_t mode_count = 0;
+    if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display,
+                                                     &mode_count, nullptr);
+        err != VK_SUCCESS)
     {
-      LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneSupportedDisplaysKHR (fetch displays) failed: ");
+      LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
       return VK_NULL_HANDLE;
     }
 
-    // Check if the target display is among the supported displays
-    for (const auto& display : displays)
+    if (mode_count == 0)
     {
-      if (display == display_props.display)
+      ERROR_LOG_FMT(VIDEO, "Cannot find any mode for the display!");
+      return VK_NULL_HANDLE;
+    }
+
+    auto* all_mode_props = static_cast<VkDisplayModePropertiesKHR*>(calloc(mode_count, sizeof(VkDisplayModePropertiesKHR)));
+    if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display,
+                                                     &mode_count, all_mode_props);
+        err != VK_SUCCESS && err != VK_INCOMPLETE)
+    {
+      LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    // Sort and display modes
+    std::vector all_mode_props_vector(all_mode_props, all_mode_props + mode_count);
+    std::ranges::sort(all_mode_props_vector, CompareResolutions);
+
+    for (int i = 0; i < mode_count; ++i)
+    {
+      const VkDisplayModeParametersKHR* params = &all_mode_props_vector[i].parameters;
+      printf("Mode %d: %d x %d (%.2f fps)\n", i,
+             params->visibleRegion.width, params->visibleRegion.height,
+             static_cast<float>(params->refreshRate) / 1000.0f);
+    }
+
+    for (int i = 0; i < mode_count; ++i)
+    {
+      VkDisplayModeParametersKHR *params = &all_mode_props[i].parameters;
+      printf("Mode %d: %d x %d (%.2f fps)\n", i,
+              params->visibleRegion.width, params->visibleRegion.height,
+              static_cast<float>(params->refreshRate) / 1000.0f);
+    }
+
+    int selected_mode = -1;
+    do
+    {
+      printf("Please select a mode (0 to %d): ", mode_count - 1);
+      if (scanf("%d", &selected_mode) != 1) {
+        // Clear invalid input
+        while (getchar() != '\n');
+        printf("Invalid input. Please enter a number.\n");
+        selected_mode = -1;
+      } else if (selected_mode < 0 || selected_mode >= mode_count) {
+        printf("Invalid selection. Please choose a valid mode.\n");
+      }
+    } while (selected_mode < 0 || selected_mode >= mode_count);
+
+    VkDisplayModePropertiesKHR mode_props = all_mode_props[selected_mode];
+
+    // Get the list of planes
+    uint32_t plane_count = 0;
+    if (VkResult err =
+            vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physical_device, &plane_count, nullptr);
+        err != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(err, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    if (plane_count == 0)
+    {
+      ERROR_LOG_FMT(VIDEO, "No display planes found!");
+      return VK_NULL_HANDLE;
+    }
+
+    // Find a plane compatible with the display
+    // Find a plane compatible with the display
+    uint32_t compatible_plane_index = UINT32_MAX;
+
+    for (uint32_t plane_index = 0; plane_index < plane_count; plane_index++)
+    {
+      // Query the number of displays supported by the plane
+      display_count = 0;
+      VkResult err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index,
+                                                           &display_count, nullptr);
+      if (err != VK_SUCCESS)
       {
-        compatible_plane_index = plane_index;
+        LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneSupportedDisplaysKHR (count query) failed: ");
+        return VK_NULL_HANDLE;
+      }
+
+      if (display_count == 0)
+        continue;  // Skip planes that support no displays
+
+      // Allocate memory to hold the supported displays
+      std::vector<VkDisplayKHR> displays(display_count);
+      err = vkGetDisplayPlaneSupportedDisplaysKHR(physical_device, plane_index, &display_count,
+                                                  displays.data());
+      if (err != VK_SUCCESS)
+      {
+        LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneSupportedDisplaysKHR (fetch displays) failed: ");
+        return VK_NULL_HANDLE;
+      }
+
+      // Check if the target display is among the supported displays
+      for (const auto& display : displays)
+      {
+        if (display == display_props.display)
+        {
+          compatible_plane_index = plane_index;
+          break;
+        }
+      }
+
+      if (compatible_plane_index != UINT32_MAX)
+        break;  // Exit early if a compatible plane is found
+    }
+
+    if (compatible_plane_index == UINT32_MAX)
+    {
+      ERROR_LOG_FMT(VIDEO, "No compatible plane found for the display!");
+      return VK_NULL_HANDLE;
+    }
+
+    if (compatible_plane_index == UINT32_MAX)
+    {
+      ERROR_LOG_FMT(VIDEO, "No compatible plane found for the display!");
+      return VK_NULL_HANDLE;
+    }
+
+    // Get capabilities of the compatible plane
+    VkDisplayPlaneCapabilitiesKHR plane_capabilities;
+    if (VkResult err = vkGetDisplayPlaneCapabilitiesKHR(
+            physical_device, mode_props.displayMode, compatible_plane_index, &plane_capabilities);
+        err != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneCapabilitiesKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    // Find a supported alpha mode
+    VkDisplayPlaneAlphaFlagBitsKHR alpha_mode = VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR;
+    VkDisplayPlaneAlphaFlagBitsKHR alpha_modes[] = {
+        VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR,
+        VK_DISPLAY_PLANE_ALPHA_GLOBAL_BIT_KHR,
+        VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_BIT_KHR,
+        VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_PREMULTIPLIED_BIT_KHR,
+    };
+
+    for (auto& curr_alpha_mode : alpha_modes)
+    {
+      if (plane_capabilities.supportedAlpha & curr_alpha_mode)
+      {
+        alpha_mode = curr_alpha_mode;
         break;
       }
     }
 
-    if (compatible_plane_index != UINT32_MAX)
-      break; // Exit early if a compatible plane is found
-  }
+    // Create the display surface
+    VkDisplaySurfaceCreateInfoKHR surface_create_info = {};
+    surface_create_info.sType = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR;
+    surface_create_info.displayMode = mode_props.displayMode;
+    surface_create_info.planeIndex = compatible_plane_index;
+    surface_create_info.planeStackIndex = 0;
+    surface_create_info.transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    surface_create_info.globalAlpha = 1.0f;
+    surface_create_info.alphaMode = alpha_mode;
+    surface_create_info.imageExtent.width = mode_props.parameters.visibleRegion.width;
+    surface_create_info.imageExtent.height = mode_props.parameters.visibleRegion.height;
 
-  if (compatible_plane_index == UINT32_MAX)
-  {
-    ERROR_LOG_FMT(VIDEO, "No compatible plane found for the display!");
-    return VK_NULL_HANDLE;
-  }
-
-
-  if (compatible_plane_index == UINT32_MAX)
-  {
-    ERROR_LOG_FMT(VIDEO, "No compatible plane found for the display!");
-    return VK_NULL_HANDLE;
-  }
-
-  // Get capabilities of the compatible plane
-  VkDisplayPlaneCapabilitiesKHR plane_capabilities;
-  if (VkResult err = vkGetDisplayPlaneCapabilitiesKHR(physical_device, mode_props.displayMode, compatible_plane_index, &plane_capabilities); err != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(err, "vkGetDisplayPlaneCapabilitiesKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  // Find a supported alpha mode
-  VkDisplayPlaneAlphaFlagBitsKHR alpha_mode = VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR;
-  VkDisplayPlaneAlphaFlagBitsKHR alpha_modes[] = {
-    VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR,
-    VK_DISPLAY_PLANE_ALPHA_GLOBAL_BIT_KHR,
-    VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_BIT_KHR,
-    VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_PREMULTIPLIED_BIT_KHR,
-  };
-
-  for (auto& curr_alpha_mode : alpha_modes)
-  {
-    if (plane_capabilities.supportedAlpha & curr_alpha_mode)
+    VkSurfaceKHR surface;
+    if (VkResult res =
+            vkCreateDisplayPlaneSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+        res != VK_SUCCESS)
     {
-      alpha_mode = curr_alpha_mode;
-      break;
+      LOG_VULKAN_ERROR(res, "vkCreateDisplayPlaneSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
     }
+
+    return surface;
   }
-
-  // Create the display surface
-  VkDisplaySurfaceCreateInfoKHR surface_create_info = {};
-  surface_create_info.sType = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR;
-  surface_create_info.displayMode = mode_props.displayMode;
-  surface_create_info.planeIndex = compatible_plane_index;
-  surface_create_info.planeStackIndex = 0;
-  surface_create_info.transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-  surface_create_info.globalAlpha = 1.0f;
-  surface_create_info.alphaMode = alpha_mode;
-  surface_create_info.imageExtent.width = display_props.physicalResolution.width;
-  surface_create_info.imageExtent.height = display_props.physicalResolution.height;
-
-  VkSurfaceKHR surface;
-  if (VkResult res = vkCreateDisplayPlaneSurfaceKHR(instance, &surface_create_info, nullptr, &surface); res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateDisplayPlaneSurfaceKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  return surface;
-}
 
 #endif
 
@@ -329,20 +388,18 @@ bool SwapChain::SelectSurfaceFormat()
     // because we already apply gamma ourselves, and we might not use sRGB gamma.
     // Force using a linear format instead, if this is the case.
     VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
-    if (surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-    {
-      if (format == VK_FORMAT_R8G8B8A8_UNORM)
-        surface_format_RGBA8 = &surface_format;
-      else if (format == VK_FORMAT_B8G8R8A8_UNORM)
-        surface_format_BGRA8 = &surface_format;
-      else if (format == VK_FORMAT_A2B10G10R10_UNORM_PACK32)
-        surface_format_RGB10_A2 = &surface_format;
-    }
+    if (format == VK_FORMAT_R8G8B8A8_UNORM)
+      surface_format_RGBA8 = &surface_format;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+      surface_format_BGRA8 = &surface_format;
+    else if (format == VK_FORMAT_A2B10G10R10_UNORM_PACK32 &&
+             surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+      surface_format_RGB10_A2 = &surface_format;
     else if (format == VK_FORMAT_R16G16B16A16_SFLOAT &&
              surface_format.colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)
-    {
       surface_format_RGBA16F_scRGB = &surface_format;
-    }
+    else
+      continue;
   }
 
   const VkSurfaceFormatKHR* surface_format = nullptr;
@@ -738,7 +795,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // Re-create the surface with the new native handle
   m_wsi.render_surface = native_handle;
-  m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), g_vulkan_context->GetPhysicalDevice(), m_wsi);
+  m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(),
+                                  g_vulkan_context->GetPhysicalDevice(), m_wsi);
   if (m_surface == VK_NULL_HANDLE)
     return false;
 
