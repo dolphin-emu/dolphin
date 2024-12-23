@@ -10,11 +10,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 
-namespace Config
-{
-template <typename T>
-class Info;
-}
+#include "Common/Config/ConfigInfo.h"
 
 class ConfigChoice final : public ConfigControl<ToolTipComboBox>
 {
@@ -48,7 +44,7 @@ protected:
 private:
   void Update(int index);
 
-  const Config::Info<std::string>& m_setting;
+  const Config::Info<std::string> m_setting;
   bool m_text_is_data = false;
 };
 
