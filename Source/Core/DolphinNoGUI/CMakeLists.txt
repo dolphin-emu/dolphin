@@ -12,6 +12,7 @@ endif()
 
 if(WIN32)
   target_sources(dolphin-nogui PRIVATE PlatformWin32.cpp)
+  target_link_libraries(dolphin-nogui PRIVATE Dwmapi.lib)
 endif()
 
 if(APPLE)
@@ -31,6 +32,11 @@ PRIVATE
   uicommon
   cpp-optparse
 )
+
+if(WIN32)
+  target_link_libraries(dolphin-nogui PRIVATE d3d11)
+  target_link_options(dolphin-nogui PRIVATE -municode)
+endif()
 
 if(APPLE)
   target_link_libraries(dolphin-nogui

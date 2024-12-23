@@ -1,4 +1,4 @@
-add_library(inputcommon
+add_library(inputcommon STATIC
   DynamicInputTextureManager.cpp
   DynamicInputTextureManager.h
   GCAdapter.cpp
@@ -101,13 +101,19 @@ if(WIN32)
     ControllerInterface/DInput/XInputFilter.h
     ControllerInterface/Win32/Win32.cpp
     ControllerInterface/Win32/Win32.h
-    ControllerInterface/WGInput/WGInput.cpp
-    ControllerInterface/WGInput/WGInput.h
     ControllerInterface/XInput/XInput.cpp
     ControllerInterface/XInput/XInput.h
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.h
   )
+  target_compile_definitions(inputcommon PRIVATE WINVER=0x0602)
+  if(MSVC)
+    target_sources(inputcommon PRIVATE
+      ControllerInterface/WGInput/WGInput.cpp
+      ControllerInterface/WGInput/WGInput.h
+    )
+  endif()
+  target_link_libraries(inputcommon PUBLIC cfgmgr32 dinput8 dinput)
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
     ControllerInterface/Quartz/Quartz.h

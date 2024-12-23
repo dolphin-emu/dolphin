@@ -1,4 +1,4 @@
-add_library(core
+add_library(core STATIC
   AchievementManager.cpp
   AchievementManager.h
   ActionReplay.cpp
@@ -724,7 +724,6 @@ if(WIN32)
     videod3d
     videod3d12
     setupapi.lib
-    iphlpapi.lib
   )
   target_compile_definitions(core PRIVATE "-D_WINSOCK_DEPRECATED_NO_WARNINGS")
 elseif(APPLE)
@@ -792,11 +791,6 @@ if(MSVC)
   target_link_libraries(core PRIVATE use_pch)
 endif()
 
-if(USE_RETRO_ACHIEVEMENTS)
-  target_link_libraries(core PUBLIC rcheevos)
-  target_compile_definitions(core PUBLIC -DUSE_RETRO_ACHIEVEMENTS)
-  target_compile_definitions(core PUBLIC -DRC_CLIENT_SUPPORTS_HASH)
-  if(RC_CLIENT_SUPPORTS_RAINTEGRATION)
-    target_compile_definitions(core PUBLIC -DRC_CLIENT_SUPPORTS_RAINTEGRATION)
-  endif()
+if(NOT MSVC)
+  target_compile_options(core PRIVATE -Wno-invalid-offsetof)
 endif()

@@ -9,7 +9,7 @@ add_library(usb STATIC EXCLUDE_FROM_ALL
 dolphin_disable_warnings(usb)
 
 set_target_properties(usb PROPERTIES VERSION 1.0.26)
-if(WIN32)
+if(MSVC)
     target_include_directories(usb BEFORE PUBLIC libusb/libusb PRIVATE libusb/msvc)
 else()
 target_include_directories(usb
@@ -31,6 +31,7 @@ if(WIN32 OR CYGWIN)
       libusb/libusb/os/events_windows.c
     )
     set(PLATFORM_WINDOWS TRUE)
+    set(ENABLE_LOGGING TRUE)
 elseif(APPLE)
     target_sources(usb PRIVATE libusb/libusb/os/darwin_usb.c)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
@@ -92,7 +93,9 @@ include(CheckTypeSize)
 include(CheckSymbolExists)
 
 check_include_files(asm/types.h HAVE_ASM_TYPES_H)
-check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
+if(NOT WIN32)
+    check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
+endif()
 check_symbol_exists(EFD_CLOEXEC "sys/eventfd.h" HAVE_DECL_EFD_CLOEXEC)
 check_symbol_exists(EFD_NONBLOCK "sys/eventfd.h" HAVE_DECL_EFD_NONBLOCK)
 check_symbol_exists(TFD_CLOEXEC "sys/timerfd.h" HAVE_DECL_TFD_CLOEXEC)
