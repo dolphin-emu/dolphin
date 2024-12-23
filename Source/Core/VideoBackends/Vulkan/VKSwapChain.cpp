@@ -44,7 +44,7 @@ bool CompareResolutions(const VkDisplayModePropertiesKHR& a, const VkDisplayMode
 
   if (params_a.width != params_b.width)
     return params_a.width < params_b.width; // Sort by width first
-  return params_a.height < params_b.height;   // Then by height
+  return params_a.height < params_b.height; // Then by height
 }
 
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physical_device,
@@ -96,9 +96,15 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
     for (int i = 0; i < mode_count; ++i)
     {
       const VkDisplayModeParametersKHR* params = &all_mode_props_vector[i].parameters;
-      printf("Mode %d: %d x %d (%.2f fps)\n", i,
-             params->visibleRegion.width, params->visibleRegion.height,
-             static_cast<float>(params->refreshRate) / 1000.0f);
+      int width = params->visibleRegion.width;
+      int height = params->visibleRegion.height;
+      float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
+
+      printf("Mode %d: %d x %d (%.2f fps, %.2f:1 aspect ratio)\n", i,
+             width, height,
+             static_cast<float>(params->refreshRate) / 1000.0f,
+             aspect_ratio);
+
     }
 
     for (int i = 0; i < mode_count; ++i)
