@@ -36,17 +36,6 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-// Custom comparator to sort by resolution
-bool CompareResolutions(const VkDisplayModePropertiesKHR& a, const VkDisplayModePropertiesKHR& b)
-{
-  const auto& params_a = a.parameters.visibleRegion;
-  const auto& params_b = b.parameters.visibleRegion;
-
-  if (params_a.width != params_b.width)
-    return params_a.width < params_b.width; // Sort by width first
-  return params_a.height < params_b.height; // Then by height
-}
-
 // Function to calculate the greatest common divisor (GCD)
 int gcd(int a, int b)
 {
@@ -101,13 +90,9 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
       return VK_NULL_HANDLE;
     }
 
-    // Sort and display modes
-    std::vector all_mode_props_vector(all_mode_props, all_mode_props + mode_count);
-    std::ranges::sort(all_mode_props_vector, CompareResolutions);
-
     for (int i = 0; i < mode_count; ++i)
     {
-      const VkDisplayModeParametersKHR* params = &all_mode_props_vector[i].parameters;
+      const VkDisplayModeParametersKHR* params = &all_mode_props[i].parameters;
       int width = params->visibleRegion.width;
       int height = params->visibleRegion.height;
 
