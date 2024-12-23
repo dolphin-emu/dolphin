@@ -6,11 +6,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipRadioButton.h"
 
-namespace Config
-{
-template <typename T>
-class Info;
-}
+#include "Common/Config/ConfigInfo.h"
 
 class ConfigRadioInt final : public ConfigControl<ToolTipRadioButton>
 {
@@ -31,6 +27,6 @@ protected:
 private:
   void Update();
 
-  const Config::Info<int>& m_setting;
+  const Config::Info<int> m_setting;
   int m_value;
 };

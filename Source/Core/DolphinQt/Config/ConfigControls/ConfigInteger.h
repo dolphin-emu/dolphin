@@ -9,11 +9,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSpinBox.h"
 
-namespace Config
-{
-template <typename T>
-class Info;
-}
+#include "Common/Config/ConfigInfo.h"
 
 class ConfigInteger final : public ConfigControl<ToolTipSpinBox>
 {
@@ -29,7 +25,7 @@ protected:
   void OnConfigChanged() override;
 
 private:
-  const Config::Info<int>& m_setting;
+  const Config::Info<int> m_setting;
 };
 
 class ConfigIntegerLabel final : public QLabel

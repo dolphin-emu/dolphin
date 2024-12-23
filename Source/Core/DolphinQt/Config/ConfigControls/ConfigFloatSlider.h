@@ -6,11 +6,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
-namespace Config
-{
-template <typename T>
-class Info;
-}
+#include "Common/Config/ConfigInfo.h"
 
 // Automatically converts an int slider into a float one.
 // Do not read the int values or ranges directly from it.
@@ -31,5 +27,5 @@ protected:
 private:
   float m_minimum;
   float m_step;
-  const Config::Info<float>& m_setting;
+  const Config::Info<float> m_setting;
 };

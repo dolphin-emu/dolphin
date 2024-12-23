@@ -6,11 +6,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 
-namespace Config
-{
-template <typename T>
-class Info;
-}
+#include "Common/Config/ConfigInfo.h"
 
 class ConfigBool final : public ConfigControl<ToolTipCheckBox>
 {
@@ -26,6 +22,6 @@ protected:
 private:
   void Update();
 
-  const Config::Info<bool>& m_setting;
+  const Config::Info<bool> m_setting;
   bool m_reverse;
 };
