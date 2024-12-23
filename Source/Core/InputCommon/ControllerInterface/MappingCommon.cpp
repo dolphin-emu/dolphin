@@ -129,7 +129,8 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 
   // Remove duplicates
   std::ranges::sort(alternations);
-  alternations.erase(std::unique(alternations.begin(), alternations.end()), alternations.end());
+  const auto unique_result = std::ranges::unique(alternations);
+  alternations.erase(unique_result.begin(), unique_result.end());
 
   return fmt::to_string(fmt::join(alternations, "|"));
 }
