@@ -39,6 +39,10 @@ if(WIN32)
   set(CURL_USE_SCHANNEL ON)
 endif()
 
+if(ANDROID)
+  set(CURL_CA_PATH "/system/etc/security/cacerts" CACHE STRING "")
+endif()
+
 add_subdirectory(curl)
 
 if(UNIX AND NOT MBEDTLS_FOUND)
