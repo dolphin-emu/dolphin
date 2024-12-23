@@ -47,6 +47,18 @@ bool CompareResolutions(const VkDisplayModePropertiesKHR& a, const VkDisplayMode
   return params_a.height < params_b.height; // Then by height
 }
 
+// Function to calculate the greatest common divisor (GCD)
+int gcd(int a, int b)
+{
+  while (b != 0)
+  {
+    int temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+}
+
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physical_device,
                                             const WindowSystemInfo& wsi)
 {
@@ -98,21 +110,18 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
       const VkDisplayModeParametersKHR* params = &all_mode_props_vector[i].parameters;
       int width = params->visibleRegion.width;
       int height = params->visibleRegion.height;
-      float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 
-      printf("Mode %d: %d x %d (%.2f fps, %.2f:1 aspect ratio)\n", i,
-             width, height,
-             static_cast<float>(params->refreshRate) / 1000.0f,
-             aspect_ratio);
+      // Calculate the GCD of width and height
+      int divisor = gcd(width, height);
 
-    }
+      // Reduce width and height by their GCD to get the aspect ratio
+      int aspect_width = width / divisor;
+      int aspect_height = height / divisor;
 
-    for (int i = 0; i < mode_count; ++i)
-    {
-      VkDisplayModeParametersKHR *params = &all_mode_props[i].parameters;
-      printf("Mode %d: %d x %d (%.2f fps)\n", i,
-              params->visibleRegion.width, params->visibleRegion.height,
-              static_cast<float>(params->refreshRate) / 1000.0f);
+      printf("Mode %d: %d x %d (%.2f fps, %d:%d aspect ratio)\n", i,
+           width, height,
+           static_cast<float>(params->refreshRate) / 1000.0f,
+           aspect_width, aspect_height);
     }
 
     int selected_mode = -1;
