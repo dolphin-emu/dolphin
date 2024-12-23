@@ -191,7 +191,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_downloadCodes(JN
   const std::string gametdb_id = GetJString(env, jGameTdbId);
 
   bool success = true;
-  const std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(gametdb_id, &success, false);
+  const std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(gametdb_id, &success);
 
   if (!success)
     return nullptr;
