@@ -36,6 +36,17 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
+// Custom comparator to sort by resolution
+bool CompareResolutions(const VkDisplayModePropertiesKHR& a, const VkDisplayModePropertiesKHR& b)
+{
+  const auto& params_a = a.parameters.visibleRegion;
+  const auto& params_b = b.parameters.visibleRegion;
+
+  if (params_a.width != params_b.width)
+    return params_a.width < params_b.width; // Sort by width first
+  return params_a.height < params_b.height;   // Then by height
+}
+
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevice physical_device,
                                             const WindowSystemInfo& wsi)
 {
@@ -69,7 +80,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
       return VK_NULL_HANDLE;
     }
 
-    auto *all_mode_props = static_cast<VkDisplayModePropertiesKHR*>(calloc(mode_count, sizeof(*all_mode_props)));
+    auto* all_mode_props = static_cast<VkDisplayModePropertiesKHR*>(calloc(mode_count, sizeof(VkDisplayModePropertiesKHR)));
     if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display,
                                                      &mode_count, all_mode_props);
         err != VK_SUCCESS && err != VK_INCOMPLETE)
@@ -78,24 +89,41 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
       return VK_NULL_HANDLE;
     }
 
+    // Sort and display modes
+    std::vector all_mode_props_vector(all_mode_props, all_mode_props + mode_count);
+    std::ranges::sort(all_mode_props_vector, CompareResolutions);
+
+    for (int i = 0; i < mode_count; ++i)
+    {
+      const VkDisplayModeParametersKHR* params = &all_mode_props_vector[i].parameters;
+      printf("Mode %d: %d x %d (%.2f fps)\n", i,
+             params->visibleRegion.width, params->visibleRegion.height,
+             static_cast<float>(params->refreshRate) / 1000.0f);
+    }
+
     for (int i = 0; i < mode_count; ++i)
     {
       VkDisplayModeParametersKHR *params = &all_mode_props[i].parameters;
       printf("Mode %d: %d x %d (%.2f fps)\n", i,
               params->visibleRegion.width, params->visibleRegion.height,
               static_cast<float>(params->refreshRate) / 1000.0f);
-
-      if (params->refreshRate < 60000)
-      {
-        printf("Removing mode %d\n", i);
-        mode_count--;
-        for (int j = i; j < mode_count; ++j)
-          all_mode_props[j] = all_mode_props[j + 1];
-        i--;
-      }
     }
 
-    VkDisplayModePropertiesKHR mode_props = all_mode_props[0];
+    int selected_mode = -1;
+    do
+    {
+      printf("Please select a mode (0 to %d): ", mode_count - 1);
+      if (scanf("%d", &selected_mode) != 1) {
+        // Clear invalid input
+        while (getchar() != '\n');
+        printf("Invalid input. Please enter a number.\n");
+        selected_mode = -1;
+      } else if (selected_mode < 0 || selected_mode >= mode_count) {
+        printf("Invalid selection. Please choose a valid mode.\n");
+      }
+    } while (selected_mode < 0 || selected_mode >= mode_count);
+
+    VkDisplayModePropertiesKHR mode_props = all_mode_props[selected_mode];
 
     // Get the list of planes
     uint32_t plane_count = 0;
@@ -205,8 +233,8 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
     surface_create_info.transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     surface_create_info.globalAlpha = 1.0f;
     surface_create_info.alphaMode = alpha_mode;
-    surface_create_info.imageExtent.width = display_props.physicalResolution.width;
-    surface_create_info.imageExtent.height = display_props.physicalResolution.height;
+    surface_create_info.imageExtent.width = mode_props.parameters.visibleRegion.width;
+    surface_create_info.imageExtent.height = mode_props.parameters.visibleRegion.height;
 
     VkSurfaceKHR surface;
     if (VkResult res =
