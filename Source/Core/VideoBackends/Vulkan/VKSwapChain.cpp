@@ -69,15 +69,33 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDevic
       return VK_NULL_HANDLE;
     }
 
-    VkDisplayModePropertiesKHR mode_props;
-    mode_count = 1;
+    auto *all_mode_props = static_cast<VkDisplayModePropertiesKHR*>(calloc(mode_count, sizeof(*all_mode_props)));
     if (VkResult err = vkGetDisplayModePropertiesKHR(physical_device, display_props.display,
-                                                     &mode_count, &mode_props);
+                                                     &mode_count, all_mode_props);
         err != VK_SUCCESS && err != VK_INCOMPLETE)
     {
       LOG_VULKAN_ERROR(err, "vkGetDisplayModePropertiesKHR failed: ");
       return VK_NULL_HANDLE;
     }
+
+    for (int i = 0; i < mode_count; ++i)
+    {
+      VkDisplayModeParametersKHR *params = &all_mode_props[i].parameters;
+      printf("Mode %d: %d x %d (%.2f fps)\n", i,
+              params->visibleRegion.width, params->visibleRegion.height,
+              static_cast<float>(params->refreshRate) / 1000.0f);
+
+      if (params->refreshRate < 60000)
+      {
+        printf("Removing mode %d\n", i);
+        mode_count--;
+        for (int j = i; j < mode_count; ++j)
+          all_mode_props[j] = all_mode_props[j + 1];
+        i--;
+      }
+    }
+
+    VkDisplayModePropertiesKHR mode_props = all_mode_props[0];
 
     // Get the list of planes
     uint32_t plane_count = 0;
