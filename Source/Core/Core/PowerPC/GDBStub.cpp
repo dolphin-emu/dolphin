@@ -662,7 +662,7 @@ static void WriteRegister()
       break;
     case 65:
       ppc_state.msr.Hex = re32hex(bufptr);
-      PowerPC::MSRUpdated(ppc_state);
+      system.GetPowerPC().MSRUpdated();
       break;
     case 66:
       ppc_state.cr.Set(re32hex(bufptr));
