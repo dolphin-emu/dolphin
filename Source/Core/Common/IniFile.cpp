@@ -250,17 +250,9 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
   Section* current_section = nullptr;
   bool first_line = true;
-  while (!in.eof())
+  std::string line_str;
+  while (std::getline(in, line_str))
   {
-    std::string line_str;
-    if (!std::getline(in, line_str))
-    {
-      if (in.eof())
-        return true;
-      else
-        return false;
-    }
-
     std::string_view line = line_str;
 
     // Skips the UTF-8 BOM at the start of files. Notepad likes to add this.
@@ -311,8 +303,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
     }
   }
 
-  in.close();
-  return true;
+  return in.good();
 }
 
 bool IniFile::Save(const std::string& filename)
