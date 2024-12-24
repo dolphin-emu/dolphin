@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/Projection.h"
 #include "Common/StringUtil.h"
 
 #include "Core/PowerPC/PowerPC.h"
@@ -694,8 +695,7 @@ void PrintInstructionRunCounts()
     const GekkoOPInfo& info = s_tables.all_instructions[i];
     temp[i] = std::make_pair(info.opname, info.stats->run_count);
   }
-  std::sort(temp.begin(), temp.end(),
-            [](const OpInfo& a, const OpInfo& b) { return a.second > b.second; });
+  std::ranges::sort(temp, std::ranges::greater{}, Common::Projection::Second{});
 
   for (auto& inst : temp)
   {
