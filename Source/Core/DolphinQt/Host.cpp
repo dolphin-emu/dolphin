@@ -298,6 +298,22 @@ void Host_RefreshDSPDebuggerWindow()
 {
 }
 
+void Host_UpdateWiimoteExtension(const int controller, const int extension)
+{
+  Settings& settings = Settings::Instance();
+  QueueOnObject(&settings, [&settings, controller, extension] {
+    settings.UpdateWiimoteExtension(controller, extension);
+  });
+}
+
+void Host_UpdateWiimoteMotionPlus(const int controller, const bool attached)
+{
+  Settings& settings = Settings::Instance();
+  QueueOnObject(&settings, [&settings, controller, attached] {
+    settings.UpdateWiimoteMotionPlus(controller, attached);
+  });
+}
+
 void Host_TitleChanged()
 {
 #ifdef USE_DISCORD_PRESENCE
