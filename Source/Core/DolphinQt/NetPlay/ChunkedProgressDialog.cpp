@@ -16,6 +16,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Common/Contains.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
@@ -108,7 +109,7 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
 
   for (const auto* player : client->GetPlayers())
   {
-    if (std::find(players.begin(), players.end(), player->pid) == players.end())
+    if (!Common::Contains(players, player->pid))
       continue;
 
     m_progress_bars[player->pid] = new QProgressBar;

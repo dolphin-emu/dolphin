@@ -14,6 +14,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
@@ -244,7 +245,7 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
                                        std::string(screenResources->modes[k].name) +
                                        (interlaced ? "i" : "");
             // Only add unique resolutions
-            if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
+            if (!Common::Contains(resos, strRes))
             {
               resos.push_back(strRes);
             }
