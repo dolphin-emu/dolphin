@@ -305,9 +305,10 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
     return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1));
   };
 
-  return std::any_of(it, it_end, [&](auto& s) {
-    return std::none_of(begin(ignore_modifiers), end(ignore_modifiers),
-                        [&](auto& m) { return is_same_modifier(m->GetInput(), s.first.second); });
+  return std::any_of(it, it_end, [&](const auto& s) {
+    return std::ranges::none_of(ignore_modifiers, [&](const auto& m) {
+      return is_same_modifier(m->GetInput(), s.first.second);
+    });
   });
 }
 
@@ -495,10 +496,8 @@ public:
   ControlState GetValue() const override
   {
     // True if we have no modifiers
-    const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
-                                               [](const std::unique_ptr<ControlExpression>& input) {
-                                                 return input->GetValue() > CONDITION_THRESHOLD;
-                                               });
+    const bool modifiers_pressed = std::ranges::all_of(
+        m_modifiers, [](const auto& input) { return input->GetValue() > CONDITION_THRESHOLD; });
 
     const auto final_input_state = m_final_input->GetValueIgnoringSuppression();
 

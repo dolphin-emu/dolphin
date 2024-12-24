@@ -63,8 +63,7 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
       return false;
     }
 
-    if (!std::all_of(json_data.begin(), json_data.end(),
-                     [](const picojson::value& v) { return v.is<double>(); }))
+    if (!std::ranges::all_of(json_data, &picojson::value::is<double>))
     {
       ERROR_LOG_FMT(VIDEO,
                     "Asset id '{}' material has attribute '{}' where "

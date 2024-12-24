@@ -191,7 +191,7 @@ static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [&](const auto& call) {
+  bool nonleafcall = std::ranges::any_of(func->calls, [&](const auto& call) {
     const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
     return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
   });
