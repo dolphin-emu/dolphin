@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -25,15 +26,13 @@
 HacksWidget::HacksWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::UpdateCacheAccuracy);
   connect(m_gpu_texture_decoding, &QCheckBox::toggled, [this, parent] {
-    SaveSettings();
     emit parent->UseGPUTextureDecodingChanged();
   });
 }
@@ -41,7 +40,6 @@ HacksWidget::HacksWidget(GraphicsWindow* parent)
 HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 }
@@ -70,27 +68,37 @@ void HacksWidget::CreateWidgets()
 
   // Texture Cache
   auto* texture_cache_box = new QGroupBox(tr("Texture Cache"));
-  auto* texture_cache_layout = new QGridLayout();
+  auto* texture_cache_layout = new QVBoxLayout();
   texture_cache_box->setLayout(texture_cache_layout);
 
-  m_accuracy = new ToolTipSlider(Qt::Horizontal);
-  m_accuracy->setMinimum(0);
-  m_accuracy->setMaximum(2);
-  m_accuracy->setPageStep(1);
-  m_accuracy->setTickPosition(QSlider::TicksBelow);
-  m_gpu_texture_decoding = new ConfigBool(tr("GPU Texture Decoding"),
-                                          Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
+  auto* accuracy_layout = new QHBoxLayout();
+  m_accuracy_safe =
+      new ConfigRadioInt(tr("Safe"), Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, 0, m_game_layer);
+  m_accuracy_mid = new ConfigRadioInt(tr("Moderate"), Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
+                                      512, m_game_layer);
+  m_accuracy_fast = new ConfigRadioInt(tr("Fast"), Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
+                                       128, m_game_layer);
 
-  auto* safe_label = new QLabel(tr("Safe"));
-  safe_label->setAlignment(Qt::AlignRight);
+  m_accuracy_custom = new QRadioButton(tr("Custom"));
 
-  m_accuracy_label = new QLabel(tr("Accuracy:"));
+  // Will be hidden if there is no custom value, so always bold.
+  QFont font = m_accuracy_custom->font();
+  font.setBold(true);
+  m_accuracy_custom->setFont(font);
+  m_accuracy_custom->setHidden(true);
 
-  texture_cache_layout->addWidget(m_accuracy_label, 0, 0);
-  texture_cache_layout->addWidget(safe_label, 0, 1);
-  texture_cache_layout->addWidget(m_accuracy, 0, 2);
-  texture_cache_layout->addWidget(new QLabel(tr("Fast")), 0, 3);
-  texture_cache_layout->addWidget(m_gpu_texture_decoding, 1, 0);
+  accuracy_layout->addWidget(new QLabel(tr("Accuracy:   ")));
+  accuracy_layout->addWidget(m_accuracy_safe);
+  accuracy_layout->addWidget(m_accuracy_mid);
+  accuracy_layout->addWidget(m_accuracy_fast);
+  accuracy_layout->addWidget(m_accuracy_custom);
+  accuracy_layout->addStretch();
+
+  m_gpu_texture_decoding =
+      new ConfigBool(tr("GPU Texture Decoding"), Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+
+  texture_cache_layout->addLayout(accuracy_layout);
+  texture_cache_layout->addWidget(m_gpu_texture_decoding);
 
   // XFB
   auto* xfb_box = new QGroupBox(tr("External Frame Buffer (XFB)"));
@@ -156,9 +164,31 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
   m_disable_bounding_box->setToolTip(!bbox ? tooltip : QString{});
 }
 
+void HacksWidget::UpdateCacheAccuracy()
+{
+  const int samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  if (Config::GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) ==
+      Config::LayerType::Base)
+  {
+    m_accuracy_custom->setHidden(true);
+  }
+  else
+  {
+    m_accuracy_custom->setHidden(false);
+  }
+
+  if (samples == 0 || samples == 512 || samples == 128)
+    return;
+
+  m_accuracy_custom->setToolTip(QString::number(samples));
+  m_accuracy_custom->setChecked(true);
+}
+
 void HacksWidget::ConnectWidgets()
 {
-  connect(m_accuracy, &QSlider::valueChanged, [this](int) { SaveSettings(); });
+  connect(m_accuracy_custom, &QRadioButton::clicked, this, [this] {
+    Config::DeleteKey(Config::LayerType::CurrentRun, Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  });
   connect(m_store_efb_copies, &QCheckBox::stateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_store_xfb_copies, &QCheckBox::stateChanged,
@@ -167,65 +197,6 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-}
-
-void HacksWidget::LoadSettings()
-{
-  const QSignalBlocker blocker(m_accuracy);
-  auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-
-  // Re-enable the slider in case it was disabled because of a custom value
-  m_accuracy->setEnabled(true);
-
-  int slider_pos = 0;
-
-  switch (samples)
-  {
-  case 512:
-    slider_pos = 1;
-    break;
-  case 128:
-    slider_pos = 2;
-    break;
-  case 0:
-    slider_pos = 0;
-    break;
-  // Custom values, ought not to be touched
-  default:
-    m_accuracy->setEnabled(false);
-  }
-
-  m_accuracy->setValue(slider_pos);
-
-  QFont bf = m_accuracy_label->font();
-
-  bf.setBold(Config::GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) !=
-             Config::LayerType::Base);
-
-  m_accuracy_label->setFont(bf);
-}
-
-void HacksWidget::SaveSettings()
-{
-  int slider_pos = m_accuracy->value();
-
-  if (m_accuracy->isEnabled())
-  {
-    int samples = 0;
-    switch (slider_pos)
-    {
-    case 0:
-      samples = 0;
-      break;
-    case 1:
-      samples = 512;
-      break;
-    case 2:
-      samples = 128;
-    }
-
-    Config::SetBaseOrCurrent(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, samples);
-  }
 }
 
 void HacksWidget::AddDescriptions()
@@ -311,8 +282,11 @@ void HacksWidget::AddDescriptions()
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
   m_store_efb_copies->SetDescription(tr(TR_STORE_EFB_TO_TEXTURE_DESCRIPTION));
   m_defer_efb_copies->SetDescription(tr(TR_DEFER_EFB_COPIES_DESCRIPTION));
-  m_accuracy->SetTitle(tr("Texture Cache Accuracy"));
-  m_accuracy->SetDescription(tr(TR_ACCUARCY_DESCRIPTION));
+  for (ConfigRadioInt* widget : {m_accuracy_fast, m_accuracy_mid, m_accuracy_safe})
+  {
+    widget->SetTitle(tr("Texture Cache Accuracy"));
+    widget->SetDescription(tr(TR_ACCUARCY_DESCRIPTION));
+  }
   m_store_xfb_copies->SetDescription(tr(TR_STORE_XFB_TO_TEXTURE_DESCRIPTION));
   m_immediate_xfb->SetDescription(tr(TR_IMMEDIATE_XFB_DESCRIPTION));
   m_skip_duplicate_xfbs->SetDescription(tr(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));

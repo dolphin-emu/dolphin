@@ -6,6 +6,8 @@
 #include <QWidget>
 
 class ConfigBool;
+class ConfigRadioInt;
+class QRadioButton;
 class GameConfigWidget;
 class GraphicsWindow;
 class QLabel;
@@ -24,10 +26,8 @@ public:
   HacksWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
-  void LoadSettings();
-  void SaveSettings();
-
   void OnBackendChanged(const QString& backend_name);
+  void UpdateCacheAccuracy();
 
   // EFB
   ConfigBool* m_skip_efb_cpu;
@@ -37,7 +37,10 @@ private:
 
   // Texture Cache
   QLabel* m_accuracy_label;
-  ToolTipSlider* m_accuracy;
+  ConfigRadioInt* m_accuracy_safe;
+  ConfigRadioInt* m_accuracy_mid;
+  ConfigRadioInt* m_accuracy_fast;
+  QRadioButton* m_accuracy_custom;
   ConfigBool* m_gpu_texture_decoding;
 
   // External Framebuffer
