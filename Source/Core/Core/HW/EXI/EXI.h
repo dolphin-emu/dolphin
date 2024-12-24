@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
 
 class PointerWrap;
 struct Sram;
@@ -81,6 +82,9 @@ public:
   void ChangeDevice(Slot slot, EXIDeviceType device_type,
                     CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
   void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
+                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+  void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type, s64 cycles_delay_change,
+                    s64 cycles_no_device_visible,
                     CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
 
   CEXIChannel* GetChannel(u32 index);
