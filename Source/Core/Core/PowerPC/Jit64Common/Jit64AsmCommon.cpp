@@ -254,18 +254,17 @@ void CommonAsmRoutines::GenFres()
 
   IMUL(32, RSCRATCH,
        MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
-  ADD(32, R(RSCRATCH), Imm8(1));
-  SHR(32, R(RSCRATCH), Imm8(1));
 
   MOV(32, R(RSCRATCH2),
       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
-  SUB(32, R(RSCRATCH2), R(RSCRATCH));
+  ADD(32, R(RSCRATCH2), R(RSCRATCH));
+  SHR(32, R(RSCRATCH2), Imm8(1));
   SHL(64, R(RSCRATCH2), Imm8(29));
 
   POP(RSCRATCH_EXTRA);
 
-  OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(fres_expected_base[i / 1024] -
-                                            // (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2)
+  OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)((u64)(fres_expected_base[i / 1024] +
+                                            // (fres_expected_dec[i / 1024] * (i % 1024)) / 2))
                                             // << 29
   MOVQ_xmm(XMM0, R(RSCRATCH2));
   RET();
@@ -279,6 +278,7 @@ void CommonAsmRoutines::GenFres()
 
   SetJumpTarget(complex);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
+  LEA(64, ABI_PARAM1, PPCSTATE(fpscr));
   ABI_CallFunction(Common::ApproximateReciprocal);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
