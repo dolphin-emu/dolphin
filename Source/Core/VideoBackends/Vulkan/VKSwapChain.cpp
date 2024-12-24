@@ -46,7 +46,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
         nullptr,                                          // const void*                   pNext
         0,                                                // VkWin32SurfaceCreateFlagsKHR  flags
         nullptr,                                          // HINSTANCE                     hinstance
-        reinterpret_cast<HWND>(wsi.render_surface)        // HWND                          hwnd
+        static_cast<HWND>(wsi.render_surface)             // HWND                          hwnd
     };
 
     VkSurfaceKHR surface;
