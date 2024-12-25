@@ -117,7 +117,7 @@ void GeneralWidget::CreateWidgets()
       new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING, m_game_layer);
   m_autoadjust_window_size = new ConfigBool(tr("Auto-Adjust Window Size"),
                                             Config::MAIN_RENDER_WINDOW_AUTOSIZE, m_game_layer);
-  m_show_turn_count = new ConfigBool(tr("Show MP Turn"), Config::GFX_SHOW_MP_TURN. m_game_layer);
+  m_show_turn_count = new ConfigBool(tr("Show MP Turn"), Config::GFX_SHOW_MP_TURN);
   m_show_messages =
       new ConfigBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
   m_render_main_window =
