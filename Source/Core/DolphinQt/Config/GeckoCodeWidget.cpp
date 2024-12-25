@@ -280,7 +280,6 @@ void GeckoCodeWidget::LoadCodes()
   m_add_code->setEnabled(!m_game_id.empty());
   m_edit_code->setEnabled(false);
   m_remove_code->setEnabled(false);
-  m_download_codes->setEnabled(!m_game_id.empty());
 
   UpdateList();
 }

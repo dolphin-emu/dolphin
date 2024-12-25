@@ -67,6 +67,7 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
+
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/RiivolutionPatcher.h"
@@ -144,8 +145,6 @@
 // This #define within X11/X.h conflicts with our WiimoteSource enum.
 #undef None
 #endif
-
-#include <qprocess.h>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 void MainWindow::OnSignal()
@@ -569,6 +568,8 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
+  connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
+  connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
@@ -696,9 +697,8 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
-  connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
-
   connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
+  connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
   connect(m_tool_bar, &ToolBar::ViewGeckoCodes, this, &MainWindow::ShowGeckoCodes);
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
@@ -1019,110 +1019,6 @@ bool MainWindow::RequestStop()
   return true;
 }
 
-bool MainWindow::RequestStopNetplay()
-{
-  if (!Core::IsRunning(Core::System::GetInstance()))
-  {
-    Core::QueueHostJob([this](Core::System&) { OnStopComplete(); }, true);
-    return true;
-  }
-
-  const bool rendered_widget_was_active =
-      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
-  QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
-                                m_render_widget :
-                                static_cast<QWidget*>(this);
-  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
-
-  if (!m_render_widget->isFullScreen())
-    m_render_widget_geometry = m_render_widget->saveGeometry();
-  else
-    FullScreen();
-
-  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
-  {
-    if (std::exchange(m_stop_confirm_showing, true))
-      return true;
-
-    Common::ScopeGuard confirm_lock([this] { m_stop_confirm_showing = false; });
-
-    const Core::State state = Core::GetState(Core::System::GetInstance());
-
-    // Only pause the game, if NetPlay is not running
-    bool pause = !Settings::Instance().GetNetPlayClient();
-
-    if (pause)
-      Core::SetState(Core::System::GetInstance(), Core::State::Paused);
-
-    if (rendered_widget_was_active)
-    {
-      // We have to do this before creating the message box, otherwise we might receive the window
-      // activation event before we know we need to lock the cursor again.
-      m_render_widget->SetCursorLockedOnNextActivation(was_cursor_locked);
-    }
-
-    // This is to avoid any "race conditions" between the "Window Activate" message and the
-    // message box returning, which could break cursor locking depending on the order
-    m_render_widget->SetWaitingForMessageBox(true);
-    auto confirm = ModalMessageBox::question(
-        confirm_parent, tr("Quitter!"),
-        m_stop_requested ? tr("A user closed down their game from the netplay lobby. "
-                              "This means the Netplay session has ended! "
-                              "Do you want to stop the current emulation?") :
-                           tr("A user closed down their game from the netplay lobby. "
-                              "This means the Netplay session has ended! "
-                              "Do you want to stop the current emulation?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
-
-    // If a user confirmed stopping the emulation, we do not capture the cursor again,
-    // even if the render widget will stay alive for a while.
-    // If a used rejected stopping the emulation, we instead capture the cursor again,
-    // and let them continue playing as if nothing had happened
-    // (assuming cursor locking is on).
-    if (confirm != QMessageBox::Yes)
-    {
-      m_render_widget->SetWaitingForMessageBox(false);
-
-      if (pause)
-        Core::SetState(Core::System::GetInstance(), state);
-
-      return false;
-    }
-    else
-    {
-      m_render_widget->SetCursorLockedOnNextActivation(false);
-      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
-      m_render_widget->SetWaitingForMessageBox(false);
-    }
-  }
-
-  OnStopRecording();
-  // TODO: Add Debugger shutdown
-
-  if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
-  {
-    m_stop_requested = true;
-
-    // Unpause because gracefully shutting down needs the game to actually request a shutdown.
-    // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
-    if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
-      Core::SetState(Core::System::GetInstance(), Core::State::Running);
-
-    // Tell NetPlay about the power event
-    if (NetPlay::IsNetPlayRunning())
-      NetPlay::SendPowerButtonEvent();
-
-    return true;
-  }
-
-  ForceStop();
-#ifdef Q_OS_WIN
-  // Allow windows to idle or turn off display again
-  SetThreadExecutionState(ES_CONTINUOUS);
-#endif
-  return true;
-}
-
 void MainWindow::ForceStop()
 {
   Core::Stop(m_system);
@@ -1133,7 +1029,7 @@ void MainWindow::Reset()
   auto& movie = m_system.GetMovie();
   if (movie.IsRecordingInput())
     movie.SetReset(true);
-  system.GetProcessorInterface().ResetButton_Tap_FromUser();
+  m_system.GetProcessorInterface().ResetButton_Tap();
 }
 
 void MainWindow::FrameAdvance()
@@ -1399,7 +1295,7 @@ void MainWindow::ShowSettingsWindow()
     InstallHotkeyFilter(m_settings_window);
   }
 
-  //SetQWidgetWindowDecorations(m_settings_window);
+  SetQWidgetWindowDecorations(m_settings_window);
   m_settings_window->show();
   m_settings_window->raise();
   m_settings_window->activateWindow();
@@ -1634,11 +1530,10 @@ void MainWindow::NetPlayInit()
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStopNetplay);
+  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
-  connect(m_netplay_setup_dialog, &NetPlaySetupDialog::JoinBrowser, this, &MainWindow::NetPlayJoin);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
 
@@ -2160,7 +2055,6 @@ void MainWindow::ShowGeckoCodes()
     m_gecko_dialog = new GeckoDialog(this);
     InstallHotkeyFilter(m_gecko_dialog);
   }
-
   m_gecko_dialog->show();
   m_gecko_dialog->raise();
   m_gecko_dialog->activateWindow();

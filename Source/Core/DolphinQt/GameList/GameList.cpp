@@ -162,7 +162,7 @@ void GameList::MakeListView()
   m_list->setTabKeyNavigation(false);
   m_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_list->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_list->setAlternatingRowColors(true);
+  m_list->setAlternatingRowColors(false); // This looks ugly with new QT
   m_list->setShowGrid(false);
   m_list->setSortingEnabled(true);
   m_list->setCurrentIndex(QModelIndex());

@@ -99,8 +99,6 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
-  connect(m_combobox_codehandler, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          &GeneralPane::OnCodeHandlerChanged);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -225,12 +223,29 @@ void GeneralPane::CreateCheats()
   auto* code_handler_layout = new QFormLayout();
   auto* code_handler_label = new QLabel(tr("Code Handler:"));
   m_combobox_codehandler = new QComboBox();
+  
   m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(0));
   m_combobox_codehandler->addItem(tr("MPN (Extended)"), QVariant(1));
   m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
-  code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
 
+  code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
   cheats_group_layout->addLayout(code_handler_layout);
+
+  // Add a label to inform users about NetPlay settings
+  auto* netplay_info_label = new QLabel(tr("<b>Note:</b> All players must have matching code handlers when participating in a NetPlay session."));
+  cheats_group_layout->addWidget(netplay_info_label);
+
+  // Add a label to define the different code handlers
+  auto* code_handler_info_label = new QLabel(tr("<b>Dolphin (Stock)</b>: Compatibility with legacy and non Dolphin-MPN builds <br>(around 3,200 bytes / 400 lines of code.)<br><br>"
+    "<b>MPN (Extended)</b>: Improved code handler that has more space with some removed irrevalent functions<br>(around 3,200 bytes / 440 lines of code.)<br><br>"
+    "<b>MPN (Super Extended)</b>: Enhanced code handler that uses hacks to give certain games<br>currently Mario Party 4, 5, 6 and 8 way more code room<br>(around 30,000 bytes / 3,750 lines of codes)."));
+  
+  code_handler_info_label->setWordWrap(true);
+  cheats_group_layout->addWidget(code_handler_info_label);
+
+  cheats_group_layout->addSpacing(10);
+
+  connect(m_combobox_codehandler, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GeneralPane::OnCodeHandlerChanged);
 
   code_handler_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
   code_handler_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);

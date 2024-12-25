@@ -51,6 +51,11 @@
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="CheatSearchFactoryWidget.cpp" />
@@ -494,7 +499,7 @@
   <ImportGroup Label="ExtensionTargets" />
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
-    <DataSysFiles Include="$(DolphinRootDir)Data\**\Extras\**\*.*" />
+    <!---<DataSysFiles Include="$(DolphinRootDir)Data\**\Extras\**\*.*" />-->
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Games\**\*.*" />
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
     <DataUserFiles Include="$(DolphinRootDir)Data\**\Updater\**\*.*" />

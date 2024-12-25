@@ -194,6 +194,10 @@ void NetPlaySetupDialog::CreateMainLayout()
   auto* host_widget = new QWidget;
   auto* host_layout = new QGridLayout;
   m_host_port_box = new QSpinBox;
+  m_host_port_box->setMinimumWidth(100); // Set minimum width to match new theme
+  
+  m_host_server_browser = new QCheckBox(tr("Show in Browser"));
+  m_host_server_browser->setChecked(true);
   m_host_chunked_upload_limit_check = new QCheckBox(tr("Limit Chunked Upload Speed:"));
   m_host_chunked_upload_limit_box = new QSpinBox;
   m_host_server_name = new QLineEdit;
@@ -211,10 +215,11 @@ void NetPlaySetupDialog::CreateMainLayout()
 
   host_layout->addWidget(m_host_port_box, 0, 0, Qt::AlignLeft);
 #ifdef USE_UPNP
-  host_layout->addWidget(m_host_upnp, 0, 5, Qt::AlignRight);
+  host_layout->addWidget(m_host_upnp, 0, 4, Qt::AlignRight);
 #endif
+  host_layout->addWidget(m_host_server_browser, 4, 0, Qt::AlignLeft);
   host_layout->addWidget(m_host_games, 2, 0, 1, -1);
-  host_layout->addWidget(m_host_button, 4, 5, Qt::AlignRight);
+  host_layout->addWidget(m_host_button, 4, 6, Qt::AlignRight);
 
   host_widget->setLayout(host_layout);
 
@@ -272,6 +277,8 @@ void NetPlaySetupDialog::ConnectWidgets()
 
   connect(m_host_server_name, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
 
+  connect(m_host_server_browser, &QCheckBox::toggled, this, &NetPlaySetupDialog::SaveSettings);
+  
 #ifdef USE_UPNP
   connect(m_host_upnp, &QCheckBox::stateChanged, this, &NetPlaySetupDialog::SaveSettings);
 #endif
@@ -318,6 +325,7 @@ void NetPlaySetupDialog::SaveSettings()
   Config::SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, m_host_upnp->isChecked());
 #endif
 
+  Config::SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, m_host_server_browser->isChecked());
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION, "NA");
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_nickname_edit->text().toStdString());
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD, "");
@@ -605,5 +613,5 @@ void NetPlaySetupDialog::acceptBrowser()
   else
     Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
 
-  emit JoinBrowser();
+  emit Join();
 }
