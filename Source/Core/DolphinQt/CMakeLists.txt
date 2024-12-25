@@ -52,6 +52,7 @@ add_executable(dolphin-mpn
   Config/ConfigControls/ConfigBool.h
   Config/ConfigControls/ConfigChoice.cpp
   Config/ConfigControls/ConfigChoice.h
+  Config/ConfigControls/ConfigControl.h
   Config/ConfigControls/ConfigInteger.cpp
   Config/ConfigControls/ConfigInteger.h
   Config/ConfigControls/ConfigRadio.cpp
@@ -318,6 +319,8 @@ add_executable(dolphin-mpn
   QtUtils/ParallelProgressDialog.h
   QtUtils/PartiallyClosableTabWidget.cpp
   QtUtils/PartiallyClosableTabWidget.h
+  QtUtils/QtUtils.cpp
+  QtUtils/QtUtils.h
   QtUtils/SetWindowDecorations.cpp
   QtUtils/SetWindowDecorations.h
   QtUtils/SignalBlocking.h

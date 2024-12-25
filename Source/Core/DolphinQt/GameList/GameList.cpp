@@ -546,13 +546,13 @@ void GameList::OpenProperties()
     return;
 
   PropertiesDialog* properties = new PropertiesDialog(this, *game);
-  // Since the properties dialog locks the game file, it's important to free it as soon as it's
-  // closed so that the file can be moved or deleted.
-  properties->setAttribute(Qt::WA_DeleteOnClose, true);
 
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
   connect(properties, &PropertiesDialog::OpenGraphicsSettings, this,
           &GameList::OpenGraphicsSettings);
+  connect(properties, &PropertiesDialog::finished, this,
+          [properties]() { properties->deleteLater(); });
+
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(properties, &PropertiesDialog::OpenAchievementSettings, this,
           &GameList::OpenAchievementSettings);

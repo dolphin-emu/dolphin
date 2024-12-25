@@ -61,6 +61,10 @@ void Host_PPCSymbolsChanged()
 {
 }
 
+void Host_PPCBreakpointsChanged()
+{
+}
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }
@@ -86,7 +90,7 @@ void Host_UpdateDisasmDialog()
 {
 }
 
-void Host_JitCacheCleared()
+void Host_JitCacheInvalidation()
 {
 }
 

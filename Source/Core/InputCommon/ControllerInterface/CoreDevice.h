@@ -163,28 +163,14 @@ protected:
   void AddInput(Input* const i);
   void AddOutput(Output* const o);
 
-  class FullAnalogSurface final : public Input
-  {
-  public:
-    FullAnalogSurface(Input* low, Input* high) : m_low(*low), m_high(*high) {}
-    ControlState GetState() const override;
-    std::string GetName() const override;
-    bool IsDetectable() const override;
-    bool IsHidden() const override;
-    bool IsMatchingName(std::string_view name) const override;
-
-  private:
-    Input& m_low;
-    Input& m_high;
-  };
-
-  void AddAnalogInputs(Input* low, Input* high)
-  {
-    AddInput(low);
-    AddInput(high);
-    AddInput(new FullAnalogSurface(low, high));
-    AddInput(new FullAnalogSurface(high, low));
-  }
+  // Pass Inputs for center-neutral (- and +) directions of some axis.
+  // This function adds those Inputs and also a FullAnalogSurface Input for each direction.
+  // This is only needed when it's not known if the particular axis is neutral in the center
+  //  or neutral on one of the extremes.
+  // Some e.g. DInput devices expose a trigger across the full analog surface
+  //  but we have no way of knowing this until the user actually maps the Input,
+  //  so both center-neutral and full-surface Inputs need to be created in that case.
+  void AddFullAnalogSurfaceInputs(Input* low, Input* high);
 
   void AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs);
 

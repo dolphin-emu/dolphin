@@ -256,9 +256,9 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
-void Host_JitCacheCleared()
+void Host_JitCacheInvalidation()
 {
-  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->JitCacheCleared(); });
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->JitCacheInvalidation(); });
 }
 
 void Host_JitProfileDataWiped()
@@ -269,6 +269,12 @@ void Host_JitProfileDataWiped()
 void Host_PPCSymbolsChanged()
 {
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });
+}
+
+void Host_PPCBreakpointsChanged()
+{
+  QueueOnObject(QApplication::instance(),
+                [] { emit Host::GetInstance()->PPCBreakpointsChanged(); });
 }
 
 // We ignore these, and their purpose should be questioned individually.

@@ -173,20 +173,21 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 
   const bool have_single = fpr.IsSingle(inst.RS);
 
-  ARM64Reg VS = fpr.R(inst.RS, have_single ? RegType::Single : RegType::Register);
+  Arm64FPRCache::ScopedARM64Reg VS =
+      fpr.R(inst.RS, have_single ? RegType::Single : RegType::Register);
 
   if (js.assumeNoPairedQuantize)
   {
     if (!have_single)
     {
-      const ARM64Reg single_reg = fpr.GetReg();
+      auto single_reg = fpr.GetScopedReg();
 
       if (w)
         m_float_emit.FCVT(32, 64, EncodeRegToDouble(single_reg), EncodeRegToDouble(VS));
       else
         m_float_emit.FCVTN(32, EncodeRegToDouble(single_reg), EncodeRegToDouble(VS));
 
-      VS = single_reg;
+      VS = std::move(single_reg);
     }
   }
   else
@@ -278,9 +279,6 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     gpr.BindToRegister(inst.RA, false);
     MOV(gpr.R(inst.RA), addr_reg);
   }
-
-  if (js.assumeNoPairedQuantize && !have_single)
-    fpr.Unlock(VS);
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);

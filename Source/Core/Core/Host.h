@@ -57,10 +57,11 @@ bool Host_TASInputHasFocus();
 
 void Host_Message(HostMessageID id);
 void Host_PPCSymbolsChanged();
+void Host_PPCBreakpointsChanged();
 void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
-void Host_JitCacheCleared();
+void Host_JitCacheInvalidation();
 void Host_JitProfileDataWiped();
 void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
