@@ -198,8 +198,8 @@ void LoadPatches()
   }
   else
   {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni), sconfig.GetGameID());
+    ActionReplay::LoadAndApplyCodes(globalIni, localIni, sconfig.GetGameID());
   }
 }
 
@@ -246,9 +246,6 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
 static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
                                std::span<const std::size_t> memory_patch_indices)
 {
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return;
-
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
   {
@@ -296,6 +293,13 @@ void RemoveMemoryPatch(std::size_t index)
   std::erase(s_on_frame_memory, index);
 }
 
+static void ApplyStartupPatches(Core::System& system)
+{
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard(system);
+  ApplyPatches(guard, s_on_frame);
+}
+
 bool ApplyFramePatches(Core::System& system)
 {
   const auto& ppc_state = system.GetPPCState();
@@ -331,14 +335,15 @@ bool ApplyFramePatches(Core::System& system)
 void Shutdown()
 {
   s_on_frame.clear();
-  ActionReplay::ApplyCodes({});
+  ActionReplay::ApplyCodes({}, "");
   Gecko::Shutdown();
 }
 
-void Reload()
+void Reload(Core::System& system)
 {
   Shutdown();
   LoadPatches();
+  ApplyStartupPatches(system);
 }
 
 }  // namespace PatchEngine

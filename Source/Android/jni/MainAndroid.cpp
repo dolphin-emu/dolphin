@@ -101,6 +101,10 @@ void Host_PPCSymbolsChanged()
 {
 }
 
+void Host_PPCBreakpointsChanged()
+{
+}
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }
@@ -146,7 +150,7 @@ void Host_UpdateDisasmDialog()
 {
 }
 
-void Host_JitCacheCleared()
+void Host_JitCacheInvalidation()
 {
 }
 
@@ -408,9 +412,10 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCo
 }
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDefaultGraphicsBackendName(JNIEnv* env, jclass)
+Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDefaultGraphicsBackendConfigName(JNIEnv* env,
+                                                                                 jclass)
 {
-  return ToJString(env, VideoBackendBase::GetDefaultBackendName());
+  return ToJString(env, VideoBackendBase::GetDefaultBackendConfigName());
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv*, jclass)

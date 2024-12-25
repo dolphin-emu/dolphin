@@ -15,8 +15,10 @@
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "ConfigManager.h"
@@ -52,7 +54,7 @@ static std::vector<GeckoCode> s_active_codes;
 static std::vector<GeckoCode> s_synced_codes;
 static std::mutex s_active_codes_lock;
 
-void SetActiveCodes(std::span<const GeckoCode> gcodes)
+void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_id)
 {
   std::lock_guard lk(s_active_codes_lock);
 
@@ -60,8 +62,12 @@ void SetActiveCodes(std::span<const GeckoCode> gcodes)
   if (Config::AreCheatsEnabled())
   {
     s_active_codes.reserve(gcodes.size());
+
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [](const GeckoCode& code) { return code.enabled; });
+                 [&game_id](const GeckoCode& code) {
+                   return code.enabled &&
+                          AchievementManager::GetInstance().CheckApprovedGeckoCode(code, game_id);
+                 });
   }
   s_active_codes.shrink_to_fit();
 
@@ -272,6 +278,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   {
     ppc_state.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
   }
+  Host_JitCacheInvalidation();
   return Installation::Installed;
 }
 

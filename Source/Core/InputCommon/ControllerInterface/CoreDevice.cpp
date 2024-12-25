@@ -130,38 +130,50 @@ bool Device::Control::IsHidden() const
   return false;
 }
 
-ControlState Device::FullAnalogSurface::GetState() const
+class FullAnalogSurface final : public Device::Input
 {
-  return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
-}
+public:
+  FullAnalogSurface(Input* low, Input* high) : m_low(*low), m_high(*high) {}
 
-std::string Device::FullAnalogSurface::GetName() const
+  ControlState GetState() const override
+  {
+    return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
+  }
+
+  std::string GetName() const override
+  {
+    // E.g. "Full Axis X+"
+    return "Full " + m_high.GetName();
+  }
+
+  bool IsDetectable() const override { return m_low.IsDetectable() && m_high.IsDetectable(); }
+
+  bool IsHidden() const override { return m_low.IsHidden() && m_high.IsHidden(); }
+
+  bool IsMatchingName(std::string_view name) const override
+  {
+    if (Control::IsMatchingName(name))
+      return true;
+
+    // Old naming scheme was "Axis X-+" which is too visually similar to "Axis X+".
+    // This has caused countless problems for users with mysterious misconfigurations.
+    // We match this old name to support old configurations.
+    const auto old_name = m_low.GetName() + *m_high.GetName().rbegin();
+
+    return old_name == name;
+  }
+
+private:
+  Input& m_low;
+  Input& m_high;
+};
+
+void Device::AddFullAnalogSurfaceInputs(Input* low, Input* high)
 {
-  // E.g. "Full Axis X+"
-  return "Full " + m_high.GetName();
-}
-
-bool Device::FullAnalogSurface::IsDetectable() const
-{
-  return m_low.IsDetectable() && m_high.IsDetectable();
-}
-
-bool Device::FullAnalogSurface::IsHidden() const
-{
-  return m_low.IsHidden() && m_high.IsHidden();
-}
-
-bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
-{
-  if (Control::IsMatchingName(name))
-    return true;
-
-  // Old naming scheme was "Axis X-+" which is too visually similar to "Axis X+".
-  // This has caused countless problems for users with mysterious misconfigurations.
-  // We match this old name to support old configurations.
-  const auto old_name = m_low.GetName() + *m_high.GetName().rbegin();
-
-  return old_name == name;
+  AddInput(low);
+  AddInput(high);
+  AddInput(new FullAnalogSurface(low, high));
+  AddInput(new FullAnalogSurface(high, low));
 }
 
 void Device::AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs)

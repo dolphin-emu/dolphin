@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2016 Jeremy Newton -->
+<component type="desktop-application">
+  <id>org.DolphinEmu.dolphin-emu</id>
+  <name>Dolphin Emulator</name>
+  <developer id="org.dolphin-emu">
+    <name>Dolphin Emulator Project</name>
+  </developer>
+  <summary>GameCube / Wii</summary>
+  <metadata_license>CC-BY-SA-3.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <content_rating type="oars-1.0"/>
+  <!-- Descriptions taken from Dolphin Homepage -->
+  <description><p>Dolphin is an emulator for two recent Nintendo video game consoles: the GameCube and the Wii. It allows PC gamers to enjoy games for these two consoles in full HD (1080p) with several enhancements: compatibility with all PC controllers, turbo speed, networked multiplayer, and even more!</p></description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Dolphin's main window</caption>
+      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_1.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>In-game</caption>
+      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_2.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Graphics configuration</caption>
+      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_3.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Controller configuration</caption>
+      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_4.png</image>
+    </screenshot>
+  </screenshots>
+  <launchable type="desktop-id">dolphin-emu.desktop</launchable>
+  <provides>
+    <binary>dolphin-emu</binary>
+    <id>dolphin-emu.desktop</id>
+  </provides>
+  <releases>
+    <release version="@VERSION_PLACEHOLDER" date="@DATE_PLACEHOLDER"/>
+  </releases>
+  <url type="homepage">https://dolphin-emu.org</url>
+  <url type="bugtracker">https://bugs.dolphin-emu.org/projects/emulator/issues</url>
+  <url type="faq">https://dolphin-emu.org/docs/faq/</url>
+  <url type="help">https://dolphin-emu.org/docs/guides/</url>
+  <url type="translate">https://www.transifex.com/projects/p/dolphin-emu</url>
+  <url type="contact">https://dolphin-emu.org/docs/faq/#ive-got-idea-make-dolphin-better-how-should-i-tell</url>
+  <url type="vcs-browser">https://github.com/dolphin-emu/dolphin</url>
+  <url type="contribute">https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md</url>
+</component>

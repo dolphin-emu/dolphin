@@ -16,6 +16,7 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
@@ -23,8 +24,12 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
+#include "Core/ActionReplay.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PatchEngine.h"
@@ -62,7 +67,8 @@ void AchievementManager::Init()
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
-    rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+    Config::AddConfigChangedCallback([this] { SetHardcoreMode(); });
+    SetHardcoreMode();
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
@@ -361,6 +367,12 @@ std::recursive_mutex& AchievementManager::GetLock()
 void AchievementManager::SetHardcoreMode()
 {
   rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+  }
 }
 
 bool AchievementManager::IsHardcoreModeActive() const
@@ -373,10 +385,11 @@ bool AchievementManager::IsHardcoreModeActive() const
   return rc_client_is_processing_required(m_client);
 }
 
-void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
-                                               const std::string& game_ini_id) const
+template <typename T>
+void AchievementManager::FilterApprovedIni(std::vector<T>& codes,
+                                           const std::string& game_ini_id) const
 {
-  if (patches.empty())
+  if (codes.empty())
   {
     // There's nothing to verify, so let's save ourselves some work
     return;
@@ -387,46 +400,120 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
   if (!IsHardcoreModeActive())
     return;
 
+  // Approved codes list failed to hash
+  if (!m_ini_root->is<picojson::value::object>())
+  {
+    codes.clear();
+    return;
+  }
+
+  for (auto& code : codes)
+  {
+    if (code.enabled && !CheckApprovedCode(code, game_ini_id))
+      code.enabled = false;
+  }
+}
+
+template <typename T>
+bool AchievementManager::CheckApprovedCode(const T& code, const std::string& game_ini_id) const
+{
+  if (!IsHardcoreModeActive())
+    return true;
+
+  // Approved codes list failed to hash
+  if (!m_ini_root->is<picojson::value::object>())
+    return false;
+
   const bool known_id = m_ini_root->contains(game_ini_id);
 
-  auto patch_itr = patches.begin();
-  while (patch_itr != patches.end())
+  INFO_LOG_FMT(ACHIEVEMENTS, "Verifying code {}", code.name);
+
+  bool verified = false;
+
+  if (known_id)
   {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Verifying patch {}", patch_itr->name);
+    auto digest = GetCodeHash(code);
 
-    bool verified = false;
-
-    if (known_id)
-    {
-      auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
-      for (const auto& entry : patch_itr->entries)
-      {
-        context->Update(Common::BitCastToArray<u8>(entry.type));
-        context->Update(Common::BitCastToArray<u8>(entry.address));
-        context->Update(Common::BitCastToArray<u8>(entry.value));
-        context->Update(Common::BitCastToArray<u8>(entry.comparand));
-        context->Update(Common::BitCastToArray<u8>(entry.conditional));
-      }
-      auto digest = context->Finish();
-
-      verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
-    }
-
-    if (!verified)
-    {
-      patch_itr = patches.erase(patch_itr);
-      OSD::AddMessage(
-          fmt::format("Failed to verify patch {} from file {}.", patch_itr->name, game_ini_id),
-          OSD::Duration::VERY_LONG, OSD::Color::RED);
-      OSD::AddMessage("Disable hardcore mode to enable this patch.", OSD::Duration::VERY_LONG,
-                      OSD::Color::RED);
-    }
-    else
-    {
-      patch_itr++;
-    }
+    verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
   }
+
+  if (!verified)
+  {
+    OSD::AddMessage(fmt::format("Failed to verify code {} from file {}.", code.name, game_ini_id),
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Disable hardcore mode to enable this code.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+  }
+  return verified;
+}
+
+Common::SHA1::Digest AchievementManager::GetCodeHash(const PatchEngine::Patch& patch) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch.entries.size())));
+  for (const auto& entry : patch.entries)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.type));
+    context->Update(Common::BitCastToArray<u8>(entry.address));
+    context->Update(Common::BitCastToArray<u8>(entry.value));
+    context->Update(Common::BitCastToArray<u8>(entry.comparand));
+    context->Update(Common::BitCastToArray<u8>(entry.conditional));
+  }
+  return context->Finish();
+}
+
+Common::SHA1::Digest AchievementManager::GetCodeHash(const Gecko::GeckoCode& code) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.codes.size())));
+  for (const auto& entry : code.codes)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.address));
+    context->Update(Common::BitCastToArray<u8>(entry.data));
+  }
+  return context->Finish();
+}
+
+Common::SHA1::Digest AchievementManager::GetCodeHash(const ActionReplay::ARCode& code) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.ops.size())));
+  for (const auto& entry : code.ops)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.cmd_addr));
+    context->Update(Common::BitCastToArray<u8>(entry.value));
+  }
+  return context->Finish();
+}
+
+void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
+                                               const std::string& game_ini_id) const
+{
+  FilterApprovedIni(patches, game_ini_id);
+}
+
+void AchievementManager::FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
+                                                  const std::string& game_ini_id) const
+{
+  FilterApprovedIni(codes, game_ini_id);
+}
+
+void AchievementManager::FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
+                                               const std::string& game_ini_id) const
+{
+  FilterApprovedIni(codes, game_ini_id);
+}
+
+bool AchievementManager::CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
+                                                const std::string& game_ini_id) const
+{
+  return CheckApprovedCode(code, game_ini_id);
+}
+
+bool AchievementManager::CheckApprovedARCode(const ActionReplay::ARCode& code,
+                                             const std::string& game_ini_id) const
+{
+  return CheckApprovedCode(code, game_ini_id);
 }
 
 void AchievementManager::SetSpectatorMode()

@@ -206,7 +206,7 @@ void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
   m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
-    Gecko::SetActiveCodes(m_gecko_codes);
+    Gecko::SetActiveCodes(m_gecko_codes, m_game_id);
 
   SaveCodes();
 }
@@ -318,20 +318,14 @@ void GeckoCodeWidget::SortAlphabetically()
 
 void GeckoCodeWidget::SortEnabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
-    return a.enabled && a.enabled != b.enabled;
-  });
-
+  std::ranges::stable_partition(m_gecko_codes, std::identity{}, &Gecko::GeckoCode::enabled);
   UpdateList();
   SaveCodes();
 }
 
 void GeckoCodeWidget::SortDisabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
-    return !a.enabled && a.enabled != b.enabled;
-  });
-
+  std::ranges::stable_partition(m_gecko_codes, std::logical_not{}, &Gecko::GeckoCode::enabled);
   UpdateList();
   SaveCodes();
 }

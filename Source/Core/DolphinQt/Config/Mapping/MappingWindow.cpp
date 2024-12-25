@@ -10,12 +10,12 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QScreen>
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "Core/Core.h"
 #include "Core/HotkeyManager.h"
 
 #include "Common/CommonPaths.h"
@@ -73,12 +73,15 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   SetMappingType(type);
 
   const auto timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, [this] {
+  connect(timer, &QTimer::timeout, this, [this, timer] {
+    const double refresh_rate = screen()->refreshRate();
+    timer->setInterval(1000 / refresh_rate);
+
     const auto lock = GetController()->GetStateLock();
     emit Update();
   });
 
-  timer->start(1000 / INDICATOR_UPDATE_FREQ);
+  timer->start(100);
 
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();

@@ -81,6 +81,12 @@ enum class FlushMode : bool
   MaintainState,
 };
 
+enum class IgnoreDiscardedRegisters
+{
+  No,
+  Yes,
+};
+
 class OpArg
 {
 public:
@@ -169,13 +175,67 @@ public:
   // Flushes the register cache in different ways depending on the mode.
   // A temporary register must be supplied when flushing GPRs with FlushMode::MaintainState,
   // but in other cases it can be set to ARM64Reg::INVALID_REG when convenient for the caller.
-  virtual void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) = 0;
+  virtual void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+                     IgnoreDiscardedRegisters ignore_discarded_registers) = 0;
 
   virtual BitSet32 GetCallerSavedUsed() const = 0;
 
   // Returns a temporary register for use
   // Requires unlocking after done
   Arm64Gen::ARM64Reg GetReg();
+
+  class ScopedARM64Reg
+  {
+  public:
+    inline ScopedARM64Reg() = default;
+    ScopedARM64Reg(const ScopedARM64Reg&) = delete;
+    explicit inline ScopedARM64Reg(Arm64RegCache& cache) : m_reg(cache.GetReg()), m_gpr(&cache) {}
+    inline ScopedARM64Reg(Arm64Gen::ARM64Reg reg) : m_reg(reg) {}
+    inline ScopedARM64Reg(ScopedARM64Reg&& scoped_reg) { *this = std::move(scoped_reg); }
+    inline ~ScopedARM64Reg() { Unlock(); }
+
+    inline ScopedARM64Reg& operator=(const ScopedARM64Reg&) = delete;
+    inline ScopedARM64Reg& operator=(Arm64Gen::ARM64Reg reg)
+    {
+      Unlock();
+      m_reg = reg;
+      return *this;
+    }
+    inline ScopedARM64Reg& operator=(ScopedARM64Reg&& scoped_reg)
+    {
+      // Taking ownership of an existing scoped register, no need to release.
+      m_reg = scoped_reg.m_reg;
+      m_gpr = scoped_reg.m_gpr;
+      scoped_reg.Invalidate();
+      return *this;
+    }
+
+    inline Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
+    inline operator Arm64Gen::ARM64Reg() const { return GetReg(); }
+    inline void Unlock()
+    {
+      // Only unlock the register if GPR is set.
+      if (m_gpr != nullptr)
+      {
+        m_gpr->Unlock(m_reg);
+      }
+      Invalidate();
+    }
+
+  private:
+    inline void Invalidate()
+    {
+      m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+      m_gpr = nullptr;
+    }
+
+    Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    Arm64RegCache* m_gpr = nullptr;
+  };
+
+  // Returns a temporary register
+  // Unlocking is implicitly handled through RAII
+  inline ScopedARM64Reg GetScopedReg() { return ScopedARM64Reg(*this); }
 
   void UpdateLastUsed(BitSet32 regs_used);
 
@@ -262,7 +322,9 @@ public:
   // Flushes the register cache in different ways depending on the mode.
   // A temporary register must be supplied when flushing GPRs with FlushMode::MaintainState,
   // but in other cases it can be set to ARM64Reg::INVALID_REG when convenient for the caller.
-  void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
+  void Flush(
+      FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) override;
 
   // Returns a guest GPR inside of a host register.
   // Will dump an immediate to the host register as well.
@@ -328,12 +390,12 @@ public:
 
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
-    FlushRegisters(regs, FlushMode::All, tmp_reg);
+    FlushRegisters(regs, FlushMode::All, tmp_reg, IgnoreDiscardedRegisters::No);
   }
 
   void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
-    FlushCRRegisters(regs, FlushMode::All, tmp_reg);
+    FlushCRRegisters(regs, FlushMode::All, tmp_reg, IgnoreDiscardedRegisters::No);
   }
 
   void DiscardCRRegisters(BitSet8 regs);
@@ -368,8 +430,10 @@ private:
   void SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty);
   void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
 
-  void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg);
-  void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg);
+  void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+                      IgnoreDiscardedRegisters ignore_discarded_registers);
+  void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+                        IgnoreDiscardedRegisters ignore_discarded_registers);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -379,7 +443,9 @@ public:
 
   // Flushes the register cache in different ways depending on the mode.
   // The temporary register can be set to ARM64Reg::INVALID_REG when convenient for the caller.
-  void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
+  void Flush(
+      FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) override;
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well

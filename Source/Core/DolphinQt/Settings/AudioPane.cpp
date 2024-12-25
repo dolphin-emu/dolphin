@@ -163,7 +163,7 @@ void AudioPane::CreateWidgets()
   auto* misc_layout = new QGridLayout;
   misc_box->setLayout(misc_layout);
 
-  m_speed_up_mute_enable = new QCheckBox(tr("Mute When Disabling Speed Limit."));
+  m_speed_up_mute_enable = new QCheckBox(tr("Mute When Disabling Speed Limit"));
   m_speed_up_mute_enable->setToolTip(
       tr("Mutes the audio when overriding the emulation speed limit (default hotkey: Tab)."));
 

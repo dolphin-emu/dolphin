@@ -16,6 +16,9 @@ std::vector<std::string> Host_GetPreferredLocales()
 void Host_PPCSymbolsChanged()
 {
 }
+void Host_PPCBreakpointsChanged()
+{
+}
 void Host_RefreshDSPDebuggerWindow()
 {
 }
@@ -41,7 +44,7 @@ bool Host_UpdateDiscordPresenceRaw(const std::string& details, const std::string
 void Host_UpdateDisasmDialog()
 {
 }
-void Host_JitCacheCleared()
+void Host_JitCacheInvalidation()
 {
 }
 void Host_JitProfileDataWiped()

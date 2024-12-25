@@ -126,7 +126,7 @@ A `wia_group_t` normally contains `chunk_size` bytes of decompressed data (or `c
 |Type and name|Description|
 |--|--|
 |`u32 data_off4`|The offset in the file where the compressed data is stored, divided by 4.|
-|`u32 data_size`|The size of the compressed data, including any `wia_except_list_t` structs. 0 is a special case meaning that every byte of the decompressed data is `0x00` and the `wia_except_list_t` structs (if there are supposed to be any) contain 0 exceptions.|
+|`u32 data_size`|The size of the compressed data, including any `wia_except_list_t` structs, and including any padding that is required after the `wia_except_list_t` structs when using the compression method NONE or PURGE. 0 is a special case meaning that every byte of the decompressed data is `0x00` and the `wia_except_list_t` structs (if there are supposed to be any) contain 0 exceptions.|
 
 ## `wia_exception_t`
 
@@ -152,7 +152,7 @@ For memory management reasons, programs which read WIA files might place a limit
 |`u16 n_exceptions`|The number of `wia_exception_t` structs.|
 |`wia_exception_t exception[n_exceptions]`|Each `wia_exception_t` describes one difference between the hashes obtained by hashing the partition data and the original hashes.|
 
-Somewhat ironically, there are exceptions to how `wia_except_list_t` structs are handled:
+Somewhat ironically, there are exceptions to how `wia_except_list_t` structs are handled depending on what compression method is used for the group's data:
 
  - For the compression method PURGE, the `wia_except_list_t` structs are stored uncompressed (in other words, before the first `wia_segment_t`). For BZIP2, LZMA and LZMA2, they are compressed along with the rest of the data.
  - For the compression methods NONE and PURGE, if the end offset of the last ``wia_except_list_t`` is not evenly divisible by 4, padding is inserted after it so that the data afterwards will start at a 4 byte boundary. This padding is not inserted for the other compression methods.
@@ -185,12 +185,12 @@ RVZ is a file format which is closely based on WIA. The differences are as follo
 
 Compared to `wia_group_t`, `rvz_group_t` changes the meaning of the most significant bit of `data_size` and adds one additional attribute.
 
-"Compressed data" below means the data as it is stored in the file. When compression is disabled, this "compressed data" is actually not compressed.
+"Compressed data" below means the data as it is stored in the file. When the compression method is NONE, this "compressed data" is actually not compressed.
 
 |Type and name|Description|
 |--|--|
 |`u32 data_off4`|The offset in the file where the compressed data is stored, divided by 4.|
-|`u32 data_size`|The most significant bit is 1 if the data is compressed using the compression method indicated in `wia_disc_t`, and 0 if it is not compressed. The lower 31 bits are the size of the compressed data, including any `wia_except_list_t` structs. The lower 31 bits being 0 is a special case meaning that every byte of the decompressed and unpacked data is `0x00` and the `wia_except_list_t` structs (if there are supposed to be any) contain 0 exceptions.|
+|`u32 data_size`|The most significant bit is 1 if the data is stored using the compression method indicated in `wia_disc_t`, and 0 if it is stored using the compression method NONE. The lower 31 bits are the size of the compressed data, including any `wia_except_list_t` structs, and including any padding that is required after the `wia_except_list_t` structs when using the compression method NONE. The lower 31 bits being 0 is a special case meaning that every byte of the decompressed and unpacked data is `0x00` and the `wia_except_list_t` structs (if there are supposed to be any) contain 0 exceptions.|
 |`u32 rvz_packed_size`|The size after decompressing but before decoding the RVZ packing. If this is 0, RVZ packing is not used for this group.|
 
 ## RVZ packing
