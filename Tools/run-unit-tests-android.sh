@@ -2,8 +2,8 @@
 #
 # Runs unit tests (must have been built beforehand) on an Android device connected via adb.
 #
-# The current working directory must contain test executables. Normally (for AArch64)
-# the working directory would be: Source/Android/app/.cxx/cmake/debug/arm64-v8a/Binaries/Tests
+# The current working directory must contain test executables. Normally (for AArch64) the path to use
+# looks like: Source/Android/app/.cxx/RelWithDebInfo/<random characters>/arm64-v8a/Binaries/Tests
 
 DEVICE_DIR="/data/local/tmp/dolphin-emu-tests"
 
