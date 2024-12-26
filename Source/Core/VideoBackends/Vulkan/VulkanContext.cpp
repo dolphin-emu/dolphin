@@ -929,8 +929,8 @@ void VulkanContext::DisableDebugUtils()
 
 bool VulkanContext::SupportsDeviceExtension(const char* name) const
 {
-  return std::any_of(m_device_extensions.begin(), m_device_extensions.end(),
-                     [name](const std::string& extension) { return extension == name; });
+  return std::ranges::any_of(m_device_extensions,
+                             [name](const std::string& extension) { return extension == name; });
 }
 
 static bool DriverIsMesa(VkDriverId driver_id)
