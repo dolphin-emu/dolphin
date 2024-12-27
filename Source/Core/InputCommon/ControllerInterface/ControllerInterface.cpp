@@ -248,7 +248,7 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     std::lock_guard lk(m_devices_mutex);
 
     const auto is_id_in_use = [&device, this](int id) {
-      return std::any_of(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
+      return std::ranges::any_of(m_devices, [&device, &id](const auto& d) {
         return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
                d->GetId() == id;
       });
@@ -368,10 +368,8 @@ void ControllerInterface::UpdateInput()
   if (devices_to_remove.size() > 0)
   {
     RemoveDevice([&](const ciface::Core::Device* device) {
-      return std::any_of(devices_to_remove.begin(), devices_to_remove.end(),
-                         [device](const std::weak_ptr<ciface::Core::Device>& d) {
-                           return d.lock().get() == device;
-                         });
+      return std::ranges::any_of(devices_to_remove,
+                                 [device](const auto& d) { return d.lock().get() == device; });
     });
   }
 }

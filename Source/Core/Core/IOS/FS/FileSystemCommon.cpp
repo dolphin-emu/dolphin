@@ -26,7 +26,7 @@ bool IsValidNonRootPath(std::string_view path)
 bool IsValidFilename(std::string_view filename)
 {
   return filename.length() <= MaxFilenameLength &&
-         !std::any_of(filename.begin(), filename.end(), [](char c) { return c == '/'; });
+         !std::ranges::any_of(filename, [](char c) { return c == '/'; });
 }
 
 SplitPathResult SplitPathAndBasename(std::string_view path)

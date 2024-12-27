@@ -237,7 +237,7 @@ static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::st
     if (name.find('\\') != std::string::npos)
       return false;
 #endif
-    if (std::all_of(name.begin(), name.end(), [](char c) { return c == '.'; }))
+    if (std::ranges::all_of(name, [](char c) { return c == '.'; }))
       return false;
 
     bool is_folder;

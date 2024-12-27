@@ -369,10 +369,8 @@ RCForkGuard RegCache::Fork()
 
 void RegCache::Discard(BitSet32 pregs)
 {
-  ASSERT_MSG(
-      DYNA_REC,
-      std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }),
-      "Someone forgot to unlock a X64 reg");
+  ASSERT_MSG(DYNA_REC, std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked),
+             "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
   {
@@ -393,10 +391,8 @@ void RegCache::Discard(BitSet32 pregs)
 
 void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_registers)
 {
-  ASSERT_MSG(
-      DYNA_REC,
-      std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }),
-      "Someone forgot to unlock a X64 reg");
+  ASSERT_MSG(DYNA_REC, std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked),
+             "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
   {
@@ -459,9 +455,8 @@ void RegCache::Commit()
 
 bool RegCache::IsAllUnlocked() const
 {
-  return std::none_of(m_regs.begin(), m_regs.end(), [](const auto& r) { return r.IsLocked(); }) &&
-         std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }) &&
-         !IsAnyConstraintActive();
+  return std::ranges::none_of(m_regs, &PPCCachedReg::IsLocked) &&
+         std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked) && !IsAnyConstraintActive();
 }
 
 void RegCache::PreloadRegisters(BitSet32 to_preload)
@@ -754,6 +749,5 @@ void RegCache::Realize(preg_t preg)
 
 bool RegCache::IsAnyConstraintActive() const
 {
-  return std::any_of(m_constraints.begin(), m_constraints.end(),
-                     [](const auto& c) { return c.IsActive(); });
+  return std::ranges::any_of(m_constraints, &RCConstraint::IsActive);
 }

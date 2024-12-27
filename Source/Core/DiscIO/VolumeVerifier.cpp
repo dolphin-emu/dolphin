@@ -729,16 +729,15 @@ bool VolumeVerifier::ShouldHaveInstallPartition() const
   static constexpr std::array<std::string_view, 4> dragon_quest_x = {"S4MJGD", "S4SJGD", "S6TJGD",
                                                                      "SDQJGD"};
   const std::string& game_id = m_volume.GetGameID();
-  return std::any_of(dragon_quest_x.cbegin(), dragon_quest_x.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+  return std::ranges::any_of(dragon_quest_x,
+                             [&game_id](std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldHaveMasterpiecePartitions() const
 {
   static constexpr std::array<std::string_view, 4> ssbb = {"RSBE01", "RSBJ01", "RSBK01", "RSBP01"};
   const std::string& game_id = m_volume.GetGameID();
-  return std::any_of(ssbb.cbegin(), ssbb.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+  return std::ranges::any_of(ssbb, [&game_id](std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldBeDualLayer() const
@@ -1039,7 +1038,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   if (!m_volume.Read(offset, length, data.data(), partition))
     return;
 
-  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  if (std::ranges::any_of(data, [](u8 x) { return x != 0; }))
   {
     AddProblem(Severity::High,
                Common::GetStringT("Some padding data that should be zero is not zero. "
