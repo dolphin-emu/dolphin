@@ -25,6 +25,7 @@ using std::isinf;
 using std::isnan;
 #include <expr.h>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -502,4 +503,27 @@ void Expression::Reporting(const double result) const
 std::string Expression::GetText() const
 {
   return m_text;
+}
+
+void Expression::ComputeRegistersUsed()
+{
+  if (m_has_computed_registers_used)
+    return;
+
+  for (const VarBinding& bind : m_binds)
+  {
+    switch (bind.type)
+    {
+    case VarBindingType::GPR:
+      m_gprs_used[bind.index] = true;
+      break;
+    case VarBindingType::FPR:
+      m_fprs_used[bind.index] = true;
+      break;
+    default:
+      break;
+    }
+  }
+
+  m_has_computed_registers_used = true;
 }

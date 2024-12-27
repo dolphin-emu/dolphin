@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Expression.h"
 
@@ -129,9 +130,17 @@ public:
   void Clear();
   bool HasAny() const { return !m_mem_checks.empty(); }
 
+  BitSet32 GetGPRsUsedInConditions() { return m_gprs_used_in_conditions; }
+  BitSet32 GetFPRsUsedInConditions() { return m_fprs_used_in_conditions; }
+
 private:
+  // Returns whether any change was made
+  bool UpdateRegistersUsedInConditions();
+
   TMemChecks m_mem_checks;
   Core::System& m_system;
+  BitSet32 m_gprs_used_in_conditions;
+  BitSet32 m_fprs_used_in_conditions;
   bool m_mem_breakpoints_set = false;
 };
 
