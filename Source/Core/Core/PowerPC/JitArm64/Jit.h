@@ -273,8 +273,11 @@ protected:
   // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
   // !emitting_routine && mode == Auto && jo.fastmem:                             X30
   //
-  // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
-  // may be clobbered if mode != AlwaysFastAccess.
+  // Furthermore:
+  // - Any callee-saved register which isn't marked in gprs_to_push/fprs_to_push may be
+  //   clobbered if mode != AlwaysFastAccess.
+  // - If !emitting_routine && mode != AlwaysFastAccess && jo.memcheck, X30 must not
+  //   contain a guest register.
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
