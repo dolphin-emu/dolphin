@@ -167,7 +167,7 @@ protected:
 
   static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
 
-  bool DoesConfigNeedRefresh();
+  bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
 
   void InitFastmemArena();
@@ -187,7 +187,7 @@ protected:
 #endif
   }
 
-  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
+  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const;
 
 public:
   explicit JitBase(Core::System& system);
