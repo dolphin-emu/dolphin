@@ -282,6 +282,9 @@ protected:
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
 
+  // temp_gpr must be a valid register, but temp_fpr can be INVALID_REG.
+  void FlushPPCStateBeforeSlowAccess(Arm64Gen::ARM64Reg temp_gpr, Arm64Gen::ARM64Reg temp_fpr);
+
   // Loadstore routines
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset, bool update);
