@@ -226,10 +226,12 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // bad=true means carefully load map files that might not be from exactly the right version
 bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad)
 {
+  INFO_LOG_FMT(SYMBOLS, "Loading symbol map: {}", filename);
   File::IOFile f(filename, "r");
   if (!f)
     return false;
 
+  INFO_LOG_FMT(SYMBOLS, "Symbol map file loaded");
   // Two columns are used by Super Smash Bros. Brawl Korean map file
   // Three columns are commonly used
   // Four columns are used in American Mensa Academy map files and perhaps other games
@@ -337,6 +339,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     static constexpr char ENTRY_OF_STRING[] = " (entry of ";
     static constexpr std::string_view ENTRY_OF_VIEW(ENTRY_OF_STRING);
     auto parse_entry_of = [](char* name) {
+      INFO_LOG_FMT(SYMBOLS, "Entering parse_entry_of({})", name);
+
       if (char* s1 = strstr(name, ENTRY_OF_STRING); s1 != nullptr)
       {
         char container[512];
@@ -354,13 +358,18 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
           strcpy(name, container);
         }
       }
+
+      INFO_LOG_FMT(SYMBOLS, "Leaving parse_entry_of({})", name);
     };
     auto was_alignment = [](const char* name) {
       return *name == ' ' || (*name >= '0' && *name <= '9');
     };
     auto parse_alignment = [](char* name, u32* alignment) {
+      INFO_LOG_FMT(SYMBOLS, "Entering parse_alignment({})", name);
       const std::string buffer(StripWhitespace(name));
-      return sscanf(buffer.c_str(), "%i %511[^\r\n]", alignment, name);
+      auto ret = sscanf(buffer.c_str(), "%i %511[^\r\n]", alignment, name);
+      INFO_LOG_FMT(SYMBOLS, "Leaving parse_alignment({})", name);
+      return ret;
     };
     switch (column_count)
     {
@@ -391,6 +400,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       break;
     default:
       // Should never happen
+      INFO_LOG_FMT(SYMBOLS, "Bad column count: {}, line={}, temp={}, good={}, bad={}", column_count,
+                   std::string_view{line}, temp, good_count, bad_count);
       Common::Unreachable();
       break;
     }
