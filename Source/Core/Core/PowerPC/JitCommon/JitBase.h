@@ -178,6 +178,14 @@ protected:
   void CleanUpAfterStackFault();
 
   bool CanMergeNextInstructions(int count) const;
+  bool HasConstantCarry() const
+  {
+#ifdef _M_ARM_64
+    return js.carryFlag == CarryFlag::ConstantTrue || js.carryFlag == CarryFlag::ConstantFalse;
+#else
+    return false;
+#endif
+  }
 
   bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
 
