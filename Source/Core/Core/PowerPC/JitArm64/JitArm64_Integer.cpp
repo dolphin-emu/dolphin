@@ -1359,39 +1359,49 @@ void JitArm64::subfzex(UGeckoInstruction inst)
 
   int a = inst.RA, d = inst.RD;
 
-  gpr.BindToRegister(d, d == a);
+  if (gpr.IsImm(a) && HasConstantCarry())
+  {
+    const u32 imm = ~gpr.GetImm(a);
+    const u32 carry = js.carryFlag == CarryFlag::ConstantTrue;
+    gpr.SetImmediate(d, imm + carry);
+    ComputeCarry(Interpreter::Helper_Carry(imm, carry));
+  }
+  else
+  {
+    gpr.BindToRegister(d, d == a);
 
-  switch (js.carryFlag)
-  {
-  case CarryFlag::InPPCState:
-  {
+    switch (js.carryFlag)
     {
-      auto WA = gpr.GetScopedReg();
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      MVN(gpr.R(d), gpr.R(a));
-      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(d), WA);
+    case CarryFlag::InPPCState:
+    {
+      {
+        auto WA = gpr.GetScopedReg();
+        LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+        MVN(gpr.R(d), gpr.R(a));
+        CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(d), WA);
+      }
+      ComputeCarry();
+      break;
     }
-    ComputeCarry();
-    break;
-  }
-  case CarryFlag::InHostCarry:
-  {
-    CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), ARM64Reg::WZR, gpr.R(a));
-    ComputeCarry();
-    break;
-  }
-  case CarryFlag::ConstantTrue:
-  {
-    CARRY_IF_NEEDED(NEG, NEGS, gpr.R(d), gpr.R(a));
-    ComputeCarry();
-    break;
-  }
-  case CarryFlag::ConstantFalse:
-  {
-    MVN(gpr.R(d), gpr.R(a));
-    ComputeCarry(false);
-    break;
-  }
+    case CarryFlag::InHostCarry:
+    {
+      CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), ARM64Reg::WZR, gpr.R(a));
+      ComputeCarry();
+      break;
+    }
+    case CarryFlag::ConstantTrue:
+    {
+      CARRY_IF_NEEDED(NEG, NEGS, gpr.R(d), gpr.R(a));
+      ComputeCarry();
+      break;
+    }
+    case CarryFlag::ConstantFalse:
+    {
+      MVN(gpr.R(d), gpr.R(a));
+      ComputeCarry(false);
+      break;
+    }
+    }
   }
 
   if (inst.Rc)
