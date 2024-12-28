@@ -1244,8 +1244,18 @@ void JitArm64::subfex(UGeckoInstruction inst)
     {
       gpr.BindToRegister(d, false);
       ARM64Reg RD = gpr.R(d);
-      MOVI2R(RD, imm);
-      ADC(RD, RD, ARM64Reg::WZR);
+      if (is_all_ones)
+      {
+        // RD = -1 + carry = carry ? 0 : -1
+        // CSETM sets the destination to -1 if the condition is true, 0
+        // otherwise. Hence, the condition must be carry clear.
+        CSETM(RD, CC_CC);
+      }
+      else
+      {
+        MOVI2R(RD, imm);
+        ADC(RD, RD, ARM64Reg::WZR);
+      }
       break;
     }
     case CarryFlag::ConstantTrue:
