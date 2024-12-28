@@ -252,29 +252,40 @@ protected:
   //
   // Registers used:
   //
-  //                 addr     scratch
-  // Store:          X2       X1
+  //                 addr
+  // Store:          X2
   // Load:           X1
-  // Zero 256:       X1       X30
-  // Store float:    X2       Q0
+  // Zero 256:       X1
+  // Store float:    X2
   // Load float:     X1
   //
   // If mode == AlwaysFastAccess, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.
   //
-  // Additional scratch registers are used in the following situations:
+  // This routine allocates most scratch registers dynamically, but in the following
+  // situations, specific scratch registers have to be allocated in advance:
   //
-  // emitting_routine && mode == Auto:                                            X0
-  // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
-  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                 X3
-  // mode != AlwaysSlowAccess && !jo.fastmem:                                     X0
-  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck &&
-  //         (flags & BackPatchInfo::FLAG_LOAD):                                  X0
-  // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
-  // !emitting_routine && mode == Auto && jo.fastmem:                             X30
+  // emitting_routine && mode == Auto:                                                     X0
+  // emitting_routine && mode == Auto && (flags & BackPatchInfo::FLAG_STORE):              X1
+  // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):             X3
+  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                          X3
+  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                          X0
+  // emitting_routine && mode != AlwaysSlowAccess &&
+  //         (flags & BackPatchInfo::FLAG_STORE) && !(flags & BackPatchInfo::FLAG_FLOAT):  X1
+  // emitting_routine && mode != AlwaysSlowAccess &&
+  //         (flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT):   Q0
+  // emitting_routine && mode != AlwaysSlowAccess &&
+  //         (flags & BackPatchInfo::FLAG_ZERO_256):                                       X30
+  // !emitting_routine && mode == Auto && jo.fastmem:                                      X30
   //
   // If there are any other registers that the caller doesn't mind being overwritten,
   // these can be indicated in scratch_gprs and scratch_fprs.
+  //
+  // In the following situations, certain host registers must not contain guest registers:
+  //
+  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck:                         X30
+  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck &&
+  //         (flags & BackPatchInfo::FLAG_LOAD):                                           X0
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 scratch_gprs = BitSet32(0),
                             BitSet32 scratch_fprs = BitSet32(0), bool emitting_routine = false);
