@@ -1129,13 +1129,21 @@ void JitArm64::addzex(UGeckoInstruction inst)
 
   int a = inst.RA, d = inst.RD;
 
-  if (gpr.IsImm(a) && HasConstantCarry())
+  if (gpr.IsImm(a) &&
+      (HasConstantCarry() || (js.carryFlag == CarryFlag::InPPCState && gpr.GetImm(a) == 0)))
   {
     const u32 imm = gpr.GetImm(a);
     const bool is_all_ones = imm == 0xFFFFFFFF;
 
     switch (js.carryFlag)
     {
+    case CarryFlag::InPPCState:
+    {
+      gpr.BindToRegister(d, false);
+      LDRB(IndexType::Unsigned, gpr.R(d), PPC_REG, PPCSTATE_OFF(xer_ca));
+      ComputeCarry(false);
+      break;
+    }
     case CarryFlag::ConstantTrue:
     {
       gpr.SetImmediate(d, imm + 1);
