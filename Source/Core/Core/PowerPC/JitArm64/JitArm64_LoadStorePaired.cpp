@@ -79,24 +79,23 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
-    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    BitSet32 scratch_gprs;
+    BitSet32 scratch_fprs;
 
-    // Wipe the registers we are using as temporaries
     if (!update || early_update)
-      gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+      scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
     if (jo.memcheck || !jo.fastmem)
-      gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
-    fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
+      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
+    scratch_fprs[DecodeReg(ARM64Reg::Q0)] = true;
     if (!jo.memcheck)
-      fprs_in_use[DecodeReg(VS)] = false;
+      scratch_fprs[DecodeReg(VS)] = true;
 
     u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
       flags |= BackPatchInfo::FLAG_PAIR;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), scratch_gprs,
+                         scratch_fprs);
   }
   else
   {
@@ -237,22 +236,21 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
-    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    BitSet32 scratch_gprs;
+    BitSet32 scratch_fprs;
 
-    // Wipe the registers we are using as temporaries
-    gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
     if (!update || early_update)
-      gprs_in_use[DecodeReg(ARM64Reg::W2)] = false;
+      scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
     if (!jo.fastmem)
-      gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
     u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
       flags |= BackPatchInfo::FLAG_PAIR;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), scratch_gprs,
+                         scratch_fprs);
   }
   else
   {

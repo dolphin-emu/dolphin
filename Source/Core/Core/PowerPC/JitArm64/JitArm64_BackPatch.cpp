@@ -55,7 +55,7 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
 }
 
 void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, ARM64Reg addr,
-                                    BitSet32 gprs_to_push, BitSet32 fprs_to_push,
+                                    BitSet32 scratch_gprs, BitSet32 scratch_fprs,
                                     bool emitting_routine)
 {
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
@@ -65,6 +65,11 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
   const bool emit_fast_access = mode != MemAccessMode::AlwaysSlowAccess;
   const bool emit_slow_access = mode != MemAccessMode::AlwaysFastAccess;
+
+  const BitSet32 gprs_to_push =
+      (emitting_routine ? CALLER_SAVED_GPRS : gpr.GetCallerSavedUsed()) & ~scratch_gprs;
+  const BitSet32 fprs_to_push =
+      (emitting_routine ? BitSet32(0xFFFFFFFF) : fpr.GetCallerSavedUsed()) & ~scratch_fprs;
 
   bool in_far_code = false;
   const u8* fast_access_start = GetCodePtr();
