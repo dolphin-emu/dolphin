@@ -10,6 +10,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Unreachable.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -1128,47 +1129,73 @@ void JitArm64::addzex(UGeckoInstruction inst)
 
   int a = inst.RA, d = inst.RD;
 
-  switch (js.carryFlag)
+  if (gpr.IsImm(a) && HasConstantCarry())
   {
-  case CarryFlag::InPPCState:
-  {
-    const bool allocate_reg = d == a;
-    gpr.BindToRegister(d, allocate_reg);
+    const u32 imm = gpr.GetImm(a);
+    const bool is_all_ones = imm == 0xFFFFFFFF;
 
+    switch (js.carryFlag)
     {
-      auto WA = allocate_reg ? gpr.GetScopedReg() : Arm64GPRCache::ScopedARM64Reg(gpr.R(d));
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), WA);
-    }
-
-    ComputeCarry();
-    break;
-  }
-  case CarryFlag::InHostCarry:
-  {
-    gpr.BindToRegister(d, d == a);
-    CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), ARM64Reg::WZR);
-    ComputeCarry();
-    break;
-  }
-  case CarryFlag::ConstantTrue:
-  {
-    gpr.BindToRegister(d, d == a);
-    CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), 1);
-    ComputeCarry();
-    break;
-  }
-  case CarryFlag::ConstantFalse:
-  {
-    if (d != a)
+    case CarryFlag::ConstantTrue:
     {
-      gpr.BindToRegister(d, false);
-      MOV(gpr.R(d), gpr.R(a));
+      gpr.SetImmediate(d, imm + 1);
+      ComputeCarry(is_all_ones);
+      break;
     }
-
-    ComputeCarry(false);
-    break;
+    case CarryFlag::ConstantFalse:
+    {
+      gpr.SetImmediate(d, imm);
+      ComputeCarry(false);
+      break;
+    }
+    default:
+      Common::Unreachable();
+    }
   }
+  else
+  {
+    switch (js.carryFlag)
+    {
+    case CarryFlag::InPPCState:
+    {
+      const bool allocate_reg = d == a;
+      gpr.BindToRegister(d, allocate_reg);
+
+      {
+        auto WA = allocate_reg ? gpr.GetScopedReg() : Arm64GPRCache::ScopedARM64Reg(gpr.R(d));
+        LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+        CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), WA);
+      }
+
+      ComputeCarry();
+      break;
+    }
+    case CarryFlag::InHostCarry:
+    {
+      gpr.BindToRegister(d, d == a);
+      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), ARM64Reg::WZR);
+      ComputeCarry();
+      break;
+    }
+    case CarryFlag::ConstantTrue:
+    {
+      gpr.BindToRegister(d, d == a);
+      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), 1);
+      ComputeCarry();
+      break;
+    }
+    case CarryFlag::ConstantFalse:
+    {
+      if (d != a)
+      {
+        gpr.BindToRegister(d, false);
+        MOV(gpr.R(d), gpr.R(a));
+      }
+
+      ComputeCarry(false);
+      break;
+    }
+    }
   }
 
   if (inst.Rc)
