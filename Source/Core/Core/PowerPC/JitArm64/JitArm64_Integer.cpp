@@ -1219,6 +1219,7 @@ void JitArm64::subfex(UGeckoInstruction inst)
     const u32 i = gpr.GetImm(a);
     const u32 j = mex ? -1 : gpr.GetImm(b);
     const u32 imm = ~i + j;
+    const bool is_zero = imm == 0;
     const bool is_all_ones = imm == 0xFFFFFFFF;
 
     switch (js.carryFlag)
@@ -1227,9 +1228,16 @@ void JitArm64::subfex(UGeckoInstruction inst)
     {
       gpr.BindToRegister(d, false);
       ARM64Reg RD = gpr.R(d);
-      auto WA = gpr.GetScopedReg();
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      ADDI2R(RD, WA, imm, RD);
+      if (is_zero)
+      {
+        LDRB(IndexType::Unsigned, RD, PPC_REG, PPCSTATE_OFF(xer_ca));
+      }
+      else
+      {
+        auto WA = gpr.GetScopedReg();
+        LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+        ADDI2R(RD, WA, imm, RD);
+      }
       break;
     }
     case CarryFlag::InHostCarry:
