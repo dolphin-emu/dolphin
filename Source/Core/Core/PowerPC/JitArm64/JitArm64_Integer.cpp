@@ -1500,6 +1500,13 @@ void JitArm64::addex(UGeckoInstruction inst)
         // RD = 0 + carry = carry ? 1 : 0
         CSET(RD, CC_CS);
       }
+      else if (is_all_ones)
+      {
+        // RD = -1 + carry = carry ? 0 : -1
+        // Note that CSETM sets the destination to -1 if the condition is true,
+        // and 0 otherwise. Hence, the condition must be carry clear.
+        CSETM(RD, CC_CC);
+      }
       else
       {
         MOVI2R(RD, imm);
