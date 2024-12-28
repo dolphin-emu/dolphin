@@ -10,7 +10,6 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/Unreachable.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -1129,8 +1128,7 @@ void JitArm64::addzex(UGeckoInstruction inst)
 
   int a = inst.RA, d = inst.RD;
 
-  if (gpr.IsImm(a) &&
-      (HasConstantCarry() || (js.carryFlag == CarryFlag::InPPCState && gpr.GetImm(a) == 0)))
+  if (gpr.IsImm(a) && (gpr.GetImm(a) == 0 || HasConstantCarry()))
   {
     const u32 imm = gpr.GetImm(a);
     const bool is_all_ones = imm == 0xFFFFFFFF;
@@ -1141,6 +1139,13 @@ void JitArm64::addzex(UGeckoInstruction inst)
     {
       gpr.BindToRegister(d, false);
       LDRB(IndexType::Unsigned, gpr.R(d), PPC_REG, PPCSTATE_OFF(xer_ca));
+      ComputeCarry(false);
+      break;
+    }
+    case CarryFlag::InHostCarry:
+    {
+      gpr.BindToRegister(d, false);
+      CSET(gpr.R(d), CCFlags::CC_CS);
       ComputeCarry(false);
       break;
     }
@@ -1156,8 +1161,6 @@ void JitArm64::addzex(UGeckoInstruction inst)
       ComputeCarry(false);
       break;
     }
-    default:
-      Common::Unreachable();
     }
   }
   else
