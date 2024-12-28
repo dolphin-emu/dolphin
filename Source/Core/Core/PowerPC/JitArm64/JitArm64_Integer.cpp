@@ -1216,40 +1216,44 @@ void JitArm64::subfex(UGeckoInstruction inst)
 
   if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
   {
-    u32 i = gpr.GetImm(a), j = mex ? -1 : gpr.GetImm(b);
-
-    gpr.BindToRegister(d, false);
+    const u32 i = gpr.GetImm(a);
+    const u32 j = mex ? -1 : gpr.GetImm(b);
+    const u32 imm = ~i + j;
+    const bool is_all_ones = imm == 0xFFFFFFFF;
 
     switch (js.carryFlag)
     {
     case CarryFlag::InPPCState:
     {
+      gpr.BindToRegister(d, false);
+      ARM64Reg RD = gpr.R(d);
       auto WA = gpr.GetScopedReg();
       LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      ADDI2R(gpr.R(d), WA, ~i + j, gpr.R(d));
+      ADDI2R(RD, WA, imm, RD);
       break;
     }
     case CarryFlag::InHostCarry:
     {
-      auto WA = gpr.GetScopedReg();
-      MOVI2R(WA, ~i + j);
-      ADC(gpr.R(d), WA, ARM64Reg::WZR);
+      gpr.BindToRegister(d, false);
+      ARM64Reg RD = gpr.R(d);
+      MOVI2R(RD, imm);
+      ADC(RD, RD, ARM64Reg::WZR);
       break;
     }
     case CarryFlag::ConstantTrue:
     {
-      gpr.SetImmediate(d, ~i + j + 1);
+      gpr.SetImmediate(d, imm + 1);
       break;
     }
     case CarryFlag::ConstantFalse:
     {
-      gpr.SetImmediate(d, ~i + j);
+      gpr.SetImmediate(d, imm);
       break;
     }
     }
 
     const bool must_have_carry = Interpreter::Helper_Carry(~i, j);
-    const bool might_have_carry = (~i + j) == 0xFFFFFFFF;
+    const bool might_have_carry = is_all_ones;
 
     if (must_have_carry)
     {
