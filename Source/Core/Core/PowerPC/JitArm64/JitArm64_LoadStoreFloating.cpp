@@ -164,23 +164,24 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     MOV(gpr.R(a), addr_reg);
   }
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+  BitSet32 scratch_gprs;
+  BitSet32 scratch_fprs;
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (jo.memcheck || !jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
-  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
+  scratch_gprs[DecodeReg(ARM64Reg::Q0)] = true;
   if (!jo.memcheck)
-    fprs_in_use[DecodeReg(VD)] = false;
+    scratch_fprs[DecodeReg(VD)] = true;
 
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
   {
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, VD, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, VD, XA, scratch_gprs,
+                         scratch_fprs);
   }
   else
   {
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VD, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VD, XA, scratch_gprs, scratch_fprs);
   }
 
   const ARM64Reg VD_again = fpr.RW(inst.FD, type, true);
@@ -367,14 +368,14 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     MOV(gpr.R(a), addr_reg);
   }
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+  BitSet32 scratch_gprs;
+  BitSet32 scratch_fprs;
+  scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W2)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
   if (!jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
-  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
+  scratch_fprs[DecodeReg(ARM64Reg::Q0)] = true;
 
   if (is_immediate)
   {
@@ -402,20 +403,20 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     else if (m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, V0, XA, regs_in_use,
-                           fprs_in_use);
+      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, V0, XA, scratch_gprs,
+                           scratch_fprs);
     }
     else
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSlowAccess, V0, XA, regs_in_use,
-                           fprs_in_use);
+      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSlowAccess, V0, XA, scratch_gprs,
+                           scratch_fprs);
     }
   }
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, V0, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, V0, XA, scratch_gprs, scratch_fprs);
   }
 
   if (update && !early_update)

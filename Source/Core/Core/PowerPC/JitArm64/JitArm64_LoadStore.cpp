@@ -123,14 +123,14 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     MOV(gpr.R(addr), addr_reg);
   }
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+  BitSet32 scratch_gprs;
+  BitSet32 scratch_fprs;
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (jo.memcheck || !jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
   if (!jo.memcheck)
-    regs_in_use[DecodeReg(dest_reg)] = false;
+    scratch_gprs[DecodeReg(dest_reg)] = true;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
@@ -140,22 +140,23 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, regs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, scratch_gprs,
+                         scratch_fprs);
   }
   else if (mmio_address)
   {
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
-    regs_in_use[DecodeReg(ARM64Reg::W30)] = false;
-    regs_in_use[DecodeReg(dest_reg)] = false;
-    MMIOLoadToReg(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit, regs_in_use,
-                  fprs_in_use, dest_reg, mmio_address, flags);
+    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+    scratch_gprs[DecodeReg(ARM64Reg::W30)] = true;
+    scratch_gprs[DecodeReg(dest_reg)] = true;
+    MMIOLoadToReg(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit,
+                  gpr.GetCallerSavedUsed() & ~scratch_gprs,
+                  fpr.GetCallerSavedUsed() & ~scratch_fprs, dest_reg, mmio_address, flags);
     addr_reg_set = false;
   }
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, scratch_gprs, scratch_fprs);
   }
 
   gpr.BindToRegister(dest, false, true);
@@ -271,13 +272,13 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     MOV(gpr.R(dest), addr_reg);
   }
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+  BitSet32 scratch_gprs;
+  BitSet32 scratch_fprs;
+  scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W2)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
   if (!jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
@@ -313,22 +314,24 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, RS, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, RS, XA, scratch_gprs,
+                         scratch_fprs);
   }
   else if (mmio_address)
   {
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
-    regs_in_use[DecodeReg(ARM64Reg::W2)] = false;
-    regs_in_use[DecodeReg(ARM64Reg::W30)] = false;
-    regs_in_use[DecodeReg(RS)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+    scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
+    scratch_gprs[DecodeReg(ARM64Reg::W30)] = true;
+    scratch_gprs[DecodeReg(RS)] = true;
     MMIOWriteRegToAddr(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit,
-                       regs_in_use, fprs_in_use, RS, mmio_address, flags);
+                       gpr.GetCallerSavedUsed() & ~scratch_gprs,
+                       fpr.GetCallerSavedUsed() & ~scratch_fprs, RS, mmio_address, flags);
     addr_reg_set = false;
   }
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, scratch_gprs, scratch_fprs);
   }
 
   if (update && !early_update)
@@ -592,16 +595,16 @@ void JitArm64::lmw(UGeckoInstruction inst)
     else if (i != d)
       ADDI2R(addr_reg, addr_base_reg, (i - d) * 4);
 
-    BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-    regs_in_use[DecodeReg(addr_reg)] = false;
+    BitSet32 scratch_gprs;
+    BitSet32 scratch_fprs;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
     if (jo.memcheck || !jo.fastmem)
-      regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
     if (!jo.memcheck)
-      regs_in_use[DecodeReg(dest_reg)] = false;
+      scratch_gprs[DecodeReg(dest_reg)] = true;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg), regs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg),
+                         scratch_gprs, scratch_fprs);
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
@@ -710,15 +713,15 @@ void JitArm64::stmw(UGeckoInstruction inst)
     else if (i != s)
       ADDI2R(addr_reg, addr_base_reg, (i - s) * 4);
 
-    BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
-    regs_in_use[DecodeReg(addr_reg)] = false;
+    BitSet32 scratch_gprs;
+    BitSet32 scratch_fprs;
+    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
     if (!jo.fastmem)
-      regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), scratch_gprs,
+                         scratch_fprs);
 
     // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
     // after this instruction, flush registers that would be flushed after this instruction anyway.
@@ -1043,14 +1046,14 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     }
   }
 
-  BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
-  gprs_to_push[DecodeReg(ARM64Reg::W1)] = false;
+  BitSet32 scratch_gprs;
+  BitSet32 scratch_fprs;
+  scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (!jo.fastmem)
-    gprs_to_push[DecodeReg(ARM64Reg::W0)] = false;
+    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
   EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1,
-                       EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
+                       EncodeRegTo64(addr_reg), scratch_gprs, scratch_fprs);
 
   if (using_dcbz_hack)
     SetJumpTarget(end_dcbz_hack);
