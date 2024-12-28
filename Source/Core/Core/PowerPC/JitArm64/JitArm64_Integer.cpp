@@ -1495,8 +1495,16 @@ void JitArm64::addex(UGeckoInstruction inst)
     {
       gpr.BindToRegister(d, false);
       ARM64Reg RD = gpr.R(d);
-      MOVI2R(RD, imm);
-      ADC(RD, RD, ARM64Reg::WZR);
+      if (is_zero)
+      {
+        // RD = 0 + carry = carry ? 1 : 0
+        CSET(RD, CC_CS);
+      }
+      else
+      {
+        MOVI2R(RD, imm);
+        ADC(RD, RD, ARM64Reg::WZR);
+      }
       break;
     }
     case CarryFlag::ConstantTrue:
