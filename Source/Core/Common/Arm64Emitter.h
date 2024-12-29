@@ -624,6 +624,38 @@ private:
   // Must be cleared with SetCodePtr() afterwards.
   bool m_write_failed = false;
 
+  // Data-Processing (2 source)
+  enum class Data2SrcEnc : u32
+  {
+    UDIV = 0x02,
+    SDIV = 0x03,
+    LSLV = 0x08,
+    LSRV = 0x09,
+    ASRV = 0x0A,
+    RORV = 0x0B,
+    CRC32B = 0x10,
+    CRC32H = 0x11,
+    CRC32W = 0x12,
+    CRC32CB = 0x14,
+    CRC32CH = 0x15,
+    CRC32CW = 0x16,
+    CRC32X = 0x13,   // 64-bit only
+    CRC32CX = 0x17,  // 64-bit only
+    // CSSC
+    SMAX = 0x18,
+    UMAX = 0x19,
+    SMIN = 0x1A,
+    UMIN = 0x1B,
+  };
+
+  enum class DataCSSCImm8Enc : u8
+  {
+    SMAX = 0b0000,
+    UMAX = 0b0001,
+    SMIN = 0b0010,
+    UMIN = 0b0011,
+  };
+
   void AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags);
   void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
   void EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const void* ptr);
@@ -638,7 +670,7 @@ private:
   void EncodeCondCompareRegInst(u32 op, ARM64Reg Rn, ARM64Reg Rm, u32 nzcv, CCFlags cond);
   void EncodeCondSelectInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, CCFlags cond);
   void EncodeData1SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn);
-  void EncodeData2SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void EncodeData2SrcInst(Data2SrcEnc instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EncodeData3SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
   void EncodeLogicalInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
   void EncodeLoadRegisterInst(u32 bitop, ARM64Reg Rt, u32 imm);
@@ -655,6 +687,7 @@ private:
                            s32 imm);
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+  void EncodeDataCSSCImmInst(DataCSSCImm8Enc opc, ARM64Reg Rd, ARM64Reg Rn, u8 imm);
 
   [[nodiscard]] FixupBranch WriteFixupBranch();
 
@@ -1020,6 +1053,19 @@ public:
   // Address of label/page PC-relative
   void ADR(ARM64Reg Rd, s32 imm);
   void ADRP(ARM64Reg Rd, s64 imm);
+
+  // Common Short Sequence Compression (CSSC) instructions
+  void ABS(ARM64Reg Rd, ARM64Reg Rn);
+  void CNT(ARM64Reg Rd, ARM64Reg Rn);
+  void CTZ(ARM64Reg Rd, ARM64Reg Rn);
+  void SMIN(ARM64Reg Rd, ARM64Reg Rn, s8 imm);
+  void SMIN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void SMAX(ARM64Reg Rd, ARM64Reg Rn, s8 imm);
+  void SMAX(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void UMIN(ARM64Reg Rd, ARM64Reg Rn, u8 imm);
+  void UMIN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void UMAX(ARM64Reg Rd, ARM64Reg Rn, u8 imm);
+  void UMAX(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
   // Wrapper around ADR/ADRP/MOVZ/MOVN/MOVK
   void MOVI2R(ARM64Reg Rd, u64 imm);
