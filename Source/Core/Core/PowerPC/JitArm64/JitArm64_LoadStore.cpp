@@ -30,9 +30,11 @@ using namespace Arm64Gen;
 void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update)
 {
   // We want to make sure to not get LR as a temp register
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
   if (jo.memcheck)
     gpr.Lock(ARM64Reg::W0);
+
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W1);
 
   gpr.BindToRegister(dest, dest == (u32)addr || dest == (u32)offsetReg, false);
   ARM64Reg dest_reg = gpr.R(dest);
@@ -45,7 +47,6 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (offsetReg != -1 && !gpr.IsImm(offsetReg))
     off_reg = gpr.R(offsetReg);
 
-  ARM64Reg addr_reg = ARM64Reg::W1;
   u32 imm_addr = 0;
   bool is_immediate = false;
 
@@ -124,7 +125,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
   if (!update || early_update)
-    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
   if (jo.memcheck)
     scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
@@ -141,7 +142,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   }
   else if (mmio_address)
   {
-    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
     scratch_gprs[DecodeReg(ARM64Reg::W30)] = true;
     scratch_gprs[DecodeReg(dest_reg)] = true;
     MMIOLoadToReg(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit,
@@ -166,7 +167,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     MOV(gpr.R(addr), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W30);
   if (jo.memcheck)
     gpr.Unlock(ARM64Reg::W0);
 }
@@ -175,7 +176,9 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
                                 bool update)
 {
   // We want to make sure to not get LR as a temp register
-  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
+
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W2);
 
   // Don't materialize zero.
   ARM64Reg RS = gpr.IsImm(value, 0) ? ARM64Reg::WZR : gpr.R(value);
@@ -187,8 +190,6 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     reg_off = gpr.R(regOffset);
   if (dest != -1 && !gpr.IsImm(dest))
     reg_dest = gpr.R(dest);
-
-  ARM64Reg addr_reg = ARM64Reg::W2;
 
   u32 imm_addr = 0;
   bool is_immediate = false;
@@ -268,7 +269,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
   if (!update || early_update)
-    scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
@@ -309,7 +310,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   }
   else if (mmio_address)
   {
-    scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
     scratch_gprs[DecodeReg(ARM64Reg::W30)] = true;
     scratch_gprs[DecodeReg(RS)] = true;
     MMIOWriteRegToAddr(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit,
@@ -330,7 +331,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     MOV(gpr.R(dest), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W30);
 }
 
 FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp,
@@ -512,13 +513,13 @@ void JitArm64::lmw(UGeckoInstruction inst)
   u32 a = inst.RA, d = inst.RD;
   s32 offset = inst.SIMM_16;
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
   if (jo.memcheck)
     gpr.Lock(ARM64Reg::W0);
 
   // MMU games make use of a >= d despite this being invalid according to the PEM.
   // If a >= d occurs, we must make sure to not re-read rA after starting doing the loads.
-  ARM64Reg addr_reg = ARM64Reg::W1;
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W1);
   Arm64RegCache::ScopedARM64Reg addr_base_reg;
   bool a_is_addr_base_reg = false;
   if (!a)
@@ -634,7 +635,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     }
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W30);
   if (jo.memcheck)
     gpr.Unlock(ARM64Reg::W0);
 }
@@ -647,9 +648,9 @@ void JitArm64::stmw(UGeckoInstruction inst)
   u32 a = inst.RA, s = inst.RS;
   s32 offset = inst.SIMM_16;
 
-  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
 
-  ARM64Reg addr_reg = ARM64Reg::W2;
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W2);
   Arm64RegCache::ScopedARM64Reg addr_base_reg;
   bool a_is_addr_base_reg = false;
   if (!a)
@@ -767,7 +768,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     }
   }
 
-  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W30);
 }
 
 void JitArm64::dcbx(UGeckoInstruction inst)
@@ -986,11 +987,11 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB;
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
 
-  Common::ScopeGuard register_guard([&] { gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30); });
+  Common::ScopeGuard register_guard([&] { gpr.Unlock(ARM64Reg::W30); });
 
-  constexpr ARM64Reg addr_reg = ARM64Reg::W1;
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W1);
   constexpr ARM64Reg temp_reg = ARM64Reg::W30;
 
   // HACK: Don't clear any memory in the [0x8000'0000, 0x8000'8000) region.
@@ -1054,7 +1055,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
-  scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+  scratch_gprs[DecodeReg(addr_reg)] = true;
 
   EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1, addr_reg,
                        scratch_gprs, scratch_fprs);

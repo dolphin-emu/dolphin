@@ -77,12 +77,12 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   const RegType type =
       (flags & BackPatchInfo::FLAG_SIZE_64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
   if (jo.memcheck)
     gpr.Lock(ARM64Reg::W0);
 
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W1);
   const ARM64Reg VD = fpr.RW(inst.FD, type, false);
-  ARM64Reg addr_reg = ARM64Reg::W1;
 
   if (update)
   {
@@ -164,7 +164,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
   if (!update || early_update)
-    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
   if (jo.memcheck)
     scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
@@ -187,7 +187,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     MOV(gpr.R(a), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W30);
   if (jo.memcheck)
     gpr.Unlock(ARM64Reg::W0);
 }
@@ -270,9 +270,9 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     V0 = std::move(single_reg);
   }
 
-  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W30);
 
-  ARM64Reg addr_reg = ARM64Reg::W2;
+  const Arm64RegCache::ScopedARM64Reg addr_reg = gpr.GetScopedRegWithPreference(ARM64Reg::W2);
 
   if (update)
   {
@@ -358,7 +358,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
   if (!update || early_update)
-    scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
+    scratch_gprs[DecodeReg(addr_reg)] = true;
 
   if (is_immediate)
   {
@@ -409,5 +409,5 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     MOV(gpr.R(a), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W30);
 }
