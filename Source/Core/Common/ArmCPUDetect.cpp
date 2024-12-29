@@ -332,6 +332,8 @@ std::string CPUInfo::Summarize()
     sum.push_back("SHA1");
   if (bSHA2)
     sum.push_back("SHA2");
+  if (bCSSC)
+    sum.push_back("CSSC");
 
   return fmt::to_string(fmt::join(sum, ","));
 }
