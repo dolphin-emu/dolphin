@@ -519,21 +519,26 @@ void JitArm64::lmw(UGeckoInstruction inst)
   // MMU games make use of a >= d despite this being invalid according to the PEM.
   // If a >= d occurs, we must make sure to not re-read rA after starting doing the loads.
   ARM64Reg addr_reg = ARM64Reg::W1;
+  Arm64RegCache::ScopedARM64Reg addr_base_reg;
   bool a_is_addr_base_reg = false;
   if (!a)
-    MOVI2R(addr_reg, offset);
-  else if (gpr.IsImm(a))
-    MOVI2R(addr_reg, gpr.GetImm(a) + offset);
-  else if (a < d && offset + (31 - d) * 4 < 0x1000)
-    a_is_addr_base_reg = true;
-  else
-    ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
-
-  Arm64RegCache::ScopedARM64Reg addr_base_reg;
-  if (!a_is_addr_base_reg)
   {
     addr_base_reg = gpr.GetScopedReg();
-    MOV(addr_base_reg, addr_reg);
+    MOVI2R(addr_base_reg, offset);
+  }
+  else if (gpr.IsImm(a))
+  {
+    addr_base_reg = gpr.GetScopedReg();
+    MOVI2R(addr_base_reg, gpr.GetImm(a) + offset);
+  }
+  else if (a < d && offset + (31 - d) * 4 < 0x1000)
+  {
+    a_is_addr_base_reg = true;
+  }
+  else
+  {
+    addr_base_reg = gpr.GetScopedReg();
+    ADDI2R(addr_base_reg, gpr.R(a), offset, addr_base_reg);
   }
 
   BitSet32 gprs_to_discard{};
@@ -576,11 +581,23 @@ void JitArm64::lmw(UGeckoInstruction inst)
   {
     gpr.BindToRegister(i, false, false);
     ARM64Reg dest_reg = gpr.R(i);
+    ARM64Reg current_iteration_addr_reg = addr_reg;
 
     if (a_is_addr_base_reg)
-      ADDI2R(addr_reg, gpr.R(a), offset + (i - d) * 4);
-    else if (i != d)
-      ADDI2R(addr_reg, addr_base_reg, (i - d) * 4);
+    {
+      const u32 current_iteration_offset = offset + (i - d) * 4;
+      if (current_iteration_offset != 0)
+        ADDI2R(addr_reg, gpr.R(a), current_iteration_offset);
+      else
+        current_iteration_addr_reg = gpr.R(a);
+    }
+    else
+    {
+      if (i != d)
+        ADDI2R(addr_reg, addr_base_reg, (i - d) * 4);
+      else
+        current_iteration_addr_reg = addr_base_reg;
+    }
 
     BitSet32 scratch_gprs;
     BitSet32 scratch_fprs;
@@ -588,8 +605,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
     if (jo.memcheck)
       scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, addr_reg, scratch_gprs,
-                         scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, current_iteration_addr_reg,
+                         scratch_gprs, scratch_fprs);
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
@@ -633,21 +650,26 @@ void JitArm64::stmw(UGeckoInstruction inst)
   gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
 
   ARM64Reg addr_reg = ARM64Reg::W2;
+  Arm64RegCache::ScopedARM64Reg addr_base_reg;
   bool a_is_addr_base_reg = false;
   if (!a)
-    MOVI2R(addr_reg, offset);
-  else if (gpr.IsImm(a))
-    MOVI2R(addr_reg, gpr.GetImm(a) + offset);
-  else if (offset + (31 - s) * 4 < 0x1000)
-    a_is_addr_base_reg = true;
-  else
-    ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
-
-  Arm64GPRCache::ScopedARM64Reg addr_base_reg;
-  if (!a_is_addr_base_reg)
   {
     addr_base_reg = gpr.GetScopedReg();
-    MOV(addr_base_reg, addr_reg);
+    MOVI2R(addr_base_reg, offset);
+  }
+  else if (gpr.IsImm(a))
+  {
+    addr_base_reg = gpr.GetScopedReg();
+    MOVI2R(addr_base_reg, gpr.GetImm(a) + offset);
+  }
+  else if (offset + (31 - s) * 4 < 0x1000)
+  {
+    a_is_addr_base_reg = true;
+  }
+  else
+  {
+    addr_base_reg = gpr.GetScopedReg();
+    ADDI2R(addr_base_reg, gpr.R(a), offset, addr_base_reg);
   }
 
   BitSet32 gprs_to_discard{};
@@ -690,17 +712,30 @@ void JitArm64::stmw(UGeckoInstruction inst)
   for (u32 i = s; i < 32; i++)
   {
     ARM64Reg src_reg = gpr.R(i);
+    ARM64Reg current_iteration_addr_reg = addr_reg;
 
     if (a_is_addr_base_reg)
-      ADDI2R(addr_reg, gpr.R(a), offset + (i - s) * 4);
-    else if (i != s)
-      ADDI2R(addr_reg, addr_base_reg, (i - s) * 4);
+    {
+      const u32 current_iteration_offset = offset + (i - s) * 4;
+      if (current_iteration_offset != 0)
+        ADDI2R(addr_reg, gpr.R(a), current_iteration_offset);
+      else
+        current_iteration_addr_reg = gpr.R(a);
+    }
+    else
+    {
+      if (i != s)
+        ADDI2R(addr_reg, addr_base_reg, (i - s) * 4);
+      else
+        current_iteration_addr_reg = addr_base_reg;
+    }
 
     BitSet32 scratch_gprs;
     BitSet32 scratch_fprs;
     scratch_gprs[DecodeReg(addr_reg)] = true;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, addr_reg, scratch_gprs, scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, current_iteration_addr_reg,
+                         scratch_gprs, scratch_fprs);
 
     // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
     // after this instruction, flush registers that would be flushed after this instruction anyway.
