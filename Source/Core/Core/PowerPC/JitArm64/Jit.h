@@ -250,17 +250,14 @@ protected:
   // This is the core routine for accessing emulated memory, with support for
   // many different kinds of loads and stores as well as fastmem/backpatching.
   //
-  // Registers used:
+  // The addr parameter can be any register, but the code emitted for slow accesses
+  // will be slightly more efficient if the addr parameter is as follows:
   //
-  //                 addr
   // Store:          W2
   // Load:           W1
   // Zero 256:       W1
   // Store float:    W2
   // Load float:     W1
-  //
-  // If mode == AlwaysFastAccess, the addr argument can be any register.
-  // Otherwise it must be the register listed in the table above.
   //
   // This routine allocates most scratch registers dynamically, but in the following
   // situations, specific scratch registers have to be allocated in advance:

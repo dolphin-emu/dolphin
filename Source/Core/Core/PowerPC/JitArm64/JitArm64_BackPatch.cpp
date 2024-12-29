@@ -318,19 +318,37 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     if ((gprs_to_push & gprs_to_push_early).Count() & 1)
       gprs_to_push_early[30] = true;
 
+    // This temp GPR is only used when GPRs have been pushed, so we can choose almost any register
+    ARM64Reg temp_gpr_for_function_call = ARM64Reg::W8;
+    while (temp_gpr_for_function_call == addr ||
+           (temp_gpr_for_function_call == RS && (flags & BackPatchInfo::FLAG_STORE)))
+    {
+      temp_gpr_for_function_call =
+          static_cast<ARM64Reg>(static_cast<int>(temp_gpr_for_function_call) + 1);
+    }
+
     ABI_PushRegisters(gprs_to_push & gprs_to_push_early);
     ABI_PushRegisters(gprs_to_push & ~gprs_to_push_early);
-    m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
+    m_float_emit.ABI_PushRegisters(fprs_to_push, EncodeRegTo64(temp_gpr_for_function_call));
 
     // In the case of JitAsm routines, the state we want to store here isn't known
     // when compiling the routine, so the caller has to store it themselves.
     if (!emitting_routine)
-      FlushPPCStateBeforeSlowAccess(ARM64Reg::W30, temp_fpr_1);
+      FlushPPCStateBeforeSlowAccess(temp_gpr_for_function_call, temp_fpr_1);
 
     if (flags & BackPatchInfo::FLAG_STORE)
     {
       ARM64Reg src_reg = RS;
       const ARM64Reg dst_reg = access_size == 64 ? ARM64Reg::X1 : ARM64Reg::W1;
+      ARM64Reg temp_addr_reg = addr;
+      if (addr == ARM64Reg::W1)
+      {
+        // If addr is W1, we must move the address to a different register so we don't
+        // overwrite it when moving RS to W1. W2 is the optimal register to move to,
+        // because that's the register the address needs to be in for the function call.
+        temp_addr_reg = RS != ARM64Reg::W2 ? ARM64Reg::W2 : temp_gpr_for_function_call;
+        MOV(temp_addr_reg, addr);
+      }
 
       if (flags & BackPatchInfo::FLAG_FLOAT)
       {
@@ -354,40 +372,40 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       if (access_size == 64)
       {
         ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteFromJit<u64>,
-                         &m_mmu, src_reg, ARM64Reg::W2);
+                         &m_mmu, src_reg, temp_addr_reg);
       }
       else if (access_size == 32)
       {
         ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteFromJit<u32>,
-                         &m_mmu, src_reg, ARM64Reg::W2);
+                         &m_mmu, src_reg, temp_addr_reg);
       }
       else if (access_size == 16)
       {
         ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteFromJit<u16>,
-                         &m_mmu, src_reg, ARM64Reg::W2);
+                         &m_mmu, src_reg, temp_addr_reg);
       }
       else
       {
-        ABI_CallFunction(&PowerPC::WriteFromJit<u8>, &m_mmu, src_reg, ARM64Reg::W2);
+        ABI_CallFunction(&PowerPC::WriteFromJit<u8>, &m_mmu, src_reg, addr);
       }
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      ABI_CallFunction(&PowerPC::ClearDCacheLineFromJit, &m_mmu, ARM64Reg::W1);
+      ABI_CallFunction(&PowerPC::ClearDCacheLineFromJit, &m_mmu, addr);
     }
     else
     {
       if (access_size == 64)
-        ABI_CallFunction(&PowerPC::ReadFromJit<u64>, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u64>, &m_mmu, addr);
       else if (access_size == 32)
-        ABI_CallFunction(&PowerPC::ReadFromJit<u32>, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u32>, &m_mmu, addr);
       else if (access_size == 16)
-        ABI_CallFunction(&PowerPC::ReadFromJit<u16>, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u16>, &m_mmu, addr);
       else
-        ABI_CallFunction(&PowerPC::ReadFromJit<u8>, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u8>, &m_mmu, addr);
     }
 
-    m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
+    m_float_emit.ABI_PopRegisters(fprs_to_push, EncodeRegTo64(temp_gpr_for_function_call));
     ABI_PopRegisters(gprs_to_push & ~gprs_to_push_early);
 
     if (memcheck)
