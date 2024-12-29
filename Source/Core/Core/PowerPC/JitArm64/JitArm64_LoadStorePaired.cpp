@@ -85,8 +85,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
       scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
     if (jo.memcheck)
       scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-    if (!jo.memcheck)
-      scratch_fprs[DecodeReg(VS)] = true;
 
     u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)

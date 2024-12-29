@@ -169,8 +169,6 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (jo.memcheck)
     scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-  if (!jo.memcheck)
-    scratch_fprs[DecodeReg(VD)] = true;
 
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
   {
