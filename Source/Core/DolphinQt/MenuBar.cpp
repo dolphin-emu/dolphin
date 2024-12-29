@@ -8,6 +8,7 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDialog>
@@ -662,7 +663,8 @@ void MenuBar::AddHelpMenu()
   help_menu->addSeparator();
 #endif
 
-  help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
+  help_menu->addAction(tr("About &Qt"), &QApplication::aboutQt);
+  help_menu->addAction(tr("&About Dolphin"), this, &MenuBar::ShowAboutDialog);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
