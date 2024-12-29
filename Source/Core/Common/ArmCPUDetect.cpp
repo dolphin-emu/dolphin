@@ -273,9 +273,14 @@ void CPUInfo::Detect()
   bSHA1 = hwcap & HWCAP_SHA1;
   bSHA2 = hwcap & HWCAP_SHA2;
 
-#if defined(AT_HWCAP2) && defined(HWCAP2_AFP)
+#if defined(AT_HWCAP2)
   const u32 hwcap2 = ReadHwCap(AT_HWCAP2);
+#if defined(HWCAP2_AFP)
   bAFP = hwcap2 & HWCAP2_AFP;
+#endif
+#if defined(HWCAP2_CSSC)
+  bCSSC = hwcap2 & HWCAP2_CSSC;
+#endif
 #endif
 
   u64 midr = 0;
