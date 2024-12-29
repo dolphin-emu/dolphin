@@ -9,10 +9,6 @@
 #include <Windows.h>
 #endif
 
-#ifdef __linux__
-#include <cstdlib>
-#endif
-
 #include <OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
@@ -141,13 +137,6 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef __linux__
-  // Qt 6.3+ has a bug which causes mouse inputs to not be registered in our XInput2 code.
-  // If we define QT_XCB_NO_XI2, Qt's xcb platform plugin no longer initializes its XInput
-  // code, which makes mouse inputs work again.
-  // For more information: https://bugs.dolphin-emu.org/issues/12913
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
-  setenv("QT_XCB_NO_XI2", "1", true);
-#endif
   // Dolphin currently doesn't work on Wayland (Only the UI does, games do not launch.) This makes
   // XCB the default and forces it on if the platform is specified to be wayland, to prevent this
   // from happening.
