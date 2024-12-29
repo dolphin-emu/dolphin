@@ -253,11 +253,11 @@ protected:
   // Registers used:
   //
   //                 addr
-  // Store:          X2
-  // Load:           X1
-  // Zero 256:       X1
-  // Store float:    X2
-  // Load float:     X1
+  // Store:          W2
+  // Load:           W1
+  // Zero 256:       W1
+  // Store float:    W2
+  // Load float:     W1
   //
   // If mode == AlwaysFastAccess, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.

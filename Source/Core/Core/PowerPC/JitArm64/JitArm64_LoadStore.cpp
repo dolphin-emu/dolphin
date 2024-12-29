@@ -107,12 +107,10 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     }
   }
 
-  ARM64Reg XA = EncodeRegTo64(addr_reg);
-
   bool addr_reg_set = !is_immediate;
   const auto set_addr_reg_if_needed = [&] {
     if (!addr_reg_set)
-      MOVI2R(XA, imm_addr);
+      MOVI2R(addr_reg, imm_addr);
   };
 
   const bool early_update = !jo.memcheck && dest != static_cast<u32>(addr);
@@ -138,7 +136,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, scratch_gprs,
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, dest_reg, addr_reg, scratch_gprs,
                          scratch_fprs);
   }
   else if (mmio_address)
@@ -154,7 +152,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, scratch_gprs, scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, addr_reg, scratch_gprs,
+                         scratch_fprs);
   }
 
   gpr.BindToRegister(dest, false, true);
@@ -252,12 +251,10 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     }
   }
 
-  ARM64Reg XA = EncodeRegTo64(addr_reg);
-
   bool addr_reg_set = !is_immediate;
   const auto set_addr_reg_if_needed = [&] {
     if (!addr_reg_set)
-      MOVI2R(XA, imm_addr);
+      MOVI2R(addr_reg, imm_addr);
   };
 
   const bool early_update = !jo.memcheck && value != static_cast<u32>(dest);
@@ -307,7 +304,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, RS, XA, scratch_gprs,
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, RS, addr_reg, scratch_gprs,
                          scratch_fprs);
   }
   else if (mmio_address)
@@ -323,7 +320,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, scratch_gprs, scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, addr_reg, scratch_gprs, scratch_fprs);
   }
 
   if (update && !early_update)
@@ -591,8 +588,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
     if (jo.memcheck)
       scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg),
-                         scratch_gprs, scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, addr_reg, scratch_gprs,
+                         scratch_fprs);
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
@@ -703,8 +700,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     BitSet32 scratch_fprs;
     scratch_gprs[DecodeReg(addr_reg)] = true;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), scratch_gprs,
-                         scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, addr_reg, scratch_gprs, scratch_fprs);
 
     // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
     // after this instruction, flush registers that would be flushed after this instruction anyway.
@@ -1025,8 +1021,8 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   BitSet32 scratch_fprs;
   scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
 
-  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1,
-                       EncodeRegTo64(addr_reg), scratch_gprs, scratch_fprs);
+  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1, addr_reg,
+                       scratch_gprs, scratch_fprs);
 
   if (using_dcbz_hack)
     SetJumpTarget(end_dcbz_hack);

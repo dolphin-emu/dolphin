@@ -151,10 +151,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     }
   }
 
-  ARM64Reg XA = EncodeRegTo64(addr_reg);
-
   if (is_immediate)
-    MOVI2R(XA, imm_addr);
+    MOVI2R(addr_reg, imm_addr);
 
   const bool early_update = !jo.memcheck;
   if (update && early_update)
@@ -172,12 +170,12 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
   {
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, VD, XA, scratch_gprs,
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, VD, addr_reg, scratch_gprs,
                          scratch_fprs);
   }
   else
   {
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VD, XA, scratch_gprs, scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VD, addr_reg, scratch_gprs, scratch_fprs);
   }
 
   const ARM64Reg VD_again = fpr.RW(inst.FD, type, true);
@@ -343,12 +341,10 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     }
   }
 
-  ARM64Reg XA = EncodeRegTo64(addr_reg);
-
   bool addr_reg_set = !is_immediate;
   const auto set_addr_reg_if_needed = [&] {
     if (!addr_reg_set)
-      MOVI2R(XA, imm_addr);
+      MOVI2R(addr_reg, imm_addr);
   };
 
   const bool early_update = !jo.memcheck;
@@ -390,20 +386,20 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     else if (m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, V0, XA, scratch_gprs,
+      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, V0, addr_reg, scratch_gprs,
                            scratch_fprs);
     }
     else
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSlowAccess, V0, XA, scratch_gprs,
+      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSlowAccess, V0, addr_reg, scratch_gprs,
                            scratch_fprs);
     }
   }
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, V0, XA, scratch_gprs, scratch_fprs);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, V0, addr_reg, scratch_gprs, scratch_fprs);
   }
 
   if (update && !early_update)

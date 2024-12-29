@@ -524,7 +524,7 @@ void JitArm64::GenerateQuantizedLoads()
   // Q0 is the return
   // Q1 is a temporary
   ARM64Reg temp_reg = ARM64Reg::X0;
-  ARM64Reg addr_reg = ARM64Reg::X1;
+  ARM64Reg addr_reg = ARM64Reg::W1;
   ARM64Reg scale_reg = ARM64Reg::X2;
   BitSet32 scratch_gprs{0, 3};
   if (!jo.memcheck)
@@ -735,7 +735,7 @@ void JitArm64::GenerateQuantizedStores()
   // Q1 is a temporary
   ARM64Reg temp_reg = ARM64Reg::X0;
   ARM64Reg scale_reg = ARM64Reg::X1;
-  ARM64Reg addr_reg = ARM64Reg::X2;
+  ARM64Reg addr_reg = ARM64Reg::W2;
   BitSet32 scratch_gprs{0, 1};
   if (!jo.memcheck)
     scratch_gprs[2] = true;
