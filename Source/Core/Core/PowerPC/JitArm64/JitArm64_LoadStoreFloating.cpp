@@ -78,8 +78,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
       (flags & BackPatchInfo::FLAG_SIZE_64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0);
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     gpr.Lock(ARM64Reg::W0);
 
   const ARM64Reg VD = fpr.RW(inst.FD, type, false);
@@ -168,9 +167,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   BitSet32 scratch_fprs;
   if (!update || early_update)
     scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-  scratch_gprs[DecodeReg(ARM64Reg::Q0)] = true;
   if (!jo.memcheck)
     scratch_fprs[DecodeReg(VD)] = true;
 
@@ -194,8 +192,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     gpr.Unlock(ARM64Reg::W0);
 }
 
@@ -265,8 +262,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   u32 imm_addr = 0;
   bool is_immediate = false;
 
-  fpr.Lock(ARM64Reg::Q0);
-
   const bool have_single = fpr.IsSingle(inst.FS, true);
 
   Arm64FPRCache::ScopedARM64Reg V0 =
@@ -279,9 +274,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     V0 = std::move(single_reg);
   }
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!jo.fastmem)
-    gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
 
   ARM64Reg addr_reg = ARM64Reg::W2;
 
@@ -370,12 +363,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
-  scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (!update || early_update)
     scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
-  if (!jo.fastmem)
-    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-  scratch_fprs[DecodeReg(ARM64Reg::Q0)] = true;
 
   if (is_immediate)
   {
@@ -426,8 +415,5 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     MOV(gpr.R(a), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
-  if (!jo.fastmem)
-    gpr.Unlock(ARM64Reg::W0);
+  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
 }
