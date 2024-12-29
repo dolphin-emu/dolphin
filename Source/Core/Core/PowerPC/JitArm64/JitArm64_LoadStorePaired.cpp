@@ -39,13 +39,12 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   const int w = indexed ? inst.Wx : inst.W;
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
     gpr.Lock(ARM64Reg::W0, ARM64Reg::W2, ARM64Reg::W3);
-    fpr.Lock(ARM64Reg::Q1);
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
   }
-  else if (jo.memcheck || !jo.fastmem)
+  else if (jo.memcheck)
   {
     gpr.Lock(ARM64Reg::W0);
   }
@@ -84,9 +83,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 
     if (!update || early_update)
       scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
-    if (jo.memcheck || !jo.fastmem)
+    if (jo.memcheck)
       scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-    scratch_fprs[DecodeReg(ARM64Reg::Q0)] = true;
     if (!jo.memcheck)
       scratch_fprs[DecodeReg(VS)] = true;
 
@@ -131,13 +129,12 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
     gpr.Unlock(ARM64Reg::W0, ARM64Reg::W2, ARM64Reg::W3);
-    fpr.Unlock(ARM64Reg::Q1);
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
   }
-  else if (jo.memcheck || !jo.fastmem)
+  else if (jo.memcheck)
   {
     gpr.Unlock(ARM64Reg::W0);
   }
@@ -164,9 +161,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   const int i = indexed ? inst.Ix : inst.I;
   const int w = indexed ? inst.Wx : inst.W;
 
-  fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
-    fpr.Lock(ARM64Reg::Q1);
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
   const bool have_single = fpr.IsSingle(inst.RS);
 
@@ -202,11 +198,13 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     }
   }
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!js.assumeNoPairedQuantize || !jo.fastmem)
-    gpr.Lock(ARM64Reg::W0);
-  if (!js.assumeNoPairedQuantize && !jo.fastmem)
-    gpr.Lock(ARM64Reg::W3);
+  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Lock(ARM64Reg::W0, ARM64Reg::W1);
+    if (!jo.fastmem)
+      gpr.Lock(ARM64Reg::W3);
+  }
 
   constexpr ARM64Reg type_reg = ARM64Reg::W0;
   constexpr ARM64Reg scale_reg = ARM64Reg::W1;
@@ -239,11 +237,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     BitSet32 scratch_gprs;
     BitSet32 scratch_fprs;
 
-    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
     if (!update || early_update)
       scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
-    if (!jo.fastmem)
-      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
     u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
@@ -274,12 +269,12 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     MOV(gpr.R(inst.RA), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
-  if (!js.assumeNoPairedQuantize || !jo.fastmem)
-    gpr.Unlock(ARM64Reg::W0);
-  if (!js.assumeNoPairedQuantize && !jo.fastmem)
-    gpr.Unlock(ARM64Reg::W3);
+  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
   if (!js.assumeNoPairedQuantize)
-    fpr.Unlock(ARM64Reg::Q1);
+  {
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1);
+    if (!jo.fastmem)
+      gpr.Unlock(ARM64Reg::W3);
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  }
 }

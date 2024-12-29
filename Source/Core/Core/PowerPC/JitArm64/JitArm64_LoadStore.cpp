@@ -31,7 +31,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 {
   // We want to make sure to not get LR as a temp register
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     gpr.Lock(ARM64Reg::W0);
 
   gpr.BindToRegister(dest, dest == (u32)addr || dest == (u32)offsetReg, false);
@@ -127,7 +127,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   BitSet32 scratch_fprs;
   if (!update || early_update)
     scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
   if (!jo.memcheck)
     scratch_gprs[DecodeReg(dest_reg)] = true;
@@ -170,7 +170,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     gpr.Unlock(ARM64Reg::W0);
 }
 
@@ -178,9 +178,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
                                 bool update)
 {
   // We want to make sure to not get LR as a temp register
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!jo.fastmem)
-    gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
 
   // Don't materialize zero.
   ARM64Reg RS = gpr.IsImm(value, 0) ? ARM64Reg::WZR : gpr.R(value);
@@ -274,11 +272,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
-  scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (!update || early_update)
     scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
-  if (!jo.fastmem)
-    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
@@ -319,7 +314,6 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   }
   else if (mmio_address)
   {
-    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
     scratch_gprs[DecodeReg(ARM64Reg::W2)] = true;
     scratch_gprs[DecodeReg(ARM64Reg::W30)] = true;
     scratch_gprs[DecodeReg(RS)] = true;
@@ -341,9 +335,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     MOV(gpr.R(dest), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!jo.fastmem)
-    gpr.Unlock(ARM64Reg::W0);
+  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
 }
 
 FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp,
@@ -526,7 +518,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
   s32 offset = inst.SIMM_16;
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     gpr.Lock(ARM64Reg::W0);
 
   // MMU games make use of a >= d despite this being invalid according to the PEM.
@@ -598,7 +590,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     BitSet32 scratch_gprs;
     BitSet32 scratch_fprs;
     scratch_gprs[DecodeReg(addr_reg)] = true;
-    if (jo.memcheck || !jo.fastmem)
+    if (jo.memcheck)
       scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
     if (!jo.memcheck)
       scratch_gprs[DecodeReg(dest_reg)] = true;
@@ -633,7 +625,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  if (jo.memcheck || !jo.fastmem)
+  if (jo.memcheck)
     gpr.Unlock(ARM64Reg::W0);
 }
 
@@ -645,9 +637,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
   u32 a = inst.RA, s = inst.RS;
   s32 offset = inst.SIMM_16;
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!jo.fastmem)
-    gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W2, ARM64Reg::W30);
 
   ARM64Reg addr_reg = ARM64Reg::W2;
   bool a_is_addr_base_reg = false;
@@ -715,10 +705,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
 
     BitSet32 scratch_gprs;
     BitSet32 scratch_fprs;
-    scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
     scratch_gprs[DecodeReg(addr_reg)] = true;
-    if (!jo.fastmem)
-      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), scratch_gprs,
                          scratch_fprs);
@@ -753,9 +740,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     }
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!jo.fastmem)
-    gpr.Unlock(ARM64Reg::W0);
+  gpr.Unlock(ARM64Reg::W2, ARM64Reg::W30);
 }
 
 void JitArm64::dcbx(UGeckoInstruction inst)
@@ -975,14 +960,8 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB;
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  if (!jo.fastmem)
-    gpr.Lock(ARM64Reg::W0);
 
-  Common::ScopeGuard register_guard([&] {
-    gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-    if (!jo.fastmem)
-      gpr.Unlock(ARM64Reg::W0);
-  });
+  Common::ScopeGuard register_guard([&] { gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30); });
 
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg temp_reg = ARM64Reg::W30;
@@ -1049,8 +1028,6 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   BitSet32 scratch_gprs;
   BitSet32 scratch_fprs;
   scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
-  if (!jo.fastmem)
-    scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
   EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1,
                        EncodeRegTo64(addr_reg), scratch_gprs, scratch_fprs);
