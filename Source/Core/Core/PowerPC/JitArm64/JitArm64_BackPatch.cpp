@@ -68,6 +68,14 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
   const bool memcheck = jo.memcheck && !emitting_routine;
 
+  if ((flags & BackPatchInfo::FLAG_LOAD))
+  {
+    if ((flags & BackPatchInfo::FLAG_FLOAT))
+      scratch_fprs[DecodeReg(RS)] = !memcheck;
+    else
+      scratch_gprs[DecodeReg(RS)] = !memcheck;
+  }
+
   BitSet32 temp_gpr_candidates = scratch_gprs;
   BitSet32 temp_fpr_candidates = scratch_fprs;
   temp_gpr_candidates[DecodeReg(addr)] = false;

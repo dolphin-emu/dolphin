@@ -129,8 +129,6 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     scratch_gprs[DecodeReg(ARM64Reg::W1)] = true;
   if (jo.memcheck)
     scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-  if (!jo.memcheck)
-    scratch_gprs[DecodeReg(dest_reg)] = true;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
@@ -592,8 +590,6 @@ void JitArm64::lmw(UGeckoInstruction inst)
     scratch_gprs[DecodeReg(addr_reg)] = true;
     if (jo.memcheck)
       scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
-    if (!jo.memcheck)
-      scratch_gprs[DecodeReg(dest_reg)] = true;
 
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg),
                          scratch_gprs, scratch_fprs);
