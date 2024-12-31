@@ -25,23 +25,18 @@
 HacksWidget::HacksWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
-  connect(m_gpu_texture_decoding, &QCheckBox::toggled, [this, parent] {
-    SaveSettings();
-    emit parent->UseGPUTextureDecodingChanged();
-  });
+  connect(m_gpu_texture_decoding, &QCheckBox::toggled,
+          [this, parent] { emit parent->UseGPUTextureDecodingChanged(); });
 }
 
 HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 }
@@ -73,18 +68,15 @@ void HacksWidget::CreateWidgets()
   auto* texture_cache_layout = new QGridLayout();
   texture_cache_box->setLayout(texture_cache_layout);
 
-  m_accuracy = new ToolTipSlider(Qt::Horizontal);
-  m_accuracy->setMinimum(0);
-  m_accuracy->setMaximum(2);
-  m_accuracy->setPageStep(1);
-  m_accuracy->setTickPosition(QSlider::TicksBelow);
+  m_accuracy =
+      new ConfigSlider({0, 512, 128}, Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, m_game_layer);
   m_gpu_texture_decoding = new ConfigBool(tr("GPU Texture Decoding"),
                                           Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
 
   auto* safe_label = new QLabel(tr("Safe"));
   safe_label->setAlignment(Qt::AlignRight);
 
-  m_accuracy_label = new QLabel(tr("Accuracy:"));
+  m_accuracy_label = new ConfigSliderLabel(tr("Accuracy:"), m_accuracy);
 
   texture_cache_layout->addWidget(m_accuracy_label, 0, 0);
   texture_cache_layout->addWidget(safe_label, 0, 1);
@@ -158,7 +150,6 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 
 void HacksWidget::ConnectWidgets()
 {
-  connect(m_accuracy, &QSlider::valueChanged, [this](int) { SaveSettings(); });
   connect(m_store_efb_copies, &QCheckBox::stateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_store_xfb_copies, &QCheckBox::stateChanged,
@@ -167,65 +158,6 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-}
-
-void HacksWidget::LoadSettings()
-{
-  const QSignalBlocker blocker(m_accuracy);
-  auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-
-  // Re-enable the slider in case it was disabled because of a custom value
-  m_accuracy->setEnabled(true);
-
-  int slider_pos = 0;
-
-  switch (samples)
-  {
-  case 512:
-    slider_pos = 1;
-    break;
-  case 128:
-    slider_pos = 2;
-    break;
-  case 0:
-    slider_pos = 0;
-    break;
-  // Custom values, ought not to be touched
-  default:
-    m_accuracy->setEnabled(false);
-  }
-
-  m_accuracy->setValue(slider_pos);
-
-  QFont bf = m_accuracy_label->font();
-
-  bf.setBold(Config::GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) !=
-             Config::LayerType::Base);
-
-  m_accuracy_label->setFont(bf);
-}
-
-void HacksWidget::SaveSettings()
-{
-  int slider_pos = m_accuracy->value();
-
-  if (m_accuracy->isEnabled())
-  {
-    int samples = 0;
-    switch (slider_pos)
-    {
-    case 0:
-      samples = 0;
-      break;
-    case 1:
-      samples = 512;
-      break;
-    case 2:
-      samples = 128;
-    }
-
-    Config::SetBaseOrCurrent(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, samples);
-  }
 }
 
 void HacksWidget::AddDescriptions()

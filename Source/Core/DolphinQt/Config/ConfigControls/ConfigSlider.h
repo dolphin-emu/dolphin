@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <QLabel>
 #include <QPointer>
 
@@ -19,6 +21,11 @@ public:
   ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, Config::Layer* layer,
                int tick = 0);
 
+  // Generates a slider with tick_values.size() ticks. Each tick corresponds to the integer at that
+  // index in the vector.
+  ConfigSlider(std::vector<int> tick_values, const Config::Info<int>& setting,
+               Config::Layer* layer);
+
   void Update(int value);
 
 protected:
@@ -26,6 +33,9 @@ protected:
 
 private:
   const Config::Info<int> m_setting;
+
+  // Mappings for slider ticks to config values. Identity mapping is assumed if this is empty.
+  std::vector<int> m_tick_values;
 };
 
 class ConfigSliderLabel final : public QLabel
