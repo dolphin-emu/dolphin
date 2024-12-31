@@ -21,5 +21,6 @@ public:
   virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
   // Returns true if successful.
-  virtual bool SetRunning(bool running) { return false; }
+  virtual bool Start() { return false; }
+  virtual bool Stop() { return false; }
 };

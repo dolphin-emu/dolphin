@@ -73,7 +73,7 @@ void PostInitSoundStream(Core::System& system)
   // This needs to be called after AudioInterface::Init and SerialInterface::Init (for GBA devices)
   // where input sample rates are set
   UpdateSoundStream(system);
-  SetSoundStreamRunning(system, true);
+  StartSoundStream(system);
 
   if (Config::Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
     StartAudioDump(system);
@@ -86,7 +86,7 @@ void ShutdownSoundStream(Core::System& system)
   if (Config::Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
     StopAudioDump(system);
 
-  SetSoundStreamRunning(system, false);
+  StopSoundStream(system);
   system.SetSoundStream(nullptr);
 
   INFO_LOG_FMT(AUDIO, "Done shutting down sound stream");
@@ -170,23 +170,40 @@ void UpdateSoundStream(Core::System& system)
   }
 }
 
-void SetSoundStreamRunning(Core::System& system, bool running)
+void StartSoundStream(Core::System& system)
 {
   SoundStream* sound_stream = system.GetSoundStream();
 
   if (!sound_stream)
     return;
 
-  if (system.IsSoundStreamRunning() == running)
+  if (system.IsSoundStreamRunning())
     return;
-  system.SetSoundStreamRunning(running);
 
-  if (sound_stream->SetRunning(running))
+  system.StartSoundStream();
+
+  if (sound_stream->Start())
     return;
-  if (running)
-    ERROR_LOG_FMT(AUDIO, "Error starting stream.");
-  else
-    ERROR_LOG_FMT(AUDIO, "Error stopping stream.");
+
+  ERROR_LOG_FMT(AUDIO, "Error starting stream.");
+}
+
+void StopSoundStream(Core::System& system)
+{
+  SoundStream* sound_stream = system.GetSoundStream();
+
+  if (!sound_stream)
+    return;
+
+  if (!system.IsSoundStreamRunning())
+    return;
+
+  system.StopSoundStream();
+
+  if (sound_stream->Stop())
+    return;
+
+  ERROR_LOG_FMT(AUDIO, "Error stopping stream.");
 }
 
 void SendAIBuffer(Core::System& system, const short* samples, unsigned int num_samples)

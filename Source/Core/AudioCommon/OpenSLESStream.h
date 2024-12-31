@@ -14,7 +14,8 @@ class OpenSLESStream final : public SoundStream
 public:
   ~OpenSLESStream() override;
   bool Init() override;
-  bool SetRunning(bool running) override;
+  bool Start() override;
+  bool Stop() override;
   void SetVolume(int volume) override;
   static bool IsValid() { return true; }
 

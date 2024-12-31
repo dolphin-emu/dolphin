@@ -153,16 +153,15 @@ void OpenALStream::SetVolume(int volume)
     palSourcef(m_source, AL_GAIN, m_volume);
 }
 
-bool OpenALStream::SetRunning(bool running)
+bool OpenALStream::Start()
 {
-  if (running)
-  {
-    palSourcePlay(m_source);
-  }
-  else
-  {
-    palSourceStop(m_source);
-  }
+  palSourcePlay(m_source);
+  return true;
+}
+
+bool OpenALStream::Stop()
+{
+  palSourceStop(m_source);
   return true;
 }
 
