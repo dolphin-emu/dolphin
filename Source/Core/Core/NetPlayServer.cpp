@@ -437,8 +437,8 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
 {
   std::string netplay_version;
   received_packet >> netplay_version;
-  if (netplay_version != Common::GetScmRevGitStr())
-    return ConnectionError::VersionMismatch;
+  //if (netplay_version != Common::GetScmRevGitStr())
+  //  return ConnectionError::VersionMismatch;
 
   if (m_is_running || m_start_pending)
     return ConnectionError::GameRunning;
