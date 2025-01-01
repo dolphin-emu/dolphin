@@ -7,6 +7,7 @@
 #include <array>
 #include <variant>
 
+#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/VariantUtil.h"
 
@@ -20,7 +21,7 @@ bool IsQualifier(std::string_view value)
   static constexpr std::array<std::string_view, 7> qualifiers = {
       "attribute", "const", "highp", "lowp", "mediump", "uniform", "varying",
   };
-  return std::find(qualifiers.begin(), qualifiers.end(), value) != qualifiers.end();
+  return Common::Contains(qualifiers, value);
 }
 
 bool IsBuiltInMacro(std::string_view value)
@@ -28,7 +29,7 @@ bool IsBuiltInMacro(std::string_view value)
   static constexpr std::array<std::string_view, 5> built_in = {
       "__LINE__", "__FILE__", "__VERSION__", "GL_core_profile", "GL_compatibility_profile",
   };
-  return std::find(built_in.begin(), built_in.end(), value) != built_in.end();
+  return Common::Contains(built_in, value);
 }
 
 std::vector<std::string> GlobalConflicts(std::string_view source)
