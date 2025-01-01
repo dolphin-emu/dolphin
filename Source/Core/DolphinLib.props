@@ -144,6 +144,7 @@
     <ClInclude Include="Common\Network.h" />
     <ClInclude Include="Common\PcapFile.h" />
     <ClInclude Include="Common\Profiler.h" />
+    <ClInclude Include="Common\Projection.h" />
     <ClInclude Include="Common\QoSSession.h" />
     <ClInclude Include="Common\Random.h" />
     <ClInclude Include="Common\Result.h" />
