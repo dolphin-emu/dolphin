@@ -346,6 +346,20 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
                                   std::chrono::milliseconds maximum_wait) const
     -> std::vector<InputDetection>
 {
+  InputDetector input_detector;
+  input_detector.Start(*this, device_strings);
+
+  while (!input_detector.IsComplete())
+  {
+    Common::SleepCurrentThread(10);
+    input_detector.Update(initial_wait, confirmation_wait, maximum_wait);
+  }
+
+  return input_detector.TakeResults();
+}
+
+struct InputDetector::Impl
+{
   struct InputState
   {
     InputState(ciface::Core::Device::Input* input_) : input{input_} { stats.Push(0.0); }
@@ -355,7 +369,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     ControlState last_state = initial_state;
     MathUtil::RunningVariance<ControlState> stats;
 
-    // Prevent multiiple detections until after release.
+    // Prevent multiple detections until after release.
     bool is_ready = true;
 
     void Update()
@@ -392,18 +406,32 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     std::vector<InputState> input_states;
   };
 
-  // Acquire devices and initial input states.
   std::vector<DeviceState> device_states;
+};
+
+InputDetector::InputDetector() : m_start_time{}, m_state{}
+{
+}
+
+void InputDetector::Start(const DeviceContainer& container,
+                          const std::vector<std::string>& device_strings)
+
+{
+  m_start_time = Clock::now();
+  m_detections = {};
+  m_state = std::make_unique<Impl>();
+
+  // Acquire devices and initial input states.
   for (const auto& device_string : device_strings)
   {
     DeviceQualifier dq;
     dq.FromString(device_string);
-    auto device = FindDevice(dq);
+    auto device = container.FindDevice(dq);
 
     if (!device)
       continue;
 
-    std::vector<InputState> input_states;
+    std::vector<Impl::InputState> input_states;
 
     for (auto* input : device->Inputs())
     {
@@ -413,38 +441,42 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
 
       // Undesirable axes will have negative values here when trying to map a
       // "FullAnalogSurface".
-      input_states.push_back(InputState{input});
+      input_states.push_back(Impl::InputState{input});
     }
 
     if (!input_states.empty())
-      device_states.emplace_back(DeviceState{std::move(device), std::move(input_states)});
+    {
+      m_state->device_states.emplace_back(
+          Impl::DeviceState{std::move(device), std::move(input_states)});
+    }
   }
 
-  if (device_states.empty())
-    return {};
+  // If no inputs were found via the supplied device strings, immediately complete.
+  if (m_state->device_states.empty())
+    m_state.reset();
+}
 
-  std::vector<InputDetection> detections;
-
-  const auto start_time = Clock::now();
-  while (true)
+void InputDetector::Update(std::chrono::milliseconds initial_wait,
+                           std::chrono::milliseconds confirmation_wait,
+                           std::chrono::milliseconds maximum_wait)
+{
+  if (m_state)
   {
     const auto now = Clock::now();
-    const auto elapsed_time = now - start_time;
+    const auto elapsed_time = now - m_start_time;
 
-    if (elapsed_time >= maximum_wait || (detections.empty() && elapsed_time >= initial_wait) ||
-        (!detections.empty() && detections.back().release_time.has_value() &&
-         now >= *detections.back().release_time + confirmation_wait))
+    if (elapsed_time >= maximum_wait || (m_detections.empty() && elapsed_time >= initial_wait) ||
+        (!m_detections.empty() && m_detections.back().release_time.has_value() &&
+         now >= *m_detections.back().release_time + confirmation_wait))
     {
-      break;
+      m_state.reset();
+      return;
     }
 
-    Common::SleepCurrentThread(10);
-
-    for (auto& device_state : device_states)
+    for (auto& device_state : m_state->device_states)
     {
-      for (std::size_t i = 0; i != device_state.input_states.size(); ++i)
+      for (auto& input_state : device_state.input_states)
       {
-        auto& input_state = device_state.input_states[i];
         input_state.Update();
 
         if (input_state.IsPressed())
@@ -456,26 +488,42 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
           const auto smoothness =
               1 / std::sqrt(input_state.stats.Variance() / input_state.stats.Mean());
 
-          InputDetection new_detection;
+          Detection new_detection;
           new_detection.device = device_state.device;
           new_detection.input = input_state.input;
           new_detection.press_time = Clock::now();
           new_detection.smoothness = smoothness;
 
           // We found an input. Add it to our detections.
-          detections.emplace_back(std::move(new_detection));
+          m_detections.emplace_back(std::move(new_detection));
         }
       }
     }
 
     // Check for any releases of our detected inputs.
-    for (auto& d : detections)
+    for (auto& d : m_detections)
     {
       if (!d.release_time.has_value() && d.input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
         d.release_time = Clock::now();
     }
   }
-
-  return detections;
 }
+
+InputDetector::~InputDetector() = default;
+
+bool InputDetector::IsComplete() const
+{
+  return !m_state;
+}
+
+auto InputDetector::GetResults() const -> const std::vector<Detection>&
+{
+  return m_detections;
+}
+
+auto InputDetector::TakeResults() -> std::vector<Detection>
+{
+  return std::move(m_detections);
+}
+
 }  // namespace ciface::Core

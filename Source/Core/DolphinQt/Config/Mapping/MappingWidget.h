@@ -3,15 +3,10 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <QString>
 #include <QWidget>
 
-class ControlGroupBox;
 class InputConfig;
-class MappingButton;
 class MappingNumeric;
 class MappingWindow;
 class QFormLayout;
