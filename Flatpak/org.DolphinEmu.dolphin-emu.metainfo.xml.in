@@ -11,7 +11,7 @@
   <project_license>GPL-2.0+</project_license>
   <content_rating type="oars-1.0"/>
   <!-- Descriptions taken from Dolphin Homepage -->
-  <description><p>Dolphin is an emulator for two recent Nintendo video game consoles: the GameCube and the Wii. It allows PC gamers to enjoy games for these two consoles in full HD (1080p) with several enhancements: compatibility with all PC controllers, turbo speed, networked multiplayer, and even more!</p></description>
+  <description><p>Dolphin is an emulator for two Nintendo video game consoles: the GameCube and the Wii. It allows PC gamers to enjoy games for these two consoles in full HD (1080p) with several enhancements: compatibility with all PC controllers, turbo speed, networked multiplayer, and even more!</p></description>
   <screenshots>
     <screenshot type="default">
       <caption>Dolphin's main window</caption>
