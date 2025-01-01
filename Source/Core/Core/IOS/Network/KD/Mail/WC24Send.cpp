@@ -24,8 +24,8 @@
 
 namespace IOS::HLE::NWC24::Mail
 {
-constexpr const char SEND_LIST_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
-                                        "/wc24send.ctl";
+constexpr char SEND_LIST_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
+                                  "/wc24send.ctl";
 
 WC24SendList::WC24SendList(std::shared_ptr<FS::FileSystem> fs) : m_fs{std::move(fs)}
 {
@@ -206,7 +206,8 @@ std::optional<u32> WC24SendList::GetNextFreeEntryIndex() const
   return std::nullopt;
 }
 
-ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_list, u64 sender)
+void WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_list, u64 sender,
+                                           std::string_view email)
 {
   ASSERT(!IsDisabled());
   // It is possible that the user composed a message before SendMail was called.
@@ -222,7 +223,7 @@ ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_lis
     const std::time_t t = std::time(nullptr);
 
     const std::string formatted_message =
-        fmt::format(MAIL_REGISTRATION_STRING, sender, code, fmt::gmtime(t));
+        fmt::format(MAIL_REGISTRATION_STRING, sender, code, email, fmt::gmtime(t));
     const std::span message{reinterpret_cast<const u8*>(formatted_message.data()),
                             formatted_message.size()};
     const ErrorCode reply = WriteToVFF(SEND_BOX_PATH, GetMailPath(entry_index), m_fs, message);
@@ -230,7 +231,7 @@ ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_lis
     if (reply != WC24_OK)
     {
       ERROR_LOG_FMT(IOS_WC24, "Error writing registration message to VFF");
-      return reply;
+      return;
     }
 
     NOTICE_LOG_FMT(IOS_WC24, "Issued registration message for Wii Friend: {}", code);
@@ -256,7 +257,6 @@ ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_lis
 
   // Only flush on success.
   WriteSendList();
-  return WC24_OK;
 }
 
 std::string_view WC24SendList::GetMailFlag() const
