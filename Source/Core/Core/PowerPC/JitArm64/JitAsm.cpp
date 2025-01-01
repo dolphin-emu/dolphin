@@ -524,12 +524,12 @@ void JitArm64::GenerateQuantizedLoads()
   // Q0 is the return
   // Q1 is a temporary
   ARM64Reg temp_reg = ARM64Reg::X0;
-  ARM64Reg addr_reg = ARM64Reg::X1;
+  ARM64Reg addr_reg = ARM64Reg::W1;
   ARM64Reg scale_reg = ARM64Reg::X2;
-  BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 3};
+  BitSet32 scratch_gprs{0, 3};
   if (!jo.memcheck)
-    gprs_to_push &= ~BitSet32{1};
-  BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
+    scratch_gprs[1] = true;
+  BitSet32 scratch_fprs{0, 1};
   ARM64FloatEmitter float_emit(this);
 
   const u8* start = GetCodePtr();
@@ -541,7 +541,7 @@ void JitArm64::GenerateQuantizedLoads()
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
 
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg,
-                         gprs_to_push & ~BitSet32{DecodeReg(scale_reg)}, fprs_to_push, true);
+                         scratch_gprs | BitSet32{DecodeReg(scale_reg)}, scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -550,8 +550,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.UXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -568,8 +568,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.SXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -586,8 +586,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -603,8 +603,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -622,7 +622,7 @@ void JitArm64::GenerateQuantizedLoads()
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg,
-                         gprs_to_push & ~BitSet32{DecodeReg(scale_reg)}, fprs_to_push, true);
+                         scratch_gprs | BitSet32{DecodeReg(scale_reg)}, scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -631,8 +631,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.UXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -649,8 +649,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.SXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -667,8 +667,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -684,8 +684,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -735,13 +735,13 @@ void JitArm64::GenerateQuantizedStores()
   // Q1 is a temporary
   ARM64Reg temp_reg = ARM64Reg::X0;
   ARM64Reg scale_reg = ARM64Reg::X1;
-  ARM64Reg addr_reg = ARM64Reg::X2;
-  BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 1};
+  ARM64Reg addr_reg = ARM64Reg::W2;
+  BitSet32 scratch_gprs{0, 1};
   if (!jo.memcheck)
-    gprs_to_push &= ~BitSet32{2};
+    scratch_gprs[2] = true;
   if (!jo.fastmem)
-    gprs_to_push &= ~BitSet32{3};
-  BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
+    scratch_gprs[3] = true;
+  BitSet32 scratch_fprs{0, 1};
   ARM64FloatEmitter float_emit(this);
 
   const u8* start = GetCodePtr();
@@ -752,8 +752,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -771,8 +771,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -790,8 +790,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -808,8 +808,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -826,8 +826,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -837,8 +837,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -856,8 +856,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -875,8 +875,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -893,8 +893,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
@@ -911,8 +911,8 @@ void JitArm64::GenerateQuantizedStores()
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, gprs_to_push,
-                         fprs_to_push, true);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, ARM64Reg::D0, addr_reg, scratch_gprs,
+                         scratch_fprs, true);
 
     RET(ARM64Reg::X30);
   }
