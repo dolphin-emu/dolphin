@@ -191,4 +191,37 @@ TEST(StringUtil, SplitPathBackslashesNotRecognizedAsSeparators)
   EXPECT_EQ(extension, ".txt");
 }
 
-// TODO: add `SplitPath` test coverage for paths containing Windows drives, e.g., "C:".
+#ifdef _WIN32
+TEST(StringUtil, SplitPathWindowsPathWithDriveLetter)
+{
+  // Verify that on Windows, valid paths that include a drive letter and volume separator (e.g.,
+  // "C:") parse correctly.
+  std::string path;
+  std::string filename;
+  std::string extension;
+
+  // Absolute path with drive letter
+  EXPECT_TRUE(SplitPath("C:/dir/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:/dir/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  // Relative path with drive letter
+  EXPECT_TRUE(SplitPath("C:dir/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:dir/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  // Relative path with drive letter and no directory
+  EXPECT_TRUE(SplitPath("C:some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  // Path that is just the drive letter
+  EXPECT_TRUE(SplitPath("C:", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:");
+  EXPECT_EQ(filename, "");
+  EXPECT_EQ(extension, "");
+}
+#endif
