@@ -132,7 +132,8 @@ struct DTMHeader
   bool bUseFMA;
   u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
   bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
-  std::array<u8, 6> reserved;       // Padding for any new config options
+  u8 countryCode;                   // SYSCONF country code
+  std::array<u8, 5> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
