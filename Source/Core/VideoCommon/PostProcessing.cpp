@@ -137,43 +137,40 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
 
   std::vector<GLSLStringOption> option_strings;
   GLSLStringOption* current_strings = nullptr;
-  while (!in.eof())
+  std::string line_str;
+  while (std::getline(in, line_str))
   {
-    std::string line_str;
-    if (std::getline(in, line_str))
-    {
-      std::string_view line = line_str;
+    std::string_view line = line_str;
 
 #ifndef _WIN32
-      // Check for CRLF eol and convert it to LF
-      if (!line.empty() && line.at(line.size() - 1) == '\r')
-        line.remove_suffix(1);
+    // Check for CRLF eol and convert it to LF
+    if (!line.empty() && line.at(line.size() - 1) == '\r')
+      line.remove_suffix(1);
 #endif
 
-      if (!line.empty())
+    if (!line.empty())
+    {
+      if (line[0] == '[')
       {
-        if (line[0] == '[')
-        {
-          size_t endpos = line.find("]");
+        size_t endpos = line.find("]");
 
-          if (endpos != std::string::npos)
-          {
-            // New section!
-            std::string_view sub = line.substr(1, endpos - 1);
-            option_strings.push_back({std::string(sub)});
-            current_strings = &option_strings.back();
-          }
+        if (endpos != std::string::npos)
+        {
+          // New section!
+          std::string_view sub = line.substr(1, endpos - 1);
+          option_strings.push_back({std::string(sub)});
+          current_strings = &option_strings.back();
         }
-        else
+      }
+      else
+      {
+        if (current_strings)
         {
-          if (current_strings)
-          {
-            std::string key, value;
-            Common::IniFile::ParseLine(line, &key, &value);
+          std::string key, value;
+          Common::IniFile::ParseLine(line, &key, &value);
 
-            if (!(key.empty() && value.empty()))
-              current_strings->m_options.emplace_back(key, value);
-          }
+          if (!(key.empty() && value.empty()))
+            current_strings->m_options.emplace_back(key, value);
         }
       }
     }
