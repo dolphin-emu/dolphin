@@ -189,6 +189,7 @@ void InterfacePane::CreateInGame()
       new ConfigBool(tr("Use Panic Handlers"), Config::MAIN_USE_PANIC_HANDLERS);
   m_checkbox_enable_osd =
       new ConfigBool(tr("Show On-Screen Display Messages"), Config::MAIN_OSD_MESSAGES);
+  m_checkbox_static_title = new ConfigBool(tr("Static Window Title"), Config::MAIN_STATIC_TITLE);
   m_checkbox_show_active_title =
       new ConfigBool(tr("Show Active Title in Window Title"), Config::MAIN_SHOW_ACTIVE_TITLE);
   m_checkbox_pause_on_focus_lost =
@@ -219,6 +220,7 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);
+  groupbox_layout->addWidget(m_checkbox_static_title);
   groupbox_layout->addWidget(m_checkbox_show_active_title);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(mouse_groupbox);
@@ -227,6 +229,7 @@ void InterfacePane::CreateInGame()
 #else
   m_checkbox_lock_mouse->hide();
 #endif
+  UpdateShowActiveTitleEnabled();
 }
 
 void InterfacePane::ConnectLayout()
@@ -253,6 +256,8 @@ void InterfacePane::ConnectLayout()
           &Settings::CursorVisibilityChanged);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::LockCursorChanged);
+  connect(m_checkbox_static_title, &QCheckBox::stateChanged,
+          [this](int) { UpdateShowActiveTitleEnabled(); });
 }
 
 void InterfacePane::UpdateShowDebuggingCheckbox()
@@ -353,6 +358,9 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("Shows on-screen display messages over the render window. These messages "
                  "disappear after several seconds."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_STATIC_WINDOW_TITLE[] =
+      QT_TR_NOOP("The render window's title will always be \"Dolphin Render Window\"."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_SHOW_ACTIVE_TITLE_DESCRIPTION[] =
       QT_TR_NOOP("Shows the active game title in the render window's title bar."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -400,6 +408,8 @@ void InterfacePane::AddDescriptions()
 
   m_checkbox_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
 
+  m_checkbox_static_title->SetDescription(tr(TR_STATIC_WINDOW_TITLE));
+
   m_checkbox_show_active_title->SetDescription(tr(TR_SHOW_ACTIVE_TITLE_DESCRIPTION));
 
   m_checkbox_pause_on_focus_lost->SetDescription(tr(TR_PAUSE_ON_FOCUS_LOST_DESCRIPTION));
@@ -414,4 +424,14 @@ void InterfacePane::AddDescriptions()
 
   m_combobox_userstyle->SetTitle(tr("Style"));
   m_combobox_userstyle->SetDescription(tr(TR_USER_STYLE_DESCRIPTION));
+}
+
+void InterfacePane::UpdateShowActiveTitleEnabled()
+{
+
+  const bool enabled = m_checkbox_static_title->isChecked();
+
+  if (enabled)
+    m_checkbox_show_active_title->setChecked(false);
+  m_checkbox_show_active_title->setEnabled(!enabled);
 }

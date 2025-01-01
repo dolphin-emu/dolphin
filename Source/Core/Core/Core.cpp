@@ -913,7 +913,12 @@ void UpdateTitle(Core::System& system)
       g_video_backend->GetDisplayName(), Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
-  if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
+
+  if (Config::Get(Config::MAIN_STATIC_TITLE))
+  {
+    message = Common::GetStringT("Dolphin Render Window");
+  }
+  else if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
     if (!title.empty())
