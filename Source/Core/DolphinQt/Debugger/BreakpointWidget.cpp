@@ -11,6 +11,7 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 
+#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -482,10 +483,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   if (!is_memory_breakpoint)
   {
     const auto& inst_breakpoints = m_system.GetPowerPC().GetBreakPoints().GetBreakPoints();
-    const auto bp_iter =
-        std::find_if(inst_breakpoints.begin(), inst_breakpoints.end(),
-                     [bp_address](const auto& bp) { return bp.address == bp_address; });
-    if (bp_iter == inst_breakpoints.end())
+    if (!Common::Contains(inst_breakpoints, bp_address, &TBreakPoint::address))
       return;
 
     menu->addAction(tr("Show in Code"), [this, bp_address] { emit ShowCode(bp_address); });
@@ -498,10 +496,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   else
   {
     const auto& memory_breakpoints = m_system.GetPowerPC().GetMemChecks().GetMemChecks();
-    const auto mb_iter =
-        std::find_if(memory_breakpoints.begin(), memory_breakpoints.end(),
-                     [bp_address](const auto& bp) { return bp.start_address == bp_address; });
-    if (mb_iter == memory_breakpoints.end())
+    if (!Common::Contains(memory_breakpoints, bp_address, &TMemCheck::start_address))
       return;
 
     menu->addAction(tr("Show in Memory"), [this, bp_address] { emit ShowMemory(bp_address); });

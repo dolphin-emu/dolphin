@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -170,15 +171,12 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
   ASSERT(res == VK_SUCCESS);
 
-  bool supports_validation_layers =
-      std::find_if(layer_list.begin(), layer_list.end(), [](const auto& it) {
-        return strcmp(it.layerName, VALIDATION_LAYER_NAME) == 0;
-      }) != layer_list.end();
+  bool supports_validation_layers = Common::Contains(
+      layer_list, std::string_view{VALIDATION_LAYER_NAME}, &VkLayerProperties::layerName);
 
   bool supports_debug_utils =
-      std::find_if(extension_list.begin(), extension_list.end(), [](const auto& it) {
-        return strcmp(it.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0;
-      }) != extension_list.end();
+      Common::Contains(extension_list, std::string_view{VK_EXT_DEBUG_UTILS_EXTENSION_NAME},
+                       &VkExtensionProperties::extensionName);
 
   if (!supports_debug_utils && supports_validation_layers)
   {
@@ -197,9 +195,8 @@ bool VulkanContext::CheckValidationLayerAvailablility()
                                                  extension_list.data());
     ASSERT(res == VK_SUCCESS);
     supports_debug_utils =
-        std::find_if(extension_list.begin(), extension_list.end(), [](const auto& it) {
-          return strcmp(it.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0;
-        }) != extension_list.end();
+        Common::Contains(extension_list, std::string_view{VK_EXT_DEBUG_UTILS_EXTENSION_NAME},
+                         &VkExtensionProperties::extensionName);
   }
 
   // Check for both VK_EXT_debug_utils and VK_LAYER_KHRONOS_validation
@@ -330,16 +327,10 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
 
   auto AddExtension = [&](const char* name, bool required) {
     bool extension_supported =
-        std::find_if(available_extension_list.begin(), available_extension_list.end(),
-                     [&](const VkExtensionProperties& properties) {
-                       return !strcmp(name, properties.extensionName);
-                     }) != available_extension_list.end();
-    extension_supported =
-        extension_supported ||
-        std::find_if(validation_layer_extension_list.begin(), validation_layer_extension_list.end(),
-                     [&](const VkExtensionProperties& properties) {
-                       return !strcmp(name, properties.extensionName);
-                     }) != validation_layer_extension_list.end();
+        Common::Contains(available_extension_list, std::string_view{name},
+                         &VkExtensionProperties::extensionName) ||
+        Common::Contains(validation_layer_extension_list, std::string_view{name},
+                         &VkExtensionProperties::extensionName);
 
     if (extension_supported)
     {
@@ -648,10 +639,8 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
     INFO_LOG_FMT(VIDEO, "Available extension: {}", extension_properties.extensionName);
 
   auto AddExtension = [&](const char* name, bool required) {
-    if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
-                     [&](const VkExtensionProperties& properties) {
-                       return !strcmp(name, properties.extensionName);
-                     }) != available_extension_list.end())
+    if (Common::Contains(available_extension_list, std::string_view{name},
+                         &VkExtensionProperties::extensionName))
     {
       INFO_LOG_FMT(VIDEO, "Enabling extension: {}", name);
       m_device_extensions.push_back(name);

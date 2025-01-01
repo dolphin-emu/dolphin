@@ -7,6 +7,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Contains.h"
 #include "Common/StringUtil.h"
 
 #include "Core/CPUThreadConfigCallback.h"
@@ -214,8 +215,7 @@ void VideoConfig::VerifyValidity()
   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
     iAdapter = 0;
 
-  if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
-      backend_info.AAModes.end())
+  if (!Common::Contains(backend_info.AAModes, iMultisamples))
     iMultisamples = 1;
 
   if (stereo_mode != StereoMode::Off)

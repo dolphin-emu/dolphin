@@ -6,6 +6,8 @@
 #include <QWidget>
 
 class ConfigBool;
+class ConfigSlider;
+class ConfigSliderLabel;
 class GameConfigWidget;
 class GraphicsWindow;
 class QLabel;
@@ -24,9 +26,6 @@ public:
   HacksWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
-  void LoadSettings();
-  void SaveSettings();
-
   void OnBackendChanged(const QString& backend_name);
 
   // EFB
@@ -36,8 +35,8 @@ private:
   ConfigBool* m_defer_efb_copies;
 
   // Texture Cache
-  QLabel* m_accuracy_label;
-  ToolTipSlider* m_accuracy;
+  ConfigSliderLabel* m_accuracy_label;
+  ConfigSlider* m_accuracy;
   ConfigBool* m_gpu_texture_decoding;
 
   // External Framebuffer

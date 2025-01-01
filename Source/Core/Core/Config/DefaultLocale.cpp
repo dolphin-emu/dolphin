@@ -17,6 +17,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Contains.h"
 #include "Common/StringUtil.h"
 #include "Core/Host.h"
 #include "DiscIO/Enums.h"
@@ -38,17 +39,13 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
   // Special handling of Chinese due to its two writing systems
   if (split_locale[0] == "zh")
   {
-    const auto locale_contains = [&split_locale](std::string_view str) {
-      return std::find(split_locale.cbegin(), split_locale.cend(), str) != split_locale.cend();
-    };
-
-    if (locale_contains("Hans"))
+    if (Common::Contains(split_locale, "Hans"))
       return DiscIO::Language::SimplifiedChinese;
-    if (locale_contains("Hant"))
+    if (Common::Contains(split_locale, "Hant"))
       return DiscIO::Language::TraditionalChinese;
 
     // Mainland China and Singapore use simplified characters
-    if (locale_contains("CN") || locale_contains("SG"))
+    if (Common::Contains(split_locale, "CN") || Common::Contains(split_locale, "SG"))
       return DiscIO::Language::SimplifiedChinese;
     else
       return DiscIO::Language::TraditionalChinese;

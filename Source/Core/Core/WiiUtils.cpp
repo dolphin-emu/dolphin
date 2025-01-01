@@ -21,6 +21,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Contains.h"
 #include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
@@ -590,10 +591,8 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   const UpdateResult import_result = [&]() {
     for (const IOS::ES::Content& content : tmd.first.GetContents())
     {
-      const bool is_already_installed = std::find_if(stored_contents.begin(), stored_contents.end(),
-                                                     [&content](const auto& stored_content) {
-                                                       return stored_content.id == content.id;
-                                                     }) != stored_contents.end();
+      const bool is_already_installed =
+          Common::Contains(stored_contents, content.id, &IOS::ES::Content::id);
 
       // Do skip what is already installed on the NAND.
       if (is_already_installed)
