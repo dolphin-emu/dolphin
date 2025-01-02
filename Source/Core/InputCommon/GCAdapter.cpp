@@ -66,13 +66,7 @@ static void AddGCAdapter(libusb_device* device);
 static void ResetRumbleLockNeeded();
 #endif
 
-enum class CalledFromReadThread
-{
-  No,
-  Yes,
-};
-
-static void Reset(CalledFromReadThread called_from_read_thread);
+static void Reset();
 static void Setup();
 static void ProcessInputPayload(const u8* data, std::size_t size);
 static void ReadThreadFunc();
@@ -129,7 +123,6 @@ static std::atomic<int> s_controller_write_payload_size{0};
 
 static std::thread s_read_adapter_thread;
 static Common::Flag s_read_adapter_thread_running;
-static Common::Flag s_read_adapter_thread_needs_joining;
 static std::thread s_write_adapter_thread;
 static Common::Flag s_write_adapter_thread_running;
 static Common::Event s_write_happened;
@@ -330,7 +323,7 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
   else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
   {
     if (s_handle != nullptr && libusb_get_device(s_handle) == dev)
-      Reset(CalledFromReadThread::No);
+      Reset();
 
     // Reset a potential error status now that the adapter is unplugged
     if (s_status == AdapterStatus::Error)
@@ -359,7 +352,7 @@ Java_org_dolphinemu_dolphinemu_utils_GCAdapter_onAdapterDisconnected(JNIEnv* env
 {
   INFO_LOG_FMT(CONTROLLERINTERFACE, "GC adapter disconnected");
   if (s_detected)
-    Reset(CalledFromReadThread::No);
+    Reset();
 }
 }
 #endif
@@ -547,11 +540,8 @@ static void Setup()
   s_detected = true;
 
   // Make sure the thread isn't in the middle of shutting down while starting a new one
-  if (s_read_adapter_thread_needs_joining.TestAndClear() ||
-      s_read_adapter_thread_running.TestAndClear())
-  {
+  if (s_read_adapter_thread_running.TestAndClear())
     s_read_adapter_thread.join();
-  }
 
   s_read_adapter_thread_running.Set(true);
   s_read_adapter_thread = std::thread(ReadThreadFunc);
@@ -721,7 +711,7 @@ void Shutdown()
       env->GetStaticMethodID(s_adapter_class, "disableHotplugCallback", "()V");
   env->CallStaticVoidMethod(s_adapter_class, disable_hotplug_callback_func);
 #endif
-  Reset(CalledFromReadThread::No);
+  Reset();
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   s_libusb_context.reset();
@@ -735,7 +725,7 @@ void Shutdown()
   }
 }
 
-static void Reset(CalledFromReadThread called_from_read_thread)
+static void Reset()
 {
   std::unique_lock lock(s_init_mutex, std::defer_lock);
   if (!lock.try_lock())
@@ -748,16 +738,8 @@ static void Reset(CalledFromReadThread called_from_read_thread)
     return;
 #endif
 
-  if (called_from_read_thread == CalledFromReadThread::No)
-  {
-    if (s_read_adapter_thread_running.TestAndClear())
-      s_read_adapter_thread.join();
-  }
-  else
-  {
-    s_read_adapter_thread_needs_joining.Set();
-    s_read_adapter_thread_running.Clear();
-  }
+  if (s_read_adapter_thread_running.TestAndClear())
+    s_read_adapter_thread.join();
   // The read thread will close the write thread
 
   s_port_states.fill({});
