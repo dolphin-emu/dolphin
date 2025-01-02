@@ -5,7 +5,6 @@
 
 #include <QFont>
 #include <QMouseEvent>
-#include <QSignalBlocker>
 
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
@@ -49,14 +48,21 @@ protected:
       bf.setBold(IsConfigLocal());
       Derived::setFont(bf);
 
-      const QSignalBlocker blocker(this);
+      // This isn't signal blocked because the UI may need to be updated.
+      m_updating = true;
       OnConfigChanged();
+      m_updating = false;
     });
   }
 
   template <typename T>
   void SaveValue(const Config::Info<T>& setting, const T& value)
   {
+    // Avoid OnConfigChanged -> option changed to current config's value -> unnecessary save ->
+    // ConfigChanged.
+    if (m_updating)
+      return;
+
     if (m_layer != nullptr)
     {
       m_layer->Set(m_location, value);
@@ -100,6 +106,7 @@ private:
     }
   }
 
+  bool m_updating = false;
   const Config::Location m_location;
   Config::Layer* m_layer;
 };

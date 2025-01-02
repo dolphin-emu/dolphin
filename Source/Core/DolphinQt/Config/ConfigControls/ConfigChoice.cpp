@@ -63,7 +63,6 @@ void ConfigStringChoice::Load()
   const int index = m_text_is_data ? findText(setting_value) : findData(setting_value);
 
   // This can be called publicly.
-  const QSignalBlocker block(this);
   setCurrentIndex(index);
 }
 
@@ -145,6 +144,7 @@ void ConfigComplexChoice::UpdateComboIndex()
   auto it = std::find(m_options.begin(), m_options.end(), values);
   int index = static_cast<int>(std::distance(m_options.begin(), it));
 
+  // Will crash if not blocked
   const QSignalBlocker blocker(this);
   setCurrentIndex(index);
 }
