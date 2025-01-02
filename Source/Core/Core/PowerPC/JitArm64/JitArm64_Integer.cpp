@@ -765,6 +765,14 @@ void JitArm64::rlwinmx_internal(UGeckoInstruction inst, u32 sh)
     return;
   }
 
+  if (mask == 0)
+  {
+    gpr.SetImmediate(a, 0);
+    if (inst.Rc)
+      ComputeRC0(0);
+    return;
+  }
+
   gpr.BindToRegister(a, a == s);
 
   if (sh == 0 && mask == 0xFFFFFFFF)
