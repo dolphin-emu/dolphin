@@ -134,10 +134,9 @@ static std::thread s_write_adapter_thread;
 static Common::Flag s_write_adapter_thread_running;
 static Common::Event s_write_happened;
 
-static std::mutex s_read_mutex;
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 static std::mutex s_init_mutex;
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+static std::mutex s_read_mutex;
+#if GCADAPTER_USE_ANDROID_IMPLEMENTATION
 static std::mutex s_write_mutex;
 #endif
 
@@ -359,6 +358,8 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_utils_GCAdapter_onAdapterDisconnected(JNIEnv* env, jclass)
 {
   INFO_LOG_FMT(CONTROLLERINTERFACE, "GC adapter disconnected");
+  if (s_detected)
+    Reset(CalledFromReadThread::No);
 }
 }
 #endif
@@ -422,6 +423,7 @@ static void ScanThreadFunc()
     if (!s_detected && UseAdapter() &&
         env->CallStaticBooleanMethod(s_adapter_class, is_usb_device_available_func))
     {
+      std::lock_guard lk(s_init_mutex);
       Setup();
     }
 
@@ -735,10 +737,10 @@ void Shutdown()
 
 static void Reset(CalledFromReadThread called_from_read_thread)
 {
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   std::unique_lock lock(s_init_mutex, std::defer_lock);
   if (!lock.try_lock())
     return;
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   if (s_status != AdapterStatus::Detected)
     return;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
@@ -834,9 +836,6 @@ void ProcessInputPayload(const u8* data, std::size_t size)
     // This can occur for a few frames on initialization.
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "error reading payload (size: {}, type: {:02x})", size,
                   data[0]);
-#if GCADAPTER_USE_ANDROID_IMPLEMENTATION
-    Reset(CalledFromReadThread::Yes);
-#endif
   }
   else
   {
