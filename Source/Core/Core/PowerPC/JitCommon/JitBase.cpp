@@ -57,7 +57,7 @@
 // After resetting the stack to the top, we call _resetstkoflw() to restore
 // the guard page at the 256kb mark.
 
-const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitBase::JIT_SETTINGS{{
+const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JitBase::JIT_SETTINGS{{
     {&JitBase::bJITOff, &Config::MAIN_DEBUG_JIT_OFF},
     {&JitBase::bJITLoadStoreOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF},
     {&JitBase::bJITLoadStorelXzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF},
@@ -76,6 +76,7 @@ const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitB
     {&JitBase::m_enable_branch_following, &Config::MAIN_JIT_FOLLOW_BRANCH},
     {&JitBase::m_enable_float_exceptions, &Config::MAIN_FLOAT_EXCEPTIONS},
     {&JitBase::m_enable_div_by_zero_exceptions, &Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS},
+    {&JitBase::m_alignment_exceptions, &Config::MAIN_ALIGNMENT_EXCEPTIONS},
     {&JitBase::m_low_dcbz_hack, &Config::MAIN_LOW_DCBZ_HACK},
     {&JitBase::m_fprf, &Config::MAIN_FPRF},
     {&JitBase::m_accurate_nans, &Config::MAIN_ACCURATE_NANS},
@@ -137,9 +138,11 @@ void JitBase::RefreshConfig()
   bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&
                EMM::IsExceptionHandlerSupported();
-  jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
+  jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints ||
+                m_alignment_exceptions;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
+  jo.alignment_exceptions = m_alignment_exceptions;
 }
 
 void JitBase::InitFastmemArena()
