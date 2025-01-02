@@ -306,9 +306,13 @@ void MemChecks::Add(TMemCheck memory_check)
   {
     m_mem_checks.emplace_back(std::move(memory_check));
   }
-  // If this is the first one, clear the JIT cache so it can switch to
-  // watchpoint-compatible code.
-  if (!had_any)
+
+  const bool registers_changed = UpdateRegistersUsedInConditions();
+
+  // If this is the first memcheck, clear the JIT cache so it can switch to watchpoint-compatible
+  // code. Or, if the memcheck's condition wants to read from a new register,
+  // clear the JIT cache to make the slow memory access code flush that register.
+  if (!had_any || registers_changed)
     m_system.GetJitInterface().ClearCache(guard);
   m_system.GetMMU().DBATUpdated();
 }
@@ -336,7 +340,10 @@ bool MemChecks::Remove(u32 address)
 
   const Core::CPUThreadGuard guard(m_system);
   m_mem_checks.erase(iter);
-  if (!HasAny())
+
+  const bool registers_changed = UpdateRegistersUsedInConditions();
+
+  if (registers_changed || !HasAny())
     m_system.GetJitInterface().ClearCache(guard);
   m_system.GetMMU().DBATUpdated();
   return true;
@@ -377,6 +384,27 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
            ((mc.start_address | page_end_suffix) < page_end_address &&
             (mc.end_address | page_end_suffix) > page_end_address);
   });
+}
+
+bool MemChecks::UpdateRegistersUsedInConditions()
+{
+  BitSet32 gprs_used, fprs_used;
+  for (TMemCheck& mem_check : m_mem_checks)
+  {
+    if (mem_check.condition)
+    {
+      gprs_used |= mem_check.condition->GetGPRsUsed();
+      fprs_used |= mem_check.condition->GetFPRsUsed();
+    }
+  }
+
+  const bool registers_changed =
+      gprs_used != m_gprs_used_in_conditions || fprs_used != m_fprs_used_in_conditions;
+
+  m_gprs_used_in_conditions = gprs_used;
+  m_fprs_used_in_conditions = fprs_used;
+
+  return registers_changed;
 }
 
 bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc)
