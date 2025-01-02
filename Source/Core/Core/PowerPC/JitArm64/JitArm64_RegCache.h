@@ -60,16 +60,12 @@ static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 
 enum class RegType
 {
-  NotLoaded,
-  Discarded,   // Reg is not loaded because we know it won't be read before the next write
-  Register,    // Reg type is register
-  Immediate,   // Reg is really a IMM
-  LowerPair,   // Only the lower pair of a paired register
-  Duplicated,  // The lower reg is the same as the upper one (physical upper doesn't actually have
-               // the duplicated value)
-  Single,      // Both registers are loaded as single
-  LowerPairSingle,   // Only the lower pair of a paired register, as single
-  DuplicatedSingle,  // The lower one contains both registers, as single
+  Register,          // PS0 and PS1, each 64-bit
+  LowerPair,         // PS0 only, 64-bit
+  Duplicated,        // PS0 and PS1 are identical, host register only stores one lane (64-bit)
+  Single,            // PS0 and PS1, each 32-bit
+  LowerPairSingle,   // PS0 only, 32-bit
+  DuplicatedSingle,  // PS0 and PS1 are identical, host register only stores one lane (32-bit)
 };
 
 enum class FlushMode : bool
@@ -92,26 +88,21 @@ class OpArg
 public:
   OpArg() = default;
 
-  RegType GetType() const { return m_type; }
+  RegType GetFPRType() const { return m_fpr_type; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
-  u32 GetImm() const { return m_value; }
-  void Load(Arm64Gen::ARM64Reg reg, RegType type = RegType::Register)
+  void Load(Arm64Gen::ARM64Reg reg, RegType format = RegType::Register)
   {
-    m_type = type;
     m_reg = reg;
-  }
-  void LoadToImm(u32 imm)
-  {
-    m_type = RegType::Immediate;
-    m_value = imm;
-
-    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    m_fpr_type = format;
+    m_in_host_register = true;
   }
   void Discard()
   {
     // Invalidate any previous information
-    m_type = RegType::Discarded;
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    m_fpr_type = RegType::Register;
+    m_in_ppc_state = false;
+    m_in_host_register = false;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -119,8 +110,10 @@ public:
   void Flush()
   {
     // Invalidate any previous information
-    m_type = RegType::NotLoaded;
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+    m_fpr_type = RegType::Register;
+    m_in_ppc_state = true;
+    m_in_host_register = false;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -129,20 +122,18 @@ public:
   u32 GetLastUsed() const { return m_last_used; }
   void ResetLastUsed() { m_last_used = 0; }
   void IncrementLastUsed() { ++m_last_used; }
-  void SetDirty(bool dirty) { m_dirty = dirty; }
-  bool IsDirty() const { return m_dirty; }
+  void SetDirty(bool dirty) { m_in_ppc_state = !dirty; }
+  bool IsInPPCState() const { return m_in_ppc_state; }
+  bool IsInHostRegister() const { return m_in_host_register; }
 
 private:
-  // For REG_REG
-  RegType m_type = RegType::NotLoaded;                         // store type
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;  // host register we are in
-
-  // For REG_IMM
-  u32 m_value = 0;  // IMM value
+  RegType m_fpr_type = RegType::Register;                      // for FPRs only
 
   u32 m_last_used = 0;
 
-  bool m_dirty = false;
+  bool m_in_ppc_state = true;
+  bool m_in_host_register = false;
 };
 
 class HostReg
@@ -328,22 +319,22 @@ public:
 
   // Returns a guest GPR inside of a host register.
   // Will dump an immediate to the host register as well.
-  Arm64Gen::ARM64Reg R(size_t preg) { return R(GetGuestGPR(preg)); }
+  Arm64Gen::ARM64Reg R(size_t preg) { return BindForRead(GUEST_GPR_OFFSET + preg); }
 
   // Returns a guest CR inside of a host register.
-  Arm64Gen::ARM64Reg CR(size_t preg) { return R(GetGuestCR(preg)); }
+  Arm64Gen::ARM64Reg CR(size_t preg) { return BindForRead(GUEST_CR_OFFSET + preg); }
 
   // Set a register to an immediate. Only valid for guest GPRs.
   void SetImmediate(size_t preg, u32 imm, bool dirty = true)
   {
-    SetImmediate(GetGuestGPR(preg), imm, dirty);
+    SetImmediateInternal(GUEST_GPR_OFFSET + preg, imm, dirty);
   }
 
-  // Returns if a register is set as an immediate. Only valid for guest GPRs.
-  bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == RegType::Immediate; }
+  // Returns whether a register is set as an immediate. Only valid for guest GPRs.
+  bool IsImm(size_t preg) const;
 
   // Gets the immediate that a register is set to. Only valid for guest GPRs.
-  u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
+  u32 GetImm(size_t preg) const;
 
   bool IsImm(size_t preg, u32 imm) { return IsImm(preg) && GetImm(preg) == imm; }
 
@@ -374,14 +365,14 @@ public:
   // flushed. Just remember to call this function again with will_write = true after the Flush call.
   void BindToRegister(size_t preg, bool will_read, bool will_write = true)
   {
-    BindToRegister(GetGuestGPR(preg), will_read, will_write);
+    BindForWrite(GUEST_GPR_OFFSET + preg, will_read, will_write);
   }
 
   // Binds a guest CR to a host register, optionally loading its value.
   // The description of BindToRegister above applies to this function as well.
   void BindCRToRegister(size_t preg, bool will_read, bool will_write = true)
   {
-    BindToRegister(GetGuestCR(preg), will_read, will_write);
+    BindForWrite(GUEST_CR_OFFSET + preg, will_read, will_write);
   }
 
   BitSet32 GetCallerSavedUsed() const override;
@@ -426,14 +417,19 @@ private:
   GuestRegInfo GetGuestCR(size_t preg);
   GuestRegInfo GetGuestByIndex(size_t index);
 
-  Arm64Gen::ARM64Reg R(const GuestRegInfo& guest_reg);
-  void SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty);
-  void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
+  Arm64Gen::ARM64Reg BindForRead(size_t index);
+  void SetImmediateInternal(size_t index, u32 imm, bool dirty);
+  void BindForWrite(size_t index, bool will_read, bool will_write = true);
 
   void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
                       IgnoreDiscardedRegisters ignore_discarded_registers);
   void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
                         IgnoreDiscardedRegisters ignore_discarded_registers);
+
+  static constexpr size_t GUEST_GPR_COUNT = 32;
+  static constexpr size_t GUEST_CR_COUNT = 8;
+  static constexpr size_t GUEST_GPR_OFFSET = 0;
+  static constexpr size_t GUEST_CR_OFFSET = GUEST_GPR_COUNT;
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -449,9 +445,9 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  Arm64Gen::ARM64Reg R(size_t preg, RegType type);
+  Arm64Gen::ARM64Reg R(size_t preg, RegType format);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type, bool set_dirty = true);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType format, bool set_dirty = true);
 
   BitSet32 GetCallerSavedUsed() const override;
 
