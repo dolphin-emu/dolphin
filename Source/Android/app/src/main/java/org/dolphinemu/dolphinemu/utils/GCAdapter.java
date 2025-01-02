@@ -24,19 +24,19 @@ import org.dolphinemu.dolphinemu.services.USBPermService;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Java_GCAdapter
+public class GCAdapter
 {
   public static UsbManager manager;
 
   @Keep
-  static byte[] controller_payload = new byte[37];
+  static byte[] controllerPayload = new byte[37];
 
-  static UsbDeviceConnection usb_con;
-  static UsbInterface usb_intf;
-  static UsbEndpoint usb_in;
-  static UsbEndpoint usb_out;
+  static UsbDeviceConnection usbConnection;
+  static UsbInterface usbInterface;
+  static UsbEndpoint usbIn;
+  static UsbEndpoint usbOut;
 
-  private static void RequestPermission()
+  private static void requestPermission()
   {
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
     for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
@@ -59,19 +59,19 @@ public class Java_GCAdapter
     }
   }
 
-  public static void Shutdown()
+  public static void shutdown()
   {
-    usb_con.close();
+    usbConnection.close();
   }
 
   @Keep
-  public static int GetFD()
+  public static int getFd()
   {
-    return usb_con.getFileDescriptor();
+    return usbConnection.getFileDescriptor();
   }
 
   @Keep
-  public static boolean QueryAdapter()
+  public static boolean queryAdapter()
   {
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
     for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
@@ -82,32 +82,32 @@ public class Java_GCAdapter
         if (manager.hasPermission(dev))
           return true;
         else
-          RequestPermission();
+          requestPermission();
       }
     }
     return false;
   }
 
-  public static void InitAdapter()
+  public static void initAdapter()
   {
     byte[] init = {0x13};
-    usb_con.bulkTransfer(usb_out, init, init.length, 0);
+    usbConnection.bulkTransfer(usbOut, init, init.length, 0);
   }
 
   @Keep
-  public static int Input()
+  public static int input()
   {
-    return usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
+    return usbConnection.bulkTransfer(usbIn, controllerPayload, controllerPayload.length, 16);
   }
 
   @Keep
-  public static int Output(byte[] rumble)
+  public static int output(byte[] rumble)
   {
-    return usb_con.bulkTransfer(usb_out, rumble, 5, 16);
+    return usbConnection.bulkTransfer(usbOut, rumble, 5, 16);
   }
 
   @Keep
-  public static boolean OpenAdapter()
+  public static boolean openAdapter()
   {
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
     for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
@@ -117,7 +117,7 @@ public class Java_GCAdapter
       {
         if (manager.hasPermission(dev))
         {
-          usb_con = manager.openDevice(dev);
+          usbConnection = manager.openDevice(dev);
 
           Log.info("GCAdapter: Number of configurations: " + dev.getConfigurationCount());
           Log.info("GCAdapter: Number of interfaces: " + dev.getInterfaceCount());
@@ -125,31 +125,31 @@ public class Java_GCAdapter
           if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0)
           {
             UsbConfiguration conf = dev.getConfiguration(0);
-            usb_intf = conf.getInterface(0);
-            usb_con.claimInterface(usb_intf, true);
+            usbInterface = conf.getInterface(0);
+            usbConnection.claimInterface(usbInterface, true);
 
-            Log.info("GCAdapter: Number of endpoints: " + usb_intf.getEndpointCount());
+            Log.info("GCAdapter: Number of endpoints: " + usbInterface.getEndpointCount());
 
-            if (usb_intf.getEndpointCount() == 2)
+            if (usbInterface.getEndpointCount() == 2)
             {
-              for (int i = 0; i < usb_intf.getEndpointCount(); ++i)
-                if (usb_intf.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
-                  usb_in = usb_intf.getEndpoint(i);
+              for (int i = 0; i < usbInterface.getEndpointCount(); ++i)
+                if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
+                  usbIn = usbInterface.getEndpoint(i);
                 else
-                  usb_out = usb_intf.getEndpoint(i);
+                  usbOut = usbInterface.getEndpoint(i);
 
-              InitAdapter();
+              initAdapter();
               return true;
             }
             else
             {
-              usb_con.releaseInterface(usb_intf);
+              usbConnection.releaseInterface(usbInterface);
             }
           }
 
           Toast.makeText(DolphinApplication.getAppContext(), R.string.replug_gc_adapter,
                   Toast.LENGTH_LONG).show();
-          usb_con.close();
+          usbConnection.close();
         }
       }
     }

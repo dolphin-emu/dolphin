@@ -180,14 +180,14 @@ static void ReadThreadFunc()
   bool first_read = true;
   JNIEnv* const env = IDCache::GetEnvForThread();
 
-  const jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
+  const jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controllerPayload", "[B");
   jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
   auto* const java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
 
   // Get function pointers
-  const jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
-  const jmethodID input_func = env->GetStaticMethodID(s_adapter_class, "Input", "()I");
-  const jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
+  const jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "getFd", "()I");
+  const jmethodID input_func = env->GetStaticMethodID(s_adapter_class, "input", "()I");
+  const jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "openAdapter", "()Z");
 
   const bool connected = env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
 
@@ -279,7 +279,7 @@ static void WriteThreadFunc()
   int size = 0;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   JNIEnv* const env = IDCache::GetEnvForThread();
-  const jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
+  const jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "output", "([B)I");
 #endif
 
   while (s_write_adapter_thread_running.IsSet())
@@ -394,7 +394,7 @@ static void ScanThreadFunc()
   JNIEnv* const env = IDCache::GetEnvForThread();
 
   const jmethodID queryadapter_func =
-      env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
+      env->GetStaticMethodID(s_adapter_class, "queryAdapter", "()Z");
 
   while (s_adapter_detect_thread_running.IsSet())
   {
@@ -456,7 +456,7 @@ void Init()
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   JNIEnv* const env = IDCache::GetEnvForThread();
 
-  const jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
+  const jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/GCAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 #endif
 

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Java_WiimoteAdapter
+public class WiimoteAdapter
 {
   final static int MAX_PAYLOAD = 23;
   final static int MAX_WIIMOTES = 4;
@@ -31,14 +31,14 @@ public class Java_WiimoteAdapter
   final static short NINTENDO_WIIMOTE_PRODUCT_ID = 0x0306;
   public static UsbManager manager;
 
-  static UsbDeviceConnection usb_con;
-  static UsbInterface[] usb_intf = new UsbInterface[MAX_WIIMOTES];
-  static UsbEndpoint[] usb_in = new UsbEndpoint[MAX_WIIMOTES];
+  static UsbDeviceConnection usbConnection;
+  static UsbInterface[] usbInterface = new UsbInterface[MAX_WIIMOTES];
+  static UsbEndpoint[] usbIn = new UsbEndpoint[MAX_WIIMOTES];
 
   @Keep
-  public static byte[][] wiimote_payload = new byte[MAX_WIIMOTES][MAX_PAYLOAD];
+  public static byte[][] wiimotePayload = new byte[MAX_WIIMOTES][MAX_PAYLOAD];
 
-  private static void RequestPermission()
+  private static void requestPermission()
   {
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
     for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
@@ -65,7 +65,7 @@ public class Java_WiimoteAdapter
   }
 
   @Keep
-  public static boolean QueryAdapter()
+  public static boolean queryAdapter()
   {
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
     for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
@@ -77,20 +77,20 @@ public class Java_WiimoteAdapter
         if (manager.hasPermission(dev))
           return true;
         else
-          RequestPermission();
+          requestPermission();
       }
     }
     return false;
   }
 
   @Keep
-  public static int Input(int index)
+  public static int input(int index)
   {
-    return usb_con.bulkTransfer(usb_in[index], wiimote_payload[index], MAX_PAYLOAD, TIMEOUT);
+    return usbConnection.bulkTransfer(usbIn[index], wiimotePayload[index], MAX_PAYLOAD, TIMEOUT);
   }
 
   @Keep
-  public static int Output(int index, byte[] buf, int size)
+  public static int output(int index, byte[] buf, int size)
   {
     byte report_number = buf[0];
 
@@ -105,7 +105,7 @@ public class Java_WiimoteAdapter
     final int HID_SET_REPORT = 0x9;
     final int HID_OUTPUT = (2 << 8);
 
-    int write = usb_con.controlTransfer(
+    int write = usbConnection.controlTransfer(
             LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE | LIBUSB_ENDPOINT_OUT,
             HID_SET_REPORT,
             HID_OUTPUT | report_number,
@@ -120,10 +120,10 @@ public class Java_WiimoteAdapter
   }
 
   @Keep
-  public static boolean OpenAdapter()
+  public static boolean openAdapter()
   {
     // If the adapter is already open. Don't attempt to do it again
-    if (usb_con != null && usb_con.getFileDescriptor() != -1)
+    if (usbConnection != null && usbConnection.getFileDescriptor() != -1)
       return true;
 
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
@@ -135,7 +135,7 @@ public class Java_WiimoteAdapter
       {
         if (manager.hasPermission(dev))
         {
-          usb_con = manager.openDevice(dev);
+          usbConnection = manager.openDevice(dev);
           UsbConfiguration conf = dev.getConfiguration(0);
 
           Log.info("Number of configurations: " + dev.getConfigurationCount());
@@ -149,20 +149,20 @@ public class Java_WiimoteAdapter
             for (int i = 0; i < MAX_WIIMOTES; ++i)
             {
               // One interface per Wii Remote
-              usb_intf[i] = dev.getInterface(i);
-              usb_con.claimInterface(usb_intf[i], true);
+              usbInterface[i] = dev.getInterface(i);
+              usbConnection.claimInterface(usbInterface[i], true);
 
               // One endpoint per Wii Remote. Input only
               // Output reports go through the control channel.
-              usb_in[i] = usb_intf[i].getEndpoint(0);
-              Log.info("Interface " + i + " endpoint count:" + usb_intf[i].getEndpointCount());
+              usbIn[i] = usbInterface[i].getEndpoint(0);
+              Log.info("Interface " + i + " endpoint count:" + usbInterface[i].getEndpointCount());
             }
             return true;
           }
           else
           {
             // XXX: Message that the device was found, but it needs to be unplugged and plugged back in?
-            usb_con.close();
+            usbConnection.close();
           }
         }
       }
