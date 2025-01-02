@@ -5,8 +5,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/I2C.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
 namespace Common
@@ -101,9 +101,11 @@ struct IRFull : IRExtended
 };
 static_assert(sizeof(IRFull) == 9, "Wrong size");
 
-class CameraLogic : public I2CSlave
+class CameraLogic : public Common::I2CSlaveAutoIncrementing
 {
 public:
+  CameraLogic() : I2CSlaveAutoIncrementing(I2C_ADDR) {}
+
   // OEM sensor bar distance between LED clusters in meters.
   static constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
 
@@ -132,7 +134,7 @@ public:
   static constexpr int MAX_POINT_SIZE = 15;
 
   void Reset();
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) override;
   static std::array<CameraPoint, NUM_POINTS> GetCameraPoints(const Common::Matrix44& transform,
                                                              Common::Vec2 field_of_view);
   void Update(const std::array<CameraPoint, NUM_POINTS>& camera_points);
@@ -176,8 +178,9 @@ public:
   static const u8 REPORT_DATA_OFFSET = offsetof(Register, camera_data);
 
 private:
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+  bool DeviceEnabled() override;
+  u8 ReadByte(u8 addr) override;
+  void WriteByte(u8 addr, u8 value) override;
 
   Register m_reg_data{};
 

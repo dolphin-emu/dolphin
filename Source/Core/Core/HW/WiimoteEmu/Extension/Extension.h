@@ -10,15 +10,19 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/I2C.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4250)  // C4250 inherits via dominance - intended behavior here
+#endif
 
 namespace WiimoteEmu
 {
 struct DesiredExtensionState;
 
-class Extension : public ControllerEmu::EmulatedController, public I2CSlave
+class Extension : public ControllerEmu::EmulatedController, public virtual Common::I2CSlave
 {
 public:
   explicit Extension(const char* name);
@@ -56,22 +60,38 @@ private:
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+  bool StartWrite(u8 slave_addr) override;
+  bool StartRead(u8 slave_addr) override;
+  void Stop() override;
+  std::optional<u8> ReadByte() override;
+  bool WriteByte(u8 value) override;
 };
 
 // This class provides the encryption and initialization behavior of most extensions.
-class EncryptedExtension : public Extension
+class EncryptedExtension : public Extension, public Common::I2CSlaveAutoIncrementing
 {
 public:
   static constexpr u8 I2C_ADDR = 0x52;
   static constexpr int CONTROLLER_DATA_BYTES = 21;
 
-  using Extension::Extension;
+  explicit EncryptedExtension(const char* name)
+      : Extension(name), I2CSlaveAutoIncrementing(I2C_ADDR)
+  {
+  }
+  EncryptedExtension(const char* config_name, const char* display_name)
+      : Extension(config_name, display_name), I2CSlaveAutoIncrementing(I2C_ADDR)
+  {
+  }
 
   // TODO: This is public for TAS reasons.
   // TODO: TAS handles encryption poorly.
   EncryptionKey ext_key;
+
+  using I2CSlaveAutoIncrementing::ReadByte;
+  using I2CSlaveAutoIncrementing::StartRead;
+  using I2CSlaveAutoIncrementing::StartWrite;
+  using I2CSlaveAutoIncrementing::Stop;
+  using I2CSlaveAutoIncrementing::WriteByte;
 
   static constexpr int CALIBRATION_CHECKSUM_BYTES = 2;
 
@@ -117,8 +137,8 @@ private:
 
   bool ReadDeviceDetectPin() const override;
 
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+  u8 ReadByte(u8 addr) override;
+  void WriteByte(u8 addr, u8 value) override;
 };
 
 class Extension1stParty : public EncryptedExtension

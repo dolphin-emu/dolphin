@@ -218,6 +218,12 @@ class Flags
 {
 public:
   constexpr Flags() = default;
+  constexpr ~Flags() = default;
+  constexpr Flags(const Flags<T>& other) = default;
+  constexpr Flags(Flags<T>&& other) noexcept = default;
+  constexpr Flags<T>& operator=(const Flags<T>& other) = default;
+  constexpr Flags<T>& operator=(Flags<T>&& other) noexcept = default;
+
   constexpr Flags(std::initializer_list<T> bits)
   {
     for (auto bit : bits)
@@ -225,7 +231,13 @@ public:
       m_hex |= static_cast<std::underlying_type_t<T>>(bit);
     }
   }
+  constexpr Flags(std::underlying_type_t<T> hex) : m_hex(hex) {}
+
   FlagBit<T> operator[](T bit) { return FlagBit(m_hex, bit); }
+  constexpr bool operator[](T bit) const
+  {
+    return (m_hex & static_cast<std::underlying_type_t<T>>(bit)) != 0;
+  }
 
   std::underlying_type_t<T> m_hex = 0;
 };

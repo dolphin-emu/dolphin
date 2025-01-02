@@ -189,135 +189,187 @@ ExtensionPort& MotionPlus::GetExtPort()
   return m_extension_port;
 }
 
-int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+bool MotionPlus::StartWrite(u8 slave_addr)
 {
   switch (GetActivationStatus())
   {
   case ActivationStatus::Inactive:
-    if (INACTIVE_DEVICE_ADDR != slave_addr)
-    {
-      // Passthrough to the connected extension. (if any)
-      return m_i2c_bus.BusRead(slave_addr, addr, count, data_out);
-    }
-
-    // Perform a normal read of the M+ register.
-    return RawRead(&m_reg_data, addr, count, data_out);
+    // m_inactive_wrapper is connected to the bus, so it will respond to 0x53 when inactive.
+    return m_i2c_bus.StartWrite(slave_addr);
 
   case ActivationStatus::Active:
     // FYI: Motion plus does not respond to 0x53 when activated.
-    if (ACTIVE_DEVICE_ADDR != slave_addr)
-    {
-      // No i2c passthrough when activated.
-      return 0;
-    }
-
-    // Perform a normal read of the M+ register.
-    return RawRead(&m_reg_data, addr, count, data_out);
+    // No i2c passthrough when activated, so *only* target 0x52.
+    return m_active_wrapper.StartWrite(slave_addr);
 
   default:
   case ActivationStatus::Activating:
   case ActivationStatus::Deactivating:
     // The extension port is completely unresponsive here.
-    return 0;
+    return false;
   }
 }
 
-int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+bool MotionPlus::StartRead(u8 slave_addr)
 {
   switch (GetActivationStatus())
   {
   case ActivationStatus::Inactive:
-  {
-    if (INACTIVE_DEVICE_ADDR != slave_addr)
-    {
-      // Passthrough to the connected extension. (if any)
-      return m_i2c_bus.BusWrite(slave_addr, addr, count, data_in);
-    }
-
-    DEBUG_LOG_FMT(WIIMOTE, "Inactive M+ write {:#x} : {}", addr, ArrayToString(data_in, count));
-
-    auto const result = RawWrite(&m_reg_data, addr, count, data_in);
-
-    if (PASSTHROUGH_MODE_OFFSET == addr)
-    {
-      OnPassthroughModeWrite();
-    }
-
-    return result;
-  }
+    // m_inactive_wrapper is connected to the bus, so it will respond to 0x53 when inactive.
+    return m_i2c_bus.StartRead(slave_addr);
 
   case ActivationStatus::Active:
-  {
     // FYI: Motion plus does not respond to 0x53 when activated.
-    if (ACTIVE_DEVICE_ADDR != slave_addr)
-    {
-      // No i2c passthrough when activated.
-      return 0;
-    }
-
-    DEBUG_LOG_FMT(WIIMOTE, "Active M+ write {:#x} : {}", addr, ArrayToString(data_in, count));
-
-    auto const result = RawWrite(&m_reg_data, addr, count, data_in);
-
-    switch (addr)
-    {
-    case offsetof(Register, init_trigger):
-      // It seems a write of any value here triggers deactivation on a real M+.
-      Deactivate();
-
-      // Passthrough the write to the attached extension.
-      // The M+ deactivation signal is cleverly the same as EXT initialization.
-      m_i2c_bus.BusWrite(slave_addr, addr, count, data_in);
-      break;
-
-    case offsetof(Register, challenge_type):
-      if (ChallengeState::ParameterXReady == m_reg_data.challenge_state)
-      {
-        DEBUG_LOG_FMT(WIIMOTE, "M+ challenge: {:#x}", m_reg_data.challenge_type);
-
-        // After games read parameter x they write here to request y0 or y1.
-        if (0 == m_reg_data.challenge_type)
-        {
-          // Preparing y0 on the real M+ is almost instant (30ms maybe).
-          constexpr int PREPARE_Y0_MS = 30;
-          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
-        }
-        else
-        {
-          // A real M+ takes about 1200ms to prepare y1.
-          // Games seem to not care that we don't take that long.
-          constexpr int PREPARE_Y1_MS = 500;
-          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
-        }
-
-        // Games give the M+ a bit of time to compute the value.
-        // y0 gets about half a second.
-        // y1 gets at about 9.5 seconds.
-        // After this the M+ will fail the "challenge".
-
-        m_reg_data.challenge_state = ChallengeState::PreparingY;
-      }
-      break;
-
-    case offsetof(Register, calibration_trigger):
-      // Games seem to invoke this to start and stop calibration. Exact consequences unknown.
-      DEBUG_LOG_FMT(WIIMOTE, "M+ calibration trigger: {:#x}", m_reg_data.calibration_trigger);
-      break;
-
-    case PASSTHROUGH_MODE_OFFSET:
-      // Games sometimes (not often) write zero here to deactivate the M+.
-      OnPassthroughModeWrite();
-      break;
-    }
-
-    return result;
-  }
+    // No i2c passthrough when activated, so *only* target 0x52.
+    return m_active_wrapper.StartRead(slave_addr);
 
   default:
   case ActivationStatus::Activating:
   case ActivationStatus::Deactivating:
     // The extension port is completely unresponsive here.
-    return 0;
+    return false;
+  }
+}
+
+void MotionPlus::Stop()
+{
+  switch (GetActivationStatus())
+  {
+  case ActivationStatus::Inactive:
+    // m_inactive_wrapper is connected to the bus, so it will respond to 0x53 when inactive.
+    m_i2c_bus.Stop();
+    break;
+
+  case ActivationStatus::Active:
+    // FYI: Motion plus does not respond to 0x53 when activated.
+    // No i2c passthrough when activated, so *only* target 0x52.
+    m_active_wrapper.Stop();
+    break;
+
+  default:
+  case ActivationStatus::Activating:
+  case ActivationStatus::Deactivating:
+    // The extension port is completely unresponsive here.
+    break;
+  }
+}
+
+std::optional<u8> MotionPlus::ReadByte()
+{
+  switch (GetActivationStatus())
+  {
+  case ActivationStatus::Inactive:
+    // m_inactive_wrapper is connected to the bus, so it will respond to 0x53 when inactive.
+    return m_i2c_bus.ReadByte();
+
+  case ActivationStatus::Active:
+    // FYI: Motion plus does not respond to 0x53 when activated.
+    // No i2c passthrough when activated, so *only* target 0x52.
+    return m_active_wrapper.ReadByte();
+
+  default:
+  case ActivationStatus::Activating:
+  case ActivationStatus::Deactivating:
+    // The extension port is completely unresponsive here.
+    return std::nullopt;
+  }
+}
+
+bool MotionPlus::WriteByte(u8 value)
+{
+  switch (GetActivationStatus())
+  {
+  case ActivationStatus::Inactive:
+    // m_inactive_wrapper is connected to the bus, so it will respond to 0x53 when inactive.
+    return m_i2c_bus.WriteByte(value);
+
+  case ActivationStatus::Active:
+    // FYI: Motion plus does not respond to 0x53 when activated.
+    // No i2c passthrough when activated, so *only* target 0x52.
+    return m_active_wrapper.WriteByte(value);
+
+  default:
+  case ActivationStatus::Activating:
+  case ActivationStatus::Deactivating:
+    // The extension port is completely unresponsive here.
+    return false;
+  }
+}
+
+u8 MotionPlus::RegisterWrapper::ReadByte(u8 addr)
+{
+  return RawRead(&m_owner->m_reg_data, addr);
+}
+
+void MotionPlus::InactiveRegisterWrapper::WriteByte(u8 addr, u8 value)
+{
+  DEBUG_LOG_FMT(WIIMOTE, "Inactive M+ write {:02x} = {:02x}", addr, value);
+
+  RawWrite(&m_owner->m_reg_data, addr, value);
+
+  if (PASSTHROUGH_MODE_OFFSET == addr)
+  {
+    m_owner->OnPassthroughModeWrite();
+  }
+}
+
+void MotionPlus::ActiveRegisterWrapper::WriteByte(u8 addr, u8 value)
+{
+  DEBUG_LOG_FMT(WIIMOTE, "Inactive M+ write {:02x} = {:02x}", addr, value);
+
+  RawWrite(&m_owner->m_reg_data, addr, value);
+
+  switch (addr)
+  {
+  case offsetof(Register, init_trigger):
+    // It seems a write of any value here triggers deactivation on a real M+.
+    m_owner->Deactivate();
+
+    // Passthrough the write to the attached extension.
+    // The M+ deactivation signal is cleverly the same as EXT initialization.
+    // TODO
+    // m_i2c_bus.BusWrite(slave_addr, addr, count, data_in);
+    break;
+
+  case offsetof(Register, challenge_type):
+    if (ChallengeState::ParameterXReady == m_owner->m_reg_data.challenge_state)
+    {
+      DEBUG_LOG_FMT(WIIMOTE, "M+ challenge: {:#x}", m_owner->m_reg_data.challenge_type);
+
+      // After games read parameter x they write here to request y0 or y1.
+      if (0 == m_owner->m_reg_data.challenge_type)
+      {
+        // Preparing y0 on the real M+ is almost instant (30ms maybe).
+        constexpr int PREPARE_Y0_MS = 30;
+        m_owner->m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
+      }
+      else
+      {
+        // A real M+ takes about 1200ms to prepare y1.
+        // Games seem to not care that we don't take that long.
+        constexpr int PREPARE_Y1_MS = 500;
+        m_owner->m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
+      }
+
+      // Games give the M+ a bit of time to compute the value.
+      // y0 gets about half a second.
+      // y1 gets at about 9.5 seconds.
+      // After this the M+ will fail the "challenge".
+
+      m_owner->m_reg_data.challenge_state = ChallengeState::PreparingY;
+    }
+    break;
+
+  case offsetof(Register, calibration_trigger):
+    // Games seem to invoke this to start and stop calibration. Exact consequences unknown.
+    DEBUG_LOG_FMT(WIIMOTE, "M+ calibration trigger: {:#x}",
+                  m_owner->m_reg_data.calibration_trigger);
+    break;
+
+  case PASSTHROUGH_MODE_OFFSET:
+    // Games sometimes (not often) write zero here to deactivate the M+.
+    m_owner->OnPassthroughModeWrite();
+    break;
   }
 }
 

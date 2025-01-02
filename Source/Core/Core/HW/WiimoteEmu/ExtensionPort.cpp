@@ -7,7 +7,7 @@
 
 namespace WiimoteEmu
 {
-ExtensionPort::ExtensionPort(I2CBus* i2c_bus) : m_i2c_bus(*i2c_bus)
+ExtensionPort::ExtensionPort(Common::I2CBusBase* i2c_bus) : m_i2c_bus(*i2c_bus)
 {
 }
 
