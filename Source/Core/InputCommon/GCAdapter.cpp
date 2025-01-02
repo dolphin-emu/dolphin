@@ -144,9 +144,9 @@ static std::mutex s_write_mutex;
 static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
 
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 static Common::Event s_hotplug_event;
 
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 static std::function<void(void)> s_detect_callback;
 
 #if defined(__FreeBSD__) && __FreeBSD__ >= 11
@@ -344,6 +344,23 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
   return 0;
 }
 #endif
+#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+extern "C" {
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_utils_GCAdapter_onAdapterConnected(JNIEnv* env, jclass)
+{
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "GC adapter connected");
+  if (!s_detected)
+    s_hotplug_event.Set();
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_utils_GCAdapter_onAdapterDisconnected(JNIEnv* env, jclass)
+{
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "GC adapter disconnected");
+}
+}
 #endif
 
 static void ScanThreadFunc()
@@ -393,15 +410,22 @@ static void ScanThreadFunc()
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   JNIEnv* const env = IDCache::GetEnvForThread();
 
-  const jmethodID queryadapter_func =
-      env->GetStaticMethodID(s_adapter_class, "queryAdapter", "()Z");
+  const jmethodID enable_hotplug_callback_func =
+      env->GetStaticMethodID(s_adapter_class, "enableHotplugCallback", "()V");
+  env->CallStaticVoidMethod(s_adapter_class, enable_hotplug_callback_func);
+
+  const jmethodID is_usb_device_available_func =
+      env->GetStaticMethodID(s_adapter_class, "isUsbDeviceAvailable", "()Z");
 
   while (s_adapter_detect_thread_running.IsSet())
   {
     if (!s_detected && UseAdapter() &&
-        env->CallStaticBooleanMethod(s_adapter_class, queryadapter_func))
+        env->CallStaticBooleanMethod(s_adapter_class, is_usb_device_available_func))
+    {
       Setup();
-    Common::SleepCurrentThread(1000);
+    }
+
+    s_hotplug_event.Wait();
   }
 #endif
 
@@ -484,9 +508,7 @@ void StopScanThread()
 {
   if (s_adapter_detect_thread_running.TestAndClear())
   {
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
     s_hotplug_event.Set();
-#endif
     s_adapter_detect_thread.join();
   }
 }
@@ -691,6 +713,11 @@ void Shutdown()
   if (s_libusb_context && s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
     libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
+#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+  JNIEnv* const env = IDCache::GetEnvForThread();
+  const jmethodID disable_hotplug_callback_func =
+      env->GetStaticMethodID(s_adapter_class, "disableHotplugCallback", "()V");
+  env->CallStaticVoidMethod(s_adapter_class, disable_hotplug_callback_func);
 #endif
   Reset(CalledFromReadThread::No);
 
