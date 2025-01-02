@@ -50,6 +50,8 @@ public:
 private:
   int m_device_id;
   int m_device_sock;
+
+  void AddKnownAddresses(std::vector<Wiimote*>&);
 };
 }  // namespace WiimoteReal
 
