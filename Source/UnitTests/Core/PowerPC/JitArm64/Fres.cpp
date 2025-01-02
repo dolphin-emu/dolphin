@@ -40,6 +40,7 @@ public:
     MOV(ARM64Reg::X1, ARM64Reg::X0);
     m_float_emit.FMOV(ARM64Reg::D0, ARM64Reg::X0);
     m_float_emit.FRECPE(ARM64Reg::D0, ARM64Reg::D0);
+    m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
     BL(raw_fres);
     MOV(ARM64Reg::X30, ARM64Reg::X15);
     MOV(PPC_REG, ARM64Reg::X14);
@@ -58,11 +59,14 @@ TEST(JitArm64, Fres)
 
   TestFres test(Core::System::GetInstance());
 
+  // FPSCR with NI set
+  const UReg_FPSCR fpscr = UReg_FPSCR(0x00000004);
+
   for (const u64 ivalue : double_test_values)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
+    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(fpscr, dvalue));
     const u64 actual = test.fres(ivalue);
 
     if (expected != actual)
