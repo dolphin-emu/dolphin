@@ -433,19 +433,33 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
     }
   }
 
-  // Write the true depth value. If the game uses depth textures, then the pixel shader will
-  // override it with the correct values if not then early z culling will improve speed.
-  // There are two different ways to do this, when the depth range is oversized, we process
-  // the depth range in the vertex shader, if not we let the host driver handle it.
+  // Write the inverted depth value to map the -1..0 clip-space range to expected the 0..1 range.
+  // If the game uses depth textures, then the pixel shader will override it with the correct values
+  // if not then early z culling will improve speed.
   //
-  // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
-  // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
-  // We have to handle the depth range in the vertex shader instead of after the perspective
-  // divide, because some games will use a depth range larger than what is allowed by the
-  // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
-  // games effectively add a depth bias to the values written to the depth buffer.
+  // The depth range can also be oversized beyond the range supported by the depth buffer. The final
+  // depth value will still be clamped to the 0..2^24-1 range, so these games effectively add a
+  // depth bias to the values written to the depth buffer.
+  //
+  // If an unrestricted depth range is supported then we can let host driver handle the oversized
+  // depth range. This can only work if the host driver also supports a feature to allow us to
+  // clamp any depth values that are beyond the supported 0..2^24-1 of the depth buffer.
+  //
+  // If only a depth range of 0..1 is supported then we process the depth equation in the vertex
+  // shader and handle the depth clamp by setting the depth range to 0..(2^24-1)/(2^24).
+  //
+  // If the depth range is not oversized or when we let the host driver handle the oversized depth
+  // range then the constants in this equation will be set so that z = -z.
   out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
             "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+
+  if (host_config.backend_unrestricted_depth_range)
+  {
+    // If we don't use normalization then we can add a small depth bias to influence rounding
+    // behaviour since the console expects the depth value to be truncated before being added
+    // to the far value of the depth range.
+    out.Write("o.pos.z += (0.5 / 16777216.0);\n");
+  }
 
   if (!host_config.backend_clip_control)
   {

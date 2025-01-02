@@ -90,9 +90,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       depth = 1.0f - depth;
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      depth = static_cast<u32>(depth);
+    else
+      depth = static_cast<u32>(depth * 16777216.0f);
 
     // Convert to 24bit depth
-    u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+    u32 z24depth = std::clamp<u32>(depth, 0, 0xFFFFFF);
 
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
     {
@@ -132,7 +136,9 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     {
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
-      float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
+      float depth = float(point.data & 0xFFFFFF);
+      if (!g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+        depth = depth / 16777216.0f;
       if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
         depth = 1.0f - depth;
 
