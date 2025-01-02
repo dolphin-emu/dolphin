@@ -20,6 +20,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -107,16 +108,48 @@ void AdvancedPane::CreateLayout()
   m_cpu_clock_override_slider_label = new QLabel();
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider_label);
 
-  auto* cpu_clock_override_description =
-      new QLabel(tr("Adjusts the emulated CPU's clock rate.\n\n"
-                    "Higher values may make variable-framerate games run at a higher framerate, "
-                    "at the expense of performance. Lower values may activate a game's "
-                    "internal frameskip, potentially improving performance.\n\n"
-                    "WARNING: Changing this from the default (100%) can and will "
-                    "break games and cause glitches. Do so at your own risk. "
-                    "Please do not report bugs that occur with a non-default clock."));
+  auto* cpu_clock_override_description = new QLabel(tr(
+      "Adjusts the emulated CPU's clock rate.\n\n"
+      "Higher values can make games run at a higher framerate if they lagged on original hardware, "
+      "at the expense of performance. Lower values improve performance by causing lag, "
+      "but will slow down the game (without affecting audio) if its physics ignore the "
+      "framerate.\n\n"
+      "WARNING: Changing this from the default (100%) can and will "
+      "break games and cause glitches. Do so at your own risk. "
+      "Please do not report bugs that occur with a non-default clock."));
   cpu_clock_override_description->setWordWrap(true);
   clock_override_layout->addWidget(cpu_clock_override_description);
+
+  auto* vi_clock_override = new QGroupBox(tr("VBI Clock Override"));
+  auto* vi_clock_override_layout = new QVBoxLayout();
+  vi_clock_override->setLayout(vi_clock_override_layout);
+  main_layout->addWidget(vi_clock_override);
+
+  m_vi_clock_override_checkbox = new QCheckBox(tr("Enable VBI Overclocking"));
+  vi_clock_override_layout->addWidget(m_vi_clock_override_checkbox);
+
+  auto* vi_clock_override_slider_layout = new QHBoxLayout();
+  vi_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
+  vi_clock_override_layout->addLayout(vi_clock_override_slider_layout);
+
+  m_vi_clock_override_slider = new QSlider(Qt::Horizontal);
+  m_vi_clock_override_slider->setRange(1, 500);
+  vi_clock_override_slider_layout->addWidget(m_vi_clock_override_slider);
+
+  m_vi_clock_override_slider_label = new QLabel();
+  vi_clock_override_slider_layout->addWidget(m_vi_clock_override_slider_label);
+
+  auto* vi_clock_override_description = new QLabel(
+      tr("Adjusts the emulated VBI clock rate. Also adjusts the emulated CPU's clock rate, to "
+         "keep it relatively the same.\n\n"
+         "Makes the game run at a different framerate without impacting audio, making the "
+         "emulation less demanding when lowered, or improving smoothness when increased. Because "
+         "many games' physics ignore the framerate, this may affect game speed.\n\n"
+         "WARNING: Changing this from the default (100%) can and will "
+         "break games and cause glitches. Do so at your own risk. "
+         "Please do not report bugs that occur with a non-default clock."));
+  vi_clock_override_description->setWordWrap(true);
+  vi_clock_override_layout->addWidget(vi_clock_override_description);
 
   auto* ram_override = new QGroupBox(tr("Memory Override"));
   auto* ram_override_layout = new QVBoxLayout();
@@ -203,6 +236,19 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
+  m_vi_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE));
+  connect(m_vi_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
+    Config::SetBaseOrCurrent(Config::MAIN_VI_OVERCLOCK_ENABLE, enable_clock_override);
+    Update();
+  });
+
+  connect(m_vi_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
+    const float factor = m_vi_clock_override_slider->value() / 100.f;
+    Config::SetBaseOrCurrent(Config::MAIN_VI_OVERCLOCK, factor);
+    Update();
+  });
+
+  m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
   connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
     Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
     Update();
@@ -236,6 +282,7 @@ void AdvancedPane::Update()
 {
   const bool is_uninitialized = Core::IsUninitialized(Core::System::GetInstance());
   const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
+  const bool enable_vi_clock_override_widgets = Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   const bool enable_custom_rtc_widgets =
       Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && is_uninitialized;
@@ -276,6 +323,31 @@ void AdvancedPane::Update()
     int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f));
     int clock = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * core_clock));
     return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
+  }());
+
+  QFont vi_bf = font();
+  vi_bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_VI_OVERCLOCK_ENABLE) !=
+                Config::LayerType::Base);
+  m_vi_clock_override_checkbox->setFont(vi_bf);
+  m_vi_clock_override_checkbox->setChecked(enable_vi_clock_override_widgets);
+
+  m_vi_clock_override_slider->setEnabled(enable_vi_clock_override_widgets);
+  m_vi_clock_override_slider_label->setEnabled(enable_vi_clock_override_widgets);
+
+  {
+    const QSignalBlocker blocker(m_vi_clock_override_slider);
+    m_vi_clock_override_slider->setValue(
+        static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f)));
+  }
+
+  m_vi_clock_override_slider_label->setText([] {
+    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f));
+    float core_vps =
+        static_cast<float>(Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate());
+    if (core_vps == 0.0f)
+      core_vps = 59.94f;
+    float vps = static_cast<float>(core_vps * Config::Get(Config::MAIN_VI_OVERCLOCK));
+    return tr("%1% (%2 VPS)").arg(QString::number(percent), QString::number(vps, 'f', 2));
   }());
 
   m_ram_override_checkbox->setEnabled(is_uninitialized);
