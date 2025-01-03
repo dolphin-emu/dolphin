@@ -37,8 +37,6 @@ void CheatCodeEditor::SetARCode(ActionReplay::ARCode* code)
   for (ActionReplay::AREntry& e : code->ops)
     m_code_edit->append(QString::fromStdString(ActionReplay::SerializeLine(e)));
 
-  m_creator_label->setHidden(true);
-  m_creator_edit->setHidden(true);
   m_notes_label->setHidden(true);
   m_notes_edit->setHidden(true);
 
@@ -49,7 +47,6 @@ void CheatCodeEditor::SetARCode(ActionReplay::ARCode* code)
 void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
 {
   m_name_edit->setText(QString::fromStdString(code->name));
-  m_creator_edit->setText(QString::fromStdString(code->creator));
 
   m_code_edit->clear();
 
@@ -62,8 +59,6 @@ void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
 
   m_notes_edit->setText(notes_string);
 
-  m_creator_label->setHidden(false);
-  m_creator_edit->setHidden(false);
   m_notes_label->setHidden(false);
   m_notes_edit->setHidden(false);
 
@@ -74,25 +69,21 @@ void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
 void CheatCodeEditor::CreateWidgets()
 {
   m_name_edit = new QLineEdit;
-  m_creator_edit = new QLineEdit;
   m_notes_edit = new QTextEdit;
   m_code_edit = new QTextEdit;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Save);
 
-  m_creator_label = new QLabel(tr("Creator:"));
   m_notes_label = new QLabel(tr("Notes:"));
 
   QGridLayout* grid_layout = new QGridLayout;
 
   grid_layout->addWidget(new QLabel(tr("Name:")), 0, 0);
   grid_layout->addWidget(m_name_edit, 0, 1);
-  grid_layout->addWidget(m_creator_label, 1, 0);
-  grid_layout->addWidget(m_creator_edit, 1, 1);
-  grid_layout->addWidget(m_notes_label, 2, 0);
-  grid_layout->addWidget(m_notes_edit, 2, 1);
-  grid_layout->addWidget(new QLabel(tr("Code:")), 3, 0);
-  grid_layout->addWidget(m_code_edit, 3, 1);
-  grid_layout->addWidget(m_button_box, 4, 1);
+  grid_layout->addWidget(m_notes_label, 1, 0);
+  grid_layout->addWidget(m_notes_edit, 1, 1);
+  grid_layout->addWidget(new QLabel(tr("Code:")), 2, 0);
+  grid_layout->addWidget(m_code_edit, 2, 1);
+  grid_layout->addWidget(m_button_box, 3, 1);
 
   QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
@@ -252,7 +243,6 @@ bool CheatCodeEditor::AcceptGecko()
   }
 
   m_gecko_code->name = name.toStdString();
-  m_gecko_code->creator = m_creator_edit->text().toStdString();
   m_gecko_code->codes = std::move(entries);
   m_gecko_code->notes = SplitString(m_notes_edit->toPlainText().toStdString(), '\n');
   m_gecko_code->user_defined = true;
