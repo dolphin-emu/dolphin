@@ -89,7 +89,7 @@ SConfig::~SConfig()
 
 namespace Config
 {
-  const Info<int> MAIN_CODE_HANDLER{{System::Main, "CodeHandler", "CodeHandlerValue"}, 0};
+  const Info<int> MAIN_CODE_HANDLER{{System::Main, "CodeHandler", "CodeHandlerValue"}, 1};
 }
 
 void SConfig::SaveSettings()
