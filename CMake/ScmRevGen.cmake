@@ -65,6 +65,5 @@ endfunction()
 configure_source_file("Source/Core/Common/scmrev.h")
 
 if(APPLE)
-  configure_source_file("Source/Core/DolphinQt/Info.plist")
-  configure_source_file("Source/Core/MacUpdater/Info.plist")
+  configure_source_file("Source/Core/VersionInfo.plist")
 endif()
