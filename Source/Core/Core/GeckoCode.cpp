@@ -131,7 +131,7 @@ bool IsGeckoCodeHandlerEnabled()
 bool IsGeckoCodeHandlerMPN()
 {
   int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER);
-  return code_handler_value == 2;
+  return code_handler_value == 1;
 }
 
 // Requires s_active_codes_lock
