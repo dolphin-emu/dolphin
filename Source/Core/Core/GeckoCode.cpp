@@ -117,8 +117,6 @@ const char* GetGeckoCodeHandlerPath()
     return GECKO_CODE_HANDLER;  // Dolphin (Stock)
   case 1:
     return GECKO_CODE_HANDLER_MPN;  // MPN (Extended)
-  case 2:
-    return GECKO_CODE_HANDLER_MPN_SUPER;  // MPN (Super Extended)
   default:
     return GECKO_CODE_HANDLER;  // Fallback
   }
@@ -127,10 +125,10 @@ const char* GetGeckoCodeHandlerPath()
 bool IsGeckoCodeHandlerEnabled()
 {
   int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER);
-  return code_handler_value == 1 || code_handler_value == 2;
+  return code_handler_value == 1;
 }
 
-bool IsGeckoCodeHandlerSUPER()
+bool IsGeckoCodeHandlerMPN()
 {
   int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER);
   return code_handler_value == 2;
@@ -176,15 +174,15 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   }
 
   const bool is_mpn_handler_and_game_id_rm8e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "RM8E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "RM8E01");
   const bool is_mpn_handler_and_game_id_gp7e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP7E01");
   const bool is_mpn_handler_and_game_id_gp6e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP6E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP6E01");
   const bool is_mpn_handler_and_game_id_gp5e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP5E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP5E01");
   const bool is_mpn_handler_and_game_id_gmpe01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GMPE01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GMPE01");
 
   u32 codelist_base_address =
       is_mpn_handler_and_game_id_rm8e01 ? INSTALLER_BASE_ADDRESS_MP8 :

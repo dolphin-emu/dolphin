@@ -86,7 +86,6 @@ const char* GetGeckoCodeHandlerPath()
   {
     case 0: return GECKO_CODE_HANDLER; // Dolphin (Stock)
     case 1: return GECKO_CODE_HANDLER_MPN; // MPN (Extended)
-    case 2: return GECKO_CODE_HANDLER_MPN_SUPER; // MPN (Super Extended)
     default: return GECKO_CODE_HANDLER; // Fallback
   }
 }
@@ -94,13 +93,13 @@ const char* GetGeckoCodeHandlerPath()
 bool IsGeckoCodeHandlerEnabled()
 {
   int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
-  return code_handler_value == 1 || code_handler_value == 2; // Return true for 1 and 2
+  return code_handler_value == 1; // Return true for 1 and 2
 }
 
-bool IsGeckoCodeHandlerSUPER()
+bool IsGeckoCodeHandlerMPN()
 {
   int code_handler_value = Config::Get(Config::MAIN_CODE_HANDLER); // Get the integer value
-  return code_handler_value == 2; // Return true for 1 and 2
+  return code_handler_value == 1;
 }
 
 void PatchFixedFunctions(Core::System& system)
@@ -126,11 +125,11 @@ void PatchFixedFunctions(Core::System& system)
   // this, and it doesn't clear the icache properly.
 
   const bool is_mpn_handler_and_game_id_gp7e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP7E01");
   const bool is_mpn_handler_and_game_id_gp6e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP6E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP6E01");
   const bool is_mpn_handler_and_game_id_gp5e01 =
-      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP5E01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP5E01");
 
   u32 codelist_hook = is_mpn_handler_and_game_id_gp7e01 ?
                           Gecko::ENTRY_POINT_MP7 :

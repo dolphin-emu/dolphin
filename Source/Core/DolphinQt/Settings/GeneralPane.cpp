@@ -225,8 +225,7 @@ void GeneralPane::CreateCheats()
   m_combobox_codehandler = new QComboBox();
   
   m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(0));
-  m_combobox_codehandler->addItem(tr("MPN (Extended)"), QVariant(1));
-  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
+  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(1));
 
   code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
   cheats_group_layout->addLayout(code_handler_layout);
@@ -237,8 +236,7 @@ void GeneralPane::CreateCheats()
 
   // Add a label to define the different code handlers
   auto* code_handler_info_label = new QLabel(tr("<b>Dolphin (Stock)</b>: Compatibility with legacy and non Dolphin-MPN builds <br>(around 3,200 bytes / 400 lines of code.)<br><br>"
-    "<b>MPN (Extended)</b>: Improved code handler that has more space with some removed irrevalent functions<br>(around 3,200 bytes / 440 lines of code.)<br><br>"
-    "<b>MPN (Super Extended)</b>: Enhanced code handler that uses hacks to give certain games<br>currently Mario Party 4, 5, 6 and 8 way more code room<br>(around 30,000 bytes / 3,750 lines of codes)."));
+    "<b>MPN (Extended)</b>: Enhanced code handler that uses hacks to give certain games<br>currently Mario Party 4, 5, 6, 7, and 8 way more code room<br>(around 30,000 bytes / 3,750 lines of codes)."));
   
   code_handler_info_label->setWordWrap(true);
   cheats_group_layout->addWidget(code_handler_info_label);
