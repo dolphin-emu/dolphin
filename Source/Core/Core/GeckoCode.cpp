@@ -177,8 +177,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   const bool is_mpn_handler_and_game_id_rm8e01 =
       IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "RM8E01");
-  //const bool is_mpn_handler_and_game_id_gp7e01 =
-  //    IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
+  const bool is_mpn_handler_and_game_id_gp7e01 =
+      IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP7E01");
   const bool is_mpn_handler_and_game_id_gp6e01 =
       IsGeckoCodeHandlerSUPER() && (SConfig::GetInstance().GetGameID() == "GP6E01");
   const bool is_mpn_handler_and_game_id_gp5e01 =
@@ -188,7 +188,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   u32 codelist_base_address =
       is_mpn_handler_and_game_id_rm8e01 ? INSTALLER_BASE_ADDRESS_MP8 :
-      //is_mpn_handler_and_game_id_gp7e01 ? INSTALLER_BASE_ADDRESS_MP7 :
+      is_mpn_handler_and_game_id_gp7e01 ? INSTALLER_BASE_ADDRESS_MP7 :
       is_mpn_handler_and_game_id_gp6e01 ? INSTALLER_BASE_ADDRESS_MP6 :
       is_mpn_handler_and_game_id_gp5e01 ? INSTALLER_BASE_ADDRESS_MP5 :
       is_mpn_handler_and_game_id_gmpe01 ? INSTALLER_BASE_ADDRESS_MP4 :
@@ -196,13 +196,13 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
                                               CODE_SIZE;
 
   u32 codelist_end_address = is_mpn_handler_and_game_id_rm8e01 ? INSTALLER_END_ADDRESS_MP8 :
-                             // is_mpn_handler_and_game_id_gp7e01 ? INSTALLER_END_ADDRESS_MP7 :
+                             is_mpn_handler_and_game_id_gp7e01 ? INSTALLER_END_ADDRESS_MP7 :
                              is_mpn_handler_and_game_id_gp6e01 ? INSTALLER_END_ADDRESS_MP6 :
                              is_mpn_handler_and_game_id_gp5e01 ? INSTALLER_END_ADDRESS_MP5 :
                              is_mpn_handler_and_game_id_gmpe01 ? INSTALLER_END_ADDRESS_MP4 :
                                                                  INSTALLER_END_ADDRESS;
 
-  if (is_mpn_handler_and_game_id_rm8e01 || // is_mpn_handler_and_game_id_gp7e01 ||
+  if (is_mpn_handler_and_game_id_rm8e01 || is_mpn_handler_and_game_id_gp7e01 ||
       is_mpn_handler_and_game_id_gp6e01 || is_mpn_handler_and_game_id_gp5e01 ||
       is_mpn_handler_and_game_id_gmpe01)
   {
