@@ -33,7 +33,8 @@ const char* GetGeckoCodeHandlerPath()
   {
     case 0: return GECKO_CODE_HANDLER; // Dolphin (Stock)
     case 1: return GECKO_CODE_HANDLER_MPN; // MPN (Extended)
-    default: return GECKO_CODE_HANDLER; // Fallback
+    default:
+      return GECKO_CODE_HANDLER_MPN;  // Fallback
   }
 }
 

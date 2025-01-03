@@ -318,7 +318,7 @@ void SetUserDirectory(std::string custom_path)
   wil::unique_hkey hkey;
   DWORD local = 0;
   std::unique_ptr<TCHAR[]> configPath;
-  if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE,
+  if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin MPN"), 0, KEY_QUERY_VALUE,
                    hkey.put()) == ERROR_SUCCESS)
   {
     DWORD size = sizeof(local);
@@ -372,7 +372,7 @@ void SetUserDirectory(std::string custom_path)
     // they will use this as the User directory instead.
     // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
     std::wstring wstr_path = UTF8ToWString(user_path);
-    RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
+    RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin MPN"), TEXT("UserConfigPath"),
                     REG_SZ, wstr_path.c_str(),
                     static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));
   }

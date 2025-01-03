@@ -118,7 +118,7 @@ const char* GetGeckoCodeHandlerPath()
   case 1:
     return GECKO_CODE_HANDLER_MPN;  // MPN (Extended)
   default:
-    return GECKO_CODE_HANDLER;  // Fallback
+    return GECKO_CODE_HANDLER_MPN;  // Fallback
   }
 }
 
