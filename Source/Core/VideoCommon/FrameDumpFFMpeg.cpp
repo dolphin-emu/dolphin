@@ -217,7 +217,7 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
   }
 
-  const std::string& codec_name = g_Config.bUseFFV1 ? "ffv1" : g_Config.sDumpCodec;
+  const std::string& codec_name = g_Config.bUseLossless ? "utvideo" : g_Config.sDumpCodec;
 
   AVCodecID codec_id = output_format->video_codec;
 
