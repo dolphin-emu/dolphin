@@ -225,13 +225,13 @@ void GeneralPane::CreateCheats()
   m_combobox_codehandler = new QComboBox();
   
   m_combobox_codehandler->addItem(tr("Dolphin (Stock)"), QVariant(0));
-  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(1));
+  m_combobox_codehandler->addItem(tr("MPN (Super Extended)"), QVariant(2));
 
   code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
   cheats_group_layout->addLayout(code_handler_layout);
 
   // Add a label to inform users about NetPlay settings
-  auto* netplay_info_label = new QLabel(tr("<b>Note:</b> All players must have matching code handlers when participating in a NetPlay session."));
+  auto* netplay_info_label = new QLabel(tr("<b>Note:</b> Codehandler needs to be Extended if code limit is reached."));
   cheats_group_layout->addWidget(netplay_info_label);
 
   // Add a label to define the different code handlers
