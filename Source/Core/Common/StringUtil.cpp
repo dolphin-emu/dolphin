@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iterator>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -380,16 +381,12 @@ std::string PathToFileName(std::string_view path)
   return file_name + extension;
 }
 
-std::vector<std::string> SplitString(const std::string& str, const char delim)
+std::vector<std::string> SplitString(std::string_view sv, const char delim)
 {
-  std::istringstream iss(str);
-  std::vector<std::string> output(1);
+  if (sv.empty())
+    return {std::string()};
 
-  while (std::getline(iss, *output.rbegin(), delim))
-    output.push_back("");
-
-  output.pop_back();
-  return output;
+  return std::ranges::to<std::vector<std::string>>(std::views::split(sv, delim));
 }
 
 std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest)
