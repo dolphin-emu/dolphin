@@ -398,7 +398,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     // Split the current name string into separate parts, and get the object name
     // if it exists.
     const std::vector<std::string> parts = SplitString(name, '\t');
-    const std::string name_string(StripWhitespace(parts[0]));
+    const std::string name_string(StripWhitespace(parts.size() > 0 ? parts[0] : name));
     const std::string object_filename_string =
         parts.size() > 1 ? std::string(StripWhitespace(parts[1])) : "";
 
