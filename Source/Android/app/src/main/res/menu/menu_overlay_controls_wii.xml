@@ -30,6 +30,10 @@
         android:title="@string/emulation_choose_controller"/>
 
     <item
+        android:id="@+id/menu_emulation_haptics"
+        android:title="@string/emulation_haptics"/>
+
+    <item
         android:id="@+id/menu_emulation_ir_group"
         android:title="@string/emulation_ir_group">
         <menu>

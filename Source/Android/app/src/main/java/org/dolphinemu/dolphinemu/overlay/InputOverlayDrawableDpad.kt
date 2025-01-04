@@ -45,6 +45,7 @@ class InputOverlayDrawableDpad(
     private val defaultStateBitmap: BitmapDrawable
     private val pressedOneDirectionStateBitmap: BitmapDrawable
     private val pressedTwoDirectionsStateBitmap: BitmapDrawable
+    private val pressedArray = BooleanArray(4)
     private var pressState = STATE_DEFAULT
 
     init {
@@ -171,9 +172,31 @@ class InputOverlayDrawableDpad(
     val bounds: Rect
         get() = defaultStateBitmap.bounds
 
-    fun setState(pressState: Int) {
-        this.pressState = pressState
+    fun setPressed(up: Boolean, down: Boolean, left: Boolean, right: Boolean) {
+        pressedArray[0] = up
+        pressedArray[1] = down
+        pressedArray[2] = left
+        pressedArray[3] = right
+        pressState = when {
+            up -> when {
+                left -> STATE_PRESSED_UP_LEFT
+                right -> STATE_PRESSED_UP_RIGHT
+                else -> STATE_PRESSED_UP
+            }
+
+            down -> when {
+                left -> STATE_PRESSED_DOWN_LEFT
+                right -> STATE_PRESSED_DOWN_RIGHT
+                else -> STATE_PRESSED_DOWN
+            }
+
+            left -> STATE_PRESSED_LEFT
+            right -> STATE_PRESSED_RIGHT
+            else -> STATE_DEFAULT
+        }
     }
+
+    fun isPressed(index: Int): Boolean = pressedArray.getOrNull(index) ?: false
 
     companion object {
         const val STATE_DEFAULT = 0
