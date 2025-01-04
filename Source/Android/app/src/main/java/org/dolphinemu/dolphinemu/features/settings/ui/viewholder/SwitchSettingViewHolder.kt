@@ -10,6 +10,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
+import org.dolphinemu.dolphinemu.utils.HapticListener
 import java.io.File
 import java.util.*
 
@@ -49,7 +50,8 @@ class SwitchSettingViewHolder(
             binding.settingSwitch.isEnabled = iplExists || !setting.isChecked
         }
 
-        binding.settingSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+        binding.settingSwitch.setOnCheckedChangeListener(
+            HapticListener.wrapOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             // If a user has skip IPL disabled previously and deleted their IPL file, we need to allow
             // them to skip it or else their game will appear broken. However, once this is enabled, we
             // need to disable the option again to prevent the same issue from occurring.
@@ -60,7 +62,7 @@ class SwitchSettingViewHolder(
             adapter.onBooleanClick(setting, binding.settingSwitch.isChecked)
 
             setStyle(binding.textSettingName, setting)
-        }
+        })
         setStyle(binding.textSettingName, setting)
     }
 

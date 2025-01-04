@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import org.dolphinemu.dolphinemu.databinding.ListItemCheatBinding
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel
+import org.dolphinemu.dolphinemu.utils.HapticListener
 
 class CheatViewHolder(private val binding: ListItemCheatBinding) :
     CheatItemViewHolder(binding.getRoot()),
@@ -25,7 +26,7 @@ class CheatViewHolder(private val binding: ListItemCheatBinding) :
         binding.textName.text = cheat.getName()
         binding.cheatSwitch.isChecked = cheat.getEnabled()
         binding.root.setOnClickListener(this)
-        binding.cheatSwitch.setOnCheckedChangeListener(this)
+        binding.cheatSwitch.setOnCheckedChangeListener(HapticListener.wrapOnCheckedChangeListener(this))
     }
 
     override fun onClick(root: View) {
