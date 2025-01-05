@@ -41,7 +41,7 @@ protected:
     m_fs.reset();
     File::DeleteDirRecursively(m_profile_path);
   }
-  void SetUp()
+  void SetUp() override
   {
     if (UserDirectoryCreationFailed())
     {

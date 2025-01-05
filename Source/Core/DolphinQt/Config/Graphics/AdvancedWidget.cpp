@@ -36,7 +36,7 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
   connect(m_manual_texture_sampling, &QCheckBox::toggled,
-          [this, parent] { emit parent->UseFastTextureSamplingChanged(); });
+          [parent] { emit parent->UseFastTextureSamplingChanged(); });
 
   OnBackendChanged();
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
@@ -262,7 +262,7 @@ void AdvancedWidget::ConnectWidgets()
     m_dump_base_textures->setEnabled(checked);
   });
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
-          [this](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
+          [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
 #if defined(HAVE_FFMPEG)
   connect(m_dump_use_lossless, &QCheckBox::toggled, this,
           [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
