@@ -575,7 +575,6 @@ static void ReadRegister()
       break;
     default:
       return SendReply("E01");
-      break;
     }
   }
 
@@ -799,7 +798,6 @@ static void WriteRegister()
       break;
     default:
       return SendReply("E01");
-      break;
     }
   }
 
