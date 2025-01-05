@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/EXI/EXI_DeviceModem.h"
+#include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -102,7 +103,8 @@ void IEXIDevice::TransferByte(u8& byte)
 // F A C T O R Y
 std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDeviceType device_type,
                                              const int channel_num,
-                                             const Memcard::HeaderData& memcard_header_data)
+                                             const Memcard::HeaderData& memcard_header_data,
+                                             const std::string current_file_name)
 {
   std::unique_ptr<IEXIDevice> result;
   // XXX This computation isn't necessarily right (it holds for A/B, but not SP1)
@@ -160,6 +162,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
 
   case EXIDeviceType::AGP:
     result = std::make_unique<CEXIAgp>(system, slot);
+    break;
+
+  case EXIDeviceType::Slippi:
+    result = std::make_unique<CEXISlippi>(system, current_file_name);
     break;
 
   case EXIDeviceType::AMBaseboard:

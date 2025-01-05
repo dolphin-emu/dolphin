@@ -6,10 +6,10 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -85,6 +85,8 @@ public:
   void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                               const DiscIO::Partition& partition, DVD::ReplyType reply_type,
                               s64 ticks_until_completion);
+  // SLIPPINOTES: Used for checking if the MxDt.dat file exists
+  void ReadFile(std::string& fileName, std::vector<u8>& buf);
 
 private:
   void StartDVDThread();
@@ -99,6 +101,7 @@ private:
   void FinishRead(u64 id, s64 cycles_late);
 
   void DVDThreadMain();
+  std::string GetFileName(const DiscIO::Partition& partition, u64 offset);
 
   struct ReadRequest
   {

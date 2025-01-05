@@ -30,6 +30,8 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/Slippi/SlippiNetplay.h"
+#include "Core/Slippi/SlippiPlayback.h"
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -46,6 +48,8 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
 
 constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
@@ -423,8 +427,11 @@ void HotkeyScheduler::Run()
           OSD::AddMessage("Raw (Square Pixels)");
           break;
         case AspectMode::Auto:
-        default:
           OSD::AddMessage("Auto");
+          break;
+        case AspectMode::ForceMelee:
+        default:
+          OSD::AddMessage("Force 73:60 (Melee)");
           break;
         }
       }
@@ -508,24 +515,27 @@ void HotkeyScheduler::Run()
                                                              std::lround(emulation_speed * 100.f)));
         }
       };
-
-      if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
+      if (!IsOnline())
       {
-        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
-        if (speed > 0)
+        if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
         {
+          auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
           speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
           Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+          ShowEmulationSpeed();
         }
-        ShowEmulationSpeed();
-      }
-
-      if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
-      {
-        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
-        speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
-        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
-        ShowEmulationSpeed();
+        if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
+        {
+          {
+            auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
+            if (speed > 0)
+            {
+              speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
+              Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+            }
+            ShowEmulationSpeed();
+          }
+        }
       }
 
       // USB Device Emulation
@@ -597,6 +607,49 @@ void HotkeyScheduler::Run()
 
       CheckGBAHotkeys();
     }
+
+#ifdef IS_PLAYBACK
+    // Slippi Playback
+    if (IsHotkey(HK_SLIPPI_JUMP_BACK))
+    {
+      INFO_LOG_FMT(SLIPPI, "jump back");
+      if (g_playback_status->target_frame_num == INT_MAX)
+      {
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame - 1200;
+        Host_PlaybackSeek();
+      }
+    }
+
+    if (IsHotkey(HK_SLIPPI_STEP_BACK))
+    {
+      INFO_LOG_FMT(SLIPPI, "step back");
+      if (g_playback_status->target_frame_num == INT_MAX)
+      {
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame - 300;
+        Host_PlaybackSeek();
+      }
+    }
+
+    if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
+    {
+      INFO_LOG_FMT(SLIPPI, "step forward");
+      if (g_playback_status->target_frame_num == INT_MAX)
+      {
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame + 300;
+        Host_PlaybackSeek();
+      }
+    }
+
+    if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
+    {
+      INFO_LOG_FMT(SLIPPI, "jump forward");
+      if (g_playback_status->target_frame_num == INT_MAX)
+      {
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame + 1200;
+        Host_PlaybackSeek();
+      }
+    }
+#endif
 
     const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);
 

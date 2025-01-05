@@ -26,7 +26,8 @@ class CEXIChannel
 {
 public:
   explicit CEXIChannel(Core::System& system, u32 channel_id,
-                       const Memcard::HeaderData& memcard_header_data);
+                       const Memcard::HeaderData& memcard_header_data,
+                       std::string current_file_name);
   ~CEXIChannel();
 
   // get device
@@ -117,6 +118,9 @@ private:
   // this data is only vaguely related to the EXI_Channel, this seems to be the best place to store
   // it, as this class creates the CEXIMemoryCard instances.
   Memcard::HeaderData m_memcard_header_data;
+
+  // used by game_reporter (rust) for calculating the md5 and Slippi Jukebox (rust) for playback
+  std::string m_current_file_name;
 
   // Devices
   enum

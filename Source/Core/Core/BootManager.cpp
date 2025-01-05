@@ -66,6 +66,15 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
   if (!StartUp.SetPathsAndGameMetadata(system, *boot))
     return false;
 
+  // Block running anything other than Melee and homebrew
+  if (!StartUp.GetGameID().empty() && StartUp.LoadDefaultGameIni().GetSections().empty())
+  {
+    PanicAlertFmtT("This does not seem to be a copy of Super Smash Bros. Melee. "
+      "Please use regular Dolphin (https://dolphin-emu.org/) for running "
+      "games other than Super Smash Bros. Melee.");
+    return false;
+  }
+
   // Movie settings
   auto& movie = system.GetMovie();
   if (movie.IsPlayingInput() && movie.IsConfigSaved())

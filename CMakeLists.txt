@@ -70,7 +70,7 @@ endif()
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
 # unique name here.
-set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+set(DISTRIBUTOR "Slippi" CACHE STRING "Name of the distributor.")
 
 set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update track. If empty, disables auto-update.")
 
@@ -82,7 +82,7 @@ if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
 endif()
 
 if(NOT ANDROID)
-  option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
+  option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" OFF)
 endif()
 
 
@@ -102,9 +102,9 @@ option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
-option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
-option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
-option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
+option(USE_MGBA "Enables GBA controllers emulation using libmgba" OFF)
+option(ENABLE_AUTOUPDATE "Enables support for automatic updates" OFF)
+option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" OFF)
 option(ENABLE_DRM "Enables DRM support" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -113,12 +113,16 @@ option(ENABLE_DRM "Enables DRM support" ON)
 #    launch).
 #  * The Dolphin team relies on the data in order to understand the behavior
 #    of our software in the wild.
-option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
+option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" OFF)
+
+# Enable Playback build for Slippi for watching replays
+option(SLIPPI_PLAYBACK "Enable Playback changes" OFF)
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 option(OPROFILING "Enable profiling" OFF)
 
 # TODO: Add DSPSpy
@@ -136,7 +140,7 @@ if(APPLE)
   option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
   # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
   option(MACOS_CODE_SIGNING "Enable codesigning" ON)
-  option(USE_BUNDLED_MOLTENVK "Build MoltenVK from Externals with Dolphin-specific patches" ON)
+  option(USE_BUNDLED_MOLTENVK "Build MoltenVK from Externals with Dolphin-specific patches" OFF) # slippi change: turned off to use in tree dylib. turn on if we need to generate an updated dylib
   set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
 endif()
 
@@ -362,6 +366,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   # Set FMT_EXCEPTIONS = 0, for consistency with -fno-exceptions earlier.
   # If we set only -fno-exceptions, fmt fails to compile when included from
   # Objective-C++ because fmt tries try to use throw because __EXCEPTIONS is defined.
+  add_compile_options("$<$<COMPILE_LANGUAGE:OBJC>:-fno-objc-exceptions>")
+  add_compile_options("$<$<COMPILE_LANGUAGE:OBJCXX>:-fno-objc-exceptions>")
   add_definitions(-DFMT_EXCEPTIONS=0)
 
   find_library(APPKIT_LIBRARY AppKit)
@@ -598,9 +604,14 @@ if(ENABLE_ANALYTICS)
   add_definitions(-DUSE_ANALYTICS=1)
 endif()
 
-if(ENABLE_AUTOUPDATE)
-  message(STATUS "Enabling automatic update support")
-  add_definitions(-DAUTOUPDATE=1)
+# Slippi Stuff
+message("Using static Corrosion from Externals for Rust linking support")
+add_subdirectory(Externals/corrosion)
+
+if(SLIPPI_PLAYBACK)
+  # Slippi Playback build option
+  # message("Enabling Playback build")
+  # add_definitions(-DIS_PLAYBACK=1)
 endif()
 
 ########################################
@@ -643,6 +654,13 @@ add_subdirectory(Externals/glslang)
 if(WIN32 OR APPLE)
   add_subdirectory(Externals/spirv_cross)
 endif()
+# slippi includes
+include_directories(Externals/nlohmann)
+add_subdirectory(Externals/semver)
+include_directories(Externals/semver/include)
+add_subdirectory(Externals/open-vcdiff)
+include_directories(Externals)
+
 add_subdirectory(Externals/tinygltf)
 
 if(ENABLE_VULKAN)
@@ -845,6 +863,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES Data/license.txt DESTINATION ${datadir})
+  install(FILES Data/portable.txt DESTINATION ${datadir})
 endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
   # Install the application icon and menu item

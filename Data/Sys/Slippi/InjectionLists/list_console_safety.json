@@ -1,0 +1,18 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8022F958",
+   "Name": "Tournament safety codes",
+   "Codetype": "Auto",
+   "Annotation": "External/FixedDamageRatio/SkipInputHandling.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80167F40",
+   "Name": "Tournament safety codes",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventPauseSoftLocks/ForcePauseOn.asm",
+   "Tags": ""
+  }
+ ]
+}

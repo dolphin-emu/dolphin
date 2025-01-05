@@ -1,0 +1,7 @@
+﻿  Semver200_comparator.cpp
+c:\users\r2dliu\documents\ishiiruka\externals\semver\src\semver200_comparator.cpp(28): fatal error C1083: Cannot open include file: 'semver200.h': No such file or directory
+  Semver200_modifier.cpp
+c:\users\r2dliu\documents\ishiiruka\externals\semver\src\semver200_modifier.cpp(26): fatal error C1083: Cannot open include file: 'semver200.h': No such file or directory
+  Semver200_parser.cpp
+c:\users\r2dliu\documents\ishiiruka\externals\semver\src\semver200_parser.cpp(27): fatal error C1083: Cannot open include file: 'semver200.h': No such file or directory
+  Generating Code...

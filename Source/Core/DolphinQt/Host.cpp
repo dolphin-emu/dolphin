@@ -307,6 +307,25 @@ void Host_TitleChanged()
 #endif
 }
 
+void Host_LowerWindow()
+{
+  Host::GetInstance()->RequestLowerWindow();
+}
+
+void Host_Exit()
+{
+  Host::GetInstance()->RequestExit();
+}
+
+void Host_PlaybackSeek()
+{
+  Host::GetInstance()->RequestSeek();
+}
+
+void Host_Fullscreen()
+{
+  Host::GetInstance()->RequestFullscreen();
+}
 void Host_UpdateDiscordClientID(const std::string& client_id)
 {
 #ifdef USE_DISCORD_PRESENCE

@@ -201,6 +201,22 @@ void Host_TitleChanged()
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTitleChanged());
 }
 
+void Host_LowerWindow()
+{
+}
+
+void Host_Exit()
+{
+}
+
+void Host_PlaybackSeek()
+{
+}
+
+void Host_Fullscreen()
+{
+}
+
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
   return nullptr;

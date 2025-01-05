@@ -1,0 +1,19 @@
+﻿  addrcache.cc
+  blockhash.cc
+  codetable.cc
+  decodetable.cc
+  encodetable.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\google\codetablewriter_interface.h(25): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  headerparser.cc
+  instruction_map.cc
+  jsonwriter.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\google\codetablewriter_interface.h(25): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  logging.cc
+  varint_bigendian.cc
+  vcdecoder.cc
+  vcdiffengine.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\google\codetablewriter_interface.h(25): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  vcencoder.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\google\codetablewriter_interface.h(25): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  adler32.c
+  open-vcdiff.vcxproj -> C:\Users\R2DLiu\Documents\Ishiiruka\Source\x64\Release\open-vcdiff.lib

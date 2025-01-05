@@ -10,6 +10,9 @@ namespace Common::ENet
 {
 void WakeupThread(ENetHost* host)
 {
+  if (!host)
+    return;
+
   // Send ourselves a spurious message.  This is hackier than it should be.
   // comex reported this as https://github.com/lsalzman/enet/issues/23, so
   // hopefully there will be a better way to do it in the future.

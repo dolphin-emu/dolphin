@@ -1,0 +1,102 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "803BB05C",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Fix Screen Flash.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8036A4A8",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Overwrite CObj Values.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB58",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Adjust Bubble Zoom.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80086B24",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Draw High Poly Models.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80030C7C",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Left Camera Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80030C88",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Right Camera Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB30",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Adjust Corner Value 1.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB34",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Adjust Corner Value 2.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB2C",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Extend Negative Vertical Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB28",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Extend Positive Vertical Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB4C",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Widen Bubble Region.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802FCFC4",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Nametag Fixes/Adjust Nametag Background X Scale.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB84",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Nametag Fixes/Adjust Nametag Text X Scale.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80302784",
+   "Name": "Optional: 16:9 -\u003e 73:60",
+   "Codetype": "Auto",
+   "Annotation": "External/WidescreenShutters/Add Shutters.asm",
+   "Tags": ""
+  }
+ ]
+}

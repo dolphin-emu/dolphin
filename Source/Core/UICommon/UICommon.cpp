@@ -395,6 +395,25 @@ void SetUserDirectory(std::string custom_path)
       home = "";
     std::string home_path = std::string(home) + DIR_SEP;
 
+#if defined(__APPLE__)
+    // Since the Replays build shares the same identifier as the netplay build,
+    // we'll just have a netplay and playback folder inside the identifer similar to how
+    // the Launcher does it to keep with some convention.
+#ifdef IS_PLAYBACK
+    user_path = File::GetApplicationSupportDirectory() + "/playback-beta/User" DIR_SEP;
+#else
+    user_path = File::GetApplicationSupportDirectory() + "/netplay-beta/User" DIR_SEP;
+#endif
+#elif defined(ANDROID)
+    if (env_path)
+    {
+      user_path = env_path;
+    }
+    else
+    {
+      user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+    }
+#else
     // On a non-Apple and non-Android POSIX system, there are 4 cases:
     // 1. GetExeDirectory()/portable.txt exists
     //    -> Use GetExeDirectory()/User
@@ -441,23 +460,44 @@ void SetUserDirectory(std::string custom_path)
                                                            (home_path + ".local" DIR_SEP "share")) +
             DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-        const char* config_home = getenv("XDG_CONFIG_HOME");
-        std::string config_path =
-            std::string(config_home && config_home[0] == '/' ? config_home :
-                                                               (home_path + ".config")) +
-            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+      const char* config_home = getenv("XDG_CONFIG_HOME");
+#ifndef IS_PLAYBACK
+      const auto config_dir_name = NETPLAY_USER_DIR;
+#else
+      const auto config_dir_name = PLAYBACK_USER_DIR;
+#endif
+      const auto config_path =
+          std::string(config_home && config_home[0] == '/' ? config_home : (home_path + ".config"));
+      user_path = config_path + DIR_SEP + config_dir_name + DIR_SEP;
+      // user_path = home_path + "." NORMAL_USER_DIR DIR_SEP;
 
-        const char* cache_home = getenv("XDG_CACHE_HOME");
-        std::string cache_path =
-            std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
-            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+      // if (!File::Exists(user_path))
+      // {
+      //   const char* data_home = getenv("XDG_DATA_HOME");
+      //   std::string data_path =
+      //       std::string(data_home && data_home[0] == '/' ? data_home :
+      //                                                      (home_path + ".local" DIR_SEP
+      //                                                      "share")) +
+      //       DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-        File::SetUserPath(D_USER_IDX, data_path);
-        File::SetUserPath(D_CONFIG_IDX, config_path);
-        File::SetUserPath(D_CACHE_IDX, cache_path);
-        return;
-      }
+      //   const char* config_home = getenv("XDG_CONFIG_HOME");
+      //   std::string config_path =
+      //       std::string(config_home && config_home[0] == '/' ? config_home :
+      //                                                          (home_path + ".config")) +
+      //       DIR_SEP NORMAL_USER_DIR DIR_SEP;
+
+      //   const char* cache_home = getenv("XDG_CACHE_HOME");
+      //   std::string cache_path =
+      //       std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache"))
+      //       + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+
+      //   File::SetUserPath(D_USER_IDX, data_path);
+      //   File::SetUserPath(D_CONFIG_IDX, config_path);
+      //   File::SetUserPath(D_CACHE_IDX, cache_path);
+      //   return;
+      // }
     }
+#endif
 #endif
   }
 #endif

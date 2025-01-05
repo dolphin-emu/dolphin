@@ -356,6 +356,8 @@ add_executable(dolphin-emu
   Settings/InterfacePane.h
   Settings/PathPane.cpp
   Settings/PathPane.h
+  Settings/SlippiPane.cpp
+  Settings/SlippiPane.h
   Settings/USBDeviceAddToWhitelistDialog.cpp
   Settings/USBDeviceAddToWhitelistDialog.h
   Settings/WiiPane.cpp
@@ -462,7 +464,7 @@ if(WIN32)
 
   set_target_properties(dolphin-emu PROPERTIES
     DEBUG_POSTFIX    D
-    OUTPUT_NAME      Dolphin
+    OUTPUT_NAME      Slippi_Dolphin
     WIN32_EXECUTABLE TRUE
   )
 
@@ -485,6 +487,27 @@ if(WIN32)
   # Copy qt.conf
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+  )
+
+  string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+
+  # Copy Rust DLLs
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.dll"
+  )
+
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.dll.lib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.dll.lib"
+  )
+
+  # Copy Rust PDB (should not go out in releases)
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.pdb" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.pdb"
+  )
+
+  # create portable.txt automatically for Windows since we always use portable builds for dev and release
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/portable.txt"
   )
 
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
@@ -571,16 +594,19 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
   endforeach()
 endif()
 
+target_link_libraries(dolphin-emu PUBLIC slippi_rust_extensions)
+
 if(APPLE)
   include(BundleUtilities)
-  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DolphinQt.app)
+  set(OUTPUT_NAME "Slippi_Dolphin")
+  set(BUNDLE_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${OUTPUT_NAME}.app")
 
   # Ask for an application bundle.
   set_target_properties(dolphin-emu PROPERTIES
     MACOSX_BUNDLE true
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
-    OUTPUT_NAME DolphinQt
+          XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+    OUTPUT_NAME "${OUTPUT_NAME}"
     )
 
   # Copy qt.conf into the bundle
@@ -623,7 +649,7 @@ if(APPLE)
       target_sources(dolphin-emu PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib")
       set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
     else()
-      find_file(MOLTENVK_DYLIB NAMES libMoltenVK.dylib PATH_SUFFIXES lib)
+      find_file(MOLTENVK_DYLIB NAMES libMoltenVK.dylib PATH_SUFFIXES lib PATHS "${CMAKE_SOURCE_DIR}/Externals/MoltenVK/") # slippi change: added in tree path
       if(NOT MOLTENVK_DYLIB)
         message(FATAL_ERROR "Couldn't find libMoltenVK.dylib.  Enable USE_BUNDLED_MOLTENVK?")
       endif()
@@ -667,6 +693,19 @@ endif()
 
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
+endif()
+
+# Copy Playback Codes if needed
+if (SLIPPI_PLAYBACK)
+  #add_custom_command(TARGET dolphin-emu POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/Data/PlaybackGeckoCodes/GALE01r2.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys/GameSettings/GALE01r2.ini"
+  #)
+  #add_custom_command(TARGET dolphin-emu POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/Data/PlaybackGeckoCodes/GALJ01r2.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys/GameSettings/GALJ01r2.ini"
+  #)
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/PlaybackGeckoCodes/" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys/GameSettings/"
+  )
 endif()
 
 if(USE_RETRO_ACHIEVEMENTS)

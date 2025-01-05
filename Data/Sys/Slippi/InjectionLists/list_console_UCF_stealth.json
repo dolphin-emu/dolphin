@@ -1,0 +1,25 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "800C9A44",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.8/Logic/UCF DB.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800998A4",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.8/Logic/UCF SD.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800908F4",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.8/Logic/UCF Tumble.asm",
+   "Tags": "[affects-gameplay]"
+  }
+ ]
+}

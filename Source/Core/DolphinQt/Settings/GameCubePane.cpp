@@ -103,6 +103,8 @@ void GameCubePane::CreateWidgets()
     m_slot_buttons[slot]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
 
+  m_slot_combos[ExpansionInterface::Slot::B]->setDisabled(true);
+
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
     m_memcard_path_layouts[slot] = new QHBoxLayout();
@@ -135,7 +137,7 @@ void GameCubePane::CreateWidgets()
   // Add slot devices
   for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
                             EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
-                            EXIDeviceType::AGP, EXIDeviceType::Microphone})
+                            EXIDeviceType::AGP, EXIDeviceType::Microphone, EXIDeviceType::Slippi})
   {
     const QString name = tr(fmt::format("{:n}", device).c_str());
     const int value = static_cast<int>(device);

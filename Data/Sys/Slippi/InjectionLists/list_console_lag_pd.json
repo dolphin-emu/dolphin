@@ -1,0 +1,25 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "801A4DA0",
+   "Name": "Polling Drift Fix",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4DB4",
+   "Name": "Polling Drift Fix",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80019860",
+   "Name": "Polling Drift Fix",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  }
+ ]
+}

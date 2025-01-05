@@ -1,3 +1,17 @@
+# Slippi Mainline
+
+This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are close enough to upstream main and close to on par with project-slippi/Ishii main. Netplay functionality works everywhere except teams, playback is busted, rust code is hooked up *Last updated 2023-09-01*
+
+## How can I contribute?
+
+The project board is visible here: https://github.com/r2dliu/dolphin/projects/1
+
+Read through the list of issues, and comment on one to claim it. You can also create a new issue if one does not exist already. Create a pull request and then submit it for approval.
+
+### Other questions
+
+Ping or message nikki (metonym) in the Slippi Discord. https://slippi.gg/discord
+
 # Dolphin - A GameCube and Wii Emulator
 
 ---
@@ -182,13 +196,24 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
-## Building for Windows
+## Build Process
 
-Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Dolphin targets the latest MSVC shipped with Visual Studio or Build Tools.
-Other compilers might be able to build Dolphin on Windows but have not been
-tested and are not recommended to be used. Git and latest Windows SDK must be
-installed when building.
+Dolphin requires [CMake](https://cmake.org/) for all systems. Many libraries are
+bundled with Dolphin and used if they're not installed on your system. CMake
+will inform you if a bundled library is used or if you need to install any
+missing packages yourself.
+
+### Rust
+This fork includes a [Rust submodule](https://github.com/project-slippi/slippi-rust-extensions) that needs to be built and linked to the final executable.
+This means that you will need to install a Rust compiler for your current system; to do this, simply visit 
+[rustup.rs](https://rustup.rs). Once installed, CMake should be able to automatically handle the rest for you.
+
+### Windows
+
+Visual Studio 2019 16.3 or later is a hard requirement.
+Open the folder that contains the base CMakeLists.txt file to build Dolphin on Windows.
+Other compilers might able to build Dolphin on Windows but have not been tested and are not
+recommended to be used. Git and Windows 11 SDK must be installed when building.
 
 Make sure to pull submodules before building:
 ```sh
@@ -214,7 +239,7 @@ git submodule update --init --recursive
 
 ### macOS Build Steps:
 
-A binary supporting a single architecture can be built using the following steps: 
+A binary supporting a single architecture can be built using the following steps:
 
 1. `mkdir build`
 2. `cd build`
@@ -232,8 +257,8 @@ application bundle using the following steps:
 4. Universal binaries will be available in the `universal` folder
 
 Doing this is more complex as it requires installation of library dependencies for both x64 and ARM (or universal library
-equivalents) and may require specifying additional arguments to point to relevant library locations. 
-Execute BuildMacOSUniversalBinary.py --help for more details.  
+equivalents) and may require specifying additional arguments to point to relevant library locations.
+Execute BuildMacOSUniversalBinary.py --help for more details.
 
 ### Linux Global Build Steps:
 
@@ -252,8 +277,8 @@ Useful for development as root access is not required.
 1. `mkdir Build`
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make -j $(nproc)`
-5. `ln -s ../../Data/Sys Binaries/`
+4. `make`
+5. `ln -s ../../Overwrite/{Sys,User} Binaries/`
 
 ### Linux Portable Build Steps:
 
@@ -263,8 +288,8 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 1. `mkdir Build`
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make -j $(nproc)`
-5. `cp -r ../Data/Sys/ Binaries/`
+4. `make`
+5. `cp -r ../Overwrite/{Sys,User} Binaries/`
 6. `touch Binaries/portable.txt`
 
 ## Building for Android
@@ -314,6 +339,8 @@ Options:
                         Set a configuration option
   -s <file>, --save_state=<file>
                         Load the initial save state
+  -i <file>, --slippi_input=<file>
+                        Load replay
   -d, --debugger        Show the debugger pane and additional View menu options
   -l, --logger          Open the logger
   -b, --batch           Run Dolphin without the user interface (Requires

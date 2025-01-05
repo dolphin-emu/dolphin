@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/Externals/SlippiRustExtensions/ffi/includes)
+
 add_library(common
   Analytics.cpp
   Analytics.h
@@ -173,6 +175,7 @@ PUBLIC
   MbedTLS::mbedtls
   minizip::minizip
   sfml-network
+  slippi_rust_extensions
 
 PRIVATE
   CURL::libcurl

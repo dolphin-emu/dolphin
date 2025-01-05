@@ -19,8 +19,15 @@
 #include <QTimer>
 #include <QWindow>
 
+// test ui stuff
+#include <QPushButton>
+#include <QVBoxLayout>
+
+#include "imgui.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/Slippi/SlippiPlayback.h"
 #include "Core/State.h"
 #include "Core/System.h"
 
@@ -39,6 +46,8 @@
 #include <Windows.h>
 #include <dwmapi.h>
 #endif
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
@@ -60,7 +69,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
     resize(w / dpr, h / dpr);
   });
-
+  connect(Host::GetInstance(), &Host::RequestLowerWindow, this, &RenderWidget::LowerWindow);
+  connect(Host::GetInstance(), &Host::RequestExit, this, &RenderWidget::Exit);
+  connect(Host::GetInstance(), &Host::RequestSeek, this, &RenderWidget::PlaybackSeek);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
       SetPresenterKeyMap();
@@ -583,4 +594,22 @@ void RenderWidget::SetPresenterKeyMap()
   };
 
   g_presenter->SetKeyMap(key_map);
+}
+
+void RenderWidget::LowerWindow()
+{
+  if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
+    return;
+
+  lower();
+}
+
+void RenderWidget::Exit()
+{
+  close();
+}
+
+void RenderWidget::PlaybackSeek()
+{
+  g_playback_status->seekToFrame();
 }

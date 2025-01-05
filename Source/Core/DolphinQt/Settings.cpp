@@ -768,6 +768,21 @@ void Settings::SetBatchModeEnabled(bool batch)
   m_batch = batch;
 }
 
+std::string Settings::GetSlippiInputFile() const
+{
+  return SConfig::GetSlippiConfig().slippi_input;
+}
+
+void Settings::SetSlippiInputFile(std::string path)
+{
+  SConfig::GetSlippiConfig().slippi_input = path;
+}
+
+void Settings::SetSlippiSeekbarEnabled(bool enabled)
+{
+  Config::SetBase(Config::SLIPPI_ENABLE_SEEK, enabled);
+}
+
 bool Settings::IsSDCardInserted() const
 {
   return Config::Get(Config::MAIN_WII_SD_CARD);

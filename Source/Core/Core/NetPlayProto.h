@@ -155,6 +155,14 @@ enum class MessageID : u8
   WiimoteData = 0x70,
   WiimoteMapping = 0x71,
 
+  SLIPPI_PAD = 0x80,
+  SLIPPI_PAD_ACK = 0x81,
+  SLIPPI_MATCH_SELECTIONS = 0x82,
+  SLIPPI_CONN_SELECTED = 0x83,
+  SLIPPI_CHAT_MESSAGE = 0x84,
+  SLIPPI_COMPLETE_STEP = 0x85,
+  SLIPPI_SYNCED_STATE = 0x86,
+
   GolfRequest = 0x90,
   GolfSwitch = 0x91,
   GolfAcquire = 0x92,

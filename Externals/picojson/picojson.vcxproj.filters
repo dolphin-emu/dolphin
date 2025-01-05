@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project>
-  <ItemGroup>
-    <ClInclude Include="picojson.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="picojson.cpp" />
-  </ItemGroup>
-</Project>

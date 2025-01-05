@@ -1,0 +1,29 @@
+﻿  addrcache.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\addrcache.cc(320): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  blockhash.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\blockhash.cc(447): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  codetable.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\codetable.cc(279): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  decodetable.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\decodetable.cc(113): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  encodetable.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\encodetable.cc(402): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  headerparser.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\headerparser.cc(348): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  instruction_map.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\instruction_map.cc(197): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  jsonwriter.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\jsonwriter.cc(142): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  logging.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\logging.cc(23): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  varint_bigendian.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\varint_bigendian.cc(128): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  vcdecoder.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\vcdecoder.cc(56): warning C4005: 'FALLTHROUGH_INTENDED': macro redefinition
+  c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\vcdecoder.cc(51): note: see previous definition of 'FALLTHROUGH_INTENDED'
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\vcdecoder.cc(1443): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  vcdiffengine.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\vcdiffengine.cc(231): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  vcencoder.cc
+c:\users\r2dliu\documents\ishiiruka\externals\open-vcdiff\src\vcencoder.cc(228): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  Generating Code...

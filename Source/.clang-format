@@ -78,7 +78,6 @@ SpacesInContainerLiterals: true
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard:        Latest
 TabWidth:        2
 UseTab:          Never
 ---

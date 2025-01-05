@@ -136,7 +136,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_add_code);
   btn_layout->addWidget(m_edit_code);
   btn_layout->addWidget(m_remove_code);
-  btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
 
@@ -156,7 +155,6 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_add_code, &QPushButton::clicked, this, &GeckoCodeWidget::AddCode);
   connect(m_remove_code, &QPushButton::clicked, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::clicked, this, &GeckoCodeWidget::EditCode);
-  connect(m_download_codes, &QPushButton::clicked, this, &GeckoCodeWidget::DownloadCodes);
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
 #ifdef USE_RETRO_ACHIEVEMENTS

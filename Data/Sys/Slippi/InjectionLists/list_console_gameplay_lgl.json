@@ -1,0 +1,46 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "801A5E90",
+   "Name": "Ledge Grab Limit",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016EBD8",
+   "Name": "Ledge Grab Limit",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B0498",
+   "Name": "Ledge Grab Limit",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B05CC",
+   "Name": "Ledge Grab Limit",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B05C8",
+   "Name": "Ledge Grab Limit",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80165C48",
+   "Name": "Ledge Grab Limit",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  }
+ ]
+}

@@ -13,6 +13,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Slippi/SlippiConfig.h"
 
 namespace Common
 {
@@ -43,6 +44,9 @@ struct BootParameters;
 
 struct SConfig
 {
+  // Slippi Config
+  Slippi::Config slippi_config;
+
   // Settings
   bool bBootToPause = false;
 
@@ -103,6 +107,7 @@ struct SConfig
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
+  static Slippi::Config& GetSlippiConfig() { return m_Instance->slippi_config; }
   static void Init();
   static void Shutdown();
 

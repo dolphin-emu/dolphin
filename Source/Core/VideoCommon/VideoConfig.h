@@ -24,6 +24,7 @@ enum class AspectMode : int
   Auto,           // ~4:3 or ~16:9 (auto detected)
   ForceWide,      // ~16:9
   ForceStandard,  // ~4:3
+  ForceMelee,     // 73:60
   Stretch,
   Custom,         // Forced relative custom AR
   CustomStretch,  // Forced absolute custom AR

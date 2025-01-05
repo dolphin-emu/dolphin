@@ -18,6 +18,10 @@
 #elif defined(ANDROID)
 #define NORMAL_USER_DIR "/sdcard/dolphin-emu"
 #else
+#define USERDATA_DIR "user"
+#define DOLPHIN_DATA_DIR "SlippiOnline"
+#define NETPLAY_USER_DIR "slippi-dolphin/netplay-beta"
+#define PLAYBACK_USER_DIR "slippi-dolphin/playback-beta"
 #define NORMAL_USER_DIR "dolphin-emu"
 #endif
 
@@ -86,6 +90,7 @@
 #define BACKUP_DIR "Backup"
 #define RESOURCEPACK_DIR "ResourcePacks"
 #define DYNAMICINPUT_DIR "DynamicInputTextures"
+#define SLIPPI_DIR "Slippi"
 #define GRAPHICSMOD_DIR "GraphicMods"
 #define WIISDSYNC_DIR "WiiSDSync"
 #define ASSEMBLY_DIR "SavedAssembly"
@@ -150,10 +155,14 @@
 #define WII_SETTING "setting.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
+#define GCT_BOOTLOADER "bootloader.gct"
 
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
+
+// Slippi
+#define USER_JSON "user.json"
 
 // Subdirs in Config
 #define GRAPHICSMOD_CONFIG_DIR "GraphicMods"

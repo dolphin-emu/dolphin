@@ -243,6 +243,8 @@ unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
   return num_samples;
 }
 
+// SLIPPITODO: We would ideally like to be able to push Jukebox audio samples through Dolphin's mixer,
+// however attempts at doing so seem to conflict with some expected logic regarding sample submission.
 void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
 {
   // Cache access in non-volatile variable

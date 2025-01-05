@@ -17,8 +17,8 @@
 #include <Objbase.h>
 #endif
 
-// ~10 ms - needs to be at least 240 for surround
-constexpr u32 BUFFER_SAMPLES = 512;
+// SSBM outputs samples in 5 ms batches - ensures we always have at least one extra batch buffered
+constexpr u32 BUFFER_SAMPLES = 480;
 
 long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                                void* output_buffer, long num_frames)

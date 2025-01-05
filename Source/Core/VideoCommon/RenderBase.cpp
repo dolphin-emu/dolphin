@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------------------------------
 
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/IconsMaterialDesign.h"
 
 #include <algorithm>
 #include <cmath>
@@ -31,6 +32,14 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#ifdef IS_PLAYBACK
+#include "Core/Slippi/SlippiPlayback.h"
+#include "Core/Slippi/SlippiReplayComm.h"
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
+extern std::unique_ptr<SlippiReplayComm> g_replay_comm;
+#endif
 
 std::unique_ptr<Renderer> g_renderer;
 

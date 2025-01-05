@@ -772,6 +772,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="aspect_ratio_force_sixteen_by_nine">Force 16:9</string>
     <string name="aspect_ratio_force_four_by_three">Force 4:3</string>
     <string name="aspect_ratio_stretch">Stretch to Window</string>
+    <string name="aspect_ratio_melee">Force 73:60 (Melee)</string>
 
     <!-- Country Names -->
     <string name="country_europe">Europe</string>

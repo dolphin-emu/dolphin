@@ -23,6 +23,7 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "Core/Slippi/SlippiNetplay.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -33,7 +34,6 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
-#include "UICommon/AutoUpdate.h"
 #ifdef USE_DISCORD_PRESENCE
 #include "UICommon/DiscordPresence.h"
 #endif
@@ -72,9 +72,6 @@ void GeneralPane::CreateLayout()
   // Create layout here
   CreateBasic();
 
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-    CreateAutoUpdate();
-
   CreateFallbackRegion();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -105,14 +102,6 @@ void GeneralPane::ConnectLayout()
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
-
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    connect(m_combobox_update_track, &QComboBox::currentIndexChanged, this,
-            &GeneralPane::OnSaveConfig);
-    connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
-            &GeneralPane::LoadConfig);
-  }
 
   // Advanced
   connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this]() {
@@ -282,26 +271,6 @@ void GeneralPane::LoadConfig()
     SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
-static QString UpdateTrackFromIndex(int index)
-{
-  QString value;
-
-  switch (index)
-  {
-  case AUTO_UPDATE_DISABLE_INDEX:
-    value = QString::fromStdString(AUTO_UPDATE_DISABLE_STRING);
-    break;
-  case AUTO_UPDATE_BETA_INDEX:
-    value = QString::fromStdString(AUTO_UPDATE_BETA_STRING);
-    break;
-  case AUTO_UPDATE_DEV_INDEX:
-    value = QString::fromStdString(AUTO_UPDATE_DEV_STRING);
-    break;
-  }
-
-  return value;
-}
-
 static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
 {
   DiscIO::Region value = DiscIO::Region::Unknown;
@@ -332,11 +301,6 @@ void GeneralPane::OnSaveConfig()
   Config::ConfigChangeCallbackGuard config_guard;
 
   auto& settings = SConfig::GetInstance();
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    Settings::Instance().SetAutoUpdateTrack(
-        UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
-  }
 
 #ifdef USE_DISCORD_PRESENCE
   Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());

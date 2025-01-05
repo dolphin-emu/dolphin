@@ -17,6 +17,23 @@ constexpr T SNANConstant()
   return std::numeric_limits<T>::signaling_NaN();
 }
 
+#ifdef _MSC_VER
+
+// See workaround note above.
+
+template <>
+constexpr double SNANConstant()
+{
+  return std::numeric_limits<double>::signaling_NaN();
+}
+template <>
+constexpr float SNANConstant()
+{
+  return std::numeric_limits<float>::signaling_NaN();
+}
+
+#endif  // _MSC_VER
+
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 static constexpr u64 DOUBLE_QBIT = 0x0008000000000000ULL;
 static constexpr u64 DOUBLE_SIGN = 0x8000000000000000ULL;

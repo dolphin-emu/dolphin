@@ -145,6 +145,8 @@ public:
   // The way the hash is calculated may change with updates to Dolphin.
   virtual std::array<u8, 20> GetSyncHash() const = 0;
 
+  bool FileExists(std::string file_name);
+
 protected:
   template <u32 N>
   std::string DecodeString(const char (&data)[N]) const

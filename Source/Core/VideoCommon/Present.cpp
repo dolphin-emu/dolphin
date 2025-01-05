@@ -92,6 +92,11 @@ static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_h
   }
 }
 
+static float SourceAspectRatioToMelee(float aspect)
+{
+  return aspect * ((73.0f / 60.0f) / (4.0f / 3.0f));
+}
+
 Presenter::Presenter()
 {
   m_config_changed =
@@ -457,6 +462,11 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
       // resolution
       resulting_aspect_ratio /= 2.0;
     }
+  }
+
+  if (aspect_mode == AspectMode::ForceMelee)
+  {
+    return SourceAspectRatioToMelee(source_aspect_ratio);
   }
 
   return resulting_aspect_ratio;

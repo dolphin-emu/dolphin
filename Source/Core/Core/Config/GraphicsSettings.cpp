@@ -20,13 +20,13 @@ const Info<int> GFX_ADAPTER{{System::GFX, "Hardware", "Adapter"}, 0};
 // Graphics.Settings
 
 const Info<bool> GFX_WIDESCREEN_HACK{{System::GFX, "Settings", "wideScreenHack"}, false};
-const Info<AspectMode> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"}, AspectMode::Auto};
+const Info<AspectMode> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"}, AspectMode::ForceMelee};
 const Info<int> GFX_CUSTOM_ASPECT_RATIO_WIDTH{{System::GFX, "Settings", "CustomAspectRatioWidth"},
                                               1};
 const Info<int> GFX_CUSTOM_ASPECT_RATIO_HEIGHT{{System::GFX, "Settings", "CustomAspectRatioHeight"},
                                                1};
 const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "SuggestedAspectRatio"},
-                                                  AspectMode::Auto};
+                                                  AspectMode::ForceMelee};
 const Info<u32> GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD{
     {System::GFX, "Settings", "WidescreenHeuristicTransitionThreshold"}, 3};
 const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP{
@@ -38,7 +38,7 @@ const Info<float> GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO{
 const Info<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};
-const Info<bool> GFX_SHOW_FPS{{System::GFX, "Settings", "ShowFPS"}, false};
+const Info<bool> GFX_SHOW_FPS{{System::GFX, "Settings", "ShowFPS"}, true};
 const Info<bool> GFX_SHOW_FTIMES{{System::GFX, "Settings", "ShowFTimes"}, false};
 const Info<bool> GFX_SHOW_VPS{{System::GFX, "Settings", "ShowVPS"}, false};
 const Info<bool> GFX_SHOW_VTIMES{{System::GFX, "Settings", "ShowVTimes"}, false};
@@ -46,7 +46,7 @@ const Info<bool> GFX_SHOW_GRAPHS{{System::GFX, "Settings", "ShowGraphs"}, false}
 const Info<bool> GFX_SHOW_SPEED{{System::GFX, "Settings", "ShowSpeed"}, false};
 const Info<bool> GFX_SHOW_SPEED_COLORS{{System::GFX, "Settings", "ShowSpeedColors"}, true};
 const Info<int> GFX_PERF_SAMP_WINDOW{{System::GFX, "Settings", "PerfSampWindowMS"}, 1000};
-const Info<bool> GFX_SHOW_NETPLAY_PING{{System::GFX, "Settings", "ShowNetPlayPing"}, false};
+const Info<bool> GFX_SHOW_NETPLAY_PING{{System::GFX, "Settings", "ShowNetPlayPing"}, true};
 const Info<bool> GFX_SHOW_NETPLAY_MESSAGES{{System::GFX, "Settings", "ShowNetPlayMessages"}, false};
 const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE{{System::GFX, "Settings", "LogRenderTimeToFile"},
                                              false};
@@ -80,7 +80,7 @@ const Info<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "EnablePixe
 const Info<bool> GFX_FAST_DEPTH_CALC{{System::GFX, "Settings", "FastDepthCalc"}, true};
 const Info<u32> GFX_MSAA{{System::GFX, "Settings", "MSAA"}, 1};
 const Info<bool> GFX_SSAA{{System::GFX, "Settings", "SSAA"}, false};
-const Info<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 1};
+const Info<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 3};
 const Info<int> GFX_MAX_EFB_SCALE{{System::GFX, "Settings", "MaxInternalResolution"}, 12};
 const Info<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOverlayEnable"}, false};
 const Info<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"}, false};
@@ -100,7 +100,8 @@ const Info<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true
 const Info<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING{
     {System::GFX, "Settings", "WaitForShadersBeforeStarting"}, false};
 const Info<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE{
-    {System::GFX, "Settings", "ShaderCompilationMode"}, ShaderCompilationMode::Synchronous};
+    {System::GFX, "Settings", "ShaderCompilationMode"},
+    ShaderCompilationMode::AsynchronousUberShaders};
 const Info<int> GFX_SHADER_COMPILER_THREADS{{System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const Info<int> GFX_SHADER_PRECOMPILER_THREADS{
     {System::GFX, "Settings", "ShaderPrecompilerThreads"}, -1};
@@ -187,7 +188,7 @@ const Info<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM{{System::GFX, "Hacks", "EFBToText
 const Info<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM{{System::GFX, "Hacks", "XFBToTextureEnable"}, true};
 const Info<bool> GFX_HACK_DISABLE_COPY_TO_VRAM{{System::GFX, "Hacks", "DisableCopyToVRAM"}, false};
 const Info<bool> GFX_HACK_DEFER_EFB_COPIES{{System::GFX, "Hacks", "DeferEFBCopies"}, true};
-const Info<bool> GFX_HACK_IMMEDIATE_XFB{{System::GFX, "Hacks", "ImmediateXFBEnable"}, false};
+const Info<bool> GFX_HACK_IMMEDIATE_XFB{{System::GFX, "Hacks", "ImmediateXFBEnable"}, true};
 const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS{{System::GFX, "Hacks", "SkipDuplicateXFBs"}, true};
 const Info<bool> GFX_HACK_EARLY_XFB_OUTPUT{{System::GFX, "Hacks", "EarlyXFBOutput"}, true};
 const Info<bool> GFX_HACK_COPY_EFB_SCALED{{System::GFX, "Hacks", "EFBScaledCopy"}, true};

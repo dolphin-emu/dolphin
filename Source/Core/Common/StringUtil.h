@@ -218,6 +218,14 @@ std::string PathToFileName(std::string_view path);
 void StringPopBackIf(std::string* s, char c);
 size_t StringUTF8CodePointCount(std::string_view str);
 
+#ifdef _WIN32
+std::u32string UTF8ToUTF32(const std::string& input);
+#else
+std::u32string UTF8ToUTF32(const std::string& input);
+#endif
+std::string UTF32toUTF8(const std::u32string& input);
+std::string TruncateLengthChar(const std::string& input, int length);
+std::string ConvertStringForGame(const std::string& input, int length);
 std::string CP1252ToUTF8(std::string_view str);
 std::string SHIFTJISToUTF8(std::string_view str);
 std::string UTF8ToSHIFTJIS(std::string_view str);
@@ -225,6 +233,17 @@ std::string WStringToUTF8(std::wstring_view str);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
 std::string UTF16ToUTF8(std::u16string_view str);
 std::u16string UTF8ToUTF16(std::string_view str);
+
+#ifdef __APPLE__
+/**
+ * Callback Implementation used for iconv when a unicode character could not be automatically
+ * converted. This callback is used specifically for SHIFTJIS failures when converting some special
+ * wide characters for melee.
+ */
+void uc_to_mb_fb(unsigned int code,
+                 void (*write_replacement)(const char* buf, size_t buflen, void* callback_arg),
+                 void* callback_arg, void* data);
+#endif
 
 #ifdef _WIN32
 
@@ -323,3 +342,4 @@ struct CaseInsensitiveLess
 
 std::string BytesToHexString(std::span<const u8> bytes);
 }  // namespace Common
+

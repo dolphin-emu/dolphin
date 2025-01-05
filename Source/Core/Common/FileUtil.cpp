@@ -33,13 +33,15 @@
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
+#include <ShlObj.h>
 #include <Shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
+#include <winerror.h>
 #else
 #include <dirent.h>
 #include <errno.h>
@@ -539,6 +541,37 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
+static void StripTailDirSlashes(std::string& fname)
+{
+  if (fname.length() > 1)
+  {
+    while (fname.back() == DIR_SEP_CHR)
+      fname.pop_back();
+  }
+}
+
+// SLIPPITODO: replace with C++17 https://en.cppreference.com/w/cpp/filesystem/last_write_time
+u64 GetFileModTime(const std::string& filename)
+{
+  struct stat file_info;
+
+  std::string copy(filename);
+  StripTailDirSlashes(copy);
+
+#ifdef _WIN32
+  int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+#else
+  int result = stat(copy.c_str(), &file_info);
+#endif
+
+  if (result < 0)
+  {
+    return 0;
+  }
+
+  return file_info.st_mtime;
+}
+
 bool Copy(std::string_view source_path, std::string_view dest_path, bool overwrite_existing)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {} ({})", __func__, source_path, dest_path,
@@ -727,6 +760,30 @@ std::string GetBundleDirectory()
 
   return app_bundle_path;
 }
+
+// Note that this is currently using `com.project-slippi.dolphin` and *NOT* the actual app
+// bundle identifier (`com.project-slippi.dolphin-beta`). This should get resolved in the
+// future once Ishiiruka goes away, as this build should eventually get the "correct"
+// non-beta identifier after it's deemed general release/availability.
+//
+// This isn't a normal Dolphin flow, to be clear - we only use it for storing files like
+// `user.json` and direct codes payloads. Please resist relying on this further until
+// things are stabilized.
+//
+// To be clear: "fixing" this requires a coordinated Launcher release and is probably
+// something that should just be pushed off until this is about to leave beta.
+std::string GetApplicationSupportDirectory()
+{
+  std::string dir =
+      File::GetHomeDirectory() + "/Library/Application Support/com.project-slippi.dolphin";
+
+  if (!CreateDir(dir))
+  {
+    ERROR_LOG_FMT(COMMON, "Unable to create Application Support directory: {}", dir);
+  }
+
+  return dir;
+}
 #endif
 
 std::string GetExePath()
@@ -763,6 +820,34 @@ std::string GetExePath()
 #endif
 }
 
+std::string GetHomeDirectory()
+{
+  std::string homeDir;
+#ifdef _WIN32
+  wchar_t* path = nullptr;
+
+  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path)))
+  {
+    char pathStr[MAX_PATH];
+    wcstombs(pathStr, path, MAX_PATH);
+
+    homeDir = std::string(pathStr);
+    CoTaskMemFree(path);
+  }
+  else
+  {
+    const char* home = getenv("USERPROFILE");
+    homeDir = std::string(home) + "\\Documents";
+  }
+  homeDir = ReplaceAll(std::move(homeDir), "\\", DIR_SEP);
+#else
+  const char* home = getenv("HOME");
+  homeDir = std::string(home);
+#endif
+
+  return homeDir;
+}
+
 std::string GetExeDirectory()
 {
   return PathToString(StringToPath(GetExePath()).parent_path());
@@ -790,7 +875,16 @@ static std::string CreateSysDirectoryPath()
   const std::string sys_directory = s_android_sys_directory + DIR_SEP;
   ASSERT_MSG(COMMON, !s_android_sys_directory.empty(), "Sys directory has not been set");
 #else
-  const std::string sys_directory = SYSDATA_DIR DIR_SEP;
+  const char* home = getenv("HOME");
+  if (!home)
+    home = getenv("PWD");
+  if (!home)
+    home = "";
+  std::string home_path = std::string(home) + DIR_SEP;
+  const char* config_home = getenv("XDG_CONFIG_HOME");
+  const std::string sys_directory =
+      std::string(config_home && config_home[0] == '/' ? config_home : (home_path + ".config")) +
+      DIR_SEP DOLPHIN_DATA_DIR DIR_SEP "Sys" DIR_SEP;
 #endif
 
   INFO_LOG_FMT(COMMON, "CreateSysDirectoryPath: Setting to {}", sys_directory);
@@ -885,6 +979,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_BACKUP_IDX] = s_user_paths[D_USER_IDX] + BACKUP_DIR DIR_SEP;
     s_user_paths[D_RESOURCEPACK_IDX] = s_user_paths[D_USER_IDX] + RESOURCEPACK_DIR DIR_SEP;
     s_user_paths[D_DYNAMICINPUT_IDX] = s_user_paths[D_LOAD_IDX] + DYNAMICINPUT_DIR DIR_SEP;
+    s_user_paths[D_SLIPPI_IDX] = s_user_paths[D_USER_IDX] + SLIPPI_DIR DIR_SEP;
     s_user_paths[D_GRAPHICSMOD_IDX] = s_user_paths[D_LOAD_IDX] + GRAPHICSMOD_DIR DIR_SEP;
     s_user_paths[D_WIISDCARDSYNCFOLDER_IDX] = s_user_paths[D_LOAD_IDX] + WIISDSYNC_DIR DIR_SEP;
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
@@ -904,6 +999,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
+    s_user_paths[F_USERJSON_IDX] = s_user_paths[D_SLIPPI_IDX] + USER_JSON;
     s_user_paths[F_WIISDCARDIMAGE_IDX] = s_user_paths[D_LOAD_IDX] + WII_SD_CARD_IMAGE;
 
     s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;

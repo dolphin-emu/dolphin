@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HotkeyManager.h"
-
 #include <algorithm>
 #include <array>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -15,6 +15,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -182,6 +184,13 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Undo Save State"),
     _trans("Save State"),
     _trans("Load State"),
+
+    // Slippi Playback
+    _trans("Jump backwards in Slippi replay"),
+    _trans("Step backwards in Slippi replay"),
+    _trans("Step forwards in Slippi replay"),
+    _trans("Jump forwards in Slippi replay"),
+
     _trans("Increase Selected State Slot"),
     _trans("Decrease Selected State Slot"),
 
@@ -192,7 +201,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Volume Down"),
     _trans("Volume Up"),
     _trans("Volume Toggle Mute"),
-      
+
     _trans("1x"),
     _trans("2x"),
     _trans("3x"),
@@ -201,6 +210,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Show Skylanders Portal"),
     _trans("Show Infinity Base")
 }};
+
 // clang-format on
 static_assert(NUM_HOTKEYS == s_hotkey_labels.size(), "Wrong count of hotkey_labels");
 
@@ -362,6 +372,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Select State"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
      {_trans("Load Last State"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
      {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_DECREMENT_SELECTED_STATE_SLOT},
+     {_trans("Slippi playback controls"), HK_SLIPPI_JUMP_BACK, HK_SLIPPI_JUMP_FORWARD},
      {_trans("GBA Core"), HK_GBA_LOAD, HK_GBA_RESET, true},
      {_trans("GBA Volume"), HK_GBA_VOLUME_DOWN, HK_GBA_TOGGLE_MUTE, true},
      {_trans("GBA Window Size"), HK_GBA_1X, HK_GBA_4X, true},
@@ -483,6 +494,36 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   }
   set_key_expression(HK_UNDO_LOAD_STATE, "F12");
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
+
+  // Slippi Playback
+#ifdef IS_PLAYBACK
+  if (Config::Get(Config::SLIPPI_ENABLE_SEEK))
+  {
+#ifdef _WIN32
+
+    set_key_expression(HK_SLIPPI_JUMP_BACK, hotkey_string({"Shift", "`LEFT`"}));
+    set_key_expression(HK_SLIPPI_STEP_BACK, "`LEFT`");
+    set_key_expression(HK_FRAME_ADVANCE, "`PERIOD`");
+    set_key_expression(HK_PLAY_PAUSE, "`SPACE`");
+    set_key_expression(HK_SLIPPI_STEP_FORWARD, "`RIGHT`");
+    set_key_expression(HK_SLIPPI_JUMP_FORWARD, hotkey_string({"Shift", "`RIGHT`"}));
+#elif __APPLE__
+    set_key_expression(HK_SLIPPI_JUMP_BACK, hotkey_string({"Shift", "`Left Arrow`"}));
+    set_key_expression(HK_SLIPPI_STEP_BACK, "`Left Arrow`");
+    set_key_expression(HK_FRAME_ADVANCE, "`.`");
+    set_key_expression(HK_PLAY_PAUSE, "`Space`");
+    set_key_expression(HK_SLIPPI_STEP_FORWARD, "`Right Arrow`");
+    set_key_expression(HK_SLIPPI_JUMP_FORWARD, hotkey_string({"Shift", "`Right Arrow`"}));
+#else
+    set_key_expression(HK_SLIPPI_JUMP_BACK, hotkey_string({"Shift", "`Left`"}));
+    set_key_expression(HK_SLIPPI_STEP_BACK, "`Left`");
+    set_key_expression(HK_FRAME_ADVANCE, "`period`");
+    set_key_expression(HK_PLAY_PAUSE, "`space`");
+    set_key_expression(HK_SLIPPI_STEP_FORWARD, "`Right`");
+    set_key_expression(HK_SLIPPI_JUMP_FORWARD, hotkey_string({"Shift", "`Right`"}));
+#endif
+  }
+#endif
 
   // GBA
   set_key_expression(HK_GBA_LOAD, hotkey_string({"`Ctrl`", "`Shift`", "`O`"}));

@@ -51,6 +51,12 @@
 [submodule "Externals/gtest"]
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
+[submodule "Externals/corrosion"]
+	path = Externals/corrosion
+	url = https://github.com/corrosion-rs/corrosion.git
+[submodule "Externals/SlippiRustExtensions"]
+	path = Externals/SlippiRustExtensions
+	url = https://github.com/project-slippi/slippi-rust-extensions.git
 [submodule "Externals/rcheevos/rcheevos"]
 	path = Externals/rcheevos/rcheevos
 	url = https://github.com/RetroAchievements/rcheevos.git

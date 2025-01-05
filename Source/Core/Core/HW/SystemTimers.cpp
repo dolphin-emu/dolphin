@@ -292,7 +292,7 @@ void SystemTimersManager::Init()
       core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
   m_event_type_gpu_sleeper = core_timing.RegisterEvent("GPUSleeper", GPUSleepCallback);
   m_event_type_perf_tracker = core_timing.RegisterEvent("PerfTracker", PerfTrackerCallback);
-  m_event_type_patch_engine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
+  // m_event_type_patch_engine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
 
   core_timing.ScheduleEvent(0, m_event_type_perf_tracker);
   core_timing.ScheduleEvent(0, m_event_type_gpu_sleeper);

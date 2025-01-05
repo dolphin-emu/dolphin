@@ -848,6 +848,11 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 // Run when: When a frame is scanned (progressive/interlace)
 void VideoInterfaceManager::Update(u64 ticks)
 {
+  // Try calling SI Poll every time update is called
+  m_system.GetSerialInterface().UpdateDevices();
+  Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
+                        Config::Get(Config::MAIN_LOCK_CURSOR));
+
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
@@ -881,28 +886,29 @@ void VideoInterfaceManager::Update(u64 ticks)
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
     Core::Callback_NewField(m_system);
 
-  // If an SI poll is scheduled to happen on this half-line, do it!
+  // SLIPPINOTES: this section is disabled because we would rather poll every chance we get to reduce
+  // lag
+  // // If an SI poll is scheduled to happen on this half-line, do it!
+  // if (m_half_line_of_next_si_poll == m_half_line_count)
+  // {
+  //   Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
+  //                         Config::Get(Config::MAIN_LOCK_CURSOR));
+  //   auto& si = m_system.GetSerialInterface();
+  //   si.UpdateDevices();
+  //   m_half_line_of_next_si_poll += 2 * si.GetPollXLines();
+  // }
 
-  if (m_half_line_of_next_si_poll == m_half_line_count)
-  {
-    Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
-                          Config::Get(Config::MAIN_LOCK_CURSOR));
-    auto& si = m_system.GetSerialInterface();
-    si.UpdateDevices();
-    m_half_line_of_next_si_poll += 2 * si.GetPollXLines();
-  }
+  // // If this half-line is at the actual boundary of either field, schedule an SI poll to happen
+  // // some number of half-lines in the future
 
-  // If this half-line is at the actual boundary of either field, schedule an SI poll to happen
-  // some number of half-lines in the future
-
-  if (m_half_line_count == 0)
-  {
-    m_half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first results start at vsync
-  }
-  if (m_half_line_count == GetHalfLinesPerEvenField())
-  {
-    m_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + NUM_HALF_LINES_FOR_SI_POLL;
-  }
+  // if (m_half_line_count == 0)
+  // {
+  //   m_half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first results start at vsync
+  // }
+  // if (m_half_line_count == GetHalfLinesPerEvenField())
+  // {
+  //   m_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + NUM_HALF_LINES_FOR_SI_POLL;
+  // }
 
   // Move to the next half-line and potentially roll-over the count to zero. If we've reached
   // the beginning of a new full-line, update the timer

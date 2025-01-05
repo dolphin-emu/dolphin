@@ -2658,8 +2658,9 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
   // like is done in the EFB path.
 
+// slippi: change uninitizalized xfb to gray
 #if defined(_M_X86_64)
-  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
+  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0x8080);
 #endif
 
   for (u32 i = 0; i < num_blocks_y; i++)
@@ -2675,16 +2676,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
     }
 #endif
     for (u32 offset = 0; offset < size; offset++)
-    {
-      if (offset & 1)
-      {
-        rowdst[offset] = 254;
-      }
-      else
-      {
-        rowdst[offset] = 1;
-      }
-    }
+      rowdst[offset] = 0x80;
     dst += stride;
   }
 }

@@ -29,6 +29,7 @@
       ASSERT_MSG(_t_, _a_, _fmt_ __VA_OPT__(, ) __VA_ARGS__);                                      \
   } while (0)
 
+#undef ASSERT
 #define ASSERT(_a_)                                                                                \
   do                                                                                               \
   {                                                                                                \

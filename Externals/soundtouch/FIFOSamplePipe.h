@@ -41,9 +41,9 @@
 #ifndef FIFOSamplePipe_H
 #define FIFOSamplePipe_H
 
-#include <assert.h>
 #include <stdlib.h>
 #include "STTypes.h"
+#include <assert.h>
 
 namespace soundtouch
 {

@@ -18,7 +18,8 @@ enum class MessageType
 {
   NetPlayPing,
   NetPlayBuffer,
-
+  PerformanceWarning,
+  DesyncWarning,
   // This entry must be kept last so that persistent typed messages are
   // displayed before other messages
   Typeless,
@@ -52,4 +53,9 @@ void ClearMessages();
 
 void SetObscuredPixelsLeft(int width);
 void SetObscuredPixelsTop(int height);
+
+// Draw playback controls when playing Slippi replays
+#ifdef IS_PLAYBACK
+void DrawSlippiPlaybackControls();
+#endif
 }  // namespace OSD

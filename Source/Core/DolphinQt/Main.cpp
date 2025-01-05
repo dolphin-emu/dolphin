@@ -29,6 +29,7 @@
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
+#include "Core/Slippi/SlippiSpectate.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -170,6 +171,12 @@ int main(int argc, char* argv[])
   UICommon::Init();
   Resources::Init();
   Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
+  Settings::Instance().SetSlippiInputFile(static_cast<const char*>(options.get("slippi_input")));
+
+#ifdef IS_PLAYBACK
+  if (options.is_set("hide-seekbar"))
+    Settings::Instance().SetSlippiSeekbarEnabled(false);
+#endif
 
   // Hook up alerts from core
   Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
@@ -244,7 +251,15 @@ int main(int argc, char* argv[])
   }
   else
   {
-    DolphinAnalytics::Instance().ReportDolphinStart("qt");
+#ifndef IS_PLAYBACK
+    if (!Config::Get(Config::MAIN_DEFAULT_ISO).empty() &&
+        !Settings::Instance().GetDefaultGame().isEmpty())
+    {
+      boot = BootParameters::GenerateFromFile(
+          Settings::Instance().GetDefaultGame().toStdString(),
+          BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
+    }
+#endif
 
     Settings::Instance().InitDefaultPalette();
     Settings::Instance().ApplyStyle();

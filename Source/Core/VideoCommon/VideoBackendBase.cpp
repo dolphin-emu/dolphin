@@ -261,6 +261,7 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     backends.emplace(backends.begin(), std::make_unique<Metal::VideoBackend>());
 #endif
 #ifdef HAS_OPENGL
+    backends.push_back(std::make_unique<OGL::VideoBackend>());
     backends.push_back(std::make_unique<SW::VideoSoftware>());
 #endif
     backends.push_back(std::make_unique<Null::VideoBackend>());
@@ -311,6 +312,9 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
+#ifdef IS_PLAYBACK
+  VideoCommon_DoState(p);
+#else
   auto& system = Core::System::GetInstance();
   if (!system.IsDualCoreMode())
   {
@@ -326,6 +330,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
   // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
   // a state. The next GP burst will wake it up again.
   system.GetFifo().GpuMaySleep();
+#endif
 }
 
 bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,

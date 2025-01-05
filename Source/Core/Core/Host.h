@@ -67,6 +67,10 @@ void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
+void Host_LowerWindow();
+void Host_Exit();
+void Host_PlaybackSeek();
+void Host_Fullscreen();
 
 void Host_UpdateDiscordClientID(const std::string& client_id = {});
 bool Host_UpdateDiscordPresenceRaw(const std::string& details = {}, const std::string& state = {},

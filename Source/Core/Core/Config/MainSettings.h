@@ -11,6 +11,8 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Core/Slippi/SlippiConfig.h"
+
 #include "DiscIO/Enums.h"
 
 // DSP Backend Types
@@ -50,6 +52,28 @@ enum class HSPDeviceType : int;
 
 namespace Config
 {
+// Main.Slippi
+
+// Netplay Settings
+extern const Info<int> SLIPPI_ONLINE_DELAY;
+extern const Info<bool> SLIPPI_ENABLE_SPECTATOR;
+extern const Info<int> SLIPPI_SPECTATOR_LOCAL_PORT;
+extern const Info<bool> SLIPPI_SAVE_REPLAYS;
+extern const Info<Slippi::Chat> SLIPPI_ENABLE_QUICK_CHAT;
+extern const Info<bool> SLIPPI_FORCE_NETPLAY_PORT;
+extern const Info<int> SLIPPI_NETPLAY_PORT;
+extern const Info<bool> SLIPPI_FORCE_LAN_IP;
+extern const Info<std::string> SLIPPI_LAN_IP;
+extern const Info<bool> SLIPPI_REPLAY_MONTHLY_FOLDERS;
+extern const Info<std::string> SLIPPI_REPLAY_DIR;
+extern const Info<bool> SLIPPI_ENABLE_FRAME_INDEX;
+extern const Info<bool> SLIPPI_BLOCKING_PIPES;
+extern const Info<bool> SLIPPI_ENABLE_JUKEBOX;
+extern const Info<int> SLIPPI_JUKEBOX_VOLUME;
+
+// Playback Settings
+extern const Info<bool> SLIPPI_ENABLE_SEEK;
+
 // Main.Core
 
 extern const Info<bool> MAIN_SKIP_IPL;

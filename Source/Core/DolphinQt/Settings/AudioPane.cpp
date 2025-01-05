@@ -28,6 +28,11 @@
 #include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
 
+#ifndef IS_PLAYBACK
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_DeviceSlippi.h"
+#endif
+
 AudioPane::AudioPane()
 {
   CheckNeedForLatencyControl();
@@ -423,6 +428,19 @@ void AudioPane::OnVolumeChanged(int volume)
 {
   m_volume_slider->setValue(volume);
   m_volume_indicator->setText(tr("%1%").arg(volume));
+
+#ifndef IS_PLAYBACK
+  if (Core::GetState() == Core::State::Running)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& exi_manager = system.GetExpansionInterface();
+    ExpansionInterface::CEXISlippi* slippi_exi = static_cast<ExpansionInterface::CEXISlippi*>(
+        exi_manager.GetDevice(ExpansionInterface::Slot::B));
+
+    if (slippi_exi != nullptr)
+      slippi_exi->UpdateJukeboxDolphinSystemVolume(volume);
+  }
+#endif
 }
 
 void AudioPane::CheckNeedForLatencyControl()

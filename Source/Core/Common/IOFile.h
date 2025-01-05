@@ -49,6 +49,7 @@ public:
 
   bool Open(const std::string& filename, const char openmode[],
             SharedAccess sh = SharedAccess::Default);
+
   bool Close();
 
   IOFile Duplicate(const char openmode[]) const;

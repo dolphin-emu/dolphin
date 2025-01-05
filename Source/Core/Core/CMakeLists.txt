@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/Externals/SlippiRustExtensions/ffi/includes)
+
 add_library(core
   AchievementManager.cpp
   AchievementManager.h
@@ -217,6 +219,8 @@ add_library(core
   HW/EXI/EXI_DeviceMic.h
   HW/EXI/EXI_DeviceModem.cpp
   HW/EXI/EXI_DeviceModem.h
+  HW/EXI/EXI_DeviceSlippi.cpp
+  HW/EXI/EXI_DeviceSlippi.h
   HW/EXI/EXI.cpp
   HW/EXI/EXI.h
   HW/GBAPad.cpp
@@ -534,6 +538,40 @@ add_library(core
   PowerPC/SignatureDB/MEGASignatureDB.h
   PowerPC/SignatureDB/SignatureDB.cpp
   PowerPC/SignatureDB/SignatureDB.h
+  PowerPC/Interpreter/ExceptionUtils.h
+  PowerPC/Interpreter/Interpreter_Branch.cpp
+  PowerPC/Interpreter/Interpreter.cpp
+  PowerPC/Interpreter/Interpreter.h
+  PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
+  PowerPC/Interpreter/Interpreter_FPUtils.h
+  PowerPC/Interpreter/Interpreter_Integer.cpp
+  PowerPC/Interpreter/Interpreter_LoadStore.cpp
+  PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp
+  PowerPC/Interpreter/Interpreter_Paired.cpp
+  PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
+  PowerPC/Interpreter/Interpreter_Tables.cpp
+  Slippi/SlippiGameFileLoader.cpp
+  Slippi/SlippiGameFileLoader.h
+  Slippi/SlippiMatchmaking.cpp
+  Slippi/SlippiMatchmaking.h
+  Slippi/SlippiNetplay.cpp
+  Slippi/SlippiNetplay.h
+  Slippi/SlippiPad.cpp
+  Slippi/SlippiPad.h
+  Slippi/SlippiPlayback.cpp
+  Slippi/SlippiPlayback.h
+  Slippi/SlippiReplayComm.cpp
+  Slippi/SlippiReplayComm.h
+  Slippi/SlippiSavestate.cpp
+  Slippi/SlippiSavestate.h
+  Slippi/SlippiSpectate.cpp
+  Slippi/SlippiSpectate.h
+  Slippi/SlippiUser.cpp
+  Slippi/SlippiUser.h
+  Slippi/SlippiGame.cpp
+  Slippi/SlippiGame.h
+  Slippi/SlippiDirectCodes.cpp
+  Slippi/SlippiPremadeText.h
   State.cpp
   State.h
   SyncIdentifier.h
@@ -643,6 +681,10 @@ PUBLIC
   videonull
   videoogl
   videosoftware
+  semver
+  vcdcom
+  vcddec
+  vcdenc
 
 PRIVATE
   cubeb::cubeb

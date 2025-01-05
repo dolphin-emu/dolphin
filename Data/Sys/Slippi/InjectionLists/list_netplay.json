@@ -1,0 +1,2097 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8015EE98",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EDDC",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80164B14",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801648F4",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EE4C",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EE14",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D968",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D9D8",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8017229C",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801737B0",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80164658",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801644E8",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8030490C",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803044F0",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A48",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A4C",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A50",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A60",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A78",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801AF6F4",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Skip Memcard Prompt/Skip Memcard Prompt.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D94C",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D984",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A5B14",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Salty Runback/Salty Runback.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016B480",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8022D638",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B0A14",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E510",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/NeutralSpawn/NeutralSpawn.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "802641B0",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8021AAE4",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8025B8BC",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80452F54",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80452F58",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80452F5C",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80452F60",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80452F64",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8002CB34",
+   "Name": "Required: General Codes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800D65EC",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF DBOOC SquatRv Fix.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800C9A44",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Dashback.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8006B460",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Pad Buffer + 1.0 Cardinals.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8008E54C",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF SDI.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8009A0B8",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Shield Drop Extended.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800998A4",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Shield Drop.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80093294",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Shield SDI.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800908F4",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Tumble.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "802662D0",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/Indicator/UCF Text.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8026325C",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/DPad Down at CSS for Random Stage/DPad Down at CSS for Random Stage.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801C26B0",
+   "Name": "Required: General Codes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015ECEC",
+   "Name": "Required: General Codes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016EBA8",
+   "Name": "Required: General Codes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A45A8",
+   "Name": "Required: General Codes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DC47C",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/CSS Player Hands Default to HMN Button/Change Default Hand Position.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261A6C",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/CSS Player Hands Default to HMN Button/Fix A Button Buffer When Exiting Name Entry.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802FCCD8",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Hide Nametag When Invisible/Hide Nametag When Invisible.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80266CE0",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Disable FoD During Doubles/Disable FoD During Doubles.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80265220",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "Common/Winners Names are Gold on CSS/Change Name Color.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016EA30",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "Common/Winners Names are Gold on CSS/Remember Who LRA Started.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261B1C",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Closing CSS Door Preserves Nametag/On Window Close/Skip Nametag ID Reset.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261B30",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Closing CSS Door Preserves Nametag/On Window Close/Skip isUsingNametag Bool Reset.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802605FC",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Unplugging Closes CSS Door/Unplugging Closes CSS Door.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801239A8",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "External/FreezeGlitchFix/FreezeGlitchFix.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8013C388",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "Common/CostumeBoundCheck/PuffCostume.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016DED4",
+   "Name": "Required: General Codes",
+   "Codetype": "Auto",
+   "Annotation": "Common/CostumeBoundCheck/main.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800679BC",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/ExtendPlayerBlock.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803219EC",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/FlushFrameBuffer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016D884",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGameEnd.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E74C",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGameInfo.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006DA34",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGamePostFrame.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006B0E0",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGamePreFrame.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005604",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/ShouldRecord.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8008D698",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/GetLCancelStatus/GetLCancelStatus.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006C324",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/GetLCancelStatus/ResetLCancelStatus.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4CB4",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/AllocBuffer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800055F8",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/GetIsFollower.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016D294",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/IncrementFrameIndex.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801D460C",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/GetPreloadedTransition.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D14C8",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/Init isLoaded Bool.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D45EC",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/Load Transformation.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D4F14",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/Reset isLoaded.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D4610",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/SkipNormalDecision1.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D4724",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/SkipNormalDecision2.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "804DEC18",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Toggle/PsPreloadToggleEnable.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801C154C",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Initialize Stage Data/Init Stage Data.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80068EEC",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Initialize Player Data/Init Player Data.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8016EBAC",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/CSS KO Stars/Asign KO Stars Upon Exiting Dairantou.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006A880",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/BrawlOffscreenDamage.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "802F7094",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/CustomizeMessageLRAS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4DB4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/ForceEngineOnRollback.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80019614",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/ForceInputRefetchOnAdvance.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8034DED8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/HandleRumble.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E748",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/InitOnlinePlay.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E904",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/InitPause.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802F70C4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/LGLExceededGameEnd.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A5014",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/LoopEngineForRollback.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016D26C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/PauseCounter.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016CD08",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/PreventPauseStranding.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016EA30",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Remember Who LRA Started.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E9E8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/ReportNoContestLRAS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80376A20",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/SkipNewInputFetchOnRollback.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4DE4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/StartEngineLoop.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80376A28",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/TriggerSendInput.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800163FC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/EXIFileLoad/GetFileSize.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800166B8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/EXIFileLoad/TransferFile.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800D4C1C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/FreezeDeadUpFallPhysics/InitHitVelocity.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800D4D68",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/FreezeDeadUpFallPhysics/UpdateFallVelocity.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80080E80",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/FreezeDeadUpFallPhysics/UpdateModelPos.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80019260",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/ForceNoDiskCrash.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80376304",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/ForceNoVideoAssert.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803A63A8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/LoadPremadeTextDataFromDolphin.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80321D70",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/PreventCharacterCrowdChants.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80019608",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/PreventPadAlarmDuringRollback.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8038E910",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Music/StartSong.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800236EC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Music/Stop.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800249F0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Music/VolumeChange.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801D4578",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/PreventFileAlarms/FreezeStadium.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80023FFC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/PreventFileAlarms/MuteMusic.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8038ADD0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/PreventFileAlarms/PreventMusicAlarm.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8038D224",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Sound/AssignSoundInstanceId.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80088224",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Sound/NoDestroyVoice.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800882B0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Sound/NoDestroyVoice2.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8038D0B0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Sound/PreventDuplicateSounds.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016BE28",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Teams/PreventDeadStranding.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8008653C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/WhispyBlowDirFix/WhispyBlowDirFix.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80266BC4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/DisableLRSTART.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261E5C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/DisableNametagBox.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80260310",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/FetchMatchInfo.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80263258",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/HandleInputsOnCSS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A3F9C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/IncreaseTextHeap.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802652F0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/InitSheikSelector.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80264534",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/LoadCSSText.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80262004",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/PreventAPressCharUnselect.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802620AC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/PreventBPressCharUnselect.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802600A8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/PreventColorChange.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8026699C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/SceneLoadCSS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80264118",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/SkipReturnToCssSound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80262478",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/AnimateCursorPort.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80262768",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/AnimateToken.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802652F4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/InitTeamToggleButton.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80260C28",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/PreventColorResetCharHover.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80260E14",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/PreventColorResetLastChar.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80260B90",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/PreventColorResetRandomChar.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80260C88",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/Teams/PreventWrongCSPOnCharSelect.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C710",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/Allow8Characters.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C320",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/Allow8CharactersJapanese.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023E730",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/AlwaysUseEnglishWhenDirect.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023E924",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/AlwaysUseEnglishWhenDirect2.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023E290",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/AlwaysUseEnglishWhenDirect3.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CCA4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/CheckTriggersAndZ.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CF9C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/Display8Characters.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CF80",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/HandleAutocompleteText.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023B3D0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/HandleDescriptionText.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C6C0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/HandleJpSpace.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023E994",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/InitNameEntry.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C588",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/NameEntryThinkOneShot.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CD74",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnBPressAutoComplete.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CA50",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnConfirmButtonAPress.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CC14",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnConfirmButtonHandler.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C33C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnEnterJpText.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C72C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnEnterText.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C81C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnErasePress.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CCBC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnLPress.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023CCE0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnRPress.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8023C928",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/CSS/TextEntryScreen/OnRandomPress.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803786A4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/Hacks/VsSplashRumbleHack.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802F6694",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/InGame/InitInGame.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803A69C0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/InGame/ParseNumbersBetter.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8025B8A4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/SSS/DisableLRSTART.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80259CC8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/SSS/ExitSSSUponStageSelect.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8022B044",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/TitleMenu/AllowSwapToSameSubmenu.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802299F0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/TitleMenu/HandleOnlineLockedOptions.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8022E93C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/TitleMenu/OnMenuLoad.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B1040",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/TitleMenu/OnMenuPrep.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8022D88C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/TitleMenu/OnlineModeOptionSelected.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802299C4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/TitleMenu/ShowHidden1pOption.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B3668",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/AllowP2ColorDuplicate.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80186EC4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/InitVsSplash.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80184DE4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/PlayOpponentCharAnnouncer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B3650",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/PreventP2Color.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80185060",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/HideStageDisplay/HideAllJObjs.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80185050",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/HideStageDisplay/PreventEarlyR3Overwrite.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80184ADC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/HideStageText/HideLetterJObjs.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80184B1C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/VSScreen/HideStageText/SkipStageNumberShow.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801BFA20",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Slippi Online Scene/boot.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A45B8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Slippi Online Scene/main.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005694",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/AdjustNullCharID.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056BC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/CSSUpdateCSP.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005690",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/CheckAltStageName.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056B8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/GetCSSIconData.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005698",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/GetCSSIconNum.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056B0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/GetTeamCostumeIndex.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800055F4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/IntToFloat.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005610",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/LoadMatchState.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056A4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/LoadPremadeText.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8000560C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/LoadState.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800055EC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/MultiplyRWithF.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005608",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/SaveState.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056B4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/SubtextFunctions.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005618",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/UserDisplayFunctions.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803775B0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Debugging/LogInputOnCopy.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4C24",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8001985C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80019860",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80376200",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A5018",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80218D68",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8009E090",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Common/FastForward/DynamicsFix.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8000569C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Common/CompatibilityHooks/GetFighterNum.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056A0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Common/CompatibilityHooks/GetSSMIndex.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800056A8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Common/CompatibilityHooks/RequestSSMLoad.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803753B4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800186A8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015D9C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015C00",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015BC0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80018D80",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800158F0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80016138",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015F50",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015F88",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800158D8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015E18",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015CD4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800159B4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015984",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015B94",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80015914",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A50AC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A45BC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4444",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8001CEAC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4568",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A43E0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A448C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A3F2C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4560",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A43D8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4484",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A3F24",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4D14",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A50A0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4D0C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A43EC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A40C8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D709C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D7090",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D7074",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D7060",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D706C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8035E6E4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8035E6E0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8035ECFC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8035ECE0",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80360A38",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80360A3C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8035E918",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4C98",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80228C10",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80228BFC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80228AF8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80394BD4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80397838",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80394A74",
+   "Name": "Required: Slippi Online",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800AC5B8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Common/NanaDeterminism/NanaDeterminism.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D24FC",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Common/PSCameraIndependentMonitor/PSCameraIndependentMonitor.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800DB880",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventWobbling/Init Wobble Count Air.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800DBBD4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventWobbling/Init Wobble Count Ground.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8008F090",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventWobbling/Wobble Check.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "803761EC",
+   "Name": "Recommended: Normal Lag Reduction",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80376238",
+   "Name": "Recommended: Normal Lag Reduction",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80376A24",
+   "Name": "Recommended: Apply Delay to all In-Game Scenes",
+   "Codetype": "Auto",
+   "Annotation": "Common/UseInGameDelay/ApplyInGameDelay.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802F666C",
+   "Name": "Recommended: Apply Delay to all In-Game Scenes",
+   "Codetype": "Auto",
+   "Annotation": "Common/UseInGameDelay/InitializeInGameDelay.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8000561C",
+   "Name": "Recommended: Apply Delay to all In-Game Scenes",
+   "Codetype": "Auto",
+   "Annotation": "Common/GetCommonMinorID/GetCommonMinorID.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CBB90",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CC8AC",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CBE9C",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CBEF0",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CBF54",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80390838",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CD250",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CCDCC",
+   "Name": "Recommended: Lagless FoD",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803BB05C",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Fix Screen Flash.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8036A4A8",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Overwrite CObj Values.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB58",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Adjust Bubble Zoom.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80086B24",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Draw High Poly Models.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80030C7C",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Left Camera Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80030C88",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Right Camera Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB30",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Adjust Corner Value 1.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB34",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Adjust Corner Value 2.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB2C",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Extend Negative Vertical Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB28",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Extend Positive Vertical Bound.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB4C",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Adjust Offscreen Scissor/Fix Bubble Positions/Widen Bubble Region.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802FCFC4",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Nametag Fixes/Adjust Nametag Background X Scale.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DDB84",
+   "Name": "Optional: Widescreen 16:9",
+   "Codetype": "Auto",
+   "Annotation": "External/Widescreen/Nametag Fixes/Adjust Nametag Text X Scale.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80030E44",
+   "Name": "Optional: Disable Screen Shake",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E9AC",
+   "Name": "Optional: Center Align 2P HUD",
+   "Codetype": "Auto",
+   "Annotation": "External/Force2PCenterHud/Force2PCenterHud.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800C0148",
+   "Name": "Optional: Flash Red on Failed L-Cancel",
+   "Codetype": "Auto",
+   "Annotation": "External/FlashRedFailedLCancel/ChangeColor.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8008D690",
+   "Name": "Optional: Flash Red on Failed L-Cancel",
+   "Codetype": "Auto",
+   "Annotation": "External/FlashRedFailedLCancel/TriggerColor.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800355B4",
+   "Name": "Optional: Show Friendly Player Indicators",
+   "Codetype": "Auto",
+   "Annotation": "Online/Optional/IndicateLocalPlayer/ForceLocalPlayerTag.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802FD1EC",
+   "Name": "Optional: Show Friendly Player Indicators",
+   "Codetype": "Auto",
+   "Annotation": "Online/Optional/IndicateLocalPlayer/SetLocalPlayerTag.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802FC9E4",
+   "Name": "Optional: Show Friendly Player Indicators",
+   "Codetype": "Auto",
+   "Annotation": "Online/Optional/ShowAllyIndicator/ShowAllyIndicator.asm",
+   "Tags": ""
+  }
+ ]
+}

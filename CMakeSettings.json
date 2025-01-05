@@ -9,6 +9,11 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
+        {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_64\\lib\\cmake\\Qt5",
+          "type": "STRING"
+        }
       ]
     },
     {
@@ -20,6 +25,11 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
+        {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_64\\lib\\cmake\\Qt5",
+          "type": "STRING"
+        }
       ]
     },
     {
@@ -32,12 +42,19 @@
       "cmakeCommandArgs": "",
       "variables": [
         {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_arm64\\lib\\cmake\\Qt5",
+          "type": "STRING"
+        },
+        {
           "name": "CMAKE_SYSTEM_NAME",
-          "value": "Windows"
+          "value": "Windows",
+          "type": "STRING"
         },
         {
           "name": "CMAKE_SYSTEM_PROCESSOR",
-          "value": "aarch64"
+          "value": "aarch64",
+          "type": "STRING"
         }
       ]
     },
@@ -51,14 +68,33 @@
       "cmakeCommandArgs": "",
       "variables": [
         {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_arm64\\lib\\cmake\\Qt5",
+          "type": "STRING"
+        },
+        {
           "name": "CMAKE_SYSTEM_NAME",
-          "value": "Windows"
+          "value": "Windows",
+          "type": "STRING"
         },
         {
           "name": "CMAKE_SYSTEM_PROCESSOR",
-          "value": "aarch64"
+          "value": "aarch64",
+          "type": "STRING"
         }
       ]
+    },
+    {
+      "name": "RelWDbgInfo",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": []
     }
   ]
 }

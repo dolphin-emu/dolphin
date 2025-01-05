@@ -30,11 +30,15 @@
         </dict>
     </array>
     <key>CFBundleExecutable</key>
-    <string>DolphinQt</string>
+    <string>Slippi_Dolphin</string>
+    <key>CFBundleName</key>
+    <string>Slippi_Dolphin</string>
+    <key>CFBundleDisplayName</key>
+    <string>Slippi Dolphin (Beta)</string>
     <key>CFBundleIconFile</key>
     <string>Dolphin.icns</string>
     <key>CFBundleIdentifier</key>
-    <string>org.dolphin-emu.dolphin</string>
+	  <string>com.project-slippi.dolphin-beta</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundlePackageType</key>

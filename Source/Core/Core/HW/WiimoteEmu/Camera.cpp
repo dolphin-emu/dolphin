@@ -174,7 +174,7 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
     break;
   default:
     // This seems to be fairly common, 0xff data is sent in this case:
-    // WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");
+    // WARN_LOG_FMT(WIIMOTE, "Game is requesting IR data before setting IR mode.");
     break;
   }
 }

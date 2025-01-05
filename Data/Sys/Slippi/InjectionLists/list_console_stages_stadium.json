@@ -1,0 +1,32 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "801D45FC",
+   "Name": "Frozen Stadium",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen PS/Core/FreezePokemon.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8025A530",
+   "Name": "Frozen Stadium",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen PS/PSBlinkBlue/PSEditColor.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8025B718",
+   "Name": "Frozen Stadium",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen PS/PSBlinkBlue/SavePointer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DEC1C",
+   "Name": "Frozen Stadium",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen PS/Toggle/FrzPkmToggleEnable.asm",
+   "Tags": ""
+  }
+ ]
+}

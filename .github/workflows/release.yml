@@ -1,0 +1,36 @@
+name: Upload Latest Artifacts to Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  package:
+    name: Release New Mainline Slippi Dolphin
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Get version'
+        run: |
+          echo "VERSION=$(echo ${{ github.ref }} | cut -d "v" -f 2)" >> $GITHUB_ENV
+      - name: Download latest artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: main.yml
+          branch: slippi
+      - name: Organize release files"
+        run: |
+          rm -rf *playback*
+          find ./ -mindepth 2 -type f -exec mv -t ./ -i '{}' +
+          find . -type d -empty -delete
+          unzip *linux* && rm -rf Sys && mv *linux* "Mainline-Slippi-${{ env.VERSION }}-Linux.zip"
+          mv *.dmg "Mainline-Slippi-${{ env.VERSION }}-Mac.dmg"
+          mv *windows* "Mainline-Slippi-${{ env.VERSION }}-Win.zip"
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

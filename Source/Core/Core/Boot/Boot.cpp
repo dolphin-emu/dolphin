@@ -36,6 +36,7 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -677,6 +678,9 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
   if (!std::visit(BootTitle(system, guard, boot->riivolution_patches), boot->parameters))
     return false;
 
+  PatchEngine::LoadPatches();
+  HLE::PatchFixedFunctions(system);
+  Gecko::RunCodeHandler(guard);
   DiscIO::Riivolution::ApplyGeneralMemoryPatches(guard, boot->riivolution_patches);
 
   return true;

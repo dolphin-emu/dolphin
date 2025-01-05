@@ -47,6 +47,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Slippi/SlippiNetplay.h"
 #include "Core/System.h"
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
@@ -171,6 +172,7 @@ static void DoState(Core::System& system, PointerWrap& p)
     return;
   }
 
+  // SLIPPITODO: David disabled this for some reason, should check why
   // Movie must be done before the video backend, because the window is redrawn in the video backend
   // state load, and the frame number must be up-to-date.
   system.GetMovie().DoState(p);
@@ -209,6 +211,11 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
   if (NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+    return;
+  }
+
+  if (IsOnline())
+  {
     return;
   }
 
@@ -860,6 +867,11 @@ void LoadAs(Core::System& system, const std::string& filename)
   if (NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+    return;
+  }
+
+  if (IsOnline())
+  {
     return;
   }
 

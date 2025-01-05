@@ -32,6 +32,7 @@ signals:
   void SizeChanged(int new_width, int new_height);
   void FocusChanged(bool focus);
 
+
 private:
   void HandleCursorTimer();
   void OnHandleChanged(void* handle);
@@ -44,6 +45,9 @@ private:
   void SetPresenterKeyMap();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
+  void LowerWindow();
+  void Exit();
+  void PlaybackSeek();
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;

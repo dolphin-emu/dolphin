@@ -9,10 +9,13 @@ Source/Core/Common/scmrev.h
 /cmake-build-debug
 /cmake-build-release
 /[Bb]uild*/
+/out/
 /[Bb]inary*/
 /obj/
 # Ignore files output by Android cmake build
 /Source/Android/app/.cxx/
+# Ignore build output
+/Source/out/**
 /libs/
 # Ignore various files created by visual studio/msbuild
 *.ipch
@@ -43,3 +46,6 @@ CMakeLists.txt.user
 /.vscode/
 # Ignore flatpak-builder's cache dir
 .flatpak-builder
+
+# Ignore the rust target dir
+Externals/SlippiRustExtensions/target/

@@ -98,7 +98,7 @@ u8 SlotToEXIDevice(Slot slot)
   }
 }
 
-void ExpansionInterfaceManager::Init(const Sram* override_sram)
+void ExpansionInterfaceManager::Init(const Sram* override_sram, const std::string current_file_name)
 {
   auto& sram = m_system.GetSRAM();
   if (override_sram)
@@ -133,7 +133,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
       Memcard::HeaderData header_data;
       Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
                                     sram_language, format_time + i);
-      m_channels[i] = std::make_unique<CEXIChannel>(m_system, i, header_data);
+      m_channels[i] = std::make_unique<CEXIChannel>(m_system, i, header_data, current_file_name);
     }
   }
 

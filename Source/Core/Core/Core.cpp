@@ -72,6 +72,7 @@
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Slippi/SlippiNetplay.h"
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
@@ -559,8 +560,9 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   AudioCommon::InitSoundStream(system);
   Common::ScopeGuard audio_guard([&system] { AudioCommon::ShutdownSoundStream(system); });
 
+  std::string current_file_name = std::get<BootParameters::Disc>(boot->parameters).path;
   HW::Init(system,
-           NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
+           NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr, current_file_name);
 
   Common::ScopeGuard hw_guard{[&system] {
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
@@ -703,6 +705,10 @@ void SetState(Core::System& system, State state, bool report_state_change,
   if (s_state.load() != State::Running)
     return;
 
+  // Do not allow any kind of cpu pause/resume if we are connected to someone on slippi
+  if (IsOnline())
+    return;
+
   switch (state)
   {
   case State::Paused:
@@ -782,6 +788,8 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
+  if (IsOnline())
+    return;
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
   g_frame_dumper->SaveScreenshot(GenerateScreenshotName());
 }

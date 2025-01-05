@@ -343,6 +343,7 @@
         <item>@string/aspect_ratio_force_sixteen_by_nine</item>
         <item>@string/aspect_ratio_force_four_by_three</item>
         <item>@string/aspect_ratio_stretch</item>
+        <item>@string/aspect_ratio_melee</item>
     </string-array>
     <integer-array name="aspectRatioValues">
         <item>0</item>

@@ -17,6 +17,7 @@
 #include "DolphinQt/Settings/GeneralPane.h"
 #include "DolphinQt/Settings/InterfacePane.h"
 #include "DolphinQt/Settings/PathPane.h"
+#include "DolphinQt/Settings/SlippiPane.h"
 #include "DolphinQt/Settings/WiiPane.h"
 
 #include "Core/Core.h"
@@ -35,6 +36,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   layout->addWidget(m_tab_widget);
 
   m_tab_widget->addTab(GetWrappedWidget(new GeneralPane, this, 125, 100), tr("General"));
+  m_tab_widget->addTab(GetWrappedWidget(new SlippiPane, this, 125, 200), tr("Slippi"));
   m_tab_widget->addTab(GetWrappedWidget(new InterfacePane, this, 125, 100), tr("Interface"));
   m_tab_widget->addTab(GetWrappedWidget(new AudioPane, this, 125, 100), tr("Audio"));
   m_tab_widget->addTab(GetWrappedWidget(new PathPane, this, 125, 100), tr("Paths"));

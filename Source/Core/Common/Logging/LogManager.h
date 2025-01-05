@@ -38,6 +38,7 @@ public:
   static void Init();
   static void Shutdown();
 
+  void LogPreformatted(LogLevel level, LogType type, const char* msg);
   void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
   void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
                        const char* message);
@@ -65,6 +66,7 @@ private:
     const char* m_short_name;
     const char* m_full_name;
     bool m_enable = false;
+    bool m_is_rust_log = false;
   };
 
   LogManager();

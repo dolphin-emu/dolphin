@@ -1,0 +1,389 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "801BFA20",
+   "Name": "General",
+   "Codetype": "Auto",
+   "Annotation": "External/Boot to CSS/Boot To CSS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EE98",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EDDC",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80164B14",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801648F4",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EE4C",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015EE14",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D968",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D9D8",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8017229C",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801737B0",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80164658",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801644E8",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8030490C",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803044F0",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A48",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A4C",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A50",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A60",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A78",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D94C",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8015D984",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016B480",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801B0A14",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802641B0",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80397878",
+   "Name": "General",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801AF6F4",
+   "Name": "General",
+   "Codetype": "Auto",
+   "Annotation": "External/Skip Memcard Prompt/Skip Memcard Prompt.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8025B8BC",
+   "Name": "General",
+   "Codetype": "Auto",
+   "Annotation": "External/LRAStart From SSS Goes to CSS/LRAStart From SSS Goes to CSS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803D4A70",
+   "Name": "General",
+   "Codetype": "Auto",
+   "Annotation": "External/Rumble Off/Rumble Off.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800679BC",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/ExtendPlayerBlock.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803219EC",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/FlushFrameBuffer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016D884",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGameEnd.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016E74C",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGameInfo.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006DA34",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGamePostFrame.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006B0E0",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGamePreFrame.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005604",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/ShouldRecord.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8008D698",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/GetLCancelStatus/GetLCancelStatus.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006C324",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/GetLCancelStatus/ResetLCancelStatus.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4CB4",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/AllocBuffer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800055F8",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/GetIsFollower.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8016D294",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/IncrementFrameIndex.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801D460C",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/GetPreloadedTransition.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D14C8",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/Init isLoaded Bool.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D45EC",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/Load Transformation.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D4F14",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/Reset isLoaded.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D4610",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/SkipNormalDecision1.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D4724",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Core/SkipNormalDecision2.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "804DEC18",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Preload Stadium Transformations/Toggle/PsPreloadToggleEnable.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801C154C",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Initialize Stage Data/Init Stage Data.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80068EEC",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Initialize Player Data/Init Player Data.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800055F0",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/EXITransferBuffer/EXITransferBuffer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800055FC",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/Gecko/ProcessCodeList.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80005600",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/ConsoleOverrides/SetGeckoStart.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800AC5B8",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/NanaDeterminism/NanaDeterminism.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D24FC",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Common/PSCameraIndependentMonitor/PSCameraIndependentMonitor.asm",
+   "Tags": "[affects-gameplay]"
+  }
+ ]
+}

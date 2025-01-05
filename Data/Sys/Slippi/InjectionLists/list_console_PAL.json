@@ -1,0 +1,81 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "80068F30",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Character DAT Patcher.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802F9A3C",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/PAL Stock Icons.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8010FC44",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/DK_AerialUpB.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8010FB64",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/DK_GroundedUpB.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800796E0",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/DetectionHitboxes.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801239A8",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/ICs_FreezeGlitch.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803CE4D4",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/Samus_BombJump.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802B7E54",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/Samus_Extender1.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802B808C",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Core/Additional/Samus_Extender2.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80266978",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Indicators/PAL CSS Indicator.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DEC14",
+   "Name": "PAL Toggle",
+   "Codetype": "Auto",
+   "Annotation": "External/PAL/Toggle/PALToggleEnable.asm",
+   "Tags": ""
+  }
+ ]
+}

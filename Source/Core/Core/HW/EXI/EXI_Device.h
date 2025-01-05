@@ -41,7 +41,7 @@ enum class EXIDeviceType : int
   EthernetXLink,
   EthernetTapServer,
   EthernetBuiltIn,
-  ModemTapServer,
+  Slippi,
   None = 0xFF
 };
 
@@ -83,17 +83,16 @@ private:
 
 std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, EXIDeviceType device_type,
                                              int channel_num,
-                                             const Memcard::HeaderData& memcard_header_data);
+                                             const Memcard::HeaderData& memcard_header_data,
+                                             const std::string current_file_name);
 }  // namespace ExpansionInterface
 
 template <>
 struct fmt::formatter<ExpansionInterface::EXIDeviceType>
-    : EnumFormatter<ExpansionInterface::EXIDeviceType::ModemTapServer>
+    : EnumFormatter<ExpansionInterface::EXIDeviceType::Slippi>
 {
   static constexpr array_type names = {
-      _trans("Dummy"),
-      _trans("Memory Card"),
-      _trans("Mask ROM"),
+      _trans("Dummy"), _trans("Memory Card"), _trans("Mask ROM"),
       // i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
       _trans("AD16"),
       _trans("Microphone"),
@@ -106,6 +105,7 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
       _trans("Broadband Adapter (tapserver)"),
       _trans("Broadband Adapter (HLE)"),
       _trans("Modem Adapter (tapserver)"),
+      _trans("Slippi"),
   };
 
   constexpr formatter() : EnumFormatter(names) {}

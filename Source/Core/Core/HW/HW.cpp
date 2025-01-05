@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <string>
+
 #include "Core/HW/HW.h"
 
 #include "Common/ChunkFile.h"
@@ -30,7 +32,7 @@
 
 namespace HW
 {
-void Init(Core::System& system, const Sram* override_sram)
+void Init(Core::System& system, const Sram* override_sram, const std::string current_file_name)
 {
   system.GetCoreTiming().Init();
   system.GetSystemTimers().PreInit();
@@ -42,7 +44,7 @@ void Init(Core::System& system, const Sram* override_sram)
   system.GetVideoInterface().Init();
   system.GetSerialInterface().Init();
   system.GetProcessorInterface().Init();
-  system.GetExpansionInterface().Init(override_sram);  // Needs to be initialized before Memory
+  system.GetExpansionInterface().Init(override_sram, current_file_name);  // Needs to be initialized before Memory
   system.GetHSP().Init();
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
@@ -70,6 +72,7 @@ void Shutdown(Core::System& system)
   system.GetCPU().Shutdown();
   system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();
+  system.GetExpansionInterface().Shutdown();
   system.GetMemoryInterface().Shutdown();
   AddressSpace::Shutdown();
   system.GetMemory().Shutdown();
