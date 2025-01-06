@@ -356,7 +356,10 @@ protected:
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   void GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out);
-  void SetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg in, bool negate = false);
+  // This assumes that all bits except for bit 0 (LSB) are set to 0. But if bits_1_to_31_are_set
+  // equals true, it instead assumes that all of bits 1 to 31 are set.
+  void SetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg in, bool negate = false,
+                     bool bits_1_to_31_are_set = false);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
   void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
