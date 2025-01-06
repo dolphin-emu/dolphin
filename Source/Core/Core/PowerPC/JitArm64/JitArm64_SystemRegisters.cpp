@@ -635,8 +635,11 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     }
   }
 
-  // crnor or crnand
-  const bool negate_result = inst.SUBOP10 == 33 || inst.SUBOP10 == 225;
+  const u32 crbd_bit = 3 - (inst.CRBD & 3);
+  // crnor, crnand and sometimes creqv
+  const bool negate_result =
+      inst.SUBOP10 == 33 || inst.SUBOP10 == 225 ||
+      (inst.SUBOP10 == 289 && (crbd_bit == PowerPC::CR_EQ_BIT || crbd_bit == PowerPC::CR_GT_BIT));
   bool bits_1_to_31_are_set = false;
 
   auto WA = gpr.GetScopedReg();
@@ -665,8 +668,17 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case 289:  // creqv: ~(A ^ B) = A ^ ~B
-      EON(WA, WA, WB);
-      bits_1_to_31_are_set = true;
+      // Both of these two implementations are equally correct, but which one is more efficient
+      // depends on which bit we're going to set in CRBD
+      if (negate_result)
+      {
+        EOR(XA, XA, XB);
+      }
+      else
+      {
+        EON(WA, WA, WB);
+        bits_1_to_31_are_set = true;
+      }
       break;
 
     case 33:   // crnor: ~(A || B)
