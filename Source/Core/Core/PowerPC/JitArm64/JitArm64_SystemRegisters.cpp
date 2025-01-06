@@ -153,7 +153,7 @@ void JitArm64::FixGTBeforeSettingCRFieldBit(ARM64Reg reg)
   // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
   auto WA = gpr.GetScopedReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ORR(XA, reg, LogicalImm(1ULL << 63, GPRSize::B64));
+  MOVI2R(XA, 1ULL << 63);
   CMP(reg, ARM64Reg::ZR);
   CSEL(reg, reg, XA, CC_NEQ);
 }
