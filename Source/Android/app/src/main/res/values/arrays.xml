@@ -223,6 +223,18 @@
         <item>5</item>
     </integer-array>
 
+    <!-- Emulated camera -->
+    <string-array name="emulatedCameraEntries">
+        <item>@string/disabled</item>
+        <item>Duel Scanner</item>
+        <item>Motion Tracking Camera</item>
+    </string-array>
+    <integer-array name="emulatedCameraValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries">
         <item>@string/accuracy_fast</item>

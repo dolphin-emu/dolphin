@@ -21,6 +21,7 @@ class AchievementsWindow;
 class AssemblerWidget;
 class BreakpointWidget;
 struct BootParameters;
+class CameraWindow;
 class CheatsManager;
 class CodeWidget;
 class ControllersWindow;
@@ -171,6 +172,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
+  void ShowCameraWindow();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowMemcardManager();
@@ -243,6 +245,7 @@ private:
   SettingsWindow* m_settings_window = nullptr;
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
+  CameraWindow* m_camera_window = nullptr;
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;

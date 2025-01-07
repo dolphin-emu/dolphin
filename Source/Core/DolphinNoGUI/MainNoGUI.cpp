@@ -139,6 +139,14 @@ void Host_TitleChanged()
 #endif
 }
 
+void Host_CameraStart(u16 width, u16 height)
+{
+}
+
+void Host_CameraStop()
+{
+}
+
 void Host_UpdateDiscordClientID(const std::string& client_id)
 {
 #ifdef USE_DISCORD_PRESENCE

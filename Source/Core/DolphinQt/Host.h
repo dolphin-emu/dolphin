@@ -44,6 +44,8 @@ signals:
   void JitProfileDataWiped();
   void PPCSymbolsChanged();
   void PPCBreakpointsChanged();
+  void CameraStart(u16 width, u16 height);
+  void CameraStop();
 
 private:
   Host();

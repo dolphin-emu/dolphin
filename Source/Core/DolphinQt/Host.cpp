@@ -307,6 +307,16 @@ void Host_TitleChanged()
 #endif
 }
 
+void Host_CameraStart(u16 width, u16 height)
+{
+  QueueOnObject(QApplication::instance(), [=] { emit Host::GetInstance()->CameraStart(width, height); });
+}
+
+void Host_CameraStop()
+{
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->CameraStop(); });
+}
+
 void Host_UpdateDiscordClientID(const std::string& client_id)
 {
 #ifdef USE_DISCORD_PRESENCE
