@@ -40,6 +40,8 @@ add_executable(dolphin-emu
   Achievements/AchievementSettingsWidget.h
   Achievements/AchievementsWindow.cpp
   Achievements/AchievementsWindow.h
+  CameraQt/CameraQt.cpp
+  CameraQt/CameraQt.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
