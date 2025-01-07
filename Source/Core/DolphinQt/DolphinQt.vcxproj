@@ -187,6 +187,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MarioPartyNetplay/DownloadUpdateDialog.cpp" />
+    <ClCompile Include="MarioPartyNetplay/DownloadWorker.cpp" />    
     <ClCompile Include="MarioPartyNetplay/InstallUpdateDialog.cpp" />
     <ClCompile Include="MarioPartyNetplay/UpdateDialog.cpp" />
     <ClCompile Include="MenuBar.cpp" />
@@ -405,6 +406,7 @@
     <QtMoc Include="InfinityBase/InfinityBaseWindow.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MarioPartyNetplay/DownloadUpdateDialog.h" />
+    <QtMoc Include="MarioPartyNetplay/DownloadWorker.h" />
     <QtMoc Include="MarioPartyNetplay/InstallUpdateDialog.h" />
     <QtMoc Include="MarioPartyNetplay/UpdateDialog.h" />
     <QtMoc Include="MenuBar.h" />

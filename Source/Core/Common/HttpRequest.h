@@ -28,6 +28,11 @@ public:
   // Return false to abort the request
   using ProgressCallback = std::function<bool(s64 dltotal, s64 dlnow, s64 ultotal, s64 ulnow)>;
 
+  void SetProgressCallback(ProgressCallback callback) {
+      m_callback = std::move(callback);
+  }
+
+
   explicit HttpRequest(std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{3000},
                        ProgressCallback callback = nullptr);
   ~HttpRequest();
@@ -62,5 +67,6 @@ public:
 private:
   class Impl;
   std::unique_ptr<Impl> m_impl;
+  ProgressCallback m_callback;
 };
 }  // namespace Common

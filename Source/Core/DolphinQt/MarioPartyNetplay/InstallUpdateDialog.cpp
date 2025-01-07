@@ -9,21 +9,26 @@
 #include <QDir>
 #include <QTextStream>
 #include <QVBoxLayout>
+#include <QDialog>
 #include <QLabel>
 #include <QProgressBar>
 #include <QMessageBox>
-#include <mz_compat.h>
+#include "Common/MinizipUtil.h"
+#include <Common/Logging/Log.h>
 
 // Constructor implementation
 InstallUpdateDialog::InstallUpdateDialog(QWidget *parent, QString installationDirectory, QString temporaryDirectory, QString filename)
-    : DownloadUpdateDialog(parent, QUrl(), filename),
+    : QDialog(parent), // Only pass the parent
       installationDirectory(installationDirectory),
-      temporaryDirectory(temporaryDirectory)
+      temporaryDirectory(temporaryDirectory),
+      filename(filename) // Initialize member variables
 {
+    setWindowTitle(QStringLiteral("Installing %1...").arg(this->filename));
+    
     // Create UI components
     QVBoxLayout* layout = new QVBoxLayout(this);
-    QLabel* label = new QLabel(QStringLiteral("Installing %1...").arg(this->filename), this);
-    QProgressBar* progressBar = new QProgressBar(this);
+    label = new QLabel(QStringLiteral("Installing %1...").arg(this->filename), this);
+    progressBar = new QProgressBar(this);
 
     // Set up the layout
     layout->addWidget(label);
@@ -41,7 +46,7 @@ InstallUpdateDialog::~InstallUpdateDialog(void)
 
 void InstallUpdateDialog::install(void)
 {
-    QString fullFilePath = this->temporaryDirectory + QStringLiteral("/") + this->filename;   
+  QString fullFilePath = QCoreApplication::applicationDirPath() + QStringLiteral("/") + this->filename;
     QString appPath = QCoreApplication::applicationDirPath();
     QString appPid  = QString::number(QCoreApplication::applicationPid());
 
@@ -76,21 +81,28 @@ void InstallUpdateDialog::install(void)
     this->label->setText(QStringLiteral("Extracting %1...").arg(this->filename));
     this->progressBar->setValue(50);
 
+    QString extractDirectory = this->temporaryDirectory + QDir::separator() + QStringLiteral("Dolphin-MPN");
+
+    // Ensure the extract directory exists before attempting to unzip
     QDir dir(this->temporaryDirectory);
-    if (!dir.mkdir(QStringLiteral("extract")))
+    if (!QDir(extractDirectory).exists())
     {
-        QMessageBox::critical(this, QStringLiteral("Error"), QStringLiteral("Failed to create extract directory."));
+      if (!dir.mkdir(QStringLiteral("Dolphin-MPN")))
+      {
+        QMessageBox::critical(this, QStringLiteral("Error"),
+                              QStringLiteral("Failed to create extract directory."));
         this->reject();
         return;
+      }
     }
 
-    QString extractDirectory = this->temporaryDirectory + QStringLiteral("/extract");
-
+    // Attempt to unzip files into the extract directory
     if (!unzipFile(fullFilePath.toStdString(), extractDirectory.toStdString()))
     {
-        QMessageBox::critical(this, QStringLiteral("Error"), QStringLiteral("Unzip failed: Unable to extract files."));
-        this->reject();
-        return;
+      QMessageBox::critical(this, QStringLiteral("Error"),
+                            QStringLiteral("Unzip failed: Unable to extract files."));
+      this->reject();
+      return;
     }
 
     this->label->setText(QStringLiteral("Executing update script..."));
@@ -122,64 +134,65 @@ void InstallUpdateDialog::install(void)
 
 bool InstallUpdateDialog::unzipFile(const std::string& zipFilePath, const std::string& destDir)
 {
-    unzFile zipFile = unzOpen(zipFilePath.c_str());
-    if (!zipFile)
-    {
-        return false; // Failed to open zip file
-    }
+  unzFile zipFile = unzOpen(zipFilePath.c_str());
+  if (!zipFile)
+  {
+    return false;  // Failed to open zip file
+  }
 
-    if (unzGoToFirstFile(zipFile) != UNZ_OK)
-    {
-        unzClose(zipFile);
-        return false; // No files in zip
-    }
-
-    do
-    {
-        char filename[256];
-        unz_file_info fileInfo;
-        if (unzGetCurrentFileInfo(zipFile, &fileInfo, filename, sizeof(filename), nullptr, 0, nullptr, 0) != UNZ_OK)
-        {
-            unzClose(zipFile);
-            return false; // Failed to get file info
-        }
-
-        // Create full path for the extracted file using std::string concatenation
-        std::string fullPath = destDir + "/" + std::string(filename);
-
-        // Create directories if needed
-        QString qFullPath = QString::fromStdString(fullPath);
-        QDir().mkpath(QFileInfo(qFullPath).path());
-
-        // Open the file in the zip
-        if (unzOpenCurrentFile(zipFile) != UNZ_OK)
-        {
-            unzClose(zipFile);
-            return false; // Failed to open file in zip
-        }
-
-        // Write the file to disk
-        QFile outFile(qFullPath);
-        if (!outFile.open(QIODevice::WriteOnly))
-        {
-            unzCloseCurrentFile(zipFile);
-            unzClose(zipFile);
-            return false; // Failed to create output file
-        }
-
-        char buffer[8192];
-        int bytesRead;
-        while ((bytesRead = unzReadCurrentFile(zipFile, buffer, sizeof(buffer))) > 0)
-        {
-            outFile.write(buffer, bytesRead);
-        }
-
-        outFile.close();
-        unzCloseCurrentFile(zipFile);
-    } while (unzGoToNextFile(zipFile) == UNZ_OK);
-
+  if (unzGoToFirstFile(zipFile) != UNZ_OK)
+  {
     unzClose(zipFile);
-    return true; // Successfully unzipped all files
+    return false;  // No files in zip
+  }
+
+  do
+  {
+    char filename[256];
+    unz_file_info fileInfo;
+    if (unzGetCurrentFileInfo(zipFile, &fileInfo, filename, sizeof(filename), nullptr, 0, nullptr,
+                              0) != UNZ_OK)
+    {
+      unzClose(zipFile);
+      return false;  // Failed to get file info
+    }
+
+    // Create full path for the extracted file
+    std::string fullPath = destDir + "/" + std::string(filename);
+    QString qFullPath = QString::fromStdString(fullPath);
+
+    // Handle directories
+    if (filename[std::strlen(filename) - 1] == '/')
+    {
+      QDir().mkpath(qFullPath);
+      continue;
+    }
+
+    // Ensure the directory structure exists
+    QDir().mkpath(QFileInfo(qFullPath).path());
+
+    // Prepare a buffer to store file data
+    std::vector<u8> fileData(fileInfo.uncompressed_size);
+    if (!Common::ReadFileFromZip(zipFile, &fileData))
+    {
+      unzClose(zipFile);
+      return false;  // Failed to read file from zip
+    }
+
+    // Write the file data to disk
+    QFile outFile(qFullPath);
+    if (!outFile.open(QIODevice::WriteOnly))
+    {
+      unzClose(zipFile);
+      return false;  // Failed to create output file
+    }
+
+    outFile.write(reinterpret_cast<const char*>(fileData.data()), fileData.size());
+    outFile.close();
+  } while (unzGoToNextFile(zipFile) == UNZ_OK);
+
+  unzClose(zipFile);
+  return true;  // Successfully unzipped all files
 }
 
 void InstallUpdateDialog::writeAndRunScript(QStringList stringList)

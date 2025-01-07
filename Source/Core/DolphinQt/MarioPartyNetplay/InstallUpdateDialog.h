@@ -3,7 +3,6 @@
 *  Copyright (C) 2025 Tabitha Hanegan <tabithahanegan.com>
 */
 
-#include "DownloadUpdateDialog.h"
 #include <QDialog>
 #include <QString>
 #include <QLabel>
@@ -16,7 +15,7 @@ class QLabel;
 class QProgressBar;
 QT_END_NAMESPACE
 
-class InstallUpdateDialog : public DownloadUpdateDialog
+class InstallUpdateDialog : public QDialog 
 {
     Q_OBJECT
 

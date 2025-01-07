@@ -4,38 +4,60 @@
 */
 
 #include "DownloadUpdateDialog.h"
+#include "InstallUpdateDialog.h"
 #include <QMessageBox>
 #include <QFile>
 #include <QVBoxLayout>
+#include <QCoreApplication>
+#include <QDir>
+#include <QString>
 #include <QLabel>
-#include <curl/curl.h>
-#include <iostream>
-
-// Callback function for libcurl to write data
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
-{
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
+#include <QThread>
+#include "DownloadWorker.h"
 
 // Constructor implementation
-DownloadUpdateDialog::DownloadUpdateDialog(QWidget* parent, const QUrl& url, const QString& filename)
+DownloadUpdateDialog::DownloadUpdateDialog(QWidget* parent, const QString& url, const QString& filename)
     : QDialog(parent), filename(filename)
 {
     // Create UI components
+    setWindowTitle(QStringLiteral("Downloading %1").arg(this->filename));
     QVBoxLayout* layout = new QVBoxLayout(this);
+    
+    // Create and add label
     QLabel* label = new QLabel(QStringLiteral("Downloading %1...").arg(this->filename), this);
-    progressBar = new QProgressBar(this);
-
-    // Set up the layout
     layout->addWidget(label);
+    
+    // Create and add progress bar
+    progressBar = new QProgressBar(this);
     layout->addWidget(progressBar);
-
+    
     // Set the layout for the dialog
     setLayout(layout);
+    
+    // Set a minimum size for the dialog
+    setMinimumSize(300, 100); // Adjust size as needed
 
-    // Start the download
-    startDownload(url);
+    // Create the worker and thread
+    DownloadWorker* worker = new DownloadWorker(url, filename);
+    QThread* thread = new QThread;
+
+    // Move the worker to the thread
+    worker->moveToThread(thread);
+
+    // Connect signals and slots
+    connect(thread, &QThread::started, worker, &DownloadWorker::startDownload, Qt::UniqueConnection);
+    connect(worker, &DownloadWorker::progressUpdated, this, &DownloadUpdateDialog::updateProgress, Qt::UniqueConnection);
+    connect(worker, &DownloadWorker::finished, thread, &QThread::quit, Qt::UniqueConnection);
+    connect(worker, &DownloadWorker::finished, worker, &DownloadWorker::deleteLater, Qt::UniqueConnection);
+    connect(worker, &DownloadWorker::finished, this, &DownloadUpdateDialog::onDownloadFinished, Qt::UniqueConnection);
+    connect(worker, &DownloadWorker::finished, this, &DownloadUpdateDialog::accept, Qt::UniqueConnection);
+    connect(worker, &DownloadWorker::errorOccurred, this, &DownloadUpdateDialog::handleError, Qt::UniqueConnection);
+    connect(thread, &QThread::finished, thread, &QThread::deleteLater, Qt::UniqueConnection);
+
+    // Start the thread
+    thread->start();
+
+    this->exec(); // Show the dialog
 }
 
 // Destructor implementation
@@ -43,74 +65,36 @@ DownloadUpdateDialog::~DownloadUpdateDialog()
 {
 }
 
-// Returns the temporary directory
-QString DownloadUpdateDialog::GetTempDirectory() const
+// Handle errors
+void DownloadUpdateDialog::handleError(const QString& errorMsg)
 {
-    return temporaryDirectory;
+    QMessageBox::critical(this, tr("Error"), errorMsg);
+    reject();
 }
 
-// Returns the filename
-QString DownloadUpdateDialog::GetFileName() const
+void DownloadUpdateDialog::onDownloadFinished()
 {
-    return filename;
+    // Use QCoreApplication to get the application's directory path
+    #ifdef _WIN32
+    installationDirectory = QCoreApplication::applicationDirPath(); // Set the installation directory
+    #endif
+    #ifdef __APPLE__
+    installationDirectory = QCoreApplication::applicationDirPath() + "/../../"
+#endif
+
+    // Use QStandardPaths to get the system's temporary directory
+    temporaryDirectory = QDir::tempPath();
+
+    InstallUpdateDialog* installDialog =
+        new InstallUpdateDialog(this, installationDirectory, temporaryDirectory, this->filename);
+    installDialog->exec(); // Show the installation dialog modally
+
+    accept();
 }
 
-// Update the progress bar
 void DownloadUpdateDialog::updateProgress(qint64 size, qint64 total)
 {
     progressBar->setMaximum(total);
     progressBar->setMinimum(0);
     progressBar->setValue(size);
-}
-
-// Starts the download process
-void DownloadUpdateDialog::startDownload(const QUrl& url)
-{
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
-
-    curl = curl_easy_init();
-    if (curl)
-    {
-        // Convert QUrl to std::string properly
-        std::string urlStr = url.toString().toStdString();
-        curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        
-        // Set the progress function
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, [](void* clientp, double totalToDownload, double nowDownloaded, double totalToUpload, double nowUploaded) {
-            DownloadUpdateDialog* dialog = static_cast<DownloadUpdateDialog*>(clientp);
-            dialog->updateProgress(static_cast<qint64>(nowDownloaded), static_cast<qint64>(totalToDownload));
-            return 0; // Return 0 to continue the download
-        });
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, this);
-
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK)
-        {
-            // Use QString::fromStdString() for proper string conversion
-            QString errorMsg = QString::fromStdString(std::string(curl_easy_strerror(res)));
-            QMessageBox::critical(this, tr("Error"), tr("Failed to download update file: %1").arg(errorMsg));
-            reject();
-        }
-        else
-        {
-            QFile file(filename);
-            if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-            {
-                QMessageBox::critical(this, tr("Error"), tr("Failed to open file for writing."));
-                reject();
-            }
-            else
-            {
-                file.write(readBuffer.c_str(), readBuffer.size());
-                file.close();
-                accept();
-            }
-        }
-        curl_easy_cleanup(curl);
-    }
 }

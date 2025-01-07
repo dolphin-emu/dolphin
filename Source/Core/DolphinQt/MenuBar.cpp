@@ -620,25 +620,30 @@ void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
 
-  QAction* website = help_menu->addAction(tr("&Website"));
-
-  QAction* updaterCheck = help_menu->addAction(tr("Check For &Updates"));
-  connect(updaterCheck, &QAction::triggered, this, &MenuBar::ShowUpdateDialog);
-
+  QAction* website = help_menu->addAction(tr("&Dolphin Website"));
   connect(website, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
-  QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
-  connect(documentation, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
-  });
+  help_menu->addSeparator();
+  QAction* discord = help_menu->addAction(tr("&MPN Discord"));
+  connect(discord, &QAction::triggered, this,
+          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.gg/marioparty/"))); });
   QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/MarioPartyNetplay/Dolphin-MPN")));
   });
+  QAction* documentation = help_menu->addAction(tr("&How-to Netplay"));
+  connect(documentation, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(
+        QUrl(QStringLiteral("https://rentry.org/mario-party-netplay-gcn-wii")));
+  });
+
 
 #ifndef __APPLE__
   help_menu->addSeparator();
 #endif
+
+  QAction* updaterCheck = help_menu->addAction(tr("Check For &Updates"));
+  connect(updaterCheck, &QAction::triggered, this, &MenuBar::ShowUpdateDialog);
 
   help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
 }

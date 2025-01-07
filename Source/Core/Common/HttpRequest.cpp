@@ -112,9 +112,13 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::strin
 int HttpRequest::Impl::CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
                                             curl_off_t ultotal, curl_off_t ulnow)
 {
-  // Abort if callback isn't true
-  return !impl->m_callback(static_cast<s64>(dltotal), static_cast<s64>(dlnow),
-                           static_cast<s64>(ultotal), static_cast<s64>(ulnow));
+    // Call the progress callback with the current download progress
+    if (impl->m_callback)
+    {
+        return !impl->m_callback(static_cast<s64>(dltotal), static_cast<s64>(dlnow),
+                                 static_cast<s64>(ultotal), static_cast<s64>(ulnow));
+    }
+    return 0; // If no callback, continue
 }
 
 HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback)

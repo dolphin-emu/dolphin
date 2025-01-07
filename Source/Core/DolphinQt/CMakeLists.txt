@@ -276,6 +276,8 @@ add_executable(dolphin-mpn
   MainWindow.h
   MarioPartyNetplay/DownloadUpdateDialog.cpp
   MarioPartyNetplay/DownloadUpdateDialog.h
+  MarioPartyNetplay/DownloadWorker.cpp
+  MarioPartyNetplay/Downloadworker.h
   MarioPartyNetplay/InstallUpdateDialog.cpp
   MarioPartyNetplay/InstallUpdateDialog.h
   MarioPartyNetplay/UpdateDialog.cpp

@@ -6,7 +6,7 @@
 
 #include <QDialog>
 #include <QJsonObject>
-#include <QUrl>
+#include <QString>
 
 class QLabel;
 class QTextEdit;
@@ -24,7 +24,7 @@ class UpdateDialog : public QDialog
 private:
     QJsonObject jsonObject;
     QString filename;
-    QUrl url;
+    QString url;
 
     // UI elements
     QLabel* label;
@@ -38,12 +38,9 @@ private:
 public:
     explicit UpdateDialog(QWidget *parent, QJsonObject jsonObject, bool forced);
     ~UpdateDialog();
-
-    QString GetFileName();
-    QUrl GetUrl();
-
+    
 private slots:
-    void accept() override;
+    void accept(void) Q_DECL_OVERRIDE;
 };
 
 } // namespace Dialog

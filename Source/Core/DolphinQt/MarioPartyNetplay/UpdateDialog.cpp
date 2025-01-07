@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QPushButton>
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QDesktopServices>
 #include <QTemporaryDir>
 #include <QFile>
@@ -16,9 +17,11 @@
 #include <QProcess>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QWidget>
 #include <QLabel>
 #include <QTextEdit>
 #include <QDialogButtonBox>
+#include "../../Common/Logging/Log.h"
 
 using namespace UserInterface::Dialog;
 
@@ -62,51 +65,43 @@ UpdateDialog::~UpdateDialog()
 {
 }
 
-QString UpdateDialog::GetFileName()
-{
-    return this->filename;
-}
-
-QUrl UpdateDialog::GetUrl()
-{
-    return this->url;
-}
-
 void UpdateDialog::accept()
 {
     QJsonArray jsonArray = jsonObject[QStringLiteral("assets")].toArray();
     QString filenameToDownload;
-    QUrl urlToDownload;
+    QString urlToDownload;
 
     for (const QJsonValue& value : jsonArray)
     {
         QJsonObject object = value.toObject();
 
-        QString filename = object.value(QStringLiteral("name")).toString();
-        QUrl url(object.value(QStringLiteral("browser_download_url")).toString());
+        QString filenameBlob = object.value(QStringLiteral("name")).toString();
+        QString downloadUrl(object.value(QStringLiteral("browser_download_url")).toString());
 
-        if (QSysInfo::productType() == QStringLiteral("windows")) {
-            if (filename.contains(QStringLiteral("win32")) || 
-                filename.contains(QStringLiteral("windows")) || 
-                filename.contains(QStringLiteral("win64")))
-            {
-                filenameToDownload = filename;
-                urlToDownload = url;
-                break;
-            }
+        #ifdef _WIN32
+        if (filenameBlob.contains(QStringLiteral("win32")) || 
+            filenameBlob.contains(QStringLiteral("windows")) || 
+            filenameBlob.contains(QStringLiteral("win64")))
+        {
+            filenameToDownload = filenameBlob;
+            urlToDownload = downloadUrl;
+            break;
         }
-        else if (QSysInfo::productType() == QStringLiteral("macos")) {
-            if (filename.contains(QStringLiteral("darwin")) || 
-                filename.contains(QStringLiteral("macOS")))
-            {
-                filenameToDownload = filename;
-                urlToDownload = url;
-                break;
-            }
+        #endif
+        #ifdef __APPLE__
+        if (filenameBlob.contains(QStringLiteral("darwin")) || 
+            filenameBlob.contains(QStringLiteral("macOS")))
+        {
+            filenameToDownload = filenameBlob;
+            urlToDownload = downloadUrl;
+            break;
         }
+        #endif
     }
 
     this->url = urlToDownload;
     this->filename = filenameToDownload;
     QDialog::accept();
+
+    DownloadUpdateDialog downloadDialog(this, urlToDownload, filenameToDownload);
 }

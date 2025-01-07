@@ -6,7 +6,6 @@
 #pragma once
 
 #include <QDialog>
-#include <QUrl>
 #include <QString>
 #include <QProgressBar>
 
@@ -15,17 +14,17 @@ class DownloadUpdateDialog : public QDialog
     Q_OBJECT
 
 public:
-    DownloadUpdateDialog(QWidget* parent, const QUrl& url, const QString& filename);
+    explicit DownloadUpdateDialog(QWidget* parent, const QString& url, const QString& filename);
     ~DownloadUpdateDialog();
 
-    QString GetTempDirectory() const;
-    QString GetFileName() const;
+public slots:
+    void updateProgress(qint64 size, qint64 total);
+    void handleError(const QString& errorMsg); // Ensure this is declared
+    void onDownloadFinished();
 
 private:
-    QString filename;              // Member variable for filename
-    QString temporaryDirectory;    // Member variable for temporary directory
-    QProgressBar* progressBar;    // Declare progressBar as a member variable
-
-    void startDownload(const QUrl& url);
-    void updateProgress(qint64 size, qint64 total); // Method to update progress
+    QString filename; // Ensure this is declared as a private member
+    QProgressBar* progressBar;
+    QString installationDirectory;
+    QString temporaryDirectory;
 };
