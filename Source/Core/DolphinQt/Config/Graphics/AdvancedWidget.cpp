@@ -185,11 +185,13 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(m_frame_dumps_resolution_type, 0, 1);
 
 #if defined(HAVE_FFMPEG)
-  m_dump_use_ffv1 =
-      new ConfigBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1, m_game_layer);
+  m_dump_use_lossless =
+      new ConfigBool(tr("Use Lossless Codec (Ut Video)"), Config::GFX_USE_LOSSLESS, m_game_layer);
+
   m_dump_bitrate = new ConfigInteger(0, 1000000, Config::GFX_BITRATE_KBPS, m_game_layer, 1000);
-  m_dump_bitrate->setEnabled(!m_dump_use_ffv1->isChecked());
-  dump_layout->addWidget(m_dump_use_ffv1, 1, 0);
+  m_dump_bitrate->setEnabled(!m_dump_use_lossless->isChecked());
+
+  dump_layout->addWidget(m_dump_use_lossless, 1, 0);
   dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 2, 0);
   dump_layout->addWidget(m_dump_bitrate, 2, 1);
 #endif
@@ -261,9 +263,8 @@ void AdvancedWidget::ConnectWidgets()
   });
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
           [this](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
-
 #if defined(HAVE_FFMPEG)
-  connect(m_dump_use_ffv1, &QCheckBox::toggled, this,
+  connect(m_dump_use_lossless, &QCheckBox::toggled, this,
           [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
 #endif
 }
@@ -391,8 +392,9 @@ void AdvancedWidget::AddDescriptions()
       "possible input for external editing software.<br><br><dolphin_emphasis>If unsure, leave "
       "this at \"Aspect Ratio Corrected Internal Resolution\".</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
-  static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
+  static const char TR_USE_LOSSLESS_DESCRIPTION[] =
+      QT_TR_NOOP("Encodes frame dumps using the Ut Video codec. If this option is unchecked, a "
+                 "lossy Xvid codec will be used.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
   static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
@@ -483,7 +485,7 @@ void AdvancedWidget::AddDescriptions()
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
   m_frame_dumps_resolution_type->SetDescription(tr(TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION));
 #ifdef HAVE_FFMPEG
-  m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
+  m_dump_use_lossless->SetDescription(tr(TR_USE_LOSSLESS_DESCRIPTION));
 #endif
   m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));

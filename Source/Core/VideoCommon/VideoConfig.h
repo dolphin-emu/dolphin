@@ -194,7 +194,7 @@ struct VideoConfig final
   bool bDumpEFBTarget = false;
   bool bDumpXFBTarget = false;
   bool bDumpFramesAsImages = false;
-  bool bUseFFV1 = false;
+  bool bUseLossless = false;
   std::string sDumpCodec;
   std::string sDumpPixelFormat;
   std::string sDumpEncoder;
