@@ -5,9 +5,6 @@
 
 #include <QDialog>
 #include <QString>
-#include <memory>
-
-#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {
@@ -15,6 +12,8 @@ class EmulatedController;
 }
 
 class InputConfig;
+class MappingButton;
+
 class QComboBox;
 class QDialogButtonBox;
 class QEvent;
@@ -58,9 +57,13 @@ public:
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
   void ConfigChanged();
-  // Emitted at 30hz for real-time indicators to be updated.
+  // Emitted at INDICATOR_UPDATE_FREQ Hz for real-time indicators to be updated.
   void Update();
   void Save();
+
+  void UnQueueInputDetection(MappingButton*);
+  void QueueInputDetection(MappingButton*);
+  void CancelMapping();
 
 private:
   void SetMappingType(Type type);
@@ -82,11 +85,11 @@ private:
   void UpdateProfileIndex();
   void UpdateProfileButtonState();
   void PopulateProfileSelection();
+  void UpdateDeviceList();
 
   void OnDefaultFieldsPressed();
   void OnClearFieldsPressed();
   void OnSelectDevice(int index);
-  void OnGlobalDevicesChanged();
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
 
