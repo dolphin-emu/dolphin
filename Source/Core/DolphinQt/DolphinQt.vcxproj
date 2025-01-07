@@ -186,6 +186,9 @@
     <ClCompile Include="InfinityBase/InfinityBaseWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="MarioPartyNetplay/DownloadUpdateDialog.cpp" />
+    <ClCompile Include="MarioPartyNetplay/InstallUpdateDialog.cpp" />
+    <ClCompile Include="MarioPartyNetplay/UpdateDialog.cpp" />
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="NetPlay\ChunkedProgressDialog.cpp" />
     <ClCompile Include="NetPlay\GameDigestDialog.cpp" />
@@ -401,6 +404,9 @@
     <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="InfinityBase/InfinityBaseWindow.h" />
     <QtMoc Include="MainWindow.h" />
+    <QtMoc Include="MarioPartyNetplay/DownloadUpdateDialog.h" />
+    <QtMoc Include="MarioPartyNetplay/InstallUpdateDialog.h" />
+    <QtMoc Include="MarioPartyNetplay/UpdateDialog.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="NetPlay\ChunkedProgressDialog.h" />
     <QtMoc Include="NetPlay\GameDigestDialog.h" />
@@ -481,6 +487,7 @@
   </ItemGroup>
   <Import Project="$(ExternalsDir)bzip2\exports.props" />
   <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
+  <Import Project="$(ExternalsDir)curl\exports.props" />
   <Import Project="$(ExternalsDir)discord-rpc\exports.props" />
   <Import Project="$(ExternalsDir)enet\exports.props" />
   <Import Project="$(ExternalsDir)fmt\exports.props" />
@@ -489,6 +496,7 @@
   <Import Project="$(ExternalsDir)liblzma\exports.props" />
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />
+  <Import Project="$(ExternalsDir)minizip-ng\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />

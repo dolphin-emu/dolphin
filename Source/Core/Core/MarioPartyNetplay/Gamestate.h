@@ -1,3 +1,8 @@
+/*
+*  Dolphin for Mario Party Netplay
+*  Copyright (C) 2025 Tabitha Hanegan <tabithahanegan.com>
+*/
+
 #ifndef MPN_GAMESTATE_H
 #define MPN_GAMESTATE_H
 

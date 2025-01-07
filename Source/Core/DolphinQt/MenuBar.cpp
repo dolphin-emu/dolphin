@@ -621,6 +621,10 @@ void MenuBar::AddHelpMenu()
   QMenu* help_menu = addMenu(tr("&Help"));
 
   QAction* website = help_menu->addAction(tr("&Website"));
+
+  QAction* updaterCheck = help_menu->addAction(tr("Check For &Updates"));
+  connect(updaterCheck, &QAction::triggered, this, &MenuBar::ShowUpdateDialog);
+
   connect(website, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
@@ -629,12 +633,7 @@ void MenuBar::AddHelpMenu()
   });
   QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
-  });
-  QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
-  connect(bugtracker, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(
-        QUrl(QStringLiteral("https://bugs.dolphin-emu.org/projects/emulator")));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/MarioPartyNetplay/Dolphin-MPN")));
   });
 
 #ifndef __APPLE__

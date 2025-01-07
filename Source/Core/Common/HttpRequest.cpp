@@ -239,10 +239,11 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   m_response_headers.clear();
   curl_easy_setopt(m_curl.get(), CURLOPT_POST, method == Method::POST);
   curl_easy_setopt(m_curl.get(), CURLOPT_URL, url.c_str());
+
   if (method == Method::POST && multiform.empty())
   {
-    curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDS, payload);
-    curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDSIZE, size);
+      curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDS, payload);
+      curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDSIZE, size);
   }
 
   curl_mime* form = nullptr;
@@ -271,6 +272,9 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
     else
       list = curl_slist_append(list, (name + ": " + *value).c_str());
   }
+  
+  list = curl_slist_append(list, "User-Agent: Dolphin-MPN/1.0");
+
   curl_easy_setopt(m_curl.get(), CURLOPT_HTTPHEADER, list);
 
   curl_easy_setopt(m_curl.get(), CURLOPT_HEADERFUNCTION, header_callback);

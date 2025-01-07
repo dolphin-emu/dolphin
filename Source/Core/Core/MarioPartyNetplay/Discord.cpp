@@ -1,3 +1,8 @@
+/*
+*  Dolphin for Mario Party Netplay
+*  Copyright (C) 2025 Tabitha Hanegan <tabithahanegan.com>
+*/
+
 #include "Discord.h"
 #include <Core/State.h>
 #include "Core/Config/NetplaySettings.h"
@@ -8,9 +13,6 @@
 
 bool mpn_update_discord()
 {
-  // if (!Memory::IsInitialized())
-  //   return false;
-
   DiscordRichPresence RichPresence = {};
 
   RichPresence.largeImageKey = CurrentState.Image ? CurrentState.Image : "default";

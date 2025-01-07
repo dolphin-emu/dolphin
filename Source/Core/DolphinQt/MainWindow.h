@@ -169,6 +169,7 @@ private:
   void ShowGraphicsWindow();
   void ShowFreeLookWindow();
   void ShowAboutDialog();
+  void ShowUpdateDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
   void ShowNetPlayBrowser();

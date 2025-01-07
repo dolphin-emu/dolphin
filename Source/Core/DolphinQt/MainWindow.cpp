@@ -17,6 +17,9 @@
 #include <QStyleHints>
 #include <QVBoxLayout>
 #include <QWindow>
+#include <QMessageBox>
+#include <QByteArray>
+#include <QJsonDocument>
 
 #include <fmt/format.h>
 
@@ -37,6 +40,9 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
+#include "Common/HttpRequest.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
@@ -101,6 +107,9 @@
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/InfinityBase/InfinityBaseWindow.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/MarioPartyNetplay/DownloadUpdateDialog.h"
+#include "DolphinQt/MarioPartyNetplay/InstallUpdateDialog.h"
+#include "DolphinQt/MarioPartyNetplay/UpdateDialog.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
@@ -601,6 +610,7 @@ void MainWindow::ConnectMenuBar()
           &GameList::OnGameListVisibilityChanged);
 
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
+  connect(m_menu_bar, &MenuBar::ShowUpdateDialog, this, &MainWindow::ShowUpdateDialog);
 
   connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
   connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
@@ -1318,6 +1328,35 @@ void MainWindow::ShowAboutDialog()
   AboutDialog about{this};
   SetQWidgetWindowDecorations(&about);
   about.exec();
+}
+
+void MainWindow::ShowUpdateDialog()
+{
+    Common::HttpRequest httpRequest;
+
+    // Make the GET request
+    auto response = httpRequest.Get("https://api.github.com/repos/MarioPartyNetplay/Dolphin-MPN/releases/latest");
+
+    if (response)
+    {
+        // Access the underlying vector and convert it to QByteArray
+        QByteArray responseData(reinterpret_cast<const char*>(response->data()), response->size());
+
+        // Parse the JSON response
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
+        QJsonObject jsonObject = jsonDoc.object();
+
+        // Create and show the UpdateDialog with the fetched data
+        bool forced = false; // Set this based on your logic
+        UserInterface::Dialog::UpdateDialog updater(this, jsonObject, forced);
+        SetQWidgetWindowDecorations(&updater);
+        updater.exec();
+    }
+    else
+    {
+        // Handle error
+        QMessageBox::critical(this, tr("Error"), tr("Failed to fetch update information."));
+    }
 }
 
 void MainWindow::ShowHotkeyDialog()
