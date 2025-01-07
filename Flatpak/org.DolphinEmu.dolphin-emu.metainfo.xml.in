@@ -46,4 +46,7 @@
   <url type="contact">https://dolphin-emu.org/docs/faq/#ive-got-idea-make-dolphin-better-how-should-i-tell</url>
   <url type="vcs-browser">https://github.com/dolphin-emu/dolphin</url>
   <url type="contribute">https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md</url>
+  <custom>
+    <value key="flathub::manifest">https://github.com/dolphin-emu/dolphin/blob/${DOLPHIN_WC_REVISION}/Flatpak/org.DolphinEmu.dolphin-emu.yml</value>
+  </custom>
 </component>
