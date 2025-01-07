@@ -68,6 +68,9 @@ void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
 
+void Host_CameraStart(u16 width, u16 height);
+void Host_CameraStop();
+
 void Host_UpdateDiscordClientID(const std::string& client_id = {});
 bool Host_UpdateDiscordPresenceRaw(const std::string& details = {}, const std::string& state = {},
                                    const std::string& large_image_key = {},
