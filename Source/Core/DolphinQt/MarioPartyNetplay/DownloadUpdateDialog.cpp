@@ -79,7 +79,7 @@ void DownloadUpdateDialog::onDownloadFinished()
     installationDirectory = QCoreApplication::applicationDirPath(); // Set the installation directory
     #endif
     #ifdef __APPLE__
-    installationDirectory = QCoreApplication::applicationDirPath() + QStringLiteral("/../../")
+    installationDirectory = QCoreApplication::applicationDirPath() + QStringLiteral("/../../");
     #endif
 
     // Use QStandardPaths to get the system's temporary directory
