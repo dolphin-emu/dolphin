@@ -622,7 +622,7 @@ if(APPLE)
   endforeach()
 
   include(DolphinInjectVersionInfo)
-  dolphin_inject_version_info(dolphin-emu)
+  dolphin_inject_version_info(dolphin-mpn)
 
   # Copy MoltenVK into the bundle
   if(ENABLE_VULKAN)
@@ -658,7 +658,7 @@ if(APPLE)
       COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
       "-e" "${CMAKE_CURRENT_SOURCE_DIR}/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements"
       "${MACOS_CODE_SIGNING_IDENTITY}"
-      "$<TARGET_BUNDLE_DIR:dolphin-emu>"
+      "$<TARGET_BUNDLE_DIR:dolphin-mpn>"
     )
   endif()
 else()
