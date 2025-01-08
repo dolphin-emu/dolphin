@@ -44,7 +44,7 @@ TEST(TMDReader, Validity)
 class TMDReaderTest : public ::testing::Test
 {
 protected:
-  virtual void SetUp() = 0;
+  void SetUp() override = 0;
 
   // Common tests.
   void TestGeneralInfo();
