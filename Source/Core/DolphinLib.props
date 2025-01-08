@@ -401,6 +401,7 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Infinity.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\Skateboard.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.h" />
@@ -1065,6 +1066,7 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Infinity.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\Skateboard.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.cpp" />
