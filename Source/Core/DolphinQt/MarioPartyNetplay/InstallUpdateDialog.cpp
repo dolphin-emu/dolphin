@@ -44,93 +44,121 @@ InstallUpdateDialog::~InstallUpdateDialog(void)
 {
 }
 
-void InstallUpdateDialog::install(void)
+void InstallUpdateDialog::install()
 {
   QString fullFilePath = QCoreApplication::applicationDirPath() + QStringLiteral("/") + this->filename;
-    QString appPath = QCoreApplication::applicationDirPath();
-    QString appPid  = QString::number(QCoreApplication::applicationPid());
+  QString appPath = QCoreApplication::applicationDirPath();
+  QString appPid = QString::number(QCoreApplication::applicationPid());
 
-    // Convert paths to use the right path separator
-    this->temporaryDirectory = QDir::toNativeSeparators(this->temporaryDirectory);
-    fullFilePath             = QDir::toNativeSeparators(fullFilePath);
-    appPath                  = QDir::toNativeSeparators(appPath);
+  // Convert paths to native format
+  this->temporaryDirectory = QDir::toNativeSeparators(this->temporaryDirectory);
+  fullFilePath = QDir::toNativeSeparators(fullFilePath);
+  appPath = QDir::toNativeSeparators(appPath);
 
-    if (this->filename.endsWith(QStringLiteral(".exe")))
-    {
-        this->label->setText(QStringLiteral("Executing %1...").arg(this->filename));
-        QStringList scriptLines =
-        {
-            QStringLiteral("@echo off"),
-            QStringLiteral("("),
-            QStringLiteral("   echo == Attempting to kill PID ") + appPid,
-            QStringLiteral("   taskkill /F /PID:") + appPid,
-            QStringLiteral("   echo == Attempting to start '") + fullFilePath + QStringLiteral("'"),
-            QStringLiteral("   \"") + fullFilePath + QStringLiteral("\" /CLOSEAPPLICATIONS /NOCANCEL /MERGETASKS=\"!desktopicon\" /SILENT /DIR=\"") + appPath + QStringLiteral("\""),
-            QStringLiteral(")"),
-            QStringLiteral("IF NOT ERRORLEVEL 0 ("),
-            QStringLiteral("   start \"\" cmd /c \"echo Update failed, check the log for more information && pause\""),
-            QStringLiteral(")"),
-            // Remove temporary directory at last
-            QStringLiteral("rmdir /S /Q \"") + this->temporaryDirectory + QStringLiteral("\""),
-        };
-        this->writeAndRunScript(scriptLines);
-        this->accept();
-        return;
-    }
+  if (this->filename.endsWith(QStringLiteral(".exe")))
+  {
+    this->label->setText(QStringLiteral("Executing %1...").arg(this->filename));
 
-    this->label->setText(QStringLiteral("Extracting %1...").arg(this->filename));
-    this->progressBar->setValue(50);
-
-    QString extractDirectory = this->temporaryDirectory + QDir::separator() + QStringLiteral("Dolphin-MPN");
-
-    // Ensure the extract directory exists before attempting to unzip
-    QDir dir(this->temporaryDirectory);
-    if (!QDir(extractDirectory).exists())
-    {
-      if (!dir.mkdir(QStringLiteral("Dolphin-MPN")))
-      {
-        QMessageBox::critical(this, QStringLiteral("Error"),
-                              QStringLiteral("Failed to create extract directory."));
-        this->reject();
-        return;
-      }
-    }
-
-    // Attempt to unzip files into the extract directory
-    if (!unzipFile(fullFilePath.toStdString(), extractDirectory.toStdString()))
-    {
-      QMessageBox::critical(this, QStringLiteral("Error"),
-                            QStringLiteral("Unzip failed: Unable to extract files."));
-      this->reject();
-      return;
-    }
-
-    this->label->setText(QStringLiteral("Executing update script..."));
-    this->progressBar->setValue(100);
-
-    extractDirectory = QDir::toNativeSeparators(extractDirectory);
-
-    QStringList scriptLines = 
-    {
+#ifdef _WIN32
+    QStringList scriptLines = {
         QStringLiteral("@echo off"),
         QStringLiteral("("),
-        QStringLiteral("   echo == Attempting to remove '") + fullFilePath + QStringLiteral("'"),
-        QStringLiteral("   del /F /Q \"") + fullFilePath + QStringLiteral("\""),
         QStringLiteral("   echo == Attempting to kill PID ") + appPid,
         QStringLiteral("   taskkill /F /PID:") + appPid,
-        QStringLiteral("   echo == Attempting to copy '") + extractDirectory + QStringLiteral("' to '") + appPath + QStringLiteral("'"),
-        QStringLiteral("   xcopy /S /Y /I \"") + extractDirectory + QStringLiteral("\\*\" \"") + appPath + QStringLiteral("\""),
-        QStringLiteral("   echo == Attempting to start '") + appPath + QStringLiteral("\\Dolphin-MPN.exe'"),
-        QStringLiteral("   start \"\" \"") + appPath + QStringLiteral("\\Dolphin-MPN.exe\""),
+        QStringLiteral("   echo == Attempting to start '") + fullFilePath + QStringLiteral("'"),
+        QStringLiteral("   \"") + fullFilePath +
+            QStringLiteral(
+                "\" /CLOSEAPPLICATIONS /NOCANCEL /MERGETASKS=\"!desktopicon\" /SILENT /DIR=\"") +
+            appPath + QStringLiteral("\""),
         QStringLiteral(")"),
         QStringLiteral("IF NOT ERRORLEVEL 0 ("),
-        QStringLiteral("   start \"\" cmd /c \"echo Update failed && pause\""),
+        QStringLiteral("   start \"\" cmd /c \"echo Update failed, check the log for more "
+                       "information && pause\""),
         QStringLiteral(")"),
-        // Remove temporary directory at last
         QStringLiteral("rmdir /S /Q \"") + this->temporaryDirectory + QStringLiteral("\""),
     };
     this->writeAndRunScript(scriptLines);
+    this->accept();
+#endif
+    return;
+  }
+
+  this->label->setText(QStringLiteral("Extracting %1...").arg(this->filename));
+  this->progressBar->setValue(50);
+
+  QString extractDirectory =
+      this->temporaryDirectory + QDir::separator() + QStringLiteral("Dolphin-MPN");
+
+  // Ensure the extract directory exists before attempting to unzip
+  QDir dir(this->temporaryDirectory);
+  if (!QDir(extractDirectory).exists())
+  {
+    if (!dir.mkdir(QStringLiteral("Dolphin-MPN")))
+    {
+      QMessageBox::critical(this, QStringLiteral("Error"),
+                            QStringLiteral("Failed to create extract directory."));
+      this->reject();
+      return;
+    }
+  }
+
+  // Attempt to unzip files into the extract directory
+  if (!unzipFile(fullFilePath.toStdString(), extractDirectory.toStdString()))
+  {
+    QMessageBox::critical(this, QStringLiteral("Error"),
+                          QStringLiteral("Unzip failed: Unable to extract files."));
+    this->reject();
+    return;
+  }
+
+  this->label->setText(QStringLiteral("Executing update script..."));
+  this->progressBar->setValue(100);
+
+  extractDirectory = QDir::toNativeSeparators(extractDirectory);
+
+#ifdef __APPLE__
+  QStringList scriptLines = {
+      QStringLiteral("#!/bin/bash"),
+      QStringLiteral("echo '== Terminating application with PID ") + appPid + QStringLiteral("'"),
+      QStringLiteral("kill -9 ") + appPid,
+      QStringLiteral("echo '== Removing old application files'"),
+      QStringLiteral("rm -f \"") + fullFilePath + QStringLiteral("\""),
+      QStringLiteral("echo '== Copying new files to ") + appPath + QStringLiteral("'"),
+      QStringLiteral("cp -r \"") + extractDirectory + QStringLiteral("/\"* \"") + appPath +
+          QStringLiteral("\""),
+      QStringLiteral("echo '== Launching the updated application'"),
+      QStringLiteral("open \"") + appPath + QStringLiteral("/Dolphin-MPN.app\""),
+      QStringLiteral("echo '== Cleaning up temporary files'"),
+      QStringLiteral("rm -rf \"") + this->temporaryDirectory + QStringLiteral("\""),
+      QStringLiteral("exit 0")};
+  this->writeAndRunScript(scriptLines);
+#endif
+
+#ifdef _WIN32
+  QStringList scriptLines = {
+      QStringLiteral("@echo off"),
+      QStringLiteral("("),
+      QStringLiteral("   echo == Attempting to remove '") + fullFilePath + QStringLiteral("'"),
+      QStringLiteral("   del /F /Q \"") + fullFilePath + QStringLiteral("\""),
+      QStringLiteral("   echo == Attempting to kill PID ") + appPid,
+      QStringLiteral("   taskkill /F /PID:") + appPid,
+      QStringLiteral("   echo == Attempting to copy '") + extractDirectory +
+          QStringLiteral("' to '") + appPath + QStringLiteral("'"),
+      QStringLiteral("   xcopy /S /Y /I \"") + extractDirectory + QStringLiteral("\\*\" \"") +
+          appPath + QStringLiteral("\""),
+      QStringLiteral("   echo == Attempting to start '") + appPath +
+          QStringLiteral("\\Dolphin-MPN.exe'"),
+      QStringLiteral("   start \"\" \"") + appPath + QStringLiteral("\\Dolphin-MPN.exe\""),
+      QStringLiteral(")"),
+      QStringLiteral("IF NOT ERRORLEVEL 0 ("),
+      QStringLiteral("   start \"\" cmd /c \"echo Update failed && pause\""),
+      QStringLiteral(")"),
+      QStringLiteral("rmdir /S /Q \"") + this->temporaryDirectory + QStringLiteral("\""),
+  };
+  this->writeAndRunScript(scriptLines);
+#endif
 }
+
 
 bool InstallUpdateDialog::unzipFile(const std::string& zipFilePath, const std::string& destDir)
 {
@@ -197,27 +225,44 @@ bool InstallUpdateDialog::unzipFile(const std::string& zipFilePath, const std::s
 
 void InstallUpdateDialog::writeAndRunScript(QStringList stringList)
 {
-    QString scriptPath = this->temporaryDirectory + QStringLiteral("/update.bat");
-    
-    QFile scriptFile(scriptPath);
-    if (!scriptFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QMessageBox::critical(this, tr("Error"), tr("Failed to open file for writing: %1").arg(filename));
-        return;
-    }
+#ifdef __APPLE__
+  QString scriptPath = this->temporaryDirectory + QStringLiteral("/update.sh");
+#else
+  QString scriptPath = this->temporaryDirectory + QStringLiteral("/update.bat");
+#endif
 
-    QTextStream textStream(&scriptFile);
+  QFile scriptFile(scriptPath);
+  if (!scriptFile.open(QIODevice::WriteOnly | QIODevice::Text))
+  {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Failed to open file for writing: %1").arg(filename));
+    return;
+  }
 
-    // Write script to file
-    for (const QString& str : stringList)
-    {
-        textStream << str << "\n";
-    }
+  QTextStream textStream(&scriptFile);
 
-    scriptFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
-    scriptFile.close();
+#ifdef __APPLE__
+  // macOS: Write shell script
+  textStream << QStringLiteral("#!/bin/bash\n");
+#else
+  // Windows: Write batch script
+  textStream << QStringLiteral("@echo off\n");
+#endif
 
-    this->launchProcess(scriptPath, {});
+  for (const QString& str : stringList)
+  {
+    textStream << str << "\n";
+  }
+
+#ifdef __APPLE__
+  scriptFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                            QFileDevice::ExeOwner);
+#else
+  scriptFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+#endif
+  scriptFile.close();
+
+  this->launchProcess(scriptPath, {});
 }
 
 void InstallUpdateDialog::launchProcess(QString file, QStringList arguments)
