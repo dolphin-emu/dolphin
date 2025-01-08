@@ -228,6 +228,11 @@ elseif(WIN32)
     Logging/ConsoleListenerWin.cpp
     MemArenaWin.cpp
   )
+elseif(APPLE)
+  target_sources(common PRIVATE
+    Logging/ConsoleListenerNix.cpp
+    MemArenaDarwin.cpp
+  )
 else()
   target_sources(common PRIVATE
     Logging/ConsoleListenerNix.cpp
