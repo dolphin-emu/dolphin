@@ -9,7 +9,7 @@ endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg Multimedia)
 
 if (Qt6_VERSION VERSION_GREATER_EQUAL 6.10.0)
   # GuiPrivate is needed to #include qplatformnativeinterface.h in MainWindow.cpp with Qt 6.10+.
@@ -455,6 +455,7 @@ target_link_libraries(dolphin-emu
 PRIVATE
   core
   Qt6::Widgets
+  Qt6::Multimedia
   uicommon
   imgui
   implot
