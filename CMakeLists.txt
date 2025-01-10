@@ -765,6 +765,8 @@ add_subdirectory(Externals/rangeset)
 
 add_subdirectory(Externals/FatFs)
 
+add_subdirectory(Externals/MultipartParser)
+
 if (USE_RETRO_ACHIEVEMENTS)
 	add_subdirectory(Externals/rcheevos)
 endif()
