@@ -13,6 +13,8 @@
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/System.h"
+#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
@@ -53,7 +55,7 @@ std::size_t GetAssetSize(const CustomTextureData& data)
 CustomAssetLibrary::TimeType
 DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
 {
-  std::lock_guard lk(m_lock);
+  std::lock_guard lk(m_asset_map_lock);
   if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
@@ -434,10 +436,42 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
-                                                     AssetMap asset_path_map)
+                                                     VideoCommon::Assets::AssetMap asset_path_map)
 {
-  std::lock_guard lk(m_lock);
-  m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  VideoCommon::Assets::AssetMap previous_asset_map;
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    previous_asset_map = m_assetid_to_asset_map_path[asset_id];
+  }
+
+  {
+    std::lock_guard lk(m_path_map_lock);
+    for (const auto& [name, path] : previous_asset_map)
+    {
+      m_path_to_asset_id.erase(PathToString(path));
+    }
+
+    for (const auto& [name, path] : asset_path_map)
+    {
+      m_path_to_asset_id[PathToString(path)] = asset_id;
+    }
+  }
+
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  }
+}
+
+void DirectFilesystemAssetLibrary::PathModified(std::string_view path)
+{
+  std::lock_guard lk(m_path_map_lock);
+  if (const auto iter = m_path_to_asset_id.find(path); iter != m_path_to_asset_id.end())
+  {
+    auto& system = Core::System::GetInstance();
+    auto& loader = system.GetCustomAssetLoader();
+    loader.ReloadAsset(iter->second);
+  }
 }
 
 bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_path,
@@ -492,10 +526,10 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
   return true;
 }
 
-DirectFilesystemAssetLibrary::AssetMap
+VideoCommon::Assets::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
-  std::lock_guard lk(m_lock);
+  std::lock_guard lk(m_asset_map_lock);
   if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
