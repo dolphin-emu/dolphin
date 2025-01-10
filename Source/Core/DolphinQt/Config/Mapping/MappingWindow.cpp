@@ -60,6 +60,22 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
 
+namespace
+{
+
+QString GetUserFriendlyDeviceName(const std::string& str)
+{
+  ciface::Core::DeviceQualifier qualifier;
+  qualifier.FromString(str);
+
+  return QStringLiteral("%1 (%2) %3")
+      .arg(QString::fromStdString(qualifier.name))
+      .arg(qualifier.cid + 1)
+      .arg(QString::fromStdString(qualifier.source));
+}
+
+}  // namespace
+
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)
 {
@@ -372,8 +388,9 @@ void MappingWindow::UpdateDeviceList()
 
   for (const auto& name : g_controller_interface.GetAllDeviceStrings())
   {
+    const auto display_name = GetUserFriendlyDeviceName(name);
     const auto qname = QString::fromStdString(name);
-    m_devices_combo->addItem(qname, qname);
+    m_devices_combo->addItem(display_name, qname);
   }
 
   const auto default_device = m_controller->GetDefaultDevice().ToString();
@@ -381,7 +398,7 @@ void MappingWindow::UpdateDeviceList()
   if (!default_device.empty())
   {
     const auto default_device_index =
-        m_devices_combo->findText(QString::fromStdString(default_device));
+        m_devices_combo->findData(QString::fromStdString(default_device));
 
     if (default_device_index != -1)
     {
@@ -391,9 +408,10 @@ void MappingWindow::UpdateDeviceList()
     {
       // Selected device is not currently attached.
       m_devices_combo->insertSeparator(m_devices_combo->count());
+      const auto display_name = GetUserFriendlyDeviceName(default_device);
       const auto qname = QString::fromStdString(default_device);
-      m_devices_combo->addItem(QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + qname,
-                               qname);
+      m_devices_combo->addItem(
+          QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + display_name, qname);
       m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
     }
   }
