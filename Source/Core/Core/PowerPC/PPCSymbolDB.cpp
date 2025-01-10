@@ -251,7 +251,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       continue;
 
     // Support CodeWarrior and Dolphin map
-    if (std::string_view{line}.ends_with(" section layout\n") || strcmp(temp, ".text") == 0 ||
+    if (StripWhitespace(line).ends_with(" section layout") || strcmp(temp, ".text") == 0 ||
         strcmp(temp, ".init") == 0)
     {
       section_name = temp;
