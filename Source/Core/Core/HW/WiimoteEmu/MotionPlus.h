@@ -6,15 +6,15 @@
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Common/I2C.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
 
 namespace WiimoteEmu
 {
-struct MotionPlus : public Extension
+class MotionPlus : public Extension
 {
 public:
   enum class PassthroughMode : u8
@@ -241,6 +241,43 @@ private:
 #pragma pack(pop)
   static_assert(0x100 == sizeof(Register), "Wrong size");
 
+  class RegisterWrapper : public Common::I2CSlaveAutoIncrementing
+  {
+  protected:
+    RegisterWrapper(MotionPlus* owner, u8 slave_addr)
+        : I2CSlaveAutoIncrementing(slave_addr), m_owner(owner)
+    {
+    }
+
+    u8 ReadByte(u8 addr) override;
+
+    MotionPlus* const m_owner;
+  };
+
+  class InactiveRegisterWrapper : public RegisterWrapper
+  {
+  public:
+    InactiveRegisterWrapper(MotionPlus* owner) : RegisterWrapper(owner, INACTIVE_DEVICE_ADDR) {}
+
+    using Common::I2CSlaveAutoIncrementing::ReadByte;
+    using Common::I2CSlaveAutoIncrementing::WriteByte;
+
+  protected:
+    void WriteByte(u8 addr, u8 value) override;
+  };
+
+  class ActiveRegisterWrapper : public RegisterWrapper
+  {
+  public:
+    ActiveRegisterWrapper(MotionPlus* owner) : RegisterWrapper(owner, ACTIVE_DEVICE_ADDR) {}
+
+    using Common::I2CSlaveAutoIncrementing::ReadByte;
+    using Common::I2CSlaveAutoIncrementing::WriteByte;
+
+  protected:
+    void WriteByte(u8 addr, u8 value) override;
+  };
+
   void Activate();
   void Deactivate();
   void OnPassthroughModeWrite();
@@ -248,8 +285,11 @@ private:
   ActivationStatus GetActivationStatus() const;
   PassthroughMode GetPassthroughMode() const;
 
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+  bool StartWrite(u8 slave_addr) override;
+  bool StartRead(u8 slave_addr) override;
+  void Stop() override;
+  std::optional<u8> ReadByte() override;
+  bool WriteByte(u8 value) override;
 
   bool ReadDeviceDetectPin() const override;
 
@@ -259,7 +299,10 @@ private:
   u8 m_progress_timer = {};
 
   // The port on the end of the motion plus:
-  I2CBus m_i2c_bus;
+  Common::I2CBusForwarding m_i2c_bus;
   ExtensionPort m_extension_port{&m_i2c_bus};
+
+  InactiveRegisterWrapper m_inactive_wrapper{this};  // connected to m_i2c_bus
+  ActiveRegisterWrapper m_active_wrapper{this};      // *not* connected to m_i2c_bus
 };
 }  // namespace WiimoteEmu

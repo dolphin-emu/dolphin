@@ -71,14 +71,29 @@ void None::DoState(PointerWrap& p)
   // Nothing needed.
 }
 
-int None::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+bool None::StartWrite(u8 slave_addr)
 {
-  return 0;
+  return false;
 }
 
-int None::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+bool None::StartRead(u8 slave_addr)
 {
-  return 0;
+  return false;
+}
+
+void None::Stop()
+{
+  // Nothing needed.
+}
+
+std::optional<u8> None::ReadByte()
+{
+  return std::nullopt;
+}
+
+bool None::WriteByte(u8 value)
+{
+  return false;
 }
 
 bool EncryptedExtension::ReadDeviceDetectPin() const
@@ -86,11 +101,8 @@ bool EncryptedExtension::ReadDeviceDetectPin() const
   return true;
 }
 
-int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+u8 EncryptedExtension::ReadByte(u8 addr)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
-
   if (0x00 == addr)
   {
     // This is where real hardware would update controller data
@@ -98,7 +110,7 @@ int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
     // TAS code fails to sync data reads and such..
   }
 
-  auto const result = RawRead(&m_reg, addr, count, data_out);
+  u8 result = RawRead(&m_reg, addr);
 
   // Encrypt data read from extension register.
   if (ENCRYPTION_ENABLED == m_reg.encryption)
@@ -109,30 +121,25 @@ int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
       m_is_key_dirty = false;
     }
 
-    ext_key.Encrypt(data_out, addr, count);
+    ext_key.Encrypt(&result, addr, 1);
   }
 
   return result;
 }
 
-int EncryptedExtension::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+void EncryptedExtension::WriteByte(u8 addr, u8 value)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
-
-  auto const result = RawWrite(&m_reg, addr, count, data_in);
+  RawWrite(&m_reg, addr, value);
 
   constexpr u8 ENCRYPTION_KEY_DATA_BEGIN = offsetof(Register, encryption_key_data);
   constexpr u8 ENCRYPTION_KEY_DATA_END = ENCRYPTION_KEY_DATA_BEGIN + 0x10;
 
-  if (addr + count > ENCRYPTION_KEY_DATA_BEGIN && addr < ENCRYPTION_KEY_DATA_END)
+  if (addr >= ENCRYPTION_KEY_DATA_BEGIN && addr < ENCRYPTION_KEY_DATA_END)
   {
     // FYI: Real extensions seem to require the key data written in specifically sized chunks.
     // We just run the key generation on all writes to the key area.
     m_is_key_dirty = true;
   }
-
-  return result;
 }
 
 void EncryptedExtension::Reset()
@@ -147,6 +154,8 @@ void EncryptedExtension::Reset()
 
 void EncryptedExtension::DoState(PointerWrap& p)
 {
+  I2CSlaveAutoIncrementing::DoState(p);
+
   p.Do(m_reg);
 
   if (p.IsReadMode())
