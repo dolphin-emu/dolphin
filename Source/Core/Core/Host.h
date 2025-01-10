@@ -66,6 +66,8 @@ void Host_JitProfileDataWiped();
 void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
+void Host_UpdateWiimoteExtension(int controller, int extension);
+void Host_UpdateWiimoteMotionPlus(int controller, bool attached);
 void Host_TitleChanged();
 
 void Host_UpdateDiscordClientID(const std::string& client_id = {});
