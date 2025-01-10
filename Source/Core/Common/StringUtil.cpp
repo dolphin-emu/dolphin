@@ -16,6 +16,7 @@
 #include <iterator>
 #include <limits.h>
 #include <locale>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -356,16 +357,17 @@ std::string PathToFileName(std::string_view path)
   return file_name + extension;
 }
 
-std::vector<std::string> SplitString(const std::string& str, const char delim)
+std::vector<std::string> SplitString(std::string_view sv, const char delim)
 {
-  std::istringstream iss(str);
-  std::vector<std::string> output(1);
+  if (sv.empty())
+    return {std::string()};
 
-  while (std::getline(iss, *output.rbegin(), delim))
-    output.push_back("");
+  const std::ranges::split_view string_views(sv, delim);
+  std::ranges::transform_view strings(string_views,
+                                      [](auto&& r) { return std::string(r.data(), r.size()); });
 
-  output.pop_back();
-  return output;
+  // TODO: Use C++23 std::from_range
+  return {strings.begin(), strings.end()};
 }
 
 std::string TabsToSpaces(int tab_size, std::string str)
