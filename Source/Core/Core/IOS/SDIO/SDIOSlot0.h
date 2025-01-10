@@ -70,7 +70,8 @@ private:
   enum
   {
     CARD_NOT_EXIST = 0,
-    CARD_INSERTED = 1,
+    CARD_INSERTED = 0x1,
+    CARD_LOCKED = 0x4,
     CARD_INITIALIZED = 0x10000,
     CARD_SDHC = 0x100000,
   };
