@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include <mz_compat.h>
+#include <unzip.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
