@@ -6,7 +6,9 @@
 #include <algorithm>
 #include <memory>
 
-#include <mz_compat.h>
+#include <mz.h>
+#include <unzip.h>
+
 #include <mz_os.h>
 
 #include "Common/CommonPaths.h"
