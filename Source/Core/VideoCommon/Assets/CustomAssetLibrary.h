@@ -13,6 +13,8 @@ namespace VideoCommon
 struct MaterialData;
 struct MeshData;
 struct PixelShaderData;
+struct RasterMaterialData;
+struct RasterShaderData;
 struct TextureData;
 
 // This class provides functionality to load
@@ -46,9 +48,11 @@ public:
 
   // Loads a pixel shader
   virtual LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) = 0;
+  virtual LoadInfo LoadShader(const AssetID& asset_id, RasterShaderData* data) = 0;
 
   // Loads a material
   virtual LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) = 0;
+  virtual LoadInfo LoadMaterial(const AssetID& asset_id, RasterMaterialData* data) = 0;
 
   // Loads a mesh
   virtual LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) = 0;
