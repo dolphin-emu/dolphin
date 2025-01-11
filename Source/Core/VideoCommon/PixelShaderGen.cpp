@@ -1260,7 +1260,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
   else
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (host_config.backend_unrestricted_depth_range)
+      out.Write("\tint zCoord = int(rawpos.z);\n");
+    else if (!host_config.backend_reversed_depth_range)
       out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
@@ -1277,7 +1279,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
                            uid_data->ztest == EmulatedZ::EarlyWithZComplocHack;
   if (uid_data->per_pixel_depth && early_ztest)
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (host_config.backend_unrestricted_depth_range)
+      out.Write("\tdepth = float(zCoord);\n");
+    else if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -1298,7 +1302,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   if (uid_data->per_pixel_depth && uid_data->ztest == EmulatedZ::Late)
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (host_config.backend_unrestricted_depth_range)
+      out.Write("\tdepth = float(zCoord);\n");
+    else if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -1923,7 +1929,9 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (per_pixel_depth)
   {
     out.Write("\t\tdepth = {};\n",
-              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? "0.0" : "1.0");
+              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange    ? "0.0" :
+              g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? "16777215.0" :
+                                                                            "1.0");
   }
 
   // ZCOMPLOC HACK:
