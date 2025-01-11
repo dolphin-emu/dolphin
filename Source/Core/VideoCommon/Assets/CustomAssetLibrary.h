@@ -11,6 +11,8 @@ class CustomTextureData;
 struct MaterialData;
 struct MeshData;
 struct RasterSurfaceShaderData;
+struct RasterMaterialData;
+struct TextureData;
 struct TextureAndSamplerData;
 
 // This class provides functionality to load
