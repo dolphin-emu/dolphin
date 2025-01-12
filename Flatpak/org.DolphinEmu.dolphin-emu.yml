@@ -52,6 +52,7 @@ modules:
 
   - name: dolphin-emu
     buildsystem: cmake-ninja
+    builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DENABLE_ALSA=OFF
@@ -61,17 +62,13 @@ modules:
     cleanup:
       - /share/man
     post-install:
-      - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
-      - "${FLATPAK_BUILDER_BUILDDIR}/Flatpak/fill_release_node.sh"
-      - install -Dm644 -t ${FLATPAK_DEST}/share/metainfo/ org.DolphinEmu.dolphin-emu.metainfo.xml
+      - install -D -t ${FLATPAK_DEST}/bin/ ../dolphin-emu-wrapper
+      - install -Dm644 -t ${FLATPAK_DEST}/share/metainfo/ Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml
       - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
         /app/share/applications/dolphin-emu.desktop
     sources:
       - type: dir
         path: ..
-      - type: file
-        path: org.DolphinEmu.dolphin-emu.metainfo.xml.in
-        dest-filename: org.DolphinEmu.dolphin-emu.metainfo.xml
       - type: script
         commands:
           - |
