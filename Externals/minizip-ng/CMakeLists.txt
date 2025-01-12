@@ -1,5 +1,8 @@
 project(minizip C)
 
+include(CheckFunctionExists)
+include(CheckIncludeFile)
+
 add_library(minizip STATIC
   minizip-ng/mz.h
   minizip-ng/mz_compat.c
