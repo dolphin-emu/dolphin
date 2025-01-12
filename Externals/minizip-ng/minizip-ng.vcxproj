@@ -17,11 +17,14 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
+      <!-- Ensure minizip-ng sees mz.h -->
+      <AdditionalIncludeDirectories>minizip-ng;minizip-ng\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>HAVE_ZLIB;ZLIB_COMPAT;MZ_ZIP_NO_CRYPTO;MZ_ZIP_NO_ENCRYPTION;HAVE_STDINT_H;HAVE_INTTYPES_H;NO_FSEEKO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="minizip-ng\mz_compat.c" />
+    <ClCompile Include="minizip-ng\compat\ioapi.c" />
+    <ClCompile Include="minizip-ng\compat\unzip.c" />
     <ClCompile Include="minizip-ng\mz_crypt.c" />
     <ClCompile Include="minizip-ng\mz_os.c" />
     <ClCompile Include="minizip-ng\mz_os_win32.c" />
@@ -36,7 +39,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="minizip-ng\mz.h" />
-    <ClInclude Include="minizip-ng\mz_compat.h" />
+    <ClCompile Include="minizip-ng\compat\ioapi.h" />
+    <ClCompile Include="minizip-ng\compat\unzip.h" />
     <ClInclude Include="minizip-ng\mz_crypt.h" />
     <ClInclude Include="minizip-ng\mz_os.h" />
     <ClInclude Include="minizip-ng\mz_strm.h" />
