@@ -147,20 +147,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   VulkanContext::PopulateBackendInfo(&g_Config);
   VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
 
-  // We need the surface before we can create a device, as some parameters depend on it.
-  VkSurfaceKHR surface = VK_NULL_HANDLE;
-  if (enable_surface)
-  {
-    surface = SwapChain::CreateVulkanSurface(instance, wsi);
-    if (surface == VK_NULL_HANDLE)
-    {
-      PanicAlertFmt("Failed to create Vulkan surface.");
-      vkDestroyInstance(instance, nullptr);
-      UnloadVulkanLibrary();
-      return false;
-    }
-  }
-
   // Since we haven't called InitializeShared yet, iAdapter may be out of range,
   // so we have to check it ourselves.
   size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
@@ -168,6 +154,20 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   {
     WARN_LOG_FMT(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
     selected_adapter_index = 0;
+  }
+
+  // We need the surface before we can create a device, as some parameters depend on it.
+  VkSurfaceKHR surface = VK_NULL_HANDLE;
+  if (enable_surface)
+  {
+    surface = SwapChain::CreateVulkanSurface(instance, gpu_list[selected_adapter_index], wsi);
+    if (surface == VK_NULL_HANDLE)
+    {
+      PanicAlertFmt("Failed to create Vulkan surface.");
+      vkDestroyInstance(instance, nullptr);
+      UnloadVulkanLibrary();
+      return false;
+    }
   }
 
   // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and surface.
