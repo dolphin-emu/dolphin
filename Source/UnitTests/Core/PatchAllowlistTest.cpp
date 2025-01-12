@@ -32,6 +32,9 @@ struct GameHashes
 
 using AllowList = std::map<std::string /*ID*/, GameHashes>;
 
+template <typename T>
+void ReadVerified(const Common::IniFile& ini, const std::string& filename,
+                  const std::string& section, bool enabled, std::vector<T>* codes);
 void CheckHash(const std::string& game_id, GameHashes* game_hashes, const std::string& hash,
                const std::string& patch_name);
 
@@ -81,18 +84,12 @@ TEST(PatchAllowlist, VerifyHashes)
     std::vector<ActionReplay::ARCode> action_replays =
         ActionReplay::LoadCodes(Common::IniFile(), ini_file);
     // Filter patches for RetroAchievements approved
-    for (auto& patch : patches)
-      patch.enabled = false;
-    ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "Patches_RetroAchievements_Verified", true,
-                                              &patches);
-    for (auto& code : geckos)
-      code.enabled = false;
-    ReadEnabledOrDisabled<Gecko::GeckoCode>(ini_file, "Gecko_RetroAchievements_Verified", true,
-                                            &geckos);
-    for (auto& code : action_replays)
-      code.enabled = false;
-    ReadEnabledOrDisabled<ActionReplay::ARCode>(ini_file, "AR_RetroAchievements_Verified", true,
-                                                &action_replays);
+    ReadVerified<PatchEngine::Patch>(ini_file, game_id, "Patches_RetroAchievements_Verified", true,
+                                     &patches);
+    ReadVerified<Gecko::GeckoCode>(ini_file, game_id, "Gecko_RetroAchievements_Verified", true,
+                                   &geckos);
+    ReadVerified<ActionReplay::ARCode>(ini_file, game_id, "AR_RetroAchievements_Verified", true,
+                                       &action_replays);
     // Get game section from allow list
     auto game_itr = allow_list.find(game_id);
     bool itr_end = (game_itr == allow_list.end());
@@ -157,7 +154,7 @@ TEST(PatchAllowlist, VerifyHashes)
     {
       ADD_FAILURE() << "Hash in list not approved in ini." << std::endl
                     << "Game ID: " << game_id << ":" << game_itr->second.game_title << std::endl
-                    << "Code: " << remaining_hashes.second << ":" << remaining_hashes.first;
+                    << "Code: " << remaining_hashes.first << ":" << remaining_hashes.second;
     }
     //    Remove section from map
     allow_list.erase(game_itr);
@@ -168,6 +165,41 @@ TEST(PatchAllowlist, VerifyHashes)
     ADD_FAILURE() << "Game in list has no ini file." << std::endl
                   << "Game ID: " << remaining_games.first << ":"
                   << remaining_games.second.game_title;
+  }
+}
+
+template <typename T>
+void ReadVerified(const Common::IniFile& ini, const std::string& filename,
+                  const std::string& section, bool enabled, std::vector<T>* codes)
+{
+  for (auto& code : *codes)
+    code.enabled = false;
+
+  std::vector<std::string> lines;
+  ini.GetLines(section, &lines, false);
+
+  for (const std::string& line : lines)
+  {
+    if (line.empty() || line[0] != '$')
+      continue;
+
+    bool found = false;
+    for (T& code : *codes)
+    {
+      // Exclude the initial '$' from the comparison.
+      if (line.compare(1, std::string::npos, code.name) == 0)
+      {
+        code.enabled = enabled;
+        found = true;
+      }
+    }
+    if (!found)
+    {
+      // Report: approved patch in ini doesn't actually exist
+      ADD_FAILURE() << "Code with approval not found" << std::endl
+                    << "Game ID: " << filename << std::endl
+                    << "Name: \"" << line << "\"";
+    }
   }
 }
 
