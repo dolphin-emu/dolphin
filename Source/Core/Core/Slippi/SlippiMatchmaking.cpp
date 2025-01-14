@@ -540,6 +540,7 @@ void SlippiMatchmaking::handleMatchmaking()
       player_info.display_name = el.value("displayName", "");
       player_info.connect_code = el.value("connectCode", "");
       player_info.port = el.value("port", 0);
+      player_info.is_bot = el.value("isBot", false);
       if (el["chatMessages"].is_array())
       {
         player_info.chat_messages = el.value("chatMessages", m_user->GetDefaultChatMessages());

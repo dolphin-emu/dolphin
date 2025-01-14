@@ -31,6 +31,8 @@ public:
     int port;
 
     std::vector<std::string> chat_messages;
+
+    bool is_bot = false;
   };
 
   SlippiUser(uintptr_t rs_exi_device_ptr);

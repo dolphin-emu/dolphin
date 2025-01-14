@@ -1419,6 +1419,11 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalized_frame)
 
 bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
 {
+  // If the opponent is a bot running ahead to give us more inputs, we should
+  // just keep going at our own pace rather than trying to catch up.
+  if (opponentRunahead())
+     return false;
+
   // Logic below is used to test frame advance by forcing it more often
   // SConfig::GetInstance().m_EmulationSpeed = 0.5f;
   // if (frame > 120 && frame % 10 < 3)
@@ -1550,6 +1555,24 @@ void CEXISlippi::handleSendInputs(s32 frame, u8 delay, s32 checksum_frame, u32 c
   auto pad = std::make_unique<SlippiPad>(frame + delay, checksum_frame, checksum, inputs);
 
   slippi_netplay->SendSlippiPad(std::move(pad));
+}
+
+bool CEXISlippi::opponentRunahead()
+{
+  // Bot players might be running ahead to "donate" their delay frames to us.
+
+  // Only registered bot accounts are allowed to do this.
+  auto player_info = matchmaking->GetPlayerInfo();
+  for (int i = 0; i < player_info.size(); i++)
+  {
+    if (i == matchmaking->LocalPlayerIndex())
+      continue;
+
+    if (!player_info[i].is_bot)
+      return false;
+  }
+
+  return true;
 }
 
 void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
