@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+    <Import Project="$(VSPropsDir)Base.Targets.props" />
+    <PropertyGroup Label="Globals">
+        <ProjectGuid>{93D73454-2512-424E-9CDA-4BB357FE13DD}</ProjectGuid>
+    </PropertyGroup>
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+    <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+    <ImportGroup Label="ExtensionSettings" />
+    <ImportGroup Label="PropertySheets">
+        <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+        <Import Project="$(VSPropsDir)Base.props" />
+        <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+    </ImportGroup>
+    <PropertyGroup Label="UserMacros" />
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>SFML\include;SFML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+    </ItemDefinitionGroup>
+    <ItemGroup>
+        <ClCompile Include="SFML\src\SFML\Network\Http.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\IpAddress.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\Packet.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\Socket.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\SocketSelector.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\TcpListener.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\TcpSocket.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\UdpSocket.cpp" />
+        <ClCompile Include="SFML\src\SFML\Network\Win32\SocketImpl.cpp" />
+        <ClCompile Include="SFML\src\SFML\System\Err.cpp" />
+        <ClCompile Include="SFML\src\SFML\System\String.cpp" />
+        <ClCompile Include="SFML\src\SFML\System\Utils.cpp" />
+    </ItemGroup>
+    <ItemGroup>
+        <ClInclude Include="SFML\include\SFML\Config.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\Export.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\Http.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\IPAddress.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\Packet.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\Socket.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\SocketHandle.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\SocketSelector.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\TcpListener.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\TcpSocket.hpp" />
+        <ClInclude Include="SFML\include\SFML\Network\UdpSocket.hpp" />
+        <ClInclude Include="SFML\include\SFML\System.hpp" />
+        <ClInclude Include="SFML\include\SFML\System\Err.hpp" />
+        <ClInclude Include="SFML\include\SFML\System\Export.hpp" />
+        <ClInclude Include="SFML\include\SFML\System\NonCopyable.hpp" />
+        <ClInclude Include="SFML\include\SFML\System\String.hpp" />
+        <ClInclude Include="SFML\include\SFML\System\String.inl" />
+        <ClInclude Include="SFML\include\SFML\System\Utf.hpp" />
+        <ClInclude Include="SFML\include\SFML\System\Utf.inl" />
+        <ClInclude Include="SFML\src\SFML\Network\SocketImpl.hpp" />
+        <ClInclude Include="SFML\src\SFML\Network\Win32\SocketImpl.hpp" />
+    </ItemGroup>
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+    <ImportGroup Label="ExtensionTargets">
+    </ImportGroup>
+</Project>
