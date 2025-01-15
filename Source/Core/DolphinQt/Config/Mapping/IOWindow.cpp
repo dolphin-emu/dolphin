@@ -541,7 +541,7 @@ void IOWindow::ConnectWidgets()
     const auto lock = m_controller->GetStateLock();
     m_reference->State(0.0);
   });
-  connect(this, &QWidget::destroyed, this, &IOWindow::TestOutputComplete);
+  connect(this, &IOWindow::closeEvent, this, &IOWindow::TestOutputComplete);
 
   connect(m_button_box, &QDialogButtonBox::clicked, this, &IOWindow::OnDialogButtonPressed);
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
