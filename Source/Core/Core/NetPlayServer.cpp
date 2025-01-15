@@ -421,7 +421,7 @@ void NetPlayServer::ThreadFunc()
 static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
 {
   // We cast here due to a potential long vs long long mismatch
-  spac << static_cast<sf::Uint64>(sync_identifier.dol_elf_size);
+  spac << static_cast<u64>(sync_identifier.dol_elf_size);
 
   spac << sync_identifier.game_id;
   spac << sync_identifier.revision;
@@ -1570,7 +1570,7 @@ bool NetPlayServer::StartGame()
   m_current_golfer = 1;
   m_pending_golfer = 0;
 
-  const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
+  const u64 initial_rtc = GetInitialNetPlayRTC();
 
   const std::string region = Config::GetDirectoryForRegion(
       Config::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game_identifier)->GetRegion()));
@@ -1847,7 +1847,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
         // No file, so we'll say the size is 0
         INFO_LOG_FMT(NETPLAY, "Sending empty marker for raw memcard {} in slot {}.", path,
                      is_slot_a ? 'A' : 'B');
-        pac << sf::Uint64{0};
+        pac << u64{0};
       }
 
       SendChunkedToClients(std::move(pac), 1,
@@ -1921,7 +1921,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
     for (const auto& [title_id, storage] : sync_info.wii_saves)
     {
-      pac << sf::Uint64{title_id};
+      pac << u64{title_id};
 
       if (storage->SaveExists())
       {
@@ -1938,7 +1938,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
         pac << true;  // save exists
 
         // Header
-        pac << sf::Uint64{header->tid};
+        pac << u64{header->tid};
         pac << header->banner_size << header->permissions << header->unk1;
         for (u8 byte : header->md5)
           pac << byte;
@@ -1952,7 +1952,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
             << bk_header->total_size;
         for (u8 byte : bk_header->unk3)
           pac << byte;
-        pac << sf::Uint64{bk_header->tid};
+        pac << u64{bk_header->tid};
         for (u8 byte : bk_header->mac_address)
           pac << byte;
 
@@ -2020,7 +2020,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
       {
         // No file, so we'll say the size is 0
         INFO_LOG_FMT(NETPLAY, "Sending empty marker for GBA save at {} for slot {}.", path, i);
-        pac << sf::Uint64{0};
+        pac << u64{0};
       }
 
       SendChunkedToClients(std::move(pac), 1,
@@ -2406,7 +2406,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
 
         sf::Packet pac;
         pac << MessageID::ChunkedDataStart;
-        pac << id << e.title << sf::Uint64{e.packet.getDataSize()};
+        pac << id << e.title << u64{e.packet.getDataSize()};
 
         ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
 

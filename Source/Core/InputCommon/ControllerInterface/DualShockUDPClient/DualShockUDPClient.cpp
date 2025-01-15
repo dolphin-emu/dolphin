@@ -23,6 +23,7 @@
 #include "Core/CoreTiming.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPProto.h"
+#include "SFML/Network/IpAddress.hpp"
 
 namespace ciface::DualShockUDPClient
 {
@@ -263,8 +264,9 @@ void InputBackend::HotplugThreadFunc()
         list_ports.pad_request_count = SERVER_ASKED_PADS;
         list_ports.pad_ids = {0, 1, 2, 3};
         msg.Finish();
-        if (server.m_socket.send(&list_ports, sizeof list_ports, server.m_address, server.m_port) !=
-            sf::Socket::Status::Done)
+        if (server.m_socket.send(&list_ports, sizeof list_ports,
+                                 sf::IpAddress::resolve(server.m_address).value(),
+                                 server.m_port) != sf::Socket::Status::Done)
         {
           ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
@@ -304,7 +306,7 @@ void InputBackend::HotplugThreadFunc()
 
           Proto::Message<Proto::MessageType::FromServer> msg;
           std::size_t received_bytes;
-          sf::IpAddress sender;
+          std::optional<sf::IpAddress> sender;
           u16 port;
           if (server.m_socket.receive(&msg, sizeof(msg), received_bytes, sender, port) !=
               sf::Socket::Status::Done)
@@ -627,8 +629,8 @@ Core::DeviceRemoval Device::UpdateInput()
     data_req.register_flags = Proto::RegisterFlags::PadID;
     data_req.pad_id_to_register = m_index;
     msg.Finish();
-    if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
-        sf::Socket::Status::Done)
+    if (m_socket.send(&data_req, sizeof(data_req), sf::IpAddress::resolve(m_server_address).value(),
+                      m_server_port) != sf::Socket::Status::Done)
     {
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient UpdateInput send failed");
     }
@@ -637,7 +639,7 @@ Core::DeviceRemoval Device::UpdateInput()
   // Receive and handle controller data
   Proto::Message<Proto::MessageType::FromServer> msg;
   std::size_t received_bytes;
-  sf::IpAddress sender;
+  std::optional<sf::IpAddress> sender;
   u16 port;
   while (m_socket.receive(&msg, sizeof msg, received_bytes, sender, port) ==
          sf::Socket::Status::Done)
