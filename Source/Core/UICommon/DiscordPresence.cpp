@@ -107,11 +107,18 @@ std::string ArtworkForGameId()
   const DiscIO::Region region = SConfig::GetInstance().m_region;
   const bool is_wii = Core::System::GetInstance().IsWii();
   const std::string region_code = SConfig::GetInstance().GetGameTDBImageRegionCode(is_wii, region);
+  
+  std::string tdbID = SConfig::GetInstance().GetGameTDBID();
+  if (tdbID == "GMPEDX") {
+      static constexpr char cover_url[] = "https://i.ibb.co/M9wg1g9/MP4DX.png";
+    return fmt::format(cover_url );
 
-  static constexpr char cover_url[] = "https://discord.dolphin-emu.org/cover-art/{}/{}.png";
-  return fmt::format(cover_url, region_code, SConfig::GetInstance().GetGameTDBID());
-}
-
+  }
+  else {
+      static constexpr char cover_url[] = "https://discord.dolphin-emu.org/cover-art/{}/{}.png";
+      return fmt::format(cover_url, region_code, tdbID);
+    }
+   }
 }  // namespace
 #endif
 
