@@ -1087,30 +1087,10 @@ CPUThreadGuard::~CPUThreadGuard()
 }
 
 static GameName mGameBeingPlayed = GameName::UnknownGame;
-const std::map<std::string, GameName> mGameMap = {{"GMPE01", GameName::MarioParty4},
+const std::map<std::string, GameName> mGameMap = {{"GMPE01", GameName::MarioParty4DX},
                                                   {"GP5E01", GameName::MarioParty5},
                                                   {"GP6E01", GameName::MarioParty6},
                                                   {"GP7E01", GameName::MarioParty7},
-                                                  {"RM8E01", GameName::MarioParty8}};
-
-std::optional<std::pair<u32,u32>> getGameFreeMemory()
-{
-  switch (mGameBeingPlayed) {
-  case GameName::MarioParty4:
-    return std::nullopt;
-  case GameName::MarioParty5:
-    return std::make_pair(0x801A811C, 0x801A9B5C);
-  case GameName::MarioParty6:
-    return std::make_pair(0x80213974, 0x80216014);
-  case GameName::MarioParty7:
-    return std::make_pair(0x8023CF6C, 0x8023F9D0);
-  case GameName::MarioParty8:
-    return std::make_pair(0x802D5100, 0x802D9500);
-  case GameName::UnknownGame:
-    return std::nullopt;
-  default:
-    return std::nullopt;
-  }
-}
-
+                                                  {"RM8E01", GameName::MarioParty8},
+                                                  {"GMPEDX", GameName::MarioParty4}};
 }  // namespace Core

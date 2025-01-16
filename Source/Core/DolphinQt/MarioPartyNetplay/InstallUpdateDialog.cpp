@@ -185,6 +185,12 @@ bool InstallUpdateDialog::unzipFile(const std::string& zipFilePath, const std::s
       return false;  // Failed to get file info
     }
 
+    // Skip User/GC and User/GameSettings directories
+    if (std::string(filename).find("User/GC") == 0 || std::string(filename).find("User/GameSettings") == 0)
+    {
+        continue;  // Skip these directories
+    }
+
     // Create full path for the extracted file
     std::string fullPath = destDir + "/" + std::string(filename);
     QString qFullPath = QString::fromStdString(fullPath);

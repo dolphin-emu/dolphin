@@ -9443,6 +9443,7 @@ GMNE78 = Monsters, Inc. Scream Arena
 GMNP78 = Monsters, Inc. Scream Arena
 GMOP70 = Micro Machines
 GMPE01 = Mario Party 4
+GMPEDX = Mario Party 4 DX
 GMPJ01 = Mario Party 4
 GMPP01 = Mario Party 4
 GMPW01 = Mario Party 4

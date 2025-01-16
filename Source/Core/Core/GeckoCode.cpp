@@ -182,7 +182,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   const bool is_mpn_handler_and_game_id_gp5e01 =
       IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GP5E01");
   const bool is_mpn_handler_and_game_id_gmpe01 =
-      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GMPE01");
+      IsGeckoCodeHandlerMPN() && (SConfig::GetInstance().GetGameID() == "GMPE01") || (SConfig::GetInstance().GetGameID() == "GMPEDX");
 
   u32 codelist_base_address =
       is_mpn_handler_and_game_id_rm8e01 ? INSTALLER_BASE_ADDRESS_MP8 :

@@ -115,12 +115,15 @@ GeckoDialog::GeckoDialog(QWidget* parent) : QDialog(parent)
   QVBoxLayout* layout = new QVBoxLayout();
   QTabWidget* tab_widget = new QTabWidget(this);
   GeckoCodeWidget* mp4_gecko = new GeckoCodeWidget("GMPE01", "GMPE01", 0);
+  GeckoCodeWidget* mp4dx_gecko = new GeckoCodeWidget("GMPEDX", "GMPEDX", 0);
   GeckoCodeWidget* mp5_gecko = new GeckoCodeWidget("GP5E01", "GP5E01", 0);
   GeckoCodeWidget* mp6_gecko = new GeckoCodeWidget("GP6E01", "GP6E01", 0);
   GeckoCodeWidget* mp7_gecko = new GeckoCodeWidget("GP7E01", "GP7E01", 0);
   GeckoCodeWidget* mp8_gecko = new GeckoCodeWidget("RM8E01", "RM8E01", 0);
 
   connect(mp4_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &GeckoDialog::OpenGeneralSettings);
+  connect(mp4dx_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
           &GeckoDialog::OpenGeneralSettings);
   connect(mp5_gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
           &GeckoDialog::OpenGeneralSettings);
@@ -136,6 +139,8 @@ GeckoDialog::GeckoDialog(QWidget* parent) : QDialog(parent)
 
   tab_widget->addTab(GetWrappedWidget(mp4_gecko, this, padding_width, padding_height),
                      tr("Mario Party 4"));
+  tab_widget->addTab(GetWrappedWidget(mp4dx_gecko, this, padding_width, padding_height),
+                     tr("Mario Party 4 DX"));
   tab_widget->addTab(GetWrappedWidget(mp5_gecko, this, padding_width, padding_height),
                      tr("Mario Party 5"));
   tab_widget->addTab(GetWrappedWidget(mp6_gecko, this, padding_width, padding_height),
