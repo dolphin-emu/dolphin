@@ -10,7 +10,6 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QString>
-#include <QSyntaxHighlighter>
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
@@ -26,6 +25,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QSlider;
 class QSpinBox;
+class QTextDocument;
 
 namespace ControllerEmu
 {
@@ -34,14 +34,14 @@ class EmulatedController;
 
 class InputStateLineEdit;
 
-class ControlExpressionSyntaxHighlighter final : public QSyntaxHighlighter
+class ControlExpressionSyntaxHighlighter final : public QObject
 {
   Q_OBJECT
 public:
   explicit ControlExpressionSyntaxHighlighter(QTextDocument* parent);
 
-protected:
-  void highlightBlock(const QString& text) final override;
+private:
+  void Highlight(QTextDocument* text_edit);
 };
 
 class QComboBoxWithMouseWheelDisabled : public QComboBox
