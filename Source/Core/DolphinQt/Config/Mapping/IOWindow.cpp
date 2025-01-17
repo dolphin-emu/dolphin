@@ -191,7 +191,6 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
   // This doesn't need to be run for every "block", but it works.
   if (ciface::ExpressionParser::ParseStatus::Successful == tokenize_status)
   {
-    ciface::ExpressionParser::RemoveInertTokens(&tokens);
     const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
 
     if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)

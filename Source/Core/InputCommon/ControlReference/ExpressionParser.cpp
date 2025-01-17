@@ -671,6 +671,11 @@ ParseResult ParseResult::MakeErrorResult(Token token, std::string description)
   return result;
 }
 
+bool IsInertToken(const Token& tok)
+{
+  return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
+}
+
 class Parser
 {
 public:
@@ -700,7 +705,12 @@ private:
     return tok;
   }
 
-  Token Peek() { return *m_it; }
+  Token Peek()
+  {
+    while (IsInertToken(*m_it))
+      ++m_it;
+    return *m_it;
+  }
 
   bool Expects(TokenType type)
   {
@@ -959,16 +969,7 @@ static ParseResult ParseComplexExpression(const std::string& str)
   if (tokenize_status != ParseStatus::Successful)
     return ParseResult::MakeErrorResult(Token(TOK_INVALID),
                                         Common::GetStringT("Tokenizing failed."));
-
-  RemoveInertTokens(&tokens);
   return ParseTokens(tokens);
-}
-
-void RemoveInertTokens(std::vector<Token>* tokens)
-{
-  std::erase_if(*tokens, [](const Token& tok) {
-    return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
-  });
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)
