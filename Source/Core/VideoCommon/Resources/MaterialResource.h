@@ -18,6 +18,7 @@
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/GXPipelineTypes.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/Resources/RenderTargetResource.h"
 #include "VideoCommon/Resources/Resource.h"
 #include "VideoCommon/Resources/ShaderResource.h"
 #include "VideoCommon/Resources/TextureAndSamplerResource.h"
@@ -42,7 +43,10 @@ public:
   {
   public:
     AbstractPipeline* GetPipeline() const { return m_pipeline.get(); }
-    std::span<const u8> GetUniforms() const { return m_uniform_data; }
+    std::span<const u8> GetUniforms() const
+    {
+      return std::span<const u8>(m_uniform_data.get(), m_uniform_data.size());
+    }
     std::span<const TextureLikeReference> GetTextures() const { return m_texture_like_references; }
     MaterialResource* GetNextMaterial() const { return m_next_material; }
 
@@ -57,8 +61,8 @@ public:
     Common::SmallVector<TextureLikeResource, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
         m_texture_like_resources;
 
-    // Variant for future expansion...
-    using TextureLikeData = std::variant<std::shared_ptr<TextureAndSamplerResource::Data>>;
+    using TextureLikeData = std::variant<std::shared_ptr<TextureAndSamplerResource::Data>,
+                                         std::shared_ptr<RenderTargetResource::Data>>;
     Common::SmallVector<TextureLikeData, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
         m_texture_like_data;
 
