@@ -15,7 +15,7 @@ class MappingButton : public ElidedButton
 {
   Q_OBJECT
 public:
-  MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator);
+  MappingButton(MappingWidget* widget, ControlReference* ref);
 
   bool IsInput() const;
   ControlReference* GetControlReference();
@@ -26,7 +26,6 @@ signals:
 
 private:
   void Clear();
-  void UpdateIndicator();
   void AdvancedPressed();
 
   void Clicked();

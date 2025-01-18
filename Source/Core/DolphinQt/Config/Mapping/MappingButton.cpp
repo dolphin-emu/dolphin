@@ -72,7 +72,7 @@ bool MappingButton::IsInput() const
   return m_reference->IsInput();
 }
 
-MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref)
     : ElidedButton(RefToDisplayString(ref)), m_mapping_window(parent->GetParent()), m_reference(ref)
 {
   if (IsInput())
@@ -86,9 +86,6 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool 
   }
 
   connect(this, &MappingButton::clicked, this, &MappingButton::Clicked);
-
-  if (indicator)
-    connect(parent, &MappingWidget::Update, this, &MappingButton::UpdateIndicator);
 
   connect(parent, &MappingWidget::ConfigChanged, this, &MappingButton::ConfigChanged);
   connect(this, &MappingButton::ConfigChanged, [this] {
@@ -132,21 +129,6 @@ void MappingButton::Clear()
   m_mapping_window->Save();
 
   m_mapping_window->UnQueueInputDetection(this);
-}
-
-void MappingButton::UpdateIndicator()
-{
-  QFont f = m_mapping_window->font();
-
-  if (isActiveWindow() && m_reference->IsInput() && m_reference->GetState<bool>() && !m_is_mapping)
-    f.setBold(true);
-
-  // If the expression has failed to parse, show it in italic.
-  // Some expressions still work even the failed to parse so don't prevent the GetState() above.
-  if (m_reference->GetParseStatus() == ciface::ExpressionParser::ParseStatus::SyntaxError)
-    f.setItalic(true);
-
-  setFont(f);
 }
 
 void MappingButton::StartMapping()

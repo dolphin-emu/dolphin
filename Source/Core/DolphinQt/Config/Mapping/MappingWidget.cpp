@@ -313,7 +313,7 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
                                   bool indicator)
 {
-  auto* const button = new MappingButton(this, control->control_ref.get(), indicator);
+  auto* const button = new MappingButton(this, control->control_ref.get());
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
