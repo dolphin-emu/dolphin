@@ -232,7 +232,10 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   std::string current_backend = m_backend_combo->currentData().toString().toStdString();
   if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
   {
-    m_backend_combo->Load();
+    {
+      const QSignalBlocker blocker(m_backend_combo);
+      m_backend_combo->Load();
+    }
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   }
 }
