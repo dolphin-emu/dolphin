@@ -250,12 +250,10 @@ private:
           profile_ini.Load(ini_path);
 
           const auto* ini_section = profile_ini.GetOrCreateSection("Profile");
-          const auto& section_map = ini_section->GetValues();
-          for (const auto& value : section_map)
+          for (const auto& [key, value] : ini_section->GetValues())
           {
-            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num,
-                                      value.first};
-            layer->Set(location, value.second);
+            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num, key};
+            layer->Set(location, value);
           }
         }
       }
@@ -266,12 +264,9 @@ private:
   {
     const std::string section_name = section.GetName();
 
-    // Regular key,value pairs
-    const auto& section_map = section.GetValues();
-
-    for (const auto& value : section_map)
+    for (const auto& [key, value] : section.GetValues())
     {
-      const auto location = MapINIToRealLocation(section_name, value.first);
+      const auto location = MapINIToRealLocation(section_name, key);
 
       if (location.section.empty() && location.key.empty())
         continue;
@@ -279,7 +274,7 @@ private:
       if (location.system == Config::System::Session)
         continue;
 
-      layer->Set(location, value.second);
+      layer->Set(location, value);
     }
   }
 
@@ -296,11 +291,8 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
     ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
 
-  for (const auto& config : layer->GetLayerMap())
+  for (const auto& [location, value] : layer->GetLayerMap())
   {
-    const Config::Location& location = config.first;
-    const std::optional<std::string>& value = config.second;
-
     if (!IsSettingSaveable(location) || location.system == Config::System::Session)
       continue;
 
