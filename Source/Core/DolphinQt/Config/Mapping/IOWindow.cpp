@@ -541,7 +541,6 @@ void IOWindow::ConnectWidgets()
     const auto lock = m_controller->GetStateLock();
     m_reference->State(0.0);
   });
-  connect(this, &IOWindow::closeEvent, this, &IOWindow::TestOutputComplete);
 
   connect(m_button_box, &QDialogButtonBox::clicked, this, &IOWindow::OnDialogButtonPressed);
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
@@ -587,6 +586,7 @@ void IOWindow::ConnectWidgets()
   });
 
   // revert the expression when the window closes without using the OK button
+  // UpdateExpression will also ensure an active rumble test is stopped when the dialog closes.
   connect(this, &IOWindow::finished, [this] { UpdateExpression(m_original_expression); });
 }
 
