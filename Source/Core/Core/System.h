@@ -116,7 +116,8 @@ class SystemTimersManager;
 namespace VideoCommon
 {
 class CustomAssetLoader;
-}
+class CustomResourceManager;
+}  // namespace VideoCommon
 namespace VideoInterface
 {
 class VideoInterfaceManager;
@@ -202,6 +203,7 @@ public:
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
   VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
+  VideoCommon::CustomResourceManager& GetCustomResourceManager() const;
   GraphicsModEditor::EditorMain& GetGraphicsModEditor() const;
   GraphicsModSystem::Runtime::GraphicsModManager& GetGraphicsModManager() const;
 

@@ -37,6 +37,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -97,6 +98,7 @@ struct System::Impl
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
   VideoCommon::CustomAssetLoader m_custom_asset_loader;
+  VideoCommon::CustomResourceManager m_custom_resource_manager;
   FifoPlayer m_fifo_player;
   FifoRecorder m_fifo_recorder;
   Movie::MovieManager m_movie;
@@ -335,6 +337,11 @@ VideoInterface::VideoInterfaceManager& System::GetVideoInterface() const
 VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
 {
   return m_impl->m_custom_asset_loader;
+}
+
+VideoCommon::CustomResourceManager& System::GetCustomResourceManager() const
+{
+  return m_impl->m_custom_resource_manager;
 }
 
 GraphicsModEditor::EditorMain& System::GetGraphicsModEditor() const
