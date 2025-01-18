@@ -125,17 +125,34 @@ Resource::TaskComplete MaterialResource::CollectDependencyData()
     if (texture_and_sampler.asset == "")
       continue;
 
-    const auto texture = m_resource_context.resource_manager->GetTextureAndSamplerFromAsset(
-        texture_and_sampler.asset, m_resource_context.asset_library);
-    m_load_data->m_texture_like_resources[i] = texture;
-    m_load_data->m_texture_like_data[i] = texture->GetData();
-    texture->AddReference(this);
+    if (texture_and_sampler.is_render_target)
+    {
+      const auto render_target = m_resource_context.resource_manager->GetRenderTargetFromAsset(
+          texture_and_sampler.asset, m_resource_context.asset_library);
+      m_load_data->m_texture_like_resources[i] = render_target;
+      m_load_data->m_texture_like_data[i] = render_target->GetData();
+      render_target->AddReference(this);
 
-    const auto data_processed = texture->IsDataProcessed();
-    if (data_processed == TaskComplete::Error)
-      return TaskComplete::Error;
+      const auto data_processed = render_target->IsDataProcessed();
+      if (data_processed == TaskComplete::Error)
+        return TaskComplete::Error;
 
-    loaded &= data_processed == TaskComplete::Yes;
+      loaded &= data_processed == TaskComplete::Yes;
+    }
+    else
+    {
+      const auto texture = m_resource_context.resource_manager->GetTextureAndSamplerFromAsset(
+          texture_and_sampler.asset, m_resource_context.asset_library);
+      m_load_data->m_texture_like_resources[i] = texture;
+      m_load_data->m_texture_like_data[i] = texture->GetData();
+      texture->AddReference(this);
+
+      const auto data_processed = texture->IsDataProcessed();
+      if (data_processed == TaskComplete::Error)
+        return TaskComplete::Error;
+
+      loaded &= data_processed == TaskComplete::Yes;
+    }
   }
 
   if (m_load_data->m_material_data->next_material_asset != "")
@@ -189,10 +206,16 @@ Resource::TaskComplete MaterialResource::ProcessData()
     auto& texture_like_data = m_load_data->m_texture_like_data[i];
 
     std::visit(overloaded{[&](const std::shared_ptr<TextureAndSamplerResource::Data>& data) {
-                 texture_like_reference.texture = data->GetTexture();
-                 texture_like_reference.sampler = CalculateSamplerAnisotropy(data->GetSampler());
-                 ;
-               }},
+                            texture_like_reference.texture = data->GetTexture();
+                            texture_like_reference.sampler =
+                                CalculateSamplerAnisotropy(data->GetSampler());
+                            ;
+                          },
+                          [&](const std::shared_ptr<RenderTargetResource::Data>& data) {
+                            texture_like_reference.texture = data->GetTexture();
+                            texture_like_reference.sampler =
+                                CalculateSamplerAnisotropy(data->GetSampler());
+                          }},
                texture_like_data);
   }
 
@@ -323,10 +346,18 @@ void MaterialResource::CreateTextureData(Data* data)
   {
     const auto& texture_and_sampler = material_data.textures[i];
     data->m_texture_like_references.push_back(TextureLikeReference{});
-
-    TextureAndSamplerResource* value = nullptr;
-    data->m_texture_like_resources.push_back(value);
-    data->m_texture_like_data.push_back(std::shared_ptr<TextureAndSamplerResource::Data>{});
+    if (texture_and_sampler.is_render_target)
+    {
+      RenderTargetResource* value = nullptr;
+      data->m_texture_like_resources.push_back(value);
+      data->m_texture_like_data.push_back(std::shared_ptr<RenderTargetResource::Data>{});
+    }
+    else
+    {
+      TextureAndSamplerResource* value = nullptr;
+      data->m_texture_like_resources.push_back(value);
+      data->m_texture_like_data.push_back(std::shared_ptr<TextureAndSamplerResource::Data>{});
+    }
 
     auto& texture_like_reference = data->m_texture_like_references[i];
 
