@@ -206,6 +206,7 @@ public:
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
   VideoCommon::CustomResourceManager& GetCustomResourceManager() const;
+  VideoCommon::CustomResourceManager& GetCustomResourceManager() const;
   GraphicsModEditor::EditorMain& GetGraphicsModEditor() const;
   GraphicsModSystem::Runtime::GraphicsModManager& GetGraphicsModManager() const;
 
