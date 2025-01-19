@@ -42,7 +42,7 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   }
   else if (name == CustomMeshAction::factory_name)
   {
-    return CustomMeshAction::Create(json_data, std::move(library), std::move(texture_cache));
+    return CustomMeshAction::Create(json_data, std::move(library));
   }
 
   return nullptr;
