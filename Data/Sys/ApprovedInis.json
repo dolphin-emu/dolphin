@@ -3,6 +3,10 @@
     "title": "ZELDA OCARINA MULTI PACK",
     "CAB9CED2D904F12CCB21F5B1DE9B5433620C3E13": "loophack"
   },
+  "DPOJ8P": {
+    "title": "PHANTASY STAR ONLINE EPISODE I&II TRIAL EDITION",
+    "90BA66E25640A538FEFA6693715718139079FA7B": "Bypass Modem Detection"
+  },
   "G2BE5G": {
     "title": "Black & Bruised",
     "7FFF6BDD93713BEDFD23739C32B86153FA19AEA0": "Disable interlaced rendering"
@@ -11,22 +15,164 @@
     "title": "Black & Bruised",
     "56E85D7285F10348E1E5354E379918D07E79EDA9": "Disable interlaced rendering"
   },
+  "G2VE08": {
+    "title": "Viewtiful Joe 2",
+    "3ED033396382424533A263A39687A0961EC994A6": "16:9 Widescreen"
+  },
+  "G2VP08": {
+    "title": "Viewtiful Joe 2",
+    "EEBC3C5F04BB70AFCA1A4C3D638335CDC9142BA2": "16:9 Widescreen"
+  },
+  "G3RP52": {
+    "title": "Shrek 2",
+    "7F6B7743F0DDD3704B15882330E490103AE24E36": "16:9 Widescreen",
+    "4C9A8572A35F1DB85BBB2F32ED34288A343F1FC0": "60fps"
+  },
+  "G3YP52": {
+    "title": "Shrek SuperSlam (PAL)",
+    "FD61581C593EA34DD358AE33819FAB310F2CE961": "Force PAL60",
+    "3D102AFEE2F4945894E74BB702ED3ED2294C6FEC": "16:9 Widescreen"
+  },
+  "G4AEE9": {
+    "title": "Harvest Moon: Magical Melody",
+    "8C2564CF47BB6A9B57D712C90E17F459B0BB6CCD": "16:9 Aspect Ratio Fix"
+  },
+  "G4ME69": {
+    "title": "The Sims: Bustin Out GameCube",
+    "6FC6E5D91693FAABE25CC721F2121CB0B5CA9D12": "16:9 Widescreen"
+  },
+  "G5SE7D": {
+    "title": "Spyro: A Hero's Tail",
+    "16119398BFE241A84151C046E0BC5BCF89D22049": "16:9 Widescreen",
+    "A5F2FB2B3BFF61F34F8AB1DD5A912A0FD8DFA720": "Remove Bloom"
+  },
+  "G5SP7D": {
+    "title": "Spyro: A Hero's Tail",
+    "718AA8BD831961C33114852FDA75BB58F768F46A": "16:9 Widescreen"
+  },
+  "G8ME01": {
+    "title": "Paper Mario",
+    "F6E8264CF14D0189219C1E2D20C4182F190F4B88": "16:9 Aspect Ratio Fix - Normal HUD",
+    "8C2FC3FC6F7766AA8E87425BF3BDD2E46E73DE71": "16:9 Aspect Ratio Fix - Centered HUD",
+    "8EA4C7B80ADE3E8FEC28EEFA3A046B6B04162E81": "16:9 Aspect Ratio Fix - Stretched HUD",
+    "AE3DBE2604CA0660165CA870C4B80E2B523C9475": "16:9 Aspect Ratio Fix - Centered HUD with letterboxing"
+  },
+  "G8MJ01": {
+    "title": "Paper Mario",
+    "631CE99BDE3F1475303C00C67E3C130D4EB2547B": "16:9 Aspect Ratio Fix - Normal HUD",
+    "B3181CA1AAB11EAE9132184DA48D76E775AC0A24": "16:9 Aspect Ratio Fix - Centered HUD",
+    "81F7AD591F12A01DE82850457ECF147998D1238F": "16:9 Aspect Ratio Fix - Stretched HUD",
+    "904C0EEEF16D761F7BDF7099DEB384DD9AB26E00": "16:9 Aspect Ratio Fix - Centered HUD with letterboxing"
+  },
+  "G8MP01": {
+    "title": "Paper Mario",
+    "FB26AA84B0CB787705E84E869B649307776A2839": "16:9 Aspect Ratio Fix - Normal HUD",
+    "75AF5D7FA49BE9C3C73EA1482B49CD9B36CE817E": "16:9 Aspect Ratio Fix - Centered HUD",
+    "C5F8A81520193418C07C7BC4881F02BE9C4DC9BC": "16:9 Aspect Ratio Fix - Stretched HUD",
+    "C2E5003E74551DF693A7CB814850CA51D77549EF": "16:9 Aspect Ratio Fix - Centered HUD with letterboxing"
+  },
+  "G9SE8P": {
+    "title": "Sonic Heroes",
+    "CD043229AC47AC93D537B6A0725A2D0BB6FEF4E8": "16:9 Widescreen"
+  },
+  "G9SJ8P": {
+    "title": "Sonic Heroes",
+    "C55EF90B542AA3973352A232629A828BC22A8509": "16:9 Widescreen"
+  },
+  "G9SP8P": {
+    "title": "Sonic Heroes",
+    "9521774ADEE769CFCCE86F8170FE626387E73019": "16:9 Widescreen"
+  },
+  "GAFE01": {
+    "title": "Animal Crossing",
+    "D24F6D9BE5D79D3C795C2844634A0214BB68B5DA": "16:9 Widescreen",
+    "F9A812FF62A20D5440CAB79DB6AFAE068457A10E": "Make Game Save Copyable (donny2112)"
+  },
+  "GAL": {
+    "title": "Super Smash Bros Melee",
+    "DBDB50216B22CDFFF77BDD80261CD0FF75803D3B": "Trophy Viewer"
+  },
+  "GALE01r0": {
+    "title": "Super Smash Bros. Melee",
+    "9DC8D90D986FAC175F45006AFF20CF00EDFBE053": "Normal C Stick Functionality in Singleplayer Modes",
+    "18B4159E77013EDFE499A33281B771C442970E3B": "Proper 16:9 Widescreen Support",
+    "DC2BCA7D99EBDE1DC7C68CA6AC7F543B93FD6A67": "Properly Display in 4:3"
+  },
+  "GALE01r1": {
+    "title": "Super Smash Bros. Melee",
+    "F6030959C1CAC92F37287D556F18B3C5298FAD5B": "Normal C Stick Functionality in Singleplayer Modes"
+  },
+  "GALE01r2": {
+    "title": "Super Smash Bros. Melee",
+    "CEDF18354CDCFC49398551C629E51B053331A55B": "Proper 16:9 Widescreen Support",
+    "6B92D95F0EEA165EA84FD753F74B0A9E2079C2D7": "PAL Stock Icons",
+    "BCD918A72368B2A30E797C76994E7539A1C0B5D9": "Normal C Stick Functionality in Singleplayer Modes [Zauron]",
+    "CFDEEA8AD2A99394BFFEA7211EF03394E7471FA9": "Disable Rumble",
+    "D32ED4CD685F3FF649F7E749E8C182C657013918": "Widescreen Support v1.2 [Dan Salvato]"
+  },
+  "GALP01": {
+    "title": "Super Smash Bros. Melee",
+    "BFCBE098FE8679B9140A48EA1D8620D5A369697C": "Proper 16:9 Widescreen Support",
+    "5BA2933B8365E21553AA273B91954A4C722B1035": "Properly Display in 4:3",
+    "4817F202678559291F9F76B46DC7561A45D00B77": "Normal C Stick Functionality in Singleplayer Modes"
+  },
+  "GAZE69": {
+    "title": "Harry Potter and the Prisoner of Azkaban",
+    "BC281053C5266B21FDDC6C8996A6021DEA03D459": "60FPS"
+  },
+  "GBLE52": {
+    "title": "BLOODY ROAR(R): PRIMAL FURY",
+    "C0F3AB3BBC9B21F4BF25F44E48CF1CD36D2B3F45": "16:9 Widescreen"
+  },
+  "GBLP52": {
+    "title": "BLOODY ROAR(R): PRIMAL FURY",
+    "797040CB097BFD369490A1BE29659929D76CE6F7": "16:9 Widescreen"
+  },
+  "GBRJ18": {
+    "title": "BLOODY ROAR(R): PRIMAL FURY",
+    "B3C867AB34D90E2E9C5B799D800F4C191DE279FA": "16:9 Widescreen"
+  },
+  "GBSE8P": {
+    "title": "BEACH SPIKERS",
+    "4148D453F61A5B81E53669335BC667E651865C76": "16:9 Widescreen"
+  },
+  "GBSP8P": {
+    "title": "BEACH SPIKERS",
+    "6CB029AE768BA5B9995D5F12C1EBB37B3D1FE242": "16:9 Widescreen"
+  },
   "GC6E01": {
     "title": "Pokémon Colosseum",
-    "2F64F98686E62B60E466E931A9EBCD19A750FF4E": "Allow Memory Card saving with Savestates"
+    "2F64F98686E62B60E466E931A9EBCD19A750FF4E": "Allow Memory Card saving with Savestates",
+    "DE932CCAD1B5EB1FAA8D08733BD0D3940C78382A": "16:9 Widescreen"
   },
   "GC6J01": {
     "title": "ポケモンコロシアム",
-    "D8F327304A88FBC717BB1F775494C5F864B9E8D2": "Allow Memory Card saving with Savestates"
+    "D8F327304A88FBC717BB1F775494C5F864B9E8D2": "Allow Memory Card saving with Savestates",
+    "5CB4934396ABD43F7147EA13521C952728933874": "16:9 Widescreen"
   },
   "GC6P01": {
     "title": "Pokémon Colosseum",
-    "EDEE0E28EEA1834868F2865336290FFBDFB9C6DA": "Allow Memory Card saving with Savestates"
+    "EDEE0E28EEA1834868F2865336290FFBDFB9C6DA": "Allow Memory Card saving with Savestates",
+    "05C9016BF58A628A3FD7B16E1B9BB0769A14846F": "16:9 Widescreen [Ralf]"
+  },
+  "GC8JA4": {
+    "title": "ｸﾗｯｼｭ･ﾊﾞﾝﾃﾞｨｸｰ 爆走！ニトロカート",
+    "843297019804192AF1FC660BC85F4B10891D0BA3": "Fix C4 texture tiling (used for buttons and some character icons)"
+  },
+  "GCBE7D": {
+    "title": "Crash Bandicoot: The Wrath of Cortex",
+    "478DA1D596D8513C343850719155813CB61A56DD": "16:9 Widescreen"
+  },
+  "GCBP7D": {
+    "title": "Crash Bandicoot: The Wrath of Cortex",
+    "478DA1D596D8513C343850719155813CB61A56DD": "16:9 Widescreen",
+    "DF2C4DDF082C9E67919443C5ACC485AB2CF7F8D0": "60Hz"
   },
   "GCCE01": {
     "title": "FINAL FANTASY Crystal Chronicles",
     "6C107FEC15C76201233CA2645EB5FAB4FF9751CE": "Fix buffer overrun bug (crash at Goblin Wall)",
-    "483BDB94615C690045C3759795AF13CE76552286": "Fix GBA connections"
+    "483BDB94615C690045C3759795AF13CE76552286": "Fix GBA connections",
+    "BA0066518E7EA8599A81F8496BD39DE20CC369D6": "16:9 Widescreen"
   },
   "GCCJGC": {
     "title": "FINAL FANTASY Crystal Chronicles",
@@ -34,7 +180,20 @@
   },
   "GCCP01": {
     "title": "FINAL FANTASY Crystal Chronicles",
-    "2EAA60A8A115AD68A795109FB59E4A726D29016D": "Fix GBA connections"
+    "2EAA60A8A115AD68A795109FB59E4A726D29016D": "Fix GBA connections",
+    "2580E7379633CF4DE13B9EC945DB17543477828A": "16:9 Widescreen"
+  },
+  "GCN": {
+    "title": "Crash Nitro Kart",
+    "601FE183C9524ACCF068874DABD73921C86769CF": "Fix C4 texture tiling (used for buttons and some character icons)"
+  },
+  "GCVEEB": {
+    "title": "Cubivore",
+    "ADA686C90189D1D7D23E23E525EFC96EFA104BB9": "16:9 Widescreen"
+  },
+  "GD7E70": {
+    "title": "Dragon Ball Z: Budokai",
+    "95A17AFAAFD83E96CD1CC6242B8667F6A3DC8416": "Deinterlacing Fix"
   },
   "GDREAF": {
     "title": "Dead to Rights",
@@ -64,17 +223,61 @@
     "title": "Egg Mania: Eggstreme Madness",
     "CC2057185BB10DAD4A361412D024DFD586EE0130": "Force Progressive Scan"
   },
+  "GEZE8P": {
+    "title": "BillyHatcher",
+    "5CEBCFBEA4E444495D2FD6D8B6607DFB2349CC1B": "16:9 Widescreen [gamemasterplc]"
+  },
+  "GF7E01": {
+    "title": "STARFOX ASSAULT",
+    "C59CCA3EF8A5E97B32EB64DB9AE80E652ED281C6": "16:9 Widescreen [gamemasterplc]"
+  },
+  "GF7P01": {
+    "title": "STARFOX ASSAULT",
+    "1230053B5C347B62E432EFD6635433A183D18619": "16:9 Widescreen [gamemasterplc]"
+  },
+  "GFQEA4": {
+    "title": "Frogger's Adventures: The Rescue",
+    "5CD9568CE58EF82EB371594667015C9B799454B9": "16:9 Widescreen"
+  },
+  "GFZJ01": {
+    "title": "F-Zero GX",
+    "F659D22CB1DFF15C3915D7630D838EED8DB0BA48": "Make Save Copyable"
+  },
+  "GFZP01": {
+    "title": "F-Zero GX",
+    "F659D22CB1DFF15C3915D7630D838EED8DB0BA48": "Make Save Copyable"
+  },
+  "GGTE01": {
+    "title": "ChibiRobo!",
+    "EF128E7A9C22676834F558BA0F0F7FD8B9028727": "16:9 Widescreen [darkludx]",
+    "5232A937D1D813FF58DD71D716284ED6AB535689": "Simple 60FPS",
+    "D40344111D989EA009901F8B1C45B5AC8D39E6D2": "Experimental 60fps"
+  },
+  "GGTJ01": {
+    "title": "ChibiRobo!",
+    "D62E777A2F019D7BD0AFFBCE876BD9AE408F1667": "Simple 60FPS",
+    "BEC2310911003AF9E4B984A4051E0F885B8CC825": "Experimental 60fps"
+  },
+  "GGTP01": {
+    "title": "ChibiRobo!",
+    "FA9CD330ECDA01275DA88BD0803DE47757D16A4E": "16:9 Widescreen",
+    "43FAD0DDD130BE1E4C8C7603EF6CA7DAA0DF5EE9": "Simple 60FPS",
+    "EB1ACD613BB432A3391CFFF1F0145A6ACE66B210": "Experimental 60fps"
+  },
   "GGVD78": {
     "title": "The SpongeBob SquarePants Movie",
-    "FE52240DF6D132C15A8324E8A477F2BF2250D208": "EFB Copy Fix"
+    "FE52240DF6D132C15A8324E8A477F2BF2250D208": "EFB Copy Fix",
+    "9D07DBB5EC2FAA47F2E4587FBD75FD6F3E7E91B0": "16:9 Widescreen"
   },
   "GGVE78": {
     "title": "The SpongeBob SquarePants Movie",
-    "5E38E10829D5F77243C95E9E41518BB3ADE24139": "EFB Copy Fix"
+    "5E38E10829D5F77243C95E9E41518BB3ADE24139": "EFB Copy Fix",
+    "86E561452235BF88D41884558EF34F54CE0FEB48": "16:9 Widescreen"
   },
   "GGVP78": {
     "title": "The SpongeBob SquarePants Movie",
-    "5E38E10829D5F77243C95E9E41518BB3ADE24139": "EFB Copy Fix"
+    "5E38E10829D5F77243C95E9E41518BB3ADE24139": "EFB Copy Fix",
+    "F9B2108D833084FA36A53E00F1647A9579F847D3": "16:9 Widescreen"
   },
   "GGVX78": {
     "title": "The SpongeBob SquarePants Movie",
@@ -91,6 +294,27 @@
   "GHAP08": {
     "title": "Resident Evil 2",
     "BC7F3CFC97593AA2055C370C175950DC478D2709": "Fix audio issues"
+  },
+  "GHLE69": {
+    "title": "Harry Potter and the Sorcerer's Stone",
+    "742BFC79D8F0BA5D6215772B58F5A0EADD7BFAFF": "16:9 Widescreen"
+  },
+  "GHQE7D": {
+    "title": "The Simpsons: Hit & Run",
+    "520E5F718D3BD1291C55021776091E0DE0FB4822": "16:9 Widescreen"
+  },
+  "GHQP7D": {
+    "title": "The Simpsons: Hit & Run",
+    "AAE14CDC13A0C082A850DED85417100A8C8A0687": "16:9 Widescreen",
+    "884A33613AE8D916128E3FF39B3AA9F63DAADC58": "60Hz"
+  },
+  "GHSE69": {
+    "title": "Harry Potter and the Chamber of Secrets",
+    "3538CDBD13FA939B7BA5F0F82253401AFDD1E2CD": "16:9 Widescreen"
+  },
+  "GHSP69": {
+    "title": "Harry Potter and the Chamber of Secrets",
+    "409754E2EBB6F05DEE1AFC647E25B15D462638FF": "16:9 Widescreen"
   },
   "GICD78": {
     "title": "The Incredibles",
@@ -132,6 +356,52 @@
     "title": "The Incredibles: Rise of the Underminer",
     "485DA99FAB35646DAA2A138B0315361495ABE778": "EFB Copy Fix"
   },
+  "GK2": {
+    "title": "Spider-Man 2",
+    "6B4C59C2A2C5D71C7A38C8513A76E6467E307A26": "16:9 Widescreen [Vague Rant]"
+  },
+  "GK2E52": {
+    "title": "Spider-Man 2",
+    "8F2397930A50C3C176188526EB9612578F9CBCE5": "60 FPS"
+  },
+  "GK4": {
+    "title": "Baten Kaitos Origins",
+    "4652969A4DA869FD28F2CAA3869A38F5C2AAFEB1": "16:9 Widescreen"
+  },
+  "GKB": {
+    "title": "Baten Kaitos Eternal Wings and the Lost Ocean",
+    "4652969A4DA869FD28F2CAA3869A38F5C2AAFEB1": "16:9 Widescreen Region-Free"
+  },
+  "GKBPAF": {
+    "title": "Baten Kaitos Eternal Wings and the Lost Ocean",
+    "8E4E0ABA0E6D102A33206F34F4DEE63159B3CB4F": "60Hz"
+  },
+  "GKDP01": {
+    "title": "Doshin the Giant",
+    "DF4657937DE730107B636C73E959277EB963D210": "16:9 Widescreen",
+    "6740D7B914CC897AF50798C0AB391965294FD1E1": "60Hz"
+  },
+  "GKWJ18": {
+    "title": "DreamMix TV World Fighters",
+    "696570101FA040778EAD310377C484C846D87430": "16:9 Widescreen"
+  },
+  "GKRPB2": {
+    "title": "Ribbit King",
+    "40D06A5C7A3D873ABC73DEDF573738C2E3E37FF0": "60Hz",
+    "69C01A4F91D991CF866237FED94A138308FC104F": "16:9 Widescreen"
+  },
+  "GKYE01": {
+    "title": "Kirby Air Ride",
+    "6520EF1B7D88F00747B120A3A010458602ED989D": "16:9 Widescreen"
+  },
+  "GKYJ01": {
+    "title": "Kirby Air Ride",
+    "47B8EF7D02831AA5C375C698797BF2D5475FEFF2": "16:9 Widescreen"
+  },
+  "GKYP01": {
+    "title": "Kirby Air Ride",
+    "69413C75036D2975716066E6574461B981FF0124": "16:9 Widescreen"
+  },
   "GLEE08": {
     "title": "Resident Evil 3: Nemesis",
     "7355F358CAC6F418D37E4C23E64F7867D46E4FC9": "Fix audio issues"
@@ -158,15 +428,221 @@
   },
   "GLSP64": {
     "title": "Gladius",
-    "3D0894616C9A7FA5ED91C1D2F461BF14DF47ECEC": "Fix freeze in opening cutscene"
+    "3D0894616C9A7FA5ED91C1D2F461BF14DF47ECEC": "Fix freeze in opening cutscene",
+    "8E7A544C10E7A5E2F0304A0D2586879627EF6586": "16:9 Widescreen",
+    "B67144E87B54246137142992A3BC83DC13BE68A7": "60Hz"
+  },
+  "GM4E01": {
+    "title": "Mario Kart: Double Dash!!",
+    "78BE50F93E81A1972CA31ABC318949E366E82BD0": "16:9 Widescreen v2",
+    "87D1A6A3E29ADA03B0D29C2F1841C18E62DB0A15": "16:9 Menu Backgrounds Add-On"
+  },
+  "GM4P01": {
+    "title": "Mario Kart: Double Dash!!",
+    "6D950B6EEFD6D304E1A424355B74A595D32BDF2F": "16:9 Widescreen v2",
+    "87D1A6A3E29ADA03B0D29C2F1841C18E62DB0A15": "16:9 Menu Backgrounds Add-On"
+  },
+  "GMBE8P": {
+    "title": "Super Monkey Ball",
+    "D12DE9E3941BCE6EB50B8DA92140E09AFC0104C8": "16:9 Widescreen",
+    "0151A6683E1FBFD20096807C54A6952C4A4BAD40": "NA Stretched HUD"
+  },
+  "GMBP8P": {
+    "title": "Super Monkey Ball",
+    "8A688981F33A2C53882EF08FCF20B88AD43EF417": "16:9 Widescreen"
+  },
+  "GMOP70": {
+    "title": "Micro Machines",
+    "CE4D298616BD42E4D8F8936B325CD1FD7F5B956B": "16:9 Widescreen",
+    "0CD2CC787A5FF551901E41C85C8AAC02017ECB89": "60Hz"
+  },
+  "GMPE01": {
+    "title": "Mario Party 4",
+    "D7249AC3C949FEB860CF4350C5B7B79AC16569F1": "QOL - Show Controller Port Number of Who Paused",
+    "E232B27564E9AA0C32DE163C9C056317A7B2B12E": "QOL - Allow Digital Presses for Map Screen",
+    "59607671BFC4717ACAF9807BB7EB0D9F982866D4": "QOL - Automatically Advance Text Boxes",
+    "CAEA37F3FEF89400513353EB85875F2A3AF4C03E": "QOL - Disable Advance on Results",
+    "F75FBBD838C5B84FF687962FBA9195B217DE132C": "QOL - Faster Boot Time",
+    "19F264DE7F07EAC9433CA4B591BEBA1EC976C9F1": "QOL - Increased Board Speed",
+    "C70391D4961A0E820DE40141C89341369A9F021B": "QOL - Increased Taunt Capabilities",
+    "F4E6913CF034E5778B9F9CA5FF448FF1B78B3333": "QOL - Instant Text Display",
+    "93621947019532F02C25937FD3EEEE21A788CB07": "QOL - Rumble Always Off",
+    "4F98592DB3DEE3857469A8D8605FAF4BD6F7C76D": "16:9 Widescreen"
+  },
+  "GMPJ01": {
+    "title": "Mario Party 4",
+    "A795811F2F0C92D9DCABDE97D9E39B47B1DBCEFD": "16:9 Widescreen"
+  },
+  "GMPP01": {
+    "title": "Mario Party 4",
+    "A795811F2F0C92D9DCABDE97D9E39B47B1DBCEFD": "16:9 Widescreen"
   },
   "GMSE01": {
     "title": "Super Mario Sunshine",
-    "BD718F961DBA5372B1D0257D454D535746C453A0": "Widescreen"
+    "BD718F961DBA5372B1D0257D454D535746C453A0": "Widescreen",
+    "2805B1A0DD53EB64877D375D10F667700955720F": "60FPS"
+  },
+  "GMSJ01": {
+    "title": "Super Mario Sunshine",
+    "E8112A01040A06460E368F142C5D1FD0B4085D94": "16:9 Widescreen"
+  },
+  "GMSJ01r0": {
+    "title": "Super Mario Sunshine",
+    "9894B5B6B5215844D48411021FF8EECFE851D79D": "60FPS"
+  },
+  "GMSJ01r1": {
+    "title": "Super Mario Sunshine",
+    "2DB69DB7A3753D543CD85CA4C77B4EF0AED7486E": "60FPS"
+  },
+  "GMSP01": {
+    "title": "Super Mario Sunshine",
+    "0B7B89BF0868393076EF5F9DBD689DD0EDBCB84C": "Widescreen",
+    "D07009B710B3BBC6B12E54ED6A7969D58197EDAF": "60FPS"
   },
   "GNHE5d": {
     "title": "NHL HITZ 2002",
     "89393A24E2336841AA4CD0AD3BE1C9A66B89E9EF": "Nop Hack"
+  },
+  "GOCE5D": {
+    "title": "RoadKill",
+    "E4D800B90F16A15D9252EED1B2A23AEAF5CD230A": "16:9 Widescreen"
+  },
+  "GOME01": {
+    "title": "Mario Power Tennis",
+    "C33CBBF6F22195BF626104B4827200B3EE1CF30C": "16:9 Widescreen"
+  },
+  "GOMP01": {
+    "title": "Mario Power Tennis",
+    "874784CCD4AC3DC9C69654E471C18AD0F5E4D9AE": "16:9 Widescreen"
+  },
+  "GONE69": {
+    "title": "Medal of Honor: European Assault",
+    "6412A67E1C26E146A9526AFC9F0EE517B214069D": "Widescreen Hack Culling"
+  },
+  "GP4J18": {
+    "title": "Hudson Selection Vol. 3: Bonk's Adventure",
+    "BF4D2D6AF66F285E81173B3B20D5369DB6FB351B": "16:9 Widescreen"
+  },
+  "GP5E01": {
+    "title": "Mario Party 5",
+    "5BA3648D18346EDC97B23475D4748C637E6095A2": "QOL - Show Controller Port Number of Who Paused",
+    "41EF84663008668682BB75DC8B874E38669AE041": "QOL - Automatically Advance Text Boxes",
+    "6C36BEFE751131298BC8B39012892F6A6903CE60": "QOL - Disable Advance on Results",
+    "8E952E6E12639AC20F6F9FDD150C12F0C294DF43": "QOL - Faster Boot Time",
+    "4BD72B8ED75ED8EFB3329C104BAD114FDDB8AD2C": "QOL - Increased Board Speed",
+    "C5BA3C9D386D09DD6CB9242A12A0D041BEB93160": "QOL - Increased Capsule Throwing Speed",
+    "C360EBDDCB0237076052C983BD9719411CA67CDE": "QOL - Increased Taunt Capabilities",
+    "2CD4A06A3B9C18CC9EA2A2DEBD96E066CD1D700A": "QOL - Instant Text Display",
+    "5ED053787332DB5EEB8B963BA5DF197B58C6BB75": "16:9 Widescreen"
+  },
+  "GP5J01": {
+    "title": "Mario Party 5",
+    "81E69B6BEE85E06805EC24E1CFEA9405BF459DF8": "16:9 Widescreen"
+  },
+  "GP5P01": {
+    "title": "Mario Party 5",
+    "FD4FCCB97C06F0173A30D4CC9A99422B2C0ABA9B": "16:9 Widescreen"
+  },
+  "GP6E01": {
+    "title": "Mario Party 6",
+    "E645DF70CE0266D174D917A817A7FBEEE974A9F0": "QOL - Auto Advance Text Boxes",
+    "B089A3C80D5DA86ABF6258F8BFB1DC78BB54A973": "QOL - Faster Boot Time",
+    "798E566B621F6A32BF23C588E76EAC0776E2A8A3": "QOL - Disable Advance on Results",
+    "501C52ACF117950888A66DB2BEDBDFD7D9B20235": "QOL - Increased Board Speed",
+    "845F439278DA8CBC225658FF4E2F82D707422BFB": "QOL - Increased Orb Throwing Speed",
+    "0AED27341A06186AD92D5725C0B9693CA8F85B7B": "QOL - Increased Taunt Capabilities",
+    "5AAC4E21927D4AEE7AC329CE793D4CDAEDDF7A3F": "QOL - Instant Text Display",
+    "DF5D2F068D76ABF2B1C294D413B9154B8C356929": "QOL - Show Controller Port Number of Who Paused",
+    "B502AF0887792E9B140516D14BA75F99772C17BE": "16:9 Widescreen"
+  },
+  "GP6J01": {
+    "title": "Mario Party 6",
+    "88F50F8298F82E3E5C161277BD4A985CE893A9D0": "16:9 Widescreen"
+  },
+  "GP6P01": {
+    "title": "Mario Party 6",
+    "DCCE59CA987624C753F0A86BEBA4287635901C93": "16:9 Widescreen",
+    "138A86D43B5830BFE1926F58C0A4FBE2971BB02D": "Remove Black Bars"
+  },
+  "GP7E01": {
+    "title": "Mario Party 7",
+    "5E6F8C6C87D5944DB18A4E4F9A45F61EE87A4163": "QOL - Show Controller Port Number of Who Paused",
+    "82338AB5D82A7F398B4EB674CA4866DD1F4A1E65": "QOL - Auto Advance Text Boxes",
+    "D2F9CC0B9E52136E77187395FB7DA9B64B2C3B30": "QOL - Controller Options Always Acesssible",
+    "1939B5C575AE8FF6890BDDDD1B3FEA472D8CABA0": "QOL - Faster Boot Time",
+    "A644551162A61DE7997B2A84F5BFDEFFD3FC2FB5": "QOL - Disable Advance on Results",
+    "7E06A2EBCFECADB8074152B489984237A6FE9F21": "QOL - Increased Board Speed",
+    "6671BEE71920D6B845AE1257AFE3AB3B95CD6FBD": "QOL - Increased Orb Throwing Speed",
+    "9F60923F95FFE709CCD06966CD2DF743263934D1": "QOL - Increased Taunt Capabilities",
+    "48FA6002E42DA9BB83ABC980A32C60CE3B21C4FC": "QOL - Instant Text Display",
+    "87EBF72D90503EBC5CE9BC994795669E48A92A4A": "16:9 Widescreen"
+  },
+  "GP7J01": {
+    "title": "Mario Party 7",
+    "A081F0729068D233E99DC00C64E36CA33C945640": "16:9 Widescreen"
+  },
+  "GP7P01": {
+    "title": "Mario Party 7",
+    "75D6CDA4EA301A71F7701A0487544E79136850B9": "16:9 Widescreen",
+    "6D0D5B7CA58C38A3147F8ED981B5B21CC6C519CD": "60Hz"
+  },
+  "GPIE01": {
+    "title": "Pikmin v1.1 NTSC",
+    "A25CDDB79991F090BD7F12840AD06F13BD5CCF95": "No Blur"
+  },
+  "GPIE01r0": {
+    "title": "Pikmin v1.0 NTSC",
+    "2B58166A66644F984E64077A6245C94C79B51063": "16:9 Widescreen"
+  },
+  "GPIE01r1": {
+    "title": "Pikmin v1.1 NTSC",
+    "9A1545AB4E2B9216B95AFFA83420D723512DA8C8": "16:9 Widescreen",
+    "3337C767EAA21D30C6CFEAE9985FFCABFC63E2E3": "60FPS",
+    "CBD15E9104929F0631713AE482475CB2B90E71F2": "Disable Pikmin optimizations"
+  },
+  "GPIP01": {
+    "title": "Pikmin PAL",
+    "4ED79A548DBD7DBD35928A2F1138315FF103E260": "Turn off blur",
+    "5AE44D5B0E0D4C412B453B95CF5A41DBA4D685E6": "16:9 Widescreen",
+    "AE59FF751E167632AE283F38CC4B96BDF7B9B81F": "60Hz"
+  },
+  "GPNE08": {
+    "title": "P.N.03",
+    "ED3D9BB08C5F1D21BC8D5C73155C00E3C25C466F": "16:9 Widescreen [Ralf, darkludx]"
+  },
+  "GPNP08": {
+    "title": "P.N.03",
+    "469B18FE8219031D355557B836EF02B625040A4F": "16:9 Widescreen [Ralf]"
+  },
+  "GPOE8P": {
+    "title": "PHANTASY STAR ONLINE EPISODE I&II",
+    "17EB6CFB408EF27D44C053A1336C3B87B6A05018": "Save Validation Code v1.2/Plus",
+    "304DB311F2107E88EBCE058535B266F9263AA8E2": "Make Save Copyable NTSC Port - PLUS/1.2",
+    "9F6259132453DCC0607EAB35DB182C76818F2F9F": "Save Validation Code v 1.0/v1.1",
+    "7A4B3E596BA4FDA8F3FCF984079B3F44CB2D6AB3": "Make Save Copyable NTSC Port  - 1.0/1.1"
+  },
+  "GPOE8Pr0": {
+    "title": "PHANTASY STAR ONLINE EPISODE I&II",
+    "99986BB1D4ABE45C429D48B01BFB578FEA69C14F": "16:9 Widescreen"
+  },
+  "GPOE8Pr1": {
+    "title": "PHANTASY STAR ONLINE EPISODE I&II",
+    "5563671A6702785FFE106DAB7EF3F4FE6D9F705B": "16:9 Widescreen (Plus) [Ralf]"
+  },
+  "GPOP8P": {
+    "title": "PHANTASY STAR ONLINE EPISODE I&II",
+    "40EC1590DB26C7C58D00E3065F1E404341EF0E73": "Game Save Valid",
+    "2F5FB98927DAFF141D1CCD1EACA8AF626397E284": "Game Save copyable",
+    "DF133C61C29D5CFA87A2A785C962C205F80E6D04": "16:9 Widescreen"
+  },
+  "GPVE01": {
+    "title": "PIKMIN 2 NTSC",
+    "E5B51080CFD518FE584CF3B61A1099CD032479D6": "16:9 Widescreen",
+    "271C40F5FC113896717DB0EEFED42E788CA3AC81": "60 FPS"
+  },
+  "GPVP01": {
+    "title": "PIKMIN 2 PAL",
+    "78F3C9A789827B063A6701987262276A66ABD82B": "16:9 Widescreen"
   },
   "GQPE78": {
     "title": "SpongeBob SquarePants: Battle for Bikini Bottom",
@@ -176,9 +652,116 @@
     "title": "SpongeBob SquarePants: Battle for Bikini Bottom",
     "5D9A14954AE8D639C9B254F3BA73A70F284BBC8D": "EFB Copy Fix"
   },
+  "GQSDAF": {
+    "title": "TALES OF SYMPHONIA 1",
+    "CA82C44B2E8FC5C184E3FF935BC89661B7DB55D6": "16:9 Widescreen",
+    "952165FD78543EB6D2F5230F7570B0513773D332": "60Hz",
+    "DEB7DF358423F0EF30C9FD49F4F14590836D52A6": "No Blur"
+  },
+  "GQSEAF": {
+    "title": "TALES OF SYMPHONIA 1",
+    "EF448CF1FA6A15EB2661EA5338703C13D52EF65B": "Remove Blur",
+    "48AFE1D32843C6B5AD4337A49F15FD447DF2A752": "16:9 Widescreen"
+  },
+  "GQSFAF": {
+    "title": "TALES OF SYMPHONIA 1",
+    "76C30E1737CC5C3B5DE32532B5F9A5CD50B690F8": "16:9 Widescreen",
+    "986BAE5103CDE9286D2D34FD28FE2540D0759AAB": "No Blur"
+  },
+  "GR2E52": {
+    "title": "Lost Kingdoms II",
+    "5F55CE7DA7E1E3261CF2FF88F34CDA63BA511003": "16:9 Widescreen"
+  },
+  "GR2J52": {
+    "title": "Lost Kingdoms II",
+    "D3C6FA690BED07BFA65C2E1FCDE2FFA5AA0EEEE4": "16:9 Widescreen"
+  },
+  "GR2P52": {
+    "title": "Lost Kingdoms II",
+    "D7BCADD4E76B5E3F7D9D463F55A2777528E37E94": "16:9 Widescreen"
+  },
+  "GRNE52": {
+    "title": "LOST KINGDOMS",
+    "483D74C47AD1012606D591A226AB3144C7FB201C": "16:9 Widescreen"
+  },
+  "GRNJ52": {
+    "title": "LOST KINGDOMS",
+    "949281B7221B20680B7BC29E4754B73A326EBE85": "16:9 Widescreen"
+  },
+  "GRNP52": {
+    "title": "LOST KINGDOMS",
+    "11051B094FE5A8B2E73060BFF786C1588E36979A": "16:9 Widescreen"
+  },
+  "GROE5Z": {
+    "title": "Road Trip: The Arcade Edition",
+    "FADBAB5EC280CF8ED4C9536A33F4184BA210C9B0": "16:9 Widescreen"
+  },
   "GRYE41": {
     "title": "Rayman Arena",
     "AF0A575EB6071EAC0D2EC3D2EA30A23EB05A4192": "Disable Culling to Fix Rise and Shrine Hang"
+  },
+  "GSAE01r0": {
+    "title": "Star Fox Adventures",
+    "0D529180B9B28BB06E21EDBDBA61C17EEF0FFB7F": "viWidth 704 Aspect Ratio Fix"
+  },
+  "GSAE01r1": {
+    "title": "Star Fox Adventures",
+    "CB15ED22625690A5DBE4607FE30160125421461D": "viWidth 704 Aspect Ratio Fix"
+  },
+  "GSAP01": {
+    "title": "Star Fox Adventures",
+    "749EDA62B1B73354599929F1B50E992E111C5493": "viWidth 704 Aspect Ratio Fix"
+  },
+  "GSNE8P": {
+    "title": "Sonic Adventure 2 Battle",
+    "D90F66C0D46D9BEF27C8E13BC8804DB1F382C8B1": "60Hz Aspect Ratio Fix",
+    "CFDF3FA5B48B347E49E8E521D7BE47FCC9A5CBF4": "16:9 Widescreen"
+  },
+  "GSNJ8P": {
+    "title": "Sonic Adventure 2 Battle",
+    "98DF9D67DE77F66A4B09F25C5621805DEB40865B": "60Hz Aspect Ratio Fix"
+  },
+  "GSNP8P": {
+    "title": "Sonic Adventure 2 Battle",
+    "D90F66C0D46D9BEF27C8E13BC8804DB1F382C8B1": "60Hz Aspect Ratio Fix"
+  },
+  "GSO": {
+    "title": "Sonic Mega Collection (US)",
+    "0D60D0593F6DA28B1236381B22082506B9533F0E": "16:9 Widescreen Region Free"
+  },
+  "GSPE69": {
+    "title": "The Simpsons: Road Rage",
+    "80E18A8963F4EFD3C03494C95934452FCB6E521B": "16:9 Widescreen"
+  },
+  "GSPP69": {
+    "title": "The Simpsons: Road Rage",
+    "162E87E9F5511CD82216811055836C11B374C45B": "16:9 Widescreen",
+    "E5DF2DF34D2F0BDEE4205C891576511EC572C5DC": "60Hz"
+  },
+  "GSWE64": {
+    "title": "Star Wars Rogue Squadron II: Rogue Leader",
+    "6480326CCA8FF64A4868EC6E9FDE9F38819A75A1": "16:9 Widescreen",
+    "85F65E4B627641862C1A6091D29A3BB0626B04C3": "Disable Dithering"
+  },
+  "GTEE01": {
+    "title": "1080: Avalanche",
+    "6B57EBCB9CC0ACE2EDA0F13E3F1F55F3FABC3A26": "16:9 Widescreen"
+  },
+  "GTEP01": {
+    "title": "1080: Avalanche",
+    "72785784363C46180AF8E388348FD77667E7D382": "16:9 Widescreen"
+  },
+  "GTOJAF": {
+    "title": "TALES OF SYMPHONIA 1",
+    "53A2EDF113F2ED7E54A16AA0E73FDB2C44C79DE5": "Remove Blur"
+  },
+  "GTZE41": {
+    "title": "Disney's Tarzan Untamed",
+    "ECCE87E0006475C73E7D936AA0150BD20166F9EF": "16:9 Widescreen"
+  },
+  "GTZP41": {
+    "title": "Disney's Tarzan Untamed",
+    "62D8F159B93167171E0860D96C4BB32A5BF5648B": "16:9 Widescreen"
   },
   "GU2D78": {
     "title": "2 Games in 1: The Incredibles / Finding Nemo",
@@ -200,17 +783,82 @@
     "title": "2 Games in 1: Nickelodeon SpongeBob Schwammkopf: Der Film + Nickelodeon SpongeBob Schwammkopf: Schlacht um Bikini Bottom",
     "D54767785E139A8BC8C4B75573FBD5A0B686D8E3": "EFB Copy Fix"
   },
+  "GUNE5Dr0": {
+    "title": "Gauntlet - Dark Legacy",
+    "C942EBCBE8A487C25E296EC1FAC2358DA1487DBD": "16:9 Widescreen",
+    "A441630EC5FF0EB74D2243A3092D22E69C6BEA02": "60Hz"
+  },
+  "GUNE5Dr1": {
+    "title": "Gauntlet - Dark Legacy",
+    "39BD84CBE2AFACFEDEC5E9020D1A8B0D36DD53F9": "16:9 Widescreen",
+    "05779F1A3D0C43305D52A95447D612CB424942C0": "60Hz"
+  },
+  "GUNP5D": {
+    "title": "Gauntlet - Dark Legacy",
+    "FE3BA1DAA1AF278A7839E27BF466B0BA0B390EC2": "16:9 Widescreen",
+    "3B20499A3F8D1D7CCA5B0015F2D80ECED25842A6": "50Hz"
+  },
   "GV4E69": {
     "title": "MVP Baseball 2005",
     "8679891FCAA250FCFF670B26E0CB9875900D17FD": "Fix 2D Rendering"
+  },
+  "GVJE08": {
+    "title": "Viewtiful Joe",
+    "09EFDA75D876A675121C8344D8FDD09A70A1A846": "16:9 Widescreen"
+  },
+  "GVJP08": {
+    "title": "Viewtiful Joe",
+    "93938F4C6112C91549F2B52E6259170F7501EC07": "16:9 Widescreen"
   },
   "GVPE69": {
     "title": "MVP Baseball 2004",
     "3159CA79B0A890131763EA6CB163684BEE886E3F": "Fix 2D Rendering"
   },
+  "GVSE8P": {
+    "title": "Virtua Striker 2002",
+    "4CE9C491160A4B631142EE9CE802C694163F1CA3": "16:9 Widescreen"
+  },
+  "GWRE01": {
+    "title": "WAVE RACE / BLUE STORM",
+    "AC42770B06662BE1DC863EC80F44B5E034C63664": "16:9 Widescreen"
+  },
+  "GWRP01": {
+    "title": "WAVE RACE / BLUE STORM",
+    "9DDDFAB28C4BD35CF64050E1EF684DC042B1AFFA": "16:9 Widescreen"
+  },
+  "GWWE01": {
+    "title": "WARIO WORLD",
+    "98B2E75D8E1CED4A964D3129A5DC10E30538CAA6": "16:9 Widescreen"
+  },
+  "GWWJ01": {
+    "title": "WARIO WORLD",
+    "2DAD9A5E2A140F02CCBA727C4BE7C74BAC156778": "16:9 Widescreen"
+  },
+  "GWWP01": {
+    "title": "WARIO WORLD",
+    "2DAD9A5E2A140F02CCBA727C4BE7C74BAC156778": "16:9 Widescreen"
+  },
+  "GWZE01": {
+    "title": "Dance Dance Revolution: Mario Mix",
+    "9EFC191DE6D21A1681FE241AB2EE4A131259F317": "16:9 Widescreen"
+  },
+  "GXCE01": {
+    "title": "Custom Robo",
+    "901A1E78A3A0124F55548507D3B3707125C64A8A": "16:9 Widescreen"
+  },
+  "GXSE8P": {
+    "title": "Sonic Adventure DX",
+    "4214C74DFB8A74FC3AA4A643E869BC4D9A38EDA0": "Aspect Ratio Fix",
+    "F50BBA440184FC77A4DFFAA58FF2BB888E2E072F": "16:9 Widescreen"
+  },
+  "GXSJ8P": {
+    "title": "Sonic Adventure DX",
+    "227909607984BBC3D36AAC7DB9DFE385F3363C49": "Aspect Ratio Fix"
+  },
   "GXXE01": {
     "title": "Pokémon XD: Gale of Darkness",
-    "64FAA15062F0D0C319F904BBDE9C4489A25D6369": "Allow Memory Card saving with Savestates"
+    "64FAA15062F0D0C319F904BBDE9C4489A25D6369": "Allow Memory Card saving with Savestates",
+    "2CA66DFAB3CC67D76AE06A378B1F0E9CBA5F3D68": "16:9 Widescreen"
   },
   "GXXJ01": {
     "title": "ポケモンＸＤ 闇の旋風ダーク・ルギア",
@@ -218,19 +866,63 @@
   },
   "GXXP01": {
     "title": "Pokémon XD: Gale of Darkness",
-    "3CAFBC4AE6FC5CE9F53377F86AB5BD8F1BC8861A": "Allow Memory Card saving with Savestates"
+    "3CAFBC4AE6FC5CE9F53377F86AB5BD8F1BC8861A": "Allow Memory Card saving with Savestates",
+    "02716B2585BEE74F8FCDD97A78F6A0D3DC7F331B": "16:9 Widescreen"
+  },
+  "GYFPA4": {
+    "title": "Yu-Gi-Oh! The Falsebound Kingdom",
+    "402ED10AC842041AB4B39AE8F2D81B2D7AEF9CB4": "60Hz"
   },
   "GZ2E01": {
     "title": "The Legend of Zelda: Twilight Princess [GC]",
-    "FCB673D46E716C7F63C618B8D8BF83AEE0B501F0": "Hyrule Field Speed Hack"
+    "FCB673D46E716C7F63C618B8D8BF83AEE0B501F0": "Hyrule Field Speed Hack",
+    "E7521ED27BFC972628906CBE8D5403ED57253BB8": "16:9 Widescreen v2"
   },
   "GZ2J01": {
     "title": "The Legend of Zelda: Twilight Princess [GC]",
-    "FCB673D46E716C7F63C618B8D8BF83AEE0B501F0": "Hyrule Field Speed Hack"
+    "FCB673D46E716C7F63C618B8D8BF83AEE0B501F0": "Hyrule Field Speed Hack",
+    "F985A0A58D8E2B23E8A557FAFF8D367AFFEADD07": "16:9 Widescreen"
   },
   "GZ2P01": {
     "title": "The Legend of Zelda: Twilight Princess [GC]",
-    "0F63623D4D984B7706F718F57C0ABDB6DBADCF8D": "Hyrule Field Speed Hack"
+    "0F63623D4D984B7706F718F57C0ABDB6DBADCF8D": "Hyrule Field Speed Hack",
+    "CAC38B0D334B925A57AA3118D35932B8A185137E": "16:9 Widescreen v2"
+  },
+  "GZ3E70": {
+    "title": "Dragon Ball Z 2",
+    "167F9E9A9B372CB3A01F308B46FF1403F8599C51": "16:9 Widescreen",
+    "2E163CB5FE724EB49B31CF607E5B9AFDA031DDD5": "Deinterlacing Fix"
+  },
+  "GZDP70": {
+    "title": "Godzilla: Destroy All Monsters Melee",
+    "2E424E0BBAE6EF5D6A8FB4224EA1D0746BAC37D3": "16:9 Widescreen"
+  },
+  "GZLE01": {
+    "title": "The Legend of Zelda The Wind Waker",
+    "78EA34CEF8E01701491C280F155F1C12EC9BF1A2": "Remove Distance Blur",
+    "9FA864EE7DD8CE7FF538EB4E0243F20137430BD8": "16:9 Widescreen"
+  },
+  "GZLJ01": {
+    "title": "The Legend of Zelda The Wind Waker",
+    "E03B61989025CA33937E63A057E6E40A403811BC": "16:9 Widescreen"
+  },
+  "GZLP01": {
+    "title": "The Legend of Zelda The Wind Waker",
+    "14BECBEA4DD281EBD0F7FE7DEE8020B6F2418ACD": "Remove Distance Blur",
+    "3EFFF6C52B5633A1729FAA6883D8579E77F7D057": "16:9 Widescreen"
+  },
+  "GZPE70": {
+    "title": "Zapper: One Wicked Cricket",
+    "7142F2495507AC7136992128ED0FCA6BC72B61F4": "16:9 Widescreen"
+  },
+  "GZPP70": {
+    "title": "Zapper: One Wicked Cricket",
+    "591FD6C9668C79FF1CE8558EBED2486A7A327F05": "16:9 Widescreen",
+    "A59B84DB5486521AEE1C23B6C741ECD35216E5AD": "60Hz"
+  },
+  "GZSE70": {
+    "title": "Zoids: Battle Legends",
+    "8E86EAC7EA4F4D2854DD9020CD795630CA64C4EE": "16:9 Widescreen"
   },
   "HAF": {
     "title": "Forecast Channel",
@@ -251,6 +943,25 @@
   "RLEEFS": {
     "title": "Ten Pin Alley 2",
     "793642AC6862C2F3412035A9E3D7172CC4A1D5C7": "Fix crash on main menu"
+  },
+  "RM8E01": {
+    "title": "Mario Party 8",
+    "BCC4279F8B28636AD773F01540E78DF40EAD6087": "QOL - Faster Boot Time",
+    "B65AF1819966CD3435D88801E8C79704E3A52DB5": "QOL - Increased Board Speed",
+    "66495D7CB532FAE778AFC22CF45D17D0FFDE5310": "QOL - Increased Taunt Capabilities",
+    "B4186DDC54F33F4D6A22188EF50CEB43FB205673": "QOL - Increased Text Display",
+    "9D90A9C66AE8AD91B201B40C4145D1323B701A77": "QOL - Invert IR Stick for GameCube Mod",
+    "330DD53AB993A99576564FEFD222D7BD211B878F": "QOL - Remove Explanations",
+    "25223F9EFAABF601CAC7810004F124E4056598B1": "Extra - Disable Music",
+    "E61344EB1542A78D497981C307B6549985C7A05A": "16:9 Widescreen"
+  },
+  "RM8J01": {
+    "title": "Mario Party 8",
+    "A140BDCB8E1721CB6B4CD878E412113322258B57": "16:9 Widescreen"
+  },
+  "RM8P01": {
+    "title": "Mario Party 8",
+    "F664C32AFD3D785FC6E04D8990A3FA1C72A18C5C": "16:9 Widescreen"
   },
   "RMHE08": {
     "title": "Monster Hunter Tri",
