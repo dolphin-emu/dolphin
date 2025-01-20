@@ -93,6 +93,8 @@ public:
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
+  void ToggleHighlights(bool enabled);
+  void SetHighlightColor();
   void SetBPType(BPType type);
   void SetAddress(u32 address);
   void SetFocus() const;
@@ -112,7 +114,7 @@ private:
   void UpdateColumns();
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
-  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+  std::optional<QString> ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
 
   Core::System& m_system;
 
