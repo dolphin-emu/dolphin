@@ -92,12 +92,15 @@ Lexer::Lexer(std::string expr_) : expr(std::move(expr_))
   it = expr.begin();
 }
 
-std::string Lexer::FetchDelimString(char delim)
+Token Lexer::GetDelimitedToken(TokenType type, char delimeter)
 {
-  const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
-  if (it != expr.end())
-    ++it;
-  return result;
+  const std::string value = FetchCharsWhile([&](char c) { return c != delimeter && c != '\n'; });
+
+  if (it == expr.end() || *it != delimeter)
+    return Token(TOK_INVALID);
+
+  ++it;
+  return Token(type, value);
 }
 
 std::string Lexer::FetchWordChars()
@@ -110,7 +113,7 @@ std::string Lexer::FetchWordChars()
 
 Token Lexer::GetDelimitedLiteral()
 {
-  return Token(TOK_LITERAL, FetchDelimString('\''));
+  return GetDelimitedToken(TOK_LITERAL, '\'');
 }
 
 Token Lexer::GetVariable()
@@ -120,7 +123,7 @@ Token Lexer::GetVariable()
 
 Token Lexer::GetFullyQualifiedControl()
 {
-  return Token(TOK_CONTROL, FetchDelimString('`'));
+  return GetDelimitedToken(TOK_CONTROL, '`');
 }
 
 Token Lexer::GetBareword(char first_char)

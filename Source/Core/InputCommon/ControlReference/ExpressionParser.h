@@ -91,8 +91,8 @@ private:
     return value;
   }
 
-  std::string FetchDelimString(char delim);
   std::string FetchWordChars();
+  Token GetDelimitedToken(TokenType type, char delimeter);
   Token GetDelimitedLiteral();
   Token GetVariable();
   Token GetFullyQualifiedControl();
