@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 namespace Common
@@ -13,6 +14,8 @@ namespace Common
 template <typename T, size_t MaxSize>
 class SmallVector final
 {
+  static_assert(std::is_standard_layout_v<T> == true, "Type must be a standard layout type");
+
 public:
   SmallVector() = default;
   explicit SmallVector(size_t size) : m_size(size) {}
@@ -39,6 +42,8 @@ public:
 
   size_t size() const { return m_size; }
   bool empty() const { return m_size == 0; }
+
+  void clear() { m_size = 0; }
 
 private:
   std::array<T, MaxSize> m_array{};
