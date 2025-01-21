@@ -10,8 +10,6 @@
 
 #include "Core/HW/GCPad.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -128,6 +126,8 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
 
 GCPadStatus GCPad::GetInput() const
 {
+  using ControllerEmu::MapFloat;
+
   const auto lock = GetStateLock();
   GCPadStatus pad = {};
 
@@ -182,12 +182,12 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Rumble
   m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
 #else
-  // Buttons
-  m_buttons->SetControlExpression(0, "`X`");       // A
-  m_buttons->SetControlExpression(1, "`Z`");       // B
-  m_buttons->SetControlExpression(2, "`C`");       // X
-  m_buttons->SetControlExpression(3, "`S`");       // Y
-  m_buttons->SetControlExpression(4, "`D`");       // Z
+  // Buttons: A, B, X, Y, Z
+  m_buttons->SetControlExpression(0, "`X`");
+  m_buttons->SetControlExpression(1, "`Z`");
+  m_buttons->SetControlExpression(2, "`C`");
+  m_buttons->SetControlExpression(3, "`S`");
+  m_buttons->SetControlExpression(4, "`D`");
 #ifdef _WIN32
   m_buttons->SetControlExpression(5, "`RETURN`");  // Start
 #else
