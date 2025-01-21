@@ -38,12 +38,12 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
 {
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core, rom_path = std::string(rom_path)]() {
+      [core, rom_path_str = std::string(rom_path)]() {
         if (auto core_ptr = core.lock())
         {
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
           core_ptr->Stop();
-          Config::SetCurrent(info, rom_path);
+          Config::SetCurrent(info, rom_path_str);
           auto& system = Core::System::GetInstance();
           auto& core_timing = system.GetCoreTiming();
           if (core_ptr->Start(core_timing.GetTicks()))
@@ -59,9 +59,9 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::stri
 {
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core, card_path = std::string(card_path)]() {
+      [core, card_path_str = std::string(card_path)]() {
         if (auto core_ptr = core.lock())
-          core_ptr->EReaderQueueCard(card_path);
+          core_ptr->EReaderQueueCard(card_path_str);
       },
       false);
 }
@@ -225,13 +225,13 @@ void GBAWidget::DoState(bool export_state)
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [export_state, core = m_core, state_path = state_path.toStdString()]() {
+      [export_state, core = m_core, state_path_str = state_path.toStdString()]() {
         if (auto core_ptr = core.lock())
         {
           if (export_state)
-            core_ptr->ExportState(state_path);
+            core_ptr->ExportState(state_path_str);
           else
-            core_ptr->ImportState(state_path);
+            core_ptr->ImportState(state_path_str);
         }
       },
       false);
@@ -256,13 +256,13 @@ void GBAWidget::ImportExportSave(bool export_save)
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [export_save, core = m_core, save_path = save_path.toStdString()]() {
+      [export_save, core = m_core, state_path_str = save_path.toStdString()]() {
         if (auto core_ptr = core.lock())
         {
           if (export_save)
-            core_ptr->ExportSave(save_path);
+            core_ptr->ExportSave(state_path_str);
           else
-            core_ptr->ImportSave(save_path);
+            core_ptr->ImportSave(state_path_str);
         }
       },
       false);

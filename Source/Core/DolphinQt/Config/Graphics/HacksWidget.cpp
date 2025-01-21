@@ -31,7 +31,7 @@ HacksWidget::HacksWidget(GraphicsWindow* parent)
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(m_gpu_texture_decoding, &QCheckBox::toggled,
-          [this, parent] { emit parent->UseGPUTextureDecodingChanged(); });
+          [parent] { emit parent->UseGPUTextureDecodingChanged(); });
 }
 
 HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
@@ -150,13 +150,13 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 
 void HacksWidget::ConnectWidgets()
 {
-  connect(m_store_efb_copies, &QCheckBox::stateChanged,
+  connect(m_store_efb_copies, &QCheckBox::checkStateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_store_xfb_copies, &QCheckBox::stateChanged,
+  connect(m_store_xfb_copies, &QCheckBox::checkStateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_immediate_xfb, &QCheckBox::stateChanged,
+  connect(m_immediate_xfb, &QCheckBox::checkStateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-  connect(m_vi_skip, &QCheckBox::stateChanged,
+  connect(m_vi_skip, &QCheckBox::checkStateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 }
 
