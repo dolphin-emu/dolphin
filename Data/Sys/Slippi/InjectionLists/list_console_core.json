@@ -267,6 +267,27 @@
    "Tags": ""
   },
   {
+   "InjectionAddress": "80211BF8",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/Stages/SendDreamlandInfo.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801CC998",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/Stages/SendFountainInfo.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801D4FD8",
+   "Name": "Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/Stages/SendStadiumInfo.asm",
+   "Tags": ""
+  },
+  {
    "InjectionAddress": "801A4CB4",
    "Name": "Slippi Recording",
    "Codetype": "Auto",
