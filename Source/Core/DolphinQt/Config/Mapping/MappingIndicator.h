@@ -53,6 +53,17 @@ private:
   Clock::time_point m_last_update = Clock::now();
 };
 
+class ButtonIndicator final : public MappingIndicator
+{
+public:
+  ButtonIndicator(ControlReference* control_ref);
+
+private:
+  ControlReference* const m_control_ref;
+  QSize sizeHint() const override;
+  void Draw() override;
+};
+
 class SquareIndicator : public MappingIndicator
 {
 protected:
