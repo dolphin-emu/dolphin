@@ -187,11 +187,13 @@ private:
   };
 
   // Rumble
-  class Motor : public Output
+  class Rumble : public Output
   {
   public:
-    Motor(const char* name, GameController& gc, Uint16* state)
-        : m_name{name}, m_gc{gc}, m_state{*state}
+    using UpdateCallback = void (GameController::*)(void);
+
+    Rumble(const char* name, GameController& gc, Uint16* state, UpdateCallback update_callback)
+        : m_name{name}, m_gc{gc}, m_state{*state}, m_update_callback{update_callback}
     {
     }
     std::string GetName() const override { return m_name; }
@@ -202,23 +204,24 @@ private:
         return;
 
       m_state = new_state;
-      m_gc.UpdateRumble();
+      (m_gc.*m_update_callback)();
     }
 
   private:
     const char* const m_name;
     GameController& m_gc;
     Uint16& m_state;
+    UpdateCallback const m_update_callback;
   };
 
   class CombinedMotor : public Output
   {
   public:
-    CombinedMotor(const char* name, GameController& gc, Uint16* low_state, Uint16* high_state)
-        : m_name{name}, m_gc{gc}, m_low_state{*low_state}, m_high_state{*high_state}
+    CombinedMotor(GameController& gc, Uint16* low_state, Uint16* high_state)
+        : m_gc{gc}, m_low_state{*low_state}, m_high_state{*high_state}
     {
     }
-    std::string GetName() const override { return m_name; }
+    std::string GetName() const override { return "Motor"; }
     void SetState(ControlState state) override
     {
       const auto new_state = state * std::numeric_limits<Uint16>::max();
@@ -231,7 +234,6 @@ private:
     }
 
   private:
-    const char* const m_name;
     GameController& m_gc;
     Uint16& m_low_state;
     Uint16& m_high_state;
@@ -395,8 +397,17 @@ private:
                              RUMBLE_LENGTH_MS);
   }
 
+  void UpdateRumbleTriggers()
+  {
+    SDL_GameControllerRumbleTriggers(m_gamecontroller, m_trigger_l_rumble, m_trigger_r_rumble,
+                                     RUMBLE_LENGTH_MS);
+  }
+
   Uint16 m_low_freq_rumble = 0;
   Uint16 m_high_freq_rumble = 0;
+
+  Uint16 m_trigger_l_rumble = 0;
+  Uint16 m_trigger_r_rumble = 0;
 
   SDL_GameController* const m_gamecontroller;
   std::string m_name;
@@ -788,9 +799,16 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     // Rumble
     if (SDL_GameControllerHasRumble(m_gamecontroller))
     {
-      AddOutput(new CombinedMotor("Motor", *this, &m_low_freq_rumble, &m_high_freq_rumble));
-      AddOutput(new Motor("Motor L", *this, &m_low_freq_rumble));
-      AddOutput(new Motor("Motor R", *this, &m_high_freq_rumble));
+      AddOutput(new CombinedMotor(*this, &m_low_freq_rumble, &m_high_freq_rumble));
+      AddOutput(new Rumble("Motor L", *this, &m_low_freq_rumble, &GameController::UpdateRumble));
+      AddOutput(new Rumble("Motor R", *this, &m_high_freq_rumble, &GameController::UpdateRumble));
+    }
+    if (SDL_GameControllerHasRumbleTriggers(m_gamecontroller))
+    {
+      AddOutput(new Rumble("Trigger L", *this, &m_trigger_l_rumble,
+                           &GameController::UpdateRumbleTriggers));
+      AddOutput(new Rumble("Trigger R", *this, &m_trigger_r_rumble,
+                           &GameController::UpdateRumbleTriggers));
     }
 
     // Touchpad
