@@ -53,6 +53,7 @@ public:
   ControllerEmu::EmulatedController* GetController() const;
   bool IsMappingAllDevices() const;
   void ShowExtensionMotionTabs(bool show);
+  void ActivateExtensionTab();
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
