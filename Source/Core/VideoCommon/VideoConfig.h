@@ -90,6 +90,13 @@ enum class FrameDumpResolutionType : int
   XFBRawResolution,
 };
 
+enum class VertexLoaderType : int
+{
+  Native,
+  Software,
+  Compare
+};
+
 // Bitmask containing information about which configuration has changed for the backend.
 enum ConfigChangeBits : u32
 {
@@ -278,6 +285,9 @@ struct VideoConfig final
 
   // Loading custom drivers on Android
   std::string customDriverLibraryName;
+
+  // Vertex loader
+  VertexLoaderType vertex_loader_type;
 
   // Static config per API
   // TODO: Move this out of VideoConfig
