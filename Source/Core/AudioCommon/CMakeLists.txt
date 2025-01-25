@@ -3,10 +3,7 @@ add_library(audiocommon
   AudioCommon.h
   AudioStretcher.cpp
   AudioStretcher.h
-  CubebStream.cpp
   CubebStream.h
-  CubebUtils.cpp
-  CubebUtils.h
   Enums.h
   Mixer.cpp
   Mixer.h
@@ -17,6 +14,16 @@ add_library(audiocommon
   WaveFile.cpp
   WaveFile.h
 )
+
+if(ENABLE_CUBEB)
+  message(STATUS "Cubeb found, enabling Cubeb sound backend")
+  target_sources(audiocommon PRIVATE
+    CubebStream.cpp
+    CubebUtils.cpp
+    CubebUtils.h
+  )
+  target_link_libraries(audiocommon PRIVATE cubeb)
+endif()
 
 if(ANDROID)
   find_package(OpenSLES)
@@ -83,9 +90,12 @@ PUBLIC
   common
 
 PRIVATE
-  cubeb::cubeb
   SoundTouch
   FreeSurround)
+
+if(ENABLE_CUBEB)
+  target_link_libraries(audiocommon PRIVATE cubeb::cubeb)
+endif()
 
 if(MSVC)
   # Add precompiled header
