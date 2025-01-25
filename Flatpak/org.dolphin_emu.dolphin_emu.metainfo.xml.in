@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2016 Jeremy Newton -->
 <component type="desktop-application">
-  <id>org.DolphinEmu.dolphin-emu</id>
+  <id>org.dolphin_emu.dolphin_emu</id>
   <name>Dolphin Emulator</name>
-  <developer id="org.dolphin-emu">
-    <name>Dolphin Emulator Project</name>
-  </developer>
   <summary>GameCube / Wii</summary>
   <metadata_license>CC-BY-SA-3.0</metadata_license>
   <project_license>GPL-2.0+</project_license>
@@ -15,19 +12,19 @@
   <screenshots>
     <screenshot type="default">
       <caption>Dolphin's main window</caption>
-      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_1.png</image>
+      <image type="source">https://dolphin-emu.org/m/user/flatpak/screenshot_1.png</image>
     </screenshot>
     <screenshot>
       <caption>In-game</caption>
-      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_2.png</image>
+      <image type="source">https://dolphin-emu.org/m/user/flatpak/screenshot_2.png</image>
     </screenshot>
     <screenshot>
       <caption>Graphics configuration</caption>
-      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_3.png</image>
+      <image type="source">https://dolphin-emu.org/m/user/flatpak/screenshot_3.png</image>
     </screenshot>
     <screenshot>
       <caption>Controller configuration</caption>
-      <image type="source">http://dolphin-emu.org/m/user/flatpak/screenshot_4.png</image>
+      <image type="source">https://dolphin-emu.org/m/user/flatpak/screenshot_4.png</image>
     </screenshot>
   </screenshots>
   <launchable type="desktop-id">dolphin-emu.desktop</launchable>
