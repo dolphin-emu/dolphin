@@ -25,17 +25,17 @@
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
 #include "VideoCommon/Assets/CustomAsset.h"
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
+
+static auto s_file_library = std::make_shared<VideoCommon::DirectFilesystemAssetLibrary>();
 
 constexpr std::string_view s_format_prefix{"tex1_"};
 
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_hires_texture_cache;
 static std::unordered_map<std::string, bool> s_hires_texture_id_to_arbmipmap;
-
-static auto s_file_library = std::make_shared<VideoCommon::DirectFilesystemAssetLibrary>();
 
 namespace
 {
@@ -95,8 +95,6 @@ void HiresTexture::Update()
       GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
   const std::vector<std::string> extensions{".png", ".dds"};
 
-  auto& system = Core::System::GetInstance();
-
   for (const auto& texture_directory : texture_directories)
   {
     // Watch this directory for any texture reloads
@@ -133,10 +131,10 @@ void HiresTexture::Update()
 
           if (g_ActiveConfig.bCacheHiresTextures)
           {
-            auto hires_texture = std::make_shared<HiresTexture>(
-                has_arbitrary_mipmaps,
-                system.GetCustomAssetLoader().LoadGameTexture(filename, s_file_library));
-            s_hires_texture_cache.try_emplace(filename, std::move(hires_texture));
+            auto hires_texture =
+                std::make_shared<HiresTexture>(has_arbitrary_mipmaps, std::move(filename));
+            static_cast<void>(hires_texture->LoadTexture());
+            s_hires_texture_cache.try_emplace(hires_texture->GetId(), hires_texture);
           }
         }
       }
@@ -170,7 +168,7 @@ void HiresTexture::Clear()
 
 std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_info)
 {
-  const auto [base_filename, has_arb_mipmaps] = GetNameArbPair(texture_info);
+  auto [base_filename, has_arb_mipmaps] = GetNameArbPair(texture_info);
   if (base_filename == "")
     return nullptr;
 
@@ -180,22 +178,25 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_in
   }
   else
   {
-    auto& system = Core::System::GetInstance();
-    auto hires_texture = std::make_shared<HiresTexture>(
-        has_arb_mipmaps,
-        system.GetCustomAssetLoader().LoadGameTexture(base_filename, s_file_library));
+    auto hires_texture = std::make_shared<HiresTexture>(has_arb_mipmaps, std::move(base_filename));
     if (g_ActiveConfig.bCacheHiresTextures)
     {
-      s_hires_texture_cache.try_emplace(base_filename, hires_texture);
+      s_hires_texture_cache.try_emplace(hires_texture->GetId(), hires_texture);
     }
     return hires_texture;
   }
 }
 
-HiresTexture::HiresTexture(bool has_arbitrary_mipmaps,
-                           std::shared_ptr<VideoCommon::GameTextureAsset> asset)
-    : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps), m_game_texture(std::move(asset))
+HiresTexture::HiresTexture(bool has_arbitrary_mipmaps, std::string id)
+    : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps), m_id(std::move(id))
 {
+}
+
+VideoCommon::CustomTextureData* HiresTexture::LoadTexture() const
+{
+  auto& system = Core::System::GetInstance();
+  auto& custom_resource_manager = system.GetCustomResourceManager();
+  return custom_resource_manager.GetTextureDataFromAsset(m_id, s_file_library);
 }
 
 std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
