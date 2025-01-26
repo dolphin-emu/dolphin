@@ -493,10 +493,8 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   g_controller_interface.ChangeWindow(wsi.render_window);
 
   Pad::LoadConfig();
-  Pad::GenerateDynamicInputTextures();
   Pad::LoadGBAConfig();
   Keyboard::LoadConfig();
-  Keyboard::GenerateDynamicInputTextures();
 
   BootSessionData boot_session_data = std::move(boot->boot_session_data);
   const std::optional<std::string>& savestate_path = boot_session_data.GetSavestatePath();
@@ -526,12 +524,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     }
   }};
 
-  // Load Wiimotes - only if we are booting in Wii mode
-  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
-  {
-    Wiimote::LoadConfig();
-    Wiimote::GenerateDynamicInputTextures();
-  }
+  // Wiimote input config is loaded in OnESTitleChanged
 
   FreeLook::LoadInputConfig();
 
