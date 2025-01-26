@@ -19,6 +19,7 @@ namespace Keyboard
 void Shutdown();
 void Initialize();
 void LoadConfig();
+void GenerateDynamicInputTextures();
 
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group);
