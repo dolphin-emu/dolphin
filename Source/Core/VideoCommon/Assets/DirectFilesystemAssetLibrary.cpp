@@ -14,11 +14,11 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/System.h"
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
 #include "VideoCommon/RenderState.h"
 
 namespace VideoCommon
@@ -639,8 +639,8 @@ void DirectFilesystemAssetLibrary::PathModified(std::string_view path)
   if (const auto iter = m_path_to_asset_id.find(path); iter != m_path_to_asset_id.end())
   {
     auto& system = Core::System::GetInstance();
-    auto& loader = system.GetCustomAssetLoader();
-    loader.ReloadAsset(iter->second);
+    auto& resource_manager = system.GetCustomResourceManager();
+    resource_manager.ReloadAsset(iter->second);
   }
 }
 
