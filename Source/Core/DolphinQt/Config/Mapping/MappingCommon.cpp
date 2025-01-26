@@ -16,6 +16,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/MappingCommon.h"
+#include "InputCommon/InputConfig.h"
 
 namespace MappingCommon
 {
@@ -135,6 +136,7 @@ public:
     m_parent->Save();
     m_parent->GetController()->UpdateSingleControlReference(g_controller_interface,
                                                             control_reference);
+    m_parent->GetController()->GetConfig()->GenerateControllerTextures();
   }
 
   void UpdateInputDetectionStartTimer()
