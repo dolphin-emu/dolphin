@@ -579,3 +579,8 @@ void MappingWindow::ShowExtensionMotionTabs(bool show)
     m_tab_widget->removeTab(4);
   }
 }
+
+void MappingWindow::ActivateExtensionTab()
+{
+  m_tab_widget->setCurrentIndex(3);
+}
