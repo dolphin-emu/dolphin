@@ -92,12 +92,15 @@ Lexer::Lexer(std::string expr_) : expr(std::move(expr_))
   it = expr.begin();
 }
 
-std::string Lexer::FetchDelimString(char delim)
+Token Lexer::GetDelimitedToken(TokenType type, char delimeter)
 {
-  const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
-  if (it != expr.end())
-    ++it;
-  return result;
+  const std::string value = FetchCharsWhile([&](char c) { return c != delimeter && c != '\n'; });
+
+  if (it == expr.end() || *it != delimeter)
+    return Token(TOK_INVALID);
+
+  ++it;
+  return Token(type, value);
 }
 
 std::string Lexer::FetchWordChars()
@@ -110,7 +113,7 @@ std::string Lexer::FetchWordChars()
 
 Token Lexer::GetDelimitedLiteral()
 {
-  return Token(TOK_LITERAL, FetchDelimString('\''));
+  return GetDelimitedToken(TOK_LITERAL, '\'');
 }
 
 Token Lexer::GetVariable()
@@ -120,7 +123,7 @@ Token Lexer::GetVariable()
 
 Token Lexer::GetFullyQualifiedControl()
 {
-  return Token(TOK_CONTROL, FetchDelimString('`'));
+  return GetDelimitedToken(TOK_CONTROL, '`');
 }
 
 Token Lexer::GetBareword(char first_char)
@@ -168,6 +171,10 @@ Token Lexer::NextToken()
     return Token(TOK_RPAREN);
   case '@':
     return Token(TOK_HOTKEY);
+  case '?':
+    return Token(TOK_QUESTION);
+  case ':':
+    return Token(TOK_COLON);
   case '&':
     return Token(TOK_AND);
   case '|':
@@ -744,7 +751,7 @@ private:
         {
           // Read one argument.
           // Grab an expression, but stop at comma.
-          auto arg = ParseBinary(BinaryOperatorPrecedence(TOK_COMMA));
+          auto arg = ParseInfixOperations(OperatorPrecedence(TOK_COMMA));
           if (ParseStatus::Successful != arg.status)
             return arg;
 
@@ -843,7 +850,7 @@ private:
     }
   }
 
-  static int BinaryOperatorPrecedence(TokenType type)
+  static constexpr int OperatorPrecedence(TokenType type = TOK_EOF)
   {
     switch (type)
     {
@@ -864,16 +871,16 @@ private:
     case TOK_OR:
       return 6;
     case TOK_ASSIGN:
+    case TOK_QUESTION:
       return 7;
     case TOK_COMMA:
       return 8;
     default:
-      ASSERT(false);
-      return 0;
+      return 999;
     }
   }
 
-  ParseResult ParseBinary(int precedence = 999)
+  ParseResult ParseInfixOperations(int precedence = OperatorPrecedence())
   {
     ParseResult lhs = ParseAtom(Chew());
 
@@ -883,18 +890,48 @@ private:
     std::unique_ptr<Expression> expr = std::move(lhs.expr);
 
     // TODO: handle LTR/RTL associativity?
-    while (Peek().IsBinaryOperator() && BinaryOperatorPrecedence(Peek().type) < precedence)
+    while (true)
     {
-      const Token tok = Chew();
-      ParseResult rhs = ParseBinary(BinaryOperatorPrecedence(tok.type));
-      if (rhs.status == ParseStatus::SyntaxError)
+      const Token op = Peek();
+      if (op.IsBinaryOperator() && OperatorPrecedence(op.type) < precedence)
       {
-        return rhs;
+        Chew();
+        ParseResult rhs = ParseInfixOperations(OperatorPrecedence(op.type));
+        if (rhs.status == ParseStatus::SyntaxError)
+          return rhs;
+
+        expr = std::make_unique<BinaryExpression>(op.type, std::move(expr), std::move(rhs.expr));
       }
+      else if (op.type == TOK_QUESTION && OperatorPrecedence(TOK_QUESTION) <= precedence)
+      {
+        // Handle conditional operator: (a ? b : c)
+        Chew();
+        auto true_result = ParseInfixOperations(OperatorPrecedence(op.type));
+        if (true_result.status != ParseStatus::Successful)
+          return true_result;
 
-      expr = std::make_unique<BinaryExpression>(tok.type, std::move(expr), std::move(rhs.expr));
+        const Token should_be_colon = Chew();
+        if (should_be_colon.type != TOK_COLON)
+          return ParseResult::MakeErrorResult(should_be_colon,
+                                              Common::GetStringT("Expected colon."));
+
+        auto false_result = ParseInfixOperations(OperatorPrecedence(op.type));
+        if (false_result.status != ParseStatus::Successful)
+          return false_result;
+
+        auto conditional = MakeFunctionExpression("if");
+        std::vector<std::unique_ptr<Expression>> args;
+        args.emplace_back(std::move(expr));
+        args.emplace_back(std::move(true_result.expr));
+        args.emplace_back(std::move(false_result.expr));
+        conditional->SetArguments(std::move(args));
+        expr = std::move(conditional);
+      }
+      else
+      {
+        break;
+      }
     }
-
     return ParseResult::MakeSuccessfulResult(std::move(expr));
   }
 
@@ -947,7 +984,7 @@ private:
     return ParseResult::MakeSuccessfulResult(std::make_unique<HotkeyExpression>(std::move(inputs)));
   }
 
-  ParseResult ParseToplevel() { return ParseBinary(); }
+  ParseResult ParseToplevel() { return ParseInfixOperations(); }
 };  // namespace ExpressionParser
 
 ParseResult ParseTokens(const std::vector<Token>& tokens)

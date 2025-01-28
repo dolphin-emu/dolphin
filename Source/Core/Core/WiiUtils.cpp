@@ -467,12 +467,7 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
     // but the backing data CDN is still active and accessible from other URLs. We take advantage
     // of this by hosting our own NetUpdateSOAP endpoint which serves the correct list of titles to
     // install along with URLs for the Wii U CDN.
-#ifdef ANDROID
-    // HTTPS is unsupported on Android (https://bugs.dolphin-emu.org/issues/11772).
-    base_url = "http://fakenus.dolphin-emu.org";
-#else
     base_url = "https://fakenus.dolphin-emu.org";
-#endif
   }
 
   const std::string url = fmt::format("{}/nus/services/NetUpdateSOAP", base_url);

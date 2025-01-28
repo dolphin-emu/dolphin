@@ -578,9 +578,8 @@ bool Gfx::ApplyState()
 
     if (dirty_bits & DirtyState_PS_CUS_CBV)
     {
-      cmdlist->SetGraphicsRootConstantBufferView(
-          g_ActiveConfig.bBBoxEnable ? ROOT_PARAMETER_PS_CUS_CBV : ROOT_PARAMETER_PS_CBV2,
-          m_state.constant_buffers[2]);
+      cmdlist->SetGraphicsRootConstantBufferView(ROOT_PARAMETER_PS_CUS_CBV,
+                                                 m_state.constant_buffers[2]);
     }
 
     if (dirty_bits & DirtyState_VS_SRV_Descriptor && UsesDynamicVertexLoader(pipeline))

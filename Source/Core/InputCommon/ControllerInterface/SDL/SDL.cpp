@@ -187,30 +187,57 @@ private:
   };
 
   // Rumble
-  template <int LowEnable, int HighEnable, int SuffixIndex>
-  class GenericMotor : public Output
+  class Rumble : public Output
   {
   public:
-    explicit GenericMotor(SDL_GameController* gc) : m_gc(gc) {}
-    std::string GetName() const override
+    using UpdateCallback = void (GameController::*)(void);
+
+    Rumble(const char* name, GameController& gc, Uint16* state, UpdateCallback update_callback)
+        : m_name{name}, m_gc{gc}, m_state{*state}, m_update_callback{update_callback}
     {
-      return std::string("Motor") + motor_suffixes[SuffixIndex];
     }
+    std::string GetName() const override { return m_name; }
     void SetState(ControlState state) override
     {
-      Uint16 rumble = state * std::numeric_limits<Uint16>::max();
-      SDL_GameControllerRumble(m_gc, rumble * LowEnable, rumble * HighEnable, RUMBLE_LENGTH_MS);
+      const auto new_state = state * std::numeric_limits<Uint16>::max();
+      if (m_state == new_state)
+        return;
+
+      m_state = new_state;
+      (m_gc.*m_update_callback)();
     }
 
   private:
-    SDL_GameController* const m_gc;
+    const char* const m_name;
+    GameController& m_gc;
+    Uint16& m_state;
+    UpdateCallback const m_update_callback;
   };
 
-  static constexpr const char* motor_suffixes[] = {"", " L", " R"};
+  class CombinedMotor : public Output
+  {
+  public:
+    CombinedMotor(GameController& gc, Uint16* low_state, Uint16* high_state)
+        : m_gc{gc}, m_low_state{*low_state}, m_high_state{*high_state}
+    {
+    }
+    std::string GetName() const override { return "Motor"; }
+    void SetState(ControlState state) override
+    {
+      const auto new_state = state * std::numeric_limits<Uint16>::max();
+      if (m_low_state == new_state && m_high_state == new_state)
+        return;
 
-  using Motor = GenericMotor<1, 1, 0>;
-  using MotorL = GenericMotor<1, 0, 1>;
-  using MotorR = GenericMotor<0, 1, 2>;
+      m_low_state = new_state;
+      m_high_state = new_state;
+      m_gc.UpdateRumble();
+    }
+
+  private:
+    GameController& m_gc;
+    Uint16& m_low_state;
+    Uint16& m_high_state;
+  };
 
   class HapticEffect : public Output
   {
@@ -364,6 +391,24 @@ public:
   }
 
 private:
+  void UpdateRumble()
+  {
+    SDL_GameControllerRumble(m_gamecontroller, m_low_freq_rumble, m_high_freq_rumble,
+                             RUMBLE_LENGTH_MS);
+  }
+
+  void UpdateRumbleTriggers()
+  {
+    SDL_GameControllerRumbleTriggers(m_gamecontroller, m_trigger_l_rumble, m_trigger_r_rumble,
+                                     RUMBLE_LENGTH_MS);
+  }
+
+  Uint16 m_low_freq_rumble = 0;
+  Uint16 m_high_freq_rumble = 0;
+
+  Uint16 m_trigger_l_rumble = 0;
+  Uint16 m_trigger_r_rumble = 0;
+
   SDL_GameController* const m_gamecontroller;
   std::string m_name;
   SDL_Joystick* const m_joystick;
@@ -754,9 +799,16 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     // Rumble
     if (SDL_GameControllerHasRumble(m_gamecontroller))
     {
-      AddOutput(new Motor(m_gamecontroller));
-      AddOutput(new MotorL(m_gamecontroller));
-      AddOutput(new MotorR(m_gamecontroller));
+      AddOutput(new CombinedMotor(*this, &m_low_freq_rumble, &m_high_freq_rumble));
+      AddOutput(new Rumble("Motor L", *this, &m_low_freq_rumble, &GameController::UpdateRumble));
+      AddOutput(new Rumble("Motor R", *this, &m_high_freq_rumble, &GameController::UpdateRumble));
+    }
+    if (SDL_GameControllerHasRumbleTriggers(m_gamecontroller))
+    {
+      AddOutput(new Rumble("Trigger L", *this, &m_trigger_l_rumble,
+                           &GameController::UpdateRumbleTriggers));
+      AddOutput(new Rumble("Trigger R", *this, &m_trigger_r_rumble,
+                           &GameController::UpdateRumbleTriggers));
     }
 
     // Touchpad

@@ -99,8 +99,6 @@ TextureCacheBase::TextureCacheBase()
   TexDecoder_SetTexFmtOverlayOptions(m_backup_config.texfmt_overlay,
                                      m_backup_config.texfmt_overlay_center);
 
-  HiresTexture::Init();
-
   TMEM::InvalidateAll();
 }
 

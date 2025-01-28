@@ -167,7 +167,7 @@ protected:
 
   static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
 
-  bool DoesConfigNeedRefresh();
+  bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
 
   void InitFastmemArena();
@@ -178,8 +178,16 @@ protected:
   void CleanUpAfterStackFault();
 
   bool CanMergeNextInstructions(int count) const;
+  bool HasConstantCarry() const
+  {
+#ifdef _M_ARM_64
+    return js.carryFlag == CarryFlag::ConstantTrue || js.carryFlag == CarryFlag::ConstantFalse;
+#else
+    return false;
+#endif
+  }
 
-  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
+  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const;
 
 public:
   explicit JitBase(Core::System& system);

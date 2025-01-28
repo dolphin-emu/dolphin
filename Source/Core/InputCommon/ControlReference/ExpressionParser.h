@@ -26,6 +26,8 @@ enum TokenType
   TOK_BAREWORD,
   TOK_COMMENT,
   TOK_HOTKEY,
+  TOK_QUESTION,
+  TOK_COLON,
   // Binary Ops:
   TOK_BINARY_OPS_BEGIN,
   TOK_AND = TOK_BINARY_OPS_BEGIN,
@@ -91,8 +93,8 @@ private:
     return value;
   }
 
-  std::string FetchDelimString(char delim);
   std::string FetchWordChars();
+  Token GetDelimitedToken(TokenType type, char delimeter);
   Token GetDelimitedLiteral();
   Token GetVariable();
   Token GetFullyQualifiedControl();

@@ -84,6 +84,10 @@
 #include <ifaddrs.h>
 #endif
 #include <arpa/inet.h>
+#else
+#include <iphlpapi.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 namespace NetPlay
@@ -2323,7 +2327,33 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 {
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)
+  ULONG buffer_size = 0;
+  GetAdaptersAddresses(AF_INET, 0, nullptr, nullptr, &buffer_size);
 
+  std::vector<char> buffer(buffer_size);
+  auto* const adapters = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+  const ULONG adapters_result = GetAdaptersAddresses(AF_INET, 0, nullptr, adapters, &buffer_size);
+  if (adapters_result == NO_ERROR)
+  {
+    for (auto* adapter = adapters; adapter != nullptr; adapter = adapter->Next)
+    {
+      if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
+        continue;
+
+      auto* const unicast = adapter->FirstUnicastAddress;
+      if (!unicast)
+        continue;
+
+      char addr_str[INET_ADDRSTRLEN] = {};
+      inet_ntop(AF_INET, &reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr)->sin_addr,
+                addr_str, sizeof(addr_str));
+      result.emplace_back(WStringToUTF8(adapter->FriendlyName), addr_str);
+    }
+  }
+  else
+  {
+    WARN_LOG_FMT(NETPLAY, "GetAdaptersAddresses: {}", adapters_result);
+  }
 #elif defined(ANDROID)
 // Android has no getifaddrs for some stupid reason.  If this
 // functionality ends up actually being used on Android, fix this.

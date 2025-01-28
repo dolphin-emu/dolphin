@@ -245,5 +245,32 @@ protected:
   mutable std::recursive_mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
+
+class InputDetector
+{
+public:
+  using Detection = DeviceContainer::InputDetection;
+
+  InputDetector();
+  ~InputDetector();
+
+  void Start(const DeviceContainer& container, const std::vector<std::string>& device_strings);
+  void Update(std::chrono::milliseconds initial_wait, std::chrono::milliseconds confirmation_wait,
+              std::chrono::milliseconds maximum_wait);
+  bool IsComplete() const;
+
+  const std::vector<Detection>& GetResults() const;
+
+  // move-return'd to prevent copying.
+  std::vector<Detection> TakeResults();
+
+private:
+  struct Impl;
+
+  Clock::time_point m_start_time;
+  std::vector<Detection> m_detections;
+  std::unique_ptr<Impl> m_state;
+};
+
 }  // namespace Core
 }  // namespace ciface

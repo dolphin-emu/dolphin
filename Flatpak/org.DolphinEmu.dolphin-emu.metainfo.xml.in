@@ -36,7 +36,7 @@
     <id>dolphin-emu.desktop</id>
   </provides>
   <releases>
-    <release version="@VERSION_PLACEHOLDER" date="@DATE_PLACEHOLDER"/>
+    <release version="${DOLPHIN_WC_DESCRIBE}" date="${DOLPHIN_WC_BUILD_DATE}"/>
   </releases>
   <url type="homepage">https://dolphin-emu.org</url>
   <url type="bugtracker">https://bugs.dolphin-emu.org/projects/emulator/issues</url>
@@ -46,4 +46,7 @@
   <url type="contact">https://dolphin-emu.org/docs/faq/#ive-got-idea-make-dolphin-better-how-should-i-tell</url>
   <url type="vcs-browser">https://github.com/dolphin-emu/dolphin</url>
   <url type="contribute">https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md</url>
+  <custom>
+    <value key="flathub::manifest">https://github.com/dolphin-emu/dolphin/blob/${DOLPHIN_WC_REVISION}/Flatpak/org.DolphinEmu.dolphin-emu.yml</value>
+  </custom>
 </component>

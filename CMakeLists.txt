@@ -783,14 +783,16 @@ if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
 endif()
 
 if(APPLE)
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt)
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core)
+  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
+    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
   endif()
+endif()
 
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater)
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Flatpak)
+  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml)
+    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml)
   endif()
 endif()
 
@@ -801,7 +803,7 @@ endif()
 add_custom_target(
 	dolphin_scmrev
 	${CMAKE_COMMAND} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR} -DDISTRIBUTOR=${DISTRIBUTOR} -DDOLPHIN_DEFAULT_UPDATE_TRACK=${DOLPHIN_DEFAULT_UPDATE_TRACK} -DGIT_FOUND=${GIT_FOUND} -DGIT_EXECUTABLE=${GIT_EXECUTABLE} -DDOLPHIN_WC_REVISION=${DOLPHIN_WC_REVISION} -DDOLPHIN_WC_DESCRIBE=${DOLPHIN_WC_DESCRIBE} -DDOLPHIN_WC_BRANCH=${DOLPHIN_WC_BRANCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET} -P ${CMAKE_CURRENT_SOURCE_DIR}/CMake/ScmRevGen.cmake
-	BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h" "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist" "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist"
+	BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h" "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist" "${CMAKE_CURRENT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist" "${CMAKE_CURRENT_BINARY_DIR}/Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml"
 	VERBATIM
 )
 

@@ -41,6 +41,7 @@
 #include "DolphinQt/Config/Mapping/HotkeyTAS.h"
 #include "DolphinQt/Config/Mapping/HotkeyUSBEmu.h"
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
+#include "DolphinQt/Config/Mapping/MappingCommon.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
@@ -93,6 +94,8 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
                   [] { HotkeyManagerEmu::Enable(true); });
   filter->connect(filter, &WindowActivationEventFilter::windowActivated,
                   [] { HotkeyManagerEmu::Enable(false); });
+
+  MappingCommon::CreateMappingProcessor(this);
 }
 
 void MappingWindow::CreateDevicesLayout()
@@ -185,9 +188,8 @@ void MappingWindow::CreateMainLayout()
 
 void MappingWindow::ConnectWidgets()
 {
-  connect(&Settings::Instance(), &Settings::DevicesChanged, this,
-          &MappingWindow::OnGlobalDevicesChanged);
-  connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::OnGlobalDevicesChanged);
+  connect(&Settings::Instance(), &Settings::DevicesChanged, this, &MappingWindow::ConfigChanged);
+  connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::UpdateDeviceList);
   connect(m_devices_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectDevice);
 
   connect(m_reset_clear, &QPushButton::clicked, this, &MappingWindow::OnClearFieldsPressed);
@@ -203,6 +205,8 @@ void MappingWindow::ConnectWidgets()
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
   connect(this, &QDialog::rejected, [this] { emit Save(); });
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  connect(m_tab_widget, &QTabWidget::currentChanged, this, &MappingWindow::CancelMapping);
 }
 
 void MappingWindow::UpdateProfileIndex()
@@ -345,6 +349,8 @@ void MappingWindow::OnSelectDevice(int)
   const auto device = m_devices_combo->currentData().toString().toStdString();
 
   m_controller->SetDefaultDevice(device);
+
+  emit ConfigChanged();
   m_controller->UpdateReferences(g_controller_interface);
 }
 
@@ -358,7 +364,7 @@ void MappingWindow::RefreshDevices()
   g_controller_interface.RefreshDevices();
 }
 
-void MappingWindow::OnGlobalDevicesChanged()
+void MappingWindow::UpdateDeviceList()
 {
   const QSignalBlocker blocker(m_devices_combo);
 
@@ -572,4 +578,9 @@ void MappingWindow::ShowExtensionMotionTabs(bool show)
     m_tab_widget->removeTab(5);
     m_tab_widget->removeTab(4);
   }
+}
+
+void MappingWindow::ActivateExtensionTab()
+{
+  m_tab_widget->setCurrentIndex(3);
 }

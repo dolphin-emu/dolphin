@@ -2,8 +2,13 @@ project(minizip C)
 
 add_library(minizip STATIC
   minizip-ng/mz.h
-  minizip-ng/mz_compat.c
-  minizip-ng/mz_compat.h
+  # minizip-ng/compat/crypt.h
+  minizip-ng/compat/ioapi.c
+  minizip-ng/compat/ioapi.h
+  minizip-ng/compat/unzip.c
+  minizip-ng/compat/unzip.h
+  # minizip-ng/compat/zip.c
+  # minizip-ng/compat/zip.h
   minizip-ng/mz_crypt.c
   minizip-ng/mz_crypt.h
   minizip-ng/mz_os.c
@@ -60,7 +65,7 @@ endif()
 #  minizip-ng/mz_crypt_winvista.c
 #  minizip-ng/mz_crypt_winxp.c
 
-target_include_directories(minizip PUBLIC minizip-ng)
+target_include_directories(minizip PUBLIC minizip-ng minizip-ng/compat)
 
 target_compile_definitions(minizip PRIVATE HAVE_ZLIB ZLIB_COMPAT MZ_ZIP_NO_CRYPTO MZ_ZIP_NO_ENCRYPTION)
 if (UNIX)
