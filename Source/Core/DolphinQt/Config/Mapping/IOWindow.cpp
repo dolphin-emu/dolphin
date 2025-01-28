@@ -161,6 +161,8 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
     case TokenType::TOK_LPAREN:
     case TokenType::TOK_RPAREN:
     case TokenType::TOK_COMMA:
+    case TokenType::TOK_QUESTION:
+    case TokenType::TOK_COLON:
       char_format = GetSpecialCharFormat();
       break;
     case TokenType::TOK_LITERAL:
@@ -304,6 +306,7 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr("< Less-than"));
     m_operators_combo->addItem(tr("& And"));
     m_operators_combo->addItem(tr("^ Xor"));
+    m_operators_combo->addItem(tr("? Conditional"));
   }
   m_operators_combo->addItem(tr("| Or"));
   m_operators_combo->addItem(tr("$ User Variable"));
