@@ -16,6 +16,7 @@
 #include <QSignalBlocker>
 #include <QUrl>
 
+#include <QDirIterator>
 #include <fmt/format.h>
 
 #include "Common/Align.h"
@@ -334,6 +335,8 @@ void MenuBar::AddToolsMenu()
 
   m_import_wii_save =
       tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  m_import_wii_saves =
+      tools_menu->addAction(tr("Import Wii Saves..."), this, &MenuBar::ImportWiiSaves);
   m_export_wii_saves =
       tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
@@ -1085,6 +1088,7 @@ void MenuBar::UpdateToolsMenu(const Core::State state)
   m_import_backup->setEnabled(is_uninitialized);
   m_check_nand->setEnabled(is_uninitialized);
   m_import_wii_save->setEnabled(is_uninitialized);
+  m_import_wii_saves->setEnabled(is_uninitialized);
   m_export_wii_saves->setEnabled(is_uninitialized);
 
   if (is_uninitialized)
@@ -1185,6 +1189,95 @@ void MenuBar::ImportWiiSave()
            "NAND...), then import the save again."));
     break;
   }
+}
+
+void MenuBar::ImportWiiSaves()
+{
+  QString folder =
+      DolphinFileDialog::getExistingDirectory(this, tr("Select Save Folder"), QDir::currentPath());
+
+  if (folder.isEmpty())
+    return;
+
+  QDirIterator it(folder, QStringList(QStringLiteral("*.bin")), QDir::Files,
+                  QDirIterator::Subdirectories);
+  QStringList failure_details;
+  size_t success_count = 0;
+  size_t fail_count = 0;
+  bool yes_all = false;
+  bool no_all = false;
+
+  while (it.hasNext())
+  {
+    const QString file = it.next();
+
+    auto can_overwrite = [&] {
+      if (yes_all)
+        return true;
+      if (no_all)
+        return false;
+
+      auto response = ModalMessageBox::question(
+          this, tr("Save Import"),
+          file + QStringLiteral(": ") +
+              tr("Save data for this title already exists in the NAND. Consider backing up "
+                 "the current data before overwriting.\nOverwrite now?"),
+          QMessageBox::StandardButton::YesAll | QMessageBox::StandardButton::Yes |
+              QMessageBox::StandardButton::No | QMessageBox::StandardButton::NoAll);
+
+      if (response == QMessageBox::YesAll)
+      {
+        yes_all = true;
+        return true;
+      }
+      else if (response == QMessageBox::NoAll)
+      {
+        no_all = true;
+        return false;
+      }
+      return response == QMessageBox::Yes;
+    };
+
+    const auto result = WiiSave::Import(file.toStdString(), can_overwrite);
+    switch (result)
+    {
+    case WiiSave::CopyResult::Success:
+      success_count++;
+      break;
+    case WiiSave::CopyResult::CorruptedSource:
+      fail_count++;
+      failure_details.append(file + QStringLiteral(": ") +
+                             tr("Failed to import save file. The given file appears to be "
+                                "corrupted or is not a valid Wii save."));
+      break;
+    case WiiSave::CopyResult::TitleMissing:
+      fail_count++;
+      failure_details.append(
+          file + QStringLiteral(": ") +
+          tr("Failed to import save file. Please launch the game once, then try again."));
+      break;
+    case WiiSave::CopyResult::Cancelled:
+      break;
+    default:
+      fail_count++;
+      failure_details.append(
+          file + QStringLiteral(": ") +
+          tr("Failed to import save file. Your NAND may be corrupt, or something is preventing "
+             "access to files within it. Try repairing your NAND (Tools -> Manage NAND -> Check "
+             "NAND...), then import the save again."));
+      break;
+    }
+  }
+
+  if (success_count == 0 && fail_count == 0)
+    return;
+
+  ModalMessageBox::information(this, tr("Save Import"),
+                               tr("Successfully imported %1 save file(s) with %2 failure(s)")
+                                   .arg(success_count)
+                                   .arg(fail_count),
+                               QMessageBox::Ok, QMessageBox::NoButton, Qt::WindowModal,
+                               failure_details.join(QStringLiteral("\n\n")));
 }
 
 void MenuBar::ExportWiiSaves()
