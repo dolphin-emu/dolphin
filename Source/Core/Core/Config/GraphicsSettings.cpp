@@ -126,6 +126,9 @@ const Info<bool> GFX_MODS_ENABLE{{System::GFX, "Settings", "EnableMods"}, false}
 
 const Info<std::string> GFX_DRIVER_LIB_NAME{{System::GFX, "Settings", "DriverLibName"}, ""};
 
+const Info<VertexLoaderType> GFX_VERTEX_LOADER_TYPE{{System::GFX, "Settings", "VertexLoaderType"},
+                                                    VertexLoaderType::Native};
+
 // Graphics.Enhancements
 
 const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING{

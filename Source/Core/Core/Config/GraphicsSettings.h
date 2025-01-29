@@ -16,6 +16,7 @@ enum class OutputResamplingMode : int;
 enum class ColorCorrectionRegion : int;
 enum class TriState : int;
 enum class FrameDumpResolutionType : int;
+enum class VertexLoaderType : int;
 
 namespace Config
 {
@@ -183,5 +184,9 @@ extern const Info<bool> GFX_PERF_QUERIES_ENABLE;
 // Android custom GPU drivers
 
 extern const Info<std::string> GFX_DRIVER_LIB_NAME;
+
+// Vertex loader
+
+extern const Info<VertexLoaderType> GFX_VERTEX_LOADER_TYPE;
 
 }  // namespace Config
