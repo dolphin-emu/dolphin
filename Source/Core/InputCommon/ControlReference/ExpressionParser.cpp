@@ -764,7 +764,7 @@ private:
 
           // Comma before the next argument.
           if (TOK_COMMA != tok.type)
-            return ParseResult::MakeErrorResult(tok, Common::GetStringT("Expected comma."));
+            return ParseResult::MakeErrorResult(tok, Common::GetStringT("Expected closing paren."));
         };
       }
     }
