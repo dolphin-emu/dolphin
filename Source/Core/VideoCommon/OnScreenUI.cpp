@@ -90,7 +90,7 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
     font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
                    sizeof(u32) * font_tex_width * font_tex_height);
 
-    io.Fonts->TexID = font_tex.get();
+    io.Fonts->TexID = *font_tex.get();
 
     m_imgui_textures.push_back(std::move(font_tex));
   }
@@ -371,8 +371,8 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
     {
       for (auto& [name, texture] : m_challenge_texture_map)
       {
-        ImGui::Image(texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
-                                           static_cast<float>(texture->GetHeight()) * scale));
+        ImGui::Image(*texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
+                                            static_cast<float>(texture->GetHeight()) * scale));
         ImGui::SameLine();
       }
     }
