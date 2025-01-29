@@ -33,14 +33,12 @@ public:
   int CountNumControls() const override;
   void UpdateReferences(ControlEnvironment& env) override;
 
-  ArgumentValidation SetArguments(std::vector<std::unique_ptr<Expression>>&& args);
+  void SetArguments(std::vector<std::unique_ptr<Expression>>&& args);
+  virtual ArgumentValidation ValidateArguments() = 0;
 
   void SetValue(ControlState value) override;
 
 protected:
-  virtual ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) = 0;
-
   Expression& GetArg(u32 number);
   const Expression& GetArg(u32 number) const;
   u32 GetArgCount() const;

@@ -769,7 +769,8 @@ private:
       }
     }
 
-    const auto argument_validation = func->SetArguments(std::move(args));
+    func->SetArguments(std::move(args));
+    const auto argument_validation = func->ValidateArguments();
 
     if (std::holds_alternative<FunctionExpression::ExpectedArguments>(argument_validation))
     {
