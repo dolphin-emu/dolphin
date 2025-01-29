@@ -250,6 +250,7 @@ class InputDetector
 {
 public:
   using Detection = DeviceContainer::InputDetection;
+  using Results = std::vector<Detection>;
 
   InputDetector();
   ~InputDetector();
@@ -259,16 +260,16 @@ public:
               std::chrono::milliseconds maximum_wait);
   bool IsComplete() const;
 
-  const std::vector<Detection>& GetResults() const;
+  const Results& GetResults() const;
 
   // move-return'd to prevent copying.
-  std::vector<Detection> TakeResults();
+  Results TakeResults();
 
 private:
   struct Impl;
 
   Clock::time_point m_start_time;
-  std::vector<Detection> m_detections;
+  Results m_detections;
   std::unique_ptr<Impl> m_state;
 };
 
