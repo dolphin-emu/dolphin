@@ -3,8 +3,8 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cstddef>
-#include <type_traits>
 #include <utility>
 
 namespace Common
@@ -14,39 +14,99 @@ namespace Common
 template <typename T, size_t MaxSize>
 class SmallVector final
 {
-  static_assert(std::is_standard_layout_v<T> == true, "Type must be a standard layout type");
-
 public:
+  using value_type = T;
+
   SmallVector() = default;
-  explicit SmallVector(size_t size) : m_size(size) {}
+  explicit SmallVector(size_t new_size) { resize(new_size); }
 
-  void push_back(const T& x) { m_array[m_size++] = x; }
-  void push_back(T&& x) { m_array[m_size++] = std::move(x); }
+  ~SmallVector() { clear(); }
 
-  template <typename... Args>
-  T& emplace_back(Args&&... args)
+  SmallVector(const SmallVector& other)
   {
-    return m_array[m_size++] = T{std::forward<Args>(args)...};
+    for (auto& value : other)
+      emplace_back(value);
   }
 
-  T& operator[](size_t i) { return m_array[i]; }
-  const T& operator[](size_t i) const { return m_array[i]; }
+  SmallVector& operator=(const SmallVector& rhs)
+  {
+    clear();
+    for (auto& value : rhs)
+      emplace_back(value);
+    return *this;
+  }
 
-  auto data() { return m_array.data(); }
-  auto begin() { return m_array.begin(); }
-  auto end() { return m_array.begin() + m_size; }
+  SmallVector(SmallVector&& other)
+  {
+    for (auto& value : other)
+      emplace_back(std::move(value));
+    other.clear();
+  }
 
-  auto data() const { return m_array.data(); }
-  auto begin() const { return m_array.begin(); }
-  auto end() const { return m_array.begin() + m_size; }
+  SmallVector& operator=(SmallVector&& rhs)
+  {
+    clear();
+    for (auto& value : rhs)
+      emplace_back(std::move(value));
+    rhs.clear();
+    return *this;
+  }
 
+  void push_back(const value_type& x) { emplace_back(x); }
+  void push_back(value_type&& x) { emplace_back(std::move(x)); }
+
+  template <typename... Args>
+  value_type& emplace_back(Args&&... args)
+  {
+    assert(m_size < MaxSize);
+    return *::new (&m_array[m_size++ * sizeof(value_type)]) value_type{std::forward<Args>(args)...};
+  }
+
+  void pop_back()
+  {
+    assert(m_size > 0);
+    std::destroy_at(data() + --m_size);
+  }
+
+  value_type& operator[](size_t i)
+  {
+    assert(i < m_size);
+    return data()[i];
+  }
+  const value_type& operator[](size_t i) const
+  {
+    assert(i < m_size);
+    return data()[i];
+  }
+
+  auto data() { return std::launder(reinterpret_cast<value_type*>(m_array.data())); }
+  auto begin() { return data(); }
+  auto end() { return data() + m_size; }
+
+  auto data() const { return std::launder(reinterpret_cast<const value_type*>(m_array.data())); }
+  auto begin() const { return data(); }
+  auto end() const { return data() + m_size; }
+
+  size_t capacity() const { return MaxSize; }
   size_t size() const { return m_size; }
+
   bool empty() const { return m_size == 0; }
 
-  void clear() { m_size = 0; }
+  void resize(size_t new_size)
+  {
+    assert(new_size <= MaxSize);
+
+    while (size() < new_size)
+      emplace_back();
+
+    while (size() > new_size)
+      pop_back();
+  }
+
+  void clear() { resize(0); }
 
 private:
-  std::array<T, MaxSize> m_array{};
+  alignas(value_type) std::array<std::byte, MaxSize * sizeof(value_type)> m_array;
   size_t m_size = 0;
 };
 
