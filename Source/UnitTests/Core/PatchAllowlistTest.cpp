@@ -18,6 +18,7 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
+#include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
 #include "Core/GeckoCode.h"
@@ -183,14 +184,37 @@ void ReadVerified(const Common::IniFile& ini, const std::string& filename,
     if (line.empty() || line[0] != '$')
       continue;
 
+    // Exclude the initial '$' from the comparison.
+    const auto name = StripWhitespace(std::string_view{line}.substr(1));
+
     bool found = false;
     for (T& code : *codes)
     {
-      // Exclude the initial '$' from the comparison.
-      if (line.compare(1, std::string::npos, code.name) == 0)
+      if (name == code.name)
       {
         code.enabled = enabled;
         found = true;
+        break;
+      }
+    }
+    if (!found)
+    {
+      // For backwards compatibility, where certain cheat code types (namedly Gecko cheat codes)
+      // would be stored in the _Verified section without including the creator name, there will be
+      // a second attempt to match the parsed line with any of the cheat codes in the list after
+      // disregarding the potential creator name.
+      static const std::regex s_regex("(.*)(\\[.+\\])");
+      for (T& code : *codes)
+      {
+        const std::string codeNameWithoutCreator{
+            StripWhitespace(std::regex_replace(code.name, s_regex, "$1"))};
+
+        if (name == codeNameWithoutCreator)
+        {
+          code.enabled = enabled;
+          found = true;
+          break;
+        }
       }
     }
     if (!found)
