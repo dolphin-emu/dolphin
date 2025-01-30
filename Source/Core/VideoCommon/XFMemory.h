@@ -14,6 +14,7 @@
 #include "VideoCommon/CPMemory.h"
 
 constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
+constexpr size_t NUM_XF_LIGHTS = 8;
 
 // Lighting
 
@@ -430,7 +431,7 @@ struct alignas(16) XFMemory
   float normalMatrices[96];                 // 0x0400 - 0x045f
   u32 unk1[160];                            // 0x0460 - 0x04ff
   float postMatrices[256];                  // 0x0500 - 0x05ff
-  Light lights[8];                          // 0x0600 - 0x067f
+  Light lights[NUM_XF_LIGHTS];              // 0x0600 - 0x067f
   u32 unk2[2432];                           // 0x0680 - 0x0fff
   u32 error;                                // 0x1000
   u32 diag;                                 // 0x1001
