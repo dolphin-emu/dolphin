@@ -14,6 +14,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
 
 namespace WiimoteReal
 {
@@ -52,6 +53,8 @@ bool WiimoteScannerLinux::IsReady() const
 
 void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
 {
+  WiimoteScannerLinux::AddKnownAddresses(found_wiimotes);
+
   // supposedly 1.28 seconds
   int const wait_len = 1;
 
@@ -108,6 +111,27 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
       found_wiimotes.push_back(wm);
       NOTICE_LOG_FMT(WIIMOTE, "Found Wiimote ({}).", bdaddr_str);
     }
+  }
+}
+
+void WiimoteScannerLinux::AddKnownAddresses(std::vector<Wiimote*>& found_wiimotes)
+{
+  std::string entries = Config::Get(Config::MAIN_REAL_WIIMOTE_KNOWN_ADDRESSES);
+  if (entries.empty())
+    return;
+  for (const auto& bt_address_str : SplitString(entries, ','))
+  {
+    bdaddr_t bt_addr;
+    if (str2ba(bt_address_str.c_str(), &bt_addr) < 0)
+    {
+      WARN_LOG_FMT(WIIMOTE, "Bad Known Bluetooth Address: {}", bt_address_str);
+      continue;
+    }
+    if (!IsNewWiimote(bt_address_str))
+      continue;
+    Wiimote* wm = new WiimoteLinux(bt_addr);
+    found_wiimotes.push_back(wm);
+    NOTICE_LOG_FMT(WIIMOTE, "Added Wiimote with fixed address ({}).", bt_address_str);
   }
 }
 
