@@ -687,7 +687,6 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
   if (!type)
     return "???";
 
-  std::string name = NameForPartitionType(*type, false);
   if (ShouldHaveMasterpiecePartitions() && *type > 0xFF)
   {
     // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
@@ -697,9 +696,9 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
     // (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
     // If your language is not one of the languages above, consider leaving the string untranslated
     // so that people will recognize it as the name of the game mode.
-    name = Common::FmtFormatT("{0} (Masterpiece)", name);
+    return Common::FmtFormatT("{0} (Masterpiece)", NameForPartitionType(*type, false));
   }
-  return name;
+  return NameForPartitionType(*type, false);
 }
 
 bool VolumeVerifier::IsDebugSigned() const
