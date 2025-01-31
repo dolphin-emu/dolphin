@@ -95,7 +95,7 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   }
 
   // Update progress while the compiles complete.
-  for (;;)
+  while (true)
   {
     if (Core::GetState(Core::System::GetInstance()) == Core::State::Stopping)
       return false;
