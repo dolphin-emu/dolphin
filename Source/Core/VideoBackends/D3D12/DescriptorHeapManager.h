@@ -5,6 +5,7 @@
 
 #include <bitset>
 #include <unordered_map>
+
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoCommon/RenderState.h"
 

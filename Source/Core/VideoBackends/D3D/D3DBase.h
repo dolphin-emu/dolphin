@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <d3d11.h>
-#include <d3d11_1.h>
+#include <d3d11_4.h>
 #include <d3dcompiler.h>
-#include <dxgi1_5.h>
+#include <dxgi1_6.h>
 #include <fmt/format.h>
 #include <vector>
 #include <wrl/client.h>

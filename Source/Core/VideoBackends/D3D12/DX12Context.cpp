@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <array>
-#include <dxgi1_2.h>
+#include <dxgi1_6.h>
 #include <queue>
 #include <vector>
 
