@@ -668,6 +668,11 @@ void JitArm64::cmp(UGeckoInstruction inst)
     SXTW(CR, gpr.R(a));
     ADD(CR, CR, ~gpr.GetImm(b) + 1);
   }
+  else if (gpr.IsImm(b) && (((~gpr.GetImm(b) + 1) & 0xFFF000) == (~gpr.GetImm(b) + 1)))
+  {
+    SXTW(CR, gpr.R(a));
+    ADD(CR, CR, (~gpr.GetImm(b) + 1) >> 12, true);
+  }
   else
   {
     ARM64Reg RA = gpr.R(a);
