@@ -736,6 +736,10 @@ void JitArm64::cmpl(UGeckoInstruction inst)
     else
       SUB(CR, EncodeRegTo64(gpr.R(a)), imm);
   }
+  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0xFFF000) == gpr.GetImm(b))
+  {
+    SUB(CR, EncodeRegTo64(gpr.R(a)), gpr.GetImm(b) >> 12, true);
+  }
   else
   {
     SUB(CR, EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
