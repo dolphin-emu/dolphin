@@ -658,6 +658,11 @@ void JitArm64::cmp(UGeckoInstruction inst)
     if (const u32 imm = gpr.GetImm(b); imm != 0)
       SUB(CR, CR, imm);
   }
+  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0xFFF000) == gpr.GetImm(b))
+  {
+    SXTW(CR, gpr.R(a));
+    SUB(CR, CR, gpr.GetImm(b) >> 12, true);
+  }
   else
   {
     ARM64Reg RA = gpr.R(a);
