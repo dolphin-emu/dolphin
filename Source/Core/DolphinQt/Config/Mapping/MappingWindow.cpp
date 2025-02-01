@@ -117,9 +117,13 @@ void MappingWindow::CreateDevicesLayout()
   m_wait_for_alternate_mappings = new QAction(tr("Wait for Alternate Input Mappings"), options);
   m_wait_for_alternate_mappings->setCheckable(true);
 
+  m_iterative_mapping = new QAction(tr("Enable Iterative Input Mapping"), options);
+  m_iterative_mapping->setCheckable(true);
+
   options->addAction(refresh_action);
   options->addAction(m_other_device_mappings);
   options->addAction(m_wait_for_alternate_mappings);
+  options->addAction(m_iterative_mapping);
   options->setDefaultAction(refresh_action);
 
   m_devices_combo->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -366,6 +370,11 @@ bool MappingWindow::IsCreateOtherDeviceMappingsEnabled() const
 bool MappingWindow::IsWaitForAlternateMappingsEnabled() const
 {
   return m_wait_for_alternate_mappings->isChecked();
+}
+
+bool MappingWindow::IsIterativeMappingEnabled() const
+{
+  return m_iterative_mapping->isChecked();
 }
 
 void MappingWindow::RefreshDevices()

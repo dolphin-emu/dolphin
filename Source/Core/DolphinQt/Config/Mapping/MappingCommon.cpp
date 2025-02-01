@@ -10,6 +10,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -49,7 +50,10 @@ public:
     const auto& default_device = m_parent->GetController()->GetDefaultDevice();
     auto& button = m_clicked_mapping_buttons.front();
 
-    button->StartMapping();
+    // Focus just makes it more clear which button is currently being mapped.
+    button->setFocus();
+    button->setText(tr("[ Press Now ]"));
+    QtUtils::InstallKeyboardBlocker(button, button, &MappingButton::ConfigChanged);
 
     std::vector device_strings{default_device.ToString()};
     if (m_parent->IsCreateOtherDeviceMappingsEnabled())
@@ -73,9 +77,17 @@ public:
 
     if (m_input_detector->IsComplete())
     {
-      // No inputs detected. Cancel this and any other queued mappings.
+      auto* const button = m_clicked_mapping_buttons.back();
+
       if (!FinalizeMapping(m_input_detector->TakeResults()))
+      {
+        // No inputs detected. Cancel this and any other queued mappings.
         CancelMapping();
+      }
+      else if (m_parent->IsIterativeMappingEnabled() && m_clicked_mapping_buttons.empty())
+      {
+        button->QueueNextButtonMapping();
+      }
     }
   }
 
@@ -110,22 +122,20 @@ public:
       m_input_detection_start_timer->start(INPUT_DETECT_INITIAL_DELAY);
   }
 
-  void UnQueueInputDetection(MappingButton* button)
+  bool UnQueueInputDetection(MappingButton* button)
   {
-    std::erase(m_clicked_mapping_buttons, button);
+    if (!std::erase(m_clicked_mapping_buttons, button))
+      return false;
     button->ConfigChanged();
     UpdateInputDetectionStartTimer();
+    return true;
   }
 
   void QueueInputDetection(MappingButton* button)
   {
-    // UnQueue if already queued.
-    if (std::erase(m_clicked_mapping_buttons, button))
-    {
-      button->ConfigChanged();
-      UpdateInputDetectionStartTimer();
+    // Just UnQueue if already queued.
+    if (UnQueueInputDetection(button))
       return;
-    }
 
     button->setText(QStringLiteral("[ ... ]"));
     m_clicked_mapping_buttons.push_back(button);
