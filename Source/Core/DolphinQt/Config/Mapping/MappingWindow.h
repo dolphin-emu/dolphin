@@ -53,6 +53,7 @@ public:
   ControllerEmu::EmulatedController* GetController() const;
   bool IsCreateOtherDeviceMappingsEnabled() const;
   bool IsWaitForAlternateMappingsEnabled() const;
+  bool IsIterativeMappingEnabled() const;
   void ShowExtensionMotionTabs(bool show);
   void ActivateExtensionTab();
 
@@ -106,6 +107,7 @@ private:
   QComboBox* m_devices_combo;
   QAction* m_other_device_mappings;
   QAction* m_wait_for_alternate_mappings;
+  QAction* m_iterative_mapping;
 
   // Profiles
   QGroupBox* m_profiles_box;

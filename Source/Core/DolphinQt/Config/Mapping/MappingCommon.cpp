@@ -10,6 +10,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -49,7 +50,10 @@ public:
     const auto& default_device = m_parent->GetController()->GetDefaultDevice();
     auto& button = m_clicked_mapping_buttons.front();
 
-    button->StartMapping();
+    // Focus just makes it more clear which button is currently being mapped.
+    button->setFocus();
+    button->setText(tr("[ Press Now ]"));
+    QtUtils::InstallKeyboardBlocker(button, button, &MappingButton::ConfigChanged);
 
     std::vector device_strings{default_device.ToString()};
     if (m_parent->IsCreateOtherDeviceMappingsEnabled())
@@ -73,9 +77,17 @@ public:
 
     if (m_input_detector->IsComplete())
     {
-      // No inputs detected. Cancel this and any other queued mappings.
+      auto* const button = m_clicked_mapping_buttons.back();
+
       if (!FinalizeMapping(m_input_detector->TakeResults()))
+      {
+        // No inputs detected. Cancel this and any other queued mappings.
         CancelMapping();
+      }
+      else if (m_parent->IsIterativeMappingEnabled() && m_clicked_mapping_buttons.empty())
+      {
+        button->QueueNextButtonMapping();
+      }
     }
   }
 

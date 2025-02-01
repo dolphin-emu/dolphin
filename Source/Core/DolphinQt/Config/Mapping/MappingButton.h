@@ -17,12 +17,11 @@ class MappingButton : public ElidedButton
 public:
   MappingButton(MappingWidget* widget, ControlReference* ref);
 
-  bool IsInput() const;
   ControlReference* GetControlReference();
-  void StartMapping();
 
 signals:
   void ConfigChanged();
+  void QueueNextButtonMapping();
 
 private:
   void Clear();
@@ -33,5 +32,4 @@ private:
 
   MappingWindow* const m_mapping_window;
   ControlReference* const m_reference;
-  bool m_is_mapping = false;
 };
