@@ -348,6 +348,8 @@ struct VideoConfig final
     bool bSupportsVSLinePointExpand = false;
     bool bSupportsGLLayerInFS = true;
     bool bSupportsHDROutput = false;
+    bool bSupportsUnrestrictedDepthRange = false;
+    bool bSupportsDepthClampControl = false;
   } backend_info;
 
   // Utility
