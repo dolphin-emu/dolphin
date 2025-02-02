@@ -652,17 +652,58 @@ void JitArm64::cmp(UGeckoInstruction inst)
     SXTW(CR, gpr.R(b));
     MVN(CR, CR);
   }
-  else if (gpr.IsImm(b) && !gpr.GetImm(b))
+  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0xFFF) == gpr.GetImm(b))
   {
     SXTW(CR, gpr.R(a));
+    if (const u32 imm = gpr.GetImm(b); imm != 0)
+      SUB(CR, CR, imm);
+  }
+  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0xFFF000) == gpr.GetImm(b))
+  {
+    SXTW(CR, gpr.R(a));
+    SUB(CR, CR, gpr.GetImm(b) >> 12, true);
+  }
+  else if (gpr.IsImm(b) && (((~gpr.GetImm(b) + 1) & 0xFFF) == (~gpr.GetImm(b) + 1)))
+  {
+    SXTW(CR, gpr.R(a));
+    ADD(CR, CR, ~gpr.GetImm(b) + 1);
+  }
+  else if (gpr.IsImm(b) && (((~gpr.GetImm(b) + 1) & 0xFFF000) == (~gpr.GetImm(b) + 1)))
+  {
+    SXTW(CR, gpr.R(a));
+    ADD(CR, CR, (~gpr.GetImm(b) + 1) >> 12, true);
   }
   else
   {
+    // If we're dealing with immediates, check their most significant bit to
+    // see if we can skip sign extension.
+    const auto should_sign_extend = [&](u32 reg) -> bool {
+      return !gpr.IsImm(reg) || (gpr.GetImm(reg) & (1U << 31));
+    };
+    bool sign_extend_a = should_sign_extend(a);
+    bool sign_extend_b = should_sign_extend(b);
+
     ARM64Reg RA = gpr.R(a);
     ARM64Reg RB = gpr.R(b);
 
-    SXTW(CR, RA);
-    SUB(CR, CR, RB, ArithOption(RB, ExtendSpecifier::SXTW));
+    if (sign_extend_a)
+    {
+      SXTW(CR, RA);
+      RA = CR;
+    }
+    else
+    {
+      RA = EncodeRegTo64(RA);
+    }
+
+    auto opt = ArithOption(RB, ExtendSpecifier::SXTW);
+    if (!sign_extend_b)
+    {
+      opt = ArithOption(CR, ShiftType::LSL, 0);
+      RB = EncodeRegTo64(RB);
+    }
+
+    SUB(CR, RA, RB, opt);
   }
 }
 
@@ -687,9 +728,17 @@ void JitArm64::cmpl(UGeckoInstruction inst)
   {
     NEG(CR, EncodeRegTo64(gpr.R(b)));
   }
-  else if (gpr.IsImm(b) && !gpr.GetImm(b))
+  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0xFFF) == gpr.GetImm(b))
   {
-    MOV(EncodeRegTo32(CR), gpr.R(a));
+    const u32 imm = gpr.GetImm(b);
+    if (imm == 0)
+      MOV(EncodeRegTo32(CR), gpr.R(a));
+    else
+      SUB(CR, EncodeRegTo64(gpr.R(a)), imm);
+  }
+  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0xFFF000) == gpr.GetImm(b))
+  {
+    SUB(CR, EncodeRegTo64(gpr.R(a)), gpr.GetImm(b) >> 12, true);
   }
   else
   {

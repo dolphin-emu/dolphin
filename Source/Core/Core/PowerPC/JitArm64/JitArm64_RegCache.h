@@ -345,7 +345,7 @@ public:
   // Gets the immediate that a register is set to. Only valid for guest GPRs.
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
 
-  bool IsImm(size_t preg, u32 imm) { return IsImm(preg) && GetImm(preg) == imm; }
+  bool IsImm(size_t preg, u32 imm) const { return IsImm(preg) && GetImm(preg) == imm; }
 
   // Binds a guest GPR to a host register, optionally loading its value.
   //
