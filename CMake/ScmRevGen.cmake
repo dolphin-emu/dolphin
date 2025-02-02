@@ -71,5 +71,5 @@ if(APPLE)
 endif()
 
 if(LINUX)
-  configure_source_file("Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml")
+  configure_source_file("Flatpak/org.dolphin_emu.dolphin_emu.metainfo.xml")
 endif()
