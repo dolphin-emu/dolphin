@@ -16,11 +16,10 @@ using FSec = std::chrono::duration<ControlState>;
 class ToggleExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
     // Optional 2nd argument for clearing state:
-    if (args.size() == 1 || args.size() == 2)
+    if (GetArgCount() == 1 || GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"toggle_state_input, [clear_state_input]"};
@@ -56,10 +55,9 @@ private:
 class NotExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -73,10 +71,9 @@ private:
 class AbsExpression final : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -89,10 +86,9 @@ private:
 class SinExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -105,10 +101,9 @@ private:
 class CosExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -121,10 +116,9 @@ private:
 class TanExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -137,10 +131,9 @@ private:
 class ASinExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -153,10 +146,9 @@ private:
 class ACosExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -169,10 +161,9 @@ private:
 class ATanExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -185,10 +176,9 @@ private:
 class ATan2Expression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"y, x"};
@@ -204,10 +194,9 @@ private:
 class SqrtExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -220,10 +209,9 @@ private:
 class PowExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"base, exponent"};
@@ -236,10 +224,9 @@ private:
 class MinExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"a, b"};
@@ -252,10 +239,9 @@ private:
 class MaxExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"a, b"};
@@ -268,10 +254,9 @@ private:
 class ClampExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 3)
+    if (GetArgCount() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"value, min, max"};
@@ -287,10 +272,9 @@ private:
 class TimerExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"seconds"};
@@ -330,10 +314,9 @@ private:
 class IfExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 3)
+    if (GetArgCount() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"condition, true_expression, false_expression"};
@@ -351,10 +334,9 @@ private:
 class UnaryMinusExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -371,10 +353,9 @@ private:
 class UnaryPlusExpression : public FunctionExpression
 {
 private:
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 1)
+    if (GetArgCount() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -386,10 +367,9 @@ private:
 // usage: deadzone(input, amount)
 class DeadzoneExpression : public FunctionExpression
 {
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, amount"};
@@ -407,10 +387,9 @@ class DeadzoneExpression : public FunctionExpression
 // seconds is seconds to change from 0.0 to 1.0
 class SmoothExpression : public FunctionExpression
 {
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2 || args.size() == 3)
+    if (GetArgCount() == 2 || GetArgCount() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds_up, seconds_down = seconds_up"};
@@ -451,10 +430,9 @@ private:
 // usage: hold(input, seconds)
 class HoldExpression : public FunctionExpression
 {
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds"};
@@ -490,10 +468,9 @@ private:
 // usage: tap(input, seconds, taps=2)
 class TapExpression : public FunctionExpression
 {
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2 || args.size() == 3)
+    if (GetArgCount() == 2 || GetArgCount() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds, taps = 2"};
@@ -550,10 +527,9 @@ private:
 // speed is max movement per second
 class RelativeExpression : public FunctionExpression
 {
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() >= 2 && args.size() <= 4)
+    if (GetArgCount() >= 2 && GetArgCount() <= 4)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, speed, [max_abs_value, [shared_state]]"};
@@ -609,10 +585,9 @@ private:
 // usage: pulse(input, seconds)
 class PulseExpression : public FunctionExpression
 {
-  ArgumentValidation
-  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation ValidateArguments() override
   {
-    if (args.size() == 2)
+    if (GetArgCount() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds"};
@@ -731,12 +706,9 @@ void FunctionExpression::UpdateReferences(ControlEnvironment& env)
     arg->UpdateReferences(env);
 }
 
-FunctionExpression::ArgumentValidation
-FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args)
+void FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args)
 {
   m_args = std::move(args);
-
-  return ValidateArguments(m_args);
 }
 
 Expression& FunctionExpression::GetArg(u32 number)

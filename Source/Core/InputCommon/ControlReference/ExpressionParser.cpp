@@ -786,12 +786,13 @@ private:
 
           // Comma before the next argument.
           if (TOK_COMMA != tok.type)
-            return ParseResult::MakeErrorResult(tok, Common::GetStringT("Expected comma."));
+            return ParseResult::MakeErrorResult(tok, Common::GetStringT("Expected closing paren."));
         };
       }
     }
 
-    const auto argument_validation = func->SetArguments(std::move(args));
+    func->SetArguments(std::move(args));
+    const auto argument_validation = func->ValidateArguments();
 
     if (std::holds_alternative<FunctionExpression::ExpectedArguments>(argument_validation))
     {
