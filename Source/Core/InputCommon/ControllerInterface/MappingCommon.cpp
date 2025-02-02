@@ -51,11 +51,10 @@ std::string GetExpressionForControl(const std::string& control_name,
   return expr;
 }
 
-std::string
-BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>& detections,
-                const ciface::Core::DeviceQualifier& default_device, Quote quote)
+std::string BuildExpression(const Core::InputDetector::Results& detections,
+                            const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
-  std::vector<const ciface::Core::DeviceContainer::InputDetection*> pressed_inputs;
+  std::vector<const Core::InputDetector::Detection*> pressed_inputs;
 
   std::vector<std::string> alternations;
 
@@ -135,8 +134,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
   return fmt::to_string(fmt::join(alternations, "|"));
 }
 
-void RemoveSpuriousTriggerCombinations(
-    std::vector<ciface::Core::DeviceContainer::InputDetection>* detections)
+void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results* detections)
 {
   const auto is_spurious = [&](const auto& detection) {
     return std::ranges::any_of(*detections, [&](const auto& d) {
@@ -147,6 +145,23 @@ void RemoveSpuriousTriggerCombinations(
   };
 
   std::erase_if(*detections, is_spurious);
+}
+
+void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results* results,
+                                    Core::DeviceContainer::Clock::time_point after)
+{
+  const auto is_after_time = [&](const Core::InputDetector::Detection& detection) {
+    return detection.release_time.value_or(after) >= after;
+  };
+
+  std::erase_if(*results, is_after_time);
+}
+
+bool ContainsCompleteDetection(const Core::InputDetector::Results& results)
+{
+  return std::ranges::any_of(results, [](const Core::InputDetector::Detection& detection) {
+    return detection.release_time.has_value();
+  });
 }
 
 }  // namespace ciface::MappingCommon

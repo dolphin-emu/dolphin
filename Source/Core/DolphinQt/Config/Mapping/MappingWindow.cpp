@@ -111,11 +111,19 @@ void MappingWindow::CreateDevicesLayout()
   const auto refresh_action = new QAction(tr("Refresh"), options);
   connect(refresh_action, &QAction::triggered, this, &MappingWindow::RefreshDevices);
 
-  m_all_devices_action = new QAction(tr("Create mappings for other devices"), options);
-  m_all_devices_action->setCheckable(true);
+  m_other_device_mappings = new QAction(tr("Create Mappings for Other Devices"), options);
+  m_other_device_mappings->setCheckable(true);
+
+  m_wait_for_alternate_mappings = new QAction(tr("Wait for Alternate Input Mappings"), options);
+  m_wait_for_alternate_mappings->setCheckable(true);
+
+  m_iterative_mapping = new QAction(tr("Enable Iterative Input Mapping"), options);
+  m_iterative_mapping->setCheckable(true);
 
   options->addAction(refresh_action);
-  options->addAction(m_all_devices_action);
+  options->addAction(m_other_device_mappings);
+  options->addAction(m_wait_for_alternate_mappings);
+  options->addAction(m_iterative_mapping);
   options->setDefaultAction(refresh_action);
 
   m_devices_combo->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -354,9 +362,19 @@ void MappingWindow::OnSelectDevice(int)
   m_controller->UpdateReferences(g_controller_interface);
 }
 
-bool MappingWindow::IsMappingAllDevices() const
+bool MappingWindow::IsCreateOtherDeviceMappingsEnabled() const
 {
-  return m_all_devices_action->isChecked();
+  return m_other_device_mappings->isChecked();
+}
+
+bool MappingWindow::IsWaitForAlternateMappingsEnabled() const
+{
+  return m_wait_for_alternate_mappings->isChecked();
+}
+
+bool MappingWindow::IsIterativeMappingEnabled() const
+{
+  return m_iterative_mapping->isChecked();
 }
 
 void MappingWindow::RefreshDevices()

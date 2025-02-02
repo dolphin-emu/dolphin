@@ -314,6 +314,17 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
                                   bool indicator)
 {
   auto* const button = new MappingButton(this, control->control_ref.get());
+
+  if (control->control_ref->IsInput())
+  {
+    if (m_previous_mapping_button)
+    {
+      connect(m_previous_mapping_button, &MappingButton::QueueNextButtonMapping,
+              [this, button]() { m_parent->QueueInputDetection(button); });
+    }
+    m_previous_mapping_button = button;
+  }
+
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 

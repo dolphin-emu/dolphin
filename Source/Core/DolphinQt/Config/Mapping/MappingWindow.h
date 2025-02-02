@@ -51,7 +51,9 @@ public:
 
   int GetPort() const;
   ControllerEmu::EmulatedController* GetController() const;
-  bool IsMappingAllDevices() const;
+  bool IsCreateOtherDeviceMappingsEnabled() const;
+  bool IsWaitForAlternateMappingsEnabled() const;
+  bool IsIterativeMappingEnabled() const;
   void ShowExtensionMotionTabs(bool show);
   void ActivateExtensionTab();
 
@@ -103,7 +105,9 @@ private:
   QGroupBox* m_devices_box;
   QHBoxLayout* m_devices_layout;
   QComboBox* m_devices_combo;
-  QAction* m_all_devices_action;
+  QAction* m_other_device_mappings;
+  QAction* m_wait_for_alternate_mappings;
+  QAction* m_iterative_mapping;
 
   // Profiles
   QGroupBox* m_profiles_box;
