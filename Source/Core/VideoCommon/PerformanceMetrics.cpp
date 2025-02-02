@@ -183,8 +183,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
         ImPlot::PopStyleColor(2);
       }
       ImGui::PopStyleVar();
-      ImGui::End();
     }
+    ImGui::End();
   }
 
   if (g_ActiveConfig.bShowSpeed)
@@ -205,8 +205,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     {
       ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", 100.0 * speed);
       ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Max:%6.0lf%%", 100.0 * GetMaxSpeed());
-      ImGui::End();
     }
+    ImGui::End();
   }
 
   if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowFTimes)
@@ -235,8 +235,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_fps_counter.GetDtStd()).count());
       }
-      ImGui::End();
     }
+    ImGui::End();
   }
 
   if (g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes)
@@ -265,8 +265,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_vps_counter.GetDtStd()).count());
       }
-      ImGui::End();
     }
+    ImGui::End();
   }
 
   ImGui::PopStyleVar(2);
