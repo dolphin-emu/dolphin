@@ -20,6 +20,23 @@
 #include "jni/Input/ControlReference.h"
 #include "jni/Input/NumericSetting.h"
 
+ControllerEmu::ControlGroupContainer* ControlGroupContainerFromJava(JNIEnv* env, jobject obj)
+{
+  return reinterpret_cast<ControllerEmu::ControlGroupContainer*>(
+      env->GetLongField(obj, IDCache::GetEmulatedControllerPointer()));
+}
+
+static jobject ControlGroupContainerToJava(JNIEnv* env,
+                                           ControllerEmu::ControlGroupContainer* container)
+{
+  if (!container)
+    return nullptr;
+
+  return env->NewObject(IDCache::GetControlGroupContainerClass(),
+                        IDCache::GetControlGroupContainerConstructor(),
+                        reinterpret_cast<jlong>(container));
+}
+
 ControllerEmu::EmulatedController* EmulatedControllerFromJava(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<ControllerEmu::EmulatedController*>(
@@ -53,18 +70,18 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 }
 
 JNIEXPORT jint JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGroupCount(
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroupContainer_getGroupCount(
     JNIEnv* env, jobject obj)
 {
-  return static_cast<jint>(EmulatedControllerFromJava(env, obj)->groups.size());
+  return static_cast<jint>(ControlGroupContainerFromJava(env, obj)->groups.size());
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGroup(
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroupContainer_getGroup(
     JNIEnv* env, jobject obj, jint controller_index)
 {
-  return ControlGroupToJava(env,
-                            EmulatedControllerFromJava(env, obj)->groups[controller_index].get());
+  return ControlGroupToJava(
+      env, ControlGroupContainerFromJava(env, obj)->groups[controller_index].get());
 }
 
 JNIEXPORT void JNICALL
@@ -175,7 +192,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 {
   auto* attachments = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(controller_index, WiimoteEmu::WiimoteGroup::Attachments));
-  return EmulatedControllerToJava(env, attachments->GetAttachmentList()[attachment_index].get());
+  return ControlGroupContainerToJava(env, attachments->GetAttachmentList()[attachment_index].get());
 }
 
 JNIEXPORT jint JNICALL
