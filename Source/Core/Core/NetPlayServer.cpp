@@ -156,8 +156,9 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   else
   {
     ENetAddress serverAddr;
-    serverAddr.host = ENET_HOST_ANY;
+    serverAddr.host = in6addr_any;
     serverAddr.port = port;
+    serverAddr.sin6_scope_id = 0;
     m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
     {
@@ -308,8 +309,9 @@ void NetPlayServer::ThreadFunc()
       {
         // Actual client initialization is deferred to the receive event, so here
         // we'll just log the new connection.
-        INFO_LOG_FMT(NETPLAY, "Peer connected from: {:x}:{}", netEvent.peer->address.host,
-                     netEvent.peer->address.port);
+        char host_str[48];
+        enet_address_get_host_ip(&netEvent.peer->address, host_str, 48);
+        INFO_LOG_FMT(NETPLAY, "Peer connected from: {}:{}", host_str, netEvent.peer->address.port);
       }
       break;
       case ENET_EVENT_TYPE_RECEIVE:
@@ -324,16 +326,19 @@ void NetPlayServer::ThreadFunc()
           // uninitialized client, we'll assume this is their initialization packet
           ConnectionError error;
           {
-            INFO_LOG_FMT(NETPLAY, "Initializing peer {:x}:{}", netEvent.peer->address.host,
-                         netEvent.peer->address.port);
+            char host_str[48];
+            enet_address_get_host_ip(&netEvent.peer->address, host_str, 48);
+            INFO_LOG_FMT(NETPLAY, "Initializing peer {}:{}", host_str, netEvent.peer->address.port);
             std::lock_guard lkg(m_crit.game);
             error = OnConnect(netEvent.peer, rpac);
           }
 
           if (error != ConnectionError::NoError)
           {
-            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", u8(error),
-                         netEvent.peer->address.host, netEvent.peer->address.port);
+            char host_str[48];
+            enet_address_get_host_ip(&netEvent.peer->address, host_str, 48);
+            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {}:{}", u8(error), host_str,
+                         netEvent.peer->address.port);
 
             sf::Packet spac;
             spac << error;

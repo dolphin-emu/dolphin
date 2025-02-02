@@ -18,7 +18,7 @@ void WakeupThread(ENetHost* host)
     address.port = host->address.port;
   else
     enet_socket_get_address(host->socket, &address);
-  address.host = 0x0100007f;  // localhost
+  address.host = in6addr_loopback;  // localhost or ::1
   u8 byte = 0;
   ENetBuffer buf;
   buf.data = &byte;
@@ -61,5 +61,23 @@ bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
   }
 
   return true;
+}
+
+std::optional<in6_addr> AddressFromString(const std::string& addr_str)
+{
+  in6_addr addr;
+  memset(&addr, 0, sizeof(in6_addr));
+  if (!inet_pton(AF_INET6, addr_str.c_str(), &addr))
+  {
+    in_addr addr_v4;
+    if (!inet_pton(AF_INET, addr_str.c_str(), &addr_v4)) {
+      return {};
+    }
+
+    u32 v6_mapped_addr[4] = {0, 0, htonl(0x0000ffff), *reinterpret_cast<u32*>(&addr_v4)};
+    memcpy(&addr, v6_mapped_addr, sizeof(in6_addr));
+  }
+
+  return addr;
 }
 }  // namespace Common::ENet
