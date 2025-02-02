@@ -22,6 +22,7 @@
 #include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -32,6 +33,7 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
+#include <Core/Core.h>
 #include "UICommon/GameFile.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
@@ -95,6 +97,10 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &InterfacePane::UpdateShowDebuggingCheckbox);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &InterfacePane::OnEmulationStateChanged);
+
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 
 void InterfacePane::CreateLayout()
@@ -168,12 +174,15 @@ void InterfacePane::CreateUI()
       new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
   m_checkbox_disable_screensaver =
       new ConfigBool(tr("Inhibit Screensaver During Emulation"), Config::MAIN_DISABLE_SCREENSAVER);
+  m_checkbox_time_tracking =
+      new ConfigBool(tr("Enable Play Time Tracking"), Config::MAIN_TIME_TRACKING);
 
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
   groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
   groupbox_layout->addWidget(m_checkbox_disable_screensaver);
+  groupbox_layout->addWidget(m_checkbox_time_tracking);
 }
 
 void InterfacePane::CreateInGame()
@@ -313,6 +322,12 @@ void InterfacePane::OnLanguageChanged()
       tr("You must restart Dolphin in order for the change to take effect."));
 }
 
+void InterfacePane::OnEmulationStateChanged(Core::State state)
+{
+  const bool running = state != Core::State::Uninitialized;
+  m_checkbox_time_tracking->setEnabled(!running);
+}
+
 void InterfacePane::AddDescriptions()
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
@@ -341,6 +356,10 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_DISABLE_SCREENSAVER_DESCRIPTION[] =
       QT_TR_NOOP("Disables your screensaver while running a game."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_TIME_TRACKING[] = QT_TR_NOOP(
+      "Tracks the time you spend playing games and shows it in the List View (as hours/minutes)."
+      "<br><br>This setting cannot be changed while emulation is active."
+      "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static constexpr char TR_CONFIRM_ON_STOP_DESCRIPTION[] =
       QT_TR_NOOP("Prompts you to confirm that you want to end emulation when you press Stop."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -393,6 +412,8 @@ void InterfacePane::AddDescriptions()
   m_checkbox_use_covers->SetDescription(tr(TR_USE_COVERS_DESCRIPTION));
 
   m_checkbox_disable_screensaver->SetDescription(tr(TR_DISABLE_SCREENSAVER_DESCRIPTION));
+
+  m_checkbox_time_tracking->SetDescription(tr(TR_TIME_TRACKING));
 
   m_checkbox_confirm_on_stop->SetDescription(tr(TR_CONFIRM_ON_STOP_DESCRIPTION));
 
