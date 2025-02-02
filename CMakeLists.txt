@@ -98,6 +98,7 @@ option(ENABLE_GENERIC "Enables generic build that should run on any little-endia
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
+option(ENABLE_CUBEB "Enables Cubeb sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(ENABLE_VULKAN "Enables vulkan video backend" ON)
@@ -700,7 +701,10 @@ endif()
 add_subdirectory(Externals/soundtouch)
 include_directories(Externals/soundtouch)
 
-dolphin_find_optional_system_library(CUBEB Externals/cubeb)
+if(ENABLE_CUBEB)
+  dolphin_find_optional_system_library(CUBEB Externals/cubeb)
+  add_definitions(-DHAVE_CUBEB)
+endif()
 
 if(NOT ANDROID)
   dolphin_find_optional_system_library_pkgconfig(
