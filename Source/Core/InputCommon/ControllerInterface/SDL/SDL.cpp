@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/ScopeGuard.h"
+#include "Core/Config/MainSettings.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef _WIN32
@@ -429,6 +430,7 @@ public:
 
 private:
   void OpenAndAddDevice(int index);
+  void SetPS5PlayerLED();
 
   bool HandleEventAndContinue(const SDL_Event& e);
 
@@ -579,11 +581,13 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
   SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "0");
 
-  // Disable DualSense Player LEDs; We already colorize the Primary LED
-  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
+  const Config::ConfigChangedCallbackID config_changed_callback_id =
+      Config::AddConfigChangedCallback([this] { SetPS5PlayerLED(); });
+  SetPS5PlayerLED();
 
-  m_hotplug_thread = std::thread([this] {
-    Common::ScopeGuard quit_guard([] {
+  m_hotplug_thread = std::thread([this, config_changed_callback_id] {
+    Common::ScopeGuard quit_guard([config_changed_callback_id] {
+      Config::RemoveConfigChangedCallback(config_changed_callback_id);
       // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
       SDL_Quit();
     });
@@ -670,6 +674,12 @@ void InputBackend::PopulateDevices()
 
   SDL_Event populate_event{m_populate_event_type};
   SDL_PushEvent(&populate_event);
+}
+
+void InputBackend::SetPS5PlayerLED()
+{
+  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED,
+              Config::Get(Config::MAIN_INPUT_SDL_PS5_PLAYER_LED) ? "1" : "0");
 }
 
 struct SDLMotionAxis
