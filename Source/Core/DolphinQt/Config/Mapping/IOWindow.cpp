@@ -19,6 +19,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QTableWidget>
+#include <QTextBlock>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -111,8 +112,9 @@ QTextCharFormat GetCommentCharFormat()
 }  // namespace
 
 ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocument* parent)
-    : QSyntaxHighlighter(parent)
+    : QObject(parent)
 {
+  connect(parent, &QTextDocument::contentsChanged, this, [this, parent]() { Highlight(parent); });
 }
 
 void QComboBoxWithMouseWheelDisabled::wheelEvent(QWheelEvent* event)
@@ -120,38 +122,31 @@ void QComboBoxWithMouseWheelDisabled::wheelEvent(QWheelEvent* event)
   // Do nothing
 }
 
-void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
+void ControlExpressionSyntaxHighlighter::Highlight(QTextDocument* document)
 {
-  // TODO: This is going to result in improper highlighting with non-ascii characters:
-  ciface::ExpressionParser::Lexer lexer(document()->toPlainText().toStdString());
+  // toLatin1 converts multi-byte unicode characters to a single-byte character,
+  // so Token string_position values are the character counts that Qt's FormatRange expects.
+  ciface::ExpressionParser::Lexer lexer(document->toPlainText().toLatin1().toStdString());
 
   std::vector<ciface::ExpressionParser::Token> tokens;
   const auto tokenize_status = lexer.Tokenize(tokens);
 
-  using ciface::ExpressionParser::TokenType;
-
-  const auto set_block_format = [this](int start, int count, const QTextCharFormat& format) {
-    if (start + count <= currentBlock().position() ||
-        start >= currentBlock().position() + currentBlock().length())
-    {
-      // This range is not within the current block.
-      return;
-    }
-
-    int block_start = start - currentBlock().position();
-
-    if (block_start < 0)
-    {
-      count += block_start;
-      block_start = 0;
-    }
-
-    setFormat(block_start, count, format);
-  };
-
-  for (auto& token : tokens)
+  if (ciface::ExpressionParser::ParseStatus::Successful == tokenize_status)
   {
+    const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
+    if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
+    {
+      auto token = *parse_status.token;
+      // Add invalid version of token where parsing failed for appropriate error-highlighting.
+      token.type = ciface::ExpressionParser::TOK_INVALID;
+      tokens.emplace_back(token);
+    }
+  }
+
+  auto get_token_char_format = [](const ciface::ExpressionParser::Token& token) {
     std::optional<QTextCharFormat> char_format;
+
+    using ciface::ExpressionParser::TokenType;
 
     switch (token.type)
     {
@@ -186,22 +181,50 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
       break;
     }
 
-    if (char_format.has_value())
-      set_block_format(int(token.string_position), int(token.string_length), *char_format);
-  }
+    return char_format;
+  };
 
-  // This doesn't need to be run for every "block", but it works.
-  if (ciface::ExpressionParser::ParseStatus::Successful == tokenize_status)
+  // FYI, formatting needs to be done at the block level to prevent altering of undo/redo history.
+  for (QTextBlock block = document->begin(); block.isValid(); block = block.next())
   {
-    ciface::ExpressionParser::RemoveInertTokens(&tokens);
-    const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
+    block.layout()->clearFormats();
 
-    if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
+    const int block_position = block.position();
+    const int block_length = block_position + block.length();
+
+    QList<QTextLayout::FormatRange> format_ranges;
+
+    for (auto& token : tokens)
     {
-      const auto token = *parse_status.token;
-      set_block_format(int(token.string_position), int(token.string_length),
-                       GetInvalidCharFormat());
+      int token_length = int(token.string_length);
+      int token_start = int(token.string_position) - block_position;
+      if (token_start < 0)
+      {
+        token_length += token_start;
+        token_start = 0;
+      }
+
+      if (token_length <= 0)
+      {
+        // Token is in a previous block.
+        continue;
+      }
+
+      if (token_start >= block_length)
+      {
+        // Token is in a following block.
+        break;
+      }
+
+      const auto char_format = get_token_char_format(token);
+      if (char_format.has_value())
+      {
+        format_ranges.emplace_back(QTextLayout::FormatRange{
+            .start = token_start, .length = token_length, .format = *char_format});
+      }
     }
+
+    block.layout()->setFormats(format_ranges);
   }
 }
 

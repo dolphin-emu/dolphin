@@ -188,7 +188,19 @@ Token Lexer::NextToken()
   case '*':
     return Token(TOK_MUL);
   case '/':
+  {
+    // Handle /* */ style comments.
+    if (it != expr.end() && *it == '*')
+    {
+      ++it;
+      const auto end_of_comment = expr.find("*/", it - expr.begin());
+      if (end_of_comment == std::string::npos)
+        return Token(TOK_INVALID);
+      it = expr.begin() + end_of_comment + 2;
+      return Token(TOK_COMMENT);
+    }
     return Token(TOK_DIV);
+  }
   case '%':
     return Token(TOK_MOD);
   case '=':
@@ -221,26 +233,10 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 {
   while (true)
   {
-    const std::size_t string_position = it - expr.begin();
+    const std::string::iterator prev_it = it;
     Token tok = NextToken();
-
-    tok.string_position = string_position;
-    tok.string_length = it - expr.begin();
-
-    // Handle /* */ style comments.
-    if (tok.type == TOK_DIV && PeekToken().type == TOK_MUL)
-    {
-      const auto end_of_comment = expr.find("*/", it - expr.begin());
-
-      if (end_of_comment == std::string::npos)
-        return ParseStatus::SyntaxError;
-
-      tok.type = TOK_COMMENT;
-      tok.string_length = end_of_comment + 4;
-
-      it = expr.begin() + end_of_comment + 2;
-    }
-
+    tok.string_position = prev_it - expr.begin();
+    tok.string_length = it - prev_it;
     tokens.push_back(tok);
 
     if (tok.type == TOK_INVALID)
@@ -682,6 +678,11 @@ ParseResult ParseResult::MakeErrorResult(Token token, std::string description)
   return result;
 }
 
+bool IsInertToken(const Token& tok)
+{
+  return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
+}
+
 class Parser
 {
 public:
@@ -711,7 +712,12 @@ private:
     return tok;
   }
 
-  Token Peek() { return *m_it; }
+  Token Peek()
+  {
+    while (IsInertToken(*m_it))
+      ++m_it;
+    return *m_it;
+  }
 
   bool Expects(TokenType type)
   {
@@ -1000,16 +1006,7 @@ static ParseResult ParseComplexExpression(const std::string& str)
   if (tokenize_status != ParseStatus::Successful)
     return ParseResult::MakeErrorResult(Token(TOK_INVALID),
                                         Common::GetStringT("Tokenizing failed."));
-
-  RemoveInertTokens(&tokens);
   return ParseTokens(tokens);
-}
-
-void RemoveInertTokens(std::vector<Token>* tokens)
-{
-  std::erase_if(*tokens, [](const Token& tok) {
-    return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
-  });
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)
