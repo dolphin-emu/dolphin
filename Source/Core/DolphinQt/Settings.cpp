@@ -608,14 +608,14 @@ void Settings::SetMemoryVisible(bool enabled)
 {
   if (IsMemoryVisible() == enabled)
     return;
-  QSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
 
   emit MemoryVisibilityChanged(enabled);
 }
 
 bool Settings::IsMemoryVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
 
 void Settings::SetNetworkVisible(bool enabled)
@@ -636,28 +636,28 @@ void Settings::SetJITVisible(bool enabled)
 {
   if (IsJITVisible() == enabled)
     return;
-  QSettings().setValue(QStringLiteral("debugger/showjit"), enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showjit"), enabled);
 
   emit JITVisibilityChanged(enabled);
 }
 
 bool Settings::IsJITVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
 void Settings::SetAssemblerVisible(bool enabled)
 {
   if (IsAssemblerVisible() == enabled)
     return;
-  QSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
 
   emit AssemblerVisibilityChanged(enabled);
 }
 
 bool Settings::IsAssemblerVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showassembler")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showassembler")).toBool();
 }
 
 void Settings::RefreshWidgetVisibility()
