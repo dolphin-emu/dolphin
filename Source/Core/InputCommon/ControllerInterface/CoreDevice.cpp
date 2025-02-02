@@ -491,7 +491,7 @@ void InputDetector::Update(std::chrono::milliseconds initial_wait,
           Detection new_detection;
           new_detection.device = device_state.device;
           new_detection.input = input_state.input;
-          new_detection.press_time = Clock::now();
+          new_detection.press_time = now;
           new_detection.smoothness = smoothness;
 
           // We found an input. Add it to our detections.
@@ -516,12 +516,12 @@ bool InputDetector::IsComplete() const
   return !m_state;
 }
 
-auto InputDetector::GetResults() const -> const std::vector<Detection>&
+auto InputDetector::GetResults() const -> const Results&
 {
   return m_detections;
 }
 
-auto InputDetector::TakeResults() -> std::vector<Detection>
+auto InputDetector::TakeResults() -> Results
 {
   return std::move(m_detections);
 }
