@@ -255,6 +255,8 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 
 void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 {
+  const Core::CPUThreadGuard guard(m_system);
+
   for (const std::string& mc_string : mc_strings)
   {
     TMemCheck mc;
@@ -281,15 +283,16 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
       mc.condition = Expression::TryParse(condition);
     }
 
-    Add(std::move(mc));
+    Add(std::move(mc), false);
   }
+
+  Update();
 }
 
-void MemChecks::Add(TMemCheck memory_check)
+void MemChecks::Add(TMemCheck memory_check, bool update)
 {
-  bool had_any = HasAny();
-
   const Core::CPUThreadGuard guard(m_system);
+
   // Check for existing breakpoint, and overwrite with new info.
   // This is assuming we usually want the new breakpoint over an old one.
   const u32 address = memory_check.start_address;
@@ -306,11 +309,9 @@ void MemChecks::Add(TMemCheck memory_check)
   {
     m_mem_checks.emplace_back(std::move(memory_check));
   }
-  // If this is the first one, clear the JIT cache so it can switch to
-  // watchpoint-compatible code.
-  if (!had_any)
-    m_system.GetJitInterface().ClearCache(guard);
-  m_system.GetMMU().DBATUpdated();
+
+  if (update)
+    Update();
 }
 
 bool MemChecks::ToggleEnable(u32 address)
@@ -325,7 +326,7 @@ bool MemChecks::ToggleEnable(u32 address)
   return true;
 }
 
-bool MemChecks::Remove(u32 address)
+bool MemChecks::Remove(u32 address, bool update)
 {
   const auto iter =
       std::find_if(m_mem_checks.cbegin(), m_mem_checks.cend(),
@@ -336,9 +337,10 @@ bool MemChecks::Remove(u32 address)
 
   const Core::CPUThreadGuard guard(m_system);
   m_mem_checks.erase(iter);
-  if (!HasAny())
-    m_system.GetJitInterface().ClearCache(guard);
-  m_system.GetMMU().DBATUpdated();
+
+  if (update)
+    Update();
+
   return true;
 }
 
@@ -346,7 +348,20 @@ void MemChecks::Clear()
 {
   const Core::CPUThreadGuard guard(m_system);
   m_mem_checks.clear();
-  m_system.GetJitInterface().ClearCache(guard);
+  Update();
+}
+
+void MemChecks::Update()
+{
+  const Core::CPUThreadGuard guard(m_system);
+
+  // Clear the JIT cache so it can switch the watchpoint-compatible mode.
+  if (m_mem_breakpoints_set != HasAny())
+  {
+    m_system.GetJitInterface().ClearCache(guard);
+    m_mem_breakpoints_set = HasAny();
+  }
+
   m_system.GetMMU().DBATUpdated();
 }
 
