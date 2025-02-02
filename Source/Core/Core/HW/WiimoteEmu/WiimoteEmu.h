@@ -173,7 +173,7 @@ public:
 
   // Active extension number is exposed for TAS.
   ExtensionNumber GetActiveExtensionNumber() const;
-  bool IsMotionPlusAttached() const;
+  ControllerEmu::SubscribableSettingValue<bool>& GetMotionPlusSetting();
 
   static Common::Vec3
   OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec,
@@ -308,7 +308,7 @@ private:
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
   ControllerEmu::SettingValue<double> m_battery_setting;
-  ControllerEmu::SettingValue<bool> m_motion_plus_setting;
+  ControllerEmu::SubscribableSettingValue<bool> m_motion_plus_setting;
   ControllerEmu::SettingValue<double> m_fov_x_setting;
   ControllerEmu::SettingValue<double> m_fov_y_setting;
 

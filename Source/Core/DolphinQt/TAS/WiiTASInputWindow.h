@@ -34,15 +34,22 @@ public:
   void hideEvent(QHideEvent* event) override;
   void showEvent(QShowEvent* event) override;
 
+  void UpdateExtension(int extension);
+  void UpdateMotionPlus(bool attached);
+
 private:
   WiimoteEmu::Wiimote* GetWiimote();
   ControllerEmu::Attachments* GetAttachments();
   WiimoteEmu::Extension* GetExtension();
 
-  void UpdateExt();
+  void LoadExtensionAndMotionPlus();
+  void UpdateControlVisibility();
+  void UpdateInputOverrideFunction();
 
   WiimoteEmu::ExtensionNumber m_active_extension;
+  int m_attachment_callback_id = -1;
   bool m_is_motion_plus_attached;
+  int m_motion_plus_callback_id = -1;
   int m_num;
 
   InputOverrider m_wiimote_overrider;
