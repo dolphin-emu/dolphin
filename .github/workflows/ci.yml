@@ -42,7 +42,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: DolphinMPN-ubuntu-24.04-linux-x86_64
-        path: build/deb/
+        path: build/Binaries/
         
   build_macos:
     runs-on: macos11-x64-nayla
