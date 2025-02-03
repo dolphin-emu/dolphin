@@ -265,6 +265,7 @@ extern const Info<bool> MAIN_GAMELIST_LIST_WAD;
 extern const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL;
 extern const Info<bool> MAIN_GAMELIST_LIST_WII;
 extern const Info<bool> MAIN_GAMELIST_LIST_GC;
+extern const Info<bool> MAIN_GAMELIST_LIST_TRI;
 extern const Info<bool> MAIN_GAMELIST_LIST_JPN;
 extern const Info<bool> MAIN_GAMELIST_LIST_PAL;
 extern const Info<bool> MAIN_GAMELIST_LIST_USA;
