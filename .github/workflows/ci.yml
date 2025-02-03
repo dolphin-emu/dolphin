@@ -37,7 +37,7 @@ jobs:
         sudo apt install ninja-build dpkg-dev qt6-base-dev build-essential git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libqt6svg6-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libcurl4-openssl-dev
     - name: Build
       run: |
-        mkdir -p build && cd build && cmake .. -G Ninja -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8 && checkinstall --install=no && mkidr ./build/deb/ && mv *.deb ./build/deb/
+        mkdir -p build && cd build && cmake .. -G Ninja -DDISTRIBUTOR="Mario Party Netplay" && ninja -j8 && ninja package && ninja package_source
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
