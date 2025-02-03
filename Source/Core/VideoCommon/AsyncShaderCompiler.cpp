@@ -95,23 +95,20 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   }
 
   // Update progress while the compiles complete.
-  for (;;)
+  while (Core::GetState(Core::System::GetInstance()) != Core::State::Stopping)
   {
-    if (Core::GetState(Core::System::GetInstance()) == Core::State::Stopping)
-      return false;
-
     size_t remaining_items;
     {
       std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
       if (m_pending_work.empty() && !m_busy_workers.load())
-        break;
+        return true;
       remaining_items = m_pending_work.size();
     }
 
     progress_callback(total_items - remaining_items, total_items);
     std::this_thread::sleep_for(CHECK_INTERVAL);
   }
-  return true;
+  return false;
 }
 
 bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
