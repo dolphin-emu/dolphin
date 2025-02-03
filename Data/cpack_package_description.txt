@@ -1,1 +1,1 @@
-Dolphin is an emulator for two recent Nintendo video game consoles: the GameCube and the Wii. It allows PC gamers to enjoy games for these two consoles in full HD (1080p) with several enhancements: compatibility with all PC controllers, turbo speed, networked multiplayer, and even more!
+Dolphin is an emulator for running GameCube and Wii games on Windows, Linux, and macOS. We have expanded this in Mario Party Netplay's vision of the emualtor with a custom fork, tailered for its user base.
