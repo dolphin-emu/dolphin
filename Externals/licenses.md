@@ -48,8 +48,6 @@ Dolphin includes or links code of the following third-party software projects:
    [BSD 3-Clause](https://github.com/miniupnp/miniupnp/blob/master/miniupnpc/LICENSE)
 - [Microsoft Visual C++ Runtime Library](http://www.microsoft.com/en-us/download/details.aspx?id=40784):
    [System Library if not distributed](https://www.gnu.org/licenses/gpl-faq.html#WindowsRuntimeAndGPL)
-- [OpenAL Soft](http://kcat.strangesoft.net/openal.html):
-   [LGPLv2+](http://repo.or.cz/w/openal-soft.git/blob/HEAD:/COPYING)
 - [OpenGL Header (MESA)](http://mesa3d.org/):
    [MIT](http://cgit.freedesktop.org/mesa/mesa/tree/include/GL/gl.h)
 - [OpenGL Extension Header (Khronos)](https://www.opengl.org/registry/#headers):
