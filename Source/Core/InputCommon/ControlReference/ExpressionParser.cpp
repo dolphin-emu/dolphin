@@ -25,6 +25,45 @@ using namespace ciface::Core;
 
 class ControlExpression;
 
+// Check if operator is usable with assignment, e.g. += -= *=
+bool IsCompoundAssignmentUsableBinaryOperator(TokenType type)
+{
+  return type >= TOK_COMPOUND_ASSIGN_OPS_BEGIN && type < TOK_COMPOUND_ASSIGN_OPS_END;
+}
+
+TokenType GetBinaryOperatorTokenTypeFromChar(char c)
+{
+  switch (c)
+  {
+  case '+':
+    return TOK_ADD;
+  case '-':
+    return TOK_SUB;
+  case '*':
+    return TOK_MUL;
+  case '/':
+    return TOK_DIV;
+  case '%':
+    return TOK_MOD;
+  case '=':
+    return TOK_ASSIGN;
+  case '<':
+    return TOK_LTHAN;
+  case '>':
+    return TOK_GTHAN;
+  case ',':
+    return TOK_COMMA;
+  case '^':
+    return TOK_XOR;
+  case '&':
+    return TOK_AND;
+  case '|':
+    return TOK_OR;
+  default:
+    return TOK_INVALID;
+  }
+}
+
 class HotkeySuppressions
 {
 public:
@@ -156,7 +195,32 @@ Token Lexer::NextToken()
   if (it == expr.end())
     return Token(TOK_EOF);
 
-  char c = *it++;
+  const char c = *it++;
+
+  // Handle /* */ style comments.
+  if (c == '/' && it != expr.end() && *it == '*')
+  {
+    ++it;
+    const auto end_of_comment = expr.find("*/", it - expr.begin());
+    if (end_of_comment == std::string::npos)
+      return Token(TOK_INVALID);
+    it = expr.begin() + end_of_comment + 2;
+    return Token(TOK_COMMENT);
+  }
+
+  const auto tok_type = GetBinaryOperatorTokenTypeFromChar(c);
+  if (tok_type != TOK_INVALID)
+  {
+    // Check for compound assignment op, e.g. + immediately followed by =.
+    if (IsCompoundAssignmentUsableBinaryOperator(tok_type) && it != expr.end() && *it == '=')
+    {
+      ++it;
+      return Token(TOK_ASSIGN, std::string{c});
+    }
+
+    return Token(tok_type);
+  }
+
   switch (c)
   {
   case ' ':
@@ -174,44 +238,8 @@ Token Lexer::NextToken()
     return Token(TOK_QUESTION);
   case ':':
     return Token(TOK_COLON);
-  case '&':
-    return Token(TOK_AND);
-  case '|':
-    return Token(TOK_OR);
   case '!':
     return Token(TOK_NOT);
-  case '+':
-    return Token(TOK_ADD);
-  case '-':
-    return Token(TOK_SUB);
-  case '*':
-    return Token(TOK_MUL);
-  case '/':
-  {
-    // Handle /* */ style comments.
-    if (it != expr.end() && *it == '*')
-    {
-      ++it;
-      const auto end_of_comment = expr.find("*/", it - expr.begin());
-      if (end_of_comment == std::string::npos)
-        return Token(TOK_INVALID);
-      it = expr.begin() + end_of_comment + 2;
-      return Token(TOK_COMMENT);
-    }
-    return Token(TOK_DIV);
-  }
-  case '%':
-    return Token(TOK_MOD);
-  case '=':
-    return Token(TOK_ASSIGN);
-  case '<':
-    return Token(TOK_LTHAN);
-  case '>':
-    return Token(TOK_GTHAN);
-  case ',':
-    return Token(TOK_COMMA);
-  case '^':
-    return Token(TOK_XOR);
   case '\'':
     return GetDelimitedLiteral();
   case '$':
@@ -363,6 +391,11 @@ public:
     const ControlState lhs_value = lhs->GetValue();
     const ControlState rhs_value = rhs->GetValue();
 
+    return CalculateValue(op, lhs_value, rhs_value);
+  }
+
+  static ControlState CalculateValue(TokenType op, ControlState lhs_value, ControlState rhs_value)
+  {
     switch (op)
     {
     case TOK_AND:
@@ -433,6 +466,23 @@ public:
   {
     lhs->UpdateReferences(env);
     rhs->UpdateReferences(env);
+  }
+};
+
+class CompoundAssignmentExpression : public BinaryExpression
+{
+public:
+  using BinaryExpression::BinaryExpression;
+
+  ControlState GetValue() override { return GetLValue()->GetValue(); }
+
+  Expression* GetLValue() override
+  {
+    Expression* const lvalue = lhs->GetLValue();
+    const ControlState lhs_value = lvalue->GetValue();
+    const ControlState rhs_value = rhs->GetValue();
+    lvalue->SetValue(CalculateValue(op, lhs_value, rhs_value));
+    return lvalue;
   }
 };
 
@@ -934,7 +984,17 @@ private:
         if (rhs.status == ParseStatus::SyntaxError)
           return rhs;
 
-        expr = std::make_unique<BinaryExpression>(op.type, std::move(expr), std::move(rhs.expr));
+        // Compound assignment token has operator in the data string.
+        if (op.type == TOK_ASSIGN && !op.data.empty())
+        {
+          const TokenType op_type = GetBinaryOperatorTokenTypeFromChar(op.data[0]);
+          expr = std::make_unique<CompoundAssignmentExpression>(op_type, std::move(expr),
+                                                                std::move(rhs.expr));
+        }
+        else
+        {
+          expr = std::make_unique<BinaryExpression>(op.type, std::move(expr), std::move(rhs.expr));
+        }
       }
       else if (op.type == TOK_QUESTION && OperatorPrecedence(TOK_QUESTION) <= precedence)
       {
