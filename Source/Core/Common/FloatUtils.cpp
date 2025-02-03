@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/FloatUtils.h"
+#include "Core/PowerPC/Gekko.h"
 
 #include <bit>
 #include <cmath>
@@ -98,7 +99,7 @@ double ApproximateReciprocalSquareRoot(double val)
   }
 
   // Special case NaN-ish numbers
-  if (exponent == (0x7FFLL << 52))
+  if (exponent == DOUBLE_EXP)
   {
     if (mantissa == 0)
     {
@@ -123,7 +124,7 @@ double ApproximateReciprocalSquareRoot(double val)
       exponent -= 1LL << 52;
       mantissa <<= 1;
     } while (!(mantissa & (1LL << 52)));
-    mantissa &= (1LL << 52) - 1;
+    mantissa &= DOUBLE_FRAC;
     exponent += 1LL << 52;
   }
 
@@ -139,51 +140,70 @@ double ApproximateReciprocalSquareRoot(double val)
 }
 
 const std::array<BaseAndDec, 32> fres_expected = {{
-    {0x7ff800, 0x3e1}, {0x783800, 0x3a7}, {0x70ea00, 0x371}, {0x6a0800, 0x340}, {0x638800, 0x313},
-    {0x5d6200, 0x2ea}, {0x579000, 0x2c4}, {0x520800, 0x2a0}, {0x4cc800, 0x27f}, {0x47ca00, 0x261},
-    {0x430800, 0x245}, {0x3e8000, 0x22a}, {0x3a2c00, 0x212}, {0x360800, 0x1fb}, {0x321400, 0x1e5},
-    {0x2e4a00, 0x1d1}, {0x2aa800, 0x1be}, {0x272c00, 0x1ac}, {0x23d600, 0x19b}, {0x209e00, 0x18b},
-    {0x1d8800, 0x17c}, {0x1a9000, 0x16e}, {0x17ae00, 0x15b}, {0x14f800, 0x15b}, {0x124400, 0x143},
-    {0x0fbe00, 0x143}, {0x0d3800, 0x12d}, {0x0ade00, 0x12d}, {0x088400, 0x11a}, {0x065000, 0x11a},
-    {0x041c00, 0x108}, {0x020c00, 0x106},
+    {0xfff000, -0x3e1}, {0xf07000, -0x3a7}, {0xe1d400, -0x371}, {0xd41000, -0x340},
+    {0xc71000, -0x313}, {0xbac400, -0x2ea}, {0xaf2000, -0x2c4}, {0xa41000, -0x2a0},
+    {0x999000, -0x27f}, {0x8f9400, -0x261}, {0x861000, -0x245}, {0x7d0000, -0x22a},
+    {0x745800, -0x212}, {0x6c1000, -0x1fb}, {0x642800, -0x1e5}, {0x5c9400, -0x1d1},
+    {0x555000, -0x1be}, {0x4e5800, -0x1ac}, {0x47ac00, -0x19b}, {0x413c00, -0x18b},
+    {0x3b1000, -0x17c}, {0x352000, -0x16e}, {0x2f5c00, -0x15b}, {0x29f000, -0x15b},
+    {0x248800, -0x143}, {0x1f7c00, -0x143}, {0x1a7000, -0x12d}, {0x15bc00, -0x12d},
+    {0x110800, -0x11a}, {0x0ca000, -0x11a}, {0x083800, -0x108}, {0x041800, -0x106},
 }};
 
 // Used by fres and ps_res.
-double ApproximateReciprocal(double val)
+double ApproximateReciprocal(const UReg_FPSCR& fpscr, double val)
 {
-  s64 integral = std::bit_cast<s64>(val);
-  const s64 mantissa = integral & ((1LL << 52) - 1);
-  const s64 sign = integral & (1ULL << 63);
-  s64 exponent = integral & (0x7FFLL << 52);
+  u64 integral = std::bit_cast<u64>(val);
+
+  // Convert into a float when possible
+  u64 signless = integral & ~DOUBLE_SIGN;
+  const u32 mantissa =
+      static_cast<u32>((integral & DOUBLE_FRAC) >> (DOUBLE_FRAC_WIDTH - FLOAT_FRAC_WIDTH));
+  const u32 sign = static_cast<u32>((integral >> 32) & FLOAT_SIGN);
+  s32 exponent = static_cast<s32>((integral & DOUBLE_EXP) >> DOUBLE_FRAC_WIDTH) - 0x380;
+
+  // The largest floats possible just return 0
+  const u64 huge_float = fpscr.NI ? 0x47d0000000000000ULL : 0x4940000000000000ULL;
 
   // Special case 0
-  if (mantissa == 0 && exponent == 0)
+  if (signless == 0)
     return std::copysign(std::numeric_limits<double>::infinity(), val);
 
-  // Special case NaN-ish numbers
-  if (exponent == (0x7FFLL << 52))
+  // Special case huge or NaN-ish numbers
+  if (signless >= huge_float)
   {
-    if (mantissa == 0)
+    if (!std::isnan(val))
       return std::copysign(0.0, val);
     return 0.0 + val;
   }
 
   // Special case small inputs
-  if (exponent < (895LL << 52))
+  if (exponent < -1)
     return std::copysign(std::numeric_limits<float>::max(), val);
 
-  // Special case large inputs
-  if (exponent >= (1149LL << 52))
-    return std::copysign(0.0, val);
+  exponent = 253 - exponent;
 
-  exponent = (0x7FDLL << 52) - exponent;
-
-  const int i = static_cast<int>(mantissa >> 37);
+  const u32 i = static_cast<u32>(mantissa >> 8);
   const auto& entry = fres_expected[i / 1024];
-  integral = sign | exponent;
-  integral |= static_cast<s64>(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
+  const u32 new_mantissa = static_cast<u32>(entry.m_base + entry.m_dec * (i % 1024)) / 2;
 
-  return std::bit_cast<double>(integral);
+  u32 result = sign | (static_cast<u32>(exponent) << FLOAT_FRAC_WIDTH) | new_mantissa;
+  if (exponent <= 0)
+  {
+    // Result is subnormal so format it properly!
+    if (fpscr.NI)
+    {
+      // Flush to 0 if inexact
+      result = sign;
+    }
+    else
+    {
+      // Shift by the exponent amount
+      u32 shift = 1 + static_cast<u32>(-exponent);
+      result = sign | (((1 << FLOAT_FRAC_WIDTH) | new_mantissa) >> shift);
+    }
+  }
+  return static_cast<double>(std::bit_cast<float>(result));
 }
 
 }  // namespace Common
