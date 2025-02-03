@@ -542,11 +542,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     }
   }};
 
-  // Load Wiimotes - only if we are booting in Wii mode
-  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
-  {
-    Wiimote::LoadConfig();
-  }
+  // Wiimote input config is loaded in OnESTitleChanged
 
   FreeLook::LoadInputConfig();
 

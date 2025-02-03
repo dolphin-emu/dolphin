@@ -43,8 +43,11 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
@@ -197,7 +200,20 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
-void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
+void SConfig::OnESTitleChanged()
+{
+  auto& system = Core::System::GetInstance();
+  Pad::LoadConfig();
+  Keyboard::LoadConfig();
+  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  {
+    Wiimote::LoadConfig();
+  }
+
+  OnNewTitleLoad(system);
+}
+
+void SConfig::OnTitleBooted(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
   if (!Core::IsRunningOrStarting(system))
@@ -211,9 +227,27 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   }
   CBoot::LoadMapFromFilename(guard, ppc_symbol_db);
   HLE::Reload(system);
+
   PatchEngine::Reload(system);
-  HiresTexture::Update();
   WC24PatchEngine::Reload();
+
+  // Note: Wii is handled by ES title change
+  if (!system.IsWii())
+  {
+    OnNewTitleLoad(system);
+  }
+}
+
+void SConfig::OnNewTitleLoad(Core::System& system)
+{
+  Pad::GenerateDynamicInputTextures();
+  Keyboard::GenerateDynamicInputTextures();
+  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  {
+    Wiimote::GenerateDynamicInputTextures();
+  }
+
+  HiresTexture::Update();
 }
 
 void SConfig::LoadDefaults()
