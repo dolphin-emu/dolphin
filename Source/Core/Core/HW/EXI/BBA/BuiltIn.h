@@ -76,7 +76,7 @@ struct StackRef
   u16 local;
   u16 remote;
   u16 type;
-  sf::IpAddress target;
+  std::optional<sf::IpAddress> target;
   u32 seq_num;
   u32 ack_num;
   u32 ack_base;

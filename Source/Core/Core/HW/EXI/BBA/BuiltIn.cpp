@@ -1,9 +1,14 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <SFML/Network/Packet.hpp>
+
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 
 #include <bit>
+#include <optional>
+#include "SFML/Network/IpAddress.hpp"
+#include "SFML/Network/Socket.hpp"
 
 #ifdef _WIN32
 #include <ws2ipdef.h>
@@ -81,8 +86,8 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   // Workaround to get the host IP (might not be accurate)
   // TODO: Fix the JNI crash and use GetSystemDefaultInterface()
   //  - https://pastebin.com/BFpmnxby (see https://dolp.in/pr10920)
-  const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().toInteger() :
-                                      sf::IpAddress(m_local_ip).toInteger();
+  const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().value().toInteger() :
+                                      sf::IpAddress::resolve(m_local_ip).value().toInteger();
   m_current_ip = htonl(ip);
   m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   m_arp_table[m_current_ip] = m_current_mac;
@@ -92,7 +97,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
 
   m_network_ref.Clear();
 
-  m_upnp_httpd.listen(Common::SSDP_PORT, sf::IpAddress(ip));
+  (void)m_upnp_httpd.listen(Common::SSDP_PORT, sf::IpAddress(ip));
   m_upnp_httpd.setBlocking(false);
 
   return RecvInit();
@@ -256,11 +261,12 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
   case IPPROTO_UDP:
   {
     std::array<u8, MAX_UDP_LENGTH> buffer;
-    ref->udp_socket.receive(buffer.data(), MAX_UDP_LENGTH, datasize, ref->target, remote_port);
+    (void)ref->udp_socket.receive(buffer.data(), MAX_UDP_LENGTH, datasize, ref->target,
+                                  remote_port);
     if (datasize > 0)
     {
       ref->from.sin_port = htons(remote_port);
-      const u32 remote_ip = htonl(ref->target.toInteger());
+      const u32 remote_ip = htonl(ref->target.value().toInteger());
       ref->from.sin_addr.s_addr = remote_ip;
       ref->my_mac = ResolveAddress(remote_ip);
       const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
@@ -325,7 +331,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
     }
     if (GetTickCountStd() - ref->delay > 3000)
     {
-      if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
+      if (st == sf::Socket::Status::Disconnected || st == sf::Socket::Status::Error)
       {
         ref->ip = 0;
         ref->tcp_socket.disconnect();
@@ -341,7 +347,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
-  sf::IpAddress target;
+  std::optional<sf::IpAddress> target;
   StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
                                            std::bit_cast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
@@ -354,7 +360,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     WriteToQueue(BuildFINFrame(ref));
     ref->ip = 0;
     if (!data.empty())
-      ref->tcp_socket.send(data.data(), data.size());
+      (void)ref->tcp_socket.send(data.data(), data.size());
     ref->tcp_socket.disconnect();
   }
   else if (flags == (TCP_FLAG_SIN | TCP_FLAG_ACK))
@@ -396,7 +402,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->ip = std::bit_cast<u32>(ip_header.destination_addr);
 
     target = sf::IpAddress(ntohl(destination_ip));
-    ref->tcp_socket.Connect(target, ntohs(tcp_header.destination_port), m_current_ip);
+    ref->tcp_socket.Connect(target.value(), ntohs(tcp_header.destination_port), m_current_ip);
   }
   else
   {
@@ -414,7 +420,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
       if (static_cast<int>(this_seq - ref->ack_num) >= 0 &&
           data.size() >= static_cast<std::size_t>(size))
       {
-        ref->tcp_socket.send(data.data(), size);
+        (void)ref->tcp_socket.send(data.data(), size);
         ref->ack_num += size;
       }
 
@@ -476,7 +482,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   ref->to.sin_addr.s_addr = m_current_ip;
   ref->to.sin_port = htons(port);
   ref->udp_socket.setBlocking(false);
-  if (ref->udp_socket.Bind(port, m_current_ip) != sf::Socket::Done)
+  if (ref->udp_socket.Bind(port, m_current_ip) != sf::Socket::Status::Done)
   {
     ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
     PanicAlertFmt("Could't open port {:x}, this game might not work proprely in LAN mode.", port);
@@ -487,7 +493,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
 void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& packet)
 {
   const auto& [hwdata, ip_header, udp_header, ip_options, data] = packet;
-  sf::IpAddress target;
+  std::optional<sf::IpAddress> target;
   const u32 destination_addr = ip_header.destination_addr == Common::IP_ADDR_ANY ?
                                    m_router_ip :  // dns request
                                    std::bit_cast<u32>(ip_header.destination_addr);
@@ -506,12 +512,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     ref->to.sin_addr.s_addr = std::bit_cast<u32>(ip_header.source_addr);
     ref->to.sin_port = udp_header.source_port;
     ref->udp_socket.setBlocking(false);
-    if (ref->udp_socket.Bind(ntohs(udp_header.source_port), m_current_ip) != sf::Socket::Done)
+    if (ref->udp_socket.Bind(ntohs(udp_header.source_port), m_current_ip) !=
+        sf::Socket::Status::Done)
     {
       PanicAlertFmt(
           "Port {:x} is already in use, this game might not work as intented in LAN Mode.",
           htons(udp_header.source_port));
-      if (ref->udp_socket.Bind(sf::Socket::AnyPort, m_current_ip) != sf::Socket::Done)
+      if (ref->udp_socket.Bind(sf::Socket::AnyPort, m_current_ip) != sf::Socket::Status::Done)
       {
         ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
         return;
@@ -529,16 +536,17 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     }
   }
   if (ntohs(udp_header.destination_port) == 53)
-    target = sf::IpAddress(m_dns_ip.c_str());  // dns server ip
+    target = sf::IpAddress::resolve(m_dns_ip.c_str());  // dns server ip
   else
     target = sf::IpAddress(ntohl(std::bit_cast<u32>(ip_header.destination_addr)));
-  ref->udp_socket.send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
+  (void)ref->udp_socket.send(data.data(), data.size(), target.value(),
+                             ntohs(udp_header.destination_port));
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 {
   StackRef* ref = m_network_ref.GetAvailableSlot(0);
-  if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
+  if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Status::Done)
     return;
 
   if (ref->tcp_socket.GetPeerName(&ref->from) != sf::Socket::Status::Done ||
@@ -795,7 +803,7 @@ sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u3
   addr.sin_addr.s_addr = net_ip;
   addr.sin_family = AF_INET;
   addr.sin_port = 0;
-  ::bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+  (void)::bind(getNativeHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
   m_connecting_state = ConnectingState::Connecting;
   return this->connect(dest, port);
 }
@@ -803,7 +811,7 @@ sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u3
 sf::Socket::Status BbaTcpSocket::GetPeerName(sockaddr_in* addr) const
 {
   socklen_t size = sizeof(*addr);
-  if (getpeername(getHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
+  if (getpeername(getNativeHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
   {
     ERROR_LOG_FMT(SP1, "getpeername failed: {}", Common::StrNetworkError());
     return sf::Socket::Status::Error;
@@ -814,7 +822,7 @@ sf::Socket::Status BbaTcpSocket::GetPeerName(sockaddr_in* addr) const
 sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
 {
   socklen_t size = sizeof(*addr);
-  if (getsockname(getHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
+  if (getsockname(getNativeHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
   {
     ERROR_LOG_FMT(SP1, "getsockname failed: {}", Common::StrNetworkError());
     return sf::Socket::Status::Error;
@@ -829,7 +837,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
   {
   case ConnectingState::Connecting:
   {
-    const int fd = getHandle();
+    const int fd = getNativeHandle();
     const s32 nfds = fd + 1;
     fd_set read_fds;
     fd_set write_fds;
@@ -914,20 +922,20 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   // Handle SSDP multicast
   create();
   const int on = 1;
-  if (setsockopt(getHandle(), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&on),
+  if (setsockopt(getNativeHandle(), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&on),
                  sizeof(on)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to reuse SSDP address: {}", Common::StrNetworkError());
   }
 #ifdef SO_REUSEPORT
-  if (setsockopt(getHandle(), SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&on),
+  if (setsockopt(getNativeHandle(), SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&on),
                  sizeof(on)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to reuse SSDP port: {}", Common::StrNetworkError());
   }
 #endif
   if (const char loop = 1;
-      setsockopt(getHandle(), IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) != 0)
+      setsockopt(getNativeHandle(), IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to set SSDP loopback: {}", Common::StrNetworkError());
   }
@@ -938,11 +946,11 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   addr.sin_family = AF_INET;
   addr.sin_port = htons(Common::SSDP_PORT);
   Common::ScopeGuard error_guard([this] { close(); });
-  if (::bind(getHandle(), reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
+  if (::bind(getNativeHandle(), reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
   {
     WARN_LOG_FMT(SP1, "bind with SSDP port and INADDR_ANY failed: {}", Common::StrNetworkError());
     addr.sin_addr.s_addr = net_ip;
-    if (::bind(getHandle(), reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
+    if (::bind(getNativeHandle(), reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
     {
       ERROR_LOG_FMT(SP1, "bind with SSDP port failed: {}", Common::StrNetworkError());
       return sf::Socket::Status::Error;
@@ -955,7 +963,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   INFO_LOG_FMT(SP1, "SSDP bind successful");
 
   // Bind to the right interface
-  if (setsockopt(getHandle(), IPPROTO_IP, IP_MULTICAST_IF,
+  if (setsockopt(getNativeHandle(), IPPROTO_IP, IP_MULTICAST_IF,
                  reinterpret_cast<const char*>(&addr.sin_addr), sizeof(addr.sin_addr)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to bind to the network interface: {}",
@@ -968,8 +976,8 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   ip_mreq mreq;
   mreq.imr_multiaddr.s_addr = std::bit_cast<u32>(Common::IP_ADDR_SSDP);
   mreq.imr_interface.s_addr = net_ip;
-  if (setsockopt(getHandle(), IPPROTO_IP, IP_ADD_MEMBERSHIP, reinterpret_cast<const char*>(&mreq),
-                 sizeof(mreq)) != 0)
+  if (setsockopt(getNativeHandle(), IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                 reinterpret_cast<const char*>(&mreq), sizeof(mreq)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to subscribe to SSDP multicast group: {}",
                   Common::StrNetworkError());

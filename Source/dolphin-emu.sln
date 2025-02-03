@@ -39,7 +39,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbedTLS", "..\Externals\mbe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SCMRevGen.vcxproj", "{41279555-F94F-4EBC-99DE-AF863C10C5C4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_Network", "..\Externals\SFML\build\vc2010\SFML_Network.vcxproj", "{93D73454-2512-424E-9CDA-4BB357FE13DD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML", "..\Externals\SFML\SFML.vcxproj", "{93D73454-2512-424E-9CDA-4BB357FE13DD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0", "..\Externals\libusb\libusb-1.0.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
 EndProject
