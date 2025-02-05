@@ -303,7 +303,7 @@ void CPUInfo::Detect()
   int mib[2];
   size_t len;
   char hwmodel[256];
-  uint64_t isar0;
+  u64 isar0;
 
   mib[0] = CTL_HW;
   mib[1] = HW_MODEL;

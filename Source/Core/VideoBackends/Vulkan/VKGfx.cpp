@@ -108,7 +108,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
 {
   VkRect2D target_vk_rc = {
       {target_rc.left, target_rc.top},
-      {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
+      {static_cast<u32>(target_rc.GetWidth()), static_cast<u32>(target_rc.GetHeight())}};
 
   // Convert RGBA8 -> floating-point values.
   VkClearValue clear_color_value = {};
@@ -199,7 +199,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
       StateTracker::GetInstance()->BeginRenderPass();
 
       vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                            static_cast<uint32_t>(clear_attachments.size()),
+                            static_cast<u32>(clear_attachments.size()),
                             clear_attachments.data(), 1, &vk_rect);
     }
   }

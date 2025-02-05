@@ -249,7 +249,7 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   instance_create_info.pNext = nullptr;
   instance_create_info.flags = 0;
   instance_create_info.pApplicationInfo = &app_info;
-  instance_create_info.enabledExtensionCount = static_cast<uint32_t>(enabled_extensions.size());
+  instance_create_info.enabledExtensionCount = static_cast<u32>(enabled_extensions.size());
   instance_create_info.ppEnabledExtensionNames = enabled_extensions.data();
   instance_create_info.enabledLayerCount = 0;
   instance_create_info.ppEnabledLayerNames = nullptr;
@@ -697,7 +697,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   // Find graphics and present queues.
   m_graphics_queue_family_index = queue_family_count;
   m_present_queue_family_index = queue_family_count;
-  for (uint32_t i = 0; i < queue_family_count; i++)
+  for (u32 i = 0; i < queue_family_count; i++)
   {
     VkBool32 graphics_supported = queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
     if (graphics_supported)
@@ -789,7 +789,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
 
   device_info.enabledLayerCount = 0;
   device_info.ppEnabledLayerNames = nullptr;
-  device_info.enabledExtensionCount = static_cast<uint32_t>(extension_name_pointers.size());
+  device_info.enabledExtensionCount = static_cast<u32>(extension_name_pointers.size());
   device_info.ppEnabledExtensionNames = extension_name_pointers.data();
 
   WarnMissingDeviceFeatures();

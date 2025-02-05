@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "Common/CommonTypes.h"
+
 namespace Common::GekkoAssembler::detail
 {
 // Hacky implementation of a case insensitive alphanumeric trie supporting extended entries
@@ -39,12 +41,12 @@ public:
     return nullptr;
   }
   static constexpr size_t NUM_CONNS = 36 + sizeof...(ExtraMatches);
-  static constexpr uint32_t INVALID_CONN = static_cast<uint32_t>(-1);
+  static constexpr u32 INVALID_CONN = static_cast<u32>(-1);
 
 private:
   struct TrieEntry
   {
-    std::array<uint32_t, 36 + sizeof...(ExtraMatches)> _conns;
+    std::array<u32, 36 + sizeof...(ExtraMatches)> _conns;
     std::optional<V> _val;
 
     TrieEntry() { _conns.fill(INVALID_CONN); }
@@ -113,7 +115,7 @@ private:
         {
           break;
         }
-        last_e->_conns[idx] = static_cast<uint32_t>(m_entry_pool.size());
+        last_e->_conns[idx] = static_cast<u32>(m_entry_pool.size());
         last_e = &m_entry_pool.emplace_back();
       }
     }

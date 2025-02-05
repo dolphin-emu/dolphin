@@ -40,8 +40,8 @@ void StagingBuffer::BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer
       nullptr,                                  // const void*        pNext
       src_access_mask,                          // VkAccessFlags      srcAccessMask
       dst_access_mask,                          // VkAccessFlags      dstAccessMask
-      VK_QUEUE_FAMILY_IGNORED,                  // uint32_t           srcQueueFamilyIndex
-      VK_QUEUE_FAMILY_IGNORED,                  // uint32_t           dstQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                  // u32                srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                  // u32                dstQueueFamilyIndex
       buffer,                                   // VkBuffer           buffer
       offset,                                   // VkDeviceSize       offset
       size                                      // VkDeviceSize       size
@@ -133,8 +133,8 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
       size,                                  // VkDeviceSize           size
       usage,                                 // VkBufferUsageFlags     usage
       VK_SHARING_MODE_EXCLUSIVE,             // VkSharingMode          sharingMode
-      0,                                     // uint32_t               queueFamilyIndexCount
-      nullptr                                // const uint32_t*        pQueueFamilyIndices
+      0,                                     // u32                    queueFamilyIndexCount
+      nullptr                                // const u32*             pQueueFamilyIndices
   };
 
   VmaAllocationCreateInfo alloc_create_info = {};

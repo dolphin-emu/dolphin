@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 namespace Discord
 {
 // The number is the client ID for Dolphin, it's used for images and the application name
@@ -36,7 +38,7 @@ bool UpdateDiscordPresenceRaw(const std::string& details = {}, const std::string
                               const std::string& large_image_text = {},
                               const std::string& small_image_key = {},
                               const std::string& small_image_text = {},
-                              const int64_t start_timestamp = 0, const int64_t end_timestamp = 0,
+                              const s64 start_timestamp = 0, const s64 end_timestamp = 0,
                               const int party_size = 0, const int party_max = 0);
 void UpdateDiscordPresence(int party_size = 0, SecretType type = SecretType::Empty,
                            const std::string& secret = {}, const std::string& current_game = {},

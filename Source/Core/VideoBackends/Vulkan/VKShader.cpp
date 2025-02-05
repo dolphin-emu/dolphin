@@ -24,7 +24,7 @@ VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
-    name_info.objectHandle = reinterpret_cast<uint64_t>(m_module);
+    name_info.objectHandle = reinterpret_cast<u64>(m_module);
     name_info.pObjectName = m_name.data();
     vkSetDebugUtilsObjectNameEXT(g_vulkan_context->GetDevice(), &name_info);
   }
@@ -39,7 +39,7 @@ VKShader::VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::strin
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_PIPELINE;
-    name_info.objectHandle = reinterpret_cast<uint64_t>(m_compute_pipeline);
+    name_info.objectHandle = reinterpret_cast<u64>(m_compute_pipeline);
     name_info.pObjectName = m_name.data();
     vkSetDebugUtilsObjectNameEXT(g_vulkan_context->GetDevice(), &name_info);
   }

@@ -1271,7 +1271,7 @@ public:
   void FNMSUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 
   // Scalar floating point immediate
-  void FMOV(ARM64Reg Rd, uint8_t imm8);
+  void FMOV(ARM64Reg Rd, u8 imm8);
 
   // Vector
   void ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);

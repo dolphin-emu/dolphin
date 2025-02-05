@@ -139,7 +139,7 @@ static void ExceptionThread(mach_port_t port)
     NDR_record_t NDR;
     exception_type_t exception;
     mach_msg_type_number_t codeCnt;
-    int64_t code[2];
+    s64 code[2];
     int flavor;
     mach_msg_type_number_t old_stateCnt;
     natural_t old_state[THREAD_STATE64_COUNT];

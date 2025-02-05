@@ -740,7 +740,7 @@ void* AchievementManager::FilereaderOpenByVolume(const char* path_utf8)
   return state.release();
 }
 
-void AchievementManager::FilereaderSeek(void* file_handle, int64_t offset, int origin)
+void AchievementManager::FilereaderSeek(void* file_handle, s64 offset, int origin)
 {
   switch (origin)
   {
@@ -756,7 +756,7 @@ void AchievementManager::FilereaderSeek(void* file_handle, int64_t offset, int o
   }
 }
 
-int64_t AchievementManager::FilereaderTell(void* file_handle)
+s64 AchievementManager::FilereaderTell(void* file_handle)
 {
   return static_cast<FilereaderState*>(file_handle)->position;
 }

@@ -88,7 +88,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
   }
   else
   {  // Write device register
-    u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+    u8 reg_num = static_cast<u8>((m_transfer_descriptor >> 24) & 0x1F);
     bool should_update_interrupts = false;
     for (; size && reg_num < m_regs.size(); size--)
     {
@@ -154,7 +154,7 @@ u32 CEXIModem::ImmRead(u32 size)
   else
   {
     // Read device register
-    const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+    const u8 reg_num = static_cast<u8>((m_transfer_descriptor >> 24) & 0x1F);
     if (reg_num == 0)
     {
       return 0x02020000;  // Device ID (modem)

@@ -258,7 +258,7 @@ bool FFMpegFrameDump::CreateVideoFile()
                m_context->height, time_base.den, time_base.num);
 
   m_context->codec->codec_type = AVMEDIA_TYPE_VIDEO;
-  m_context->codec->bit_rate = static_cast<int64_t>(g_Config.iBitrateKbps) * 1000;
+  m_context->codec->bit_rate = static_cast<s64>(g_Config.iBitrateKbps) * 1000;
   m_context->codec->width = m_context->width;
   m_context->codec->height = m_context->height;
   m_context->codec->time_base = time_base;

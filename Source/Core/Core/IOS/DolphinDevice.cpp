@@ -189,8 +189,8 @@ IPCReply SetDiscordPresence(Core::System& system, const IOCtlVRequest& request)
   std::string small_image_text =
       memory.GetString(request.in_vectors[5].address, request.in_vectors[5].size);
 
-  int64_t start_timestamp = memory.Read_U64(request.in_vectors[6].address);
-  int64_t end_timestamp = memory.Read_U64(request.in_vectors[7].address);
+  s64 start_timestamp = memory.Read_U64(request.in_vectors[6].address);
+  s64 end_timestamp = memory.Read_U64(request.in_vectors[7].address);
   int party_size = memory.Read_U32(request.in_vectors[8].address);
   int party_max = memory.Read_U32(request.in_vectors[9].address);
 

@@ -289,7 +289,7 @@ bool SwapChain::CreateSwapChain()
     return false;
 
   // Select number of images in swap chain, we prefer one buffer in the background to work on
-  uint32_t image_count = surface_capabilities.minImageCount + 1;
+  u32 image_count = surface_capabilities.minImageCount + 1;
 
   // maxImageCount can be zero, in which case there isn't an upper limit on the number of buffers.
   if (surface_capabilities.maxImageCount > 0)
@@ -322,7 +322,7 @@ bool SwapChain::CreateSwapChain()
   }
 
   // Select the number of image layers for Quad-Buffered stereoscopy
-  uint32_t image_layers = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ? 2 : 1;
+  u32 image_layers = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ? 2 : 1;
 
   // Store the old/current swap chain when recreating for resize
   VkSwapchainKHR old_swap_chain = m_swap_chain;
@@ -347,7 +347,7 @@ bool SwapChain::CreateSwapChain()
                                               m_present_mode,
                                               VK_TRUE,
                                               old_swap_chain};
-  std::array<uint32_t, 2> indices = {{
+  std::array<u32, 2> indices = {{
       g_vulkan_context->GetGraphicsQueueFamilyIndex(),
       g_vulkan_context->GetPresentQueueFamilyIndex(),
   }};
@@ -410,7 +410,7 @@ bool SwapChain::SetupSwapChainImages()
 {
   ASSERT(m_swap_chain_images.empty());
 
-  uint32_t image_count;
+  u32 image_count;
   VkResult res =
       vkGetSwapchainImagesKHR(g_vulkan_context->GetDevice(), m_swap_chain, &image_count, nullptr);
   if (res != VK_SUCCESS)
@@ -438,7 +438,7 @@ bool SwapChain::SetupSwapChainImages()
   }
 
   m_swap_chain_images.reserve(image_count);
-  for (uint32_t i = 0; i < image_count; i++)
+  for (u32 i = 0; i < image_count; i++)
   {
     SwapChainImage image;
     image.image = images[i];

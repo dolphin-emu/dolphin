@@ -37,7 +37,7 @@ VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkIma
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_IMAGE;
-    name_info.objectHandle = reinterpret_cast<uint64_t>(image);
+    name_info.objectHandle = reinterpret_cast<u64>(image);
     name_info.pObjectName = m_name.c_str();
     vkSetDebugUtilsObjectNameEXT(g_vulkan_context->GetDevice(), &name_info);
   }
@@ -299,7 +299,7 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
       {src_rect.left, src_rect.top, 0},
       {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, copy_layer_count},
       {dst_rect.left, dst_rect.top, 0},
-      {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()), 1}};
+      {static_cast<u32>(src_rect.GetWidth()), static_cast<u32>(src_rect.GetHeight()), 1}};
 
   // Must be called outside of a render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -426,8 +426,8 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // Copy from the streaming buffer to the actual image.
   VkBufferImageCopy image_copy = {
       upload_buffer_offset,                          // VkDeviceSize             bufferOffset
-      row_length,                                    // uint32_t                 bufferRowLength
-      0,                                             // uint32_t                 bufferImageHeight
+      row_length,                                    // u32                      bufferRowLength
+      0,                                             // u32                      bufferImageHeight
       {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},  // VkImageSubresourceLayers imageSubresource
       {0, 0, 0},                                     // VkOffset3D               imageOffset
       {width, height, 1}                             // VkExtent3D               imageExtent
@@ -473,8 +473,8 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
       0,                                       // VkAccessFlags              dstAccessMask
       m_layout,                                // VkImageLayout              oldLayout
       new_layout,                              // VkImageLayout              newLayout
-      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
-      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // u32                        srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // u32                        dstQueueFamilyIndex
       m_image,                                 // VkImage                    image
       {GetImageAspectForFormat(GetFormat()), 0, GetLevels(), 0,
        GetLayers()}  // VkImageSubresourceRange    subresourceRange
@@ -620,8 +620,8 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
       0,                                       // VkAccessFlags              dstAccessMask
       m_layout,                                // VkImageLayout              oldLayout
       VK_IMAGE_LAYOUT_GENERAL,                 // VkImageLayout              newLayout
-      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
-      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // u32                        srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // u32                        dstQueueFamilyIndex
       m_image,                                 // VkImage                    image
       {GetImageAspectForFormat(GetFormat()), 0, GetLevels(), 0,
        GetLayers()}  // VkImageSubresourceRange    subresourceRange
@@ -1077,7 +1077,7 @@ VKFramebuffer::Create(VKTexture* color_attachment, VKTexture* depth_attachment,
                                               nullptr,
                                               0,
                                               load_render_pass,
-                                              static_cast<uint32_t>(attachment_views.size()),
+                                              static_cast<u32>(attachment_views.size()),
                                               attachment_views.data(),
                                               width,
                                               height,

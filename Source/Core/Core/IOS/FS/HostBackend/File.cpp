@@ -163,7 +163,7 @@ Result<u32> HostFileSystem::WriteBytesToFile(Fd fd, const u8* ptr, u32 count)
   return count;
 }
 
-Result<u32> HostFileSystem::SeekFile(Fd fd, std::uint32_t offset, SeekMode mode)
+Result<u32> HostFileSystem::SeekFile(Fd fd, u32 offset, SeekMode mode)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())

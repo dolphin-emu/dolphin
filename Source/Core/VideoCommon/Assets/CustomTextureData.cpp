@@ -38,18 +38,18 @@ namespace
 
 #pragma pack(push, 1)
 
-const uint32_t DDS_MAGIC = 0x20534444;  // "DDS "
+const u32 DDS_MAGIC = 0x20534444;  // "DDS "
 
 struct DDS_PIXELFORMAT
 {
-  uint32_t dwSize;
-  uint32_t dwFlags;
-  uint32_t dwFourCC;
-  uint32_t dwRGBBitCount;
-  uint32_t dwRBitMask;
-  uint32_t dwGBitMask;
-  uint32_t dwBBitMask;
-  uint32_t dwABitMask;
+  u32 dwSize;
+  u32 dwFlags;
+  u32 dwFourCC;
+  u32 dwRGBBitCount;
+  u32 dwRBitMask;
+  u32 dwGBitMask;
+  u32 dwBBitMask;
+  u32 dwABitMask;
 };
 
 #define DDS_FOURCC 0x00000004      // DDPF_FOURCC
@@ -77,8 +77,8 @@ struct DDS_PIXELFORMAT
 
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)                                                             \
-  ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) | ((uint32_t)(uint8_t)(ch2) << 16) | \
-   ((uint32_t)(uint8_t)(ch3) << 24))
+  ((u32)(u8)(ch0) | ((u32)(u8)(ch1) << 8) | ((u32)(u8)(ch2) << 16) | \
+   ((u32)(u8)(ch3) << 24))
 #endif /* defined(MAKEFOURCC) */
 
 #define DDS_HEADER_FLAGS_TEXTURE                                                                   \
@@ -98,29 +98,29 @@ enum DDS_RESOURCE_DIMENSION
 
 struct DDS_HEADER
 {
-  uint32_t dwSize;
-  uint32_t dwFlags;
-  uint32_t dwHeight;
-  uint32_t dwWidth;
-  uint32_t dwPitchOrLinearSize;
-  uint32_t dwDepth;  // only if DDS_HEADER_FLAGS_VOLUME is set in dwFlags
-  uint32_t dwMipMapCount;
-  uint32_t dwReserved1[11];
+  u32 dwSize;
+  u32 dwFlags;
+  u32 dwHeight;
+  u32 dwWidth;
+  u32 dwPitchOrLinearSize;
+  u32 dwDepth;  // only if DDS_HEADER_FLAGS_VOLUME is set in dwFlags
+  u32 dwMipMapCount;
+  u32 dwReserved1[11];
   DDS_PIXELFORMAT ddspf;
-  uint32_t dwCaps;
-  uint32_t dwCaps2;
-  uint32_t dwCaps3;
-  uint32_t dwCaps4;
-  uint32_t dwReserved2;
+  u32 dwCaps;
+  u32 dwCaps2;
+  u32 dwCaps3;
+  u32 dwCaps4;
+  u32 dwReserved2;
 };
 
 struct DDS_HEADER_DXT10
 {
-  uint32_t dxgiFormat;
-  uint32_t resourceDimension;
-  uint32_t miscFlag;  // see DDS_RESOURCE_MISC_FLAG
-  uint32_t arraySize;
-  uint32_t miscFlags2;  // see DDS_MISC_FLAGS2
+  u32 dxgiFormat;
+  u32 resourceDimension;
+  u32 miscFlag;  // see DDS_RESOURCE_MISC_FLAG
+  u32 arraySize;
+  u32 miscFlags2;  // see DDS_MISC_FLAGS2
 };
 
 #pragma pack(pop)

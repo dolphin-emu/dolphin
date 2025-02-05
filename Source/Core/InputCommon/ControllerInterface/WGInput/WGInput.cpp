@@ -316,7 +316,7 @@ private:
   public:
     IndexedSwitch(const WGI::GameControllerSwitchPosition* swtch, u32 index,
                   WGI::GameControllerSwitchPosition direction)
-        : m_switch(*swtch), m_index(index), m_direction(static_cast<int32_t>(direction))
+        : m_switch(*swtch), m_index(index), m_direction(static_cast<s32>(direction))
     {
     }
     std::string GetName() const override
@@ -331,14 +331,14 @@ private:
       // All of the "inbetween" states (e.g. Up-Right) are one-off from the four cardinal
       // directions. This tests that the current switch state value is within 1 of the desired
       // state.
-      const auto direction_diff = std::abs(static_cast<int32_t>(m_switch) - m_direction);
+      const auto direction_diff = std::abs(static_cast<s32>(m_switch) - m_direction);
       return ControlState(direction_diff <= 1 || direction_diff == 7);
     }
 
   private:
     const WGI::GameControllerSwitchPosition& m_switch;
     const u32 m_index;
-    const int32_t m_direction;
+    const s32 m_direction;
   };
 
   class Battery : public Input
@@ -433,7 +433,7 @@ private:
           lbl = WGI::GameControllerButtonLabel::None;
         }
 
-        const int32_t button_name_idx = static_cast<int32_t>(lbl);
+        const s32 button_name_idx = static_cast<int32_t>(lbl);
         if (lbl != WGI::GameControllerButtonLabel::None &&
             button_name_idx < wgi_button_names.size())
           AddInput(new NamedButton(&button, wgi_button_names[button_name_idx]));
@@ -452,7 +452,7 @@ private:
 
   void PopulateHaptics()
   {
-    static const std::map<uint16_t, std::string> waveform_name_map{
+    static const std::map<u16, std::string> waveform_name_map{
         {Haptics::KnownSimpleHapticsControllerWaveforms::Click(), "Click"},
         {Haptics::KnownSimpleHapticsControllerWaveforms::BuzzContinuous(), "Buzz"},
         {Haptics::KnownSimpleHapticsControllerWaveforms::RumbleContinuous(), "Rumble"},
@@ -467,7 +467,7 @@ private:
         for (Haptics::SimpleHapticsControllerFeedback feedback :
              haptics_controller.SupportedFeedback())
         {
-          const uint16_t waveform = feedback.Waveform();
+          const u16 waveform = feedback.Waveform();
           auto waveform_name_it = waveform_name_map.find(waveform);
           if (waveform_name_it == waveform_name_map.end())
           {
@@ -582,8 +582,8 @@ private:
         break;
       }
 
-      const int32_t full_value = report.FullChargeCapacityInMilliwattHours().GetInt32();
-      const int32_t remaining_value = report.RemainingCapacityInMilliwattHours().GetInt32();
+      const s32 full_value = report.FullChargeCapacityInMilliwattHours().GetInt32();
+      const s32 remaining_value = report.RemainingCapacityInMilliwattHours().GetInt32();
       m_battery_level = BATTERY_INPUT_MAX_VALUE * remaining_value / full_value;
       return true;
     }

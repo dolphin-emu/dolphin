@@ -55,7 +55,7 @@ bool Host_UpdateDiscordPresenceRaw(const std::string& details, const std::string
                                    const std::string& large_image_text,
                                    const std::string& small_image_key,
                                    const std::string& small_image_text,
-                                   const int64_t start_timestamp, const int64_t end_timestamp,
+                                   const s64 start_timestamp, const s64 end_timestamp,
                                    const int party_size, const int party_max)
 {
   return false;

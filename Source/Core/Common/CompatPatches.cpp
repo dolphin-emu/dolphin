@@ -81,7 +81,7 @@ public:
     directories = pe->OptionalHeader.DataDirectory;
   }
   template <typename T>
-  T GetRva(uint32_t rva)
+  T GetRva(u32 rva)
   {
     return reinterpret_cast<T>(base + rva);
   }

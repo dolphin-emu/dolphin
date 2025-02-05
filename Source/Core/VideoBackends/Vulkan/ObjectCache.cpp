@@ -433,7 +433,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
   if (color_format != VK_FORMAT_UNDEFINED)
   {
     VkAttachmentReference color_reference;
-    color_reference.attachment = static_cast<uint32_t>(attachments.size());
+    color_reference.attachment = static_cast<u32>(attachments.size());
     color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     color_attachment_references.push_back(std::move(color_reference));
     attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
@@ -444,7 +444,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
   }
   if (depth_format != VK_FORMAT_UNDEFINED)
   {
-    depth_reference.attachment = static_cast<uint32_t>(attachments.size());
+    depth_reference.attachment = static_cast<u32>(attachments.size());
     depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth_reference_ptr = &depth_reference;
     attachments.push_back({0, depth_format, static_cast<VkSampleCountFlagBits>(multisamples),
@@ -457,7 +457,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
   for (u8 i = 0; i < additional_attachment_count; i++)
   {
     VkAttachmentReference color_reference;
-    color_reference.attachment = static_cast<uint32_t>(attachments.size());
+    color_reference.attachment = static_cast<u32>(attachments.size());
     color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     color_attachment_references.push_back(std::move(color_reference));
     attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
@@ -472,7 +472,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
       VK_PIPELINE_BIND_POINT_GRAPHICS,
       0,
       nullptr,
-      static_cast<uint32_t>(color_attachment_references.size()),
+      static_cast<u32>(color_attachment_references.size()),
       color_attachment_references.empty() ? nullptr : color_attachment_references.data(),
       nullptr,
       depth_reference_ptr,
@@ -481,7 +481,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      static_cast<uint32_t>(attachments.size()),
+                                      static_cast<u32>(attachments.size()),
                                       attachments.data(),
                                       1,
                                       &subpass,

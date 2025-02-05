@@ -23,11 +23,11 @@ static void Uninhibit();
 static constexpr char s_app_id[] = "org.DolphinEmu.dolphin-emu";
 
 // Cookie for the org.freedesktop.ScreenSaver interface
-static uint32_t s_fdo_cookie = 0;
+static u32 s_fdo_cookie = 0;
 // Cookie for the org.xfce.ScreenSaver interface
-static uint32_t s_xfce_cookie = 0;
+static u32 s_xfce_cookie = 0;
 // Cookie for the org.mate.ScreenSaver interface
-static uint32_t s_mate_cookie = 0;
+static u32 s_mate_cookie = 0;
 // Return handle for the org.freedesktop.portal.Desktop interface
 static QString s_portal_handle;
 
@@ -53,7 +53,7 @@ static bool InhibitXfce()
   if (!interface.isValid())
     return false;
 
-  QDBusReply<uint32_t> reply = interface.call("Inhibit", s_app_id, QObject::tr("Playing a game"));
+  QDBusReply<u32> reply = interface.call("Inhibit", s_app_id, QObject::tr("Playing a game"));
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.xfce.ScreenSaver::Inhibit failed: {}",
@@ -74,7 +74,7 @@ static bool InhibitMate()
   if (!interface.isValid())
     return false;
 
-  QDBusReply<uint32_t> reply = interface.call("Inhibit", s_app_id, QObject::tr("Playing a game"));
+  QDBusReply<u32> reply = interface.call("Inhibit", s_app_id, QObject::tr("Playing a game"));
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.mate.ScreenSaver::Inhibit failed: {}",
@@ -94,7 +94,7 @@ static bool InhibitFDO()
   if (!interface.isValid())
     return false;
 
-  QDBusReply<uint32_t> reply = interface.call("Inhibit", s_app_id, QObject::tr("Playing a game"));
+  QDBusReply<u32> reply = interface.call("Inhibit", s_app_id, QObject::tr("Playing a game"));
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.freedesktop.ScreenSaver::Inhibit failed: {}",
@@ -118,7 +118,7 @@ static bool InhibitPortal()
   QHash<QString, QVariant> options;
   options["handle_token"] = "dolphin_" + QString::number(std::rand(), 0x10);
   options["reason"] = QObject::tr("Playing a game");
-  uint32_t flags = 9;  // logout | idle
+  u32 flags = 9;  // logout | idle
   QDBusReply<QDBusObjectPath> reply = interface.call("Inhibit", "", flags, options);
   if (interface.lastError().isValid())
   {

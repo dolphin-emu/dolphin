@@ -459,7 +459,7 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
   if (m_link_keys.empty())
     return false;
 
-  // The HCI command field is limited to uint8_t, and libusb to uint16_t.
+  // The HCI command field is limited to u8, and libusb to u16.
   const u8 payload_size =
       static_cast<u8>(sizeof(hci_write_stored_link_key_cp)) +
       (sizeof(bdaddr_t) + sizeof(linkkey_t)) * static_cast<u8>(m_link_keys.size());

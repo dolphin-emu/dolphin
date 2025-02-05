@@ -146,7 +146,7 @@ bool PerfQuery::CreateQueryPool()
       nullptr,                                   // const void*                      pNext
       0,                                         // VkQueryPoolCreateFlags           flags
       VK_QUERY_TYPE_OCCLUSION,                   // VkQueryType                      queryType
-      PERF_QUERY_BUFFER_SIZE,                    // uint32_t                         queryCount
+      PERF_QUERY_BUFFER_SIZE,                    // u32                              queryCount
       0  // VkQueryPipelineStatisticFlags    pipelineStatistics;
   };
 

@@ -505,7 +505,7 @@ void StateTracker::UpdateGXDescriptorSet()
       writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                               nullptr,
                               m_gx_descriptor_sets[0],
-                              static_cast<uint32_t>(i),
+                              static_cast<u32>(i),
                               0,
                               1,
                               VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
@@ -721,7 +721,7 @@ void StateTracker::UpdateComputeDescriptorSet()
                    nullptr,
                    nullptr};
 
-    vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<uint32_t>(dswrites.size()),
+    vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
                            dswrites.data(), 0, nullptr);
     m_dirty_flags =
         (m_dirty_flags & ~DIRTY_FLAG_COMPUTE_BINDINGS) | DIRTY_FLAG_COMPUTE_DESCRIPTOR_SET;

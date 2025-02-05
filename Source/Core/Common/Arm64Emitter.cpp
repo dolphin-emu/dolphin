@@ -32,7 +32,7 @@ namespace Arm64Gen
 namespace
 {
 // For ADD/SUB
-std::optional<std::pair<u32, bool>> IsImmArithmetic(uint64_t input)
+std::optional<std::pair<u32, bool>> IsImmArithmetic(u64 input)
 {
   if (input < 4096)
     return std::pair{static_cast<u32>(input), false};
@@ -3094,7 +3094,7 @@ void ARM64FloatEmitter::EmitScalar3Source(bool isDouble, ARM64Reg Rd, ARM64Reg R
 }
 
 // Scalar floating point immediate
-void ARM64FloatEmitter::FMOV(ARM64Reg Rd, uint8_t imm8)
+void ARM64FloatEmitter::FMOV(ARM64Reg Rd, u8 imm8)
 {
   EmitScalarImm(0, 0, 0, 0, Rd, imm8);
 }

@@ -616,7 +616,7 @@ LZMACompressor::LZMACompressor(bool lzma2, int compression_level, u8 compressor_
                                u8* compressor_data_size_out)
 {
   // lzma_lzma_preset returns false on success for some reason
-  if (lzma_lzma_preset(&m_options, static_cast<uint32_t>(compression_level)))
+  if (lzma_lzma_preset(&m_options, static_cast<u32>(compression_level)))
   {
     m_initialization_failed = true;
     return;

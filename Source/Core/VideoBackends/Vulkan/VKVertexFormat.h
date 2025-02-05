@@ -25,7 +25,7 @@ public:
   void SetupInputState();
 
 private:
-  void AddAttribute(ShaderAttrib location, uint32_t binding, VkFormat format, uint32_t offset);
+  void AddAttribute(ShaderAttrib location, u32 binding, VkFormat format, u32 offset);
 
   VkVertexInputBindingDescription m_binding_description = {};
 
@@ -34,6 +34,6 @@ private:
 
   VkPipelineVertexInputStateCreateInfo m_input_state_info = {};
 
-  uint32_t m_num_attributes = 0;
+  u32 m_num_attributes = 0;
 };
 }  // namespace Vulkan

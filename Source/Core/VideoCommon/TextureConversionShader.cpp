@@ -523,10 +523,10 @@ UBO_BINDING(std140, 1) uniform UBO {
 #if defined(API_METAL)
 
 #if defined(TEXEL_BUFFER_FORMAT_R8)
-  SSBO_BINDING(0) readonly buffer Input { uint8_t s_input_buffer[]; };
+  SSBO_BINDING(0) readonly buffer Input { u8 s_input_buffer[]; };
   #define FETCH(offset) uint(s_input_buffer[offset])
 #elif defined(TEXEL_BUFFER_FORMAT_R16)
-  SSBO_BINDING(0) readonly buffer Input { uint16_t s_input_buffer[]; };
+  SSBO_BINDING(0) readonly buffer Input { u16 s_input_buffer[]; };
   #define FETCH(offset) uint(s_input_buffer[offset])
 #elif defined(TEXEL_BUFFER_FORMAT_RGBA8)
   SSBO_BINDING(0) readonly buffer Input { u8vec4 s_input_buffer[]; };
@@ -539,7 +539,7 @@ UBO_BINDING(std140, 1) uniform UBO {
 #endif
 
 #ifdef HAS_PALETTE
-  SSBO_BINDING(1) readonly buffer Palette { uint16_t s_palette_buffer[]; };
+  SSBO_BINDING(1) readonly buffer Palette { u16 s_palette_buffer[]; };
   #define FETCH_PALETTE(offset) uint(s_palette_buffer[offset])
 #endif
 
@@ -1181,7 +1181,7 @@ float4 DecodePixel(int val)
   ss << "\n";
 
   if (api_type == APIType::Metal)
-    ss << "SSBO_BINDING(0) readonly buffer Palette { uint16_t palette[]; };\n";
+    ss << "SSBO_BINDING(0) readonly buffer Palette { u16 palette[]; };\n";
   else
     ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
   ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";

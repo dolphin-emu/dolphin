@@ -206,7 +206,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 static VkPipelineColorBlendStateCreateInfo
 GetVulkanColorBlendState(const BlendingState& state,
                          const VkPipelineColorBlendAttachmentState* attachments,
-                         uint32_t num_attachments)
+                         u32 num_attachments)
 {
   static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
       {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
@@ -232,7 +232,7 @@ GetVulkanColorBlendState(const BlendingState& state,
       0,                        // VkPipelineColorBlendStateCreateFlags          flags
       vk_logic_op_enable,       // VkBool32                                      logicOpEnable
       vk_logic_op,              // VkLogicOp                                     logicOp
-      num_attachments,          // uint32_t                                      attachmentCount
+      num_attachments,          // u32                                           attachmentCount
       attachments,              // const VkPipelineColorBlendAttachmentState*    pAttachments
       {1.0f, 1.0f, 1.0f, 1.0f}  // float                                         blendConstants[4]
   };
@@ -280,9 +280,9 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,  // const void*                                pNext
       0,        // VkPipelineVertexInputStateCreateFlags       flags
-      0,        // uint32_t                                    vertexBindingDescriptionCount
+      0,        // u32                                         vertexBindingDescriptionCount
       nullptr,  // const VkVertexInputBindingDescription*      pVertexBindingDescriptions
-      0,        // uint32_t                                    vertexAttributeDescriptionCount
+      0,        // u32                                         vertexAttributeDescriptionCount
       nullptr   // const VkVertexInputAttributeDescription*    pVertexAttributeDescriptions
   };
 
@@ -314,7 +314,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
 
   // Shaders to stages
   VkPipelineShaderStageCreateInfo shader_stages[3];
-  uint32_t num_shader_stages = 0;
+  u32 num_shader_stages = 0;
   if (config.vertex_shader)
   {
     shader_stages[num_shader_stages++] = {
@@ -366,7 +366,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   }
   VkPipelineColorBlendStateCreateInfo blend_state =
       GetVulkanColorBlendState(config.blending_state, blend_attachment_states.data(),
-                               static_cast<uint32_t>(blend_attachment_states.size()));
+                               static_cast<u32>(blend_attachment_states.size()));
 
   // This viewport isn't used, but needs to be specified anyway.
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
@@ -375,9 +375,9 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
       nullptr,
       0,          // VkPipelineViewportStateCreateFlags    flags;
-      1,          // uint32_t                              viewportCount
+      1,          // u32                                   viewportCount
       &viewport,  // const VkViewport*                     pViewports
-      1,          // uint32_t                              scissorCount
+      1,          // u32                                   scissorCount
       &scissor    // const VkRect2D*                       pScissors
   };
 
@@ -389,7 +389,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   static const VkPipelineDynamicStateCreateInfo dynamic_state = {
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
       0,                                        // VkPipelineDynamicStateCreateFlags    flags
-      static_cast<u32>(dynamic_states.size()),  // uint32_t dynamicStateCount
+      static_cast<u32>(dynamic_states.size()),  // u32 dynamicStateCount
       dynamic_states.data()  // const VkDynamicState*                pDynamicStates
   };
 
@@ -398,10 +398,10 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
       nullptr,                // VkStructureType sType
       0,                      // VkPipelineCreateFlags                            flags
-      num_shader_stages,      // uint32_t                                         stageCount
+      num_shader_stages,      // u32                                              stageCount
       shader_stages,          // const VkPipelineShaderStageCreateInfo*           pStages
       &vertex_input_state,    // const VkPipelineVertexInputStateCreateInfo*      pVertexInputState
-      &input_assembly_state,  // const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState
+      &input_assembly_state,  // const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState
       nullptr,                // const VkPipelineTessellationStateCreateInfo*     pTessellationState
       &viewport_state,        // const VkPipelineViewportStateCreateInfo*         pViewportState
       &rasterization_state,  // const VkPipelineRasterizationStateCreateInfo*    pRasterizationState
@@ -411,9 +411,9 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       &dynamic_state,        // const VkPipelineDynamicStateCreateInfo*          pDynamicState
       pipeline_layout,       // VkPipelineLayout                                 layout
       render_pass,           // VkRenderPass                                     renderPass
-      0,                     // uint32_t                                         subpass
+      0,                     // u32                                              subpass
       VK_NULL_HANDLE,        // VkPipeline                                       basePipelineHandle
-      -1                     // int32_t                                          basePipelineIndex
+      -1                     // s32                                              basePipelineIndex
   };
 
   VkPipeline pipeline;

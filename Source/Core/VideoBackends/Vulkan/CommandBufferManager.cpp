@@ -68,7 +68,7 @@ bool CommandBufferManager::CreateCommandBuffers()
 
     VkCommandBufferAllocateInfo buffer_info = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr, resources.command_pool,
-        VK_COMMAND_BUFFER_LEVEL_PRIMARY, static_cast<uint32_t>(resources.command_buffers.size())};
+        VK_COMMAND_BUFFER_LEVEL_PRIMARY, static_cast<u32>(resources.command_buffers.size())};
 
     res = vkAllocateCommandBuffers(device, &buffer_info, resources.command_buffers.data());
     if (res != VK_SUCCESS)
@@ -302,7 +302,7 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
 void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
                                                bool wait_for_completion, bool advance_to_next_frame,
                                                VkSwapchainKHR present_swap_chain,
-                                               uint32_t present_image_index)
+                                               u32 present_image_index)
 {
   // End the current command buffer.
   CmdBufferResources& resources = GetCurrentCmdBufferResources();
@@ -387,7 +387,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
   CmdBufferResources& resources = m_command_buffers[command_buffer_index];
 
   // This may be executed on the worker thread, so don't modify any state of the manager class.
-  uint32_t wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  u32 wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
                               nullptr,
                               0,

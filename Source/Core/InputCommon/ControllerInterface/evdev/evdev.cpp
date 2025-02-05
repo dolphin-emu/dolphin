@@ -416,8 +416,8 @@ void InputBackend::StopHotplugThread()
   }
 
   // Write something to efd so that select() stops blocking.
-  const uint64_t value = 1;
-  static_cast<void>(!write(m_wakeup_eventfd, &value, sizeof(uint64_t)));
+  const u64 value = 1;
+  static_cast<void>(!write(m_wakeup_eventfd, &value, sizeof(u64)));
 
   m_hotplug_thread.join();
   close(m_wakeup_eventfd);

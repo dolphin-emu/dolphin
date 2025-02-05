@@ -14,7 +14,7 @@
 
 namespace Vulkan
 {
-static VkFormat VarToVkFormat(ComponentFormat t, uint32_t components, bool integer)
+static VkFormat VarToVkFormat(ComponentFormat t, u32 components, bool integer)
 {
   using ComponentArray = std::array<VkFormat, 4>;
   static constexpr auto f = [](ComponentArray a) { return a; };  // Deduction helper
@@ -84,7 +84,7 @@ void VertexFormat::MapAttributes()
         VarToVkFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
         m_decl.position.offset);
 
-  for (uint32_t i = 0; i < 3; i++)
+  for (u32 i = 0; i < 3; i++)
   {
     if (m_decl.normals[i].enable)
       AddAttribute(ShaderAttrib::Normal + i, 0,
@@ -93,7 +93,7 @@ void VertexFormat::MapAttributes()
                    m_decl.normals[i].offset);
   }
 
-  for (uint32_t i = 0; i < 2; i++)
+  for (u32 i = 0; i < 2; i++)
   {
     if (m_decl.colors[i].enable)
       AddAttribute(ShaderAttrib::Color0 + i, 0,
@@ -102,7 +102,7 @@ void VertexFormat::MapAttributes()
                    m_decl.colors[i].offset);
   }
 
-  for (uint32_t i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
     if (m_decl.texcoords[i].enable)
       AddAttribute(ShaderAttrib::TexCoord0 + i, 0,
@@ -132,12 +132,12 @@ void VertexFormat::SetupInputState()
   m_input_state_info.pVertexAttributeDescriptions = m_attribute_descriptions.data();
 }
 
-void VertexFormat::AddAttribute(ShaderAttrib location, uint32_t binding, VkFormat format,
-                                uint32_t offset)
+void VertexFormat::AddAttribute(ShaderAttrib location, u32 binding, VkFormat format,
+                                u32 offset)
 {
   ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 
-  m_attribute_descriptions[m_num_attributes].location = static_cast<uint32_t>(location);
+  m_attribute_descriptions[m_num_attributes].location = static_cast<u32>(location);
   m_attribute_descriptions[m_num_attributes].binding = binding;
   m_attribute_descriptions[m_num_attributes].format = format;
   m_attribute_descriptions[m_num_attributes].offset = offset;

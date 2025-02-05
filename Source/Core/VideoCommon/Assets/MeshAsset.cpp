@@ -126,7 +126,7 @@ bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_
   }
 
   const int component_size =
-      tinygltf::GetComponentSizeInBytes(static_cast<uint32_t>(accessor.componentType));
+      tinygltf::GetComponentSizeInBytes(static_cast<u32>(accessor.componentType));
   if (component_size == -1)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to update vertex stride, component size was invalid");
@@ -150,7 +150,7 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
   }
 
   const int component_size =
-      tinygltf::GetComponentSizeInBytes(static_cast<uint32_t>(accessor.componentType));
+      tinygltf::GetComponentSizeInBytes(static_cast<u32>(accessor.componentType));
   if (component_size == -1)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to copy buffer data from primitive, component size was invalid");

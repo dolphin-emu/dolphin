@@ -171,7 +171,7 @@ private:
 
   struct FilereaderState
   {
-    int64_t position = 0;
+    s64 position = 0;
     std::unique_ptr<DiscIO::Volume> volume;
   };
 
@@ -179,8 +179,8 @@ private:
 
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);
-  static void FilereaderSeek(void* file_handle, int64_t offset, int origin);
-  static int64_t FilereaderTell(void* file_handle);
+  static void FilereaderSeek(void* file_handle, s64 offset, int origin);
+  static s64 FilereaderTell(void* file_handle);
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
 

@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-#include <Common/WorkQueueThread.h>
+#include "Common/WorkQueueThread.h"
 #include "Common/BlockingLoop.h"
 #include "Common/Flag.h"
 #include "Common/Semaphore.h"
@@ -87,7 +87,7 @@ public:
   void SubmitCommandBuffer(bool submit_on_worker_thread, bool wait_for_completion,
                            bool advance_to_next_frame = false,
                            VkSwapchainKHR present_swap_chain = VK_NULL_HANDLE,
-                           uint32_t present_image_index = 0xFFFFFFFF);
+                           u32 present_image_index = 0xFFFFFFFF);
 
   // Was the last present submitted to the queue a failure? If so, we must recreate our swapchain.
   bool CheckLastPresentFail() { return m_last_present_failed.TestAndClear(); }

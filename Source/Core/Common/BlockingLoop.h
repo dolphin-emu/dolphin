@@ -9,6 +9,7 @@
 
 #include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/CommonTypes.h"
 
 namespace Common
 {
@@ -123,7 +124,7 @@ public:
   // The optional timeout parameter is a timeout for how periodically the payload should be called.
   // Use timeout = 0 to run without a timeout at all.
   template <class F>
-  void Run(F payload, int64_t timeout = 0)
+  void Run(F payload, s64 timeout = 0)
   {
     // Asserts that Prepare is called at least once before we enter the loop.
     // But a good implementation should call this before already.

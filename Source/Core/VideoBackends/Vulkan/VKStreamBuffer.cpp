@@ -46,8 +46,8 @@ bool StreamBuffer::AllocateBuffer()
       static_cast<VkDeviceSize>(m_size),     // VkDeviceSize           size
       m_usage,                               // VkBufferUsageFlags     usage
       VK_SHARING_MODE_EXCLUSIVE,             // VkSharingMode          sharingMode
-      0,                                     // uint32_t               queueFamilyIndexCount
-      nullptr                                // const uint32_t*        pQueueFamilyIndices
+      0,                                     // u32                    queueFamilyIndexCount
+      nullptr                                // const u32*             pQueueFamilyIndices
   };
 
   VmaAllocationCreateInfo alloc_create_info = {};

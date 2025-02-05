@@ -1195,7 +1195,7 @@ private:
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
           for (int channel = 0; channel < 4; channel++)
           {
-            uint32_t channel_value = samples[0][channel] + samples[1][channel] +
+            u32 channel_value = samples[0][channel] + samples[1][channel] +
                                      samples[2][channel] + samples[3][channel];
             dst_pixel[channel] = (channel_value + 2) / 4;
           }
