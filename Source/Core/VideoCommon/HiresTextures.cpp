@@ -91,8 +91,11 @@ void HiresTexture::Update()
   }
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::set<std::string> texture_directories =
+  std::set<std::string> texture_directories =
       GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
+  std::set<std::string> sys_tex_dirs = GetTextureDirectoriesWithGameId(
+      File::GetSysDirectory() + LOAD_DIR DIR_SEP HIRES_TEXTURES_DIR DIR_SEP, game_id);
+  texture_directories.merge(sys_tex_dirs);
   const std::vector<std::string> extensions{".png", ".dds"};
 
   auto& system = Core::System::GetInstance();
