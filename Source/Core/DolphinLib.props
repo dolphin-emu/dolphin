@@ -337,6 +337,7 @@
     <ClInclude Include="Core\HW\WiimoteEmu\Dynamics.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\DesiredWiimoteState.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Encryption.h" />
+    <ClInclude Include="Core\HW\WiimoteEmu\Extension\BalanceBoard.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Classic.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\DesiredExtensionState.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\DrawsomeTablet.h" />
@@ -1001,6 +1002,7 @@
     <ClCompile Include="Core\HW\WiimoteEmu\Dynamics.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\EmuSubroutines.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Encryption.cpp" />
+    <ClCompile Include="Core\HW\WiimoteEmu\Extension\BalanceBoard.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Classic.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\DrawsomeTablet.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Drums.cpp" />

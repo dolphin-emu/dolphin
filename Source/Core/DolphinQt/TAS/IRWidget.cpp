@@ -54,14 +54,14 @@ void IRWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING + w / 2, PADDING, PADDING + w / 2, PADDING + h);
 
   // convert from value space to widget space
-  u16 x = PADDING + ((m_x * w) / IR_MAX_X);
-  u16 y = PADDING + (h - (m_y * h) / IR_MAX_Y);
+  const int x = PADDING + ((m_x * w) / IR_MAX_X);
+  const int y = PADDING + (h - (m_y * h) / IR_MAX_Y);
 
   painter.drawLine(PADDING + w / 2, PADDING + h / 2, x, y);
 
   painter.setBrush(Qt::blue);
-  int wh_avg = (w + h) / 2;
-  int radius = wh_avg / 30;
+  const int wh_avg = (w + h) / 2;
+  const int radius = wh_avg / 30;
   painter.drawEllipse(x - radius, y - radius, radius * 2, radius * 2);
 }
 
@@ -90,8 +90,8 @@ void IRWidget::handleMouseEvent(QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = (event->pos().x() * IR_MAX_X) / width();
-    int new_y = IR_MAX_Y - (event->pos().y() * IR_MAX_Y) / height();
+    const int new_x = (event->pos().x() * IR_MAX_X) / width();
+    const int new_y = IR_MAX_Y - (event->pos().y() * IR_MAX_Y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(IR_MAX_X), new_x));
     m_y = std::max(0, std::min(static_cast<int>(IR_MAX_Y), new_y));
