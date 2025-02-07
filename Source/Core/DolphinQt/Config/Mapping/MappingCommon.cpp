@@ -25,6 +25,11 @@ constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
 // Ignore the mouse-click when queuing more buttons with "alternate mappings" enabled.
 constexpr auto INPUT_DETECT_ENDING_IGNORE_TIME = std::chrono::milliseconds(50);
 
+bool ContainsAnalogInput(const ciface::Core::InputDetector::Results& results)
+{
+  return std::ranges::any_of(results, [](auto& detection) { return detection.smoothness > 1; });
+}
+
 class MappingProcessor : public QWidget
 {
 public:
@@ -75,24 +80,40 @@ public:
     m_input_detector->Update(INPUT_DETECT_INITIAL_TIME, confirmation_time,
                              INPUT_DETECT_MAXIMUM_TIME);
 
-    if (m_input_detector->IsComplete())
-    {
-      auto* const button = m_clicked_mapping_buttons.back();
+    if (!m_input_detector->IsComplete())
+      return;
 
-      if (!FinalizeMapping(m_input_detector->TakeResults()))
+    auto* const button = m_clicked_mapping_buttons.front();
+
+    auto results = m_input_detector->TakeResults();
+    if (!FinalizeMapping(&results))
+    {
+      // No inputs detected. Cancel this and any other queued mappings.
+      CancelMapping();
+    }
+    else if (m_parent->IsIterativeMappingEnabled() && m_clicked_mapping_buttons.empty())
+    {
+      button->QueueNextButtonMapping();
+
+      if (m_clicked_mapping_buttons.empty())
+        return;
+
+      // Skip "Modifier" mappings when using analog inputs.
+      auto* next_button = m_clicked_mapping_buttons.front();
+      if (next_button->GetControlType() == MappingButton::ControlType::ModifierInput &&
+          ContainsAnalogInput(results))
       {
-        // No inputs detected. Cancel this and any other queued mappings.
-        CancelMapping();
-      }
-      else if (m_parent->IsIterativeMappingEnabled() && m_clicked_mapping_buttons.empty())
-      {
-        button->QueueNextButtonMapping();
+        // Clear "Modifier" mapping and queue the next button.
+        SetButtonExpression(next_button, "");
+        UnQueueInputDetection(next_button);
+        next_button->QueueNextButtonMapping();
       }
     }
   }
 
-  bool FinalizeMapping(ciface::Core::InputDetector::Results detections)
+  bool FinalizeMapping(ciface::Core::InputDetector::Results* detections_ptr)
   {
+    auto& detections = *detections_ptr;
     if (!ciface::MappingCommon::ContainsCompleteDetection(detections))
       return false;
 
@@ -100,16 +121,20 @@ public:
 
     const auto& default_device = m_parent->GetController()->GetDefaultDevice();
     auto& button = m_clicked_mapping_buttons.front();
-    auto* const control_reference = button->GetControlReference();
+    SetButtonExpression(
+        button, BuildExpression(detections, default_device, ciface::MappingCommon::Quote::On));
 
-    control_reference->SetExpression(
-        BuildExpression(detections, default_device, ciface::MappingCommon::Quote::On));
-    m_parent->Save();
-
-    m_parent->GetController()->UpdateSingleControlReference(g_controller_interface,
-                                                            control_reference);
     UnQueueInputDetection(button);
     return true;
+  }
+
+  void SetButtonExpression(MappingButton* button, const std::string& expression)
+  {
+    auto* const control_reference = button->GetControlReference();
+    control_reference->SetExpression(expression);
+    m_parent->Save();
+    m_parent->GetController()->UpdateSingleControlReference(g_controller_interface,
+                                                            control_reference);
   }
 
   void UpdateInputDetectionStartTimer()
@@ -146,7 +171,7 @@ public:
       auto results = m_input_detector->TakeResults();
       ciface::MappingCommon::RemoveDetectionsAfterTimePoint(
           &results, ciface::Core::DeviceContainer::Clock::now() - INPUT_DETECT_ENDING_IGNORE_TIME);
-      FinalizeMapping(std::move(results));
+      FinalizeMapping(&results);
     }
     UpdateInputDetectionStartTimer();
   }

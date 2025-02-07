@@ -313,7 +313,16 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
                                   bool indicator)
 {
-  auto* const button = new MappingButton(this, control->control_ref.get());
+  // I know this check is terrible, but it's just UI code.
+  const bool is_modifier = control->name == "Modifier";
+
+  using ControlType = MappingButton::ControlType;
+  const auto control_type =
+      control->control_ref->IsInput() ?
+          (is_modifier ? ControlType::ModifierInput : ControlType::NormalInput) :
+          ControlType::Output;
+
+  auto* const button = new MappingButton(this, control->control_ref.get(), control_type);
 
   if (control->control_ref->IsInput())
   {

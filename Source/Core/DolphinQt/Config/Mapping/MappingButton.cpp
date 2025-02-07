@@ -65,8 +65,9 @@ static QString RefToDisplayString(ControlReference* ref)
   return expression;
 }
 
-MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref)
-    : ElidedButton(RefToDisplayString(ref)), m_mapping_window(parent->GetParent()), m_reference(ref)
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, ControlType control_type)
+    : ElidedButton{RefToDisplayString(ref)}, m_mapping_window{parent->GetParent()},
+      m_reference{ref}, m_control_type{control_type}
 {
   if (m_reference->IsInput())
   {
@@ -140,4 +141,9 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
 ControlReference* MappingButton::GetControlReference()
 {
   return m_reference;
+}
+
+auto MappingButton::GetControlType() const -> ControlType
+{
+  return m_control_type;
 }
