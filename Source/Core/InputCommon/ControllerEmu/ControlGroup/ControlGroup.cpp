@@ -168,4 +168,19 @@ void ControlGroup::AddOutput(Translatability translate, std::string name_)
   controls.emplace_back(std::make_unique<Output>(translate, std::move(name_)));
 }
 
+size_t ControlGroup::GetNormalControlCount() const
+{
+  return std::min(m_advanced_controls_begin, controls.size());
+}
+
+size_t ControlGroup::GetAdvancedControlCount() const
+{
+  return controls.size() - GetNormalControlCount();
+}
+
+void ControlGroup::MarkAdvancedControlsBegin()
+{
+  m_advanced_controls_begin = controls.size();
+}
+
 }  // namespace ControllerEmu

@@ -107,5 +107,14 @@ public:
   bool enabled = true;
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
+
+  size_t GetNormalControlCount() const;
+  size_t GetAdvancedControlCount() const;
+
+protected:
+  void MarkAdvancedControlsBegin();
+
+private:
+  size_t m_advanced_controls_begin = -1;
 };
 }  // namespace ControllerEmu

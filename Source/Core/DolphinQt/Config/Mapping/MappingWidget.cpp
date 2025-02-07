@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include <ranges>
+
 #include <fmt/core.h>
 
 #include <QCheckBox>
@@ -127,7 +129,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     }
   }
 
-  for (auto& control : group->controls)
+  for (auto& control : group->controls | std::views::take(group->GetNormalControlCount()))
     CreateControl(control.get(), form_layout, !indicator);
 
   AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Normal);
@@ -159,7 +161,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
         return setting->GetVisibility() == ControllerEmu::SettingVisibility::Advanced;
       });
 
-  if (advanced_setting_count != 0)
+  if (advanced_setting_count != 0 || group->GetAdvancedControlCount() != 0)
   {
     const auto advanced_button = new QPushButton(tr("Advanced"));
     form_layout->addRow(advanced_button);
@@ -245,12 +247,18 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
 
   QFormLayout* form_layout = new QFormLayout();
 
+  for (auto& control : group->controls | std::views::drop(group->GetNormalControlCount()))
+    CreateControl(control.get(), form_layout, true);
+
   AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Advanced);
 
   const auto reset_button = new QPushButton(tr("Reset All"));
   form_layout->addRow(reset_button);
 
   connect(reset_button, &QPushButton::clicked, [this, group] {
+    for (auto& control : group->controls | std::views::drop(group->GetNormalControlCount()))
+      control->control_ref->SetExpression("");
+
     for (auto& setting : group->numeric_settings)
     {
       if (setting->GetVisibility() != ControllerEmu::SettingVisibility::Advanced)
