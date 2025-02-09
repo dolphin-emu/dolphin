@@ -87,11 +87,8 @@ void CommandProcessorManager::DoState(PointerWrap& p)
   p.Do(m_cp_status_reg);
   p.Do(m_cp_ctrl_reg);
   p.Do(m_cp_clear_reg);
-  p.Do(m_bbox_left);
-  p.Do(m_bbox_top);
-  p.Do(m_bbox_right);
-  p.Do(m_bbox_bottom);
-  p.Do(m_token_reg);
+  p.Do(m_perf_select);
+  p.Do(m_unk_0a_reg);
   m_fifo.DoState(p);
 
   p.Do(m_interrupt_set);
@@ -118,13 +115,6 @@ void CommandProcessorManager::Init()
 
   m_cp_clear_reg.Hex = 0;
 
-  m_bbox_left = 0;
-  m_bbox_top = 0;
-  m_bbox_right = 640;
-  m_bbox_bottom = 480;
-
-  m_token_reg = 0;
-
   m_fifo.Init();
 
   m_is_fifo_error_seen = false;
@@ -138,8 +128,6 @@ void CommandProcessorManager::Init()
 
 void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  constexpr u16 WMASK_NONE = 0x0000;
-  constexpr u16 WMASK_ALL = 0xffff;
   constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
   const u16 WMASK_HI_RESTRICT = GetPhysicalAddressMask(m_system.IsWii()) >> 16;
 
@@ -147,47 +135,32 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     u32 addr;
     u16* ptr;
-    bool readonly;
     // FIFO mmio regs in the range [cc000020-cc00003e] have certain bits that always read as 0
     // For _LO registers in this range, only bits 0xffe0 can be set
     // For _HI registers in this range, only bits 0x03ff can be set on GCN and 0x1fff on Wii
     u16 wmask;
   } directly_mapped_vars[] = {
-      {FIFO_TOKEN_REGISTER, &m_token_reg, false, WMASK_ALL},
-
-      // Bounding box registers are read only.
-      {FIFO_BOUNDING_BOX_LEFT, &m_bbox_left, true, WMASK_NONE},
-      {FIFO_BOUNDING_BOX_RIGHT, &m_bbox_right, true, WMASK_NONE},
-      {FIFO_BOUNDING_BOX_TOP, &m_bbox_top, true, WMASK_NONE},
-      {FIFO_BOUNDING_BOX_BOTTOM, &m_bbox_bottom, true, WMASK_NONE},
-      {FIFO_BASE_LO, MMIO::Utils::LowPart(&m_fifo.CPBase), false, WMASK_LO_ALIGN_32BIT},
-      {FIFO_BASE_HI, MMIO::Utils::HighPart(&m_fifo.CPBase), false, WMASK_HI_RESTRICT},
-      {FIFO_END_LO, MMIO::Utils::LowPart(&m_fifo.CPEnd), false, WMASK_LO_ALIGN_32BIT},
-      {FIFO_END_HI, MMIO::Utils::HighPart(&m_fifo.CPEnd), false, WMASK_HI_RESTRICT},
-      {FIFO_HI_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPHiWatermark), false,
-       WMASK_LO_ALIGN_32BIT},
-      {FIFO_HI_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPHiWatermark), false,
-       WMASK_HI_RESTRICT},
-      {FIFO_LO_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPLoWatermark), false,
-       WMASK_LO_ALIGN_32BIT},
-      {FIFO_LO_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPLoWatermark), false,
-       WMASK_HI_RESTRICT},
+      {FIFO_BASE_LO, MMIO::Utils::LowPart(&m_fifo.CPBase), WMASK_LO_ALIGN_32BIT},
+      {FIFO_BASE_HI, MMIO::Utils::HighPart(&m_fifo.CPBase), WMASK_HI_RESTRICT},
+      {FIFO_END_LO, MMIO::Utils::LowPart(&m_fifo.CPEnd), WMASK_LO_ALIGN_32BIT},
+      {FIFO_END_HI, MMIO::Utils::HighPart(&m_fifo.CPEnd), WMASK_HI_RESTRICT},
+      {FIFO_HI_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPHiWatermark), WMASK_LO_ALIGN_32BIT},
+      {FIFO_HI_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPHiWatermark), WMASK_HI_RESTRICT},
+      {FIFO_LO_WATERMARK_LO, MMIO::Utils::LowPart(&m_fifo.CPLoWatermark), WMASK_LO_ALIGN_32BIT},
+      {FIFO_LO_WATERMARK_HI, MMIO::Utils::HighPart(&m_fifo.CPLoWatermark), WMASK_HI_RESTRICT},
       // FIFO_RW_DISTANCE has some complex read code different for
       // single/dual core.
-      {FIFO_WRITE_POINTER_LO, MMIO::Utils::LowPart(&m_fifo.CPWritePointer), false,
-       WMASK_LO_ALIGN_32BIT},
-      {FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&m_fifo.CPWritePointer), false,
-       WMASK_HI_RESTRICT},
+      {FIFO_WRITE_POINTER_LO, MMIO::Utils::LowPart(&m_fifo.CPWritePointer), WMASK_LO_ALIGN_32BIT},
+      {FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&m_fifo.CPWritePointer), WMASK_HI_RESTRICT},
       // FIFO_READ_POINTER has different code for single/dual core.
-      {FIFO_BP_LO, MMIO::Utils::LowPart(&m_fifo.CPBreakpoint), false, WMASK_LO_ALIGN_32BIT},
-      {FIFO_BP_HI, MMIO::Utils::HighPart(&m_fifo.CPBreakpoint), false, WMASK_HI_RESTRICT},
+      {FIFO_BP_LO, MMIO::Utils::LowPart(&m_fifo.CPBreakpoint), WMASK_LO_ALIGN_32BIT},
+      {FIFO_BP_HI, MMIO::Utils::HighPart(&m_fifo.CPBreakpoint), WMASK_HI_RESTRICT},
   };
 
   for (auto& mapped_var : directly_mapped_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   mapped_var.readonly ? MMIO::InvalidWrite<u16>() :
-                                         MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask));
+                   MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask));
   }
 
   // Timing and metrics MMIOs are stubbed with fixed values.
@@ -229,13 +202,13 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | CTRL_REGISTER, MMIO::DirectRead<u16>(&m_cp_ctrl_reg.Hex),
                  MMIO::ComplexWrite<u16>([](Core::System& system_, u32, u16 val) {
                    auto& cp = system_.GetCommandProcessor();
-                   UCPCtrlReg tmp(val);
+                   UCPCtrlReg tmp(val & 0x3F);
                    cp.m_cp_ctrl_reg.Hex = tmp.Hex;
                    cp.SetCpControlRegister();
                    system_.GetFifo().RunGpu();
                  }));
 
-  mmio->Register(base | CLEAR_REGISTER, MMIO::DirectRead<u16>(&m_cp_clear_reg.Hex),
+  mmio->Register(base | CLEAR_REGISTER, MMIO::Constant<u16>(0),
                  MMIO::ComplexWrite<u16>([](Core::System& system_, u32, u16 val) {
                    auto& cp = system_.GetCommandProcessor();
                    UCPClearReg tmp(val);
@@ -244,7 +217,13 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    system_.GetFifo().RunGpu();
                  }));
 
-  mmio->Register(base | PERF_SELECT, MMIO::InvalidRead<u16>(), MMIO::Nop<u16>());
+  // TODO
+  mmio->Register(base | PERF_SELECT, MMIO::DirectRead<u16>(&m_perf_select),
+                 MMIO::DirectWrite<u16>(&m_perf_select, 0x0007));
+
+  // TODO
+  mmio->Register(base | UNK_0A_REGISTER, MMIO::DirectRead<u16>(&m_unk_0a_reg),
+                 MMIO::DirectWrite<u16>(&m_unk_0a_reg, 0x00FF));
 
   // Some MMIOs have different handlers for single core vs. dual core mode.
   const bool is_on_thread = IsOnThread(m_system);
@@ -594,6 +573,7 @@ void CommandProcessorManager::SetCpStatusRegister()
 
 void CommandProcessorManager::SetCpControlRegister()
 {
+  // Just before disabling reads, give the GPU a chance to catch up.
   if (m_fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) && !m_cp_ctrl_reg.GPReadEnable)
   {
     m_system.GetFifo().SyncGPUForRegisterAccess();
@@ -618,6 +598,18 @@ void CommandProcessorManager::SetCpControlRegister()
 // We don't emulate proper GP timing anyway at the moment, so it would just slow down emulation.
 void CommandProcessorManager::SetCpClearRegister()
 {
+}
+
+void CommandProcessorManager::ResetFifo()
+{
+  // Link fifos, disable interrupts, disable reads.
+  m_cp_ctrl_reg.Hex = 0x0010;
+  SetCpControlRegister();
+  m_perf_select = 0;
+  m_unk_0a_reg = 0;
+  m_fifo.CPLoWatermark = 0;
+  m_fifo.CPHiWatermark = GetPhysicalAddressMask(m_system.IsWii()) & ~31u;
+  SetCpStatusRegister();
 }
 
 void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
