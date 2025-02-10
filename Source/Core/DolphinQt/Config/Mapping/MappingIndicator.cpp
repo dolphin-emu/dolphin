@@ -125,7 +125,7 @@ QColor MappingIndicator::GetAltTextColor() const
 void MappingIndicator::AdjustGateColor(QColor* color)
 {
   if (Settings::Instance().IsThemeDark())
-    color->setHsvF(color->hueF(), color->saturationF(), 1 - color->valueF());
+    color->setHsvF(color->hueF(), std::min(color->saturationF(), 0.5f), color->valueF() * 0.35f);
 }
 
 ButtonIndicator::ButtonIndicator(ControlReference* control_ref) : m_control_ref{control_ref}
