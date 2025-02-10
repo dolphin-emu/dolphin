@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <climits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -98,14 +99,52 @@ void SConfig::LoadSettings()
   Config::Load();
 }
 
+const std::string SConfig::GetGameID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_game_id;
+}
+
+const std::string SConfig::GetGameTDBID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_gametdb_id;
+}
+
+const std::string SConfig::GetTitleName() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_title_name;
+}
+
+const std::string SConfig::GetTitleDescription() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_title_description;
+}
+
+u64 SConfig::GetTitleID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_title_id;
+}
+
+u16 SConfig::GetRevision() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_revision;
+}
+
 void SConfig::ResetRunningGameMetadata()
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
                                      const DiscIO::Partition& partition)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   if (partition == volume.GetGamePartition())
   {
     SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(),
@@ -122,6 +161,7 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const u64 tmd_title_id = tmd.GetTitleId();
 
   // If we're launching a disc game, we want to read the revision from
@@ -139,12 +179,14 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                                      u64 title_id, u16 revision, DiscIO::Region region)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
                            m_title_id != title_id || m_revision != revision;
   m_game_id = game_id;
