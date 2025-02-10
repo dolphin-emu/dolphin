@@ -4,7 +4,6 @@
 #include "Core/State.h"
 
 #include <algorithm>
-#include <atomic>
 #include <condition_variable>
 #include <filesystem>
 #include <locale>
@@ -12,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -31,12 +29,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Common/TimeUtil.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -46,7 +42,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -99,7 +95,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 169;  // Last changed in PR 13074
+constexpr u32 STATE_VERSION = 170;  // Last changed in PR 13337
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
