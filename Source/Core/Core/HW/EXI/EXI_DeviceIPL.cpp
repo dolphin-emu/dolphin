@@ -246,9 +246,9 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   m_fonts_loaded = true;
 }
 
-void CEXIIPL::SetCS(int cs)
+void CEXIIPL::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
-  if (cs)
+  if (!was_selected && is_selected)
   {
     m_command_bytes_received = 0;
     m_cursor = 0;
