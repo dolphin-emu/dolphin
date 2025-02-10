@@ -31,16 +31,19 @@ void ControllersWindow::showEvent(QShowEvent* event)
 
 void ControllersWindow::CreateMainLayout()
 {
-  auto* layout = new QVBoxLayout();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  auto* const grid = new QGridLayout;
+  grid->addWidget(m_gamecube_controllers, 0, 0);
+  grid->addWidget(m_wiimote_controllers, 0, 1, 2, 1);
+  grid->addWidget(m_common, 1, 0);
 
-  layout->addWidget(m_gamecube_controllers);
-  layout->addWidget(m_wiimote_controllers);
-  layout->addWidget(m_common);
+  auto* const layout = new QVBoxLayout;
+  layout->addLayout(grid);
+
   layout->addStretch();
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
   layout->addWidget(m_button_box);
 
-  WrapInScrollArea(this, layout);
+  setLayout(layout);
 }
 
 void ControllersWindow::ConnectWidgets()
