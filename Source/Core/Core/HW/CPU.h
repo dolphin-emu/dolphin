@@ -8,6 +8,8 @@
 #include <mutex>
 #include <queue>
 
+#include "Common/Event.h"
+
 namespace Common
 {
 class Event;
@@ -102,6 +104,7 @@ public:
 private:
   void FlushStepSyncEventLocked();
   void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock);
+  void StartTimePlayedTimer();
   void RunAdjacentSystems(bool running);
   bool SetStateLocked(State s);
 
@@ -133,6 +136,7 @@ private:
   bool m_state_cpu_step_instruction = false;
   Common::Event* m_state_cpu_step_instruction_sync = nullptr;
   std::queue<std::function<void()>> m_pending_jobs;
+  Common::Event m_time_played_finish_sync;
 
   Core::System& m_system;
 };
