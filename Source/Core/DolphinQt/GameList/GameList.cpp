@@ -208,6 +208,7 @@ void GameList::MakeListView()
     SetResizeMode(Column::FileFormat, Mode::Fixed);
     SetResizeMode(Column::BlockSize, Mode::Fixed);
     SetResizeMode(Column::Compression, Mode::Fixed);
+    SetResizeMode(Column::TimePlayed, Mode::Interactive);
     SetResizeMode(Column::Tags, Mode::Interactive);
 
     // Cells have 3 pixels of padding, so the width of these needs to be image width + 6. Banners
@@ -273,6 +274,7 @@ void GameList::UpdateColumnVisibility()
   SetVisiblity(Column::FileFormat, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
   SetVisiblity(Column::BlockSize, Config::Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
   SetVisiblity(Column::Compression, Config::Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
+  SetVisiblity(Column::TimePlayed, Config::Get(Config::MAIN_GAMELIST_COLUMN_TIME_PLAYED));
   SetVisiblity(Column::Tags, Config::Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
 }
 
@@ -1005,6 +1007,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("File Format"), Column::FileFormat},
       {tr("Block Size"), Column::BlockSize},
       {tr("Compression"), Column::Compression},
+      {tr("Time Played"), Column::TimePlayed},
       {tr("Tags"), Column::Tags},
   };
 
