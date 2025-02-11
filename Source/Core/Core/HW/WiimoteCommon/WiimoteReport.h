@@ -214,7 +214,8 @@ struct InputReportStatus
 private:
   static constexpr auto BATTERY_MAX = std::numeric_limits<decltype(battery)>::max();
 
-  // Linear fit of battery level mid-point for charge bars in home menu.
+  // Linear fit of battery level mid-point for Wii Remote charge bars in home menu.
+  // Note that Balance Board battery values differ (probably from 2xAA vs 4xAA).
   static constexpr float BATTERY_LEVEL_M = 2.46f;
   static constexpr float BATTERY_LEVEL_B = -0.013f;
 };
