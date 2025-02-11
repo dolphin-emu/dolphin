@@ -1434,8 +1434,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering\n"
             "    // Here the matrix is encoded into the two factor constants\n"
             "    int2 dither = int2(rawpos.xy) & 1;\n"
-            "    TevResult.rgb = (TevResult.rgb - (TevResult.rgb >> 6)) + abs(dither.y * 3 - "
-            "dither.x * 2);\n"
+            "    TevResult.rgb = (TevResult.rgb - (TevResult.rgb >> 6)) + (dither.x ^ dither.y) * "
+            "2 + dither.y;\n"
             "  }}\n\n");
 
   // =========
