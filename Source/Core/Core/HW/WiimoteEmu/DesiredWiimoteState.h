@@ -35,7 +35,10 @@ struct DesiredWiimoteState
 struct SerializedWiimoteState
 {
   u8 length;
-  std::array<u8, 30> data;  // 18 bytes Wiimote, 6 bytes MotionPlus, 6 bytes Extension
+
+  // 18 bytes Wiimote, 6 bytes MotionPlus, 6 bytes Extension
+  // Note that BalanceBoard Ext data is 8 bytes but it doesn't need Accel/IR/MotionPlus data.
+  std::array<u8, 30> data;
 };
 
 SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state);

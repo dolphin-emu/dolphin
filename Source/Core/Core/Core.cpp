@@ -688,7 +688,7 @@ void SetState(Core::System& system, State state, bool report_state_change,
     // NOTE: GetState() will return State::Paused immediately, even before anything has
     //   stopped (including the CPU).
     system.GetCPU().SetStepping(true);  // Break
-    Wiimote::Pause();
+    WiimoteReal::Pause();
     ResetRumble();
 #ifdef USE_RETRO_ACHIEVEMENTS
     AchievementManager::GetInstance().DoIdle();
@@ -697,7 +697,7 @@ void SetState(Core::System& system, State state, bool report_state_change,
   case State::Running:
   {
     system.GetCPU().SetStepping(false);
-    Wiimote::Resume();
+    WiimoteReal::Resume();
     break;
   }
   default:
