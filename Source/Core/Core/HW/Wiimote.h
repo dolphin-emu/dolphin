@@ -3,10 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
 class InputConfig;
@@ -29,9 +25,10 @@ enum class UDrawTabletGroup;
 enum class DrawsomeTabletGroup;
 enum class TaTaConGroup;
 enum class ShinkansenGroup;
+enum class BalanceBoardGroup;
 }  // namespace WiimoteEmu
 
-enum
+enum : u8
 {
   WIIMOTE_CHAN_0 = 0,
   WIIMOTE_CHAN_1,
@@ -74,15 +71,14 @@ enum class InitializeMode
 // The Real Wii Remote sends report every ~5ms (200 Hz).
 constexpr int UPDATE_FREQ = 200;
 
-void Shutdown();
+// Note that these also handle the 5th-slot BalanceBoard, though it has a separate InputConfig.
 void Initialize(InitializeMode init_mode);
+void Shutdown();
 void ResetAllWiimotes();
-void LoadConfig();
 void GenerateDynamicInputTextures();
-void Resume();
-void Pause();
-
 void DoState(PointerWrap& p);
+
+void LoadConfig();
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group);
 ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group);
@@ -97,6 +93,13 @@ ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGrou
 ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group);
 }  // namespace Wiimote
 
+namespace BalanceBoard
+{
+InputConfig* GetConfig();
+void LoadConfig();
+ControllerEmu::ControlGroup* GetBalanceBoardGroup(int number, WiimoteEmu::BalanceBoardGroup group);
+}  // namespace BalanceBoard
+
 namespace WiimoteReal
 {
 void Initialize(::Wiimote::InitializeMode init_mode);
@@ -105,5 +108,4 @@ void Shutdown();
 void Resume();
 void Pause();
 void Refresh();
-
 }  // namespace WiimoteReal
