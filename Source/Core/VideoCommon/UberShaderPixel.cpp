@@ -724,6 +724,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("struct State {{\n"
             "  int4 Reg[4];\n"
+            "  int4 RawTexColor;\n"
             "  int4 TexColor;\n"
             "  int AlphaBump;\n"
             "}};\n"
@@ -1090,10 +1091,10 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "      uint sampler_num = {};\n",
               BitfieldExtract<&TwoTevStageOrders::texmap_even>("ss.order"));
     out.Write("\n"
-              "      int4 color = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
+              "      s.RawTexColor = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
               "      uint swap = {};\n",
               BitfieldExtract<&TevStageCombiner::AlphaCombiner::tswap>("ss.ac"));
-    out.Write("      s.TexColor = Swizzle(swap, color);\n");
+    out.Write("      s.TexColor = Swizzle(swap, s.RawTexColor);\n");
     out.Write("    }} else {{\n"
               "      // Texture is disabled\n"
               "      s.TexColor = int4(255, 255, 255, 255);\n"
@@ -1371,7 +1372,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    int ztex = int(" I_ZBIAS "[1].w); // fixed bias\n"
             "\n"
             "    // Whatever texture was in our last stage, it's now our depth texture\n"
-            "    ztex += idot(s.TexColor.xyzw, " I_ZBIAS "[0].xyzw);\n"
+            "    ztex += idot(s.RawTexColor.xyzw, " I_ZBIAS "[0].xyzw);\n"
             "    ztex += (bpmem_ztex_op == 1u) ? zCoord : 0;\n"
             "    zCoord = ztex & 0xFFFFFF;\n"
             "  }}\n"
