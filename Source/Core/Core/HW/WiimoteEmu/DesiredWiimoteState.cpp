@@ -3,6 +3,7 @@
 
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
+#include <cassert>
 #include <cstring>
 #include <optional>
 #include <type_traits>
@@ -106,7 +107,6 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
     std::visit(
         [&s](const auto& arg) {
           using T = std::decay_t<decltype(arg)>;
-          static_assert(sizeof(arg) <= 6);
           Common::BitCastPtr<T>(&s.data[s.length]) = arg;
           s.length += sizeof(arg);
         },
@@ -169,6 +169,10 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     // invalid length
     return false;
   }
+
+  // Contriving data with MPlus + BBoard could create an oversided length.
+  if (expected_size > serialized.data.size())
+    return false;
 
   size_t pos = 1;
 

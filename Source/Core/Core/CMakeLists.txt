@@ -306,6 +306,8 @@ add_library(core
   HW/WiimoteEmu/EmuSubroutines.cpp
   HW/WiimoteEmu/Encryption.cpp
   HW/WiimoteEmu/Encryption.h
+  HW/WiimoteEmu/Extension/BalanceBoard.cpp
+  HW/WiimoteEmu/Extension/BalanceBoard.h
   HW/WiimoteEmu/Extension/Classic.cpp
   HW/WiimoteEmu/Extension/Classic.h
   HW/WiimoteEmu/Extension/DesiredExtensionState.h
