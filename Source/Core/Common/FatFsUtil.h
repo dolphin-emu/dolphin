@@ -9,6 +9,9 @@
 
 namespace Common
 {
+static constexpr auto SD_PACK_TEXT = "Pack SD Card Now";
+static constexpr auto SD_UNPACK_TEXT = "Unpack SD Card Now";
+
 bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool deterministic);
 bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled);
 
