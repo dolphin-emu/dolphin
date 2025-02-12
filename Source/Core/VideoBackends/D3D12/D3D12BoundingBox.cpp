@@ -47,7 +47,7 @@ std::vector<BBoxType> D3D12BoundingBox::Read(u32 index, u32 length)
     return values;
 
   // Copy out the values we want
-  std::memcpy(values.data(), reinterpret_cast<const u8*>(mapped_pointer) + sizeof(BBoxType) * index,
+  std::memcpy(values.data(), static_cast<const u8*>(mapped_pointer) + sizeof(BBoxType) * index,
               sizeof(BBoxType) * length);
 
   static constexpr D3D12_RANGE write_range = {0, 0};
