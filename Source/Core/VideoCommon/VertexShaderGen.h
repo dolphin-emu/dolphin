@@ -91,3 +91,19 @@ using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 VertexShaderUid GetVertexShaderUid();
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                     const vertex_shader_uid_data* uid_data);
+
+namespace VertexShader
+{
+constexpr std::string_view vertex_definition =
+    "void vertex(in DolphinVertexInput vertex_input, out DolphinVertexOutput vertex_output)";
+
+void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_config,
+                        const vertex_shader_uid_data* uid_data, ShaderCode& out);
+void WriteVertexDefines(APIType api_type, const ShaderHostConfig& host_config,
+                        const vertex_shader_uid_data* uid_data, ShaderCode& out);
+void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
+                     const vertex_shader_uid_data* uid_data, ShaderCode& out);
+ShaderCode WriteFullShader(APIType api_type, const ShaderHostConfig& host_config,
+                           const vertex_shader_uid_data* uid_data, std::string_view custom_vertex,
+                           std::string_view custom_uniforms);
+}  // namespace VertexShader
