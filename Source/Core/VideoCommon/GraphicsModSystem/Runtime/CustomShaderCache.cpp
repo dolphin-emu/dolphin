@@ -346,8 +346,8 @@ std::unique_ptr<AbstractShader>
 CustomShaderCache::CompilePixelShader(const PixelShaderUid& uid,
                                       const CustomShaderInstance& custom_shaders) const
 {
-  const ShaderCode source_code = GeneratePixelShaderCode(
-      m_api_type, m_host_config, uid.GetUidData(), custom_shaders.pixel_contents);
+  const ShaderCode source_code =
+      PixelShader::WriteFullShader(m_api_type, m_host_config, uid.GetUidData(), "", "");
   return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
                                        "Custom Pixel Shader");
 }
