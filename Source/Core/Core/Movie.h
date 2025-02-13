@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
 struct BootParameters;
 
@@ -206,21 +207,19 @@ public:
   bool BeginRecordingInput(const ControllerTypeArray& controllers,
                            const WiimoteEnabledArray& wiimotes);
   void RecordInput(const GCPadStatus* PadStatus, int controllerID);
-  void RecordWiimote(int wiimote, const u8* data, u8 size);
+  void RecordWiimote(int wiimote, const WiimoteEmu::SerializedWiimoteState& serialized_state);
 
   bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
   void LoadInput(const std::string& movie_path);
   void ReadHeader();
   void PlayController(GCPadStatus* PadStatus, int controllerID);
-  bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
-                   WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+  bool PlayWiimote(int wiimote, WiimoteEmu::DesiredWiimoteState* desired_state);
   void EndPlayInput(bool cont);
   void SaveRecording(const std::string& filename);
   void DoState(PointerWrap& p);
   void Shutdown();
   void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
-  void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
-                          WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+  void CheckWiimoteStatus(int wiimote, const WiimoteEmu::DesiredWiimoteState& desired_state);
 
   std::string GetInputDisplay();
   std::string GetRTCDisplay() const;
