@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -21,10 +20,6 @@
 
 enum class GameQuirk
 {
-  // The Wii remote hardware makes it possible to bypass normal data reporting and directly
-  // "read" extension or IR data. This would break our current TAS/NetPlay implementation.
-  DIRECTLY_READS_WIIMOTE_INPUT = 0,
-
   // Several Wii DI commands that are rarely/never used and not implemented by Dolphin
   USES_DVD_LOW_STOP_LASER,
   USES_DVD_LOW_OFFSET,

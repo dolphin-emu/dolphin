@@ -3,18 +3,13 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
-#include <algorithm>
-#include <array>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Common/Inline.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "Common/Logging/Log.h"
 
 namespace WiimoteEmu
 {
@@ -91,11 +86,9 @@ int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   if (I2C_ADDR != slave_addr)
     return 0;
 
-  if (0x00 == addr)
+  if (offsetof(Register, controller_data) == addr)
   {
     // This is where real hardware would update controller data
-    // We do it in Update() for TAS determinism
-    // TAS code fails to sync data reads and such..
   }
 
   auto const result = RawRead(&m_reg, addr, count, data_out);
