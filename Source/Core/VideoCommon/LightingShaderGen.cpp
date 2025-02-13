@@ -79,31 +79,34 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 // vertex shader
 // lights/colors
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
-// inColorName is color in vs and colors_ in ps
-// dest is o.colors_ in vs and colors_ in ps
-void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
-                                std::string_view in_color_name, std::string_view dest)
+void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid_data)
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
+    object.Write("vec4 dolphin_calculate_lighting_chn{}(vec4 base_color, vec3 pos, vec3 _normal)\n",
+                 j);
     object.Write("{{\n");
+
+    object.Write("\tint4 lacc;\n"
+                 "\tvec3 ldir, h, cosAttn, distAttn;\n"
+                 "\tfloat dist, dist2, attn;\n");
 
     const bool colormatsource = !!(uid_data.matsource & (1 << j));
     if (colormatsource)  // from vertex
-      object.Write("int4 mat = int4(round({}{} * 255.0));\n", in_color_name, j);
+      object.Write("\tint4 mat = int4(round(base_color * 255.0));\n");
     else  // from color
-      object.Write("int4 mat = {}[{}];\n", I_MATERIALS, j + 2);
+      object.Write("\tint4 mat = {}[{}];\n", I_MATERIALS, j + 2);
 
     if ((uid_data.enablelighting & (1 << j)) != 0)
     {
       if ((uid_data.ambsource & (1 << j)) != 0)  // from vertex
-        object.Write("lacc = int4(round({}{} * 255.0));\n", in_color_name, j);
+        object.Write("\tlacc = int4(round(base_color * 255.0));\n");
       else  // from color
-        object.Write("lacc = {}[{}];\n", I_MATERIALS, j);
+        object.Write("\tlacc = {}[{}];\n", I_MATERIALS, j);
     }
     else
     {
-      object.Write("lacc = int4(255, 255, 255, 255);\n");
+      object.Write("\tlacc = int4(255, 255, 255, 255);\n");
     }
 
     // check if alpha is different
@@ -111,21 +114,21 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
     if (alphamatsource != colormatsource)
     {
       if (alphamatsource)  // from vertex
-        object.Write("mat.w = int(round({}{}.w * 255.0));\n", in_color_name, j);
+        object.Write("\tmat.w = int(round(base_color.w * 255.0));\n");
       else  // from color
-        object.Write("mat.w = {}[{}].w;\n", I_MATERIALS, j + 2);
+        object.Write("\tmat.w = {}[{}].w;\n", I_MATERIALS, j + 2);
     }
 
     if ((uid_data.enablelighting & (1 << (j + 2))) != 0)
     {
       if ((uid_data.ambsource & (1 << (j + 2))) != 0)  // from vertex
-        object.Write("lacc.w = int(round({}{}.w * 255.0));\n", in_color_name, j);
+        object.Write("\tlacc.w = int(round(base_color.w * 255.0));\n");
       else  // from color
-        object.Write("lacc.w = {}[{}].w;\n", I_MATERIALS, j);
+        object.Write("\tlacc.w = {}[{}].w;\n", I_MATERIALS, j);
     }
     else
     {
-      object.Write("lacc.w = 255;\n");
+      object.Write("\tlacc.w = 255;\n");
     }
 
     if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
@@ -144,9 +147,9 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
           GenerateLightShader(object, uid_data, i, j + 2, true);
       }
     }
-    object.Write("lacc = clamp(lacc, 0, 255);\n");
-    object.Write("{}{} = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, j);
-    object.Write("}}\n");
+    object.Write("\tlacc = clamp(lacc, 0, 255);\n");
+    object.Write("\treturn vec4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n");
+    object.Write("}}\n\n");
   }
 }
 

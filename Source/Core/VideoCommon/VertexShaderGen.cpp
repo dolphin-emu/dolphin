@@ -190,6 +190,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
+  GenerateLightingShaderHeader(out, uid_data->lighting);
 
   if (uid_data->vs_expand == VSExpand::None)
   {
@@ -434,7 +435,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
             "float3 ldir, h, cosAttn, distAttn;\n"
             "float dist, dist2, attn;\n");
 
-  GenerateLightingShaderCode(out, uid_data->lighting, "vertex_color_", "o.colors_");
+  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+  {
+    out.Write(
+        "\to.colors_{0} = dolphin_calculate_lighting_chn{0}(vertex_color_{0}, pos.xyz, _normal);\n",
+        chan);
+  }
 
   // transform texcoords
   out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
