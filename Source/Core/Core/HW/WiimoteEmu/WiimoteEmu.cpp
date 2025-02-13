@@ -803,14 +803,6 @@ Extension* Wiimote::GetActiveExtension() const
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
 }
 
-EncryptionKey Wiimote::GetExtensionEncryptionKey() const
-{
-  if (ExtensionNumber::NONE == GetActiveExtensionNumber())
-    return {};
-
-  return static_cast<EncryptedExtension*>(GetActiveExtension())->ext_key;
-}
-
 bool Wiimote::IsSideways() const
 {
   const bool sideways_modifier_toggle = m_hotkeys->GetSettingsModifier()[0];

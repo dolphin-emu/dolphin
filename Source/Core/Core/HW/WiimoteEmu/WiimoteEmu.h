@@ -246,9 +246,6 @@ private:
   Extension* GetActiveExtension() const;
   Extension* GetNoneExtension() const;
 
-  // TODO: Kill this nonsensical function used for TAS:
-  EncryptionKey GetExtensionEncryptionKey() const;
-
   struct ReadRequest
   {
     WiimoteCommon::AddressSpace space;
