@@ -885,6 +885,70 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_stages, bool per_pixel
   out->Write("\tcustom_data.time_ms = time_ms;\n");
 }
 
+void WriteDepthHeader(APIType api_type, const ShaderHostConfig& host_config,
+                      const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("int dolphin_calculate_zcoord(vec4 rawpos, vec4 clipPos, ivec4 last_stage_texmap)\n");
+  out.Write("{{\n");
+
+  if (uid_data->zfreeze)
+  {
+    out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
+    out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
+
+    out.Write("\tvec2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
+
+    // Opengl has reversed vertical screenspace coordinates
+    if (api_type == APIType::OpenGL)
+      out.Write("\tscreenpos.y = {}.0 - screenpos.y;\n", EFB_HEIGHT);
+
+    out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
+              ".y * screenpos.y);\n");
+  }
+  else if (!host_config.fast_depth_calc)
+  {
+    // FastDepth means to trust the depth generated in perspective division.
+    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
+    // For disabled FastDepth we just calculate the depth value again.
+    // The performance impact of this additional calculation doesn't matter, but it prevents
+    // the host GPU driver from performing any early depth test optimizations.
+    out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
+    // the screen space depth value = far z + (clip z / clip w) * z range
+    out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
+              "[1].y));\n");
+  }
+  else
+  {
+    if (!host_config.backend_reversed_depth_range)
+      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+    else
+      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+  }
+  out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
+
+  // depth texture can safely be ignored if the result won't be written to the depth buffer
+  // (early_ztest) and isn't used for fog either
+  const bool skip_ztexture = !uid_data->per_pixel_depth && uid_data->fog_fsel == FogType::Off;
+
+  // Note: depth texture output is only written to depth buffer if late depth test is used
+  // theoretical final depth value is used for fog calculation, though, so we have to emulate
+  // ztextures anyway
+  if (uid_data->ztex_op != ZTexOp::Disabled && !skip_ztexture)
+  {
+    // use the texture input of the last texture stage, hopefully this has been read and
+    // is in correct format...
+    out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
+    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, last_stage_texmap.xyzw) + " I_ZBIAS
+              "[1].w {};\n",
+              (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
+    out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
+  }
+
+  out.Write("\treturn zCoord;\n");
+
+  out.Write("}}\n\n");
+}
+
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
                        APIType api_type, bool stereo, bool has_custom_shaders);
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
@@ -918,6 +982,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   WriteBitfieldExtractHeader(out, api_type, host_config);
 
   WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box, custom_details);
+  WriteDepthHeader(api_type, host_config, uid_data, out);
 
   // Custom shader details
   WriteCustomShaderStructDef(&out, uid_data->genMode_numtexgens);
@@ -1232,71 +1297,25 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
             "\t// but doesn't do anything in blending\n"
             "\tif (prev.a == 1) prev.a = 0;\n");
 
-  if (uid_data->zfreeze)
+  const bool write_depth =
+      uid_data->ztest == EmulatedZ::Early || uid_data->ztest == EmulatedZ::EarlyWithFBFetch ||
+      uid_data->ztest == EmulatedZ::EarlyWithZComplocHack || uid_data->ztest == EmulatedZ::Late;
+  const bool needs_depth = uid_data->per_pixel_depth && write_depth;
+  const bool needs_zcoord = needs_depth || uid_data->fog_fsel != FogType::Off;
+  if (needs_zcoord)
   {
-    out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
-    out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
-
-    out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
-
-    // Opengl has reversed vertical screenspace coordinates
-    if (api_type == APIType::OpenGL)
-      out.Write("\tscreenpos.y = {}.0 - screenpos.y;\n", EFB_HEIGHT);
-
-    out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
-              ".y * screenpos.y);\n");
-  }
-  else if (!host_config.fast_depth_calc)
-  {
-    // FastDepth means to trust the depth generated in perspective division.
-    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
-    // For disabled FastDepth we just calculate the depth value again.
-    // The performance impact of this additional calculation doesn't matter, but it prevents
-    // the host GPU driver from performing any early depth test optimizations.
-    out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
-    // the screen space depth value = far z + (clip z / clip w) * z range
-    out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
-              "[1].y));\n");
-  }
-  else
-  {
-    if (!host_config.backend_reversed_depth_range)
-      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("\tint zCoord = dolphin_calculate_zcoord(rawpos, clipPos, textemp);\n");
+    }
     else
-      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
-  }
-  out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
-
-  // depth texture can safely be ignored if the result won't be written to the depth buffer
-  // (early_ztest) and isn't used for fog either
-  const bool skip_ztexture = !uid_data->per_pixel_depth && uid_data->fog_fsel == FogType::Off;
-
-  // Note: z-textures are not written to depth buffer if early depth test is used
-  const bool early_ztest = uid_data->ztest == EmulatedZ::Early ||
-                           uid_data->ztest == EmulatedZ::EarlyWithFBFetch ||
-                           uid_data->ztest == EmulatedZ::EarlyWithZComplocHack;
-  if (uid_data->per_pixel_depth && early_ztest)
-  {
-    if (!host_config.backend_reversed_depth_range)
-      out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
-    else
-      out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+    {
+      out.Write("\tint zCoord = dolphin_calculate_zcoord(rawpos, vec4(0, 0, 0, 0), "
+                "textemp);\n");
+    }
   }
 
-  // Note: depth texture output is only written to depth buffer if late depth test is used
-  // theoretical final depth value is used for fog calculation, though, so we have to emulate
-  // ztextures anyway
-  if (uid_data->ztex_op != ZTexOp::Disabled && !skip_ztexture)
-  {
-    // use the texture input of the last texture stage (textemp), hopefully this has been read and
-    // is in correct format...
-    out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
-    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS "[1].w {};\n",
-              (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
-    out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
-  }
-
-  if (uid_data->per_pixel_depth && uid_data->ztest == EmulatedZ::Late)
+  if (needs_depth)
   {
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
