@@ -917,6 +917,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // Stuff that is shared between ubershaders and pixelgen.
   WriteBitfieldExtractHeader(out, api_type, host_config);
 
+  if (per_pixel_lighting)
+  {
+    GenerateLightingShaderHeader(out, uid_data->lighting);
+  }
+
   WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box, custom_details);
 
   // Custom shader details
@@ -1133,7 +1138,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-    GenerateLightingShaderCode(out, uid_data->lighting, "colors_", "col");
+    for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+    {
+      out.Write("\tcol{0} = dolphin_calculate_lighting_chn{0}(colors_{0}, pos, _normal);\n", chan);
+    }
     // The number of colors available to TEV is determined by numColorChans.
     // Normally this is performed in the vertex shader after lighting, but with per-pixel lighting,
     // we need to perform it here.  (It needs to be done after lighting, as what was originally
