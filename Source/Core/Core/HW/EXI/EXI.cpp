@@ -205,14 +205,25 @@ void ExpansionInterfaceManager::ChangeDevice(Slot slot, EXIDeviceType device_typ
 void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
                                              CoreTiming::FromThread from_thread)
 {
-  // Let the hardware see no device for 1 second
+  ChangeDevice(channel, device_num, device_type, 0, m_system.GetSystemTimers().GetTicksPerSecond(),
+               from_thread);
+}
+
+void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
+                                             s64 cycles_delay_change, s64 cycles_no_device_visible,
+                                             CoreTiming::FromThread from_thread)
+{
+  // Let the hardware see no device for cycles_no_device_visible cycles after waiting for
+  // cycles_delay_change cycles
   auto& core_timing = m_system.GetCoreTiming();
-  core_timing.ScheduleEvent(0, m_event_type_change_device,
-                            ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
+  core_timing.ScheduleEvent(cycles_delay_change, m_event_type_change_device,
+                            (static_cast<u64>(channel) << 32) |
+                                (static_cast<u64>(EXIDeviceType::None) << 16) | device_num,
                             from_thread);
   core_timing.ScheduleEvent(
-      m_system.GetSystemTimers().GetTicksPerSecond(), m_event_type_change_device,
-      ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
+      cycles_delay_change + cycles_no_device_visible, m_event_type_change_device,
+      (static_cast<u64>(channel) << 32) | (static_cast<u64>(device_type) << 16) | device_num,
+      from_thread);
 }
 
 CEXIChannel* ExpansionInterfaceManager::GetChannel(u32 index)

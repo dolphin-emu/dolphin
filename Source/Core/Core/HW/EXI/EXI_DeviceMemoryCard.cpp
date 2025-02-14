@@ -172,6 +172,19 @@ CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_fo
   return {Config::GetGCIFolderPath(card_slot, region), true};
 }
 
+s32 CEXIMemoryCard::ReadFromMemcard(u32 memcard_offset, s32 length, u8* dest_address) const
+{
+  if (!m_memory_card)
+    return 0;
+
+  return m_memory_card->Read(memcard_offset, length, dest_address);
+}
+
+void CEXIMemoryCard::DisableWrites()
+{
+  m_allow_writes = false;
+}
+
 void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 {
   const std::string& game_id = SConfig::GetInstance().GetGameID();
@@ -289,7 +302,8 @@ void CEXIMemoryCard::SetCS(int cs)
     case Command::SectorErase:
       if (m_position > 2)
       {
-        m_memory_card->ClearBlock(m_address & (m_memory_card_size - 1));
+        if (m_allow_writes)
+          m_memory_card->ClearBlock(m_address & (m_memory_card_size - 1));
         m_status |= MC_STATUS_BUSY;
         m_status &= ~MC_STATUS_READY;
 
@@ -302,7 +316,8 @@ void CEXIMemoryCard::SetCS(int cs)
     case Command::ChipErase:
       if (m_position > 2)
       {
-        m_memory_card->ClearAll();
+        if (m_allow_writes)
+          m_memory_card->ClearAll();
         m_status &= ~MC_STATUS_BUSY;
       }
       break;
@@ -316,7 +331,8 @@ void CEXIMemoryCard::SetCS(int cs)
 
         while (count--)
         {
-          m_memory_card->Write(m_address, 1, &(m_programming_buffer[i++]));
+          if (m_allow_writes)
+            m_memory_card->Write(m_address, 1, &(m_programming_buffer[i++]));
           i &= 127;
           m_address = (m_address & ~0x1FF) | ((m_address + 1) & 0x1FF);
         }
@@ -542,12 +558,16 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 // write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
 void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 {
-  auto& memory = m_system.GetMemory();
-  m_memory_card->Write(m_address, size, memory.GetPointerForRange(addr, size));
+  if (m_allow_writes)
+  {
+    auto& memory = m_system.GetMemory();
+    m_memory_card->Write(m_address, size, memory.GetPointerForRange(addr, size));
+  }
 
   if (((m_address + size) % Memcard::BLOCK_SIZE) == 0)
   {
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "writing to block: {:x}", m_address / Memcard::BLOCK_SIZE);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "{}writing to block: {:x}", m_allow_writes ? "" : "fake ",
+                 m_address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed

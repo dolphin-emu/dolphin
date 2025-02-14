@@ -13,7 +13,9 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/MMIO.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
 
@@ -241,48 +243,94 @@ void CEXIChannel::DoState(PointerWrap& p)
   p.Do(m_dma_length);
   p.Do(m_control);
   p.Do(m_imm_data);
-
-  Memcard::HeaderData old_header_data = m_memcard_header_data;
   p.Do(m_memcard_header_data);
 
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
-    std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
-    EXIDeviceType type = device->m_device_type;
+    EXIDeviceType type = m_devices[device_index]->m_device_type;
     p.Do(type);
 
-    if (type == device->m_device_type)
+    if (type != m_devices[device_index]->m_device_type)
     {
-      device->DoState(p);
-    }
-    else
-    {
-      std::unique_ptr<IEXIDevice> save_device =
-          EXIDevice_Create(m_system, type, m_channel_id, m_memcard_header_data);
-      save_device->DoState(p);
-      AddDevice(std::move(save_device), device_index, false);
+      AddDevice(EXIDevice_Create(m_system, type, m_channel_id, m_memcard_header_data), device_index,
+                false);
     }
 
-    if (type == EXIDeviceType::MemoryCardFolder && old_header_data != m_memcard_header_data &&
-        !m_system.GetMovie().IsMovieActive())
+    m_devices[device_index]->DoState(p);
+
+    const bool is_memcard =
+        (type == EXIDeviceType::MemoryCard || type == EXIDeviceType::MemoryCardFolder);
+    if (is_memcard && !m_system.GetMovie().IsMovieActive())
     {
-      // We have loaded a savestate that has a GCI folder memcard that is different to the virtual
-      // card that is currently active. In order to prevent the game from recognizing this card as a
-      // 'different' memory card and preventing saving on it, we need to reinitialize the GCI folder
-      // card here with the loaded header data.
-      // We're intentionally calling ExpansionInterface::ChangeDevice() here instead of changing it
-      // directly so we don't switch immediately but after a delay, as if changed in the GUI. This
-      // should prevent games from assuming any stale data about the memory card, such as location
-      // of the individual save blocks, which may be different on the reinitialized card.
-      // Additionally, we immediately force the memory card to None so that any 'in-flight' writes
-      // (if someone managed to savestate while saving...) don't happen to hit the card.
-      // TODO: It might actually be enough to just switch to the card with the
-      // notify_presence_changed flag set to true? Not sure how software behaves if the previous and
-      // the new device type are identical in this case. I assume there is a reason we have this
-      // grace period when switching in the GUI.
-      AddDevice(EXIDeviceType::None, device_index);
-      m_system.GetExpansionInterface().ChangeDevice(
-          m_channel_id, device_index, EXIDeviceType::MemoryCardFolder, CoreTiming::FromThread::CPU);
+      // We are processing a savestate that has a memory card plugged into the system, but don't
+      // want to actually store the memory card in the savestate, so loading older savestates
+      // doesn't confusingly revert in-game saves done since then.
+
+      // Handling this properly is somewhat complex. When loading a state, the game still needs to
+      // see the memory card device as it was (or at least close enough) when the state was made,
+      // but at the same time we need to tell the game that the data on the card may have been
+      // changed and it should not assume that the data (especially the file system blocks) it may
+      // or may not have read before is still valid.
+
+      // To accomplish this we do the following:
+
+      CEXIMemoryCard* card_device = static_cast<CEXIMemoryCard*>(m_devices[device_index].get());
+      constexpr s32 file_system_data_size = 0xa000;
+
+      if (p.IsReadMode())
+      {
+        // When loading a state, we compare the previously written file system block data with the
+        // data currently in the card. If it mismatches in any way, we make sure to notify the game.
+        bool should_notify_game = false;
+        bool has_card_file_system_data;
+        p.Do(has_card_file_system_data);
+        if (has_card_file_system_data)
+        {
+          std::array<u8, file_system_data_size> state_file_system_data;
+          p.Do(state_file_system_data);
+          std::array<u8, file_system_data_size> card_file_system_data;
+          const s32 bytes_read =
+              card_device->ReadFromMemcard(0, file_system_data_size, card_file_system_data.data());
+          bool read_success = bytes_read == file_system_data_size;
+          should_notify_game = !(read_success && state_file_system_data == card_file_system_data);
+        }
+        else
+        {
+          should_notify_game = true;
+        }
+
+        if (should_notify_game)
+        {
+          // We want to tell the game that the card is different, but don't want to immediately
+          // destroy the memory card device, as there may be pending operations running on the CPU
+          // side (at the very least, I've seen memory accesses to 0 when switching the device
+          // immediately in F-Zero GX). In order to ensure data on the card isn't corrupted by
+          // these, we disable writes to the memory card device.
+          card_device->DisableWrites();
+
+          // And then we force a re-load of the memory card by switching to a null device a frame
+          // from now, then back to the memory card a few frames later. This also makes sure that
+          // the GCI folder header matches what the game expects, so the game never recognizes it as
+          // a 'different' memory card and prevents saving on it.
+          const u32 cycles_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
+          m_system.GetExpansionInterface().ChangeDevice(
+              m_channel_id, device_index, type, cycles_per_second / 60, cycles_per_second / 3,
+              CoreTiming::FromThread::CPU);
+        }
+      }
+      else
+      {
+        // When saving a state (or when we're measuring or verifiying the state data) we read the
+        // file system blocks from the currently active memory card and push them into p, so we have
+        // a reference of how the card file system looked at the time of savestate creation.
+        std::array<u8, file_system_data_size> card_file_system_data;
+        const s32 bytes_read =
+            card_device->ReadFromMemcard(0, file_system_data_size, card_file_system_data.data());
+        bool read_success = bytes_read == file_system_data_size;
+        p.Do(read_success);
+        if (read_success)
+          p.Do(card_file_system_data);
+      }
     }
   }
 }
