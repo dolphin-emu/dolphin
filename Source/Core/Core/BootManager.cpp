@@ -193,6 +193,12 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
 // non-base layer, and restore only the overriden settings.
 static void RestoreSYSCONF()
 {
+  //Restoring all settings directly from Base can cause issues with certain settings that were
+  //changed after the Dolphin starts,so these settings will instead have their current values saved
+  //to the layer
+  std::set<Config::Location> overrides = {
+      Config::SYSCONF_PROGRESSIVE_SCAN.GetLocation()
+  };
   // This layer contains the new SYSCONF settings (including any temporary settings).
   Config::Layer temp_layer(Config::LayerType::Base);
   // Use a separate loader so the temp layer doesn't automatically save
@@ -202,10 +208,17 @@ static void RestoreSYSCONF()
   {
     std::visit(
         [&](auto* info) {
+          if (overrides.find(info->GetLocation()) != overrides.end())
+          {
+            Config::SetBase(*info, Config::Get(*info));
+
+          }
           // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
           // Otherwise we leave the new value in the SYSCONF.
-          if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
+          else if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
+          {
             Config::SetBase(*info, temp_layer.Get(*info));
+          }
         },
         setting.config_info);
   }
