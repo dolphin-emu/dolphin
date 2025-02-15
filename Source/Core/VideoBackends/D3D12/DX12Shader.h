@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3DCommon/Shader.h"
 

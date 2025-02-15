@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace DX12
