@@ -391,8 +391,12 @@ add_library(core
   IOS/Network/KD/VFF/VFFUtil.h
   IOS/Network/KD/WC24File.h
   IOS/Network/KD/Mail/MailCommon.h
+  IOS/Network/KD/Mail/MailParser.cpp
+  IOS/Network/KD/Mail/MailParser.h
   IOS/Network/KD/Mail/WC24FriendList.cpp
   IOS/Network/KD/Mail/WC24FriendList.h
+  IOS/Network/KD/Mail/WC24Receive.cpp
+  IOS/Network/KD/Mail/WC24Receive.h
   IOS/Network/KD/Mail/WC24Send.cpp
   IOS/Network/KD/Mail/WC24Send.h
   IOS/Network/MACUtils.cpp
@@ -647,6 +651,7 @@ PRIVATE
   fmt::fmt
   LZO::LZO
   LZ4::LZ4
+  MultipartParser
   ZLIB::ZLIB
 )
 
