@@ -208,11 +208,14 @@ static void RestoreSYSCONF()
   {
     std::visit(
         [&](auto* info) {
-          if (overrides.find(info->GetLocation()) != overrides.end())
+          //Check if the current game is the Wii menu, since it should be the only one
+          //allowed to actively change SYSCONF settings
+          if (overrides.find(info->GetLocation()) != overrides.end() &&
+              SConfig::GetInstance().GetGameID() != "0000000100000002")  // Wii Menu ID
           {
             Config::SetBase(*info, Config::Get(*info));
-
           }
+
           // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
           // Otherwise we leave the new value in the SYSCONF.
           else if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
