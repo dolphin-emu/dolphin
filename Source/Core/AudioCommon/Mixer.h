@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <bit>
 #include <optional>
 
 #include "AudioCommon/AudioStretcher.h"
@@ -286,7 +287,7 @@ private:
     using GranualarBuffer =
         std::array<StereoPair, sizeof(GRANUALAR_WINDOW) / sizeof(GRANUALAR_WINDOW[0])>;
     static constexpr int GRANULAR_BUFFER_BITS =
-        32 - __builtin_ctz(sizeof(GRANUALAR_WINDOW) / sizeof(GRANUALAR_WINDOW[0]));
+        32 - std::countr_zero(sizeof(GRANUALAR_WINDOW) / sizeof(GRANUALAR_WINDOW[0]));
 
     class Granual final
     {
