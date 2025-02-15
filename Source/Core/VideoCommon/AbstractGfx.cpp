@@ -75,7 +75,7 @@ void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool co
                         static_cast<float>((color >> 8) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 0) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 24) & 0xFF) / 255.0f},
-                       static_cast<float>(z & 0xFFFFFF) / 16777216.0f};
+                       static_cast<float>(z & 0xFFFFFF) / 16777215.0f};
   if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
     uniforms.clear_depth = 1.0f - uniforms.clear_depth;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));

@@ -117,7 +117,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
   clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
+  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777215.0f;
   if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
     clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
 

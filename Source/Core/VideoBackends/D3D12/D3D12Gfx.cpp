@@ -133,7 +133,7 @@ void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enab
           ->TransitionToState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
       // D3D does not support reversed depth ranges.
-      const float clear_depth = 1.0f - static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
+      const float clear_depth = 1.0f - static_cast<float>(z & 0xFFFFFF) / 16777215.0f;
       d3d_frame_buffer->ClearDepth(clear_depth, &d3d_clear_rc);
       z_enable = false;
     }
