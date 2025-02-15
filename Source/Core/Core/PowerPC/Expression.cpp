@@ -27,6 +27,7 @@ using std::isnan;
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/MMU.h"
@@ -392,8 +393,9 @@ Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer
                 "Expression: Sorted lookup should not contain duplicate keys.");
   for (auto* v = m_vars->head; v != nullptr; v = v->next)
   {
-    const auto iter = std::ranges::lower_bound(sorted_lookup, v->name, {}, &LookupKV::first);
-    if (iter != sorted_lookup.end() && iter->first == v->name)
+    const auto iter = std::ranges::lower_bound(sorted_lookup, v->name,
+                                               Common::CaseInsensitiveLess{}, &LookupKV::first);
+    if (iter != sorted_lookup.end() && Common::CaseInsensitiveEquals(iter->first, v->name))
       m_binds.emplace_back(iter->second);
     else
       m_binds.emplace_back();
