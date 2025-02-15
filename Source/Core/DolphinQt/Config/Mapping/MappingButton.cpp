@@ -11,8 +11,6 @@
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -67,15 +65,11 @@ static QString RefToDisplayString(ControlReference* ref)
   return expression;
 }
 
-bool MappingButton::IsInput() const
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, ControlType control_type)
+    : ElidedButton{RefToDisplayString(ref)}, m_mapping_window{parent->GetParent()},
+      m_reference{ref}, m_control_type{control_type}
 {
-  return m_reference->IsInput();
-}
-
-MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref)
-    : ElidedButton(RefToDisplayString(ref)), m_mapping_window(parent->GetParent()), m_reference(ref)
-{
-  if (IsInput())
+  if (m_reference->IsInput())
   {
     setToolTip(
         tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
@@ -88,10 +82,8 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref)
   connect(this, &MappingButton::clicked, this, &MappingButton::Clicked);
 
   connect(parent, &MappingWidget::ConfigChanged, this, &MappingButton::ConfigChanged);
-  connect(this, &MappingButton::ConfigChanged, [this] {
-    setText(RefToDisplayString(m_reference));
-    m_is_mapping = false;
-  });
+  connect(this, &MappingButton::ConfigChanged,
+          [this] { setText(RefToDisplayString(m_reference)); });
 }
 
 void MappingButton::AdvancedPressed()
@@ -114,7 +106,6 @@ void MappingButton::Clicked()
     return;
   }
 
-  m_is_mapping = true;
   m_mapping_window->QueueInputDetection(this);
 }
 
@@ -129,14 +120,6 @@ void MappingButton::Clear()
   m_mapping_window->Save();
 
   m_mapping_window->UnQueueInputDetection(this);
-}
-
-void MappingButton::StartMapping()
-{
-  // Focus just makes it more clear which button is currently being mapped.
-  setFocus();
-  setText(tr("[ Press Now ]"));
-  QtUtils::InstallKeyboardBlocker(this, this, &MappingButton::ConfigChanged);
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)
@@ -158,4 +141,9 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
 ControlReference* MappingButton::GetControlReference()
 {
   return m_reference;
+}
+
+auto MappingButton::GetControlType() const -> ControlType
+{
+  return m_control_type;
 }

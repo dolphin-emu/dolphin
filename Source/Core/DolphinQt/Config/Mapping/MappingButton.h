@@ -15,14 +15,21 @@ class MappingButton : public ElidedButton
 {
   Q_OBJECT
 public:
-  MappingButton(MappingWidget* widget, ControlReference* ref);
+  enum class ControlType
+  {
+    NormalInput,
+    ModifierInput,
+    Output,
+  };
 
-  bool IsInput() const;
+  MappingButton(MappingWidget* widget, ControlReference* ref, ControlType type);
+
   ControlReference* GetControlReference();
-  void StartMapping();
+  ControlType GetControlType() const;
 
 signals:
   void ConfigChanged();
+  void QueueNextButtonMapping();
 
 private:
   void Clear();
@@ -33,5 +40,5 @@ private:
 
   MappingWindow* const m_mapping_window;
   ControlReference* const m_reference;
-  bool m_is_mapping = false;
+  const ControlType m_control_type;
 };

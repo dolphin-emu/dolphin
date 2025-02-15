@@ -7,6 +7,7 @@
 #include <QWidget>
 
 class InputConfig;
+class MappingButton;
 class MappingNumeric;
 class MappingWindow;
 class QFormLayout;
@@ -55,4 +56,5 @@ protected:
 
 private:
   MappingWindow* m_parent;
+  MappingButton* m_previous_mapping_button = nullptr;
 };
