@@ -85,15 +85,8 @@ void Mixer::MixerFifo::Mix(short* samples, unsigned int num_samples)
 
     if (m_current_index < HALF)
     {
-      if (m_next.has_value())
-      {
-        m_front = m_back;
-        m_back = m_next.value();
-      }
-      else
-      {
-        std::swap(m_front, m_back);
-      }
+      m_front = m_back;
+      m_back = m_next;
 
       m_current_index += HALF;
     }
@@ -161,7 +154,7 @@ void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_sample
     bool start = m_buffer_index == 0;
     bool middle = m_buffer_index == m_buffer.size() / 2;
     if (start || middle)
-      m_next = std::optional(Granual(m_buffer, middle));
+      m_next = Granual(m_buffer, middle);
   }
 }
 
