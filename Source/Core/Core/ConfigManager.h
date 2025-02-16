@@ -65,6 +65,7 @@ struct SConfig
   const std::string& GetGameTDBID() const { return m_gametdb_id; }
   const std::string& GetTitleName() const { return m_title_name; }
   const std::string& GetTitleDescription() const { return m_title_description; }
+  std::string GetTriID() const { return m_tri_id; }
   u64 GetTitleID() const { return m_title_id; }
   u16 GetRevision() const { return m_revision; }
   void ResetRunningGameMetadata();
@@ -111,12 +112,14 @@ private:
   ~SConfig();
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              u64 title_id, u16 revision, DiscIO::Region region);
+                              std::string tri_id, u64 title_id, u16 revision,
+                              DiscIO::Region region);
 
   static SConfig* m_Instance;
 
   std::string m_game_id;
   std::string m_gametdb_id;
+  std::string m_tri_id;
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;

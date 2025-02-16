@@ -56,6 +56,9 @@ void TitleDatabase::AddLazyMap(DiscIO::Language language, const std::string& lan
   m_title_maps[language] = [language_code]() -> Map {
     return LoadMap(File::GetSysDirectory() + "wiitdb-" + language_code + ".txt");
   };
+  m_trititle_maps[language] = [language_code]() -> Map {
+    return LoadMap(File::GetSysDirectory() + "tritdb-" + language_code + ".txt");
+  };
 }
 
 TitleDatabase::TitleDatabase()
@@ -91,8 +94,32 @@ TitleDatabase::TitleDatabase()
 TitleDatabase::~TitleDatabase() = default;
 
 const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
+                                               const std::string& tri_id,
                                                DiscIO::Language language) const
 {
+  if (tri_id != "" || NULL)
+  {
+    const Map& map = *m_trititle_maps.at(DiscIO::Language::English);
+    auto it = map.find(tri_id);
+    if (it != map.end())
+      return it->second;
+
+    // This code has been commented out as there is currently only a english title map, and all
+    // Triforce games are detected as Japanese.
+
+    // if (language != DiscIO::Language::English)
+    //{
+    //  const Map& english_trimap = *m_trititle_maps.at(DiscIO::Language::English);
+    //  it = english_trimap.find(tri_id);
+    //  if (it != english_trimap.end())
+    //    return it->second;
+    //}
+
+    // it = m_base_map.find(tri_id);
+    // if (it != m_base_map.end())
+    //  return it->second;
+  }
+
   auto it = m_user_title_map.find(gametdb_id);
   if (it != m_user_title_map.end())
     return it->second;
@@ -125,12 +152,12 @@ const std::string& TitleDatabase::GetChannelName(u64 title_id, DiscIO::Language 
   const std::string id{
       {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
        static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
-  return GetTitleName(id, language);
+  return GetTitleName(id, "", language);
 }
 
 std::string TitleDatabase::Describe(const std::string& gametdb_id, DiscIO::Language language) const
 {
-  const std::string& title_name = GetTitleName(gametdb_id, language);
+  const std::string& title_name = GetTitleName(gametdb_id, "", language);
   if (title_name.empty())
     return gametdb_id;
   return fmt::format("{} ({})", title_name, gametdb_id);
