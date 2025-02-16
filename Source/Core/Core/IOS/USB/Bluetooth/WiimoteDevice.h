@@ -170,5 +170,7 @@ private:
   void SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
                                        u16 start_attr_id, u16 end_attr_id,
                                        u16 maximum_attribute_byte_count, u8* continuation_state);
+
+  std::string GetDisplayName();
 };
 }  // namespace IOS::HLE

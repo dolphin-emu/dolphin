@@ -17,7 +17,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Common/MsgHandler.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -28,6 +27,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
@@ -39,8 +39,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -67,17 +66,20 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
 
-void Wiimote::Reset()
+static const u16 bboard_bitmasks[] = {BalanceBoard::BUTTON_POWER};
+
+static constexpr u16 IR_LOW_X = 0x7F;
+static constexpr u16 IR_LOW_Y = 0x5D;
+static constexpr u16 IR_HIGH_X = 0x380;
+static constexpr u16 IR_HIGH_Y = 0x2A2;
+
+void WiimoteBase::Reset()
 {
   const bool want_determinism = Core::WantsDeterminism();
-
-  SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
   m_reporting_mode = InputReportID::ReportCore;
   m_reporting_continuous = false;
-
-  m_speaker_mute = false;
 
   // EEPROM
 
@@ -108,69 +110,38 @@ void Wiimote::Reset()
   }
   else
   {
-    // Load some default data.
-
-    // IR calibration:
-    std::array<u8, 11> ir_calibration = {
-        // Point 1
-        IR_LOW_X & 0xFF,
-        IR_LOW_Y & 0xFF,
-        // Mix
-        ((IR_LOW_Y & 0x300) >> 2) | ((IR_LOW_X & 0x300) >> 4) | ((IR_LOW_Y & 0x300) >> 6) |
-            ((IR_HIGH_X & 0x300) >> 8),
-        // Point 2
-        IR_HIGH_X & 0xFF,
-        IR_LOW_Y & 0xFF,
-        // Point 3
-        IR_HIGH_X & 0xFF,
-        IR_HIGH_Y & 0xFF,
-        // Mix
-        ((IR_HIGH_Y & 0x300) >> 2) | ((IR_HIGH_X & 0x300) >> 4) | ((IR_HIGH_Y & 0x300) >> 6) |
-            ((IR_LOW_X & 0x300) >> 8),
-        // Point 4
-        IR_LOW_X & 0xFF,
-        IR_HIGH_Y & 0xFF,
-        // Checksum
-        0x00,
-    };
-    UpdateCalibrationDataChecksum(ir_calibration, 1);
-    m_eeprom.ir_calibration_1 = ir_calibration;
-    m_eeprom.ir_calibration_2 = ir_calibration;
-
-    // Accel calibration:
-    // Last byte is a checksum.
-    std::array<u8, 10> accel_calibration = {
-        ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
-    };
-    UpdateCalibrationDataChecksum(accel_calibration, 1);
-    m_eeprom.accel_calibration_1 = accel_calibration;
-    m_eeprom.accel_calibration_2 = accel_calibration;
-
-    // TODO: Is this needed?
-    // Data of unknown purpose:
-    constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {
-        0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00, 0x33, 0xCC, 0x44, 0xBB,
-        0x00, 0x00, 0x66, 0x99, 0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
-    m_eeprom.unk_2 = EEPROM_DATA_16D0;
-
-    std::string mii_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin";
-    if (File::Exists(mii_file))
-    {
-      // Import from the existing mii.bin file, if present
-      std::ifstream file;
-      File::OpenFStream(file, mii_file, std::ios::binary | std::ios::in);
-      file.read(reinterpret_cast<char*>(m_eeprom.mii_data_1.data()), m_eeprom.mii_data_1.size());
-      m_eeprom.mii_data_2 = m_eeprom.mii_data_1;
-      file.close();
-    }
+    LoadDefaultEeprom();
   }
 
   m_read_request = {};
 
   // Initialize i2c bus:
   m_i2c_bus.Reset();
-  m_i2c_bus.AddSlave(&m_speaker_logic);
-  m_i2c_bus.AddSlave(&m_camera_logic);
+
+  m_status = {};
+
+  // A real wii remote does not normally send a status report on connection.
+  // But if an extension is already attached it does send one.
+  // Clearing this initially will simulate that on the first update cycle.
+  m_status.extension = 0;
+}
+
+u8 WiimoteBase::GetWiimoteDeviceIndex() const
+{
+  return m_bt_device_index;
+}
+
+void WiimoteBase::SetWiimoteDeviceIndex(u8 index)
+{
+  m_bt_device_index = index;
+}
+
+void Wiimote::Reset()
+{
+  const bool want_determinism = Core::WantsDeterminism();
+
+  SetRumble(false);
+  m_speaker_mute = false;
 
   // Reset extension connections to NONE:
   m_is_motion_plus_attached = false;
@@ -186,16 +157,15 @@ void Wiimote::Reset()
                         m_motion_plus_setting.GetValue());
   }
 
+  WiimoteBase::Reset();
+
+  // Initialize i2c bus:
+  m_i2c_bus.AddSlave(&m_speaker_logic);
+  m_i2c_bus.AddSlave(&m_camera_logic);
+
   // Reset sub-devices.
   m_speaker_logic.Reset();
   m_camera_logic.Reset();
-
-  m_status = {};
-
-  // A real wii remote does not normally send a status report on connection.
-  // But if an extension is already attached it does send one.
-  // Clearing this initially will simulate that on the first update cycle.
-  m_status.extension = 0;
 
   // Dynamics:
   m_swing_state = {};
@@ -206,7 +176,81 @@ void Wiimote::Reset()
   m_imu_cursor_state = {};
 }
 
-Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
+void Wiimote::LoadDefaultEeprom()
+{
+  // Load some default data.
+
+  // IR calibration:
+  std::array<u8, 11> ir_calibration = {
+      // Point 1
+      IR_LOW_X & 0xFF,
+      IR_LOW_Y & 0xFF,
+      // Mix
+      ((IR_LOW_Y & 0x300) >> 2) | ((IR_LOW_X & 0x300) >> 4) | ((IR_LOW_Y & 0x300) >> 6) |
+          ((IR_HIGH_X & 0x300) >> 8),
+      // Point 2
+      IR_HIGH_X & 0xFF,
+      IR_LOW_Y & 0xFF,
+      // Point 3
+      IR_HIGH_X & 0xFF,
+      IR_HIGH_Y & 0xFF,
+      // Mix
+      ((IR_HIGH_Y & 0x300) >> 2) | ((IR_HIGH_X & 0x300) >> 4) | ((IR_HIGH_Y & 0x300) >> 6) |
+          ((IR_LOW_X & 0x300) >> 8),
+      // Point 4
+      IR_LOW_X & 0xFF,
+      IR_HIGH_Y & 0xFF,
+      // Checksum
+      0x00,
+  };
+  UpdateCalibrationDataChecksum(ir_calibration, 1);
+  m_eeprom.ir_calibration_1 = ir_calibration;
+  m_eeprom.ir_calibration_2 = ir_calibration;
+
+  // Accel calibration:
+  // Last byte is a checksum.
+  std::array<u8, 10> accel_calibration = {
+      ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
+  };
+  UpdateCalibrationDataChecksum(accel_calibration, 1);
+  m_eeprom.accel_calibration_1 = accel_calibration;
+  m_eeprom.accel_calibration_2 = accel_calibration;
+
+  // TODO: Is this needed?
+  // Data of unknown purpose:
+  constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00,
+                                                   0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99,
+                                                   0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
+  m_eeprom.unk_2 = EEPROM_DATA_16D0;
+
+  std::string mii_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin";
+  if (File::Exists(mii_file))
+  {
+    // Import from the existing mii.bin file, if present
+    std::ifstream file;
+    File::OpenFStream(file, mii_file, std::ios::binary | std::ios::in);
+    file.read(reinterpret_cast<char*>(m_eeprom.mii_data_1.data()), m_eeprom.mii_data_1.size());
+    m_eeprom.mii_data_2 = m_eeprom.mii_data_1;
+    file.close();
+  }
+}
+
+void BalanceBoard::LoadDefaultEeprom()
+{
+  // A real balance board starts with zero-filled EEPROM.
+  m_eeprom = {};
+}
+
+WiimoteBase::WiimoteBase(const u8 index) : m_index(index), m_bt_device_index(index)
+{
+}
+
+InputConfig* WiimoteBase::GetConfig() const
+{
+  return ::Wiimote::GetConfig();
+}
+
+Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
 {
   using Translatability = ControllerEmu::Translatability;
 
@@ -280,7 +324,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
-
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
   // Rumble
@@ -323,14 +366,7 @@ Wiimote::~Wiimote()
 
 std::string Wiimote::GetName() const
 {
-  if (m_index == WIIMOTE_BALANCE_BOARD)
-    return "BalanceBoard";
   return fmt::format("Wiimote{}", 1 + m_index);
-}
-
-InputConfig* Wiimote::GetConfig() const
-{
-  return ::Wiimote::GetConfig();
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
@@ -429,13 +465,13 @@ ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) 
       ->GetGroup(group);
 }
 
-bool Wiimote::ProcessExtensionPortEvent()
+auto WiimoteBase::ProcessExtensionPortEvent() -> UpdateProgress
 {
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
   // data reporting is disabled and the Data Reporting Mode must be reset before new data can
   // arrive.
   if (m_extension_port.IsDeviceConnected() == m_status.extension)
-    return false;
+    return UpdateProgress::Continue;
 
   // FYI: This happens even during a read request which continues after the status report is sent.
   m_reporting_mode = InputReportID::ReportDisabled;
@@ -444,12 +480,20 @@ bool Wiimote::ProcessExtensionPortEvent()
 
   HandleRequestStatus(OutputReportRequestStatus{});
 
-  return true;
+  return UpdateProgress::DoNotContinue;
 }
 
 void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
 {
   m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
+}
+
+void Wiimote::UpdateBatteryStatus(double charge)
+{
+  m_status.SetEstimatedCharge(charge);
+
+  // Less than 0x20 triggers the low-battery flag:
+  m_status.battery_low = m_status.battery < 0x20;
 }
 
 static std::array<CameraPoint, CameraLogic::NUM_POINTS>
@@ -533,61 +577,85 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
       ->BuildDesiredExtensionState(&target_state->extension);
 }
 
-u8 Wiimote::GetWiimoteDeviceIndex() const
-{
-  return m_bt_device_index;
-}
-
-void Wiimote::SetWiimoteDeviceIndex(u8 index)
-{
-  m_bt_device_index = index;
-}
-
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
-                           SensorBarState sensor_bar_state)
+void WiimoteBase::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                               SensorBarState sensor_bar_state)
 {
   const auto lock = GetStateLock();
   BuildDesiredWiimoteState(target_state, sensor_bar_state);
 }
 
-void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
+auto WiimoteBase::ProcessEvents() -> UpdateProgress
+{
+  if (ProcessExtensionPortEvent() == UpdateProgress::DoNotContinue)
+  {
+    // Extension port event occurred.
+    // Don't send any other reports.
+    return UpdateProgress::DoNotContinue;
+  }
+
+  if (ProcessReadDataRequest() == UpdateProgress::DoNotContinue)
+  {
+    // Read requests suppress normal input reports
+    // Don't send any other reports
+    return UpdateProgress::DoNotContinue;
+  }
+
+  return UpdateProgress::Continue;
+}
+
+void WiimoteBase::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
 {
   // Update buttons in the status struct which is sent in 99% of input reports.
   UpdateButtonsStatus(target_state);
+
+  if (Core::WantsDeterminism())
+  {
+    // One less thing to break determinism:
+    UpdateBatteryStatus(1.0);
+  }
+  else
+  {
+    UpdateBatteryStatus(m_battery_setting.GetValue() / ciface::BATTERY_INPUT_MAX_VALUE);
+  }
+
+  SubDeviceUpdate(target_state);
+
+  if (ProcessEvents() == UpdateProgress::DoNotContinue)
+    return;
+
+  SendDataReport(target_state);
+}
+
+void Wiimote::SubDeviceUpdate(const WiimoteEmu::DesiredWiimoteState& target_state)
+{
+  m_camera_logic.Update(target_state.camera_points);
 
   // If a new extension is requested in the GUI the change will happen here.
   HandleExtensionSwap(static_cast<ExtensionNumber>(target_state.extension.data.index()),
                       target_state.motion_plus.has_value());
 
   // Prepare input data of the extension for reading.
+  // Prepare extension input first as motion-plus may read from it.
+  // FYI: This should only happen when trigged by EXT bus read.
+  //  but it's really not going to break anything being here.
+  //  and refactoring is needed to do it properly.
   GetActiveExtension()->Update(target_state.extension);
 
   if (m_is_motion_plus_attached)
   {
     // M+ has some internal state that must processed.
     m_motion_plus.Update(target_state.extension);
-  }
 
-  // Returns true if a report was sent.
-  if (ProcessExtensionPortEvent())
-  {
-    // Extension port event occurred.
-    // Don't send any other reports.
-    return;
+    // FYI: This should really only happen when trigged by EXT bus read.
+    //  refactoring is needed to do that properly.
+    m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
+                                   target_state.motion_plus.value() :
+                                   MotionPlus::GetDefaultGyroscopeData());
   }
-
-  if (ProcessReadDataRequest())
-  {
-    // Read requests suppress normal input reports
-    // Don't send any other reports
-    return;
-  }
-
-  SendDataReport(target_state);
 }
 
-void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
+void WiimoteBase::SendDataReport(const DesiredWiimoteState& target_state)
 {
   auto& movie = Core::System::GetInstance().GetMovie();
   movie.SetPolledDevice();
@@ -607,8 +675,9 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-  if (movie.IsPlayingInput() && movie.PlayWiimote(m_bt_device_index, rpt_builder,
-                                                  m_active_extension, GetExtensionEncryptionKey()))
+  if (movie.IsPlayingInput() &&
+      movie.PlayWiimote(m_bt_device_index, rpt_builder, GetActiveExtensionNumber(),
+                        GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -630,10 +699,6 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     // IR Camera:
     if (rpt_builder.HasIR())
     {
-      // Note: Camera logic currently contains no changing state so we can just update it here.
-      // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(target_state.camera_points);
-
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
           CameraLogic::REPORT_DATA_OFFSET + rpt_builder.GetIRDataFormatOffset();
@@ -652,19 +717,6 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     // Extension port:
     if (rpt_builder.HasExt())
     {
-      // Prepare extension input first as motion-plus may read from it.
-      // This currently happens in Wiimote::Update();
-      // TODO: Separate extension input data preparation from Update.
-      // GetActiveExtension()->PrepareInput();
-
-      if (m_is_motion_plus_attached)
-      {
-        // TODO: Make input preparation triggered by bus read.
-        m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
-                                       target_state.motion_plus.value() :
-                                       MotionPlus::GetDefaultGyroscopeData());
-      }
-
       u8* ext_data = rpt_builder.GetExtDataPtr();
       const u8 ext_size = rpt_builder.GetExtDataSize();
 
@@ -677,7 +729,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     }
   }
 
-  movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
+  movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, GetActiveExtensionNumber(),
                            GetExtensionEncryptionKey());
 
   // Send the report:
@@ -741,15 +793,16 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // B
   m_buttons->SetControlExpression(1, "`Click 1`");
 #endif
-  m_buttons->SetControlExpression(2, "`1`");     // 1
-  m_buttons->SetControlExpression(3, "`2`");     // 2
-  m_buttons->SetControlExpression(4, "Q");       // -
-  m_buttons->SetControlExpression(5, "E");       // +
+  // 1, 2, -, +
+  m_buttons->SetControlExpression(2, "`1`");
+  m_buttons->SetControlExpression(3, "`2`");
+  m_buttons->SetControlExpression(4, "Q");
+  m_buttons->SetControlExpression(5, "E");
 
-#ifdef _WIN32
-  m_buttons->SetControlExpression(6, "RETURN");  // Home
-#else
   // Home
+#ifdef _WIN32
+  m_buttons->SetControlExpression(6, "RETURN");
+#else
   m_buttons->SetControlExpression(6, "Return");
 #endif
 
@@ -769,20 +822,20 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 // DPad
 #ifdef _WIN32
-  m_dpad->SetControlExpression(0, "UP");     // Up
-  m_dpad->SetControlExpression(1, "DOWN");   // Down
-  m_dpad->SetControlExpression(2, "LEFT");   // Left
-  m_dpad->SetControlExpression(3, "RIGHT");  // Right
+  m_dpad->SetControlExpression(0, "UP");
+  m_dpad->SetControlExpression(1, "DOWN");
+  m_dpad->SetControlExpression(2, "LEFT");
+  m_dpad->SetControlExpression(3, "RIGHT");
 #elif __APPLE__
-  m_dpad->SetControlExpression(0, "`Up Arrow`");     // Up
-  m_dpad->SetControlExpression(1, "`Down Arrow`");   // Down
-  m_dpad->SetControlExpression(2, "`Left Arrow`");   // Left
-  m_dpad->SetControlExpression(3, "`Right Arrow`");  // Right
+  m_dpad->SetControlExpression(0, "`Up Arrow`");
+  m_dpad->SetControlExpression(1, "`Down Arrow`");
+  m_dpad->SetControlExpression(2, "`Left Arrow`");
+  m_dpad->SetControlExpression(3, "`Right Arrow`");
 #else
-  m_dpad->SetControlExpression(0, "Up");     // Up
-  m_dpad->SetControlExpression(1, "Down");   // Down
-  m_dpad->SetControlExpression(2, "Left");   // Left
-  m_dpad->SetControlExpression(3, "Right");  // Right
+  m_dpad->SetControlExpression(0, "Up");
+  m_dpad->SetControlExpression(1, "Down");
+  m_dpad->SetControlExpression(2, "Left");
+  m_dpad->SetControlExpression(3, "Right");
 #endif
 
   // Motion Source
@@ -817,12 +870,27 @@ Extension* Wiimote::GetNoneExtension() const
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
 }
 
-Extension* Wiimote::GetActiveExtension() const
+Extension* Wiimote::GetActiveExtension()
 {
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
 }
 
-EncryptionKey Wiimote::GetExtensionEncryptionKey() const
+Extension* BalanceBoard::GetActiveExtension()
+{
+  return &m_ext;
+}
+
+ExtensionNumber Wiimote::GetActiveExtensionNumber() const
+{
+  return m_active_extension;
+}
+
+ExtensionNumber BalanceBoard::GetActiveExtensionNumber() const
+{
+  return ExtensionNumber::BALANCE_BOARD;
+}
+
+EncryptionKey WiimoteBase::GetExtensionEncryptionKey()
 {
   if (ExtensionNumber::NONE == GetActiveExtensionNumber())
     return {};
@@ -989,6 +1057,125 @@ Common::Matrix44 Wiimote::GetTotalTransformation() const
   return GetTransformation(Common::Matrix33::FromQuaternion(
       m_imu_cursor_state.rotation *
       Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
+}
+
+std::string BalanceBoard::GetName() const
+{
+  return "BalanceBoard";
+}
+
+void BalanceBoard::LoadDefaults(const ControllerInterface& ciface)
+{
+  EmulatedController::LoadDefaults(ciface);
+
+  // Power
+  m_buttons->SetControlExpression(0, "P");
+
+  // Balance: Up, Down, Left, Right
+  m_balance->SetControlExpression(0, "I");
+  m_balance->SetControlExpression(1, "K");
+  m_balance->SetControlExpression(2, "J");
+  m_balance->SetControlExpression(3, "L");
+
+  // Step Off
+  m_options->SetControlExpression(0, "O");
+
+  // Because our defaults use keyboard input, set calibration shape to a square.
+  m_balance->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+}
+
+void BalanceBoard::SubDeviceUpdate(const WiimoteEmu::DesiredWiimoteState& target_state)
+{
+  m_ext.Update(target_state.extension);
+}
+
+void BalanceBoard::Reset()
+{
+  WiimoteBase::Reset();
+
+  m_extension_port.AttachExtension(&m_ext);
+  m_ext.Reset();
+}
+
+BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index)
+{
+  using Translatability = ControllerEmu::Translatability;
+
+  // Buttons
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP_NAME));
+  m_buttons->AddInput(Translatability::Translate, BUTTON_POWER_NAME);
+
+  // Balance
+  groups.emplace_back(
+      m_balance = new ControllerEmu::AnalogStick(
+          _trans("Balance"), std::make_unique<ControllerEmu::SquareStickGate>(1.0)));
+
+  // Options
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+  m_options->AddInput(Translatability::Translate, "Step Off");
+
+  m_options->AddSetting(&m_battery_setting,
+                        {_trans("Battery"),
+                         // i18n: The percent symbol.
+                         _trans("%")},
+                        95, 0, 100);
+
+  m_options->AddSetting(&m_weight_setting,
+                        {_trans("Weight"),
+                         // i18n: The abbreviation for kilograms.
+                         _trans("kg")},
+                        BalanceBoardExt::DEFAULT_WEIGHT, 0, 250);
+
+  Reset();
+}
+
+ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGroup group) const
+{
+  switch (group)
+  {
+  case BalanceBoardGroup::Buttons:
+    return m_buttons;
+  case BalanceBoardGroup::Options:
+    return m_options;
+  case BalanceBoardGroup::Balance:
+    return m_balance;
+  default:
+    ASSERT(false);
+    return nullptr;
+  }
+}
+
+ButtonData BalanceBoard::GetCurrentlyPressedButtons()
+{
+  const auto lock = GetStateLock();
+
+  ButtonData buttons{};
+  m_buttons->GetState(&buttons.hex, bboard_bitmasks, m_input_override_function);
+
+  return buttons;
+}
+
+// Update buttons in status struct from user input.
+void BalanceBoard::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
+{
+  m_status.buttons.hex = target_state.buttons.hex & BalanceBoard::BUTTON_POWER;
+}
+
+void BalanceBoard::UpdateBatteryStatus(double charge)
+{
+  // Balance Board battery values are higher than that of a Wii Remote.
+  // This is a linear fit for the charge bars in the home menu.
+  m_status.battery = u8(std::lround((charge + 3.53) / 8.52 * 0xff));
+
+  // TODO: Verify this behavior on real hardware.
+  m_status.battery_low = m_status.battery <= 0x69;
+}
+
+void BalanceBoard::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
+                                            SensorBarState sensor_bar_state)
+{
+  m_buttons->GetState(&target_state->buttons.hex, bboard_bitmasks, m_input_override_function);
+  m_ext.BuildDesiredExtensionState(&target_state->extension);
 }
 
 }  // namespace WiimoteEmu
