@@ -74,6 +74,81 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
+void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& host_config,
+                             const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  for (u32 i = 0; i < uid_data->numTexGens; ++i)
+  {
+    auto& texinfo = uid_data->texMtxInfo[i];
+    out.Write("vec3 dolphin_transform_texcoord{}(vec4 coord)\n", i);
+    out.Write("{{\n");
+    if (texinfo.texgentype != TexGenType::Regular)
+    {
+      out.Write("\treturn vec3(coord.xyz);\n");
+    }
+    else
+    {
+      out.Write("\tvec3 result;\n");
+      if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
+      {
+        out.Write("\tint tmp = int(rawtex{}.z);\n", i);
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TRANSFORMMATRICES
+                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES
+                    "[tmp+1]), dot(coord, " I_TRANSFORMMATRICES "[tmp+2]));\n");
+        }
+        else
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TRANSFORMMATRICES
+                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES "[tmp+1]), 1);\n");
+        }
+      }
+      else
+      {
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
+                    "[{}]), dot(coord, " I_TEXMATRICES "[{}]));\n",
+                    3 * i, 3 * i + 1, 3 * i + 2);
+        }
+        else
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
+                    "[{}]), 1);\n",
+                    3 * i, 3 * i + 1);
+        }
+      }
+      // CHECKME: does this only work for regular tex gen types?
+      if (uid_data->dualTexTrans_enabled)
+      {
+        auto& postInfo = uid_data->postMtxInfo[i];
+
+        out.Write("\tvec4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
+                  "\tvec4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
+                  "\tvec4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
+                  postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+
+        if (postInfo.normalize)
+          out.Write("\tresult = normalize(result);\n");
+
+        // multiply by postmatrix
+        out.Write("\tresult = vec3(dot(P0.xyz, result) + P0.w, dot(P1.xyz, result) + "
+                  "P1.w, dot(P2.xyz, result) + P2.w);\n");
+      }
+
+      // When q is 0, the GameCube appears to have a special case
+      // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+      // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+      // TODO: check if this only affects XF_TEXGEN_REGULAR
+      out.Write("\tif(result.z == 0.0f)\n"
+                "\t\tresult.xy = clamp(result.xy / 2.0f, vec2(-1.0f,-1.0f), vec2(1.0f,1.0f));\n");
+      out.Write("\treturn result;\n");
+    }
+    out.Write("}}\n\n");
+  }
+}
+
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                     const vertex_shader_uid_data* uid_data)
 {
@@ -260,6 +335,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
+  WriteTexCoordTransforms(api_type, host_config, uid_data, out);
+
   out.Write("void main()\n{{\n");
 
   if (uid_data->vs_expand != VSExpand::None)
@@ -434,73 +511,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
       break;
     case TexGenType::Regular:
-    default:
-      if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
-      {
-        out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
-                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES
-                    "[tmp+1]), dot(coord, " I_TRANSFORMMATRICES "[tmp+2]));\n",
-                    i);
-        }
-        else
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
-                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES "[tmp+1]), 1);\n",
-                    i);
-        }
-      }
-      else
-      {
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
-                    "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
-                    "[{}]));\n",
-                    i, 3 * i, 3 * i + 1, 3 * i + 2);
-        }
-        else
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
-                    "[{}]), dot(coord, " I_TEXMATRICES "[{}]), 1);\n",
-                    i, 3 * i, 3 * i + 1);
-        }
-      }
+      out.Write("o.tex{0}.xyz = dolphin_transform_texcoord{0}(coord);\n", i);
       break;
-    }
-
-    // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
-    {
-      auto& postInfo = uid_data->postMtxInfo[i];
-
-      out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
-                "float4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
-                "float4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
-
-      if (postInfo.normalize)
-        out.Write("o.tex{}.xyz = normalize(o.tex{}.xyz);\n", i, i);
-
-      // multiply by postmatrix
-      out.Write(
-          "o.tex{0}.xyz = float3(dot(P0.xyz, o.tex{0}.xyz) + P0.w, dot(P1.xyz, o.tex{0}.xyz) + "
-          "P1.w, dot(P2.xyz, o.tex{0}.xyz) + P2.w);\n",
-          i);
-    }
-
-    // When q is 0, the GameCube appears to have a special case
-    // This can be seen in devkitPro's neheGX Lesson08 example for Wii
-    // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
-    // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == TexGenType::Regular)
-    {
-      out.Write(
-          "if(o.tex{0}.z == 0.0f)\n"
-          "\to.tex{0}.xy = clamp(o.tex{0}.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n",
-          i);
+    default:
+      ASSERT(false);
     }
 
     out.Write("}}\n");
