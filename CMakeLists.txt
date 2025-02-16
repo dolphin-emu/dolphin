@@ -586,7 +586,7 @@ if(UNIX)
 endif()
 
 if(ENABLE_SDL)
-  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.30.9)
+  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.32.6)
 endif()
 
 if(ENABLE_ANALYTICS)
