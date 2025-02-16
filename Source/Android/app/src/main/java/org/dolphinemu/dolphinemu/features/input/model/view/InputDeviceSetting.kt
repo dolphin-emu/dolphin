@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.features.input.model.view
 
 import android.content.Context
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroupContainer
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting

@@ -12,13 +12,13 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
 namespace WiimoteEmu
 {
 struct DesiredExtensionState;
 
-class Extension : public ControllerEmu::EmulatedController, public I2CSlave
+class Extension : public ControllerEmu::AttachedController, public I2CSlave
 {
 public:
   explicit Extension(const char* name);
@@ -26,8 +26,6 @@ public:
 
   std::string GetName() const override;
   std::string GetDisplayName() const override;
-
-  InputConfig* GetConfig() const override;
 
   // Used by the wiimote to detect extension changes.
   // The normal extensions short this pin so it's always connected,
