@@ -21,7 +21,7 @@ class PadMappingDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit PadMappingDialog(QWidget* widget);
+  explicit PadMappingDialog(QWidget* parent);
 
   int exec() override;
 

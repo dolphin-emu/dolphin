@@ -17,9 +17,9 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nShowCmd)
 {
-  if (lstrlenW(pCmdLine) == 0)
+  if (lstrlenW(lpCmdLine) == 0)
   {
     MessageBoxW(nullptr,
                 L"This updater is not meant to be launched directly. Configure Auto-Update in "
@@ -58,11 +58,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     // Relaunch the updater as administrator
-    ShellExecuteW(nullptr, L"runas", path->c_str(), pCmdLine, nullptr, SW_SHOW);
+    ShellExecuteW(nullptr, L"runas", path->c_str(), lpCmdLine, nullptr, SW_SHOW);
     return 0;
   }
 
-  std::vector<std::string> args = Common::CommandLineToUtf8Argv(pCmdLine);
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(lpCmdLine);
 
   return RunUpdater(args) ? 0 : 1;
 }
