@@ -27,9 +27,6 @@ public:
   bool DidTexMatrixBChange() const { return m_tex_matrices_changed[1]; }
   void ResetTexMatrixBChange();
 
-  bool DidPosNormalChange() const { return m_pos_normal_matrix_changed; }
-  void ResetPosNormalChange();
-
   void SetProjectionChanged();
   bool DidProjectionChange() const { return m_projection_changed; }
   void ResetProjection();
@@ -74,7 +71,6 @@ public:
 private:
   // track changes
   std::array<bool, 2> m_tex_matrices_changed{};
-  bool m_pos_normal_matrix_changed = false;
   bool m_projection_changed = false;
   bool m_viewport_changed = false;
   bool m_tex_mtx_info_changed = false;
