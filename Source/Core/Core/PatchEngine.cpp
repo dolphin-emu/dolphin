@@ -293,6 +293,17 @@ static void ApplyStartupPatches(Core::System& system)
 {
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);
+
+  const auto& ppc_state = system.GetPPCState();
+  if (!ppc_state.msr.DR || !ppc_state.msr.IR)
+  {
+    DEBUG_LOG_FMT(ACTIONREPLAY,
+                  "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
+                  "MSR = {:#010x}",
+                  ppc_state.pc, ppc_state.msr.Hex);
+    return;
+  }
+
   ApplyPatches(guard, s_on_frame);
 }
 
