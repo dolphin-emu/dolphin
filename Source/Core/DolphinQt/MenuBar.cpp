@@ -725,6 +725,7 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
   static const QMap<QString, const Config::Info<bool>*> platform_map{
       {tr("Show Wii"), &Config::MAIN_GAMELIST_LIST_WII},
       {tr("Show GameCube"), &Config::MAIN_GAMELIST_LIST_GC},
+      {tr("Show Triforce"), &Config::MAIN_GAMELIST_LIST_TRI},
       {tr("Show WAD"), &Config::MAIN_GAMELIST_LIST_WAD},
       {tr("Show ELF/DOL"), &Config::MAIN_GAMELIST_LIST_ELF_DOL}};
 
