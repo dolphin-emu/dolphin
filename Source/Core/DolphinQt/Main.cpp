@@ -41,6 +41,7 @@
 #include "DolphinQt/Updater.h"
 
 #include "UICommon/CommandLineParse.h"
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
@@ -190,14 +191,22 @@ int main(int argc, char* argv[])
 
   std::unique_ptr<BootParameters> boot;
   bool game_specified = false;
+  std::optional<UICommon::GameFile> netplay_game = std::nullopt;
   if (options.is_set("exec"))
   {
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(
-        paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
-    game_specified = true;
+    if (options.is_set("netplay_host"))
+    {
+      netplay_game = UICommon::GameFile(paths[0]);
+    }
+    else
+    {
+      boot = BootParameters::GenerateFromFile(
+          paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
+      game_specified = true;
+    }
   }
   else if (options.is_set("nand_title"))
   {
@@ -221,8 +230,45 @@ int main(int argc, char* argv[])
   }
 
   int retval;
-
-  if (save_state_path && !game_specified)
+  if (options.is_set("netplay_join") && options.is_set("netplay_host"))
+  {
+    ModalMessageBox::critical(
+        nullptr, QObject::tr("Error"),
+        QObject::tr("The --netplay_host and --netplay_join flags are mutually exclusive."));
+    retval = 1;
+  }
+  else if (options.is_set("netplay_join") && game_specified)
+  {
+    ModalMessageBox::critical(
+        nullptr, QObject::tr("Error"),
+        QObject::tr("You cannot select the game for the NetPlay session you are joining."));
+    retval = 1;
+  }
+  else if (options.is_set("netplay_join") && save_state_path)
+  {
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("NetPlay does not support NAND titles."));
+    retval = 1;
+  }
+  else if (!netplay_game && options.is_set("netplay_host"))
+  {
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("You must specify a game to host with NetPlay."));
+    retval = 1;
+  }
+  else if (netplay_game && game_specified)
+  {
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("NetPlay does not support NAND titles."));
+    retval = 1;
+  }
+  else if (netplay_game && save_state_path)
+  {
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("NetPlay does not support savestates."));
+    retval = 1;
+  }
+  else if (save_state_path && !game_specified)
   {
     ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
@@ -250,7 +296,8 @@ int main(int argc, char* argv[])
     Settings::Instance().ApplyStyle();
 
     MainWindow win{Core::System::GetInstance(), std::move(boot),
-                   static_cast<const char*>(options.get("movie"))};
+                   static_cast<const char*>(options.get("movie")), options.is_set("netplay_join"),
+                   netplay_game};
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))

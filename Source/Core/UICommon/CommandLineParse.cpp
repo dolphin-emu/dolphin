@@ -3,6 +3,7 @@
 
 #include "UICommon/CommandLineParse.h"
 
+#include <fmt/ostream.h>
 #include <list>
 #include <optional>
 #include <sstream>
@@ -15,6 +16,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/NetplaySettings.h"
 
 namespace CommandLineParse
 {
@@ -22,7 +24,9 @@ class CommandLineConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
   CommandLineConfigLayerLoader(const std::list<std::string>& args, const std::string& video_backend,
-                               const std::string& audio_backend, bool batch, bool debugger)
+                               const std::string& audio_backend,
+                               const std::optional<u16> netplay_host,
+                               const std::string& netplay_join, bool batch, bool debugger)
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (!video_backend.empty())
@@ -32,6 +36,54 @@ public:
     {
       m_values.emplace_back(Config::MAIN_DSP_HLE.GetLocation(),
                             ValueToString(audio_backend == "HLE"));
+    }
+
+    if (netplay_host.has_value())
+    {
+      const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+      const bool is_traversal = traversal_choice == "traversal";
+
+      Config::Location config = is_traversal ? Config::NETPLAY_TRAVERSAL_PORT.GetLocation() :
+                                               Config::NETPLAY_HOST_PORT.GetLocation();
+
+      m_values.emplace_back(config, ValueToString(netplay_host.value()));
+    }
+
+    if (!netplay_join.empty())
+    {
+      std::vector<std::string> join_parts = SplitString(netplay_join, ':');
+      if (join_parts.size() < 2)
+      {
+        // The user is submitting a host code
+        const std::string& host_code = join_parts[0];
+        m_values.emplace_back(Config::NETPLAY_TRAVERSAL_CHOICE.GetLocation(), "traversal");
+        m_values.emplace_back(Config::NETPLAY_HOST_CODE.GetLocation(), host_code);
+      }
+      else
+      {
+        // Ther user is submitting an IP address
+        const std::string& host = join_parts[0];
+        const std::string& port_str = join_parts[1];
+        if (!std::all_of(port_str.begin(), port_str.end(), ::isdigit) || port_str.length() > 5)
+        {
+          fmt::println(std::cerr, "Error: the port must be a number between 0-{}.",
+                       std::numeric_limits<uint16_t>::max());
+          std::exit(EXIT_FAILURE);
+        }
+
+        const u64 port = std::stoul(port_str);
+        if (port > std::numeric_limits<uint16_t>::max() || port < 1)
+        {
+          fmt::println(std::cerr, "Error: the port must be a number between 0-{}.",
+                       std::numeric_limits<uint16_t>::max());
+          std::exit(EXIT_FAILURE);
+        }
+
+        const u16 cast_port = static_cast<uint16_t>(port);
+
+        m_values.emplace_back(Config::NETPLAY_ADDRESS.GetLocation(), host);
+        m_values.emplace_back(Config::NETPLAY_CONNECT_PORT.GetLocation(), ValueToString(cast_port));
+      }
     }
 
     // Batch mode hides the main window, and render to main hides the render window. To avoid a
@@ -116,6 +168,16 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
         .action("store_true")
         .help("Run Dolphin without the user interface (Requires --exec or --nand-title)");
     parser->add_option("-c", "--confirm").action("store_true").help("Set Confirm on Stop");
+    parser->add_option("--netplay_host")
+        .action("store")
+        .metavar("<port>")
+        .type("int")
+        .help("Host a netplay session on the specified port (Requires --exec)");
+    parser->add_option("--netplay_join")
+        .action("store")
+        .metavar("<ip:port> OR <host code>")
+        .type("string")
+        .help("Join a netplay session at the specified IP address and port or using a host code");
   }
 
   parser->set_defaults("video_backend", "");
@@ -137,6 +199,10 @@ static void AddConfigLayer(const optparse::Values& options)
   Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
       std::move(config_args), static_cast<const char*>(options.get("video_backend")),
       static_cast<const char*>(options.get("audio_emulation")),
+      options.is_set("netplay_host") ?
+          std::optional<u16>(static_cast<u16>(options.get("netplay_host"))) :
+          std::nullopt,
+      static_cast<const char*>(options.get("netplay_join")),
       static_cast<bool>(options.get("batch")), static_cast<bool>(options.get("debugger"))));
 }
 
