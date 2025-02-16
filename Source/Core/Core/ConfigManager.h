@@ -4,6 +4,7 @@
 #pragma once
 
 #include <limits>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <string>
@@ -58,15 +59,16 @@ struct SConfig
   std::string m_strSRAM;
 
   std::string m_debugger_game_id;
+
   // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
   bool m_disc_booted_from_game_list = false;
 
-  const std::string& GetGameID() const { return m_game_id; }
-  const std::string& GetGameTDBID() const { return m_gametdb_id; }
-  const std::string& GetTitleName() const { return m_title_name; }
-  const std::string& GetTitleDescription() const { return m_title_description; }
-  u64 GetTitleID() const { return m_title_id; }
-  u16 GetRevision() const { return m_revision; }
+  const std::string GetGameID() const;
+  const std::string GetGameTDBID() const;
+  const std::string GetTitleName() const;
+  const std::string GetTitleDescription() const;
+  u64 GetTitleID() const;
+  u16 GetRevision() const;
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
@@ -114,6 +116,7 @@ private:
                               u64 title_id, u16 revision, DiscIO::Region region);
 
   static SConfig* m_Instance;
+  mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
   std::string m_gametdb_id;
