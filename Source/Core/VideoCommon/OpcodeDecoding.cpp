@@ -14,6 +14,8 @@
 
 #include "VideoCommon/OpcodeDecoding.h"
 
+#include <optional>
+
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -164,7 +166,9 @@ public:
 
         if (start_address != nullptr)
         {
+          m_display_list_addr = address;
           Run(start_address, size, *this);
+          m_display_list_addr.reset();
         }
       }
       else
@@ -188,7 +192,10 @@ public:
           // temporarily swap dl and non-dl (small "hack" for the stats)
           g_stats.SwapDL();
 
+          m_display_list_addr = address;
           Run(start_address, size, *this);
+          m_display_list_addr.reset();
+
           INCSTAT(g_stats.this_frame.num_dlists_called);
 
           // un-swap
@@ -220,6 +227,8 @@ public:
     else
     {
       auto& system = Core::System::GetInstance();
+      if (m_display_list_addr)
+        ERROR_LOG_FMT(VIDEO, "in display list @ 0x{:08X}", m_display_list_addr.value());
       system.GetCommandProcessor().HandleUnknownOpcode(opcode, data, is_preprocess);
       m_cycles += 1;
     }
@@ -255,6 +264,7 @@ public:
 
   u32 m_cycles = 0;
   bool m_in_display_list = false;
+  std::optional<u32> m_display_list_addr;
 };
 
 template <bool is_preprocess>
