@@ -8,7 +8,6 @@
     <ClInclude Include="AudioCommon\Enums.h" />
     <ClInclude Include="AudioCommon\Mixer.h" />
     <ClInclude Include="AudioCommon\NullSoundStream.h" />
-    <ClInclude Include="AudioCommon\OpenALStream.h" />
     <ClInclude Include="AudioCommon\SoundStream.h" />
     <ClInclude Include="AudioCommon\SurroundDecoder.h" />
     <ClInclude Include="AudioCommon\WASAPIStream.h" />
@@ -774,7 +773,6 @@
     <ClCompile Include="AudioCommon\CubebUtils.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
     <ClCompile Include="AudioCommon\NullSoundStream.cpp" />
-    <ClCompile Include="AudioCommon\OpenALStream.cpp" />
     <ClCompile Include="AudioCommon\SurroundDecoder.cpp" />
     <ClCompile Include="AudioCommon\WASAPIStream.cpp" />
     <ClCompile Include="AudioCommon\WaveFile.cpp" />
