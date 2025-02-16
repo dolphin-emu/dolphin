@@ -1,7 +1,9 @@
 // Copyright 2020 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <optional>
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include "SFML/Network/IpAddress.hpp"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -67,13 +69,14 @@ static int ConnectToDestination(const std::string& destination)
     }
 
     sockaddr_in* sin = reinterpret_cast<sockaddr_in*>(&ss);
-    const sf::IpAddress dest_ip(destination.substr(0, colon_offset));
-    if (dest_ip == sf::IpAddress::None || dest_ip == sf::IpAddress::Any)
+    const std::optional<sf::IpAddress> dest_ip(
+        sf::IpAddress::resolve(destination.substr(0, colon_offset)));
+    if (dest_ip == std::nullopt)
     {
       ERROR_LOG_FMT(SP1, "Destination IP address is not valid\n");
       return -1;
     }
-    sin->sin_addr.s_addr = htonl(dest_ip.toInteger());
+    sin->sin_addr.s_addr = htonl(dest_ip.value().toInteger());
     sin->sin_family = AF_INET;
     const std::string port_str = destination.substr(colon_offset + 1);
     const int dest_port = std::atoi(port_str.c_str());

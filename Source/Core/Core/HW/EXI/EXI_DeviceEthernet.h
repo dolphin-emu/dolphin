@@ -6,6 +6,7 @@
 #include <atomic>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <vector>
 
@@ -413,7 +414,7 @@ private:
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     sf::UdpSocket m_sf_socket;
-    sf::IpAddress m_sf_recipient_ip;
+    std::optional<sf::IpAddress> m_sf_recipient_ip;
     char m_in_frame[9004]{};
     char m_out_frame[9004]{};
     std::thread m_read_thread;
