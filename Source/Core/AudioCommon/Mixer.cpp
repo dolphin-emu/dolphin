@@ -58,101 +58,39 @@ void Mixer::DoState(PointerWrap& p)
 }
 
 // Executed from sound stream thread
-unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
-                                   bool consider_framelimit, float emulationspeed,
-                                   int timing_variance)
+void Mixer::MixerFifo::Mix(short* samples, unsigned int num_samples)
 {
-  unsigned int currentSample = 0;
+  const uint32_t HALF = 0x7fffffff;
 
-  // Cache access in non-volatile variable
-  // This is the only function changing the read value, so it's safe to
-  // cache it locally although it's written here.
-  // The writing pointer will be modified outside, but it will only increase,
-  // so we will just ignore new written data while interpolating.
-  // Without this cache, the compiler wouldn't be allowed to optimize the
-  // interpolation loop.
-  u32 indexR = m_indexR.load();
-  u32 indexW = m_indexW.load();
+  const uint64_t in_sample_rate = FIXED_SAMPLE_RATE_DIVIDEND / m_input_sample_rate_divisor;
+  const uint64_t out_sample_rate = m_mixer->m_sampleRate;
 
-  // render numleft sample pairs to samples[]
-  // advance indexR with sample position
-  // remember fractional offset
-
-  float aid_sample_rate =
-      FIXED_SAMPLE_RATE_DIVIDEND / static_cast<float>(m_input_sample_rate_divisor);
-  if (consider_framelimit && emulationspeed > 0.0f)
-  {
-    float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
-
-    u32 low_watermark = (FIXED_SAMPLE_RATE_DIVIDEND * timing_variance) /
-                        (static_cast<u64>(m_input_sample_rate_divisor) * 1000);
-    low_watermark = std::min(low_watermark, MAX_SAMPLES / 2);
-
-    m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
-    float offset = (m_numLeftI - low_watermark) * CONTROL_FACTOR;
-    if (offset > MAX_FREQ_SHIFT)
-      offset = MAX_FREQ_SHIFT;
-    if (offset < -MAX_FREQ_SHIFT)
-      offset = -MAX_FREQ_SHIFT;
-
-    aid_sample_rate = (aid_sample_rate + offset) * emulationspeed;
-  }
-
-  const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
+  const uint32_t index_jump = (in_sample_rate << GRANULAR_BUFFER_BITS) / out_sample_rate;
 
   s32 lvolume = m_LVolume.load();
   s32 rvolume = m_RVolume.load();
 
-  const auto read_buffer = [this](auto index) {
-    return m_little_endian ? m_buffer[index] : Common::swap16(m_buffer[index]);
-  };
-
-  // TODO: consider a higher-quality resampling algorithm.
-  for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2)
+  while (num_samples-- > 0)
   {
-    u32 indexR2 = indexR + 2;  // next sample
+    StereoPair sample = m_front[m_current_index] + m_back[m_current_index - HALF];
 
-    s16 l1 = read_buffer(indexR & INDEX_MASK);   // current
-    s16 l2 = read_buffer(indexR2 & INDEX_MASK);  // next
-    int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
-    sampleL = (sampleL * lvolume) >> 8;
-    sampleL += samples[currentSample + 1];
-    samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
+    sample.mul(lvolume << 8, rvolume << 8);
 
-    s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);   // current
-    s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK);  // next
-    int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
-    sampleR = (sampleR * rvolume) >> 8;
-    sampleR += samples[currentSample];
-    samples[currentSample] = std::clamp(sampleR, -32767, 32767);
+    samples[0] = std::clamp(samples[0] + sample.right, -32767, 32767);
+    samples[1] = std::clamp(samples[1] + sample.left, -32767, 32767);
 
-    m_frac += ratio;
-    indexR += 2 * (u16)(m_frac >> 16);
-    m_frac &= 0xffff;
+    samples += 2;
+
+    m_current_index += index_jump;
+
+    if (m_current_index < HALF)
+    {
+      m_front = m_back;
+      m_back = m_next;
+
+      m_current_index += HALF;
+    }
   }
-
-  // Actual number of samples written to the buffer without padding.
-  unsigned int actual_sample_count = currentSample / 2;
-
-  // Padding
-  short s[2];
-  s[0] = read_buffer((indexR - 1) & INDEX_MASK);
-  s[1] = read_buffer((indexR - 2) & INDEX_MASK);
-  s[0] = (s[0] * rvolume) >> 8;
-  s[1] = (s[1] * lvolume) >> 8;
-  for (; currentSample < numSamples * 2; currentSample += 2)
-  {
-    int sampleR = std::clamp(s[0] + samples[currentSample + 0], -32767, 32767);
-    int sampleL = std::clamp(s[1] + samples[currentSample + 1], -32767, 32767);
-
-    samples[currentSample + 0] = sampleR;
-    samples[currentSample + 1] = sampleL;
-  }
-
-  // Flush cached variable
-  m_indexR.store(indexR);
-
-  return actual_sample_count;
 }
 
 unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
@@ -162,54 +100,13 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
-  // TODO: Determine how emulation speed will be used in audio
-  // const float emulation_speed = g_perf_metrics.GetSpeed();
-  const float emulation_speed = m_config_emulation_speed;
-  const int timing_variance = m_config_timing_variance;
-  if (m_config_audio_stretch)
-  {
-    unsigned int available_samples =
-        std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
-
-    ASSERT_MSG(AUDIO, available_samples <= MAX_SAMPLES,
-               "Audio stretching would overflow m_scratch_buffer: min({}, {}) -> {} > {} ({})",
-               m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples(),
-               available_samples, MAX_SAMPLES, num_samples);
-
-    m_scratch_buffer.fill(0);
-
-    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                    timing_variance);
-    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                          timing_variance);
-    m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                                timing_variance);
-    m_skylander_portal_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                                 timing_variance);
-    for (auto& mixer : m_gba_mixers)
-    {
-      mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                timing_variance);
-    }
-
-    if (!m_is_stretching)
-    {
-      m_stretcher.Clear();
-      m_is_stretching = true;
-    }
-    m_stretcher.ProcessSamples(m_scratch_buffer.data(), available_samples, num_samples);
-    m_stretcher.GetStretchedSamples(samples, num_samples);
-  }
-  else
-  {
-    m_dma_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_streaming_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_wiimote_speaker_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_skylander_portal_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    for (auto& mixer : m_gba_mixers)
-      mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_is_stretching = false;
-  }
+  m_dma_mixer.Mix(samples, num_samples);
+  m_streaming_mixer.Mix(samples, num_samples);
+  m_wiimote_speaker_mixer.Mix(samples, num_samples);
+  m_skylander_portal_mixer.Mix(samples, num_samples);
+  for (auto& mixer : m_gba_mixers)
+    mixer.Mix(samples, num_samples);
+  m_is_stretching = false;
 
   return num_samples;
 }
@@ -245,31 +142,20 @@ unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
 
 void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
 {
-  // Cache access in non-volatile variable
-  // indexR isn't allowed to cache in the audio throttling loop as it
-  // needs to get updates to not deadlock.
-  u32 indexW = m_indexW.load();
-
-  // Check if we have enough free space
-  // indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
-  if (num_samples * 2 + ((indexW - m_indexR.load()) & INDEX_MASK) >= MAX_SAMPLES * 2)
-    return;
-
-  // AyuanX: Actual re-sampling work has been moved to sound thread
-  // to alleviate the workload on main thread
-  // and we simply store raw data here to make fast mem copy
-  int over_bytes = num_samples * 4 - (MAX_SAMPLES * 2 - (indexW & INDEX_MASK)) * sizeof(short);
-  if (over_bytes > 0)
+  while (num_samples-- > 0)
   {
-    memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4 - over_bytes);
-    memcpy(&m_buffer[0], samples + (num_samples * 4 - over_bytes) / sizeof(short), over_bytes);
-  }
-  else
-  {
-    memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4);
-  }
+    short left = m_little_endian ? samples[1] : Common::swap16(samples[1]);
+    short right = m_little_endian ? samples[0] : Common::swap16(samples[0]);
 
-  m_indexW.fetch_add(num_samples * 2);
+    m_buffer[m_buffer_index] = StereoPair(left, right);
+    m_buffer_index = (m_buffer_index + 1) & (m_buffer.size() - 1);
+    samples += 2;
+
+    bool start = m_buffer_index == 0;
+    bool middle = m_buffer_index == m_buffer.size() / 2;
+    if (start || middle)
+      m_next = Granual(m_buffer, middle);
+  }
 }
 
 void Mixer::PushSamples(const short* samples, unsigned int num_samples)
@@ -486,13 +372,4 @@ void Mixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 std::pair<s32, s32> Mixer::MixerFifo::GetVolume() const
 {
   return std::make_pair(m_LVolume.load(), m_RVolume.load());
-}
-
-unsigned int Mixer::MixerFifo::AvailableSamples() const
-{
-  unsigned int samples_in_fifo = ((m_indexW.load() - m_indexR.load()) & INDEX_MASK) / 2;
-  if (samples_in_fifo <= 1)
-    return 0;  // Mixer::MixerFifo::Mix always keeps one sample in the buffer.
-  return (samples_in_fifo - 1) * static_cast<u64>(m_mixer->m_sampleRate) *
-         m_input_sample_rate_divisor / FIXED_SAMPLE_RATE_DIVIDEND;
 }
