@@ -209,22 +209,22 @@ void NetworkWidget::ConnectWidgets()
 {
   connect(m_dump_format_combo, &QComboBox::currentIndexChanged, this,
           &NetworkWidget::OnDumpFormatComboChanged);
-  connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_ssl_read_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
   });
-  connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_ssl_write_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
   });
-  connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_root_ca_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
   });
-  connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_peer_cert_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
   });
-  connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_verify_certificates_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
   });
-  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_bba_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
   connect(m_open_dump_folder, &QPushButton::clicked, [] {
