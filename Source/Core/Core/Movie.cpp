@@ -58,6 +58,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 #include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
@@ -130,10 +131,8 @@ std::string MovieManager::GetInputDisplay()
   if (!IsMovieActive())
   {
     m_controllers = {};
-    m_wiimotes = {};
-
     const auto& si = m_system.GetSerialInterface();
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       if (si.GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
         m_controllers[i] = ControllerType::GBA;
@@ -141,6 +140,10 @@ std::string MovieManager::GetInputDisplay()
         m_controllers[i] = ControllerType::GC;
       else
         m_controllers[i] = ControllerType::None;
+    }
+    m_wiimotes = {};
+    for (int i = 0; i < MAX_BBMOTES; ++i)
+    {
       m_wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
     }
   }
@@ -148,15 +151,15 @@ std::string MovieManager::GetInputDisplay()
   std::string input_display;
   {
     std::lock_guard guard(m_input_display_lock);
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       if (IsUsingPad(i))
         input_display += m_input_display[i] + '\n';
     }
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < MAX_BBMOTES; ++i)
     {
       if (IsUsingWiimote(i))
-        input_display += m_input_display[i + 4] + '\n';
+        input_display += m_input_display[i + SerialInterface::MAX_SI_CHANNELS] + '\n';
     }
   }
   return input_display;
@@ -475,7 +478,7 @@ void MovieManager::ChangeWiiPads(bool instantly)
 {
   WiimoteEnabledArray wiimotes{};
 
-  for (int i = 0; i < MAX_WIIMOTES; ++i)
+  for (int i = 0; i < MAX_BBMOTES; ++i)
   {
     wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
@@ -485,7 +488,7 @@ void MovieManager::ChangeWiiPads(bool instantly)
     return;
 
   const auto bt = WiiUtils::GetBluetoothEmuDevice();
-  for (int i = 0; i < MAX_WIIMOTES; ++i)
+  for (int i = 0; i < MAX_BBMOTES; ++i)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
@@ -676,7 +679,8 @@ static std::string GenerateInputDisplayString(ControllerState padState, int cont
 static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
                                                  ExtensionNumber ext, const EncryptionKey& key)
 {
-  std::string display_str = fmt::format("R{}:", remoteID + 1);
+  std::string display_str =
+      (remoteID == WIIMOTE_BALANCE_BOARD ? "BB:" : fmt::format("R{}:", remoteID + 1));
 
   if (rpt.HasCore())
   {
@@ -797,6 +801,24 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
     display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", 31);
   }
 
+  // Balance board
+  if (rpt.HasExt() && ext == ExtensionNumber::BALANCE_BOARD)
+  {
+    const u8* const extData = rpt.GetExtDataPtr();
+
+    BalanceBoardExt::DataFormat bb;
+    memcpy(&bb, extData, sizeof(bb));
+    key.Decrypt((u8*)&bb, 0, sizeof(bb));
+
+    double top_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.top_right));
+    double bottom_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.bottom_right));
+    double top_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.top_left));
+    double bottom_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.bottom_left));
+
+    display_str += fmt::format(" TR:{:5.2f}kg BR:{:5.2f}kg TL:{:5.2f}kg BL:{:5.2f}kg", top_right,
+                               bottom_right, top_left, bottom_left);
+  }
+
   return display_str;
 }
 
@@ -864,7 +886,7 @@ void MovieManager::CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt,
     std::string display_str = GenerateWiiInputDisplayString(wiimote, rpt, ext, key);
 
     std::lock_guard guard(m_input_display_lock);
-    m_input_display[wiimote + 4] = std::move(display_str);
+    m_input_display[wiimote + SerialInterface::MAX_SI_CHANNELS] = std::move(display_str);
   }
 
   if (IsRecordingInput())
@@ -886,7 +908,7 @@ void MovieManager::RecordWiimote(int wiimote, const u8* data, u8 size)
 // NOTE: EmuThread / Host Thread
 void MovieManager::ReadHeader()
 {
-  for (int i = 0; i < 4; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     if (m_temp_header.GBAControllers & (1 << i))
       m_controllers[i] = ControllerType::GBA;
@@ -894,8 +916,13 @@ void MovieManager::ReadHeader()
       m_controllers[i] = ControllerType::GC;
     else
       m_controllers[i] = ControllerType::None;
-    m_wiimotes[i] = (m_temp_header.controllers & (1 << (i + 4))) != 0;
   }
+  for (int i = 0; i < MAX_WIIMOTES; i++)
+  {
+    m_wiimotes[i] =
+        (m_temp_header.controllers & (1 << (i + SerialInterface::MAX_SI_CHANNELS))) != 0;
+  }
+  m_wiimotes[WIIMOTE_BALANCE_BOARD] = m_temp_header.bBalanceBoard;
   m_recording_start_time = m_temp_header.recordingStartTime;
   if (m_rerecords < m_temp_header.numRerecords)
     m_rerecords = m_temp_header.numRerecords;
@@ -1374,15 +1401,19 @@ void MovieManager::SaveRecording(const std::string& filename)
   header.bWii = m_system.IsWii();
   header.controllers = 0;
   header.GBAControllers = 0;
-  for (int i = 0; i < 4; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     if (IsUsingGBA(i))
       header.GBAControllers |= 1 << i;
     if (IsUsingPad(i))
       header.controllers |= 1 << i;
-    if (IsUsingWiimote(i) && m_system.IsWii())
-      header.controllers |= 1 << (i + 4);
   }
+  for (int i = 0; i < MAX_WIIMOTES; i++)
+  {
+    if (IsUsingWiimote(i) && m_system.IsWii())
+      header.controllers |= 1 << (i + SerialInterface::MAX_SI_CHANNELS);
+  }
+  header.bBalanceBoard = IsUsingWiimote(WIIMOTE_BALANCE_BOARD);
 
   header.bFromSaveState = m_recording_from_save_state;
   header.frameCount = m_total_frames;

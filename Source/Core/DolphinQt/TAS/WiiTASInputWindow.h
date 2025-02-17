@@ -17,13 +17,8 @@ class TASSpinBox;
 namespace WiimoteEmu
 {
 class Extension;
-class Wiimote;
+class WiimoteBase;
 }  // namespace WiimoteEmu
-
-namespace ControllerEmu
-{
-class Attachments;
-}
 
 class WiiTASInputWindow : public TASInputWindow
 {
@@ -38,8 +33,7 @@ public:
   void UpdateMotionPlus(bool attached);
 
 private:
-  WiimoteEmu::Wiimote* GetWiimote();
-  ControllerEmu::Attachments* GetAttachments();
+  WiimoteEmu::WiimoteBase* GetWiimote();
   WiimoteEmu::Extension* GetExtension();
 
   void LoadExtensionAndMotionPlus();
@@ -55,6 +49,7 @@ private:
   InputOverrider m_wiimote_overrider;
   InputOverrider m_nunchuk_overrider;
   InputOverrider m_classic_overrider;
+  InputOverrider m_balance_board_overrider;
 
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
@@ -86,6 +81,11 @@ private:
   TASCheckBox* m_classic_right_button;
   TASSpinBox* m_ir_x_value;
   TASSpinBox* m_ir_y_value;
+  QDoubleSpinBox* m_total_weight_value;
+  QDoubleSpinBox* m_top_right_balance_value;
+  QDoubleSpinBox* m_bottom_right_balance_value;
+  QDoubleSpinBox* m_top_left_balance_value;
+  QDoubleSpinBox* m_bottom_left_balance_value;
   QGroupBox* m_remote_accelerometer_box;
   QGroupBox* m_remote_gyroscope_box;
   QGroupBox* m_nunchuk_accelerometer_box;
@@ -97,4 +97,5 @@ private:
   QGroupBox* m_nunchuk_buttons_box;
   QGroupBox* m_classic_buttons_box;
   QGroupBox* m_triggers_box;
+  QGroupBox* m_balance_board_box;
 };

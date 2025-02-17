@@ -62,7 +62,7 @@ WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, bdaddr_t bd, unsigned int
       m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
 {
-  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", GetNumber());
+  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: {} Constructed", GetDisplayName());
 
   m_link_key.fill(0xa0 + GetNumber());
   m_class = {0x00, 0x04, 0x48};
@@ -224,8 +224,7 @@ void WiimoteDevice::Activate(bool connect)
   {
     SetBasebandState(BasebandState::RequestConnection);
 
-    Core::DisplayMessage(fmt::format("Wii Remote {} connected", GetNumber() + 1),
-                         CONNECTION_MESSAGE_TIME);
+    Core::DisplayMessage(fmt::format("{} connected", GetDisplayName()), CONNECTION_MESSAGE_TIME);
   }
   else if (!connect && IsConnected())
   {
@@ -235,8 +234,7 @@ void WiimoteDevice::Activate(bool connect)
     // Not doing that doesn't seem to break anything.
     m_host->RemoteDisconnect(GetBD());
 
-    Core::DisplayMessage(fmt::format("Wii Remote {} disconnected", GetNumber() + 1),
-                         CONNECTION_MESSAGE_TIME);
+    Core::DisplayMessage(fmt::format("{} disconnected", GetDisplayName()), CONNECTION_MESSAGE_TIME);
   }
 }
 
@@ -275,7 +273,7 @@ void WiimoteDevice::EventDisconnect(u8 reason)
   // FYI: It looks like reason is always 0x13 (User Ended Connection).
 
   Core::DisplayMessage(
-      fmt::format("Wii Remote {} disconnected by emulated software", GetNumber() + 1),
+      fmt::format("{} disconnected by emulated software (0x{:02x})", GetDisplayName(), reason),
       CONNECTION_MESSAGE_TIME);
 
   Reset();
@@ -1005,5 +1003,13 @@ void WiimoteDevice::InterruptDataInputCallback(u8 hid_type, const u8* data, u32 
   DEBUG_ASSERT(data_frame_size <= channel->remote_mtu);
 
   m_host->SendACLPacket(GetBD(), reinterpret_cast<const u8*>(&data_frame), data_frame_size);
+}
+
+std::string WiimoteDevice::GetDisplayName()
+{
+  if (GetNumber() != WIIMOTE_BALANCE_BOARD)
+    return fmt::format("Wii Remote {}", GetNumber() + 1);
+  else
+    return "Balance Board";
 }
 }  // namespace IOS::HLE

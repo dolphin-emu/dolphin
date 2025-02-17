@@ -8,6 +8,7 @@
 
 #include "Common/BitUtils.h"
 
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
@@ -27,7 +28,8 @@ struct DesiredExtensionState
   using ExtensionData =
       std::variant<std::monostate, Nunchuk::DataFormat, Classic::DataFormat, Guitar::DataFormat,
                    Drums::DesiredState, Turntable::DataFormat, UDrawTablet::DataFormat,
-                   DrawsomeTablet::DataFormat, TaTaCon::DataFormat, Shinkansen::DesiredState>;
+                   DrawsomeTablet::DataFormat, TaTaCon::DataFormat, Shinkansen::DesiredState,
+                   BalanceBoardExt::DataFormat>;
   ExtensionData data = std::monostate();
 
   static_assert(std::is_same_v<std::monostate,
@@ -57,6 +59,9 @@ struct DesiredExtensionState
   static_assert(
       std::is_same_v<Shinkansen::DesiredState,
                      std::variant_alternative_t<ExtensionNumber::SHINKANSEN, ExtensionData>>);
+  static_assert(
+      std::is_same_v<BalanceBoardExt::DataFormat,
+                     std::variant_alternative_t<ExtensionNumber::BALANCE_BOARD, ExtensionData>>);
   static_assert(std::variant_size_v<DesiredExtensionState::ExtensionData> == ExtensionNumber::MAX);
 };
 
