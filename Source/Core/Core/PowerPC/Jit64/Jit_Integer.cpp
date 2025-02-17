@@ -1104,7 +1104,7 @@ void Jit64::subfic(UGeckoInstruction inst)
   {
     u32 i = imm, j = gpr.Imm32(a);
     gpr.SetImmediate32(d, i - j);
-    FinalizeCarry(j == 0 || (i > j - 1));
+    FinalizeCarry(i >= j);
     return;
   }
 
@@ -1165,12 +1165,12 @@ void Jit64::subfx(UGeckoInstruction inst)
   }
   else if (gpr.IsImm(a, b))
   {
-    s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
+    u32 i = gpr.Imm32(b), j = gpr.Imm32(a);
     gpr.SetImmediate32(d, i - j);
     if (carry)
-      FinalizeCarry(j == 0 || Interpreter::Helper_Carry((u32)i, 0u - (u32)j));
+      FinalizeCarry(i >= j);
     if (inst.OE)
-      GenerateConstantOverflow((s64)i - (s64)j);
+      GenerateConstantOverflow(s64(s32(i)) - s64(s32(j)));
   }
   else if (gpr.IsImm(a))
   {
