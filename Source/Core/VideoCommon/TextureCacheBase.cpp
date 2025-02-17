@@ -1241,7 +1241,7 @@ private:
 
 TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
-  if (auto entry = LoadImpl(texture_info, false))
+  if (auto entry = LoadImpl(texture_info, OpcodeDecoder::g_record_fifo_data))
   {
     if (!DidLinkedAssetsChange(*entry))
     {
