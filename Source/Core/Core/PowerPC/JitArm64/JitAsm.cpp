@@ -363,8 +363,8 @@ void JitArm64::GenerateFrsqrte()
   RET();
 
   SetJumpTarget(not_positive_normal_not_zero);
-  FixupBranch nan_or_inf = TBNZ(ARM64Reg::X1, 62);
   FixupBranch negative = TBNZ(ARM64Reg::X1, 63);
+  TBNZ(ARM64Reg::X1, 62, done);  // Branch to done if NaN
 
   // "Normalize" denormal values.
   // The simplified calculation used here results in the upper 11 bits being incorrect,
@@ -375,12 +375,11 @@ void JitArm64::GenerateFrsqrte()
   BFI(ARM64Reg::X1, ARM64Reg::X3, 52, 12);
   B(positive_normal);
 
-  SetJumpTarget(nan_or_inf);
+  SetJumpTarget(negative);
   MOVI2R(ARM64Reg::X2, std::bit_cast<u64>(-std::numeric_limits<double>::infinity()));
   CMP(ARM64Reg::X1, ARM64Reg::X2);
-  B(CCFlags::CC_NEQ, done);
+  B(CCFlags::CC_HI, done);  // Branch to done if NaN
 
-  SetJumpTarget(negative);
   TBNZ(ARM64Reg::W3, 9, done);
   ORRI2R(ARM64Reg::W3, ARM64Reg::W3, FPSCR_FX | FPSCR_VXSQRT, ARM64Reg::W2);
   B(store_fpscr);
