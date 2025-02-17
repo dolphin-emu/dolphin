@@ -76,10 +76,6 @@ endif()
 
 if(WIN32)
   target_sources(audiocommon PRIVATE
-    # Dolphin loads openal32.dll at runtime
-    OpenALStream.cpp
-    OpenALStream.h
-
     WASAPIStream.cpp
     WASAPIStream.h
   )

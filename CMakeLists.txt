@@ -758,7 +758,6 @@ endif()
 
 if (WIN32)
   include_directories(Externals/WIL/include)
-  include_directories(Externals/OpenAL/include)
 endif()
 
 include_directories(Externals/picojson)
