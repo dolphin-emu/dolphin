@@ -35,7 +35,10 @@ struct DesiredWiimoteState
 struct SerializedWiimoteState
 {
   u8 length;
-  std::array<u8, 30> data;  // 18 bytes Wiimote, 6 bytes MotionPlus, 6 bytes Extension
+
+  // 18 bytes Wiimote + ((6 bytes MotionPlus + 6 bytes Extension) | 8 bytes BalanceBoardExt)
+  static constexpr size_t MAX_EXT_DATA_SIZE = std::max(6, 8);
+  std::array<u8, 18 + std::max(6 + 6, 8)> data;
 };
 
 SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state);

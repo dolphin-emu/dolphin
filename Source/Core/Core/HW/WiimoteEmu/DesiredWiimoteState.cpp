@@ -3,6 +3,7 @@
 
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
+#include <cassert>
 #include <cstring>
 #include <optional>
 #include <type_traits>
@@ -117,8 +118,9 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
           using T = std::decay_t<decltype(arg)>;
           if constexpr (!std::is_same_v<std::monostate, T>)
           {
-            static_assert(sizeof(arg) <= 6);
+            static_assert(sizeof(arg) <= s.MAX_EXT_DATA_SIZE);
             static_assert(std::is_trivially_copyable_v<T>);
+            assert(s.length + sizeof(arg) <= s.data.size());
             std::memcpy(&s.data[s.length], &arg, sizeof(arg));
             s.length += sizeof(arg);
           }
@@ -213,6 +215,9 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     case ExtensionNumber::SHINKANSEN:
       s += sizeof(Shinkansen::DesiredState);
       break;
+    case ExtensionNumber::BALANCE_BOARD:
+      s += sizeof(BalanceBoardExt::DataFormat);
+      break;
     default:
       break;
     }
@@ -224,6 +229,10 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     // invalid length
     return false;
   }
+
+  // Contriving data with MPlus + BBoard could create an oversided length.
+  if (expected_size > serialized.data.size())
+    return false;
 
   size_t pos = 1;
 
@@ -319,6 +328,8 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     return DeserializeExtensionState<TaTaCon::DataFormat>(state, serialized, pos);
   case ExtensionNumber::SHINKANSEN:
     return DeserializeExtensionState<Shinkansen::DesiredState>(state, serialized, pos);
+  case ExtensionNumber::BALANCE_BOARD:
+    return DeserializeExtensionState<BalanceBoardExt::DataFormat>(state, serialized, pos);
   default:
     break;
   }

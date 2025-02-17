@@ -12,6 +12,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/Wiimote.h"
 
 struct BootParameters;
 
@@ -50,8 +52,8 @@ enum class ControllerType
   GC,
   GBA,
 };
-using ControllerTypeArray = std::array<ControllerType, 4>;
-using WiimoteEnabledArray = std::array<bool, 4>;
+using ControllerTypeArray = std::array<ControllerType, SerialInterface::MAX_SI_CHANNELS>;
+using WiimoteEnabledArray = std::array<bool, MAX_BBMOTES>;
 
 // GameCube Controller State
 #pragma pack(push, 1)
@@ -130,10 +132,11 @@ struct DTMHeader
   u8 reserved3;
   bool bFollowBranch;
   bool bUseFMA;
-  u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
-  bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
-  u8 countryCode;                   // SYSCONF country code
-  std::array<u8, 5> reserved;       // Padding for any new config options
+  u8 GBAControllers;  // GBA Controllers plugged in (the bits are ports 1-4)
+  bool bWidescreen;   // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
+  u8 countryCode;     // SYSCONF country code
+  bool bBalanceBoard;
+  std::array<u8, 4> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -237,8 +240,8 @@ private:
   u32 m_rerecords = 0;
   PlayMode m_play_mode = PlayMode::None;
 
-  std::array<ControllerType, 4> m_controllers{};
-  std::array<bool, 4> m_wiimotes{};
+  ControllerTypeArray m_controllers{};
+  WiimoteEnabledArray m_wiimotes{};
   ControllerState m_pad_state{};
   DTMHeader m_temp_header{};
   std::vector<u8> m_temp_input;
@@ -273,7 +276,8 @@ private:
 
   // m_input_display is used by both CPU and GPU (is mutable).
   std::mutex m_input_display_lock;
-  std::array<std::string, 8> m_input_display;
+  std::array<std::string, static_cast<size_t>(SerialInterface::MAX_SI_CHANNELS) + MAX_BBMOTES>
+      m_input_display;
 
   Core::System& m_system;
 };
