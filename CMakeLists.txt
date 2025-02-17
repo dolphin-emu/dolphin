@@ -661,7 +661,10 @@ endif()
 
 dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
-dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.18 enet::enet Externals/enet)
+# Using static enet from Externals since we are using a fork that supports
+# IPv6 (freeminers/enet)
+message(STATUS "Using static enet from Externals (freeminer/enet)")
+add_subdirectory(Externals/enet)
 
 dolphin_find_optional_system_library_pkgconfig(xxhash libxxhash>=0.8.2 xxhash::xxhash Externals/xxhash)
 
