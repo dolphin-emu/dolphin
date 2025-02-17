@@ -813,7 +813,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   {
   case CompressionType::LZ4:
   {
-    Core::DisplayMessage("Decompressing State...", 500);
+    Core::DisplayMessage("Decompressing State...", OSD::Duration::SHORT);
     if (!DecompressLZ4(buffer, extended_header.base_header.uncompressed_size, f))
       return;
 
