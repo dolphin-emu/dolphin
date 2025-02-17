@@ -137,26 +137,6 @@ void AudioPane::CreateWidgets()
   backend_layout->addRow(dolby_quality_layout);
   backend_layout->addRow(m_dolby_quality_latency_label);
 
-  auto* stretching_box = new QGroupBox(tr("Audio Stretching Settings"));
-  auto* stretching_layout = new QGridLayout;
-  m_stretching_enable = new QCheckBox(tr("Enable Audio Stretching"));
-  m_stretching_buffer_slider = new QSlider(Qt::Horizontal);
-  m_stretching_buffer_indicator = new QLabel();
-  m_stretching_buffer_label = new QLabel(tr("Buffer Size:"));
-  stretching_box->setLayout(stretching_layout);
-
-  m_stretching_buffer_slider->setMinimum(5);
-  m_stretching_buffer_slider->setMaximum(300);
-
-  m_stretching_enable->setToolTip(tr("Enables stretching of the audio to match emulation speed."));
-  m_stretching_buffer_slider->setToolTip(tr("Size of stretch buffer in milliseconds. "
-                                            "Values too low may cause audio crackling."));
-
-  stretching_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
-  stretching_layout->addWidget(m_stretching_buffer_label, 1, 0);
-  stretching_layout->addWidget(m_stretching_buffer_slider, 1, 1);
-  stretching_layout->addWidget(m_stretching_buffer_indicator, 1, 2);
-
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   auto* misc_box = new QGroupBox(tr("Miscellaneous Settings"));
@@ -173,7 +153,6 @@ void AudioPane::CreateWidgets()
 
   main_vbox_layout->addWidget(dsp_box);
   main_vbox_layout->addWidget(backend_box);
-  main_vbox_layout->addWidget(stretching_box);
   main_vbox_layout->addWidget(misc_box);
 
   m_main_layout = new QHBoxLayout;
@@ -192,10 +171,8 @@ void AudioPane::ConnectWidgets()
   {
     connect(m_latency_spin, &QSpinBox::valueChanged, this, &AudioPane::SaveSettings);
   }
-  connect(m_stretching_buffer_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
   connect(m_dolby_pro_logic, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
   connect(m_dolby_quality_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
-  connect(m_stretching_enable, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_hle, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_lle, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_interpreter, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
@@ -254,14 +231,6 @@ void AudioPane::LoadSettings()
   // Latency
   if (m_latency_control_supported)
     m_latency_spin->setValue(Config::Get(Config::MAIN_AUDIO_LATENCY));
-
-  // Stretch
-  m_stretching_enable->setChecked(Config::Get(Config::MAIN_AUDIO_STRETCH));
-  m_stretching_buffer_label->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_slider->setValue(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY));
-  m_stretching_buffer_slider->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setText(tr("%1 ms").arg(m_stretching_buffer_slider->value()));
 
   // Misc
   m_speed_up_mute_enable->setChecked(Config::Get(Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT));
@@ -325,15 +294,6 @@ void AudioPane::SaveSettings()
   // Latency
   if (m_latency_control_supported)
     Config::SetBaseOrCurrent(Config::MAIN_AUDIO_LATENCY, m_latency_spin->value());
-
-  // Stretch
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_STRETCH, m_stretching_enable->isChecked());
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_STRETCH_LATENCY, m_stretching_buffer_slider->value());
-  m_stretching_buffer_label->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_slider->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setText(
-      tr("%1 ms").arg(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY)));
 
   // Misc
   Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT,

@@ -71,12 +71,6 @@ private:
   QComboBox* m_wasapi_device_combo;
 #endif
 
-  // Audio Stretching
-  QCheckBox* m_stretching_enable;
-  QLabel* m_stretching_buffer_label;
-  QSlider* m_stretching_buffer_slider;
-  QLabel* m_stretching_buffer_indicator;
-
   // Misc Settings
   QCheckBox* m_speed_up_mute_enable;
 };
