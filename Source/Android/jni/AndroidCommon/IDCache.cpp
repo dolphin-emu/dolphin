@@ -110,6 +110,10 @@ static jclass s_core_device_control_class;
 static jfieldID s_core_device_control_pointer;
 static jmethodID s_core_device_control_constructor;
 
+static jclass s_permission_handler_class;
+static jmethodID s_permission_handler_has_record_audio_permission;
+static jmethodID s_permission_handler_request_record_audio_permission;
+
 static jmethodID s_runnable_run;
 
 namespace IDCache
@@ -512,6 +516,21 @@ jmethodID GetCoreDeviceControlConstructor()
   return s_core_device_control_constructor;
 }
 
+jclass GetPermissionHandlerClass()
+{
+  return s_permission_handler_class;
+}
+
+jmethodID GetPermissionHandlerHasRecordAudioPermission()
+{
+  return s_permission_handler_has_record_audio_permission;
+}
+
+jmethodID GetPermissionHandlerRequestRecordAudioPermission()
+{
+  return s_permission_handler_request_record_audio_permission;
+}
+
 jmethodID GetRunnableRun()
 {
   return s_runnable_run;
@@ -724,6 +743,16 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
                        "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
   env->DeleteLocalRef(core_device_control_class);
 
+  const jclass permission_handler_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/PermissionsHandler");
+  s_permission_handler_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(permission_handler_class));
+  s_permission_handler_has_record_audio_permission = env->GetStaticMethodID(
+      permission_handler_class, "hasRecordAudioPermission", "(Landroid/content/Context;)Z");
+  s_permission_handler_request_record_audio_permission = env->GetStaticMethodID(
+      permission_handler_class, "requestRecordAudioPermission", "(Landroid/app/Activity;)V");
+  env->DeleteLocalRef(permission_handler_class);
+
   const jclass runnable_class = env->FindClass("java/lang/Runnable");
   s_runnable_run = env->GetMethodID(runnable_class, "run", "()V");
   env->DeleteLocalRef(runnable_class);
@@ -761,5 +790,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_numeric_setting_class);
   env->DeleteGlobalRef(s_core_device_class);
   env->DeleteGlobalRef(s_core_device_control_class);
+  env->DeleteGlobalRef(s_permission_handler_class);
 }
 }
