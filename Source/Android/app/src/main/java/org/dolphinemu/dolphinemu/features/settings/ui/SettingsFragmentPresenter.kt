@@ -531,14 +531,6 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
-            SwitchSetting(
-                context,
-                BooleanSetting.MAIN_AUDIO_STRETCH,
-                R.string.audio_stretch,
-                R.string.audio_stretch_description
-            )
-        )
-        sl.add(
             IntSliderSetting(
                 context,
                 IntSetting.MAIN_AUDIO_VOLUME,
