@@ -3,8 +3,6 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
@@ -13,7 +11,6 @@
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 
@@ -83,6 +80,8 @@ Drums::Drums() : Extension1stParty("Drums", _trans("Drum Kit"))
 
 void Drums::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
+  using ControllerEmu::MapFloat;
+
   DesiredState& state = target_state->data.emplace<DesiredState>();
 
   {

@@ -3,18 +3,13 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
-#include <algorithm>
-#include <array>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Common/Inline.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "Common/Logging/Log.h"
 
 namespace WiimoteEmu
 {
@@ -35,11 +30,6 @@ std::string Extension::GetName() const
 std::string Extension::GetDisplayName() const
 {
   return m_display_name;
-}
-
-InputConfig* Extension::GetConfig() const
-{
-  return ::Wiimote::GetConfig();
 }
 
 None::None() : Extension("None")

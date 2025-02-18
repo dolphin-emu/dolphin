@@ -158,7 +158,7 @@ public:
 
   ControllerEmu::ControlGroup* GetGroup(NunchukGroup group);
 
-  void LoadDefaults(const ControllerInterface& ciface) override;
+  void LoadDefaults() override;
 
   static constexpr u8 BUTTON_C = 0x02;
   static constexpr u8 BUTTON_Z = 0x01;

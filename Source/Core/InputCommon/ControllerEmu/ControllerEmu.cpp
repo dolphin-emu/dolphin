@@ -11,10 +11,7 @@
 #include "Common/IniFile.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ControllerEmu
@@ -23,7 +20,7 @@ namespace ControllerEmu
 // though no EmulatedController usually run in parallel, so it makes little difference
 static std::recursive_mutex s_get_state_mutex;
 
-std::string EmulatedController::GetDisplayName() const
+std::string ControlGroupContainer::GetDisplayName() const
 {
   return GetName();
 }
@@ -47,34 +44,18 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
 
-  UpdateReferences(env);
+  UpdateGroupsReferences(env);
 
   env.CleanUnusedVariables();
 }
 
-void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
+void ControlGroupContainer::UpdateGroupsReferences(
+    ciface::ExpressionParser::ControlEnvironment& env)
 {
-  const auto lock = GetStateLock();
+  const auto lock = EmulatedController::GetStateLock();
 
-  for (auto& ctrlGroup : groups)
-  {
-    for (auto& control : ctrlGroup->controls)
-      control->control_ref->UpdateReference(env);
-
-    for (auto& setting : ctrlGroup->numeric_settings)
-      setting->GetInputReference().UpdateReference(env);
-
-    // Attachments:
-    if (ctrlGroup->type == GroupType::Attachments)
-    {
-      auto* const attachments = static_cast<Attachments*>(ctrlGroup.get());
-
-      attachments->GetSelectionSetting().GetInputReference().UpdateReference(env);
-
-      for (auto& attachment : attachments->GetAttachmentList())
-        attachment->UpdateReferences(env);
-    }
-  }
+  for (auto& group : groups)
+    group->UpdateReferences(env);
 }
 
 void EmulatedController::UpdateSingleControlReference(const ControllerInterface& devi,
@@ -125,43 +106,40 @@ void EmulatedController::SetDefaultDevice(const std::string& device)
 void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
 {
   m_default_device = std::move(devq);
-
-  for (auto& ctrlGroup : groups)
-  {
-    // Attachments:
-    if (ctrlGroup->type == GroupType::Attachments)
-    {
-      for (auto& ai : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
-      {
-        ai->SetDefaultDevice(m_default_device);
-      }
-    }
-  }
 }
 
-void EmulatedController::LoadConfig(Common::IniFile::Section* sec, const std::string& base)
+ControlGroupContainer::~ControlGroupContainer() = default;
+
+void EmulatedController::LoadConfig(Common::IniFile::Section* sec)
 {
-  const auto lock = GetStateLock();
-  std::string defdev = GetDefaultDevice().ToString();
-  if (base.empty())
-  {
-    sec->Get(base + "Device", &defdev, "");
+  const auto lock = EmulatedController::GetStateLock();
+
+  std::string defdev;
+  if (sec->Get("Device", &defdev, ""))
     SetDefaultDevice(defdev);
-  }
 
-  for (auto& cg : groups)
-    cg->LoadConfig(sec, defdev, base);
+  LoadGroupsConfig(sec, "");
 }
 
-void EmulatedController::SaveConfig(Common::IniFile::Section* sec, const std::string& base)
+void ControlGroupContainer::LoadGroupsConfig(Common::IniFile::Section* sec, const std::string& base)
 {
-  const auto lock = GetStateLock();
-  const std::string defdev = GetDefaultDevice().ToString();
-  if (base.empty())
-    sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+  for (auto& cg : groups)
+    cg->LoadConfig(sec, base);
+}
 
-  for (auto& ctrlGroup : groups)
-    ctrlGroup->SaveConfig(sec, defdev, base);
+void EmulatedController::SaveConfig(Common::IniFile::Section* sec)
+{
+  const auto lock = EmulatedController::GetStateLock();
+
+  sec->Set("Device", GetDefaultDevice().ToString(), "");
+
+  SaveGroupsConfig(sec, "");
+}
+
+void ControlGroupContainer::SaveGroupsConfig(Common::IniFile::Section* sec, const std::string& base)
+{
+  for (auto& cg : groups)
+    cg->SaveConfig(sec, base);
 }
 
 void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
@@ -178,12 +156,12 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
   }
 }
 
-void EmulatedController::SetInputOverrideFunction(InputOverrideFunction override_func)
+void ControlGroupContainer::SetInputOverrideFunction(InputOverrideFunction override_func)
 {
   m_input_override_function = std::move(override_func);
 }
 
-void EmulatedController::ClearInputOverrideFunction()
+void ControlGroupContainer::ClearInputOverrideFunction()
 {
   m_input_override_function = {};
 }
