@@ -364,6 +364,20 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
     return false;
   }
 #endif
+
+#if defined(VK_USE_PLATFORM_DISPLAY_KHR)
+  if (wstype == WindowSystemType::DRM)
+  {
+    if (!AddExtension(VK_KHR_DISPLAY_EXTENSION_NAME, true))
+    {
+      return false;
+    }
+    if (!AddExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
+    {
+      return false;
+    }
+  }
+#endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if (wstype == WindowSystemType::Android &&
       !AddExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
