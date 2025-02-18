@@ -99,7 +99,11 @@ void GPFifoManager::UpdateGatherPipe()
 
     // increase the CPUWritePointer
     if (processor_interface.m_fifo_cpu_write_pointer == processor_interface.m_fifo_cpu_end)
+    {
+      if (!system.GetCommandProcessor().GetFifo().bFF_GPLinkEnable)
+        WARN_LOG_FMT(VIDEO, "write gather pipe wrapped while fifos are not linked");
       processor_interface.m_fifo_cpu_write_pointer = processor_interface.m_fifo_cpu_base;
+    }
     else
       processor_interface.m_fifo_cpu_write_pointer += GATHER_PIPE_SIZE;
 
