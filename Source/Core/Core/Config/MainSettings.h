@@ -347,6 +347,10 @@ extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID;
 extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID;
 extern const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS;
 
+// Main.RealWiimote
+
+extern const Info<std::string> MAIN_REAL_WIIMOTE_AUTO_CONNECT_ADDRESSES;
+
 // Main.USBPassthrough
 
 extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;

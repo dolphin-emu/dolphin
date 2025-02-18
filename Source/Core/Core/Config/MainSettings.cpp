@@ -526,6 +526,11 @@ const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID{{System::Main, "BluetoothPassthro
 const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
     {System::Main, "BluetoothPassthrough", "LinkKeys"}, ""};
 
+// Main.RealWiimote
+
+const Info<std::string> MAIN_REAL_WIIMOTE_AUTO_CONNECT_ADDRESSES{
+    {System::Main, "RealWiimote", "AutoConnectAddresses"}, ""};
+
 // Main.USBPassthrough
 
 const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
