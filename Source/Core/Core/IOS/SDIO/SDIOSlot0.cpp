@@ -237,18 +237,23 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
   case SEND_CSD:
   {
     const std::array<u32, 4> csd = m_protocol == SDProtocol::V1 ? GetCSDv1() : GetCSDv2();
-    memory.CopyToEmuSwapped(buffer_out, csd.data(), csd.size() * sizeof(u32));
+    memory.Write_U32(csd[0], buffer_out + 12);
+    memory.Write_U32(csd[1], buffer_out + 8);
+    memory.Write_U32(csd[2], buffer_out + 4);
+    memory.Write_U32(csd[3], buffer_out + 0);
   }
   break;
 
   case ALL_SEND_CID:
   case SEND_CID:
+  {
     INFO_LOG_FMT(IOS_SD, "(ALL_)SEND_CID");
-    memory.Write_U32(0x80114d1c, buffer_out);
-    memory.Write_U32(0x80080000, buffer_out + 4);
-    memory.Write_U32(0x8007b520, buffer_out + 8);
-    memory.Write_U32(0x80080000, buffer_out + 12);
-    break;
+    memory.Write_U32(0x00D0444F, buffer_out + 12);
+    memory.Write_U32(0x4C504849, buffer_out + 8);
+    memory.Write_U32(0x4E430403, buffer_out + 4);
+    memory.Write_U32(0xAC68006B, buffer_out + 0);
+  }
+  break;
 
   case SET_BLOCKLEN:
     m_block_length = req.arg;
@@ -309,19 +314,26 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     INFO_LOG_FMT(IOS_SD, "{}Write {} Block(s) from {:#010x} bsize {} to offset {:#010x}!",
                  req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-    if (m_card && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    if (m_card)
     {
-      const u32 size = req.bsize * req.blocks;
-      const u64 address = GetAddressFromRequest(req.arg);
-
-      if (!m_card.Seek(address, File::SeekOrigin::Begin))
-        ERROR_LOG_FMT(IOS_SD, "Seek failed");
-
-      if (!m_card.WriteBytes(memory.GetPointerForRange(req.addr, size), size))
+      if (Config::Get(Config::MAIN_ALLOW_SD_WRITES))
       {
-        ERROR_LOG_FMT(IOS_SD, "Write Failed - error: {}, eof: {}", std::ferror(m_card.GetHandle()),
-                      std::feof(m_card.GetHandle()));
-        ret = RET_FAIL;
+        const u32 size = req.bsize * req.blocks;
+        const u64 address = GetAddressFromRequest(req.arg);
+
+        if (!m_card.Seek(address, File::SeekOrigin::Begin))
+          ERROR_LOG_FMT(IOS_SD, "Seek failed");
+
+        if (!m_card.WriteBytes(memory.GetPointerForRange(req.addr, size), size))
+        {
+          ERROR_LOG_FMT(IOS_SD, "Write Failed - error: {}, eof: {}",
+                        std::ferror(m_card.GetHandle()), std::feof(m_card.GetHandle()));
+          ret = RET_FAIL;
+        }
+      }
+      else
+      {
+        ret = -10;
       }
     }
   }
@@ -488,11 +500,15 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
   // Evaluate whether a card is currently inserted (config value).
   // Make sure we don't modify m_status so we don't lose track of whether the card is SDHC.
   const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
-  const u32 status = sd_card_inserted ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
+  const bool sd_card_locked = !Config::Get(Config::MAIN_ALLOW_SD_WRITES);
+  const u32 status = sd_card_inserted ?
+                         (m_status | CARD_INSERTED | (sd_card_locked ? CARD_LOCKED : 0)) :
+                         CARD_NOT_EXIST;
 
-  INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}",
+  INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}{}",
                (status & CARD_SDHC) ? "SDHC" : "SD",
                (status & CARD_INSERTED) ? "inserted" : "not present",
+               (status & CARD_LOCKED) ? " and locked" : "",
                (status & CARD_INITIALIZED) ? " and initialized" : "");
 
   auto& system = GetSystem();
@@ -543,9 +559,8 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
 {
   u64 size = m_card.GetSize();
 
-  // 2048 bytes/sector
-  // We could make this dynamic to support a wider range of file sizes
-  constexpr u32 read_bl_len = 11;
+  // 512 bytes/sector. A 2GB card should only ever have to bump this up to 10
+  u32 read_bl_len = 9;
 
   // size = (c_size + 1) * (1 << (2 + c_size_mult + read_bl_len))
   u32 c_size_mult = 0;
@@ -554,7 +569,7 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   {
     invalid_size |= size & 1;
     size >>= 1;
-    if (++c_size_mult >= 8 + 2 + read_bl_len)
+    if (++c_size_mult > 7 + 2 + read_bl_len && ++read_bl_len > 15)
     {
       ERROR_LOG_FMT(IOS_SD, "SD Card is too big!");
       // Set max values
@@ -569,7 +584,8 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   if (invalid_size)
     WARN_LOG_FMT(IOS_SD, "SD Card size is invalid");
   else
-    INFO_LOG_FMT(IOS_SD, "SD C_SIZE = {}, C_SIZE_MULT = {}", c_size, c_size_mult);
+    INFO_LOG_FMT(IOS_SD, "SD C_SIZE = {}, C_SIZE_MULT = {}, READ_BL_LEN = {}", c_size, c_size_mult,
+                 read_bl_len);
 
   // 0b00           CSD_STRUCTURE (SDv1)
   // 0b000000       reserved
@@ -578,7 +594,7 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   // 0b00110010     TRAN_SPEED (2.5 * 10 Mbit/s, max operating frequency)
 
   // 0b010110110101 CCC
-  // 0b1111         READ_BL_LEN (2048 bytes)
+  // 0b????         READ_BL_LEN
   // 0b1            READ_BL_PARTIAL
   // 0b0            WRITE_BL_MISALIGN
   // 0b0            READ_BLK_MISALIGN
@@ -599,7 +615,7 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   // 0b0            WP_GRP_ENABLE (no write protection)
   // 0b00           reserved
   // 0b001          R2W_FACTOR (write half as fast as read)
-  // 0b1111         WRITE_BL_LEN (= READ_BL_LEN)
+  // 0b????         WRITE_BL_LEN (= READ_BL_LEN)
   // 0b0            WRITE_BL_PARTIAL (no partial block writes)
   // 0b00000        reserved
   // 0b0            FILE_FORMAT_GRP (default)
@@ -612,14 +628,16 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   // 0b1            reserved
 
   // TODO: CRC7 (but so far it looks like nobody is actually verifying this)
-  constexpr u32 crc = 0;
+  // constexpr u32 crc = 0;  // The CRC doesn't seem to be sent any at all.
+  // Additionally, the entire response seems to be shifted to the right by 8 bits. Or the entire CSD
+  // was sent in reverse and IOS is only flipping the endianness of the four words.... It's weird.
 
   // Form the csd using the description above
   return {{
-      0x007f003,
-      0x5b5f8000 | (c_size >> 2),
-      0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
-      0x07c04001 | (crc << 1),
+      0x000007f0,
+      0x035b5080 | (read_bl_len << 8) | (c_size >> 10),
+      0x003ffc7f | (c_size << 22) | (c_size_mult << 7),
+      0x80040040 | (read_bl_len << 18),
   }};
 }
 
@@ -668,16 +686,12 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv2() const
   // 0b0000000          CRC
   // 0b1                reserved
 
-  // TODO: CRC7 (but so far it looks like nobody is actually verifying this)
-  constexpr u32 crc = 0;
+  // TODO: CRC7 (but so far it looks like nobody is actually verifying this) // See GetCSDv1 notes
+  // on this
+  // constexpr u32 crc = 0;
 
   // Form the csd using the description above
-  return {{
-      0x400e005a,
-      0x5f590000 | (c_size >> 16),
-      0x00007f80 | (c_size << 16),
-      0x0a400001 | (crc << 1),
-  }};
+  return {{0x00400e00, 0x5a5f5900, 0x0000007f | (c_size << 8), 0x800a4000}};
 }
 
 u64 SDIOSlot0Device::GetAddressFromRequest(u32 arg) const
