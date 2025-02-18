@@ -144,8 +144,8 @@ void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_sample
 {
   while (num_samples-- > 0)
   {
-    short l = m_little_endian ? samples[1] : Common::swap16(samples[1]);
-    short r = m_little_endian ? samples[0] : Common::swap16(samples[0]);
+    short l = m_little_endian ? samples[0] : Common::swap16(samples[0]);
+    short r = m_little_endian ? samples[1] : Common::swap16(samples[1]);
 
     m_buffer[m_buffer_index] = StereoPair(l, r);
     m_buffer_index = (m_buffer_index + 1) & (m_buffer.size() - 1);
