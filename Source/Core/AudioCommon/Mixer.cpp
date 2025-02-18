@@ -440,16 +440,18 @@ Mixer::MixerFifo::StereoPair::interp(const StereoPair& s0, const StereoPair& s1,
   const int t2 = (t1 * t1) >> 16;
   const int t3 = (t1 * t2) >> 16;
 
-  const int c0 = (+0 * t0 + 1 * t1 - 2 * t2 + 1 * t3) / 12;
-  const int c1 = (+0 * t0 - 8 * t1 + 15 * t2 - 7 * t3) / 12;
-  const int c2 = (+3 * t0 + 0 * t1 - 7 * t2 + 4 * t3) / 3;
-  const int c3 = (+0 * t0 + 2 * t1 + 5 * t2 - 4 * t3) / 3;
-  const int c4 = (+0 * t0 - 1 * t1 - 6 * t2 + 7 * t3) / 12;
-  const int c5 = (+0 * t0 + 0 * t1 + 1 * t2 - 1 * t3) / 12;
+  const int c0 = (+0 * t0 + 1 * t1 - 2 * t2 + 1 * t3) / 24;
+  const int c1 = (+0 * t0 - 8 * t1 + 15 * t2 - 7 * t3) / 24;
+  const int c2 = (+3 * t0 + 0 * t1 - 7 * t2 + 4 * t3) / 6;
+  const int c3 = (+0 * t0 + 2 * t1 + 5 * t2 - 4 * t3) / 6;
+  const int c4 = (+0 * t0 - 1 * t1 - 6 * t2 + 7 * t3) / 24;
+  const int c5 = (+0 * t0 + 0 * t1 + 1 * t2 - 1 * t3) / 24;
 
-  return StereoPair(
-      short((c0 * s0.l + c1 * s1.l + c2 * s2.l + c3 * s3.l + c4 * s4.l + c5 * s5.l) >> 16),
-      short((c0 * s0.r + c1 * s1.r + c2 * s2.r + c3 * s3.r + c4 * s4.r + c5 * s5.r) >> 16));
+  const int l = (c0 * s0.l + c1 * s1.l + c2 * s2.l + c3 * s3.l + c4 * s4.l + c5 * s5.l) >> 15;
+  const int r = (c0 * s0.r + c1 * s1.r + c2 * s2.r + c3 * s3.r + c4 * s4.r + c5 * s5.r) >> 15;
+
+  return StereoPair(short(std::clamp<int>(l, -0x7fff, 0x7fff)),
+                    short(std::clamp<int>(r, -0x7fff, 0x7fff)));
 }
 
 // Implementation of Granule's constructor
