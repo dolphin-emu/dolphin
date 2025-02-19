@@ -321,7 +321,7 @@ void sendMTFValues ( EState* s )
    ---*/
    for (iter = 0; iter < BZ_N_ITERS; iter++) {
 
-      for (t = 0; t < nGroups; t++) fave[t] = 0;
+      for (t = 0; t < BZ_N_GROUPS; t++) fave[t] = 0;
 
       for (t = 0; t < nGroups; t++)
          for (v = 0; v < alphaSize; v++)
@@ -353,7 +353,7 @@ void sendMTFValues ( EState* s )
             Calculate the cost of this group as coded
             by each of the coding tables.
          --*/
-         for (t = 0; t < nGroups; t++) cost[t] = 0;
+         for (t = 0; t < BZ_N_GROUPS; t++) cost[t] = 0;
 
          if (nGroups == 6 && 50 == ge-gs+1) {
             /*--- fast track the common case ---*/
