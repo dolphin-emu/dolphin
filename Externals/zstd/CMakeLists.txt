@@ -57,8 +57,11 @@ add_definitions(-DXXH_NAMESPACE=ZSTD_)
 
 set(ZSTD_PUBLIC_HDRS
     lib/zstd.h
+    lib/zstd_errors.h
 )
 set(ZSTD_PRIVATE_HDRS
+    lib/common/allocations.h
+    lib/common/bits.h
     lib/common/bitstream.h
     lib/common/compiler.h
     lib/common/cpu.h
@@ -68,19 +71,24 @@ set(ZSTD_PRIVATE_HDRS
     lib/common/huf.h
     lib/common/mem.h
     lib/common/pool.h
+    lib/common/portability_macros.h
     lib/common/threading.h
     lib/common/xxhash.h
-    lib/common/zstd_errors.h
+    lib/common/zstd_deps.h
     lib/common/zstd_internal.h
+    lib/common/zstd_trace.h
+    lib/compress/clevels.h
     lib/compress/hist.h
     lib/compress/zstd_compress_internal.h
     lib/compress/zstd_compress_literals.h
     lib/compress/zstd_compress_sequences.h
+    lib/compress/zstd_compress_superblock.h
     lib/compress/zstd_cwksp.h
     lib/compress/zstd_double_fast.h
     lib/compress/zstd_fast.h
     lib/compress/zstd_lazy.h
     lib/compress/zstd_ldm.h
+    lib/compress/zstd_ldm_geartab.h
     lib/compress/zstd_opt.h
     lib/compress/zstdmt_compress.h
     lib/decompress/zstd_ddict.h
@@ -102,6 +110,7 @@ set(ZSTD_SRCS
     lib/compress/zstd_compress.c
     lib/compress/zstd_compress_literals.c
     lib/compress/zstd_compress_sequences.c
+    lib/compress/zstd_compress_superblock.c
     lib/compress/zstd_double_fast.c
     lib/compress/zstd_fast.c
     lib/compress/zstd_lazy.c

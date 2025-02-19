@@ -37,6 +37,7 @@
     <ClCompile Include="lib\compress\zstd_compress.c" />
     <ClCompile Include="lib\compress\zstd_compress_literals.c" />
     <ClCompile Include="lib\compress\zstd_compress_sequences.c" />
+    <ClCompile Include="lib\compress\zstd_compress_superblock.c" />
     <ClCompile Include="lib\compress\zstd_double_fast.c" />
     <ClCompile Include="lib\compress\zstd_fast.c" />
     <ClCompile Include="lib\compress\zstd_lazy.c" />
@@ -48,6 +49,8 @@
     <ClCompile Include="lib\decompress\zstd_decompress_block.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\common\allocations.h" />
+    <ClInclude Include="lib\common\bits.h" />
     <ClInclude Include="lib\common\bitstream.h" />
     <ClInclude Include="lib\common\compiler.h" />
     <ClInclude Include="lib\common\cpu.h" />
@@ -57,25 +60,31 @@
     <ClInclude Include="lib\common\huf.h" />
     <ClInclude Include="lib\common\mem.h" />
     <ClInclude Include="lib\common\pool.h" />
+    <ClInclude Include="lib\common\portability_macros.h" />
     <ClInclude Include="lib\common\threading.h" />
     <ClInclude Include="lib\common\xxhash.h" />
-    <ClInclude Include="lib\common\zstd_errors.h" />
+    <ClInclude Include="lib\common\zstd_deps.h" />
     <ClInclude Include="lib\common\zstd_internal.h" />
+    <ClInclude Include="lib\common\zstd_trace.h" />
+    <ClInclude Include="lib\common\zstd_clevels.h" />
     <ClInclude Include="lib\compress\hist.h" />
     <ClInclude Include="lib\compress\zstdmt_compress.h" />
     <ClInclude Include="lib\compress\zstd_compress_internal.h" />
     <ClInclude Include="lib\compress\zstd_compress_literals.h" />
     <ClInclude Include="lib\compress\zstd_compress_sequences.h" />
+    <ClInclude Include="lib\compress\zstd_compress_superblock.h" />
     <ClInclude Include="lib\compress\zstd_cwksp.h" />
     <ClInclude Include="lib\compress\zstd_double_fast.h" />
     <ClInclude Include="lib\compress\zstd_fast.h" />
     <ClInclude Include="lib\compress\zstd_lazy.h" />
     <ClInclude Include="lib\compress\zstd_ldm.h" />
+    <ClInclude Include="lib\compress\zstd_ldm_geartab.h" />
     <ClInclude Include="lib\compress\zstd_opt.h" />
     <ClInclude Include="lib\decompress\zstd_ddict.h" />
     <ClInclude Include="lib\decompress\zstd_decompress_block.h" />
     <ClInclude Include="lib\decompress\zstd_decompress_internal.h" />
     <ClInclude Include="lib\zstd.h" />
+    <ClInclude Include="lib\zstd_errors.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

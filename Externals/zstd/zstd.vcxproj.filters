@@ -55,6 +55,9 @@
     <ClCompile Include="lib\compress\zstd_compress_sequences.c">
       <Filter>compress</Filter>
     </ClCompile>
+    <ClCompile Include="lib\compress\zstd_compress_superblock.c">
+      <Filter>compress</Filter>
+    </ClCompile>
     <ClCompile Include="lib\compress\zstd_double_fast.c">
       <Filter>compress</Filter>
     </ClCompile>
@@ -76,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\zstd.h" />
+    <ClInclude Include="lib\zstd_errors.h" />
     <ClInclude Include="lib\common\debug.h">
       <Filter>common</Filter>
     </ClInclude>
@@ -85,10 +89,19 @@
     <ClInclude Include="lib\common\pool.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="lib\common\portability_macros.h">
+      <Filter>common</Filter>
+    </ClInclude>
     <ClInclude Include="lib\common\threading.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="lib\common\xxhash.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\common\allocations.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\common\bits.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="lib\common\bitstream.h">
@@ -109,10 +122,16 @@
     <ClInclude Include="lib\common\mem.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="lib\common\zstd_errors.h">
+    <ClInclude Include="lib\common\zstd_deps.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="lib\common\zstd_internal.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\common\zstd_trace.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\common\zstd_clevels.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="lib\decompress\zstd_ddict.h">
@@ -136,6 +155,9 @@
     <ClInclude Include="lib\compress\zstd_compress_sequences.h">
       <Filter>compress</Filter>
     </ClInclude>
+    <ClInclude Include="lib\compress\zstd_compress_superblock.h">
+      <Filter>compress</Filter>
+    </ClInclude>
     <ClInclude Include="lib\compress\zstd_cwksp.h">
       <Filter>compress</Filter>
     </ClInclude>
@@ -149,6 +171,9 @@
       <Filter>compress</Filter>
     </ClInclude>
     <ClInclude Include="lib\compress\zstd_ldm.h">
+      <Filter>compress</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\compress\zstd_ldm_geartab.h">
       <Filter>compress</Filter>
     </ClInclude>
     <ClInclude Include="lib\compress\zstd_opt.h">
