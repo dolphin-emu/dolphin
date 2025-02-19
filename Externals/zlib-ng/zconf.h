@@ -1,5 +1,5 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2016 Jean-loup Gailly, Mark Adler
+ * Copyright (C) 1995-2024 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -35,6 +35,9 @@
  * created by gzip. (Files created by minigzip can still be extracted by
  * gzip.)
  */
+#ifndef MIN_WBITS
+#  define MIN_WBITS   8  /* 256 LZ77 window */
+#endif
 #ifndef MAX_WBITS
 #  define MAX_WBITS   15 /* 32K LZ77 window */
 #endif
@@ -79,6 +82,9 @@
  * Caution: the standard ZLIB1.DLL is NOT compiled using ZLIB_WINAPI.
  */
 #if defined(ZLIB_WINAPI) && defined(_WIN32)
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <windows.h>
    /* No need for _export, use ZLIB.DEF instead. */
    /* For complete Windows compatibility, use WINAPI, not __stdcall. */
@@ -110,8 +116,11 @@
 #ifndef ZEXPORTVA
 #  define ZEXPORTVA Z_EXPORTVA
 #endif
+#ifndef FAR
+#  define FAR
+#endif
 
-/* Fallback for something that includes us. */
+/* Legacy zlib typedefs for backwards compatibility. Don't assume stdint.h is defined. */
 typedef unsigned char Byte;
 typedef Byte Bytef;
 
@@ -127,9 +136,9 @@ typedef void const *voidpc;
 typedef void       *voidpf;
 typedef void       *voidp;
 
-typedef uint32_t z_crc_t;
+typedef unsigned int z_crc_t;
 
-#if 0    /* was set to #if 0 by configure/cmake/etc */
+#ifdef HAVE_UNISTD_H    /* may be set to #if 1 by configure/cmake/etc */
 #  define Z_HAVE_UNISTD_H
 #endif
 
@@ -191,5 +200,7 @@ typedef PTRDIFF_TYPE ptrdiff_t;
 #    define z_off64_t z_off_t
 #  endif
 #endif
+
+typedef size_t z_size_t;
 
 #endif /* ZCONF_H */
