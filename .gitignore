@@ -47,3 +47,5 @@ CMakeLists.txt.user
 
 # Ignore the rust target dir
 Externals/SlippiRustExtensions/target/
+AppDir/
+*.AppImage
