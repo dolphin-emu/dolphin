@@ -1,6 +1,6 @@
 [submodule "Externals/Qt"]
 	path = Externals/Qt
-	url = https://github.com/dolphin-emu/ext-win-qt.git
+	url = https://github.com/dreamsyntax/dme-ext-win-qt.git
 	branch = master
 	shallow = true
 [submodule "Externals/mGBA/mgba"]
