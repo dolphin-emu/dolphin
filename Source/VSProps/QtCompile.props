@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup Label="UserMacros">
-    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.5.1\</ExternalsQtDir>
+    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.8.2\</ExternalsQtDir>
     <QtTargetDirDefault>$(ExternalsQtDir)$(Platform)\</QtTargetDirDefault>
     <QTDIR Condition="Exists('$(QtTargetDirDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QtTargetDirDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
@@ -113,7 +113,7 @@
     <QtDllNames Include="@(QtDllNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
     <QtDllsSrc Include="@(QtDllNames -> '$(QtBinDir)%(Identity)')" />
     <QtDllsDst Include="@(QtDllNames -> '$(BinaryOutputDir)%(Identity)')" />
-    <QtPluginNames_ Include="iconengines\qsvgicon;imageformats\qsvg;platforms\qdirect2d;platforms\qwindows;styles\qwindowsvistastyle"/>
+    <QtPluginNames_ Include="iconengines\qsvgicon;imageformats\qsvg;platforms\qdirect2d;platforms\qwindows;styles\qmodernwindowsstyle"/>
     <QtPluginNames Include="@(QtPluginNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
     <QtPluginsSrc Include="@(QtPluginNames -> '$(QtPluginsDir)%(Identity)')" />
     <QtPluginsDst Include="@(QtPluginNames -> '$(BinaryOutputDir)$(QtPluginFolder)\%(Identity)')" />

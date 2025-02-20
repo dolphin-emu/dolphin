@@ -15,7 +15,7 @@ TASCheckBox::TASCheckBox(const QString& text, TASInputWindow* parent)
 {
   setTristate(true);
 
-  connect(this, &TASCheckBox::stateChanged, this, &TASCheckBox::OnUIValueChanged);
+  connect(this, &TASCheckBox::checkStateChanged, this, &TASCheckBox::OnUIValueChanged);
 }
 
 bool TASCheckBox::GetValue() const

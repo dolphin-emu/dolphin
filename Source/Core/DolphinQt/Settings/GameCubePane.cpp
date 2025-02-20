@@ -247,7 +247,7 @@ void GameCubePane::CreateWidgets()
 void GameCubePane::ConnectWidgets()
 {
   // IPL Settings
-  connect(m_skip_main_menu, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
+  connect(m_skip_main_menu, &QCheckBox::checkStateChanged, this, &GameCubePane::SaveSettings);
   connect(m_language_combo, &QComboBox::currentIndexChanged, this, &GameCubePane::SaveSettings);
 
   // Device Settings
@@ -278,10 +278,10 @@ void GameCubePane::ConnectWidgets()
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
-  connect(m_gba_threads, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
+  connect(m_gba_threads, &QCheckBox::checkStateChanged, this, &GameCubePane::SaveSettings);
   connect(m_gba_bios_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
   connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
-  connect(m_gba_save_rom_path, &QCheckBox::stateChanged, this, &GameCubePane::SaveRomPathChanged);
+  connect(m_gba_save_rom_path, &QCheckBox::checkStateChanged, this, &GameCubePane::SaveRomPathChanged);
   connect(m_gba_saves_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
   connect(m_gba_browse_saves, &QPushButton::clicked, this, &GameCubePane::BrowseGBASaves);
   for (size_t i = 0; i < m_gba_browse_roms.size(); ++i)

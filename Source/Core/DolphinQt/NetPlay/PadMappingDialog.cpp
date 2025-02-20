@@ -61,7 +61,7 @@ void PadMappingDialog::ConnectWidgets()
   }
   for (const auto& checkbox : m_gba_boxes)
   {
-    connect(checkbox, &QCheckBox::stateChanged, this, &PadMappingDialog::OnMappingChanged);
+    connect(checkbox, &QCheckBox::checkStateChanged, this, &PadMappingDialog::OnMappingChanged);
   }
 }
 
