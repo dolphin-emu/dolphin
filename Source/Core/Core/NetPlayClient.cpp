@@ -4,6 +4,7 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -2668,9 +2669,10 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
       wiimote_slots.push_back(i + 1);
   }
   std::vector<std::string> groups;
-  for (const auto& [group_name, slots] :
-       {std::make_pair("GC", &gc_slots), std::make_pair("GBA", &gba_slots),
-        std::make_pair("Wii", &wiimote_slots)})
+  std::array<std::pair<std::string, std::vector<size_t>*>, 3> slot_groups = {
+      {{"GC", &gc_slots}, {"GBA", &gba_slots}, {"Wii", &wiimote_slots}}};
+
+  for (const auto& [group_name, slots] : slot_groups)
   {
     if (!slots->empty())
       groups.emplace_back(fmt::format("{}{}", group_name, fmt::join(*slots, ",")));

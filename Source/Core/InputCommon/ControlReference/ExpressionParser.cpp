@@ -26,12 +26,12 @@ using namespace ciface::Core;
 class ControlExpression;
 
 // Check if operator is usable with assignment, e.g. += -= *=
-bool IsCompoundAssignmentUsableBinaryOperator(TokenType type)
+static bool IsCompoundAssignmentUsableBinaryOperator(TokenType type)
 {
   return type >= TOK_COMPOUND_ASSIGN_OPS_BEGIN && type < TOK_COMPOUND_ASSIGN_OPS_END;
 }
 
-TokenType GetBinaryOperatorTokenTypeFromChar(char c)
+static TokenType GetBinaryOperatorTokenTypeFromChar(char c)
 {
   switch (c)
   {
@@ -744,7 +744,7 @@ ParseResult ParseResult::MakeErrorResult(Token token, std::string description)
   return result;
 }
 
-bool IsInertToken(const Token& tok)
+static bool IsInertToken(const Token& tok)
 {
   return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
 }
