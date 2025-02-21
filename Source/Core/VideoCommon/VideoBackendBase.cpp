@@ -232,16 +232,20 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
   static auto s_available_backends = [] {
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
-    // Mainline prefers OGL > D3D11 > D3D12 > Vulkan > SW > Null
-    // Slippi will instead prefer D3D11 > D3D12 > Vulkan > OGL > SW > Null
-    // SLIPPITODO: Check what works best in practice for each OS
+// Mainline prefers OGL > D3D11 > D3D12 > Vulkan > SW > Null
+// Slippi will instead prefer D3D11 > D3D12 > Vulkan > OGL > SW > Null
+// SLIPPITODO: Check what works best in practice for each OS
 #ifdef _WIN32
     backends.push_back(std::make_unique<DX11::VideoBackend>());
     backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
+#ifdef HAS_OPENGL
+    backends.push_back(std::make_unique<OGL::VideoBackend>());
+#endif
 #ifdef HAS_VULKAN
 #ifdef __APPLE__
     // Emplace the Vulkan backend at the beginning so it takes precedence over OpenGL.
+    // On macOS, we prefer Vulkan over OpenGL due to OpenGL support being deprecated by Apple.
     backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
 #else
     backends.push_back(std::make_unique<Vulkan::VideoBackend>());
@@ -299,7 +303,7 @@ void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
 {
   // If the core is running, the backend info will have been populated already.
   // If we did it here, the UI thread can race with the with the GPU thread.
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(Core::System::GetInstance()))
     PopulateBackendInfo(wsi);
 }
 
@@ -348,7 +352,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
 {
   memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
   memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
-  memset(texMem, 0, TMEM_SIZE);
+  s_tex_mem.fill(0);
 
   // do not initialize again for the config window
   m_initialized = true;

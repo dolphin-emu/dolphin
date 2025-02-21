@@ -189,7 +189,6 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
     stop_condition = HitType::ACTIVE;
 
   auto& power_pc = guard.GetSystem().GetPowerPC();
-  power_pc.GetBreakPoints().ClearAllTemporary();
   using clock = std::chrono::steady_clock;
   clock::time_point timeout = clock::now() + std::chrono::seconds(4);
 

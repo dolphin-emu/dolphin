@@ -28,7 +28,7 @@ OpenRequest::OpenRequest(Core::System& system, const u32 address_) : Request(sys
   auto& memory = system.GetMemory();
   path = memory.GetString(memory.Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(memory.Read_U32(address + 0x10));
-  const EmulationKernel* ios = GetIOS();
+  const EmulationKernel* ios = system.GetIOS();
   if (ios)
   {
     uid = ios->GetUidForPPC();
@@ -116,9 +116,9 @@ void IOCtlRequest::Dump(Core::System& system, const std::string& description,
 
   Log("===== " + description, type, level);
   GENERIC_LOG_FMT(type, level, "In buffer\n{}",
-                  HexDump(memory.GetPointer(buffer_in), buffer_in_size));
+                  HexDump(memory.GetPointerForRange(buffer_in, buffer_in_size), buffer_in_size));
   GENERIC_LOG_FMT(type, level, "Out buffer\n{}",
-                  HexDump(memory.GetPointer(buffer_out), buffer_out_size));
+                  HexDump(memory.GetPointerForRange(buffer_out, buffer_out_size), buffer_out_size));
 }
 
 void IOCtlRequest::DumpUnknown(Core::System& system, const std::string& description,
@@ -139,7 +139,7 @@ void IOCtlVRequest::Dump(Core::System& system, std::string_view description,
   for (const auto& vector : in_vectors)
   {
     GENERIC_LOG_FMT(type, level, "in[{}] (size={:#x}):\n{}", i++, vector.size,
-                    HexDump(memory.GetPointer(vector.address), vector.size));
+                    HexDump(memory.GetPointerForRange(vector.address, vector.size), vector.size));
   }
 
   i = 0;

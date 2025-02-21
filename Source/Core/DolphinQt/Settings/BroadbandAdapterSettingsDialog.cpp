@@ -48,6 +48,32 @@ void BroadbandAdapterSettingsDialog::InitControls()
     window_title = tr("Broadband Adapter MAC Address");
     break;
 
+  case Type::TapServer:
+  case Type::ModemTapServer:
+  {
+    const bool is_modem = (m_bba_type == Type::ModemTapServer);
+    current_address =
+        QString::fromStdString(Config::Get(is_modem ? Config::MAIN_MODEM_TAPSERVER_DESTINATION :
+                                                      Config::MAIN_BBA_TAPSERVER_DESTINATION));
+#ifdef _WIN32
+    address_label = new QLabel(tr("Destination (address:port):"));
+    address_placeholder = QStringLiteral("");
+    description = new QLabel(
+        tr("Enter the IP address and port of the tapserver instance you want to connect to."));
+#else
+    address_label = new QLabel(tr("Destination (UNIX socket path or address:port):"));
+    address_placeholder =
+        is_modem ? QStringLiteral(u"/tmp/dolphin-modem-tap") : QStringLiteral(u"/tmp/dolphin-tap");
+    description =
+        new QLabel(tr("The default value \"%1\" will work with a local tapserver and newserv."
+                      " You can also enter a network location (address:port) to connect to a "
+                      "remote tapserver.")
+                       .arg(address_placeholder));
+#endif
+    window_title = tr("BBA destination address");
+    break;
+  }
+
   case Type::BuiltIn:
     address_label = new QLabel(tr("Enter the DNS server to use:"));
     address_placeholder = QStringLiteral("8.8.8.8");
@@ -114,6 +140,12 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
     Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, bba_new_address);
     break;
   }
+  case Type::TapServer:
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_TAPSERVER_DESTINATION, bba_new_address);
+    break;
+  case Type::ModemTapServer:
+    Config::SetBaseOrCurrent(Config::MAIN_MODEM_TAPSERVER_DESTINATION, bba_new_address);
+    break;
   case Type::BuiltIn:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_BUILTIN_DNS, bba_new_address);
     break;

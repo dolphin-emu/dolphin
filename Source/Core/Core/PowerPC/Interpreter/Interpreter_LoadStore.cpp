@@ -631,7 +631,9 @@ void Interpreter::icbi(Interpreter& interpreter, UGeckoInstruction inst)
   // TODO: Raise DSI if translation fails (except for direct-store segments).
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
-  ppc_state.iCache.Invalidate(address);
+  auto& memory = interpreter.m_system.GetMemory();
+  auto& jit_interface = interpreter.m_system.GetJitInterface();
+  ppc_state.iCache.Invalidate(memory, jit_interface, address);
 }
 
 void Interpreter::lbzux(Interpreter& interpreter, UGeckoInstruction inst)

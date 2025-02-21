@@ -841,7 +841,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
-  Core::OnFrameEnd();
+  Core::OnFrameEnd(m_system);
 }
 
 // Purpose: Send VI interrupt when triggered

@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+#include <fmt/ranges.h>
+
 #include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
@@ -211,7 +213,8 @@ void InitDriverInfo()
   default:
     break;
   }
-  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family);
+  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family,
+                      std::string(srenderer));
 }
 
 bool PopulateConfig(GLContext* m_main_gl_context)

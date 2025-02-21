@@ -185,6 +185,9 @@ private:
   // behavior.
   void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 
+  void ApplyLowPassFilter(MixingBuffer* buf, VPB* vpb);
+  void ApplyBiquadFilter(MixingBuffer* buf, VPB* vpb);
+
   // Applies the reverb effect to Dolby mixed voices based on a set of
   // per-buffer parameters. Is called twice: once before frame rendering and
   // once after.

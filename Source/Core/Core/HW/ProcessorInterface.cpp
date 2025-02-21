@@ -232,7 +232,7 @@ void ProcessorInterfaceManager::ToggleResetButtonCallback(Core::System& system, 
 void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& system, u64 userdata,
                                                              s64 cyclesLate)
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = system.GetIOS();
   if (!ios)
     return;
 
@@ -244,7 +244,7 @@ void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& syste
 void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata,
                                                              s64 cyclesLate)
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = system.GetIOS();
   if (!ios)
     return;
 
@@ -255,7 +255,7 @@ void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& syste
 
 void ProcessorInterfaceManager::ResetButton_Tap()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(m_system))
     return;
 
   auto& core_timing = m_system.GetCoreTiming();
@@ -268,7 +268,7 @@ void ProcessorInterfaceManager::ResetButton_Tap()
 
 void ProcessorInterfaceManager::PowerButton_Tap()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(m_system))
     return;
 
   auto& core_timing = m_system.GetCoreTiming();

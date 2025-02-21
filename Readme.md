@@ -14,7 +14,7 @@ Ping or message nikki (metonym) in the Slippi Discord. https://slippi.gg/discord
 
 # Dolphin - A GameCube and Wii Emulator
 
-[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci/) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [GitHub Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://app.transifex.com/delroth/dolphin-emu/dashboard/)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci/) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [GitHub Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://app.transifex.com/dolphinemu/dolphin-emu/dashboard/)
 
 Dolphin is an emulator for running GameCube and Wii games on Windows,
 Linux, macOS, and recent Android devices. It's licensed under the terms
@@ -220,7 +220,7 @@ is intended for debugging purposes only.
 ```
 usage: dolphin-tool COMMAND -h
 
-commands supported: [convert, verify, header]
+commands supported: [convert, verify, header, extract]
 ```
 
 ```
@@ -278,4 +278,23 @@ then exit.
   -l, --compression_level
                         Optional. Print the level of compression for WIA/RVZ
                         formats, then exit.
+```
+
+```
+Usage: extract [options]...
+
+Options:
+  -h, --help            show this help message and exit
+  -i FILE, --input=FILE
+                        Path to disc image FILE.
+  -o FOLDER, --output=FOLDER
+                        Path to the destination FOLDER.
+  -p PARTITION, --partition=PARTITION
+                        Which specific partition you want to extract.
+  -s SINGLE, --single=SINGLE
+                        Which specific file/directory you want to extract.
+  -l, --list            List all files in volume/partition. Will print the
+                        directory/file specified with --single if defined.
+  -q, --quiet           Mute all messages except for errors.
+  -g, --gameonly        Only extracts the DATA partition.
 ```

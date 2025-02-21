@@ -214,6 +214,12 @@ enum class BooleanSetting(
         "JitRegisterCacheOff",
         false
     ),
+    MAIN_DEBUG_JIT_ENABLE_PROFILING(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_DEBUG,
+        "JitEnableProfiling",
+        false
+    ),
     MAIN_EMULATE_SKYLANDER_PORTAL(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_EMULATED_USB_DEVICES,

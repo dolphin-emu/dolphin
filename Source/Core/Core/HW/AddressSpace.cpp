@@ -4,8 +4,8 @@
 #include "Core/HW/AddressSpace.h"
 
 #include <algorithm>
+#include <bit>
 
-#include "Common/BitUtils.h"
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
@@ -55,7 +55,7 @@ void Accessors::WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 val
 
 float Accessors::ReadF32(const Core::CPUThreadGuard& guard, u32 address) const
 {
-  return Common::BitCast<float>(ReadU32(guard, address));
+  return std::bit_cast<float>(ReadU32(guard, address));
 }
 
 Accessors::iterator Accessors::begin() const
@@ -120,7 +120,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
     return PowerPC::MMU::HostRead_F32(guard, address);
-  };
+  }
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const
@@ -150,14 +150,14 @@ struct EffectiveAddressSpaceAccessors : Accessors
         return false;
       }
 
-      u8* page_ptr = memory.GetPointer(*page_physical_address);
+      std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
+      u8* page_ptr = memory.GetPointerForRange(*page_physical_address + offset, chunk_size);
       if (page_ptr == nullptr)
       {
         return false;
       }
 
-      std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
-      if (memcmp(needle_start, page_ptr + offset, chunk_size) != 0)
+      if (memcmp(needle_start, page_ptr, chunk_size) != 0)
       {
         return false;
       }

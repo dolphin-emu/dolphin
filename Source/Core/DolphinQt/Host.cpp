@@ -103,8 +103,8 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     // (Note that this case cannot be reached in single core mode, because in single core mode,
     // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
 
-    const bool was_running = Core::GetState() == Core::State::Running;
     auto& system = Core::System::GetInstance();
+    const bool was_running = Core::GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
     fifo.PauseAndLock(true, was_running);
     f();
@@ -112,9 +112,9 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
   }
   else
   {
-    // If we reach here, we can call Core::PauseAndLock (which we do using RunAsCPUThread).
-
-    Core::RunAsCPUThread(std::move(f));
+    // If we reach here, we can call Core::PauseAndLock (which we do using a CPUThreadGuard).
+    const Core::CPUThreadGuard guard(Core::System::GetInstance());
+    f();
   }
 }
 
@@ -162,6 +162,11 @@ bool Host::GetGBAFocus()
 #endif
 }
 
+bool Host::GetTASInputFocus() const
+{
+  return m_tas_input_focus;
+}
+
 bool Host::GetRenderFullscreen()
 {
   return m_render_fullscreen;
@@ -175,6 +180,11 @@ void Host::SetRenderFullscreen(bool fullscreen)
   {
     RunWithGPUThreadInactive([fullscreen] { g_gfx->SetFullscreen(fullscreen); });
   }
+}
+
+void Host::SetTASInputFocus(const bool focus)
+{
+  m_tas_input_focus = focus;
 }
 
 void Host::ResizeSurface(int new_width, int new_height)
@@ -228,6 +238,11 @@ bool Host_RendererIsFullscreen()
   return Host::GetInstance()->GetRenderFullscreen();
 }
 
+bool Host_TASInputHasFocus()
+{
+  return Host::GetInstance()->GetTASInputFocus();
+}
+
 void Host_YieldToUI()
 {
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -235,17 +250,15 @@ void Host_YieldToUI()
 
 void Host_UpdateDisasmDialog()
 {
+  if (Settings::Instance().GetIsContinuouslyFrameStepping())
+    return;
+
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
-void Host::RequestNotifyMapLoaded()
+void Host_PPCSymbolsChanged()
 {
-  QueueOnObject(QApplication::instance(), [this] { emit NotifyMapLoaded(); });
-}
-
-void Host_NotifyMapLoaded()
-{
-  Host::GetInstance()->RequestNotifyMapLoaded();
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });
 }
 
 // We ignore these, and their purpose should be questioned individually.

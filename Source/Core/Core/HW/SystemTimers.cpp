@@ -103,7 +103,7 @@ void SystemTimersManager::IPC_HLE_UpdateCallback(Core::System& system, u64 userd
 {
   if (system.IsWii())
   {
-    IOS::HLE::GetIOS()->UpdateDevices();
+    system.GetIOS()->UpdateDevices();
     auto& system_timers = system.GetSystemTimers();
     system.GetCoreTiming().ScheduleEvent(system_timers.m_ipc_hle_period - cycles_late,
                                          system_timers.m_event_type_ipc_hle);

@@ -47,7 +47,7 @@ endif()
 endif()
 
 add_library(spirv_cross STATIC ${SRCS})
-dolphin_disable_warnings_msvc(spirv_cross)
+dolphin_disable_warnings(spirv_cross)
 
 target_compile_definitions(spirv_cross PUBLIC SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS)
 target_include_directories(spirv_cross PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Cross/include ${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Cross)

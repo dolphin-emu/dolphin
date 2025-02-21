@@ -6,6 +6,8 @@ Thumbs.db
 Externals/mGBA/version.c
 Source/Core/Common/scmrev.h
 # Ignore files output by build
+/cmake-build-debug
+/cmake-build-release
 /[Bb]uild*/
 /out/
 /[Bb]inary*/
@@ -39,9 +41,11 @@ CMakeLists.txt.user
 # Ignore kdevelop files/dirs
 *.kdev4
 # Ignore IDEA/Clion files/dirs
-/.idea/
+.idea/
 # Ignore Visual Studio Code's working dir
 /.vscode/
 
 # Ignore the rust target dir
 Externals/SlippiRustExtensions/target/
+AppDir/
+*.AppImage

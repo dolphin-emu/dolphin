@@ -116,7 +116,7 @@ void VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentFor
 
   m_float_emit.LDUR(load_size, coords, reg, offset);
 
-  if (format != ComponentFormat::Float)
+  if (format < ComponentFormat::Float)
   {
     // Extend and convert to float
     switch (format)
@@ -394,8 +394,8 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    static constexpr Common::EnumMap<u8, static_cast<ComponentFormat>(7)> SCALE_MAP = {7, 6, 15, 14,
-                                                                                       0, 0, 0,  0};
+    static constexpr Common::EnumMap<u8, ComponentFormat::InvalidFloat7> SCALE_MAP = {7, 6, 15, 14,
+                                                                                      0, 0, 0,  0};
     const u8 scaling_exponent = SCALE_MAP[m_VtxAttr.g0.NormalFormat];
 
     // Normal

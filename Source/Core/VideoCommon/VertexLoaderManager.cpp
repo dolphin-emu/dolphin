@@ -91,26 +91,35 @@ void UpdateVertexArrayPointers()
   // Note: Only array bases 0 through 11 are used by the Vertex loaders.
   //       12 through 15 are used for loading data into xfmem.
   // We also only update the array base if the vertex description states we are going to use it.
+  // TODO: For memory safety, we need to check the sizes returned by GetSpanForAddress
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
+  {
     cached_arraybases[CPArray::Position] =
-        memory.GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
+        memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Position]).data();
+  }
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
+  {
     cached_arraybases[CPArray::Normal] =
-        memory.GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
+        memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Normal]).data();
+  }
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
+    {
       cached_arraybases[CPArray::Color0 + i] =
-          memory.GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
+          memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Color0 + i]).data();
+    }
   }
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
+    {
       cached_arraybases[CPArray::TexCoord0 + i] =
-          memory.GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
+          memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]).data();
+    }
   }
 
   g_bases_dirty = false;
@@ -318,6 +327,51 @@ static void CheckCPConfiguration(int vtx_attr_group)
                  g_main_cp_state.matrix_index_b.Hex, xfmem.MatrixIndexB.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(
         GameQuirk::MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF);
+  }
+
+  if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat >= ComponentFormat::InvalidFloat5)
+  {
+    WARN_LOG_FMT(VIDEO, "Invalid position format {} for VAT {} - {:08x} {:08x} {:08x}",
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat, vtx_attr_group,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_POSITION_COMPONENT_FORMAT);
+  }
+  if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat >= ComponentFormat::InvalidFloat5)
+  {
+    WARN_LOG_FMT(VIDEO, "Invalid normal format {} for VAT {} - {:08x} {:08x} {:08x}",
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat, vtx_attr_group,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_NORMAL_COMPONENT_FORMAT);
+  }
+  for (size_t i = 0; i < 8; i++)
+  {
+    if (g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i) >= ComponentFormat::InvalidFloat5)
+    {
+      WARN_LOG_FMT(VIDEO,
+                   "Invalid texture coordinate {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i), vtx_attr_group,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+      DolphinAnalytics::Instance().ReportGameQuirk(
+          GameQuirk::INVALID_TEXTURE_COORDINATE_COMPONENT_FORMAT);
+    }
+  }
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i) > ColorFormat::RGBA8888)
+    {
+      WARN_LOG_FMT(VIDEO, "Invalid color {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i), vtx_attr_group,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_COLOR_COMPONENT_FORMAT);
+    }
   }
 }
 

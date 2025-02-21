@@ -1,6 +1,7 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bit>
 #include <limits>
 #include <memory>
 #include <tuple>
@@ -9,7 +10,6 @@
 
 #include <gtest/gtest.h>  // NOLINT
 
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
@@ -28,13 +28,13 @@ TEST(VertexLoaderUID, UniqueEnough)
 
   vtx_desc.low.Hex = 0x76543210;
   vtx_desc.high.Hex = 0xFEDCBA98;
-  EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
+  EXPECT_FALSE(uids.contains(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
   vat.g0.Hex = 0xFFFFFFFF;
   vat.g1.Hex = 0xFFFFFFFF;
   vat.g2.Hex = 0xFFFFFFFF;
-  EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
+  EXPECT_FALSE(uids.contains(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 }
 
@@ -80,8 +80,8 @@ protected:
     // Read unswapped.
     const float actual = m_dst.Read<float, false>();
 
-    if (!actual || actual != actual)
-      EXPECT_EQ(Common::BitCast<u32>(expected), Common::BitCast<u32>(actual));
+    if (!actual || std::isnan(actual))
+      EXPECT_EQ(std::bit_cast<u32>(expected), std::bit_cast<u32>(actual));
     else
       EXPECT_EQ(expected, actual);
   }
@@ -121,7 +121,9 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(VertexComponentFormat::Direct, VertexComponentFormat::Index8,
                           VertexComponentFormat::Index16),
         ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
-                          ComponentFormat::Short, ComponentFormat::Float),
+                          ComponentFormat::Short, ComponentFormat::Float,
+                          ComponentFormat::InvalidFloat5, ComponentFormat::InvalidFloat6,
+                          ComponentFormat::InvalidFloat7),
         ::testing::Values(CoordComponentCount::XY, CoordComponentCount::XYZ),
         ::testing::Values(0, 1, 31)  // frac
         ));
@@ -170,10 +172,12 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   {
     input_size = addr == VertexComponentFormat::Index8 ? 1 : 2;
     for (int i = 0; i < count; i++)
+    {
       if (addr == VertexComponentFormat::Index8)
         Input<u8>(i);
       else
         Input<u16>(i);
+    }
     VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
     g_main_cp_state.array_strides[CPArray::Position] = elem_count * elem_size;
   }
@@ -195,6 +199,9 @@ TEST_P(VertexLoaderParamTest, PositionAll)
       Input(MathUtil::SaturatingCast<s16>(value));
       break;
     case ComponentFormat::Float:
+    case ComponentFormat::InvalidFloat5:
+    case ComponentFormat::InvalidFloat6:
+    case ComponentFormat::InvalidFloat7:
       Input(value);
       break;
     }
@@ -202,7 +209,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 
   RunVertices(count);
 
-  float scale = 1.f / (1u << (format == ComponentFormat::Float ? 0 : frac));
+  float scale = 1.f / (1u << (format >= ComponentFormat::Float ? 0 : frac));
   for (auto iter = values.begin(); iter != values.end();)
   {
     float f, g;
@@ -225,6 +232,9 @@ TEST_P(VertexLoaderParamTest, PositionAll)
       g = MathUtil::SaturatingCast<s16>(*iter++);
       break;
     case ComponentFormat::Float:
+    case ComponentFormat::InvalidFloat5:
+    case ComponentFormat::InvalidFloat6:
+    case ComponentFormat::InvalidFloat7:
       f = *iter++;
       g = *iter++;
       break;
@@ -306,15 +316,15 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 {
   // Enables most attributes in floating point indexed mode to test speed.
-  m_vtx_desc.low.PosMatIdx = 1;
-  m_vtx_desc.low.Tex0MatIdx = 1;
-  m_vtx_desc.low.Tex1MatIdx = 1;
-  m_vtx_desc.low.Tex2MatIdx = 1;
-  m_vtx_desc.low.Tex3MatIdx = 1;
-  m_vtx_desc.low.Tex4MatIdx = 1;
-  m_vtx_desc.low.Tex5MatIdx = 1;
-  m_vtx_desc.low.Tex6MatIdx = 1;
-  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.PosMatIdx = true;
+  m_vtx_desc.low.Tex0MatIdx = true;
+  m_vtx_desc.low.Tex1MatIdx = true;
+  m_vtx_desc.low.Tex2MatIdx = true;
+  m_vtx_desc.low.Tex3MatIdx = true;
+  m_vtx_desc.low.Tex4MatIdx = true;
+  m_vtx_desc.low.Tex5MatIdx = true;
+  m_vtx_desc.low.Tex6MatIdx = true;
+  m_vtx_desc.low.Tex7MatIdx = true;
   m_vtx_desc.low.Position = VertexComponentFormat::Index16;
   m_vtx_desc.low.Normal = VertexComponentFormat::Index16;
   m_vtx_desc.low.Color0 = VertexComponentFormat::Index16;
@@ -369,15 +379,15 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
 TEST_F(VertexLoaderTest, DirectAllComponents)
 {
-  m_vtx_desc.low.PosMatIdx = 1;
-  m_vtx_desc.low.Tex0MatIdx = 1;
-  m_vtx_desc.low.Tex1MatIdx = 1;
-  m_vtx_desc.low.Tex2MatIdx = 1;
-  m_vtx_desc.low.Tex3MatIdx = 1;
-  m_vtx_desc.low.Tex4MatIdx = 1;
-  m_vtx_desc.low.Tex5MatIdx = 1;
-  m_vtx_desc.low.Tex6MatIdx = 1;
-  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.PosMatIdx = true;
+  m_vtx_desc.low.Tex0MatIdx = true;
+  m_vtx_desc.low.Tex1MatIdx = true;
+  m_vtx_desc.low.Tex2MatIdx = true;
+  m_vtx_desc.low.Tex3MatIdx = true;
+  m_vtx_desc.low.Tex4MatIdx = true;
+  m_vtx_desc.low.Tex5MatIdx = true;
+  m_vtx_desc.low.Tex6MatIdx = true;
+  m_vtx_desc.low.Tex7MatIdx = true;
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
   m_vtx_desc.low.Normal = VertexComponentFormat::Direct;
   m_vtx_desc.low.Color0 = VertexComponentFormat::Direct;
@@ -543,7 +553,9 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(VertexComponentFormat::NotPresent, VertexComponentFormat::Direct,
                           VertexComponentFormat::Index8, VertexComponentFormat::Index16),
         ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
-                          ComponentFormat::Short, ComponentFormat::Float),
+                          ComponentFormat::Short, ComponentFormat::Float,
+                          ComponentFormat::InvalidFloat5, ComponentFormat::InvalidFloat6,
+                          ComponentFormat::InvalidFloat7),
         ::testing::Values(NormalComponentCount::N, NormalComponentCount::NTB),
         ::testing::Values(false, true)));
 
@@ -609,7 +621,9 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
       Input<s16>(value * (1 << 14));
       break;
     case ComponentFormat::Float:
-    default:
+    case ComponentFormat::InvalidFloat5:
+    case ComponentFormat::InvalidFloat6:
+    case ComponentFormat::InvalidFloat7:
       Input<float>(value);
       break;
     }

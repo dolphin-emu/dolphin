@@ -92,7 +92,7 @@ int HeaderCommand(const std::vector<std::string>& args)
     {
       json["internal_name"] = picojson::value(volume->GetInternalName());
 
-      if (const std::optional<u64> revision = volume->GetRevision())
+      if (const std::optional<u16> revision = volume->GetRevision())
         json["revision"] = picojson::value((double)revision.value());
 
       json["game_id"] = picojson::value(volume->GetGameID());
@@ -153,13 +153,13 @@ int HeaderCommand(const std::vector<std::string>& args)
     {
       fmt::print(std::cout, "Internal Name: {}\n", volume->GetInternalName());
 
-      if (const std::optional<u64> revision = volume->GetRevision())
+      if (const std::optional<u16> revision = volume->GetRevision())
         fmt::print(std::cout, "Revision: {}\n", revision.value());
 
       fmt::print(std::cout, "Game ID: {}\n", volume->GetGameID());
 
       if (const std::optional<u64> title_id = volume->GetTitleID())
-        fmt::print(std::cout, "Title ID: {}\n", title_id.value());
+        fmt::print(std::cout, "Title ID: {:016x}\n", title_id.value());
 
       fmt::print(std::cout, "Region: {}\n", DiscIO::GetName(volume->GetRegion(), false));
 

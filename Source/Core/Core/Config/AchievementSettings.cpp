@@ -15,20 +15,17 @@ const Info<bool> RA_ENABLED{{System::Achievements, "Achievements", "Enabled"}, f
 const Info<std::string> RA_HOST_URL{{System::Achievements, "Achievements", "HostUrl"}, ""};
 const Info<std::string> RA_USERNAME{{System::Achievements, "Achievements", "Username"}, ""};
 const Info<std::string> RA_API_TOKEN{{System::Achievements, "Achievements", "ApiToken"}, ""};
-const Info<bool> RA_ACHIEVEMENTS_ENABLED{
-    {System::Achievements, "Achievements", "AchievementsEnabled"}, false};
-const Info<bool> RA_LEADERBOARDS_ENABLED{
-    {System::Achievements, "Achievements", "LeaderboardsEnabled"}, false};
-const Info<bool> RA_RICH_PRESENCE_ENABLED{
-    {System::Achievements, "Achievements", "RichPresenceEnabled"}, false};
 const Info<bool> RA_HARDCORE_ENABLED{{System::Achievements, "Achievements", "HardcoreEnabled"},
-                                     false};
-const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},
-                                     false};
-const Info<bool> RA_BADGES_ENABLED{{System::Achievements, "Achievements", "BadgesEnabled"}, false};
+                                     true};
 const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "UnofficialEnabled"},
                                        false};
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};
+const Info<bool> RA_SPECTATOR_ENABLED{{System::Achievements, "Achievements", "SpectatorEnabled"},
+                                      false};
+const Info<bool> RA_DISCORD_PRESENCE_ENABLED{
+    {System::Achievements, "Achievements", "DiscordPresenceEnabled"}, false};
+const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},
+                                     false};
 }  // namespace Config
 
 #endif  // USE_RETRO_ACHIEVEMENTS

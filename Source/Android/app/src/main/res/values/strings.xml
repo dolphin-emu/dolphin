@@ -69,7 +69,7 @@
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
-    <string name="dual_core">Dual Core</string>
+    <string name="dual_core">Dual Core (speedhack)</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="enable_cheats">Enable Cheats</string>
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
@@ -133,6 +133,10 @@
     <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a></string>
     <string name="xlink_kai_bba_ip">XLink Kai IP Address/hostname</string>
     <string name="xlink_kai_bba_ip_description">IP address or hostname of device running the XLink Kai client</string>
+    <string name="bba_tapserver_destination">Tapserver destination</string>
+    <string name="bba_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
+    <string name="modem_tapserver_destination">Tapserver destination</string>
+    <string name="modem_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
     <string name="bba_builtin_dns">DNS Server</string>
     <string name="bba_builtin_dns_description">Use 8.8.8.8 for normal DNS, else enter your custom one</string>
 
@@ -402,6 +406,9 @@
     <string name="debug_fastmem">Disable Fastmem</string>
     <string name="debug_fastmem_arena">Disable Fastmem Arena</string>
     <string name="debug_large_entry_points_map">Disable Large Entry Points Map</string>
+    <string name="debug_jit_profiling_header">Jit Profiling</string>
+    <string name="debug_jit_enable_block_profiling">Enable Jit Block Profiling</string>
+    <string name="debug_jit_write_block_log_dump">Write Jit Block Log Dump</string>
     <string name="debug_jit_header">Jit</string>
     <string name="debug_jitoff">Jit Disabled</string>
     <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
@@ -478,7 +485,7 @@
     <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
     <string name="system_menu_not_installed_title">Not installed</string>
-    <string name="system_menu_not_installed_message">The Wii Menu is currently not installed. Would you like to install it now?\nAn internet connection is required to download the update. It is recommended to download the update on Wi-Fi, as the amount of data downloaded may be large.</string>
+    <string name="system_menu_not_installed_message">The Wii Menu isn\'t installed. Would you like to install it now?\n\nRoughly 110 MiB of data will be downloaded from the internet. A Wi-Fi connection is recommended.</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
@@ -677,6 +684,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <!-- Slot SP1 Device selection -->
     <string name="broadband_adapter_xlink">Broadband Adapter (XLink Kai)</string>
     <string name="broadband_adapter_hle">Broadband Adapter (HLE)</string>
+    <string name="broadband_adapter_tapserver">Broadband Adapter (tapserver)</string>
+    <string name="modem_adapter_tapserver">Modem Adapter (tapserver)</string>
 
     <!-- Sound Mode -->
     <string name="sound_mode_mono">Mono</string>
@@ -866,7 +875,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="about_website"><a href="https://dolphin-emu.org/">Website</a></string>
     <string name="about_github"><a href="https://github.com/dolphin-emu/dolphin">GitHub</a></string>
     <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
-    <string name="about_copyright_warning">\u00A9 2003–2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
+    <string name="about_copyright_warning">\u00A9 2003–2024+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
     <string name="system_driver">System driver</string>
     <string name="system_driver_desc">The GPU driver that is part of the OS.</string>
 
@@ -906,6 +915,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="infinity_number">Figure Number</string>
     <string name="invalid_infinity_figure">Invalid Figure Selection</string>
     <string name="infinity_hexagon_label">Power Disc/Play Set</string>
+    <string name="infinity_power_hex_two_label">Power Disc Two</string>
+    <string name="infinity_power_hex_three_label">Power Disc Three</string>
     <string name="infinity_p1_label">Player One</string>
     <string name="infinity_p2_label">Player Two</string>
     <string name="infinity_p1a1_label">P1 Ability One</string>

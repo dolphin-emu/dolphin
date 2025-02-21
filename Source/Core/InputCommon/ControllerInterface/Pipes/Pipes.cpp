@@ -43,7 +43,19 @@ static double StringToDouble(const std::string& text)
   return result;
 }
 
-void PopulateDevices()
+class InputBackend final : public ciface::InputBackend
+{
+public:
+  using ciface::InputBackend::InputBackend;
+  void PopulateDevices() override;
+};
+
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
+{
+  return std::make_unique<InputBackend>(controller_interface);
+}
+
+void InputBackend::PopulateDevices()
 {
 #ifdef _WIN32
   PIPE_FD pipes[4];

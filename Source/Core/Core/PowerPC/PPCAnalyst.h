@@ -38,7 +38,6 @@ struct CodeOp  // 16B
   s8 fregOut = 0;
   BitSet8 crIn;
   BitSet8 crOut;
-  bool isBranchTarget = false;
   bool branchUsesCtr = false;
   bool branchIsIdleLoop = false;
   BitSet8 wantsCR;
@@ -88,7 +87,7 @@ struct CodeOp  // 16B
 
 struct BlockStats
 {
-  int numCycles;
+  u32 numCycles;
 };
 
 struct BlockRegStats

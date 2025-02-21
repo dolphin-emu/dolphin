@@ -105,17 +105,14 @@ void Cache::Reset()
   std::fill(lookup_table_vmem.begin(), lookup_table_vmem.end(), 0xFF);
 }
 
-void InstructionCache::Reset()
+void InstructionCache::Reset(JitInterface& jit_interface)
 {
   Cache::Reset();
-  Core::System::GetInstance().GetJitInterface().ClearSafe();
+  jit_interface.ClearSafe();
 }
 
-void Cache::Init()
+void Cache::Init(Memory::MemoryManager& memory)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   data.fill({});
   addrs.fill({});
   lookup_table.resize(memory.GetRamSize() >> 5);
@@ -124,21 +121,18 @@ void Cache::Init()
   Reset();
 }
 
-void InstructionCache::Init()
+void InstructionCache::Init(Memory::MemoryManager& memory)
 {
   if (!m_config_callback_id)
     m_config_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
   RefreshConfig();
 
-  Cache::Init();
+  Cache::Init(memory);
 }
 
-void Cache::Store(u32 addr)
+void Cache::Store(Memory::MemoryManager& memory, u32 addr)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
-  auto [set, way] = GetCache(addr, true);
+  auto [set, way] = GetCache(memory, addr, true);
 
   if (way == 0xff)
     return;
@@ -148,11 +142,8 @@ void Cache::Store(u32 addr)
   modified[set] &= ~(1U << way);
 }
 
-void Cache::FlushAll()
+void Cache::FlushAll(Memory::MemoryManager& memory)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   for (size_t set = 0; set < CACHE_SETS; set++)
   {
     for (size_t way = 0; way < CACHE_WAYS; way++)
@@ -165,12 +156,9 @@ void Cache::FlushAll()
   Reset();
 }
 
-void Cache::Invalidate(u32 addr)
+void Cache::Invalidate(Memory::MemoryManager& memory, u32 addr)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
-  auto [set, way] = GetCache(addr, true);
+  auto [set, way] = GetCache(memory, addr, true);
 
   if (way == 0xff)
     return;
@@ -189,12 +177,9 @@ void Cache::Invalidate(u32 addr)
   }
 }
 
-void Cache::Flush(u32 addr)
+void Cache::Flush(Memory::MemoryManager& memory, u32 addr)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
-  auto [set, way] = GetCache(addr, true);
+  auto [set, way] = GetCache(memory, addr, true);
 
   if (way == 0xff)
     return;
@@ -216,16 +201,13 @@ void Cache::Flush(u32 addr)
   }
 }
 
-void Cache::Touch(u32 addr, bool store)
+void Cache::Touch(Memory::MemoryManager& memory, u32 addr, bool store)
 {
-  GetCache(addr, false);
+  GetCache(memory, addr, false);
 }
 
-std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
+std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, bool locked)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   addr &= ~31;
   u32 set = (addr >> 5) & 0x7f;
   u32 way;
@@ -288,16 +270,13 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
   return {set, way};
 }
 
-void Cache::Read(u32 addr, void* buffer, u32 len, bool locked)
+void Cache::Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, bool locked)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   auto* value = static_cast<u8*>(buffer);
 
   while (len > 0)
   {
-    auto [set, way] = GetCache(addr, locked);
+    auto [set, way] = GetCache(memory, addr, locked);
 
     u32 offset_in_block = addr - (addr & ~31);
     u32 len_in_block = std::min<u32>(len, ((addr + 32) & ~31) - addr);
@@ -318,16 +297,13 @@ void Cache::Read(u32 addr, void* buffer, u32 len, bool locked)
   }
 }
 
-void Cache::Write(u32 addr, const void* buffer, u32 len, bool locked)
+void Cache::Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, bool locked)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   auto* value = static_cast<const u8*>(buffer);
 
   while (len > 0)
   {
-    auto [set, way] = GetCache(addr, locked);
+    auto [set, way] = GetCache(memory, addr, locked);
 
     u32 offset_in_block = addr - (addr & ~31);
     u32 len_in_block = std::min<u32>(len, ((addr + 32) & ~31) - addr);
@@ -349,11 +325,8 @@ void Cache::Write(u32 addr, const void* buffer, u32 len, bool locked)
   }
 }
 
-void Cache::DoState(PointerWrap& p)
+void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (p.IsReadMode())
   {
     // Clear valid parts of the lookup tables (this is done instead of using fill(0xff) to avoid
@@ -402,24 +375,20 @@ void Cache::DoState(PointerWrap& p)
   }
 }
 
-u32 InstructionCache::ReadInstruction(u32 addr)
+u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
+                                      PowerPC::PowerPCState& ppc_state, u32 addr)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-
   if (!HID0(ppc_state).ICE || m_disable_icache)  // instruction cache is disabled
-    return system.GetMemory().Read_U32(addr);
+    return memory.Read_U32(addr);
 
   u32 value;
-  Read(addr, &value, sizeof(value), HID0(ppc_state).ILOCK);
+  Read(memory, addr, &value, sizeof(value), HID0(ppc_state).ILOCK);
   return Common::swap32(value);
 }
 
-void InstructionCache::Invalidate(u32 addr)
+void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface,
+                                  u32 addr)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   // Per the 750cl manual, section 3.4.1.5 Instruction Cache Enabling/Disabling (page 137)
   // and section 3.4.2.6 Instruction Cache Block Invalidate (icbi) (page 140), the icbi
   // instruction always invalidates, even if the instruction cache is disabled or locked,
@@ -443,7 +412,7 @@ void InstructionCache::Invalidate(u32 addr)
   modified[set] = 0;
 
   // Also tell the JIT that the corresponding address has been invalidated
-  system.GetJitInterface().InvalidateICacheLine(addr);
+  jit_interface.InvalidateICacheLine(addr);
 }
 
 void InstructionCache::RefreshConfig()

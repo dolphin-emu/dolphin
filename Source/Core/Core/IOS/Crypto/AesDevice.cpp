@@ -64,8 +64,8 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
 
     std::vector<u8> input = std::vector<u8>(request.in_vectors[0].size);
     std::vector<u8> output = std::vector<u8>(request.io_vectors[0].size);
-    std::array<u8, 10> key = {0};
-    std::array<u8, 10> iv = {0};
+    std::array<u8, 0x10> key = {0};
+    std::array<u8, 0x10> iv = {0};
     memory.CopyFromEmu(input.data(), request.in_vectors[0].address, input.size());
     memory.CopyFromEmu(key.data(), request.in_vectors[1].address, key.size());
     memory.CopyFromEmu(iv.data(), request.io_vectors[1].address, iv.size());

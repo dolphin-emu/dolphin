@@ -1,7 +1,7 @@
 project(hidapi)
 
 add_library(hidapi STATIC hidapi-src/hidapi/hidapi.h)
-dolphin_disable_warnings_msvc(hidapi)
+dolphin_disable_warnings(hidapi)
 target_include_directories(hidapi PUBLIC hidapi-src/hidapi)
 
 if(APPLE)
@@ -15,7 +15,7 @@ else()
     target_link_libraries(hidapi PRIVATE udev)
   else()
     target_sources(hidapi PRIVATE hidapi-src/libusb/hid.c)
-    target_link_libraries(hidapi PRIVATE ${LIBUSB_LIBRARIES})
+    target_link_libraries(hidapi PRIVATE LibUSB::LibUSB)
   endif()
 endif()
 

@@ -24,11 +24,21 @@ public:
   void DoState(PointerWrap& p);
 
 private:
-  void Update();
+  enum class HeuristicState
+  {
+    Inactive,
+    Active_NotFound,
+    Active_Found_Normal,
+    Active_Found_Anamorphic,
+  };
+
+  // Returns whether the widescreen state wants to change, and its target value
+  std::optional<bool> GetWidescreenOverride() const;
   void UpdateWidescreenHeuristic();
 
   bool m_is_game_widescreen = false;
   bool m_was_orthographically_anamorphic = false;
+  HeuristicState m_heuristic_state = HeuristicState::Inactive;
 
   Common::EventHook m_update_widescreen;
   Common::EventHook m_config_changed;

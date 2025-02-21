@@ -4,7 +4,7 @@ add_library(bdisasm STATIC
   resolve.cc
   syntax.cc
 )
-dolphin_disable_warnings_msvc(bdisasm)
+dolphin_disable_warnings(bdisasm)
 
 if (WIN32)
   target_sources(bdisasm

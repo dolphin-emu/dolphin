@@ -34,6 +34,7 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -424,7 +425,7 @@ bool MovieManager::IsNetPlayRecording() const
 // NOTE: Host Thread
 void MovieManager::ChangePads()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(m_system))
     return;
 
   ControllerTypeArray controllers{};
@@ -535,13 +536,13 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
         m_bongos |= (1 << i);
     }
 
-    if (Core::IsRunningAndStarted())
+    if (Core::IsRunning(m_system))
     {
       const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
       if (File::Exists(save_path))
         File::Delete(save_path);
 
-      State::SaveAs(save_path);
+      State::SaveAs(m_system, save_path);
       m_recording_from_save_state = true;
 
       std::thread md5thread(&MovieManager::GetMD5, this);
@@ -550,7 +551,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     }
 
     // Wiimotes cause desync issues if they're not reset before launching the game
-    if (!Core::IsRunningAndStarted())
+    if (!Core::IsRunning(m_system))
     {
       // This will also reset the Wiimotes for GameCube games, but that shouldn't do anything
       Wiimote::ResetAllWiimotes();
@@ -571,10 +572,10 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     ConfigLoaders::SaveToDTM(&header);
     Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
 
-    if (Core::IsRunning())
-      Core::UpdateWantDeterminism();
+    if (Core::IsRunning(m_system))
+      Core::UpdateWantDeterminism(m_system);
   };
-  Core::RunOnCPUThread(start_recording, true);
+  Core::RunOnCPUThread(m_system, start_recording, true);
 
   Core::DisplayMessage("Starting movie recording", 2000);
   return true;
@@ -940,10 +941,8 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
   ReadHeader();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return false;
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   m_total_frames = m_temp_header.frameCount;
   m_total_lag_count = m_temp_header.lagCount;
@@ -958,7 +957,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
   // Wiimotes cause desync issues if they're not reset before launching the game
   Wiimote::ResetAllWiimotes();
 
-  Core::UpdateWantDeterminism();
+  Core::UpdateWantDeterminism(m_system);
 
   m_temp_input.resize(recording_file.GetSize() - 256);
   recording_file.ReadBytes(m_temp_input.data(), m_temp_input.size());
@@ -1152,7 +1151,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
       if (m_play_mode != PlayMode::Playing)
       {
         m_play_mode = PlayMode::Playing;
-        Core::UpdateWantDeterminism();
+        Core::UpdateWantDeterminism(m_system);
         Core::DisplayMessage("Switched to playback", 2000);
       }
     }
@@ -1161,7 +1160,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
       if (m_play_mode != PlayMode::Recording)
       {
         m_play_mode = PlayMode::Recording;
-        Core::UpdateWantDeterminism();
+        Core::UpdateWantDeterminism(m_system);
         Core::DisplayMessage("Switched to recording", 2000);
       }
     }
@@ -1254,13 +1253,12 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
 
   if (m_pad_state.disc)
   {
-    Core::RunAsCPUThread([this] {
-      if (!m_system.GetDVDInterface().AutoChangeDisc())
-      {
-        m_system.GetCPU().Break();
-        PanicAlertFmtT("Change the disc to {0}", m_disc_change_filename);
-      }
-    });
+    const Core::CPUThreadGuard guard(m_system);
+    if (!m_system.GetDVDInterface().AutoChangeDisc(guard))
+    {
+      m_system.GetCPU().Break();
+      PanicAlertFmtT("Change the disc to {0}", m_disc_change_filename);
+    }
   }
 
   if (m_pad_state.reset)
@@ -1341,7 +1339,7 @@ void MovieManager::EndPlayInput(bool cont)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
     auto& cpu = m_system.GetCPU();
-    const bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
+    const bool was_running = Core::IsRunning(m_system) && !cpu.IsStepping();
     if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
       cpu.Break();
     m_rerecords = 0;
@@ -1356,7 +1354,7 @@ void MovieManager::EndPlayInput(bool cont)
     // delete tmpInput;
     // tmpInput = nullptr;
 
-    Core::QueueHostJob([=] { Core::UpdateWantDeterminism(); });
+    Core::QueueHostJob([](Core::System& system) { Core::UpdateWantDeterminism(system); });
   }
 }
 
@@ -1520,14 +1518,11 @@ void MovieManager::CheckMD5()
   if (m_current_file_name.empty())
     return;
 
-  for (int i = 0, n = 0; i < 16; ++i)
-  {
-    if (m_temp_header.md5[i] != 0)
-      continue;
-    n++;
-    if (n == 16)
-      return;
-  }
+  // The MD5 hash was introduced in 3.0-846-gca650d4435.
+  // Before that, these header bytes were set to zero.
+  if (m_temp_header.md5 == std::array<u8, 16>{})
+    return;
+
   Core::DisplayMessage("Verifying checksum...", 2000);
 
   std::array<u8, 16> game_md5;

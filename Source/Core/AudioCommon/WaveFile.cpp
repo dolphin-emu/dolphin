@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/WaveFile.h"
-#include "AudioCommon/Mixer.h"
 
 #include <string>
 
 #include <fmt/format.h>
 
+#include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"

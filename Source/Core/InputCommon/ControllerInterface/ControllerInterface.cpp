@@ -60,25 +60,25 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_populating_devices_counter = 1;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::Init(wsi.render_window);
+  m_input_backends.emplace_back(ciface::Win32::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_XLIB
-// nothing needed
+  m_input_backends.emplace_back(ciface::XInput2::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_OSX
-// nothing needed for Quartz
+  m_input_backends.emplace_back(ciface::Quartz::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_SDL
   m_input_backends.emplace_back(ciface::SDL::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_ANDROID
-  ciface::Android::Init();
+  m_input_backends.emplace_back(ciface::Android::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_EVDEV
   m_input_backends.emplace_back(ciface::evdev::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_PIPES
-// nothing needed
+  m_input_backends.emplace_back(ciface::Pipes::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
   m_input_backends.emplace_back(ciface::DualShockUDPClient::CreateInputBackend(this));
@@ -129,22 +129,20 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // or removing them as we are populating them (causing missing or duplicate devices).
   std::lock_guard lk_population(m_devices_population_mutex);
 
-#if defined(CIFACE_USE_WIN32) && !defined(CIFACE_USE_XLIB) && !defined(CIFACE_USE_OSX)
   // If only the window changed, avoid removing and re-adding all devices.
   // Instead only refresh devices that require the window handle.
   if (reason == RefreshReason::WindowChangeOnly)
   {
     m_populating_devices_counter.fetch_add(1);
 
-    // No need to do anything else in this case.
-    // Only (Win32) DInput needs the window handle to be updated.
-    ciface::Win32::ChangeWindow(m_wsi.render_window);
+    for (auto& backend : m_input_backends)
+      backend->HandleWindowChange();
 
     if (m_populating_devices_counter.fetch_sub(1) == 1)
       InvokeDevicesChangedCallbacks();
+
     return;
   }
-#endif
 
   m_populating_devices_counter.fetch_add(1);
 
@@ -159,26 +157,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // Every platform that adds a device that is meant to be used as default device should try to not
   // do it async, to not risk the emulated controllers default config loading not finding a default
   // device.
-
-#ifdef CIFACE_USE_WIN32
-  ciface::Win32::PopulateDevices(m_wsi.render_window);
-#endif
-#ifdef CIFACE_USE_XLIB
-  if (m_wsi.type == WindowSystemType::X11)
-    ciface::XInput2::PopulateDevices(m_wsi.render_window);
-#endif
-#ifdef CIFACE_USE_OSX
-  if (m_wsi.type == WindowSystemType::MacOS)
-  {
-    ciface::Quartz::PopulateDevices(m_wsi.render_window);
-  }
-#endif
-#ifdef CIFACE_USE_ANDROID
-  ciface::Android::PopulateDevices();
-#endif
-#ifdef CIFACE_USE_PIPES
-  ciface::Pipes::PopulateDevices();
-#endif
 
   for (auto& backend : m_input_backends)
     backend->PopulateDevices();
@@ -217,19 +195,6 @@ void ControllerInterface::Shutdown()
 
   // Update control references so shared_ptr<Device>s are freed up BEFORE we shutdown the backends.
   ClearDevices();
-
-#ifdef CIFACE_USE_WIN32
-  ciface::Win32::DeInit();
-#endif
-#ifdef CIFACE_USE_XLIB
-// nothing needed
-#endif
-#ifdef CIFACE_USE_OSX
-  ciface::Quartz::DeInit();
-#endif
-#ifdef CIFACE_USE_ANDROID
-  ciface::Android::Shutdown();
-#endif
 
   // Empty the container of input backends to deconstruct and deinitialize them.
   m_input_backends.clear();
@@ -344,7 +309,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
   bool any_removed;
   {
     std::lock_guard lk(m_devices_mutex);
-    auto it = std::remove_if(m_devices.begin(), m_devices.end(), [&callback](const auto& dev) {
+    const size_t erased = std::erase_if(m_devices, [&callback](const auto& dev) {
       if (callback(dev.get()))
       {
         NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Removed device: {}", dev->GetQualifiedName());
@@ -352,9 +317,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
       }
       return false;
     });
-    const size_t prev_size = m_devices.size();
-    m_devices.erase(it, m_devices.end());
-    any_removed = m_devices.size() != prev_size;
+    any_removed = erased != 0;
   }
 
   if (any_removed && (!m_populating_devices_counter || force_devices_release))
@@ -425,6 +388,11 @@ void ControllerInterface::SetCurrentInputChannel(ciface::InputChannel input_chan
 ciface::InputChannel ControllerInterface::GetCurrentInputChannel()
 {
   return tls_input_channel;
+}
+
+WindowSystemInfo ControllerInterface::GetWindowSystemInfo() const
+{
+  return m_wsi;
 }
 
 void ControllerInterface::SetAspectRatioAdjustment(float value)

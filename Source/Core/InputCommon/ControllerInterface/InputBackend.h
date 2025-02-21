@@ -28,6 +28,8 @@ public:
   // just add them to the removal list if necessary.
   virtual void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove);
 
+  virtual void HandleWindowChange();
+
   ControllerInterface& GetControllerInterface();
 
 private:

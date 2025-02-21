@@ -6,7 +6,6 @@
 #include <array>
 
 #include "Common/Assert.h"
-#include "Common/TypeUtils.h"
 #include "Core/PowerPC/Gekko.h"
 
 namespace
@@ -339,7 +338,7 @@ constexpr std::array<JitArm64OpTemplate, 10> s_table63_2{{
 constexpr std::array<JitArm64::Instruction, 64> s_dyna_op_table = []() consteval
 {
   std::array<JitArm64::Instruction, 64> table{};
-  Common::Fill(table, &JitArm64::FallBackToInterpreter);
+  table.fill(&JitArm64::FallBackToInterpreter);
 
   for (auto& tpl : s_primary_table)
   {
@@ -354,7 +353,7 @@ constexpr std::array<JitArm64::Instruction, 64> s_dyna_op_table = []() consteval
 constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table4 = []() consteval
 {
   std::array<JitArm64::Instruction, 1024> table{};
-  Common::Fill(table, &JitArm64::FallBackToInterpreter);
+  table.fill(&JitArm64::FallBackToInterpreter);
 
   for (u32 i = 0; i < 32; i++)
   {
@@ -392,7 +391,7 @@ constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table4 = []() conste
 constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table19 = []() consteval
 {
   std::array<JitArm64::Instruction, 1024> table{};
-  Common::Fill(table, &JitArm64::FallBackToInterpreter);
+  table.fill(&JitArm64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table19)
   {
@@ -407,7 +406,7 @@ constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table19 = []() const
 constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table31 = []() consteval
 {
   std::array<JitArm64::Instruction, 1024> table{};
-  Common::Fill(table, &JitArm64::FallBackToInterpreter);
+  table.fill(&JitArm64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table31)
   {
@@ -422,7 +421,7 @@ constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table31 = []() const
 constexpr std::array<JitArm64::Instruction, 32> s_dyna_op_table59 = []() consteval
 {
   std::array<JitArm64::Instruction, 32> table{};
-  Common::Fill(table, &JitArm64::FallBackToInterpreter);
+  table.fill(&JitArm64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table59)
   {
@@ -437,7 +436,7 @@ constexpr std::array<JitArm64::Instruction, 32> s_dyna_op_table59 = []() constev
 constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table63 = []() consteval
 {
   std::array<JitArm64::Instruction, 1024> table{};
-  Common::Fill(table, &JitArm64::FallBackToInterpreter);
+  table.fill(&JitArm64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table63)
   {

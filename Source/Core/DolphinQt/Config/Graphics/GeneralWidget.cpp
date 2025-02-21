@@ -17,6 +17,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -43,7 +44,8 @@ GeneralWidget::GeneralWidget(GraphicsWindow* parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
-  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
+                          Core::State::Uninitialized);
 }
 
 void GeneralWidget::CreateWidgets()
@@ -55,9 +57,9 @@ void GeneralWidget::CreateWidgets()
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new ToolTipComboBox();
-  m_aspect_combo = new ConfigChoice(
-      {tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Force 73:60 (Melee)"), tr("Stretch to Window"), tr("Custom")},
-      Config::GFX_ASPECT_RATIO);
+  m_aspect_combo = new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Force 73:60 (Melee)"),
+                                     tr("Stretch to Window"), tr("Custom"), tr("Custom (Stretch)")},
+                                    Config::GFX_ASPECT_RATIO);
   m_custom_aspect_label = new QLabel(tr("Custom Aspect Ratio:"));
   m_custom_aspect_label->setHidden(true);
   constexpr int MAX_CUSTOM_ASPECT_RATIO_RESOLUTION = 10000;
@@ -155,7 +157,8 @@ void GeneralWidget::ConnectWidgets()
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
   connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
-    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom));
+    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
+                                        (index == static_cast<int>(AspectMode::CustomStretch));
     m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -170,7 +173,9 @@ void GeneralWidget::LoadSettings()
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
       QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
 
-  const bool is_custom_aspect_ratio = (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom);
+  const bool is_custom_aspect_ratio =
+      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
+      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
   m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -247,16 +252,26 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_ASPECT_RATIO_DESCRIPTION[] =
-      QT_TR_NOOP("Selects which aspect ratio to use when rendering.<br>"
-                 "Each game can have a slightly different native aspect ratio."
-                 "<br><br>Auto: Uses the native aspect ratio"
-                 "<br>Force 16:9: Mimics an analog TV with a widescreen aspect ratio."
-                 "<br>Force 4:3: Mimics a standard 4:3 analog TV."
-                 "<br>Force 73:60 (Melee): Melee's standard "
-                 "<br>Stretch to Window: Stretches the picture to the window size."
-                 "<br>Custom: For games running with specific custom aspect ratio cheats.<br><br>"
-                 "<dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
+  static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
+      "Selects which aspect ratio to use for displaying the game."
+      "<br><br>The aspect ratio of the image sent out by the original consoles varied depending on "
+      "the game and rarely exactly matched 4:3 or 16:9. Some of the image would be cut off by the "
+      "edges of the TV, or the image wouldn't fill the TV entirely. By default, Dolphin shows the "
+      "whole image without distorting its proportions, which means it's normal for the image to "
+      "not entirely fill your display."
+      "<br><br><b>Auto</b>: Mimics a TV with either a 4:3 or 16:9 aspect ratio, depending on which "
+      "type of TV the game seems to be targeting."
+      "<br><br><b>Force 16:9</b>: Mimics a TV with a 16:9 (widescreen) aspect ratio."
+      "<br><br><b>Force 4:3</b>: Mimics a TV with a 4:3 aspect ratio."
+      "<br><br><b>Force 73:60 (Melee)</b>: Melee's standard."
+      "<br><br><b>Stretch to Window</b>: Stretches the image to the window size. "
+      "This will usually distort the image's proportions."
+      "<br><br><b>Custom</b>: Mimics a TV with the specified aspect ratio. "
+      "This is mostly intended to be used with aspect ratio cheats/mods."
+      "<br><br><b>Custom (Stretch)</b>: Similar to `Custom`, but stretches the image to the "
+      "specified aspect ratio. This will usually distort the image's proportions, and should not "
+      "be used under normal circumstances."
+      "<br><br><dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
   static const char TR_VSYNC_DESCRIPTION[] = QT_TR_NOOP(
       "Waits for vertical blanks in order to prevent tearing.<br><br>Decreases performance "
       "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "
@@ -347,7 +362,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   const bool supports_adapters = !adapters.empty();
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning());
+  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning(Core::System::GetInstance()));
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"

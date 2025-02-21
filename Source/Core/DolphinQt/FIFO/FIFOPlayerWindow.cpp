@@ -23,6 +23,7 @@
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
@@ -213,7 +214,7 @@ void FIFOPlayerWindow::AddDescriptions()
 
 void FIFOPlayerWindow::LoadRecording()
 {
-  QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO log"), QString(),
+  QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO Log"), QString(),
                                                     tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
@@ -224,7 +225,7 @@ void FIFOPlayerWindow::LoadRecording()
 
 void FIFOPlayerWindow::SaveRecording()
 {
-  QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO log"), QString(),
+  QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO Log"), QString(),
                                                     tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
@@ -316,7 +317,7 @@ void FIFOPlayerWindow::UpdateInfo()
     return;
   }
 
-  if (Core::IsRunning() && m_fifo_recorder.IsRecording())
+  if (Core::IsRunning(Core::System::GetInstance()) && m_fifo_recorder.IsRecording())
   {
     m_info_label->setText(tr("Recording..."));
     return;
@@ -375,7 +376,7 @@ void FIFOPlayerWindow::UpdateLimits()
 
 void FIFOPlayerWindow::UpdateControls()
 {
-  bool running = Core::IsRunning();
+  bool running = Core::IsRunning(Core::System::GetInstance());
   bool is_recording = m_fifo_recorder.IsRecording();
   bool is_playing = m_fifo_player.IsPlaying();
 

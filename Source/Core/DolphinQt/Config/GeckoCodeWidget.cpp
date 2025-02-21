@@ -30,6 +30,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
 
@@ -133,7 +134,7 @@ void GeckoCodeWidget::CreateWidgets()
 
   layout->addLayout(btn_layout);
 
-  setLayout(layout);
+  WrapInScrollArea(this, layout);
 }
 
 void GeckoCodeWidget::ConnectWidgets()

@@ -23,6 +23,7 @@
 #include <unordered_map>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
@@ -36,9 +37,6 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
-#if defined(__NetBSD__)
-#define LIBICONV_PLUG
-#endif
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
@@ -631,13 +629,8 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-#if defined(__NetBSD__)
-          iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
-                &dst_bytes);
-#else
           iconv(conv_desc, const_cast<char**>(reinterpret_cast<const char**>(&src_buffer)),
                 &src_bytes, &dst_buffer, &dst_bytes);
-#endif
       if ((size_t)-1 == iconv_result)
       {
         if (EILSEQ == errno || EINVAL == errno)

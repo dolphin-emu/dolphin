@@ -285,7 +285,7 @@ void SlippiPane::ToggleJukebox(bool checked)
   Config::SetBase(Config::SLIPPI_ENABLE_JUKEBOX, checked);
   m_music_volume_slider->setDisabled(!checked);
 
-  if (Core::GetState() == Core::State::Running)
+  if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
   {
     auto& system = Core::System::GetInstance();
     auto& exi_manager = system.GetExpansionInterface();
@@ -301,7 +301,7 @@ void SlippiPane::OnMusicVolumeUpdate(int volume)
 {
   Config::SetBase(Config::SLIPPI_JUKEBOX_VOLUME, volume);
   m_music_volume_percent->setText(tr(" %1%").arg(volume));
-  if (Core::GetState() == Core::State::Running)
+  if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
   {
     auto& system = Core::System::GetInstance();
     auto& exi_manager = system.GetExpansionInterface();

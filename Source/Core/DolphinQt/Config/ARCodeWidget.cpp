@@ -24,6 +24,7 @@
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
 
@@ -86,7 +87,7 @@ void ARCodeWidget::CreateWidgets()
   layout->addWidget(m_code_list);
   layout->addLayout(button_layout);
 
-  setLayout(layout);
+  WrapInScrollArea(this, layout);
 }
 
 void ARCodeWidget::ConnectWidgets()

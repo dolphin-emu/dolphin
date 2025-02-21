@@ -43,10 +43,10 @@ HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wi
     }
   }
 
-  if (wii_path.compare(0, 1, "/") == 0)
+  if (wii_path.starts_with("/"))
     return HostFilename{m_root_path + Common::EscapePath(wii_path), false};
 
-  ASSERT(false);
+  ASSERT_MSG(IOS_FS, false, "Invalid Wii path '{}' given to BuildFilename()", wii_path);
   return HostFilename{m_root_path, false};
 }
 
@@ -290,7 +290,7 @@ void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_pat
   File::CreateDir(path);
 
   // now restore from the stream
-  while (1)
+  while (true)
   {
     char type = 0;
     p.Do(type);

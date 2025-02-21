@@ -194,7 +194,7 @@ protected:
   void DoLoadState(PointerWrap& p);
   void DoSaveState(PointerWrap& p);
 
-  float m_efb_scale = 0.0f;
+  float m_efb_scale = 1.0f;
   PixelFormat m_prev_efb_format;
 
   std::unique_ptr<AbstractTexture> m_efb_color_texture;

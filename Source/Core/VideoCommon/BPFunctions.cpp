@@ -442,4 +442,4 @@ void SetInterlacingMode(const BPCmd& bp)
     break;
   }
 }
-};  // namespace BPFunctions
+}  // namespace BPFunctions

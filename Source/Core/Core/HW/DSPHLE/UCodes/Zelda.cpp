@@ -7,6 +7,7 @@
 #include <array>
 #include <map>
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -91,30 +92,28 @@ static const std::map<u32, u32> UCODE_FLAGS = {
     {0x56D36052, SYNC_PER_FRAME | NO_CMD_0D},
     // The Legend of Zelda: The Wind Waker.
     {0x86840740, 0},
+    // The Legend of Zelda: Collector's Edition (except Wind Waker).
     // The Legend of Zelda: Four Swords Adventures.
     // Mario Kart: Double Dash.
     // Pikmin 2 GC NTSC.
     {0x2FCDF1EC, MAKE_DOLBY_LOUDER},
     // The Legend of Zelda: Twilight Princess / GC.
-    // Donkey Kong Jungle Beat.
+    // Donkey Kong Jungle Beat GC.
     //
     // TODO: These do additional filtering at frame rendering time. We don't
     // implement this yet.
-    {0x6CA33A6D, MAKE_DOLBY_LOUDER},
+    {0x6CA33A6D, MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // The Legend of Zelda: Twilight Princess / Wii.
-    {0x6C3F6F94, NO_ARAM | MAKE_DOLBY_LOUDER},
+    // Link's Crossbow Training.
+    {0x6C3F6F94, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // Super Mario Galaxy.
     // Super Mario Galaxy 2.
-    {0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER},
+    // Donkey Kong Jungle Beat Wii.
+    {0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // Pikmin 1 New Play Control.
     {0xB7EB9A9C, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // Pikmin 2 New Play Control.
-    {0xEAEB38CC, NO_ARAM | MAKE_DOLBY_LOUDER},
-
-    // TODO: Other games that use this UCode (exhaustive list):
-    // * Link's Crossbow Training
-    // * The Legend of Zelda: Collector's Edition
-    // * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
+    {0xEAEB38CC, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
 };
 
 ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc)
@@ -518,6 +517,7 @@ void ZeldaUCode::RunPendingCommands()
       {
         // Ignore the two values which are equivalent to arguments passed to
         // command 0D.
+        // Used by Pikmin 1 Wii.
         Read32();
         Read32();
       }
@@ -559,6 +559,7 @@ void ZeldaUCode::RunPendingCommands()
       break;
 
     // Command 0D: TODO: find a name and implement.
+    // Used by Wind Waker.
     case 0x0D:
       if (m_flags & NO_CMD_0D)
       {
@@ -803,8 +804,13 @@ struct ZeldaAudioRenderer::VPB
   // can be used for future linear interpolation.
   s16 resample_buffer[4];
 
-  // TODO: document and implement.
-  s16 prev_input_samples[0x18];
+  s16 variable_fir_history[20];
+
+  // Biquad filter history.
+  s16 biquad_xn1;
+  s16 biquad_xn2;
+  s16 biquad_yn1;
+  s16 biquad_yn2;
 
   // Values from the last decoded AFC block. The last two values are
   // especially important since AFC decoding - as a variant of ADPCM -
@@ -813,7 +819,12 @@ struct ZeldaAudioRenderer::VPB
   s16 afc_remaining_samples[0x10];
   s16* AFCYN2() { return &afc_remaining_samples[0xE]; }
   s16* AFCYN1() { return &afc_remaining_samples[0xF]; }
-  u16 unk_68_80[0x80 - 0x68];
+
+  // Low-pass filter history.
+  s16 low_pass_yn1;
+  s16 low_pass_xn1;
+
+  u16 unk_6A_80[0x80 - 0x6A];
 
   enum SamplesSourceType
   {
@@ -861,7 +872,11 @@ struct ZeldaAudioRenderer::VPB
   s16 loop_yn1;
   s16 loop_yn2;
 
-  u16 unk_84;
+  union
+  {
+    BitField<0, 5, u16> variable_fir_filter_size;
+    BitField<5, 1, u16> enable_biquad_filter;
+  };
 
   // If true, ramp down quickly to a volume of zero, and end the voice (by
   // setting VPB[1] done) when it reaches zero.
@@ -889,6 +904,20 @@ struct ZeldaAudioRenderer::VPB
   u16 base_address_h;
   u16 base_address_l;
   DEFINE_32BIT_ACCESSOR(base_address, BaseAddress)
+
+  u16 unk_8E;
+  u16 unk_8F;
+
+  u16 variable_fir_coeffs[20];
+
+  // Biquad filter coefficients.
+  s16 biquad_bn1;
+  s16 biquad_bn2;
+  s16 biquad_an1;
+  s16 biquad_an2;
+
+  // Low-pass filter coefficient.
+  u16 low_pass_coeff;
 
   u16 padding[0xC0];
 
@@ -1173,6 +1202,62 @@ ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
   }
 }
 
+void ZeldaAudioRenderer::ApplyLowPassFilter(MixingBuffer* buf, VPB* vpb)
+{
+  s32 yn1 = vpb->reset_vpb ? 0 : vpb->low_pass_yn1;
+  s32 xn1 = vpb->reset_vpb ? 0 : vpb->low_pass_xn1;
+
+  // 9.7 format I think.
+  s32 coeff = vpb->low_pass_coeff;
+
+  for (int i = 0; i < 0x50; ++i)
+  {
+    s32 xn0 = (*buf)[i];
+    s64 tmp = xn0 - xn1;
+    tmp *= coeff;
+    tmp >>= 7;
+    tmp += yn1;
+    s16 yn0 = std::clamp<s64>(tmp, -0x8000, 0x7FFF);
+    (*buf)[i] = yn0;
+
+    yn1 = yn0;
+    xn1 = xn0;
+  }
+
+  vpb->low_pass_yn1 = yn1;
+  vpb->low_pass_xn1 = xn1;
+}
+
+void ZeldaAudioRenderer::ApplyBiquadFilter(MixingBuffer* buf, VPB* vpb)
+{
+  s32 xn1 = vpb->biquad_xn1;
+  s32 xn2 = vpb->biquad_xn2;
+  s32 yn1 = vpb->biquad_yn1;
+  s32 yn2 = vpb->biquad_yn2;
+
+  for (int i = 0; i < 0x50; ++i)
+  {
+    s32 xn0 = (*buf)[i];
+    s64 tmp = 0;
+    tmp += vpb->biquad_bn1 * xn1;
+    tmp += vpb->biquad_bn2 * xn2;
+    tmp += vpb->biquad_an1 * yn1;
+    tmp += vpb->biquad_an2 * yn2;
+    s16 yn0 = std::clamp<s64>(tmp >> 15, -0x8000, 0x7FFF);
+    (*buf)[i] = yn0;
+
+    xn2 = xn1;
+    xn1 = xn0;
+    yn2 = yn1;
+    yn1 = yn0;
+  }
+
+  vpb->biquad_xn1 = xn1;
+  vpb->biquad_xn2 = xn2;
+  vpb->biquad_yn1 = yn1;
+  vpb->biquad_yn2 = yn2;
+}
+
 void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 {
   VPB vpb;
@@ -1184,9 +1269,23 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
   MixingBuffer input_samples;
   LoadInputSamples(&input_samples, &vpb);
 
-  // TODO: In place effects.
+  if (vpb.low_pass_coeff != 0)
+  {
+    ApplyLowPassFilter(&input_samples, &vpb);
+  }
 
-  // TODO: IIR filter.
+#ifdef STRICT_ZELDA_HLE
+  if (vpb.variable_fir_filter_size != 0)
+  {
+    ERROR_LOG_FMT(DSPHLE, "TODO: variable FIR filter of size {}", vpb.variable_fir_filter_size);
+  }
+#endif
+
+  if (vpb.enable_biquad_filter && (vpb.biquad_an2 != 0 || vpb.biquad_an1 != 0 ||
+                                   vpb.biquad_bn2 != 0 || vpb.biquad_bn1 != 0x7FFF))
+  {
+    ApplyBiquadFilter(&input_samples, &vpb);
+  }
 
   if (vpb.use_dolby_volume)
   {
@@ -1407,12 +1506,13 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     else
       shift = 2;
     u32 mask = (1 << shift) - 1;
+    u32 ratio = vpb->resampling_ratio << (shift - 1);
 
     u32 pos = vpb->current_pos_frac << shift;
     for (s16& sample : *buffer)
     {
       sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
-      pos += vpb->resampling_ratio;
+      pos += ratio;
     }
     vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
     break;
@@ -1735,6 +1835,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 
     if (vpb->samples_source_type == VPB::SRC_AFC_HQ_FROM_ARAM)
     {
+      // 4-bit samples
       for (size_t i = 0; i < 16; i += 2)
       {
         nibbles[i + 0] = *src >> 4;
@@ -1742,14 +1843,11 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
         src++;
       }
       for (auto& nibble : nibbles)
-      {
-        if (nibble >= 8)
-          nibble -= 16;
-        nibble <<= 11;
-      }
+        nibble = s16(nibble << 12) >> 1;
     }
     else
     {
+      // 2-bit samples
       for (size_t i = 0; i < 16; i += 4)
       {
         nibbles[i + 0] = (*src >> 6) & 3;
@@ -1759,11 +1857,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
         src++;
       }
       for (auto& nibble : nibbles)
-      {
-        if (nibble >= 2)
-          nibble -= 4;
-        nibble <<= 13;
-      }
+        nibble = s16(nibble << 14) >> 1;
     }
 
     s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();

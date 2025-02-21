@@ -59,8 +59,6 @@ DEFAULT_CONFIG = {
     # running corrupted binaries and allows for access to the extended
     # permisions needed for ARM builds
     "codesign_identity":  "-",
-    # Entitlements file to use for code signing
-    "entitlements": "../Source/Core/DolphinQt/DolphinEmu.entitlements",
 
     # Minimum macOS version for each architecture slice
     "arm64_mac_os_deployment_target":  "11.0.0",
@@ -71,9 +69,6 @@ DEFAULT_CONFIG = {
     "build_type": "Release",
 
     "run_unit_tests": False,
-
-    # Whether we should make a build for Steam.
-    "steam": False,
 
     # Whether our autoupdate functionality is enabled or not.
     "autoupdate": True,
@@ -119,19 +114,8 @@ def parse_args(conf=DEFAULT_CONFIG):
         help="Directory where universal binary will be stored",
         default=conf["dst_app"])
 
-    parser.add_argument(
-        "--entitlements",
-        help="Path to .entitlements file for code signing",
-        default=conf["entitlements"])
-
     parser.add_argument("--run_unit_tests", action="store_true",
                         default=conf["run_unit_tests"])
-
-    parser.add_argument(
-        "--steam",
-        help="Create a build for Steam",
-        action="store_true",
-        default=conf["steam"])
 
     parser.add_argument(
         "--autoupdate",
@@ -317,14 +301,18 @@ def build(config):
                 + config[arch+"_mac_os_deployment_target"],
                 "-DMACOS_CODE_SIGNING_IDENTITY="
                 + config["codesign_identity"],
-                "-DMACOS_CODE_SIGNING_IDENTITY_UPDATER="
-                + config["codesign_identity"],
                 '-DMACOS_CODE_SIGNING="ON"',
-                "-DSTEAM="
-                + python_to_cmake_bool(config["steam"]),
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
-                '-DDISTRIBUTOR=' + config['distributor']
+                '-DDISTRIBUTOR=' + config['distributor'],
+                # Always use libraries from Externals to prevent any libraries
+                # installed by Homebrew from leaking in to the app
+                "-DUSE_SYSTEM_LIBS=OFF",
+                # However, we should still use the macOS provided versions of
+                # iconv, bzip2, and curl
+                "-DUSE_SYSTEM_ICONV=ON",
+                "-DUSE_SYSTEM_BZIP2=ON",
+                "-DUSE_SYSTEM_CURL=ON"
             ],
             env=env, cwd=arch)
 
@@ -346,21 +334,21 @@ def build(config):
     src_app1 = ARCHITECTURES[1]+"/Binaries/"
 
     recursive_merge_binaries(src_app0, src_app1, dst_app)
-    for path in glob.glob(dst_app+"/*"):
-        if os.path.isdir(path) and os.path.splitext(path)[1] != ".app":
-            continue
-
+    
+    if config["autoupdate"]:
         subprocess.check_call([
-            "codesign",
-            "-d",
-            "--force",
-            "-s",
+            "../Tools/mac-codesign.sh",
+            "-t",
+            "-e", "preserve",
             config["codesign_identity"],
-            "--options=runtime",
-            "--entitlements", config["entitlements"],
-            "--deep",
-            "--verbose=2",
-            path])
+            dst_app+"/Dolphin.app/Contents/Helpers/Dolphin Updater.app"])
+
+    subprocess.check_call([
+        "../Tools/mac-codesign.sh",
+        "-t",
+        "-e", "preserve",
+        config["codesign_identity"],
+        dst_app+"/Dolphin.app"])
 
     print("Built Universal Binary successfully!")
 

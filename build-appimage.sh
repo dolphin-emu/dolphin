@@ -54,7 +54,7 @@ mkdir -p ${APPDIR_HOOKS}
 cp Data/linux-env.sh ${APPDIR_HOOKS}
 
 # Ensure qt6 is properly set
-qtchooser -install qt6 $(which qmake6)
+qtchooser -install qt6 $(which qmake6) || true
 export QT_SELECT=qt6
 
 # Build the AppDir directory for this image

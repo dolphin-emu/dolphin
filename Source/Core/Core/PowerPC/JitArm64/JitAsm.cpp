@@ -3,12 +3,13 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <bit>
 #include <limits>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
@@ -88,6 +89,7 @@ void JitArm64::GenerateAsm()
   {
     LDR(IndexType::Unsigned, ARM64Reg::W8, ARM64Reg::X8,
         MOVPage2R(ARM64Reg::X8, cpu.GetStatePtr()));
+    static_assert(Common::ToUnderlying(CPU::State::Running) == 0);
     debug_exit = CBNZ(ARM64Reg::W8);
   }
 
@@ -195,6 +197,7 @@ void JitArm64::GenerateAsm()
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
   LDR(IndexType::Unsigned, ARM64Reg::W8, ARM64Reg::X8, MOVPage2R(ARM64Reg::X8, cpu.GetStatePtr()));
+  static_assert(Common::ToUnderlying(CPU::State::Running) == 0);
   FixupBranch exit = CBNZ(ARM64Reg::W8);
 
   SetJumpTarget(to_start_of_timing_slice);
@@ -300,8 +303,7 @@ void JitArm64::GenerateFres()
   SetJumpTarget(small_exponent);
   TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, GPRSize::B64));
   FixupBranch zero = B(CCFlags::CC_EQ);
-  MOVI2R(ARM64Reg::X4,
-         Common::BitCast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
+  MOVI2R(ARM64Reg::X4, std::bit_cast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
   ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X4);
   RET();
 
@@ -374,7 +376,7 @@ void JitArm64::GenerateFrsqrte()
   B(positive_normal);
 
   SetJumpTarget(nan_or_inf);
-  MOVI2R(ARM64Reg::X2, Common::BitCast<u64>(-std::numeric_limits<double>::infinity()));
+  MOVI2R(ARM64Reg::X2, std::bit_cast<u64>(-std::numeric_limits<double>::infinity()));
   CMP(ARM64Reg::X1, ARM64Reg::X2);
   B(CCFlags::CC_NEQ, done);
 

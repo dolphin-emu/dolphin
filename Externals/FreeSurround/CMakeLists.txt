@@ -12,6 +12,6 @@ set(SRCS
 )
 
 add_library(FreeSurround STATIC ${SRCS})
-dolphin_disable_warnings_msvc(FreeSurround)
+dolphin_disable_warnings(FreeSurround)
 target_include_directories(FreeSurround PUBLIC include)
 target_compile_options(FreeSurround PRIVATE -w)

@@ -66,9 +66,38 @@ constexpr int XINPUT_MAJOR = 2, XINPUT_MINOR = 1;
 
 namespace ciface::XInput2
 {
-// This function will add zero or more KeyboardMouse objects to devices.
-void PopulateDevices(void* const hwnd)
+constexpr std::string_view SOURCE_NAME = "XInput2";
+
+class InputBackend final : public ciface::InputBackend
 {
+public:
+  using ciface::InputBackend::InputBackend;
+  void PopulateDevices() override;
+  void HandleWindowChange() override;
+};
+
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
+{
+  return std::make_unique<InputBackend>(controller_interface);
+}
+
+void InputBackend::HandleWindowChange()
+{
+  GetControllerInterface().RemoveDevice(
+      [](const auto* dev) { return dev->GetSource() == SOURCE_NAME; }, true);
+
+  PopulateDevices();
+}
+
+// This function will add zero or more KeyboardMouse objects to devices.
+void InputBackend::PopulateDevices()
+{
+  const WindowSystemInfo wsi = GetControllerInterface().GetWindowSystemInfo();
+  if (wsi.type != WindowSystemType::X11)
+    return;
+
+  const auto hwnd = wsi.render_window;
+
   Display* dpy = XOpenDisplay(nullptr);
 
   // xi_opcode is important; it will be used to identify XInput events by
@@ -119,7 +148,7 @@ void PopulateDevices(void* const hwnd)
       }
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
-      g_controller_interface.AddDevice(
+      GetControllerInterface().AddDevice(
           std::make_shared<KeyboardMouse>((Window)hwnd, xi_opcode, current_master->deviceid,
                                           current_master->attachment, scroll_increment));
     }
@@ -362,9 +391,16 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
   m_state.axis.z += delta_z;
   m_state.axis.z /= SCROLL_AXIS_DECAY;
 
-  const bool should_center_mouse =
-      g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus();
-  if (update_mouse || should_center_mouse)
+  const bool should_center_mouse = g_controller_interface.IsMouseCenteringRequested() &&
+                                   (Host_RendererHasFocus() || Host_TASInputHasFocus());
+
+  // When a TAS Input window has focus and "Enable Controller Input" is checked most types of
+  // input should be read normally as if the render window had focus instead. The cursor is an
+  // exception, as otherwise using the mouse to set any control in the TAS Input window will also
+  // update the Wii IR value (or any other input controlled by the cursor).
+  const bool should_update_mouse = update_mouse && !Host_TASInputHasFocus();
+
+  if (should_update_mouse || should_center_mouse)
     UpdateCursor(should_center_mouse);
 
   if (update_keyboard)
@@ -382,7 +418,12 @@ std::string KeyboardMouse::GetName() const
 
 std::string KeyboardMouse::GetSource() const
 {
-  return "XInput2";
+  return std::string(SOURCE_NAME);
+}
+
+int KeyboardMouse::GetSortPriority() const
+{
+  return DEFAULT_DEVICE_SORT_PRIORITY;
 }
 
 KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)

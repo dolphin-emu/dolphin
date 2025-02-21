@@ -375,6 +375,22 @@ private:
   }
 };
 
+// usage: plus(expression)
+class UnaryPlusExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return GetArg(0).GetValue(); }
+};
+
 // usage: deadzone(input, amount)
 class DeadzoneExpression : public FunctionExpression
 {
@@ -689,6 +705,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
     return std::make_unique<ToggleExpression>();
   if (name == "minus")
     return std::make_unique<UnaryMinusExpression>();
+  if (name == "plus")
+    return std::make_unique<UnaryPlusExpression>();
   if (name == "deadzone")
     return std::make_unique<DeadzoneExpression>();
   if (name == "smooth")

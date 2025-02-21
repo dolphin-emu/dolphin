@@ -21,12 +21,14 @@ constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
 enum class AspectMode : int
 {
-  Auto,           // 4:3 or 16:9
-  ForceWide,      // 16:9
-  ForceStandard,  // 4:3
+  Auto,           // ~4:3 or ~16:9 (auto detected)
+  ForceWide,      // ~16:9
+  ForceStandard,  // ~4:3
   ForceMelee,     // 73:60
   Stretch,
-  Custom,
+  Custom,         // Forced relative custom AR
+  CustomStretch,  // Forced absolute custom AR
+  Raw,            // Forced squared pixels
 };
 
 enum class StereoMode : int
@@ -77,6 +79,16 @@ enum class TriState : int
   Off,
   On,
   Auto
+};
+
+enum class FrameDumpResolutionType : int
+{
+  // Window resolution (not including potential back buffer black borders)
+  WindowResolution,
+  // The aspect ratio corrected XFB resolution (XFB pixels might not have been square)
+  XFBAspectRatioCorrectedResolution,
+  // The raw unscaled XFB resolution (based on "internal resolution" scale)
+  XFBRawResolution,
 };
 
 // Bitmask containing information about which configuration has changed for the backend.
@@ -188,7 +200,8 @@ struct VideoConfig final
   std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
-  bool bInternalResolutionFrameDumps = false;
+  FrameDumpResolutionType frame_dumps_resolution_type =
+      FrameDumpResolutionType::XFBAspectRatioCorrectedResolution;
   bool bBorderlessFullscreen = false;
   bool bEnableGPUTextureDecoding = false;
   bool bPreferVSForLinePointExpansion = false;
@@ -229,6 +242,7 @@ struct VideoConfig final
 
   // Stereoscopy
   StereoMode stereo_mode{};
+  bool stereo_per_eye_resolution_full = false;
   int iStereoDepth = 0;
   int iStereoConvergence = 0;
   int iStereoConvergencePercentage = 0;

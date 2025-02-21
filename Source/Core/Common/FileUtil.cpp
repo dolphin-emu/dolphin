@@ -62,6 +62,10 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #endif
 
+#if defined(__FreeBSD__)
+#include <sys/sysctl.h>
+#endif
+
 namespace fs = std::filesystem;
 
 namespace File
@@ -795,6 +799,15 @@ std::string GetExePath()
   return PathToString(exe_path_absolute);
 #elif defined(__APPLE__)
   return GetBundleDirectory();
+#elif defined(__FreeBSD__)
+  int name[4]{CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+  size_t length = 0;
+  if (sysctl(name, 4, nullptr, &length, nullptr, 0) != 0 || length == 0)
+    return {};
+  std::string dolphin_exe_path(length, '\0');
+  if (sysctl(name, 4, dolphin_exe_path.data(), &length, nullptr, 0) != 0)
+    return {};
+  return dolphin_exe_path;
 #else
   char dolphin_exe_path[PATH_MAX];
   ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
@@ -937,6 +950,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
     s_user_paths[D_REDUMPCACHE_IDX] = s_user_paths[D_CACHE_IDX] + REDUMPCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
+    s_user_paths[D_RETROACHIEVEMENTSCACHE_IDX] =
+        s_user_paths[D_CACHE_IDX] + RETROACHIEVEMENTSCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERS_IDX] = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
     s_user_paths[D_STATESAVES_IDX] = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
     s_user_paths[D_SCREENSHOTS_IDX] = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
@@ -950,6 +965,11 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
     s_user_paths[D_DUMPSSL_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_SSL_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DEBUG_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_BRANCHWATCH_IDX] =
+        s_user_paths[D_DUMPDEBUG_IDX] + DUMP_DEBUG_BRANCHWATCH_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_JITBLOCKS_IDX] =
+        s_user_paths[D_DUMPDEBUG_IDX] + DUMP_DEBUG_JITBLOCKS_DIR DIR_SEP;
     s_user_paths[D_LOGS_IDX] = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
     s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
     s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
@@ -1009,12 +1029,16 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
     s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
+    s_user_paths[F_RETROACHIEVEMENTSCONFIG_IDX] =
+        s_user_paths[D_CONFIG_IDX] + RETROACHIEVEMENTS_CONFIG;
     break;
 
   case D_CACHE_IDX:
     s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
     s_user_paths[D_REDUMPCACHE_IDX] = s_user_paths[D_CACHE_IDX] + REDUMPCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
+    s_user_paths[D_RETROACHIEVEMENTSCACHE_IDX] =
+        s_user_paths[D_CACHE_IDX] + RETROACHIEVEMENTSCACHE_DIR DIR_SEP;
     break;
 
   case D_GCUSER_IDX:
@@ -1028,6 +1052,11 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
     s_user_paths[D_DUMPSSL_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_SSL_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DEBUG_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_BRANCHWATCH_IDX] =
+        s_user_paths[D_DUMPDEBUG_IDX] + DUMP_DEBUG_BRANCHWATCH_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_JITBLOCKS_IDX] =
+        s_user_paths[D_DUMPDEBUG_IDX] + DUMP_DEBUG_JITBLOCKS_DIR DIR_SEP;
     s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
     s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;

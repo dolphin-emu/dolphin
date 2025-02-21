@@ -37,7 +37,7 @@ void Init(Core::System& system, const Sram* override_sram, const std::string cur
   system.GetCoreTiming().Init();
   system.GetSystemTimers().PreInit();
 
-  State::Init();
+  State::Init(system);
 
   // Init the whole Hardware
   system.GetAudioInterface().Init();
@@ -65,7 +65,7 @@ void Init(Core::System& system, const Sram* override_sram, const std::string cur
 void Shutdown(Core::System& system)
 {
   // IOS should always be shut down regardless of IsWii because it can be running in GC mode (MIOS).
-  IOS::HLE::Shutdown();  // Depends on Memory
+  IOS::HLE::Shutdown(system);  // Depends on Memory
   system.GetWiiIPC().Shutdown();
 
   system.GetSystemTimers().Shutdown();
@@ -114,7 +114,7 @@ void DoState(Core::System& system, PointerWrap& p)
   {
     system.GetWiiIPC().DoState(p);
     p.DoMarker("IOS");
-    IOS::HLE::GetIOS()->DoState(p);
+    system.GetIOS()->DoState(p);
     p.DoMarker("IOS::HLE");
   }
 

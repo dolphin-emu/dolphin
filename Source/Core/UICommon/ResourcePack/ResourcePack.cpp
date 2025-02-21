@@ -36,7 +36,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     return;
   }
 
-  if (unzLocateFile(file, "manifest.json", nullptr) == UNZ_END_OF_LIST_OF_FILE)
+  if (unzLocateFile(file, "manifest.json", 0) == UNZ_END_OF_LIST_OF_FILE)
   {
     m_valid = false;
     m_error = "Resource pack is missing a manifest.";
@@ -63,7 +63,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     return;
   }
 
-  if (unzLocateFile(file, "logo.png", nullptr) != UNZ_END_OF_LIST_OF_FILE)
+  if (unzLocateFile(file, "logo.png", 0) != UNZ_END_OF_LIST_OF_FILE)
   {
     unz_file_info64 logo_info{};
     unzGetCurrentFileInfo64(file, &logo_info, nullptr, 0, nullptr, 0, nullptr, 0);
@@ -88,7 +88,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     unzGetCurrentFileInfo64(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
                             nullptr, 0, nullptr, 0);
 
-    if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
+    if (!filename.starts_with("textures/") || texture_info.uncompressed_size == 0)
       continue;
 
     // If a texture is compressed and the manifest doesn't state that, abort.

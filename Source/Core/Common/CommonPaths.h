@@ -11,7 +11,6 @@
 #define ROOT_DIR "."
 
 // The normal user directory
-#ifndef STEAM
 #ifdef _WIN32
 #define NORMAL_USER_DIR "Dolphin Emulator"
 #elif defined(__APPLE__)
@@ -24,15 +23,6 @@
 #define NETPLAY_USER_DIR "slippi-dolphin/netplay-beta"
 #define PLAYBACK_USER_DIR "slippi-dolphin/playback-beta"
 #define NORMAL_USER_DIR "dolphin-emu"
-#endif
-#else  // ifndef STEAM
-#ifdef _WIN32
-#define NORMAL_USER_DIR "Dolphin Emulator (Steam)"
-#elif defined(__APPLE__)
-#define NORMAL_USER_DIR "Library/Application Support/Dolphin (Steam)"
-#else
-#define NORMAL_USER_DIR "dolphin-emu-steam"
-#endif
 #endif
 
 // The portable user directory
@@ -67,6 +57,7 @@
 #define COVERCACHE_DIR "GameCovers"
 #define REDUMPCACHE_DIR "Redump"
 #define SHADERCACHE_DIR "Shaders"
+#define RETROACHIEVEMENTSCACHE_DIR "RetroAchievements"
 #define STATESAVES_DIR "StateSaves"
 #define SCREENSHOTS_DIR "ScreenShots"
 #define LOAD_DIR "Load"
@@ -79,6 +70,9 @@
 #define DUMP_AUDIO_DIR "Audio"
 #define DUMP_DSP_DIR "DSP"
 #define DUMP_SSL_DIR "SSL"
+#define DUMP_DEBUG_DIR "Debug"
+#define DUMP_DEBUG_BRANCHWATCH_DIR "BranchWatch"
+#define DUMP_DEBUG_JITBLOCKS_DIR "JitBlocks"
 #define LOGS_DIR "Logs"
 #define MAIL_LOGS_DIR "Mail"
 #define SHADERS_DIR "Shaders"

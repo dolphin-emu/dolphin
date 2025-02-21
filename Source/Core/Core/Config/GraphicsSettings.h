@@ -10,10 +10,12 @@
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
+enum class StereoPerEyeResolution : int;
 enum class TextureFilteringMode : int;
 enum class OutputResamplingMode : int;
 enum class ColorCorrectionRegion : int;
 enum class TriState : int;
+enum class FrameDumpResolutionType : int;
 
 namespace Config
 {
@@ -67,7 +69,7 @@ extern const Info<std::string> GFX_DUMP_PIXEL_FORMAT;
 extern const Info<std::string> GFX_DUMP_ENCODER;
 extern const Info<std::string> GFX_DUMP_PATH;
 extern const Info<int> GFX_BITRATE_KBPS;
-extern const Info<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS;
+extern const Info<FrameDumpResolutionType> GFX_FRAME_DUMPS_RESOLUTION_TYPE;
 extern const Info<int> GFX_PNG_COMPRESSION_LEVEL;
 extern const Info<bool> GFX_ENABLE_GPU_TEXTURE_DECODING;
 extern const Info<bool> GFX_ENABLE_PIXEL_LIGHTING;
@@ -138,6 +140,7 @@ extern const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS;
 // Graphics.Stereoscopy
 
 extern const Info<StereoMode> GFX_STEREO_MODE;
+extern const Info<bool> GFX_STEREO_PER_EYE_RESOLUTION_FULL;
 extern const Info<int> GFX_STEREO_DEPTH;
 extern const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE;
 extern const Info<bool> GFX_STEREO_SWAP_EYES;

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -72,8 +73,8 @@ public:
   }
   virtual bool IsAlive() const { return true; }
   virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
-  virtual void SetBreakpoint(u32 /*address*/) {}
-  virtual void ClearBreakpoint(u32 /*address*/) {}
+  virtual void AddBreakpoint(u32 /*address*/) {}
+  virtual void RemoveBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
   virtual void ToggleBreakpoint(u32 /*address*/) {}
   virtual void ClearAllMemChecks() {}
@@ -98,12 +99,12 @@ public:
   virtual u32 GetPC() const { return 0; }
   virtual void SetPC(u32 /*address*/) {}
   virtual void Step() {}
-  virtual void RunToBreakpoint() {}
+  virtual void RunTo(u32 /*address*/) {}
   virtual u32 GetColor(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
   {
     return 0xFFFFFFFF;
   }
-  virtual std::string GetDescription(u32 /*address*/) const = 0;
+  virtual std::string_view GetDescription(u32 /*address*/) const = 0;
   virtual void Clear(const CPUThreadGuard& guard) = 0;
 };
 }  // namespace Core
