@@ -48,6 +48,9 @@ public:
   void SetEnable(LogType type, bool enable);
   bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
 
+  void SetEnableConvertSJIS(bool enable) { m_convert_sjis = enable; }
+  bool IsEnabledConvertSJIS() const { return m_convert_sjis; }
+
   std::map<std::string, std::string> GetLogTypes();
 
   const char* GetShortName(LogType type) const;
@@ -66,6 +69,8 @@ private:
     const char* m_full_name;
     bool m_enable = false;
   };
+
+  bool m_convert_sjis = true;
 
   LogManager();
   ~LogManager();

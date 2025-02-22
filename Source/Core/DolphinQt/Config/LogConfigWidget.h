@@ -37,6 +37,8 @@ private:
   QCheckBox* m_out_file;
   QCheckBox* m_out_console;
   QCheckBox* m_out_window;
+  QCheckBox* m_convert_sjis;
+
   QPushButton* m_types_toggle;
   QListWidget* m_types_list;
 

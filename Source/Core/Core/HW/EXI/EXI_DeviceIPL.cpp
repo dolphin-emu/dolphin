@@ -304,7 +304,7 @@ void CEXIIPL::TransferByte(u8& data)
 
         if (data == '\r')
         {
-          NOTICE_LOG_FMT(OSREPORT, "{}", SHIFTJISToUTF8(m_buffer));
+          NOTICE_LOG_FMT(OSREPORT, "{}", m_osreport_sjis ? SHIFTJISToUTF8(m_buffer) : m_buffer);
           m_buffer.clear();
         }
       }

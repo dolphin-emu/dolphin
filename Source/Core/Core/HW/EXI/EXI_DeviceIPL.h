@@ -36,6 +36,8 @@ public:
 private:
   std::unique_ptr<u8[]> m_rom;
 
+  bool m_osreport_sjis = false;
+
   // TODO these ranges are highly suspect
   enum
   {

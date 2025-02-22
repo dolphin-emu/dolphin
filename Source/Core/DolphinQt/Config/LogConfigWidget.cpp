@@ -55,6 +55,7 @@ void LogConfigWidget::CreateWidgets()
   m_out_file = new QCheckBox(tr("Write to File"));
   m_out_console = new QCheckBox(tr("Write to Console"));
   m_out_window = new QCheckBox(tr("Write to Window"));
+  m_convert_sjis = new QCheckBox(tr("Convert from Shift JIS"));
 
   auto* types = new QGroupBox(tr("Log Types"));
   auto* types_layout = new QVBoxLayout;
@@ -84,6 +85,7 @@ void LogConfigWidget::CreateWidgets()
   outputs_layout->addWidget(m_out_file);
   outputs_layout->addWidget(m_out_console);
   outputs_layout->addWidget(m_out_window);
+  outputs_layout->addWidget(m_convert_sjis);
 
   layout->addWidget(types);
   types_layout->addWidget(m_types_toggle);
@@ -107,6 +109,7 @@ void LogConfigWidget::ConnectWidgets()
   connect(m_out_file, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_out_console, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_out_window, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
+  connect(m_convert_sjis, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
 
   connect(m_types_toggle, &QPushButton::clicked, [this] {
     m_all_enabled = !m_all_enabled;
@@ -162,6 +165,7 @@ void LogConfigWidget::LoadSettings()
 
     m_types_list->item(i)->setCheckState(log_enabled ? Qt::Checked : Qt::Unchecked);
   }
+  m_convert_sjis->setCheckState(m_convert_sjis ? Qt::Checked : Qt::Unchecked);
 }
 
 void LogConfigWidget::SaveSettings()
@@ -213,6 +217,11 @@ void LogConfigWidget::SaveSettings()
     if (enabled != was_enabled)
       log_manager->SetEnable(type, enabled);
   }
+  const bool enabled = m_convert_sjis->checkState() == Qt::Checked;
+  bool was_enabled = log_manager->IsEnabledConvertSJIS();
+
+  if (enabled != was_enabled)
+    log_manager->SetEnableConvertSJIS(enabled);
 }
 
 void LogConfigWidget::closeEvent(QCloseEvent*)
