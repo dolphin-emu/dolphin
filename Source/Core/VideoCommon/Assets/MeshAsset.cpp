@@ -72,7 +72,6 @@ bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* for
   {
     return false;
   }
-  break;
   case TINYGLTF_COMPONENT_TYPE_FLOAT:
   {
     format->type = ComponentFormat::Float;
@@ -101,7 +100,6 @@ bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* for
   {
     return false;
   }
-  break;
   case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
   {
     format->type = ComponentFormat::UShort;
