@@ -8,7 +8,12 @@ bool NullSound::Init()
   return true;
 }
 
-bool NullSound::SetRunning(bool running)
+bool NullSound::Start()
+{
+  return true;
+}
+
+bool NullSound::Stop()
 {
   return true;
 }

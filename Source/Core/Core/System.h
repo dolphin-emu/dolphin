@@ -151,7 +151,8 @@ public:
   SoundStream* GetSoundStream() const;
   void SetSoundStream(std::unique_ptr<SoundStream> sound_stream);
   bool IsSoundStreamRunning() const;
-  void SetSoundStreamRunning(bool running);
+  void StartSoundStream();
+  void StopSoundStream();
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
 
