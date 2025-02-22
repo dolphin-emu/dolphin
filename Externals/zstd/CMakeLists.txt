@@ -90,6 +90,7 @@ set(ZSTD_PRIVATE_HDRS
     lib/compress/zstd_ldm.h
     lib/compress/zstd_ldm_geartab.h
     lib/compress/zstd_opt.h
+    lib/compress/zstd_preSplit.h
     lib/compress/zstdmt_compress.h
     lib/decompress/zstd_ddict.h
     lib/decompress/zstd_decompress_block.h
@@ -116,6 +117,7 @@ set(ZSTD_SRCS
     lib/compress/zstd_lazy.c
     lib/compress/zstd_ldm.c
     lib/compress/zstd_opt.c
+    lib/compress/zstd_preSplit.c
     lib/compress/zstdmt_compress.c
     lib/decompress/huf_decompress.c
     lib/decompress/zstd_ddict.c

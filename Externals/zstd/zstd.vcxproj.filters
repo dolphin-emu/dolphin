@@ -76,6 +76,9 @@
     <ClCompile Include="lib\compress\zstdmt_compress.c">
       <Filter>compress</Filter>
     </ClCompile>
+    <ClCompile Include="lib\compress\zstd_preSplit.c">
+      <Filter>compress</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\zstd.h" />
@@ -177,6 +180,9 @@
       <Filter>compress</Filter>
     </ClInclude>
     <ClInclude Include="lib\compress\zstd_opt.h">
+      <Filter>compress</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\compress\zstd_preSplit.h">
       <Filter>compress</Filter>
     </ClInclude>
     <ClInclude Include="lib\compress\zstdmt_compress.h">
