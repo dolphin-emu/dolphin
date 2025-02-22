@@ -175,10 +175,7 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
   GCPadStatus pad_status = GetPadStatus();
 
   if (!pad_status.isConnected)
-  {
-    hi = 0x80000000;
-    return true;
-  }
+    return false;
 
   if (HandleButtonCombos(pad_status) == COMBO_ORIGIN)
     pad_status.button |= PAD_GET_ORIGIN;
