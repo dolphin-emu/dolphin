@@ -545,8 +545,10 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
 
   // Calculate accelerometer state.
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-  target_state->acceleration =
+  const auto accel_data =
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+  if (accel_data != GetDefaultAccelData())
+    target_state->acceleration = accel_data;
 
   // Calculate IR camera state.
   if (m_ir_passthrough->enabled.GetValue())
@@ -578,6 +580,13 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   static_cast<Extension*>(
       m_attachments->GetAttachmentList()[m_attachments->GetSelectedAttachment()].get())
       ->BuildDesiredExtensionState(&target_state->extension);
+}
+
+WiimoteCommon::AccelData Wiimote::GetDefaultAccelData() const
+{
+  // 1g in Z direction, which is the default returned by an unmoving emulated Wiimote.
+  return WiimoteCommon::AccelData(
+      {Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ONE_G << 2});
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
@@ -684,7 +693,7 @@ void WiimoteBase::SendDataReport(const DesiredWiimoteState& target_state)
   // Acceleration:
   if (rpt_builder.HasAccel())
   {
-    rpt_builder.SetAccelData(target_state.acceleration);
+    rpt_builder.SetAccelData(target_state.acceleration.value_or(GetDefaultAccelData()));
   }
 
   // IR Camera:
@@ -1182,14 +1191,18 @@ void BalanceBoard::BuildDesiredWiimoteState(DesiredWiimoteState* target_state, S
 {
   m_buttons->GetState(&target_state->buttons.hex, bboard_bitmasks, m_input_override_function);
 
-  // Real balance board observed with 0x2a-filled accel data. LSbs in button data were zero.
-  // TODO: This will result in SerializeDesiredState wasting 3 bytes on never-changing accel data.
-  target_state->acceleration.value.data.fill(0x2a << 2);
+  // Accel data is static.
 
   // Default, 0xff-filled, camera data is accurate.
 
   // Balance board pseudo-extension is always attached.
   m_ext.BuildDesiredExtensionState(&target_state->extension);
+}
+
+WiimoteCommon::AccelData BalanceBoard::GetDefaultAccelData() const
+{
+  // Real balance board observed with 0x2a-filled accel data. LSbs in button data were zero.
+  return WiimoteCommon::AccelData({0x2a << 2, 0x2a << 2, 0x2a << 2});
 }
 
 }  // namespace WiimoteEmu
