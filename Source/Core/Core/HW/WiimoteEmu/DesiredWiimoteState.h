@@ -16,16 +16,12 @@ namespace WiimoteEmu
 {
 struct DesiredWiimoteState
 {
-  // 1g in Z direction, which is the default returned by an unmoving emulated Wiimote.
-  static constexpr WiimoteCommon::AccelData DEFAULT_ACCELERATION = WiimoteCommon::AccelData(
-      {Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ONE_G << 2});
-
   // No light detected by the IR camera.
   static constexpr std::array<CameraPoint, 4> DEFAULT_CAMERA = {CameraPoint(), CameraPoint(),
                                                                 CameraPoint(), CameraPoint()};
 
   WiimoteCommon::ButtonData buttons{};  // non-button state in this is ignored
-  WiimoteCommon::AccelData acceleration = DEFAULT_ACCELERATION;
+  std::optional<WiimoteCommon::AccelData> acceleration = std::nullopt;
   std::array<CameraPoint, 4> camera_points = DEFAULT_CAMERA;
   std::optional<MotionPlus::DataFormat::Data> motion_plus = std::nullopt;
   DesiredExtensionState extension;
