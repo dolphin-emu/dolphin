@@ -698,9 +698,9 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
       display_str += " HOME";
   }
 
-  if (state.acceleration != state.DEFAULT_ACCELERATION)
+  if (state.acceleration.has_value())
   {
-    const AccelData& accel_data = state.acceleration;
+    const AccelData& accel_data = *state.acceleration;
     display_str +=
         fmt::format(" ACC:{},{},{}", accel_data.value.x, accel_data.value.y, accel_data.value.z);
   }
