@@ -412,6 +412,9 @@ PRIVATE
   -DQT_USE_QSTRINGBUILDER
   -DQT_NO_CAST_FROM_ASCII
   -DQT_NO_CAST_TO_ASCII
+  # This Qt version should match Externals/Qt.
+  # It disables deprecation warnings we can't fix yet.
+  -DQT_WARN_DEPRECATED_UP_TO=0x060501
 )
 
 target_include_directories(dolphin-emu
