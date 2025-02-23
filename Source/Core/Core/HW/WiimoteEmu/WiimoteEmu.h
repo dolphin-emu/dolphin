@@ -134,6 +134,7 @@ protected:
   virtual void UpdateBatteryStatus(double charge) = 0;
   virtual void BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
                                         SensorBarState sensor_bar_state) = 0;
+  virtual WiimoteCommon::AccelData GetDefaultAccelData() const = 0;
   void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
                     SensorBarState sensor_bar_state) override;
 
@@ -313,6 +314,7 @@ protected:
   void UpdateBatteryStatus(double charge) override;
   void BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
                                 SensorBarState sensor_bar_state) override;
+  WiimoteCommon::AccelData GetDefaultAccelData() const override;
 
   std::optional<Common::Vec3> OverrideVec3(const ControllerEmu::ControlGroup* control_group,
                                            std::optional<Common::Vec3> optional_vec) const;
@@ -425,6 +427,7 @@ protected:
   void UpdateBatteryStatus(double charge) override;
   void BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
                                 SensorBarState sensor_bar_state) override;
+  WiimoteCommon::AccelData GetDefaultAccelData() const override;
 
   void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) override;
   void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&) override;
