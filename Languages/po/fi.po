@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-22 14:15+0100\n"
+"POT-Creation-Date: 2025-02-24 19:21+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Aleksi, 2023-2024\n"
 "Language-Team: Finnish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -77,8 +77,8 @@ msgstr "$ Käyttäjän muuttuja"
 #. i18n: The symbol/abbreviation for percent.
 #. i18n: The percent symbol.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:71
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:296
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:297
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:392
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:105
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:45
@@ -825,7 +825,7 @@ msgstr "- Vähennyslasku"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:229
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:231
 msgid "--Unknown--"
 msgstr "--Tuntematon--"
 
@@ -1236,12 +1236,16 @@ msgstr "ASCII"
 msgid "Abort"
 msgstr "Keskeytä"
 
+#: Source/Core/Core/Movie.cpp:1293
+msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
+msgstr ""
+
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
 msgstr "Tietoa Dolphinista"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:62
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:252
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:51
 msgid "Accelerometer"
 msgstr "Kiihtyvyysanturi"
@@ -1360,7 +1364,7 @@ msgstr "Aktivoi nettipelin keskustelu"
 msgid "Active"
 msgstr "Aktiivinen"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:78
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:80
 msgid "Active Infinity Figures:"
 msgstr "Aktiiviset Infinity-hahmot:"
 
@@ -1876,7 +1880,7 @@ msgstr ""
 "Vähintään kahdella valituista tallennustiedostoista on sama sisäinen "
 "tiedostonimi."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:284
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:279
 msgid "Attach MotionPlus"
 msgstr "Liitä MotionPlus"
 
@@ -2121,7 +2125,7 @@ msgstr "Basso"
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "Sarjatilaa ei voi käyttää määräämättä peliä, joka käynnistetään."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:295
 msgid "Battery"
 msgstr "Paristo"
 
@@ -2161,7 +2165,7 @@ msgstr "Binäärinen SSL (kirjoitus)"
 msgid "Bitrate (kbps):"
 msgstr "Bittivirta (kbps):"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:305
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:307
 msgid ""
 "Blank figure creation failed at:\n"
 "%1\n"
@@ -2578,8 +2582,8 @@ msgid "Camera 1"
 msgstr "Kamera 1"
 
 #. i18n: Refers to emulated wii remote camera properties.
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:243
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:251
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:238
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:246
 msgid "Camera field of view (affects sensitivity of pointing)."
 msgstr "Kameran näkökenttä (vaikuttaa osoituksen herkkyyteen)."
 
@@ -2595,7 +2599,7 @@ msgstr "Tätä asetusta ei voi vielä vaihtaa!"
 msgid "Can't edit villains for this trophy!"
 msgstr "Tämän palkinnon roistoja ei voi muuttaa!"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1912
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1921
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Wii Remote -ohjainta ei löydy yhteystunnisteella {0:02x}"
 
@@ -2710,7 +2714,7 @@ msgstr "Vaihda levy"
 msgid "Change Discs Automatically"
 msgstr "Vaihda levyä automaattisesti"
 
-#: Source/Core/Core/Movie.cpp:1260
+#: Source/Core/Core/Movie.cpp:1239
 msgid "Change the disc to {0}"
 msgstr "Vaihda levy {0}:ksi"
 
@@ -2763,7 +2767,7 @@ msgstr ""
 msgid "Channel Partition (%1)"
 msgstr "Kanavaosio (%1)"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:274
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 msgid "Character entered is invalid!"
 msgstr "Asetettu hahmo on virheellinen!"
 
@@ -2858,7 +2862,7 @@ msgstr "Classic Controller"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:166
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:177
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:103
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:114
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
 msgid "Clear"
 msgstr "Tyhjennä"
 
@@ -3674,13 +3678,13 @@ msgstr "Tiedoston luku epäonnistui."
 msgid "Country:"
 msgstr "Maa:"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:115
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:256
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:117
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:258
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:590
 msgid "Create"
 msgstr "Luo"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:294
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:296
 msgid "Create Infinity File"
 msgstr "Luo Infinity-tiedosto"
 
@@ -4777,7 +4781,7 @@ msgstr "Emulaattorisäie on jo käynnissä"
 msgid "Emulate Disc Speed"
 msgstr "Emuloi levyn nopeutta"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:64
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:66
 msgid "Emulate Infinity Base"
 msgstr "Emuloi Infinity-alustaa"
 
@@ -5410,7 +5414,7 @@ msgstr "Virhe sovittimen avauksessa: %1"
 msgid "Error collecting save data!"
 msgstr "Virhe tallennustiedoston keräämisessä!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:274
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:600
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:607
 msgid "Error converting value"
@@ -5625,7 +5629,7 @@ msgctxt ""
 msgid "Exported %n save(s)"
 msgstr "Viety %n tallennustiedosto(a)"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:272
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:460
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:47
 msgid "Extension"
@@ -5746,7 +5750,7 @@ msgstr "D3D12:n globaalien resurssien luonti epäonnistui"
 msgid "Failed to create DXGI factory"
 msgstr "DXGI-tehtaan luonti epäonnistui"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:304
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:306
 msgid "Failed to create Infinity file"
 msgstr "Infinity-tiedoston luonti epäonnistui"
 
@@ -5997,11 +6001,11 @@ msgstr "Tiedoston avaaminen epäonnistui."
 msgid "Failed to open server"
 msgstr "Palvelimen avaaminen epäonnistui"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:173
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:175
 msgid "Failed to open the Infinity file!"
 msgstr "Infinity-tiedoston avaaminen epäonnistui!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:174
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:176
 msgid ""
 "Failed to open the Infinity file:\n"
 "%1\n"
@@ -6071,11 +6075,11 @@ msgstr "Syötetiedostosta \"{0}\" lukeminen epäonnistui."
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr "Tallennustiedosto(je)n lukeminen muistikortilta epäonnistui."
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:183
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:185
 msgid "Failed to read the Infinity file!"
 msgstr "Infinity-tiedoston lukeminen epäonnistui!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:184
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:186
 msgid ""
 "Failed to read the Infinity file:\n"
 "%1\n"
@@ -6111,7 +6115,7 @@ msgstr ""
 "Tiedoston sisällön luku epäonnistui:\n"
 "%1"
 
-#: Source/Core/Core/Movie.cpp:1014
+#: Source/Core/Core/Movie.cpp:993
 msgid "Failed to read {0}"
 msgstr "Kohteen {0} lukeminen epäonnistui"
 
@@ -6184,7 +6188,7 @@ msgstr ""
 msgid "Failed to uninstall pack: %1"
 msgstr "Paketin asentaminen epäonnistui: %1"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:78
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:77
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF-tiedoston tallentaminen SYSCONFiin epäonnistui"
 
@@ -6252,20 +6256,12 @@ msgstr "Nopea"
 msgid "Fast Depth Calculation"
 msgstr "Nopea syvyyslaskenta"
 
-#: Source/Core/Core/Movie.cpp:1298
-msgid ""
-"Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
-"{2}.){3}"
-msgstr ""
-"Vakava desynkronoituminen. Toisto keskeytyy. (Virhe PlayWiimotessa: {0} != "
-"{1}, tavu {2}.){3}"
-
 #: Source/Core/Core/FreeLookManager.cpp:108
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:25
 msgid "Field of View"
 msgstr "Näkökenttä"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:247
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:249
 msgid "Figure Number:"
 msgstr "Hahmon numero:"
 
@@ -7144,7 +7140,7 @@ msgstr "Ruudukkonäkymä"
 msgid "Guitar"
 msgstr "Kitara"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:259
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:254
 msgid "Gyroscope"
 msgstr "Gyroskooppi"
 
@@ -7267,7 +7263,7 @@ msgid "Hit Strength"
 msgstr "Lyömävoima"
 
 #. i18n: FOV stands for "Field of view".
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:239
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 msgid "Horizontal FOV"
 msgstr "Vaakatason näkökenttä"
 
@@ -7354,7 +7350,7 @@ msgid "Hotkey Settings"
 msgstr "Pikanäppäinasetukset"
 
 #: Source/Core/Core/HotkeyManager.cpp:213
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:262
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
 msgstr "Pikanäppäimet"
@@ -7756,16 +7752,16 @@ msgstr "Vähittäinen kääntö"
 msgid "Incremental Rotation (rad/sec)"
 msgstr "Vähittäinen kääntö (rad/s)"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:198
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:200
 msgid "Infinity Figure Creator"
 msgstr "Infinity-hahmon luonti."
 
 #. i18n: Window for managing Disney Infinity figures
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:41
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:42
 msgid "Infinity Manager"
 msgstr "Infinity-hallinta"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:295
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:297
 msgid "Infinity Object (*.bin);;"
 msgstr "Infinity-hahmo (*.bin);;"
 
@@ -8040,7 +8036,7 @@ msgstr "Virheelliset parametrit annettiin hakuun."
 msgid "Invalid password provided."
 msgstr "Virheellinen salasana annettu."
 
-#: Source/Core/Core/Movie.cpp:938
+#: Source/Core/Core/Movie.cpp:917
 msgid "Invalid recording file"
 msgstr "Virheellinen nauhoitustiedosto"
 
@@ -8055,6 +8051,10 @@ msgstr "Virheellinen hakumerkkijono (numeroksi muunto epäonnistui)"
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:404
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "Virheellinen hakumerkkijono (vain parillisia pituuksia tuetaan)"
+
+#: Source/Core/Core/Movie.cpp:1275
+msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
+msgstr ""
 
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
@@ -8452,7 +8452,7 @@ msgstr "Kuunnellaan"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:143
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:179
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:104
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:118
 msgid "Load"
 msgstr "Lataa"
 
@@ -9064,7 +9064,7 @@ msgid "Motion Simulation"
 msgstr "Liikesimulaatio"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:79
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Motor"
 msgstr "Moottori"
 
@@ -9082,7 +9082,7 @@ msgstr "Liiku"
 msgid "Movie"
 msgstr "Nauhoitus"
 
-#: Source/Core/Core/Movie.cpp:977
+#: Source/Core/Core/Movie.cpp:956
 msgid ""
 "Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
 "The movie will likely not sync!"
@@ -9451,8 +9451,8 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:422
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:424
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:119
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:137
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:121
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:139
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:80
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:862
 msgid "None"
@@ -9760,7 +9760,7 @@ msgid "Operators"
 msgstr "Operaattorit"
 
 #: Source/Core/Core/HW/GCPadEmu.h:63
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:286
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:76
 #: Source/Core/DolphinQt/ConvertDialog.cpp:84
@@ -9889,6 +9889,10 @@ msgstr "PPC-käskykattavuus"
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "PPC vs Host"
 msgstr "PPC vs. isäntäkone"
+
+#: Source/Core/Common/FatFsUtil.h:13
+msgid "Pack SD Card Now"
+msgstr ""
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10082,7 +10086,7 @@ msgstr "Toista / nauhoita"
 msgid "Play Recording"
 msgstr "Toista nauhoitus"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:82
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
 msgid "Play Set/Power Disc"
 msgstr "Lelusarja/Voimakiekko"
 
@@ -10094,27 +10098,27 @@ msgstr "Toiston asetukset"
 msgid "Player"
 msgstr "Pelaaja"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:88
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:90
 msgid "Player One"
 msgstr "Ensimmäinen pelaaja"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:90
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:92
 msgid "Player One Ability One"
 msgstr "Ensimmäisen pelaajan ensimmäinen kyky"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:92
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:94
 msgid "Player One Ability Two"
 msgstr "Ensimmäisen pelaajan toinen kyky"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:94
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:96
 msgid "Player Two"
 msgstr "Toinen pelaaja"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:96
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:98
 msgid "Player Two Ability One"
 msgstr "Toisen pelaajan ensimmäinen kyky"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:98
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:100
 msgid "Player Two Ability Two"
 msgstr "Toisen pelaajan toinen kyky"
 
@@ -10149,12 +10153,12 @@ msgid ""
 msgstr "Aloita peli, ennen kuin teet haun standardimuistialueilla."
 
 #. i18n: "Point" refers to the action of pointing a Wii Remote.
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:224
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:229
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 msgid "Point"
 msgstr "Osoitus"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:255
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "Point (Passthrough)"
 msgstr "Osoitin (läpipäästö)"
 
@@ -10194,11 +10198,11 @@ msgstr "Jälkikäsittelyefekti:"
 msgid "Post-Processing Shader Configuration"
 msgstr "Jälkikäsittelyvarjostimen asetukset"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:88
 msgid "Power Disc Three"
 msgstr "Voimakiekko kolme"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
 msgid "Power Disc Two"
 msgstr "Voimakiekko kaksi"
 
@@ -10211,19 +10215,19 @@ msgstr "Käytä kulmapistevarjostinta pisteiden ja viivojen laajentamiseen"
 msgid "Prefetch Custom Textures"
 msgstr "Esihae muokatut tekstuurit"
 
-#: Source/Core/Core/Movie.cpp:1195
+#: Source/Core/Core/Movie.cpp:1174
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr ""
 "Esiaikainen nauhoituksen loppu PlayController-järjestelmässä. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1312
+#: Source/Core/Core/Movie.cpp:1264
+msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
+msgstr ""
+
+#: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr ""
 "Esiaikainen nauhoituksen loppu PlayWiimote-järjestelmässä. {0} + {1} > {2}"
-
-#: Source/Core/Core/Movie.cpp:1286
-msgid "Premature movie end in PlayWiimote. {0} > {1}"
-msgstr "Esiaikainen nauhoituksen loppu PlayWiimote-järjestelmässä. {0} + {1}"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:97
 msgid ""
@@ -10487,7 +10491,7 @@ msgstr "Oikea tasapainolauta"
 msgid "Real Wii Remote"
 msgstr "Oikea Wii Remote"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:388
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:387
 msgid "Received invalid Wii Remote data from Netplay."
 msgstr "Nettipelistä saapui virheellistä Wii Remote -dataa."
 
@@ -10909,7 +10913,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:71
 msgid "Rumble"
@@ -11219,7 +11223,7 @@ msgstr ""
 msgid "Saves:"
 msgstr "Tallennustiedostot:"
 
-#: Source/Core/Core/Movie.cpp:1023
+#: Source/Core/Core/Movie.cpp:1002
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
 msgstr "Tallennustilan nauhoitus {0} on vioittunut, nauhoittaminen pysähtyy..."
 
@@ -11323,7 +11327,7 @@ msgstr "Valitse vedostiedostojen polku"
 msgid "Select Export Directory"
 msgstr "Valitse vientihakemisto"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:145
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:147
 msgid "Select Figure File"
 msgstr "Valitse hahmotiedosto"
 
@@ -11849,7 +11853,7 @@ msgid "Shader Compilation"
 msgstr "Varjostinten kääntäminen"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:52
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:230
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:225
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:29
 msgid "Shake"
 msgstr "Ravistus"
@@ -12257,15 +12261,15 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "Vierekkäin"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:268
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:263
 msgid "Sideways Hold"
 msgstr "Vaakasuuntainen pitely"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:265
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:260
 msgid "Sideways Toggle"
 msgstr "Vaakasuuntaisuus päälle/pois"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:311
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
 msgid "Sideways Wii Remote"
 msgstr "Vaakasuuntainen Wii Remote"
 
@@ -12472,7 +12476,7 @@ msgstr "Espanja"
 msgid "Spanish"
 msgstr "Espanja"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:294
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 msgid "Speaker Pan"
 msgstr "Kaiuttimien tasapaino"
 
@@ -12868,7 +12872,7 @@ msgstr ""
 "varma, jätä tämä valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:58
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:232
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:227
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:35
 msgid "Swing"
 msgstr "Heilautus"
@@ -13173,7 +13177,7 @@ msgstr ""
 "\n"
 "Valitse toinen polku kohteelle \"%1\""
 
-#: Source/Core/Core/Movie.cpp:363
+#: Source/Core/Core/Movie.cpp:353
 msgid ""
 "The disc change to \"{0}\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
@@ -13406,7 +13410,7 @@ msgstr ""
 msgid "The profile '%1' does not exist"
 msgstr "Profiilia '%1' ei ole olemassa"
 
-#: Source/Core/Core/Movie.cpp:220
+#: Source/Core/Core/Movie.cpp:210
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "Nauhoitettu peli ({0}) ei ole sama kuin valittu peli ({1})"
 
@@ -13896,7 +13900,7 @@ msgid "TiB"
 msgstr "TiB"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:55
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:231
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:226
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:32
 msgid "Tilt"
 msgstr "Kallistus"
@@ -14455,7 +14459,7 @@ msgid "Unknown(%1 %2).sky"
 msgstr "Tuntematon(%1 %2).sky"
 
 #. i18n: This is used to create a file name. The string must end in ".bin".
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:290
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:292
 msgid "Unknown(%1).bin"
 msgstr "Tuntematon(%1).bin"
 
@@ -14479,6 +14483,10 @@ msgstr "Avattu"
 #: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:101
 msgid "Unlocked at %1"
 msgstr "Avattu %1"
+
+#: Source/Core/Common/FatFsUtil.h:14
+msgid "Unpack SD Card Now"
+msgstr ""
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"
@@ -14564,15 +14572,15 @@ msgstr ""
 "Julkaisun %1 käynnissä...\n"
 "Tämä voi kestää hetken."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:269
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:264
 msgid "Upright Hold"
 msgstr "Pystysuuntainen pitely"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:266
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:261
 msgid "Upright Toggle"
 msgstr "Pystysuuntaisuus päälle/pois"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 msgid "Upright Wii Remote"
 msgstr "Pystysuuntainen Wii Remote"
 
@@ -14825,7 +14833,7 @@ msgid "Vertex Rounding"
 msgstr "Kulmapisteiden pyöristys"
 
 #. i18n: FOV stands for "Field of view".
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:242
 msgid "Vertical FOV"
 msgstr "Pystysuuntainen näkökenttä"
 
@@ -15048,7 +15056,7 @@ msgstr ""
 "Varoitus: BAT:n nimeämä lohkolukumäärä ({0}) ei vastaa ladatun tiedoston "
 "otsaketta ({1})"
 
-#: Source/Core/Core/Movie.cpp:1072
+#: Source/Core/Core/Movie.cpp:1051
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "{0} > {1}) (input {2} > {3}). You should load another save before "
@@ -15058,7 +15066,7 @@ msgstr ""
 "jälkeen. (tavu {0} > {1}) (syöte {2} > {3}). Lataa toinen tallennustiedosto "
 "ennen jatkamista, tai lataa tämä tallennustila ilman vain luku -tilaa."
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1026
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
@@ -15068,7 +15076,7 @@ msgstr ""
 "nykyistä kehystä tallennustiedostossa (tavu {0} < {1}) (kehys {2} < {3}). "
 "Älä lataa uusia tallennustiedostoja ennen jatkamista."
 
-#: Source/Core/Core/Movie.cpp:1098
+#: Source/Core/Core/Movie.cpp:1077
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). You "
 "should load another save before continuing, or load this state with read-"
@@ -15079,7 +15087,7 @@ msgstr ""
 "lataa tämä tilatallennus ilman vain luku -tilaa. Muutoin tämä voi johtaa "
 "desynkronoitumiseen."
 
-#: Source/Core/Core/Movie.cpp:1114
+#: Source/Core/Core/Movie.cpp:1093
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame {0}. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -15790,8 +15798,8 @@ msgstr ""
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
 #. i18n: The degrees symbol.
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:241
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:249
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:236
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:244
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:48
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:57

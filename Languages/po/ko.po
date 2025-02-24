@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-22 14:15+0100\n"
+"POT-Creation-Date: 2025-02-24 19:21+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2024\n"
 "Language-Team: Korean (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -75,8 +75,8 @@ msgstr "$ 사용자 변수"
 #. i18n: The symbol/abbreviation for percent.
 #. i18n: The percent symbol.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:71
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:296
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:297
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:392
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:105
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:45
@@ -823,7 +823,7 @@ msgstr "- 빼기"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:229
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:231
 msgid "--Unknown--"
 msgstr "--알려지지 않음--"
 
@@ -1233,12 +1233,16 @@ msgstr "애스키"
 msgid "Abort"
 msgstr "중단"
 
+#: Source/Core/Core/Movie.cpp:1293
+msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
+msgstr ""
+
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
 msgstr "돌핀에 대해"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:62
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:252
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:51
 msgid "Accelerometer"
 msgstr "가속도계"
@@ -1353,7 +1357,7 @@ msgstr "넷플레이 채팅 활성"
 msgid "Active"
 msgstr "액티브"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:78
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:80
 msgid "Active Infinity Figures:"
 msgstr "활성 무한대 피겨:"
 
@@ -1857,7 +1861,7 @@ msgid ""
 "At least two of the selected save files have the same internal filename."
 msgstr "선택된 저장 파일중에 적어도 2개가 같은 내부 파일명입니다."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:284
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:279
 msgid "Attach MotionPlus"
 msgstr "모션플러스 연결"
 
@@ -2099,7 +2103,7 @@ msgstr "베이스"
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "배치 모드는 시작할 게임 명시 없이는 사용될 수 없습니다."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:295
 msgid "Battery"
 msgstr "배터리"
 
@@ -2139,7 +2143,7 @@ msgstr "바이너리 SSL (쓰기)"
 msgid "Bitrate (kbps):"
 msgstr "비트레이트 (kbps):"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:305
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:307
 msgid ""
 "Blank figure creation failed at:\n"
 "%1\n"
@@ -2549,8 +2553,8 @@ msgid "Camera 1"
 msgstr "카메라 1"
 
 #. i18n: Refers to emulated wii remote camera properties.
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:243
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:251
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:238
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:246
 msgid "Camera field of view (affects sensitivity of pointing)."
 msgstr "카메라 시야 ( 포인팅 민감도에 영향을 줍니다)."
 
@@ -2566,7 +2570,7 @@ msgstr "아직 수정할 수 없습니다!"
 msgid "Can't edit villains for this trophy!"
 msgstr "이 트로피를 위해 악당들을 편집할 수 없습니다!"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1912
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1921
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "{0:02x} 연결 핸들로 Wii 리모트를 찾을 수 없음"
 
@@ -2678,7 +2682,7 @@ msgstr "디스크 변경"
 msgid "Change Discs Automatically"
 msgstr "디스크 자동 교환"
 
-#: Source/Core/Core/Movie.cpp:1260
+#: Source/Core/Core/Movie.cpp:1239
 msgid "Change the disc to {0}"
 msgstr "{0} 로 디스크를 변경합니다."
 
@@ -2726,7 +2730,7 @@ msgstr "치트 변경은 게임을 재시작해야만 효과가 반영될 것입
 msgid "Channel Partition (%1)"
 msgstr "채널 파티션 (%1)"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:274
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 msgid "Character entered is invalid!"
 msgstr "입력된 캐릭터가 부적합합니다!"
 
@@ -2821,7 +2825,7 @@ msgstr "클래식 컨트롤러"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:166
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:177
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:103
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:114
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
 msgid "Clear"
 msgstr "지움"
 
@@ -3626,13 +3630,13 @@ msgstr "파일을 읽을 수 없습니다."
 msgid "Country:"
 msgstr "국가:"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:115
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:256
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:117
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:258
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:590
 msgid "Create"
 msgstr "생성"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:294
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:296
 msgid "Create Infinity File"
 msgstr "무한대 파일 생성"
 
@@ -4711,7 +4715,7 @@ msgstr "에뮬 쓰레드가 이미 구동중임"
 msgid "Emulate Disc Speed"
 msgstr "디스크 속도 에뮬"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:64
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:66
 msgid "Emulate Infinity Base"
 msgstr "무한대 기반 에뮬"
 
@@ -5319,7 +5323,7 @@ msgstr "어댑터 열기 에러: %1"
 msgid "Error collecting save data!"
 msgstr "저장 데이터 수집 에러!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:274
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:600
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:607
 msgid "Error converting value"
@@ -5534,7 +5538,7 @@ msgctxt ""
 msgid "Exported %n save(s)"
 msgstr "%n 저장(들)을 내보냈습니다"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:272
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:460
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:47
 msgid "Extension"
@@ -5655,7 +5659,7 @@ msgstr "D3D12 글로벌 리소스 생성에 실패했습니다"
 msgid "Failed to create DXGI factory"
 msgstr "DXGI 팩토리 생성에 실패했습니다"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:304
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:306
 msgid "Failed to create Infinity file"
 msgstr "무한대 파일 생성에 실패했습니다"
 
@@ -5901,11 +5905,11 @@ msgstr "파일 열기에 실패했습니다."
 msgid "Failed to open server"
 msgstr "서버 열기에 실패했습니다"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:173
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:175
 msgid "Failed to open the Infinity file!"
 msgstr "무한대 파일 열기에 실패했습니다!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:174
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:176
 msgid ""
 "Failed to open the Infinity file:\n"
 "%1\n"
@@ -5975,11 +5979,11 @@ msgstr "입력 파일 \"{0}\" 로 부터 읽기에 실패했습니다."
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr "메모리 카드에서 선택된 저장파일(들)을 읽기에 실패했습니다."
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:183
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:185
 msgid "Failed to read the Infinity file!"
 msgstr "무한대 파일 읽기에 실패했습니다!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:184
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:186
 msgid ""
 "Failed to read the Infinity file:\n"
 "%1\n"
@@ -6015,7 +6019,7 @@ msgstr ""
 "파일의 컨텐츠를 읽기에 실패했습니다:\n"
 "%1"
 
-#: Source/Core/Core/Movie.cpp:1014
+#: Source/Core/Core/Movie.cpp:993
 msgid "Failed to read {0}"
 msgstr "{0} 을 읽을 수 없습니다."
 
@@ -6085,7 +6089,7 @@ msgstr ""
 msgid "Failed to uninstall pack: %1"
 msgstr "팩 언인스톨에 실패했습니다: %1"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:78
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:77
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF를 SYSCONF로 쓰지 못했습니다."
 
@@ -6153,20 +6157,12 @@ msgstr "빠름"
 msgid "Fast Depth Calculation"
 msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1298
-msgid ""
-"Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
-"{2}.){3}"
-msgstr ""
-"치명적 비동기. 재생을 중단합니다. (PlayWiimote에서 오류: {0} != {1}, byte "
-"{2}.){3}"
-
 #: Source/Core/Core/FreeLookManager.cpp:108
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:25
 msgid "Field of View"
 msgstr "시야"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:247
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:249
 msgid "Figure Number:"
 msgstr "피겨 번호:"
 
@@ -7034,7 +7030,7 @@ msgstr "격자 보기"
 msgid "Guitar"
 msgstr "기타"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:259
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:254
 msgid "Gyroscope"
 msgstr "자이로스"
 
@@ -7157,7 +7153,7 @@ msgid "Hit Strength"
 msgstr "치기 힘"
 
 #. i18n: FOV stands for "Field of view".
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:239
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 msgid "Horizontal FOV"
 msgstr "수평 시야"
 
@@ -7243,7 +7239,7 @@ msgid "Hotkey Settings"
 msgstr "단축키 설정"
 
 #: Source/Core/Core/HotkeyManager.cpp:213
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:262
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
 msgstr "단축키"
@@ -7632,16 +7628,16 @@ msgstr "증분 회전"
 msgid "Incremental Rotation (rad/sec)"
 msgstr "증분 회전 (rad/sec)"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:198
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:200
 msgid "Infinity Figure Creator"
 msgstr "무한대 피겨 생성자"
 
 #. i18n: Window for managing Disney Infinity figures
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:41
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:42
 msgid "Infinity Manager"
 msgstr "무한대 매니저"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:295
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:297
 msgid "Infinity Object (*.bin);;"
 msgstr "무한대 오브젝트 (*.bin);;"
 
@@ -7913,7 +7909,7 @@ msgstr "검색에 부적합 인자들."
 msgid "Invalid password provided."
 msgstr "부적합한 패스워드가 제공되었습니다."
 
-#: Source/Core/Core/Movie.cpp:938
+#: Source/Core/Core/Movie.cpp:917
 msgid "Invalid recording file"
 msgstr "부적합 기록 파일"
 
@@ -7928,6 +7924,10 @@ msgstr "부적합한 찾기 스트링 (숫자로 변환될 수 없었습니다)"
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:404
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "부적합한 찾기 스트링 (짝수 길이 스트링만 지원됩니다)"
+
+#: Source/Core/Core/Movie.cpp:1275
+msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
+msgstr ""
 
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
@@ -8322,7 +8322,7 @@ msgstr "듣기"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:143
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:179
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:104
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:118
 msgid "Load"
 msgstr "로드"
 
@@ -8922,7 +8922,7 @@ msgid "Motion Simulation"
 msgstr "모션 시뮬레이션"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:79
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Motor"
 msgstr "모터"
 
@@ -8940,7 +8940,7 @@ msgstr "이동"
 msgid "Movie"
 msgstr "무비"
 
-#: Source/Core/Core/Movie.cpp:977
+#: Source/Core/Core/Movie.cpp:956
 msgid ""
 "Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
 "The movie will likely not sync!"
@@ -9306,8 +9306,8 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:422
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:424
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:119
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:137
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:121
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:139
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:80
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:862
 msgid "None"
@@ -9611,7 +9611,7 @@ msgid "Operators"
 msgstr "연산자들"
 
 #: Source/Core/Core/HW/GCPadEmu.h:63
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:286
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:76
 #: Source/Core/DolphinQt/ConvertDialog.cpp:84
@@ -9740,6 +9740,10 @@ msgstr "PPC 명령 커버리지"
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "PPC vs Host"
 msgstr "PPC 대 호스트"
+
+#: Source/Core/Common/FatFsUtil.h:13
+msgid "Pack SD Card Now"
+msgstr ""
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -9932,7 +9936,7 @@ msgstr "재생 / 녹화"
 msgid "Play Recording"
 msgstr "(입력) 기록 재생"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:82
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
 msgid "Play Set/Power Disc"
 msgstr "플레이 셋/파워 디스크"
 
@@ -9944,27 +9948,27 @@ msgstr "재생 옵션"
 msgid "Player"
 msgstr "플레이어"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:88
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:90
 msgid "Player One"
 msgstr "플레이어 원"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:90
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:92
 msgid "Player One Ability One"
 msgstr "플레이어 원 능력 하나"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:92
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:94
 msgid "Player One Ability Two"
 msgstr "플레이어 원 능력 둘"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:94
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:96
 msgid "Player Two"
 msgstr "플레이어 투"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:96
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:98
 msgid "Player Two Ability One"
 msgstr "플레이어 투 능력 하나"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:98
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:100
 msgid "Player Two Ability Two"
 msgstr "플레이어 투 능력 둘"
 
@@ -9999,12 +10003,12 @@ msgid ""
 msgstr "표준 메모리 영역으로 찾기 시작하기 전에 게임을 시작하세요."
 
 #. i18n: "Point" refers to the action of pointing a Wii Remote.
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:224
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:229
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 msgid "Point"
 msgstr "포인트"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:255
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "Point (Passthrough)"
 msgstr "포인트 (패쓰쓰루)"
 
@@ -10042,11 +10046,11 @@ msgstr "후-처리 효과:"
 msgid "Post-Processing Shader Configuration"
 msgstr "후-처리 쉐이더 환경설정"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:88
 msgid "Power Disc Three"
 msgstr "파워 디스크 3"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
 msgid "Power Disc Two"
 msgstr "파워 디스크 2"
 
@@ -10059,17 +10063,17 @@ msgstr "점/선 확장용 선호 VS"
 msgid "Prefetch Custom Textures"
 msgstr "커스텀 텍스처 프리패치"
 
-#: Source/Core/Core/Movie.cpp:1195
+#: Source/Core/Core/Movie.cpp:1174
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr "PlayController에 무비 마무리가 미완성되었습니다. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1312
+#: Source/Core/Core/Movie.cpp:1264
+msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
+msgstr ""
+
+#: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} + {1} > {2}"
-
-#: Source/Core/Core/Movie.cpp:1286
-msgid "Premature movie end in PlayWiimote. {0} > {1}"
-msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} > {1}"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:97
 msgid ""
@@ -10334,7 +10338,7 @@ msgstr "실제 밸런스 보드"
 msgid "Real Wii Remote"
 msgstr "실제 Wii 리모트"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:388
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:387
 msgid "Received invalid Wii Remote data from Netplay."
 msgstr "넷플레이에서 부적합한 Wii 원격 데이터를 받았습니다."
 
@@ -10779,7 +10783,7 @@ msgstr ""
 "습니다."
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:71
 msgid "Rumble"
@@ -11087,7 +11091,7 @@ msgstr "저장된 Wii 리모트 페어링은 게임이 구동 중일 때만 재�
 msgid "Saves:"
 msgstr "저장들:"
 
-#: Source/Core/Core/Movie.cpp:1023
+#: Source/Core/Core/Movie.cpp:1002
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
 msgstr "상태저장 무비 {0} 가 손상되었습니다, 무비 기록 중지 중..."
 
@@ -11187,7 +11191,7 @@ msgstr "덤프 경로 선택"
 msgid "Select Export Directory"
 msgstr "내보내기 디렉토리 선택"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:145
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:147
 msgid "Select Figure File"
 msgstr "피겨 파일 선택"
 
@@ -11696,7 +11700,7 @@ msgid "Shader Compilation"
 msgstr "쉐이더 컴파일"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:52
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:230
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:225
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:29
 msgid "Shake"
 msgstr "흔들기"
@@ -12101,15 +12105,15 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "나란히"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:268
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:263
 msgid "Sideways Hold"
 msgstr "옆방향 잡기"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:265
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:260
 msgid "Sideways Toggle"
 msgstr "옆방향 토글"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:311
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
 msgid "Sideways Wii Remote"
 msgstr "Wii 리모트 옆으로"
 
@@ -12315,7 +12319,7 @@ msgstr "스페인"
 msgid "Spanish"
 msgstr "스페인어"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:294
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 msgid "Speaker Pan"
 msgstr "스피커 팬"
 
@@ -12708,7 +12712,7 @@ msgstr ""
 "dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:58
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:232
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:227
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:35
 msgid "Swing"
 msgstr "스윙"
@@ -13010,7 +13014,7 @@ msgstr ""
 "\n"
 "\"%1\" 에 대한 다른 대상 경로를 선택하세요"
 
-#: Source/Core/Core/Movie.cpp:363
+#: Source/Core/Core/Movie.cpp:353
 msgid ""
 "The disc change to \"{0}\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
@@ -13237,7 +13241,7 @@ msgstr "%1 에 있는 패치들은 선택된 게임이나 게임 리비전 용�
 msgid "The profile '%1' does not exist"
 msgstr "프로파일 '%1' 이 존재하지 않습니다"
 
-#: Source/Core/Core/Movie.cpp:220
+#: Source/Core/Core/Movie.cpp:210
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "기록된 게임 ({0}) 은 선택된 게임 ({1}) 과 같지 않습니다"
 
@@ -13724,7 +13728,7 @@ msgid "TiB"
 msgstr "TiB"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:55
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:231
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:226
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:32
 msgid "Tilt"
 msgstr "기울기"
@@ -14274,7 +14278,7 @@ msgid "Unknown(%1 %2).sky"
 msgstr "알려지지 않음(%1 %2).sky"
 
 #. i18n: This is used to create a file name. The string must end in ".bin".
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:290
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:292
 msgid "Unknown(%1).bin"
 msgstr "알려지지 않음(%1).bin"
 
@@ -14298,6 +14302,10 @@ msgstr "해제됨"
 #: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:101
 msgid "Unlocked at %1"
 msgstr "%1 에 언락되었습니다"
+
+#: Source/Core/Common/FatFsUtil.h:14
+msgid "Unpack SD Card Now"
+msgstr ""
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"
@@ -14383,15 +14391,15 @@ msgstr ""
 "타이틀 %1 를 업데이트중...\n"
 "시간이 잠시 걸릴 수 있습니다."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:269
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:264
 msgid "Upright Hold"
 msgstr "똑바로 잡기"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:266
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:261
 msgid "Upright Toggle"
 msgstr "똑바로 토글"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 msgid "Upright Wii Remote"
 msgstr "Wii 리모트 똑바로"
 
@@ -14647,7 +14655,7 @@ msgid "Vertex Rounding"
 msgstr "버텍스 반올림"
 
 #. i18n: FOV stands for "Field of view".
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:242
 msgid "Vertical FOV"
 msgstr "수직 시야"
 
@@ -14864,7 +14872,7 @@ msgstr ""
 "경고: BAT ({0}) 에 의해 나타난 블록수가 파일 헤더 ({1}) 의 수와 일치하지 않습"
 "니다"
 
-#: Source/Core/Core/Movie.cpp:1072
+#: Source/Core/Core/Movie.cpp:1051
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "{0} > {1}) (input {2} > {3}). You should load another save before "
@@ -14874,7 +14882,7 @@ msgstr ""
 "(입력 {2} > {3}). 계속하기전에 다른 저장을 로드해야합니다, 그렇지 않으면 읽"
 "기-전용 모드가 꺼진 상태로 이것을 로드합니다."
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1026
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
@@ -14883,7 +14891,7 @@ msgstr ""
 "경고: 저장 (바이트 {0} < {1}) (프레임 {2} < {3})에서 현재 프레임 전에 무비가 "
 "끝나는 저장을 로드했습니다. 계속하기 전에 다른 저장을 로드해야합니다."
 
-#: Source/Core/Core/Movie.cpp:1098
+#: Source/Core/Core/Movie.cpp:1077
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). You "
 "should load another save before continuing, or load this state with read-"
@@ -14893,7 +14901,7 @@ msgstr ""
 "전에 다른 저장을 로드해야 합니다, 혹은 읽기-전용 모드를 끄고 로드하세요. 그렇"
 "지 않으면 아마도 싱크 문제가 생길겁니다."
 
-#: Source/Core/Core/Movie.cpp:1114
+#: Source/Core/Core/Movie.cpp:1093
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame {0}. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -15602,8 +15610,8 @@ msgstr ""
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
 #. i18n: The degrees symbol.
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:241
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:249
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:236
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:244
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:48
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:57

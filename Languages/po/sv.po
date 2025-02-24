@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-22 14:15+0100\n"
+"POT-Creation-Date: 2025-02-24 19:21+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>, 2025\n"
 "Language-Team: Swedish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -81,8 +81,8 @@ msgstr "$ Användarvariabel"
 #. i18n: The symbol/abbreviation for percent.
 #. i18n: The percent symbol.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:71
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:296
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:297
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:392
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:105
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:45
@@ -305,7 +305,7 @@ msgstr "%1[%2]: %3/%4 MiB"
 
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:204
 msgid "%1h %2m"
-msgstr ""
+msgstr "%1h %2m"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:428
 #, c-format
@@ -403,7 +403,7 @@ msgstr "&Kantlöst fönster"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:502
 msgid "&Branch Type"
-msgstr ""
+msgstr "&Grentyp"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:444
 msgid "&Break on Hit"
@@ -656,7 +656,7 @@ msgstr "A&lternativ"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:503
 msgid "&Origin and Destination"
-msgstr ""
+msgstr "&Ursprung och mål"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1072
 msgid "&Patch HLE Functions"
@@ -829,7 +829,7 @@ msgstr "- Subtrahera"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:229
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:231
 msgid "--Unknown--"
 msgstr "--Okänd--"
 
@@ -1243,12 +1243,16 @@ msgstr "ASCII"
 msgid "Abort"
 msgstr "Avbryt"
 
+#: Source/Core/Core/Movie.cpp:1293
+msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
+msgstr ""
+
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
 msgstr "Om Dolphin"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:62
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:252
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:51
 msgid "Accelerometer"
 msgstr "Accelerometer"
@@ -1363,7 +1367,7 @@ msgstr "Aktivera nätspelschatt"
 msgid "Active"
 msgstr "Aktiv"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:78
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:80
 msgid "Active Infinity Figures:"
 msgstr "Aktiva Infinityfigurer:"
 
@@ -1874,7 +1878,7 @@ msgid ""
 "At least two of the selected save files have the same internal filename."
 msgstr "Åtminstone två av de markerade sparfilerna har samma interna filnamn."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:284
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:279
 msgid "Attach MotionPlus"
 msgstr "Anslut MotionPlus"
 
@@ -1934,7 +1938,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:266
 msgid "Auto update memory values"
-msgstr ""
+msgstr "Uppdatera minnesvärden automatiskt"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:118
 msgid "Auto-Adjust Window Size"
@@ -2119,7 +2123,7 @@ msgstr "Bas"
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "Batchläget kan inte användas utan att ange ett spel att starta."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:295
 msgid "Battery"
 msgstr "Batteri"
 
@@ -2159,7 +2163,7 @@ msgstr "Binär SSL (skriv)"
 msgid "Bitrate (kbps):"
 msgstr "Bithastighet (kbps):"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:305
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:307
 msgid ""
 "Blank figure creation failed at:\n"
 "%1\n"
@@ -2574,8 +2578,8 @@ msgid "Camera 1"
 msgstr "Kamera 1"
 
 #. i18n: Refers to emulated wii remote camera properties.
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:243
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:251
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:238
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:246
 msgid "Camera field of view (affects sensitivity of pointing)."
 msgstr "Kamerans synfält (påverkar pekarens känslighet)."
 
@@ -2591,7 +2595,7 @@ msgstr "Kan inte modifieras än!"
 msgid "Can't edit villains for this trophy!"
 msgstr "Det går inte att redigera skurkar för den här trofén!"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1912
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1921
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Kan inte hitta Wii-fjärrkontrollen med anslutnings-handle {0:02x}"
 
@@ -2709,7 +2713,7 @@ msgstr "Byt skiva"
 msgid "Change Discs Automatically"
 msgstr "Byt skivor automatiskt"
 
-#: Source/Core/Core/Movie.cpp:1260
+#: Source/Core/Core/Movie.cpp:1239
 msgid "Change the disc to {0}"
 msgstr "Byt skiva till {0}"
 
@@ -2758,7 +2762,7 @@ msgstr "Fuskändringar kommer inte börja gälla förrän spelet startas om."
 msgid "Channel Partition (%1)"
 msgstr "Kanalpartition (%1)"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:274
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 msgid "Character entered is invalid!"
 msgstr "Den angivna karaktären är ogiltig!"
 
@@ -2853,7 +2857,7 @@ msgstr "Classic Controller"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:166
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:177
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:103
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:114
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
 msgid "Clear"
 msgstr "Rensa"
 
@@ -2894,11 +2898,11 @@ msgstr "Kod"
 #. i18n: Code Buffer Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
 msgid "Code Buff. Size"
-msgstr ""
+msgstr "Kodbuffert. Storlek"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:636
 msgid "Code Buffer Size"
-msgstr ""
+msgstr "Storlek för kodbuffert"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:266
 msgid "Code Path Not Taken"
@@ -3153,7 +3157,7 @@ msgstr "Konfigurera Dolphin"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:65
 msgid "Configure Extension"
-msgstr ""
+msgstr "Konfigurera utökning"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:270
 msgid "Configure Input"
@@ -3670,19 +3674,19 @@ msgstr "Kunde inte läsa in filen."
 msgid "Country:"
 msgstr "Land:"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:115
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:256
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:117
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:258
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:590
 msgid "Create"
 msgstr "Skapa"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:294
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:296
 msgid "Create Infinity File"
 msgstr "Skapa Infinityfil"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:114
 msgid "Create Mappings for Other Devices"
-msgstr ""
+msgstr "Skapa mappningar för andra enheter"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:62
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:74
@@ -3800,22 +3804,22 @@ msgstr "Anpassa"
 #. i18n: Cycles Percent
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
 msgid "Cycles %"
-msgstr ""
+msgstr "Cykler %"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:647
 msgid "Cycles Average"
-msgstr ""
+msgstr "Cykler genomsnitt"
 
 #. i18n: Cycles Average
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 msgid "Cycles Avg."
-msgstr ""
+msgstr "Cykler genom."
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:649
 msgid "Cycles Percent"
-msgstr ""
+msgstr "Cykler procent"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
@@ -4121,7 +4125,7 @@ msgstr "Frikopplad"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:292
 msgid "Detect Input"
-msgstr ""
+msgstr "Upptäck inmatning"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1411
 msgid "Detecting RSO Modules"
@@ -4423,6 +4427,7 @@ msgstr "Dolphin kan inte verifiera olicensierade skivor."
 msgid ""
 "Dolphin was built with Cubeb disabled. The Microphone device cannot be used."
 msgstr ""
+"Dolphin byggdes med Cubeb inaktiverat. Mikrofonenheten kan inte användas."
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:75
 msgid "Dolphin's cheat system is currently disabled."
@@ -4710,7 +4715,7 @@ msgstr "Editor"
 #. i18n: Effective Address
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
 msgid "Eff. Address"
-msgstr ""
+msgstr "Eff. adress"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:79
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:160
@@ -4766,7 +4771,7 @@ msgstr "Emuleringstråd körs redan"
 msgid "Emulate Disc Speed"
 msgstr "Emulera skivhastighet"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:64
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:66
 msgid "Emulate Infinity Base"
 msgstr "Emulera Infinitybas"
 
@@ -4911,7 +4916,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:120
 msgid "Enable Iterative Input Mapping"
-msgstr ""
+msgstr "Aktivera iterativ mappning av inmatning"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:935
 msgid "Enable JIT Block Profiling"
@@ -4924,7 +4929,7 @@ msgstr "Aktivera MMU"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:178
 msgid "Enable Play Time Tracking"
-msgstr ""
+msgstr "Aktivera kontroll av speltid"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
 msgid "Enable Progress Notifications"
@@ -5392,7 +5397,7 @@ msgstr "Ett fel uppstod när adaptern skulle öppnas: %1"
 msgid "Error collecting save data!"
 msgstr "Fel uppstod när spardata samlades in!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:274
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:600
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:607
 msgid "Error converting value"
@@ -5533,7 +5538,7 @@ msgstr "Slutparentes förväntades."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:1010
 msgid "Expected colon."
-msgstr ""
+msgstr "Förväntade kolon."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:766
 msgid "Expected end of expression."
@@ -5608,7 +5613,7 @@ msgctxt ""
 msgid "Exported %n save(s)"
 msgstr "Exporterade %n sparfil(er)"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:272
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:460
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:47
 msgid "Extension"
@@ -5729,7 +5734,7 @@ msgstr "Misslyckades att skapa globala resurser för D3D12"
 msgid "Failed to create DXGI factory"
 msgstr "Misslyckades att skapa DXGI-fabrik"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:304
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:306
 msgid "Failed to create Infinity file"
 msgstr "Misslyckades att skapa Infinityfil"
 
@@ -5979,11 +5984,11 @@ msgstr "Kunde inte öppna fil."
 msgid "Failed to open server"
 msgstr "Misslyckades att öppna servern"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:173
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:175
 msgid "Failed to open the Infinity file!"
 msgstr "Misslyckades att öppna Infinityfilen!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:174
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:176
 msgid ""
 "Failed to open the Infinity file:\n"
 "%1\n"
@@ -6053,11 +6058,11 @@ msgstr "Misslyckades att läsa från indatafilen \"{0}\"."
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr "Kunde inte läsa vald(a) sparfil(er) från minneskort."
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:183
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:185
 msgid "Failed to read the Infinity file!"
 msgstr "Misslyckades att läsa Infinityfilen!"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:184
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:186
 msgid ""
 "Failed to read the Infinity file:\n"
 "%1\n"
@@ -6093,7 +6098,7 @@ msgstr ""
 "Misslyckades med att läsa innehållet i filen:\n"
 "%1"
 
-#: Source/Core/Core/Movie.cpp:1014
+#: Source/Core/Core/Movie.cpp:993
 msgid "Failed to read {0}"
 msgstr "Misslyckades att läsa {0}"
 
@@ -6163,12 +6168,16 @@ msgid ""
 "discarded on next boot if you do not manually re-issue a resync in Config > "
 "Wii > SD Card Settings > {0}!"
 msgstr ""
+"Misslyckades med att synkronisera SD-kortet med mappen. Alla ändringar som "
+"gjorts under den här sessionen kommer att kasseras vid nästa start om du "
+"inte manuellt gör en ny synkronisering i Konfig > Wii > SD-kortinställningar "
+"> {0}!"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:226
 msgid "Failed to uninstall pack: %1"
 msgstr "Misslyckades att avinstallera paket: %1"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:78
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:77
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Misslyckades att skriva BT.DINF till SYSCONF"
 
@@ -6236,20 +6245,12 @@ msgstr "Snabb"
 msgid "Fast Depth Calculation"
 msgstr "Snabb djupberäkning"
 
-#: Source/Core/Core/Movie.cpp:1298
-msgid ""
-"Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
-"{2}.){3}"
-msgstr ""
-"Allvarlig desynkronisering. Avbryter uppspelning. (Fel i PlayWiimote: {0} != "
-"{1}, byte {2}.){3}"
-
 #: Source/Core/Core/FreeLookManager.cpp:108
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:25
 msgid "Field of View"
 msgstr "Synfält"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:247
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:249
 msgid "Figure Number:"
 msgstr "Figurnummer:"
 
@@ -6386,7 +6387,7 @@ msgstr "Float"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:576
 msgid "Follow &Branch"
-msgstr ""
+msgstr "Följ &gren"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:981
 msgid "For best results please slowly move your input to all possible regions."
@@ -7123,7 +7124,7 @@ msgstr "Rutnätsvy"
 msgid "Guitar"
 msgstr "Gitarr"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:259
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:254
 msgid "Gyroscope"
 msgstr "Gyroskop"
 
@@ -7234,11 +7235,11 @@ msgstr "Högsta"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:282
 msgid "Highlight color"
-msgstr ""
+msgstr "Framhävningsfärg"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:277
 msgid "Highlight recently changed values"
-msgstr ""
+msgstr "Framhäv tidigare ändrade värden"
 
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:69
@@ -7246,7 +7247,7 @@ msgid "Hit Strength"
 msgstr "Slagstyrka"
 
 #. i18n: FOV stands for "Field of view".
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:239
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 msgid "Horizontal FOV"
 msgstr "Horisontellt vyfält"
 
@@ -7333,7 +7334,7 @@ msgid "Hotkey Settings"
 msgstr "Kortkommandoinställningar"
 
 #: Source/Core/Core/HotkeyManager.cpp:213
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:262
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
 msgstr "Kortkommandon"
@@ -7734,16 +7735,16 @@ msgstr "Inkrementell rotation"
 msgid "Incremental Rotation (rad/sec)"
 msgstr "Inkrementell rotation (rad/sek)"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:198
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:200
 msgid "Infinity Figure Creator"
 msgstr "Infinityfigurskapare"
 
 #. i18n: Window for managing Disney Infinity figures
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:41
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:42
 msgid "Infinity Manager"
 msgstr "Infinityhanterare"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:295
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:297
 msgid "Infinity Object (*.bin);;"
 msgstr "Infinityobjekt (*.bin);;"
 
@@ -7808,11 +7809,11 @@ msgstr "Infoga &NOP"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:291
 msgid "Insert Input"
-msgstr ""
+msgstr "Infoga inmatning"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:291
 msgid "Insert Output"
-msgstr ""
+msgstr "Infoga utmatning"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:217
 msgid "Insert SD Card"
@@ -8018,7 +8019,7 @@ msgstr "Ogiltiga sökparametrar."
 msgid "Invalid password provided."
 msgstr "Ogiltigt lösenord angivet."
 
-#: Source/Core/Core/Movie.cpp:938
+#: Source/Core/Core/Movie.cpp:917
 msgid "Invalid recording file"
 msgstr "Ogiltig inspelningsfil"
 
@@ -8034,6 +8035,10 @@ msgstr "Ogiltig söksträng (kunde inte konvertera till siffror)"
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "Ogiltig söksträng (endast jämna stränglängder stöds)"
 
+#: Source/Core/Core/Movie.cpp:1275
+msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
+msgstr ""
+
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
 msgstr "Ogiltigt titel-ID."
@@ -8044,7 +8049,7 @@ msgstr "Ogiltig bevakningsadress: %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:421
 msgid "Invert &Condition"
-msgstr ""
+msgstr "Invertera v&illkor"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:425
 msgid "Invert &Decrement Check"
@@ -8436,7 +8441,7 @@ msgstr "Lyssnar"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:143
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:179
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:104
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:116
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:118
 msgid "Load"
 msgstr "Läs in"
 
@@ -8848,7 +8853,7 @@ msgstr "Maxbuffert:"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:574
 msgid "Max Effective Address"
-msgstr ""
+msgstr "Max effektiv adress"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:931
 msgid "Max buffer size changed to %1"
@@ -8932,7 +8937,7 @@ msgstr "Mikrofon"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
-msgstr ""
+msgstr "Min effektiv adress"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:411
@@ -9041,7 +9046,7 @@ msgid "Motion Simulation"
 msgstr "Rörelsesimulering"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:79
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Motor"
 msgstr "Motor"
 
@@ -9059,7 +9064,7 @@ msgstr "Flytta"
 msgid "Movie"
 msgstr "Inspelning"
 
-#: Source/Core/Core/Movie.cpp:977
+#: Source/Core/Core/Movie.cpp:956
 msgid ""
 "Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
 "The movie will likely not sync!"
@@ -9078,7 +9083,7 @@ msgstr "Multiplikator"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:166
 msgid "Mute When Disabling Speed Limit"
-msgstr ""
+msgstr "Inget ljud när hastighetsgräns inaktiverats"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:168
 msgid ""
@@ -9425,8 +9430,8 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:422
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:424
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:119
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:137
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:121
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:139
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:80
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:862
 msgid "None"
@@ -9733,7 +9738,7 @@ msgid "Operators"
 msgstr "Operatörer"
 
 #: Source/Core/Core/HW/GCPadEmu.h:63
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:286
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:76
 #: Source/Core/DolphinQt/ConvertDialog.cpp:84
@@ -9862,6 +9867,10 @@ msgstr ""
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "PPC vs Host"
 msgstr "PPC mot värd"
+
+#: Source/Core/Common/FatFsUtil.h:13
+msgid "Pack SD Card Now"
+msgstr ""
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10055,7 +10064,7 @@ msgstr "Spela / spela in"
 msgid "Play Recording"
 msgstr "Spela upp inspelning"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:82
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
 msgid "Play Set/Power Disc"
 msgstr "Play Set/Power Disc"
 
@@ -10067,27 +10076,27 @@ msgstr "Uppspelningsalternativ"
 msgid "Player"
 msgstr "Spelare"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:88
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:90
 msgid "Player One"
 msgstr "Spelare ett"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:90
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:92
 msgid "Player One Ability One"
 msgstr "Spelare ett förmåga ett"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:92
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:94
 msgid "Player One Ability Two"
 msgstr "Spelare ett förmåga två"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:94
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:96
 msgid "Player Two"
 msgstr "Spelare två"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:96
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:98
 msgid "Player Two Ability One"
 msgstr "Spelare två förmåga ett"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:98
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:100
 msgid "Player Two Ability Two"
 msgstr "Spelare två förmåga två"
 
@@ -10125,12 +10134,12 @@ msgstr ""
 "standardminnesregioner."
 
 #. i18n: "Point" refers to the action of pointing a Wii Remote.
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:224
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:229
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 msgid "Point"
 msgstr "Peka"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:255
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "Point (Passthrough)"
 msgstr "Peka (genomsläpp)"
 
@@ -10170,11 +10179,11 @@ msgstr "Efterbehandlingseffekt:"
 msgid "Post-Processing Shader Configuration"
 msgstr "Efterbehandlingsshaderkonfiguration"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:88
 msgid "Power Disc Three"
 msgstr "Power Disc 3"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
 msgid "Power Disc Two"
 msgstr "Power Disc 2"
 
@@ -10187,17 +10196,17 @@ msgstr "Föredra VS för att expandera punkter/linjer"
 msgid "Prefetch Custom Textures"
 msgstr "Läs in anpassade texturer i förhand"
 
-#: Source/Core/Core/Movie.cpp:1195
+#: Source/Core/Core/Movie.cpp:1174
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr "Tidigt inspelningsslut i PlayController. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1312
+#: Source/Core/Core/Movie.cpp:1264
+msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
+msgstr ""
+
+#: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr "Tidigt inspelningsslut i PlayWiimote. {0} + {1} > {2}"
-
-#: Source/Core/Core/Movie.cpp:1286
-msgid "Premature movie end in PlayWiimote. {0} > {1}"
-msgstr "Tidigt inspelningsslut i PlayWiimote. {0} > {1}"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:97
 msgid ""
@@ -10426,7 +10435,7 @@ msgstr "E&rsätt instruktion"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:600
 msgid "Re-initialize software JIT block profiling data."
-msgstr ""
+msgstr "Återinitialisera programvarans JIT-blockprofileringsdata."
 
 #. i18n: This is a selectable condition when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:134
@@ -10465,7 +10474,7 @@ msgstr "Riktig balansbräda"
 msgid "Real Wii Remote"
 msgstr "Riktig Wii-fjärrkontroll"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:388
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:387
 msgid "Received invalid Wii Remote data from Netplay."
 msgstr "Tog emot ogiltig Wii-fjärrkontrollsdata från nätspel."
 
@@ -10921,7 +10930,7 @@ msgstr ""
 "från kandidaterna."
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:71
 msgid "Rumble"
@@ -11231,7 +11240,7 @@ msgstr ""
 msgid "Saves:"
 msgstr "Sparfiler:"
 
-#: Source/Core/Core/Movie.cpp:1023
+#: Source/Core/Core/Movie.cpp:1002
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
 msgstr "Snabbsparningsinspelningen {0} är korrupt. Inspelningen stoppas..."
 
@@ -11331,7 +11340,7 @@ msgstr "Välj dump-sökväg"
 msgid "Select Export Directory"
 msgstr "Välj exporteringskatalog"
 
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:145
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:147
 msgid "Select Figure File"
 msgstr "Välj figurfil"
 
@@ -11853,7 +11862,7 @@ msgid "Shader Compilation"
 msgstr "Shaderkompilering"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:52
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:230
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:225
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:29
 msgid "Shake"
 msgstr "Skaka"
@@ -12260,15 +12269,15 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "Sida-vid-sida"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:268
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:263
 msgid "Sideways Hold"
 msgstr "Håll inne för liggande läge"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:265
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:260
 msgid "Sideways Toggle"
 msgstr "Tryck för liggande läge"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:311
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
 msgid "Sideways Wii Remote"
 msgstr "Liggande Wii-fjärrkontroll"
 
@@ -12475,7 +12484,7 @@ msgstr "Spanien"
 msgid "Spanish"
 msgstr "Spanska"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:294
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 msgid "Speaker Pan"
 msgstr "Högtalarpanorering"
 
@@ -12872,7 +12881,7 @@ msgstr ""
 "detta omarkerat.</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:58
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:232
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:227
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:35
 msgid "Swing"
 msgstr "Svinga"
@@ -13018,7 +13027,7 @@ msgstr "Teknologi"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:293
 msgid "Test Output"
-msgstr ""
+msgstr "Testa utmatning"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:632
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:649
@@ -13179,7 +13188,7 @@ msgstr ""
 "\n"
 "Välj en annan sökväg som destination för \"%1\""
 
-#: Source/Core/Core/Movie.cpp:363
+#: Source/Core/Core/Movie.cpp:353
 msgid ""
 "The disc change to \"{0}\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
@@ -13412,7 +13421,7 @@ msgstr ""
 msgid "The profile '%1' does not exist"
 msgstr "Profilen '%1' finns inte"
 
-#: Source/Core/Core/Movie.cpp:220
+#: Source/Core/Core/Movie.cpp:210
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "Det inspelade spelet ({0}) är inte samma som det valda spelet ({1})"
 
@@ -13873,6 +13882,9 @@ msgid ""
 "To filter for or against unconditional branches,\n"
 "use the Branch Type filter options."
 msgstr ""
+"Detta kommer också att filtrera ovillkorliga grenar.\n"
+"För att filtrera för eller emot ovillkorliga grenar,\n"
+"använder du filteralternativet Grentyp."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:161
 msgid ""
@@ -13911,7 +13923,7 @@ msgid "TiB"
 msgstr "TiB"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:55
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:231
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:226
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:32
 msgid "Tilt"
 msgstr "Luta"
@@ -13933,13 +13945,13 @@ msgstr "Genomsnittlig tid (ns)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:654
 msgid "Time Percent"
-msgstr ""
+msgstr "Tid i procent"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1010
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:704
 msgid "Time Played"
-msgstr ""
+msgstr "Tid spelat"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
@@ -14129,6 +14141,10 @@ msgid ""
 "active.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Spårar den tid du tillbringar med att spela spel och visar den i listvyn "
+"(som timmar/minuter). <br><br>Denna inställning kan inte ändras när "
+"emulering är aktiv. <br><br><dolphin_emphasis>Om du är osäker kan du lämna "
+"detta markerat.</dolphin_emphasis>"
 
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:177
@@ -14466,7 +14482,7 @@ msgid "Unknown(%1 %2).sky"
 msgstr "Okänd(%1 %2).sky"
 
 #. i18n: This is used to create a file name. The string must end in ".bin".
-#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:290
+#: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:292
 msgid "Unknown(%1).bin"
 msgstr "Okänd(%1).bin"
 
@@ -14490,6 +14506,10 @@ msgstr "Upplåst"
 #: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:101
 msgid "Unlocked at %1"
 msgstr "Låstes upp %1"
+
+#: Source/Core/Common/FatFsUtil.h:14
+msgid "Unpack SD Card Now"
+msgstr ""
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"
@@ -14575,15 +14595,15 @@ msgstr ""
 "Uppdaterar titel %1...\n"
 "Detta kan ta ett tag."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:269
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:264
 msgid "Upright Hold"
 msgstr "Håll inne för stående läge"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:266
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:261
 msgid "Upright Toggle"
 msgstr "Tryck för stående läge"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 msgid "Upright Wii Remote"
 msgstr "Stående Wii-fjärrkontroll"
 
@@ -14843,7 +14863,7 @@ msgid "Vertex Rounding"
 msgstr "Hörnpunktsavrundning"
 
 #. i18n: FOV stands for "Field of view".
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:242
 msgid "Vertical FOV"
 msgstr "Vertikalt synfält"
 
@@ -14978,7 +14998,7 @@ msgstr "WIA-GC/Wii-skivavbildningar (*.wia)"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:117
 msgid "Wait for Alternate Input Mappings"
-msgstr ""
+msgstr "Vänta på alternativa inmatningsmappningar"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:236
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:458
@@ -15063,7 +15083,7 @@ msgstr ""
 "Varning: Antalet block indikerade i BAT ({0}) matchar inte den laddade "
 "filheadern ({1})"
 
-#: Source/Core/Core/Movie.cpp:1072
+#: Source/Core/Core/Movie.cpp:1051
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "{0} > {1}) (input {2} > {3}). You should load another save before "
@@ -15074,7 +15094,7 @@ msgstr ""
 "sparning innan du fortsätter, eller läsa in denna snabbsparning med "
 "skrivskyddat läge inaktiverat."
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1026
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
@@ -15085,7 +15105,7 @@ msgstr ""
 "{1}) (bildruta {2} < {3}). Du bör läsa in en annan sparning innan du "
 "fortsätter."
 
-#: Source/Core/Core/Movie.cpp:1098
+#: Source/Core/Core/Movie.cpp:1077
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). You "
 "should load another save before continuing, or load this state with read-"
@@ -15096,7 +15116,7 @@ msgstr ""
 "in denna snabbsparning med skrivskyddat läge inaktiverat. Annars kan du få "
 "en desynkronisering."
 
-#: Source/Core/Core/Movie.cpp:1114
+#: Source/Core/Core/Movie.cpp:1093
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame {0}. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -15290,19 +15310,19 @@ msgstr "Fönsterstorlek"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:535
 msgid "Wipe &Inspection Data"
-msgstr ""
+msgstr "Rensa &inspektionsdata"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:941
 msgid "Wipe JIT Block Profiling Data"
-msgstr ""
+msgstr "Rensa profileringsdata för JIT-block"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:599
 msgid "Wipe Profiling"
-msgstr ""
+msgstr "Rensa profilering"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:399
 msgid "Wipe Recent Hits"
-msgstr ""
+msgstr "Rensa tidigare träffar"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:134
 msgid "Word Wrap"
@@ -15428,6 +15448,9 @@ msgid ""
 "All current content of the file will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"Du håller på att packa innehållet i mappen på %1 till filen på %2. Allt "
+"aktuellt innehåll i filen kommer att raderas. Är du säker på att du vill "
+"fortsätta?"
 
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:39
 msgid ""
@@ -15471,6 +15494,9 @@ msgid ""
 "All current content of the folder will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"Du håller på att packa upp innehållet i filen %2 till mappen %1. Allt "
+"aktuellt innehåll i mappen kommer att raderas. Är du säker på att du vill "
+"fortsätta?"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCKeyboardEmu.cpp:36
 msgid ""
@@ -15812,8 +15838,8 @@ msgstr ""
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
 #. i18n: The degrees symbol.
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:241
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:249
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:236
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:244
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:48
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:57
