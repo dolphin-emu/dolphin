@@ -8,7 +8,6 @@
 #include <optional>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 #include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
@@ -16,6 +15,12 @@
 
 namespace Config
 {
+// Setting a key to an object of this type will delete the key.
+struct DefaultState
+{
+  friend constexpr bool operator==(DefaultState, DefaultState) { return true; };
+};
+
 namespace detail
 {
 template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
@@ -117,10 +122,18 @@ public:
   }
 
   template <typename T>
+  bool Set(const Info<T>& config_info, DefaultState)
+  {
+    return DeleteKey(config_info.GetLocation());
+  }
+
+  template <typename T>
   bool Set(const Info<T>& config_info, const std::common_type_t<T>& value)
   {
     return Set(config_info.GetLocation(), value);
   }
+
+  bool Set(const Location& location, DefaultState) { return DeleteKey(location); }
 
   template <typename T>
   bool Set(const Location& location, const T& value)
