@@ -149,9 +149,9 @@ public:
 
   bool UnQueueInputDetection(MappingButton* button)
   {
+    button->ConfigChanged();
     if (!std::erase(m_clicked_mapping_buttons, button))
       return false;
-    button->ConfigChanged();
     UpdateInputDetectionStartTimer();
     return true;
   }
