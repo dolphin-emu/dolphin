@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <variant>
 
 #include "Common/BitUtils.h"
@@ -18,46 +17,23 @@
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
-#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 
 namespace WiimoteEmu
 {
 struct DesiredExtensionState
 {
-  using ExtensionData =
-      std::variant<std::monostate, Nunchuk::DataFormat, Classic::DataFormat, Guitar::DataFormat,
-                   Drums::DesiredState, Turntable::DataFormat, UDrawTablet::DataFormat,
-                   DrawsomeTablet::DataFormat, TaTaCon::DataFormat, Shinkansen::DesiredState>;
-  ExtensionData data = std::monostate();
+private:
+  template <typename... Ts>
+  struct ExtDataImpl
+  {
+    using type = std::variant<std::monostate, typename Ts::DesiredState...>;
+  };
 
-  static_assert(std::is_same_v<std::monostate,
-                               std::variant_alternative_t<ExtensionNumber::NONE, ExtensionData>>);
-  static_assert(
-      std::is_same_v<Nunchuk::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::NUNCHUK, ExtensionData>>);
-  static_assert(
-      std::is_same_v<Classic::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::CLASSIC, ExtensionData>>);
-  static_assert(std::is_same_v<Guitar::DataFormat,
-                               std::variant_alternative_t<ExtensionNumber::GUITAR, ExtensionData>>);
-  static_assert(std::is_same_v<Drums::DesiredState,
-                               std::variant_alternative_t<ExtensionNumber::DRUMS, ExtensionData>>);
-  static_assert(
-      std::is_same_v<Turntable::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::TURNTABLE, ExtensionData>>);
-  static_assert(
-      std::is_same_v<UDrawTablet::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::UDRAW_TABLET, ExtensionData>>);
-  static_assert(
-      std::is_same_v<DrawsomeTablet::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::DRAWSOME_TABLET, ExtensionData>>);
-  static_assert(
-      std::is_same_v<TaTaCon::DataFormat,
-                     std::variant_alternative_t<ExtensionNumber::TATACON, ExtensionData>>);
-  static_assert(
-      std::is_same_v<Shinkansen::DesiredState,
-                     std::variant_alternative_t<ExtensionNumber::SHINKANSEN, ExtensionData>>);
-  static_assert(std::variant_size_v<DesiredExtensionState::ExtensionData> == ExtensionNumber::MAX);
+public:
+  using ExtensionData = ExtDataImpl<Nunchuk, Classic, Guitar, Drums, Turntable, UDrawTablet,
+                                    DrawsomeTablet, TaTaCon, Shinkansen>::type;
+
+  ExtensionData data = std::monostate{};
 };
 
 template <typename T>
