@@ -546,6 +546,55 @@ bool RasterShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& 
     return true;
   };
 
+  const auto parse_output_targets =
+      [&](const char* name,
+          std::vector<VideoCommon::RasterShaderData::OutputTargetData>* output_targets) -> bool {
+    const auto output_targets_iter = json.find(name);
+    if (output_targets_iter == json.end())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' not found", asset_id, name);
+      return false;
+    }
+    if (!output_targets_iter->second.is<picojson::array>())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' is not the right json type",
+                    asset_id, name);
+      return false;
+    }
+    const auto& output_targets_array = output_targets_iter->second.get<picojson::array>();
+    if (!std::ranges::all_of(output_targets_array, [](const picojson::value& json_data) {
+          return json_data.is<picojson::object>();
+        }))
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' must contain objects", asset_id,
+                    name);
+      return false;
+    }
+
+    for (const auto& output_target_json : output_targets_array)
+    {
+      auto& output_target_json_obj = output_target_json.get<picojson::object>();
+
+      OutputTargetData output_target;
+
+      if (const auto output_target_name = ReadStringFromJson(output_target_json_obj, "name"))
+      {
+        output_target.name = *output_target_name;
+      }
+      else
+      {
+        ERROR_LOG_FMT(
+            VIDEO, "Asset '{}' failed to parse output target json, 'name' not found or wrong type",
+            asset_id);
+        return false;
+      }
+
+      output_targets->push_back(std::move(output_target));
+    }
+
+    return true;
+  };
+
   if (!parse_properties("vertex_properties", data->m_vertex_source, &data->m_vertex_properties))
     return false;
 
@@ -553,6 +602,9 @@ bool RasterShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& 
     return false;
 
   if (!parse_samplers("pixel_samplers", &data->m_pixel_samplers))
+    return false;
+
+  if (!parse_output_targets("pixel_output_targets", &data->m_output_targets))
     return false;
 
   return true;
@@ -737,6 +789,13 @@ void RasterShaderData::ToJson(picojson::object& obj, const RasterShaderData& dat
     json_samplers->emplace_back(std::move(json_sampler));
   };
 
+  const auto add_output_target = [](picojson::array* json_output_targets,
+                                    const OutputTargetData& output_target) {
+    picojson::object json_output_target;
+    json_output_target.emplace("name", output_target.name);
+    json_output_targets->emplace_back(std::move(json_output_target));
+  };
+
   picojson::array json_vertex_properties;
   for (const auto& [name, property] : data.m_vertex_properties)
   {
@@ -757,6 +816,13 @@ void RasterShaderData::ToJson(picojson::object& obj, const RasterShaderData& dat
     add_sampler(&json_pixel_samplers, sampler);
   }
   obj.emplace("pixel_samplers", json_pixel_samplers);
+
+  picojson::array json_output_targets;
+  for (const auto& output_target : data.m_output_targets)
+  {
+    add_output_target(&json_output_targets, output_target);
+  }
+  obj.emplace("pixel_output_targets", json_output_targets);
 }
 
 std::span<const std::string_view> ShaderProperty::GetValueTypeNames()

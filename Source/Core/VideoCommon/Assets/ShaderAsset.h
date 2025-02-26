@@ -128,6 +128,14 @@ struct RasterShaderData
     bool operator==(const SamplerData&) const = default;
   };
   std::vector<SamplerData> m_pixel_samplers;
+
+  struct OutputTargetData
+  {
+    std::string name;
+
+    bool operator==(const OutputTargetData&) const = default;
+  };
+  std::vector<OutputTargetData> m_output_targets;
 };
 
 class RasterShaderAsset final : public CustomLoadableAsset<RasterShaderData>
