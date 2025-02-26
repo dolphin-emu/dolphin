@@ -708,8 +708,38 @@ bool RasterMaterialData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
     auto& pixel_texture_json_obj = pixel_texture_json.get<picojson::object>();
 
     TextureSamplerValue sampler_value;
-    TextureSamplerValue::FromJson(pixel_texture_json_obj, &sampler_value);
+    if (!TextureSamplerValue::FromJson(pixel_texture_json_obj, &sampler_value))
+      return false;
     data->pixel_textures.push_back(std::move(sampler_value));
+  }
+
+  const auto render_targets_iter = json.find("render_targets");
+  if (render_targets_iter == json.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'render_targets' not found", asset_id);
+    return false;
+  }
+  if (!render_targets_iter->second.is<picojson::array>())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' failed to parse json, 'render_targets' is not the right json type",
+                  asset_id);
+    return false;
+  }
+  const auto& render_targets_array = render_targets_iter->second.get<picojson::array>();
+  if (!std::ranges::all_of(render_targets_array, [](const picojson::value& json_data) {
+        return json_data.is<std::string>();
+      }))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'render_targets' must contain strings",
+                  asset_id);
+    return false;
+  }
+
+  for (const auto& render_target_json : render_targets_array)
+  {
+    std::string render_target_str = render_target_json.to_str();
+    data->render_targets.push_back(std::move(render_target_str));
   }
 
   return true;
@@ -838,6 +868,13 @@ void RasterMaterialData::ToJson(picojson::object* obj, const RasterMaterialData&
     json_textures.emplace_back(std::move(json_texture));
   }
   json_obj.emplace("pixel_textures", json_textures);
+
+  picojson::array json_render_targets;
+  for (const auto& render_target : data.render_targets)
+  {
+    json_render_targets.emplace_back(render_target);
+  }
+  json_obj.emplace("render_targets", json_render_targets);
 }
 
 CustomAssetLibrary::LoadInfo MaterialAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)

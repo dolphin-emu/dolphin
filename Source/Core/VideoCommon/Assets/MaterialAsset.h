@@ -71,8 +71,8 @@ struct RasterMaterialData
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        RasterMaterialData* data);
   static void ToJson(picojson::object* obj, const RasterMaterialData& data);
-  std::string shader_asset;
-  std::string next_material_asset;
+  CustomAssetLibrary::AssetID shader_asset;
+  CustomAssetLibrary::AssetID next_material_asset;
   std::vector<MaterialProperty2> vertex_properties;
   std::vector<MaterialProperty2> pixel_properties;
 
@@ -81,6 +81,7 @@ struct RasterMaterialData
   std::optional<BlendingState> blending_state;
 
   std::vector<TextureSamplerValue> pixel_textures;
+  std::vector<CustomAssetLibrary::AssetID> render_targets;
 };
 
 class RasterMaterialAsset final : public CustomLoadableAsset<RasterMaterialData>
