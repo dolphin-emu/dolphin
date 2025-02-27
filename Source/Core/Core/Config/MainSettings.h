@@ -119,6 +119,7 @@ extern const Info<bool> MAIN_FAST_DISC_SPEED;
 extern const Info<bool> MAIN_LOW_DCBZ_HACK;
 extern const Info<bool> MAIN_FLOAT_EXCEPTIONS;
 extern const Info<bool> MAIN_DIVIDE_BY_ZERO_EXCEPTIONS;
+extern const Info<bool> MAIN_ALIGNMENT_EXCEPTIONS;
 extern const Info<bool> MAIN_FPRF;
 extern const Info<bool> MAIN_ACCURATE_NANS;
 extern const Info<bool> MAIN_DISABLE_ICACHE;
