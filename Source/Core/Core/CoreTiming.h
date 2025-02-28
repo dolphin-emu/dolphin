@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
@@ -212,10 +213,9 @@ private:
   DT m_max_fallback = {};
   DT m_max_variance = {};
   bool m_correct_time_drift = false;
-  double m_emulation_speed = 1.0;
 
   bool IsSpeedUnlimited() const;
-  void UpdateSpeedLimit(s64 cycle, double new_speed);
+  void UpdateSpeedLimit(s64 cycle);
   void ResetThrottle(s64 cycle);
   TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
   void UpdateVISkip(TimePoint current_time, TimePoint target_time);
@@ -228,6 +228,7 @@ private:
   Common::PrecisionTimer m_precision_gpu_timer;
 
   int m_on_state_changed_handle;
+  Common::EventHook m_end_field_hook;
 };
 
 }  // namespace CoreTiming
