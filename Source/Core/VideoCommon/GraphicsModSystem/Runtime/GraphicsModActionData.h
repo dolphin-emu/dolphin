@@ -29,6 +29,7 @@ struct DrawStarted
   GraphicsModSystem::MeshResource** mesh;
   bool* ignore_mesh_transform;
   std::optional<Common::Matrix44>* transform;
+  std::optional<GraphicsModSystem::Camera>* camera;
 };
 
 struct EFB
