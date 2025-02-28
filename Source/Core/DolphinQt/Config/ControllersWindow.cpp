@@ -27,6 +27,7 @@ void ControllersWindow::showEvent(QShowEvent* event)
 {
   QDialog::showEvent(event);
   m_wiimote_controllers->UpdateBluetoothAvailableStatus();
+  m_wiimote_controllers->RefreshBluetoothAdapters();
 }
 
 void ControllersWindow::CreateMainLayout()
