@@ -29,6 +29,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/USB/Host.h"
 #include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
@@ -38,27 +39,17 @@ constexpr u8 REQUEST_TYPE = static_cast<u8>(LIBUSB_ENDPOINT_OUT) |
                             static_cast<u8>(LIBUSB_REQUEST_TYPE_CLASS) |
                             static_cast<u8>(LIBUSB_RECIPIENT_INTERFACE);
 
-static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
-{
-  const int vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
-  const int pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
-  if (vid == -1 || pid == -1)
-    return true;
-  return descriptor.idVendor == vid && descriptor.idProduct == pid;
-}
-
-static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
+static bool IsBluetoothDevice(const libusb_device_descriptor& descriptor)
 {
   constexpr u8 SUBCLASS = 0x01;
   constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
-  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID) != -1 &&
-      Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID) != -1)
-  {
-    return true;
-  }
-  return descriptor.bInterfaceClass == LIBUSB_CLASS_WIRELESS &&
-         descriptor.bInterfaceSubClass == SUBCLASS &&
-         descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH;
+  // Some devices misreport their class, so we avoid relying solely on descriptor checks and allow
+  // users to specify their own VID/PID.
+  return BluetoothRealDevice::IsConfiguredBluetoothDevice(descriptor.idVendor,
+                                                          descriptor.idProduct) ||
+         (descriptor.bDeviceClass == LIBUSB_CLASS_WIRELESS &&
+          descriptor.bDeviceSubClass == SUBCLASS &&
+          descriptor.bDeviceProtocol == PROTOCOL_BLUETOOTH);
 }
 
 BluetoothRealDevice::BluetoothRealDevice(EmulationKernel& ios, const std::string& device_name)
@@ -82,6 +73,13 @@ BluetoothRealDevice::~BluetoothRealDevice()
   SaveLinkKeys();
 }
 
+bool BluetoothRealDevice::IsConfiguredBluetoothDevice(u16 vid, u16 pid)
+{
+  const int configured_vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
+  const int configured_pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
+  return configured_vid == vid && configured_pid == pid;
+}
+
 std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
 {
   if (!m_context.IsValid())
@@ -101,10 +99,7 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
       return true;
     }
 
-    const libusb_interface& interface = config_descriptor->interface[INTERFACE];
-    const libusb_interface_descriptor& descriptor = interface.altsetting[0];
-    if (IsBluetoothDevice(descriptor) && IsWantedDevice(device_descriptor) &&
-        OpenDevice(device_descriptor, device))
+    if (IsBluetoothDevice(device_descriptor) && OpenDevice(device_descriptor, device))
     {
       unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
       const int manufacturer_ret = libusb_get_string_descriptor_ascii(
@@ -675,6 +670,42 @@ bool BluetoothRealDevice::OpenDevice(const libusb_device_descriptor& device_desc
   }
 
   return true;
+}
+
+std::vector<BluetoothRealDevice::BluetoothDeviceInfo> BluetoothRealDevice::ListDevices()
+{
+  std::vector<BluetoothDeviceInfo> device_list;
+  LibusbUtils::Context context;
+
+  if (!context.IsValid())
+    return {};
+
+  int result = context.GetDeviceList([&device_list](libusb_device* device) {
+    libusb_device_descriptor desc;
+
+    auto [config_ret, config] = LibusbUtils::MakeConfigDescriptor(device, 0);
+    if (config_ret != LIBUSB_SUCCESS)
+      return true;
+
+    if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
+      return true;
+
+    if (IsBluetoothDevice(desc))
+    {
+      const std::string device_name =
+          USBHost::GetDeviceNameFromVIDPID(desc.idVendor, desc.idProduct);
+      device_list.push_back({desc.idVendor, desc.idProduct, device_name});
+    }
+    return true;
+  });
+
+  if (result < 0)
+  {
+    ERROR_LOG_FMT(IOS_USB, "Failed to get device list: {}", LibusbUtils::ErrorWrap(result));
+    return device_list;
+  }
+
+  return device_list;
 }
 
 // The callbacks are called from libusb code on a separate thread.
