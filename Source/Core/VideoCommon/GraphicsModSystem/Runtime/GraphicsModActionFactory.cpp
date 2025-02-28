@@ -3,11 +3,11 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
-#include "VideoCommon/GraphicsModSystem/Runtime/Actions/CameraAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomMeshAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/RelativeCameraAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/TransformAction.h"
@@ -45,9 +45,9 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   {
     return CustomMeshAction::Create(json_data, std::move(library));
   }
-  else if (name == CameraAction::factory_name)
+  else if (name == RelativeCameraAction::factory_name)
   {
-    return CameraAction::Create(json_data, std::move(library));
+    return RelativeCameraAction::Create(json_data, std::move(library));
   }
 
   return nullptr;
