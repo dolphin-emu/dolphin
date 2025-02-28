@@ -25,6 +25,8 @@ public:
 
   // constant management
   void SetProjectionMatrix(XFStateManager& xf_state_manager);
+  void ForceProjectionMatrixUpdate(XFStateManager& xf_state_manager,
+                                   const Common::Matrix44& modifier);
   void SetConstants(XFStateManager& xf_state_manager);
 
   // data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
@@ -81,5 +83,7 @@ private:
   alignas(16) std::array<float, 16> m_projection_matrix;
 
   // track changes
+  Common::Matrix44 m_last_camera_modifier = Common::Matrix44::Identity();
+
   Common::Matrix44 LoadProjectionMatrix();
 };
