@@ -16,6 +16,7 @@ struct MeshData;
 struct PixelShaderData;
 struct RasterMaterialData;
 struct RasterShaderData;
+struct RenderTargetData;
 struct TextureData;
 struct TextureAndSamplerData;
 
@@ -51,5 +52,8 @@ public:
 
   // Loads a mesh
   virtual LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) = 0;
+
+  // Loads a render target
+  virtual LoadInfo LoadRenderTarget(const AssetID& asset_id, RenderTargetData* data) = 0;
 };
 }  // namespace VideoCommon
