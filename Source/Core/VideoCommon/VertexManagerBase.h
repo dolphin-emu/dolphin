@@ -5,6 +5,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -27,9 +28,15 @@ struct PortableVertexDeclaration;
 
 namespace GraphicsModSystem
 {
+struct DrawDataView;
 struct MaterialResource;
 struct MeshResource;
 }  // namespace GraphicsModSystem
+
+namespace VideoCommon
+{
+class CameraManager;
+}
 
 struct Slope
 {
@@ -177,21 +184,42 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  // Passes on a clear from the game to any additional cameras
+  void ClearAdditionalCameras(const MathUtil::Rectangle<int>& rc, bool color_enable,
+                              bool alpha_enable, bool z_enable, u32 color, u32 z);
+
   // Draws the normal mesh sourced from emulation
-  void DrawEmulatedMesh();
+  void DrawEmulatedMesh(VideoCommon::CameraManager& camera_manager,
+                        const Common::Matrix44& custom_transform = Common::Matrix44::Identity());
 
   // Draws the normal mesh sourced from emulation, with a custom shader and/or transform
   void DrawEmulatedMesh(GraphicsModSystem::MaterialResource* material_resource,
-                        const Common::Matrix44& custom_transform);
+                        const GraphicsModSystem::DrawDataView& draw_data,
+                        const Common::Matrix44& custom_transform,
+                        VideoCommon::CameraManager& camera_manager);
 
   // Draw a custom mesh sourced from a mod, with a custom shader and custom vertex information
   void DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_resource,
-                      const Common::Matrix44& custom_transform, bool ignore_mesh_transform);
+                      const GraphicsModSystem::DrawDataView& draw_data,
+                      const Common::Matrix44& custom_transform, bool ignore_mesh_transform,
+                      VideoCommon::CameraManager& camera_manager);
 
 protected:
-  void RedrawWithNewMaterial(u32 base_vertex, u32 base_index, u32 index_size,
+  // Draws the current mesh data with a material, taking into account any
+  // additional views, as well as drawing the next material in the chain
+  void DrawViewsWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
                              PrimitiveType primitive_type,
-                             GraphicsModSystem::MaterialResource* material_resource);
+                             const GraphicsModSystem::DrawDataView& draw_data,
+                             GraphicsModSystem::MaterialResource* material_resource,
+                             VideoCommon::CameraManager& camera_manager);
+
+  // Draws the current mesh data with a material
+  void DrawWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
+                        PrimitiveType primitive_type,
+                        const GraphicsModSystem::DrawDataView& draw_data,
+                        GraphicsModSystem::MaterialResource* material_resource,
+                        VideoCommon::CameraManager& camera_manager);
+  ;
 
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
@@ -247,6 +275,8 @@ private:
 
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
+
+  std::optional<u64> m_last_camera_id;
 
   bool m_is_flushed = true;
   FlushStatistics m_flush_statistics = {};
