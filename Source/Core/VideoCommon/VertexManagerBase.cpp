@@ -6,6 +6,7 @@
 #include <array>
 #include <cmath>
 #include <memory>
+#include <variant>
 
 #include <xxhash.h>
 
@@ -13,9 +14,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
 #include "Common/EnumMap.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
+#include "Common/VariantUtil.h"
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
@@ -27,6 +30,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CameraManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -107,6 +111,29 @@ static bool IsNormalProjection(const Projection::Raw& projection, const Viewport
   return std::abs(CalculateProjectionViewportRatio(projection, viewport) -
                   config.widescreen_heuristic_standard_ratio) <
          config.widescreen_heuristic_aspect_ratio_slop;
+}
+
+static void GetTextureAndSamplerFromResource(
+    const GraphicsModSystem::MaterialResource::TextureLikeResource& texture_like_resource,
+    VideoCommon::CameraManager& camera_manager, const AbstractTexture** texture,
+    const SamplerState** sampler, u32* sampler_index, std::string_view* texture_hash)
+{
+  std::visit(
+      overloaded{[&](const GraphicsModSystem::TextureResource& texture_resource) {
+                   *sampler = texture_resource.sampler;
+                   *sampler_index = texture_resource.sampler_index;
+                   *texture = texture_resource.texture;
+                   *texture_hash = texture_resource.texture_hash_for_sampler;
+                 },
+                 [&](const GraphicsModSystem::InputRenderTargetResource& render_target_resource) {
+                   *sampler = render_target_resource.sampler;
+                   *sampler_index = render_target_resource.sampler_index;
+                   *texture = camera_manager.GetRenderTarget(
+                       render_target_resource.camera_originating_draw_call,
+                       render_target_resource.render_target_name);
+                   *texture_hash = render_target_resource.texture_hash_for_sampler;
+                 }},
+      texture_like_resource);
 }
 
 VertexManagerBase::VertexManagerBase()
@@ -766,7 +793,8 @@ void VertexManagerBase::Flush()
     }
     else
     {
-      DrawEmulatedMesh();
+      static VideoCommon::CameraManager dummy_manager;
+      DrawEmulatedMesh(dummy_manager);
     }
 
     // Even if we skip the draw, emulated state should still be impacted
@@ -1154,7 +1182,21 @@ void VertexManagerBase::OnEndFrame()
   InvalidatePipelineObject();
 }
 
-void VertexManagerBase::DrawEmulatedMesh()
+void VertexManagerBase::ClearAdditionalCameras(const MathUtil::Rectangle<int>& rc,
+                                               bool color_enable, bool alpha_enable, bool z_enable,
+                                               u32 color, u32 z)
+{
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    mod_manager.GetBackend().ClearAdditionalCameras(rc, color_enable, alpha_enable, z_enable, color,
+                                                    z);
+  }
+}
+
+void VertexManagerBase::DrawEmulatedMesh(VideoCommon::CameraManager& camera_manager,
+                                         const Common::Matrix44& custom_transform)
 {
   auto& system = Core::System::GetInstance();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
@@ -1163,77 +1205,36 @@ void VertexManagerBase::DrawEmulatedMesh()
 
   UpdatePipelineObject();
 
-  static const auto identity_mat = Common::Matrix44::Identity();
-  memcpy(vertex_shader_manager.constants.custom_transform.data(), identity_mat.data.data(),
+  memcpy(vertex_shader_manager.constants.custom_transform.data(), custom_transform.data.data(),
          4 * sizeof(float4));
+
+  const auto camera_view = camera_manager.GetCurrentCameraView({});
+
+  if (camera_view.transform)
+  {
+    const u64 camera_id = Common::ToUnderlying<>(camera_view.id);
+    if (m_last_camera_id != camera_id)
+    {
+      vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                        *camera_view.transform);
+      m_last_camera_id = camera_id;
+    }
+  }
+  else
+  {
+    if (m_last_camera_id)
+    {
+      vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                        Common::Matrix44::Identity());
+    }
+    m_last_camera_id.reset();
+  }
 
   geometry_shader_manager.SetConstants(m_current_primitive_type);
   pixel_shader_manager.SetConstants();
   UploadUniforms();
 
   g_gfx->SetPipeline(m_current_pipeline_object);
-
-  u32 base_vertex, base_index;
-  CommitBuffer(m_index_generator.GetNumVerts(),
-               VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
-               m_index_generator.GetIndexLen(), &base_vertex, &base_index);
-
-  if (g_ActiveConfig.backend_info.api_type != APIType::D3D &&
-      g_ActiveConfig.UseVSForLinePointExpand() &&
-      (m_current_primitive_type == PrimitiveType::Points ||
-       m_current_primitive_type == PrimitiveType::Lines))
-  {
-    // VS point/line expansion puts the vertex id at gl_VertexID << 2
-    // That means the base vertex has to be adjusted to match
-    // (The shader adds this after shifting right on D3D, so no need to do this)
-    base_vertex <<= 2;
-  }
-
-  DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
-}
-
-void VertexManagerBase::DrawEmulatedMesh(GraphicsModSystem::MaterialResource* material_resource,
-                                         const Common::Matrix44& custom_transform)
-{
-  auto& system = Core::System::GetInstance();
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
-
-  memcpy(vertex_shader_manager.constants.custom_transform.data(), custom_transform.data.data(),
-         4 * sizeof(float4));
-
-  // Now we can upload uniforms, as nothing else will override them.
-  geometry_shader_manager.SetConstants(m_current_primitive_type);
-  pixel_shader_manager.SetConstants();
-  if (material_resource && !material_resource->pixel_uniform_data.empty())
-  {
-    pixel_shader_manager.custom_constants = material_resource->pixel_uniform_data;
-    pixel_shader_manager.custom_constants_dirty = true;
-  }
-  UploadUniforms();
-
-  if (material_resource)
-  {
-    g_gfx->SetPipeline(material_resource->pipeline);
-
-    const std::size_t custom_sampler_index_offset = 8;
-    for (std::size_t i = 0; i < material_resource->textures.size(); i++)
-    {
-      auto& texture_resource = material_resource->textures[i];
-      if (texture_resource.sampler == nullptr || texture_resource.texture == nullptr) [[unlikely]]
-        continue;
-      g_gfx->SetTexture(texture_resource.sampler_index + custom_sampler_index_offset,
-                        texture_resource.texture);
-      g_gfx->SetSamplerState(texture_resource.sampler_index + custom_sampler_index_offset,
-                             *texture_resource.sampler);
-    }
-  }
-  else
-  {
-    UpdatePipelineObject();
-    g_gfx->SetPipeline(m_current_pipeline_object);
-  }
 
   u32 base_vertex, base_index;
   CommitBuffer(m_index_generator.GetNumVerts(),
@@ -1250,32 +1251,96 @@ void VertexManagerBase::DrawEmulatedMesh(GraphicsModSystem::MaterialResource* ma
     base_vertex <<= 2;
   }
 
-  if (PerfQueryBase::ShouldEmulate())
-    g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-
   DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
 
-  // Track the total emulated state draws
-  INCSTAT(g_stats.this_frame.num_draw_calls);
+  AbstractFramebuffer* frame_buffer_to_restore = nullptr;
 
-  if (PerfQueryBase::ShouldEmulate())
-    g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-
-  if (material_resource && material_resource->next)
+  // Do we have any other views?  If so we need to redraw with those
+  // frame buffers...
+  const auto camera_views = camera_manager.GetAdditionalViews({});
+  for (const auto additional_camera_view : camera_views)
   {
-    RedrawWithNewMaterial(base_vertex, base_index, m_index_generator.GetIndexLen(),
-                          m_current_primitive_type, material_resource->next);
+    if (xfmem.projection.type == ProjectionType::Orthographic &&
+        additional_camera_view.skip_orthographic)
+    {
+      continue;
+    }
+    frame_buffer_to_restore = g_gfx->GetCurrentFramebuffer();
+    g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
+    if (additional_camera_view.transform)
+    {
+      const u64 camera_id = Common::ToUnderlying<>(additional_camera_view.id);
+      if (m_last_camera_id != camera_id)
+      {
+        vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                          *additional_camera_view.transform);
+        m_last_camera_id = camera_id;
+      }
+    }
+    else
+    {
+      if (m_last_camera_id)
+      {
+        vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                          Common::Matrix44::Identity());
+      }
+      m_last_camera_id.reset();
+    }
+
+    UploadUniforms();
+    DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
+  }
+
+  if (frame_buffer_to_restore)
+  {
+    g_gfx->SetFramebuffer(frame_buffer_to_restore);
+  }
+}
+
+void VertexManagerBase::DrawEmulatedMesh(GraphicsModSystem::MaterialResource* material_resource,
+                                         const GraphicsModSystem::DrawDataView& draw_data,
+                                         const Common::Matrix44& custom_transform,
+                                         VideoCommon::CameraManager& camera_manager)
+{
+  if (material_resource)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    memcpy(vertex_shader_manager.constants.custom_transform.data(), custom_transform.data.data(),
+           4 * sizeof(float4));
+
+    u32 base_vertex, base_index;
+    CommitBuffer(m_index_generator.GetNumVerts(),
+                 VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
+                 m_index_generator.GetIndexLen(), &base_vertex, &base_index);
+
+    if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
+        (m_current_primitive_type == PrimitiveType::Points ||
+         m_current_primitive_type == PrimitiveType::Lines))
+    {
+      // VS point/line expansion puts the vertex id at gl_VertexID << 2
+      // That means the base vertex has to be adjusted to match
+      // (The shader adds this after shifting right on D3D, so no need to do this)
+      base_vertex <<= 2;
+    }
+
+    DrawViewsWithMaterial(base_vertex, base_index, m_index_generator.GetIndexLen(),
+                          m_current_primitive_type, draw_data, material_resource, camera_manager);
+  }
+  else
+  {
+    DrawEmulatedMesh(camera_manager, custom_transform);
   }
 }
 
 void VertexManagerBase::DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_resource,
+                                       const GraphicsModSystem::DrawDataView& draw_data,
                                        const Common::Matrix44& custom_transform,
-                                       bool ignore_mesh_transform)
+                                       bool ignore_mesh_transform,
+                                       VideoCommon::CameraManager& camera_manager)
 {
   auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   for (const auto& mesh_chunk : mesh_resource->mesh_chunks)
   {
@@ -1299,48 +1364,117 @@ void VertexManagerBase::DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_res
     memcpy(vertex_shader_manager.constants.custom_transform.data(), computed_transform.data.data(),
            4 * sizeof(float4));
 
-    // Now we can upload uniforms, as nothing else will override them.
-    geometry_shader_manager.SetConstants(mesh_chunk.primitive_type);
-    pixel_shader_manager.SetConstants();
-    if (!mesh_chunk.material->pixel_uniform_data.empty())
-    {
-      pixel_shader_manager.custom_constants_dirty = true;
-      pixel_shader_manager.custom_constants = mesh_chunk.material->pixel_uniform_data;
-    }
-    UploadUniforms();
-
-    g_gfx->SetPipeline(mesh_chunk.material->pipeline);
-
-    const std::size_t custom_sampler_index_offset = 8;
-    for (std::size_t i = 0; i < mesh_chunk.material->textures.size(); i++)
-    {
-      auto& texture_resource = mesh_chunk.material->textures[i];
-      if (texture_resource.sampler == nullptr || texture_resource.texture == nullptr) [[unlikely]]
-        continue;
-      g_gfx->SetTexture(texture_resource.sampler_index + custom_sampler_index_offset,
-                        texture_resource.texture);
-      g_gfx->SetSamplerState(texture_resource.sampler_index + custom_sampler_index_offset,
-                             *texture_resource.sampler);
-    }
-
     u32 base_vertex, base_index;
     UploadUtilityVertices(
         mesh_chunk.vertex_data.data(), mesh_chunk.vertex_stride,
         static_cast<u32>(mesh_chunk.vertex_data.size()), mesh_chunk.index_data.data(),
         static_cast<u32>(mesh_chunk.index_data.size()), &base_vertex, &base_index);
-    g_gfx->DrawIndexed(base_index, static_cast<u32>(mesh_chunk.index_data.size()), base_vertex);
 
-    if (mesh_chunk.material->next)
-    {
-      RedrawWithNewMaterial(base_vertex, base_index, static_cast<u32>(mesh_chunk.index_data.size()),
-                            mesh_chunk.primitive_type, mesh_chunk.material->next);
-    }
+    DrawViewsWithMaterial(base_vertex, base_index, static_cast<u32>(mesh_chunk.index_data.size()),
+                          mesh_chunk.primitive_type, draw_data, mesh_chunk.material,
+                          camera_manager);
   }
 }
 
-void VertexManagerBase::RedrawWithNewMaterial(
+void VertexManagerBase::DrawViewsWithMaterial(
     u32 base_vertex, u32 base_index, u32 index_size, PrimitiveType primitive_type,
-    GraphicsModSystem::MaterialResource* material_resource)
+    const GraphicsModSystem::DrawDataView& draw_data,
+    GraphicsModSystem::MaterialResource* material_resource,
+    VideoCommon::CameraManager& camera_manager)
+{
+  if (!material_resource) [[unlikely]]
+    return;
+
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+
+  AbstractFramebuffer* frame_buffer_to_restore = nullptr;
+
+  const auto camera_view = camera_manager.GetCurrentCameraView(material_resource->render_targets);
+  const auto additional_camera_views =
+      camera_manager.GetAdditionalViews(material_resource->render_targets);
+  if (camera_view.framebuffer || !additional_camera_views.empty())
+  {
+    frame_buffer_to_restore = g_gfx->GetCurrentFramebuffer();
+  }
+
+  if (camera_view.framebuffer)
+  {
+    g_gfx->SetFramebuffer(camera_view.framebuffer);
+  }
+
+  if (camera_view.transform)
+  {
+    const u64 camera_id = Common::ToUnderlying<>(camera_view.id);
+    if (m_last_camera_id != camera_id)
+    {
+      vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                        *camera_view.transform);
+      m_last_camera_id = camera_id;
+    }
+  }
+  else
+  {
+    if (m_last_camera_id)
+    {
+      vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                        Common::Matrix44::Identity());
+    }
+    m_last_camera_id.reset();
+  }
+  DrawWithMaterial(base_vertex, base_index, index_size, primitive_type, draw_data,
+                   material_resource, camera_manager);
+
+  // Do we have any other views?  If so we need to redraw with the current material to those
+  // frame buffers...
+  for (const auto additional_camera_view : additional_camera_views)
+  {
+    if (xfmem.projection.type == ProjectionType::Orthographic &&
+        additional_camera_view.skip_orthographic)
+    {
+      continue;
+    }
+    g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
+    if (additional_camera_view.transform)
+    {
+      const u64 camera_id = Common::ToUnderlying<>(additional_camera_view.id);
+      if (m_last_camera_id != camera_id)
+      {
+        vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                          *additional_camera_view.transform);
+        m_last_camera_id = camera_id;
+      }
+    }
+    else
+    {
+      if (m_last_camera_id)
+      {
+        vertex_shader_manager.ForceProjectionMatrixUpdate(system.GetXFStateManager(),
+                                                          Common::Matrix44::Identity());
+      }
+      m_last_camera_id.reset();
+    }
+    DrawWithMaterial(base_vertex, base_index, index_size, primitive_type, draw_data,
+                     material_resource, camera_manager);
+  }
+
+  if (frame_buffer_to_restore)
+  {
+    g_gfx->SetFramebuffer(frame_buffer_to_restore);
+  }
+
+  if (material_resource->next)
+  {
+    DrawViewsWithMaterial(base_vertex, base_index, index_size, primitive_type, draw_data,
+                          material_resource->next, camera_manager);
+  }
+}
+
+void VertexManagerBase::DrawWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
+                                         PrimitiveType primitive_type,
+                                         const GraphicsModSystem::DrawDataView& draw_data,
+                                         GraphicsModSystem::MaterialResource* material_resource,
+                                         VideoCommon::CameraManager& camera_manager)
 {
   if (!material_resource) [[unlikely]]
     return;
@@ -1364,20 +1498,34 @@ void VertexManagerBase::RedrawWithNewMaterial(
   const std::size_t custom_sampler_index_offset = 8;
   for (std::size_t i = 0; i < material_resource->textures.size(); i++)
   {
-    auto& texture_resource = material_resource->textures[i];
-    if (texture_resource.sampler == nullptr || texture_resource.texture == nullptr) [[unlikely]]
+    auto& texture_like_resource = material_resource->textures[i];
+
+    const AbstractTexture* texture = nullptr;
+    const SamplerState* sampler = nullptr;
+    std::string_view texture_hash = "";
+    u32 sampler_index = 0;
+    GetTextureAndSamplerFromResource(texture_like_resource, camera_manager, &texture, &sampler,
+                                     &sampler_index, &texture_hash);
+    if ((sampler == nullptr && texture_hash.empty()) || texture == nullptr) [[unlikely]]
       continue;
-    g_gfx->SetTexture(texture_resource.sampler_index + custom_sampler_index_offset,
-                      texture_resource.texture);
-    g_gfx->SetSamplerState(texture_resource.sampler_index + custom_sampler_index_offset,
-                           *texture_resource.sampler);
+    if (!texture_hash.empty())
+    {
+      for (const auto& texture_view : draw_data.textures)
+      {
+        if (texture_view.hash_name == texture_hash)
+        {
+          sampler = &draw_data.samplers[texture_view.unit];
+          break;
+        }
+      }
+    }
+
+    if (!sampler)
+      continue;
+
+    g_gfx->SetTexture(sampler_index + custom_sampler_index_offset, texture);
+    g_gfx->SetSamplerState(sampler_index + custom_sampler_index_offset, *sampler);
   }
 
   DrawCurrentBatch(base_index, index_size, base_vertex);
-
-  if (material_resource->next)
-  {
-    RedrawWithNewMaterial(base_vertex, base_index, index_size, primitive_type,
-                          material_resource->next);
-  }
 }
