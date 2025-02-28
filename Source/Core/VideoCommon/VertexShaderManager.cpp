@@ -122,9 +122,19 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
   if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
     xf_state_manager.ResetProjection();
-    auto corrected_matrix = LoadProjectionMatrix();
+    auto corrected_matrix = LoadProjectionMatrix() * m_last_camera_modifier;
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
   }
+}
+
+void VertexShaderManager::ForceProjectionMatrixUpdate(XFStateManager& xf_state_manager,
+                                                      const Common::Matrix44& modifier)
+{
+  m_last_camera_modifier = modifier;
+  xf_state_manager.ResetProjection();
+  auto corrected_matrix = LoadProjectionMatrix() * m_last_camera_modifier;
+  memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
+  dirty = true;
 }
 
 bool VertexShaderManager::UseVertexDepthRange()
@@ -394,7 +404,7 @@ void VertexShaderManager::SetConstants(XFStateManager& xf_state_manager)
   {
     xf_state_manager.ResetProjection();
 
-    auto corrected_matrix = LoadProjectionMatrix();
+    auto corrected_matrix = LoadProjectionMatrix() * m_last_camera_modifier;
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
     dirty = true;
