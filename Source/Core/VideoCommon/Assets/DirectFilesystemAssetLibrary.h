@@ -25,6 +25,7 @@ public:
   LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) override;
   LoadInfo LoadMaterial(const AssetID& asset_id, RasterMaterialData* data) override;
   LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) override;
+  LoadInfo LoadRenderTarget(const AssetID& asset_id, RenderTargetData* data) override;
 
   // Gets the latest time from amongst all the files in the asset map
   TimeType GetLastAssetWriteTime(const AssetID& asset_id) const override;

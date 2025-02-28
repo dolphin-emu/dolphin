@@ -16,6 +16,7 @@
 #include "Core/System.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
+#include "VideoCommon/Assets/RenderTargetAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
@@ -484,6 +485,68 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
     return {};
 
   return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadRenderTarget(const AssetID& asset_id,
+                                                                            RenderTargetData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Material is expected to have one asset mapped
+  if (asset_map.empty() || asset_map.size() > 1)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - render target expected to have one file mapped!",
+                  asset_id);
+    return {};
+  }
+  const auto& asset_path = asset_map.begin()->second;
+
+  std::size_t metadata_size;
+  {
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(asset_path, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' error - failed to get render target file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+
+  picojson::value root;
+  std::string error;
+  if (!JsonFromFile(PathToString(asset_path), &root, &error))
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error - render target failed to load the json file '{}', due to "
+                  "parse error: {}",
+                  asset_id, PathToString(asset_path), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error - render target failed to load the json file '{}', due to root not "
+        "being an object!",
+        asset_id, PathToString(asset_path));
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!RenderTargetData::FromJson(asset_id, root_obj, data))
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  render target failed to load the json file '{}', as render target "
+        "json could not be parsed!",
+        asset_id, PathToString(asset_path));
+    return {};
+  }
+
+  return LoadInfo{metadata_size, GetLastAssetWriteTime(asset_id)};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
