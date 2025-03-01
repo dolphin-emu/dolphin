@@ -74,6 +74,58 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
+void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& host_config,
+                            const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("mat3x4 dolphin_position_matrix()\n");
+  out.Write("{{\n");
+  out.Write("\tmat3x4 result;\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  {
+    // Vertex format has a per-vertex matrix
+    out.Write("\tint posidx = int(posmtx.r);\n"
+              "\tresult[0] = " I_TRANSFORMMATRICES "[posidx];\n"
+              "\tresult[1] = " I_TRANSFORMMATRICES "[posidx + 1];\n"
+              "\tresult[2] = " I_TRANSFORMMATRICES "[posidx + 2];\n");
+  }
+  else
+  {
+    // One shared matrix
+    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[0];\n"
+              "\tresult[1] = " I_POSNORMALMATRIX "[1];\n"
+              "\tresult[2] = " I_POSNORMALMATRIX "[2];\n");
+  }
+  out.Write("\treturn result;\n");
+  out.Write("}}\n\n");
+
+  // The scale of the transform matrix is used to control the size of the emboss map effect, by
+  // changing the scale of the transformed binormals (which only get used by emboss map texgens).
+  // By normalising the first transformed normal (which is used by lighting calculations and needs
+  // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
+  // and not scaling for lighting.
+  out.Write("mat3 dolphin_normal_matrix()\n");
+  out.Write("{{\n");
+  out.Write("\tmat3 result;\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  {
+    // Vertex format has a per-vertex matrix
+    out.Write("\tint posidx = int(posmtx.r);\n");
+    out.Write("\tint normidx = posidx & 31;\n"
+              "\tresult[0] = " I_NORMALMATRICES "[normidx].xyz;\n"
+              "\tresult[1] = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
+              "\tresult[2] = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
+  }
+  else
+  {
+    // One shared matrix
+    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[3].xyz;\n"
+              "\tresult[1] = " I_POSNORMALMATRIX "[4].xyz;\n"
+              "\tresult[2] = " I_POSNORMALMATRIX "[5].xyz;\n");
+  }
+  out.Write("\treturn result;\n");
+  out.Write("}}\n\n");
+}
+
 void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& host_config,
                              const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
@@ -335,6 +387,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
+  // Note: this is done after to ensure above global variables are accessible
+  WriteTransformMatrices(api_type, host_config, uid_data, out);
   WriteTexCoordTransforms(api_type, host_config, uid_data, out);
 
   out.Write("void main()\n{{\n");
@@ -406,8 +460,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               "float3 N2 = " I_POSNORMALMATRIX "[5].xyz;\n");
   }
 
-  out.Write("// Multiply the position vector by the position matrix\n"
-            "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
   if ((uid_data->components & VB_HAS_NORMAL) == 0)
     out.Write("float3 rawnormal = " I_CACHED_NORMAL ".xyz;\n");
   if ((uid_data->components & VB_HAS_TANGENT) == 0)
@@ -426,6 +478,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
             "rawtangent));\n"
             "float3 _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
             "rawbinormal));\n");
+
+  out.Write("\tvec4 pos = vec4(rawpos * dolphin_position_matrix(), 1.0);\n");
 
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
@@ -545,8 +599,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     else
     {
-      out.Write("other_pos = float4(dot(P0, other_pos), dot(P1, other_pos), dot(P2, other_pos), "
-                "1.0f);\n");
+      out.Write("other_pos = vec4(other_pos * dolphin_position_matrix(), 1.0);\n");
     }
     GenerateVSLineExpansion(out, "", uid_data->numTexGens);
   }
