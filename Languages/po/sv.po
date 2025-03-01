@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 19:21+0100\n"
+"POT-Creation-Date: 2025-03-01 22:47+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>, 2025\n"
 "Language-Team: Swedish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -1125,7 +1125,7 @@ msgstr "> Större än"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:332
 msgid "? Conditional"
-msgstr ""
+msgstr "? Villkorlig"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1559
 #: Source/Core/DolphinQt/MainWindow.cpp:1626
@@ -1245,7 +1245,7 @@ msgstr "Avbryt"
 
 #: Source/Core/Core/Movie.cpp:1293
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
-msgstr ""
+msgstr "Avbryter uppspelningen. Fel i DeserializeDesiredState. byte:{0}{1}"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -9870,7 +9870,7 @@ msgstr "PPC mot värd"
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "Packa SD-kort nu"
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10202,7 +10202,7 @@ msgstr "Tidigt inspelningsslut i PlayController. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1264
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "För tidigt filmslut i PlayWiimote. {0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
@@ -14509,7 +14509,7 @@ msgstr "Låstes upp %1"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "Packa upp SD-kort nu"
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"

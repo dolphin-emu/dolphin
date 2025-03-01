@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 19:21+0100\n"
+"POT-Creation-Date: 2025-03-01 22:47+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mewster <mewster92@gmail.com>, 2023-2025\n"
 "Language-Team: Italian (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -300,7 +300,7 @@ msgstr "%1[%2]: %3/%4 MiB"
 
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:204
 msgid "%1h %2m"
-msgstr ""
+msgstr "%1h %2m"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:428
 #, c-format
@@ -1121,7 +1121,7 @@ msgstr "> Maggiore-di"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:332
 msgid "? Conditional"
-msgstr ""
+msgstr "? Condizionale"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1559
 #: Source/Core/DolphinQt/MainWindow.cpp:1626
@@ -1245,6 +1245,8 @@ msgstr "Annulla"
 #: Source/Core/Core/Movie.cpp:1293
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
 msgstr ""
+"Interruzione della riproduzione. Errore in DeserializeDesiredState. byte:{0}"
+"{1}"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -1941,7 +1943,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:266
 msgid "Auto update memory values"
-msgstr ""
+msgstr "Aggiorna automaticamente i valori di memoria"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:118
 msgid "Auto-Adjust Window Size"
@@ -3164,7 +3166,7 @@ msgstr "Configura Dolphin"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:65
 msgid "Configure Extension"
-msgstr ""
+msgstr "Configura estensione"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:270
 msgid "Configure Input"
@@ -3692,7 +3694,7 @@ msgstr "Crea file Infinity"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:114
 msgid "Create Mappings for Other Devices"
-msgstr ""
+msgstr "Crea configurazioni per altri dispositivi"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:62
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:74
@@ -4436,6 +4438,8 @@ msgstr "Dolphin non è in grado di verificare dischi senza licenza."
 msgid ""
 "Dolphin was built with Cubeb disabled. The Microphone device cannot be used."
 msgstr ""
+"Dolphin è stato compilato con Cubeb disabilitato. Il microfono non può "
+"essere utilizzato."
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:75
 msgid "Dolphin's cheat system is currently disabled."
@@ -4925,7 +4929,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:120
 msgid "Enable Iterative Input Mapping"
-msgstr ""
+msgstr "Abilita mappatura input iterativo."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:935
 msgid "Enable JIT Block Profiling"
@@ -4938,7 +4942,7 @@ msgstr "Abilita MMU"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:178
 msgid "Enable Play Time Tracking"
-msgstr ""
+msgstr "Abilita tracciamento tempo di gioco"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
 msgid "Enable Progress Notifications"
@@ -5553,7 +5557,7 @@ msgstr "Prevista chiusa paren."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:1010
 msgid "Expected colon."
-msgstr ""
+msgstr "Punto e virgola previsto."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:766
 msgid "Expected end of expression."
@@ -6188,6 +6192,10 @@ msgid ""
 "discarded on next boot if you do not manually re-issue a resync in Config > "
 "Wii > SD Card Settings > {0}!"
 msgstr ""
+"Impossibile sincronizzare la scheda SD con la cartella. Tutte le modifiche "
+"fatte in questa sessione verranno scartate al prossimo avvio se non avvii "
+"manualmente una ri-sincronizzazione in Configurazione > Wii > Impostazioni "
+"Scheda SD > {0}!"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:226
 msgid "Failed to uninstall pack: %1"
@@ -7255,11 +7263,11 @@ msgstr "Più alta"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:282
 msgid "Highlight color"
-msgstr ""
+msgstr "Colore di evidenza"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:277
 msgid "Highlight recently changed values"
-msgstr ""
+msgstr "Evidenzia valori recentemente cambiati"
 
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:69
@@ -8056,7 +8064,7 @@ msgstr ""
 
 #: Source/Core/Core/Movie.cpp:1275
 msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
-msgstr ""
+msgstr "Lunghezza serializzazione non valida:{0} su PlayWiimote. byte:{1}"
 
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
@@ -9896,7 +9904,7 @@ msgstr "PPC vs Host"
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "Comprimi scheda SD"
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10224,7 +10232,7 @@ msgstr "Termine prematuro del filmato in PlayController. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1264
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "Termine prematuro del filmato in PlayWiimote. {0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
@@ -13979,7 +13987,7 @@ msgstr "Percentuale tempo"
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:704
 msgid "Time Played"
-msgstr ""
+msgstr "Tempo di gioco"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
@@ -14169,6 +14177,9 @@ msgid ""
 "active.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Tiene traccia del tempo di gioco per mostrarlo nella visuale a lista (come "
+"ore/minuti).<br><br>Non si può cambiare durante l'emulazione."
+"<br><br><dolphin_emphasis>Nel dubbio, lascia selezionato.</dolphin_emphasis>"
 
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:177
@@ -14535,7 +14546,7 @@ msgstr "Sbloccato il %1"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "Estrai scheda SD"
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"
@@ -15032,7 +15043,7 @@ msgstr "Immagini WIA GC/Wii (*.wia)"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:117
 msgid "Wait for Alternate Input Mappings"
-msgstr ""
+msgstr "Attendi mappature input alternative"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:236
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:458
@@ -15480,6 +15491,8 @@ msgid ""
 "All current content of the file will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"Stai per comprimere il contenuto del della cartella %1 nel file %2. Il "
+"contenuto corrente del file verrà eliminato. Sei sicuro di voler continuare?"
 
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:39
 msgid ""
@@ -15522,6 +15535,8 @@ msgid ""
 "All current content of the folder will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"Stai per estrarre il contenuto del file %2 nella cartella %1. Il contenuto "
+"corrente della cartella verrà eliminato. Sei sicuro di voler continuare?"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCKeyboardEmu.cpp:36
 msgid ""

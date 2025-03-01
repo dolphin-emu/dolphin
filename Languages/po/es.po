@@ -32,7 +32,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 19:21+0100\n"
+"POT-Creation-Date: 2025-03-01 22:47+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Víctor González, 2021-2025\n"
 "Language-Team: Spanish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -1271,7 +1271,7 @@ msgstr "Cancelar"
 
 #: Source/Core/Core/Movie.cpp:1293
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
-msgstr ""
+msgstr "Abortando reproducción. Error en DeserializeDesiredState. byte:{0}{1}"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -8148,7 +8148,7 @@ msgstr ""
 
 #: Source/Core/Core/Movie.cpp:1275
 msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
-msgstr ""
+msgstr "Longitud serializada no válida: {0} en PlayWiimote. byte:{1}"
 
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
@@ -9991,7 +9991,7 @@ msgstr "PPC contra anfitrión"
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "Comprimir tarjeta SD"
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10320,7 +10320,7 @@ msgstr "Final prematuro de la grabación en PlayController. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1264
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "Final de grabación prematuro en PlayWiimote. {0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
@@ -14683,7 +14683,7 @@ msgstr "Desbloqueado: %1"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "Descomprimir tarjeta SD"
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"

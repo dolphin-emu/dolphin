@@ -46,7 +46,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 19:21+0100\n"
+"POT-Creation-Date: 2025-03-01 22:47+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2025\n"
 "Language-Team: Portuguese (Brazil) (http://app.transifex.com/dolphinemu/"
@@ -1278,7 +1278,7 @@ msgstr "Cancelar"
 
 #: Source/Core/Core/Movie.cpp:1293
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
-msgstr ""
+msgstr "Reprodução interrompida. Erro no DeserializeDesiredState. byte:{0}{1}"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -8131,7 +8131,7 @@ msgstr ""
 
 #: Source/Core/Core/Movie.cpp:1275
 msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
-msgstr ""
+msgstr "Tamanho serializado inválido:{0} no PlayWiimote. byte:{1}"
 
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
@@ -9973,7 +9973,7 @@ msgstr "PPC vs Hospedeiro"
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "Empacotar Cartão SD Agora"
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10303,7 +10303,7 @@ msgstr "Fim prematuro da gravação no PlayController.  {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1264
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "Fim prematuro da gravação no PlayWiimote. {0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
@@ -13551,7 +13551,7 @@ msgstr "O perfil \"%1\" não existe"
 
 #: Source/Core/Core/Movie.cpp:210
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
-msgstr "O jogo gravado ({0}) não é o mesmo do jogo selecionado ({1})"
+msgstr "O jogo da gravação ({0}) é diferente do jogo selecionado ({1})"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:907
 msgid ""
@@ -14637,7 +14637,7 @@ msgstr "Desbloqueado em %1"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "Extrair Cartão SD Agora"
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"

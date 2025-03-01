@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-24 19:21+0100\n"
+"POT-Creation-Date: 2025-03-01 22:47+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2025\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/dolphinemu/dolphin-"
@@ -1236,7 +1236,7 @@ msgstr "终止"
 
 #: Source/Core/Core/Movie.cpp:1293
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
-msgstr ""
+msgstr "中止回放。DeserializeDesiredState 中存在错误。字节:{0}{1}"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -4309,7 +4309,7 @@ msgstr "Dolphin 无法验证未经授权的光盘。"
 #: Source/Core/Core/HW/EXI/EXI_Device.cpp:141
 msgid ""
 "Dolphin was built with Cubeb disabled. The Microphone device cannot be used."
-msgstr ""
+msgstr "Dolphin 在构建时禁用了 Cubeb。因此无法使用麦克风设备。"
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:75
 msgid "Dolphin's cheat system is currently disabled."
@@ -4781,7 +4781,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:120
 msgid "Enable Iterative Input Mapping"
-msgstr ""
+msgstr "启用连续输入映射"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:935
 msgid "Enable JIT Block Profiling"
@@ -4794,7 +4794,7 @@ msgstr "启用 MMU"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:178
 msgid "Enable Play Time Tracking"
-msgstr ""
+msgstr "启用游戏时间追踪"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
 msgid "Enable Progress Notifications"
@@ -5366,7 +5366,7 @@ msgstr "建议用右圆括号。"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:1010
 msgid "Expected colon."
-msgstr ""
+msgstr "建议用冒号。"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:766
 msgid "Expected end of expression."
@@ -5977,6 +5977,8 @@ msgid ""
 "discarded on next boot if you do not manually re-issue a resync in Config > "
 "Wii > SD Card Settings > {0}!"
 msgstr ""
+"SD 卡与文件夹同步失败。如果您不在“配置>Wii>SD 卡设置>{0}”中手动重新发出同步，"
+"在下次启动时，此会话的所有更改都将被丢弃！"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:226
 msgid "Failed to uninstall pack: %1"
@@ -7028,11 +7030,11 @@ msgstr "最高"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:282
 msgid "Highlight color"
-msgstr ""
+msgstr "高亮颜色"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:277
 msgid "Highlight recently changed values"
-msgstr ""
+msgstr "高亮最近更改的数值"
 
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:69
@@ -7796,7 +7798,7 @@ msgstr "无效的搜索字符串（仅支持相等长度的字符串）"
 
 #: Source/Core/Core/Movie.cpp:1275
 msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
-msgstr ""
+msgstr "PlayWiimote 中的序列化长度:{0} 无效。字节:{1}"
 
 #: Source/Core/DolphinQt/Main.cpp:212
 msgid "Invalid title ID."
@@ -9594,7 +9596,7 @@ msgstr "PPC 对 Host"
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "打包 SD 卡"
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -9917,7 +9919,7 @@ msgstr "在 PlayController 中提前结束影片。{0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1264
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "在 PlayWiimote 中提前结束影片。{0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1284
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
@@ -13496,7 +13498,7 @@ msgstr "时间百分比"
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:704
 msgid "Time Played"
-msgstr ""
+msgstr "游戏时间"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
@@ -13684,6 +13686,9 @@ msgid ""
 "active.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
+"跟踪您玩游戏的时间并将其显示在列表视图中（以小时/分钟为单位）。<br><br>模拟处"
+"于运行状态时无法更改此设置。<br><br><dolphin_emphasis>如无法确定，请选中此"
+"项。</dolphin_emphasis>"
 
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:177
@@ -14034,7 +14039,7 @@ msgstr "解锁于 %1"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "解包 SD 卡"
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"
@@ -14506,7 +14511,7 @@ msgstr "WIA GC/Wii 镜像 (*.wia)"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:117
 msgid "Wait for Alternate Input Mappings"
-msgstr ""
+msgstr "等待备用输入映射"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:236
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:458
@@ -14935,6 +14940,8 @@ msgid ""
 "All current content of the file will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"即将把 %1 的文件夹内容打包到 %2 的文件中。文件的所有当前内容将被删除。请确定"
+"是否要继续？"
 
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:39
 msgid ""
@@ -14972,6 +14979,8 @@ msgid ""
 "All current content of the folder will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"即将把 %2 的文件内容打包到 %1 的文件夹中。文件夹的所有当前内容将被删除。请确"
+"定是否要继续？"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCKeyboardEmu.cpp:36
 msgid ""
