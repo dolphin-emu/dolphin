@@ -8,8 +8,6 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -23,6 +21,8 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
   AddInput(Translatability::Translate, _trans("Right"));
   AddInput(Translatability::Translate, _trans("Forward"));
   AddInput(Translatability::Translate, _trans("Backward"));
+
+  MarkAdvancedConfigBegin();
 
   AddSetting(&m_distance_setting,
              {_trans("Distance"),
@@ -133,6 +133,8 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
   AddInput(Translatability::Translate, _trans("Z"));
 
   AddDeadzoneSetting(&m_deadzone_setting, 50);
+
+  MarkAdvancedConfigBegin();
 
   // Total travel distance in centimeters.
   // Negative values can be used to reverse the initial direction of movement.

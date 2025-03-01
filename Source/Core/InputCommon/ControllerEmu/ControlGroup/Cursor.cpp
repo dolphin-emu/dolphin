@@ -14,7 +14,6 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -27,10 +26,11 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
   for (auto& named_direction : named_directions)
     AddInput(Translatability::Translate, named_direction);
 
-  AddInput(Translatability::Translate, _trans("Hide"));
-  AddInput(Translatability::Translate, _trans("Recenter"));
+  AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
 
-  AddInput(Translatability::Translate, _trans("Relative Input Hold"));
+  MarkAdvancedConfigBegin();
+
+  AddInput(Translatability::Translate, _trans("Hide"));
 
   // Default values chosen to reach screen edges in most games including the Wii Menu.
 
@@ -59,7 +59,9 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
               _trans("Total rotation about the pitch axis.")},
              20, 0, 360);
 
-  AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
+  AddInput(Translatability::Translate, _trans("Recenter"));
+  AddInput(Translatability::Translate, _trans("Relative Input Hold"));
+
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
 }
 

@@ -3,15 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 
-#include <memory>
 #include <string>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 
 namespace ControllerEmu
 {
@@ -38,6 +35,8 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
               // i18n: Refers to emulated wii remote movements.
               _trans("Clamping of rotation about the yaw axis.")},
              25, 0, 360);
+
+  MarkAdvancedConfigBegin();
 
   AddSetting(&m_accel_weight_setting,
              {// i18n: Percentage value of accelerometer data (complementary filter coefficient).

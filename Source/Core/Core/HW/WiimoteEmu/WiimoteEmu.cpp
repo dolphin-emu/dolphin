@@ -285,12 +285,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
-  m_options->AddSetting(&m_speaker_logic.m_speaker_pan_setting,
-                        {_trans("Speaker Pan"),
-                         // i18n: The percent symbol.
-                         _trans("%")},
-                        0, -100, 100);
-
   m_options->AddSetting(&m_battery_setting,
                         {_trans("Battery"),
                          // i18n: The percent symbol.
@@ -298,12 +292,21 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         95, 0, 100);
 
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
-  // orientation where the wiimote points towards the left with the buttons towards you.
-  m_options->AddSetting(&m_upright_setting,
-                        {UPRIGHT_OPTION, nullptr, nullptr, _trans("Upright Wii Remote")}, false);
-
+  // orientation where the wiimote points towards the left with the buttons towards the player.
+  // i.e. a "steering wheel" orientation.
   m_options->AddSetting(&m_sideways_setting,
                         {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
+
+  m_options->MarkAdvancedConfigBegin();
+
+  m_options->AddSetting(&m_speaker_logic.m_speaker_pan_setting,
+                        {_trans("Speaker Pan"),
+                         // i18n: The percent symbol.
+                         _trans("%")},
+                        0, -100, 100);
+
+  m_options->AddSetting(&m_upright_setting,
+                        {UPRIGHT_OPTION, nullptr, nullptr, _trans("Upright Wii Remote")}, false);
 
   Reset();
 

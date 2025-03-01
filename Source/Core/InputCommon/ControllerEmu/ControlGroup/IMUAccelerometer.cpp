@@ -4,7 +4,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 
 #include <algorithm>
-#include <memory>
 
 #include "Common/Common.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -15,6 +14,7 @@ namespace ControllerEmu
 IMUAccelerometer::IMUAccelerometer(std::string name_, std::string ui_name_)
     : ControlGroup(std::move(name_), std::move(ui_name_), GroupType::IMUAccelerometer)
 {
+  MarkAdvancedConfigBegin();
   AddInput(Translatability::Translate, _trans("Up"));
   AddInput(Translatability::Translate, _trans("Down"));
   AddInput(Translatability::Translate, _trans("Left"));

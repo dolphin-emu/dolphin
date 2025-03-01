@@ -8,9 +8,7 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
@@ -31,6 +29,8 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
               // i18n: Refers to tilting an emulated Wii Remote.
               _trans("Maximum tilt angle.")},
              85, 0, 180);
+
+  MarkAdvancedConfigBegin();
 
   AddSetting(&m_max_rotational_velocity,
              {_trans("Velocity"),

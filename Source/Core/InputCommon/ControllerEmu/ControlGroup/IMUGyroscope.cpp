@@ -4,7 +4,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 
 #include <algorithm>
-#include <memory>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -26,13 +25,6 @@ static constexpr auto WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY = 25;
 IMUGyroscope::IMUGyroscope(std::string name_, std::string ui_name_)
     : ControlGroup(std::move(name_), std::move(ui_name_), GroupType::IMUGyroscope)
 {
-  AddInput(Translatability::Translate, _trans("Pitch Up"));
-  AddInput(Translatability::Translate, _trans("Pitch Down"));
-  AddInput(Translatability::Translate, _trans("Roll Left"));
-  AddInput(Translatability::Translate, _trans("Roll Right"));
-  AddInput(Translatability::Translate, _trans("Yaw Left"));
-  AddInput(Translatability::Translate, _trans("Yaw Right"));
-
   AddSetting(&m_deadzone_setting,
              {_trans("Dead Zone"),
               // i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
@@ -48,6 +40,14 @@ IMUGyroscope::IMUGyroscope(std::string name_, std::string ui_name_)
               // i18n: Refers to the "Calibration" setting of gyroscope input.
               _trans("Time period of stable input to trigger calibration. (zero to disable)")},
              3, 0, 30);
+
+  MarkAdvancedConfigBegin();
+  AddInput(Translatability::Translate, _trans("Pitch Up"));
+  AddInput(Translatability::Translate, _trans("Pitch Down"));
+  AddInput(Translatability::Translate, _trans("Roll Left"));
+  AddInput(Translatability::Translate, _trans("Roll Right"));
+  AddInput(Translatability::Translate, _trans("Yaw Left"));
+  AddInput(Translatability::Translate, _trans("Yaw Right"));
 }
 
 void IMUGyroscope::RestartCalibration()
