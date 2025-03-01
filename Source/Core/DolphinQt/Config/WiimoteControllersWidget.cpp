@@ -14,9 +14,6 @@
 #include <QScreen>
 #include <QVBoxLayout>
 
-#include <map>
-#include <optional>
-
 #include "Common/Config/Config.h"
 
 #include "Core/Config/MainSettings.h"
@@ -26,7 +23,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -37,8 +33,6 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/UICommon.h"
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {

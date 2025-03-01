@@ -12,19 +12,19 @@ class QHBoxLayout;
 class QLabel;
 class QVBoxLayout;
 
+class WiimoteEmuGeneral;
+
 class WiimoteEmuMotionControlIMU final : public MappingWidget
 {
   Q_OBJECT
 public:
-  explicit WiimoteEmuMotionControlIMU(MappingWindow* window);
+  explicit WiimoteEmuMotionControlIMU(MappingWindow* window, WiimoteEmuGeneral* wm_emu_general);
 
   InputConfig* GetConfig() override;
+
+  void OnAttachmentChanged(int number);
 
 private:
   void LoadSettings() override;
   void SaveSettings() override;
-  void CreateMainLayout();
-
-  // Main
-  QVBoxLayout* m_main_layout;
 };

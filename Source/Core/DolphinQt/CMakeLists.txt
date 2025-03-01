@@ -164,8 +164,6 @@ add_executable(dolphin-emu
   Config/Mapping/MappingWindow.h
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuExtension.h
-  Config/Mapping/WiimoteEmuExtensionMotionInput.cpp
-  Config/Mapping/WiimoteEmuExtensionMotionInput.h
   Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp
   Config/Mapping/WiimoteEmuExtensionMotionSimulation.h
   Config/Mapping/WiimoteEmuGeneral.cpp

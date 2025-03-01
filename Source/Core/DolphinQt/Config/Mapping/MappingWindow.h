@@ -4,7 +4,6 @@
 #pragma once
 
 #include <QDialog>
-#include <QString>
 
 namespace ControllerEmu
 {
@@ -51,10 +50,11 @@ public:
 
   int GetPort() const;
   ControllerEmu::EmulatedController* GetController() const;
+
   bool IsCreateOtherDeviceMappingsEnabled() const;
   bool IsWaitForAlternateMappingsEnabled() const;
   bool IsIterativeMappingEnabled() const;
-  void ShowExtensionMotionTabs(bool show);
+
   void ActivateExtensionTab();
 
 signals:
@@ -124,10 +124,6 @@ private:
   QPushButton* m_reset_clear;
 
   QTabWidget* m_tab_widget;
-  QWidget* m_extension_motion_input_tab;
-  QWidget* m_extension_motion_simulation_tab;
-  const QString EXTENSION_MOTION_INPUT_TAB_NAME = tr("Extension Motion Input");
-  const QString EXTENSION_MOTION_SIMULATION_TAB_NAME = tr("Extension Motion Simulation");
 
   Type m_mapping_type;
   const int m_port;

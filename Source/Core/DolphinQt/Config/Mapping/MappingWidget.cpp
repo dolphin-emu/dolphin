@@ -55,9 +55,16 @@ QGroupBox* MappingWidget::CreateGroupBox(ControllerEmu::ControlGroup* group)
 QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group)
 {
   QGroupBox* group_box = new QGroupBox(name);
-  QFormLayout* form_layout = new QFormLayout();
+  QFormLayout* form_layout = new QFormLayout{group_box};
 
-  group_box->setLayout(form_layout);
+  // "Enable" button:
+  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
+  {
+    QCheckBox* group_enable_checkbox = new QCheckBox();
+    form_layout->addRow(tr("Enable"), group_enable_checkbox);
+    connect(this, &MappingWidget::ConfigChanged, this,
+            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
+  }
 
   MappingIndicator* indicator = nullptr;
 
@@ -129,46 +136,10 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     }
   }
 
-  for (auto& control : group->controls | std::views::take(group->GetNormalControlCount()))
-    CreateControl(control.get(), form_layout, !indicator);
-
-  for (auto& setting : group->numeric_settings | std::views::take(group->GetNormalSettingCount()))
-    CreateSetting(setting.get(), form_layout);
-
-  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
-  {
-    QLabel* group_enable_label = new QLabel(tr("Enable"));
-    QCheckBox* group_enable_checkbox = new QCheckBox();
-    group_enable_checkbox->setChecked(group->enabled);
-    form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
-    auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
-                                     group_enable_checkbox] {
-      group->enabled = group_enable_checkbox->isChecked();
-      for (int i = 0; i < form_layout->count(); ++i)
-      {
-        QWidget* widget = form_layout->itemAt(i)->widget();
-        if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
-          widget->setEnabled(group->enabled);
-      }
-    };
-    enable_group_by_checkbox();
-    connect(group_enable_checkbox, &QCheckBox::toggled, this, enable_group_by_checkbox);
-    connect(this, &MappingWidget::ConfigChanged, this,
-            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
-  }
-
-  if (group->GetAdvancedSettingCount() != 0 || group->GetAdvancedControlCount() != 0)
-  {
-    const auto advanced_button = new QPushButton(tr("Advanced"));
-    form_layout->addRow(advanced_button);
-    connect(advanced_button, &QPushButton::clicked,
-            [this, group] { ShowAdvancedControlGroupDialog(group); });
-  }
-
   if (group->type == ControllerEmu::GroupType::Cursor)
   {
     QPushButton* mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
-    form_layout->insertRow(2, mouse_button);
+    form_layout->addRow(mouse_button);
 
     using ControllerEmu::Cursor;
     connect(mouse_button, &QCheckBox::clicked, [this, grp = static_cast<Cursor*>(group)] {
@@ -188,6 +159,37 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       emit ConfigChanged();
       GetController()->UpdateReferences(g_controller_interface);
     });
+  }
+
+  // Normal controls:
+  for (auto& control : group->controls | std::views::take(group->GetNormalControlCount()))
+  {
+    auto* const button = CreateControl(control.get(), form_layout, !indicator);
+
+    if (!control->control_ref->IsInput())
+      continue;
+
+    if (m_previous_mapping_button)
+    {
+      connect(m_previous_mapping_button, &MappingButton::QueueNextButtonMapping,
+              [this, button]() { m_parent->QueueInputDetection(button); });
+    }
+    m_previous_mapping_button = button;
+  }
+
+  // Normal settings:
+  for (auto& setting : group->numeric_settings | std::views::take(group->GetNormalSettingCount()))
+    CreateSetting(setting.get(), form_layout);
+
+  // Create "Advanced" button as necessary:
+  if (group->GetAdvancedSettingCount() != 0 || group->GetAdvancedControlCount() != 0)
+  {
+    const auto advanced_button = new QPushButton(tr("Advanced"));
+    advanced_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    form_layout->addRow(advanced_button);
+    connect(advanced_button, &QPushButton::clicked,
+            [this, group] { ShowAdvancedControlGroupDialog(group); });
   }
 
   return group_box;
@@ -303,8 +305,8 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
   return group_box;
 }
 
-void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
-                                  bool indicator)
+MappingButton* MappingWidget::CreateControl(const ControllerEmu::Control* control,
+                                            QFormLayout* layout, bool indicator)
 {
   // I know this check is terrible, but it's just UI code.
   const bool is_modifier = control->name == "Modifier";
@@ -316,16 +318,6 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
           ControlType::Output;
 
   auto* const button = new MappingButton(this, control->control_ref.get(), control_type);
-
-  if (control->control_ref->IsInput())
-  {
-    if (m_previous_mapping_button)
-    {
-      connect(m_previous_mapping_button, &MappingButton::QueueNextButtonMapping,
-              [this, button]() { m_parent->QueueInputDetection(button); });
-    }
-    m_previous_mapping_button = button;
-  }
 
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -349,6 +341,8 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
   {
     layout->addRow(translated_name, button);
   }
+
+  return button;
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const

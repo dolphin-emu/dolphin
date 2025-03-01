@@ -5,20 +5,20 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
-#include "Core/HW/WiimoteEmu/ExtensionPort.h"
-
 class QGroupBox;
 class QHBoxLayout;
+
+class WiimoteEmuGeneral;
 
 class WiimoteEmuExtension final : public MappingWidget
 {
   Q_OBJECT
 public:
-  explicit WiimoteEmuExtension(MappingWindow* window);
+  explicit WiimoteEmuExtension(MappingWindow* window, WiimoteEmuGeneral* wm_emu_general);
 
   InputConfig* GetConfig() override;
 
-  void ChangeExtensionType(u32 type);
+  void ChangeExtensionType(int type);
 
 private:
   void LoadSettings() override;

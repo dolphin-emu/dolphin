@@ -16,6 +16,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 #include "Core/HotkeyManager.h"
 
 #include "Common/CommonPaths.h"
@@ -43,7 +44,6 @@
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
-#include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuGeneral.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
@@ -449,21 +449,21 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     break;
   case Type::MAPPING_WIIMOTE_EMU:
   {
-    auto* extension = new WiimoteEmuExtension(this);
-    auto* extension_motion_input = new WiimoteEmuExtensionMotionInput(this);
-    auto* extension_motion_simulation = new WiimoteEmuExtensionMotionSimulation(this);
-    widget = new WiimoteEmuGeneral(this, extension);
     setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
+    auto* const wm_general = new WiimoteEmuGeneral{this};
+    widget = wm_general;
     AddWidget(tr("General and Options"), widget);
     AddWidget(tr("Motion Simulation"), new WiimoteEmuMotionControl(this));
-    AddWidget(tr("Motion Input"), new WiimoteEmuMotionControlIMU(this));
-    AddWidget(tr("Extension"), extension);
-    m_extension_motion_simulation_tab =
-        AddWidget(EXTENSION_MOTION_SIMULATION_TAB_NAME, extension_motion_simulation);
-    m_extension_motion_input_tab =
-        AddWidget(EXTENSION_MOTION_INPUT_TAB_NAME, extension_motion_input);
-    // Hide tabs by default. "Nunchuk" selection triggers an event to show them.
-    ShowExtensionMotionTabs(false);
+    AddWidget(tr("Motion Input"), new WiimoteEmuMotionControlIMU(this, wm_general));
+    AddWidget(tr("Extension"), new WiimoteEmuExtension{this, wm_general});
+    auto* const ext_motion_sim_tab = new WiimoteEmuExtensionMotionSimulation(this);
+    connect(wm_general, &WiimoteEmuGeneral::AttachmentChanged, this,
+            [this, ext_motion_sim_tab](int attachment) {
+              if (WiimoteEmu::ExtensionNumber(attachment) == WiimoteEmu::NUNCHUK)
+                m_tab_widget->addTab(ext_motion_sim_tab, tr("Extension Motion Simulation"));
+              else
+                m_tab_widget->removeTab(4);
+            });
     break;
   }
   case Type::MAPPING_HOTKEYS:
@@ -582,20 +582,6 @@ void MappingWindow::OnClearFieldsPressed()
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
-}
-
-void MappingWindow::ShowExtensionMotionTabs(bool show)
-{
-  if (show)
-  {
-    m_tab_widget->addTab(m_extension_motion_simulation_tab, EXTENSION_MOTION_SIMULATION_TAB_NAME);
-    m_tab_widget->addTab(m_extension_motion_input_tab, EXTENSION_MOTION_INPUT_TAB_NAME);
-  }
-  else
-  {
-    m_tab_widget->removeTab(5);
-    m_tab_widget->removeTab(4);
-  }
 }
 
 void MappingWindow::ActivateExtensionTab()

@@ -7,15 +7,17 @@
 
 class QComboBox;
 class QLabel;
-class WiimoteEmuExtension;
 
 class WiimoteEmuGeneral final : public MappingWidget
 {
   Q_OBJECT
 public:
-  explicit WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension);
+  explicit WiimoteEmuGeneral(MappingWindow* window);
 
   InputConfig* GetConfig() override;
+
+signals:
+  void AttachmentChanged(int extension);
 
 private:
   void LoadSettings() override;
@@ -23,8 +25,6 @@ private:
   void CreateMainLayout();
   void Connect();
 
-  // Index changed by code/expression.
-  void OnAttachmentChanged(int index);
   // Selection chosen by user.
   void OnAttachmentSelected(int index);
 
@@ -35,6 +35,4 @@ private:
   QComboBox* m_extension_combo;
   QLabel* m_extension_combo_dynamic_indicator;
   QPushButton* m_configure_ext_button;
-
-  WiimoteEmuExtension* m_extension_widget;
 };
