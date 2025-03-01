@@ -104,8 +104,7 @@ OctagonAnalogStick::OctagonAnalogStick(const char* name_, const char* ui_name_,
        // i18n: The percent symbol.
        _trans("%"),
        // i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
-       _trans("Adjusts target radius of simulated stick gate."), nullptr,
-       SettingVisibility::Advanced},
+       _trans("Adjusts target radius of simulated stick gate.")},
       gate_radius * 100, 0.01, 100);
 }
 

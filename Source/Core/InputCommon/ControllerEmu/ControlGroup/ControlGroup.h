@@ -13,7 +13,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -108,13 +107,17 @@ public:
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
 
+  // Controls/Settings added after this call are located under "Advanced" in the UI.
+  void MarkAdvancedConfigBegin();
+
   size_t GetNormalControlCount() const;
   size_t GetAdvancedControlCount() const;
 
-protected:
-  void MarkAdvancedControlsBegin();
+  size_t GetNormalSettingCount() const;
+  size_t GetAdvancedSettingCount() const;
 
 private:
   size_t m_advanced_controls_begin = -1;
+  size_t m_advanced_settings_begin = -1;
 };
 }  // namespace ControllerEmu

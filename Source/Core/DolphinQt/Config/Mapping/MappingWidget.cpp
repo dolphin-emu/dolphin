@@ -132,7 +132,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& control : group->controls | std::views::take(group->GetNormalControlCount()))
     CreateControl(control.get(), form_layout, !indicator);
 
-  AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Normal);
+  for (auto& setting : group->numeric_settings | std::views::take(group->GetNormalSettingCount()))
+    CreateSetting(setting.get(), form_layout);
 
   if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
   {
@@ -156,12 +157,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
             [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
 
-  const auto advanced_setting_count = std::count_if(
-      group->numeric_settings.begin(), group->numeric_settings.end(), [](auto& setting) {
-        return setting->GetVisibility() == ControllerEmu::SettingVisibility::Advanced;
-      });
-
-  if (advanced_setting_count != 0 || group->GetAdvancedControlCount() != 0)
+  if (group->GetAdvancedSettingCount() != 0 || group->GetAdvancedControlCount() != 0)
   {
     const auto advanced_button = new QPushButton(tr("Advanced"));
     form_layout->addRow(advanced_button);
@@ -197,44 +193,37 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   return group_box;
 }
 
-void MappingWidget::AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
-                                      ControllerEmu::SettingVisibility visibility)
+void MappingWidget::CreateSetting(ControllerEmu::NumericSettingBase* setting, QFormLayout* layout)
 {
-  for (auto& setting : group->numeric_settings)
+  QWidget* setting_widget = nullptr;
+
+  switch (setting->GetType())
   {
-    if (setting->GetVisibility() != visibility)
-      continue;
+  case ControllerEmu::SettingType::Double:
+    setting_widget =
+        new MappingDouble(this, static_cast<ControllerEmu::NumericSetting<double>*>(setting));
+    break;
 
-    QWidget* setting_widget = nullptr;
+  case ControllerEmu::SettingType::Bool:
+    setting_widget =
+        new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting));
+    break;
 
-    switch (setting->GetType())
-    {
-    case ControllerEmu::SettingType::Double:
-      setting_widget = new MappingDouble(
-          this, static_cast<ControllerEmu::NumericSetting<double>*>(setting.get()));
-      break;
+  default:
+    // FYI: Widgets for additional types can be implemented as needed.
+    break;
+  }
 
-    case ControllerEmu::SettingType::Bool:
-      setting_widget =
-          new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
-      break;
+  if (setting_widget)
+  {
+    const auto hbox = new QHBoxLayout;
 
-    default:
-      // FYI: Widgets for additional types can be implemented as needed.
-      break;
-    }
+    hbox->addWidget(setting_widget);
+    setting_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    if (setting_widget)
-    {
-      const auto hbox = new QHBoxLayout;
+    hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
 
-      hbox->addWidget(setting_widget);
-      setting_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-      hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
-
-      layout->addRow(tr(setting->GetUIName()), hbox);
-    }
+    layout->addRow(tr(setting->GetUIName()), hbox);
   }
 }
 
@@ -250,7 +239,8 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
   for (auto& control : group->controls | std::views::drop(group->GetNormalControlCount()))
     CreateControl(control.get(), form_layout, true);
 
-  AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Advanced);
+  for (auto& setting : group->numeric_settings | std::views::drop(group->GetNormalSettingCount()))
+    CreateSetting(setting.get(), form_layout);
 
   const auto reset_button = new QPushButton(tr("Reset All"));
   form_layout->addRow(reset_button);
@@ -259,13 +249,8 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
     for (auto& control : group->controls | std::views::drop(group->GetNormalControlCount()))
       control->control_ref->SetExpression("");
 
-    for (auto& setting : group->numeric_settings)
-    {
-      if (setting->GetVisibility() != ControllerEmu::SettingVisibility::Advanced)
-        continue;
-
+    for (auto& setting : group->numeric_settings | std::views::drop(group->GetNormalSettingCount()))
       setting->SetToDefault();
-    }
 
     emit ConfigChanged();
   });

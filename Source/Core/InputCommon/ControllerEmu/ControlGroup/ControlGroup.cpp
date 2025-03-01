@@ -32,8 +32,7 @@ void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double ma
   AddSetting(value,
              {_trans("Virtual Notches"),
               // i18n: The degrees symbol.
-              _trans("°"), _trans("Snap the thumbstick position to the nearest octagonal axis."),
-              nullptr, SettingVisibility::Advanced},
+              _trans("°"), _trans("Snap the thumbstick position to the nearest octagonal axis.")},
              0, 0, max_virtual_notch_deg);
 }
 
@@ -178,9 +177,20 @@ size_t ControlGroup::GetAdvancedControlCount() const
   return controls.size() - GetNormalControlCount();
 }
 
-void ControlGroup::MarkAdvancedControlsBegin()
+size_t ControlGroup::GetNormalSettingCount() const
+{
+  return std::min(m_advanced_settings_begin, numeric_settings.size());
+}
+
+size_t ControlGroup::GetAdvancedSettingCount() const
+{
+  return numeric_settings.size() - GetNormalSettingCount();
+}
+
+void ControlGroup::MarkAdvancedConfigBegin()
 {
   m_advanced_controls_begin = controls.size();
+  m_advanced_settings_begin = numeric_settings.size();
 }
 
 }  // namespace ControllerEmu
