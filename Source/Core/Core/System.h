@@ -108,7 +108,8 @@ class SystemTimersManager;
 }
 namespace VideoCommon
 {
-}
+class CustomResourceManager;
+}  // namespace VideoCommon
 namespace VideoInterface
 {
 class VideoInterfaceManager;
@@ -196,6 +197,7 @@ public:
   VertexShaderManager& GetVertexShaderManager() const;
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
+  VideoCommon::CustomResourceManager& GetCustomResourceManager() const;
 
 private:
   System();
