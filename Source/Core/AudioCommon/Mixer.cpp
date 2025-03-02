@@ -14,6 +14,7 @@
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "VideoCommon/PerformanceMetrics.h"
 
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
@@ -60,10 +61,8 @@ void Mixer::DoState(PointerWrap& p)
 // Executed from sound stream thread
 unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
                                    bool consider_framelimit, float emulationspeed,
-                                   int timing_variance)
+                                   bool should_resync, int timing_variance)
 {
-  unsigned int currentSample = 0;
-
   // Cache access in non-volatile variable
   // This is the only function changing the read value, so it's safe to
   // cache it locally although it's written here.
@@ -88,6 +87,15 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
                         (static_cast<u64>(m_input_sample_rate_divisor) * 1000);
     low_watermark = std::min(low_watermark, MAX_SAMPLES / 2);
 
+    // When the writer exits fast-forward, throw away extra audio beyond low_watermark.
+    if (should_resync && numLeft > low_watermark)
+    {
+      numLeft = m_numLeftI = low_watermark;
+      indexR = (indexW - 2 * low_watermark) & INDEX_MASK;
+      // Verify that numLeft is correct (using its initial formula).
+      ASSERT(numLeft == static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2));
+    }
+
     m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
     float offset = (m_numLeftI - low_watermark) * CONTROL_FACTOR;
     if (offset > MAX_FREQ_SHIFT)
@@ -107,6 +115,7 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
     return m_little_endian ? m_buffer[index] : Common::swap16(m_buffer[index]);
   };
 
+  unsigned int currentSample = 0;
   // TODO: consider a higher-quality resampling algorithm.
   for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2)
   {
@@ -178,17 +187,17 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
     m_scratch_buffer.fill(0);
 
-    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed, false,
                     timing_variance);
-    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed, false,
                           timing_variance);
     m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                                timing_variance);
+                                false, timing_variance);
     m_skylander_portal_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                                 timing_variance);
+                                 false, timing_variance);
     for (auto& mixer : m_gba_mixers)
     {
-      mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+      mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed, false,
                 timing_variance);
     }
 
@@ -202,12 +211,24 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
   }
   else
   {
-    m_dma_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_streaming_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_wiimote_speaker_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_skylander_portal_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
+    const bool is_fast_forwarding = Core::GetIsThrottlerTempDisabled();
+    const bool should_resync = m_was_fast_forwarding && !is_fast_forwarding;
+    m_was_fast_forwarding = is_fast_forwarding;
+
+    if (should_resync)
+    {
+      INFO_LOG_FMT(AUDIO, "Resyncing after fast forward");
+    }
+
+    m_dma_mixer.Mix(samples, num_samples, true, emulation_speed, should_resync, timing_variance);
+    m_streaming_mixer.Mix(samples, num_samples, true, emulation_speed, should_resync,
+                          timing_variance);
+    m_wiimote_speaker_mixer.Mix(samples, num_samples, true, emulation_speed, should_resync,
+                                timing_variance);
+    m_skylander_portal_mixer.Mix(samples, num_samples, true, emulation_speed, should_resync,
+                                 timing_variance);
     for (auto& mixer : m_gba_mixers)
-      mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
+      mixer.Mix(samples, num_samples, true, emulation_speed, should_resync, timing_variance);
     m_is_stretching = false;
   }
 
