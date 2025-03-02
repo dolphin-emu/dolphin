@@ -147,8 +147,7 @@ void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results* detections)
   std::erase_if(*detections, is_spurious);
 }
 
-void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results* results,
-                                    Core::DeviceContainer::Clock::time_point after)
+void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results* results, Clock::time_point after)
 {
   const auto is_after_time = [&](const Core::InputDetector::Detection& detection) {
     return detection.release_time.value_or(after) >= after;
