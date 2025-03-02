@@ -13,6 +13,8 @@ add_library(videocommon
   Assets/CustomAssetLibrary.h
   Assets/CustomAssetLoader.cpp
   Assets/CustomAssetLoader.h
+  Assets/CustomResourceManager.cpp
+  Assets/CustomResourceManager.h
   Assets/CustomTextureData.cpp
   Assets/CustomTextureData.h
   Assets/DirectFilesystemAssetLibrary.cpp

@@ -669,6 +669,8 @@
     <ClInclude Include="VideoCommon\AbstractTexture.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAssetLoader.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomResourceManager.h" />
     <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\MaterialAsset.h" />
@@ -1323,6 +1325,8 @@
     <ClCompile Include="VideoCommon\AbstractStagingTexture.cpp" />
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAssetLoader.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomResourceManager.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\Assets\MaterialAsset.cpp" />
