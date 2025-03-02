@@ -1,0 +1,19 @@
+<wiidisc version="1">
+	<options>
+		<section name="Fix VP6 video decoding">
+			<option name="Fix IDct10_GC" id="fixvp6_10" default="1">
+				<choice name="Enabled"><patch id="fixvp6_10" /></choice>
+			</option>
+			<option name="Fix idctcolumn64 (called from IDct64_GC)" id="fixvp6_64" default="1">
+				<choice name="Enabled"><patch id="fixvp6_64" /></choice>
+			</option>
+		</section>
+	</options>
+	<patch id="fixvp6_10">
+		<memory original="1260585012010272122302f212470272126504f2129088281230882a12b298281273982a" value="1260585012010272122302f212470272126504f2129088281230882a12b298281272982a" search="true" align="4" />
+	</patch>
+	<patch id="fixvp6_64">
+        <!-- idctcolumn64(): "ps_add f19,f19,f19" -> "ps_add f19,f18,f19" -->
+		<memory original="12010272122302f21247027212630372120783fa12258b7a124193fc12659afc129088281230882a12b298281273982a" value="12010272122302f21247027212630372120783fa12258b7a124193fc12659afc129088281230882a12b298281272982a" search="true" align="4" />
+	</patch>
+</wiidisc>
