@@ -26,18 +26,13 @@ void WriteLightingFunction(ShaderCode& out)
   out.Write("  case {:s}:\n", AttenuationFunc::Dir);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = 1.0;\n"
-            "    if (length(ldir) == 0.0)\n"
-            "      ldir = normal;\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", AttenuationFunc::Spec);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = (dot(normal, ldir) >= 0.0) ? max(0.0, dot(normal, " I_LIGHTS
             "[index].dir.xyz)) : 0.0;\n"
-            "    cosAttn = " I_LIGHTS "[index].cosatt.xyz;\n");
-  out.Write("    if (diffusefunc == {:s})\n", DiffuseFunc::None);
-  out.Write("      distAttn = " I_LIGHTS "[index].distatt.xyz;\n"
-            "    else\n"
-            "      distAttn = normalize(" I_LIGHTS "[index].distatt.xyz);\n"
+            "    cosAttn = " I_LIGHTS "[index].cosatt.xyz;\n"
+            "    distAttn = " I_LIGHTS "[index].distatt.xyz;\n"
             "    attn = max(0.0, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
             "float3(1.0, attn, attn*attn));\n"
             "    break;\n\n");
