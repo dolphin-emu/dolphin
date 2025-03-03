@@ -59,6 +59,7 @@
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FatFsUtil.h" />
     <ClInclude Include="Common\FileSearch.h" />
+    <ClInclude Include="Common\FilesystemWatcher.h" />
     <ClInclude Include="Common\FileUtil.h" />
     <ClInclude Include="Common\FixedSizeQueue.h" />
     <ClInclude Include="Common\Flag.h" />
@@ -813,6 +814,7 @@
     <ClCompile Include="Common\ENet.cpp" />
     <ClCompile Include="Common\FatFsUtil.cpp" />
     <ClCompile Include="Common\FileSearch.cpp" />
+    <ClCompile Include="Common\FilesystemWatcher.cpp" />
     <ClCompile Include="Common\FileUtil.cpp" />
     <ClCompile Include="Common\FloatUtils.cpp" />
     <ClCompile Include="Common\GekkoDisassembler.cpp" />
