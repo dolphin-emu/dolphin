@@ -170,7 +170,7 @@ public:
       // Ignore the mouse-click that queued this new detection and finalize the current mapping.
       auto results = m_input_detector->TakeResults();
       ciface::MappingCommon::RemoveDetectionsAfterTimePoint(
-          &results, ciface::Core::DeviceContainer::Clock::now() - INPUT_DETECT_ENDING_IGNORE_TIME);
+          &results, Clock::now() - INPUT_DETECT_ENDING_IGNORE_TIME);
       FinalizeMapping(&results);
     }
     UpdateInputDetectionStartTimer();

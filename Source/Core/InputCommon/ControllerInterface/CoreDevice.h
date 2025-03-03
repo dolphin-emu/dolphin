@@ -210,8 +210,6 @@ public:
 class DeviceContainer
 {
 public:
-  using Clock = std::chrono::steady_clock;
-
   struct InputDetection
   {
     std::shared_ptr<Device> device;
