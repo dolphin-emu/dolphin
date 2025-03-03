@@ -696,11 +696,6 @@ if (APPLE OR WIN32)
   include_directories(Externals/ed25519)
 endif()
 
-# Using static soundtouch from Externals
-# Unable to use system soundtouch library: We require shorts, not floats.
-add_subdirectory(Externals/soundtouch)
-include_directories(Externals/soundtouch)
-
 if(ENABLE_CUBEB)
   dolphin_find_optional_system_library(CUBEB Externals/cubeb)
   add_definitions(-DHAVE_CUBEB)

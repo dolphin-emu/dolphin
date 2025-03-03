@@ -3,10 +3,12 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <atomic>
+#include <bit>
+#include <cmath>
 
-#include "AudioCommon/AudioStretcher.h"
 #include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
@@ -17,32 +19,32 @@ class PointerWrap;
 class Mixer final
 {
 public:
-  explicit Mixer(unsigned int BackendSampleRate);
+  explicit Mixer(u32 BackendSampleRate);
   ~Mixer();
 
   void DoState(PointerWrap& p);
 
   // Called from audio threads
-  unsigned int Mix(short* samples, unsigned int numSamples);
-  unsigned int MixSurround(float* samples, unsigned int num_samples);
+  std::size_t Mix(s16* samples, std::size_t numSamples);
+  std::size_t MixSurround(float* samples, std::size_t num_samples);
 
   // Called from main thread
-  void PushSamples(const short* samples, unsigned int num_samples);
-  void PushStreamingSamples(const short* samples, unsigned int num_samples);
-  void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
-                                 unsigned int sample_rate_divisor);
-  void PushSkylanderPortalSamples(const u8* samples, unsigned int num_samples);
-  void PushGBASamples(int device_number, const short* samples, unsigned int num_samples);
+  void PushSamples(const s16* samples, std::size_t num_samples);
+  void PushStreamingSamples(const s16* samples, std::size_t num_samples);
+  void PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
+                                 u32 sample_rate_divisor);
+  void PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples);
+  void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
-  unsigned int GetSampleRate() const { return m_sampleRate; }
+  u32 GetSampleRate() const { return m_output_sample_rate; }
 
-  void SetDMAInputSampleRateDivisor(unsigned int rate_divisor);
-  void SetStreamInputSampleRateDivisor(unsigned int rate_divisor);
-  void SetGBAInputSampleRateDivisors(int device_number, unsigned int rate_divisor);
+  void SetDMAInputSampleRateDivisor(u32 rate_divisor);
+  void SetStreamInputSampleRateDivisor(u32 rate_divisor);
+  void SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor);
 
-  void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
-  void SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume);
-  void SetGBAVolume(int device_number, unsigned int lvolume, unsigned int rvolume);
+  void SetStreamingVolume(u32 lvolume, u32 rvolume);
+  void SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume);
+  void SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume);
 
   void StartLogDTKAudio(const std::string& filename);
   void StopLogDTKAudio();
@@ -54,44 +56,105 @@ public:
   static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
 
 private:
-  static constexpr u32 MAX_SAMPLES = 1024 * 4;  // 128 ms
-  static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
-  static constexpr int MAX_FREQ_SHIFT = 200;  // Per 32000 Hz
-  static constexpr float CONTROL_FACTOR = 0.2f;
-  static constexpr u32 CONTROL_AVG = 32;  // In freq_shift per FIFO size offset
-
-  const unsigned int SURROUND_CHANNELS = 6;
+  const std::size_t SURROUND_CHANNELS = 6;
 
   class MixerFifo final
   {
+    static constexpr std::size_t GRANULE_QUEUE_SIZE = 20;
+
+    template <typename T>
+    static s16 ToShort(const T x)
+    {
+      return static_cast<s16>(std::clamp<T>(x, static_cast<T>(std::numeric_limits<s16>::min()),
+                                            static_cast<T>(std::numeric_limits<s16>::max())));
+    }
+    struct StereoPair final
+    {
+      float l = 0.f;
+      float r = 0.f;
+
+      constexpr StereoPair() = default;
+      constexpr explicit StereoPair(float mono) : l(mono), r(mono) {}
+      constexpr StereoPair(float left, float right) : l(left), r(right) {}
+      constexpr StereoPair(s16 left, s16 right) : l(left), r(right) {}
+
+      StereoPair operator+(const StereoPair& other) const
+      {
+        return StereoPair(l + other.l, r + other.r);
+      }
+
+      StereoPair& operator*=(const StereoPair& other)
+      {
+        l *= other.l;
+        r *= other.r;
+        return *this;
+      }
+    };
+
+    static constexpr std::size_t GRANULE_BUFFER_SIZE = 256;
+    static constexpr std::size_t GRANULE_BUFFER_MASK = GRANULE_BUFFER_SIZE - 1;
+    static constexpr std::size_t GRANULE_BUFFER_BITS = std::countr_one(GRANULE_BUFFER_MASK);
+    static constexpr std::size_t GRANULE_BUFFER_FRAC_BITS = 32 - GRANULE_BUFFER_BITS;
+
+    using GranuleBuffer = std::array<StereoPair, GRANULE_BUFFER_SIZE>;
+    class Granule final
+    {
+    public:
+      constexpr Granule() = default;
+      constexpr Granule(const GranuleBuffer& input, std::size_t start_index);
+
+      static StereoPair InterpStereoPair(const Granule& front, const Granule& back, u32 frac);
+
+      Granule& operator*=(const StereoPair& x)
+      {
+        for (auto& sample : m_buffer)
+          sample *= x;
+        return *this;
+      }
+
+    private:
+      GranuleBuffer m_buffer{};
+    };
+
   public:
-    MixerFifo(Mixer* mixer, unsigned sample_rate_divisor, bool little_endian)
+    MixerFifo(Mixer* mixer, u32 sample_rate_divisor, bool little_endian)
         : m_mixer(mixer), m_input_sample_rate_divisor(sample_rate_divisor),
           m_little_endian(little_endian)
     {
     }
     void DoState(PointerWrap& p);
-    void PushSamples(const short* samples, unsigned int num_samples);
-    unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit,
-                     float emulationspeed, int timing_variance);
-    void SetInputSampleRateDivisor(unsigned int rate_divisor);
-    unsigned int GetInputSampleRateDivisor() const;
-    void SetVolume(unsigned int lvolume, unsigned int rvolume);
+    void PushSamples(const s16* samples, std::size_t num_samples);
+    void Mix(s16* samples, std::size_t num_samples);
+    void SetInputSampleRateDivisor(u32 rate_divisor);
+    u32 GetInputSampleRateDivisor() const;
+    void SetVolume(u32 lvolume, u32 rvolume);
     std::pair<s32, s32> GetVolume() const;
-    unsigned int AvailableSamples() const;
 
   private:
     Mixer* m_mixer;
-    unsigned m_input_sample_rate_divisor;
+    u32 m_input_sample_rate_divisor;
     bool m_little_endian;
-    std::array<short, MAX_SAMPLES * 2> m_buffer{};
-    std::atomic<u32> m_indexW{0};
-    std::atomic<u32> m_indexR{0};
+
+    std::size_t m_buffer_index = 0;
+    GranuleBuffer m_buffer{};
+
+    u32 m_current_index = 0;
+    Granule m_front, m_back;
+
+    std::array<Granule, GRANULE_QUEUE_SIZE> m_queue;
+    std::atomic<std::size_t> m_queue_head{0};
+    std::atomic<std::size_t> m_queue_tail{0};
+    std::atomic<bool> m_queue_looping{false};
+    std::size_t m_queue_fade_index = 0;
+
+    void Enqueue(const Granule& granule);
+    void Dequeue(Granule* granule);
+
     // Volume ranges from 0-256
     std::atomic<s32> m_LVolume{256};
     std::atomic<s32> m_RVolume{256};
-    float m_numLeftI = 0.0f;
-    u32 m_frac = 0;
+
+    StereoPair m_quantization_error;
   };
 
   void RefreshConfig();
@@ -104,12 +167,9 @@ private:
                                         MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
                                         MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
                                         MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true}};
-  unsigned int m_sampleRate;
+  u32 m_output_sample_rate;
 
-  bool m_is_stretching = false;
-  AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
-  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer{};
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
@@ -118,8 +178,7 @@ private:
   bool m_log_dsp_audio = false;
 
   float m_config_emulation_speed;
-  int m_config_timing_variance;
-  bool m_config_audio_stretch;
+  bool m_audio_fill_gaps = true;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

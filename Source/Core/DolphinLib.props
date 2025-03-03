@@ -2,7 +2,6 @@
 <Project>
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
-    <ClInclude Include="AudioCommon\AudioStretcher.h" />
     <ClInclude Include="AudioCommon\CubebStream.h" />
     <ClInclude Include="AudioCommon\CubebUtils.h" />
     <ClInclude Include="AudioCommon\Enums.h" />
@@ -769,7 +768,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AudioCommon\AudioCommon.cpp" />
-    <ClCompile Include="AudioCommon\AudioStretcher.cpp" />
     <ClCompile Include="AudioCommon\CubebStream.cpp" />
     <ClCompile Include="AudioCommon\CubebUtils.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
