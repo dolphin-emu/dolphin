@@ -533,9 +533,9 @@ class SettingsFragmentPresenter(
         sl.add(
             SwitchSetting(
                 context,
-                BooleanSetting.MAIN_AUDIO_STRETCH,
-                R.string.audio_stretch,
-                R.string.audio_stretch_description
+                BooleanSetting.MAIN_AUDIO_FILL_GAPS,
+                R.string.audio_fill_gaps,
+                R.string.audio_fill_gaps_description
             )
         )
         sl.add(

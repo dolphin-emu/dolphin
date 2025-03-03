@@ -1,8 +1,6 @@
 add_library(audiocommon
   AudioCommon.cpp
   AudioCommon.h
-  AudioStretcher.cpp
-  AudioStretcher.h
   CubebStream.h
   Enums.h
   Mixer.cpp
@@ -90,7 +88,6 @@ PUBLIC
   common
 
 PRIVATE
-  SoundTouch
   FreeSurround)
 
 if(ENABLE_CUBEB)

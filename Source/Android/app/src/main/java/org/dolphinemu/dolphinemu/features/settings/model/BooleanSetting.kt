@@ -30,7 +30,7 @@ enum class BooleanSetting(
         "OverrideRegionSettings",
         false
     ),
-    MAIN_AUDIO_STRETCH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioStretch", false),
+    MAIN_AUDIO_FILL_GAPS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioFillGaps", true),
     MAIN_BBA_XLINK_CHAT_OSD(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,
