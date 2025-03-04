@@ -95,6 +95,10 @@ public:
   void Init();
   void Shutdown();
 
+  // Needed when the host-time changes from the guest's perspective.
+  // e.g. state-load or resume-from-pause
+  void Resume();
+
   // This should only be called from the CPU thread, if you are calling it any other thread, you are
   // doing something evil
   u64 GetTicks() const;

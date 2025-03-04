@@ -195,11 +195,12 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // The exact layout of the heap in memory is implementation defined, therefore it is platform
     // and library version specific.
     std::ranges::make_heap(m_event_queue, std::ranges::greater{});
-
-    // The stave state has changed the time, so our previous Throttle targets are invalid.
-    // Especially when global_time goes down; So we create a fake throttle update.
-    ResetThrottle(m_globals.global_timer);
   }
+}
+
+void CoreTimingManager::Resume()
+{
+  ResetThrottle(m_globals.global_timer);
 }
 
 // This should only be called from the CPU thread. If you are calling
@@ -382,24 +383,29 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
       Clock::duration{std::chrono::seconds{elapsed_cycles}} / m_throttle_adj_clock_per_sec;
 
   const TimePoint time = Clock::now();
-  // If Core fails to keep accurate time within the fallback range we adjust the reference values,
-  //  no longer keeping proper overall emulation progress.
-  const TimePoint min_target = time - m_max_fallback;
-  const TimePoint max_target = time + m_max_fallback;
 
-  if (target_time < min_target)
+  // Zero disables fallback, or could be considered "infinite" fallback.
+  if (m_max_fallback != DT::zero())
   {
-    // Core is running too slow.. i.e. CPU bottleneck.
-    DEBUG_LOG_FMT(CORE, "Core can not keep up with timings! [relaxing timings by {} ms]",
-                  DT_ms(min_target - target_time).count());
-    ResetThrottle(target_cycle);
-    target_time = min_target;
-  }
-  else if (target_time > max_target)
-  {
-    // Core has run too-far too-fast somehow..
-    ResetThrottle(target_cycle);
-    target_time = max_target;
+    // If Core fails to keep accurate time within the fallback range we adjust the reference values,
+    //  no longer keeping proper overall emulation progress.
+    const TimePoint min_target = time - m_max_fallback;
+    const TimePoint max_target = time + m_max_fallback;
+
+    if (target_time < min_target)
+    {
+      // Core is running too slow.. i.e. CPU bottleneck.
+      DEBUG_LOG_FMT(CORE, "Core can not keep up with timings! [relaxing timings by {} ms]",
+                    DT_ms(min_target - target_time).count());
+      ResetThrottle(target_cycle);
+      target_time = min_target;
+    }
+    else if (target_time > max_target)
+    {
+      // Core has run too-far too-fast somehow..
+      ResetThrottle(target_cycle);
+      target_time = max_target;
+    }
   }
 
   UpdateVISkip(time, target_time);
@@ -448,7 +454,8 @@ TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 
 void CoreTimingManager::UpdateVISkip(TimePoint current_time, TimePoint target_time)
 {
-  const DT vi_fallback = std::min(m_max_variance, m_max_fallback);
+  const DT vi_fallback =
+      (m_max_fallback == DT::zero()) ? m_max_variance : std::min(m_max_variance, m_max_fallback);
 
   // Skip the VI interrupt if the CPU is lagging by a certain amount.
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
