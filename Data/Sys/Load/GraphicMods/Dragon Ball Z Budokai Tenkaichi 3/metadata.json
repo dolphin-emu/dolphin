@@ -165,7 +165,7 @@
 				
 				{
                     "type": "draw_started",
-                    "prettyname": "Buttom Prompt Y",
+                    "prettyname": "Button Prompt Y",
                     "texture_filename": "tex1_32x32_15f350b2b7f46481_66860824280a89bf_8"
                 },
 				{
@@ -180,7 +180,7 @@
                 },
 				{
                     "type": "draw_started",
-                    "prettyname": "Buttom Prompt B",
+                    "prettyname": "Button Prompt B",
                     "texture_filename": "tex1_32x32_ce62786fc1170192_70b585e07941e91c_8"
                 },
 				{
@@ -195,7 +195,7 @@
                 },
 				{
                     "type": "draw_started",
-                    "prettyname": "Buttom Prompt X",
+                    "prettyname": "Button Prompt X",
                     "texture_filename": "tex1_32x32_b52817e68be0e2d7_d1b283ce04ce1c7c_8"
                 },
 				{
@@ -205,7 +205,7 @@
                 },
 				{
                     "type": "draw_started",
-                    "prettyname": "Buttom Prompt A",
+                    "prettyname": "Button Prompt A",
                     "texture_filename": "tex1_32x32_630cfa888a9d005a_d95570935377e345_8"
                 },
 				{
