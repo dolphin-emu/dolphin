@@ -687,14 +687,27 @@ float VideoInterfaceManager::GetAspectRatio() const
 
 void VideoInterfaceManager::UpdateParameters()
 {
-  u32 equ_hl = 3 * m_vertical_timing_register.EQU;
-  u32 acv_hl = 2 * m_vertical_timing_register.ACV;
-  m_odd_field_first_hl = equ_hl + m_vblank_timing_odd.PRB;
-  m_odd_field_last_hl = m_odd_field_first_hl + acv_hl - 1;
+  const u32 equ_hl = 3 * m_vertical_timing_register.EQU;
+  const u32 acv_hl = 2 * m_vertical_timing_register.ACV;
 
-  m_even_field_first_hl = equ_hl + m_vblank_timing_even.PRB + GetHalfLinesPerOddField();
+  // Odd field:
+  m_odd_field_first_hl = equ_hl + m_vblank_timing_odd.PRB;
+  const u32 odd_field_end = m_odd_field_first_hl + acv_hl;
+  m_odd_field_last_hl = odd_field_end - 1;
+
+  // Many GC games establish differing PRB/PSB values for odd/even fields.
+  // Added together they are equal, but because we OutputField *before* PSB
+  //  that can result in inconsistent pacing between odd/even fields.
+  // This will adjust the even-field to match the odd-field pacing,
+  //  accounting for the otherwise-ignored even-field PSB.
+  const s32 odd_even_psb_diff = m_vblank_timing_odd.PSB - m_vblank_timing_even.PSB;
+
+  // Even field:
+  m_even_field_first_hl = odd_field_end + m_vblank_timing_odd.PSB + equ_hl +
+                          m_vblank_timing_even.PRB - odd_even_psb_diff;
   m_even_field_last_hl = m_even_field_first_hl + acv_hl - 1;
 
+  // Refresh rate:
   m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
   m_target_refresh_rate =
