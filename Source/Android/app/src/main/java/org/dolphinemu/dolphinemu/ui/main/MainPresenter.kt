@@ -17,6 +17,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateProgressBarDialogFragment
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.WADInstallOverwriteVersionFragment
 import org.dolphinemu.dolphinemu.fragments.AboutDialogFragment
 import org.dolphinemu.dolphinemu.model.GameFileCache
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
@@ -181,8 +182,17 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
             R.string.import_in_progress,
             0,
             {
-                val success = WiiUtils.installWAD(path!!)
-                val message =
+              val message: Int;
+              val isTitleVersionMismatch = WiiUtils.isTitleVersionMismatch(path!!);
+              if (isTitleVersionMismatch) {
+                    val fragment = WADInstallOverwriteVersionFragment.newInstance(path)
+                    fragment.show(
+                    activity.supportFragmentManager,
+                    WADInstallOverwriteVersionFragment.TAG
+                  )
+                }
+                val success = WiiUtils.installWAD(path, false)
+                message =
                     if (success) R.string.wad_install_success else R.string.wad_install_failure
                 activity.getString(message)
             })

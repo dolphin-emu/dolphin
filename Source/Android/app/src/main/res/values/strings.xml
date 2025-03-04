@@ -492,6 +492,8 @@
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
     <string name="system_menu_not_installed_title">Not installed</string>
     <string name="system_menu_not_installed_message">The Wii Menu isn\'t installed. Would you like to install it now?\n\nRoughly 110 MiB of data will be downloaded from the internet. A Wi-Fi connection is recommended.</string>
+    <string name="overwrite_installed_version">A different version of this title is already installed on the NAND. Installing this WAD will replace it irreversibly. Continue?</string>
+    <string name="title_already_installed">Already installed</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
