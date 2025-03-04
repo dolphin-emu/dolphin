@@ -40,6 +40,11 @@ private:
   QLabel* m_cpu_clock_override_slider_label;
   QLabel* m_cpu_clock_override_description;
 
+  QCheckBox* m_vi_clock_override_checkbox;
+  QSlider* m_vi_clock_override_slider;
+  QLabel* m_vi_clock_override_slider_label;
+  QLabel* m_vi_clock_override_description;
+
   QCheckBox* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;
 
