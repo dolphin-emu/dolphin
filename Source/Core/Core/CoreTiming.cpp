@@ -128,6 +128,8 @@ void CoreTimingManager::RefreshConfig()
 
   m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
 
+  m_correct_time_drift = Config::Get(Config::MAIN_CORRECT_TIME_DRIFT);
+
   if (AchievementManager::GetInstance().IsHardcoreModeActive() &&
       Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
       Config::Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
@@ -197,11 +199,12 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // The exact layout of the heap in memory is implementation defined, therefore it is platform
     // and library version specific.
     std::ranges::make_heap(m_event_queue, std::ranges::greater{});
-
-    // The stave state has changed the time, so our previous Throttle targets are invalid.
-    // Especially when global_time goes down; So we create a fake throttle update.
-    ResetThrottle(m_globals.global_timer);
   }
+}
+
+void CoreTimingManager::Resume()
+{
+  ResetThrottle(m_globals.global_timer);
 }
 
 // This should only be called from the CPU thread. If you are calling
@@ -424,7 +427,8 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   const TimePoint time = Clock::now();
 
-  const TimePoint min_target = time - m_max_fallback;
+  // "Correct Time Drift" setting prevents the timing relaxing.
+  const TimePoint min_target = m_correct_time_drift ? target_time : (time - m_max_fallback);
   if (target_time < min_target)
   {
     // Core is running too slow.. i.e. CPU bottleneck.
