@@ -1034,10 +1034,10 @@ void ZeldaAudioRenderer::PrepareFrame()
 
   // Prepare patterns 2/3 - they are not constant unlike 0/1.
   s16* pattern2 = m_const_patterns.data() + 2 * 0x40;
-  s32 yn2 = pattern2[0x40 - 2], yn1 = pattern2[0x40 - 1], v;
+  s32 yn2 = pattern2[0x40 - 2], yn1 = pattern2[0x40 - 1];
   for (int i = 0; i < 0x40; i += 2)
   {
-    v = yn2 * yn1 - (pattern2[i] << 16);
+    s32 v = yn2 * yn1 - (pattern2[i] << 16);
     yn2 = yn1;
     yn1 = pattern2[i];
     pattern2[i] = v >> 16;

@@ -34,11 +34,10 @@ static inline u32 DecodePixel_IA8(u16 val)
 
 static inline u32 DecodePixel_RGB565(u16 val)
 {
-  int r, g, b, a;
-  r = Convert5To8((val >> 11) & 0x1f);
-  g = Convert6To8((val >> 5) & 0x3f);
-  b = Convert5To8((val)&0x1f);
-  a = 0xFF;
+  int r = Convert5To8((val >> 11) & 0x1f);
+  int g = Convert6To8((val >> 5) & 0x3f);
+  int b = Convert5To8((val) & 0x1f);
+  int a = 0xFF;
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 
@@ -410,14 +409,13 @@ static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, i
         const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
 
         const __m128i mask7654 = _mm_set_epi8(7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4);
-        __m128i *quaddst, r, rgba0, rgba1;
         // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-        r = _mm_loadl_epi64((const __m128i*)(src + 8 * xStep));
+        __m128i r = _mm_loadl_epi64((const __m128i*)(src + 8 * xStep));
         // Shuffle select bytes to expand from (0000 0000 hgfe dcba) to:
-        rgba0 = _mm_shuffle_epi8(r, mask3210);  // (dddd cccc bbbb aaaa)
-        rgba1 = _mm_shuffle_epi8(r, mask7654);  // (hhhh gggg ffff eeee)
+        __m128i rgba0 = _mm_shuffle_epi8(r, mask3210); // (dddd cccc bbbb aaaa)
+        __m128i rgba1 = _mm_shuffle_epi8(r, mask7654); // (hhhh gggg ffff eeee)
 
-        quaddst = (__m128i*)(dst + (y + iy) * width + x);
+        __m128i* quaddst = (__m128i*)(dst + (y + iy) * width + x);
         _mm_storeu_si128(quaddst, rgba0);
         _mm_storeu_si128(quaddst + 1, rgba1);
       }

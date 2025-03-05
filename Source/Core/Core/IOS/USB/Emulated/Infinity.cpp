@@ -597,7 +597,6 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
                          File::IOFile in_file, FigureUIPosition position)
 {
   std::lock_guard lock(m_infinity_mutex);
-  u8 order_added;
 
   std::vector<u8> sha1_calc = {SHA1_CONSTANT.begin(), SHA1_CONSTANT.end() - 1};
   for (int i = 0; i < 7; i++)
@@ -625,7 +624,7 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
     figure.order_added = m_figure_order;
     m_figure_order++;
   }
-  order_added = figure.order_added;
+  u8 order_added = figure.order_added;
 
   FigureBasePosition derived_position = DeriveFigurePosition(position);
   if (derived_position == FigureBasePosition::Unknown)

@@ -516,11 +516,10 @@ void SkylanderPortalWindow::LoadSelected()
 
   if (file_path.isEmpty())
   {
-    QMessageBox::StandardButton create_file_response;
-    create_file_response =
-        QMessageBox::question(this, tr("Create Skylander File"),
-                              tr("Skylander not found in this collection. Create new file?"),
-                              QMessageBox::Yes | QMessageBox::No);
+    QMessageBox::StandardButton create_file_response = QMessageBox::question(
+        this, tr("Create Skylander File"),
+        tr("Skylander not found in this collection. Create new file?"),
+        QMessageBox::Yes | QMessageBox::No);
 
     if (create_file_response == QMessageBox::Yes)
     {
