@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include <atomic>
 #include <deque>
 #include <fstream>
 #include <optional>
-#include <shared_mutex>
 
 #include "Common/CommonTypes.h"
+#include "Common/SPSCQueue.h"
 
 class PerformanceTracker
 {
@@ -22,30 +23,30 @@ public:
   PerformanceTracker(PerformanceTracker&&) = delete;
   PerformanceTracker& operator=(PerformanceTracker&&) = delete;
 
-  // Functions for recording performance information
   void Reset();
+
+  // Calls must come from the same thread.
+  // UpdateStats is expected to be called regularly to empty the SPSC queue.
+  void UpdateStats();
+  void ImPlotPlotLines(const char* label) const;
+
+  // May call from any thread, but not concurrently, not that you'd want to..
   void Count();
 
-  // Functions for reading performance information
+  // May call from any thread.
   DT GetSampleWindow() const;
-
   double GetHzAvg() const;
-
   DT GetDtAvg() const;
   DT GetDtStd() const;
-
   DT GetLastRawDt() const;
-
-  void ImPlotPlotLines(const char* label) const;
 
 private:
   void LogRenderTimeToFile(DT val);
-  void SetPaused(bool paused);
 
+  void HandleRawDt(DT value);
   void PushFront(DT value);
   void PopBack();
 
-  bool m_paused = false;
   int m_on_state_changed_handle;
 
   // Name of log file and file stream
@@ -54,6 +55,12 @@ private:
 
   // Last time Count() was called
   TimePoint m_last_time;
+  std::atomic<bool> m_is_last_time_sane = false;
+
+  // Push'd from Count()
+  //  and Pop'd from UpdateStats()
+  Common::SPSCQueue<DT, false> m_raw_dts;
+  std::atomic<DT> m_last_raw_dt = DT::zero();
 
   // Amount of time to sample dt's over (defaults to config)
   const std::optional<DT> m_sample_window_duration;
@@ -63,12 +70,7 @@ private:
   std::deque<DT> m_dt_queue;
 
   // Average rate/time throughout the window
-  DT m_dt_avg = DT::zero();  // Uses Moving Average
-  double m_hz_avg = 0.0;     // Uses Moving Average + Euler Average
-
-  // Used to initialize this on demand instead of on every Count()
-  mutable std::optional<DT> m_dt_std = std::nullopt;
-
-  // Used to enable thread safety with the performance tracker
-  mutable std::shared_mutex m_mutex;
+  std::atomic<DT> m_dt_avg = DT::zero();  // Uses Moving Average
+  std::atomic<double> m_hz_avg = 0.0;     // Uses Moving Average + Euler Average
+  std::atomic<DT> m_dt_std = DT::zero();
 };
