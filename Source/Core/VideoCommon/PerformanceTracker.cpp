@@ -16,6 +16,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
+static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;
+static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8;
 
 PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
                                        const std::optional<DT> sample_window_duration)
@@ -39,7 +41,8 @@ void PerformanceTracker::Reset()
 {
   std::unique_lock lock{m_mutex};
 
-  QueueClear();
+  m_dt_total = DT::zero();
+  m_dt_queue.clear();
   m_last_time = Clock::now();
   m_hz_avg = 0.0;
   m_dt_avg = DT::zero();
@@ -60,17 +63,16 @@ void PerformanceTracker::Count()
 
   m_last_time = time;
 
-  QueuePush(diff);
-  m_dt_total += diff;
+  PushFront(diff);
 
-  if (m_dt_queue_begin == m_dt_queue_end)
-    m_dt_total -= QueuePop();
+  if (m_dt_queue.size() == MAX_DT_QUEUE_SIZE)
+    PopBack();
 
-  while (window <= m_dt_total - QueueTop())
-    m_dt_total -= QueuePop();
+  while (m_dt_total - m_dt_queue.back() >= window)
+    PopBack();
 
   // Simple Moving Average Throughout the Window
-  m_dt_avg = m_dt_total / QueueSize();
+  m_dt_avg = m_dt_total / m_dt_queue.size();
   const double hz = DT_s(1.0) / m_dt_avg;
 
   // Exponential Moving Average
@@ -114,28 +116,28 @@ DT PerformanceTracker::GetDtStd() const
   if (m_dt_std)
     return *m_dt_std;
 
-  if (QueueEmpty())
+  if (m_dt_queue.empty())
     return *(m_dt_std = DT::zero());
 
   double total = 0.0;
-  for (std::size_t i = m_dt_queue_begin; i != m_dt_queue_end; i = IncrementIndex(i))
+  for (auto dt : m_dt_queue)
   {
-    double diff = DT_s(m_dt_queue[i] - m_dt_avg).count();
+    double diff = DT_s(dt - m_dt_avg).count();
     total += diff * diff;
   }
 
   // This is a weighted standard deviation
-  return *(m_dt_std = std::chrono::duration_cast<DT>(DT_s(std::sqrt(total / QueueSize()))));
+  return *(m_dt_std = std::chrono::duration_cast<DT>(DT_s(std::sqrt(total / m_dt_queue.size()))));
 }
 
 DT PerformanceTracker::GetLastRawDt() const
 {
   std::shared_lock lock{m_mutex};
 
-  if (QueueEmpty())
+  if (m_dt_queue.empty())
     return DT::zero();
 
-  return QueueBottom();
+  return m_dt_queue.front();
 }
 
 void PerformanceTracker::ImPlotPlotLines(const char* label) const
@@ -144,14 +146,14 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
 
   std::shared_lock lock{m_mutex};
 
-  if (QueueEmpty())
+  if (m_dt_queue.empty())
     return;
 
   // Decides if there are too many points to plot using rectangles
-  const bool quality = QueueSize() < MAX_QUALITY_GRAPH_SIZE;
+  const bool quality = m_dt_queue.size() < MAX_QUALITY_GRAPH_SIZE;
 
   const DT update_time = Clock::now() - m_last_time;
-  const float predicted_frame_time = DT_ms(std::max(update_time, QueueBottom())).count();
+  const float predicted_frame_time = DT_ms(std::max(update_time, m_dt_queue.front())).count();
 
   std::size_t points = 0;
   if (quality)
@@ -165,11 +167,9 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
   y[points] = predicted_frame_time;
   ++points;
 
-  const std::size_t begin = DecrementIndex(m_dt_queue_end);
-  const std::size_t end = DecrementIndex(m_dt_queue_begin);
-  for (std::size_t i = begin; i != end; i = DecrementIndex(i))
+  for (auto dt : m_dt_queue)
   {
-    const float frame_time_ms = DT_ms(m_dt_queue[i]).count();
+    const float frame_time_ms = DT_ms(dt).count();
 
     if (quality)
     {
@@ -186,44 +186,16 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
   ImPlot::PlotLine(label, x.data(), y.data(), static_cast<int>(points));
 }
 
-void PerformanceTracker::QueueClear()
+void PerformanceTracker::PushFront(DT value)
 {
-  m_dt_total = DT::zero();
-  m_dt_queue_begin = 0;
-  m_dt_queue_end = 0;
+  m_dt_queue.push_front(value);
+  m_dt_total += value;
 }
 
-void PerformanceTracker::QueuePush(DT dt)
+void PerformanceTracker::PopBack()
 {
-  m_dt_queue[m_dt_queue_end] = dt;
-  m_dt_queue_end = IncrementIndex(m_dt_queue_end);
-}
-
-const DT& PerformanceTracker::QueuePop()
-{
-  const std::size_t top = m_dt_queue_begin;
-  m_dt_queue_begin = IncrementIndex(m_dt_queue_begin);
-  return m_dt_queue[top];
-}
-
-const DT& PerformanceTracker::QueueTop() const
-{
-  return m_dt_queue[m_dt_queue_begin];
-}
-
-const DT& PerformanceTracker::QueueBottom() const
-{
-  return m_dt_queue[DecrementIndex(m_dt_queue_end)];
-}
-
-std::size_t PerformanceTracker::QueueSize() const
-{
-  return GetDifference(m_dt_queue_begin, m_dt_queue_end);
-}
-
-bool PerformanceTracker::QueueEmpty() const
-{
-  return m_dt_queue_begin == m_dt_queue_end;
+  m_dt_total -= m_dt_queue.back();
+  m_dt_queue.pop_back();
 }
 
 void PerformanceTracker::LogRenderTimeToFile(DT val)
