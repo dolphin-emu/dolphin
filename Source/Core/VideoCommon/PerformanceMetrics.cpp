@@ -82,12 +82,6 @@ double PerformanceMetrics::GetMaxSpeed() const
   return m_max_speed;
 }
 
-double PerformanceMetrics::GetLastSpeedDenominator() const
-{
-  return DT_s(m_speed_counter.GetLastRawDt()).count() *
-         Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate();
-}
-
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
   const int movable_flag = Config::Get(Config::GFX_MOVABLE_PERFORMANCE_METRICS) ?

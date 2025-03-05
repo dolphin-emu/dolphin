@@ -39,8 +39,6 @@ public:
   double GetSpeed() const;
   double GetMaxSpeed() const;
 
-  double GetLastSpeedDenominator() const;
-
   // ImGui Functions
   void DrawImGuiStats(const float backbuffer_scale);
 
