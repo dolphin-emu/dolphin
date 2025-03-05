@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <chrono>
 #include <fstream>
 #include <optional>
 #include <shared_mutex>
@@ -35,7 +34,7 @@ private:
 
 public:
   PerformanceTracker(const std::optional<std::string> log_name = std::nullopt,
-                     const std::optional<s64> sample_window_us = std::nullopt);
+                     const std::optional<DT> sample_window_duration = std::nullopt);
   ~PerformanceTracker();
 
   PerformanceTracker(const PerformanceTracker&) = delete;
@@ -84,7 +83,7 @@ private:  // Functions for managing dt queue
   TimePoint m_last_time;
 
   // Amount of time to sample dt's over (defaults to config)
-  const std::optional<s64> m_sample_window_us;
+  const std::optional<DT> m_sample_window_duration;
 
   // Queue + Running Total used to calculate average dt
   DT m_dt_total = DT::zero();

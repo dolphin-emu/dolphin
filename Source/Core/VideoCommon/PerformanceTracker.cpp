@@ -12,21 +12,20 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
 
 PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
-                                       const std::optional<s64> sample_window_us)
+                                       const std::optional<DT> sample_window_duration)
     : m_on_state_changed_handle{Core::AddOnStateChangedCallback([this](Core::State state) {
         if (state == Core::State::Paused)
           SetPaused(true);
         else if (state == Core::State::Running)
           SetPaused(false);
       })},
-      m_log_name{log_name}, m_sample_window_us{sample_window_us}
+      m_log_name{log_name}, m_sample_window_duration{sample_window_duration}
 {
   Reset();
 }
@@ -92,8 +91,8 @@ void PerformanceTracker::Count()
 DT PerformanceTracker::GetSampleWindow() const
 {
   // This reads a constant value and thus does not need a mutex
-  return std::chrono::duration_cast<DT>(
-      DT_us(m_sample_window_us.value_or(std::max(1, g_ActiveConfig.iPerfSampleUSec))));
+  return m_sample_window_duration.value_or(
+      duration_cast<DT>(DT_us{std::max(1, g_ActiveConfig.iPerfSampleUSec)}));
 }
 
 double PerformanceTracker::GetHzAvg() const
