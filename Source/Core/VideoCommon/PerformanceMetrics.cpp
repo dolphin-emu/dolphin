@@ -4,13 +4,13 @@
 #include "VideoCommon/PerformanceMetrics.h"
 
 #include <algorithm>
-#include <mutex>
 
 #include <imgui.h>
 #include <implot.h>
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
 #include "VideoCommon/VideoConfig.h"
@@ -25,7 +25,8 @@ void PerformanceMetrics::Reset()
 
   m_time_sleeping = DT::zero();
   m_real_times.fill(Clock::now());
-  m_cpu_times.fill(Core::System::GetInstance().GetCoreTiming().GetCPUTimePoint(0));
+  m_core_ticks.fill(0);
+  m_max_speed = 0;
 }
 
 void PerformanceMetrics::CountFrame()
@@ -40,18 +41,25 @@ void PerformanceMetrics::CountVBlank()
 
 void PerformanceMetrics::CountThrottleSleep(DT sleep)
 {
-  std::unique_lock lock(m_time_lock);
   m_time_sleeping += sleep;
 }
 
-void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
+void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cycles_late)
 {
-  std::unique_lock lock(m_time_lock);
   m_speed_counter.Count();
 
-  m_real_times[m_time_index] = Clock::now() - m_time_sleeping;
-  m_cpu_times[m_time_index] = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
-  m_time_index += 1;
+  const auto ticks = system.GetCoreTiming().GetTicks() - cycles_late;
+  const auto real_time = Clock::now() - m_time_sleeping;
+
+  auto& oldest_ticks = m_core_ticks[m_time_index];
+  auto& oldest_time = m_real_times[m_time_index];
+
+  m_max_speed = DT_s(ticks - oldest_ticks) / system.GetSystemTimers().GetTicksPerSecond() /
+                (real_time - oldest_time);
+
+  oldest_ticks = ticks;
+  oldest_time = real_time;
+  ++m_time_index;
 }
 
 double PerformanceMetrics::GetFPS() const
@@ -71,9 +79,7 @@ double PerformanceMetrics::GetSpeed() const
 
 double PerformanceMetrics::GetMaxSpeed() const
 {
-  std::shared_lock lock(m_time_lock);
-  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
-         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
+  return m_max_speed;
 }
 
 double PerformanceMetrics::GetLastSpeedDenominator() const

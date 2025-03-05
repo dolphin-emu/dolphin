@@ -433,12 +433,6 @@ void CoreTimingManager::ResetThrottle(s64 cycle)
   m_throttle_deadline = Clock::now();
 }
 
-TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
-{
-  return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
-                                                  m_throttle_clock_per_sec));
-}
-
 bool CoreTimingManager::GetVISkip() const
 {
   return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
