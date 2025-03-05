@@ -160,8 +160,8 @@ public:
   // in order to allow custom throttling implementations to be tested.
   void Throttle(const s64 target_cycle);
 
-  TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
-  bool GetVISkip() const;                           // Used By VideoInterface
+  // Used by VideoInterface
+  bool GetVISkip() const;
 
   bool UseSyncOnSkipIdle() const;
 

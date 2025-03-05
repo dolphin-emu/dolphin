@@ -4,7 +4,7 @@
 #pragma once
 
 #include <array>
-#include <shared_mutex>
+#include <atomic>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PerformanceTracker.h"
@@ -51,11 +51,10 @@ private:
 
   double m_graph_max_time = 0.0;
 
-  mutable std::shared_mutex m_time_lock;
-
+  std::atomic<double> m_max_speed{};
   u8 m_time_index = 0;
   std::array<TimePoint, 256> m_real_times{};
-  std::array<TimePoint, 256> m_cpu_times{};
+  std::array<u64, 256> m_core_ticks{};
   DT m_time_sleeping{};
 };
 
