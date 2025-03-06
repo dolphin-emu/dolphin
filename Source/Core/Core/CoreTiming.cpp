@@ -18,7 +18,6 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -333,8 +332,6 @@ void CoreTimingManager::Advance()
     Event evt = std::move(m_event_queue.front());
     std::ranges::pop_heap(m_event_queue, std::ranges::greater{});
     m_event_queue.pop_back();
-
-    Throttle(evt.time);
     evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
@@ -360,11 +357,6 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 {
   // Based on number of cycles and emulation speed, increase the target deadline
   const s64 cycles = target_cycle - m_throttle_last_cycle;
-
-  // Prevent any throttling code if the amount of time passed is < ~0.122ms
-  if (cycles < m_throttle_min_clock_per_sleep)
-    return;
-
   m_throttle_last_cycle = target_cycle;
 
   const double speed = Core::GetIsThrottlerTempDisabled() ? 0.0 : m_emulation_speed;
@@ -442,7 +434,6 @@ void CoreTimingManager::LogPendingEvents() const
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
   m_throttle_clock_per_sec = new_ppc_clock;
-  m_throttle_min_clock_per_sleep = new_ppc_clock / 1200;
 
   for (Event& ev : m_event_queue)
   {
