@@ -353,6 +353,36 @@ void CoreTimingManager::Advance()
   power_pc.CheckExternalExceptions();
 }
 
+TimePoint CoreTimingManager::GetTargetHostTime(s64 target_cycle)
+{
+  const double speed = Core::GetIsThrottlerTempDisabled() ? 0.0 : m_emulation_speed;
+
+  if (speed > 0)
+  {
+    const s64 cycles = target_cycle - m_throttle_last_cycle;
+    return m_throttle_deadline + std::chrono::duration_cast<DT>(
+                                     DT_s(cycles) / (m_emulation_speed * m_throttle_clock_per_sec));
+  }
+  else
+  {
+    return Clock::now();
+  }
+}
+
+void CoreTimingManager::SleepUntil(TimePoint time_point)
+{
+  const TimePoint time = Clock::now();
+
+  std::this_thread::sleep_until(time_point);
+
+  if (Core::IsCPUThread())
+  {
+    // Count amount of time sleeping for analytics
+    const TimePoint time_after_sleep = Clock::now();
+    g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
+  }
+}
+
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
   // Based on number of cycles and emulation speed, increase the target deadline

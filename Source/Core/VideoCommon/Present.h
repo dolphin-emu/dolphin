@@ -14,7 +14,6 @@
 #include <array>
 #include <memory>
 #include <mutex>
-#include <span>
 #include <tuple>
 
 class AbstractTexture;
@@ -36,10 +35,11 @@ public:
   Presenter();
   virtual ~Presenter();
 
-  void ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
+              TimePoint presentation_time);
   void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
-  void Present();
+  void Present(std::optional<TimePoint> presentation_time = std::nullopt);
   void ClearLastXfbId() { m_last_xfb_id = std::numeric_limits<u64>::max(); }
 
   bool Initialize();
