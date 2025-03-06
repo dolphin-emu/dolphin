@@ -839,6 +839,11 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
   if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
+  // Note: We really only need to Throttle prior to to presentation,
+  //  but it is needed here if we want accurate "VBlank" statistics,
+  //  when using GPU-on-Thread or Early/Immediate XFB.
+  m_system.GetCoreTiming().Throttle(ticks);
+
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
   Core::OnFrameEnd(m_system);
