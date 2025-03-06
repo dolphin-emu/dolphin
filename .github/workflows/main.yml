@@ -289,7 +289,7 @@ jobs:
           echo "HOMEBREW_NO_AUTO_UPDATE=1" >> $GITHUB_ENV
           brew upgrade cmake
           brew install \
-          ffmpeg@2.8 \
+          ffmpeg \
           libpng \
           pkgconfig \
           libao \
