@@ -16,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
@@ -48,8 +49,20 @@ void AXUCode::Initialize()
 void AXUCode::InitializeShared()
 {
   m_mail_handler.PushMail(DSP_INIT, true);
+  auto& core_timing = m_dsphle->GetSystem().GetCoreTiming();
+  m_event_type_handle_command_list =
+      core_timing.RegisterEvent("HandleCommandList", HandleCommandListEvent);
 
   LoadResamplingCoefficients(false, 0);
+}
+
+void AXUCode::HandleCommandListEvent(Core::System& system, u64 /*userdata*/, s64 cyclesLate)
+{
+  const auto dsphle = static_cast<DSPHLE*>(system.GetDSP().GetDSPEmulator());
+  auto& self = static_cast<AXUCode&>(dsphle->GetUCode());
+  self.HandleCommandList();
+  self.m_cmdlist_size = 0;
+  self.SignalWorkEnd();
 }
 
 bool AXUCode::LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum)
@@ -741,13 +754,15 @@ void AXUCode::HandleMail(u32 mail)
     break;
 
   case MailState::WaitingForCmdListAddress:
+  {
     CopyCmdList(mail, m_cmdlist_size);
-    HandleCommandList();
-    m_cmdlist_size = 0;
-    SignalWorkEnd();
+    auto& core_timing = m_dsphle->GetSystem().GetCoreTiming();
+    // Cycle count determined by ear for Donkey Kong Barrel Blast.
+    core_timing.ScheduleEvent(10'000, m_event_type_handle_command_list);
+
     m_mail_state = MailState::WaitingForNextTask;
     break;
-
+  }
   case MailState::WaitingForNextTask:
     if ((mail & TASK_MAIL_MASK) != TASK_MAIL_TO_DSP)
     {
