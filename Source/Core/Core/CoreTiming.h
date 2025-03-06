@@ -98,6 +98,7 @@ public:
   // doing something evil
   u64 GetTicks() const;
   u64 GetIdleTicks() const;
+  TimePoint GetTargetHostTime(s64 target_cycle);
 
   void RefreshConfig();
 
@@ -156,6 +157,9 @@ public:
 
   // Throttle the CPU to the specified target cycle.
   void Throttle(const s64 target_cycle);
+
+  // May be used from any thread.
+  void SleepUntil(TimePoint time_point);
 
   TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
   bool GetVISkip() const;                           // Used By VideoInterface

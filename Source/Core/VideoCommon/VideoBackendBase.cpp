@@ -13,13 +13,13 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
@@ -51,9 +51,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
@@ -108,6 +106,7 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
     e.swap_event.fbWidth = fb_width;
     e.swap_event.fbStride = fb_stride;
     e.swap_event.fbHeight = fb_height;
+    e.swap_event.presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
     AsyncRequests::GetInstance()->PushEvent(e, false);
   }
 }
