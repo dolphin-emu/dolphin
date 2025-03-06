@@ -16,16 +16,12 @@ namespace WiimoteEmu
 {
 struct DesiredWiimoteState
 {
-  // 1g in Z direction, which is the default returned by an unmoving emulated Wiimote.
-  static constexpr WiimoteCommon::AccelData DEFAULT_ACCELERATION = WiimoteCommon::AccelData(
-      {Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ONE_G << 2});
-
   // No light detected by the IR camera.
   static constexpr std::array<CameraPoint, 4> DEFAULT_CAMERA = {CameraPoint(), CameraPoint(),
                                                                 CameraPoint(), CameraPoint()};
 
   WiimoteCommon::ButtonData buttons{};  // non-button state in this is ignored
-  WiimoteCommon::AccelData acceleration = DEFAULT_ACCELERATION;
+  std::optional<WiimoteCommon::AccelData> acceleration = std::nullopt;
   std::array<CameraPoint, 4> camera_points = DEFAULT_CAMERA;
   std::optional<MotionPlus::DataFormat::Data> motion_plus = std::nullopt;
   DesiredExtensionState extension;
@@ -35,7 +31,10 @@ struct DesiredWiimoteState
 struct SerializedWiimoteState
 {
   u8 length;
-  std::array<u8, 30> data;  // 18 bytes Wiimote, 6 bytes MotionPlus, 6 bytes Extension
+
+  // 18 bytes Wiimote + ((6 bytes MotionPlus + 6 bytes Extension) | 8 bytes BalanceBoardExt)
+  static constexpr size_t MAX_EXT_DATA_SIZE = std::max(6, 8);
+  std::array<u8, 18 + std::max(6 + 6, 8)> data;
 };
 
 SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state);

@@ -5,9 +5,10 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "Common/Matrix.h"
+
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
 namespace Common
 {
@@ -104,6 +105,8 @@ static_assert(sizeof(IRFull) == 9, "Wrong size");
 class CameraLogic : public I2CSlave
 {
 public:
+  CameraLogic(const WiimoteCommon::InputReportStatus* status);
+
   // OEM sensor bar distance between LED clusters in meters.
   static constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
 
@@ -136,7 +139,6 @@ public:
   static std::array<CameraPoint, NUM_POINTS> GetCameraPoints(const Common::Matrix44& transform,
                                                              Common::Vec2 field_of_view);
   void Update(const std::array<CameraPoint, NUM_POINTS>& camera_points);
-  void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;
   static constexpr int CAMERA_DATA_BYTES = 36;
@@ -176,13 +178,15 @@ public:
   static const u8 REPORT_DATA_OFFSET = offsetof(Register, camera_data);
 
 private:
+  // When disabled the camera does not respond on the bus.
+  // Change is triggered by wiimote report 0x13.
+  bool IsEnabled() const;
+
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
 
   Register m_reg_data{};
 
-  // When disabled the camera does not respond on the bus.
-  // Change is triggered by wiimote report 0x13.
-  bool m_is_enabled = false;
+  const WiimoteCommon::InputReportStatus& m_wiimote_status;
 };
 }  // namespace WiimoteEmu
