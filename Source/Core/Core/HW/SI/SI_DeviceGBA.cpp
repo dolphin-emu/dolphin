@@ -49,11 +49,11 @@ static void GBAConnectionWaiter()
   sf::TcpListener clock_server;
 
   // "dolphin gba"
-  if (server.listen(0xd6ba) != sf::Socket::Done)
+  if (server.listen(0xd6ba) != sf::Socket::Status::Done)
     return;
 
   // "clock"
-  if (clock_server.listen(0xc10c) != sf::Socket::Done)
+  if (clock_server.listen(0xc10c) != sf::Socket::Status::Done)
     return;
 
   server.setBlocking(false);
@@ -62,14 +62,14 @@ static void GBAConnectionWaiter()
   auto new_client = std::make_unique<sf::TcpSocket>();
   while (s_server_running.IsSet())
   {
-    if (server.accept(*new_client) == sf::Socket::Done)
+    if (server.accept(*new_client) == sf::Socket::Status::Done)
     {
       std::lock_guard lk(s_cs_gba);
       s_waiting_socks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
     }
-    if (clock_server.accept(*new_client) == sf::Socket::Done)
+    if (clock_server.accept(*new_client) == sf::Socket::Status::Done)
     {
       std::lock_guard lk(s_cs_gba_clk);
       s_waiting_clocks.push(std::move(new_client));
@@ -170,7 +170,7 @@ void GBASockServer::ClockSync(Core::System& system)
   bytes[3] = time_slice & 0xff;
 
   sf::Socket::Status status = m_clock_sync->send(bytes, 4);
-  if (status == sf::Socket::Disconnected)
+  if (status == sf::Socket::Status::Disconnected)
   {
     m_clock_sync->disconnect();
     m_clock_sync = nullptr;
@@ -210,7 +210,7 @@ void GBASockServer::Send(const u8* si_buffer)
   else
     status = m_client->send(send_data.data(), 1);
 
-  if (status == sf::Socket::Disconnected)
+  if (status == sf::Socket::Status::Disconnected)
     Disconnect();
 }
 
@@ -223,19 +223,19 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   {
     sf::SocketSelector selector;
     selector.add(*m_client);
-    selector.wait(sf::milliseconds(1000));
+    (void)selector.wait(sf::milliseconds(1000));
   }
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
   sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
-  if (recv_stat == sf::Socket::Disconnected)
+  if (recv_stat == sf::Socket::Status::Disconnected)
   {
     Disconnect();
     return 0;
   }
 
-  if (recv_stat == sf::Socket::NotReady || num_received == 0)
+  if (recv_stat == sf::Socket::Status::NotReady || num_received == 0)
   {
     m_booted = false;
     return 0;
@@ -257,7 +257,7 @@ void GBASockServer::Flush()
   while (num_received)
   {
     sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
-    if (recv_stat != sf::Socket::Done)
+    if (recv_stat != sf::Socket::Status::Done)
       break;
   }
 }

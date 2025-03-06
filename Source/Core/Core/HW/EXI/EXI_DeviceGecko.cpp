@@ -58,7 +58,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
   server_port = 0xd6ec;  // "dolphin gecko"
   for (int bind_tries = 0; bind_tries <= 10 && !server_running.IsSet(); bind_tries++)
   {
-    server_running.Set(server.listen(server_port) == sf::Socket::Done);
+    server_running.Set(server.listen(server_port) == sf::Socket::Status::Done);
     if (!server_running.IsSet())
       server_port++;
   }
@@ -73,7 +73,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
   auto new_client = std::make_unique<sf::TcpSocket>();
   while (server_running.IsSet())
   {
-    if (server.accept(*new_client) == sf::Socket::Done)
+    if (server.accept(*new_client) == sf::Socket::Status::Done)
     {
       std::lock_guard lk(connection_lock);
       waiting_socks.push(std::move(new_client));
@@ -130,7 +130,7 @@ void GeckoSockServer::ClientThread()
       std::array<char, 128> buffer;
       std::size_t got = 0;
 
-      if (client->receive(buffer.data(), buffer.size(), got) == sf::Socket::Disconnected)
+      if (client->receive(buffer.data(), buffer.size(), got) == sf::Socket::Status::Disconnected)
         client_running.Clear();
 
       if (got != 0)
@@ -147,7 +147,7 @@ void GeckoSockServer::ClientThread()
         std::vector<char> packet(send_fifo.begin(), send_fifo.end());
         send_fifo.clear();
 
-        if (client->send(&packet[0], packet.size()) == sf::Socket::Disconnected)
+        if (client->send(&packet[0], packet.size()) == sf::Socket::Status::Disconnected)
           client_running.Clear();
       }
     }  // unlock transfer
