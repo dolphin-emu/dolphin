@@ -559,6 +559,13 @@ void VertexManagerBase::Flush()
     pixel_shader_manager.constants.time_ms = seconds_elapsed * 1000;
   }
 
+  if (VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration().posmtx.enable)
+  {
+    u32 posmtx = VertexLoaderManager::position_matrix_index_cache[0];
+    u32 texmtx = xfmem.MatrixIndexA.Hex & 0xFFFF'FFC0;
+    xf_state_manager.SetTexMatrixChangedA(texmtx | posmtx);
+    xfmem.MatrixIndexA.PosNormalMtxIdx = posmtx;
+  }
   CalculateNormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
   const auto used_textures = UsedTextures();
