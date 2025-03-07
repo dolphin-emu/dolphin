@@ -91,12 +91,6 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
                      g_video_backend->GetName(), counter);
 }
 
-void VideoBackendBase::Video_ExitLoop()
-{
-  auto& system = Core::System::GetInstance();
-  system.GetFifo().ExitGpuLoop();
-}
-
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                                        u64 ticks)
