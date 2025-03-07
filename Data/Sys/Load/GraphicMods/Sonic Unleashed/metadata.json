@@ -1,0 +1,27 @@
+{
+	"meta":
+	{
+		"title": "Bloom Texture Definitions",
+		"author": "Dr. Azathoth"
+	},
+	"groups":
+	[
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_320x240_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_320x240_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_640x480_1"
+				}
+			]
+		}
+	]
+}
