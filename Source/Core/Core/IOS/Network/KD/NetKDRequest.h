@@ -15,6 +15,7 @@
 #include "Common/WorkQueueThread.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
+#include "Core/IOS/Network/KD/Mail/WC24Receive.h"
 #include "Core/IOS/Network/KD/Mail/WC24Send.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 #include "Core/IOS/Network/KD/NWC24DL.h"
@@ -91,6 +92,8 @@ private:
   NWC24::ErrorCode KDCheckMail(u32* mail_flag, u32* interval);
   IPCReply HandleRequestRegisterUserId(const IOCtlRequest& request);
   NWC24::ErrorCode KDSendMail();
+  NWC24::ErrorCode KDReceiveMail();
+  NWC24::ErrorCode KDSaveMail();
 
   void LogError(ErrorType error_type, s32 error_code);
   void SchedulerTimer();
@@ -105,10 +108,13 @@ private:
                                                         0x8c, 0x89, 0x72, 0xd4, 0x50, 0xad};
 
   static constexpr u32 DEFAULT_SCHEDULER_SPAN_MINUTES = 11;
+  static constexpr u32 MAX_MAIL_RECEIVE_SIZE = 1578040;
+  static constexpr char TEMP_MAIL_PATH[] = "/" WII_WC24CONF_DIR "/mbox/recvtmp.msg";
 
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
   NWC24::Mail::WC24SendList m_send_list;
+  NWC24::Mail::WC24ReceiveList m_receive_list;
   NWC24::Mail::WC24FriendList m_friend_list;
   Common::WorkQueueThread<AsyncTask> m_work_queue;
   Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
