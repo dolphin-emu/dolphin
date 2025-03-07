@@ -16,38 +16,37 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
 {
   ShaderHostConfig bits = {};
   bits.msaa = g_ActiveConfig.iMultisamples > 1;
-  bits.ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA &&
-              g_ActiveConfig.backend_info.bSupportsSSAA;
+  bits.ssaa =
+      g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA && g_backend_info.bSupportsSSAA;
   bits.stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   bits.wireframe = g_ActiveConfig.bWireFrame;
   bits.per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   bits.vertex_rounding = g_ActiveConfig.UseVertexRounding();
   bits.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
   bits.bounding_box = g_ActiveConfig.bBBoxEnable;
-  bits.backend_dual_source_blend = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-  bits.backend_geometry_shaders = g_ActiveConfig.backend_info.bSupportsGeometryShaders;
-  bits.backend_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ;
-  bits.backend_bbox = g_ActiveConfig.backend_info.bSupportsBBox;
-  bits.backend_gs_instancing = g_ActiveConfig.backend_info.bSupportsGSInstancing;
-  bits.backend_clip_control = g_ActiveConfig.backend_info.bSupportsClipControl;
-  bits.backend_ssaa = g_ActiveConfig.backend_info.bSupportsSSAA;
-  bits.backend_atomics = g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
-  bits.backend_depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
-  bits.backend_reversed_depth_range = g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
-  bits.backend_bitfield = g_ActiveConfig.backend_info.bSupportsBitfield;
-  bits.backend_dynamic_sampler_indexing =
-      g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing;
-  bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
-  bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
-  bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
+  bits.backend_dual_source_blend = g_backend_info.bSupportsDualSourceBlend;
+  bits.backend_geometry_shaders = g_backend_info.bSupportsGeometryShaders;
+  bits.backend_early_z = g_backend_info.bSupportsEarlyZ;
+  bits.backend_bbox = g_backend_info.bSupportsBBox;
+  bits.backend_gs_instancing = g_backend_info.bSupportsGSInstancing;
+  bits.backend_clip_control = g_backend_info.bSupportsClipControl;
+  bits.backend_ssaa = g_backend_info.bSupportsSSAA;
+  bits.backend_atomics = g_backend_info.bSupportsFragmentStoresAndAtomics;
+  bits.backend_depth_clamp = g_backend_info.bSupportsDepthClamp;
+  bits.backend_reversed_depth_range = g_backend_info.bSupportsReversedDepthRange;
+  bits.backend_bitfield = g_backend_info.bSupportsBitfield;
+  bits.backend_dynamic_sampler_indexing = g_backend_info.bSupportsDynamicSamplerIndexing;
+  bits.backend_shader_framebuffer_fetch = g_backend_info.bSupportsFramebufferFetch;
+  bits.backend_logic_op = g_backend_info.bSupportsLogicOp;
+  bits.backend_palette_conversion = g_backend_info.bSupportsPaletteConversion;
   bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
   bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
   bits.manual_texture_sampling_custom_texture_sizes =
       g_ActiveConfig.ManualTextureSamplingWithCustomTextureSizes();
-  bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
-  bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
+  bits.backend_sampler_lod_bias = g_backend_info.bSupportsLodBiasInSampler;
+  bits.backend_dynamic_vertex_loader = g_backend_info.bSupportsDynamicVertexLoader;
   bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
-  bits.backend_gl_layer_in_fs = g_ActiveConfig.backend_info.bSupportsGLLayerInFS;
+  bits.backend_gl_layer_in_fs = g_backend_info.bSupportsGLLayerInFS;
   return bits;
 }
 
@@ -348,7 +347,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 
   // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
   // "centroid in" and not "centroid", even within an interface block.
-  if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  if (in_glsl_interface_block && !g_backend_info.bSupportsBindingLayout)
   {
     if (!ssaa)
       return in ? "centroid in" : "centroid out";

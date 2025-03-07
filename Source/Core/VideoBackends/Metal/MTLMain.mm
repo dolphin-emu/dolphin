@@ -81,8 +81,8 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
       return false;
     }
 
-    Util::PopulateBackendInfo(&g_Config);
-    Util::PopulateBackendInfoAdapters(&g_Config, devs);
+    Util::PopulateBackendInfo(&g_backend_info);
+    Util::PopulateBackendInfoAdapters(&g_backend_info, devs);
 
     // Since we haven't called InitializeShared yet, iAdapter may be out of range,
     // so we have to check it ourselves.
@@ -93,7 +93,7 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
       selected_adapter_index = 0;
     }
     MRCOwned<id<MTLDevice>> adapter = std::move(devs[selected_adapter_index]);
-    Util::PopulateBackendInfoFeatures(&g_Config, adapter);
+    Util::PopulateBackendInfoFeatures(g_Config, &g_backend_info, adapter);
 
 #if TARGET_OS_OSX
 // This should be available on all macOS 13.3+ systems – but when using OCLP drivers, some devices
@@ -143,16 +143,16 @@ void Metal::VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   @autoreleasepool
   {
-    Util::PopulateBackendInfo(&g_Config);
+    Util::PopulateBackendInfo(&g_backend_info);
     auto adapters = Util::GetAdapterList();
-    Util::PopulateBackendInfoAdapters(&g_Config, adapters);
+    Util::PopulateBackendInfoAdapters(&g_backend_info, adapters);
     if (!adapters.empty())
     {
       // Use the selected adapter, or the first to fill features.
       size_t index = static_cast<size_t>(g_Config.iAdapter);
       if (index >= adapters.size())
         index = 0;
-      Util::PopulateBackendInfoFeatures(&g_Config, adapters[index]);
+      Util::PopulateBackendInfoFeatures(g_Config, &g_backend_info, adapters[index]);
     }
   }
 }
@@ -165,9 +165,9 @@ void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   NSView* view = static_cast<NSView*>(wsi.render_surface);
   CAMetalLayer* layer = [CAMetalLayer layer];
 
-  Util::PopulateBackendInfo(&g_Config);
+  Util::PopulateBackendInfo(&g_backend_info);
 
-  if (g_Config.backend_info.bSupportsHDROutput && g_Config.bHDR)
+  if (g_backend_info.bSupportsHDROutput && g_Config.bHDR)
   {
     [layer setWantsExtendedDynamicRangeContent:YES];
     [layer setPixelFormat:MTLPixelFormatRGBA16Float];

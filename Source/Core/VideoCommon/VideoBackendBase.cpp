@@ -187,7 +187,7 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     }
     warn_once = false;
   }
-  else if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  else if (!g_backend_info.bSupportsBBox)
   {
     static bool warn_once = true;
     if (warn_once)
@@ -298,9 +298,9 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
   g_Config.Refresh();
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
   // a value from the previously used renderer
-  g_Config.backend_info = {};
+  g_backend_info = {};
   ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
-  g_Config.backend_info.DisplayName = g_video_backend->GetDisplayName();
+  g_backend_info.DisplayName = g_video_backend->GetDisplayName();
   g_video_backend->InitBackendInfo(wsi);
   // We validate the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
@@ -372,7 +372,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
       !g_perf_query->Initialize() || !g_presenter->Initialize() ||
       !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
-      (g_ActiveConfig.backend_info.bSupportsBBox && !g_bounding_box->Initialize()) ||
+      (g_backend_info.bSupportsBBox && !g_bounding_box->Initialize()) ||
       !g_graphics_mod_manager->Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");

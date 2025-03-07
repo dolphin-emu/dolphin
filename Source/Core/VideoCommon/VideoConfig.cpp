@@ -8,7 +8,6 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
-#include "Common/StringUtil.h"
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -24,19 +23,16 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 
-#include "VideoCommon/VideoCommon.h"
-
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
+BackendInfo g_backend_info;
 static bool s_has_registered_callback = false;
 
 static bool IsVSyncActive(bool enabled)
@@ -213,15 +209,15 @@ void VideoConfig::Refresh()
 void VideoConfig::VerifyValidity()
 {
   // TODO: Check iMaxAnisotropy value
-  if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
+  if (iAdapter < 0 || iAdapter > ((int)g_backend_info.Adapters.size() - 1))
     iAdapter = 0;
 
-  if (!Common::Contains(backend_info.AAModes, iMultisamples))
+  if (!Common::Contains(g_backend_info.AAModes, iMultisamples))
     iMultisamples = 1;
 
   if (stereo_mode != StereoMode::Off)
   {
-    if (!backend_info.bSupportsGeometryShaders)
+    if (!g_backend_info.bSupportsGeometryShaders)
     {
       OSD::AddMessage(
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
@@ -253,7 +249,7 @@ static u32 GetNumAutoShaderPreCompilerThreads()
 
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
-  if (!backend_info.bSupportsBackgroundCompiling)
+  if (!g_backend_info.bSupportsBackgroundCompiling)
     return 0;
 
   if (iShaderCompilerThreads >= 0)
@@ -268,7 +264,7 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (!bWaitForShadersBeforeStarting)
     return GetShaderCompilerThreads();
 
-  if (!backend_info.bSupportsBackgroundCompiling)
+  if (!g_backend_info.bSupportsBackgroundCompiling)
     return 0;
 
   if (iShaderPrecompilerThreads >= 0)

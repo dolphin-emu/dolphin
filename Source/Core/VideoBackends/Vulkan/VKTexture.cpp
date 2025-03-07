@@ -32,7 +32,7 @@ VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkIma
     : AbstractTexture(tex_config), m_alloc(alloc), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;

@@ -11,14 +11,11 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
-#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -135,8 +132,8 @@ void HacksWidget::CreateWidgets()
 
 void HacksWidget::OnBackendChanged(const QString& backend_name)
 {
-  const bool bbox = g_Config.backend_info.bSupportsBBox;
-  const bool gpu_texture_decoding = g_Config.backend_info.bSupportsGPUTextureDecoding;
+  const bool bbox = g_backend_info.bSupportsBBox;
+  const bool gpu_texture_decoding = g_backend_info.bSupportsGPUTextureDecoding;
 
   m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
   m_disable_bounding_box->setEnabled(bbox);

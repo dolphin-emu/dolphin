@@ -271,10 +271,9 @@ void AdvancedWidget::ConnectWidgets()
 
 void AdvancedWidget::OnBackendChanged()
 {
-  m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
-  m_prefer_vs_for_point_line_expansion->setEnabled(
-      g_Config.backend_info.bSupportsGeometryShaders &&
-      g_Config.backend_info.bSupportsVSLinePointExpand);
+  m_backend_multithreading->setEnabled(g_backend_info.bSupportsMultithreading);
+  m_prefer_vs_for_point_line_expansion->setEnabled(g_backend_info.bSupportsGeometryShaders &&
+                                                   g_backend_info.bSupportsVSLinePointExpand);
   AddDescriptions();
 }
 
@@ -492,12 +491,12 @@ void AdvancedWidget::AddDescriptions()
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
   QString vsexpand_extra;
-  if (!g_Config.backend_info.bSupportsGeometryShaders)
+  if (!g_backend_info.bSupportsGeometryShaders)
     vsexpand_extra = tr("Forced on because %1 doesn't support geometry shaders.")
-                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
-  else if (!g_Config.backend_info.bSupportsVSLinePointExpand)
+                         .arg(tr(g_backend_info.DisplayName.c_str()));
+  else if (!g_backend_info.bSupportsVSLinePointExpand)
     vsexpand_extra = tr("Forced off because %1 doesn't support VS expansion.")
-                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
+                         .arg(tr(g_backend_info.DisplayName.c_str()));
   else
     vsexpand_extra = tr(IF_UNSURE_UNCHECKED);
   m_prefer_vs_for_point_line_expansion->SetDescription(
