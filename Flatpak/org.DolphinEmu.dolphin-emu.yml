@@ -8,10 +8,6 @@ rename-icon: dolphin-emu
 finish-args:
   - --device=all
   - --socket=pulseaudio
-  # dolphin doesn't work on wayland (only the ui does), if a user were to set
-  # this env variable globally to wayland then games wouldn't work. 
-  # we overwrite the setting and force xcb to prevent this from happening.
-  - --env=QT_QPA_PLATFORM=xcb
   - --socket=x11
   - --share=network
   - --share=ipc
