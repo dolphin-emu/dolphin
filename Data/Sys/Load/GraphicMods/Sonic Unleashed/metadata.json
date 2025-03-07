@@ -11,10 +11,6 @@
 			"targets": [
 				{
 					"type": "efb",
-					"texture_filename": "efb1_320x240_1"
-				},
-				{
-					"type": "efb",
 					"texture_filename": "efb1_320x240_6"
 				},
 				{
