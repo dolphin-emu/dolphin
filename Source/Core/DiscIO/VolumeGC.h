@@ -34,6 +34,7 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetTriID() const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::map<Language, std::string> GetShortMakers() const override;
@@ -76,6 +77,13 @@ private:
                                                     // (only one for BNR1 type)
   };
 
+  struct BootID
+  {
+    u32 magic;  // "BTID"
+    u32 padding[11];
+    std::array<char, 4> id;
+  };
+
   struct ConvertedGCBanner
   {
     ConvertedGCBanner();
@@ -103,6 +111,9 @@ private:
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
   std::unique_ptr<BlobReader> m_reader;
+
+  bool m_is_triforce;
+  std::array<char, 4> m_tri_id;
 };
 
 }  // namespace DiscIO

@@ -139,7 +139,8 @@ std::string GetName(Region region, bool translate)
 
 bool IsDisc(Platform volume_type)
 {
-  return volume_type == Platform::GameCubeDisc || volume_type == Platform::WiiDisc;
+  return volume_type == Platform::GameCubeDisc || volume_type == Platform::Triforce ||
+         volume_type == Platform::WiiDisc;
 }
 
 bool IsWii(Platform volume_type)
