@@ -30,14 +30,6 @@ enum class FieldType
   Even,
 };
 
-enum class EFBAccessType
-{
-  PeekZ,
-  PokeZ,
-  PeekColor,
-  PokeColor
-};
-
 class VideoBackendBase
 {
 public:
@@ -58,7 +50,12 @@ public:
 
   void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
-  u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
+  void Video_PokeEFBColor(u32 x, u32 y, u32 data);
+  void Video_PokeEFBDepth(u32 x, u32 y, u32 data);
+
+  u32 Video_PeekEFBColor(u32 x, u32 y);
+  u32 Video_PeekEFBDepth(u32 x, u32 y);
+
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 

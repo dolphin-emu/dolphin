@@ -22,6 +22,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
+#include "VideoCommon/Statistics.h"
 
 // TODO: ugly
 #ifdef _WIN32
@@ -61,7 +62,6 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/Widescreen.h"
@@ -98,51 +98,43 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
     auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
-    AsyncRequests::Event e;
-    e.time = ticks;
-    e.type = AsyncRequests::Event::SWAP_EVENT;
-
-    e.swap_event.xfbAddr = xfb_addr;
-    e.swap_event.fbWidth = fb_width;
-    e.swap_event.fbStride = fb_stride;
-    e.swap_event.fbHeight = fb_height;
-    e.swap_event.presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
-    AsyncRequests::GetInstance()->PushEvent(e, false);
+    const TimePoint presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
+    AsyncRequests::GetInstance()->PushEvent([=] {
+      g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
+    });
   }
 }
 
-u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data)
+void VideoBackendBase::Video_PokeEFBColor(u32 x, u32 y, u32 data)
 {
-  if (!g_ActiveConfig.bEFBAccessEnable || x >= EFB_WIDTH || y >= EFB_HEIGHT)
-  {
-    return 0;
-  }
+  AsyncRequests::GetInstance()->PushEvent([x, y, data] {
+    INCSTAT(g_stats.this_frame.num_efb_pokes);
+    g_efb_interface->PokeColor(x, y, data);
+  });
+}
 
-  if (type == EFBAccessType::PokeColor || type == EFBAccessType::PokeZ)
-  {
-    AsyncRequests::Event e;
-    e.type = type == EFBAccessType::PokeColor ? AsyncRequests::Event::EFB_POKE_COLOR :
-                                                AsyncRequests::Event::EFB_POKE_Z;
-    e.time = 0;
-    e.efb_poke.data = data;
-    e.efb_poke.x = x;
-    e.efb_poke.y = y;
-    AsyncRequests::GetInstance()->PushEvent(e, false);
-    return 0;
-  }
-  else
-  {
-    AsyncRequests::Event e;
-    u32 result;
-    e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
-                                                AsyncRequests::Event::EFB_PEEK_Z;
-    e.time = 0;
-    e.efb_peek.x = x;
-    e.efb_peek.y = y;
-    e.efb_peek.data = &result;
-    AsyncRequests::GetInstance()->PushEvent(e, true);
-    return result;
-  }
+void VideoBackendBase::Video_PokeEFBDepth(u32 x, u32 y, u32 data)
+{
+  AsyncRequests::GetInstance()->PushEvent([x, y, data] {
+    INCSTAT(g_stats.this_frame.num_efb_pokes);
+    g_efb_interface->PokeDepth(x, y, data);
+  });
+}
+
+u32 VideoBackendBase::Video_PeekEFBColor(u32 x, u32 y)
+{
+  return AsyncRequests::GetInstance()->PushBlockingEvent([&] {
+    INCSTAT(g_stats.this_frame.num_efb_peeks);
+    return g_efb_interface->PeekColor(x, y);
+  });
+}
+
+u32 VideoBackendBase::Video_PeekEFBDepth(u32 x, u32 y)
+{
+  return AsyncRequests::GetInstance()->PushBlockingEvent([&] {
+    INCSTAT(g_stats.this_frame.num_efb_peeks);
+    return g_efb_interface->PeekDepth(x, y);
+  });
 }
 
 u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
@@ -155,12 +147,10 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
   auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::PerfQuery);
 
-  AsyncRequests::Event e;
-  e.time = 0;
-  e.type = AsyncRequests::Event::PERF_QUERY;
-
   if (!g_perf_query->IsFlushed())
-    AsyncRequests::GetInstance()->PushEvent(e, true);
+  {
+    AsyncRequests::GetInstance()->PushBlockingEvent([] { g_perf_query->FlushResults(); });
+  }
 
   return g_perf_query->GetQueryResult(type);
 }
@@ -196,15 +186,8 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
   auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::BBox);
 
-  AsyncRequests::Event e;
-  u16 result;
-  e.time = 0;
-  e.type = AsyncRequests::Event::BBOX_READ;
-  e.bbox.index = index;
-  e.bbox.data = &result;
-  AsyncRequests::GetInstance()->PushEvent(e, true);
-
-  return result;
+  return AsyncRequests::GetInstance()->PushBlockingEvent(
+      [&] { return g_bounding_box->Get(index); });
 }
 
 static VideoBackendBase* GetDefaultVideoBackend()
@@ -309,10 +292,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
     return;
   }
 
-  AsyncRequests::Event ev = {};
-  ev.do_save_state.p = &p;
-  ev.type = AsyncRequests::Event::DO_SAVE_STATE;
-  AsyncRequests::GetInstance()->PushEvent(ev, true);
+  AsyncRequests::GetInstance()->PushBlockingEvent([&] { VideoCommon_DoState(p); });
 
   // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
   // a state. The next GP burst will wake it up again.
