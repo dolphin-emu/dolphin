@@ -29,7 +29,10 @@ public:
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
-  using DesiredState = DataFormat;
+  struct DesiredState
+  {
+    u8 state;
+  };
 
   TaTaCon();
 

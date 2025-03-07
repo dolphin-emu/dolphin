@@ -716,7 +716,7 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
   if (state.extension.data.index() != ExtensionNumber::NONE)
   {
     const auto ext_visitor = overloaded{
-        [&](const Nunchuk::DataFormat& nunchuk) {
+        [&](const Nunchuk::DesiredState& nunchuk) {
           const auto bt = nunchuk.GetButtons();
           if (bt & Nunchuk::BUTTON_C)
             display_str += " C";
@@ -726,7 +726,7 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
                                      nunchuk.GetAccelZ());
           display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
         },
-        [&](const Classic::DataFormat& cc) {
+        [&](const Classic::DesiredState& cc) {
           const auto bt = cc.GetButtons();
           constexpr std::pair<u16, const char*> named_buttons[] = {
               {Classic::PAD_LEFT, "LEFT"},    {Classic::PAD_RIGHT, "RIGHT"},
@@ -757,12 +757,12 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
           const auto right_stick = cc.GetRightStick().value;
           display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", rstick_max);
         },
-        [&](const Guitar::DataFormat&) { display_str += " Guitar"; },
+        [&](const Guitar::DesiredState&) { display_str += " Guitar"; },
         [&](const Drums::DesiredState&) { display_str += " Drums"; },
-        [&](const Turntable::DataFormat&) { display_str += " Turntable"; },
-        [&](const UDrawTablet::DataFormat&) { display_str += " UDraw"; },
-        [&](const DrawsomeTablet::DataFormat&) { display_str += " Drawsome"; },
-        [&](const TaTaCon::DataFormat&) { display_str += " TaTaCon"; },
+        [&](const Turntable::DesiredState&) { display_str += " Turntable"; },
+        [&](const UDrawTablet::DesiredState&) { display_str += " UDraw"; },
+        [&](const DrawsomeTablet::DesiredState&) { display_str += " Drawsome"; },
+        [&](const TaTaCon::DesiredState&) { display_str += " TaTaCon"; },
         [&](const Shinkansen::DesiredState&) { display_str += " Shinkansen"; },
         [](const auto& arg) {
           static_assert(std::is_same_v<std::monostate, std::decay_t<decltype(arg)>>,
