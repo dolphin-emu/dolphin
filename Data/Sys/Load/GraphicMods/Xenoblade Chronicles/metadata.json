@@ -1,31 +1,67 @@
 {
-	"meta":
-	{
-		"title": "Bloom Texture Definitions",
-		"author": "iwubcode"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n15_20x16_4"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n9_40x30_4"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n7_80x58_4"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n1_320x228_4"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "iwubcode",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "Xenoblade Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {},
+  "targets": [
+    {
+      "id": "1873769556004204196",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "2784022002606692122",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "5940037079112913957",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "8606219869014623335",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "11236664535429889509",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "15824374617827814652",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }

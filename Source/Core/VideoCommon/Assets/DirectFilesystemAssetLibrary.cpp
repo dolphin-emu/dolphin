@@ -13,10 +13,13 @@
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/System.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
+#include "VideoCommon/Assets/RenderTargetAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
 #include "VideoCommon/RenderState.h"
 
 namespace VideoCommon
@@ -53,7 +56,7 @@ std::size_t GetAssetSize(const CustomTextureData& data)
 CustomAssetLibrary::TimeType
 DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
 {
-  std::lock_guard lk(m_lock);
+  std::lock_guard lk(m_asset_map_lock);
   if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
@@ -161,6 +164,118 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
   return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
 }
 
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadShader(const AssetID& asset_id,
+                                                                      RasterShaderData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Asset map for a pixel shader is the shader and some metadata
+  if (asset_map.size() != 3)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have three files mapped!", asset_id);
+    return {};
+  }
+
+  const auto metadata = asset_map.find("metadata");
+  if (metadata == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a metadata entry mapped!", asset_id);
+    return {};
+  }
+
+  const auto vertex_shader = asset_map.find("vertex_shader");
+  if (vertex_shader == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a vertex shader entry mapped!", asset_id);
+    return {};
+  }
+
+  const auto pixel_shader = asset_map.find("pixel_shader");
+  if (pixel_shader == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a pixel shader entry mapped!", asset_id);
+    return {};
+  }
+
+  std::size_t metadata_size;
+  {
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(metadata->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' error - failed to get shader metadata file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+  std::size_t vertex_shader_size;
+  {
+    std::error_code ec;
+    vertex_shader_size = std::filesystem::file_size(vertex_shader->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' error - failed to get vertex shader source file size with error '{}'!",
+          asset_id, ec);
+      return {};
+    }
+  }
+  std::size_t pixel_shader_size;
+  {
+    std::error_code ec;
+    pixel_shader_size = std::filesystem::file_size(pixel_shader->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' error - failed to get pixel shader source file size with error '{}'!",
+          asset_id, ec);
+      return {};
+    }
+  }
+  const auto approx_mem_size = metadata_size + vertex_shader_size + pixel_shader_size;
+
+  if (!File::ReadFileToString(PathToString(vertex_shader->second), data->m_vertex_source))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the vertex shader file '{}',",
+                  asset_id, PathToString(vertex_shader->second));
+    return {};
+  }
+
+  if (!File::ReadFileToString(PathToString(pixel_shader->second), data->m_pixel_source))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the pixel shader file '{}',", asset_id,
+                  PathToString(pixel_shader->second));
+    return {};
+  }
+
+  picojson::value root;
+  std::string error;
+  if (!JsonFromFile(PathToString(metadata->second), &root, &error))
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
+                  asset_id, PathToString(metadata->second), error);
+    return {};
+  }
+
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
+        asset_id, PathToString(metadata->second));
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!RasterShaderData::FromJson(asset_id, root_obj, data))
+    return {};
+
+  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+}
+
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const AssetID& asset_id,
                                                                         MaterialData* data)
 {
@@ -208,6 +323,64 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
   const auto& root_obj = root.get<picojson::object>();
 
   if (!MaterialData::FromJson(asset_id, root_obj, data))
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error -  material failed to load the json file '{}', as material "
+                  "json could not be parsed!",
+                  asset_id, PathToString(asset_path));
+    return {};
+  }
+
+  return LoadInfo{metadata_size, GetLastAssetWriteTime(asset_id)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const AssetID& asset_id,
+                                                                        RasterMaterialData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Material is expected to have one asset mapped
+  if (asset_map.empty() || asset_map.size() > 1)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - material expected to have one file mapped!", asset_id);
+    return {};
+  }
+  const auto& asset_path = asset_map.begin()->second;
+
+  std::size_t metadata_size;
+  {
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(asset_path, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get material file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+
+  picojson::value root;
+  std::string error;
+  if (!JsonFromFile(PathToString(asset_path), &root, &error))
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  material failed to load the json file '{}', due to parse error: {}",
+        asset_id, PathToString(asset_path), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error - material failed to load the json file '{}', due to root not "
+                  "being an object!",
+                  asset_id, PathToString(asset_path));
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!RasterMaterialData::FromJson(asset_id, root_obj, data))
   {
     ERROR_LOG_FMT(VIDEO,
                   "Asset '{}' error -  material failed to load the json file '{}', as material "
@@ -312,6 +485,68 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
     return {};
 
   return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadRenderTarget(const AssetID& asset_id,
+                                                                            RenderTargetData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Material is expected to have one asset mapped
+  if (asset_map.empty() || asset_map.size() > 1)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - render target expected to have one file mapped!",
+                  asset_id);
+    return {};
+  }
+  const auto& asset_path = asset_map.begin()->second;
+
+  std::size_t metadata_size;
+  {
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(asset_path, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' error - failed to get render target file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+
+  picojson::value root;
+  std::string error;
+  if (!JsonFromFile(PathToString(asset_path), &root, &error))
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error - render target failed to load the json file '{}', due to "
+                  "parse error: {}",
+                  asset_id, PathToString(asset_path), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error - render target failed to load the json file '{}', due to root not "
+        "being an object!",
+        asset_id, PathToString(asset_path));
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!RenderTargetData::FromJson(asset_id, root_obj, data))
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  render target failed to load the json file '{}', as render target "
+        "json could not be parsed!",
+        asset_id, PathToString(asset_path));
+    return {};
+  }
+
+  return LoadInfo{metadata_size, GetLastAssetWriteTime(asset_id)};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
@@ -434,10 +669,42 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
-                                                     AssetMap asset_path_map)
+                                                     VideoCommon::Assets::AssetMap asset_path_map)
 {
-  std::lock_guard lk(m_lock);
-  m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  VideoCommon::Assets::AssetMap previous_asset_map;
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    previous_asset_map = m_assetid_to_asset_map_path[asset_id];
+  }
+
+  {
+    std::lock_guard lk(m_path_map_lock);
+    for (const auto& [name, path] : previous_asset_map)
+    {
+      m_path_to_asset_id.erase(PathToString(path));
+    }
+
+    for (const auto& [name, path] : asset_path_map)
+    {
+      m_path_to_asset_id[PathToString(path)] = asset_id;
+    }
+  }
+
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  }
+}
+
+void DirectFilesystemAssetLibrary::PathModified(std::string_view path)
+{
+  std::lock_guard lk(m_path_map_lock);
+  if (const auto iter = m_path_to_asset_id.find(path); iter != m_path_to_asset_id.end())
+  {
+    auto& system = Core::System::GetInstance();
+    auto& resource_manager = system.GetCustomResourceManager();
+    resource_manager.ReloadAsset(iter->second);
+  }
 }
 
 bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_path,
@@ -492,10 +759,10 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
   return true;
 }
 
-DirectFilesystemAssetLibrary::AssetMap
+VideoCommon::Assets::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
-  std::lock_guard lk(m_lock);
+  std::lock_guard lk(m_asset_map_lock);
   if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {

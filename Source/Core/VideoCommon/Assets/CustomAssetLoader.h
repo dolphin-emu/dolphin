@@ -4,19 +4,24 @@
 #pragma once
 
 #include <chrono>
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
+#include <vector>
 
+#include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/HookableEvent.h"
 #include "Common/Logging/Log.h"
-#include "Common/WorkQueueThread.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/Present.h"
 
 namespace VideoCommon
 {
@@ -52,6 +57,14 @@ public:
   std::shared_ptr<MeshAsset> LoadMesh(const CustomAssetLibrary::AssetID& asset_id,
                                       std::shared_ptr<CustomAssetLibrary> library);
 
+  // Notifies the asset system that an asset has been used
+  void AssetReferenced(u64 asset_session_id);
+
+  // Requests that an asset that exists be reloaded
+  void ReloadAsset(const CustomAssetLibrary::AssetID& asset_id);
+
+  void Reset(bool restart_worker_threads = true);
+
 private:
   // TODO C++20: use a 'derived_from' concept against 'CustomAsset' when available
   template <typename AssetType>
@@ -65,44 +78,87 @@ private:
     {
       auto shared = it->second.lock();
       if (shared)
-        return shared;
-    }
-    std::shared_ptr<AssetType> ptr(new AssetType(std::move(library), asset_id), [&](AssetType* a) {
       {
-        std::lock_guard lk(m_asset_load_lock);
-        m_total_bytes_loaded -= a->GetByteSizeInMemory();
-        m_assets_to_monitor.erase(a->GetAssetId());
-        if (m_max_memory_available >= m_total_bytes_loaded && m_memory_exceeded)
-        {
-          INFO_LOG_FMT(VIDEO, "Asset memory went below limit, new assets can begin loading.");
-          m_memory_exceeded = false;
-        }
+        auto& asset_load_info = m_asset_load_info[shared->GetSessionId()];
+        asset_load_info.last_xfb_seen = m_xfbs_seen;
+        asset_load_info.xfb_load_request = m_xfbs_seen;
+        return shared;
       }
-      delete a;
-    });
+    }
+
+    const auto [index_it, index_inserted] = m_assetid_to_asset_index.try_emplace(asset_id, 0);
+    if (index_inserted)
+    {
+      index_it->second = m_asset_load_info.size();
+    }
+
+    auto ptr = std::make_shared<AssetType>(std::move(library), asset_id, index_it->second);
     it->second = ptr;
-    m_asset_load_thread.Push(it->second);
+
+    AssetLoadInfo* asset_load_info;
+    if (index_inserted)
+    {
+      m_asset_load_info.emplace_back();
+      asset_load_info = &m_asset_load_info.back();
+    }
+    else
+    {
+      asset_load_info = &m_asset_load_info[index_it->second];
+    }
+
+    asset_load_info->asset = ptr;
+    asset_load_info->last_xfb_seen = m_xfbs_seen;
+    asset_load_info->xfb_load_request = m_xfbs_seen;
     return ptr;
   }
 
-  static constexpr auto TIME_BETWEEN_ASSET_MONITOR_CHECKS = std::chrono::milliseconds{500};
+  bool StartWorkerThreads(u32 num_worker_threads);
+  bool ResizeWorkerThreads(u32 num_worker_threads);
+  bool HasWorkerThreads() const;
+  void StopWorkerThreads();
+
+  void WorkerThreadEntryPoint(void* param);
+  void WorkerThreadRun();
+
+  void OnFrameEnd();
+
+  Common::EventHook m_frame_event;
 
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<GameTextureAsset>> m_game_textures;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<PixelShaderAsset>> m_pixel_shaders;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MaterialAsset>> m_materials;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MeshAsset>> m_meshes;
-  std::thread m_asset_monitor_thread;
-  Common::Flag m_asset_monitor_thread_shutdown;
 
-  std::size_t m_total_bytes_loaded = 0;
+  std::map<CustomAssetLibrary::AssetID, std::size_t> m_assetid_to_asset_index;
+
+  struct AssetLoadInfo
+  {
+    std::weak_ptr<CustomAsset> asset;
+    u64 last_xfb_seen = 0;
+    std::optional<u64> xfb_load_request;
+  };
+  std::vector<AssetLoadInfo> m_asset_load_info;
+  u64 m_xfbs_seen = 0;
+
   std::size_t m_max_memory_available = 0;
-  std::atomic_bool m_memory_exceeded = false;
+  bool m_memory_exceeded = false;
 
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<CustomAsset>> m_assets_to_monitor;
+  Common::Flag m_exit_flag;
+  Common::Event m_init_event;
 
-  // Use a recursive mutex to handle the scenario where an asset goes out of scope while
-  // iterating over the assets to monitor which calls the lock above in 'LoadOrCreateAsset'
-  std::recursive_mutex m_asset_load_lock;
-  Common::WorkQueueThread<std::weak_ptr<CustomAsset>> m_asset_load_thread;
+  std::vector<std::thread> m_worker_threads;
+  std::atomic_bool m_worker_thread_start_result{false};
+
+  using PendingWorkContainer = std::multimap<u64, std::weak_ptr<CustomAsset>, std::greater<>>;
+  PendingWorkContainer m_pending_work_per_frame;
+  std::mutex m_pending_work_lock;
+  std::condition_variable m_worker_thread_wake;
+  std::atomic_size_t m_busy_workers{0};
+
+  std::vector<std::size_t> m_completed_work;
+  std::mutex m_completed_work_lock;
+
+  std::vector<CustomAssetLibrary::AssetID> m_assetids_to_reload;
+  std::mutex m_reload_work_lock;
 };
 }  // namespace VideoCommon

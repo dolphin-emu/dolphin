@@ -1,27 +1,27 @@
 {
-	"meta":
-	{
-		"title": "Bloom Texture Definitions",
-		"author": "iwubcode"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n3_80x56_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n2_160x112_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n6_320x224_6"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "iwubcode",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "Monster Hunter Tri Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {},
+  "targets": [
+    {
+      "id": "13233451943079225832",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }

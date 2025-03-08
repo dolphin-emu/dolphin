@@ -902,6 +902,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
                                    const pixel_shader_uid_data* uid_data,
                                    const CustomPixelShaderContents& custom_details)
 {
+  // return PixelShader::WriteFullShader(api_type, host_config, uid_data, "", "");
   ShaderCode out;
 
   const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
@@ -2183,3 +2184,862 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   out.Write("\treal_ocol0 = blend_result;\n");
 }
+
+namespace PixelShader
+{
+void WriteDitherHeader(APIType api_type, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  if (uid_data->dither)
+  {
+    out.Write("ivec3 dolphin_calculate_dither(ivec4 prev, ivec4 pos)\n");
+    out.Write("{{\n");
+    // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
+    // Here the matrix is encoded into the two factor constants
+    out.Write("\tint2 dither = int2(pos.xy) & 1;\n");
+    out.Write("\treturn (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
+    out.Write("}}\n\n");
+  }
+}
+
+void WriteFogHeader(APIType api_type, const ShaderHostConfig& host_config,
+                    const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("ivec3 dolphin_calculate_fog(ivec4 color, vec4 pos, int zCoord)\n");
+  out.Write("{{\n");
+  if (uid_data->fog_fsel == FogType::Off)
+  {
+    out.Write("\treturn color.rgb;\n");
+    out.Write("}}\n\n");
+    return;  // no Fog
+  }
+
+  out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
+  out.SetConstantsUsed(C_FOGI, C_FOGI);
+  out.SetConstantsUsed(C_FOGF, C_FOGF + 1);
+  if (uid_data->fog_proj == FogProjection::Perspective)
+  {
+    // perspective
+    // ze = A/(B - (Zs >> B_SHF)
+    // TODO: Verify that we want to drop lower bits here! (currently taken over from software
+    // renderer)
+    //       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
+    //       That's equivalent, but keeps the lower bits of Zs.
+    out.Write("\tfloat ze = (" I_FOGF ".x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
+              ".w));\n");
+  }
+  else
+  {
+    // orthographic
+    // ze = a*Zs    (here, no B_SHF)
+    out.Write("\tfloat ze = " I_FOGF ".x * float(zCoord) / 16777216.0;\n");
+  }
+
+  // x_adjust = sqrt((x-center)^2 + k^2)/k
+  // ze *= x_adjust
+  if (uid_data->fog_RangeBaseEnabled)
+  {
+    out.SetConstantsUsed(C_FOGF, C_FOGF);
+    out.Write("\tfloat offset = (2.0 * (pos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
+              "\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
+              "\tuint indexlower = uint(floatindex);\n"
+              "\tuint indexupper = indexlower + 1u;\n"
+              "\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
+              "\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
+              "\tfloat k = lerp(klower, kupper, frac(floatindex));\n"
+              "\tfloat x_adjust = sqrt(offset * offset + k * k) / k;\n"
+              "\tze *= x_adjust;\n");
+  }
+
+  out.Write("\tfloat fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n");
+
+  if (uid_data->fog_fsel >= FogType::Exp)
+  {
+    out.Write("{}", tev_fog_funcs_table[uid_data->fog_fsel]);
+  }
+  else
+  {
+    if (uid_data->fog_fsel != FogType::Linear)
+      WARN_LOG_FMT(VIDEO, "Unknown Fog Type! {}", uid_data->fog_fsel);
+  }
+
+  out.Write("\tint ifog = iround(fog * 256.0);\n");
+  out.Write("\treturn (color.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
+  out.Write("}}\n\n");
+}
+
+void WriteDepthHeader(APIType api_type, const ShaderHostConfig& host_config,
+                      const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("int dolphin_calculate_zcoord(vec4 rawpos, vec4 clipPos, ivec4 last_stage_texmap)\n");
+  out.Write("{{\n");
+
+  if (uid_data->zfreeze)
+  {
+    out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
+    out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
+
+    out.Write("\tvec2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
+
+    // Opengl has reversed vertical screenspace coordinates
+    if (api_type == APIType::OpenGL)
+      out.Write("\tscreenpos.y = {}.0 - screenpos.y;\n", EFB_HEIGHT);
+
+    out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
+              ".y * screenpos.y);\n");
+  }
+  else if (!host_config.fast_depth_calc)
+  {
+    // FastDepth means to trust the depth generated in perspective division.
+    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
+    // For disabled FastDepth we just calculate the depth value again.
+    // The performance impact of this additional calculation doesn't matter, but it prevents
+    // the host GPU driver from performing any early depth test optimizations.
+    out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
+    // the screen space depth value = far z + (clip z / clip w) * z range
+    out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
+              "[1].y));\n");
+  }
+  else
+  {
+    if (!host_config.backend_reversed_depth_range)
+      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+    else
+      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+  }
+  out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
+
+  // depth texture can safely be ignored if the result won't be written to the depth buffer
+  // (early_ztest) and isn't used for fog either
+  const bool skip_ztexture = !uid_data->per_pixel_depth && uid_data->fog_fsel == FogType::Off;
+
+  // Note: depth texture output is only written to depth buffer if late depth test is used
+  // theoretical final depth value is used for fog calculation, though, so we have to emulate
+  // ztextures anyway
+  if (uid_data->ztex_op != ZTexOp::Disabled && !skip_ztexture)
+  {
+    // use the texture input of the last texture stage, hopefully this has been read and
+    // is in correct format...
+    out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
+    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, last_stage_texmap.xyzw) + " I_ZBIAS
+              "[1].w {};\n",
+              (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
+    out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
+  }
+
+  out.Write("\treturn zCoord;\n");
+
+  out.Write("}}\n\n");
+}
+
+void WriteLogicOpHeader(APIType api_type, const ShaderHostConfig& host_config,
+                        const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  static constexpr std::array<const char*, 16> logic_op_mode{
+      "ivec4(0, 0, 0, 0)",          // CLEAR
+      "prev & fb_value",            // AND
+      "prev & ~fb_value",           // AND_REVERSE
+      "prev",                       // COPY
+      "~prev & fb_value",           // AND_INVERTED
+      "fb_value",                   // NOOP
+      "prev ^ fb_value",            // XOR
+      "prev | fb_value",            // OR
+      "~(prev | fb_value)",         // NOR
+      "~(prev ^ fb_value)",         // EQUIV
+      "~fb_value",                  // INVERT
+      "prev | ~fb_value",           // OR_REVERSE
+      "~prev",                      // COPY_INVERTED
+      "~prev | fb_value",           // OR_INVERTED
+      "~(prev & fb_value)",         // NAND
+      "ivec4(255, 255, 255, 255)",  // SET
+  };
+
+  out.Write("ivec4 dolphin_calculate_logicop(vec4 color, vec4 prev)\n");
+  out.Write("{{\n");
+
+  out.Write("\tivec4 fb_value = iround(color * 255.0);\n");
+  out.Write("\treturn ({}) & 0xff;\n", logic_op_mode[uid_data->logic_op_mode]);
+  out.Write("}}\n\n");
+}
+
+void WriteColorHeader(APIType api_type, const ShaderHostConfig& host_config,
+                      const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  if (uid_data->uint_output)
+  {
+    out.Write("uvec4 dolphin_calculate_final_color0(ivec4 prev)\n");
+  }
+  else
+  {
+    out.Write("vec4 dolphin_calculate_final_color0(ivec4 prev)\n");
+  }
+  out.Write("{{\n");
+
+  // Some backends require the shader outputs be uint when writing to a uint render target for logic
+  // op.
+  if (uid_data->uint_output)
+  {
+    if (uid_data->rgba6_format)
+      out.Write("\treturn uint4(prev & 0xFC);\n");
+    else
+      out.Write("\treturn uint4(prev);\n");
+  }
+  else
+  {
+    out.Write("\tvec4 result;\n");
+    if (uid_data->rgba6_format)
+      out.Write("\tresult.rgb = float3(prev.rgb >> 2) / 63.0;\n");
+    else
+      out.Write("\tresult.rgb = float3(prev.rgb) / 255.0;\n");
+
+    // Colors will be blended against the 8-bit alpha from ocol1 and
+    // the 6-bit alpha from ocol0 will be written to the framebuffer
+    if (uid_data->useDstAlpha)
+    {
+      out.SetConstantsUsed(C_ALPHA, C_ALPHA);
+      out.Write("\tresult.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
+    }
+    else
+    {
+      out.Write("\tresult.a = float(prev.a >> 2) / 63.0;\n");
+    }
+    out.Write("\treturn result;\n");
+  }
+
+  out.Write("}}\n\n");
+
+  const bool use_dual_source = !uid_data->no_dual_src || uid_data->blend_enable;
+  if (!uid_data->uint_output && use_dual_source)
+  {
+    out.Write("vec4 dolphin_calculate_final_color1(ivec4 prev)\n");
+    out.Write("{{\n");
+
+    // Colors will be blended against the 8-bit alpha from ocol1 and
+    // the 6-bit alpha from ocol0 will be written to the framebuffer
+    if (uid_data->useDstAlpha)
+    {
+      // Use dual-source color blending to perform dst alpha in a single pass
+      out.Write("\treturn vec4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
+    }
+    else
+    {
+      out.Write("\treturn vec4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
+    }
+  }
+
+  out.Write("}}\n\n");
+}
+
+void WriteBlendHeader(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+{
+  if (uid_data->blend_enable)
+  {
+    out.Write("vec4 dolphin_calculate_blend(vec4 initial_color, vec4 src_color)\n");
+    out.Write("{{\n");
+    using Common::EnumMap;
+    static constexpr EnumMap<const char*, SrcBlendFactor::InvDstAlpha> blend_src_factor{
+        "float3(0,0,0);",                      // ZERO
+        "float3(1,1,1);",                      // ONE
+        "initial_color.rgb;",                  // DSTCLR
+        "float3(1,1,1) - initial_color.rgb;",  // INVDSTCLR
+        "src_color.aaa;",                      // SRCALPHA
+        "float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
+        "initial_color.aaa;",                  // DSTALPHA
+        "float3(1,1,1) - initial_color.aaa;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<const char*, SrcBlendFactor::InvDstAlpha> blend_src_factor_alpha{
+        "0.0;",                    // ZERO
+        "1.0;",                    // ONE
+        "initial_color.a;",        // DSTCLR
+        "1.0 - initial_color.a;",  // INVDSTCLR
+        "src_color.a;",            // SRCALPHA
+        "1.0 - src_color.a;",      // INVSRCALPHA
+        "initial_color.a;",        // DSTALPHA
+        "1.0 - initial_color.a;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<const char*, DstBlendFactor::InvDstAlpha> blend_dst_factor{
+        "float3(0,0,0);",                      // ZERO
+        "float3(1,1,1);",                      // ONE
+        "ocol0.rgb;",                          // SRCCLR
+        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
+        "src_color.aaa;",                      // SRCALHA
+        "float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
+        "initial_color.aaa;",                  // DSTALPHA
+        "float3(1,1,1) - initial_color.aaa;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<const char*, DstBlendFactor::InvDstAlpha> blend_dst_factor_alpha{
+        "0.0;",                    // ZERO
+        "1.0;",                    // ONE
+        "ocol0.a;",                // SRCCLR
+        "1.0 - ocol0.a;",          // INVSRCCLR
+        "src_color.a;",            // SRCALPHA
+        "1.0 - src_color.a;",      // INVSRCALPHA
+        "initial_ocol0.a;",        // DSTALPHA
+        "1.0 - initial_color.a;",  // INVDSTALPHA
+    };
+    out.Write("\tfloat4 blend_src;");
+    out.Write("\tblend_src.rgb = {}\n", blend_src_factor[uid_data->blend_src_factor]);
+    out.Write("\tblend_src.a = {}\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
+    out.Write("\tfloat4 blend_dst;\n");
+    out.Write("\tblend_dst.rgb = {}\n", blend_dst_factor[uid_data->blend_dst_factor]);
+    out.Write("\tblend_dst.a = {}\n", blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
+
+    out.Write("\tfloat4 blend_result;\n");
+    if (uid_data->blend_subtract)
+    {
+      out.Write("\tblend_result.rgb = initial_color.rgb * blend_dst.rgb - ocol0.rgb * "
+                "blend_src.rgb;\n");
+    }
+    else
+    {
+      out.Write(
+          "\tblend_result.rgb = initial_color.rgb * blend_dst.rgb + ocol0.rgb * blend_src.rgb;\n");
+    }
+
+    if (uid_data->blend_subtract_alpha)
+      out.Write("\tblend_result.a = initial_color.a * blend_dst.a - ocol0.a * blend_src.a;\n");
+    else
+      out.Write("\tblend_result.a = initial_color.a * blend_dst.a + ocol0.a * blend_src.a;\n");
+
+    out.Write("\treturn blend_result;\n");
+    out.Write("}}\n\n");
+  }
+}
+
+void WriteEmulatedFragmentBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
+                                     const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  constexpr std::string_view emulated_fragment_definition =
+      "void dolphin_emulated_fragment(in DolphinFragmentInput frag_input, out "
+      "DolphinFragmentOutput frag_output)";
+  out.Write("{}\n", emulated_fragment_definition);
+  out.Write("{{\n");
+
+  WriteFragmentBody(api_type, host_config, uid_data, out);
+
+  out.Write("}}\n");
+}
+
+void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& host_config,
+                              const pixel_shader_uid_data* uid_data, ShaderCode& out,
+                              bool as_comment)
+{
+  out.Write("struct DolphinLightData\n");
+  out.Write("{{\n");
+  out.Write("\tfloat3 position;\n");
+  out.Write("\tfloat3 direction;\n");
+  out.Write("\tfloat3 color;\n");
+  out.Write("\tuint attenuation_type;\n");
+  out.Write("\tfloat4 cosatt;\n");
+  out.Write("\tfloat4 distatt;\n");
+  out.Write("}};\n\n");
+
+  out.Write("struct DolphinFragmentInput\n");
+  out.Write("{{\n");
+  out.Write("\tvec4 color_0;\n");
+  out.Write("\tvec4 color_1;\n");
+  out.Write("\tint layer;\n");
+  out.Write("\tvec3 normal;\n");
+  out.Write("\tvec3 position;\n");
+  for (u32 i = 0; i < uid_data->genMode_numtexgens; i++)
+  {
+    out.Write("\tvec3 tex{};\n", i);
+  }
+  for (u32 i = uid_data->genMode_numtexgens; i < 8; i++)
+  {
+    out.Write("\tvec3 tex{};\n", i);
+  }
+  out.Write("\n");
+
+  out.Write("\tDolphinLightData[8] lights_chan0_color;\n");
+  out.Write("\tDolphinLightData[8] lights_chan0_alpha;\n");
+  out.Write("\tDolphinLightData[8] lights_chan1_color;\n");
+  out.Write("\tDolphinLightData[8] lights_chan1_alpha;\n");
+  out.Write("\tfloat4[2] ambient_lighting;\n");
+  out.Write("\tfloat4[2] base_material;\n");
+  out.Write("\tuint light_chan0_color_count;\n");
+  out.Write("\tuint light_chan0_alpha_count;\n");
+  out.Write("\tuint light_chan1_color_count;\n");
+  out.Write("\tuint light_chan1_alpha_count;\n");
+
+  out.Write("}};\n\n");
+
+  out.Write("struct DolphinFragmentOutput\n");
+  out.Write("{{\n");
+  out.Write("\tivec4 main;\n");
+  out.Write("\tivec4 last_texture;\n");
+  out.Write("}};\n\n");
+
+  // CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE "enum" values
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {}u;\n",
+            static_cast<u32>(AttenuationFunc::None));
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {}u;\n",
+            static_cast<u32>(AttenuationFunc::Spec));
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {}u;\n",
+            static_cast<u32>(AttenuationFunc::Dir));
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
+            static_cast<u32>(AttenuationFunc::Spot));
+}
+
+void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  const bool per_pixel_lighting = host_config.per_pixel_lighting;
+  const bool stereo = host_config.stereo;
+  const u32 numStages = uid_data->genMode_numtevstages + 1;
+
+  out.Write("\tvec4 col0 = frag_input.color_0;\n");
+  out.Write("\tvec4 col1 = frag_input.color_1;\n");
+  out.Write("\tint layer = frag_input.layer;\n");
+
+  out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
+            "[3], prev = " I_COLORS "[0];\n"
+            "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, "
+            "0, 0);\n"
+            "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
+            "\tint alphabump=0;\n"
+            "\tint3 tevcoord=int3(0, 0, 0);\n"
+            "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
+            "\tint4 "
+            "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,"
+            "0);\n\n");  // tev combiner inputs
+
+  if (per_pixel_lighting)
+  {
+    if (uid_data->numColorChans > 0)
+    {
+      out.Write("\tcol0 = dolphin_calculate_lighting_chn0(col0, vec4(frag_input.position, 1), "
+                "frag_input.normal);\n");
+    }
+    else
+    {
+      // The number of colors available to TEV is determined by numColorChans.
+      // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+      out.Write("\tcol0 = vec4(0.0, 0.0, 0.0, 0.0);\n");
+    }
+
+    if (uid_data->numColorChans == 2)
+    {
+      out.Write("\tcol1 = dolphin_calculate_lighting_chn1(col1, vec4(frag_input.position, 1), "
+                "frag_input.normal);\n");
+    }
+    else
+    {
+      // The number of colors available to TEV is determined by numColorChans.
+      // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+      out.Write("\tcol1 = vec4(0.0, 0.0, 0.0, 0.0);\n");
+    }
+  }
+
+  if (uid_data->genMode_numtexgens == 0)
+  {
+    // TODO: This is a hack to ensure that shaders still compile when setting out of bounds tex
+    // coord indices to 0.  Ideally, it shouldn't exist at all, but the exact behavior hasn't been
+    // tested.
+    out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n\n");
+  }
+  else
+  {
+    out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
+    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
+    {
+      out.Write("\tint2 fixpoint_uv{} = int2(", i);
+      out.Write("(frag_input.tex{}.z == 0.0 ? frag_input.tex{}.xy : frag_input.tex{}.xy / "
+                "frag_input.tex{}.z)",
+                i, i, i, i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
+      // TODO: S24 overflows here?
+    }
+  }
+
+  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
+  {
+    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
+    {
+      u32 texcoord = uid_data->GetTevindirefCoord(i);
+      const u32 texmap = uid_data->GetTevindirefMap(i);
+
+      // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord
+      // does not exist), then tex coord 0 is used (though sometimes glitchy effects happen on
+      // console). This affects the Mario portrait in Luigi's Mansion, where the developers forgot
+      // to set the number of tex gens to 2 (bug 11462).
+      if (texcoord >= uid_data->genMode_numtexgens)
+        texcoord = 0;
+
+      out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
+      out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
+                (i & 1) ? "zw" : "xy");
+
+      out.Write("\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i,
+                texmap);
+    }
+  }
+
+  for (u32 i = 0; i < numStages; i++)
+  {
+    // Build the equation for this stage
+    WriteStage(out, uid_data, i, api_type, stereo, false);
+  }
+
+  {
+    // The results of the last texenv stage are put onto the screen,
+    // regardless of the used destination register
+    TevStageCombiner::ColorCombiner last_cc;
+    TevStageCombiner::AlphaCombiner last_ac;
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc;
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac;
+    if (last_cc.dest != TevOutput::Prev)
+    {
+      out.Write("\tprev.rgb = {};\n", tev_c_output_table[last_cc.dest]);
+    }
+    if (last_ac.dest != TevOutput::Prev)
+    {
+      out.Write("\tprev.a = {};\n", tev_a_output_table[last_ac.dest]);
+    }
+  }
+
+  out.Write("\tfrag_output.last_texture = textemp;\n");
+  out.Write("\tfrag_output.main = prev;\n");
+}
+
+ShaderCode WriteFullShader(APIType api_type, const ShaderHostConfig& host_config,
+                           const pixel_shader_uid_data* uid_data, std::string_view custom_pixel,
+                           std::string_view custom_uniforms)
+{
+  ShaderCode out;
+
+  const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  const bool msaa = host_config.msaa;
+  const bool ssaa = host_config.ssaa;
+  const bool stereo = host_config.stereo;
+  const u32 numStages = uid_data->genMode_numtevstages + 1;
+
+  out.Write("// Pixel Shader for TEV stages\n");
+  out.Write("// {} TEV stages, {} texgens, {} IND stages\n", numStages,
+            uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
+
+  // Stuff that is shared between ubershaders and pixelgen.
+  WriteBitfieldExtractHeader(out, api_type, host_config);
+
+  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box, {});
+
+  GenerateLightingShaderHeader(out, uid_data->lighting);
+
+  WriteDitherHeader(api_type, host_config, uid_data, out);
+
+  WriteFogHeader(api_type, host_config, uid_data, out);
+
+  WriteDepthHeader(api_type, host_config, uid_data, out);
+
+  WriteLogicOpHeader(api_type, host_config, uid_data, out);
+
+  WriteColorHeader(api_type, host_config, uid_data, out);
+
+  WriteBlendHeader(out, uid_data);
+
+  out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
+            "sampleTexture(texmap, samp[texmap], uv, layer)\n");
+
+  if (uid_data->ztest == EmulatedZ::ForcedEarly)
+  {
+    // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
+    // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
+    // this feature properly until 2012: Depth tests were always done after alpha testing.
+    // Most importantly, it was not possible to write to the depth buffer without also writing
+    // a color value (unless color writing was disabled altogether).
+
+    // OpenGL 4.2 actually provides two extensions which can force an early z test:
+    //  * ARB_image_load_store has 'layout(early_fragment_tests)' which forces the driver to do z
+    //  and stencil tests early.
+    //  * ARB_conservative_depth has 'layout(depth_unchanged) which signals to the driver that it
+    //  can make optimisations
+    //    which assume the pixel shader won't update the depth buffer.
+
+    // early_fragment_tests is the best option, as it requires the driver to do early-z and defines
+    // early-z exactly as
+    // we expect, with discard causing the shader to exit with only the depth buffer updated.
+
+    // Conservative depth's 'depth_unchanged' only hints to the driver that an early-z optimisation
+    // can be made and
+    // doesn't define what will happen if we discard the fragment. But the way modern graphics
+    // hardware is implemented
+    // means it is not unreasonable to expect the same behaviour as early_fragment_tests.
+    // We can also assume that if a driver has gone out of its way to support conservative depth and
+    // not image_load_store
+    // as required by OpenGL 4.2 that it will be doing the optimisation.
+    // If the driver doesn't actually do an early z optimisation, ZCompLoc will be broken and depth
+    // will only be written
+    // if the alpha test passes.
+
+    // We support Conservative as a fallback, because many drivers based on Mesa haven't implemented
+    // all of the
+    // ARB_image_load_store extension yet.
+
+    // This is a #define which signals whatever early-z method the driver supports.
+    out.Write("FORCE_EARLY_Z; \n");
+  }
+
+  const bool use_framebuffer_fetch = uid_data->blend_enable || uid_data->logic_op_enable ||
+                                     uid_data->ztest == EmulatedZ::EarlyWithFBFetch;
+
+#ifdef __APPLE__
+  // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
+  // if we want to use it.
+  if (api_type == APIType::Vulkan || api_type == APIType::Metal)
+  {
+    if (!uid_data->no_dual_src)
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
+                "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+    }
+    else
+    {
+      // Metal doesn't support a single unified variable for both input and output,
+      // so when using framebuffer fetch, we declare the input separately below.
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+    }
+
+    if (use_framebuffer_fetch)
+    {
+      // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
+      out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
+    }
+  }
+  else
+#endif
+  {
+    if (use_framebuffer_fetch)
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+    }
+    else
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out {} ocol0;\n",
+                uid_data->uint_output ? "uvec4" : "vec4");
+    }
+
+    if (!uid_data->no_dual_src)
+    {
+      out.Write("{} out {} ocol1;\n", "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
+                uid_data->uint_output ? "uvec4" : "vec4");
+    }
+  }
+
+  if (uid_data->per_pixel_depth)
+    out.Write("#define depth gl_FragDepth\n");
+
+  if (host_config.backend_geometry_shaders)
+  {
+    out.Write("VARYING_LOCATION(0) in VertexData {{\n");
+    GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
+                            GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
+
+    out.Write("}};\n");
+    if (stereo && !host_config.backend_gl_layer_in_fs)
+      out.Write("flat in int layer;");
+  }
+  else
+  {
+    // Let's set up attributes
+    u32 counter = 0;
+    out.Write("VARYING_LOCATION({}) {} in float4 colors_0;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
+    {
+      out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa), i);
+    }
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+    if (per_pixel_lighting)
+    {
+      out.Write("VARYING_LOCATION({}) {} in float3 Normal;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+  }
+
+  WriteFragmentDefinitions(api_type, host_config, uid_data, out, false);
+
+  if (!custom_uniforms.empty())
+  {
+    out.Write("UBO_BINDING(std140, 3) uniform CustomShaderBlock {{\n");
+    out.Write("{}", custom_uniforms);
+    out.Write("}} custom_uniforms;\n");
+  }
+
+  WriteEmulatedFragmentBodyHeader(api_type, host_config, uid_data, out);
+
+  if (custom_pixel.empty())
+  {
+    out.Write("{}\n", fragment_definition);
+    out.Write("{{\n");
+
+    out.Write("\tdolphin_emulated_fragment(frag_input, frag_output);\n");
+
+    out.Write("}}\n");
+  }
+  else
+  {
+    out.Write("{}\n", custom_pixel);
+  }
+
+  out.Write("void main()\n{{\n");
+  out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
+
+  if (use_framebuffer_fetch)
+  {
+    // Store off a copy of the initial framebuffer value.
+    //
+    // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
+    // framebuffer), we read from real_ocol0.
+    out.Write("#ifdef FB_FETCH_VALUE\n"
+              "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
+              "#else\n"
+              "\tfloat4 initial_ocol0 = real_ocol0;\n"
+              "#endif\n");
+
+    // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+    // intermediate value with multiple reads & modifications, so we pull out the "real" output
+    // value above and use a temporary for calculations, then set the output value once at the
+    // end of the shader.
+    out.Write("\tfloat4 ocol0;\n");
+  }
+
+  if (uid_data->blend_enable)
+  {
+    out.Write("\tfloat4 ocol1;\n");
+  }
+
+  if (host_config.backend_geometry_shaders && stereo)
+  {
+    if (host_config.backend_gl_layer_in_fs)
+      out.Write("\tint layer = gl_Layer;\n");
+  }
+  else
+  {
+    out.Write("\tint layer = 0;\n");
+  }
+
+  out.Write("\tDolphinFragmentInput frag_input;\n");
+  out.Write("\tfrag_input.color_0 = colors_0;\n");
+  out.Write("\tfrag_input.color_1 = colors_1;\n");
+  out.Write("\tfrag_input.layer = layer;\n");
+  if (per_pixel_lighting)
+  {
+    out.Write("\tfrag_input.normal = normalize(Normal);\n");
+    out.Write("\tfrag_input.position = WorldPos;\n");
+  }
+  else
+  {
+    out.Write("\tfrag_input.normal = vec3(0, 0, 0);\n");
+    out.Write("\tfrag_input.position = vec3(0, 0, 0);\n");
+  }
+  for (u32 i = 0; i < uid_data->genMode_numtexgens; i++)
+  {
+    out.Write("\tfrag_input.tex{0} = tex{0};\n", i);
+  }
+
+  if (!custom_pixel.empty())
+    GenerateCustomLighting(&out, uid_data->lighting);
+
+  out.Write("\tDolphinFragmentOutput frag_output;\n");
+  out.Write("\tfragment(frag_input, frag_output);\n");
+  out.Write("\tivec4 prev = frag_output.main & 255;\n");
+
+  // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
+  // (in this case we need to write a depth value if depth test passes regardless of the alpha
+  // testing result)
+  if (uid_data->Pretest == AlphaTestResult::Undetermined ||
+      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
+  {
+    WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
+                   !uid_data->no_dual_src || uid_data->blend_enable);
+  }
+
+  // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
+  // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
+  // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
+  // the center of the screen several times, but those rectangles shouldn't be visible).
+  // Blending seems to result in no changes to the output with an alpha of 1, even if the input
+  // color is white.
+  // TODO: Investigate this further: we might be handling blending incorrectly in general (though
+  // there might not be any good way of changing blending behavior)
+  out.Write("\t// Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
+            "\t// but doesn't do anything in blending\n"
+            "\tif (prev.a == 1) prev.a = 0;\n");
+
+  const bool write_depth =
+      uid_data->ztest == EmulatedZ::Early || uid_data->ztest == EmulatedZ::EarlyWithFBFetch ||
+      uid_data->ztest == EmulatedZ::EarlyWithZComplocHack || uid_data->ztest == EmulatedZ::Late;
+  const bool needs_depth = uid_data->per_pixel_depth && write_depth;
+  const bool needs_zcoord = needs_depth || uid_data->fog_fsel != FogType::Off;
+  if (needs_zcoord)
+  {
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write(
+          "\tint zCoord = dolphin_calculate_zcoord(rawpos, clipPos, frag_output.last_texture);\n");
+    }
+    else
+    {
+      out.Write("\tint zCoord = dolphin_calculate_zcoord(rawpos, vec4(0, 0, 0, 0), "
+                "frag_output.last_texture);\n");
+    }
+  }
+
+  if (needs_depth)
+  {
+    if (!host_config.backend_reversed_depth_range)
+      out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+    else
+      out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+  }
+
+  // No dithering for RGB8 mode
+  if (uid_data->dither)
+    out.Write("\tprev.rgb = dolphin_calculate_dither(rawpos, prev);\n");
+
+  if (uid_data->fog_fsel != FogType::Off)
+    out.Write("\tprev.rgb = dolphin_calculate_fog(prev, rawpos, zCoord);\n");
+
+  if (uid_data->logic_op_enable)
+    out.Write("\tprev = dolphin_calculate_logicop(initial_ocol0, prev);\n");
+  else if (uid_data->emulate_logic_op_with_blend)
+    WriteLogicOpBlend(out, uid_data);
+
+  // Write the color and alpha values to the framebuffer
+  // If using shader blend, we still use the separate alpha
+  out.Write("\tocol0 = dolphin_calculate_final_color0(prev);\n");
+
+  const bool use_dual_source = !uid_data->no_dual_src || uid_data->blend_enable;
+  if (use_dual_source)
+    out.Write("\tocol1 = dolphin_calculate_final_color1(prev);\n");
+
+  if (uid_data->blend_enable)
+  {
+    if (uid_data->useDstAlpha)
+      out.Write("\tocol0 = dolphin_calculate_blend(initial_ocol0, ocol1);\n");
+    else
+      out.Write("\tocol0 = dolphin_calculate_blend(initial_ocol0, ocol0);\n");
+  }
+
+  if (use_framebuffer_fetch)
+    out.Write("\treal_ocol0 = ocol0;\n");
+
+  if (uid_data->bounding_box)
+    out.Write("\tUpdateBoundingBox(rawpos.xy);\n");
+
+  out.Write("}}\n");
+
+  return out;
+}
+}  // namespace PixelShader
