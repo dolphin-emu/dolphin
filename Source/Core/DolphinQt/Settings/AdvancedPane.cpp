@@ -24,6 +24,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -180,6 +181,22 @@ void AdvancedPane::CreateLayout()
                     "your current system time.\n\nIf unsure, leave this unchecked."));
   custom_rtc_description->setWordWrap(true);
   rtc_options->layout()->addWidget(custom_rtc_description);
+
+  {
+    auto* timing_box = new QGroupBox(tr("Core Timing"));
+    auto* const timing_layout = new QGridLayout{timing_box};
+    auto* const max_fallback = new ConfigInteger{0, 10000, Config::MAIN_MAX_FALLBACK};
+    timing_layout->addWidget(new ConfigIntegerLabel{tr("Maximum Fallback (ms):"), max_fallback}, 0,
+                             0);
+    timing_layout->addWidget(max_fallback, 0, 1);
+    auto* max_fallback_desc = new QLabel(
+        tr("Allowed time drift before abandoning accurate overall emulation time.\n"
+           "Higher values will permit the emulator to run fast after stutters to catch up.\n"
+           "Use 0 to always seek accurate time unless paused or speed-adjusted,\n"
+           "which may be useful for internet play."));
+    timing_layout->addWidget(max_fallback_desc, 1, 0, 1, 2);
+    main_layout->addWidget(timing_box);
+  }
 
   main_layout->addStretch(1);
 }
