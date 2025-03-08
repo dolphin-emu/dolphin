@@ -87,6 +87,8 @@ void CommandProcessorManager::DoState(PointerWrap& p)
   p.Do(m_cp_status_reg);
   p.Do(m_cp_ctrl_reg);
   p.Do(m_cp_clear_reg);
+  p.Do(m_perf_select);
+  p.Do(m_unk_0a_reg);
   m_fifo.DoState(p);
 
   p.Do(m_interrupt_set);
@@ -200,13 +202,13 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | CTRL_REGISTER, MMIO::DirectRead<u16>(&m_cp_ctrl_reg.Hex),
                  MMIO::ComplexWrite<u16>([](Core::System& system_, u32, u16 val) {
                    auto& cp = system_.GetCommandProcessor();
-                   UCPCtrlReg tmp(val);
+                   UCPCtrlReg tmp(val & 0x3F);
                    cp.m_cp_ctrl_reg.Hex = tmp.Hex;
                    cp.SetCpControlRegister();
                    system_.GetFifo().RunGpu();
                  }));
 
-  mmio->Register(base | CLEAR_REGISTER, MMIO::DirectRead<u16>(&m_cp_clear_reg.Hex),
+  mmio->Register(base | CLEAR_REGISTER, MMIO::Constant<u16>(0),
                  MMIO::ComplexWrite<u16>([](Core::System& system_, u32, u16 val) {
                    auto& cp = system_.GetCommandProcessor();
                    UCPClearReg tmp(val);
@@ -215,7 +217,13 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    system_.GetFifo().RunGpu();
                  }));
 
-  mmio->Register(base | PERF_SELECT, MMIO::InvalidRead<u16>(), MMIO::Nop<u16>());
+  // TODO
+  mmio->Register(base | PERF_SELECT, MMIO::DirectRead<u16>(&m_perf_select),
+                 MMIO::DirectWrite<u16>(&m_perf_select, 0x0007));
+
+  // TODO
+  mmio->Register(base | UNK_0A_REGISTER, MMIO::DirectRead<u16>(&m_unk_0a_reg),
+                 MMIO::DirectWrite<u16>(&m_unk_0a_reg, 0x00FF));
 
   // Some MMIOs have different handlers for single core vs. dual core mode.
   const bool is_on_thread = IsOnThread(m_system);
@@ -565,6 +573,7 @@ void CommandProcessorManager::SetCpStatusRegister()
 
 void CommandProcessorManager::SetCpControlRegister()
 {
+  // Just before disabling reads, give the GPU a chance to catch up.
   if (m_fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) && !m_cp_ctrl_reg.GPReadEnable)
   {
     m_system.GetFifo().SyncGPUForRegisterAccess();
@@ -589,6 +598,18 @@ void CommandProcessorManager::SetCpControlRegister()
 // We don't emulate proper GP timing anyway at the moment, so it would just slow down emulation.
 void CommandProcessorManager::SetCpClearRegister()
 {
+}
+
+void CommandProcessorManager::ResetFifo()
+{
+  // Link fifos, disable interrupts, disable reads.
+  m_cp_ctrl_reg.Hex = 0x0010;
+  SetCpControlRegister();
+  m_perf_select = 0;
+  m_unk_0a_reg = 0;
+  m_fifo.CPLoWatermark = 0;
+  m_fifo.CPHiWatermark = GetPhysicalAddressMask(m_system.IsWii()) & ~31u;
+  SetCpStatusRegister();
 }
 
 void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
