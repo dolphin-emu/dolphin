@@ -80,7 +80,8 @@ class MainWindow final : public QMainWindow
 
 public:
   explicit MainWindow(Core::System& system, std::unique_ptr<BootParameters> boot_parameters,
-                      const std::string& movie_path);
+                      const std::string& movie_path, const bool netplay_join,
+                      const std::optional<UICommon::GameFile> netplay_host);
   ~MainWindow();
 
   WindowSystemInfo GetWindowSystemInfo() const;
