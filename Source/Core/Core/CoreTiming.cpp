@@ -433,10 +433,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     target_time = max_target;
   }
 
-  // Skip the VI interrupt if the CPU is lagging by a certain amount.
-  // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
-  const TimePoint vi_target = time - std::min(m_max_fallback, m_max_variance) / 2;
-  m_throttle_disable_vi_int = target_time < vi_target;
+  UpdateVISkip(time, target_time);
 
   SleepUntil(target_time);
 }
@@ -470,6 +467,16 @@ TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 {
   return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
                                                   m_system.GetSystemTimers().GetTicksPerSecond()));
+}
+
+void CoreTimingManager::UpdateVISkip(TimePoint current_time, TimePoint target_time)
+{
+  const DT vi_fallback = std::min(m_max_variance, m_max_fallback);
+
+  // Skip the VI interrupt if the CPU is lagging by a certain amount.
+  // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
+  const TimePoint vi_target = current_time - vi_fallback / 2;
+  m_throttle_disable_vi_int = target_time < vi_target;
 }
 
 bool CoreTimingManager::GetVISkip() const
