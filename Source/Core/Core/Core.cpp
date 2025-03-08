@@ -310,12 +310,12 @@ void Stop(Core::System& system)  // - Hammertime!
 
   if (system.IsDualCoreMode())
   {
-    // Video_EnterLoop() should now exit so that EmuThread()
+    // FIFO processing should now exit so that EmuThread()
     // will continue concurrently with the rest of the commands
     // in this function. We no longer rely on Postmessage.
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
 
-    g_video_backend->Video_ExitLoop();
+    system.GetFifo().ExitGpuLoop();
   }
 
   s_last_actual_emulation_speed = 1.0;

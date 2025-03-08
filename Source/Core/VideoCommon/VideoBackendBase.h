@@ -56,8 +56,6 @@ public:
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
-  void Video_ExitLoop();
-
   void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
