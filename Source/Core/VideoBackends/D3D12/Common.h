@@ -12,8 +12,8 @@ namespace DX12
 {
 using Microsoft::WRL::ComPtr;
 
-static void ResourceBarrier(ID3D12GraphicsCommandList* cmdlist, ID3D12Resource* resource,
-                            D3D12_RESOURCE_STATES from_state, D3D12_RESOURCE_STATES to_state)
+static inline void ResourceBarrier(ID3D12GraphicsCommandList* cmdlist, ID3D12Resource* resource,
+                                   D3D12_RESOURCE_STATES from_state, D3D12_RESOURCE_STATES to_state)
 {
   const D3D12_RESOURCE_BARRIER barrier = {
       D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,

@@ -49,8 +49,8 @@ public:
     ////////////////////////////////////////////////////////////
     // Types
     ////////////////////////////////////////////////////////////
-    typedef std::basic_string<Uint32>::iterator       Iterator;      ///< Iterator type
-    typedef std::basic_string<Uint32>::const_iterator ConstIterator; ///< Read-only iterator type
+    typedef std::basic_string<char32_t>::iterator       Iterator;      ///< Iterator type
+    typedef std::basic_string<char32_t>::const_iterator ConstIterator; ///< Read-only iterator type
 
     ////////////////////////////////////////////////////////////
     // Static member data
@@ -91,7 +91,7 @@ public:
     /// \param utf32Char UTF-32 character to convert
     ///
     ////////////////////////////////////////////////////////////
-    String(Uint32 utf32Char);
+    String(char32_t utf32Char);
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct from a null-terminated C-style ANSI string and a locale
@@ -139,7 +139,7 @@ public:
     /// \param utf32String UTF-32 string to assign
     ///
     ////////////////////////////////////////////////////////////
-    String(const Uint32* utf32String);
+    String(const char32_t* utf32String);
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct from an UTF-32 string
@@ -147,7 +147,7 @@ public:
     /// \param utf32String UTF-32 string to assign
     ///
     ////////////////////////////////////////////////////////////
-    String(const std::basic_string<Uint32>& utf32String);
+    String(const std::basic_string<char32_t>& utf32String);
 
     ////////////////////////////////////////////////////////////
     /// \brief Copy constructor
@@ -189,8 +189,8 @@ public:
     /// \brief Create a new sf::String from a UTF-32 encoded string
     ///
     /// This function is provided for consistency, it is equivalent to
-    /// using the constructors that takes a const sf::Uint32* or
-    /// a std::basic_string<sf::Uint32>.
+    /// using the constructors that takes a const sf::char32_t* or
+    /// a std::basic_string<sf::char32_t>.
     ///
     /// \param begin Forward iterator to the beginning of the UTF-32 sequence
     /// \param end   Forward iterator to the end of the UTF-32 sequence
@@ -273,7 +273,7 @@ public:
     /// \see toUtf16, toUtf32
     ///
     ////////////////////////////////////////////////////////////
-    std::basic_string<Uint8> toUtf8() const;
+    std::basic_string<char> toUtf8() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Convert the Unicode string to a UTF-16 string
@@ -283,7 +283,7 @@ public:
     /// \see toUtf8, toUtf32
     ///
     ////////////////////////////////////////////////////////////
-    std::basic_string<Uint16> toUtf16() const;
+    std::basic_string<char16_t> toUtf16() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Convert the Unicode string to a UTF-32 string
@@ -296,7 +296,7 @@ public:
     /// \see toUtf8, toUtf16
     ///
     ////////////////////////////////////////////////////////////
-    std::basic_string<Uint32> toUtf32() const;
+    std::basic_string<char32_t> toUtf32() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Overload of assignment operator
@@ -329,7 +329,7 @@ public:
     /// \return Character at position \a index
     ///
     ////////////////////////////////////////////////////////////
-    Uint32 operator [](std::size_t index) const;
+    char32_t operator [](std::size_t index) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Overload of [] operator to access a character by its position
@@ -342,7 +342,7 @@ public:
     /// \return Reference to the character at position \a index
     ///
     ////////////////////////////////////////////////////////////
-    Uint32& operator [](std::size_t index);
+    char32_t& operator [](std::size_t index);
 
     ////////////////////////////////////////////////////////////
     /// \brief Clear the string
@@ -466,7 +466,7 @@ public:
     /// \return Read-only pointer to the array of characters
     ///
     ////////////////////////////////////////////////////////////
-    const Uint32* getData() const;
+    const char32_t* getData() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Return an iterator to the beginning of the string
@@ -524,7 +524,7 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    std::basic_string<Uint32> m_string; ///< Internal string of UTF-32 characters
+    std::basic_string<char32_t> m_string; ///< Internal string of UTF-32 characters
 };
 
 ////////////////////////////////////////////////////////////

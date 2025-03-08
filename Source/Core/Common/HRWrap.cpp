@@ -3,8 +3,14 @@
 
 #include "HRWrap.h"
 
+#ifndef _MSC_VER
+#include <comdef.h>
+#endif
+#include "Common/StringUtil.h"
+
 namespace Common
 {
+#ifdef _MSC_VER
 std::string GetHResultMessage(HRESULT hr)
 {
   auto err = winrt::hresult_error(hr);
@@ -14,4 +20,11 @@ std::string GetHResultMessage(const winrt::hresult& hr)
 {
   return GetHResultMessage(hr.value);
 }
+#else
+std::string GetHResultMessage(HRESULT hr)
+{
+  _com_error err(hr);
+  return TStrToUTF8(err.ErrorMessage());
+}
+#endif
 }  // namespace Common
