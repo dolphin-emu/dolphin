@@ -44,7 +44,7 @@ endif()
 
 set(COMPILER ${CMAKE_CXX_COMPILER_ID})
 if (COMPILER STREQUAL "GNU")
-  set(COMPILER "GCC") # perfer printing GCC instead of GNU
+  set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
 # Enforce minimum compiler versions that support the c++20 features we use
@@ -407,7 +407,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14.0)
-    # Workaround: the llvm libc++ and versions of clang eariler than 14 have a bug with consteval
+    # Workaround: the llvm libc++ and versions of clang earlier than 14 have a bug with consteval
     # so we define FMT_CONSTEVAL to blank to just disable consteval in fmt
     add_definitions(-DFMT_CONSTEVAL=)
   endif()

@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     # SHA checksum to verify the integrity of the app. This doesn't
     # protect against malicious actors, but it does protect against
     # running corrupted binaries and allows for access to the extended
-    # permisions needed for ARM builds
+    # permissions needed for ARM builds
     "codesign_identity":  "-",
 
     # Minimum macOS version for each architecture slice
@@ -77,7 +77,7 @@ DEFAULT_CONFIG = {
     "distributor": "None"
 }
 
-# Architectures to build for. This is explicity left out of the command line
+# Architectures to build for. This is explicitly left out of the command line
 # config options for several reasons:
 # 1) Adding new architectures will generally require more code changes
 # 2) Single architecture builds should utilize the normal generated cmake
