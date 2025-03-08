@@ -14,7 +14,7 @@ endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg Multimedia)
 message(STATUS "Found Qt version ${Qt6_VERSION}")
 
 set_property(TARGET Qt6::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
@@ -40,6 +40,8 @@ add_executable(dolphin-emu
   Achievements/AchievementSettingsWidget.h
   Achievements/AchievementsWindow.cpp
   Achievements/AchievementsWindow.h
+  CameraQt/CameraQt.cpp
+  CameraQt/CameraQt.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
@@ -427,6 +429,7 @@ target_link_libraries(dolphin-emu
 PRIVATE
   core
   Qt6::Widgets
+  Qt6::Multimedia
   uicommon
   imgui
   implot
