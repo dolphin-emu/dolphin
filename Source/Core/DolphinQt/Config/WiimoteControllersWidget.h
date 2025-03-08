@@ -28,9 +28,11 @@ public:
   explicit WiimoteControllersWidget(QWidget* parent);
 
   void UpdateBluetoothAvailableStatus();
+  void RefreshBluetoothAdapters();
 
 private:
   void SaveSettings();
+  void OnBluetoothPassthroughDeviceChanged(int index);
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
   void OnWiimoteRefreshPressed();
@@ -50,6 +52,8 @@ private:
 
   QRadioButton* m_wiimote_emu;
   QRadioButton* m_wiimote_passthrough;
+  QLabel* m_bluetooth_adapters_label;
+  QComboBox* m_bluetooth_adapters;
   QPushButton* m_wiimote_sync;
   QPushButton* m_wiimote_reset;
   QCheckBox* m_wiimote_continuous_scanning;
