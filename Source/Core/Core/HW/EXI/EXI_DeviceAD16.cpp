@@ -6,6 +6,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 namespace ExpansionInterface
 {
@@ -36,7 +37,7 @@ void CEXIAD16::TransferByte(u8& byte)
     {
     case init:
     {
-      m_ad16_register.U32 = 0x04120000;
+      m_ad16_register.U32 = Common::swap32(0x04120000);
       switch (m_position)
       {
       case 1:
@@ -73,6 +74,7 @@ void CEXIAD16::TransferByte(u8& byte)
         break;
       case 4:
         m_ad16_register.U8[3] = byte;
+        INFO_LOG_FMT(EXPANSIONINTERFACE, "AD16 received: 0x{:08X}", m_ad16_register.U32);
         break;
       }
     }

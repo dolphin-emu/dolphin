@@ -90,6 +90,7 @@ extern const Info<int> MAIN_MEMORY_CARD_SIZE;
 extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A;
 extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B;
 extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1;
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_2;
 const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
