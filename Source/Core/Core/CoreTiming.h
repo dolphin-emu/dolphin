@@ -215,6 +215,7 @@ private:
   void UpdateSpeedLimit(s64 cycle, double new_speed);
   void ResetThrottle(s64 cycle);
   TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
+  void UpdateVISkip(TimePoint current_time, TimePoint target_time);
 
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
