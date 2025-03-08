@@ -787,7 +787,7 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                   const MathUtil::Rectangle<int>& source_rc)
 {
   if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
-      g_ActiveConfig.backend_info.bUsesExplictQuadBuffering)
+      g_backend_info.bUsesExplictQuadBuffering)
   {
     // Quad-buffered stereo is annoying on GL.
     g_gfx->SelectLeftBuffer();

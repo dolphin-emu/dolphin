@@ -177,10 +177,10 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
-  if (g_ActiveConfig.backend_info.bSupportsClipControl)
+  if (g_backend_info.bSupportsClipControl)
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (g_backend_info.bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
@@ -192,7 +192,7 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
   glGenFramebuffers(1, &m_shared_read_framebuffer);
   glGenFramebuffers(1, &m_shared_draw_framebuffer);
 
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+  if (g_backend_info.bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
 
   UpdateActiveConfig();
@@ -487,7 +487,7 @@ void OGLGfx::CheckForSurfaceResize()
 void OGLGfx::BeginUtilityDrawing()
 {
   AbstractGfx::BeginUtilityDrawing();
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (g_backend_info.bSupportsDepthClamp)
   {
     glDisable(GL_CLIP_DISTANCE0);
     glDisable(GL_CLIP_DISTANCE1);
@@ -497,7 +497,7 @@ void OGLGfx::BeginUtilityDrawing()
 void OGLGfx::EndUtilityDrawing()
 {
   AbstractGfx::EndUtilityDrawing();
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (g_backend_info.bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);

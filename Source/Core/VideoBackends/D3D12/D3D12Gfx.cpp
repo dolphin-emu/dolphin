@@ -23,8 +23,7 @@ namespace DX12
 static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline)
 {
   const AbstractPipelineUsage usage = static_cast<const DXPipeline*>(pipeline)->GetUsage();
-  return (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader &&
-          usage == AbstractPipelineUsage::GXUber) ||
+  return (g_backend_info.bSupportsDynamicVertexLoader && usage == AbstractPipelineUsage::GXUber) ||
          (g_ActiveConfig.UseVSForLinePointExpand() && usage != AbstractPipelineUsage::Utility);
 }
 
