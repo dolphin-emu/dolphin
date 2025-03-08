@@ -460,7 +460,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   if (StringUTF8CodePointCount(new_player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
 
-  // Update time in milliseconds of no acknoledgment of
+  // Update time in milliseconds of no acknowledgment of
   // sent packets before a connection is deemed disconnected
   enet_peer_timeout(incoming_connection, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
