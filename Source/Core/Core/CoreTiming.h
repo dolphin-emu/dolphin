@@ -209,6 +209,8 @@ private:
   DT m_max_variance = {};
   double m_emulation_speed = 1.0;
 
+  void UpdateVISkip(TimePoint current_time, TimePoint target_time);
+
   void UpdateSpeedLimit(s64 cycle, double new_speed);
   void ResetThrottle(s64 cycle);
 
