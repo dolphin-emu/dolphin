@@ -74,12 +74,18 @@ static jint ConvertUpdateResult(WiiUtils::UpdateResult result)
 
 extern "C" {
 
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_installWAD(JNIEnv* env,
-                                                                                    jclass,
-                                                                                    jstring jFile)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_installWAD(
+    JNIEnv* env, jclass, jstring jFile, jboolean jOverwrite)
 {
   const std::string path = GetJString(env, jFile);
-  return static_cast<jboolean>(WiiUtils::InstallWAD(path));
+  return static_cast<jboolean>(WiiUtils::InstallWAD(path, jOverwrite));
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isTitleVersionMismatch(
+    JNIEnv* env, jclass, jstring jFile)
+{
+  const std::string path = GetJString(env, jFile);
+  return static_cast<jboolean>(WiiUtils::IsTitleVersionMismatch(path));
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSave(

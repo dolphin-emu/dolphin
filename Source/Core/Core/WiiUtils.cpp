@@ -143,7 +143,22 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   return true;
 }
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType install_type)
+bool IsTitleVersionMismatch(const std::string& wad_path)
+{
+  IOS::HLE::Kernel ios;
+  std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
+  if (!wad)
+    return false;
+
+  const u64 title_id = wad->GetTMD().GetTitleId();
+  const IOS::ES::TMDReader installed_tmd = ios.GetESCore().FindInstalledTMD(title_id);
+
+  return installed_tmd.IsValid() &&
+         installed_tmd.GetTitleVersion() != wad->GetTMD().GetTitleVersion();
+}
+
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType install_type,
+                bool overwrite_installed)
 {
   if (!wad.GetTMD().IsValid())
     return false;
@@ -170,7 +185,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
   const IOS::ES::TMDReader installed_tmd = ios.GetESCore().FindInstalledTMD(title_id);
   const bool has_another_version =
       installed_tmd.IsValid() && installed_tmd.GetTitleVersion() != wad.GetTMD().GetTitleVersion();
-  if (has_another_version &&
+  if (!overwrite_installed && has_another_version &&
       !AskYesNoFmtT("A different version of this title is already installed on the NAND.\n\n"
                     "Installed version: {0}\nWAD version: {1}\n\n"
                     "Installing this WAD will replace it irreversibly. Continue?",
@@ -197,14 +212,14 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
   return true;
 }
 
-bool InstallWAD(const std::string& wad_path)
+bool InstallWAD(const std::string& wad_path, bool overwrite_installed)
 {
   std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
   if (!wad)
     return false;
 
   IOS::HLE::Kernel ios;
-  return InstallWAD(ios, *wad, InstallType::Permanent);
+  return InstallWAD(ios, *wad, InstallType::Permanent, overwrite_installed);
 }
 
 bool UninstallTitle(u64 title_id)

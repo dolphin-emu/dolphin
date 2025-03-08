@@ -19,7 +19,10 @@ object WiiUtils {
     const val UPDATE_RESULT_CANCELLED = 8
 
     @JvmStatic
-    external fun installWAD(file: String): Boolean
+    external fun installWAD(file: String, overwriteInstalled: Boolean): Boolean
+    @JvmStatic
+    external fun isTitleVersionMismatch(file: String): Boolean
+
 
     @JvmStatic
     external fun importWiiSave(file: String, canOverwrite: BooleanSupplier): Int

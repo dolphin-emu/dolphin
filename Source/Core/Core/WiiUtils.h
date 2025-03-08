@@ -40,10 +40,13 @@ enum class InstallType
   Temporary,
 };
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType type);
+bool IsTitleVersionMismatch(const std::string& wad_path);
+
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType type,
+                bool overwrite_installed = false);
 // Same as the above, but constructs a temporary IOS and VolumeWAD instance for importing
 // and does a permanent install.
-bool InstallWAD(const std::string& wad_path);
+bool InstallWAD(const std::string& wad_path, bool overwrite_installed = false);
 
 bool UninstallTitle(u64 title_id);
 
