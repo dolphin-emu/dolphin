@@ -5,7 +5,7 @@
 
 #include "Common/Config/Config.h"
 
-// This is a temporary soluation, although they should be in their repected cpp file in UICommon.
+// This is a temporary solution, although they should be in their respective cpp file in UICommon.
 // However, in order for IsSettingSaveable to compile without some issues, this needs to be here.
 // Once IsSettingSaveable is removed, then you should able to move these back to UICommon.
 

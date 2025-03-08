@@ -93,7 +93,7 @@ void CoreTimingManager::Init()
   m_globals.global_timer = 0;
   m_idled_cycles = 0;
 
-  // The time between CoreTiming being intialized and the first call to Advance() is considered
+  // The time between CoreTiming being initialized and the first call to Advance() is considered
   // the slice boundary between slice -1 and slice 0. Dispatcher loops must call Advance() before
   // executing the first PPC cycle of each slice to prepare the slice length and downcount for
   // that slice.

@@ -177,7 +177,7 @@ private:
   // STATE_TO_SAVE
   // The queue is a min-heap using std::ranges::make_heap/push_heap/pop_heap.
   // We don't use std::priority_queue because we need to be able to serialize, unserialize and
-  // erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't accomodated
+  // erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't accommodated
   // by the standard adaptor class.
   std::vector<Event> m_event_queue;
   u64 m_event_fifo_id = 0;

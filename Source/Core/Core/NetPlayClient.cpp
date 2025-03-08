@@ -158,7 +158,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    // Update time in milliseconds of no acknoledgment of
+    // Update time in milliseconds of no acknowledgment of
     // sent packets before a connection is deemed disconnected
     enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
@@ -221,7 +221,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
         case ENET_EVENT_TYPE_CONNECT:
           m_server = netEvent.peer;
 
-          // Update time in milliseconds of no acknoledgment of
+          // Update time in milliseconds of no acknowledgment of
           // sent packets before a connection is deemed disconnected
           enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
@@ -1303,7 +1303,7 @@ void NetPlayClient::OnSyncSaveDataGBA(sf::Packet& packet)
 
 void NetPlayClient::OnSyncCodes(sf::Packet& packet)
 {
-  // Recieve Data Packet
+  // Receive Data Packet
   SyncCodeID sub_id;
   packet >> sub_id;
 
