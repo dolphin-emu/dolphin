@@ -854,11 +854,14 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
     OutputField(field, ticks);
 
   // Note: We really only need to Throttle prior to to presentation,
-  //  but it is needed here if we want accurate "VBlank" statistics,
+  //  but it is needed here if we want accurate VBlank and Performance statistics,
   //  when using GPU-on-Thread or Early/Immediate XFB.
   m_system.GetCoreTiming().Throttle(ticks);
 
   g_perf_metrics.CountVBlank();
+  g_perf_metrics.CountPerformanceMarker(
+      ticks, Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond());
+
   VIEndFieldEvent::Trigger();
   Core::OnFrameEnd(m_system);
 }
