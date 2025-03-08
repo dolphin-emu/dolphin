@@ -9,10 +9,6 @@
 #include <implot.h>
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
-#include "Core/System.h"
 #include "VideoCommon/VideoConfig.h"
 
 PerformanceMetrics g_perf_metrics;
@@ -21,11 +17,11 @@ void PerformanceMetrics::Reset()
 {
   m_fps_counter.Reset();
   m_vps_counter.Reset();
-  m_speed_counter.Reset();
 
   m_time_sleeping = DT::zero();
-  m_real_times.fill(Clock::now());
-  m_core_ticks.fill(0);
+  m_samples = {};
+
+  m_speed = 0;
   m_max_speed = 0;
 }
 
@@ -44,23 +40,36 @@ void PerformanceMetrics::CountThrottleSleep(DT sleep)
   m_time_sleeping += sleep;
 }
 
-void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cycles_late)
+void PerformanceMetrics::AdjustClockSpeed(s64 ticks, u32 new_ppc_clock, u32 old_ppc_clock)
 {
-  m_speed_counter.Count();
-  m_speed_counter.UpdateStats();
+  for (auto& sample : m_samples)
+  {
+    const s64 diff = (sample.core_ticks - ticks) * new_ppc_clock / old_ppc_clock;
+    sample.core_ticks = ticks + diff;
+  }
+}
 
-  const auto ticks = system.GetCoreTiming().GetTicks() - cycles_late;
-  const auto real_time = Clock::now() - m_time_sleeping;
+void PerformanceMetrics::CountPerformanceMarker(s64 core_ticks, u32 ticks_per_second)
+{
+  const auto clock_time = Clock::now();
+  const auto work_time = clock_time - m_time_sleeping;
 
-  auto& oldest_ticks = m_core_ticks[m_time_index];
-  auto& oldest_time = m_real_times[m_time_index];
+  m_samples.emplace_back(
+      PerfSample{.clock_time = clock_time, .work_time = work_time, .core_ticks = core_ticks});
 
-  m_max_speed = DT_s(ticks - oldest_ticks) / system.GetSystemTimers().GetTicksPerSecond() /
-                (real_time - oldest_time);
+  const auto sample_window = std::chrono::microseconds{g_ActiveConfig.iPerfSampleUSec};
+  while (clock_time - m_samples.front().clock_time > sample_window)
+    m_samples.pop_front();
 
-  oldest_ticks = ticks;
-  oldest_time = real_time;
-  ++m_time_index;
+  // Avoid division by zero when we just have one sample.
+  if (m_samples.size() < 2)
+    return;
+
+  const PerfSample& oldest = m_samples.front();
+  const auto elapsed_core_time = DT_s(core_ticks - oldest.core_ticks) / ticks_per_second;
+
+  m_speed.store(elapsed_core_time / (clock_time - oldest.clock_time), std::memory_order_relaxed);
+  m_max_speed.store(elapsed_core_time / (work_time - oldest.work_time), std::memory_order_relaxed);
 }
 
 double PerformanceMetrics::GetFPS() const
@@ -75,12 +84,12 @@ double PerformanceMetrics::GetVPS() const
 
 double PerformanceMetrics::GetSpeed() const
 {
-  return m_speed_counter.GetHzAvg() / 100.0;
+  return m_speed.load(std::memory_order_relaxed);
 }
 
 double PerformanceMetrics::GetMaxSpeed() const
 {
-  return m_max_speed;
+  return m_max_speed.load(std::memory_order_relaxed);
 }
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)

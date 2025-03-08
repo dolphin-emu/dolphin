@@ -50,8 +50,6 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 
 #include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -120,21 +118,6 @@ void SystemTimersManager::GPUSleepCallback(Core::System& system, u64 userdata, s
   auto& system_timers = system.GetSystemTimers();
   core_timing.ScheduleEvent(system_timers.GetTicksPerSecond() / 1000 - cycles_late,
                             system_timers.m_event_type_gpu_sleeper);
-}
-
-void SystemTimersManager::PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late)
-{
-  auto& core_timing = system.GetCoreTiming();
-  // Throttle for accurate performance metrics.
-  core_timing.Throttle(core_timing.GetTicks() - cycles_late);
-  g_perf_metrics.CountPerformanceMarker(system, cycles_late);
-
-  // Call this performance tracker again in 1/100th of a second.
-  // The tracker stores 256 values so this will let us summarize the last 2.56 seconds.
-  // The performance metrics require this to be called at 100hz for the speed% is correct.
-  auto& system_timers = system.GetSystemTimers();
-  core_timing.ScheduleEvent(system_timers.GetTicksPerSecond() / 100 - cycles_late,
-                            system_timers.m_event_type_perf_tracker);
 }
 
 void SystemTimersManager::VICallback(Core::System& system, u64 userdata, s64 cycles_late)
@@ -293,10 +276,8 @@ void SystemTimersManager::Init()
   m_event_type_ipc_hle =
       core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
   m_event_type_gpu_sleeper = core_timing.RegisterEvent("GPUSleeper", GPUSleepCallback);
-  m_event_type_perf_tracker = core_timing.RegisterEvent("PerfTracker", PerfTrackerCallback);
   m_event_type_patch_engine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
 
-  core_timing.ScheduleEvent(0, m_event_type_perf_tracker);
   core_timing.ScheduleEvent(0, m_event_type_gpu_sleeper);
   core_timing.ScheduleEvent(vi.GetTicksPerHalfLine(), m_event_type_vi);
   core_timing.ScheduleEvent(0, m_event_type_dsp);
