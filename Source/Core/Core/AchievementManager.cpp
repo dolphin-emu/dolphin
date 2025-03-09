@@ -1152,7 +1152,7 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
 
 void AchievementManager::HandleResetEvent(const rc_client_event_t* client_event)
 {
-  INFO_LOG_FMT(ACHIEVEMENTS, "Reset requested by Achievement Mananger");
+  INFO_LOG_FMT(ACHIEVEMENTS, "Reset requested by Achievement Manager");
   Core::Stop(Core::System::GetInstance());
 }
 
