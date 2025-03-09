@@ -57,7 +57,7 @@ void Metal::ObjectCache::Shutdown()
 
 static MTLCompareFunction Convert(CompareMode mode)
 {
-  const bool invert_depth = !g_Config.backend_info.bSupportsReversedDepthRange;
+  const bool invert_depth = !g_backend_info.bSupportsReversedDepthRange;
   switch (mode)
   {
   case CompareMode::Never:   return MTLCompareFunctionNever;

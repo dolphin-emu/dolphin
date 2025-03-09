@@ -88,7 +88,7 @@ static std::string GetGLSLVersionString()
 
 void SHADER::SetProgramVariables()
 {
-  if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  if (g_backend_info.bSupportsBindingLayout)
     return;
 
   // To set uniform blocks/uniforms, the program must be active. We restore the
@@ -132,7 +132,7 @@ void SHADER::SetProgramBindings(bool is_compute)
   }
   if (!is_compute)
   {
-    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    if (g_backend_info.bSupportsDualSourceBlend)
     {
       // So we do support extended blending
       // So we need to set a few more things here.
@@ -298,8 +298,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view c
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
   // but not GLSL 4.3. Mesa is one example.
   std::string full_code;
-  if (g_ActiveConfig.backend_info.bSupportsComputeShaders &&
-      g_ogl_config.eSupportedGLSLVersion < Glsl430)
+  if (g_backend_info.bSupportsComputeShaders && g_ogl_config.eSupportedGLSLVersion < Glsl430)
   {
     full_code = "#extension GL_ARB_compute_shader : enable\n";
   }
@@ -616,7 +615,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
       glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsPipelineCacheData)
+    if (g_backend_info.bSupportsPipelineCacheData)
       glProgramParameteri(prog->shader.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
     // Link program.
@@ -709,7 +708,7 @@ void ProgramShaderCache::CreateHeader()
   }
 
   std::string earlyz_string;
-  if (g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  if (g_backend_info.bSupportsEarlyZ)
   {
     if (g_ogl_config.bSupportsImageLoadStore)
     {
@@ -748,7 +747,7 @@ void ProgramShaderCache::CreateHeader()
       g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone;
 
   std::string binding_layout;
-  if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  if (g_backend_info.bSupportsBindingLayout)
   {
     if (g_ogl_config.bSupportsExplicitLayoutInShader)
     {
@@ -854,29 +853,28 @@ void ProgramShaderCache::CreateHeader()
       ,
       GetGLSLVersionString(), v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
       earlyz_string,
-      (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GlslEs310) ?
+      (g_backend_info.bSupportsBindingLayout && v < GlslEs310) ?
           "#extension GL_ARB_shading_language_420pack : enable" :
           "",
       (g_ogl_config.bSupportsMSAA && v < Glsl150) ?
           "#extension GL_ARB_texture_multisample : enable" :
           "",
       binding_layout.c_str(), varying_location.c_str(),
-      !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
+      !is_glsles && g_backend_info.bSupportsFragmentStoresAndAtomics ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
-      v < Glsl400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?
+      v < Glsl400 && g_backend_info.bSupportsGSInstancing ?
           "#extension GL_ARB_gpu_shader5 : enable" :
           "",
-      v < Glsl400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
-          "#extension GL_ARB_sample_shading : enable" :
-          "",
+      v < Glsl400 && g_backend_info.bSupportsSSAA ? "#extension GL_ARB_sample_shading : enable" :
+                                                    "",
       SupportedESPointSize,
       g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : "",
-      v < Glsl140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
+      v < Glsl140 && g_backend_info.bSupportsPaletteConversion ?
           "#extension GL_ARB_texture_buffer_object : enable" :
           "",
       SupportedESTextureBuffer,
-      is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ?
+      is_glsles && g_backend_info.bSupportsDualSourceBlend ?
           "#extension GL_EXT_blend_func_extended : enable" :
           ""
 
@@ -886,10 +884,9 @@ void ProgramShaderCache::CreateHeader()
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
       framebuffer_fetch_string, shader_shuffle_string,
-      g_ActiveConfig.backend_info.bSupportsCoarseDerivatives ?
-          "#extension GL_ARB_derivative_control : enable" :
-          "",
-      g_ActiveConfig.backend_info.bSupportsTextureQueryLevels ?
+      g_backend_info.bSupportsCoarseDerivatives ? "#extension GL_ARB_derivative_control : enable" :
+                                                  "",
+      g_backend_info.bSupportsTextureQueryLevels ?
           "#extension GL_ARB_texture_query_levels : enable" :
           "",
       // Note: GL_ARB_texture_storage_multisample doesn't have an #extension, as it doesn't
@@ -900,9 +897,8 @@ void ProgramShaderCache::CreateHeader()
           "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
-      (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
-          "precision highp usamplerBuffer;" :
-          "",
+      (is_glsles && g_backend_info.bSupportsPaletteConversion) ? "precision highp usamplerBuffer;" :
+                                                                 "",
       use_multisample_2d_array_precision ? "precision highp sampler2DMSArray;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
@@ -936,15 +932,15 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
   // Make the state match the main context to have a better chance of avoiding recompiles.
   if (!context->IsGLES())
     glEnable(GL_PROGRAM_POINT_SIZE);
-  if (g_ActiveConfig.backend_info.bSupportsClipControl)
+  if (g_backend_info.bSupportsClipControl)
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (g_backend_info.bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
     glEnable(GL_DEPTH_CLAMP);
   }
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+  if (g_backend_info.bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(context);
 
   return true;
