@@ -84,3 +84,6 @@
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "Externals/SFML/SFML"]
+	path = Externals/SFML/SFML
+	url = https://github.com/SFML/SFML.git
