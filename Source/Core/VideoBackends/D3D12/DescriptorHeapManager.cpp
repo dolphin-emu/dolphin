@@ -128,10 +128,10 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
   desc->MipLODBias = static_cast<s32>(state.tm0.lod_bias) / 256.f;
   desc->ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
-  if (state.tm0.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering != 0)
   {
     desc->Filter = D3D12_FILTER_ANISOTROPIC;
-    desc->MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
+    desc->MaxAnisotropy = 1u << state.tm0.anisotropic_filtering;
   }
 }
 
