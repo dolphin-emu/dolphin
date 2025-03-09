@@ -104,9 +104,7 @@ ParseNameValue(const char * buffer, int bufsize,
                struct NameValueParserData * data)
 {
 	struct xmlparser parser;
-	data->l_head = NULL;
-	data->portListing = NULL;
-	data->portListingLength = 0;
+	memset(data, 0, sizeof(struct NameValueParserData));
 	/* init xmlparser object */
 	parser.xmlstart = buffer;
 	parser.xmlsize = bufsize;
