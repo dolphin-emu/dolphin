@@ -50,6 +50,7 @@
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -350,6 +351,8 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
   s_tex_mem.fill(0);
 
+  auto& system = Core::System::GetInstance();
+
   // do not initialize again for the config window
   m_initialized = true;
 
@@ -366,21 +369,19 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   g_frame_dumper = std::make_unique<FrameDumper>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_graphics_mod_manager = std::make_unique<GraphicsModManager>();
   g_widescreen = std::make_unique<WidescreenManager>();
 
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
       !g_perf_query->Initialize() || !g_presenter->Initialize() ||
       !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
       (g_ActiveConfig.backend_info.bSupportsBBox && !g_bounding_box->Initialize()) ||
-      !g_graphics_mod_manager->Initialize())
+      !system.GetGraphicsModManager().Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();
     return false;
   }
 
-  auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init();
   system.GetFifo().Init();
@@ -403,12 +404,16 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   }
 
   g_shader_cache->InitializeShaderCache();
+  system.GetCustomResourceManager().Initialize();
 
   return true;
 }
 
 void VideoBackendBase::ShutdownShared()
 {
+  auto& system = Core::System::GetInstance();
+  system.GetCustomResourceManager().Shutdown();
+
   g_frame_dumper.reset();
   g_presenter.reset();
 
@@ -419,7 +424,6 @@ void VideoBackendBase::ShutdownShared()
 
   g_bounding_box.reset();
   g_perf_query.reset();
-  g_graphics_mod_manager.reset();
   g_texture_cache.reset();
   g_framebuffer_manager.reset();
   g_shader_cache.reset();
@@ -431,7 +435,6 @@ void VideoBackendBase::ShutdownShared()
 
   m_initialized = false;
 
-  auto& system = Core::System::GetInstance();
   VertexLoaderManager::Clear();
   system.GetFifo().Shutdown();
 }

@@ -36,6 +36,9 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -95,9 +98,12 @@ struct System::Impl
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
   VideoCommon::CustomAssetLoader m_custom_asset_loader;
+  VideoCommon::CustomResourceManager m_custom_resource_manager;
   FifoPlayer m_fifo_player;
   FifoRecorder m_fifo_recorder;
   Movie::MovieManager m_movie;
+  GraphicsModEditor::EditorMain m_graphics_mod_editor;
+  GraphicsModSystem::Runtime::GraphicsModManager m_graphics_mod_manager;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -331,5 +337,19 @@ VideoInterface::VideoInterfaceManager& System::GetVideoInterface() const
 VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
 {
   return m_impl->m_custom_asset_loader;
+}
+
+VideoCommon::CustomResourceManager& System::GetCustomResourceManager() const
+{
+  return m_impl->m_custom_resource_manager;
+}
+
+GraphicsModEditor::EditorMain& System::GetGraphicsModEditor() const
+{
+  return m_impl->m_graphics_mod_editor;
+}
+GraphicsModSystem::Runtime::GraphicsModManager& System::GetGraphicsModManager() const
+{
+  return m_impl->m_graphics_mod_manager;
 }
 }  // namespace Core

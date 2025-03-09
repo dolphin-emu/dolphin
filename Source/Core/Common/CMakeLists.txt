@@ -89,6 +89,7 @@ add_library(common
   IOFile.h
   JitRegister.cpp
   JitRegister.h
+  JsonUtil.cpp
   JsonUtil.h
   JsonUtil.cpp
   Lazy.h
