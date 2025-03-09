@@ -3,6 +3,7 @@
 
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
+#include <cassert>
 #include <cstring>
 #include <optional>
 #include <type_traits>
@@ -27,7 +28,7 @@ namespace WiimoteEmu
 SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
 {
   const u8 has_buttons = (state.buttons.hex & WiimoteCommon::ButtonData::BUTTON_MASK) != 0 ? 1 : 0;
-  const u8 has_accel = state.acceleration != DesiredWiimoteState::DEFAULT_ACCELERATION ? 1 : 0;
+  const u8 has_accel = state.acceleration.has_value() ? 1 : 0;
   const u8 has_camera = state.camera_points != DesiredWiimoteState::DEFAULT_CAMERA ? 1 : 0;
   const u8 has_motion_plus = state.motion_plus.has_value() ? 1 : 0;
 
@@ -57,9 +58,9 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
 
   if (has_accel)
   {
-    const u16 accel_x = state.acceleration.value.x;  // 10 bits
-    const u16 accel_y = state.acceleration.value.y;  // 9 bits (ignore lowest bit)
-    const u16 accel_z = state.acceleration.value.z;  // 9 bits (ignore lowest bit)
+    const u16 accel_x = state.acceleration->value.x;  // 10 bits
+    const u16 accel_y = state.acceleration->value.y;  // 9 bits (ignore lowest bit)
+    const u16 accel_z = state.acceleration->value.z;  // 9 bits (ignore lowest bit)
     const u8 accel_x_high = u8(accel_x >> 2);
     const u8 accel_y_high = u8(accel_y >> 2);
     const u8 accel_z_high = u8(accel_z >> 2);
@@ -116,8 +117,9 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
           using T = std::decay_t<decltype(arg)>;
           if constexpr (!std::is_same_v<std::monostate, T>)
           {
-            static_assert(sizeof(arg) <= 6);
+            static_assert(sizeof(arg) <= s.MAX_EXT_DATA_SIZE);
             static_assert(std::is_trivially_copyable_v<T>);
+            assert(s.length + sizeof(arg) <= s.data.size());
             std::memcpy(&s.data[s.length], &arg, sizeof(arg));
             s.length += sizeof(arg);
           }
@@ -145,7 +147,7 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
 {
   // clear state
   state->buttons.hex = 0;
-  state->acceleration = DesiredWiimoteState::DEFAULT_ACCELERATION;
+  state->acceleration = std::nullopt;
   state->camera_points = DesiredWiimoteState::DEFAULT_CAMERA;
   state->motion_plus = std::nullopt;
   state->extension.data = std::monostate();
@@ -212,6 +214,9 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     case ExtensionNumber::SHINKANSEN:
       s += sizeof(Shinkansen::DesiredState);
       break;
+    case ExtensionNumber::BALANCE_BOARD:
+      s += sizeof(BalanceBoardExt::DataFormat);
+      break;
     default:
       break;
     }
@@ -223,6 +228,10 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     // invalid length
     return false;
   }
+
+  // Contriving data with MPlus + BBoard could create an oversided length.
+  if (expected_size > serialized.data.size())
+    return false;
 
   size_t pos = 1;
 
@@ -250,11 +259,13 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     const u8 accel_x_high = d[pos + 1];
     const u8 accel_y_high = d[pos + 2];
     const u8 accel_z_high = d[pos + 3];
-    state->acceleration.value.x = (accel_x_high << 2) | (accel_low & 0b11);
-    state->acceleration.value.y =
+    WiimoteCommon::AccelData accel;
+    accel.value.x = (accel_x_high << 2) | (accel_low & 0b11);
+    accel.value.y =
         Common::ExpandValue<u16>((accel_y_high << 1) | Common::ExtractBit<2>(accel_low), 1);
-    state->acceleration.value.z =
+    accel.value.z =
         Common::ExpandValue<u16>((accel_z_high << 1) | Common::ExtractBit<3>(accel_low), 1);
+    state->acceleration = accel;
     pos += 4;
   }
 
@@ -305,6 +316,8 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     return DeserializeExtensionState<TaTaCon::DataFormat>(state, serialized, pos);
   case ExtensionNumber::SHINKANSEN:
     return DeserializeExtensionState<Shinkansen::DesiredState>(state, serialized, pos);
+  case ExtensionNumber::BALANCE_BOARD:
+    return DeserializeExtensionState<BalanceBoardExt::DataFormat>(state, serialized, pos);
   default:
     break;
   }
