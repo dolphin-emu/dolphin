@@ -452,7 +452,7 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
     // Only create the integer RTV when logic ops are supported (Win8+).
     DXGI_FORMAT integer_format =
         D3DCommon::GetRTVFormatForAbstractFormat(color_attachment->GetFormat(), true);
-    if (g_ActiveConfig.backend_info.bSupportsLogicOp && integer_format != desc.Format)
+    if (g_backend_info.bSupportsLogicOp && integer_format != desc.Format)
     {
       desc.Format = integer_format;
       hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,

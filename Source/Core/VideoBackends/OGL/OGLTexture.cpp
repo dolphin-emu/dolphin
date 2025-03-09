@@ -132,7 +132,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
   glBindTexture(target, m_texId);
 
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     glObjectLabel(GL_TEXTURE, m_texId, (GLsizei)m_name.size(), m_name.c_str());
   }

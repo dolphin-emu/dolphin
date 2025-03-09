@@ -343,19 +343,19 @@ void EnhancementsWidget::LoadPPShaders()
 
 void EnhancementsWidget::OnBackendChanged()
 {
-  m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-  m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-  m_hdr->setEnabled(g_Config.backend_info.bSupportsHDROutput);
+  m_output_resampling_combo->setEnabled(g_backend_info.bSupportsPostProcessing);
+  m_configure_color_correction->setEnabled(g_backend_info.bSupportsPostProcessing);
+  m_hdr->setEnabled(g_backend_info.bSupportsHDROutput);
 
   // Stereoscopy
-  const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+  const bool supports_stereoscopy = g_backend_info.bSupportsGeometryShaders;
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);
   m_3d_swap_eyes->setEnabled(supports_stereoscopy);
 
   // PostProcessing
-  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
+  const bool supports_postprocessing = g_backend_info.bSupportsPostProcessing;
   if (!supports_postprocessing)
   {
     m_configure_pp_effect->setEnabled(false);
@@ -421,14 +421,14 @@ void EnhancementsWidget::UpdateAAOptions()
   m_aa_combo->Reset();
   m_aa_combo->Add(tr("None"), (u32)1, false);
 
-  std::vector<u32> aa_modes = g_Config.backend_info.AAModes;
+  const std::vector<u32>& aa_modes = g_backend_info.AAModes;
   for (const u32 aa_mode : aa_modes)
   {
     if (aa_mode > 1)
       m_aa_combo->Add(tr("%1x MSAA").arg(aa_mode), aa_mode, false);
   }
 
-  if (g_Config.backend_info.bSupportsSSAA)
+  if (g_backend_info.bSupportsSSAA)
   {
     for (const u32 aa_mode : aa_modes)
     {
