@@ -848,42 +848,49 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 // Run when: When a frame is scanned (progressive/interlace)
 void VideoInterfaceManager::Update(u64 ticks)
 {
+  constexpr u32 odd_field_begin = 0;
+  // Even-field begins where the odd-field ends.
+  const u32 even_field_begin = GetHalfLinesPerOddField();
+
+  const bool is_at_field_boundary =
+      m_half_line_count == odd_field_begin || m_half_line_count == even_field_begin;
+
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
-  if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
+  if (is_at_field_boundary)
     m_system.GetMovie().FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment
   // the number of frames we've actually drawn
 
-  if (m_half_line_count == m_even_field_first_hl)
-  {
-    BeginField(FieldType::Even, ticks);
-  }
-  else if (m_half_line_count == m_odd_field_first_hl)
+  if (m_half_line_count == m_odd_field_first_hl)
   {
     BeginField(FieldType::Odd, ticks);
   }
-  else if (m_half_line_count == m_even_field_last_hl)
+  else if (m_half_line_count == m_even_field_first_hl)
   {
-    EndField(FieldType::Even, ticks);
+    BeginField(FieldType::Even, ticks);
   }
   else if (m_half_line_count == m_odd_field_last_hl)
   {
     EndField(FieldType::Odd, ticks);
   }
+  else if (m_half_line_count == m_even_field_last_hl)
+  {
+    EndField(FieldType::Even, ticks);
+  }
 
   // If this half-line is at a field boundary, deal with frame stepping before potentially
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
-  if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
+  if (is_at_field_boundary)
     Core::Callback_NewField(m_system);
 
   // If an SI poll is scheduled to happen on this half-line, do it!
 
-  if (m_half_line_of_next_si_poll == m_half_line_count)
+  if (m_half_line_count == m_half_line_of_next_si_poll)
   {
     Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                           Config::Get(Config::MAIN_LOCK_CURSOR));
@@ -895,19 +902,16 @@ void VideoInterfaceManager::Update(u64 ticks)
   // If this half-line is at the actual boundary of either field, schedule an SI poll to happen
   // some number of half-lines in the future
 
-  if (m_half_line_count == 0)
+  if (is_at_field_boundary)
   {
-    m_half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first results start at vsync
-  }
-  if (m_half_line_count == GetHalfLinesPerEvenField())
-  {
-    m_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + NUM_HALF_LINES_FOR_SI_POLL;
+    // first results start at vsync
+    m_half_line_of_next_si_poll = m_half_line_count + NUM_HALF_LINES_FOR_SI_POLL;
   }
 
   // Move to the next half-line and potentially roll-over the count to zero. If we've reached
   // the beginning of a new full-line, update the timer
 
-  m_half_line_count++;
+  ++m_half_line_count;
   if (m_half_line_count == GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
   {
     m_half_line_count = 0;
