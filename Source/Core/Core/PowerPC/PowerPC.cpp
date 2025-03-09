@@ -382,6 +382,7 @@ void PowerPCManager::SingleStep()
 
 void PowerPCManager::RunLoop()
 {
+  m_system.GetCoreTiming().Resume();
   m_cpu_core_base->Run();
   Host_UpdateDisasmDialog();
 }

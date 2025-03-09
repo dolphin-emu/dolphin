@@ -95,6 +95,10 @@ public:
   void Init();
   void Shutdown();
 
+  // Needed when the host-time changes from the guest's perspective.
+  // e.g. state-load or resume-from-pause
+  void Resume();
+
   // This should only be called from the CPU thread, if you are calling it any other thread, you are
   // doing something evil
   u64 GetTicks() const;
@@ -200,16 +204,18 @@ private:
   float m_config_oc_inv_factor = 0.0f;
   bool m_config_sync_on_skip_idle = false;
 
-  s64 m_throttle_last_cycle = 0;
-  TimePoint m_throttle_deadline = Clock::now();
-  s64 m_throttle_clock_per_sec = 0;
-  s64 m_throttle_min_clock_per_sleep = 0;
+  s64 m_throttle_reference_cycle = 0;
+  TimePoint m_throttle_reference_time = Clock::now();
+  u32 m_throttle_adj_clock_per_sec = 0;
   bool m_throttle_disable_vi_int = false;
 
   DT m_max_fallback = {};
   DT m_max_variance = {};
   double m_emulation_speed = 1.0;
 
+  void UpdateVISkip(TimePoint current_time, TimePoint target_time);
+
+  void UpdateSpeedLimit(s64 cycle, double new_speed);
   void ResetThrottle(s64 cycle);
 
   int DowncountToCycles(int downcount) const;
