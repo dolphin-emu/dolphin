@@ -209,6 +209,7 @@ private:
   DT m_max_fallback = {};
   DT m_max_variance = {};
   double m_emulation_speed = 1.0;
+  bool m_refresh_rate_rounding = false;
 
   void ResetThrottle(s64 cycle);
 
