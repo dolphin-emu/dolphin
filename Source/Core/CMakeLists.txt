@@ -1,3 +1,7 @@
+if(NOT MSVC)
+  add_compile_options(-Wno-missing-declarations)
+endif()
+
 add_subdirectory(AudioCommon)
 add_subdirectory(Common)
 add_subdirectory(Core)

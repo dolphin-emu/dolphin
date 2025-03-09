@@ -3,15 +3,12 @@
 
 #include "VideoBackends/D3D12/DX12Context.h"
 
-#include <algorithm>
 #include <array>
 #include <dxgi1_6.h>
-#include <queue>
 #include <vector>
 
 #include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
-#include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
@@ -88,8 +85,8 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
 
 bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
 {
-  constexpr u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
-                           D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
+  const u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
+                       D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
 
   D3D12_FEATURE_DATA_FORMAT_SUPPORT support = {format};
   return SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support,
@@ -445,14 +442,14 @@ bool DXContext::CreateCommandLists()
   for (u32 i = 0; i < NUM_COMMAND_LISTS; i++)
   {
     CommandListResources& res = m_command_lists[i];
-    HRESULT hr = m_device->CreateCommandAllocator(
-        D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(res.command_allocator.GetAddressOf()));
+    HRESULT hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                  IID_PPV_ARGS(&res.command_allocator));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command allocator: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
     hr = m_device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, res.command_allocator.Get(),
-                                     nullptr, IID_PPV_ARGS(res.command_list.GetAddressOf()));
+                                     nullptr, IID_PPV_ARGS(&res.command_list));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command list: {}", DX12HRWrap(hr));
     if (FAILED(hr))
     {

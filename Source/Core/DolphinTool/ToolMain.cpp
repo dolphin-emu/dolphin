@@ -19,6 +19,10 @@
 #include "DolphinTool/HeaderCommand.h"
 #include "DolphinTool/VerifyCommand.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 static void PrintUsage()
 {
   fmt::print(std::cerr, "usage: dolphin-tool COMMAND -h\n"

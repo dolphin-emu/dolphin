@@ -22,6 +22,15 @@ void WakeupThread(ENetHost* host);
 int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);
 
+#ifdef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wenum-constexpr-conversion"
+#endif
+
 // used for traversal packets and wake-up packets
 constexpr int SKIPPABLE_EVENT = 42;
+
+#ifdef __clang__
+#pragma GCC diagnostic pop
+#endif
 }  // namespace Common::ENet
