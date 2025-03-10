@@ -18,7 +18,10 @@ finish-args:
   # required for the emulated bluetooth adapter feature to work.
   - --allow=bluetooth
   - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  # required to disable the screensaver in various desktops
   - --talk-name=org.freedesktop.ScreenSaver
+  - --talk-name=org.xfce.ScreenSaver
+  - --talk-name=org.mate.ScreenSaver
   # required for Gamescope on Steam Deck
   - --filesystem=xdg-run/gamescope-0:ro
 modules:
