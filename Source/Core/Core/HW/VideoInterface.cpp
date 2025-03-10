@@ -13,8 +13,10 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -41,7 +43,10 @@ VideoInterfaceManager::VideoInterfaceManager(Core::System& system) : m_system(sy
 {
 }
 
-VideoInterfaceManager::~VideoInterfaceManager() = default;
+VideoInterfaceManager::~VideoInterfaceManager()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 static constexpr std::array<u32, 2> CLOCK_FREQUENCIES{{
     27000000,
@@ -173,6 +178,21 @@ void VideoInterfaceManager::Preset(bool _bNTSC)
 void VideoInterfaceManager::Init()
 {
   Preset(true);
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+void VideoInterfaceManager::RefreshConfig()
+{
+  m_config_vi_oc_factor =
+      Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_VI_OVERCLOCK) : 1.0f;
+  if (AchievementManager::GetInstance().IsHardcoreModeActive() && m_config_vi_oc_factor < 1.0f)
+  {
+    Config::SetCurrent(Config::MAIN_VI_OVERCLOCK, 1.0f);
+    m_config_vi_oc_factor = 1.0f;
+    OSD::AddMessage("Minimum VBI overclock is 100% in Hardcore Mode");
+  }
 }
 
 void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -729,6 +749,11 @@ u32 VideoInterfaceManager::GetTicksPerHalfLine() const
 u32 VideoInterfaceManager::GetTicksPerField() const
 {
   return GetTicksPerEvenField();
+}
+
+u32 VideoInterfaceManager::GetTicksPerViCallback() const
+{
+  return static_cast<u32>(GetTicksPerHalfLine() / m_config_vi_oc_factor);
 }
 
 void VideoInterfaceManager::LogField(FieldType field, u32 xfb_address) const
