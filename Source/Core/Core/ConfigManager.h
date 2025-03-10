@@ -67,8 +67,10 @@ struct SConfig
   const std::string GetGameTDBID() const;
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
+  std::string GetTriID() const;
   u64 GetTitleID() const;
   u16 GetRevision() const;
+
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
@@ -113,13 +115,15 @@ private:
   ~SConfig();
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              u64 title_id, u16 revision, DiscIO::Region region);
+                              std::string tri_id, u64 title_id, u16 revision,
+                              DiscIO::Region region);
 
   static SConfig* m_Instance;
   mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
   std::string m_gametdb_id;
+  std::string m_tri_id;
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;
