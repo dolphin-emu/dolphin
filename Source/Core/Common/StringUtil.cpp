@@ -209,10 +209,39 @@ static std::string_view StripEnclosingChars(std::string_view str, T chars)
     return "";
 }
 
+template <typename T>
+static std::string_view StripStartChars(std::string_view str, T chars)
+{
+  const size_t s = str.find_first_not_of(chars);
+
+  if (str.npos != s)
+    return str.substr(s);
+  else
+    return "";
+}
+
+template <typename T>
+static std::string_view StripEndChars(std::string_view str, T chars)
+{
+  return str.substr(0, str.find_last_not_of(chars) + 1);
+}
+
 // Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
 std::string_view StripWhitespace(std::string_view str)
 {
   return StripEnclosingChars(str, " \t\r\n");
+}
+
+// Turns "\n\r\t hello " into "hello " (trims at the start).
+std::string_view StripWhitespaceStart(std::string_view str)
+{
+  return StripStartChars(str, " \t\r\n");
+}
+
+// Turns "\n\r\t hello " into "\n\r\t hello" (trims at the end).
+std::string_view StripWhitespaceEnd(std::string_view str)
+{
+  return StripEndChars(str, " \t\r\n");
 }
 
 std::string_view StripSpaces(std::string_view str)
