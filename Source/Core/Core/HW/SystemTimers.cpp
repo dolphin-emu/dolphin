@@ -125,6 +125,8 @@ void SystemTimersManager::GPUSleepCallback(Core::System& system, u64 userdata, s
 void SystemTimersManager::PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
+  // Throttle for accurate performance metrics.
+  core_timing.Throttle(core_timing.GetTicks() - cycles_late);
   g_perf_metrics.CountPerformanceMarker(system, cycles_late);
 
   // Call this performance tracker again in 1/100th of a second.
