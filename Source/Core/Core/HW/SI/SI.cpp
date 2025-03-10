@@ -509,6 +509,8 @@ void SerialInterfaceManager::ChangeDevice(SIDevices device, int channel)
 
 void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int channel)
 {
+  if (channel < 0 || channel >= MAX_SI_CHANNELS)
+    return;
   if (m_channel[channel].has_recent_device_change)
     return;
 
