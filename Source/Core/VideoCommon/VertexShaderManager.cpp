@@ -289,23 +289,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   }
   xf_state_manager.ResetMaterialChanges();
 
-  if (xf_state_manager.DidPosNormalChange())
-  {
-    xf_state_manager.ResetPosNormalChange();
-    const float* pos = &xfmem.posMatrices[g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4];
-    const float* norm =
-        &xfmem.normalMatrices[3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31)];
-
-    memcpy(constants.posnormalmatrix.data(), pos, 3 * sizeof(float4));
-    memcpy(constants.posnormalmatrix[3].data(), norm, 3 * sizeof(float));
-    memcpy(constants.posnormalmatrix[4].data(), norm + 3, 3 * sizeof(float));
-    memcpy(constants.posnormalmatrix[5].data(), norm + 6, 3 * sizeof(float));
-    dirty = true;
-  }
-
   if (xf_state_manager.DidTexMatrixAChange())
   {
     xf_state_manager.ResetTexMatrixAChange();
+    constants.cached_posmtxidx[0] = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
     const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
