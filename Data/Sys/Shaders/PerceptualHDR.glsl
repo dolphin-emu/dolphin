@@ -106,14 +106,14 @@ void main()
     // scaling while also being able to use the luminance channel.
     float4 ictcp_color = LinearRGBToICtCP(color);
 
-    // Scale the color in perceptual space depending on the percieved luminance.
+    // Scale the color in perceptual space depending on the perceived luminance.
     //
     // At low luminances, ~0.0, pow(AMPLIFICATION, ~0.0) ~= 1.0, so the
     // color will appear to be unchanged. This is important as we don't want to
     // over expose dark colors which would not have otherwise been seen.
     //
     // At high luminances, ~1.0, pow(AMPLIFICATION, ~1.0) ~= AMPLIFICATION,
-    // which is equivilant to scaling the color by AMPLIFICATION. This is
+    // which is equivalent to scaling the color by AMPLIFICATION. This is
     // important as we want to get the most out of the display, and we want to
     // get bright colors to hit their target brightness.
     //

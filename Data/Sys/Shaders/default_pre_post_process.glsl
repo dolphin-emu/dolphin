@@ -353,7 +353,7 @@ void main()
 		// Doing linear sampling in "gamma space" on linear texture formats isn't correct.
 		// If the source and target resolutions don't match, the GPU will return a color
 		// that is the average of 4 gamma space colors, but gamma space colors can't be blended together,
-		// gamma neeeds to be de-applied first. This makes a big difference if colors change
+		// gamma needs to be de-applied first. This makes a big difference if colors change
 		// drastically between two pixels.
 
 		color = LinearGammaCorrectedSample(game_gamma);
