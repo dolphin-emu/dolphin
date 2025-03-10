@@ -20,13 +20,13 @@ QoSSession::QoSSession(ENetPeer* peer, int tos_val) : m_peer(peer)
   if (!QOSCreateHandle(&ver, &m_qos_handle))
     return;
 
-  sockaddr_in sin = {};
+  sockaddr_in6 sin6 = {};
 
-  sin.sin_family = AF_INET;
-  sin.sin_port = ENET_HOST_TO_NET_16(peer->host->address.port);
-  sin.sin_addr.s_addr = peer->host->address.host;
+  sin6.sin6_family = AF_INET6;
+  sin6.sin6_port = ENET_HOST_TO_NET_16(peer->host->address.port);
+  memcpy(&sin6.sin6_addr, &peer->host->address.host, sizeof(struct in6_addr));
 
-  if (QOSAddSocketToFlow(m_qos_handle, peer->host->socket, reinterpret_cast<PSOCKADDR>(&sin),
+  if (QOSAddSocketToFlow(m_qos_handle, peer->host->socket, reinterpret_cast<PSOCKADDR>(&sin6),
                          QOSTrafficTypeControl, QOS_NON_ADAPTIVE_FLOW, &m_qos_flow_id))
   {
     // We shift the complete ToS value by 3 to get rid of the 3 bit ECN field
