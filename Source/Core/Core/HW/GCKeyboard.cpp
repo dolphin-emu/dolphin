@@ -49,6 +49,11 @@ void LoadConfig()
   s_config.LoadConfig();
 }
 
+void GenerateDynamicInputTextures()
+{
+  s_config.GenerateControllerTextures();
+}
+
 ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetGroup(group);

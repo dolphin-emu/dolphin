@@ -71,8 +71,10 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_updateSingleControlReference(
     JNIEnv* env, jobject obj, jobject control_reference)
 {
-  return EmulatedControllerFromJava(env, obj)->UpdateSingleControlReference(
-      g_controller_interface, ControlReferenceFromJava(env, control_reference));
+  ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
+  controller->GetConfig()->GenerateControllerTextures();
+  return controller->UpdateSingleControlReference(g_controller_interface,
+                                                  ControlReferenceFromJava(env, control_reference));
 }
 
 JNIEXPORT void JNICALL
@@ -83,6 +85,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
   controller->LoadDefaults(g_controller_interface);
   controller->UpdateReferences(g_controller_interface);
+  controller->GetConfig()->GenerateControllerTextures();
 }
 
 JNIEXPORT void JNICALL
@@ -96,6 +99,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
   controller->LoadConfig(&section);
   controller->UpdateReferences(g_controller_interface);
+  controller->GetConfig()->GenerateControllerTextures();
 }
 
 JNIEXPORT void JNICALL
@@ -109,6 +113,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
   controller->LoadConfig(ini.GetOrCreateSection("Profile"));
   controller->UpdateReferences(g_controller_interface);
+  controller->GetConfig()->GenerateControllerTextures();
 }
 
 JNIEXPORT void JNICALL
