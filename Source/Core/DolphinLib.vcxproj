@@ -56,7 +56,6 @@
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SDL\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />
-  <Import Project="$(ExternalsDir)soundtouch\exports.props" />
   <Import Project="$(ExternalsDir)spirv_cross\exports.props" />
   <Import Project="$(ExternalsDir)tinygltf\exports.props" />
   <Import Project="$(ExternalsDir)xxhash\exports.props" />
