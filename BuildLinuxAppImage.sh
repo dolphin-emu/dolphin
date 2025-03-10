@@ -17,7 +17,7 @@ else
 fi
 
 export APPIMAGE_EXTRACT_AND_RUN=1
-export QMAKE=/usr/lib/qt6/bin/qmake
+export QMAKE=$(which qmake6)
 
 # Prepare the AppDir
 DESTDIR=./AppDir ninja install
