@@ -25,7 +25,8 @@ public:
 
   // Get a user friendly title name for a GameTDB ID.
   // This falls back to returning an empty string if none could be found.
-  const std::string& GetTitleName(const std::string& gametdb_id, DiscIO::Language language) const;
+  const std::string& GetTitleName(const std::string& gametdb_id, const std::string& tri_id,
+                                  DiscIO::Language language) const;
 
   // Same as above, but takes a title ID instead of a GameTDB ID, and only works for channels.
   const std::string& GetChannelName(u64 title_id, DiscIO::Language language) const;
@@ -38,6 +39,8 @@ private:
 
   std::unordered_map<DiscIO::Language, Common::Lazy<std::unordered_map<std::string, std::string>>>
       m_title_maps;
+  std::unordered_map<DiscIO::Language, Common::Lazy<std::unordered_map<std::string, std::string>>>
+      m_trititle_maps;
   std::unordered_map<std::string, std::string> m_base_map;
   std::unordered_map<std::string, std::string> m_user_title_map;
 };
