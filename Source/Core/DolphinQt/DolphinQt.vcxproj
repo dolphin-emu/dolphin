@@ -54,6 +54,7 @@
     <ClCompile Include="Achievements\AchievementProgressWidget.cpp" />
     <ClCompile Include="Achievements\AchievementSettingsWidget.cpp" />
     <ClCompile Include="Achievements\AchievementsWindow.cpp" />
+    <ClCompile Include="CameraQt\CameraQt.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
@@ -240,6 +241,7 @@
     also be modified using the VS UI.
     -->
   <ItemGroup>
+    <ClInclude Include="CameraQt\CameraQt.h" />
     <ClInclude Include="Config\CheatCodeEditor.h" />
     <ClInclude Include="Config\ConfigControls\ConfigControl.h" />
     <ClInclude Include="Config\GameConfigEdit.h" />
@@ -278,6 +280,7 @@
     <QtMoc Include="Achievements\AchievementProgressWidget.h" />
     <QtMoc Include="Achievements\AchievementSettingsWidget.h" />
     <QtMoc Include="Achievements\AchievementsWindow.h" />
+    <QtMoc Include="CameraQt\CameraQt.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\CommonControllersWidget.h" />
