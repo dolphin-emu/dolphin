@@ -13,7 +13,8 @@ class CEXIAD16 : public IEXIDevice
 {
 public:
   explicit CEXIAD16(Core::System& system);
-  void SetCS(int cs) override;
+
+  void SetCS(u32 cs, bool was_selected, bool is_selected) override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
 
