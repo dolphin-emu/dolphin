@@ -713,7 +713,7 @@ if(NOT ANDROID)
   add_definitions(-D__LIBUSB__)
 endif()
 
-dolphin_find_optional_system_library(SFML Externals/SFML 2.1 COMPONENTS network system)
+dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)
 
 if(USE_UPNP)
   dolphin_find_optional_system_library(MINIUPNPC Externals/miniupnpc 1.6)
