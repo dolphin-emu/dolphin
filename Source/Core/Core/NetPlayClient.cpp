@@ -37,6 +37,7 @@
 
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -1530,7 +1531,7 @@ void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 
 void NetPlayClient::DisplayPlayersPing()
 {
-  if (!g_ActiveConfig.bShowNetPlayPing)
+  if (!Config::Get(Config::GFX_SHOW_NETPLAY_PING))
     return;
 
   OSD::AddTypedMessage(OSD::MessageType::NetPlayPing, fmt::format("Ping: {}", GetPlayersMaxPing()),
