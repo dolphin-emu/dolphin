@@ -18,9 +18,10 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
-#include "Core/Config/AchievementSettings.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -138,6 +139,7 @@ void CoreTimingManager::RefreshConfig()
   }
 
   m_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  m_refresh_rate_rounding = Config::Get(Config::GFX_HACK_REFRESH_RATE_ROUNDING);
 }
 
 void CoreTimingManager::DoState(PointerWrap& p)
@@ -367,7 +369,16 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   m_throttle_last_cycle = target_cycle;
 
-  const double speed = Core::GetIsThrottlerTempDisabled() ? 0.0 : m_emulation_speed;
+  double speed = m_emulation_speed;
+  if (Core::GetIsThrottlerTempDisabled())
+  {
+    speed = 0;
+  }
+  else if (m_refresh_rate_rounding)
+  {
+    const auto refresh_rate = m_system.GetVideoInterface().GetTargetRefreshRate();
+    speed *= std::round(refresh_rate) / refresh_rate;
+  }
 
   if (0.0 < speed)
     m_throttle_deadline +=

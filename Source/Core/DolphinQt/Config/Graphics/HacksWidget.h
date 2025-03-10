@@ -50,6 +50,7 @@ private:
   ConfigBool* m_vertex_rounding;
   ConfigBool* m_vi_skip;
   ConfigBool* m_save_texture_cache_state;
+  ConfigBool* m_refresh_rate_rounding;
 
   Config::Layer* m_game_layer = nullptr;
 
