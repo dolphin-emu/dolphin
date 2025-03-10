@@ -47,7 +47,7 @@ public:
 private:
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
-  PerformanceTracker m_speed_counter{std::nullopt, 1000000};
+  PerformanceTracker m_speed_counter{std::nullopt, std::chrono::seconds{1}};
 
   double m_graph_max_time = 0.0;
 

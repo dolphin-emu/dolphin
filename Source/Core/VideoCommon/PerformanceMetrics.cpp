@@ -48,6 +48,7 @@ void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cycles
 {
   std::unique_lock lock(m_time_lock);
   m_speed_counter.Count();
+  m_speed_counter.UpdateStats();
 
   m_real_times[m_time_index] = Clock::now() - m_time_sleeping;
   m_cpu_times[m_time_index] = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
@@ -84,6 +85,9 @@ double PerformanceMetrics::GetLastSpeedDenominator() const
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
+  m_vps_counter.UpdateStats();
+  m_fps_counter.UpdateStats();
+
   const int movable_flag = Config::Get(Config::GFX_MOVABLE_PERFORMANCE_METRICS) ?
                                ImGuiWindowFlags_None :
                                ImGuiWindowFlags_NoMove;
