@@ -44,13 +44,8 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
 
-enum
-{
-  SLOT_A_INDEX,
-  SLOT_B_INDEX,
-  SLOT_SP1_INDEX,
-  SLOT_COUNT
-};
+constexpr std::initializer_list<ExpansionInterface::Slot> GUI_SLOTS = {
+    ExpansionInterface::Slot::A, ExpansionInterface::Slot::B, ExpansionInterface::Slot::SP1};
 
 GameCubePane::GameCubePane()
 {
@@ -95,7 +90,7 @@ void GameCubePane::CreateWidgets()
   QGridLayout* device_layout = new QGridLayout(device_box);
   device_box->setLayout(device_layout);
 
-  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
     m_slot_combos[slot] = new QComboBox(device_box);
     m_slot_combos[slot]->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
@@ -251,7 +246,7 @@ void GameCubePane::ConnectWidgets()
   connect(m_language_combo, &QComboBox::currentIndexChanged, this, &GameCubePane::SaveSettings);
 
   // Device Settings
-  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
     connect(m_slot_combos[slot], &QComboBox::currentIndexChanged, this,
             [this, slot] { UpdateButton(slot); });
@@ -357,6 +352,9 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
                   device == ExpansionInterface::EXIDeviceType::EthernetTapServer ||
                   device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn ||
                   device == ExpansionInterface::EXIDeviceType::ModemTapServer);
+    break;
+  case ExpansionInterface::Slot::SP2:
+    has_config = false;
     break;
   }
 
@@ -739,7 +737,7 @@ void GameCubePane::LoadSettings()
   m_skip_main_menu->setToolTip(have_menu ? QString{} : tr("Put IPL ROMs in User/GC/<region>."));
 
   // Device Settings
-  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
     const ExpansionInterface::EXIDeviceType exi_device =
         Config::Get(Config::GetInfoForEXIDevice(slot));
@@ -784,7 +782,7 @@ void GameCubePane::SaveSettings()
 
   auto& system = Core::System::GetInstance();
   // Device Settings
-  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
     const auto dev =
         static_cast<ExpansionInterface::EXIDeviceType>(m_slot_combos[slot]->currentData().toInt());
