@@ -8,7 +8,7 @@
 
 CustomShaderCache::CustomShaderCache()
 {
-  m_api_type = g_ActiveConfig.backend_info.api_type;
+  m_api_type = g_backend_info.api_type;
   m_host_config.bits = ShaderHostConfig::GetCurrent().bits;
 
   m_async_shader_compiler = g_gfx->CreateAsyncShaderCompiler();

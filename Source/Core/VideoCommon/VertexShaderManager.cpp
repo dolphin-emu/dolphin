@@ -140,7 +140,7 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
 bool VertexShaderManager::UseVertexDepthRange()
 {
   // We can't compute the depth range in the vertex shader if we don't support depth clamp.
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (!g_backend_info.bSupportsDepthClamp)
     return false;
 
   // We need a full depth range if a ztexture is used.
@@ -148,7 +148,7 @@ bool VertexShaderManager::UseVertexDepthRange()
     return true;
 
   // If an inverted depth range is unsupported, we also need to check if the range is inverted.
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+  if (!g_backend_info.bSupportsReversedDepthRange)
   {
     if (xfmem.viewport.zRange < 0.0f)
       return true;
@@ -370,7 +370,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     {
       // Oversized depth ranges are handled in the vertex shader. We need to reverse
       // the far value to use the reversed-Z trick.
-      if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      if (g_backend_info.bSupportsReversedDepthRange)
       {
         // Sometimes the console also tries to use the reversed-Z trick. We can only do
         // that with the expected accuracy if the backend can reverse the depth range.

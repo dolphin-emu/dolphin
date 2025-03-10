@@ -221,7 +221,7 @@ void SetScissorAndViewport()
   // floating-point round-trip errors. However the console GPU doesn't ever write a value
   // to the depth buffer that exceeds 2^24 - 1.
   constexpr float GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (!g_backend_info.bSupportsDepthClamp)
   {
     // There's no way to support oversized depth ranges in this situation. Let's just clamp the
     // range to the maximum value supported by the console GPU and hope for the best.
@@ -233,7 +233,7 @@ void SetScissorAndViewport()
   {
     // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     // Taking into account whether the depth range is inverted or not.
-    if (xfmem.viewport.zRange < 0.0f && g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    if (xfmem.viewport.zRange < 0.0f && g_backend_info.bSupportsReversedDepthRange)
     {
       min_depth = GX_MAX_DEPTH;
       max_depth = 0.0f;
@@ -246,7 +246,7 @@ void SetScissorAndViewport()
   }
 
   float near_depth, far_depth;
-  if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+  if (g_backend_info.bSupportsReversedDepthRange)
   {
     // Set the reversed depth range.
     near_depth = max_depth;
@@ -262,7 +262,7 @@ void SetScissorAndViewport()
   }
 
   // Lower-left flip.
-  if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
+  if (g_backend_info.bUsesLowerLeftOrigin)
     y = static_cast<float>(g_gfx->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
   g_gfx->SetViewport(x, y, width, height, near_depth, far_depth);

@@ -88,7 +88,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   {
     // Depth buffer is inverted for improved precision near far plane
     float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
-    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    if (!g_backend_info.bSupportsReversedDepthRange)
       depth = 1.0f - depth;
 
     // Convert to 24bit depth
@@ -133,7 +133,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
       float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
-      if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      if (!g_backend_info.bSupportsReversedDepthRange)
         depth = 1.0f - depth;
 
       g_framebuffer_manager->PokeEFBDepth(point.x, point.y, depth);

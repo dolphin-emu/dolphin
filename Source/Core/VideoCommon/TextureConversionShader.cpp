@@ -62,7 +62,7 @@ static void WriteHeader(ShaderCode& code, APIType api_type)
              "  float2 clamp_tb;\n"
              "  uint3 filter_coefficients;\n"
              "}};\n");
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_backend_info.bSupportsGeometryShaders)
   {
     code.Write("VARYING_LOCATION(0) in VertexData {{\n"
                "  float3 v_tex0;\n"
@@ -124,7 +124,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
 
   if (params.depth)
   {
-    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    if (!g_backend_info.bSupportsReversedDepthRange)
       code.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
 
     code.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n"
@@ -1191,7 +1191,7 @@ float4 DecodePixel(int val)
   ss << "  int texel_buffer_offset;\n";
   ss << "};\n";
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_backend_info.bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) in VertexData {\n";
     ss << "  float3 v_tex0;\n";

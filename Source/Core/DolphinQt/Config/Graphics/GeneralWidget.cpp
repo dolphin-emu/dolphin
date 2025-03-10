@@ -226,7 +226,7 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_render_main_window->setEnabled(!running);
   m_enable_fullscreen->setEnabled(!running);
 
-  const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
+  const bool supports_adapters = !g_backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
 
   std::string current_backend = m_backend_combo->currentData().toString().toStdString();
@@ -362,7 +362,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 
   m_adapter_combo->clear();
 
-  const auto& adapters = g_Config.backend_info.Adapters;
+  const auto& adapters = g_backend_info.Adapters;
 
   for (const auto& adapter : adapters)
     m_adapter_combo->addItem(QString::fromStdString(adapter));

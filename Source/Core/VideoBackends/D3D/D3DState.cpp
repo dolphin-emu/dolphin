@@ -35,7 +35,7 @@ void StateManager::Apply()
   // our bindings and sets them to null to prevent hazards.
   if (m_dirtyFlags.test(DirtyFlag_Framebuffer))
   {
-    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    if (g_backend_info.bSupportsBBox)
     {
       D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
           m_pending.framebuffer->GetNumRTVs(),
@@ -363,7 +363,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
+  if (state.logicopenable && g_backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];

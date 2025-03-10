@@ -36,58 +36,58 @@ std::vector<MRCOwned<id<MTLDevice>>> Metal::Util::GetAdapterList()
   return list;
 }
 
-void Metal::Util::PopulateBackendInfo(VideoConfig* config)
+void Metal::Util::PopulateBackendInfo(BackendInfo* backend_info)
 {
-  config->backend_info.api_type = APIType::Metal;
-  config->backend_info.bUsesLowerLeftOrigin = false;
-  config->backend_info.bSupportsExclusiveFullscreen = false;
-  config->backend_info.bSupportsDualSourceBlend = true;
-  config->backend_info.bSupportsPrimitiveRestart = true;
-  config->backend_info.bSupportsGeometryShaders = false;
-  config->backend_info.bSupportsComputeShaders = true;
-  config->backend_info.bSupports3DVision = false;
-  config->backend_info.bSupportsEarlyZ = true;
-  config->backend_info.bSupportsBindingLayout = true;
-  config->backend_info.bSupportsBBox = true;
-  config->backend_info.bSupportsGSInstancing = false;
-  config->backend_info.bSupportsPostProcessing = true;
-  config->backend_info.bSupportsPaletteConversion = true;
-  config->backend_info.bSupportsClipControl = true;
-  config->backend_info.bSupportsSSAA = true;
-  config->backend_info.bSupportsFragmentStoresAndAtomics = true;
-  config->backend_info.bSupportsReversedDepthRange = false;
-  config->backend_info.bSupportsLogicOp = false;
-  config->backend_info.bSupportsMultithreading = false;
-  config->backend_info.bSupportsGPUTextureDecoding = true;
-  config->backend_info.bSupportsCopyToVram = true;
-  config->backend_info.bSupportsBitfield = true;
-  config->backend_info.bSupportsDynamicSamplerIndexing = true;
-  config->backend_info.bSupportsFramebufferFetch = false;
-  config->backend_info.bSupportsBackgroundCompiling = true;
-  config->backend_info.bSupportsLargePoints = true;
-  config->backend_info.bSupportsPartialDepthCopies = true;
-  config->backend_info.bSupportsDepthReadback = true;
-  config->backend_info.bSupportsShaderBinaries = false;
-  config->backend_info.bSupportsPipelineCacheData = false;
-  config->backend_info.bSupportsCoarseDerivatives = false;
-  config->backend_info.bSupportsTextureQueryLevels = true;
-  config->backend_info.bSupportsLodBiasInSampler = false;
-  config->backend_info.bSupportsSettingObjectNames = true;
+  backend_info->api_type = APIType::Metal;
+  backend_info->bUsesLowerLeftOrigin = false;
+  backend_info->bSupportsExclusiveFullscreen = false;
+  backend_info->bSupportsDualSourceBlend = true;
+  backend_info->bSupportsPrimitiveRestart = true;
+  backend_info->bSupportsGeometryShaders = false;
+  backend_info->bSupportsComputeShaders = true;
+  backend_info->bSupports3DVision = false;
+  backend_info->bSupportsEarlyZ = true;
+  backend_info->bSupportsBindingLayout = true;
+  backend_info->bSupportsBBox = true;
+  backend_info->bSupportsGSInstancing = false;
+  backend_info->bSupportsPostProcessing = true;
+  backend_info->bSupportsPaletteConversion = true;
+  backend_info->bSupportsClipControl = true;
+  backend_info->bSupportsSSAA = true;
+  backend_info->bSupportsFragmentStoresAndAtomics = true;
+  backend_info->bSupportsReversedDepthRange = false;
+  backend_info->bSupportsLogicOp = false;
+  backend_info->bSupportsMultithreading = false;
+  backend_info->bSupportsGPUTextureDecoding = true;
+  backend_info->bSupportsCopyToVram = true;
+  backend_info->bSupportsBitfield = true;
+  backend_info->bSupportsDynamicSamplerIndexing = true;
+  backend_info->bSupportsFramebufferFetch = false;
+  backend_info->bSupportsBackgroundCompiling = true;
+  backend_info->bSupportsLargePoints = true;
+  backend_info->bSupportsPartialDepthCopies = true;
+  backend_info->bSupportsDepthReadback = true;
+  backend_info->bSupportsShaderBinaries = false;
+  backend_info->bSupportsPipelineCacheData = false;
+  backend_info->bSupportsCoarseDerivatives = false;
+  backend_info->bSupportsTextureQueryLevels = true;
+  backend_info->bSupportsLodBiasInSampler = false;
+  backend_info->bSupportsSettingObjectNames = true;
   // Metal requires multisample resolve to be done on a render pass
-  config->backend_info.bSupportsPartialMultisampleResolve = false;
-  config->backend_info.bSupportsDynamicVertexLoader = true;
-  config->backend_info.bSupportsVSLinePointExpand = true;
-  config->backend_info.bSupportsHDROutput =
+  backend_info->bSupportsPartialMultisampleResolve = false;
+  backend_info->bSupportsDynamicVertexLoader = true;
+  backend_info->bSupportsVSLinePointExpand = true;
+  backend_info->bSupportsHDROutput =
       1.0 < [[NSScreen deepestScreen] maximumPotentialExtendedDynamicRangeColorComponentValue];
 }
 
-void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
+void Metal::Util::PopulateBackendInfoAdapters(BackendInfo* backend_info,
                                               const std::vector<MRCOwned<id<MTLDevice>>>& adapters)
 {
-  config->backend_info.Adapters.clear();
+  backend_info->Adapters.clear();
   for (id<MTLDevice> adapter : adapters)
   {
-    config->backend_info.Adapters.push_back([[adapter name] UTF8String]);
+    backend_info->Adapters.push_back([[adapter name] UTF8String]);
   }
 }
 
@@ -238,7 +238,8 @@ fragment float4 is_helper_test() {
   return DetectionResult::Unsure;
 }
 
-void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice> device)
+void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, BackendInfo* backend_info,
+                                              id<MTLDevice> device)
 {
   // Initialize DriverDetails first so we can use it later
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
@@ -257,9 +258,9 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
                       DriverDetails::Family::UNKNOWN, std::move(name));
 
 #if TARGET_OS_OSX
-  config->backend_info.bSupportsDepthClamp = true;
-  config->backend_info.bSupportsST3CTextures = true;
-  config->backend_info.bSupportsBPTCTextures = true;
+  backend_info->bSupportsDepthClamp = true;
+  backend_info->bSupportsST3CTextures = true;
+  backend_info->bSupportsBPTCTextures = true;
 #else
   bool supports_apple4 = false;
   bool supports_bcn = false;
@@ -269,21 +270,21 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
     supports_apple4 = [device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1];
   if (@available(iOS 16.4, *))
     supports_bcn = [device supportsBCTextureCompression];
-  config->backend_info.bSupportsDepthClamp = supports_apple4;
-  config->backend_info.bSupportsST3CTextures = supports_bcn;
-  config->backend_info.bSupportsBPTCTextures = supports_bcn;
+  backend_info->bSupportsDepthClamp = supports_apple4;
+  backend_info->bSupportsST3CTextures = supports_bcn;
+  backend_info->bSupportsBPTCTextures = supports_bcn;
 
-  config->backend_info.bSupportsFramebufferFetch = true;
+  backend_info->bSupportsFramebufferFetch = true;
 #endif
 
-  config->backend_info.AAModes.clear();
+  backend_info->AAModes.clear();
   for (u32 i = 1; i <= 64; i <<= 1)
   {
     if ([device supportsTextureSampleCount:i])
-      config->backend_info.AAModes.push_back(i);
+      backend_info->AAModes.push_back(i);
   }
 
-  switch (config->iManuallyUploadBuffers)
+  switch (config.iManuallyUploadBuffers)
   {
   case TriState::Off:
     g_features.manual_buffer_upload = false;
@@ -310,7 +311,7 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
     // Requires SIMD-scoped reduction operations
     g_features.subgroup_ops =
         [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
-    config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
+    backend_info->bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
   }
   if (g_features.subgroup_ops)
   {
@@ -325,10 +326,10 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
 #if TARGET_OS_OSX
   if (@available(macOS 11, *))
     if (vendor == DriverDetails::VENDOR_INTEL)
-      config->backend_info.bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
+      backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
 #endif
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
-    config->backend_info.bSupportsDynamicSamplerIndexing = false;
+    backend_info->bSupportsDynamicSamplerIndexing = false;
 }
 
 // clang-format off

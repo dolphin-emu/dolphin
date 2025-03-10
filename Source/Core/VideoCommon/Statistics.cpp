@@ -73,7 +73,7 @@ void Statistics::Display() const
     ImGui::NextColumn();
   };
 
-  if (g_ActiveConfig.backend_info.api_type == APIType::Nothing)
+  if (g_backend_info.api_type == APIType::Nothing)
   {
     draw_statistic("Objects", "%d", this_frame.num_drawn_objects);
     draw_statistic("Vertices Loaded", "%d", this_frame.num_vertices_loaded);

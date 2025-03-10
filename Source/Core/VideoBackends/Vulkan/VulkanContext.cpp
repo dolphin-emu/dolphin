@@ -8,11 +8,8 @@
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
@@ -387,7 +384,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   // VK_EXT_debug_utils
   if (AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false))
   {
-    g_Config.backend_info.bSupportsSettingObjectNames = true;
+    g_backend_info.bSupportsSettingObjectNames = true;
   }
   else if (enable_debug_utils)
   {
@@ -420,96 +417,96 @@ VulkanContext::GPUList VulkanContext::EnumerateGPUs(VkInstance instance)
   return gpus;
 }
 
-void VulkanContext::PopulateBackendInfo(VideoConfig* config)
+void VulkanContext::PopulateBackendInfo(BackendInfo* backend_info)
 {
-  config->backend_info.api_type = APIType::Vulkan;
-  config->backend_info.bSupports3DVision = false;                  // D3D-exclusive.
-  config->backend_info.bSupportsEarlyZ = true;                     // Assumed support.
-  config->backend_info.bSupportsPrimitiveRestart = true;           // Assumed support.
-  config->backend_info.bSupportsBindingLayout = false;             // Assumed support.
-  config->backend_info.bSupportsPaletteConversion = true;          // Assumed support.
-  config->backend_info.bSupportsClipControl = true;                // Assumed support.
-  config->backend_info.bSupportsMultithreading = true;             // Assumed support.
-  config->backend_info.bSupportsComputeShaders = true;             // Assumed support.
-  config->backend_info.bSupportsGPUTextureDecoding = true;         // Assumed support.
-  config->backend_info.bSupportsBitfield = true;                   // Assumed support.
-  config->backend_info.bSupportsPartialDepthCopies = true;         // Assumed support.
-  config->backend_info.bSupportsShaderBinaries = true;             // Assumed support.
-  config->backend_info.bSupportsPipelineCacheData = false;         // Handled via pipeline caches.
-  config->backend_info.bSupportsDynamicSamplerIndexing = true;     // Assumed support.
-  config->backend_info.bSupportsPostProcessing = true;             // Assumed support.
-  config->backend_info.bSupportsBackgroundCompiling = true;        // Assumed support.
-  config->backend_info.bSupportsCopyToVram = true;                 // Assumed support.
-  config->backend_info.bSupportsReversedDepthRange = true;         // Assumed support.
-  config->backend_info.bSupportsExclusiveFullscreen = false;       // Dependent on OS and features.
-  config->backend_info.bSupportsDualSourceBlend = false;           // Dependent on features.
-  config->backend_info.bSupportsGeometryShaders = false;           // Dependent on features.
-  config->backend_info.bSupportsGSInstancing = false;              // Dependent on features.
-  config->backend_info.bSupportsBBox = false;                      // Dependent on features.
-  config->backend_info.bSupportsFragmentStoresAndAtomics = false;  // Dependent on features.
-  config->backend_info.bSupportsSSAA = false;                      // Dependent on features.
-  config->backend_info.bSupportsDepthClamp = false;                // Dependent on features.
-  config->backend_info.bSupportsST3CTextures = false;              // Dependent on features.
-  config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
-  config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
-  config->backend_info.bSupportsLargePoints = false;               // Dependent on features.
-  config->backend_info.bSupportsFramebufferFetch = false;          // Dependent on OS and features.
-  config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
-  config->backend_info.bSupportsTextureQueryLevels = true;         // Assumed support.
-  config->backend_info.bSupportsLodBiasInSampler = false;          // Dependent on OS.
-  config->backend_info.bSupportsSettingObjectNames = false;        // Dependent on features.
-  config->backend_info.bSupportsPartialMultisampleResolve = true;  // Assumed support.
-  config->backend_info.bSupportsDynamicVertexLoader = true;        // Assumed support.
-  config->backend_info.bSupportsVSLinePointExpand = true;          // Assumed support.
-  config->backend_info.bSupportsHDROutput = true;                  // Assumed support.
+  backend_info->api_type = APIType::Vulkan;
+  backend_info->bSupports3DVision = false;                  // D3D-exclusive.
+  backend_info->bSupportsEarlyZ = true;                     // Assumed support.
+  backend_info->bSupportsPrimitiveRestart = true;           // Assumed support.
+  backend_info->bSupportsBindingLayout = false;             // Assumed support.
+  backend_info->bSupportsPaletteConversion = true;          // Assumed support.
+  backend_info->bSupportsClipControl = true;                // Assumed support.
+  backend_info->bSupportsMultithreading = true;             // Assumed support.
+  backend_info->bSupportsComputeShaders = true;             // Assumed support.
+  backend_info->bSupportsGPUTextureDecoding = true;         // Assumed support.
+  backend_info->bSupportsBitfield = true;                   // Assumed support.
+  backend_info->bSupportsPartialDepthCopies = true;         // Assumed support.
+  backend_info->bSupportsShaderBinaries = true;             // Assumed support.
+  backend_info->bSupportsPipelineCacheData = false;         // Handled via pipeline caches.
+  backend_info->bSupportsDynamicSamplerIndexing = true;     // Assumed support.
+  backend_info->bSupportsPostProcessing = true;             // Assumed support.
+  backend_info->bSupportsBackgroundCompiling = true;        // Assumed support.
+  backend_info->bSupportsCopyToVram = true;                 // Assumed support.
+  backend_info->bSupportsReversedDepthRange = true;         // Assumed support.
+  backend_info->bSupportsExclusiveFullscreen = false;       // Dependent on OS and features.
+  backend_info->bSupportsDualSourceBlend = false;           // Dependent on features.
+  backend_info->bSupportsGeometryShaders = false;           // Dependent on features.
+  backend_info->bSupportsGSInstancing = false;              // Dependent on features.
+  backend_info->bSupportsBBox = false;                      // Dependent on features.
+  backend_info->bSupportsFragmentStoresAndAtomics = false;  // Dependent on features.
+  backend_info->bSupportsSSAA = false;                      // Dependent on features.
+  backend_info->bSupportsDepthClamp = false;                // Dependent on features.
+  backend_info->bSupportsST3CTextures = false;              // Dependent on features.
+  backend_info->bSupportsBPTCTextures = false;              // Dependent on features.
+  backend_info->bSupportsLogicOp = false;                   // Dependent on features.
+  backend_info->bSupportsLargePoints = false;               // Dependent on features.
+  backend_info->bSupportsFramebufferFetch = false;          // Dependent on OS and features.
+  backend_info->bSupportsCoarseDerivatives = true;          // Assumed support.
+  backend_info->bSupportsTextureQueryLevels = true;         // Assumed support.
+  backend_info->bSupportsLodBiasInSampler = false;          // Dependent on OS.
+  backend_info->bSupportsSettingObjectNames = false;        // Dependent on features.
+  backend_info->bSupportsPartialMultisampleResolve = true;  // Assumed support.
+  backend_info->bSupportsDynamicVertexLoader = true;        // Assumed support.
+  backend_info->bSupportsVSLinePointExpand = true;          // Assumed support.
+  backend_info->bSupportsHDROutput = true;                  // Assumed support.
 }
 
-void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
+void VulkanContext::PopulateBackendInfoAdapters(BackendInfo* backend_info, const GPUList& gpu_list)
 {
-  config->backend_info.Adapters.clear();
+  backend_info->Adapters.clear();
   for (VkPhysicalDevice physical_device : gpu_list)
   {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(physical_device, &properties);
-    config->backend_info.Adapters.push_back(properties.deviceName);
+    backend_info->Adapters.push_back(properties.deviceName);
   }
 }
 
-void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhysicalDevice gpu,
                                                 const PhysicalDeviceInfo& info)
 {
-  config->backend_info.MaxTextureSize = info.maxImageDimension2D;
-  config->backend_info.bUsesLowerLeftOrigin = false;
-  config->backend_info.bSupportsDualSourceBlend = info.dualSrcBlend;
-  config->backend_info.bSupportsGeometryShaders = info.geometryShader;
-  config->backend_info.bSupportsGSInstancing = info.geometryShader;
-  config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
+  backend_info->MaxTextureSize = info.maxImageDimension2D;
+  backend_info->bUsesLowerLeftOrigin = false;
+  backend_info->bSupportsDualSourceBlend = info.dualSrcBlend;
+  backend_info->bSupportsGeometryShaders = info.geometryShader;
+  backend_info->bSupportsGSInstancing = info.geometryShader;
+  backend_info->bSupportsBBox = backend_info->bSupportsFragmentStoresAndAtomics =
       info.fragmentStoresAndAtomics;
-  config->backend_info.bSupportsSSAA = info.sampleRateShading;
-  config->backend_info.bSupportsLogicOp = info.logicOp;
+  backend_info->bSupportsSSAA = info.sampleRateShading;
+  backend_info->bSupportsLogicOp = info.logicOp;
 
   // Metal doesn't support this.
-  config->backend_info.bSupportsLodBiasInSampler = info.driverID != VK_DRIVER_ID_MOLTENVK;
+  backend_info->bSupportsLodBiasInSampler = info.driverID != VK_DRIVER_ID_MOLTENVK;
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
   if (!info.shaderTessellationAndGeometryPointSize)
   {
-    config->backend_info.bSupportsGeometryShaders = VK_FALSE;
-    config->backend_info.bSupportsGSInstancing = VK_FALSE;
+    backend_info->bSupportsGeometryShaders = VK_FALSE;
+    backend_info->bSupportsGSInstancing = VK_FALSE;
   }
 
   // Depth clamping implies shaderClipDistance and depthClamp
-  config->backend_info.bSupportsDepthClamp = info.depthClamp && info.shaderClipDistance;
+  backend_info->bSupportsDepthClamp = info.depthClamp && info.shaderClipDistance;
 
   // textureCompressionBC implies BC1 through BC7, which is a superset of DXT1/3/5, which we need.
-  config->backend_info.bSupportsST3CTextures = info.textureCompressionBC;
-  config->backend_info.bSupportsBPTCTextures = info.textureCompressionBC;
+  backend_info->bSupportsST3CTextures = info.textureCompressionBC;
+  backend_info->bSupportsBPTCTextures = info.textureCompressionBC;
 
   // Some devices don't support point sizes >1 (e.g. Adreno).
   // If we can't use a point size above our maximum IR, use triangles instead for EFB pokes.
   // This means a 6x increase in the size of the vertices, though.
-  config->backend_info.bSupportsLargePoints =
+  backend_info->bSupportsLargePoints =
       info.largePoints && info.pointSizeRange[0] <= 1.0f && info.pointSizeRange[1] >= 16;
 
   std::string device_name = info.deviceName;
@@ -520,25 +517,26 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   // We currently use a hacked MoltenVK to implement this, so don't attempt outside of MVK
   if (is_moltenvk && (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos))
   {
-    config->backend_info.bSupportsFramebufferFetch = true;
+    backend_info->bSupportsFramebufferFetch = true;
   }
 
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
   if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
-    config->backend_info.bSupportsPrimitiveRestart = false;
+    backend_info->bSupportsPrimitiveRestart = false;
 
   // Reversed depth range is broken on some drivers, or is broken when used in combination
   // with depth clamping. Fall back to inverted depth range for these.
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_REVERSED_DEPTH_RANGE))
-    config->backend_info.bSupportsReversedDepthRange = false;
+    backend_info->bSupportsReversedDepthRange = false;
 
   // Dynamic sampler indexing locks up Intel GPUs on MoltenVK/Metal
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
-    config->backend_info.bSupportsDynamicSamplerIndexing = false;
+    backend_info->bSupportsDynamicSamplerIndexing = false;
 }
 
-void VulkanContext::PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice gpu,
+void VulkanContext::PopulateBackendInfoMultisampleModes(BackendInfo* backend_info,
+                                                        VkPhysicalDevice gpu,
                                                         const PhysicalDeviceInfo& info)
 {
   // Query image support for the EFB texture formats.
@@ -557,32 +555,32 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(VideoConfig* config, VkP
       efb_color_properties.sampleCounts & efb_depth_properties.sampleCounts;
 
   // No AA
-  config->backend_info.AAModes.clear();
-  config->backend_info.AAModes.emplace_back(1);
+  backend_info->AAModes.clear();
+  backend_info->AAModes.emplace_back(1);
 
   // 2xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_2_BIT)
-    config->backend_info.AAModes.emplace_back(2);
+    backend_info->AAModes.emplace_back(2);
 
   // 4xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_4_BIT)
-    config->backend_info.AAModes.emplace_back(4);
+    backend_info->AAModes.emplace_back(4);
 
   // 8xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_8_BIT)
-    config->backend_info.AAModes.emplace_back(8);
+    backend_info->AAModes.emplace_back(8);
 
   // 16xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_16_BIT)
-    config->backend_info.AAModes.emplace_back(16);
+    backend_info->AAModes.emplace_back(16);
 
   // 32xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_32_BIT)
-    config->backend_info.AAModes.emplace_back(32);
+    backend_info->AAModes.emplace_back(32);
 
   // 64xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_64_BIT)
-    config->backend_info.AAModes.emplace_back(64);
+    backend_info->AAModes.emplace_back(64);
 }
 
 std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
