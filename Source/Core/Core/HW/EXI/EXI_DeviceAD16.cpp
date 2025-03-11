@@ -13,9 +13,9 @@ CEXIAD16::CEXIAD16(Core::System& system) : IEXIDevice(system)
 {
 }
 
-void CEXIAD16::SetCS(int cs)
+void CEXIAD16::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
-  if (cs)
+  if (!was_selected && is_selected)
     m_position = 0;
 }
 
