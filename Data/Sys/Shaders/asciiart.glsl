@@ -391,7 +391,7 @@ bool supportsSIMD(uint simd_width)
 #endif
 }
 
-// "Error: The AsciiArt shader requires the missing GPU extention KHR_shader_subgroup."
+// "Error: The AsciiArt shader requires the missing GPU extension KHR_shader_subgroup."
 const uint missing_subgroup_warning_len = 82;
 const uint missing_subgroup_warning[missing_subgroup_warning_len] = {
     37, 82, 82, 79, 82, 26, 95, 52, 72, 69, 95, 33, 83, 67, 73, 73, 33, 82, 84, 95, 83,
