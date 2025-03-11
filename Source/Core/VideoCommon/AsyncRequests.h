@@ -6,7 +6,6 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
@@ -106,6 +105,4 @@ private:
   bool m_wake_me_up_again = false;
   bool m_enable = false;
   bool m_passthrough = true;
-
-  std::vector<EfbPokeData> m_merged_efb_pokes;
 };

@@ -112,31 +112,23 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   }
 }
 
-void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
+void Renderer::PokeEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
   if (type == EFBAccessType::PokeColor)
   {
-    for (size_t i = 0; i < num_points; i++)
-    {
-      // Convert to expected format (BGRA->RGBA)
-      // TODO: Check alpha, depending on mode?
-      const EfbPokeData& point = points[i];
-      u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
-                   ((point.data << 16) & 0xFF0000));
-      g_framebuffer_manager->PokeEFBColor(point.x, point.y, color);
-    }
+    // Convert to expected format (BGRA->RGBA)
+    // TODO: Check alpha, depending on mode?
+    const u32 color =
+        ((poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000));
+    g_framebuffer_manager->PokeEFBColor(x, y, color);
   }
   else  // if (type == EFBAccessType::PokeZ)
   {
-    for (size_t i = 0; i < num_points; i++)
-    {
-      // Convert to floating-point depth.
-      const EfbPokeData& point = points[i];
-      float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
-      if (!g_backend_info.bSupportsReversedDepthRange)
-        depth = 1.0f - depth;
+    // Convert to floating-point depth.
+    float depth = float(poke_data & 0xFFFFFF) / 16777216.0f;
+    if (!g_backend_info.bSupportsReversedDepthRange)
+      depth = 1.0f - depth;
 
-      g_framebuffer_manager->PokeEFBDepth(point.x, point.y, depth);
-    }
+    g_framebuffer_manager->PokeEFBDepth(x, y, depth);
   }
 }

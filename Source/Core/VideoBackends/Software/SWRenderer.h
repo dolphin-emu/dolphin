@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <memory>
-#include <string_view>
-
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -16,7 +13,7 @@ class SWRenderer final : public Renderer
 {
 public:
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
-  void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
+  void PokeEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override {}
 
   void ReinterpretPixelData(EFBReinterpretType convtype) override {}
 };
