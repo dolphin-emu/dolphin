@@ -783,7 +783,8 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
   // Multiply the stride by 2 to get the byte offset for each subsequent line.
   fbStride *= 2;
 
-  if (potentially_interlaced_xfb && interlaced_video_mode && g_ActiveConfig.bForceProgressive)
+  if (potentially_interlaced_xfb && interlaced_video_mode &&
+      Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE))
   {
     // Strictly speaking, in interlaced mode, we're only supposed to read
     // half of the lines of the XFB, and use that to display a field; the
