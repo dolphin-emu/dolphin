@@ -67,7 +67,6 @@
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace Movie
 {
@@ -1406,16 +1405,6 @@ void MovieManager::SaveRecording(const std::string& filename)
     Core::DisplayMessage(fmt::format("DTM {} saved", filename), 2000);
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
-}
-
-// NOTE: GPU Thread
-void MovieManager::SetGraphicsConfig()
-{
-  g_Config.bEFBAccessEnable = m_temp_header.bEFBAccessEnable;
-  g_Config.bSkipEFBCopyToRam = m_temp_header.bSkipEFBCopyToRam;
-  g_Config.bEFBEmulateFormatChanges = m_temp_header.bEFBEmulateFormatChanges;
-  g_Config.bImmediateXFB = m_temp_header.bImmediateXFB;
-  g_Config.bSkipXFBCopyToRam = m_temp_header.bSkipXFBCopyToRam;
 }
 
 // NOTE: EmuThread / Host Thread

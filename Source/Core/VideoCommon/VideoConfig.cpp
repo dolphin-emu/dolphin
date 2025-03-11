@@ -44,9 +44,6 @@ static bool IsVSyncActive(bool enabled)
 
 void UpdateActiveConfig()
 {
-  auto& movie = Core::System::GetInstance().GetMovie();
-  if (movie.IsPlayingInput() && movie.IsConfigSaved())
-    movie.SetGraphicsConfig();
   g_ActiveConfig = g_Config;
   g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
 }
