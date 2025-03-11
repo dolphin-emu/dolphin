@@ -8,15 +8,10 @@
 #include <cstring>
 #include <iterator>
 
-#include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -25,7 +20,6 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -39,8 +33,6 @@ void VertexShaderManager::Init()
 
   constants = {};
 
-  // TODO: should these go inside ResetView()?
-  m_viewport_correction = Common::Matrix44::Identity();
   m_projection_matrix = Common::Matrix44::Identity().data;
 
   dirty = true;
@@ -117,7 +109,7 @@ Common::Matrix44 VertexShaderManager::LoadProjectionMatrix()
   PRIM_LOG("Projection: {} {} {} {} {} {}", rawProjection[0], rawProjection[1], rawProjection[2],
            rawProjection[3], rawProjection[4], rawProjection[5]);
 
-  auto corrected_matrix = m_viewport_correction * Common::Matrix44::FromArray(m_projection_matrix);
+  auto corrected_matrix = Common::Matrix44::FromArray(m_projection_matrix);
 
   if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
     corrected_matrix *= g_freelook_camera.GetView();
@@ -483,7 +475,6 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
 void VertexShaderManager::DoState(PointerWrap& p)
 {
   p.DoArray(m_projection_matrix);
-  p.Do(m_viewport_correction);
   g_freelook_camera.DoState(p);
 
   p.Do(constants);
