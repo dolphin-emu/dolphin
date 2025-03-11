@@ -1124,10 +1124,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfloat3 _normal = normalize(Normal.xyz);\n\n"
               "\tfloat3 pos = WorldPos;\n");
 
-    out.Write("\tint4 lacc;\n"
-              "\tfloat3 ldir, h, cosAttn, distAttn;\n"
-              "\tfloat dist, dist2, attn;\n");
-
     // TODO: Our current constant usage code isn't able to handle more than one buffer.
     //       So we can't mark the VS constant as used here. But keep them here as reference.
     // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
