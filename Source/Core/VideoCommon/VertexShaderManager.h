@@ -4,10 +4,10 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <string>
 #include <vector>
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"
@@ -78,6 +78,8 @@ public:
     UpdateOffsets(&dirty, false, &constants.vertex_offset_normals, format.normals);
   }
 
+  void SetAspectRatioHack(float adjustment);
+
 private:
   alignas(16) std::array<float, 16> m_projection_matrix;
 
@@ -87,4 +89,6 @@ private:
   Common::Matrix44 m_viewport_correction{};
 
   Common::Matrix44 LoadProjectionMatrix();
+
+  std::atomic<float> m_aspect_ratio_hack = 1.f;
 };

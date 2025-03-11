@@ -19,6 +19,7 @@
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/Widescreen.h"
@@ -622,8 +623,7 @@ void Presenter::UpdateDrawRectangle()
   const float draw_aspect_ratio = CalculateDrawAspectRatio();
 
   // Update aspect ratio hack values
-  // Won't take effect until next frame
-  // Don't know if there is a better place for this code so there isn't a 1 frame delay
+  auto& system = Core::System::GetInstance();
   if (g_ActiveConfig.bWidescreenHack)
   {
     const auto& vi = Core::System::GetInstance().GetVideoInterface();
@@ -634,24 +634,12 @@ void Presenter::UpdateDrawRectangle()
       source_aspect_ratio = SourceAspectRatioToWidescreen(source_aspect_ratio);
 
     const float adjust = source_aspect_ratio / draw_aspect_ratio;
-    if (adjust > 1)
-    {
-      // Vert+
-      g_Config.fAspectRatioHackW = 1;
-      g_Config.fAspectRatioHackH = 1 / adjust;
-    }
-    else
-    {
-      // Hor+
-      g_Config.fAspectRatioHackW = adjust;
-      g_Config.fAspectRatioHackH = 1;
-    }
+    system.GetVertexShaderManager().SetAspectRatioHack(adjust);
   }
   else
   {
     // Hack is disabled.
-    g_Config.fAspectRatioHackW = 1;
-    g_Config.fAspectRatioHackH = 1;
+    system.GetVertexShaderManager().SetAspectRatioHack(1.f);
   }
 
   // The rendering window size

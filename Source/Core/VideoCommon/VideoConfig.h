@@ -293,8 +293,6 @@ struct VideoConfig final
   bool bSkipPresentingDuplicateXFBs = false;
   bool bCopyEFBScaled = false;
   int iSafeTextureCache_ColorSamples = 0;
-  float fAspectRatioHackW = 1;  // Initial value needed for the first frame
-  float fAspectRatioHackH = 1;
   bool bEnablePixelLighting = false;
   bool bFastDepthCalc = false;
   bool bVertexRounding = false;

@@ -8,15 +8,11 @@
 #include <cstring>
 #include <iterator>
 
-#include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
+
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -25,7 +21,6 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -43,7 +38,14 @@ void VertexShaderManager::Init()
   m_viewport_correction = Common::Matrix44::Identity();
   m_projection_matrix = Common::Matrix44::Identity().data;
 
+  m_aspect_ratio_hack = 1.f;
+
   dirty = true;
+}
+
+void VertexShaderManager::SetAspectRatioHack(float adjustment)
+{
+  m_aspect_ratio_hack = adjustment;
 }
 
 Common::Matrix44 VertexShaderManager::LoadProjectionMatrix()
@@ -57,14 +59,24 @@ Common::Matrix44 VertexShaderManager::LoadProjectionMatrix()
     const Common::Vec2 fov_multiplier = g_freelook_camera.IsActive() ?
                                             g_freelook_camera.GetFieldOfViewMultiplier() :
                                             Common::Vec2{1, 1};
-    m_projection_matrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
+
+    // "Widescreen Hack":
+    float aspect_ratio_hack_w = m_aspect_ratio_hack.load();
+    float aspect_ratio_hack_h = 1.f;
+    if (aspect_ratio_hack_w > 1)
+    {
+      aspect_ratio_hack_h = 1.f / aspect_ratio_hack_w;
+      aspect_ratio_hack_w = 1.f;
+    }
+
+    m_projection_matrix[0] = rawProjection[0] * aspect_ratio_hack_w * fov_multiplier.x;
     m_projection_matrix[1] = 0.0f;
-    m_projection_matrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
+    m_projection_matrix[2] = rawProjection[1] * aspect_ratio_hack_w * fov_multiplier.x;
     m_projection_matrix[3] = 0.0f;
 
     m_projection_matrix[4] = 0.0f;
-    m_projection_matrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
-    m_projection_matrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
+    m_projection_matrix[5] = rawProjection[2] * aspect_ratio_hack_h * fov_multiplier.y;
+    m_projection_matrix[6] = rawProjection[3] * aspect_ratio_hack_h * fov_multiplier.y;
     m_projection_matrix[7] = 0.0f;
 
     m_projection_matrix[8] = 0.0f;
