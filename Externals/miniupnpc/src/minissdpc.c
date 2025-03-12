@@ -1,23 +1,26 @@
-/* $Id: minissdpc.c,v 1.28 2015/09/18 13:05:39 nanard Exp $ */
-/* Project : miniupnp
- * Web : http://miniupnp.free.fr/
+/* $Id: minissdpc.c,v 1.52 2025/01/12 15:47:17 nanard Exp $ */
+/* vim: tabstop=4 shiftwidth=4 noexpandtab
+ * Project : miniupnp
+ * Web : http://miniupnp.free.fr/ or https://miniupnp.tuxfamily.org/
  * Author : Thomas BERNARD
- * copyright (c) 2005-2015 Thomas Bernard
+ * copyright (c) 2005-2025 Thomas Bernard
  * This software is subjet to the conditions detailed in the
  * provided LICENCE file. */
-/*#include <syslog.h>*/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include <sys/types.h>
+#if defined (__NetBSD__)
+#include <net/if.h>
+#endif
 #if defined(_WIN32) || defined(__amigaos__) || defined(__amigaos4__)
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <io.h>
 #include <iphlpapi.h>
-#include <winsock.h>
-#define snprintf _snprintf
+#include "win32_snprintf.h"
 #if !defined(_MSC_VER)
 #include <stdint.h>
 #else /* !defined(_MSC_VER) */
@@ -30,6 +33,15 @@ typedef unsigned short uint16_t;
 #define strncasecmp memicmp
 #endif /* defined(_MSC_VER) && (_MSC_VER >= 1400) */
 #endif /* #ifndef strncasecmp */
+#if defined(WINAPI_FAMILY) && defined(WINAPI_FAMILY_PARTITION)
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) && WINAPI_FAMILY != WINAPI_FAMILY_DESKTOP_APP
+#define in6addr_any in6addr_any_init
+static const IN6_ADDR in6addr_any_init = {0};
+#endif
+#endif
+#if !defined(_WIN32_WINNT_VISTA)
+#define _WIN32_WINNT_VISTA 0x0600
+#endif
 #endif /* _WIN32 */
 #if defined(__amigaos__) || defined(__amigaos4__)
 #include <sys/socket.h>
@@ -57,14 +69,17 @@ struct sockaddr_un {
 #define closesocket close
 #endif
 
-#ifdef _WIN32
-#define PRINT_SOCKET_ERROR(x)    printf("Socket error: %s, %d\n", x, WSAGetLastError());
-#else
-#define PRINT_SOCKET_ERROR(x) perror(x)
+#include "miniupnpc_socketdef.h"
+
+#if !defined(__DragonFly__) && !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__APPLE__) && !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__sun) && !defined(__GNU__) && !defined(__FreeBSD_kernel__) && !defined(__HAIKU__)
+#define HAS_IP_MREQN
 #endif
 
-#if !defined(__DragonFly__) && !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__APPLE__) && !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__sun) && !defined(__GNU__) && !defined(__FreeBSD_kernel__)
-#define HAS_IP_MREQN
+#ifndef _WIN32
+#include <sys/ioctl.h>
+#if defined(__sun) || defined(__HAIKU__)
+#include <sys/sockio.h>
+#endif
 #endif
 
 #if defined(HAS_IP_MREQN) && defined(NEED_STRUCT_IP_MREQN)
@@ -84,6 +99,7 @@ struct ip_mreqn
 #endif
 
 #include "minissdpc.h"
+#include "miniupnpc.h"
 #include "receivedata.h"
 
 #if !(defined(_WIN32) || defined(__amigaos__) || defined(__amigaos4__))
@@ -160,7 +176,7 @@ connectToMiniSSDPD(const char * socketpath)
 {
 	int s;
 	struct sockaddr_un addr;
-#ifdef MINIUPNPC_SET_SOCKET_TIMEOUT
+#if defined(MINIUPNPC_SET_SOCKET_TIMEOUT) && !defined(__sun)
 	struct timeval timeout;
 #endif /* #ifdef MINIUPNPC_SET_SOCKET_TIMEOUT */
 
@@ -171,23 +187,25 @@ connectToMiniSSDPD(const char * socketpath)
 		perror("socket(unix)");
 		return MINISSDPC_SOCKET_ERROR;
 	}
-#ifdef MINIUPNPC_SET_SOCKET_TIMEOUT
+#if defined(MINIUPNPC_SET_SOCKET_TIMEOUT) && !defined(__sun)
 	/* setting a 3 seconds timeout */
+	/* not supported for AF_UNIX sockets under Solaris */
 	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
 	if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval)) < 0)
 	{
-		perror("setsockopt");
+		perror("setsockopt SO_RCVTIMEO unix");
 	}
 	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
 	if(setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(struct timeval)) < 0)
 	{
-		perror("setsockopt");
+		perror("setsockopt SO_SNDTIMEO unix");
 	}
 #endif /* #ifdef MINIUPNPC_SET_SOCKET_TIMEOUT */
 	if(!socketpath)
 		socketpath = "/var/run/minissdpd.sock";
+	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	strncpy(addr.sun_path, socketpath, sizeof(addr.sun_path));
 	/* TODO : check if we need to handle the EINTR */
@@ -323,7 +341,7 @@ receiveDevicesFromMiniSSDPD(int s, int * error)
 #ifdef DEBUG
 		printf("   usnsize=%u\n", usnsize);
 #endif /* DEBUG */
-		tmp = (struct UPNPDev *)malloc(sizeof(struct UPNPDev)+urlsize+stsize+usnsize);
+		tmp = (struct UPNPDev *)malloc(sizeof(struct UPNPDev)+urlsize+stsize+usnsize+3);
 		if(tmp == NULL) {
 			if (error)
 				*error = MINISSDPC_MEMORY_ERROR;
@@ -372,6 +390,7 @@ free_tmp_and_return:
  * the last 4 arguments are filled during the parsing :
  *    - location/locationsize : "location:" field of the SSDP reply packet
  *    - st/stsize : "st:" field of the SSDP reply packet.
+ *    - usn/usnsize : "usn:" filed of the SSDP reply packet
  * The strings are NOT null terminated */
 static void
 parseMSEARCHReply(const char * reply, int size,
@@ -409,17 +428,17 @@ parseMSEARCHReply(const char * reply, int size,
 					putchar('\n');*/
 					/* skip the colon and white spaces */
 					do { b++; } while(reply[b]==' ');
-					if(0==strncasecmp(reply+a, "location", 8))
+					if(0==strncasecmp(reply+a, "location:", 9))
 					{
 						*location = reply+b;
 						*locationsize = i-b;
 					}
-					else if(0==strncasecmp(reply+a, "st", 2))
+					else if(0==strncasecmp(reply+a, "st:", 3))
 					{
 						*st = reply+b;
 						*stsize = i-b;
 					}
-					else if(0==strncasecmp(reply+a, "usn", 3))
+					else if(0==strncasecmp(reply+a, "usn:", 4))
 					{
 						*usn = reply+b;
 						*usnsize = i-b;
@@ -435,8 +454,53 @@ parseMSEARCHReply(const char * reply, int size,
 	}
 }
 
+#if defined(CLOCK_MONOTONIC_FAST)
+#define UPNP_CLOCKID CLOCK_MONOTONIC_FAST
+#elif defined(CLOCK_MONOTONIC)
+#define UPNP_CLOCKID CLOCK_MONOTONIC
+#endif
+
+static int upnp_gettimeofday(struct timeval * tv)
+{
+#if defined(_WIN32)
+#if _WIN32_WINNT >= _WIN32_WINNT_VISTA
+	ULONGLONG ts = GetTickCount64();
+#else
+	DWORD ts = GetTickCount();
+#endif
+	tv->tv_sec = (long)(ts / 1000);
+	tv->tv_usec = (ts % 1000) * 1000;
+	return 0; /* success */
+#elif defined(CLOCK_MONOTONIC_FAST) || defined(CLOCK_MONOTONIC)
+#if defined(__APPLE__)
+#if defined(__clang__)
+	if (__builtin_available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)) {
+#else /* !defined(__clang__) */
+	if (clock_gettime != NULL) {
+#endif /* defined(__clang__) */
+#endif /* defined(__APPLE__) */
+		struct timespec ts;
+		int ret_code = clock_gettime(UPNP_CLOCKID, &ts);
+		if (ret_code == 0)
+		{
+			tv->tv_sec = ts.tv_sec;
+			tv->tv_usec = ts.tv_nsec / 1000;
+		}
+		return ret_code;
+#if defined(__APPLE__)
+	}
+	else
+	{
+		/* fall-back for earlier Apple platforms */
+		return gettimeofday(tv, NULL);
+	}
+#endif /* defined(__APPLE__) */
+#else
+	return gettimeofday(tv, NULL);
+#endif
+}
 /* port upnp discover : SSDP protocol */
-#define PORT 1900
+#define SSDP_PORT 1900
 #define XSTR(s) STR(s)
 #define STR(s) #s
 #define UPNP_MCAST_ADDR "239.255.255.250"
@@ -456,25 +520,25 @@ parseMSEARCHReply(const char * reply, int size,
 struct UPNPDev *
 ssdpDiscoverDevices(const char * const deviceTypes[],
                     int delay, const char * multicastif,
-                    int sameport,
+                    int localport,
                     int ipv6, unsigned char ttl,
                     int * error,
                     int searchalltypes)
 {
 	struct UPNPDev * tmp;
-	struct UPNPDev * devlist = 0;
+	struct UPNPDev * devlist = NULL;
 	unsigned int scope_id = 0;
 	int opt = 1;
 	static const char MSearchMsgFmt[] =
 	"M-SEARCH * HTTP/1.1\r\n"
-	"HOST: %s:" XSTR(PORT) "\r\n"
+	"HOST: %s:" XSTR(SSDP_PORT) "\r\n"
 	"ST: %s\r\n"
 	"MAN: \"ssdp:discover\"\r\n"
 	"MX: %u\r\n"
 	"\r\n";
 	int deviceIndex;
 	char bufr[1536];	/* reception and emission buffer */
-	int sudp;
+	SOCKET sudp;
 	int n;
 	struct sockaddr_storage sockudp_r;
 	unsigned int mx;
@@ -482,23 +546,26 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 	struct sockaddr_storage sockudp_w;
 #else
 	int rv;
-	struct addrinfo hints, *servinfo, *p;
+	struct addrinfo hints, *servinfo;
 #endif
 #ifdef _WIN32
-	MIB_IPFORWARDROW ip_forward;
 	unsigned long _ttl = (unsigned long)ttl;
 #endif
-	int linklocal = 1;
+	int linklocal = 0;	/* try first with site-local multicast */
+	int sentok;
 
 	if(error)
 		*error = MINISSDPC_UNKNOWN_ERROR;
+
+	if(localport==UPNP_LOCAL_PORT_SAME)
+		localport = SSDP_PORT;
 
 #ifdef _WIN32
 	sudp = socket(ipv6 ? PF_INET6 : PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 #else
 	sudp = socket(ipv6 ? PF_INET6 : PF_INET, SOCK_DGRAM, 0);
 #endif
-	if(sudp < 0)
+	if(ISINVALID(sudp))
 	{
 		if(error)
 			*error = MINISSDPC_SOCKET_ERROR;
@@ -510,14 +577,14 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 	if(ipv6) {
 		struct sockaddr_in6 * p = (struct sockaddr_in6 *)&sockudp_r;
 		p->sin6_family = AF_INET6;
-		if(sameport)
-			p->sin6_port = htons(PORT);
+		if(localport > 0 && localport < 65536)
+			p->sin6_port = htons((unsigned short)localport);
 		p->sin6_addr = in6addr_any; /* in6addr_any is not available with MinGW32 3.4.2 */
 	} else {
 		struct sockaddr_in * p = (struct sockaddr_in *)&sockudp_r;
 		p->sin_family = AF_INET;
-		if(sameport)
-			p->sin_port = htons(PORT);
+		if(localport > 0 && localport < 65536)
+			p->sin_port = htons((unsigned short)localport);
 		p->sin_addr.s_addr = INADDR_ANY;
 	}
 #ifdef _WIN32
@@ -525,61 +592,98 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
  * SSDP multicast traffic */
 /* Get IP associated with the index given in the ip_forward struct
  * in order to give this ip to setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_IF) */
-	if(!ipv6
-	   && (GetBestRoute(inet_addr("223.255.255.255"), 0, &ip_forward) == NO_ERROR)) {
-		DWORD dwRetVal = 0;
-		PMIB_IPADDRTABLE pIPAddrTable;
-		DWORD dwSize = 0;
-#ifdef DEBUG
-		IN_ADDR IPAddr;
+	if(!ipv6) {
+		DWORD ifbestidx;
+#if _WIN32_WINNT >= _WIN32_WINNT_VISTA
+		// While we don't need IPv6 support, the IPv4 only function is not available in UWP apps.
+		SOCKADDR_IN destAddr;
+		memset(&destAddr, 0, sizeof(destAddr));
+		destAddr.sin_family = AF_INET;
+		destAddr.sin_addr.s_addr = inet_addr("223.255.255.255");
+		destAddr.sin_port = 0;
+		if (GetBestInterfaceEx((struct sockaddr *)&destAddr, &ifbestidx) == NO_ERROR) {
+#else
+		if (GetBestInterface(inet_addr("223.255.255.255"), &ifbestidx) == NO_ERROR) {
 #endif
-		int i;
-#ifdef DEBUG
-		printf("ifIndex=%lu nextHop=%lx \n", ip_forward.dwForwardIfIndex, ip_forward.dwForwardNextHop);
-#endif
-		pIPAddrTable = (MIB_IPADDRTABLE *) malloc(sizeof (MIB_IPADDRTABLE));
-		if(pIPAddrTable) {
-			if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER) {
-				free(pIPAddrTable);
-				pIPAddrTable = (MIB_IPADDRTABLE *) malloc(dwSize);
+			DWORD dwRetVal = NO_ERROR;
+			PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+			ULONG outBufLen = 15360;
+			int Iterations;
+			PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+			PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+
+			for (Iterations = 0; Iterations < 3; Iterations++) {
+				pAddresses = (IP_ADAPTER_ADDRESSES *) HeapAlloc(GetProcessHeap(), 0, outBufLen);
+				if (pAddresses == NULL) {
+					break;
+				}
+
+				dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
+
+				if (dwRetVal != ERROR_BUFFER_OVERFLOW) {
+					break;
+				}
+				HeapFree(GetProcessHeap(), 0, pAddresses);
+				pAddresses = NULL;
 			}
-		}
-		if(pIPAddrTable) {
-			dwRetVal = GetIpAddrTable( pIPAddrTable, &dwSize, 0 );
+
 			if (dwRetVal == NO_ERROR) {
+				pCurrAddresses = pAddresses;
+				while (pCurrAddresses) {
 #ifdef DEBUG
-				printf("\tNum Entries: %ld\n", pIPAddrTable->dwNumEntries);
-#endif
-				for (i=0; i < (int) pIPAddrTable->dwNumEntries; i++) {
-#ifdef DEBUG
-					printf("\n\tInterface Index[%d]:\t%ld\n", i, pIPAddrTable->table[i].dwIndex);
-					IPAddr.S_un.S_addr = (u_long) pIPAddrTable->table[i].dwAddr;
-					printf("\tIP Address[%d]:     \t%s\n", i, inet_ntoa(IPAddr) );
-					IPAddr.S_un.S_addr = (u_long) pIPAddrTable->table[i].dwMask;
-					printf("\tSubnet Mask[%d]:    \t%s\n", i, inet_ntoa(IPAddr) );
-					IPAddr.S_un.S_addr = (u_long) pIPAddrTable->table[i].dwBCastAddr;
-					printf("\tBroadCast[%d]:      \t%s (%ld)\n", i, inet_ntoa(IPAddr), pIPAddrTable->table[i].dwBCastAddr);
-					printf("\tReassembly size[%d]:\t%ld\n", i, pIPAddrTable->table[i].dwReasmSize);
-					printf("\tType and State[%d]:", i);
+					int i;
+					PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
+					PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
+
+					printf("\tIfIndex (IPv4 interface): %u\n", pCurrAddresses->IfIndex);
+					printf("\tAdapter name: %s\n", pCurrAddresses->AdapterName);
+					pUnicast = pCurrAddresses->FirstUnicastAddress;
+					if (pUnicast != NULL) {
+						for (i = 0; pUnicast != NULL; i++) {
+							printf("\tIP Address[%d]:     \t%s\n", i, inet_ntoa(((PSOCKADDR_IN)pUnicast->Address.lpSockaddr)->sin_addr) );
+							pUnicast = pUnicast->Next;
+						}
+						printf("\tNumber of Unicast Addresses: %d\n", i);
+					}
+					pAnycast = pCurrAddresses->FirstAnycastAddress;
+					if (pAnycast) {
+						for (i = 0; pAnycast != NULL; i++) {
+							printf("\tAnycast Address[%d]:     \t%s\n", i, inet_ntoa(((PSOCKADDR_IN)pAnycast->Address.lpSockaddr)->sin_addr) );
+							pAnycast = pAnycast->Next;
+						}
+						printf("\tNumber of Anycast Addresses: %d\n", i);
+					}
+					pMulticast = pCurrAddresses->FirstMulticastAddress;
+					if (pMulticast) {
+						for (i = 0; pMulticast != NULL; i++) {
+							printf("\tMulticast Address[%d]:     \t%s\n", i, inet_ntoa(((PSOCKADDR_IN)pMulticast->Address.lpSockaddr)->sin_addr) );
+              pMulticast = pMulticast->Next;
+						}
+					}
 					printf("\n");
 #endif
-					if (pIPAddrTable->table[i].dwIndex == ip_forward.dwForwardIfIndex) {
+					pUnicast = pCurrAddresses->FirstUnicastAddress;
+					if (pCurrAddresses->IfIndex == ifbestidx && pUnicast != NULL) {
+						SOCKADDR_IN *ipv4 = (SOCKADDR_IN *)(pUnicast->Address.lpSockaddr);
 						/* Set the address of this interface to be used */
 						struct in_addr mc_if;
 						memset(&mc_if, 0, sizeof(mc_if));
-						mc_if.s_addr = pIPAddrTable->table[i].dwAddr;
+						mc_if.s_addr = ipv4->sin_addr.s_addr;
 						if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&mc_if, sizeof(mc_if)) < 0) {
 							PRINT_SOCKET_ERROR("setsockopt");
 						}
-						((struct sockaddr_in *)&sockudp_r)->sin_addr.s_addr = pIPAddrTable->table[i].dwAddr;
+						((struct sockaddr_in *)&sockudp_r)->sin_addr.s_addr = ipv4->sin_addr.s_addr;
 #ifndef DEBUG
 						break;
 #endif
 					}
+					pCurrAddresses = pCurrAddresses->Next;
 				}
 			}
-			free(pIPAddrTable);
-			pIPAddrTable = NULL;
+			if (pAddresses != NULL) {
+				HeapFree(GetProcessHeap(), 0, pAddresses);
+				pAddresses = NULL;
+			}
 		}
 	}
 #endif	/* _WIN32 */
@@ -593,20 +697,33 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 		if(error)
 			*error = MINISSDPC_SOCKET_ERROR;
 		PRINT_SOCKET_ERROR("setsockopt(SO_REUSEADDR,...)");
-		return NULL;
+		goto error;
 	}
 
+	if(ipv6) {
 #ifdef _WIN32
-	if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_TTL, (const char *)&_ttl, sizeof(_ttl)) < 0)
+		DWORD mcastHops = ttl;
+		if(setsockopt(sudp, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (const char *)&mcastHops, sizeof(mcastHops)) < 0)
 #else  /* _WIN32 */
-	if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0)
+		int mcastHops = ttl;
+		if(setsockopt(sudp, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &mcastHops, sizeof(mcastHops)) < 0)
 #endif /* _WIN32 */
-	{
-		/* not a fatal error */
-		PRINT_SOCKET_ERROR("setsockopt(IP_MULTICAST_TTL,...)");
+		{
+			PRINT_SOCKET_ERROR("setsockopt(IPV6_MULTICAST_HOPS,...)");
+		}
+	} else {
+#ifdef _WIN32
+		if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_TTL, (const char *)&_ttl, sizeof(_ttl)) < 0)
+#else  /* _WIN32 */
+		if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0)
+#endif /* _WIN32 */
+		{
+			/* not a fatal error */
+			PRINT_SOCKET_ERROR("setsockopt(IP_MULTICAST_TTL,...)");
+		}
 	}
 
-	if(multicastif)
+	if(multicastif && multicastif[0] != '\0')
 	{
 		if(ipv6) {
 #if !defined(_WIN32)
@@ -614,9 +731,16 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 			 * MS Windows Vista and MS Windows Server 2008.
 			 * http://msdn.microsoft.com/en-us/library/bb408409%28v=vs.85%29.aspx */
 			unsigned int ifindex = if_nametoindex(multicastif); /* eth0, etc. */
+			if(ifindex == 0)
+			{
+				if(error)
+					*error = MINISSDPC_INVALID_INPUT;
+				fprintf(stderr, "Invalid multicast interface name %s\n", multicastif);
+				goto error;
+			}
 			if(setsockopt(sudp, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex, sizeof(ifindex)) < 0)
 			{
-				PRINT_SOCKET_ERROR("setsockopt");
+				PRINT_SOCKET_ERROR("setsockopt IPV6_MULTICAST_IF");
 			}
 #else
 #ifdef DEBUG
@@ -625,29 +749,67 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 #endif
 		} else {
 			struct in_addr mc_if;
-			mc_if.s_addr = inet_addr(multicastif); /* ex: 192.168.x.x */
+#if defined(_WIN32)
+#if _WIN32_WINNT >= _WIN32_WINNT_VISTA
+			InetPtonA(AF_INET, multicastif, &mc_if);
+#else
+			mc_if.s_addr = inet_addr(multicastif); /* old Windows SDK do not support InetPtoA() */
+#endif
+#else
+			/* was : mc_if.s_addr = inet_addr(multicastif); */ /* ex: 192.168.x.x */
+			if (inet_pton(AF_INET, multicastif, &mc_if.s_addr) <= 0) {
+				mc_if.s_addr = INADDR_NONE;
+			}
+#endif
 			if(mc_if.s_addr != INADDR_NONE)
 			{
 				((struct sockaddr_in *)&sockudp_r)->sin_addr.s_addr = mc_if.s_addr;
 				if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&mc_if, sizeof(mc_if)) < 0)
 				{
-					PRINT_SOCKET_ERROR("setsockopt");
+					PRINT_SOCKET_ERROR("setsockopt IP_MULTICAST_IF");
 				}
 			} else {
-#ifdef HAS_IP_MREQN
 				/* was not an ip address, try with an interface name */
+#ifndef _WIN32
+#ifdef HAS_IP_MREQN
 				struct ip_mreqn reqn;	/* only defined with -D_BSD_SOURCE or -D_GNU_SOURCE */
+#endif
+				struct ifreq ifr;
+				int ifrlen = sizeof(ifr);
+				strncpy(ifr.ifr_name, multicastif, IFNAMSIZ);
+				ifr.ifr_name[IFNAMSIZ-1] = '\0';
+				if(ioctl(sudp, SIOCGIFADDR, &ifr, &ifrlen) < 0)
+				{
+					PRINT_SOCKET_ERROR("ioctl(...SIOCGIFADDR...)");
+					goto error;
+				}
+				mc_if.s_addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
+#ifdef HAS_IP_MREQN
 				memset(&reqn, 0, sizeof(struct ip_mreqn));
+				reqn.imr_address.s_addr = mc_if.s_addr;
 				reqn.imr_ifindex = if_nametoindex(multicastif);
+				if(reqn.imr_ifindex == 0)
+				{
+					if(error)
+						*error = MINISSDPC_INVALID_INPUT;
+					fprintf(stderr, "Invalid multicast ip address / interface name %s\n", multicastif);
+					goto error;
+				}
 				if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&reqn, sizeof(reqn)) < 0)
 				{
-					PRINT_SOCKET_ERROR("setsockopt");
+					PRINT_SOCKET_ERROR("setsockopt IP_MULTICAST_IF");
 				}
 #else
+				if(setsockopt(sudp, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&mc_if, sizeof(mc_if)) < 0)
+				{
+					PRINT_SOCKET_ERROR("setsockopt IP_MULTICAST_IF");
+				}
+#endif
+#else /* _WIN32 */
 #ifdef DEBUG
 				printf("Setting of multicast interface not supported with interface name.\n");
 #endif
-#endif
+#endif /* #ifdef HAS_IP_MREQN / !defined(_WIN32) */
 			}
 		}
 	}
@@ -674,6 +836,7 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 	}
 	/* receiving SSDP response packet */
 	for(deviceIndex = 0; deviceTypes[deviceIndex]; deviceIndex++) {
+		sentok = 0;
 		/* sending the SSDP M-SEARCH packet */
 		n = snprintf(bufr, sizeof(bufr),
 		             MSearchMsgFmt,
@@ -681,6 +844,11 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 		             (linklocal ? "[" UPNP_MCAST_LL_ADDR "]" :  "[" UPNP_MCAST_SL_ADDR "]")
 		             : UPNP_MCAST_ADDR,
 		             deviceTypes[deviceIndex], mx);
+		if ((unsigned int)n >= sizeof(bufr)) {
+			if(error)
+				*error = MINISSDPC_MEMORY_ERROR;
+			goto error;
+		}
 #ifdef DEBUG
 		/*printf("Sending %s", bufr);*/
 		printf("Sending M-SEARCH request to %s with ST: %s\n",
@@ -696,14 +864,14 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 		if(ipv6) {
 			struct sockaddr_in6 * p = (struct sockaddr_in6 *)&sockudp_w;
 			p->sin6_family = AF_INET6;
-			p->sin6_port = htons(PORT);
+			p->sin6_port = htons(SSDP_PORT);
 			inet_pton(AF_INET6,
 			          linklocal ? UPNP_MCAST_LL_ADDR : UPNP_MCAST_SL_ADDR,
 			          &(p->sin6_addr));
 		} else {
 			struct sockaddr_in * p = (struct sockaddr_in *)&sockudp_w;
 			p->sin_family = AF_INET;
-			p->sin_port = htons(PORT);
+			p->sin_port = htons(SSDP_PORT);
 			p->sin_addr.s_addr = inet_addr(UPNP_MCAST_ADDR);
 		}
 		n = sendto(sudp, bufr, n, 0, &sockudp_w,
@@ -712,7 +880,8 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 			if(error)
 				*error = MINISSDPC_SOCKET_ERROR;
 			PRINT_SOCKET_ERROR("sendto");
-			break;
+		} else {
+			sentok = 1;
 		}
 #else /* #ifdef NO_GETADDRINFO */
 		memset(&hints, 0, sizeof(hints));
@@ -722,7 +891,7 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 		if ((rv = getaddrinfo(ipv6
 		                      ? (linklocal ? UPNP_MCAST_LL_ADDR : UPNP_MCAST_SL_ADDR)
 		                      : UPNP_MCAST_ADDR,
-		                      XSTR(PORT), &hints, &servinfo)) != 0) {
+		                      XSTR(SSDP_PORT), &hints, &servinfo)) != 0) {
 			if(error)
 				*error = MINISSDPC_SOCKET_ERROR;
 #ifdef _WIN32
@@ -731,105 +900,120 @@ ssdpDiscoverDevices(const char * const deviceTypes[],
 			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 #endif
 			break;
-		}
-		for(p = servinfo; p; p = p->ai_next) {
-			n = sendto(sudp, bufr, n, 0, p->ai_addr, p->ai_addrlen);
-			if (n < 0) {
+		} else {
+			struct addrinfo *p;
+			for(p = servinfo; p; p = p->ai_next) {
+				n = sendto(sudp, bufr, n, 0, p->ai_addr, MSC_CAST_INT p->ai_addrlen);
+				if (n < 0) {
 #ifdef DEBUG
-				char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-				if (getnameinfo(p->ai_addr, p->ai_addrlen, hbuf, sizeof(hbuf), sbuf,
-				                sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV) == 0) {
-					fprintf(stderr, "host:%s port:%s\n", hbuf, sbuf);
-				}
+					char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+					if (getnameinfo(p->ai_addr, (socklen_t)p->ai_addrlen, hbuf, sizeof(hbuf), sbuf,
+					                sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV) == 0) {
+						fprintf(stderr, "host:%s port:%s\n", hbuf, sbuf);
+					}
 #endif
-				PRINT_SOCKET_ERROR("sendto");
-				continue;
+					PRINT_SOCKET_ERROR("sendto");
+					continue;
+				} else {
+					sentok = 1;
+				}
 			}
+			freeaddrinfo(servinfo);
 		}
-		freeaddrinfo(servinfo);
-		if(n < 0) {
+		if(!sentok) {
 			if(error)
 				*error = MINISSDPC_SOCKET_ERROR;
-			break;
 		}
 #endif /* #ifdef NO_GETADDRINFO */
 		/* Waiting for SSDP REPLY packet to M-SEARCH
 		 * if searchalltypes is set, enter the loop only
 		 * when the last deviceType is reached */
-		if(!searchalltypes || !deviceTypes[deviceIndex + 1]) do {
-			n = receivedata(sudp, bufr, sizeof(bufr), delay, &scope_id);
-			if (n < 0) {
-				/* error */
-				if(error)
-					*error = MINISSDPC_SOCKET_ERROR;
-				goto error;
-			} else if (n == 0) {
-				/* no data or Time Out */
-#ifdef DEBUG
-				printf("NODATA or TIMEOUT\n");
-#endif /* DEBUG */
-				if (devlist && !searchalltypes) {
-					/* found some devices, stop now*/
+		if((sentok && !searchalltypes) || !deviceTypes[deviceIndex + 1]) {
+			struct timeval start = {0, 0}, current = {0, 0};
+			upnp_gettimeofday(&start);
+			do {
+				n = receivedata(sudp, bufr, sizeof(bufr), delay, &scope_id);
+				if (n < 0) {
+					/* error */
 					if(error)
-						*error = MINISSDPC_SUCCESS;
+						*error = MINISSDPC_SOCKET_ERROR;
 					goto error;
-				}
-			} else {
-				const char * descURL=NULL;
-				int urlsize=0;
-				const char * st=NULL;
-				int stsize=0;
-				const char * usn=NULL;
-				int usnsize=0;
-				parseMSEARCHReply(bufr, n, &descURL, &urlsize, &st, &stsize, &usn, &usnsize);
-				if(st&&descURL) {
+				} else if (n == 0) {
+					/* no data or Time Out */
 #ifdef DEBUG
-					printf("M-SEARCH Reply:\n  ST: %.*s\n  USN: %.*s\n  Location: %.*s\n",
-					       stsize, st, usnsize, (usn?usn:""), urlsize, descURL);
+					printf("NODATA or TIMEOUT\n");
 #endif /* DEBUG */
-					for(tmp=devlist; tmp; tmp = tmp->pNext) {
-						if(memcmp(tmp->descURL, descURL, urlsize) == 0 &&
-						   tmp->descURL[urlsize] == '\0' &&
-						   memcmp(tmp->st, st, stsize) == 0 &&
-						   tmp->st[stsize] == '\0' &&
-						   (usnsize == 0 || memcmp(tmp->usn, usn, usnsize) == 0) &&
-						   tmp->usn[usnsize] == '\0')
-							break;
-					}
-					/* at the exit of the loop above, tmp is null if
-					 * no duplicate device was found */
-					if(tmp)
-						continue;
-					tmp = (struct UPNPDev *)malloc(sizeof(struct UPNPDev)+urlsize+stsize+usnsize);
-					if(!tmp) {
-						/* memory allocation error */
+					if (devlist && !searchalltypes) {
+						/* found some devices, stop now*/
 						if(error)
-							*error = MINISSDPC_MEMORY_ERROR;
+							*error = MINISSDPC_SUCCESS;
 						goto error;
 					}
-					tmp->pNext = devlist;
-					tmp->descURL = tmp->buffer;
-					tmp->st = tmp->buffer + 1 + urlsize;
-					tmp->usn = tmp->st + 1 + stsize;
-					memcpy(tmp->buffer, descURL, urlsize);
-					tmp->buffer[urlsize] = '\0';
-					memcpy(tmp->st, st, stsize);
-					tmp->buffer[urlsize+1+stsize] = '\0';
-					if(usn != NULL)
-						memcpy(tmp->usn, usn, usnsize);
-					tmp->buffer[urlsize+1+stsize+1+usnsize] = '\0';
-					tmp->scope_id = scope_id;
-					devlist = tmp;
+				} else {
+					const char * descURL=NULL;
+					int urlsize=0;
+					const char * st=NULL;
+					int stsize=0;
+					const char * usn=NULL;
+					int usnsize=0;
+					parseMSEARCHReply(bufr, n, &descURL, &urlsize, &st, &stsize, &usn, &usnsize);
+					if(st&&descURL) {
+#ifdef DEBUG
+						printf("M-SEARCH Reply:\n  ST: %.*s\n  USN: %.*s\n  Location: %.*s\n",
+						       stsize, st, usnsize, (usn?usn:""), urlsize, descURL);
+#endif /* DEBUG */
+						for(tmp=devlist; tmp; tmp = tmp->pNext) {
+							if(strncmp(tmp->descURL, descURL, urlsize) == 0 &&
+							   tmp->descURL[urlsize] == '\0' &&
+							   strncmp(tmp->st, st, stsize) == 0 &&
+							   tmp->st[stsize] == '\0' &&
+							   (usnsize == 0 || strncmp(tmp->usn, usn, usnsize) == 0) &&
+							   tmp->usn[usnsize] == '\0')
+								break;
+						}
+						/* at the exit of the loop above, tmp is null if
+						 * no duplicate device was found */
+						if(tmp)
+							continue;
+						tmp = (struct UPNPDev *)malloc(sizeof(struct UPNPDev)+urlsize+stsize+usnsize+3);
+						if(!tmp) {
+							/* memory allocation error */
+							if(error)
+								*error = MINISSDPC_MEMORY_ERROR;
+							goto error;
+						}
+						tmp->pNext = devlist;
+						tmp->descURL = tmp->buffer;
+						tmp->st = tmp->buffer + 1 + urlsize;
+						tmp->usn = tmp->st + 1 + stsize;
+						memcpy(tmp->buffer, descURL, urlsize);
+						tmp->buffer[urlsize] = '\0';
+						memcpy(tmp->st, st, stsize);
+						tmp->buffer[urlsize+1+stsize] = '\0';
+						if(usn != NULL)
+							memcpy(tmp->usn, usn, usnsize);
+						tmp->buffer[urlsize+1+stsize+1+usnsize] = '\0';
+						tmp->scope_id = scope_id;
+						devlist = tmp;
+					}
+					if (upnp_gettimeofday(&current) >= 0) {
+						/* exit the loop if delay is reached */
+						long interval = (current.tv_sec - start.tv_sec) * 1000;
+						interval += (current.tv_usec - start.tv_usec) / 1000;
+						if (interval > (long)delay)
+							break;
+					}
 				}
-			}
-		} while(n > 0);
+			} while(n > 0);
+		}
 		if(ipv6) {
 			/* switch linklocal flag */
 			if(linklocal) {
 				linklocal = 0;
-				--deviceIndex;
 			} else {
+				/* try again with linklocal multicast */
 				linklocal = 1;
+				--deviceIndex;
 			}
 		}
 	}
@@ -837,4 +1021,3 @@ error:
 	closesocket(sudp);
 	return devlist;
 }
-
