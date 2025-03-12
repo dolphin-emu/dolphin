@@ -5,6 +5,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace EfbInterface
@@ -48,9 +49,6 @@ bool ZCompare(u16 x, u16 y, u32 z);
 void SetColor(u16 x, u16 y, u8* color);
 void SetDepth(u16 x, u16 y, u32 depth);
 
-u32 GetColor(u16 x, u16 y);
-u32 GetDepth(u16 x, u16 y);
-
 u8* GetPixelPointer(u16 x, u16 y, bool depth);
 
 void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>& source_rect,
@@ -60,3 +58,17 @@ u32 GetPerfQueryResult(PerfQueryType type);
 void ResetPerfQuery();
 void IncPerfCounterQuadCount(PerfQueryType type);
 }  // namespace EfbInterface
+
+namespace SW
+{
+class SWEFBInterface final : public EFBInterfaceBase
+{
+  void ReinterpretPixelData(EFBReinterpretType convtype) override;
+
+  void PokeColor(u16 x, u16 y, u32 color) override;
+  void PokeDepth(u16 x, u16 y, u32 depth) override;
+
+  u32 PeekColorInternal(u16 x, u16 y) override;
+  u32 PeekDepth(u16 x, u16 y) override;
+};
+}  // namespace SW

@@ -10,23 +10,16 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLContext.h"
-#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/Clipper.h"
-#include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWBoundingBox.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/SWGfx.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
-#include "VideoBackends/Software/SWRenderer.h"
-#include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/TextureCache.h"
 
-#include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/Present.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -108,7 +101,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 
   return InitializeShared(std::make_unique<SWGfx>(std::move(window)),
                           std::make_unique<SWVertexLoader>(), std::make_unique<PerfQuery>(),
-                          std::make_unique<SWBoundingBox>(), std::make_unique<SWRenderer>(),
+                          std::make_unique<SWBoundingBox>(), std::make_unique<SWEFBInterface>(),
                           std::make_unique<TextureCache>());
 }
 

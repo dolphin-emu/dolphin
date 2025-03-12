@@ -4,7 +4,7 @@
 #pragma once
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/EFBInterface.h"
 
 namespace Null
 {
@@ -38,16 +38,15 @@ public:
   SurfaceInfo GetSurfaceInfo() const override { return {}; }
 };
 
-class NullRenderer final : public Renderer
+class NullEFBInterface final : public EFBInterfaceBase
 {
-public:
-  NullRenderer() {}
-  ~NullRenderer() override;
+  void ReinterpretPixelData(EFBReinterpretType convtype) override;
 
-  u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override { return 0; }
-  void PokeEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override {}
+  void PokeColor(u16 x, u16 y, u32 color) override;
+  void PokeDepth(u16 x, u16 y, u32 depth) override;
 
-  void ReinterpretPixelData(EFBReinterpretType convtype) override {}
+  u32 PeekColorInternal(u16 x, u16 y) override;
+  u32 PeekDepth(u16 x, u16 y) override;
 };
 
 }  // namespace Null
