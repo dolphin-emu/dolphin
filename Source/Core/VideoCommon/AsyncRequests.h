@@ -86,7 +86,6 @@ public:
   }
   void PushEvent(const Event& event, bool blocking = false);
   void WaitForEmptyQueue();
-  void SetEnable(bool enable);
   void SetPassthrough(bool enable);
 
   static AsyncRequests* GetInstance() { return &s_singleton; }
@@ -103,6 +102,5 @@ private:
   std::condition_variable m_cond;
 
   bool m_wake_me_up_again = false;
-  bool m_enable = false;
   bool m_passthrough = true;
 };

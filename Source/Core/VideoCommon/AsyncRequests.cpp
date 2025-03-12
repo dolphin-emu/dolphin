@@ -61,9 +61,6 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
   m_empty.Clear();
   m_wake_me_up_again |= blocking;
 
-  if (!m_enable)
-    return;
-
   m_queue.push(event);
 
   auto& system = Core::System::GetInstance();
@@ -78,21 +75,6 @@ void AsyncRequests::WaitForEmptyQueue()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_cond.wait(lock, [this] { return m_queue.empty(); });
-}
-
-void AsyncRequests::SetEnable(bool enable)
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_enable = enable;
-
-  if (!enable)
-  {
-    // flush the queue on disabling
-    while (!m_queue.empty())
-      m_queue.pop();
-    if (m_wake_me_up_again)
-      m_cond.notify_all();
-  }
 }
 
 void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
