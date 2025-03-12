@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       mythread.h
 /// \brief      Some threading related helper macros and functions
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -79,7 +78,7 @@ do { \
 } while (0)
 
 
-#if !(defined(_WIN32) && !defined(__CYGWIN__))
+#if !(defined(_WIN32) && !defined(__CYGWIN__)) && !defined(__wasm__)
 // Use sigprocmask() to set the signal mask in single-threaded programs.
 #include <signal.h>
 
@@ -100,11 +99,36 @@ mythread_sigmask(int how, const sigset_t *restrict set,
 // Using pthreads //
 ////////////////////
 
-#include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
 #include <errno.h>
+
+// If clock_gettime() isn't available, use gettimeofday() from <sys/time.h>
+// as a fallback. gettimeofday() is in SUSv2 and thus is supported on all
+// relevant POSIX systems.
+#ifndef HAVE_CLOCK_GETTIME
+#	include <sys/time.h>
+#endif
+
+// MinGW-w64 with winpthreads:
+//
+// NOTE: Typical builds with MinGW-w64 don't use this code (MYTHREAD_POSIX).
+// Instead, native Windows threading APIs are used (MYTHREAD_VISTA or
+// MYTHREAD_WIN95).
+//
+// MinGW-w64 has _sigset_t (an integer type) in <sys/types.h>.
+// If _POSIX was #defined, the header would add the alias sigset_t too.
+// Let's keep this working even without _POSIX.
+//
+// There are no functions that actually do something with sigset_t
+// because signals barely exist on Windows. The sigfillset macro below
+// is just to silence warnings. There is no sigfillset() in MinGW-w64.
+#ifdef __MINGW32__
+#	include <sys/types.h>
+#	define sigset_t _sigset_t
+#	define sigfillset(set_ptr) do { *(set_ptr) = 0; } while (0)
+#endif
 
 #define MYTHREAD_RET_TYPE void *
 #define MYTHREAD_RET_VALUE NULL
@@ -134,11 +158,13 @@ typedef struct timespec mythread_condtime;
 
 // Use pthread_sigmask() to set the signal mask in multi-threaded programs.
 // Do nothing on OpenVMS since it lacks pthread_sigmask().
+// Do nothing on MinGW-w64 too to silence warnings (its pthread_sigmask()
+// is #defined to 0 so it's a no-op).
 static inline void
 mythread_sigmask(int how, const sigset_t *restrict set,
 		sigset_t *restrict oset)
 {
-#ifdef __VMS
+#if defined(__VMS) || defined(__MINGW32__)
 	(void)how;
 	(void)set;
 	(void)oset;
@@ -174,7 +200,7 @@ mythread_join(mythread thread)
 }
 
 
-// Initiatlizes a mutex. Returns zero on success and non-zero on error.
+// Initializes a mutex. Returns zero on success and non-zero on error.
 static inline int
 mythread_mutex_init(mythread_mutex *mutex)
 {
@@ -219,8 +245,8 @@ static inline int
 mythread_cond_init(mythread_cond *mycond)
 {
 #ifdef HAVE_CLOCK_GETTIME
-	// NOTE: HAVE_DECL_CLOCK_MONOTONIC is always defined to 0 or 1.
-#	if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && HAVE_DECL_CLOCK_MONOTONIC
+#	if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && \
+		defined(HAVE_CLOCK_MONOTONIC)
 	struct timespec ts;
 	pthread_condattr_t condattr;
 
@@ -294,8 +320,8 @@ static inline void
 mythread_condtime_set(mythread_condtime *condtime, const mythread_cond *cond,
 		uint32_t timeout_ms)
 {
-	condtime->tv_sec = timeout_ms / 1000;
-	condtime->tv_nsec = (timeout_ms % 1000) * 1000000;
+	condtime->tv_sec = (time_t)(timeout_ms / 1000);
+	condtime->tv_nsec = (long)((timeout_ms % 1000) * 1000000);
 
 #ifdef HAVE_CLOCK_GETTIME
 	struct timespec now;
@@ -370,10 +396,11 @@ typedef struct {
 		BOOL pending_; \
 		if (!InitOnceBeginInitialize(&once_, 0, &pending_, NULL)) \
 			abort(); \
-		if (pending_) \
+		if (pending_) { \
 			func(); \
-		if (!InitOnceComplete(&once, 0, NULL)) \
-			abort(); \
+			if (!InitOnceComplete(&once_, 0, NULL)) \
+				abort(); \
+		} \
 	} while (0)
 #endif
 
