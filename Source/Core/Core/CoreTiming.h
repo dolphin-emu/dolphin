@@ -184,7 +184,7 @@ private:
   std::vector<Event> m_event_queue;
   u64 m_event_fifo_id = 0;
   std::mutex m_ts_write_lock;
-  Common::SPSCQueue<Event, false> m_ts_queue;
+  Common::SPSCQueue<Event> m_ts_queue;
 
   float m_last_oc_factor = 0.0f;
 

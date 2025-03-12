@@ -135,8 +135,8 @@ private:
   Common::Event m_result_queue_expanded;                    // Is set by DVD thread
   Common::Flag m_dvd_thread_exiting = Common::Flag(false);  // Is set by CPU thread
 
-  Common::SPSCQueue<ReadRequest, false> m_request_queue;
-  Common::SPSCQueue<ReadResult, false> m_result_queue;
+  Common::SPSCQueue<ReadRequest> m_request_queue;
+  Common::SPSCQueue<ReadResult> m_result_queue;
   std::map<u64, ReadResult> m_result_map;
 
   std::unique_ptr<DiscIO::Volume> m_disc;
