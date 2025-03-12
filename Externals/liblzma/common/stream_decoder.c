@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       stream_decoder.c
@@ -5,28 +7,25 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "stream_decoder.h"
 #include "block_decoder.h"
+#include "index.h"
 
 
 typedef struct {
 	enum {
 		SEQ_STREAM_HEADER,
 		SEQ_BLOCK_HEADER,
-		SEQ_BLOCK,
+		SEQ_BLOCK_INIT,
+		SEQ_BLOCK_RUN,
 		SEQ_INDEX,
 		SEQ_STREAM_FOOTER,
 		SEQ_STREAM_PADDING,
 	} sequence;
 
-	/// Block or Metadata decoder. This takes little memory and the same
-	/// data structure can be used to decode every Block Header, so it's
-	/// a good idea to have a separate lzma_next_coder structure for it.
+	/// Block decoder
 	lzma_next_coder block_decoder;
 
 	/// Block options decoded by the Block Header decoder and used by
@@ -63,9 +62,9 @@ typedef struct {
 
 	/// If true, we will decode concatenated Streams that possibly have
 	/// Stream Padding between or after them. LZMA_STREAM_END is returned
-	/// once the application isn't giving us any new input, and we aren't
-	/// in the middle of a Stream, and possible Stream Padding is a
-	/// multiple of four bytes.
+	/// once the application isn't giving us any new input (LZMA_FINISH),
+	/// and we aren't in the middle of a Stream, and possible
+	/// Stream Padding is a multiple of four bytes.
 	bool concatenated;
 
 	/// When decoding concatenated Streams, this is true as long as we
@@ -155,9 +154,9 @@ stream_decode(void *coder_ptr, const lzma_allocator *allocator,
 
 		if (coder->tell_any_check)
 			return LZMA_GET_CHECK;
-	}
 
-	// Fall through
+		FALLTHROUGH;
+	}
 
 	case SEQ_BLOCK_HEADER: {
 		if (*in_pos >= in_size)
@@ -165,7 +164,7 @@ stream_decode(void *coder_ptr, const lzma_allocator *allocator,
 
 		if (coder->pos == 0) {
 			// Detect if it's Index.
-			if (in[*in_pos] == 0x00) {
+			if (in[*in_pos] == INDEX_INDICATOR) {
 				coder->sequence = SEQ_INDEX;
 				break;
 			}
@@ -187,6 +186,14 @@ stream_decode(void *coder_ptr, const lzma_allocator *allocator,
 			return LZMA_OK;
 
 		coder->pos = 0;
+		coder->sequence = SEQ_BLOCK_INIT;
+		FALLTHROUGH;
+	}
+
+	case SEQ_BLOCK_INIT: {
+		// Checking memusage and doing the initialization needs
+		// its own sequence point because we need to be able to
+		// retry if we return LZMA_MEMLIMIT_ERROR.
 
 		// Version 1 is needed to support the .ignore_check option.
 		coder->block_options.version = 1;
@@ -235,22 +242,19 @@ stream_decode(void *coder_ptr, const lzma_allocator *allocator,
 
 		// Free the allocated filter options since they are needed
 		// only to initialize the Block decoder.
-		for (size_t i = 0; i < LZMA_FILTERS_MAX; ++i)
-			lzma_free(filters[i].options, allocator);
-
+		lzma_filters_free(filters, allocator);
 		coder->block_options.filters = NULL;
 
-		// Check if memory usage calculation and Block enocoder
+		// Check if memory usage calculation and Block decoder
 		// initialization succeeded.
 		if (ret != LZMA_OK)
 			return ret;
 
-		coder->sequence = SEQ_BLOCK;
+		coder->sequence = SEQ_BLOCK_RUN;
+		FALLTHROUGH;
 	}
 
-	// Fall through
-
-	case SEQ_BLOCK: {
+	case SEQ_BLOCK_RUN: {
 		const lzma_ret ret = coder->block_decoder.code(
 				coder->block_decoder.coder, allocator,
 				in, in_pos, in_size, out, out_pos, out_size,
@@ -285,9 +289,8 @@ stream_decode(void *coder_ptr, const lzma_allocator *allocator,
 			return ret;
 
 		coder->sequence = SEQ_STREAM_FOOTER;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_STREAM_FOOTER: {
 		// Copy the Stream Footer to the internal buffer.
@@ -325,9 +328,8 @@ stream_decode(void *coder_ptr, const lzma_allocator *allocator,
 			return LZMA_STREAM_END;
 
 		coder->sequence = SEQ_STREAM_PADDING;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_STREAM_PADDING:
 		assert(coder->concatenated);

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma_encoder.h
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +39,8 @@ extern bool lzma_lzma_lclppb_encode(
 /// Initializes raw LZMA encoder; this is used by LZMA2.
 extern lzma_ret lzma_lzma_encoder_create(
 		void **coder_ptr, const lzma_allocator *allocator,
-		const lzma_options_lzma *options, lzma_lz_options *lz_options);
+		lzma_vli id, const lzma_options_lzma *options,
+		lzma_lz_options *lz_options);
 
 
 /// Resets an already initialized LZMA encoder; this is used by LZMA2.

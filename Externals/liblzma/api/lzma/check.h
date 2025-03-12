@@ -1,15 +1,13 @@
+/* SPDX-License-Identifier: 0BSD */
+
 /**
  * \file        lzma/check.h
  * \brief       Integrity checks
+ * \note        Never include this file directly. Use <lzma.h> instead.
  */
 
 /*
  * Author: Lasse Collin
- *
- * This file has been put into the public domain.
- * You can do whatever you want with this file.
- *
- * See ../lzma.h for information about liblzma as a whole.
  */
 
 #ifndef LZMA_H_INTERNAL
@@ -71,12 +69,17 @@ typedef enum {
 /**
  * \brief       Test if the given Check ID is supported
  *
- * Return true if the given Check ID is supported by this liblzma build.
- * Otherwise false is returned. It is safe to call this with a value that
- * is not in the range [0, 15]; in that case the return value is always false.
+ * LZMA_CHECK_NONE and LZMA_CHECK_CRC32 are always supported (even if
+ * liblzma is built with limited features).
  *
- * You can assume that LZMA_CHECK_NONE and LZMA_CHECK_CRC32 are always
- * supported (even if liblzma is built with limited features).
+ * \note        It is safe to call this with a value that is not in the
+ *              range [0, 15]; in that case the return value is always false.
+ *
+ * \param       check   Check ID
+ *
+ * \return      lzma_bool:
+ *              - true if Check ID is supported by this liblzma build.
+ *              - false otherwise.
  */
 extern LZMA_API(lzma_bool) lzma_check_is_supported(lzma_check check)
 		lzma_nothrow lzma_attr_const;
@@ -90,7 +93,10 @@ extern LZMA_API(lzma_bool) lzma_check_is_supported(lzma_check check)
  * the Check field with the specified Check ID. The values are:
  * { 0, 4, 4, 4, 8, 8, 8, 16, 16, 16, 32, 32, 32, 64, 64, 64 }
  *
- * If the argument is not in the range [0, 15], UINT32_MAX is returned.
+ * \param       check   Check ID
+ *
+ * \return      Size of the Check field in bytes. If the argument is not in
+ *              the range [0, 15], UINT32_MAX is returned.
  */
 extern LZMA_API(uint32_t) lzma_check_size(lzma_check check)
 		lzma_nothrow lzma_attr_const;
@@ -126,17 +132,20 @@ extern LZMA_API(uint32_t) lzma_crc32(
  *
  * Calculate CRC64 using the polynomial from the ECMA-182 standard.
  *
- * This function is used similarly to lzma_crc32(). See its documentation.
+ * This function is used similarly to lzma_crc32().
+ *
+ * \param       buf     Pointer to the input buffer
+ * \param       size    Size of the input buffer
+ * \param       crc     Previously returned CRC value. This is used to
+ *                      calculate the CRC of a big buffer in smaller chunks.
+ *                      Set to zero when starting a new calculation.
+ *
+ * \return      Updated CRC value, which can be passed to this function
+ *              again to continue CRC calculation.
  */
 extern LZMA_API(uint64_t) lzma_crc64(
 		const uint8_t *buf, size_t size, uint64_t crc)
 		lzma_nothrow lzma_attr_pure;
-
-
-/*
- * SHA-256 functions are currently not exported to public API.
- * Contact Lasse Collin if you think it should be.
- */
 
 
 /**
@@ -145,6 +154,10 @@ extern LZMA_API(uint64_t) lzma_crc64(
  * This function can be called only immediately after lzma_code() has
  * returned LZMA_NO_CHECK, LZMA_UNSUPPORTED_CHECK, or LZMA_GET_CHECK.
  * Calling this function in any other situation has undefined behavior.
+ *
+ * \param       strm    Pointer to lzma_stream meeting the above conditions.
+ *
+ * \return      Check ID in the lzma_stream, or undefined if called improperly.
  */
 extern LZMA_API(lzma_check) lzma_get_check(const lzma_stream *strm)
 		lzma_nothrow;

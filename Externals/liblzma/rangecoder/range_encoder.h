@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       range_encoder.h
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -19,9 +18,9 @@
 
 
 /// Maximum number of symbols that can be put pending into lzma_range_encoder
-/// structure between calls to lzma_rc_encode(). For LZMA, 52+5 is enough
+/// structure between calls to lzma_rc_encode(). For LZMA, 48+5 is enough
 /// (match with big distance and length followed by range encoder flush).
-#define RC_SYMBOLS_MAX 58
+#define RC_SYMBOLS_MAX 53
 
 
 typedef struct {
@@ -29,6 +28,9 @@ typedef struct {
 	uint64_t cache_size;
 	uint32_t range;
 	uint8_t cache;
+
+	/// Number of bytes written out by rc_encode() -> rc_shift_low()
+	uint64_t out_total;
 
 	/// Number of symbols in the tables
 	size_t count;
@@ -58,8 +60,18 @@ rc_reset(lzma_range_encoder *rc)
 	rc->cache_size = 1;
 	rc->range = UINT32_MAX;
 	rc->cache = 0;
+	rc->out_total = 0;
 	rc->count = 0;
 	rc->pos = 0;
+}
+
+
+static inline void
+rc_forget(lzma_range_encoder *rc)
+{
+	// This must not be called when rc_encode() is partially done.
+	assert(rc->pos == 0);
+	rc->count = 0;
 }
 
 
@@ -132,6 +144,7 @@ rc_shift_low(lzma_range_encoder *rc,
 
 			out[*out_pos] = rc->cache + (uint8_t)(rc->low >> 32);
 			++*out_pos;
+			++rc->out_total;
 			rc->cache = 0xFF;
 
 		} while (--rc->cache_size != 0);
@@ -141,6 +154,34 @@ rc_shift_low(lzma_range_encoder *rc,
 
 	++rc->cache_size;
 	rc->low = (rc->low & 0x00FFFFFF) << RC_SHIFT_BITS;
+
+	return false;
+}
+
+
+// NOTE: The last two arguments are uint64_t instead of size_t because in
+// the dummy version these refer to the size of the whole range-encoded
+// output stream, not just to the currently available output buffer space.
+static inline bool
+rc_shift_low_dummy(uint64_t *low, uint64_t *cache_size, uint8_t *cache,
+		uint64_t *out_pos, uint64_t out_size)
+{
+	if ((uint32_t)(*low) < (uint32_t)(0xFF000000)
+			|| (uint32_t)(*low >> 32) != 0) {
+		do {
+			if (*out_pos == out_size)
+				return true;
+
+			++*out_pos;
+			*cache = 0xFF;
+
+		} while (--*cache_size != 0);
+
+		*cache = (*low >> 24) & 0xFF;
+	}
+
+	++*cache_size;
+	*low = (*low & 0x00FFFFFF) << RC_SHIFT_BITS;
 
 	return false;
 }
@@ -217,6 +258,83 @@ rc_encode(lzma_range_encoder *rc,
 
 	rc->count = 0;
 	rc->pos = 0;
+
+	return false;
+}
+
+
+static inline bool
+rc_encode_dummy(const lzma_range_encoder *rc, uint64_t out_limit)
+{
+	assert(rc->count <= RC_SYMBOLS_MAX);
+
+	uint64_t low = rc->low;
+	uint64_t cache_size = rc->cache_size;
+	uint32_t range = rc->range;
+	uint8_t cache = rc->cache;
+	uint64_t out_pos = rc->out_total;
+
+	size_t pos = rc->pos;
+
+	while (true) {
+		// Normalize
+		if (range < RC_TOP_VALUE) {
+			if (rc_shift_low_dummy(&low, &cache_size, &cache,
+					&out_pos, out_limit))
+				return true;
+
+			range <<= RC_SHIFT_BITS;
+		}
+
+		// This check is here because the normalization above must
+		// be done before flushing the last bytes.
+		if (pos == rc->count)
+			break;
+
+		// Encode a bit
+		switch (rc->symbols[pos]) {
+		case RC_BIT_0: {
+			probability prob = *rc->probs[pos];
+			range = (range >> RC_BIT_MODEL_TOTAL_BITS)
+					* prob;
+			break;
+		}
+
+		case RC_BIT_1: {
+			probability prob = *rc->probs[pos];
+			const uint32_t bound = prob * (range
+					>> RC_BIT_MODEL_TOTAL_BITS);
+			low += bound;
+			range -= bound;
+			break;
+		}
+
+		case RC_DIRECT_0:
+			range >>= 1;
+			break;
+
+		case RC_DIRECT_1:
+			range >>= 1;
+			low += range;
+			break;
+
+		case RC_FLUSH:
+		default:
+			assert(0);
+			break;
+		}
+
+		++pos;
+	}
+
+	// Flush the last bytes. This isn't in rc->symbols[] so we do
+	// it after the above loop to take into account the size of
+	// the flushing that will be done at the end of the stream.
+	for (pos = 0; pos < 5; ++pos) {
+		if (rc_shift_low_dummy(&low, &cache_size,
+				&cache, &out_pos, out_limit))
+			return true;
+	}
 
 	return false;
 }

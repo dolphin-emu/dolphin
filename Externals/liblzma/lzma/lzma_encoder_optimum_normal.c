@@ -1,11 +1,10 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma_encoder_optimum_normal.c
 //
 //  Author:     Igor Pavlov
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +23,7 @@ get_literal_price(const lzma_lzma1_encoder *const coder, const uint32_t pos,
 		uint32_t match_byte, uint32_t symbol)
 {
 	const probability *const subcoder = literal_subcoder(coder->literal,
-			coder->literal_context_bits, coder->literal_pos_mask,
+			coder->literal_context_bits, coder->literal_mask,
 			pos, prev_byte);
 
 	uint32_t price = 0;
@@ -636,9 +635,10 @@ helper2(lzma_lzma1_encoder *coder, uint32_t *reps, const uint8_t *buf,
 		uint32_t len_test_2 = len_test + 1;
 		const uint32_t limit = my_min(buf_avail_full,
 				len_test_2 + nice_len);
-		for (; len_test_2 < limit
-				&& buf[len_test_2] == buf_back[len_test_2];
-				++len_test_2) ;
+		// NOTE: len_test_2 may be greater than limit so the call to
+		// lzma_memcmplen() must be done conditionally.
+		if (len_test_2 < limit)
+			len_test_2 = lzma_memcmplen(buf, buf_back, len_test_2, limit);
 
 		len_test_2 -= len_test + 1;
 
@@ -732,9 +732,12 @@ helper2(lzma_lzma1_encoder *coder, uint32_t *reps, const uint8_t *buf,
 				const uint32_t limit = my_min(buf_avail_full,
 						len_test_2 + nice_len);
 
-				for (; len_test_2 < limit &&
-						buf[len_test_2] == buf_back[len_test_2];
-						++len_test_2) ;
+				// NOTE: len_test_2 may be greater than limit
+				// so the call to lzma_memcmplen() must be
+				// done conditionally.
+				if (len_test_2 < limit)
+					len_test_2 = lzma_memcmplen(buf, buf_back,
+							len_test_2, limit);
 
 				len_test_2 -= len_test + 1;
 

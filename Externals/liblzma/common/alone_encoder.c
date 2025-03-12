@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-/// \file       alone_decoder.c
-/// \brief      Decoder for LZMA_Alone files
+/// \file       alone_encoder.c
+/// \brief      Encoder for LZMA_Alone files
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -31,8 +30,7 @@ typedef struct {
 
 
 static lzma_ret
-alone_encode(void *coder_ptr,
-		const lzma_allocator *allocator lzma_attribute((__unused__)),
+alone_encode(void *coder_ptr, const lzma_allocator *allocator,
 		const uint8_t *restrict in, size_t *restrict in_pos,
 		size_t in_size, uint8_t *restrict out,
 		size_t *restrict out_pos, size_t out_size,
@@ -76,7 +74,6 @@ alone_encoder_end(void *coder_ptr, const lzma_allocator *allocator)
 }
 
 
-// At least for now, this is not used by any internal function.
 static lzma_ret
 alone_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 		const lzma_options_lzma *options)
@@ -122,7 +119,7 @@ alone_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 	if (d != UINT32_MAX)
 		++d;
 
-	unaligned_write32le(coder->header + 1, d);
+	write32le(coder->header + 1, d);
 
 	// - Uncompressed size (always unknown and using EOPM)
 	memset(coder->header + 1 + 4, 0xFF, 8);
@@ -130,6 +127,7 @@ alone_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 	// Initialize the LZMA encoder.
 	const lzma_filter_info filters[2] = {
 		{
+			.id = LZMA_FILTER_LZMA1,
 			.init = &lzma_lzma_encoder_init,
 			.options = (void *)(options),
 		}, {
@@ -139,16 +137,6 @@ alone_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 
 	return lzma_next_filter_init(&coder->next, allocator, filters);
 }
-
-
-/*
-extern lzma_ret
-lzma_alone_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
-		const lzma_options_alone *options)
-{
-	lzma_next_coder_init(&alone_encoder_init, next, allocator, options);
-}
-*/
 
 
 extern LZMA_API(lzma_ret)

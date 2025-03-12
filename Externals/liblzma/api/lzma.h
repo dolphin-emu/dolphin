@@ -1,30 +1,30 @@
+/* SPDX-License-Identifier: 0BSD */
+
 /**
  * \file        api/lzma.h
  * \brief       The public API of liblzma data compression library
+ * \mainpage
  *
- * liblzma is a public domain general-purpose data compression library with
- * a zlib-like API. The native file format is .xz, but also the old .lzma
- * format and raw (no headers) streams are supported. Multiple compression
- * algorithms (filters) are supported. Currently LZMA2 is the primary filter.
+ * liblzma is a general-purpose data compression library with a zlib-like API.
+ * The native file format is .xz, but also the old .lzma format and raw (no
+ * headers) streams are supported. Multiple compression algorithms (filters)
+ * are supported. Currently LZMA2 is the primary filter.
  *
- * liblzma is part of XZ Utils <http://tukaani.org/xz/>. XZ Utils includes
- * a gzip-like command line tool named xz and some other tools. XZ Utils
- * is developed and maintained by Lasse Collin.
+ * liblzma is part of XZ Utils <https://tukaani.org/xz/>. XZ Utils
+ * includes a gzip-like command line tool named xz and some other tools.
+ * XZ Utils is developed and maintained by Lasse Collin.
  *
- * Major parts of liblzma are based on Igor Pavlov's public domain LZMA SDK
- * <http://7-zip.org/sdk.html>.
+ * Major parts of liblzma are based on code written by Igor Pavlov,
+ * specifically the LZMA SDK <https://7-zip.org/sdk.html>.
  *
- * The SHA-256 implementation is based on the public domain code found from
- * 7-Zip <http://7-zip.org/>, which has a modified version of the public
- * domain SHA-256 code found from Crypto++ <http://www.cryptopp.com/>.
- * The SHA-256 code in Crypto++ was written by Kevin Springle and Wei Dai.
+ * The SHA-256 implementation in liblzma is based on code written by
+ * Wei Dai in Crypto++ Library <https://www.cryptopp.com/>.
+ *
+ * liblzma is distributed under the BSD Zero Clause License (0BSD).
  */
 
 /*
  * Author: Lasse Collin
- *
- * This file has been put into the public domain.
- * You can do whatever you want with this file.
  */
 
 #ifndef LZMA_H
@@ -181,11 +181,11 @@
  * against static liblzma on them, don't worry about LZMA_API_STATIC. That
  * is, most developers will never need to use LZMA_API_STATIC.
  *
- * The GCC variants are a special case on Windows (Cygwin and MinGW).
+ * The GCC variants are a special case on Windows (Cygwin and MinGW-w64).
  * We rely on GCC doing the right thing with its auto-import feature,
  * and thus don't use __declspec(dllimport). This way developers don't
  * need to worry about LZMA_API_STATIC. Also the calling convention is
- * omitted on Cygwin but not on MinGW.
+ * omitted on Cygwin but not on MinGW-w64.
  */
 #ifndef LZMA_API_IMPORT
 #	if !defined(LZMA_API_STATIC) && defined(_WIN32) && !defined(__GNUC__)
@@ -219,12 +219,14 @@
  */
 #ifndef lzma_nothrow
 #	if defined(__cplusplus)
-#		if __cplusplus >= 201103L
+#		if __cplusplus >= 201103L || (defined(_MSVC_LANG) \
+				&& _MSVC_LANG >= 201103L)
 #			define lzma_nothrow noexcept
 #		else
 #			define lzma_nothrow throw()
 #		endif
-#	elif __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3)
+#	elif defined(__GNUC__) && (__GNUC__ > 3 \
+			|| (__GNUC__ == 3 && __GNUC_MINOR__ >= 3))
 #		define lzma_nothrow __attribute__((__nothrow__))
 #	else
 #		define lzma_nothrow
@@ -241,7 +243,7 @@
  * break anything if these are sometimes enabled and sometimes not, only
  * affects warnings and optimizations.
  */
-#if __GNUC__ >= 3
+#if defined(__GNUC__) && __GNUC__ >= 3
 #	ifndef lzma_attribute
 #		define lzma_attribute(attr) __attribute__(attr)
 #	endif

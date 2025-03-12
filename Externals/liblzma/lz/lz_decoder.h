@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lz_decoder.h
@@ -6,9 +8,6 @@
 //  Authors:    Igor Pavlov
 //              Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef LZMA_LZ_DECODER_H
@@ -16,11 +15,71 @@
 
 #include "common.h"
 
+#ifdef HAVE_IMMINTRIN_H
+#	include <immintrin.h>
+#endif
+
+
+// dict_repeat() implementation variant:
+// 0 = Byte-by-byte copying only.
+// 1 = Use memcpy() for non-overlapping copies.
+// 2 = Use x86 SSE2 for non-overlapping copies.
+#ifndef LZMA_LZ_DECODER_CONFIG
+#	if defined(TUKLIB_FAST_UNALIGNED_ACCESS) \
+		&& defined(HAVE_IMMINTRIN_H) \
+		&& (defined(__SSE2__) || defined(_M_X64) \
+			|| (defined(_M_IX86_FP) && _M_IX86_FP >= 2))
+#		define LZMA_LZ_DECODER_CONFIG 2
+#	else
+#		define LZMA_LZ_DECODER_CONFIG 1
+#	endif
+#endif
+
+/// Byte-by-byte and memcpy() copy exactly the amount needed. Other methods
+/// can copy up to LZ_DICT_EXTRA bytes more than requested, and this amount
+/// of extra space is needed at the end of the allocated dictionary buffer.
+///
+/// NOTE: If this is increased, update LZMA_DICT_REPEAT_MAX too.
+#if LZMA_LZ_DECODER_CONFIG >= 2
+#	define LZ_DICT_EXTRA 32
+#else
+#	define LZ_DICT_EXTRA 0
+#endif
+
+/// Maximum number of bytes that dict_repeat() may copy. The allocated
+/// dictionary buffer will be 2 * LZ_DICT_REPEAT_MAX + LZMA_DICT_EXTRA bytes
+/// larger than the actual dictionary size:
+///
+/// (1) Every time the decoder reaches the end of the dictionary buffer,
+///     the last LZ_DICT_REPEAT_MAX bytes will be copied to the beginning.
+///     This way dict_repeat() will only need to copy from one place,
+///     never from both the end and beginning of the buffer.
+///
+/// (2) The other LZ_DICT_REPEAT_MAX bytes is kept as a buffer between
+///     the oldest byte still in the dictionary and the current write
+///     position. This way dict_repeat() with the maximum valid distance
+///     won't need memmove() as the copying cannot overlap.
+///
+/// (3) LZ_DICT_EXTRA bytes are required at the end of the dictionary buffer
+///     so that extra copying done by dict_repeat() won't write or read past
+///     the end of the allocated buffer. This amount is *not* counted as part
+///     of lzma_dict.size.
+///
+/// Note that memcpy() still cannot be used if distance < len.
+///
+/// LZMA's longest match length is 273 bytes. The LZMA decoder looks at
+/// the lowest four bits of the dictionary position, thus 273 must be
+/// rounded up to the next multiple of 16 (288). In addition, optimized
+/// dict_repeat() copies 32 bytes at a time, thus this must also be
+/// a multiple of 32.
+#define LZ_DICT_REPEAT_MAX 288
+
+/// Initial position in lzma_dict.buf when the dictionary is empty.
+#define LZ_DICT_INIT_POS (2 * LZ_DICT_REPEAT_MAX)
+
 
 typedef struct {
-	/// Pointer to the dictionary buffer. It can be an allocated buffer
-	/// internal to liblzma, or it can a be a buffer given by the
-	/// application when in single-call mode (not implemented yet).
+	/// Pointer to the dictionary buffer.
 	uint8_t *buf;
 
 	/// Write position in dictionary. The next byte will be written to
@@ -35,8 +94,15 @@ typedef struct {
 	/// Write limit
 	size_t limit;
 
-	/// Size of the dictionary
+	/// Allocated size of buf. This is 2 * LZ_DICT_REPEAT_MAX bytes
+	/// larger than the actual dictionary size. This is enforced by
+	/// how the value for "full" is set; it can be at most
+	/// "size - 2 * LZ_DICT_REPEAT_MAX".
 	size_t size;
+
+	/// True once the dictionary has become full and the writing position
+	/// has been wrapped in decode_buffer() in lz_decoder.c.
+	bool has_wrapped;
 
 	/// True when dictionary should be reset before decoding more data.
 	bool need_reset;
@@ -62,8 +128,10 @@ typedef struct {
 
 	void (*reset)(void *coder, const void *options);
 
-	/// Set the uncompressed size
-	void (*set_uncompressed)(void *coder, lzma_vli uncompressed_size);
+	/// Set the uncompressed size. If uncompressed_size == LZMA_VLI_UNKNOWN
+	/// then allow_eopm will always be true.
+	void (*set_uncompressed)(void *coder, lzma_vli uncompressed_size,
+			bool allow_eopm);
 
 	/// Free allocated resources
 	void (*end)(void *coder, const lzma_allocator *allocator);
@@ -85,13 +153,11 @@ extern lzma_ret lzma_lz_decoder_init(lzma_next_coder *next,
 		const lzma_allocator *allocator,
 		const lzma_filter_info *filters,
 		lzma_ret (*lz_init)(lzma_lz_decoder *lz,
-			const lzma_allocator *allocator, const void *options,
+			const lzma_allocator *allocator,
+			lzma_vli id, const void *options,
 			lzma_lz_options *lz_options));
 
 extern uint64_t lzma_lz_decoder_memusage(size_t dictionary_size);
-
-extern void lzma_lz_decoder_uncompressed(
-		void *coder, lzma_vli uncompressed_size);
 
 
 //////////////////////
@@ -103,7 +169,16 @@ static inline uint8_t
 dict_get(const lzma_dict *const dict, const uint32_t distance)
 {
 	return dict->buf[dict->pos - distance - 1
-			+ (distance < dict->pos ? 0 : dict->size)];
+			+ (distance < dict->pos
+				? 0 : dict->size - LZ_DICT_REPEAT_MAX)];
+}
+
+
+/// Optimized version of dict_get(dict, 0)
+static inline uint8_t
+dict_get0(const lzma_dict *const dict)
+{
+	return dict->buf[dict->pos - 1];
 }
 
 
@@ -125,75 +200,91 @@ dict_is_distance_valid(const lzma_dict *const dict, const size_t distance)
 
 /// Repeat *len bytes at distance.
 static inline bool
-dict_repeat(lzma_dict *dict, uint32_t distance, uint32_t *len)
+dict_repeat(lzma_dict *restrict dict,
+		uint32_t distance, uint32_t *restrict len)
 {
 	// Don't write past the end of the dictionary.
 	const size_t dict_avail = dict->limit - dict->pos;
 	uint32_t left = my_min(dict_avail, *len);
 	*len -= left;
 
-	// Repeat a block of data from the history. Because memcpy() is faster
-	// than copying byte by byte in a loop, the copying process gets split
-	// into three cases.
+	size_t back = dict->pos - distance - 1;
+	if (distance >= dict->pos)
+		back += dict->size - LZ_DICT_REPEAT_MAX;
+
+#if LZMA_LZ_DECODER_CONFIG == 0
+	// Minimal byte-by-byte method. This might be the least bad choice
+	// if memcpy() isn't fast and there's no replacement for it below.
+	while (left-- > 0) {
+		dict->buf[dict->pos++] = dict->buf[back++];
+	}
+
+#else
+	// Because memcpy() or a similar method can be faster than copying
+	// byte by byte in a loop, the copying process is split into
+	// two cases.
 	if (distance < left) {
 		// Source and target areas overlap, thus we can't use
 		// memcpy() nor even memmove() safely.
 		do {
-			dict->buf[dict->pos] = dict_get(dict, distance);
-			++dict->pos;
+			dict->buf[dict->pos++] = dict->buf[back++];
 		} while (--left > 0);
-
-	} else if (distance < dict->pos) {
-		// The easiest and fastest case
-		memcpy(dict->buf + dict->pos,
-				dict->buf + dict->pos - distance - 1,
-				left);
+	} else {
+#	if LZMA_LZ_DECODER_CONFIG == 1
+		memcpy(dict->buf + dict->pos, dict->buf + back, left);
 		dict->pos += left;
 
-	} else {
-		// The bigger the dictionary, the more rare this
-		// case occurs. We need to "wrap" the dict, thus
-		// we might need two memcpy() to copy all the data.
-		assert(dict->full == dict->size);
-		const uint32_t copy_pos
-				= dict->pos - distance - 1 + dict->size;
-		uint32_t copy_size = dict->size - copy_pos;
+#	elif LZMA_LZ_DECODER_CONFIG == 2
+		// This can copy up to 32 bytes more than required.
+		// (If left == 0, we still copy 32 bytes.)
+		size_t pos = dict->pos;
+		dict->pos += left;
+		do {
+			const __m128i x0 = _mm_loadu_si128(
+					(__m128i *)(dict->buf + back));
+			const __m128i x1 = _mm_loadu_si128(
+					(__m128i *)(dict->buf + back + 16));
+			back += 32;
+			_mm_storeu_si128(
+					(__m128i *)(dict->buf + pos), x0);
+			_mm_storeu_si128(
+					(__m128i *)(dict->buf + pos + 16), x1);
+			pos += 32;
+		} while (pos < dict->pos);
 
-		if (copy_size < left) {
-			memmove(dict->buf + dict->pos, dict->buf + copy_pos,
-					copy_size);
-			dict->pos += copy_size;
-			copy_size = left - copy_size;
-			memcpy(dict->buf + dict->pos, dict->buf, copy_size);
-			dict->pos += copy_size;
-		} else {
-			memmove(dict->buf + dict->pos, dict->buf + copy_pos,
-					left);
-			dict->pos += left;
-		}
+#	else
+#		error "Invalid LZMA_LZ_DECODER_CONFIG value"
+#	endif
 	}
+#endif
 
 	// Update how full the dictionary is.
-	if (dict->full < dict->pos)
-		dict->full = dict->pos;
+	if (!dict->has_wrapped)
+		dict->full = dict->pos - LZ_DICT_INIT_POS;
 
-	return unlikely(*len != 0);
+	return *len != 0;
+}
+
+
+static inline void
+dict_put(lzma_dict *restrict dict, uint8_t byte)
+{
+	dict->buf[dict->pos++] = byte;
+
+	if (!dict->has_wrapped)
+		dict->full = dict->pos - LZ_DICT_INIT_POS;
 }
 
 
 /// Puts one byte into the dictionary. Returns true if the dictionary was
 /// already full and the byte couldn't be added.
 static inline bool
-dict_put(lzma_dict *dict, uint8_t byte)
+dict_put_safe(lzma_dict *restrict dict, uint8_t byte)
 {
 	if (unlikely(dict->pos == dict->limit))
 		return true;
 
-	dict->buf[dict->pos++] = byte;
-
-	if (dict->pos > dict->full)
-		dict->full = dict->pos;
-
+	dict_put(dict, byte);
 	return false;
 }
 
@@ -217,8 +308,8 @@ dict_write(lzma_dict *restrict dict, const uint8_t *restrict in,
 	*left -= lzma_bufcpy(in, in_pos, in_size,
 			dict->buf, &dict->pos, dict->limit);
 
-	if (dict->pos > dict->full)
-		dict->full = dict->pos;
+	if (!dict->has_wrapped)
+		dict->full = dict->pos - LZ_DICT_INIT_POS;
 
 	return;
 }

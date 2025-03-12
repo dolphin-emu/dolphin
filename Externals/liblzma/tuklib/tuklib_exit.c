@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       tuklib_exit.c
@@ -5,15 +7,13 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "tuklib_common.h"
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tuklib_gettext.h"
 #include "tuklib_progname.h"
