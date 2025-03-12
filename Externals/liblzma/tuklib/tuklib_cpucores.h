@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       tuklib_cpucores.h
 /// \brief      Get the number of CPU cores online
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
