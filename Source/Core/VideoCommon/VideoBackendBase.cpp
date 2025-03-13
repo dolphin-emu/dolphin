@@ -13,7 +13,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 
@@ -46,18 +45,16 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -325,11 +322,11 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
                                         std::unique_ptr<PerfQueryBase> perf_query,
                                         std::unique_ptr<BoundingBox> bounding_box)
 {
-  // All hardware backends use the default RendererBase and TextureCacheBase.
+  // All hardware backends use the default EFBInterface and TextureCacheBase.
   // Only Null and Software backends override them
 
   return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box), std::make_unique<Renderer>(),
+                          std::move(bounding_box), std::make_unique<HardwareEFBInterface>(),
                           std::make_unique<TextureCacheBase>());
 }
 
@@ -337,7 +334,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
                                         std::unique_ptr<VertexManagerBase> vertex_manager,
                                         std::unique_ptr<PerfQueryBase> perf_query,
                                         std::unique_ptr<BoundingBox> bounding_box,
-                                        std::unique_ptr<Renderer> renderer,
+                                        std::unique_ptr<EFBInterfaceBase> efb_interface,
                                         std::unique_ptr<TextureCacheBase> texture_cache)
 {
   memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
@@ -352,9 +349,9 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   g_perf_query = std::move(perf_query);
   g_bounding_box = std::move(bounding_box);
 
-  // Null and Software Backends supply their own derived Renderer and Texture Cache
+  // Null and Software Backends supply their own derived EFBInterface and TextureCache
   g_texture_cache = std::move(texture_cache);
-  g_renderer = std::move(renderer);
+  g_efb_interface = std::move(efb_interface);
 
   g_presenter = std::make_unique<VideoCommon::Presenter>();
   g_frame_dumper = std::make_unique<FrameDumper>();
@@ -418,7 +415,7 @@ void VideoBackendBase::ShutdownShared()
   g_framebuffer_manager.reset();
   g_shader_cache.reset();
   g_vertex_manager.reset();
-  g_renderer.reset();
+  g_efb_interface.reset();
   g_widescreen.reset();
   g_presenter.reset();
   g_gfx.reset();

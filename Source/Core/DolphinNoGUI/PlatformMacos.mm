@@ -8,8 +8,8 @@
 #include "Core/Core.h"
 #include "Core/State.h"
 #include "Core/System.h"
+#include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 
 #include <AppKit/AppKit.h>
 #include <Carbon/Carbon.h>

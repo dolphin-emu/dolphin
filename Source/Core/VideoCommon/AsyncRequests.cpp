@@ -8,9 +8,9 @@
 #include "Core/System.h"
 
 #include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -102,26 +102,25 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::EFB_POKE_COLOR:
   {
     INCSTAT(g_stats.this_frame.num_efb_pokes);
-    g_renderer->PokeEFB(EFBAccessType::PokeColor, e.efb_poke.x, e.efb_poke.y, e.efb_poke.data);
+    g_efb_interface->PokeColor(e.efb_poke.x, e.efb_poke.y, e.efb_poke.data);
   }
   break;
 
   case Event::EFB_POKE_Z:
   {
     INCSTAT(g_stats.this_frame.num_efb_pokes);
-    g_renderer->PokeEFB(EFBAccessType::PokeZ, e.efb_poke.x, e.efb_poke.y, e.efb_poke.data);
+    g_efb_interface->PokeDepth(e.efb_poke.x, e.efb_poke.y, e.efb_poke.data);
   }
   break;
 
   case Event::EFB_PEEK_COLOR:
     INCSTAT(g_stats.this_frame.num_efb_peeks);
-    *e.efb_peek.data =
-        g_renderer->AccessEFB(EFBAccessType::PeekColor, e.efb_peek.x, e.efb_peek.y, 0);
+    *e.efb_peek.data = g_efb_interface->PeekColor(e.efb_peek.x, e.efb_peek.y);
     break;
 
   case Event::EFB_PEEK_Z:
     INCSTAT(g_stats.this_frame.num_efb_peeks);
-    *e.efb_peek.data = g_renderer->AccessEFB(EFBAccessType::PeekZ, e.efb_peek.x, e.efb_peek.y, 0);
+    *e.efb_peek.data = g_efb_interface->PeekDepth(e.efb_peek.x, e.efb_peek.y);
     break;
 
   case Event::SWAP_EVENT:

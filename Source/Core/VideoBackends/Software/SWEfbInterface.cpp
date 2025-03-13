@@ -1,11 +1,10 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <cstring>
 #include <vector>
 
@@ -717,3 +716,35 @@ void IncPerfCounterQuadCount(PerfQueryType type)
   ++perf_values[type];
 }
 }  // namespace EfbInterface
+
+namespace SW
+{
+
+void SWEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
+{
+}
+
+void SWEFBInterface::PokeColor(u16 x, u16 y, u32 color)
+{
+}
+
+void SWEFBInterface::PokeDepth(u16 x, u16 y, u32 depth)
+{
+}
+
+u32 SWEFBInterface::PeekColorInternal(u16 x, u16 y)
+{
+  const u32 color = EfbInterface::GetColor(x, y);
+
+  // rgba to argb
+  u32 value = (color >> 8) | (color & 0xff) << 24;
+
+  return value;
+}
+
+u32 SWEFBInterface::PeekDepth(u16 x, u16 y)
+{
+  return EfbInterface::GetDepth(x, y);
+}
+
+}  // namespace SW

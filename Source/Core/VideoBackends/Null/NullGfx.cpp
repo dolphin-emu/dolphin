@@ -3,7 +3,6 @@
 
 #include "VideoBackends/Null/NullGfx.h"
 
-#include "VideoBackends/Null/NullBoundingBox.h"
 #include "VideoBackends/Null/NullTexture.h"
 
 #include "VideoCommon/AbstractPipeline.h"
@@ -92,6 +91,26 @@ NullGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<NativeVertexFormat>(vtx_decl);
 }
 
-NullRenderer::~NullRenderer() = default;
+void NullEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
+{
+}
+
+void NullEFBInterface::PokeColor(u16 x, u16 y, u32 color)
+{
+}
+
+void NullEFBInterface::PokeDepth(u16 x, u16 y, u32 depth)
+{
+}
+
+u32 NullEFBInterface::PeekColorInternal(u16 x, u16 y)
+{
+  return 0;
+}
+
+u32 NullEFBInterface::PeekDepth(u16 x, u16 y)
+{
+  return 0;
+}
 
 }  // namespace Null

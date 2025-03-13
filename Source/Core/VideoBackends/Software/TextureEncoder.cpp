@@ -5,12 +5,11 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
-#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/SWTexture.h"
 
 #include "VideoCommon/BPMemory.h"

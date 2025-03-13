@@ -15,8 +15,8 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -369,12 +369,12 @@ void OnPixelFormatChange()
 
     if (new_format == PixelFormat::RGBA6_Z24)
     {
-      g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
+      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
       return;
     }
     else if (new_format == PixelFormat::RGB565_Z16)
     {
-      g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
+      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
       return;
     }
   }
@@ -384,12 +384,12 @@ void OnPixelFormatChange()
   {
     if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
-      g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
+      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
       return;
     }
     else if (new_format == PixelFormat::RGB565_Z16)
     {
-      g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
+      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
       return;
     }
   }
@@ -399,12 +399,12 @@ void OnPixelFormatChange()
   {
     if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
-      g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
+      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
       return;
     }
     else if (new_format == PixelFormat::RGBA6_Z24)
     {
-      g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
+      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
       return;
     }
   }
