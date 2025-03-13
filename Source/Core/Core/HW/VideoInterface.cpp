@@ -840,6 +840,11 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
   if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
+  // Note: We really only need to Throttle prior to to presentation,
+  //  but it is needed here if we want accurate "VBlank" statistics,
+  //  when using GPU-on-Thread or Early/Immediate XFB.
+  m_system.GetCoreTiming().Throttle(ticks);
+
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
   Core::OnFrameEnd(m_system);
@@ -889,10 +894,13 @@ void VideoInterfaceManager::Update(u64 ticks)
   if (is_at_field_boundary)
     Core::Callback_NewField(m_system);
 
-  // If an SI poll is scheduled to happen on this half-line, do it!
+  auto& core_timing = m_system.GetCoreTiming();
 
+  // If an SI poll is scheduled to happen on this half-line, do it!
   if (m_half_line_count == m_half_line_of_next_si_poll)
   {
+    // Throttle before SI poll so user input is taken just before needed. (lower input latency)
+    core_timing.Throttle(ticks);
     Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                           Config::Get(Config::MAIN_LOCK_CURSOR));
     auto& si = m_system.GetSerialInterface();
@@ -918,7 +926,6 @@ void VideoInterfaceManager::Update(u64 ticks)
     m_half_line_count = 0;
   }
 
-  auto& core_timing = m_system.GetCoreTiming();
   if (!(m_half_line_count & 1))
   {
     m_ticks_last_line_start = core_timing.GetTicks();

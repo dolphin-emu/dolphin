@@ -18,6 +18,8 @@ class AsyncRequests
 public:
   struct Event
   {
+    Event() {}
+
     enum Type
     {
       EFB_POKE_COLOR,
@@ -54,6 +56,7 @@ public:
         u32 fbWidth;
         u32 fbStride;
         u32 fbHeight;
+        TimePoint presentation_time;
       } swap_event;
 
       struct
