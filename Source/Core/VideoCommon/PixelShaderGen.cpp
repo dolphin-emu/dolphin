@@ -1057,6 +1057,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
+  if (per_pixel_lighting)
+  {
+    GenerateLightingShaderHeader(out, uid_data->lighting);
+  }
+
   out.Write("void main()\n{{\n");
   out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 
@@ -1124,16 +1129,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfloat3 _normal = normalize(Normal.xyz);\n\n"
               "\tfloat3 pos = WorldPos;\n");
 
-    out.Write("\tint4 lacc;\n"
-              "\tfloat3 ldir, h, cosAttn, distAttn;\n"
-              "\tfloat dist, dist2, attn;\n");
-
     // TODO: Our current constant usage code isn't able to handle more than one buffer.
     //       So we can't mark the VS constant as used here. But keep them here as reference.
     // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-    GenerateLightingShaderCode(out, uid_data->lighting, "colors_", "col");
+    for (u32 chan = 0; chan < uid_data->numColorChans; chan++)
+    {
+      out.Write("\tcol{0} = dolphin_calculate_lighting_chn{0}(colors_{0}, pos, _normal);\n", chan);
+    }
     // The number of colors available to TEV is determined by numColorChans.
     // Normally this is performed in the vertex shader after lighting, but with per-pixel lighting,
     // we need to perform it here.  (It needs to be done after lighting, as what was originally
