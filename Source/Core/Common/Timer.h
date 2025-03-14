@@ -5,6 +5,10 @@
 
 #include "Common/CommonTypes.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace Common
 {
 class Timer
@@ -30,6 +34,23 @@ private:
   u64 m_start_ms{0};
   u64 m_end_ms{0};
   bool m_running{false};
+};
+
+class PrecisionTimer
+{
+public:
+  PrecisionTimer();
+  ~PrecisionTimer();
+
+  PrecisionTimer(const PrecisionTimer&) = delete;
+  PrecisionTimer& operator=(const PrecisionTimer&) = delete;
+
+  void SleepUntil(Clock::time_point);
+
+private:
+#ifdef _WIN32
+  HANDLE m_timer_handle;
+#endif
 };
 
 }  // Namespace Common
