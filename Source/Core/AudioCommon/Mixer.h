@@ -101,9 +101,14 @@ private:
     {
     public:
       constexpr Granule() = default;
-      constexpr Granule(const GranuleBuffer& input, std::size_t start_index);
+      constexpr Granule(const Granule&) = delete;
+      constexpr Granule& operator=(const Granule&) = delete;
 
-      static StereoPair InterpStereoPair(const Granule& front, const Granule& back, u32 frac);
+      void Reset();
+      void Set(const GranuleBuffer& input, const std::size_t start_index);
+      void Set(const Granule& input, const StereoPair fade);
+
+      static StereoPair InterpStereoPair(const Granule& front, const Granule& back, const u32 frac);
 
       Granule& operator*=(const StereoPair& x)
       {
@@ -139,6 +144,7 @@ private:
     GranuleBuffer m_buffer{};
 
     u32 m_current_index = 0;
+    bool m_buffers_swapped = false;
     Granule m_front, m_back;
 
     std::array<Granule, GRANULE_QUEUE_SIZE> m_queue;
@@ -147,7 +153,7 @@ private:
     std::atomic<bool> m_queue_looping{false};
     std::size_t m_queue_fade_index = 0;
 
-    void Enqueue(const Granule& granule);
+    void Enqueue(const GranuleBuffer& granule, const std::size_t start_index);
     void Dequeue(Granule* granule);
 
     // Volume ranges from 0-256

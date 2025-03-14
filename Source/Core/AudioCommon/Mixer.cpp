@@ -75,7 +75,10 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   while (num_samples-- > 0)
   {
-    StereoPair sample = Granule::InterpStereoPair(m_front, m_back, m_current_index);
+    StereoPair sample = m_buffers_swapped ?
+                            Granule::InterpStereoPair(m_back, m_front, m_current_index) :
+                            Granule::InterpStereoPair(m_front, m_back, m_current_index);
+
     sample *= volume;
 
     sample.l += samples[0] + m_quantization_error.l;
@@ -91,8 +94,12 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     m_current_index += index_jump;
     if (m_current_index < half)
     {
-      m_front = m_back;
-      Dequeue(&m_back);
+      if (m_buffers_swapped)
+        Dequeue(&m_back);
+      else
+        Dequeue(&m_front);
+
+      m_buffers_swapped = !m_buffers_swapped;
 
       m_current_index += half;
     }
@@ -158,7 +165,7 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
     samples += 2;
 
     if (m_buffer_index == 0 || m_buffer_index == m_buffer.size() / 2)
-      Enqueue(Granule(m_buffer, m_buffer_index));
+      Enqueue(m_buffer, m_buffer_index);
   }
 }
 
@@ -378,15 +385,20 @@ std::pair<s32, s32> Mixer::MixerFifo::GetVolume() const
   return std::make_pair(m_LVolume.load(), m_RVolume.load());
 }
 
-void Mixer::MixerFifo::Enqueue(const Granule& granule)
+void Mixer::MixerFifo::Enqueue(const GranuleBuffer& granule, const std::size_t start_index)
 {
   const std::size_t head = m_queue_head.load(std::memory_order_relaxed);
 
   std::size_t next_head = (head + 1) % GRANULE_QUEUE_SIZE;
   if (next_head == m_queue_tail.load(std::memory_order_acquire))
-    next_head = (head + GRANULE_QUEUE_SIZE / 2) % GRANULE_QUEUE_SIZE;
+  {
+    if (m_mixer->m_audio_fill_gaps)
+      next_head = (head + GRANULE_QUEUE_SIZE / 2) % GRANULE_QUEUE_SIZE;
+    else
+      return;
+  }
 
-  m_queue[head] = granule;
+  m_queue[head].Set(granule, start_index);
   m_queue_head.store(next_head, std::memory_order_release);
 
   m_queue_looping.store(false, std::memory_order_relaxed);
@@ -422,7 +434,7 @@ void Mixer::MixerFifo::Dequeue(Granule* granule)
     }
     else
     {
-      *granule = Granule();
+      granule->Reset();
       return;
     }
   }
@@ -432,15 +444,18 @@ void Mixer::MixerFifo::Dequeue(Granule* granule)
   else
     m_queue_fade_index = 0;
 
-  *granule = m_queue[tail];
-  *granule *= StereoPair(FADE_WINDOW[m_queue_fade_index]);
+  granule->Set(m_queue[tail], StereoPair{FADE_WINDOW[m_queue_fade_index]});
 
   m_queue_tail.store(next_tail, std::memory_order_release);
 }
 
-// Implementation of Granule's constructor
-constexpr Mixer::MixerFifo::Granule::Granule(const GranuleBuffer& input,
-                                             const std::size_t start_index)
+// Implementation of Granule's set functions
+void Mixer::MixerFifo::Granule::Reset()
+{
+  std::fill(m_buffer.begin(), m_buffer.end(), StereoPair{0.0f, 0.0f});
+}
+
+void Mixer::MixerFifo::Granule::Set(const GranuleBuffer& input, const std::size_t start_index)
 {
   // import numpy as np
   // import scipy.signal as signal
@@ -499,6 +514,15 @@ constexpr Mixer::MixerFifo::Granule::Granule(const GranuleBuffer& input,
 
   for (std::size_t i = 0; i < m_buffer.size(); ++i)
     m_buffer[i] *= StereoPair(GRANULE_WINDOW[i]);
+}
+
+void Mixer::MixerFifo::Granule::Set(const Granule& input, const StereoPair fade)
+{
+  for (std::size_t i = 0; i < m_buffer.size(); ++i)
+  {
+    m_buffer[i] = input.m_buffer[i];
+    m_buffer[i] *= fade;
+  }
 }
 
 Mixer::MixerFifo::StereoPair Mixer::MixerFifo::Granule::InterpStereoPair(const Granule& prev,
