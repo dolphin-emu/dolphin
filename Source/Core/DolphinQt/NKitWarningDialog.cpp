@@ -80,7 +80,7 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
   connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
 
   ok->setEnabled(false);
-  connect(checkbox_accept, &QCheckBox::stateChanged,
+  connect(checkbox_accept, &QCheckBox::checkStateChanged,
           [ok](int state) { ok->setEnabled(state == Qt::Checked); });
 
   connect(this, &QDialog::accepted, [checkbox_skip] {
