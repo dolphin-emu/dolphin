@@ -13,8 +13,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
-#include "VideoCommon/PerformanceMetrics.h"
+#include "Core/Core.h"
+#include "Core/System.h"
 
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {
@@ -31,8 +31,8 @@ static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
   }
 }
 
-Mixer::Mixer(unsigned int BackendSampleRate)
-    : m_sampleRate(BackendSampleRate), m_stretcher(BackendSampleRate),
+Mixer::Mixer(u32 BackendSampleRate)
+    : m_output_sample_rate(BackendSampleRate),
       m_surround_decoder(BackendSampleRate,
                          DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY)))
 {
@@ -58,177 +58,80 @@ void Mixer::DoState(PointerWrap& p)
 }
 
 // Executed from sound stream thread
-unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
-                                   bool consider_framelimit, float emulationspeed,
-                                   int timing_variance)
+void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 {
-  unsigned int currentSample = 0;
+  constexpr u32 half = 0x80000000;
 
-  // Cache access in non-volatile variable
-  // This is the only function changing the read value, so it's safe to
-  // cache it locally although it's written here.
-  // The writing pointer will be modified outside, but it will only increase,
-  // so we will just ignore new written data while interpolating.
-  // Without this cache, the compiler wouldn't be allowed to optimize the
-  // interpolation loop.
-  u32 indexR = m_indexR.load();
-  u32 indexW = m_indexW.load();
+  const u64 out_sample_rate = m_mixer->m_output_sample_rate;
+  u64 in_sample_rate = FIXED_SAMPLE_RATE_DIVIDEND / m_input_sample_rate_divisor;
 
-  // render numleft sample pairs to samples[]
-  // advance indexR with sample position
-  // remember fractional offset
+  const float emulation_speed = m_mixer->m_config_emulation_speed;
+  if (0 < emulation_speed && emulation_speed != 1.0)
+    in_sample_rate = static_cast<u64>(std::llround(in_sample_rate * emulation_speed));
 
-  float aid_sample_rate =
-      FIXED_SAMPLE_RATE_DIVIDEND / static_cast<float>(m_input_sample_rate_divisor);
-  if (consider_framelimit && emulationspeed > 0.0f)
+  const u32 index_jump = (in_sample_rate << GRANULE_BUFFER_FRAC_BITS) / (out_sample_rate);
+
+  const StereoPair volume{m_LVolume.load() / 256.0f, m_RVolume.load() / 256.0f};
+
+  while (num_samples-- > 0)
   {
-    float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
+    StereoPair sample = Granule::InterpStereoPair(m_front, m_back, m_current_index);
+    sample *= volume;
 
-    u32 low_watermark = (FIXED_SAMPLE_RATE_DIVIDEND * timing_variance) /
-                        (static_cast<u64>(m_input_sample_rate_divisor) * 1000);
-    low_watermark = std::min(low_watermark, MAX_SAMPLES / 2);
+    sample.l += samples[0] + m_quantization_error.l;
+    samples[0] = ToShort(std::lround(sample.l));
+    m_quantization_error.l = std::clamp(sample.l - samples[0], -1.0f, 1.0f);
 
-    m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
-    float offset = (m_numLeftI - low_watermark) * CONTROL_FACTOR;
-    if (offset > MAX_FREQ_SHIFT)
-      offset = MAX_FREQ_SHIFT;
-    if (offset < -MAX_FREQ_SHIFT)
-      offset = -MAX_FREQ_SHIFT;
+    sample.r += samples[1] + m_quantization_error.r;
+    samples[1] = ToShort(std::lround(sample.r));
+    m_quantization_error.r = std::clamp(sample.r - samples[1], -1.0f, 1.0f);
 
-    aid_sample_rate = (aid_sample_rate + offset) * emulationspeed;
+    samples += 2;
+
+    m_current_index += index_jump;
+    if (m_current_index < half)
+    {
+      m_front = m_back;
+      Dequeue(&m_back);
+
+      m_current_index += half;
+    }
   }
-
-  const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
-
-  s32 lvolume = m_LVolume.load();
-  s32 rvolume = m_RVolume.load();
-
-  const auto read_buffer = [this](auto index) {
-    return m_little_endian ? m_buffer[index] : Common::swap16(m_buffer[index]);
-  };
-
-  // TODO: consider a higher-quality resampling algorithm.
-  for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2)
-  {
-    u32 indexR2 = indexR + 2;  // next sample
-
-    s16 l1 = read_buffer(indexR & INDEX_MASK);   // current
-    s16 l2 = read_buffer(indexR2 & INDEX_MASK);  // next
-    int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
-    sampleL = (sampleL * lvolume) >> 8;
-    sampleL += samples[currentSample + 1];
-    samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
-
-    s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);   // current
-    s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK);  // next
-    int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
-    sampleR = (sampleR * rvolume) >> 8;
-    sampleR += samples[currentSample];
-    samples[currentSample] = std::clamp(sampleR, -32767, 32767);
-
-    m_frac += ratio;
-    indexR += 2 * (u16)(m_frac >> 16);
-    m_frac &= 0xffff;
-  }
-
-  // Actual number of samples written to the buffer without padding.
-  unsigned int actual_sample_count = currentSample / 2;
-
-  // Padding
-  short s[2];
-  s[0] = read_buffer((indexR - 1) & INDEX_MASK);
-  s[1] = read_buffer((indexR - 2) & INDEX_MASK);
-  s[0] = (s[0] * rvolume) >> 8;
-  s[1] = (s[1] * lvolume) >> 8;
-  for (; currentSample < numSamples * 2; currentSample += 2)
-  {
-    int sampleR = std::clamp(s[0] + samples[currentSample + 0], -32767, 32767);
-    int sampleL = std::clamp(s[1] + samples[currentSample + 1], -32767, 32767);
-
-    samples[currentSample + 0] = sampleR;
-    samples[currentSample + 1] = sampleL;
-  }
-
-  // Flush cached variable
-  m_indexR.store(indexR);
-
-  return actual_sample_count;
 }
 
-unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
+std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
 {
   if (!samples)
     return 0;
 
-  memset(samples, 0, num_samples * 2 * sizeof(short));
+  memset(samples, 0, num_samples * 2 * sizeof(s16));
 
-  // TODO: Determine how emulation speed will be used in audio
-  // const float emulation_speed = g_perf_metrics.GetSpeed();
-  const float emulation_speed = m_config_emulation_speed;
-  const int timing_variance = m_config_timing_variance;
-  if (m_config_audio_stretch)
-  {
-    unsigned int available_samples =
-        std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
-
-    ASSERT_MSG(AUDIO, available_samples <= MAX_SAMPLES,
-               "Audio stretching would overflow m_scratch_buffer: min({}, {}) -> {} > {} ({})",
-               m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples(),
-               available_samples, MAX_SAMPLES, num_samples);
-
-    m_scratch_buffer.fill(0);
-
-    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                    timing_variance);
-    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                          timing_variance);
-    m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                                timing_variance);
-    m_skylander_portal_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                                 timing_variance);
-    for (auto& mixer : m_gba_mixers)
-    {
-      mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                timing_variance);
-    }
-
-    if (!m_is_stretching)
-    {
-      m_stretcher.Clear();
-      m_is_stretching = true;
-    }
-    m_stretcher.ProcessSamples(m_scratch_buffer.data(), available_samples, num_samples);
-    m_stretcher.GetStretchedSamples(samples, num_samples);
-  }
-  else
-  {
-    m_dma_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_streaming_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_wiimote_speaker_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_skylander_portal_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    for (auto& mixer : m_gba_mixers)
-      mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
-    m_is_stretching = false;
-  }
+  m_dma_mixer.Mix(samples, num_samples);
+  m_streaming_mixer.Mix(samples, num_samples);
+  m_wiimote_speaker_mixer.Mix(samples, num_samples);
+  m_skylander_portal_mixer.Mix(samples, num_samples);
+  for (auto& mixer : m_gba_mixers)
+    mixer.Mix(samples, num_samples);
 
   return num_samples;
 }
 
-unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
+std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
 {
   if (!num_samples)
     return 0;
 
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(float));
 
-  size_t needed_frames = m_surround_decoder.QueryFramesNeededForSurroundOutput(num_samples);
+  std::size_t needed_frames = m_surround_decoder.QueryFramesNeededForSurroundOutput(num_samples);
 
-  // Mix() may also use m_scratch_buffer internally, but is safe because it alternates reads
-  // and writes.
-  ASSERT_MSG(AUDIO, needed_frames <= MAX_SAMPLES,
+  constexpr std::size_t max_samples = 0x8000;
+  ASSERT_MSG(AUDIO, needed_frames <= max_samples,
              "needed_frames would overflow m_scratch_buffer: {} -> {} > {}", num_samples,
-             needed_frames, MAX_SAMPLES);
-  size_t available_frames = Mix(m_scratch_buffer.data(), static_cast<u32>(needed_frames));
+             needed_frames, max_samples);
+
+  std::array<s16, max_samples> buffer;
+  std::size_t available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
   if (available_frames != needed_frames)
   {
     ERROR_LOG_FMT(AUDIO,
@@ -237,71 +140,58 @@ unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
     return 0;
   }
 
-  m_surround_decoder.PutFrames(m_scratch_buffer.data(), needed_frames);
+  m_surround_decoder.PutFrames(buffer.data(), needed_frames);
   m_surround_decoder.ReceiveFrames(samples, num_samples);
 
   return num_samples;
 }
 
-void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
+void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
 {
-  // Cache access in non-volatile variable
-  // indexR isn't allowed to cache in the audio throttling loop as it
-  // needs to get updates to not deadlock.
-  u32 indexW = m_indexW.load();
-
-  // Check if we have enough free space
-  // indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
-  if (num_samples * 2 + ((indexW - m_indexR.load()) & INDEX_MASK) >= MAX_SAMPLES * 2)
-    return;
-
-  // AyuanX: Actual re-sampling work has been moved to sound thread
-  // to alleviate the workload on main thread
-  // and we simply store raw data here to make fast mem copy
-  int over_bytes = num_samples * 4 - (MAX_SAMPLES * 2 - (indexW & INDEX_MASK)) * sizeof(short);
-  if (over_bytes > 0)
+  while (num_samples-- > 0)
   {
-    memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4 - over_bytes);
-    memcpy(&m_buffer[0], samples + (num_samples * 4 - over_bytes) / sizeof(short), over_bytes);
-  }
-  else
-  {
-    memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4);
-  }
+    const s16 l = m_little_endian ? samples[1] : Common::swap16(samples[1]);
+    const s16 r = m_little_endian ? samples[0] : Common::swap16(samples[0]);
 
-  m_indexW.fetch_add(num_samples * 2);
+    m_buffer[m_buffer_index] = StereoPair(l, r);
+    m_buffer_index = (m_buffer_index + 1) & GRANULE_BUFFER_MASK;
+    samples += 2;
+
+    if (m_buffer_index == 0 || m_buffer_index == m_buffer.size() / 2)
+      Enqueue(Granule(m_buffer, m_buffer_index));
+  }
 }
 
-void Mixer::PushSamples(const short* samples, unsigned int num_samples)
+void Mixer::PushSamples(const s16* samples, std::size_t num_samples)
 {
   m_dma_mixer.PushSamples(samples, num_samples);
   if (m_log_dsp_audio)
   {
-    int sample_rate_divisor = m_dma_mixer.GetInputSampleRateDivisor();
+    const s32 sample_rate_divisor = m_dma_mixer.GetInputSampleRateDivisor();
     auto volume = m_dma_mixer.GetVolume();
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
-                                         volume.second);
+    m_wave_writer_dsp.AddStereoSamplesBE(samples, static_cast<u32>(num_samples),
+                                         sample_rate_divisor, volume.first, volume.second);
   }
 }
 
-void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
+void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
 {
   m_streaming_mixer.PushSamples(samples, num_samples);
   if (m_log_dtk_audio)
   {
-    int sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
+    const s32 sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
     auto volume = m_streaming_mixer.GetVolume();
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
-                                         volume.second);
+    m_wave_writer_dtk.AddStereoSamplesBE(samples, static_cast<u32>(num_samples),
+                                         sample_rate_divisor, volume.first, volume.second);
   }
 }
 
-void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
-                                      unsigned int sample_rate_divisor)
+void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
+                                      u32 sample_rate_divisor)
 {
   // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
-  static constexpr u32 MAX_SPEAKER_SAMPLES = 20 * 2;
-  std::array<short, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
+  static constexpr std::size_t MAX_SPEAKER_SAMPLES = 20 * 2;
+  std::array<s16, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
 
   ASSERT_MSG(AUDIO, num_samples <= MAX_SPEAKER_SAMPLES,
              "num_samples would overflow samples_stereo: {} > {}", num_samples,
@@ -310,7 +200,7 @@ void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_sam
   {
     m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
 
-    for (unsigned int i = 0; i < num_samples; ++i)
+    for (std::size_t i = 0; i < num_samples; ++i)
     {
       samples_stereo[i * 2] = samples[i];
       samples_stereo[i * 2 + 1] = samples[i];
@@ -320,12 +210,12 @@ void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_sam
   }
 }
 
-void Mixer::PushSkylanderPortalSamples(const u8* samples, unsigned int num_samples)
+void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples)
 {
   // Skylander samples are always supplied as 64 bytes, 32 x 16 bit samples
   // The portal speaker is 1 channel, so duplicate and play as stereo audio
-  static constexpr u32 MAX_PORTAL_SPEAKER_SAMPLES = 32;
-  std::array<short, MAX_PORTAL_SPEAKER_SAMPLES * 2> samples_stereo;
+  static constexpr std::size_t MAX_PORTAL_SPEAKER_SAMPLES = 32;
+  std::array<s16, MAX_PORTAL_SPEAKER_SAMPLES * 2> samples_stereo;
 
   ASSERT_MSG(AUDIO, num_samples <= MAX_PORTAL_SPEAKER_SAMPLES,
              "num_samples is not less or equal to 32: {} > {}", num_samples,
@@ -333,7 +223,7 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, unsigned int num_sampl
 
   if (num_samples <= MAX_PORTAL_SPEAKER_SAMPLES)
   {
-    for (unsigned int i = 0; i < num_samples; ++i)
+    for (std::size_t i = 0; i < num_samples; ++i)
     {
       s16 sample = static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
       samples_stereo[i * 2] = sample;
@@ -344,37 +234,38 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, unsigned int num_sampl
   }
 }
 
-void Mixer::PushGBASamples(int device_number, const short* samples, unsigned int num_samples)
+void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples)
 {
   m_gba_mixers[device_number].PushSamples(samples, num_samples);
 }
 
-void Mixer::SetDMAInputSampleRateDivisor(unsigned int rate_divisor)
+void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)
 {
   m_dma_mixer.SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetStreamInputSampleRateDivisor(unsigned int rate_divisor)
+void Mixer::SetStreamInputSampleRateDivisor(u32 rate_divisor)
 {
   m_streaming_mixer.SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetGBAInputSampleRateDivisors(int device_number, unsigned int rate_divisor)
+void Mixer::SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor)
 {
   m_gba_mixers[device_number].SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
+void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
 {
-  m_streaming_mixer.SetVolume(lvolume, rvolume);
+  m_streaming_mixer.SetVolume(std::clamp<u32>(lvolume, 0x00, 0xff),
+                              std::clamp<u32>(rvolume, 0x00, 0xff));
 }
 
-void Mixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
+void Mixer::SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume)
 {
   m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
 }
 
-void Mixer::SetGBAVolume(int device_number, unsigned int lvolume, unsigned int rvolume)
+void Mixer::SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume)
 {
   m_gba_mixers[device_number].SetVolume(lvolume, rvolume);
 }
@@ -456,8 +347,7 @@ void Mixer::StopLogDSPAudio()
 void Mixer::RefreshConfig()
 {
   m_config_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
-  m_config_timing_variance = Config::Get(Config::MAIN_TIMING_VARIANCE);
-  m_config_audio_stretch = Config::Get(Config::MAIN_AUDIO_STRETCH);
+  m_audio_fill_gaps = Config::Get(Config::MAIN_AUDIO_FILL_GAPS);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)
@@ -467,17 +357,17 @@ void Mixer::MixerFifo::DoState(PointerWrap& p)
   p.Do(m_RVolume);
 }
 
-void Mixer::MixerFifo::SetInputSampleRateDivisor(unsigned int rate_divisor)
+void Mixer::MixerFifo::SetInputSampleRateDivisor(u32 rate_divisor)
 {
   m_input_sample_rate_divisor = rate_divisor;
 }
 
-unsigned int Mixer::MixerFifo::GetInputSampleRateDivisor() const
+u32 Mixer::MixerFifo::GetInputSampleRateDivisor() const
 {
   return m_input_sample_rate_divisor;
 }
 
-void Mixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
+void Mixer::MixerFifo::SetVolume(u32 lvolume, u32 rvolume)
 {
   m_LVolume.store(lvolume + (lvolume >> 7));
   m_RVolume.store(rvolume + (rvolume >> 7));
@@ -488,11 +378,161 @@ std::pair<s32, s32> Mixer::MixerFifo::GetVolume() const
   return std::make_pair(m_LVolume.load(), m_RVolume.load());
 }
 
-unsigned int Mixer::MixerFifo::AvailableSamples() const
+void Mixer::MixerFifo::Enqueue(const Granule& granule)
 {
-  unsigned int samples_in_fifo = ((m_indexW.load() - m_indexR.load()) & INDEX_MASK) / 2;
-  if (samples_in_fifo <= 1)
-    return 0;  // Mixer::MixerFifo::Mix always keeps one sample in the buffer.
-  return (samples_in_fifo - 1) * static_cast<u64>(m_mixer->m_sampleRate) *
-         m_input_sample_rate_divisor / FIXED_SAMPLE_RATE_DIVIDEND;
+  const std::size_t head = m_queue_head.load(std::memory_order_relaxed);
+
+  std::size_t next_head = (head + 1) % GRANULE_QUEUE_SIZE;
+  if (next_head == m_queue_tail.load(std::memory_order_acquire))
+    next_head = (head + GRANULE_QUEUE_SIZE / 2) % GRANULE_QUEUE_SIZE;
+
+  m_queue[head] = granule;
+  m_queue_head.store(next_head, std::memory_order_release);
+
+  m_queue_looping.store(false, std::memory_order_relaxed);
+}
+
+void Mixer::MixerFifo::Dequeue(Granule* granule)
+{
+  // import numpy as np
+  // import scipy.signal as signal
+  // window = np.cumsum(signal.windows.dpss(32, 10))[::-1]
+  // window /= window.max()
+  // elements = ", ".join([f"{x:.10f}f" for x in window])
+  // print(f'constexpr std::array<StereoPair, {len(window)}> FADE_WINDOW = {{ {elements} }};')
+  constexpr std::array<float, 32> FADE_WINDOW = {
+      1.0000000000f, 0.9999999932f, 0.9999998472f, 0.9999982765f, 0.9999870876f, 0.9999278274f,
+      0.9996794215f, 0.9988227502f, 0.9963278433f, 0.9900772448f, 0.9764215513f, 0.9501402658f,
+      0.9052392639f, 0.8367449916f, 0.7430540364f, 0.6277889467f, 0.5000000000f, 0.3722110533f,
+      0.2569459636f, 0.1632550084f, 0.0947607361f, 0.0498597342f, 0.0235784487f, 0.0099227552f,
+      0.0036721567f, 0.0011772498f, 0.0003205785f, 0.0000721726f, 0.0000129124f, 0.0000017235f,
+      0.0000001528f, 0.0000000068f};
+
+  const std::size_t tail = m_queue_tail.load(std::memory_order_relaxed);
+  std::size_t next_tail = (tail + 1) % GRANULE_QUEUE_SIZE;
+
+  if (next_tail == m_queue_head.load(std::memory_order_acquire))
+  {
+    // Only fill gaps when running to prevent stutter on pause.
+    const bool is_running = Core::GetState(Core::System::GetInstance()) == Core::State::Running;
+    if (m_mixer->m_audio_fill_gaps && is_running)
+    {
+      next_tail = (tail + GRANULE_QUEUE_SIZE / 2) % GRANULE_QUEUE_SIZE;
+      m_queue_looping.store(true, std::memory_order_relaxed);
+    }
+    else
+    {
+      *granule = Granule();
+      return;
+    }
+  }
+
+  if (m_queue_looping.load(std::memory_order_relaxed))
+    m_queue_fade_index = std::min(m_queue_fade_index + 1, FADE_WINDOW.size() - 1);
+  else
+    m_queue_fade_index = 0;
+
+  *granule = m_queue[tail];
+  *granule *= StereoPair(FADE_WINDOW[m_queue_fade_index]);
+
+  m_queue_tail.store(next_tail, std::memory_order_release);
+}
+
+// Implementation of Granule's constructor
+constexpr Mixer::MixerFifo::Granule::Granule(const GranuleBuffer& input,
+                                             const std::size_t start_index)
+{
+  // import numpy as np
+  // import scipy.signal as signal
+  // window = np.convolve(np.ones(128), signal.windows.dpss(128 + 1, 4))
+  // window /= (window[:len(window) // 2] + window[len(window) // 2:]).max()
+  // elements = ", ".join([f"{x:.10f}f" for x in window])
+  // print(f'constexpr std::array<StereoPair, GRANULE_BUFFER_SIZE> GRANULE_WINDOW = {{ {elements}
+  // }};')
+  constexpr std::array<float, GRANULE_BUFFER_SIZE> GRANULE_WINDOW = {
+      0.0000016272f, 0.0000050749f, 0.0000113187f, 0.0000216492f, 0.0000377350f, 0.0000616906f,
+      0.0000961509f, 0.0001443499f, 0.0002102045f, 0.0002984010f, 0.0004144844f, 0.0005649486f,
+      0.0007573262f, 0.0010002765f, 0.0013036694f, 0.0016786636f, 0.0021377783f, 0.0026949534f,
+      0.0033656000f, 0.0041666352f, 0.0051165029f, 0.0062351752f, 0.0075441359f, 0.0090663409f,
+      0.0108261579f, 0.0128492811f, 0.0151626215f, 0.0177941726f, 0.0207728499f, 0.0241283062f,
+      0.0278907219f, 0.0320905724f, 0.0367583739f, 0.0419244083f, 0.0476184323f, 0.0538693708f,
+      0.0607049996f, 0.0681516192f, 0.0762337261f, 0.0849736833f, 0.0943913952f, 0.1045039915f,
+      0.1153255250f, 0.1268666867f, 0.1391345431f, 0.1521323012f, 0.1658591025f, 0.1803098534f,
+      0.1954750915f, 0.2113408944f, 0.2278888303f, 0.2450959552f, 0.2629348550f, 0.2813737361f,
+      0.3003765625f, 0.3199032396f, 0.3399098438f, 0.3603488941f, 0.3811696664f, 0.4023185434f,
+      0.4237393998f, 0.4453740162f, 0.4671625177f, 0.4890438330f, 0.5109561670f, 0.5328374823f,
+      0.5546259838f, 0.5762606002f, 0.5976814566f, 0.6188303336f, 0.6396511059f, 0.6600901562f,
+      0.6800967604f, 0.6996234375f, 0.7186262639f, 0.7370651450f, 0.7549040448f, 0.7721111697f,
+      0.7886591056f, 0.8045249085f, 0.8196901466f, 0.8341408975f, 0.8478676988f, 0.8608654569f,
+      0.8731333133f, 0.8846744750f, 0.8954960085f, 0.9056086048f, 0.9150263167f, 0.9237662739f,
+      0.9318483808f, 0.9392950004f, 0.9461306292f, 0.9523815677f, 0.9580755917f, 0.9632416261f,
+      0.9679094276f, 0.9721092781f, 0.9758716938f, 0.9792271501f, 0.9822058274f, 0.9848373785f,
+      0.9871507189f, 0.9891738421f, 0.9909336591f, 0.9924558641f, 0.9937648248f, 0.9948834971f,
+      0.9958333648f, 0.9966344000f, 0.9973050466f, 0.9978622217f, 0.9983213364f, 0.9986963306f,
+      0.9989997235f, 0.9992426738f, 0.9994350514f, 0.9995855156f, 0.9997015990f, 0.9997897955f,
+      0.9998556501f, 0.9999038491f, 0.9999383094f, 0.9999622650f, 0.9999783508f, 0.9999886813f,
+      0.9999949251f, 0.9999983728f, 0.9999983728f, 0.9999949251f, 0.9999886813f, 0.9999783508f,
+      0.9999622650f, 0.9999383094f, 0.9999038491f, 0.9998556501f, 0.9997897955f, 0.9997015990f,
+      0.9995855156f, 0.9994350514f, 0.9992426738f, 0.9989997235f, 0.9986963306f, 0.9983213364f,
+      0.9978622217f, 0.9973050466f, 0.9966344000f, 0.9958333648f, 0.9948834971f, 0.9937648248f,
+      0.9924558641f, 0.9909336591f, 0.9891738421f, 0.9871507189f, 0.9848373785f, 0.9822058274f,
+      0.9792271501f, 0.9758716938f, 0.9721092781f, 0.9679094276f, 0.9632416261f, 0.9580755917f,
+      0.9523815677f, 0.9461306292f, 0.9392950004f, 0.9318483808f, 0.9237662739f, 0.9150263167f,
+      0.9056086048f, 0.8954960085f, 0.8846744750f, 0.8731333133f, 0.8608654569f, 0.8478676988f,
+      0.8341408975f, 0.8196901466f, 0.8045249085f, 0.7886591056f, 0.7721111697f, 0.7549040448f,
+      0.7370651450f, 0.7186262639f, 0.6996234375f, 0.6800967604f, 0.6600901562f, 0.6396511059f,
+      0.6188303336f, 0.5976814566f, 0.5762606002f, 0.5546259838f, 0.5328374823f, 0.5109561670f,
+      0.4890438330f, 0.4671625177f, 0.4453740162f, 0.4237393998f, 0.4023185434f, 0.3811696664f,
+      0.3603488941f, 0.3399098438f, 0.3199032396f, 0.3003765625f, 0.2813737361f, 0.2629348550f,
+      0.2450959552f, 0.2278888303f, 0.2113408944f, 0.1954750915f, 0.1803098534f, 0.1658591025f,
+      0.1521323012f, 0.1391345431f, 0.1268666867f, 0.1153255250f, 0.1045039915f, 0.0943913952f,
+      0.0849736833f, 0.0762337261f, 0.0681516192f, 0.0607049996f, 0.0538693708f, 0.0476184323f,
+      0.0419244083f, 0.0367583739f, 0.0320905724f, 0.0278907219f, 0.0241283062f, 0.0207728499f,
+      0.0177941726f, 0.0151626215f, 0.0128492811f, 0.0108261579f, 0.0090663409f, 0.0075441359f,
+      0.0062351752f, 0.0051165029f, 0.0041666352f, 0.0033656000f, 0.0026949534f, 0.0021377783f,
+      0.0016786636f, 0.0013036694f, 0.0010002765f, 0.0007573262f, 0.0005649486f, 0.0004144844f,
+      0.0002984010f, 0.0002102045f, 0.0001443499f, 0.0000961509f, 0.0000616906f, 0.0000377350f,
+      0.0000216492f, 0.0000113187f, 0.0000050749f, 0.0000016272f};
+
+  const auto input_middle = input.end() - start_index;
+  std::ranges::rotate_copy(input, input_middle, m_buffer.begin());
+
+  for (std::size_t i = 0; i < m_buffer.size(); ++i)
+    m_buffer[i] *= StereoPair(GRANULE_WINDOW[i]);
+}
+
+Mixer::MixerFifo::StereoPair Mixer::MixerFifo::Granule::InterpStereoPair(const Granule& prev,
+                                                                         const Granule& next,
+                                                                         const u32 frac)
+{
+  const std::size_t prev_index = frac >> Mixer::MixerFifo::GRANULE_BUFFER_FRAC_BITS;
+  const std::size_t next_index = prev_index - (GRANULE_BUFFER_SIZE / 2);
+
+  const u32 frac_t = frac & ((1 << GRANULE_BUFFER_FRAC_BITS) - 1);
+  const float t1 = frac_t / static_cast<float>(1 << GRANULE_BUFFER_FRAC_BITS);
+  const float t2 = t1 * t1;
+  const float t3 = t2 * t1;
+
+  // The Granules are pre-windowed, so we can just add them together
+  StereoPair s0 = prev.m_buffer[(prev_index - 2) & GRANULE_BUFFER_MASK] +
+                  next.m_buffer[(next_index - 2) & GRANULE_BUFFER_MASK];
+  StereoPair s1 = prev.m_buffer[(prev_index - 1) & GRANULE_BUFFER_MASK] +
+                  next.m_buffer[(next_index - 1) & GRANULE_BUFFER_MASK];
+  StereoPair s2 = prev.m_buffer[(prev_index + 0) & GRANULE_BUFFER_MASK] +
+                  next.m_buffer[(next_index + 0) & GRANULE_BUFFER_MASK];
+  StereoPair s3 = prev.m_buffer[(prev_index + 1) & GRANULE_BUFFER_MASK] +
+                  next.m_buffer[(next_index + 1) & GRANULE_BUFFER_MASK];
+  StereoPair s4 = prev.m_buffer[(prev_index + 2) & GRANULE_BUFFER_MASK] +
+                  next.m_buffer[(next_index + 2) & GRANULE_BUFFER_MASK];
+  StereoPair s5 = prev.m_buffer[(prev_index + 3) & GRANULE_BUFFER_MASK] +
+                  next.m_buffer[(next_index + 3) & GRANULE_BUFFER_MASK];
+
+  s0 *= StereoPair{(+0.0f + 1.0f * t1 - 2.0f * t2 + 1.0f * t3) / 12.0f};
+  s1 *= StereoPair{(+0.0f - 8.0f * t1 + 15.0f * t2 - 7.0f * t3) / 12.0f};
+  s2 *= StereoPair{(+3.0f + 0.0f * t1 - 7.0f * t2 + 4.0f * t3) / 3.0f};
+  s3 *= StereoPair{(+0.0f + 2.0f * t1 + 5.0f * t2 - 4.0f * t3) / 3.0f};
+  s4 *= StereoPair{(+0.0f - 1.0f * t1 - 6.0f * t2 + 7.0f * t3) / 12.0f};
+  s5 *= StereoPair{(+0.0f + 0.0f * t1 + 1.0f * t2 - 1.0f * t3) / 12.0f};
+
+  return s0 + s1 + s2 + s3 + s4 + s5;
 }
