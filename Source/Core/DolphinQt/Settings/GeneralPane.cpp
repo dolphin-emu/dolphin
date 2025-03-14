@@ -179,6 +179,15 @@ void GeneralPane::CreateBasic()
   }
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
+
+  auto* const correct_time_passage =
+      new ConfigBool{tr("Correct Time Passage"), Config::MAIN_CORRECT_TIME_PASSAGE};
+  correct_time_passage->SetDescription(
+      tr("Allow the emulated console to run fast after stutters,"
+         "<br>pursuing accurate overall elapsed time unless paused or speed-adjusted."
+         "<br><br>This may be useful for internet play."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  basic_group_layout->addWidget(correct_time_passage);
 }
 
 void GeneralPane::CreateAutoUpdate()
