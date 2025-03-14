@@ -36,7 +36,6 @@
 GeneralWidget::GeneralWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
@@ -50,7 +49,6 @@ GeneralWidget::GeneralWidget(GraphicsWindow* parent)
 GeneralWidget::GeneralWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 }
@@ -61,7 +59,7 @@ void GeneralWidget::CreateWidgets()
 
   // Basic Section
   auto* m_video_box = new QGroupBox(tr("Basic"));
-  m_video_layout = new QGridLayout();
+  auto* const video_layout = new QGridLayout{m_video_box};
 
   std::vector<std::pair<QString, QString>> options;
   for (auto& backend : VideoBackendBase::GetAvailableBackends())
@@ -76,38 +74,41 @@ void GeneralWidget::CreateWidgets()
                                      tr("Stretch to Window"), tr("Custom"), tr("Custom (Stretch)")},
                                     Config::GFX_ASPECT_RATIO, m_game_layer);
   m_custom_aspect_label = new QLabel(tr("Custom Aspect Ratio:"));
-  m_custom_aspect_label->setHidden(true);
   constexpr int MAX_CUSTOM_ASPECT_RATIO_RESOLUTION = 10000;
   m_custom_aspect_width = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
                                             Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH, m_game_layer);
-  m_custom_aspect_width->setEnabled(false);
-  m_custom_aspect_width->setHidden(true);
   m_custom_aspect_height = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
                                              Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT, m_game_layer);
-  m_custom_aspect_height->setEnabled(false);
-  m_custom_aspect_height->setHidden(true);
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC, m_game_layer);
   m_enable_fullscreen =
       new ConfigBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN, m_game_layer);
 
-  m_video_box->setLayout(m_video_layout);
+  video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
+  video_layout->addWidget(m_backend_combo, 0, 1, 1, -1);
 
-  m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
-  m_video_layout->addWidget(m_backend_combo, 0, 1, 1, -1);
+  video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
+  video_layout->addWidget(m_adapter_combo, 1, 1, 1, -1);
 
-  m_video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
-  m_video_layout->addWidget(m_adapter_combo, 1, 1, 1, -1);
+  video_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 2, 0);
+  video_layout->addWidget(m_aspect_combo, 2, 1, 1, -1);
 
-  m_video_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 3, 0);
-  m_video_layout->addWidget(m_aspect_combo, 3, 1, 1, -1);
+  video_layout->addWidget(m_custom_aspect_label, 3, 0);
+  video_layout->addWidget(m_custom_aspect_width, 3, 1);
+  video_layout->addWidget(m_custom_aspect_height, 3, 2);
 
-  m_video_layout->addWidget(m_custom_aspect_label, 4, 0);
-  m_video_layout->addWidget(m_custom_aspect_width, 4, 1);
-  m_video_layout->addWidget(m_custom_aspect_height, 4, 2);
+  auto* const basic_grid = new QGridLayout;
+  video_layout->addLayout(basic_grid, video_layout->rowCount(), 0, 1, -1);
+  basic_grid->addWidget(m_enable_vsync, 0, 0);
+  basic_grid->addWidget(m_enable_fullscreen, 0, 1);
 
-  m_video_layout->addWidget(m_enable_vsync, 5, 0);
-  m_video_layout->addWidget(m_enable_fullscreen, 5, 1, 1, -1);
+  auto* const precision_timing =
+      new ConfigBool(tr("Precision Frame Timing"), Config::MAIN_PRECISION_FRAME_TIMING);
+  precision_timing->SetDescription(
+      tr("Uses high resolution timers and \"busy waiting\" for improved frame pacing."
+         "<br><br>This will marginally increase power usage."
+         "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"));
+  basic_grid->addWidget(precision_timing, 1, 0);
 
   // Other
   auto* m_options_box = new QGroupBox(tr("Other"));
@@ -171,24 +172,11 @@ void GeneralWidget::ConnectWidgets()
   connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
     const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
                                         (index == static_cast<int>(AspectMode::CustomStretch));
-    m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
-    m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
     m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
     m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
   });
-}
-
-void GeneralWidget::LoadSettings()
-{
-  const bool is_custom_aspect_ratio =
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
-  m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
-  m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
-  m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
-  m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
-  m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
+  m_aspect_combo->currentIndexChanged(m_aspect_combo->currentIndex());
 }
 
 void GeneralWidget::BackendWarning()
