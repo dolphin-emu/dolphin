@@ -22,7 +22,6 @@
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
-#include "VideoCommon/Statistics.h"
 
 // TODO: ugly
 #ifdef _WIN32
@@ -103,38 +102,6 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
       g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
     });
   }
-}
-
-void VideoBackendBase::Video_PokeEFBColor(u32 x, u32 y, u32 data)
-{
-  AsyncRequests::GetInstance()->PushEvent([x, y, data] {
-    INCSTAT(g_stats.this_frame.num_efb_pokes);
-    g_efb_interface->PokeColor(x, y, data);
-  });
-}
-
-void VideoBackendBase::Video_PokeEFBDepth(u32 x, u32 y, u32 data)
-{
-  AsyncRequests::GetInstance()->PushEvent([x, y, data] {
-    INCSTAT(g_stats.this_frame.num_efb_pokes);
-    g_efb_interface->PokeDepth(x, y, data);
-  });
-}
-
-u32 VideoBackendBase::Video_PeekEFBColor(u32 x, u32 y)
-{
-  return AsyncRequests::GetInstance()->PushBlockingEvent([&] {
-    INCSTAT(g_stats.this_frame.num_efb_peeks);
-    return g_efb_interface->PeekColor(x, y);
-  });
-}
-
-u32 VideoBackendBase::Video_PeekEFBDepth(u32 x, u32 y)
-{
-  return AsyncRequests::GetInstance()->PushBlockingEvent([&] {
-    INCSTAT(g_stats.this_frame.num_efb_peeks);
-    return g_efb_interface->PeekDepth(x, y);
-  });
 }
 
 u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
