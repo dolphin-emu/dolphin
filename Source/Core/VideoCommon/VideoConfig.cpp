@@ -112,15 +112,6 @@ void VideoConfig::Refresh()
   bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
   bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
-  bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
-  bUseLossless = Config::Get(Config::GFX_USE_LOSSLESS);
-  sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
-  sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
-  sDumpPixelFormat = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
-  sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
-  sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
-  iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
-  frame_dumps_resolution_type = Config::Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE);
   bEnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
   bPreferVSForLinePointExpansion = Config::Get(Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
   bEnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
