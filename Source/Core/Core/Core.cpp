@@ -857,10 +857,11 @@ void RunOnCPUThread(Core::System& system, std::function<void()> function, bool w
 // Called from Renderer::Swap (GPU thread) when a frame is presented to the host screen.
 void Callback_FramePresented(const PresentInfo& present_info)
 {
+  g_perf_metrics.CountFrame();
+
   if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
     return;
 
-  g_perf_metrics.CountFrame();
   s_stop_frame_step.store(true);
 }
 
