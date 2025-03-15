@@ -28,9 +28,10 @@ TimePlayedManager& TimePlayedManager::GetInstance()
   return time_played_manager;
 }
 
-void TimePlayedManager::AddTime(const std::string& game_id, std::chrono::milliseconds time_emulated)
+void TimePlayedManager::AddTime(const std::string& game_id,
+                                const std::chrono::milliseconds time_emulated)
 {
-  std::string filtered_game_id = Common::EscapeFileName(game_id);
+  const std::string filtered_game_id = Common::EscapeFileName(game_id);
   u64 previous_time;
   u64 new_time;
 
@@ -48,7 +49,7 @@ void TimePlayedManager::AddTime(const std::string& game_id, std::chrono::millise
 
 std::chrono::milliseconds TimePlayedManager::GetTimePlayed(const std::string& game_id) const
 {
-  std::string filtered_game_id = Common::EscapeFileName(game_id);
+  const std::string filtered_game_id = Common::EscapeFileName(game_id);
   u64 previous_time;
 
   std::lock_guard guard(m_mutex);
