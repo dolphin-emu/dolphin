@@ -244,7 +244,7 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   *out_base_index = (cursor + vertexBufferSize) / sizeof(u16);
 
   D3D::context->Map(m_buffers[m_current_buffer].Get(), 0, MapType, 0, &map);
-  u8* mappedData = reinterpret_cast<u8*>(map.pData);
+  u8* mappedData = static_cast<u8*>(map.pData);
   if (vertexBufferSize > 0)
     std::memcpy(mappedData + cursor, m_base_buffer_pointer, vertexBufferSize);
   if (indexBufferSize > 0)
