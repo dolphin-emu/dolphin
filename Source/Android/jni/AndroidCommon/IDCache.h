@@ -29,9 +29,8 @@ jmethodID GetGameFileConstructor();
 jclass GetGameFileCacheClass();
 jfieldID GetGameFileCachePointer();
 
-jclass GetLinkedHashMapClass();
-jmethodID GetLinkedHashMapInit();
-jmethodID GetLinkedHashMapPut();
+jclass GetPairClass();
+jmethodID GetPairConstructor();
 
 jclass GetHashMapClass();
 jmethodID GetHashMapInit();
