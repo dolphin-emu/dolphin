@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma_common.h
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -84,6 +83,20 @@ typedef enum {
 				? (state) - 3 \
 				: (state) - 6))
 
+/// Like update_literal(state) but when it is already known that
+/// is_literal_state(state) is true.
+#define update_literal_normal(state) \
+	state = ((state) <= STATE_SHORTREP_LIT_LIT \
+			? STATE_LIT_LIT \
+			: (state) - 3);
+
+/// Like update_literal(state) but when it is already known that
+/// is_literal_state(state) is false.
+#define update_literal_matched(state) \
+	state = ((state) <= STATE_LIT_SHORTREP \
+			? (state) - 3 \
+			: (state) - 6);
+
 /// Indicate that the latest state was a match.
 #define update_match(state) \
 	state = ((state) < LIT_STATES ? STATE_LIT_MATCH : STATE_NONLIT_MATCH)
@@ -112,30 +125,33 @@ typedef enum {
 ///
 /// Match byte is used when the previous LZMA symbol was something else than
 /// a literal (that is, it was some kind of match).
-#define LITERAL_CODER_SIZE 0x300
+#define LITERAL_CODER_SIZE UINT32_C(0x300)
 
 /// Maximum number of literal coders
 #define LITERAL_CODERS_MAX (1 << LZMA_LCLP_MAX)
+
+/// Calculates the literal_mask that literal_subcoder() needs.
+#define literal_mask_calc(lc, lp) \
+	((UINT32_C(0x100) << (lp)) - (UINT32_C(0x100) >> (lc)))
 
 /// Locate the literal coder for the next literal byte. The choice depends on
 ///   - the lowest literal_pos_bits bits of the position of the current
 ///     byte; and
 ///   - the highest literal_context_bits bits of the previous byte.
-#define literal_subcoder(probs, lc, lp_mask, pos, prev_byte) \
-	((probs)[(((pos) & lp_mask) << lc) + ((prev_byte) >> (8 - lc))])
+#define literal_subcoder(probs, lc, literal_mask, pos, prev_byte) \
+	((probs) + UINT32_C(3) * \
+		(((((pos) << 8) + (prev_byte)) & (literal_mask)) << (lc)))
 
 
 static inline void
-literal_init(probability (*probs)[LITERAL_CODER_SIZE],
-		uint32_t lc, uint32_t lp)
+literal_init(probability *probs, uint32_t lc, uint32_t lp)
 {
 	assert(lc + lp <= LZMA_LCLP_MAX);
 
-	const uint32_t coders = 1U << (lc + lp);
+	const size_t coders = LITERAL_CODER_SIZE << (lc + lp);
 
-	for (uint32_t i = 0; i < coders; ++i)
-		for (uint32_t j = 0; j < LITERAL_CODER_SIZE; ++j)
-			bit_reset(probs[i][j]);
+	for (size_t i = 0; i < coders; ++i)
+		bit_reset(probs[i]);
 
 	return;
 }

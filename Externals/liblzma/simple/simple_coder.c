@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       simple_coder.c
@@ -7,9 +9,6 @@
 /// in equals the number of bytes out.
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -118,7 +117,15 @@ simple_code(void *coder_ptr, const lzma_allocator *allocator,
 		// coder->pos and coder->size yet. This way the coder can be
 		// restarted if the next filter in the chain returns e.g.
 		// LZMA_MEM_ERROR.
-		memcpy(out + *out_pos, coder->buffer + coder->pos, buf_avail);
+		//
+		// Do the memcpy() conditionally because out can be NULL
+		// (in which case buf_avail is always 0). Calling memcpy()
+		// with a null-pointer is undefined even if the third
+		// argument is 0.
+		if (buf_avail > 0)
+			memcpy(out + *out_pos, coder->buffer + coder->pos,
+					buf_avail);
+
 		*out_pos += buf_avail;
 
 		// Copy/Encode/Decode more data to out[].
@@ -131,9 +138,11 @@ simple_code(void *coder_ptr, const lzma_allocator *allocator,
 				return ret;
 		}
 
-		// Filter out[].
+		// Filter out[] unless there is nothing to filter.
+		// This way we avoid null pointer + 0 (undefined behavior)
+		// when out == NULL.
 		const size_t size = *out_pos - out_start;
-		const size_t filtered = call_filter(
+		const size_t filtered = size == 0 ? 0 : call_filter(
 				coder, out + out_start, size);
 
 		const size_t unfiltered = size - filtered;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       index.c
@@ -5,11 +7,9 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "common.h"
 #include "index.h"
 #include "stream_flags_common.h"
 
@@ -105,7 +105,7 @@ typedef struct {
 
 
 typedef struct {
-	/// Every index_stream is a node in the tree of Sreams.
+	/// Every index_stream is a node in the tree of Streams.
 	index_tree_node node;
 
 	/// Number of this Stream (first one is 1)
@@ -166,7 +166,7 @@ struct lzma_index_s {
 	lzma_vli index_list_size;
 
 	/// How many Records to allocate at once in lzma_index_append().
-	/// This defaults to INDEX_GROUP_SIZE but can be overriden with
+	/// This defaults to INDEX_GROUP_SIZE but can be overridden with
 	/// lzma_index_prealloc().
 	size_t prealloc;
 
@@ -656,6 +656,16 @@ lzma_index_append(lzma_index *i, const lzma_allocator *allocator,
 	const uint32_t index_list_size_add = lzma_vli_size(unpadded_size)
 			+ lzma_vli_size(uncompressed_size);
 
+	// Check that uncompressed size will not overflow.
+	if (uncompressed_base + uncompressed_size > LZMA_VLI_MAX)
+		return LZMA_DATA_ERROR;
+
+	// Check that the new unpadded sum will not overflow. This is
+	// checked again in index_file_size(), but the unpadded sum is
+	// passed to vli_ceil4() which expects a valid lzma_vli value.
+	if (compressed_base + unpadded_size > UNPADDED_SIZE_MAX)
+		return LZMA_DATA_ERROR;
+
 	// Check that the file size will stay within limits.
 	if (index_file_size(s->node.compressed_base,
 			compressed_base + unpadded_size, s->record_count + 1,
@@ -767,6 +777,9 @@ extern LZMA_API(lzma_ret)
 lzma_index_cat(lzma_index *restrict dest, lzma_index *restrict src,
 		const lzma_allocator *allocator)
 {
+	if (dest == NULL || src == NULL)
+		return LZMA_PROG_ERROR;
+
 	const lzma_vli dest_file_size = lzma_index_file_size(dest);
 
 	// Check that we don't exceed the file size limits.
@@ -825,8 +838,8 @@ lzma_index_cat(lzma_index *restrict dest, lzma_index *restrict src,
 				s->groups.root = &newg->node;
 			}
 
-			if (s->groups.rightmost == &g->node)
-				s->groups.rightmost = &newg->node;
+			assert(s->groups.rightmost == &g->node);
+			s->groups.rightmost = &newg->node;
 
 			lzma_free(g, allocator);
 
@@ -834,6 +847,11 @@ lzma_index_cat(lzma_index *restrict dest, lzma_index *restrict src,
 			// newg == (void *)&newg->node.
 		}
 	}
+
+	// dest->checks includes the check types of all except the last Stream
+	// in dest. Set the bit for the check type of the last Stream now so
+	// that it won't get lost when Stream(s) from src are appended to dest.
+	dest->checks = lzma_index_checks(dest);
 
 	// Add all the Streams from src to dest. Update the base offsets
 	// of each Stream from src.
@@ -851,7 +869,7 @@ lzma_index_cat(lzma_index *restrict dest, lzma_index *restrict src,
 	dest->total_size += src->total_size;
 	dest->record_count += src->record_count;
 	dest->index_list_size += src->index_list_size;
-	dest->checks = lzma_index_checks(dest) | src->checks;
+	dest->checks |= src->checks;
 
 	// There's nothing else left in src than the base structure.
 	lzma_free(src, allocator);
@@ -1226,7 +1244,7 @@ lzma_index_iter_locate(lzma_index_iter *iter, lzma_vli target)
 
 	// Use binary search to locate the exact Record. It is the first
 	// Record whose uncompressed_sum is greater than target.
-	// This is because we want the rightmost Record that fullfills the
+	// This is because we want the rightmost Record that fulfills the
 	// search criterion. It is possible that there are empty Blocks;
 	// we don't want to return them.
 	size_t left = 0;
