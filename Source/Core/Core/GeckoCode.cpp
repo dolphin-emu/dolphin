@@ -50,7 +50,7 @@ static std::vector<GeckoCode> s_active_codes;
 static std::vector<GeckoCode> s_synced_codes;
 static std::mutex s_active_codes_lock;
 
-void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_id)
+void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_id, u16 revision)
 {
   std::lock_guard lk(s_active_codes_lock);
 
@@ -60,9 +60,9 @@ void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_i
     s_active_codes.reserve(gcodes.size());
 
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [&game_id](const GeckoCode& code) {
-                   return code.enabled &&
-                          AchievementManager::GetInstance().CheckApprovedGeckoCode(code, game_id);
+                 [&game_id, &revision](const GeckoCode& code) {
+                   return code.enabled && AchievementManager::GetInstance().CheckApprovedGeckoCode(
+                                              code, game_id, revision);
                  });
   }
   s_active_codes.shrink_to_fit();

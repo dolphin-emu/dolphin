@@ -28,6 +28,7 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
@@ -386,8 +387,8 @@ bool AchievementManager::IsHardcoreModeActive() const
 }
 
 template <typename T>
-void AchievementManager::FilterApprovedIni(std::vector<T>& codes,
-                                           const std::string& game_ini_id) const
+void AchievementManager::FilterApprovedIni(std::vector<T>& codes, const std::string& game_id,
+                                           u16 revision) const
 {
   if (codes.empty())
   {
@@ -409,13 +410,14 @@ void AchievementManager::FilterApprovedIni(std::vector<T>& codes,
 
   for (auto& code : codes)
   {
-    if (code.enabled && !CheckApprovedCode(code, game_ini_id))
+    if (code.enabled && !CheckApprovedCode(code, game_id, revision))
       code.enabled = false;
   }
 }
 
 template <typename T>
-bool AchievementManager::CheckApprovedCode(const T& code, const std::string& game_ini_id) const
+bool AchievementManager::CheckApprovedCode(const T& code, const std::string& game_id,
+                                           u16 revision) const
 {
   if (!IsHardcoreModeActive())
     return true;
@@ -424,22 +426,22 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
   if (!m_ini_root->is<picojson::value::object>())
     return false;
 
-  const bool known_id = m_ini_root->contains(game_ini_id);
-
   INFO_LOG_FMT(ACHIEVEMENTS, "Verifying code {}", code.name);
 
   bool verified = false;
 
-  if (known_id)
-  {
-    auto digest = GetCodeHash(code);
+  auto hash = Common::SHA1::DigestToString(GetCodeHash(code));
 
-    verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+  {
+    auto config = filename.substr(0, filename.length() - 4);
+    if (m_ini_root->contains(config) && m_ini_root->get(config).contains(hash))
+      verified = true;
   }
 
   if (!verified)
   {
-    OSD::AddMessage(fmt::format("Failed to verify code {} from file {}.", code.name, game_ini_id),
+    OSD::AddMessage(fmt::format("Failed to verify code {} for game ID {}.", code.name, game_id),
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     OSD::AddMessage("Disable hardcore mode to enable this code.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
@@ -487,33 +489,33 @@ Common::SHA1::Digest AchievementManager::GetCodeHash(const ActionReplay::ARCode&
 }
 
 void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
-                                               const std::string& game_ini_id) const
+                                               const std::string& game_id, u16 revision) const
 {
-  FilterApprovedIni(patches, game_ini_id);
+  FilterApprovedIni(patches, game_id, revision);
 }
 
 void AchievementManager::FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
-                                                  const std::string& game_ini_id) const
+                                                  const std::string& game_id, u16 revision) const
 {
-  FilterApprovedIni(codes, game_ini_id);
+  FilterApprovedIni(codes, game_id, revision);
 }
 
 void AchievementManager::FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
-                                               const std::string& game_ini_id) const
+                                               const std::string& game_id, u16 revision) const
 {
-  FilterApprovedIni(codes, game_ini_id);
+  FilterApprovedIni(codes, game_id, revision);
 }
 
 bool AchievementManager::CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
-                                                const std::string& game_ini_id) const
+                                                const std::string& game_id, u16 revision) const
 {
-  return CheckApprovedCode(code, game_ini_id);
+  return CheckApprovedCode(code, game_id, revision);
 }
 
 bool AchievementManager::CheckApprovedARCode(const ActionReplay::ARCode& code,
-                                             const std::string& game_ini_id) const
+                                             const std::string& game_id, u16 revision) const
 {
-  return CheckApprovedCode(code, game_ini_id);
+  return CheckApprovedCode(code, game_id, revision);
 }
 
 void AchievementManager::SetSpectatorMode()
