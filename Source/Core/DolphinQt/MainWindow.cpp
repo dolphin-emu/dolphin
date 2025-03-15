@@ -218,7 +218,8 @@ static std::vector<std::string> StringListToStdVector(QStringList list)
 }
 
 MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boot_parameters,
-                       const std::string& movie_path)
+                       const std::string& movie_path, const bool netplay_join,
+                       const std::optional<UICommon::GameFile> netplay_host)
     : QMainWindow(nullptr), m_system(system)
 {
   setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
@@ -330,7 +331,15 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
 
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 
-  if (m_pending_boot != nullptr)
+  if (netplay_join)
+  {
+    NetPlayJoin();
+  }
+  else if (netplay_host)
+  {
+    NetPlayHost(netplay_host.value());
+  }
+  else if (m_pending_boot != nullptr)
   {
     StartGame(std::move(m_pending_boot));
     m_pending_boot.reset();
