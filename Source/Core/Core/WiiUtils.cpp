@@ -43,6 +43,7 @@
 #include "Core/SysConf.h"
 #include "Core/System.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeDisc.h"
@@ -743,10 +744,9 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
     return UpdateResult::RegionMismatch;
 
   const auto partitions = m_volume->GetPartitions();
-  const auto update_partition =
-      std::find_if(partitions.cbegin(), partitions.cend(), [&](const DiscIO::Partition& partition) {
-        return m_volume->GetPartitionType(partition) == 1u;
-      });
+  const auto update_partition = std::ranges::find(
+      partitions, DiscIO::PARTITION_UPDATE,
+      [&](const DiscIO::Partition& partition) { return m_volume->GetPartitionType(partition); });
 
   if (update_partition == partitions.cend())
   {
