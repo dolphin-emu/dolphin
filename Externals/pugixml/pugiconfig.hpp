@@ -1,7 +1,7 @@
 /**
- * pugixml parser - version 1.12
+ * pugixml parser - version 1.15
  * --------------------------------------------------------
- * Copyright (C) 2006-2022, by Arseny Kapoulkine (arseny.kapoulkine@gmail.com)
+ * Copyright (C) 2006-2025, by Arseny Kapoulkine (arseny.kapoulkine@gmail.com)
  * Report bugs and download new versions at https://pugixml.org/
  *
  * This library is distributed under the MIT License. See notice at the end
@@ -46,13 +46,16 @@
 // Uncomment this to switch to header-only version
 // #define PUGIXML_HEADER_ONLY
 
-// Uncomment this to enable long long support
+// Uncomment this to enable long long support (usually enabled automatically)
 #define PUGIXML_HAS_LONG_LONG
+
+// Uncomment this to enable support for std::string_view (usually enabled automatically)
+// #define PUGIXML_HAS_STRING_VIEW
 
 #endif
 
 /**
- * Copyright (c) 2006-2022 Arseny Kapoulkine
+ * Copyright (c) 2006-2025 Arseny Kapoulkine
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
