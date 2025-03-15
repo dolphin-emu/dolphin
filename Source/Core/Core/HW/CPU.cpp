@@ -75,10 +75,10 @@ void CPUManager::StartTimePlayedTimer()
   // Use a clock that will appropriately ignore suspended system time.
   Common::SteadyAwakeClock timer;
   auto prev_time = timer.now();
+  auto& time_played_manager = TimePlayedManager::GetInstance();
 
   while (true)
   {
-    auto& time_played_manager = TimePlayedManager::GetInstance();
     auto curr_time = timer.now();
 
     // Check that emulation is not paused
