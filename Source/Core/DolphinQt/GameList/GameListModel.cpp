@@ -23,7 +23,8 @@
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
-GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
+GameListModel::GameListModel(QObject* parent)
+    : QAbstractTableModel(parent), m_time_played_manager(TimePlayedManager::GetInstance())
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::AddGame);
   connect(&m_tracker, &GameTracker::GameUpdated, this, &GameListModel::UpdateGame);
@@ -195,7 +196,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole)
     {
       const std::string game_id = game.GetGameID();
-      const std::chrono::milliseconds total_time = m_timer.GetTimePlayed(game_id);
+      const std::chrono::milliseconds total_time = m_time_played_manager.GetTimePlayed(game_id);
       const auto total_minutes = std::chrono::duration_cast<std::chrono::minutes>(total_time);
       const auto total_hours = std::chrono::duration_cast<std::chrono::hours>(total_time);
 
@@ -207,7 +208,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == SORT_ROLE)
     {
       const std::string game_id = game.GetGameID();
-      return static_cast<qlonglong>(m_timer.GetTimePlayed(game_id).count());
+      return static_cast<qlonglong>(m_time_played_manager.GetTimePlayed(game_id).count());
     }
     break;
   case Column::Tags:
@@ -512,6 +513,6 @@ void GameListModel::OnEmulationStateChanged(Core::State state)
 {
   if (state == Core::State::Uninitialized)
   {
-    m_timer.Reload();
+    m_time_played_manager.Reload();
   }
 }

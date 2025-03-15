@@ -98,7 +98,7 @@ private:
   GameTracker m_tracker;
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
   Core::TitleDatabase m_title_database;
-  TimePlayed m_timer;
+  TimePlayedManager& m_time_played_manager;
   QString m_term;
   float m_scale = 1.0;
 };
