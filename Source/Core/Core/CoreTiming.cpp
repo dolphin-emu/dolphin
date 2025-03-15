@@ -373,7 +373,16 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 {
   const TimePoint time = Clock::now();
 
-  std::this_thread::sleep_until(time_point);
+  if (time >= time_point)
+    return;
+
+  // TODO: expose a setting to choose between the two
+  constexpr bool use_precision_timer = true;
+
+  if (use_precision_timer)
+    m_precision_timer.SleepUntil(time_point);
+  else
+    std::this_thread::sleep_until(time_point);
 
   if (Core::IsCPUThread())
   {
@@ -416,15 +425,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
   m_throttle_disable_vi_int = 0.0 < speed && m_throttle_deadline < vi_deadline;
 
-  // Only sleep if we are behind the deadline
-  if (time < m_throttle_deadline)
-  {
-    std::this_thread::sleep_until(m_throttle_deadline);
-
-    // Count amount of time sleeping for analytics
-    const TimePoint time_after_sleep = Clock::now();
-    g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
-  }
+  SleepUntil(m_throttle_deadline);
 }
 
 void CoreTimingManager::ResetThrottle(s64 cycle)
