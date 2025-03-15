@@ -132,6 +132,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         if (NativeLibrary.IsGameMetadataValid())
             title = NativeLibrary.GetCurrentTitleDescription()
 
+        if (Build.VERSION.SDK_INT >= 24) {
+          getWindow().setSustainedPerformanceMode(true)
+        }
+
         if (skylanderSlots.isEmpty()) {
             for (i in 0..7) {
                 skylanderSlots.add(SkylanderSlot(getString(R.string.skylander_slot, i + 1), i))
