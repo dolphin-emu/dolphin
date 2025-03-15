@@ -1010,6 +1010,27 @@ class SettingsFragmentPresenter(
                 false
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_VI_OVERCLOCK_ENABLE,
+                R.string.vi_overclock_enable,
+                R.string.vi_overclock_enable_description
+            )
+        )
+        sl.add(
+            PercentSliderSetting(
+                context,
+                FloatSetting.MAIN_VI_OVERCLOCK,
+                R.string.vi_overclock_title,
+                R.string.vi_overclock_title_description,
+                0f,
+                400f,
+                "%",
+                1f,
+                false
+            )
+        )
 
         val mem1Size = ScaledIntSetting(1024 * 1024, IntSetting.MAIN_MEM1_SIZE)
         val mem2Size = ScaledIntSetting(1024 * 1024, IntSetting.MAIN_MEM2_SIZE)
