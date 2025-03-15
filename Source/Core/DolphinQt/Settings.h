@@ -197,7 +197,6 @@ signals:
   void CursorVisibilityChanged();
   void LockCursorChanged();
   void KeepWindowOnTopChanged(bool top);
-  void VolumeChanged(int volume);
   void NANDRefresh();
   void RegistersVisibilityChanged(bool visible);
   void ThreadsVisibilityChanged(bool visible);
