@@ -37,7 +37,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   connect(qApp, &QApplication::aboutToQuit, this, [this] {
     m_processing_halted = true;
-    m_load_thread.Shutdown(true);
+    m_load_thread.StopAndCancel();
   });
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);

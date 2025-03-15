@@ -69,9 +69,9 @@ void CustomAssetLoader::Init()
   });
 }
 
-void CustomAssetLoader ::Shutdown()
+void CustomAssetLoader::Shutdown()
 {
-  m_asset_load_thread.Shutdown(true);
+  m_asset_load_thread.StopAndCancel();
 
   m_asset_monitor_thread_shutdown.Set();
   m_asset_monitor_thread.join();
