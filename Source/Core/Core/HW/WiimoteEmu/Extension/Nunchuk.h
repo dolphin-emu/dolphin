@@ -116,6 +116,8 @@ public:
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
+  using DesiredState = DataFormat;
+
   struct CalibrationData
   {
     using StickType = DataFormat::StickType;
