@@ -286,7 +286,7 @@ void CPUManager::StepOpcode(Common::Event* event)
 }
 
 // Requires m_state_change_lock
-bool CPUManager::SetStateLocked(State s)
+bool CPUManager::SetStateLocked(const State s)
 {
   if (m_state == State::PowerDown)
     return false;
@@ -306,7 +306,7 @@ bool CPUManager::SetStateLocked(State s)
   return true;
 }
 
-void CPUManager::SetStepping(bool stepping)
+void CPUManager::SetStepping(const bool stepping)
 {
   std::lock_guard stepping_lock(m_stepping_lock);
   std::unique_lock state_lock(m_state_change_lock);
