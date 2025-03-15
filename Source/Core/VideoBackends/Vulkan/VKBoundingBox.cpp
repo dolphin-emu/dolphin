@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/VKDebug.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -64,6 +65,8 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
   m_readback_buffer->FlushGPUCache(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
+  EmitDebugMarker(VkDebugCommand::BoundingBoxRead);
+
   // Wait until these commands complete.
   VKGfx::GetInstance()->ExecuteCommandBuffer(false, true);
 
@@ -98,6 +101,8 @@ void VKBoundingBox::Write(u32 index, std::span<const BBoxType> values)
       g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
       VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+  EmitDebugMarker(VkDebugCommand::BoundingBoxWrite);
 }
 
 bool VKBoundingBox::CreateGPUBuffer()

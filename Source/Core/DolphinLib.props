@@ -1295,6 +1295,7 @@
     <ClCompile Include="VideoBackends\Vulkan\VKTexture.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKVertexFormat.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKVertexManager.cpp" />
+    <ClCompile Include="VideoBackends\Vulkan\VKDebug.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VulkanLoader.cpp" />
     <ClCompile Include="VideoCommon\AbstractFramebuffer.cpp" />
