@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Common/IniFile.h"
 
 class TimePlayedManager
@@ -26,7 +27,7 @@ public:
 
   std::chrono::milliseconds GetTimePlayed(const std::string& game_id) const;
 
-  void Reload();
+  Common::HookableEvent<const std::string&, std::chrono::milliseconds> update_event;
 
 private:
   TimePlayedManager();
