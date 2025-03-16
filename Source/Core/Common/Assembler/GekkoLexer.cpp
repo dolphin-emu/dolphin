@@ -616,7 +616,7 @@ const Lexer& Lexer::Step() const
 
 TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invalid_region) const
 {
-  // The open quote has alread been matched
+  // The open quote has already been matched
   const size_t string_start = m_scan_pos.index - 1;
   TokenType token_type = TokenType::StringLit;
 

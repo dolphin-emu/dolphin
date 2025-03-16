@@ -2404,7 +2404,7 @@ static void InitExtensionList(GLContext* context)
     case 100:
       break;
     }
-    // So we can easily determine if we are running dekstop GL
+    // So we can easily determine if we are running desktop GL
     s_extension_list["VERSION_GL"] = true;
   }
 
