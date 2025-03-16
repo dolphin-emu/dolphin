@@ -9,6 +9,8 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.InputDetector
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting
@@ -35,6 +37,12 @@ class MotionAlertDialog(
         running = true
         inputDetector.start(setting.controller.getDefaultDevice(), allDevices)
         periodicUpdate()
+        if (running == false) {
+            MaterialAlertDialogBuilder(activity)
+                .setMessage(R.string.input_binding_disconnected_device)
+                .setPositiveButton(R.string.ok, null)
+                .show()
+        }
     }
 
     override fun onStop() {
