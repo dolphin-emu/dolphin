@@ -335,29 +335,6 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
   return device != nullptr && device->IsValid();
 }
 
-// Wait for inputs on supplied devices.
-// Inputs are only considered if they are first seen in a neutral state.
-// This is useful for crazy flightsticks that have certain buttons that are always held down
-// and also properly handles detection when using "FullAnalogSurface" inputs.
-// Multiple detections are returned until the various timeouts have been reached.
-auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings,
-                                  std::chrono::milliseconds initial_wait,
-                                  std::chrono::milliseconds confirmation_wait,
-                                  std::chrono::milliseconds maximum_wait) const
-    -> std::vector<InputDetection>
-{
-  InputDetector input_detector;
-  input_detector.Start(*this, device_strings);
-
-  while (!input_detector.IsComplete())
-  {
-    Common::SleepCurrentThread(10);
-    input_detector.Update(initial_wait, confirmation_wait, maximum_wait);
-  }
-
-  return input_detector.TakeResults();
-}
-
 struct InputDetector::Impl
 {
   struct InputState
