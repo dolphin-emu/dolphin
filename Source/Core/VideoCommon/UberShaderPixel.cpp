@@ -921,6 +921,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   out.Write("  int3 tevcoord = int3(0, 0, 0);\n"
             "  State s;\n"
             "  s.TexColor = int4(0, 0, 0, 0);\n"
+            "  s.RawTexColor = int4(0, 0, 0, 0);\n"
             "  s.AlphaBump = 0;\n"
             "\n");
   for (int i = 0; i < 4; i++)
