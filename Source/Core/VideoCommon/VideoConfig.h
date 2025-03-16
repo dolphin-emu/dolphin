@@ -258,19 +258,9 @@ struct VideoConfig final
   bool bCacheHiresTextures = false;
   bool bDumpEFBTarget = false;
   bool bDumpXFBTarget = false;
-  bool bDumpFramesAsImages = false;
-  bool bUseLossless = false;
-  std::string sDumpCodec;
-  std::string sDumpPixelFormat;
-  std::string sDumpEncoder;
-  std::string sDumpFormat;
-  std::string sDumpPath;
-  FrameDumpResolutionType frame_dumps_resolution_type =
-      FrameDumpResolutionType::XFBAspectRatioCorrectedResolution;
   bool bBorderlessFullscreen = false;
   bool bEnableGPUTextureDecoding = false;
   bool bPreferVSForLinePointExpansion = false;
-  int iBitrateKbps = 0;
   bool bGraphicMods = false;
   std::optional<GraphicsModGroupConfig> graphics_mod_config;
 

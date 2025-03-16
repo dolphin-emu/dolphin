@@ -229,7 +229,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
   if (g_frame_dumper->IsFrameDumping() && m_xfb_entry)
   {
     MathUtil::Rectangle<int> target_rect;
-    switch (g_ActiveConfig.frame_dumps_resolution_type)
+    switch (Config::Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE))
     {
     default:
     case FrameDumpResolutionType::WindowResolution:
