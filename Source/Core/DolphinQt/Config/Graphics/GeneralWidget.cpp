@@ -165,7 +165,6 @@ void GeneralWidget::ConnectWidgets()
   // Video Backend
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &GeneralWidget::BackendWarning);
   connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](int index) {
-    g_Config.iAdapter = index;
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
@@ -369,7 +368,10 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 
   const bool supports_adapters = !adapters.empty();
 
-  m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
+  const int adapter_index = Config::Get(Config::GFX_ADAPTER);
+  if (adapter_index < m_adapter_combo->count())
+    m_adapter_combo->setCurrentIndex(adapter_index);
+
   m_adapter_combo->setEnabled(supports_adapters &&
                               Core::IsUninitialized(Core::System::GetInstance()));
 
