@@ -49,7 +49,7 @@ In most cases, clang-format can and **should** be used to automatically reformat
 
 - To run clang-format on all staged files:
   ```
-  git diff --cached --name-only | egrep '[.](cpp|h|mm)$' | xargs clang-format -i
+  git diff --cached --name-only | grep -E '[.](cpp|h|mm)$' | xargs -I {} clang-format -i {}
   ```
 
 - Formatting issues can be checked for before committing with a lint script that is included with the codebase. To enable it as a pre-commit hook (assuming you are in the repository root):
