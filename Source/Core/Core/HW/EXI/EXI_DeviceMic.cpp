@@ -254,9 +254,9 @@ bool CEXIMic::IsPresent() const
   return true;
 }
 
-void CEXIMic::SetCS(int cs)
+void CEXIMic::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
-  if (cs)  // not-selected to selected
+  if (!was_selected && is_selected)
     m_position = 0;
   // Doesn't appear to do anything we care about
   // else if (command == cmdReset)

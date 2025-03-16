@@ -47,6 +47,7 @@ private:
   bool SetGCIFolder(ExpansionInterface::Slot slot, const QString& path);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void SetAGPRom(ExpansionInterface::Slot slot, const QString& filename);
+  void BrowseSDCard(ExpansionInterface::Slot slot);
   void BrowseGBABios();
   void BrowseGBARom(size_t index);
   void SaveRomPathChanged();

@@ -446,4 +446,48 @@ u32 ComputeCRC32(std::string_view data)
 {
   return ComputeCRC32(reinterpret_cast<const u8*>(data.data()), data.size());
 }
+
+u8 HashCrc7(const u8* ptr, size_t length)
+{
+  // Used for SD cards
+  constexpr u8 CRC_POLYNOMIAL = 0x09;
+
+  u8 result = 0;
+  for (size_t i = 0; i < length; i++)
+  {
+    // TODO: Cache in a table
+    result ^= ptr[i];
+    for (auto bit = 0; bit < 8; bit++)
+    {
+      if (result & 0x80)
+        result = (result << 1) ^ (CRC_POLYNOMIAL << 1);
+      else
+        result = result << 1;
+    }
+  }
+
+  return result >> 1;
+}
+
+u16 HashCrc16(const u8* ptr, size_t length)
+{
+  // Specifically CRC-16-CCITT, used for SD cards
+  constexpr u16 CRC_POLYNOMIAL = 0x1021;
+
+  u16 result = 0;
+  for (size_t i = 0; i < length; i++)
+  {
+    // TODO: Cache in a table
+    result ^= (ptr[i] << 8);
+    for (auto bit = 0; bit < 8; bit++)
+    {
+      if (result & 0x8000)
+        result = (result << 1) ^ CRC_POLYNOMIAL;
+      else
+        result = result << 1;
+    }
+  }
+
+  return result;
+}
 }  // namespace Common

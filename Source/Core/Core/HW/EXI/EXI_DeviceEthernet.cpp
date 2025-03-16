@@ -103,9 +103,9 @@ CEXIETHERNET::~CEXIETHERNET()
   m_network_interface->Deactivate();
 }
 
-void CEXIETHERNET::SetCS(int cs)
+void CEXIETHERNET::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
-  if (cs)
+  if (!was_selected && is_selected)
   {
     // Invalidate the previous transfer
     transfer.valid = false;
