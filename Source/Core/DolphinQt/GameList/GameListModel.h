@@ -12,7 +12,6 @@
 #include <QStringList>
 #include <QVariant>
 
-#include "Core/Core.h"
 #include "Core/TimePlayed.h"
 #include "Core/TitleDatabase.h"
 
@@ -90,8 +89,6 @@ private:
   // Index in m_games, or -1 if it isn't found
   int FindGameIndex(const std::string& path) const;
 
-  void OnEmulationStateChanged(Core::State state);
-
   QStringList m_tag_list;
   QMap<QString, QVariant> m_game_tags;
 
@@ -99,6 +96,7 @@ private:
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
   Core::TitleDatabase m_title_database;
   TimePlayedManager& m_time_played_manager;
+  Common::EventHook m_time_played_update_event;
   QString m_term;
   float m_scale = 1.0;
 };

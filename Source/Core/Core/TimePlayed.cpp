@@ -9,13 +9,15 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/HookableEvent.h"
 #include "Common/IniFile.h"
 #include "Common/NandPaths.h"
 
 TimePlayedManager::TimePlayedManager()
     : m_ini_path(File::GetUserPath(D_CONFIG_IDX) + "TimePlayed.ini")
 {
-  Reload();
+  m_ini.Load(m_ini_path);
+  m_time_list = m_ini.GetOrCreateSection("TimePlayed");
 }
 
 TimePlayedManager::~TimePlayedManager() = default;
@@ -30,11 +32,18 @@ void TimePlayedManager::AddTime(const std::string& game_id, std::chrono::millise
 {
   std::string filtered_game_id = Common::EscapeFileName(game_id);
   u64 previous_time;
+  u64 new_time;
 
-  std::lock_guard guard(m_mutex);
-  m_time_list->Get(filtered_game_id, &previous_time);
-  m_time_list->Set(filtered_game_id, previous_time + static_cast<u64>(time_emulated.count()));
-  m_ini.Save(m_ini_path);
+  {
+    std::lock_guard guard(m_mutex);
+
+    m_time_list->Get(filtered_game_id, &previous_time);
+    new_time = previous_time + static_cast<u64>(time_emulated.count());
+    m_time_list->Set(filtered_game_id, new_time);
+    m_ini.Save(m_ini_path);
+  }
+
+  UpdateEvent::Trigger(filtered_game_id, static_cast<std::chrono::milliseconds>(new_time));
 }
 
 std::chrono::milliseconds TimePlayedManager::GetTimePlayed(const std::string& game_id) const
@@ -45,11 +54,4 @@ std::chrono::milliseconds TimePlayedManager::GetTimePlayed(const std::string& ga
   std::lock_guard guard(m_mutex);
   m_time_list->Get(filtered_game_id, &previous_time);
   return std::chrono::milliseconds(previous_time);
-}
-
-void TimePlayedManager::Reload()
-{
-  std::lock_guard guard(m_mutex);
-  m_ini.Load(m_ini_path);
-  m_time_list = m_ini.GetOrCreateSection("TimePlayed");
 }
