@@ -161,7 +161,7 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
   // set NPC to saved offset and resume
   ppc_state.npc = SRR0(ppc_state);
 
-  PowerPC::MSRUpdated(ppc_state);
+  interpreter.m_system.GetPowerPC().MSRUpdated();
 
   interpreter.m_end_block = true;
 }
