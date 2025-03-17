@@ -73,17 +73,17 @@ namespace Common
 #define PPCLSH 21
 #define PPCIDX2SH 1
 
-#define PPCGETIDX(x) (((x)&PPCIDXMASK) >> PPCIDXSH)
-#define PPCGETD(x) (((x)&PPCDMASK) >> PPCDSH)
-#define PPCGETA(x) (((x)&PPCAMASK) >> PPCASH)
-#define PPCGETB(x) (((x)&PPCBMASK) >> PPCBSH)
-#define PPCGETC(x) (((x)&PPCCMASK) >> PPCCSH)
-#define PPCGETM(x) (((x)&PPCMMASK) >> PPCMSH)
-#define PPCGETCRD(x) (((x)&PPCCRDMASK) >> PPCCRDSH)
-#define PPCGETCRA(x) (((x)&PPCCRAMASK) >> PPCCRASH)
-#define PPCGETL(x) (((x)&PPCLMASK) >> PPCLSH)
-#define PPCGETIDX2(x) (((x)&PPCIDX2MASK) >> PPCIDX2SH)
-#define PPCGETSTRM(x) (((x)&PPCSTRM) >> PPCDSH)
+#define PPCGETIDX(x) (((x) & PPCIDXMASK) >> PPCIDXSH)
+#define PPCGETD(x) (((x) & PPCDMASK) >> PPCDSH)
+#define PPCGETA(x) (((x) & PPCAMASK) >> PPCASH)
+#define PPCGETB(x) (((x) & PPCBMASK) >> PPCBSH)
+#define PPCGETC(x) (((x) & PPCCMASK) >> PPCCSH)
+#define PPCGETM(x) (((x) & PPCMMASK) >> PPCMSH)
+#define PPCGETCRD(x) (((x) & PPCCRDMASK) >> PPCCRDSH)
+#define PPCGETCRA(x) (((x) & PPCCRAMASK) >> PPCCRASH)
+#define PPCGETL(x) (((x) & PPCLMASK) >> PPCLSH)
+#define PPCGETIDX2(x) (((x) & PPCIDX2MASK) >> PPCIDX2SH)
+#define PPCGETSTRM(x) (((x) & PPCSTRM) >> PPCDSH)
 
 constexpr std::array<const char*, 32> trap_condition{
     nullptr, "lgt",   "llt",   nullptr, "eq",    "lge",   "lle",   nullptr,
