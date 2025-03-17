@@ -79,6 +79,8 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard:        Latest
+StatementAttributeLikeMacros:
+  - emit
 TabWidth:        2
 UseTab:          Never
 ---
@@ -93,4 +95,3 @@ ObjCSpaceBeforeProtocolList: true
 BraceWrapping:
   AfterObjCDeclaration: true
 ...
-
