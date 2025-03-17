@@ -161,8 +161,8 @@ public:
   // May be used from any thread.
   void SleepUntil(TimePoint time_point);
 
-  TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
-  bool GetVISkip() const;                           // Used By VideoInterface
+  // Used by VideoInterface
+  bool GetVISkip() const;
 
   bool UseSyncOnSkipIdle() const;
 

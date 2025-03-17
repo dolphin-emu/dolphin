@@ -26,10 +26,6 @@ class System;
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
-// Returns the latest emulation speed (1 is full speed) (swings a lot)
-double GetActualEmulationSpeed();
-
-void Callback_FramePresented(double actual_emulation_speed = 1.0);
 void Callback_NewField(Core::System& system);
 
 enum class State

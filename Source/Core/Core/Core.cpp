@@ -29,21 +29,17 @@
 #include "Common/FPURoundMode.h"
 #include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
-#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CPUThreadConfigCallback.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -92,7 +88,6 @@
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoEvents.h"
 
@@ -106,7 +101,6 @@ static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
 static std::thread s_cpu_thread;
 static bool s_is_throttler_temp_disabled = false;
-static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
 
@@ -117,6 +111,8 @@ static std::atomic<State> s_state = State::Uninitialized;
 #ifdef USE_MEMORYWATCHER
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
+
+void Callback_FramePresented(const PresentInfo& present_info);
 
 struct HostJob
 {
@@ -134,16 +130,8 @@ static thread_local bool tls_is_host_thread = false;
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi);
 
-static Common::EventHook s_frame_presented = AfterPresentEvent::Register(
-    [](auto& present_info) {
-      const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
-      // The denominator should always be > 0 but if it's not, just return 1
-      const double last_speed = last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
-
-      if (present_info.reason != PresentInfo::PresentReason::VideoInterfaceDuplicate)
-        Core::Callback_FramePresented(last_speed);
-    },
-    "Core Frame Presented");
+static Common::EventHook s_frame_presented =
+    AfterPresentEvent::Register(&Core::Callback_FramePresented, "Core Frame Presented");
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -153,11 +141,6 @@ bool GetIsThrottlerTempDisabled()
 void SetIsThrottlerTempDisabled(bool disable)
 {
   s_is_throttler_temp_disabled = disable;
-}
-
-double GetActualEmulationSpeed()
-{
-  return s_last_actual_emulation_speed;
 }
 
 void FrameUpdateOnCPUThread()
@@ -317,8 +300,6 @@ void Stop(Core::System& system)  // - Hammertime!
 
     system.GetFifo().ExitGpuLoop();
   }
-
-  s_last_actual_emulation_speed = 1.0;
 }
 
 void DeclareAsCPUThread()
@@ -873,13 +854,13 @@ void RunOnCPUThread(Core::System& system, std::function<void()> function, bool w
 
 // --- Callbacks for backends / engine ---
 
-// Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
-// frame is presented to the host screen
-void Callback_FramePresented(double actual_emulation_speed)
+// Called from Renderer::Swap (GPU thread) when a frame is presented to the host screen.
+void Callback_FramePresented(const PresentInfo& present_info)
 {
-  g_perf_metrics.CountFrame();
+  if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
+    return;
 
-  s_last_actual_emulation_speed = actual_emulation_speed;
+  g_perf_metrics.CountFrame();
   s_stop_frame_step.store(true);
 }
 
