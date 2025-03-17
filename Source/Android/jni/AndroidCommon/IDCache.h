@@ -110,4 +110,8 @@ jmethodID GetCoreDeviceControlConstructor();
 
 jmethodID GetRunnableRun();
 
+jclass GetAudioUtilsClass();
+jmethodID GetAudioUtilsGetSampleRate();
+jmethodID GetAudioUtilsGetFramesPerBuffer();
+
 }  // namespace IDCache
