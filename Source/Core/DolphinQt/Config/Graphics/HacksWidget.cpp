@@ -28,7 +28,7 @@ HacksWidget::HacksWidget(GraphicsWindow* parent)
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(m_gpu_texture_decoding, &QCheckBox::toggled,
-          [this, parent] { emit parent->UseGPUTextureDecodingChanged(); });
+          [parent] { emit parent->UseGPUTextureDecodingChanged(); });
 }
 
 HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
