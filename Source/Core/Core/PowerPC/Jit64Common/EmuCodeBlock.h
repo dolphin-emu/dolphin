@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/ConstantPool.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
@@ -53,8 +54,11 @@ public:
   // Jumps to the returned FixupBranch if lookup fails.
   Gen::FixupBranch BATAddressLookup(Gen::X64Reg addr, Gen::X64Reg tmp, const void* bat_table);
 
-  Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
-                                      BitSet32 registers_in_use);
+  Gen::FixupBranch CheckIfBATSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
+                                         BitSet32 registers_in_use);
+  Gen::FixupBranch CheckIfAlignmentSafeAddress(Gen::X64Reg reg_addr, int access_size,
+                                               UGeckoInstruction inst);
+
   // these return the address of the MOV, for backpatching
   void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
                            s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
@@ -84,23 +88,25 @@ public:
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
-                     BitSet32 registersInUse, bool signExtend, int flags = 0);
+                     UGeckoInstruction inst, BitSet32 registersInUse, bool signExtend,
+                     int flags = 0);
   void SafeLoadToRegImmediate(Gen::X64Reg reg_value, u32 address, int accessSize,
-                              BitSet32 registersInUse, bool signExtend);
+                              UGeckoInstruction inst, BitSet32 registersInUse, bool signExtend);
 
   // Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
   // reg_value if the load fails and js.memcheck is enabled.
   // Works with immediate inputs and simple registers only.
   void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
-                         BitSet32 registersInUse, int flags = 0);
+                         UGeckoInstruction inst, BitSet32 registersInUse, int flags = 0);
   void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
-                         BitSet32 registersInUse, int flags = 0);
+                         UGeckoInstruction inst, BitSet32 registersInUse, int flags = 0);
 
   // applies to safe and unsafe WriteRegToReg
   bool WriteClobbersRegValue(int accessSize, bool swap);
 
   // returns true if an exception could have been caused
-  bool WriteToConstAddress(int accessSize, Gen::OpArg arg, u32 address, BitSet32 registersInUse);
+  bool WriteToConstAddress(int accessSize, Gen::OpArg arg, u32 address, UGeckoInstruction inst,
+                           BitSet32 registersInUse);
   void WriteToConstRamAddress(int accessSize, Gen::OpArg arg, u32 address, bool swap = true);
 
   void JitGetAndClearCAOV(bool oe);
