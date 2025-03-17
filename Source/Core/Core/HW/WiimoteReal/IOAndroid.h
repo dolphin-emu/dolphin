@@ -23,7 +23,7 @@ protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;
   bool IsConnected() const override;
-  void IOWakeup() override{};
+  void IOWakeup() override {};
   int IORead(u8* buf) override;
   int IOWrite(u8 const* buf, size_t len) override;
 
