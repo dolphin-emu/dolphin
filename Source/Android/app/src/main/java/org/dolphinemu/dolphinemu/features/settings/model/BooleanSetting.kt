@@ -100,6 +100,12 @@ enum class BooleanSetting(
         "OverclockEnable",
         false
     ),
+    MAIN_VI_OVERCLOCK_ENABLE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "VIOverclockEnable",
+        false
+    ),
     MAIN_RAM_OVERRIDE_ENABLE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,

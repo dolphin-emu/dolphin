@@ -163,6 +163,7 @@ public:
 
   TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
   bool GetVISkip() const;                           // Used By VideoInterface
+  float GetOverclock() const;
 
   bool UseSyncOnSkipIdle() const;
 
