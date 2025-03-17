@@ -124,6 +124,13 @@ option(OPROFILING "Enable profiling" OFF)
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
+# RetroAchievements developer tools require Windows hooks
+if(WIN32)
+  option(RC_CLIENT_SUPPORTS_RAINTEGRATION "Enables RetroAchievements developer tools" ON)
+else()
+  option(RC_CLIENT_SUPPORTS_RAINTEGRATION "Enables RetroAchievements developer tools" OFF)
+endif()
+
 # Enable SDL by default on operating systems that aren't Android.
 if(NOT ANDROID)
   option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)

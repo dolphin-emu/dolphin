@@ -76,7 +76,7 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;RC_CLIENT_SUPPORTS_HASH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;RC_CLIENT_SUPPORTS_HASH;RC_CLIENT_SUPPORTS_RAINTEGRATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)rcheevos\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
