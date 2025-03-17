@@ -319,7 +319,7 @@ static inline u32 DecodePixel_RGB565(u16 val)
   int r, g, b, a;
   r = Convert5To8((val >> 11) & 0x1f);
   g = Convert6To8((val >> 5) & 0x3f);
-  b = Convert5To8((val)&0x1f);
+  b = Convert5To8((val) & 0x1f);
   a = 0xFF;
   return r | (g << 8) | (b << 16) | (a << 24);
 }
@@ -331,7 +331,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
   {
     r = Convert5To8((val >> 10) & 0x1f);
     g = Convert5To8((val >> 5) & 0x1f);
-    b = Convert5To8((val)&0x1f);
+    b = Convert5To8((val) & 0x1f);
     a = 0xFF;
   }
   else
@@ -339,7 +339,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
     a = Convert3To8((val >> 12) & 0x7);
     r = Convert4To8((val >> 8) & 0xf);
     g = Convert4To8((val >> 4) & 0xf);
-    b = Convert4To8((val)&0xf);
+    b = Convert4To8((val) & 0xf);
   }
   return r | (g << 8) | (b << 16) | (a << 24);
 }
