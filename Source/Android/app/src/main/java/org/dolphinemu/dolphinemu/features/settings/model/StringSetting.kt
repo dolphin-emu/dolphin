@@ -80,6 +80,12 @@ enum class StringSetting(
         Settings.SECTION_GFX_SETTINGS,
         "DriverLibName",
         ""
+    ),
+    MAIN_EMULATE_CAMERA(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_EMULATED_USB_DEVICES,
+        "EmulateCamera",
+        ""
     );
 
     override val isOverridden: Boolean

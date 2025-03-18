@@ -133,7 +133,7 @@ void CameraManager::VideoFrameChanged(const QVideoFrame& frame)
   // Convert NV12 to YUY2
   u32 yuy2Size = 2 * frame.width() * frame.height();
   u8 *yuy2Image = (u8*) calloc(1, yuy2Size);
-  for (int line = 0 ; line < frame.height(); line++) {
+  for (int line = 0; line < frame.height(); line++) {
     for (int col = 0; col < frame.width(); col++) {
       u8 *yuyvPos = yuy2Image + 2 * (frame.width() * line + col);
       const u8 *yPos  = rwFrame.bits(0) + (frame.width() * line + col);

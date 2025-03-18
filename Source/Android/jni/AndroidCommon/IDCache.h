@@ -108,6 +108,11 @@ jclass GetCoreDeviceControlClass();
 jfieldID GetCoreDeviceControlPointer();
 jmethodID GetCoreDeviceControlConstructor();
 
+jclass GetCameraClass();
+jmethodID GetCameraStart();
+jmethodID GetCameraResume();
+jmethodID GetCameraStop();
+
 jmethodID GetRunnableRun();
 
 }  // namespace IDCache
