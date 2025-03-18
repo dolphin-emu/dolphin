@@ -390,7 +390,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     {
       // Speaker data reports result in a write to the speaker hardware at offset 0x00.
       m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
-                         rpt.data);
+                         std::data(rpt.data));
     }
   }
 
