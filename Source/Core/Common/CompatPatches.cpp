@@ -197,7 +197,7 @@ static bool GetModuleVersion(const wchar_t* name, Version* version)
 void CompatPatchesInstall(LdrWatcher* watcher)
 {
   watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event) {
-                      // *EZFRD64 is incldued in software packages for cheapo third-party gamepads
+                      // *EZFRD64 is included in software packages for cheapo third-party gamepads
                       // (and gamepad adapters). The module cannot handle its heap being above 4GB,
                       // which tends to happen very often on modern Windows.
                       // NOTE: The patch will always be applied, but it will only actually avoid the
@@ -209,7 +209,7 @@ void CompatPatchesInstall(LdrWatcher* watcher)
   watcher->Install(
       {{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
          // ucrtbase implements caching between fseek/fread, old versions have a bug
-         // such that some reads return incorrect data. This causes noticable bugs
+         // such that some reads return incorrect data. This causes noticeable bugs
          // in dolphin since we use these APIs for reading game images.
          Version version;
          if (!GetModuleVersion(event.name.c_str(), &version))

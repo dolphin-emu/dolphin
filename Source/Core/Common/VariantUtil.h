@@ -34,3 +34,18 @@ struct overloaded : Ts...
 
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
+
+// Visits a functor with a variant_alternative of the given index.
+// e.g. WithVariantAlternative<variant<int, float>>(1, func) calls func<float>()
+// An out-of-bounds index causes no visitation.
+template <typename Variant, std::size_t I = 0, typename Func>
+void WithVariantAlternative(std::size_t index, Func&& func)
+{
+  if constexpr (I < std::variant_size_v<Variant>)
+  {
+    if (index == 0)
+      func.template operator()<std::variant_alternative_t<I, Variant>>();
+    else
+      WithVariantAlternative<Variant, I + 1>(index - 1, std::forward<Func>(func));
+  }
+}

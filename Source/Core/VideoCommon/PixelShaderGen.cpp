@@ -1057,6 +1057,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
+  if (per_pixel_lighting)
+  {
+    GenerateLightingShaderHeader(out, uid_data->lighting);
+  }
+
   out.Write("void main()\n{{\n");
   out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 
@@ -1104,8 +1109,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
-            "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, "
-            "0, 0);\n"
+            "\tint4 rastemp = int4(0, 0, 0, 0), rawtextemp = int4(0, 0, 0, 0), "
+            "textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n"
             "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
             "\tint alphabump=0;\n"
             "\tint3 tevcoord=int3(0, 0, 0);\n"
@@ -1124,16 +1129,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfloat3 _normal = normalize(Normal.xyz);\n\n"
               "\tfloat3 pos = WorldPos;\n");
 
-    out.Write("\tint4 lacc;\n"
-              "\tfloat3 ldir, h, cosAttn, distAttn;\n"
-              "\tfloat dist, dist2, attn;\n");
-
     // TODO: Our current constant usage code isn't able to handle more than one buffer.
     //       So we can't mark the VS constant as used here. But keep them here as reference.
     // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-    GenerateLightingShaderCode(out, uid_data->lighting, "colors_", "col");
+    for (u32 chan = 0; chan < uid_data->numColorChans; chan++)
+    {
+      out.Write("\tcol{0} = dolphin_calculate_lighting_chn{0}(colors_{0}, pos, _normal);\n", chan);
+    }
     // The number of colors available to TEV is determined by numColorChans.
     // Normally this is performed in the vertex shader after lighting, but with per-pixel lighting,
     // we need to perform it here.  (It needs to be done after lighting, as what was originally
@@ -1291,7 +1295,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // use the texture input of the last texture stage (textemp), hopefully this has been read and
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
-    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS "[1].w {};\n",
+    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, rawtextemp.xyzw) + " I_ZBIAS "[1].w {};\n",
               (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
@@ -1614,8 +1618,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
-    out.Write("\ttextemp = sampleTextureWrapper({}u, tevcoord.xy, layer).{}{}{}{};\n",
-              stage.tevorders_texmap, rgba_swizzle[stage.tex_swap_r],
+    out.Write("\trawtextemp = sampleTextureWrapper({}u, tevcoord.xy, layer);\n",
+              stage.tevorders_texmap);
+    out.Write("\ttextemp = rawtextemp.{}{}{}{};\n", rgba_swizzle[stage.tex_swap_r],
               rgba_swizzle[stage.tex_swap_g], rgba_swizzle[stage.tex_swap_b],
               rgba_swizzle[stage.tex_swap_a]);
   }

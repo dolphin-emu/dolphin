@@ -133,16 +133,17 @@ public:
 
   std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
-  void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
 
-  void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
-                             const std::string& game_ini_id) const;
-  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
-                                const std::string& game_ini_id) const;
-  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
-                             const std::string& game_ini_id) const;
-  bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_ini_id) const;
-  bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_ini_id) const;
+  void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches, const std::string& game_id,
+                             u16 revision) const;
+  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes, const std::string& game_id,
+                                u16 revision) const;
+  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes, const std::string& game_id,
+                             u16 revision) const;
+  bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
+                              u16 revision) const;
+  bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
+                           u16 revision) const;
 
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
@@ -201,9 +202,9 @@ private:
   void SetHardcoreMode();
 
   template <typename T>
-  void FilterApprovedIni(std::vector<T>& codes, const std::string& game_ini_id) const;
+  void FilterApprovedIni(std::vector<T>& codes, const std::string& game_id, u16 revision) const;
   template <typename T>
-  bool CheckApprovedCode(const T& code, const std::string& game_ini_id) const;
+  bool CheckApprovedCode(const T& code, const std::string& game_id, u16 revision) const;
   Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
   Common::SHA1::Digest GetCodeHash(const Gecko::GeckoCode& code) const;
   Common::SHA1::Digest GetCodeHash(const ActionReplay::ARCode& code) const;
@@ -259,7 +260,6 @@ private:
   std::chrono::steady_clock::time_point m_last_progress_message = std::chrono::steady_clock::now();
 
   Common::Lazy<picojson::value> m_ini_root{LoadApprovedList};
-  std::string m_game_ini_id;
 
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   bool m_challenges_updated = false;
@@ -302,14 +302,12 @@ public:
 
   constexpr bool IsHardcoreModeActive() { return false; }
 
-  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
-                                        const std::string& game_ini_id)
+  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id)
   {
     return true;
   };
 
-  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code,
-                                     const std::string& game_ini_id)
+  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id)
   {
     return true;
   };

@@ -465,6 +465,11 @@ void Tev::Draw()
         std::memset(texel, 0, 4);
       }
 
+      RawTexColor.r = texel[u32(ColorChannel::Red)];
+      RawTexColor.g = texel[u32(ColorChannel::Green)];
+      RawTexColor.b = texel[u32(ColorChannel::Blue)];
+      RawTexColor.a = texel[u32(ColorChannel::Alpha)];
+
       const auto& swap = bpmem.tevksel.GetSwapTable(ac.tswap);
       TexColor.r = texel[u32(swap[ColorChannel::Red])];
       TexColor.g = texel[u32(swap[ColorChannel::Green])];
@@ -549,13 +554,13 @@ void Tev::Draw()
     switch (bpmem.ztex2.type)
     {
     case ZTexFormat::U8:
-      ztex += TexColor[ALP_C];
+      ztex += RawTexColor[ALP_C];
       break;
     case ZTexFormat::U16:
-      ztex += TexColor[ALP_C] << 8 | TexColor[RED_C];
+      ztex += RawTexColor[ALP_C] << 8 | RawTexColor[RED_C];
       break;
     case ZTexFormat::U24:
-      ztex += TexColor[RED_C] << 16 | TexColor[GRN_C] << 8 | TexColor[BLU_C];
+      ztex += RawTexColor[RED_C] << 16 | RawTexColor[GRN_C] << 8 | RawTexColor[BLU_C];
       break;
     default:
       PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type);

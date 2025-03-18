@@ -95,7 +95,7 @@ void DynamicLibrary::Close()
     return;
 
 #ifdef _WIN32
-  FreeLibrary(reinterpret_cast<HMODULE>(m_handle));
+  FreeLibrary(static_cast<HMODULE>(m_handle));
 #else
   dlclose(m_handle);
 #endif
@@ -105,7 +105,7 @@ void DynamicLibrary::Close()
 void* DynamicLibrary::GetSymbolAddress(const char* name) const
 {
 #ifdef _WIN32
-  return reinterpret_cast<void*>(GetProcAddress(reinterpret_cast<HMODULE>(m_handle), name));
+  return reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(m_handle), name));
 #else
   return reinterpret_cast<void*>(dlsym(m_handle, name));
 #endif

@@ -7,7 +7,7 @@
 #include "Common/x64Reg.h"
 
 // x64 ABI:s, and helpers to help follow them when JIT-ing code.
-// All convensions return values in EAX (+ possibly EDX).
+// All conventions return values in EAX (+ possibly EDX).
 
 // Windows 64-bit
 // * 4-reg "fastcall" variant, very new-skool stack handling

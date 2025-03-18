@@ -8,7 +8,6 @@
 #endif
 
 #include <array>
-#include <sstream>
 #include <string>
 
 #include <fmt/chrono.h>
@@ -32,15 +31,14 @@ extern "C" {
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
 
-#include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoConfig.h"
 
 struct FrameDumpContext
 {
@@ -122,8 +120,9 @@ void InitAVCodec()
 
 std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index)
 {
-  if (!g_Config.sDumpPath.empty())
-    return g_Config.sDumpPath;
+  const std::string dump_path = Config::Get(Config::GFX_DUMP_PATH);
+  if (!dump_path.empty())
+    return dump_path;
 
   const std::string path_prefix =
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
@@ -194,7 +193,7 @@ bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savesta
 
 bool FFMpegFrameDump::CreateVideoFile()
 {
-  const std::string& format = g_Config.sDumpFormat;
+  const std::string format = Config::Get(Config::GFX_DUMP_FORMAT);
 
   const std::string dump_path = GetDumpPath(format, m_start_time, m_file_index);
 
@@ -217,7 +216,8 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
   }
 
-  const std::string& codec_name = g_Config.bUseLossless ? "utvideo" : g_Config.sDumpCodec;
+  const std::string codec_name =
+      Config::Get(Config::GFX_USE_LOSSLESS) ? "utvideo" : Config::Get(Config::GFX_DUMP_CODEC);
 
   AVCodecID codec_id = output_format->video_codec;
 
@@ -231,12 +231,12 @@ bool FFMpegFrameDump::CreateVideoFile()
   }
 
   const AVCodec* codec = nullptr;
-
-  if (!g_Config.sDumpEncoder.empty())
+  const std::string dump_encoder = Config::Get(Config::GFX_DUMP_ENCODER);
+  if (!dump_encoder.empty())
   {
-    codec = avcodec_find_encoder_by_name(g_Config.sDumpEncoder.c_str());
+    codec = avcodec_find_encoder_by_name(dump_encoder.c_str());
     if (!codec)
-      WARN_LOG_FMT(FRAMEDUMP, "Invalid encoder {}", g_Config.sDumpEncoder);
+      WARN_LOG_FMT(FRAMEDUMP, "Invalid encoder {}", dump_encoder);
   }
   if (!codec)
     codec = avcodec_find_encoder(codec_id);
@@ -258,7 +258,7 @@ bool FFMpegFrameDump::CreateVideoFile()
                m_context->height, time_base.den, time_base.num);
 
   m_context->codec->codec_type = AVMEDIA_TYPE_VIDEO;
-  m_context->codec->bit_rate = static_cast<int64_t>(g_Config.iBitrateKbps) * 1000;
+  m_context->codec->bit_rate = static_cast<int64_t>(Config::Get(Config::GFX_BITRATE_KBPS)) * 1000;
   m_context->codec->width = m_context->width;
   m_context->codec->height = m_context->height;
   m_context->codec->time_base = time_base;
@@ -267,7 +267,7 @@ bool FFMpegFrameDump::CreateVideoFile()
 
   AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
 
-  const std::string& pixel_format_string = g_Config.sDumpPixelFormat;
+  const std::string pixel_format_string = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
   if (!pixel_format_string.empty())
   {
     pix_fmt = av_get_pix_fmt(pixel_format_string.c_str());

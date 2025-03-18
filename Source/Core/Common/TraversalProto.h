@@ -31,7 +31,7 @@ enum class TraversalPacketType : u8
   ConnectReady = 6,
   // [s->c] Alternately, the server might not have heard of this host.
   ConnectFailed = 7,
-  // [c->s] Perform a traveral test. This will send two acks:
+  // [c->s] Perform a traversal test. This will send two acks:
   // one via the server's alt port, and one to the address corresponding to
   // the given host ID.
   TestPlease = 8,

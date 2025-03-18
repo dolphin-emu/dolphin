@@ -2075,7 +2075,7 @@ bool NetPlayServer::SyncCodes()
     std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(globalIni, localIni);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-    AchievementManager::GetInstance().FilterApprovedGeckoCodes(codes, game_id);
+    AchievementManager::GetInstance().FilterApprovedGeckoCodes(codes, game_id, revision);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
     // Create a Gecko Code Vector with just the active codes
@@ -2129,7 +2129,7 @@ bool NetPlayServer::SyncCodes()
   {
     std::vector<ActionReplay::ARCode> codes = ActionReplay::LoadCodes(globalIni, localIni);
 #ifdef USE_RETRO_ACHIEVEMENTS
-    AchievementManager::GetInstance().FilterApprovedARCodes(codes, game_id);
+    AchievementManager::GetInstance().FilterApprovedARCodes(codes, game_id, revision);
 #endif  // USE_RETRO_ACHIEVEMENTS
     // Create an AR Code Vector with just the active codes
     std::vector<ActionReplay::ARCode> active_codes = ActionReplay::ApplyAndReturnCodes(codes);

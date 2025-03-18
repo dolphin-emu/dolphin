@@ -941,7 +941,7 @@ void VideoInterfaceManager::Update(u64 ticks)
 
   if (!(m_half_line_count & 1))
   {
-    m_ticks_last_line_start = core_timing.GetTicks();
+    m_ticks_last_line_start = ticks;
   }
 
   // TODO: Findout why skipping interrupts acts as a frameskip
