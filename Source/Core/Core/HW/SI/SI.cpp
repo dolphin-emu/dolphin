@@ -90,7 +90,7 @@ void SerialInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 user
 {
   // The purpose of this callback is to simply re-enable device changes.
   auto& si = system.GetSerialInterface();
-  si.m_channel[user_data].has_recent_device_change = false;
+  si.m_channel[user_data].has_recent_device_unplug = false;
 }
 
 void SerialInterfaceManager::UpdateInterrupts()
@@ -201,7 +201,7 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
     p.Do(m_channel[i].in_hi.hex);
     p.Do(m_channel[i].in_lo.hex);
     p.Do(m_channel[i].out.hex);
-    p.Do(m_channel[i].has_recent_device_change);
+    p.Do(m_channel[i].has_recent_device_unplug);
 
     std::unique_ptr<ISIDevice>& device = m_channel[i].device;
     SIDevices type = device->GetDeviceType();
@@ -269,7 +269,7 @@ void SerialInterfaceManager::Init()
     m_channel[i].out.hex = 0;
     m_channel[i].in_hi.hex = 0;
     m_channel[i].in_lo.hex = 0;
-    m_channel[i].has_recent_device_change = false;
+    m_channel[i].has_recent_device_unplug = false;
 
     auto& movie = m_system.GetMovie();
     if (movie.IsMovieActive())
@@ -511,7 +511,7 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS)
     return;
-  if (m_channel[channel].has_recent_device_change)
+  if (m_channel[channel].has_recent_device_unplug)
     return;
 
   if (GetDeviceType(channel) != SIDEVICE_NONE)
@@ -520,18 +520,20 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
     device = SIDEVICE_NONE;
   }
 
+  // TODO: Resetting this state may not be necessary or accurate.
   m_channel[channel].out.hex = 0;
   m_channel[channel].in_hi.hex = 0;
   m_channel[channel].in_lo.hex = 0;
 
-  SetNoResponse(channel);
-
   AddDevice(device, channel);
 
-  // Prevent additional device changes on this channel for one second.
-  m_channel[channel].has_recent_device_change = true;
-  m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
-                                         m_event_type_change_device, channel);
+  if (device == SIDEVICE_NONE)
+  {
+    // Prevent additional device changes on this channel for one second.
+    m_channel[channel].has_recent_device_unplug = true;
+    m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
+                                           m_event_type_change_device, channel);
+  }
 }
 
 void SerialInterfaceManager::UpdateDevices()
