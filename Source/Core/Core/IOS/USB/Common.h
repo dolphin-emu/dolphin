@@ -29,6 +29,7 @@ enum ControlRequestTypes
   DIR_HOST2DEVICE = 0,
   DIR_DEVICE2HOST = 1,
   TYPE_STANDARD = 0,
+  TYPE_CLASS = 1,
   TYPE_VENDOR = 2,
   REC_DEVICE = 0,
   REC_INTERFACE = 1,

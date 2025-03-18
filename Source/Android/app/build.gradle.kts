@@ -154,6 +154,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     implementation("com.nononsenseapps:filepicker:4.2.1")
+
+    // Motion Camera emulation
+    implementation("androidx.camera:camera-core:1.4.1")
+    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-lifecycle:1.4.1")
 }
 
 fun getGitVersion(): String {

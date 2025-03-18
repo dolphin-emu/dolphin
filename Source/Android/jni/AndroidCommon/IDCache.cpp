@@ -109,6 +109,11 @@ static jclass s_core_device_control_class;
 static jfieldID s_core_device_control_pointer;
 static jmethodID s_core_device_control_constructor;
 
+static jclass s_cammera_class;
+static jmethodID s_camera_start;
+static jmethodID s_camera_resume;
+static jmethodID s_camera_stop;
+
 static jmethodID s_runnable_run;
 
 namespace IDCache
@@ -506,6 +511,26 @@ jmethodID GetCoreDeviceControlConstructor()
   return s_core_device_control_constructor;
 }
 
+jclass GetCameraClass()
+{
+    return s_cammera_class;
+}
+
+jmethodID GetCameraStart()
+{
+    return s_camera_start;
+}
+
+jmethodID GetCameraResume()
+{
+    return s_camera_resume;
+}
+
+jmethodID GetCameraStop()
+{
+    return s_camera_stop;
+}
+
 jmethodID GetRunnableRun()
 {
   return s_runnable_run;
@@ -717,6 +742,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
                        "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
   env->DeleteLocalRef(core_device_control_class);
 
+  const jclass camera_class = env->FindClass("org/dolphinemu/dolphinemu/features/camera/Camera");
+  s_cammera_class = reinterpret_cast<jclass>(env->NewGlobalRef(camera_class));
+  s_camera_start = env->GetStaticMethodID(camera_class, "startCamera", "(II)V");
+  s_camera_resume = env->GetStaticMethodID(camera_class, "resumeCamera", "()V");
+  s_camera_stop = env->GetStaticMethodID(camera_class, "stopCamera", "()V");
+  env->DeleteLocalRef(camera_class);
+
   const jclass runnable_class = env->FindClass("java/lang/Runnable");
   s_runnable_run = env->GetMethodID(runnable_class, "run", "()V");
   env->DeleteLocalRef(runnable_class);
@@ -754,5 +786,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_numeric_setting_class);
   env->DeleteGlobalRef(s_core_device_class);
   env->DeleteGlobalRef(s_core_device_control_class);
+  env->DeleteGlobalRef(s_cammera_class);
 }
 }
