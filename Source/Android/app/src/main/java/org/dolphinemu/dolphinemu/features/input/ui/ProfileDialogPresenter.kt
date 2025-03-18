@@ -11,7 +11,6 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import java.io.File
 import java.util.Locale
 
