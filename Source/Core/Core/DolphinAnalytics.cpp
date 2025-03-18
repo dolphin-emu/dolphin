@@ -26,6 +26,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
+#include "Common/EnumUtils.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -373,7 +374,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   // Video configuration.
   builder.AddData("cfg-gfx-multisamples", g_Config.iMultisamples);
   builder.AddData("cfg-gfx-ssaa", g_Config.bSSAA);
-  builder.AddData("cfg-gfx-anisotropy", g_Config.iMaxAnisotropy);
+  builder.AddData("cfg-gfx-anisotropy", Common::ToUnderlying(g_Config.iMaxAnisotropy));
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
   builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(g_Config.aspect_mode));
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);

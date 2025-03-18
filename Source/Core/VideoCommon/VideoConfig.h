@@ -55,6 +55,16 @@ enum class TextureFilteringMode : int
   Linear,
 };
 
+enum class AnisotropicFilteringMode : int
+{
+  Default = -1,
+  Force1x = 0,
+  Force2x = 1,
+  Force4x = 2,
+  Force8x = 3,
+  Force16x = 4,
+};
+
 enum class OutputResamplingMode : int
 {
   Default,
@@ -202,7 +212,7 @@ struct VideoConfig final
   int iEFBScale = 0;
   TextureFilteringMode texture_filtering_mode = TextureFilteringMode::Default;
   OutputResamplingMode output_resampling_mode = OutputResamplingMode::Default;
-  int iMaxAnisotropy = 0;
+  AnisotropicFilteringMode iMaxAnisotropy = AnisotropicFilteringMode::Default;
   std::string sPostProcessingShader;
   bool bForceTrueColor = false;
   bool bDisableCopyFilter = false;
