@@ -82,7 +82,7 @@ protected:
     return Config::Get(setting);
   }
 
-  virtual void OnConfigChanged() {};
+  virtual void OnConfigChanged() {}
 
 private:
   bool IsConfigLocal() const

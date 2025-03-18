@@ -169,4 +169,4 @@ void ConfigComplexChoice::mousePressEvent(QMouseEvent* event)
   {
     QComboBox::mousePressEvent(event);
   }
-};
+}
