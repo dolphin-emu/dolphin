@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       block_header_decoder.c
@@ -5,29 +7,10 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "common.h"
 #include "check.h"
-
-
-static void
-free_properties(lzma_block *block, const lzma_allocator *allocator)
-{
-	// Free allocated filter options. The last array member is not
-	// touched after the initialization in the beginning of
-	// lzma_block_header_decode(), so we don't need to touch that here.
-	for (size_t i = 0; i < LZMA_FILTERS_MAX; ++i) {
-		lzma_free(block->filters[i].options, allocator);
-		block->filters[i].id = LZMA_VLI_UNKNOWN;
-		block->filters[i].options = NULL;
-	}
-
-	return;
-}
 
 
 extern LZMA_API(lzma_ret)
@@ -38,6 +21,10 @@ lzma_block_header_decode(lzma_block *block,
 	// CRC32 doesn't match, but also when variable-length integers
 	// are invalid or over 63 bits, or if the header is too small
 	// to contain the claimed information.
+
+	// Catch unexpected NULL pointers.
+	if (block == NULL || block->filters == NULL || in == NULL)
+		return LZMA_PROG_ERROR;
 
 	// Initialize the filter options array. This way the caller can
 	// safely free() the options even if an error occurs in this function.
@@ -67,8 +54,11 @@ lzma_block_header_decode(lzma_block *block,
 	const size_t in_size = block->header_size - 4;
 
 	// Verify CRC32
-	if (lzma_crc32(in, in_size, 0) != unaligned_read32le(in + in_size))
+	if (lzma_crc32(in, in_size, 0) != read32le(in + in_size)) {
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 		return LZMA_DATA_ERROR;
+#endif
+	}
 
 	// Check for unsupported flags.
 	if (in[1] & 0x3C)
@@ -98,13 +88,13 @@ lzma_block_header_decode(lzma_block *block,
 		block->uncompressed_size = LZMA_VLI_UNKNOWN;
 
 	// Filter Flags
-	const size_t filter_count = (in[1] & 3) + 1;
+	const size_t filter_count = (in[1] & 3U) + 1;
 	for (size_t i = 0; i < filter_count; ++i) {
 		const lzma_ret ret = lzma_filter_flags_decode(
 				&block->filters[i], allocator,
 				in, &in_pos, in_size);
 		if (ret != LZMA_OK) {
-			free_properties(block, allocator);
+			lzma_filters_free(block->filters, allocator);
 			return ret;
 		}
 	}
@@ -112,7 +102,7 @@ lzma_block_header_decode(lzma_block *block,
 	// Padding
 	while (in_pos < in_size) {
 		if (in[in_pos++] != 0x00) {
-			free_properties(block, allocator);
+			lzma_filters_free(block->filters, allocator);
 
 			// Possibly some new field present so use
 			// LZMA_OPTIONS_ERROR instead of LZMA_DATA_ERROR.

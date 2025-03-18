@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       simple_encoder.c
 /// \brief      Properties encoder for simple filters
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +31,7 @@ lzma_simple_props_encode(const void *options, uint8_t *out)
 	if (opt == NULL || opt->start_offset == 0)
 		return LZMA_OK;
 
-	unaligned_write32le(out, opt->start_offset);
+	write32le(out, opt->start_offset);
 
 	return LZMA_OK;
 }

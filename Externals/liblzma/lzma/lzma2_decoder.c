@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma2_decoder.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -136,10 +135,10 @@ lzma2_decode(void *coder_ptr, lzma_dict *restrict dict,
 		break;
 
 	case SEQ_UNCOMPRESSED_2:
-		coder->uncompressed_size += in[(*in_pos)++] + 1;
+		coder->uncompressed_size += in[(*in_pos)++] + 1U;
 		coder->sequence = SEQ_COMPRESSED_0;
 		coder->lzma.set_uncompressed(coder->lzma.coder,
-				coder->uncompressed_size);
+				coder->uncompressed_size, false);
 		break;
 
 	case SEQ_COMPRESSED_0:
@@ -148,7 +147,7 @@ lzma2_decode(void *coder_ptr, lzma_dict *restrict dict,
 		break;
 
 	case SEQ_COMPRESSED_1:
-		coder->compressed_size += in[(*in_pos)++] + 1;
+		coder->compressed_size += in[(*in_pos)++] + 1U;
 		coder->sequence = coder->next_sequence;
 		break;
 
@@ -226,7 +225,8 @@ lzma2_decoder_end(void *coder_ptr, const lzma_allocator *allocator)
 
 static lzma_ret
 lzma2_decoder_init(lzma_lz_decoder *lz, const lzma_allocator *allocator,
-		const void *opt, lzma_lz_options *lz_options)
+		lzma_vli id lzma_attribute((__unused__)), const void *opt,
+		lzma_lz_options *lz_options)
 {
 	lzma_lzma2_coder *coder = lz->coder;
 	if (coder == NULL) {
@@ -297,8 +297,8 @@ lzma_lzma2_props_decode(void **options, const lzma_allocator *allocator,
 	if (props[0] == 40) {
 		opt->dict_size = UINT32_MAX;
 	} else {
-		opt->dict_size = 2 | (props[0] & 1);
-		opt->dict_size <<= props[0] / 2 + 11;
+		opt->dict_size = 2 | (props[0] & 1U);
+		opt->dict_size <<= props[0] / 2U + 11;
 	}
 
 	opt->preset_dict = NULL;
