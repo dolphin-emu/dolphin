@@ -230,20 +230,20 @@ public:
 
   bool HasConnectedDevice(const DeviceQualifier& qualifier) const;
 
-  std::vector<InputDetection> DetectInput(const std::vector<std::string>& device_strings,
-                                          std::chrono::milliseconds initial_wait,
-                                          std::chrono::milliseconds confirmation_wait,
-                                          std::chrono::milliseconds maximum_wait) const;
-
   std::recursive_mutex& GetDevicesMutex() const { return m_devices_mutex; }
 
 protected:
   // Exclusively needed when reading/writing the "m_devices" array.
-  // Not needed when individually readring/writing a single device ptr.
+  // Not needed when individually reading/writing a single device ptr.
   mutable std::recursive_mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
 
+// Wait for inputs on supplied devices.
+// Inputs are only considered if they are first seen in a neutral state.
+// This is useful for wacky flight sticks that have certain buttons that are always held down
+// and also properly handles detection when using "FullAnalogSurface" inputs.
+// Multiple detections are returned until the various timeouts have been reached.
 class InputDetector
 {
 public:

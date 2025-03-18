@@ -109,6 +109,9 @@ static jclass s_core_device_control_class;
 static jfieldID s_core_device_control_pointer;
 static jmethodID s_core_device_control_constructor;
 
+static jclass s_input_detector_class;
+static jfieldID s_input_detector_pointer;
+
 static jmethodID s_runnable_run;
 
 namespace IDCache
@@ -506,6 +509,16 @@ jmethodID GetCoreDeviceControlConstructor()
   return s_core_device_control_constructor;
 }
 
+jclass GetInputDetectorClass()
+{
+  return s_input_detector_class;
+}
+
+jfieldID GetInputDetectorPointer()
+{
+  return s_input_detector_pointer;
+}
+
 jmethodID GetRunnableRun()
 {
   return s_runnable_run;
@@ -717,6 +730,12 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
                        "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
   env->DeleteLocalRef(core_device_control_class);
 
+  const jclass input_detector_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/InputDetector");
+  s_input_detector_class = reinterpret_cast<jclass>(env->NewGlobalRef(input_detector_class));
+  s_input_detector_pointer = env->GetFieldID(input_detector_class, "pointer", "J");
+  env->DeleteLocalRef(input_detector_class);
+
   const jclass runnable_class = env->FindClass("java/lang/Runnable");
   s_runnable_run = env->GetMethodID(runnable_class, "run", "()V");
   env->DeleteLocalRef(runnable_class);
@@ -754,5 +773,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_numeric_setting_class);
   env->DeleteGlobalRef(s_core_device_class);
   env->DeleteGlobalRef(s_core_device_control_class);
+  env->DeleteGlobalRef(s_input_detector_class);
 }
 }
