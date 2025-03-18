@@ -222,10 +222,13 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       const std::chrono::milliseconds total_time = m_time_played_manager.GetTimePlayed(game_id);
       const auto total_minutes = std::chrono::duration_cast<std::chrono::minutes>(total_time);
       const auto total_hours = std::chrono::duration_cast<std::chrono::hours>(total_time);
+      const auto total_seconds = std::chrono::duration_cast<std::chrono::seconds>(total_time);
 
       // i18n: A time displayed as hours and minutes
-      QString formatted_time =
-          tr("%1h %2m").arg(total_hours.count()).arg(total_minutes.count() % 60);
+      QString formatted_time = tr("%1h %2m %3s")
+                                   .arg(total_hours.count())
+                                   .arg(total_minutes.count() % 60)
+                                   .arg(total_seconds.count() % 60);
       return formatted_time;
     }
     if (role == SORT_ROLE)

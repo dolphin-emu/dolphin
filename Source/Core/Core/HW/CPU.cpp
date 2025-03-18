@@ -79,7 +79,7 @@ void CPUManager::StartTimePlayedTimer()
 
   while (m_state != State::PowerDown)
   {
-    m_time_played_finish_sync.WaitFor(std::chrono::seconds(30));
+    m_time_played_finish_sync.WaitFor(std::chrono::seconds(10));
     auto curr_time = timer.now();
 
     const std::string game_id = SConfig::GetInstance().GetGameID();
