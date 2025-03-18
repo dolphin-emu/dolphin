@@ -69,6 +69,7 @@ PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
 ReflowComments:  true
 RemoveSemicolon: true
+RequiresClausePosition: WithPreceding
 SortIncludes:    true
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
