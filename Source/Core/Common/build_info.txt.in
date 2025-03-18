@@ -1,6 +1,6 @@
 // Indicate the minimum OS version required for the binary to run properly.
 // Updater will fail the update if the user does not meet this requirement.
-OSMinimumVersionWin10=10.0.15063.0
+OSMinimumVersionWin10=10.0.18362.0
 OSMinimumVersionWin11=10.0.22000.0
 
 // This is the runtime which was compiled against - providing a way for Updater to detect if update
