@@ -305,12 +305,12 @@ public:
   constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id)
   {
     return true;
-  };
+  }
 
   constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id)
   {
     return true;
-  };
+  }
 
   constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
 
