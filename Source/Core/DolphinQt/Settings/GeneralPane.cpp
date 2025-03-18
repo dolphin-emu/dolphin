@@ -179,6 +179,14 @@ void GeneralPane::CreateBasic()
   }
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
+
+  auto* const precision_timing =
+      new ConfigBool(tr("Precision Frame Timing"), Config::MAIN_PRECISION_FRAME_TIMING);
+  precision_timing->SetDescription(
+      tr("Uses high resolution timers and \"busy waiting\" for improved frame pacing."
+         "<br><br>This will marginally increase CPU and power usage."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  basic_group_layout->addWidget(precision_timing);
 }
 
 void GeneralPane::CreateAutoUpdate()
