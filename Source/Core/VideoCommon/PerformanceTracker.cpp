@@ -6,28 +6,26 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
-#include <mutex>
 
 #include <implot.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Timer.h"
+#include "Common/MathUtil.h"
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
+static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;
+static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8;
 
 PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
-                                       const std::optional<s64> sample_window_us)
-    : m_on_state_changed_handle{Core::AddOnStateChangedCallback([this](Core::State state) {
-        if (state == Core::State::Paused)
-          SetPaused(true);
-        else if (state == Core::State::Running)
-          SetPaused(false);
-      })},
-      m_log_name{log_name}, m_sample_window_us{sample_window_us}
+                                       const std::optional<DT> sample_window_duration)
+    : m_log_name{log_name}, m_sample_window_duration{sample_window_duration}
 {
+  m_on_state_changed_handle =
+      Core::AddOnStateChangedCallback([this](Core::State state) { m_is_last_time_sane = false; });
+
   Reset();
 }
 
@@ -38,193 +36,155 @@ PerformanceTracker::~PerformanceTracker()
 
 void PerformanceTracker::Reset()
 {
-  std::unique_lock lock{m_mutex};
+  m_raw_dts.Clear();
+  m_dt_queue.clear();
 
-  QueueClear();
+  m_dt_total = DT::zero();
+  m_last_raw_dt = DT::zero();
   m_last_time = Clock::now();
   m_hz_avg = 0.0;
   m_dt_avg = DT::zero();
-  m_dt_std = std::nullopt;
+  m_dt_std = DT::zero();
+  m_is_last_time_sane = false;
 }
 
 void PerformanceTracker::Count()
 {
-  std::unique_lock lock{m_mutex};
+  const TimePoint current_time{Clock::now()};
 
-  if (m_paused)
+  const DT diff{current_time - m_last_time};
+  m_last_time = current_time;
+
+  if (!m_is_last_time_sane)
+  {
+    m_is_last_time_sane = true;
     return;
+  }
+
+  m_last_raw_dt = diff;
+  m_raw_dts.Push(diff);
+}
+
+void PerformanceTracker::UpdateStats()
+{
+  DT diff{};
+  while (m_raw_dts.Pop(diff))
+    HandleRawDt(diff);
+
+  // Update Std Dev
+  MathUtil::RunningVariance<double> variance;
+  for (auto dt : m_dt_queue)
+    variance.Push(DT_s(dt).count());
+  m_dt_std = std::chrono::duration_cast<DT>(DT_s(variance.PopulationStandardDeviation()));
+}
+
+void PerformanceTracker::HandleRawDt(DT diff)
+{
+  if (m_dt_queue.size() == MAX_DT_QUEUE_SIZE)
+    PopBack();
+
+  PushFront(diff);
 
   const DT window{GetSampleWindow()};
 
-  const TimePoint time{Clock::now()};
-  const DT diff{time - m_last_time};
-
-  m_last_time = time;
-
-  QueuePush(diff);
-  m_dt_total += diff;
-
-  if (m_dt_queue_begin == m_dt_queue_end)
-    m_dt_total -= QueuePop();
-
-  while (window <= m_dt_total - QueueTop())
-    m_dt_total -= QueuePop();
+  while (m_dt_total - m_dt_queue.back() >= window)
+    PopBack();
 
   // Simple Moving Average Throughout the Window
-  m_dt_avg = m_dt_total / QueueSize();
-  const double hz = DT_s(1.0) / m_dt_avg;
+  const DT dt_avg = m_dt_total / m_dt_queue.size();
+  const double hz = DT_s(1.0) / dt_avg;
+  m_dt_avg = dt_avg;
 
   // Exponential Moving Average
   const DT_s rc = SAMPLE_RC_RATIO * std::min(window, m_dt_total);
   const double a = 1.0 - std::exp(-(DT_s(diff) / rc));
 
   // Sometimes euler averages can break when the average is inf/nan
-  if (std::isfinite(m_hz_avg))
-    m_hz_avg += a * (hz - m_hz_avg);
+  const auto hz_avg = m_hz_avg.load();
+  if (std::isfinite(hz_avg))
+    m_hz_avg = hz_avg + a * (hz - hz_avg);
   else
     m_hz_avg = hz;
-
-  m_dt_std = std::nullopt;
 
   LogRenderTimeToFile(diff);
 }
 
 DT PerformanceTracker::GetSampleWindow() const
 {
-  // This reads a constant value and thus does not need a mutex
-  return std::chrono::duration_cast<DT>(
-      DT_us(m_sample_window_us.value_or(std::max(1, g_ActiveConfig.iPerfSampleUSec))));
+  return m_sample_window_duration.value_or(
+      duration_cast<DT>(DT_us{std::max(1, g_ActiveConfig.iPerfSampleUSec)}));
 }
 
 double PerformanceTracker::GetHzAvg() const
 {
-  std::shared_lock lock{m_mutex};
   return m_hz_avg;
 }
 
 DT PerformanceTracker::GetDtAvg() const
 {
-  std::shared_lock lock{m_mutex};
   return m_dt_avg;
 }
 
 DT PerformanceTracker::GetDtStd() const
 {
-  std::unique_lock lock{m_mutex};
-
-  if (m_dt_std)
-    return *m_dt_std;
-
-  if (QueueEmpty())
-    return *(m_dt_std = DT::zero());
-
-  double total = 0.0;
-  for (std::size_t i = m_dt_queue_begin; i != m_dt_queue_end; i = IncrementIndex(i))
-  {
-    double diff = DT_s(m_dt_queue[i] - m_dt_avg).count();
-    total += diff * diff;
-  }
-
-  // This is a weighted standard deviation
-  return *(m_dt_std = std::chrono::duration_cast<DT>(DT_s(std::sqrt(total / QueueSize()))));
+  return m_dt_std;
 }
 
 DT PerformanceTracker::GetLastRawDt() const
 {
-  std::shared_lock lock{m_mutex};
-
-  if (QueueEmpty())
-    return DT::zero();
-
-  return QueueBottom();
+  return m_last_raw_dt;
 }
 
 void PerformanceTracker::ImPlotPlotLines(const char* label) const
 {
-  static std::array<float, MAX_DT_QUEUE_SIZE + 2> x, y;
+  // "quality" graph uses twice as many points.
+  static_assert(MAX_QUALITY_GRAPH_SIZE * 2 <= MAX_DT_QUEUE_SIZE);
+  static std::array<float, MAX_DT_QUEUE_SIZE + 1> x, y;
 
-  std::shared_lock lock{m_mutex};
-
-  if (QueueEmpty())
+  if (m_dt_queue.empty())
     return;
 
   // Decides if there are too many points to plot using rectangles
-  const bool quality = QueueSize() < MAX_QUALITY_GRAPH_SIZE;
+  const bool quality = m_dt_queue.size() < MAX_QUALITY_GRAPH_SIZE;
 
-  const DT update_time = Clock::now() - m_last_time;
-  const float predicted_frame_time = DT_ms(std::max(update_time, QueueBottom())).count();
-
-  std::size_t points = 0;
-  if (quality)
-  {
-    x[points] = 0.f;
-    y[points] = predicted_frame_time;
-    ++points;
-  }
-
-  x[points] = DT_ms(update_time).count();
-  y[points] = predicted_frame_time;
-  ++points;
-
-  const std::size_t begin = DecrementIndex(m_dt_queue_end);
-  const std::size_t end = DecrementIndex(m_dt_queue_begin);
-  for (std::size_t i = begin; i != end; i = DecrementIndex(i))
-  {
-    const float frame_time_ms = DT_ms(m_dt_queue[i]).count();
+  std::size_t point_index = 0;
+  const auto add_point = [&](DT dt, DT shift_x, float prev_ms) {
+    const float ms = DT_ms{dt}.count();
 
     if (quality)
     {
-      x[points] = x[points - 1];
-      y[points] = frame_time_ms;
-      ++points;
+      x[point_index] = prev_ms;
+      y[point_index] = ms;
+      ++point_index;
     }
 
-    x[points] = x[points - 1] + frame_time_ms;
-    y[points] = frame_time_ms;
-    ++points;
-  }
+    x[point_index] = prev_ms + DT_ms{shift_x}.count();
+    y[point_index] = ms;
+    ++point_index;
+  };
 
-  ImPlot::PlotLine(label, x.data(), y.data(), static_cast<int>(points));
+  // Rightmost point.
+  const auto update_time = Clock::now() - m_last_time;
+  const auto predicted_frame_time = std::max(update_time, m_dt_queue.front());
+  add_point(predicted_frame_time, DT{}, 0);
+
+  // Other points, right to left.
+  for (auto dt : m_dt_queue)
+    add_point(dt, dt, x[point_index - 1]);
+
+  ImPlot::PlotLine(label, x.data(), y.data(), static_cast<int>(point_index));
 }
 
-void PerformanceTracker::QueueClear()
+void PerformanceTracker::PushFront(DT value)
 {
-  m_dt_total = DT::zero();
-  m_dt_queue_begin = 0;
-  m_dt_queue_end = 0;
+  m_dt_queue.push_front(value);
+  m_dt_total += value;
 }
 
-void PerformanceTracker::QueuePush(DT dt)
+void PerformanceTracker::PopBack()
 {
-  m_dt_queue[m_dt_queue_end] = dt;
-  m_dt_queue_end = IncrementIndex(m_dt_queue_end);
-}
-
-const DT& PerformanceTracker::QueuePop()
-{
-  const std::size_t top = m_dt_queue_begin;
-  m_dt_queue_begin = IncrementIndex(m_dt_queue_begin);
-  return m_dt_queue[top];
-}
-
-const DT& PerformanceTracker::QueueTop() const
-{
-  return m_dt_queue[m_dt_queue_begin];
-}
-
-const DT& PerformanceTracker::QueueBottom() const
-{
-  return m_dt_queue[DecrementIndex(m_dt_queue_end)];
-}
-
-std::size_t PerformanceTracker::QueueSize() const
-{
-  return GetDifference(m_dt_queue_begin, m_dt_queue_end);
-}
-
-bool PerformanceTracker::QueueEmpty() const
-{
-  return m_dt_queue_begin == m_dt_queue_end;
+  m_dt_total -= m_dt_queue.back();
+  m_dt_queue.pop_back();
 }
 
 void PerformanceTracker::LogRenderTimeToFile(DT val)
@@ -239,19 +199,4 @@ void PerformanceTracker::LogRenderTimeToFile(DT val)
   }
 
   m_bench_file << std::fixed << std::setprecision(8) << DT_ms(val).count() << std::endl;
-}
-
-void PerformanceTracker::SetPaused(bool paused)
-{
-  std::unique_lock lock{m_mutex};
-
-  m_paused = paused;
-  if (m_paused)
-  {
-    m_last_time = TimePoint::max();
-  }
-  else
-  {
-    m_last_time = Clock::now();
-  }
 }

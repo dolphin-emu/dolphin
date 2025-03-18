@@ -47,6 +47,7 @@ void PerformanceMetrics::CountThrottleSleep(DT sleep)
 void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cycles_late)
 {
   m_speed_counter.Count();
+  m_speed_counter.UpdateStats();
 
   const auto ticks = system.GetCoreTiming().GetTicks() - cycles_late;
   const auto real_time = Clock::now() - m_time_sleeping;
@@ -84,6 +85,9 @@ double PerformanceMetrics::GetMaxSpeed() const
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
+  m_vps_counter.UpdateStats();
+  m_fps_counter.UpdateStats();
+
   const int movable_flag = Config::Get(Config::GFX_MOVABLE_PERFORMANCE_METRICS) ?
                                ImGuiWindowFlags_None :
                                ImGuiWindowFlags_NoMove;
