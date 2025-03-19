@@ -61,7 +61,7 @@ void Mixer::DoState(PointerWrap& p)
 // Executed from sound stream thread
 void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 {
-  constexpr u32 half = 0x80000000;
+  constexpr u32 INDEX_HALF = 0x80000000;
 
   const u64 out_sample_rate = m_mixer->m_output_sample_rate;
   u64 in_sample_rate = FIXED_SAMPLE_RATE_DIVIDEND / m_input_sample_rate_divisor;
@@ -76,22 +76,53 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   while (num_samples-- > 0)
   {
-    StereoPair sample = m_buffers_swapped ? InterpStereoPair(m_back, m_front, m_current_index) :
-                                            InterpStereoPair(m_front, m_back, m_current_index);
+    // These indexes are used to access the two granule buffers, m_front and m_back.
+    // Depending on if the buffers are swapped, we want to index the front half of
+    // one of the buffers and the back half of the other.
+    const std::size_t index = m_current_index >> GRANULE_FRAC_BITS;
+    const std::size_t f_idx = index + (m_buffers_swapped ? GRANULE_OVERLAP : 0);
+    const std::size_t b_idx = f_idx + GRANULE_OVERLAP;
+
+    // The Granules are pre-windowed, so we can just add them together
+    const StereoPair s0 = m_front[(f_idx - 2) & GRANULE_MASK] + m_back[(b_idx - 2) & GRANULE_MASK];
+    const StereoPair s1 = m_front[(f_idx - 1) & GRANULE_MASK] + m_back[(b_idx - 1) & GRANULE_MASK];
+    const StereoPair s2 = m_front[(f_idx + 0) & GRANULE_MASK] + m_back[(b_idx + 0) & GRANULE_MASK];
+    const StereoPair s3 = m_front[(f_idx + 1) & GRANULE_MASK] + m_back[(b_idx + 1) & GRANULE_MASK];
+    const StereoPair s4 = m_front[(f_idx + 2) & GRANULE_MASK] + m_back[(b_idx + 2) & GRANULE_MASK];
+    const StereoPair s5 = m_front[(f_idx + 3) & GRANULE_MASK] + m_back[(b_idx + 3) & GRANULE_MASK];
+
+    // Polynomial Interpolators for High-Quality Resampling of
+    // Over Sampled Audio by Olli Niemitalo, October 2001.
+    // Page 43 -- 6-point, 3rd-order Hermite:
+    // https://yehar.com/blog/wp-content/uploads/2009/08/deip.pdf
+    const u32 t_frac = m_current_index & ((1 << GRANULE_FRAC_BITS) - 1);
+    const float t1 = t_frac / static_cast<float>(1 << GRANULE_FRAC_BITS);
+    const float t2 = t1 * t1;
+    const float t3 = t2 * t1;
+
+    StereoPair sample = (s0 * StereoPair{(+0.0f + 1.0f * t1 - 2.0f * t2 + 1.0f * t3) / 12.0f} +
+                         s1 * StereoPair{(+0.0f - 8.0f * t1 + 15.0f * t2 - 7.0f * t3) / 12.0f} +
+                         s2 * StereoPair{(+3.0f + 0.0f * t1 - 7.0f * t2 + 4.0f * t3) / 3.0f} +
+                         s3 * StereoPair{(+0.0f + 2.0f * t1 + 5.0f * t2 - 4.0f * t3) / 3.0f} +
+                         s4 * StereoPair{(+0.0f - 1.0f * t1 - 6.0f * t2 + 7.0f * t3) / 12.0f} +
+                         s5 * StereoPair{(+0.0f + 0.0f * t1 + 1.0f * t2 - 1.0f * t3) / 12.0f});
+
     sample = sample * volume;
 
-    sample.l += samples[0] + m_quantization_error.l;
+    // This quantization method prevents accumulated error but does not do noise shaping.
+    sample.l += samples[0] - m_quantization_error.l;
     samples[0] = MathUtil::SaturatingCast<s16>(std::lround(sample.l));
-    m_quantization_error.l = std::clamp(sample.l - samples[0], -1.0f, 1.0f);
+    m_quantization_error.l = std::clamp(samples[0] - sample.l, -1.0f, 1.0f);
 
-    sample.r += samples[1] + m_quantization_error.r;
+    sample.r += samples[1] - m_quantization_error.r;
     samples[1] = MathUtil::SaturatingCast<s16>(std::lround(sample.r));
-    m_quantization_error.r = std::clamp(sample.r - samples[1], -1.0f, 1.0f);
+    m_quantization_error.r = std::clamp(samples[1] - sample.r, -1.0f, 1.0f);
 
     samples += 2;
 
+    // In the case of an index overflow, we know we need to get a new buffer
     m_current_index += index_jump;
-    if (m_current_index < half)
+    if (m_current_index < INDEX_HALF)
     {
       if (m_buffers_swapped)
         Dequeue(&m_back);
@@ -99,8 +130,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
         Dequeue(&m_front);
 
       m_buffers_swapped = !m_buffers_swapped;
-
-      m_current_index += half;
+      m_current_index += INDEX_HALF;
     }
   }
 }
@@ -158,13 +188,15 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
   {
     const s16 l = m_little_endian ? samples[1] : Common::swap16(samples[1]);
     const s16 r = m_little_endian ? samples[0] : Common::swap16(samples[0]);
-
-    m_buffer[m_buffer_index] = StereoPair(l, r);
-    m_buffer_index = (m_buffer_index + 1) & GRANULE_MASK;
     samples += 2;
 
-    if (m_buffer_index == 0 || m_buffer_index == m_buffer.size() / 2)
-      Enqueue(m_buffer, m_buffer_index);
+    m_next_buffer[m_next_buffer_index] = StereoPair(l, r);
+    m_next_buffer_index = (m_next_buffer_index + 1) & GRANULE_MASK;
+
+    // The granules overlap by 50%, so we need to enqueue the
+    // next buffer every time we fill half of the samples.
+    if (m_next_buffer_index == 0 || m_next_buffer_index == m_next_buffer.size() / 2)
+      Enqueue();
   }
 }
 
@@ -384,34 +416,7 @@ std::pair<s32, s32> Mixer::MixerFifo::GetVolume() const
   return std::make_pair(m_LVolume.load(), m_RVolume.load());
 }
 
-Mixer::MixerFifo::StereoPair
-Mixer::MixerFifo::InterpStereoPair(const Granule& prev, const Granule& next, const u32 frac) const
-{
-  const std::size_t pt = frac >> Mixer::MixerFifo::GRANULE_FRAC_BITS;
-  const std::size_t nt = pt - (GRANULE_SIZE / 2);
-
-  const u32 frac_t = frac & ((1 << GRANULE_FRAC_BITS) - 1);
-  const float t1 = frac_t / static_cast<float>(1 << GRANULE_FRAC_BITS);
-  const float t2 = t1 * t1;
-  const float t3 = t2 * t1;
-
-  // The Granules are pre-windowed, so we can just add them together
-  const StereoPair s0 = prev[(pt - 2) & GRANULE_MASK] + next[(nt - 2) & GRANULE_MASK];
-  const StereoPair s1 = prev[(pt - 1) & GRANULE_MASK] + next[(nt - 1) & GRANULE_MASK];
-  const StereoPair s2 = prev[(pt + 0) & GRANULE_MASK] + next[(nt + 0) & GRANULE_MASK];
-  const StereoPair s3 = prev[(pt + 1) & GRANULE_MASK] + next[(nt + 1) & GRANULE_MASK];
-  const StereoPair s4 = prev[(pt + 2) & GRANULE_MASK] + next[(nt + 2) & GRANULE_MASK];
-  const StereoPair s5 = prev[(pt + 3) & GRANULE_MASK] + next[(nt + 3) & GRANULE_MASK];
-
-  return (s0 * StereoPair{(+0.0f + 1.0f * t1 - 2.0f * t2 + 1.0f * t3) / 12.0f} +
-          s1 * StereoPair{(+0.0f - 8.0f * t1 + 15.0f * t2 - 7.0f * t3) / 12.0f} +
-          s2 * StereoPair{(+3.0f + 0.0f * t1 - 7.0f * t2 + 4.0f * t3) / 3.0f} +
-          s3 * StereoPair{(+0.0f + 2.0f * t1 + 5.0f * t2 - 4.0f * t3) / 3.0f} +
-          s4 * StereoPair{(+0.0f - 1.0f * t1 - 6.0f * t2 + 7.0f * t3) / 12.0f} +
-          s5 * StereoPair{(+0.0f + 0.0f * t1 + 1.0f * t2 - 1.0f * t3) / 12.0f});
-}
-
-void Mixer::MixerFifo::Enqueue(const Granule& granule, const std::size_t start_index)
+void Mixer::MixerFifo::Enqueue()
 {
   // import numpy as np
   // import scipy.signal as signal
@@ -480,8 +485,9 @@ void Mixer::MixerFifo::Enqueue(const Granule& granule, const std::size_t start_i
 
   // By preconstructing the granule window, we have the best chance of
   // the compiler optimizing this loop using SIMD instructions.
+  const std::size_t start_index = m_next_buffer_index;
   for (std::size_t i = 0; i < GRANULE_SIZE; ++i)
-    m_queue[head][i] = granule[(i + start_index) & GRANULE_MASK] * GRANULE_WINDOW[i];
+    m_queue[head][i] = m_next_buffer[(i + start_index) & GRANULE_MASK] * GRANULE_WINDOW[i];
 
   m_queue_head.store(next_head, std::memory_order_release);
   m_queue_looping.store(false, std::memory_order_relaxed);

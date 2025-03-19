@@ -89,6 +89,7 @@ private:
     };
 
     static constexpr std::size_t GRANULE_SIZE = 256;
+    static constexpr std::size_t GRANULE_OVERLAP = GRANULE_SIZE / 2;
     static constexpr std::size_t GRANULE_MASK = GRANULE_SIZE - 1;
     static constexpr std::size_t GRANULE_BITS = std::countr_one(GRANULE_MASK);
     static constexpr std::size_t GRANULE_FRAC_BITS = 32 - GRANULE_BITS;
@@ -114,8 +115,8 @@ private:
     u32 m_input_sample_rate_divisor;
     bool m_little_endian;
 
-    Granule m_buffer{};
-    std::size_t m_buffer_index = 0;
+    Granule m_next_buffer{};
+    std::size_t m_next_buffer_index = 0;
 
     u32 m_current_index = 0;
     bool m_buffers_swapped = false;
@@ -127,8 +128,7 @@ private:
     std::atomic<bool> m_queue_looping{false};
     std::size_t m_queue_fade_index = 0;
 
-    StereoPair InterpStereoPair(const Granule& prev, const Granule& next, const u32 frac) const;
-    void Enqueue(const Granule& granule, const std::size_t start_index);
+    void Enqueue();
     void Dequeue(Granule* granule);
 
     // Volume ranges from 0-256
