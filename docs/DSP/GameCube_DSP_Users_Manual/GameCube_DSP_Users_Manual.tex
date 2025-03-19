@@ -46,7 +46,7 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.1.6}
+\date{\today\\v0.1.7}
 
 % Title formatting commands
 \newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
@@ -263,7 +263,8 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.1.3            & 2022.05.27    & Pokechu22       & Renamed \texttt{CMPAR} instruction to \texttt{CMPAXH}                                    \\ \hline
 0.1.4            & 2022.06.02    & Pokechu22       & Fixed typos; added sections on 16-bit and 40-bit modes and on main and extended opcode writing to the same register. \\ \hline
 0.1.5            & 2022.09.29    & vpelletier      & Fixed \texttt{BLOOP} and \texttt{BLOOPI} suboperation order \\ \hline
-0.1.6            & 2022.06.20    & xperia64        & Acclerator documentation updates, fix register typo in ANDC and ORC descriptions         \\ \hline
+0.1.6            & 2022.06.20    & xperia64        & Accelerator documentation updates, fix register typo in ANDC and ORC descriptions        \\ \hline
+0.1.7            & 2025.04.21    & Tilka           & Fixed typos and complained about GFDL                                                    \\ \hline
 \end{tabular}
 \end{table}
 
@@ -704,8 +705,8 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 \Address{0xFFD8} & \Register{ACCAH}   & Accelerator current address H \\ \hline
 \Address{0xFFD9} & \Register{ACCAL}   & Accelerator current address L \\ \hline
 \Address{0xFFDA} & \Register{SCALE}   & ADPCM predictor and scale     \\ \hline
-\Address{0xFFDB} & \Register{YN1}     & ADPCM YN1                     \\ \hline
-\Address{0xFFDC} & \Register{YN2}     & ADPCM YN2                     \\ \hline
+\Address{0xFFDB} & \Register{YN1}     & ADPCM output history Y[N - 1] \\ \hline
+\Address{0xFFDC} & \Register{YN2}     & ADPCM output history Y[N - 2] \\ \hline
 \Address{0xFFDD} & \Register{ACDSAMP} & Accelerator processed sample  \\ \hline
 \Address{0xFFDE} & \Register{GAIN}    & Gain                          \\ \hline
 \Address{0xFFDF} & \Register{ACIN}    & Accelerator input             \\ \hline
@@ -764,7 +765,7 @@ The GameCube DSP is connected to the memory bus through a DMA channel. DMA can b
 
 The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
 Current address for the accelerator can be set or read from the \Register{ACCA} register. Accessing accelerator memory is done by reading or writing the \Register{ACDRAW} register for raw data, or reading the \Register{ACDSAMP} register for processed sample data.
-This register contains raw or processed sample data from ARAM pointed to by the \Register{ACCA} register.
+These registers contain raw or processed sample data from ARAM pointed to by the \Register{ACCA} register.
 After reading the data, \Register{ACCA} is incremented by one.
 After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and an exception is generated. Raw reads generate exception \Exception{ACRROV}, raw writes generate exception \Exception{ACRWOV}, and sample reads generate exception \Exception{ACSOV}.
 
@@ -778,9 +779,9 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \end{tabular}}
 \RegisterBitDescription{3--2}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}
 \Value{0} - ADPCM decoding from ARAM \\
-\Value{1} - PCM decoding from ACIN, ACCA doesn't increment \\
+\Value{1} - PCM decoding from \Register{ACIN}, \Register{ACCA} doesn't increment \\
 \Value{2} - PCM decoding from ARAM \\
-\Value{3} - PCM decoding from ACIN, ACCA increments \\
+\Value{3} - PCM decoding from \Register{ACIN}, \Register{ACCA} increments \\
 \end{tabular}}
 \RegisterBitDescription{1--0}{s}{R/W}{\begin{tabular}[c]{@{}l@{}}
 \Value{0} - 4-bit \\
@@ -798,7 +799,7 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitOverview{0xFFD3}{ACDRAW}{Raw ARAM Access}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Reads from or writes to raw data pointed to by current accelerator address, and then increments the current address.  Reads respect the FORMAT size, writes are always 16-bit and treat the addresses as such.  Writes require that the upper bit of the current address is set.  Reads that overflow the end address throw exception 3.  Writes that overflow throw exception 4.}
+\RegisterBitDescription{15--0}{d}{R/W}{Reads from or writes to raw data pointed to by current accelerator address, and then increments the current address.  Reads respect the FORMAT size. Writes are always 16-bit and treat the addresses as such.  Writes require that the uppermost bit of the current address is set.  Reads that overflow the end address throw exception \Exception{ACRROV}.  Writes that overflow throw exception \Exception{ACRWOV}.}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFD4}{ACSAH}{Accelerator Start Address H}{dddd dddd dddd dddd}
@@ -854,7 +855,7 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDSAMP} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A1 coefficient selected by SCALE and scaled per FORMAT.}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFDC}{YN1}{ADPCM YN2}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFDC}{YN2}{ADPCM YN2}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
 \RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A2 coefficient selected by SCALE and scaled per FORMAT.  Writing this value starts the accelerator.}
