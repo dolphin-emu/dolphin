@@ -152,10 +152,10 @@ enum : u32
   DSP_DSMAH = 0xce,  // DSP DMA Address High (External)
   DSP_DSMAL = 0xcf,  // DSP DMA Address Low (External)
 
-  DSP_FORMAT = 0xd1,   // Sample format
-  DSP_ACUNK = 0xd2,    // Set to 3 on my dumps
-  DSP_ACDATA1 = 0xd3,  // Used only by Zelda ucodes
-  DSP_ACSAH = 0xd4,    // Start of loop
+  DSP_FORMAT = 0xd1,  // Sample format
+  DSP_ACUNK = 0xd2,   // Set to 3 on my dumps
+  DSP_ACDRAW = 0xd3,  // Raw accelerator accesses
+  DSP_ACSAH = 0xd4,   // Start of loop
   DSP_ACSAL = 0xd5,
   DSP_ACEAH = 0xd6,  // End of sample (and loop)
   DSP_ACEAL = 0xd7,
@@ -164,9 +164,9 @@ enum : u32
   DSP_PRED_SCALE = 0xda,  // ADPCM predictor and scale
   DSP_YN1 = 0xdb,
   DSP_YN2 = 0xdc,
-  DSP_ACCELERATOR = 0xdd,  // ADPCM accelerator read. Used by AX.
+  DSP_ACDSAMP = 0xdd,  // Accelerator sample reads, processed differently depending on FORMAT
   DSP_GAIN = 0xde,
-  DSP_ACUNK2 = 0xdf,  // Set to 0xc on my dumps
+  DSP_ACIN = 0xdf,  // Feeds PCM samples written here
 
   DSP_AMDM = 0xef,  // ARAM DMA Request Mask 0: DMA with ARAM unmasked 1: masked
 
@@ -226,13 +226,13 @@ enum : u16
 // Exception vectors
 enum class ExceptionType
 {
-  StackOverflow = 1,        // 0x0002 stack under/over flow
-  EXP_2 = 2,                // 0x0004
-  EXP_3 = 3,                // 0x0006
-  EXP_4 = 4,                // 0x0008
-  AcceleratorOverflow = 5,  // 0x000a accelerator address overflow
-  EXP_6 = 6,                // 0x000c
-  ExternalInterrupt = 7     // 0x000e external int (message from CPU)
+  StackOverflow = 1,                  // 0x0002 stack under/over flow
+  EXP_2 = 2,                          // 0x0004
+  AcceleratorRawReadOverflow = 3,     // 0x0006 accelerator raw read address overflow
+  AcceleratorRawWriteOverflow = 4,    // 0x0008 accelerator raw write address overflow
+  AcceleratorSampleReadOverflow = 5,  // 0x000a accelerator sample reads address overflow
+  EXP_6 = 6,                          // 0x000c
+  ExternalInterrupt = 7               // 0x000e external int (message from CPU)
 };
 
 enum class Mailbox
