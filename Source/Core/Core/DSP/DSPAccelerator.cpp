@@ -31,7 +31,7 @@ u16 Accelerator::GetCurrentSample()
     val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
     break;
   default:  // produces garbage, but affects the current address
-    ERROR_LOG_FMT(DSPLLE, "dsp_get_current_sample() - bad format {:#x}", m_sample_format.hex);
+    ERROR_LOG_FMT(DSPLLE, "GetCurrentSample() - bad format {:#x}", m_sample_format.hex);
     break;
   }
   return val;
@@ -75,8 +75,8 @@ u16 Accelerator::ReadRaw()
   // this pre-reset phase
 
   // The cleanest way to emulate the normal non-edge behavior is to only reset things if we just
-  // read the end address If the current address is larger than the end address (and not in the edge
-  // range), it ignores the end address
+  // read the end address. If the current address is larger than the end address (and not in the
+  // edge range), it ignores the end address
   if (m_current_address - 1 == m_end_address)
   {
     // Set address back to start address (confirmed on hardware)
@@ -98,7 +98,7 @@ void Accelerator::WriteRaw(u16 value)
   // Writes only seem to be accepted when the upper most bit of the address is set
   if (m_current_address & 0x80000000)
   {
-    // The format doesn't matter for raw writes, all writes are u16 and the address is treated as if
+    // The format doesn't matter for raw writes; all writes are u16 and the address is treated as if
     // we are in a 16-bit format
     WriteMemory(m_current_address * 2, value >> 8);
     WriteMemory(m_current_address * 2 + 1, value & 0xFF);
@@ -107,8 +107,7 @@ void Accelerator::WriteRaw(u16 value)
   }
   else
   {
-    ERROR_LOG_FMT(DSPLLE,
-                  "dsp_write_aram_raw() - tried to write to address {:#x} without high bit set",
+    ERROR_LOG_FMT(DSPLLE, "WriteRaw() - tried to write to address {:#x} without high bit set",
                   m_current_address);
   }
 }
@@ -120,7 +119,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
 
   if (m_sample_format.unk != 0)
   {
-    WARN_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() format {:#x} has unknown upper bits set",
+    WARN_LOG_FMT(DSPLLE, "ReadSample() format {:#x} has unknown upper bits set",
                  m_sample_format.hex);
   }
 
@@ -166,7 +165,8 @@ u16 Accelerator::ReadSample(const s16* coefs)
     // These two cases are handled in a special way, separate from normal overflow handling:
     // the ACCOV exception does not fire at all, the predscale register is not updated,
     // and if the end address is 16-byte aligned, the DSP loops to start_address + 1
-    // instead of start_address. This probably needs to be adjusted when using 8 or 16-bit accesses.
+    // instead of start_address.
+    // TODO: This probably needs to be adjusted when using 8 or 16-bit accesses.
     if ((m_end_address & 0xf) == 0x0 && m_current_address == m_end_address)
     {
       m_current_address = m_start_address + 1;
@@ -202,8 +202,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
       gain_shift = 16;  // x / 65536 = x >> 16
       break;
     default:
-      ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() invalid gain mode in format {:#x}",
-                    m_sample_format.hex);
+      ERROR_LOG_FMT(DSPLLE, "ReadSample() invalid gain mode in format {:#x}", m_sample_format.hex);
       break;
     }
     s32 val32 = ((static_cast<s32>(m_gain) * raw_sample) >> gain_shift) +
