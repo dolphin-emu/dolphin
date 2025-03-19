@@ -67,19 +67,20 @@ private:
       if (shared)
         return shared;
     }
-    std::shared_ptr<AssetType> ptr(new AssetType(std::move(library), asset_id), [&](AssetType* a) {
-      {
-        std::lock_guard lk(m_asset_load_lock);
-        m_total_bytes_loaded -= a->GetByteSizeInMemory();
-        m_assets_to_monitor.erase(a->GetAssetId());
-        if (m_max_memory_available >= m_total_bytes_loaded && m_memory_exceeded)
-        {
-          INFO_LOG_FMT(VIDEO, "Asset memory went below limit, new assets can begin loading.");
-          m_memory_exceeded = false;
-        }
-      }
-      delete a;
-    });
+    std::shared_ptr<AssetType> ptr(
+        new AssetType(std::move(library), asset_id, asset_map.size()), [&](AssetType* a) {
+          {
+            std::lock_guard lk(m_asset_load_lock);
+            m_total_bytes_loaded -= a->GetByteSizeInMemory();
+            m_assets_to_monitor.erase(a->GetAssetId());
+            if (m_max_memory_available >= m_total_bytes_loaded && m_memory_exceeded)
+            {
+              INFO_LOG_FMT(VIDEO, "Asset memory went below limit, new assets can begin loading.");
+              m_memory_exceeded = false;
+            }
+          }
+          delete a;
+        });
     it->second = ptr;
     m_asset_load_thread.Push(it->second);
     return ptr;
