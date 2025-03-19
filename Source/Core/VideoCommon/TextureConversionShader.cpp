@@ -56,6 +56,7 @@ static void WriteHeader(ShaderCode& code, APIType api_type)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   code.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
+             "  float2 src_offset, src_size;\n"
              "  int4 position;\n"
              "  float y_scale;\n"
              "  float gamma_rcp;\n"
@@ -102,16 +103,20 @@ static void WriteHeader(ShaderCode& code, APIType api_type)
 static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, APIType api_type)
 {
   code.Write("uint4 SampleEFB0(float2 uv, float2 pixel_size, float x_offset, float y_offset) {{\n"
-             "  float4 tex_sample = texture(samp0, float3(uv.x + x_offset * pixel_size.x, ");
+             "  float clamp_top = src_offset.y + clamp_tb.x;\n"
+             "  float clamp_bottom = (src_offset.y + src_size.y) - clamp_tb.y;\n");
 
-  // Reverse the direction for OpenGL, since positive numbers are distance from the bottom row.
-  // TODO: This isn't done on TextureConverterShaderGen - maybe it handles that via pixel_size?
+  // Reverse the direction for OpenGL
   if (api_type == APIType::OpenGL)
-    code.Write("clamp(uv.y - y_offset * pixel_size.y, clamp_tb.x, clamp_tb.y)");
-  else
-    code.Write("clamp(uv.y + y_offset * pixel_size.y, clamp_tb.x, clamp_tb.y)");
+  {
+    code.Write("  clamp_top = src_offset.y + clamp_tb.y;\n"
+               "  clamp_bottom = (src_offset.y + src_size.y) - clamp_tb.x;\n"
+               "  y_offset = -y_offset;\n");
+  }
 
-  code.Write(", 0.0));\n");
+  code.Write("  float clamp_y = clamp(uv.y + (y_offset * pixel_size.y), clamp_top, clamp_bottom);\n"
+             "  float4 tex_sample = texture(samp0, float3(uv.x + (x_offset * pixel_size.x)"
+             ", clamp_y, 0.0));\n");
 
   // TODO: Is this really needed?  Doesn't the EFB only store appropriate values?  Or is this for
   // EFB2Ram having consistent output with force 32-bit color?
