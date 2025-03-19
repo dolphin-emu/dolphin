@@ -550,7 +550,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!EmulatedBS2(system, guard, system.IsWii(), *volume, riivolution_patches))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleBooted(guard);
       return true;
     }
 
@@ -601,7 +601,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         return false;
       }
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleBooted(guard);
 
       ppc_state.pc = executable.reader->GetEntryPoint();
 
@@ -621,7 +621,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!Boot_WiiWAD(system, wad))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleBooted(guard);
       return true;
     }
 
@@ -631,7 +631,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!BootNANDTitle(system, nand_title.id))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleBooted(guard);
       return true;
     }
 
@@ -657,7 +657,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                 ipl.disc->auto_disc_change_paths);
       }
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleBooted(guard);
       return true;
     }
 
