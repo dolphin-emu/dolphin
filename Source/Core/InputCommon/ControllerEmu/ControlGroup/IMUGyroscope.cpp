@@ -133,24 +133,18 @@ bool IMUGyroscope::CanCalibrate() const
   return ControlReference::GetInputGate();
 }
 
-std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)
+std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState()
 {
-  if (!AreInputsBound())
-  {
-    if (update)
-    {
-      // Set calibration to zero.
-      m_calibration = {};
-      RestartCalibration();
-    }
-    return std::nullopt;
-  }
+  return AreInputsBound() ? GetStateInternal() : Reset();
+}
 
+std::optional<IMUGyroscope::StateData> IMUGyroscope::GetStateInternal()
+{
   auto state = GetRawState();
 
   // Alternatively we could open the control gate around GetRawState() while calibrating,
   // but that would imply background input would temporarily be treated differently for our controls
-  if (update && CanCalibrate())
+  if (CanCalibrate())
     UpdateCalibration(state);
 
   state -= m_calibration;
@@ -160,6 +154,14 @@ std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)
     c *= std::abs(c) > GetDeadzone();
 
   return state;
+}
+
+std::nullopt_t IMUGyroscope::Reset()
+{
+  // Set calibration to zero.
+  m_calibration = {};
+  RestartCalibration();
+  return std::nullopt;
 }
 
 ControlState IMUGyroscope::GetDeadzone() const
