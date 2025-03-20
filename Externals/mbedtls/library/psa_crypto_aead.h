@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_AEAD_H
@@ -71,10 +59,10 @@
  * \retval #PSA_SUCCESS Success.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         ciphertext_size is too small.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_aead_encrypt(
     const psa_key_attributes_t *attributes,
@@ -83,7 +71,7 @@ psa_status_t mbedtls_psa_aead_encrypt(
     const uint8_t *nonce, size_t nonce_length,
     const uint8_t *additional_data, size_t additional_data_length,
     const uint8_t *plaintext, size_t plaintext_length,
-    uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length );
+    uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length);
 
 /**
  * \brief Process an authenticated decryption operation.
@@ -134,10 +122,10 @@ psa_status_t mbedtls_psa_aead_encrypt(
  *         The cipher is not authentic.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         plaintext_size is too small.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_aead_decrypt(
     const psa_key_attributes_t *attributes,
@@ -146,6 +134,6 @@ psa_status_t mbedtls_psa_aead_decrypt(
     const uint8_t *nonce, size_t nonce_length,
     const uint8_t *additional_data, size_t additional_data_length,
     const uint8_t *ciphertext, size_t ciphertext_length,
-    uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length );
+    uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length);
 
-#endif /* PSA_CRYPTO_AEAD */
+#endif /* PSA_CRYPTO_AEAD_H */
