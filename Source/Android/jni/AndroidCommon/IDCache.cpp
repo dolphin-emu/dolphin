@@ -97,6 +97,10 @@ static jclass s_control_reference_class;
 static jfieldID s_control_reference_pointer;
 static jmethodID s_control_reference_constructor;
 
+static jclass s_control_group_container_class;
+static jfieldID s_control_group_container_pointer;
+static jmethodID s_control_group_container_constructor;
+
 static jclass s_emulated_controller_class;
 static jfieldID s_emulated_controller_pointer;
 static jmethodID s_emulated_controller_constructor;
@@ -446,6 +450,21 @@ jmethodID GetControlReferenceConstructor()
   return s_control_reference_constructor;
 }
 
+jclass GetControlGroupContainerClass()
+{
+  return s_control_group_container_class;
+}
+
+jfieldID GetControlGroupContainerPointer()
+{
+  return s_control_group_container_pointer;
+}
+
+jmethodID GetControlGroupContainerConstructor()
+{
+  return s_control_group_container_constructor;
+}
+
 jclass GetEmulatedControllerClass()
 {
   return s_emulated_controller_class;
@@ -685,6 +704,16 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_control_reference_constructor = env->GetMethodID(control_reference_class, "<init>", "(J)V");
   env->DeleteLocalRef(control_reference_class);
 
+  const jclass control_group_container_class = env->FindClass(
+      "org/dolphinemu/dolphinemu/features/input/model/controlleremu/ControlGroupContainer");
+  s_control_group_container_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(control_group_container_class));
+  s_control_group_container_pointer =
+      env->GetFieldID(control_group_container_class, "pointer", "J");
+  s_control_group_container_constructor =
+      env->GetMethodID(control_group_container_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_group_container_class);
+
   const jclass emulated_controller_class = env->FindClass(
       "org/dolphinemu/dolphinemu/features/input/model/controlleremu/EmulatedController");
   s_emulated_controller_class =
@@ -754,5 +783,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_numeric_setting_class);
   env->DeleteGlobalRef(s_core_device_class);
   env->DeleteGlobalRef(s_core_device_control_class);
+  env->DeleteGlobalRef(s_control_group_container_class);
 }
 }
