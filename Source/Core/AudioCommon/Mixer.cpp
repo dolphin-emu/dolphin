@@ -79,8 +79,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     // These indexes are used to access the two granule buffers, m_front and m_back.
     // Depending on if the buffers are swapped, we want to index the front half of
     // one of the buffers and the back half of the other.
-    const std::size_t index = m_current_index >> GRANULE_FRAC_BITS;
-    const std::size_t f_idx = index + (m_buffers_swapped ? GRANULE_OVERLAP : 0);
+    const std::size_t f_idx = m_current_index >> GRANULE_FRAC_BITS;
     const std::size_t b_idx = f_idx + GRANULE_OVERLAP;
 
     // The Granules are pre-windowed, so we can just add them together
@@ -120,18 +119,13 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
     samples += 2;
 
-    // In the case of an index overflow, we know we need to get a new buffer
+    // Depending on the current index into the buffers, we may need to
+    // dequeue the next granule into the appropriate buffer.
     m_current_index += index_jump;
-    if (m_current_index < INDEX_HALF)
-    {
-      if (m_buffers_swapped)
-        Dequeue(&m_back);
-      else
-        Dequeue(&m_front);
-
-      m_buffers_swapped = !m_buffers_swapped;
-      m_current_index += INDEX_HALF;
-    }
+    if (m_current_index < index_jump)
+      Dequeue(&m_front);
+    else if (INDEX_HALF <= m_current_index && m_current_index < INDEX_HALF + index_jump)
+      Dequeue(&m_back);
   }
 }
 

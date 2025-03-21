@@ -119,7 +119,6 @@ private:
     std::size_t m_next_buffer_index = 0;
 
     u32 m_current_index = 0;
-    bool m_buffers_swapped = false;
     Granule m_front, m_back;
 
     std::array<Granule, GRANULE_QUEUE_SIZE> m_queue;
