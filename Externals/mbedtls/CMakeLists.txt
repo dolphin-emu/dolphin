@@ -6,9 +6,9 @@
 #     command but rather at the target level using the
 #     target_include_directories command. That way, it is easier to guarantee
 #     that targets are built using the proper list of include directories.
-#   + Use the PUBLIC and PRIVATE keywords to specifiy the scope of include
+#   + Use the PUBLIC and PRIVATE keywords to specify the scope of include
 #     directories. That way, a target linking to a library (using the
-#     target_link_librairies command) inherits from the library PUBLIC include
+#     target_link_libraries command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
 #   + Note: there is currently one remaining include_directories command in the
 #     CMake files. It is related to ZLIB support which is planned to be removed.
@@ -34,18 +34,20 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("mbed TLS" C CXX)
+    project("Mbed TLS" C CXX)
 else()
-    project("mbed TLS" C)
+    project("Mbed TLS" C)
 endif()
+
+include(GNUInstallDirs)
 
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
-option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
+option(USE_PKCS11_HELPER_LIBRARY "Build Mbed TLS with the pkcs11-helper library." OFF)
+option(ENABLE_ZLIB_SUPPORT "Build Mbed TLS with zlib library." OFF)
 
-option(ENABLE_PROGRAMS "Build mbed TLS programs." OFF)
+option(ENABLE_PROGRAMS "Build Mbed TLS programs." OFF)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 # Dolphin: werror makes updating compilers painful
@@ -58,9 +60,9 @@ string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${CMAKE_C_COMPILER_ID}")
 
 # the test suites currently have compile errors with MSVC
 if(CMAKE_COMPILER_IS_MSVC)
-    option(ENABLE_TESTING "Build mbed TLS tests." OFF)
+    option(ENABLE_TESTING "Build Mbed TLS tests." OFF)
 else()
-    option(ENABLE_TESTING "Build mbed TLS tests." OFF)
+    option(ENABLE_TESTING "Build Mbed TLS tests." OFF)
 endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8
@@ -136,36 +138,37 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         FORCE)
 endif()
 
+# Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
+set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
+set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
+
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
+# Note: Copies the file(s) on Windows.
 function(link_to_source base_name)
-    # Get OS dependent path to use in `execute_process`
-    if (CMAKE_HOST_WIN32)
-        #mklink is an internal command of cmd.exe it can only work with \
-        string(REPLACE "/" "\\" link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
-        string(REPLACE "/" "\\" target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
-    else()
-        set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
-        set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
-    endif()
+    set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+    set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
 
     if (NOT EXISTS ${link})
         if (CMAKE_HOST_UNIX)
-            set(command ln -s ${target} ${link})
+            execute_process(COMMAND ln -s ${target} ${link}
+                RESULT_VARIABLE result
+                ERROR_VARIABLE output)
+
+            if (NOT ${result} EQUAL 0)
+                message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+            endif()
         else()
             if (IS_DIRECTORY ${target})
-                set(command cmd.exe /c mklink /j ${link} ${target})
+                file(GLOB_RECURSE files FOLLOW_SYMLINKS RELATIVE ${target} "${target}/*")
+                foreach(file IN LISTS files)
+                    if(NOT IS_DIRECTORY "${target}/${file}")
+                        configure_file("${target}/${file}" "${link}/${file}" COPYONLY)
+                    endif()
+                endforeach(file)
             else()
-                set(command cmd.exe /c mklink /h ${link} ${target})
+                configure_file(${target} ${link} COPYONLY)
             endif()
-        endif()
-
-        execute_process(COMMAND ${command}
-            RESULT_VARIABLE result
-            ERROR_VARIABLE output)
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
         endif()
     endif()
 endfunction(link_to_source)
@@ -223,13 +226,15 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(CMAKE_COMPILER_IS_IAR)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts --warnings_are_errors -Ohz")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts")
+    set(CMAKE_C_FLAGS_RELEASE     "-Ohz")
+    set(CMAKE_C_FLAGS_DEBUG       "--debug -On")
 endif(CMAKE_COMPILER_IS_IAR)
 
 if(CMAKE_COMPILER_IS_MSVC)
-    # Strictest warnings
+    # Strictest warnings, UTF-8 source and execution charset
     # Dolphin/MSVC: we want to disable all warnings for externals
-    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /utf-8")
 endif(CMAKE_COMPILER_IS_MSVC)
 
 if(MBEDTLS_FATAL_WARNINGS)
@@ -245,6 +250,10 @@ if(MBEDTLS_FATAL_WARNINGS)
             set(CMAKE_C_FLAGS_ASANDBG "${CMAKE_C_FLAGS_ASANDBG} -Wno-error=cpp")
         endif(UNSAFE_BUILD)
     endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+
+    if (CMAKE_COMPILER_IS_IAR)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warnings_are_errors")
+    endif(CMAKE_COMPILER_IS_IAR)
 endif(MBEDTLS_FATAL_WARNINGS)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
@@ -254,8 +263,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 if(LIB_INSTALL_DIR)
-else()
-    set(LIB_INSTALL_DIR lib)
+    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
 if(ENABLE_ZLIB_SUPPORT)
@@ -272,3 +280,99 @@ add_subdirectory(3rdparty)
 list(APPEND libs ${thirdparty_lib})
 
 add_subdirectory(library)
+
+add_subdirectory(pkgconfig)
+
+#
+# The C files in tests/src directory contain test code shared among test suites
+# and programs. This shared test code is compiled and linked to test suites and
+# programs objects as a set of compiled objects. The compiled objects are NOT
+# built into a library that the test suite and program objects would link
+# against as they link against the mbedcrypto, mbedx509 and mbedtls libraries.
+# The reason is that such library is expected to have mutual dependencies with
+# the aforementioned libraries and that there is as of today no portable way of
+# handling such dependencies (only toolchain specific solutions).
+#
+# Thus the below definition of the `mbedtls_test` CMake library of objects
+# target. This library of objects is used by tests and programs CMake files
+# to define the test executables.
+#
+if(ENABLE_TESTING OR ENABLE_PROGRAMS)
+    file(GLOB MBEDTLS_TEST_FILES
+         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
+         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
+    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    target_include_directories(mbedtls_test
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+
+    file(GLOB MBEDTLS_TEST_HELPER_FILES
+         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
+    add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
+    target_include_directories(mbedtls_test_helpers
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
+
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(mbedtls_test
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+        target_compile_definitions(mbedtls_test_helpers
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(mbedtls_test
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+        target_compile_definitions(mbedtls_test_helpers
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
+endif()
+
+if(ENABLE_PROGRAMS)
+    add_subdirectory(programs)
+endif()
+
+ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}apidoc
+    COMMAND doxygen mbedtls.doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
+
+if(ENABLE_TESTING)
+    enable_testing()
+
+    add_subdirectory(tests)
+
+    # additional convenience targets for Unix only
+    if(UNIX)
+
+        # For coverage testing:
+        # 1. Build with:
+        #         cmake -D CMAKE_BUILD_TYPE=Coverage /path/to/source && make
+        # 2. Run the relevant tests for the part of the code you're interested in.
+        #    For the reference coverage measurement, see
+        #    tests/scripts/basic-build-test.sh
+        # 3. Run scripts/lcov.sh to generate an HTML report.
+        ADD_CUSTOM_TARGET(lcov
+            COMMAND scripts/lcov.sh
+        )
+
+        ADD_CUSTOM_TARGET(memcheck
+            COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
+            COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
+            COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
+            COMMAND rm -f memcheck.log
+            COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
+        )
+    endif(UNIX)
+
+    # Make scripts needed for testing available in an out-of-source build.
+    if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+        link_to_source(scripts)
+        # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
+        # keep things simple with the sed commands in the memcheck target.
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
+                    ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    endif()
+endif()
