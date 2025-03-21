@@ -83,6 +83,7 @@ if (HAVE_INTTYPES_H)
   target_compile_definitions(minizip PRIVATE HAVE_INTTYPES_H)
 endif()
 
+include(CheckFunctionExists)
 check_function_exists(fseeko HAVE_FSEEKO)
 if (NOT HAVE_FSEEKO)
   target_compile_definitions(minizip PRIVATE NO_FSEEKO)
