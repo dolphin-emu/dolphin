@@ -61,7 +61,8 @@ void Mixer::DoState(PointerWrap& p)
 // Executed from sound stream thread
 void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 {
-  constexpr u32 INDEX_HALF = 0x80000000;
+  constexpr DT_s FADE_IN_RC = DT_s(0.008);
+  constexpr DT_s FADE_OUT_RC = DT_s(0.064);
 
   const u64 out_sample_rate = m_mixer->m_output_sample_rate;
   u64 in_sample_rate = FIXED_SAMPLE_RATE_DIVIDEND / m_input_sample_rate_divisor;
@@ -74,21 +75,35 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   const StereoPair volume{m_LVolume.load() / 256.0f, m_RVolume.load() / 256.0f};
 
+  // These fade in / out multiplier are tuned to match a constant 
+  // fade speed regardless of the input or the output sample rate.
+  const float fade_in_mul = -std::expm1(-DT_s(1.0) / (out_sample_rate * FADE_IN_RC));
+  const float fade_out_mul = -std::expm1(-DT_s(1.0) / (out_sample_rate * FADE_OUT_RC));
+
   while (num_samples-- > 0)
   {
-    // These indexes are used to access the two granule buffers, m_front and m_back.
-    // Depending on if the buffers are swapped, we want to index the front half of
-    // one of the buffers and the back half of the other.
-    const std::size_t f_idx = m_current_index >> GRANULE_FRAC_BITS;
-    const std::size_t b_idx = f_idx + GRANULE_OVERLAP;
+    // The indexes for the front and back buffers are offset by 50% of the granule size.
+    // We use the modular nature of 32-bit integers to wrap around the granule size.
+    m_current_index += index_jump;
+    const u32 front_index = m_current_index;
+    const u32 back_index = m_current_index + 0x80000000;
+
+    // If either index is less than the index jump, that means we reached
+    // the end of the of the buffer and need to load the next granule.
+    if (front_index < index_jump)
+      Dequeue(&m_front);
+    else if (back_index < index_jump)
+      Dequeue(&m_back);
 
     // The Granules are pre-windowed, so we can just add them together
-    const StereoPair s0 = m_front[(f_idx - 2) & GRANULE_MASK] + m_back[(b_idx - 2) & GRANULE_MASK];
-    const StereoPair s1 = m_front[(f_idx - 1) & GRANULE_MASK] + m_back[(b_idx - 1) & GRANULE_MASK];
-    const StereoPair s2 = m_front[(f_idx + 0) & GRANULE_MASK] + m_back[(b_idx + 0) & GRANULE_MASK];
-    const StereoPair s3 = m_front[(f_idx + 1) & GRANULE_MASK] + m_back[(b_idx + 1) & GRANULE_MASK];
-    const StereoPair s4 = m_front[(f_idx + 2) & GRANULE_MASK] + m_back[(b_idx + 2) & GRANULE_MASK];
-    const StereoPair s5 = m_front[(f_idx + 3) & GRANULE_MASK] + m_back[(b_idx + 3) & GRANULE_MASK];
+    const std::size_t ft = front_index >> GRANULE_FRAC_BITS;
+    const std::size_t bt = back_index >> GRANULE_FRAC_BITS;
+    const StereoPair s0 = m_front[(ft - 2) & GRANULE_MASK] + m_back[(bt - 2) & GRANULE_MASK];
+    const StereoPair s1 = m_front[(ft - 1) & GRANULE_MASK] + m_back[(bt - 1) & GRANULE_MASK];
+    const StereoPair s2 = m_front[(ft + 0) & GRANULE_MASK] + m_back[(bt + 0) & GRANULE_MASK];
+    const StereoPair s3 = m_front[(ft + 1) & GRANULE_MASK] + m_back[(bt + 1) & GRANULE_MASK];
+    const StereoPair s4 = m_front[(ft + 2) & GRANULE_MASK] + m_back[(bt + 2) & GRANULE_MASK];
+    const StereoPair s5 = m_front[(ft + 3) & GRANULE_MASK] + m_back[(bt + 3) & GRANULE_MASK];
 
     // Polynomial Interpolators for High-Quality Resampling of
     // Over Sampled Audio by Olli Niemitalo, October 2001.
@@ -106,7 +121,14 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
                          s4 * StereoPair{(+0.0f - 1.0f * t1 - 6.0f * t2 + 7.0f * t3) / 12.0f} +
                          s5 * StereoPair{(+0.0f + 0.0f * t1 + 1.0f * t2 - 1.0f * t3) / 12.0f});
 
-    sample = sample * volume;
+    // Apply Fade In / Fade Out depending on if we are looping
+    if (m_queue_looping.load(std::memory_order_relaxed))
+      m_fade_volume += fade_out_mul * (0.0f - m_fade_volume);
+    else
+      m_fade_volume += fade_in_mul * (1.0f - m_fade_volume);
+
+    // Apply the fade volume and the regular volume to the sample
+    sample = sample * volume * StereoPair{m_fade_volume};
 
     // This quantization method prevents accumulated error but does not do noise shaping.
     sample.l += samples[0] - m_quantization_error.l;
@@ -118,14 +140,6 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     m_quantization_error.r = std::clamp(samples[1] - sample.r, -1.0f, 1.0f);
 
     samples += 2;
-
-    // Depending on the current index into the buffers, we may need to
-    // dequeue the next granule into the appropriate buffer.
-    m_current_index += index_jump;
-    if (m_current_index < index_jump)
-      Dequeue(&m_front);
-    else if (INDEX_HALF <= m_current_index && m_current_index < INDEX_HALF + index_jump)
-      Dequeue(&m_back);
   }
 }
 
@@ -489,20 +503,6 @@ void Mixer::MixerFifo::Enqueue()
 
 void Mixer::MixerFifo::Dequeue(Granule* granule)
 {
-  // import numpy as np
-  // import scipy.signal as signal
-  // window = np.cumsum(signal.windows.dpss(32, 10))[::-1]
-  // window /= window.max()
-  // elements = ", ".join([f"{x:.10f}f" for x in window])
-  // print(f'constexpr std::array<StereoPair, {len(window)}> FADE_WINDOW = {{ {elements} }};')
-  constexpr std::array<StereoPair, 32> FADE_WINDOW = {
-      1.0000000000f, 0.9999999932f, 0.9999998472f, 0.9999982765f, 0.9999870876f, 0.9999278274f,
-      0.9996794215f, 0.9988227502f, 0.9963278433f, 0.9900772448f, 0.9764215513f, 0.9501402658f,
-      0.9052392639f, 0.8367449916f, 0.7430540364f, 0.6277889467f, 0.5000000000f, 0.3722110533f,
-      0.2569459636f, 0.1632550084f, 0.0947607361f, 0.0498597342f, 0.0235784487f, 0.0099227552f,
-      0.0036721567f, 0.0011772498f, 0.0003205785f, 0.0000721726f, 0.0000129124f, 0.0000017235f,
-      0.0000001528f, 0.0000000068f};
-
   const std::size_t tail = m_queue_tail.load(std::memory_order_relaxed);
   std::size_t next_tail = (tail + 1) % GRANULE_QUEUE_SIZE;
 
@@ -519,21 +519,12 @@ void Mixer::MixerFifo::Dequeue(Granule* granule)
     }
     else
     {
-      std::fill(std::begin(m_queue[tail]), std::end(m_queue[tail]), StereoPair{0.0f, 0.0f});
+      std::fill(granule->begin(), granule->end(), StereoPair{0.0f, 0.0f});
       m_queue_looping.store(false, std::memory_order_relaxed);
       return;
     }
   }
 
-  if (m_queue_looping.load(std::memory_order_relaxed))
-    m_queue_fade_index = std::min(m_queue_fade_index + 1, FADE_WINDOW.size() - 1);
-  else
-    m_queue_fade_index = 0;
-
-  // By preconstructing the fade window, we have the best chance of
-  // the compiler optimizing this loop using SIMD instructions.
-  for (std::size_t i = 0; i < GRANULE_SIZE; ++i)
-    (*granule)[i] = m_queue[tail][i] * FADE_WINDOW[m_queue_fade_index];
-
+  *granule = m_queue[tail];
   m_queue_tail.store(next_tail, std::memory_order_release);
 }

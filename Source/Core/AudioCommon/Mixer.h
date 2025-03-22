@@ -125,7 +125,7 @@ private:
     std::atomic<std::size_t> m_queue_head{0};
     std::atomic<std::size_t> m_queue_tail{0};
     std::atomic<bool> m_queue_looping{false};
-    std::size_t m_queue_fade_index = 0;
+    float m_fade_volume = 1.0;
 
     void Enqueue();
     void Dequeue(Granule* granule);
