@@ -60,7 +60,7 @@ private:
 
   class MixerFifo final
   {
-    static constexpr std::size_t GRANULE_QUEUE_SIZE = 20;
+    static constexpr std::size_t MAX_GRANULE_QUEUE_SIZE = 256;
 
     struct StereoPair final
     {
@@ -121,7 +121,8 @@ private:
     u32 m_current_index = 0;
     Granule m_front, m_back;
 
-    std::array<Granule, GRANULE_QUEUE_SIZE> m_queue;
+    std::atomic<std::size_t> m_granule_queue_size{20};
+    std::array<Granule, MAX_GRANULE_QUEUE_SIZE> m_queue;
     std::atomic<std::size_t> m_queue_head{0};
     std::atomic<std::size_t> m_queue_tail{0};
     std::atomic<bool> m_queue_looping{false};
@@ -158,7 +159,8 @@ private:
   bool m_log_dsp_audio = false;
 
   float m_config_emulation_speed;
-  bool m_audio_fill_gaps = true;
+  bool m_config_fill_audio_gaps = true;
+  int m_config_audio_buffer_ms = 80;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

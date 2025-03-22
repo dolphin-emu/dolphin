@@ -19,6 +19,7 @@ class QSlider;
 class QSpinBox;
 class SettingsWindow;
 class ConfigBool;
+class ConfigSlider;
 
 class AudioPane final : public QWidget
 {
@@ -73,6 +74,9 @@ private:
 #endif
 
   // Misc Settings
+  ConfigSlider* m_audio_buffer_size;
+  QLabel* m_audio_buffer_size_label;
+
   ConfigBool* m_audio_fill_gaps;
   ConfigBool* m_speed_up_mute_enable;
 };
