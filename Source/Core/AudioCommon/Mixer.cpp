@@ -61,6 +61,7 @@ void Mixer::DoState(PointerWrap& p)
 // Executed from sound stream thread
 void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 {
+  constexpr u32 INDEX_HALF = 0x80000000;
   constexpr DT_s FADE_IN_RC = DT_s(0.008);
   constexpr DT_s FADE_OUT_RC = DT_s(0.064);
 
@@ -73,30 +74,23 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   const u32 index_jump = (in_sample_rate << GRANULE_FRAC_BITS) / (out_sample_rate);
 
-  const StereoPair volume{m_LVolume.load() / 256.0f, m_RVolume.load() / 256.0f};
-
   // These fade in / out multiplier are tuned to match a constant
   // fade speed regardless of the input or the output sample rate.
   const float fade_in_mul = -std::expm1(-DT_s(1.0) / (out_sample_rate * FADE_IN_RC));
   const float fade_out_mul = -std::expm1(-DT_s(1.0) / (out_sample_rate * FADE_OUT_RC));
 
+  const StereoPair volume{m_LVolume.load() / 256.0f, m_RVolume.load() / 256.0f};
+
   // Calculate the ideal length of the granule queue.
   const std::size_t buffer_size_ms = m_mixer->m_config_audio_buffer_ms;
   const std::size_t buffer_size_samples = buffer_size_ms * in_sample_rate / 1000;
 
-  // Limit the possible queue sizes to an even number between 4 and 64.
+  // Limit the possible queue sizes to any number between 4 and 64.
   const std::size_t buffer_size_granules =
-      std::clamp((~static_cast<std::size_t>(1)) & (buffer_size_samples) / (GRANULE_SIZE >> 1),
-                 static_cast<std::size_t>(4), static_cast<std::size_t>(MAX_GRANULE_QUEUE_SIZE));
+      std::clamp((buffer_size_samples) / (GRANULE_SIZE >> 1), static_cast<std::size_t>(4),
+                 static_cast<std::size_t>(MAX_GRANULE_QUEUE_SIZE));
 
-  if (buffer_size_granules !=
-      m_granule_queue_size.exchange(buffer_size_granules, std::memory_order_relaxed))
-  {
-    // If the queue size changed, we need to reset the queue.
-    m_queue_head.store(0, std::memory_order_relaxed);
-    m_queue_tail.store(1, std::memory_order_relaxed);
-    m_queue_looping.store(false, std::memory_order_relaxed);
-  }
+  m_granule_queue_size.store(buffer_size_granules, std::memory_order_relaxed);
 
   while (num_samples-- > 0)
   {
@@ -104,7 +98,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     // We use the modular nature of 32-bit integers to wrap around the granule size.
     m_current_index += index_jump;
     const u32 front_index = m_current_index;
-    const u32 back_index = m_current_index + 0x80000000;
+    const u32 back_index = m_current_index + INDEX_HALF;
 
     // If either index is less than the index jump, that means we reached
     // the end of the of the buffer and need to load the next granule.
@@ -498,15 +492,16 @@ void Mixer::MixerFifo::Enqueue()
       0.0000216492f, 0.0000113187f, 0.0000050749f, 0.0000016272f};
 
   const std::size_t granule_queue_size = m_granule_queue_size.load(std::memory_order_relaxed);
-  const std::size_t head = m_queue_head.load(std::memory_order_relaxed);
+  const std::size_t head = m_queue_head.load(std::memory_order_acquire);
+  const std::size_t tail = m_queue_tail.load(std::memory_order_acquire);
 
-  std::size_t next_head = (head + 1) % granule_queue_size;
-  if (next_head == m_queue_tail.load(std::memory_order_acquire))
+  std::size_t next_head = (head + 1) & GRANULE_QUEUE_MASK;
+  if (next_head == tail || granule_queue_size < ((next_head - tail) & GRANULE_QUEUE_MASK))
   {
     // If there is no space in the queue, we can drop half of the queue
     // to make room for new samples. This helps keep the latency low.
     if (m_mixer->m_config_fill_audio_gaps)
-      next_head = (head + (granule_queue_size >> 1) - 1) % granule_queue_size;
+      next_head = (tail + (granule_queue_size >> 1)) & GRANULE_QUEUE_MASK;
     else
       return;
   }
@@ -524,18 +519,19 @@ void Mixer::MixerFifo::Enqueue()
 void Mixer::MixerFifo::Dequeue(Granule* granule)
 {
   const std::size_t granule_queue_size = m_granule_queue_size.load(std::memory_order_relaxed);
-  const std::size_t tail = m_queue_tail.load(std::memory_order_relaxed);
-  std::size_t next_tail = (tail + 1) % granule_queue_size;
+  const std::size_t head = m_queue_head.load(std::memory_order_acquire);
+  const std::size_t tail = m_queue_tail.load(std::memory_order_acquire);
 
-  if (next_tail == m_queue_head.load(std::memory_order_acquire))
+  std::size_t next_tail = (tail + 1) & GRANULE_QUEUE_MASK;
+  if (next_tail == head)
   {
     // Only fill gaps when running to prevent stutter on pause.
     const bool is_running = Core::GetState(Core::System::GetInstance()) == Core::State::Running;
     if (m_mixer->m_config_fill_audio_gaps && is_running)
     {
-      // If the queue is empty, we can go back and loop over part of the queue.
+      // If the queue is empty, we can go back and loop over half of the queue.
       // This provides smoother audio playback then suddenly stopping.
-      next_tail = (tail + (granule_queue_size >> 1)) % granule_queue_size;
+      next_tail = (head - (granule_queue_size >> 1)) & GRANULE_QUEUE_MASK;
       m_queue_looping.store(true, std::memory_order_relaxed);
     }
     else
