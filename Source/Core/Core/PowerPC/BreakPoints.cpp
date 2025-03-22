@@ -256,6 +256,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 {
   const Core::CPUThreadGuard guard(m_system);
+  DelayedMemCheckUpdate delayed_update(this);
 
   for (const std::string& mc_string : mc_strings)
   {
@@ -283,13 +284,11 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
       mc.condition = Expression::TryParse(condition);
     }
 
-    Add(std::move(mc), false);
+    delayed_update |= Add(std::move(mc));
   }
-
-  Update();
 }
 
-void MemChecks::Add(TMemCheck memory_check, bool update)
+DelayedMemCheckUpdate MemChecks::Add(TMemCheck memory_check)
 {
   const Core::CPUThreadGuard guard(m_system);
 
@@ -310,8 +309,7 @@ void MemChecks::Add(TMemCheck memory_check, bool update)
     m_mem_checks.emplace_back(std::move(memory_check));
   }
 
-  if (update)
-    Update();
+  return DelayedMemCheckUpdate(this, true);
 }
 
 bool MemChecks::ToggleEnable(u32 address)
@@ -326,22 +324,19 @@ bool MemChecks::ToggleEnable(u32 address)
   return true;
 }
 
-bool MemChecks::Remove(u32 address, bool update)
+DelayedMemCheckUpdate MemChecks::Remove(u32 address)
 {
   const auto iter =
       std::find_if(m_mem_checks.cbegin(), m_mem_checks.cend(),
                    [address](const auto& check) { return check.start_address == address; });
 
   if (iter == m_mem_checks.cend())
-    return false;
+    return DelayedMemCheckUpdate(this, false);
 
   const Core::CPUThreadGuard guard(m_system);
   m_mem_checks.erase(iter);
 
-  if (update)
-    Update();
-
-  return true;
+  return DelayedMemCheckUpdate(this, true);
 }
 
 void MemChecks::Clear()
