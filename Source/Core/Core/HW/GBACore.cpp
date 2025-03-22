@@ -306,7 +306,11 @@ CoreInfo Core::GetCoreInfo() const
   info.has_rom = !m_rom_path.empty();
   info.has_ereader =
       info.is_gba && static_cast<::GBA*>(m_core->board)->memory.hw.devices & HW_EREADER;
-  m_core->desiredVideoDimensions(m_core, &info.width,  &info.height);
+  #ifdef NEW_MGBA_VERSION
+      m_core->currentVideoSize(m_core, &info.width,  &info.height);
+  #else
+      m_core->desiredVideoDimensions(m_core, &info.width,  &info.height);
+  #endif
   info.game_title = m_game_title;
   return info;
 }
@@ -390,14 +394,18 @@ void Core::SetSIODriver()
   };
 }
 
-void Core::SetVideoBuffer()
-{
+void Core::SetVideoBuffer() {
   u32 width, height;
-  m_core->desiredVideoDimensions(m_core, &width, &height);
-  m_video_buffer.resize(width * height);
-  m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
-  if (auto host = m_host.lock())
+  #ifdef NEW_MGBA_VERSION
+    m_core->currentVideoSize(m_core, &width, &height);
+  #else
+    m_core->desiredVideoDimensions(m_core, &width, &height);
+  #endif
+    m_video_buffer.resize(width * height);
+    m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
+  if (auto host = m_host.lock()) {
     host->GameChanged();
+    }
 }
 
 void Core::SetSampleRates()
