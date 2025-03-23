@@ -29,6 +29,7 @@
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace CoreTiming
 {
@@ -105,6 +106,13 @@ void CoreTimingManager::Init()
 
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
+
+  m_throttled_since_presentation = false;
+  m_frame_hook = AfterPresentEvent::Register(
+      [this](const PresentInfo&) {
+        m_throttled_since_presentation.store(false, std::memory_order_relaxed);
+      },
+      "CoreTiming AfterPresentEvent");
 }
 
 void CoreTimingManager::Shutdown()
@@ -114,6 +122,7 @@ void CoreTimingManager::Shutdown()
   ClearPendingEvents();
   UnregisterAllEvents();
   CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  m_frame_hook.reset();
 }
 
 void CoreTimingManager::RefreshConfig()
@@ -406,6 +415,24 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
+  const TimePoint time = Clock::now();
+
+  const bool already_throttled =
+      m_throttled_since_presentation.exchange(true, std::memory_order_relaxed);
+
+  // Try to Throttle just once after each presentation.
+  //  This lowers latency by speeding through to the next presentation after grabbing input.
+  // Make sure we don't get too far ahead of proper timing though,
+  //  otherwise the emulator unreasonably speeds through loading screens that don't have XFB copies,
+  //  and makes the audio sound terrible.
+
+  // TODO: base this on the audio buffer size
+  const bool skip_throttle =
+      already_throttled && ((GetTargetHostTime(target_cycle) - time) < (m_max_fallback / 2));
+
+  if (skip_throttle)
+    return;
+
   if (IsSpeedUnlimited())
   {
     ResetThrottle(target_cycle);
@@ -424,8 +451,6 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   }
 
   TimePoint target_time = CalculateTargetHostTimeInternal(target_cycle);
-
-  const TimePoint time = Clock::now();
 
   const TimePoint min_target = time - m_max_fallback;
   if (target_time < min_target)

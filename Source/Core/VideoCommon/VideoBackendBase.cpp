@@ -97,7 +97,9 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
     auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
-    const TimePoint presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
+    // HAX: Present immediately.
+    const TimePoint presentation_time = Clock::now();
+
     AsyncRequests::GetInstance()->PushEvent([=] {
       g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
     });
