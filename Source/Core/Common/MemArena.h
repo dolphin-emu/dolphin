@@ -135,6 +135,9 @@ private:
   int m_shm_fd = 0;
   void* m_reserved_region = nullptr;
   std::size_t m_reserved_region_size = 0;
+#ifndef ANDROID
+  std::string m_seg_name;
+#endif
 #endif
 };
 
