@@ -483,7 +483,8 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   if (ref->udp_socket.Bind(port, m_current_ip) != sf::Socket::Status::Done)
   {
     ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
-    PanicAlertFmt("Could't open port {:x}, this game might not work proprely in LAN mode.", port);
+    PanicAlertFmtT(
+        "Couldn't open port {0}. This might stop the game's LAN mode from working properly.", port);
     return;
   }
 }
@@ -513,8 +514,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     if (ref->udp_socket.Bind(ntohs(udp_header.source_port), m_current_ip) !=
         sf::Socket::Status::Done)
     {
-      PanicAlertFmt(
-          "Port {:x} is already in use, this game might not work as intented in LAN Mode.",
+      PanicAlertFmtT(
+          "Port {0} is already in use. This might stop the game's LAN mode from working properly.",
           htons(udp_header.source_port));
       if (ref->udp_socket.Bind(sf::Socket::AnyPort, m_current_ip) != sf::Socket::Status::Done)
       {
