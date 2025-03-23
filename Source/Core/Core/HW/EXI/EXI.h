@@ -44,11 +44,12 @@ enum class Slot : int
   A,
   B,
   SP1,
+  SP2,
 };
 // Note: using auto here results in a false warning on GCC
 // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80351
-constexpr std::initializer_list<Slot> SLOTS = {Slot::A, Slot::B, Slot::SP1};
-constexpr auto MAX_SLOT = Slot::SP1;
+constexpr std::initializer_list<Slot> SLOTS = {Slot::A, Slot::B, Slot::SP1, Slot::SP2};
+constexpr auto MAX_SLOT = Slot::SP2;
 constexpr std::initializer_list<Slot> MEMCARD_SLOTS = {Slot::A, Slot::B};
 constexpr auto MAX_MEMCARD_SLOT = Slot::B;
 constexpr bool IsMemcardSlot(Slot slot)
@@ -106,5 +107,5 @@ private:
 template <>
 struct fmt::formatter<ExpansionInterface::Slot> : EnumFormatter<ExpansionInterface::MAX_SLOT>
 {
-  constexpr formatter() : EnumFormatter({"Slot A", "Slot B", "Serial Port 1"}) {}
+  constexpr formatter() : EnumFormatter({"Slot A", "Slot B", "Serial Port 1", "Serial Port 2"}) {}
 };

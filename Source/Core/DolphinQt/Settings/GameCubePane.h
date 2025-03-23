@@ -55,8 +55,8 @@ private:
   QCheckBox* m_skip_main_menu;
   QComboBox* m_language_combo;
 
-  Common::EnumMap<QPushButton*, ExpansionInterface::MAX_SLOT> m_slot_buttons;
-  Common::EnumMap<QComboBox*, ExpansionInterface::MAX_SLOT> m_slot_combos;
+  Common::EnumMap<QPushButton*, ExpansionInterface::Slot::SP1> m_slot_buttons;
+  Common::EnumMap<QComboBox*, ExpansionInterface::Slot::SP1> m_slot_combos;
 
   Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_path_layouts;
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_path_labels;
