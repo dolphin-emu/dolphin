@@ -32,11 +32,6 @@ std::string Extension::GetDisplayName() const
   return m_display_name;
 }
 
-InputConfig* Extension::GetConfig() const
-{
-  return ::Wiimote::GetConfig();
-}
-
 None::None() : Extension("None")
 {
 }

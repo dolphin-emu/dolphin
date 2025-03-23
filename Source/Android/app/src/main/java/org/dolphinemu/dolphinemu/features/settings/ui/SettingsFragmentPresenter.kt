@@ -22,6 +22,7 @@ import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingIntSetting
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroupContainer
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting
 import org.dolphinemu.dolphinemu.features.input.model.view.InputDeviceSetting
@@ -2255,8 +2256,9 @@ class SettingsFragmentPresenter(
         wiimoteNumber: Int,
         extensionType: Int
     ) {
-        addControllerMappingSettings(
+        addContainerMappingSettings(
             sl,
+            EmulatedController.getWiimote(wiimoteNumber),
             EmulatedController.getWiimoteAttachment(wiimoteNumber, extensionType),
             null
         )
@@ -2404,15 +2406,32 @@ class SettingsFragmentPresenter(
      * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
      */
     private fun addControllerMappingSettings(
+      sl: ArrayList<SettingsItem>,
+      controller: EmulatedController,
+      groupTypeFilter: Set<Int>?
+    ) {
+      addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
+    }
+
+    /**
+     * Adds mapping settings and other control-specific settings.
+     *
+     * @param sl              The list to place controller settings into.
+     * @param controller      The encompassing controller.
+     * @param container       The container of control groups to add settings for.
+     * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
+     */
+    private fun addContainerMappingSettings(
         sl: ArrayList<SettingsItem>,
         controller: EmulatedController,
+        container: ControlGroupContainer,
         groupTypeFilter: Set<Int>?
     ) {
         updateOldControllerSettingsWarningVisibility(controller)
 
-        val groupCount = controller.getGroupCount()
+        val groupCount = container.getGroupCount()
         for (i in 0 until groupCount) {
-            val group = controller.getGroup(i)
+            val group = container.getGroup(i)
             val groupType = group.getGroupType()
             if (groupTypeFilter != null && !groupTypeFilter.contains(groupType)) continue
 
