@@ -73,6 +73,11 @@ public:
 private:
   bool CreateView(VkImageViewType type);
 
+  // If new_compute_layout is not ComputeImageLayout::Undefined, it takes precendence over
+  // new_layout.
+  void TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout,
+                          ComputeImageLayout new_compute_layout) const;
+
   VmaAllocation m_alloc;
   VkImage m_image;
   VkImageView m_view = VK_NULL_HANDLE;
