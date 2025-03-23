@@ -102,10 +102,10 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
     glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.tm0.lod_bias / 256.f);
   }
 
-  if (params.tm0.anisotropic_filtering && g_ogl_config.bSupportsAniso)
+  if (params.tm0.anisotropic_filtering != 0 && g_ogl_config.bSupportsAniso)
   {
     glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                        static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy));
+                        static_cast<float>(1 << params.tm0.anisotropic_filtering));
   }
 }
 

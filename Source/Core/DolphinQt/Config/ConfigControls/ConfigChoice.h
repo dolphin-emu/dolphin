@@ -53,7 +53,7 @@ class ConfigComplexChoice final : public ToolTipComboBox
   Q_OBJECT
 
   using InfoVariant = std::variant<Config::Info<u32>, Config::Info<int>, Config::Info<bool>>;
-  using OptionVariant = std::variant<u32, int, bool>;
+  using OptionVariant = std::variant<Config::DefaultState, u32, int, bool>;
 
 public:
   ConfigComplexChoice(const InfoVariant setting1, const InfoVariant setting2,

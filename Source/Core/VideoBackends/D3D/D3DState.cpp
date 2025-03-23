@@ -344,10 +344,10 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   sampdc.MinLOD = state.tm1.min_lod / 16.f;
   sampdc.MipLODBias = state.tm0.lod_bias / 256.f;
 
-  if (state.tm0.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering != 0)
   {
     sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
-    sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
+    sampdc.MaxAnisotropy = 1u << state.tm0.anisotropic_filtering;
   }
 
   ComPtr<ID3D11SamplerState> res;
