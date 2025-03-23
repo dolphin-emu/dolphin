@@ -457,7 +457,7 @@ std::unique_ptr<AbstractShader>
 ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
-      UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData(), {});
+      UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
   return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
                                        fmt::to_string(*uid.GetUidData()));
 }
