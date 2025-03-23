@@ -22,6 +22,7 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/Projection.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
@@ -571,8 +572,7 @@ SharedContentMap::~SharedContentMap() = default;
 std::optional<std::string>
 SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
 {
-  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
-                               [&sha1](const auto& entry) { return entry.sha1 == sha1; });
+  const auto it = std::ranges::find(m_entries, sha1, &Entry::sha1);
   if (it == m_entries.end())
     return {};
 
@@ -670,8 +670,7 @@ UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs{fs_core.GetFS()}
 
 u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 {
-  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
-                               [title_id](const auto& entry) { return entry.second == title_id; });
+  const auto it = std::ranges::find(m_entries, title_id, Common::Projection::Value{});
   return (it == m_entries.end()) ? 0 : it->first;
 }
 

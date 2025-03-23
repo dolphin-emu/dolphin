@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Projection.h"
+
 namespace Config
 {
 using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
@@ -168,8 +170,7 @@ const std::string& GetSystemName(System system)
 
 std::optional<System> GetSystemFromName(const std::string& name)
 {
-  const auto system = std::find_if(system_to_name.begin(), system_to_name.end(),
-                                   [&name](const auto& entry) { return entry.second == name; });
+  const auto system = std::ranges::find(system_to_name, name, Common::Projection::Value{});
   if (system != system_to_name.end())
     return system->first;
 

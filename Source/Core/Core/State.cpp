@@ -312,11 +312,6 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
   return result;
 }
 
-static bool CompareTimestamp(const SlotWithTimestamp& lhs, const SlotWithTimestamp& rhs)
-{
-  return lhs.timestamp < rhs.timestamp;
-}
-
 static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f)
 {
   u64 total_bytes_compressed = 0;
@@ -999,7 +994,7 @@ void LoadLastSaved(Core::System& system, int i)
     return;
   }
 
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
   Load(system, (used_slots.end() - i)->slot);
 }
 
@@ -1015,7 +1010,7 @@ void SaveFirstSaved(Core::System& system)
   }
 
   // overwrite the oldest state
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
   Save(system, used_slots.front().slot, true);
 }
 

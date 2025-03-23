@@ -65,9 +65,7 @@ void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
 std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
                                                         bool* cache_changed)
 {
-  auto it = std::find_if(
-      m_cached_files.begin(), m_cached_files.end(),
-      [&path](const std::shared_ptr<GameFile>& file) { return file->GetFilePath() == path; });
+  auto it = std::ranges::find(m_cached_files, path, &GameFile::GetFilePath);
   const bool found = it != m_cached_files.cend();
   if (!found)
   {

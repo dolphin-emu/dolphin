@@ -1053,8 +1053,7 @@ void VolumeVerifier::SetUpHashing()
     m_scrubber.SetupScrub(m_volume);
   }
 
-  std::sort(m_groups.begin(), m_groups.end(),
-            [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
+  std::ranges::sort(m_groups, {}, &GroupToVerify::offset);
 
   if (m_hashes_to_calculate.crc32)
     m_crc32_context = Common::StartCRC32();
@@ -1336,8 +1335,7 @@ void VolumeVerifier::Finish()
   }
 
   // Show the most serious problems at the top
-  std::stable_sort(m_result.problems.begin(), m_result.problems.end(),
-                   [](const Problem& p1, const Problem& p2) { return p1.severity > p2.severity; });
+  std::ranges::stable_sort(m_result.problems, std::ranges::greater{}, &Problem::severity);
   const Severity highest_severity =
       m_result.problems.empty() ? Severity::None : m_result.problems[0].severity;
 

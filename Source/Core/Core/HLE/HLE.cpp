@@ -240,8 +240,7 @@ bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode)
 
 u32 UnPatch(Core::System& system, std::string_view patch_name)
 {
-  const auto patch = std::find_if(std::begin(os_patches), std::end(os_patches),
-                                  [&](const Hook& p) { return patch_name == p.name; });
+  const auto patch = std::ranges::find(os_patches, patch_name, &Hook::name);
   if (patch == std::end(os_patches))
     return 0;
 
