@@ -28,6 +28,7 @@
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace CoreTiming
 {
@@ -103,6 +104,13 @@ void CoreTimingManager::Init()
 
   m_event_fifo_id = 0;
   m_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
+
+  m_throttled_since_presentation = false;
+  m_frame_hook = BeforePresentEvent::Register(
+      [this](const PresentInfo&) {
+        m_throttled_since_presentation.store(false, std::memory_order_relaxed);
+      },
+      "CoreTiming BeforePresentEvent");
 }
 
 void CoreTimingManager::Shutdown()
@@ -112,6 +120,7 @@ void CoreTimingManager::Shutdown()
   ClearPendingEvents();
   UnregisterAllEvents();
   CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  m_frame_hook.reset();
 }
 
 void CoreTimingManager::RefreshConfig()
@@ -385,6 +394,21 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
+  const TimePoint time = Clock::now();
+
+  const bool already_throttled =
+      m_throttled_since_presentation.exchange(true, std::memory_order_relaxed);
+
+  // When Immediate XFB is enabled, try to Throttle just once since each presentation.
+  //  This lowers latency by speeding through to the next presentation after grabbing input.
+  // Make sure we don't get too far ahead of proper timing though,
+  //  otherwise the emulator unreasonably speeds through loading screens that don't have XFB copies.
+  const bool skip_throttle = already_throttled && g_ActiveConfig.bImmediateXFB &&
+                             ((GetTargetHostTime(target_cycle) - time) < (m_max_fallback / 2));
+
+  if (skip_throttle)
+    return;
+
   // Based on number of cycles and emulation speed, increase the target deadline
   const s64 cycles = target_cycle - m_throttle_last_cycle;
   m_throttle_last_cycle = target_cycle;
@@ -395,7 +419,6 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     m_throttle_deadline +=
         std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
 
-  const TimePoint time = Clock::now();
   const TimePoint min_deadline = time - m_max_fallback;
   const TimePoint max_deadline = time + m_max_fallback;
 
