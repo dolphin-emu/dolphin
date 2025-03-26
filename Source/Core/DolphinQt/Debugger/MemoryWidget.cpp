@@ -168,7 +168,7 @@ void MemoryWidget::CreateWidgets()
   m_result_label = new QLabel;
 
   auto* search_bp_group = new QHBoxLayout;
-  auto *auto_bp_label = new QLabel(tr("Auto BP"));
+  auto* auto_bp_label = new QLabel(tr("Auto BP"));
   m_find_auto_mem_bp = new QCheckBox(tr("Mem"));
   m_find_auto_code_bp = new QCheckBox(tr("Code"));
   search_bp_group->addWidget(auto_bp_label);
@@ -366,7 +366,7 @@ void MemoryWidget::ConnectWidgets()
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
-  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo, m_find_align })
+  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo, m_find_align})
   {
     connect(combo, &QComboBox::currentIndexChanged, this, &MemoryWidget::OnDisplayChanged);
   }
@@ -383,7 +383,8 @@ void MemoryWidget::ConnectWidgets()
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
 
-  connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this, &MemoryWidget::ActivateSearchAddress);
+  connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this,
+          &MemoryWidget::ActivateSearchAddress);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -949,7 +950,7 @@ void MemoryWidget::OnFindNextValue()
       {
         m_memory_view->ToggleBreakpoint(m_memory_view->GetAddress(), false);
       }
-      if (set_code_bp && ( 4 <= alignment ) )
+      if (set_code_bp && (4 <= alignment))
       {
         m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(m_memory_view->GetAddress());
         emit Host::GetInstance()->PPCBreakpointsChanged();

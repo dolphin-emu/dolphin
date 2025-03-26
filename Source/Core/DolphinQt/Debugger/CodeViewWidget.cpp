@@ -1060,10 +1060,7 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
 
   if (assemble)
   {
-    std::string code_line = [this, addr] {
-      Core::CPUThreadGuard guard(m_system);
-      return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
-    }();
+    std::string code_line = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
 
     std::ranges::replace(code_line, '\t', ' ' );
 
