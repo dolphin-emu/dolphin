@@ -120,9 +120,9 @@ void BalloonTip::paintEvent(QPaintEvent*)
 }
 
 void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
-                                       const ShowArrow show_arrow, const int border_full_width)
+                                       const ShowArrow show_arrow, const int border_width)
 {
-  const float border_half_width = border_full_width / 2.0;
+  const float border_half_width = border_width / 2.0;
 
   // This should be odd so that the arrow tip is a single pixel wide.
   const int arrow_full_width = 35;
@@ -138,7 +138,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   // larger border sizes.
   const int rounded_corner_margin = border_half_width / 4;
   const int horizontal_margin =
-      border_full_width + rounded_corner_margin + balloon_interior_padding;
+      border_width + rounded_corner_margin + balloon_interior_padding;
   const int vertical_margin = horizontal_margin + arrow_height;
 
   // Create enough space around the layout containing the title and message to draw the balloon and
@@ -149,8 +149,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   QSize size_hint = sizeHint();
 
   // These positions represent the middle of each edge of the BalloonTip's rounded rectangle
-  const float rect_width = size_hint.width() - border_full_width;
-  const float rect_height = size_hint.height() - border_full_width - 2 * arrow_height;
+  const float rect_width = size_hint.width() - border_width;
+  const float rect_height = size_hint.height() - border_width - 2 * arrow_height;
   const float rect_top = border_half_width + arrow_height;
   const float rect_bottom = rect_top + rect_height;
   const float rect_left = border_half_width;
@@ -160,14 +160,14 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   // corner". Unlike the rectangle's edges this corresponds to the outside of the rounded curve
   // instead of its middle, so we add the full width to the inner radius instead of the half width
   const float corner_base_inner_radius = 7.0;
-  const float corner_outer_radius = corner_base_inner_radius + border_full_width;
+  const float corner_outer_radius = corner_base_inner_radius + border_width;
 
   // This value is arbitrary but works well.
   const int base_arrow_x_offset = 34;
   // Adjust the offset inward to compensate for the border and rounded corner widths. This ensures
   // the arrow is on the flat part of the top/bottom border.
   const int adjusted_arrow_x_offset =
-      base_arrow_x_offset + border_full_width + static_cast<int>(border_half_width);
+      base_arrow_x_offset + border_width + static_cast<int>(border_half_width);
   // If the border is wide enough (or the BalloonTip small enough) the offset might end up past the
   // midpoint; if that happens just use the midpoint instead
   const int centered_arrow_x_offset = (size_hint.width() - arrow_full_width) / 2;
@@ -206,7 +206,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
   m_pixmap = QPixmap(size_hint);
 
-  QPen border_pen(m_border_color, border_full_width);
+  QPen border_pen(m_border_color, border_width);
   border_pen.setCapStyle(Qt::FlatCap);
 
   QPainter balloon_painter(&m_pixmap);
@@ -217,7 +217,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   QBitmap mask_bitmap(size_hint);
   mask_bitmap.fill(Qt::color0);
 
-  QPen mask_pen(Qt::color1, border_full_width);
+  QPen mask_pen(Qt::color1, border_width);
   mask_pen.setCapStyle(Qt::FlatCap);
 
   QPainter mask_painter(&mask_bitmap);
@@ -236,7 +236,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const float arrow_tip_vertical_offset = arrow_at_bottom ? arrow_height : -arrow_height;
   const float arrow_tip_interior_y = arrow_base_y + arrow_tip_vertical_offset;
   const float arrow_tip_exterior_y =
-      arrow_tip_interior_y + (arrow_at_bottom ? border_full_width : -border_full_width);
+      arrow_tip_interior_y + (arrow_at_bottom ? border_width : -border_width);
   const float arrow_base_left_edge_x =
       arrow_at_left ? arrow_nearest_edge_x_offset :
                       size_hint.width() - arrow_nearest_edge_x_offset - arrow_full_width;
@@ -259,7 +259,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
     QPainterPath arrow_border_path;
     QPainterPath arrow_interior_fill_path;
-    const float y_end_offset = arrow_at_bottom ? border_full_width : -border_full_width;
+    const float y_end_offset = arrow_at_bottom ? border_width : -border_width;
 
     // Draw the arrow border and interior lines from the outside inward. Each loop iteration draws
     // one pair of border lines and one pair of interior lines.
