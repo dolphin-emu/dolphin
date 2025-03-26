@@ -54,10 +54,9 @@ void AudioPane::CreateWidgets()
   m_dsp_combo->Add(tr("HLE (recommended)"), true, true);
   m_dsp_combo->Add(tr("LLE Recompiler (slow)"), false, true);
   m_dsp_combo->Add(tr("LLE Interpreter (very slow)"), false, false);
+  // The state true/false shouldn't normally happen, but is HLE (index 0) when it does.
+  m_dsp_combo->SetDefault(0);
   m_dsp_combo->Refresh();
-  // The state true/false shouldn't normally happen and forces no option to be selected.
-  if (m_dsp_combo->currentIndex() == -1)
-    m_dsp_combo->setCurrentIndex(0);
 
   dsp_layout->addWidget(dsp_combo_label);
   dsp_layout->addWidget(m_dsp_combo, Qt::AlignLeft);
