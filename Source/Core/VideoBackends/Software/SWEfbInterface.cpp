@@ -742,7 +742,7 @@ u32 SWEFBInterface::PeekColorInternal(u16 x, u16 y)
   return value;
 }
 
-u32 SWEFBInterface::PeekDepth(u16 x, u16 y)
+u32 SWEFBInterface::PeekDepthInternal(u16 x, u16 y)
 {
   return EfbInterface::GetDepth(x, y);
 }

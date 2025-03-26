@@ -69,6 +69,6 @@ class SWEFBInterface final : public EFBInterfaceBase
   void PokeDepth(u16 x, u16 y, u32 depth) override;
 
   u32 PeekColorInternal(u16 x, u16 y) override;
-  u32 PeekDepth(u16 x, u16 y) override;
+  u32 PeekDepthInternal(u16 x, u16 y) override;
 };
 }  // namespace SW
