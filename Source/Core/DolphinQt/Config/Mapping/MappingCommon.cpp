@@ -31,10 +31,10 @@ bool ContainsAnalogInput(const ciface::Core::InputDetector::Results& results)
   return std::ranges::any_of(results, [](auto& detection) { return detection.smoothness > 1; });
 }
 
-class MappingProcessor : public QWidget
+class MappingProcessor : public QObject
 {
 public:
-  MappingProcessor(MappingWindow* parent) : QWidget{parent}, m_parent{parent}
+  MappingProcessor(MappingWindow* parent) : QObject{parent}, m_parent{parent}
   {
     using MW = MappingWindow;
     using MP = MappingProcessor;
