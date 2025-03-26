@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma_decoder.h
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +41,7 @@ extern bool lzma_lzma_lclppb_decode(
 /// LZMA2 decoders.
 extern lzma_ret lzma_lzma_decoder_create(
 		lzma_lz_decoder *lz, const lzma_allocator *allocator,
-		const void *opt, lzma_lz_options *lz_options);
+		const lzma_options_lzma *opt, lzma_lz_options *lz_options);
 
 /// Gets memory usage without validating lc/lp/pb. This is used by LZMA2
 /// decoder, because raw LZMA2 decoding doesn't need lc/lp/pb.
