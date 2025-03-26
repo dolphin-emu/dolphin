@@ -578,6 +578,8 @@ void CodeViewWidget::OnContextMenu()
       menu->addAction(tr("Copy &Function"), this, &CodeViewWidget::OnCopyFunction);
   auto* copy_line_action =
       menu->addAction(tr("Copy Code &Line"), this, &CodeViewWidget::OnCopyCode);
+  auto* copy_whole_line_action =
+      menu->addAction(tr("Copy &Whole Line"), this, &CodeViewWidget::OnCopyWholeLine);
   auto* copy_hex_action = menu->addAction(tr("Copy &Hex"), this, &CodeViewWidget::OnCopyHex);
 
   menu->addAction(tr("Show in &Memory"), this, &CodeViewWidget::OnShowInMemory);
@@ -646,7 +648,7 @@ void CodeViewWidget::OnContextMenu()
   follow_branch_action->setEnabled(follow_branch_enabled);
 
   for (auto* action :
-       {copy_address_action, copy_line_action, copy_hex_action, function_action, run_to_action,
+       {copy_address_action, copy_line_action, copy_whole_line_action, copy_hex_action, function_action, run_to_action,
         ppc_action, insert_blr_action, insert_nop_action, replace_action, assemble_action})
   {
     action->setEnabled(running);
@@ -824,6 +826,34 @@ void CodeViewWidget::OnCopyCode()
   }();
 
   QApplication::clipboard()->setText(QString::fromStdString(text));
+}
+
+void CodeViewWidget::OnCopyWholeLine()
+{
+  const u32 addr = GetContextAddress();
+
+  const QString textAddress = QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0'));
+
+  const std::string textCode = [this, addr] {
+    Core::CPUThreadGuard guard(m_system);
+    return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+  }();
+
+  QString textTarget = QStringLiteral( "" );
+
+  if (IsInstructionLoadStore(textCode))
+  {
+    const std::optional<u32> target_addr =
+        m_system.GetPowerPC().GetDebugInterface().GetMemoryAddressFromInstruction(textCode);
+
+    if (target_addr)
+      {
+        textTarget = QStringLiteral(" targetting ") + QStringLiteral("%1").arg(*target_addr, 8, 16, QLatin1Char('0'));
+      }
+  }
+
+  QApplication::clipboard()->setText(textAddress + QString::fromStdString(std::string(" ")) +
+                                     QString::fromStdString(textCode) + textTarget );
 }
 
 void CodeViewWidget::OnCopyFunction()
@@ -1085,6 +1115,11 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
     m_address += rowCount() * sizeof(u32);
     Update();
     return;
+  case Qt::Key_G:
+    if (event->modifiers() == Qt::ControlModifier)
+    {
+      emit ActivateSearch();
+    }
   default:
     QWidget::keyPressEvent(event);
     break;

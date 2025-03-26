@@ -31,6 +31,8 @@
 #include "Common/IOFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
@@ -73,6 +75,7 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
     else
       RemoveAfterFrameEventCallback();
   });
+
   LoadSettings();
 
   ConnectWidgets();
@@ -156,10 +159,26 @@ void MemoryWidget::CreateWidgets()
 
   m_find_next = new QPushButton(tr("Find &Next"));
   m_find_previous = new QPushButton(tr("Find &Previous"));
+  m_find_align = new QComboBox;
+  m_find_align->addItem(tr("No alignment"), 0);
+  m_find_align->addItem(tr("2 Bytes"), 2);
+  m_find_align->addItem(tr("4 Bytes"), 4);
+  m_find_align->addItem(tr("8 Bytes"), 8);
+  m_find_align->addItem(tr("16 Bytes"), 16);
   m_result_label = new QLabel;
+
+  auto* search_bp_group = new QHBoxLayout;
+  auto *auto_bp_label = new QLabel(tr("Auto BP"));
+  m_find_auto_mem_bp = new QCheckBox(tr("Mem"));
+  m_find_auto_code_bp = new QCheckBox(tr("Code"));
+  search_bp_group->addWidget(auto_bp_label);
+  search_bp_group->addWidget(m_find_auto_mem_bp);
+  search_bp_group->addWidget(m_find_auto_code_bp);
 
   search_layout->addWidget(m_find_next);
   search_layout->addWidget(m_find_previous);
+  search_layout->addWidget(m_find_align);
+  search_layout->addLayout(search_bp_group);
   search_layout->addWidget(m_result_label);
   search_layout->setSpacing(1);
 
@@ -347,11 +366,13 @@ void MemoryWidget::ConnectWidgets()
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
-  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
+  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo, m_find_align })
   {
     connect(combo, &QComboBox::currentIndexChanged, this, &MemoryWidget::OnDisplayChanged);
   }
 
+  connect(m_find_auto_mem_bp, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
+  connect(m_find_auto_code_bp, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
   connect(m_dual_check, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
 
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
@@ -361,6 +382,8 @@ void MemoryWidget::ConnectWidgets()
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
+
+  connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this, &MemoryWidget::ActivateSearchAddress);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -563,6 +586,11 @@ void MemoryWidget::SetAddress(u32 address)
   raise();
 
   m_memory_view->setFocus();
+}
+
+void MemoryWidget::ActivateSearchAddress()
+{
+  m_search_address->setFocus();
 }
 
 void MemoryWidget::OnSearchAddress()
@@ -849,20 +877,20 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
   return target;
 }
 
-void MemoryWidget::FindValue(bool next)
+bool MemoryWidget::FindValue(bool next)
 {
   auto target_addr = GetTargetAddress();
 
   if (!target_addr.is_good_address)
   {
     m_result_label->setText(tr("Bad address provided."));
-    return;
+    return false;
   }
 
   if (!target_addr.is_good_offset)
   {
     m_result_label->setText(tr("Bad offset provided."));
-    return;
+    return false;
   }
 
   const QByteArray search_for = GetInputData();
@@ -870,7 +898,7 @@ void MemoryWidget::FindValue(bool next)
   if (search_for.isEmpty())
   {
     m_result_label->setText(tr("Bad Value Given"));
-    return;
+    return false;
   }
 
   if (!m_search_address->currentText().isEmpty())
@@ -900,15 +928,35 @@ void MemoryWidget::FindValue(bool next)
 
     m_memory_view->SetAddress(offset);
 
-    return;
+    return true;
   }
 
   m_result_label->setText(tr("No Match"));
+  return false;
 }
 
 void MemoryWidget::OnFindNextValue()
 {
-  FindValue(true);
+  int alignment = m_find_align->currentData().toInt();
+  bool set_mem_bp = m_find_auto_mem_bp->isChecked();
+  bool set_code_bp = m_find_auto_code_bp->isChecked();
+
+  while (FindValue(true))
+  {
+    if ((alignment == 0) || ((m_memory_view->GetAddress() & (alignment - 1)) == 0))
+    {
+      if (set_mem_bp)
+      {
+        m_memory_view->ToggleBreakpoint(m_memory_view->GetAddress(), false);
+      }
+      if (set_code_bp && ( 4 <= alignment ) )
+      {
+        m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(m_memory_view->GetAddress());
+        emit Host::GetInstance()->PPCBreakpointsChanged();
+      }
+      break;
+    }
+  }
 }
 
 void MemoryWidget::OnFindPreviousValue()
