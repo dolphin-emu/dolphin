@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Core/Core.h"
 #include "Common/Assembler/GekkoAssembler.h"
 #include "Common/StringUtil.h"
 
@@ -38,8 +39,8 @@ QString HtmlFormatErrorLine(const Common::GekkoAssembler::AssemblerError& err)
 }
 }  // namespace
 
-AssembleInstructionDialog::AssembleInstructionDialog(QWidget* parent, u32 address, u32 value)
-    : QDialog(parent), m_code(value), m_address(address)
+AssembleInstructionDialog::AssembleInstructionDialog(QWidget* parent, u32 address, u32 value, QString disasm )
+    : QDialog(parent), m_code(value), m_address(address), m_disassembly(disasm)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowModality(Qt::WindowModal);
@@ -66,7 +67,9 @@ void AssembleInstructionDialog::CreateWidgets()
   layout->addWidget(m_error_line_label);
   layout->addWidget(m_msg_label);
   layout->addWidget(m_button_box);
-  m_input_edit->setText(QStringLiteral(".4byte 0x%1").arg(m_code, 8, 16, QLatin1Char('0')));
+
+//  m_input_edit->setText(QStringLiteral(".4byte 0x%1").arg(m_code, 8, 16, QLatin1Char('0')));
+  m_input_edit->setText( m_disassembly );
 
   setLayout(layout);
   OnEditChanged();
@@ -85,6 +88,34 @@ void AssembleInstructionDialog::OnEditChanged()
   using namespace Common::GekkoAssembler;
   std::string line = m_input_edit->text().toStdString();
   Common::ToLower(&line);
+
+  size_t posArrow = line.find("->");
+  if (posArrow != std::string::npos)
+  {
+    std::string start = line.substr(0, posArrow);
+    std::string dest = line.substr(posArrow + 2);
+    u32 destAddress = 0;
+    size_t posHex = dest.find("0x");
+    try
+    {
+      if (posHex == std::string::npos)
+      {
+        destAddress = (u32)std::stoi(dest);
+      }
+      else
+      {
+        destAddress = (u32)std::stoul(dest.substr(posHex + 2), NULL, 16);
+      }
+    } catch (...) {}
+    if (destAddress < m_address)
+    {
+      line = start + " -" + std::to_string(m_address - destAddress);
+    }
+    else
+    {
+      line = start + " " + std::to_string(destAddress - m_address);
+    }
+  }
 
   FailureOr<std::vector<CodeBlock>> asm_result = Assemble(line, m_address);
 
