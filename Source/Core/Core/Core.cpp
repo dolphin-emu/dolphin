@@ -121,7 +121,7 @@ struct HostJob
 };
 static std::mutex s_host_jobs_lock;
 static std::queue<HostJob> s_host_jobs_queue;
-static Common::Event s_cpu_thread_job_finished;
+static Common::TimedEvent s_cpu_thread_job_finished;
 
 static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
