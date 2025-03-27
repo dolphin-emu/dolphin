@@ -10,6 +10,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
@@ -69,6 +70,8 @@ void CPUManager::ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 
 void CPUManager::StartTimePlayedTimer()
 {
+  Common::SetCurrentThreadName("Play Time Tracker");
+
   // Steady clock for greater accuracy of timing
   std::chrono::steady_clock timer;
   auto prev_time = timer.now();
