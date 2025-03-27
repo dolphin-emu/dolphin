@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -19,7 +20,7 @@
 
 namespace Common
 {
-class Event final
+class TimedEvent final
 {
 public:
   void Set()
@@ -75,6 +76,29 @@ private:
   Flag m_flag;
   std::condition_variable m_condvar;
   std::mutex m_mutex;
+};
+
+// Alternative to TimedEvent which lacks timed waiting.
+// Testing shows that Set() -> Wait() response time here can be sometimes 10x better.
+class Event final
+{
+public:
+  void Set()
+  {
+    if (m_counter.fetch_add(1, std::memory_order_release) == 0)
+      m_counter.notify_one();
+  }
+
+  void Wait()
+  {
+    while (m_counter.exchange(0, std::memory_order_acquire) == 0)
+      m_counter.wait(0, std::memory_order_relaxed);
+  }
+
+  void Reset() { m_counter.store(0, std::memory_order_relaxed); }
+
+private:
+  std::atomic<std::uintptr_t> m_counter{};
 };
 
 }  // namespace Common

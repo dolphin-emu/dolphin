@@ -68,7 +68,7 @@ private:
   std::string m_last_error;
   std::thread m_session_thread;
 
-  Common::Event m_session_thread_exit_event;
+  Common::TimedEvent m_session_thread_exit_event;
 
   std::function<void()> m_error_callback = nullptr;
 };
