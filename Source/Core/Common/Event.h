@@ -11,19 +11,22 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <concrt.h>
-#endif
-
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
 
 #include "Common/Flag.h"
 
+#if !defined(__APPLE__)
+// std::atomic<T>::notify_one is "unavailable: introduced in macOS 11.0"
+// TODO: Eliminate this when macOS required version is bumped to 11.0+
+#define ATOMIC_NOTIFY_ONE_IS_AVAILABLE
+#endif
+
 namespace Common
 {
-class Event final
+class TimeoutEvent final
 {
 public:
   void Set()
@@ -81,4 +84,38 @@ private:
   std::mutex m_mutex;
 };
 
+#if defined(ATOMIC_NOTIFY_ONE_IS_AVAILABLE)
+class Event final
+{
+public:
+  void Set()
+  {
+    m_flag.store(true, std::memory_order_release);
+    // `Reset` from another thread could happen *here* clearing m_flag before notification.
+    m_flag.notify_one();
+  }
+  void Wait()
+  {
+    m_flag.wait(false, std::memory_order_acquire);
+    Reset();
+  }
+  void Reset()
+  {
+    m_flag.store(false, std::memory_order_relaxed);
+    // `Reset` can run concurrently with `Set`, clearing m_flag before notification.
+    // "Missing" that event later is fine as long as its data is visible *now*.
+    // This store-load barrier prevents m_flag.store(false) ordering after data loads.
+    // Without it, we could observe stale data AND miss the next event, i.e. deadlock.
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+  }
+
+private:
+  std::atomic_bool m_flag{};
+};
+#else
+using Event = TimeoutEvent;
+#endif
+
 }  // namespace Common
+
+#undef ATOMIC_NOTIFY_ONE_IS_AVAILABLE
