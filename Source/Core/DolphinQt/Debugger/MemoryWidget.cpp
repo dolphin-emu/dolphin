@@ -592,6 +592,7 @@ void MemoryWidget::SetAddress(u32 address)
 void MemoryWidget::ActivateSearchAddress()
 {
   m_search_address->setFocus();
+  m_search_address->lineEdit()->selectAll();
 }
 
 void MemoryWidget::OnSearchAddress()

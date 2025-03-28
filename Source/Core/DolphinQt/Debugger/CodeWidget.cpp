@@ -247,6 +247,7 @@ void CodeWidget::OnPPCSymbolsChanged()
 void CodeWidget::ActivateSearchAddress()
 {
   m_search_address->setFocus();
+  m_search_address->selectAll();
 }
 
 void CodeWidget::OnSearchAddress()
