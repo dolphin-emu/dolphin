@@ -54,7 +54,8 @@
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
-    <string name="input_binding_no_device">You need to select a device first!</string>
+    <string name="input_binding_no_device">You need to select a device first.</string>
+    <string name="input_binding_disconnected_device">The selected device is disconnected.\n\nPlease reconnect the device or select a different device.</string>
     <string name="input_configure_input">Configure Input</string>
     <string name="input_configure_output">Configure Output</string>
     <string name="input_expression">Expression</string>
