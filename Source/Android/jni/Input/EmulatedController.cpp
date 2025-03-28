@@ -23,7 +23,7 @@
 ControllerEmu::ControlGroupContainer* ControlGroupContainerFromJava(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<ControllerEmu::ControlGroupContainer*>(
-      env->GetLongField(obj, IDCache::GetEmulatedControllerPointer()));
+      env->GetLongField(obj, IDCache::GetControlGroupContainerPointer()));
 }
 
 static jobject ControlGroupContainerToJava(JNIEnv* env,
