@@ -161,8 +161,12 @@ void AudioPane::ConnectWidgets()
     m_volume_indicator->setText(tr("%1%").arg(value));
     AudioCommon::UpdateSoundStream(Core::System::GetInstance());
   });
-  connect(m_latency_slider, &QSlider::valueChanged, this,
-          [this](int value) { m_latency_label->setText(tr("Latency: %1 ms").arg(value)); });
+
+  if (m_latency_control_supported)
+  {
+    connect(m_latency_slider, &QSlider::valueChanged, this,
+            [this](int value) { m_latency_label->setText(tr("Latency: %1 ms").arg(value)); });
+  }
 }
 
 void AudioPane::OnDspChanged()
@@ -242,9 +246,6 @@ void AudioPane::AddDescriptions()
   static const char TR_AUDIO_BACKEND_DESCRIPTION[] =
       QT_TR_NOOP("Selects which audio API to use internally.<br><br><dolphin_emphasis>If unsure, "
                  "select %1.</dolphin_emphasis>");
-  static const char TR_WASAPI_DEVICE_DESCRIPTION[] =
-      QT_TR_NOOP("Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
-                 "Default Device.</dolphin_emphasis>");
   static const char TR_LATENCY_SLIDER_DESCRIPTION[] = QT_TR_NOOP(
       "Sets the audio latency in milliseconds. Higher values may reduce audio crackling. Certain "
       "backends only.<br><br><dolphin_emphasis>If unsure, leave this at 20 ms.</dolphin_emphasis>");
@@ -279,9 +280,13 @@ void AudioPane::AddDescriptions()
   m_dolby_quality_combo->SetDescription(tr(TR_DOLBY_OPTIONS_DESCRIPTION));
 
 #ifdef _WIN32
+  static const char TR_WASAPI_DEVICE_DESCRIPTION[] =
+      QT_TR_NOOP("Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
+                 "Default Device.</dolphin_emphasis>");
   m_wasapi_device_combo->SetTitle(tr("Output Device"));
   m_wasapi_device_combo->SetDescription(tr(TR_WASAPI_DEVICE_DESCRIPTION));
 #endif
+
   m_volume_slider->SetTitle(tr("Volume"));
   m_volume_slider->SetDescription(tr(TR_VOLUME_DESCRIPTION));
 
