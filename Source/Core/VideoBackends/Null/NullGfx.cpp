@@ -108,7 +108,7 @@ u32 NullEFBInterface::PeekColorInternal(u16 x, u16 y)
   return 0;
 }
 
-u32 NullEFBInterface::PeekDepth(u16 x, u16 y)
+u32 NullEFBInterface::PeekDepthInternal(u16 x, u16 y)
 {
   return 0;
 }
