@@ -138,12 +138,13 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     if (window_min_x > window_max_x || window_min_y > window_max_y)
       return;
 
-    const float window_x = std::clamp(position.x, window_min_x, window_max_x);
-    const float window_y = std::clamp(position.y, window_min_y, window_max_y);
-    const bool window_needs_clamping = (window_x != position.x) || (window_y != position.y);
+    const float clamped_window_x = std::clamp(position.x, window_min_x, window_max_x);
+    const float clamped_window_y = std::clamp(position.y, window_min_y, window_max_y);
+    const bool window_needs_clamping =
+        (clamped_window_x != position.x) || (clamped_window_y != position.y);
 
     if (window_needs_clamping)
-      ImGui::SetWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always);
+      ImGui::SetWindowPos(ImVec2(clamped_window_x, clamped_window_y), ImGuiCond_Always);
   };
 
   const float graph_width = 50.f * backbuffer_scale + 3.f * window_width + 2.f * window_padding;
