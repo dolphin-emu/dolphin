@@ -11,15 +11,15 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
-
 namespace WiimoteEmu
 {
+CameraLogic::CameraLogic(const WiimoteCommon::InputReportStatus* status) : m_wiimote_status{*status}
+{
+}
+
 void CameraLogic::Reset()
 {
   m_reg_data = {};
-
-  m_is_enabled = false;
 }
 
 void CameraLogic::DoState(PointerWrap& p)
@@ -34,7 +34,7 @@ int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   if (I2C_ADDR != slave_addr)
     return 0;
 
-  if (!m_is_enabled)
+  if (!IsEnabled())
     return 0;
 
   return RawRead(&m_reg_data, addr, count, data_out);
@@ -45,7 +45,7 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   if (I2C_ADDR != slave_addr)
     return 0;
 
-  if (!m_is_enabled)
+  if (!IsEnabled())
     return 0;
 
   return RawWrite(&m_reg_data, addr, count, data_in);
@@ -179,9 +179,9 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
   }
 }
 
-void CameraLogic::SetEnabled(bool is_enabled)
+bool CameraLogic::IsEnabled() const
 {
-  m_is_enabled = is_enabled;
+  return m_wiimote_status.ir;
 }
 
 }  // namespace WiimoteEmu
