@@ -12,19 +12,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_RANDOM_IMPL_H
@@ -41,9 +29,9 @@
 typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
 
 /* Trivial wrapper around psa_generate_random(). */
-int mbedtls_psa_get_random( void *p_rng,
-                            unsigned char *output,
-                            size_t output_size );
+int mbedtls_psa_get_random(void *p_rng,
+                           unsigned char *output,
+                           size_t output_size);
 
 /* The PSA RNG API doesn't need any externally maintained state. */
 #define MBEDTLS_PSA_RANDOM_STATE NULL
@@ -51,13 +39,10 @@ int mbedtls_psa_get_random( void *p_rng,
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 /* Choose a DRBG based on configuration and availability */
-#if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
-
-#include "mbedtls/hmac_drbg.h"
-
-#elif defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_CTR_DRBG_C)
 
 #include "mbedtls/ctr_drbg.h"
+#undef MBEDTLS_PSA_HMAC_DRBG_MD_TYPE
 
 #elif defined(MBEDTLS_HMAC_DRBG_C)
 
@@ -79,9 +64,11 @@ int mbedtls_psa_get_random( void *p_rng,
 #error "No hash algorithm available for HMAC_DBRG."
 #endif
 
-#else
+#else /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C*/
+
 #error "No DRBG module available for the psa_crypto module."
-#endif
+
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C*/
 
 #include "mbedtls/entropy.h"
 
@@ -89,12 +76,12 @@ int mbedtls_psa_get_random( void *p_rng,
  *
  * \param p_rng        Pointer to the Mbed TLS DRBG state.
  */
-static inline void mbedtls_psa_drbg_init( mbedtls_psa_drbg_context_t *p_rng )
+static inline void mbedtls_psa_drbg_init(mbedtls_psa_drbg_context_t *p_rng)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_init( p_rng );
+    mbedtls_ctr_drbg_init(p_rng);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-    mbedtls_hmac_drbg_init( p_rng );
+    mbedtls_hmac_drbg_init(p_rng);
 #endif
 }
 
@@ -102,12 +89,12 @@ static inline void mbedtls_psa_drbg_init( mbedtls_psa_drbg_context_t *p_rng )
  *
  * \param p_rng        Pointer to the Mbed TLS DRBG state.
  */
-static inline void mbedtls_psa_drbg_free( mbedtls_psa_drbg_context_t *p_rng )
+static inline void mbedtls_psa_drbg_free(mbedtls_psa_drbg_context_t *p_rng)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_free( p_rng );
+    mbedtls_ctr_drbg_free(p_rng);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-    mbedtls_hmac_drbg_free( p_rng );
+    mbedtls_hmac_drbg_free(p_rng);
 #endif
 }
 
@@ -116,10 +103,9 @@ static inline void mbedtls_psa_drbg_free( mbedtls_psa_drbg_context_t *p_rng )
  * The random generator context is composed of an entropy context and
  * a DRBG context.
  */
-typedef struct
-{
-    void (* entropy_init )( mbedtls_entropy_context *ctx );
-    void (* entropy_free )( mbedtls_entropy_context *ctx );
+typedef struct {
+    void (* entropy_init)(mbedtls_entropy_context *ctx);
+    void (* entropy_free)(mbedtls_entropy_context *ctx);
     mbedtls_entropy_context entropy;
     mbedtls_psa_drbg_context_t drbg;
 } mbedtls_psa_random_context_t;
@@ -182,21 +168,21 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
  */
 static inline int mbedtls_psa_drbg_seed(
     mbedtls_entropy_context *entropy,
-    const unsigned char *custom, size_t len )
+    const unsigned char *custom, size_t len)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return( mbedtls_ctr_drbg_seed( MBEDTLS_PSA_RANDOM_STATE,
-                                   mbedtls_entropy_func,
-                                   entropy,
-                                   custom, len ) );
+    return mbedtls_ctr_drbg_seed(MBEDTLS_PSA_RANDOM_STATE,
+                                 mbedtls_entropy_func,
+                                 entropy,
+                                 custom, len);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
     const mbedtls_md_info_t *md_info =
-        mbedtls_md_info_from_type( MBEDTLS_PSA_HMAC_DRBG_MD_TYPE );
-    return( mbedtls_hmac_drbg_seed( MBEDTLS_PSA_RANDOM_STATE,
-                                    md_info,
-                                    mbedtls_entropy_func,
-                                    entropy,
-                                    custom, len ) );
+        mbedtls_md_info_from_type(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE);
+    return mbedtls_hmac_drbg_seed(MBEDTLS_PSA_RANDOM_STATE,
+                                  md_info,
+                                  mbedtls_entropy_func,
+                                  entropy,
+                                  custom, len);
 #endif
 }
 
