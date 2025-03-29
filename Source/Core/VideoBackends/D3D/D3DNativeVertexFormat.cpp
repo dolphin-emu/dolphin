@@ -15,8 +15,6 @@
 
 namespace DX11
 {
-std::mutex s_input_layout_lock;
-
 std::unique_ptr<NativeVertexFormat>
 Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {

@@ -1,4 +1,4 @@
-add_library(videod3d
+add_library(videod3d STATIC
   D3DBase.cpp
   D3DBase.h
   D3DBoundingBox.cpp

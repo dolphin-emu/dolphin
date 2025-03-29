@@ -5,7 +5,9 @@
 
 #if defined(_WIN32)
 #include <Qos2.h>
+#ifdef _MSC_VER
 #pragma comment(lib, "qwave")
+#endif
 #endif
 
 #include "Core/ConfigManager.h"
