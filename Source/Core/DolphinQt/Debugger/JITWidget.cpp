@@ -213,7 +213,7 @@ static void DisassembleCodeBuffer(const JitBlock& block, PPCSymbolDB& ppc_symbol
       next_address = address;
     }
     fmt::print(stream, "0x{:08x}\t{}\n", address,
-               Common::GekkoDisassembler::Disassemble(inst.hex, address));
+               Common::GekkoDisassembler::Disassemble(inst.hex, address, false));
     next_address += sizeof(UGeckoInstruction);
   }
 }

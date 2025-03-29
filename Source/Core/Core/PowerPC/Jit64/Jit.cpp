@@ -1177,7 +1177,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())
     {
-      const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
+      const std::string ppc_inst =
+          Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address, false);
       NOTICE_LOG_FMT(DYNA_REC, "Unflushed register: {}", ppc_inst);
     }
 #endif
@@ -1320,7 +1321,7 @@ void Jit64::LogGeneratedCode() const
        std::span{m_code_buffer.data(), code_block.m_num_instructions})
   {
     fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
-               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
+               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address, false));
   }
 
   const JitBlock* const block = js.curBlock;

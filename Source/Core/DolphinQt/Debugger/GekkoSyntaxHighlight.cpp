@@ -55,6 +55,10 @@ public:
       HighlightCurToken(HighlightFormat::FPR);
       break;
 
+    case Terminal::GQR:
+      HighlightCurToken(HighlightFormat::GQR);
+      break;
+
     case Terminal::SPR:
       HighlightCurToken(HighlightFormat::SPR);
       break;
@@ -221,6 +225,7 @@ void GekkoSyntaxHighlight::HighlightSubstr(int start, int len, HighlightFormat f
     break;
   case HighlightFormat::GPR:
   case HighlightFormat::FPR:
+  case HighlightFormat::GQR:
   case HighlightFormat::SPR:
   case HighlightFormat::CRField:
   case HighlightFormat::CRFlag:

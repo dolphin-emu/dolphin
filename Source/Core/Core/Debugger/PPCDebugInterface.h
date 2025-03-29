@@ -75,7 +75,8 @@ public:
   // Threads
   Common::Debug::Threads GetThreads(const Core::CPUThreadGuard& guard) const override;
 
-  std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address,
+                          bool for_assemble = false) const override;
   std::string GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
                                  u32 address) const override;
   bool IsAlive() const override;

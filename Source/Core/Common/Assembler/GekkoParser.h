@@ -56,6 +56,7 @@ enum class Terminal
   Id,
   GPR,
   FPR,
+  GQR,
   SPR,
   CRField,
   Lt,

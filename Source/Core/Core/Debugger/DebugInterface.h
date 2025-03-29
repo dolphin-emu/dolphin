@@ -62,7 +62,8 @@ public:
   // Threads
   virtual Common::Debug::Threads GetThreads(const CPUThreadGuard& guard) const = 0;
 
-  virtual std::string Disassemble(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  virtual std::string Disassemble(const CPUThreadGuard* /*guard*/, u32 /*address*/,
+                                  bool /*for_assemble*/) const
   {
     return "NODEBUGGER";
   }

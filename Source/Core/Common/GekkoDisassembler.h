@@ -43,7 +43,7 @@ namespace Common
 class GekkoDisassembler final
 {
 public:
-  static std::string Disassemble(u32 opcode, u32 current_instruction_address,
+  static std::string Disassemble(u32 opcode, u32 current_instruction_address, bool for_assemble,
                                  bool big_endian = true);
   static const char* GetGPRName(u32 index);
   static const char* GetFPRName(u32 index);
@@ -67,7 +67,7 @@ private:
   static void mcrf(u32 in, std::string_view suffix);
   static void crop(u32 in, std::string_view n1, std::string_view n2);
   static void nooper(u32 in, std::string_view name);
-  static void rlw(u32 in, std::string_view name, int i);
+  static void rlw(u32 in, std::string_view name, int i, bool for_assemble);
   static void ori(u32 in, std::string_view name);
   static void rld(u32 in, std::string_view name, int i);
   static void cmp(u32 in);
@@ -85,10 +85,10 @@ private:
   static void fdab(u32 in, std::string_view name);
   static void fcmp(u32 in, char c);
   static void mtfsb(u32 in, int n);
-  static void ps(u32 inst);
+  static void ps(u32 inst, bool for_assemble);
   static void ps_mem(u32 inst);
 
-  static u32* DoDisassembly(bool big_endian);
+  static u32* DoDisassembly(bool for_assemble, bool big_endian);
 
   enum Flags
   {
