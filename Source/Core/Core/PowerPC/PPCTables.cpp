@@ -236,7 +236,8 @@ constexpr std::array<GekkoOPTemplate, 13> s_table19{{
     {150, "isync", OpType::InstructionCache, 1, FL_NO_REORDER},
     {0, "mcrf", OpType::System, 1, FL_SET_CRn | FL_READ_CRn},
 
-    {50, "rfi", OpType::System, 2, FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION},
+    {50, "rfi", OpType::System, 2,
+     FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION | FL_SET_MSR},
 }};
 
 constexpr std::array<GekkoOPTemplate, 107> s_table31{{
@@ -370,7 +371,7 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {83, "mfmsr", OpType::System, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
     {144, "mtcrf", OpType::System, 1, FL_IN_S | FL_SET_ALL_CR | FL_READ_ALL_CR},
     {146, "mtmsr", OpType::System, 1,
-     FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+     FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION | FL_SET_MSR},
     {210, "mtsr", OpType::System, 1, FL_IN_S | FL_PROGRAMEXCEPTION},
     {242, "mtsrin", OpType::System, 1, FL_IN_SB | FL_PROGRAMEXCEPTION},
     {339, "mfspr", OpType::SPR, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},

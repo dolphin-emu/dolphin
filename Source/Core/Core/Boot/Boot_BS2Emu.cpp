@@ -68,14 +68,15 @@ void CBoot::RunFunction(Core::System& system, u32 address)
     power_pc.SingleStep();
 }
 
-void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)
+void CBoot::SetupMSR(Core::System& system)
 {
   // 0x0002032
+  auto& ppc_state = system.GetPPCState();
   ppc_state.msr.RI = 1;
   ppc_state.msr.DR = 1;
   ppc_state.msr.IR = 1;
   ppc_state.msr.FP = 1;
-  PowerPC::MSRUpdated(ppc_state);
+  system.GetPowerPC().MSRUpdated();
 }
 
 void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii)
@@ -279,7 +280,7 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
 
   auto& ppc_state = system.GetPPCState();
 
-  SetupMSR(ppc_state);
+  SetupMSR(system);
   SetupHID(ppc_state, /*is_wii*/ false);
   SetupBAT(system, /*is_wii*/ false);
 
@@ -586,7 +587,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
 
   auto& ppc_state = system.GetPPCState();
 
-  SetupMSR(ppc_state);
+  SetupMSR(system);
   SetupHID(ppc_state, /*is_wii*/ true);
   SetupBAT(system, /*is_wii*/ true);
 
