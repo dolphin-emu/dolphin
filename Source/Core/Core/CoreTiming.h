@@ -23,10 +23,12 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Core/CPUThreadConfigCallback.h"
 
 class PointerWrap;
+struct PresentInfo;
 
 namespace Core
 {
@@ -214,6 +216,9 @@ private:
 
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
+
+  Common::EventHook m_frame_hook;
+  std::atomic<bool> m_throttled_since_presentation = false;
 };
 
 }  // namespace CoreTiming
