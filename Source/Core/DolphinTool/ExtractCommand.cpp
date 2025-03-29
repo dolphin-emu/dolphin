@@ -39,8 +39,7 @@ static std::unique_ptr<DiscIO::FileInfo> GetFileInfo(const DiscIO::Volume& disc_
   if (!filesystem)
     return nullptr;
 
-  std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
-  return info;
+  return filesystem->FindFileInfo(path);
 }
 
 static bool VolumeSupported(const DiscIO::Volume& disc_volume)
