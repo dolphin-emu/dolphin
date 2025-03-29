@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Debugger/BranchWatch.h"
@@ -70,14 +71,21 @@ struct TLBEntry
 
 struct PairedSingle
 {
+  // By default, truncate PS1
+  // Due to reciprocal operations having a quirk in which the sign
+  // of the input PS1 is set if the value in it beforehand would
+  // be truncated to 0, setting PS1 then only truncating it on read
+  // operations simply works easier than creating an entire flag
+  // for this specific case
   u64 PS0AsU64() const { return ps0; }
-  u64 PS1AsU64() const { return ps1; }
+  u64 PS1AsU64() const { return Common::TruncateMantissaBits(ps1); }
 
   u32 PS0AsU32() const { return static_cast<u32>(ps0); }
   u32 PS1AsU32() const { return static_cast<u32>(ps1); }
 
   double PS0AsDouble() const;
   double PS1AsDouble() const;
+  double PS1AsReciprocalDouble() const;
 
   void SetPS0(u64 value) { ps0 = value; }
   void SetPS0(double value);
