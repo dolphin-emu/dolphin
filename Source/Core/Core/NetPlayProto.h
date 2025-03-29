@@ -64,6 +64,7 @@ struct NetSettings
   bool perf_queries_enable = false;
   bool float_exceptions = false;
   bool divide_by_zero_exceptions = false;
+  bool alignment_exceptions = false;
   bool fprf = false;
   bool accurate_nans = false;
   bool disable_icache = false;

@@ -673,14 +673,19 @@ static constexpr u32 MaskImm26(s64 distance)
 }
 
 // FixupBranch branching
-void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
+void ARM64XEmitter::SetJumpTarget(const FixupBranch& branch)
+{
+  SetJumpTarget(branch, m_code);
+}
+
+void ARM64XEmitter::SetJumpTarget(const FixupBranch& branch, const u8* target)
 {
   if (!branch.ptr)
     return;
 
   bool Not = false;
   u32 inst = 0;
-  s64 distance = (s64)(m_code - branch.ptr);
+  s64 distance = static_cast<s64>(target - branch.ptr);
   distance >>= 2;
 
   switch (branch.type)
