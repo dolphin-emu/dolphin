@@ -54,6 +54,7 @@ IncludeCategories:
 IndentCaseLabels: false
 IndentWidth:     2
 IndentWrappedFunctionNames: false
+InsertNewlineAtEOF: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
@@ -67,6 +68,8 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
 ReflowComments:  true
+RemoveSemicolon: true
+RequiresClausePosition: WithPreceding
 SortIncludes:    true
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
@@ -79,6 +82,8 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard:        Latest
+StatementAttributeLikeMacros:
+  - emit
 TabWidth:        2
 UseTab:          Never
 ---
@@ -93,4 +98,3 @@ ObjCSpaceBeforeProtocolList: true
 BraceWrapping:
   AfterObjCDeclaration: true
 ...
-
