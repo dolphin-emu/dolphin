@@ -646,9 +646,9 @@ void CodeViewWidget::OnContextMenu()
   run_until_menu->setEnabled(!target.isEmpty());
   follow_branch_action->setEnabled(follow_branch_enabled);
 
-  for (auto* action :
-       {copy_address_action, copy_line_action, copy_whole_line_action, copy_hex_action, function_action, run_to_action,
-        ppc_action, insert_blr_action, insert_nop_action, replace_action, assemble_action})
+  for (auto* action : {copy_address_action, copy_line_action, copy_whole_line_action,
+                       copy_hex_action, function_action, run_to_action, ppc_action,
+                       insert_blr_action, insert_nop_action, replace_action, assemble_action})
   {
     action->setEnabled(running);
   }
