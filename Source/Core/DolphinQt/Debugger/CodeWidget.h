@@ -61,6 +61,7 @@ private:
   void UpdateFunctionCalls(const Common::Symbol* symbol);
   void UpdateFunctionCallers(const Common::Symbol* symbol);
 
+  void OnShowDemangledNamesChanged();
   void OnPPCSymbolsChanged();
   void OnSearchAddress();
   void OnSearchSymbols();
@@ -71,6 +72,8 @@ private:
 
   void closeEvent(QCloseEvent*) override;
   void showEvent(QShowEvent* event) override;
+
+  const std::string& GetSymbolName(const Common::Symbol* symbol) const;
 
   Core::System& m_system;
   PPCSymbolDB& m_ppc_symbol_db;

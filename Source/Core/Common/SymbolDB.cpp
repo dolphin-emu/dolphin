@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 
+#include "Common/CWDemangler.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -30,6 +31,17 @@ void Symbol::Rename(const std::string& symbol_name)
 {
   this->name = symbol_name;
   this->function_name = GetStrippedFunctionName(symbol_name);
+
+  // Try demangling the symbol name, saving it in the symbol if valid.
+  auto demangle_result = CWDemangler::demangle(symbol_name, DemangleOptions());
+  if (demangle_result)
+  {
+    this->demangled_name = demangle_result.value();
+  }
+  else
+  {
+    this->demangled_name.clear();
+  }
 }
 
 void SymbolDB::List()
