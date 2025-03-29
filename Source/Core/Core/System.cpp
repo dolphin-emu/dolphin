@@ -128,9 +128,14 @@ bool System::IsSoundStreamRunning() const
   return m_impl->m_sound_stream_running;
 }
 
-void System::SetSoundStreamRunning(bool running)
+void System::StartSoundStream()
 {
-  m_impl->m_sound_stream_running = running;
+  m_impl->m_sound_stream_running = true;
+}
+
+void System::StopSoundStream()
+{
+  m_impl->m_sound_stream_running = false;
 }
 
 bool System::IsAudioDumpStarted() const
