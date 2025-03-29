@@ -263,12 +263,5 @@ void HacksWidget::UpdateSkipPresentingDuplicateFramesEnabled()
 {
   // If Immediate XFB is on, there's no point to skipping duplicate XFB copies as immediate presents
   // when the XFB is created, therefore all XFB copies will be unique.
-  // This setting is also required for VI skip to work.
-
-  const bool disabled = m_immediate_xfb->isChecked() || m_vi_skip->isChecked();
-
-  if (disabled)
-    m_skip_duplicate_xfbs->setChecked(true);
-
-  m_skip_duplicate_xfbs->setEnabled(!disabled);
+  m_skip_duplicate_xfbs->setDisabled(m_immediate_xfb->isChecked() || m_vi_skip->isChecked());
 }
