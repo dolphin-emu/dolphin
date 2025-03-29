@@ -115,7 +115,6 @@ public:
 private:
   Core::System& m_system;
   const bool m_was_cpu_thread;
-  const bool m_has_cpu_thread;
   bool m_was_unpaused = false;
 };
 

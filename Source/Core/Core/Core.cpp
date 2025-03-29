@@ -1052,15 +1052,15 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
 }
 
 CPUThreadGuard::CPUThreadGuard(Core::System& system)
-    : m_system(system), m_was_cpu_thread(IsCPUThread()), m_has_cpu_thread(IsRunningAndStarted())
+    : m_system(system), m_was_cpu_thread(IsCPUThread())
 {
-  if (m_has_cpu_thread && !m_was_cpu_thread)
+  if (!m_was_cpu_thread)
     m_was_unpaused = PauseAndLock(system, true, true);
 }
 
 CPUThreadGuard::~CPUThreadGuard()
 {
-  if (m_has_cpu_thread && !m_was_cpu_thread)
+  if (!m_was_cpu_thread)
     PauseAndLock(m_system, false, m_was_unpaused);
 }
 
