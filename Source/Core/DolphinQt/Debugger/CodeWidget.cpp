@@ -208,6 +208,7 @@ void CodeWidget::ConnectWidgets()
 
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &CodeWidget::OnPPCSymbolsChanged);
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
+  connect(m_code_view, &CodeViewWidget::ActivateSearch, this, &CodeWidget::ActivateSearchAddress);
 
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
           &CodeWidget::RequestPPCComparison);
@@ -241,6 +242,12 @@ void CodeWidget::OnPPCSymbolsChanged()
     UpdateFunctionCalls(symbol);
     UpdateFunctionCallers(symbol);
   }
+}
+
+void CodeWidget::ActivateSearchAddress()
+{
+  m_search_address->setFocus();
+  m_search_address->selectAll();
 }
 
 void CodeWidget::OnSearchAddress()

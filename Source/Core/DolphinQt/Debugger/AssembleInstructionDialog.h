@@ -15,7 +15,7 @@ class AssembleInstructionDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit AssembleInstructionDialog(QWidget* parent, u32 address, u32 value);
+  explicit AssembleInstructionDialog(QWidget* parent, u32 address, u32 value, QString disasm );
 
   u32 GetCode() const;
 
@@ -27,7 +27,7 @@ private:
 
   u32 m_code;
   u32 m_address;
-
+  QString m_disassembly;
   QLineEdit* m_input_edit;
   QLabel* m_error_loc_label;
   QLabel* m_error_line_label;

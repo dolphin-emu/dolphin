@@ -58,6 +58,7 @@ signals:
   void RequestPPCComparison(u32 address, bool translate_address);
   void ShowMemory(u32 address);
   void UpdateCodeWidget();
+  void ActivateSearch();
 
 private:
   enum class ReplaceWith
@@ -85,6 +86,7 @@ private:
   void OnShowTargetInMemory();
   void OnCopyFunction();
   void OnCopyCode();
+  void OnCopyWholeLine();
   void OnCopyHex();
   void OnRenameSymbol();
   void OnSelectionChanged();
