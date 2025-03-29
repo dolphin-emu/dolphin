@@ -1085,6 +1085,11 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
     m_address += rowCount() * sizeof(u32);
     Update();
     return;
+  case Qt::Key_G:
+    if (event->modifiers() == Qt::ControlModifier)
+    {
+      emit ActivateSearch();
+    }
   default:
     QWidget::keyPressEvent(event);
     break;

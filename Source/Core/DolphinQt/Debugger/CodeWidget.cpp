@@ -212,6 +212,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
           &CodeWidget::RequestPPCComparison);
   connect(m_code_view, &CodeViewWidget::ShowMemory, this, &CodeWidget::ShowMemory);
+  connect(m_code_view, &CodeViewWidget::ActivateSearch, this, &CodeWidget::ActivateSearchAddress);
 }
 
 void CodeWidget::OnBranchWatchDialog()
@@ -241,6 +242,12 @@ void CodeWidget::OnPPCSymbolsChanged()
     UpdateFunctionCalls(symbol);
     UpdateFunctionCallers(symbol);
   }
+}
+
+void CodeWidget::ActivateSearchAddress()
+{
+  m_search_address->setFocus();
+  m_search_address->selectAll();
 }
 
 void CodeWidget::OnSearchAddress()
