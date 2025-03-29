@@ -26,7 +26,7 @@ protected:
   using AnyCallback = s32 (*)(PowerPC::PowerPCState& ppc_state, const void* operands);
 
   template <class Operands>
-  static Callback<Operands> CallbackCast(Callback<Operands> callback)
+  static consteval Callback<Operands> CallbackCast(Callback<Operands> callback)
   {
     return callback;
   }
