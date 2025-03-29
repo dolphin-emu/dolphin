@@ -973,6 +973,11 @@ void MemoryViewWidget::SetAddress(u32 address)
   UpdateDispatcher(UpdateType::Addresses);
 }
 
+u32 MemoryViewWidget::GetAddress()
+{
+  return m_address;
+}
+
 void MemoryViewWidget::SetBPLoggingEnabled(bool enabled)
 {
   m_do_log = enabled;
