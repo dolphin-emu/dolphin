@@ -94,19 +94,13 @@ void AssembleInstructionDialog::OnEditChanged()
     std::string dest = line.substr(posArrow + 2);
     u32 destAddress = 0;
     size_t posHex = dest.find("0x");
-    try
+    if (posHex == std::string::npos)
     {
-      if (posHex == std::string::npos)
-      {
-        destAddress = (u32)std::stoi(dest);
-      }
-      else
-      {
-        destAddress = (u32)std::stoul(dest.substr(posHex + 2), NULL, 16);
-      }
+      destAddress = (u32)strtoul(dest.c_str(), nullptr, 10);
     }
-    catch (...)
+    else
     {
+      destAddress = (u32)strtoul(dest.substr(posHex + 2).c_str(), nullptr, 16);
     }
     if (destAddress < m_address)
     {
