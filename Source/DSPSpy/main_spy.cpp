@@ -25,6 +25,9 @@
 #include <ogc/consol.h>
 #include <unistd.h>
 
+// From libogc's timesupp.c (not in the header :|)
+extern "C" u32 gettick(void);
+
 #ifdef _MSC_VER
 // Just for easy looking :)
 #define HW_RVL  // HW_DOL
@@ -150,7 +153,7 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
     for (int i = 0; i < 8; i++)
     {
       const int reg = j * 8 + i;
-      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
+      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_CYAN;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
       CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
       for (int k = 0; k < 4; k++)
@@ -418,6 +421,50 @@ void handle_dsp_mail(void)
 
       // Now we can do something useful with the buffer :)
       DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
+    }
+
+    // Request for an interrupt
+    else if (mail == 0x88885371)
+    {
+      if (real_dsp.CheckInterrupt())
+      {
+        CON_PrintRow(4, 25, "Already has interrupt?");
+      }
+      else
+      {
+        const u32 now = gettick();
+        real_dsp.SetInterrupt(true);
+        u32 end = gettick();
+        u32 tries = 0;
+        while (real_dsp.CheckInterrupt() && end - now < 1000000)
+        {
+          end = gettick();
+          tries++;
+        }
+        if (end - now < 1000000)
+        {
+          CON_PrintRow(4, 25, "Interrupt after %d ticks / %d tries", end - now, tries);
+        }
+        else
+        {
+          CON_PrintRow(4, 25, "No interrupt after %d ticks / %d tries", end - now, tries);
+        }
+      }
+    }
+    else if (mail == 0x88885370)
+    {
+      real_dsp.SetInterrupt(false);
+      //real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      //while (real_dsp.CheckMailTo())
+      //  ;
+    }
+    else if (mail == 0x88885372)
+    {
+      real_dsp.SetInterrupt(true);
+      //real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      // CON_PrintRow(4, 25, "Bep %d %d", real_dsp.CheckInterrupt(), real_dsp.CheckMailTo());
+      //while (real_dsp.CheckMailTo())
+      //  ;
     }
 
     // SDK status mails

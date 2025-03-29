@@ -31,7 +31,7 @@ INCLUDES	:=	include ../Core/Common .
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -save-temps -O2 -Wall --no-strict-aliasing $(MACHDEP) $(INCLUDE)
+CFLAGS	= -g -save-temps -O2 -Wall --no-strict-aliasing $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	-std=c++17 -Wno-register $(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map

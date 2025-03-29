@@ -197,27 +197,20 @@ void SDSP::SetException(ExceptionType exception)
   exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
 }
 
-void SDSP::SetExternalInterrupt(bool val)
-{
-  external_interrupt_waiting.store(val, std::memory_order_release);
-}
-
-void SDSP::CheckExternalInterrupt()
-{
-  if (!IsSRFlagSet(SR_EXT_INT_ENABLE))
-    return;
-
-  // Signal the SPU about new mail
-  SetException(ExceptionType::ExternalInterrupt);
-
-  control_reg &= ~CR_EXTERNAL_INT;
-}
-
-void SDSP::CheckExceptions()
+bool SDSP::CheckExceptions()
 {
   // Early out to skip the loop in the common case.
-  if (exceptions == 0)
-    return;
+  if (exceptions == 0 && (control_reg & CR_EXTERNAL_INT) == 0)
+    return false;
+
+  if ((control_reg & CR_EXTERNAL_INT) != 0)
+  {
+    if (IsSRFlagSet(SR_EXT_INT_ENABLE) && IsSRFlagSet(SR_EXT_INT_ENABLE_2))
+    {
+      SetException(ExceptionType::ExternalInterrupt);
+      control_reg &= ~CR_EXTERNAL_INT;
+    }
+  }
 
   for (int i = 7; i > 0; i--)
   {
@@ -232,11 +225,8 @@ void SDSP::CheckExceptions()
 
         pc = static_cast<u16>(i * 2);
         exceptions &= ~(1 << i);
-        if (i == 7)
-          r.sr &= ~SR_EXT_INT_ENABLE;
-        else
-          r.sr &= ~SR_INT_ENABLE;
-        break;
+        r.sr &= ~SR_EXT_INT_ENABLE_2;
+        return true;
       }
       else
       {
@@ -246,6 +236,8 @@ void SDSP::CheckExceptions()
       }
     }
   }
+
+  return false;
 }
 
 u16 SDSP::ReadRegister(size_t reg) const
@@ -382,7 +374,6 @@ void SDSP::DoState(PointerWrap& p)
   p.Do(control_reg_init_code_clear_time);
   p.Do(reg_stack_ptrs);
   p.Do(exceptions);
-  p.Do(external_interrupt_waiting);
 
   for (auto& stack : reg_stacks)
   {
@@ -520,19 +511,9 @@ void DSPCore::SetException(ExceptionType exception)
   m_dsp.SetException(exception);
 }
 
-void DSPCore::SetExternalInterrupt(bool val)
+bool DSPCore::CheckExceptions()
 {
-  m_dsp.SetExternalInterrupt(val);
-}
-
-void DSPCore::CheckExternalInterrupt()
-{
-  m_dsp.CheckExternalInterrupt();
-}
-
-void DSPCore::CheckExceptions()
-{
-  m_dsp.CheckExceptions();
+  return m_dsp.CheckExceptions();
 }
 
 u16 DSPCore::ReadRegister(size_t reg) const
