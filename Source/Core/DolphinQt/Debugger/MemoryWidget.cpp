@@ -945,7 +945,7 @@ void MemoryWidget::OnFindNextValue()
       if (set_code_bp && (4 <= alignment))
       {
         m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(m_memory_view->GetAddress());
-        emit Host::GetInstance() -> PPCBreakpointsChanged();
+        emit Host::GetInstance()->PPCBreakpointsChanged();
       }
       break;
     }
