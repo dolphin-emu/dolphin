@@ -1030,7 +1030,11 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
 
   if (assemble)
   {
-    AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
+    std::string code_line = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+    std::ranges::replace(code_line, '\t', ' ');
+
+    AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr),
+                                     QString::fromStdString(code_line));
     SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() == QDialog::Accepted)
     {
