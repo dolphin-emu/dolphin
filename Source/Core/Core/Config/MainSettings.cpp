@@ -532,6 +532,8 @@ const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
 
 // Main.USBPassthrough
 
+const Info<bool> MAIN_USB_PASSTHROUGH_DISGUISE_PLAYSTATION_AS_WII{
+    {System::Main, "USBPassthrough", "DisguisePlayStationAsWii"}, true};
 const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
                                                      ""};
 
