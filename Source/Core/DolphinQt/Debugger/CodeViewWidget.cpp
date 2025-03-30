@@ -831,25 +831,23 @@ void CodeViewWidget::OnCopyWholeLine()
 {
   const u32 addr = GetContextAddress();
 
-  const std::string textCode = [this, addr] {
-    Core::CPUThreadGuard guard(m_system);
-    return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
-  }();
+  Core::CPUThreadGuard guard(m_system);
 
-  std::string wholeLineText = std::format("{:08x} {}", addr, textCode);
+  std::string text_code = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+  std::string whole_line = fmt::format("{:08x} {}", addr, text_code);
 
-  if (IsInstructionLoadStore(textCode))
+  if (IsInstructionLoadStore(text_code))
   {
     const std::optional<u32> target_addr =
-        m_system.GetPowerPC().GetDebugInterface().GetMemoryAddressFromInstruction(textCode);
+        m_system.GetPowerPC().GetDebugInterface().GetMemoryAddressFromInstruction(text_code);
 
     if (target_addr)
     {
-      wholeLineText += std::format(" targetting {:08x}", *target_addr);
+      whole_line += fmt::format(" targetting {:08x}", *target_addr);
     }
   }
 
-  QApplication::clipboard()->setText(QString::fromStdString(wholeLineText));
+  QApplication::clipboard()->setText(QString::fromStdString(whole_line));
 }
 
 void CodeViewWidget::OnCopyFunction()
