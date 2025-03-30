@@ -831,14 +831,12 @@ void CodeViewWidget::OnCopyWholeLine()
 {
   const u32 addr = GetContextAddress();
 
-  const QString textAddress = QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0'));
-
   const std::string textCode = [this, addr] {
     Core::CPUThreadGuard guard(m_system);
     return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
   }();
 
-  QString textTarget = QStringLiteral("");
+  std::string wholeLineText = std::format("{:08x} {}", addr, textCode);
 
   if (IsInstructionLoadStore(textCode))
   {
@@ -847,13 +845,11 @@ void CodeViewWidget::OnCopyWholeLine()
 
     if (target_addr)
     {
-      textTarget = QStringLiteral(" targetting ") +
-                   QStringLiteral("%1").arg(*target_addr, 8, 16, QLatin1Char('0'));
+      wholeLineText += std::format(" targetting {:08x}", *target_addr);
     }
   }
 
-  QApplication::clipboard()->setText(textAddress + QString::fromStdString(std::string(" ")) +
-                                     QString::fromStdString(textCode) + textTarget);
+  QApplication::clipboard()->setText(QString::fromStdString(wholeLineText));
 }
 
 void CodeViewWidget::OnCopyFunction()
