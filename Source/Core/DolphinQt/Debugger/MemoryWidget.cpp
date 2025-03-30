@@ -366,13 +366,11 @@ void MemoryWidget::ConnectWidgets()
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
-  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo, m_find_align})
+  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
   {
     connect(combo, &QComboBox::currentIndexChanged, this, &MemoryWidget::OnDisplayChanged);
   }
 
-  connect(m_find_auto_mem_bp, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
-  connect(m_find_auto_code_bp, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
   connect(m_dual_check, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
 
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
@@ -936,15 +934,15 @@ void MemoryWidget::OnFindNextValue()
 
   while (FindValue(true))
   {
-    if ((alignment == 0) || ((m_memory_view->GetAddress() & (alignment - 1)) == 0))
+    if ((alignment == 0) || ((GetTargetAddress().address & (alignment - 1)) == 0))
     {
       if (set_mem_bp)
       {
-        m_memory_view->ToggleBreakpoint(m_memory_view->GetAddress(), false);
+        m_memory_view->ToggleBreakpoint(GetTargetAddress().address, false);
       }
       if (set_code_bp && (4 <= alignment))
       {
-        m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(m_memory_view->GetAddress());
+        m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(GetTargetAddress().address);
         emit Host::GetInstance()->PPCBreakpointsChanged();
       }
       break;

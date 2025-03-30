@@ -60,7 +60,6 @@ private:
   void OnBPTypeChanged();
 
   void OnSearchAddress();
-  void OnBreakOnAll();
   void OnFindNextValue();
   void OnFindPreviousValue();
 

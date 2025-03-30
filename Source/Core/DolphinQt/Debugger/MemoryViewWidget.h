@@ -97,7 +97,6 @@ public:
   void SetHighlightColor();
   void SetBPType(BPType type);
   void SetAddress(u32 address);
-  u32 GetAddress();
   void SetFocus() const;
 
   void SetBPLoggingEnabled(bool enabled);
