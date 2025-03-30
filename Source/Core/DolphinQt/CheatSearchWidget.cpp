@@ -31,10 +31,13 @@
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -502,7 +505,58 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   menu->addAction(tr("Generate Action Replay Code(s)"), this, &CheatSearchWidget::GenerateARCodes);
   menu->addAction(tr("Write value"), this, &CheatSearchWidget::WriteValue);
 
+  if (m_last_value_session->GetAddressSpace() == PowerPC::RequestedAddressSpace::Virtual)
+  {
+    menu->addAction(tr("Breakpoint Selection"), this, [this]() { AddBreakpoints("rw"); });
+    menu->addAction(tr("Break only on write"), this, [this]() { AddBreakpoints("w"); });
+    menu->addAction(tr("Break only on read"), this, [this]() { AddBreakpoints("r"); });
+  }
+
   menu->exec(QCursor::pos());
+}
+
+void CheatSearchWidget::AddBreakpoints(std::string_view type)
+{
+  if (m_last_value_session->GetAddressSpace() != PowerPC::RequestedAddressSpace::Virtual)
+    return;
+
+  int length = 0;
+  switch (m_last_value_session->GetDataType())
+  {
+  case Cheats::DataType::U8:
+  case Cheats::DataType::S8:
+    length = 0;
+    break;
+  case Cheats::DataType::U16:
+  case Cheats::DataType::S16:
+    length = 1;
+    break;
+  case Cheats::DataType::U32:
+  case Cheats::DataType::S32:
+  case Cheats::DataType::F32:
+    length = 3;
+    break;
+  case Cheats::DataType::U64:
+  case Cheats::DataType::S64:
+  case Cheats::DataType::F64:
+    length = 7;
+    break;
+  default:
+    break;
+  }
+
+  MemChecks::TMemChecksStr bps;
+
+  for (auto& i : m_address_table->selectedItems())
+  {
+    u32 addr = i->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+    std::string bp = fmt::format("{:08x} {:08x} nbl{}", addr, addr + length, type);
+    bps.push_back(bp);
+  }
+
+  auto& memchecks = m_system.GetPowerPC().GetMemChecks();
+  memchecks.AddFromStrings(bps);
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void CheatSearchWidget::OnValueSourceChanged()
