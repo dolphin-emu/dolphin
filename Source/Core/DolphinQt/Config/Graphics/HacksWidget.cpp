@@ -196,12 +196,16 @@ void HacksWidget::AddDescriptions()
   static const char TR_IMMEDIATE_XFB_DESCRIPTION[] = QT_TR_NOOP(
       "Displays XFB copies as soon as they are created, instead of waiting for "
       "scanout.<br><br>Can cause graphical defects in some games if the game doesn't "
-      "expect all XFB copies to be displayed. However, turning this setting on reduces "
-      "latency.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      "expect all XFB copies to be displayed. However, turning this setting on reduces latency."
+      "<br><br>Enabling this also force an effect equivalent to the"
+      " Skip Presenting Duplicate Frames setting."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SKIP_DUPLICATE_XFBS_DESCRIPTION[] = QT_TR_NOOP(
       "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. "
       "This may improve performance on low-end devices, while making frame pacing less consistent."
       "<br><br>Disable this option for optimal frame pacing."
+      "<br><br>This setting is unavailable when Immediately Present XFB or VBI Skip is "
+      "enabled. In those cases, duplicate frames are never presented."
       "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_GPU_DECODING_DESCRIPTION[] = QT_TR_NOOP(
       "Enables texture decoding using the GPU instead of the CPU.<br><br>This may result in "
@@ -230,6 +234,8 @@ void HacksWidget::AddDescriptions()
   static const char TR_VI_SKIP_DESCRIPTION[] =
       QT_TR_NOOP("Skips Vertical Blank Interrupts when lag is detected, allowing for "
                  "smooth audio playback when emulation speed is not 100%. <br><br>"
+                 "Enabling this also forces the effect of the"
+                 " Skip Presenting Duplicate Frames setting.<br><br>"
                  "<dolphin_emphasis>WARNING: Can cause freezes and compatibility "
                  "issues.</dolphin_emphasis> <br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
