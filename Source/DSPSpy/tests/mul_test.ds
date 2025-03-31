@@ -214,7 +214,7 @@ LRI $AC1.M, #0xFFFF
 SRS @GAIN, $AC1.M
 
 ; Let's now load a sample through the accelerator.
-LRS $AC1.M, @ARAM
+LRS $AC1.M, @ACDSAMP
 call send_back
 
 jmp end_of_test

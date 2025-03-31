@@ -246,7 +246,7 @@ AESndAccelerator::AESndAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp)
 
 AESndAccelerator::~AESndAccelerator() = default;
 
-void AESndAccelerator::OnEndException()
+void AESndAccelerator::OnSampleReadEndException()
 {
   // exception5 - this updates internal state
   SetYn1(GetYn1());
@@ -372,7 +372,7 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
             new_l = new_r;
           }
           break;
@@ -383,8 +383,8 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
-            new_l = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
+            new_l = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
           }
           break;  // falls through to mix_samples normally
 
@@ -394,7 +394,7 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
             new_l = new_r;
           }
           new_r ^= 0x8000;
@@ -407,8 +407,8 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
-            new_l = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
+            new_l = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
           }
           new_r ^= 0x8000;
           new_l ^= 0x8000;
