@@ -833,7 +833,7 @@ void CodeViewWidget::OnCopyWholeLine()
 
   Core::CPUThreadGuard guard(m_system);
 
-  std::string text_code = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+  const std::string text_code = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
   std::string whole_line = fmt::format("{:08x} {}", addr, text_code);
 
   if (IsInstructionLoadStore(text_code))
