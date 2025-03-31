@@ -51,7 +51,7 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_0);
       if (setting.disable_trivial_rejection)
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_1);
-      if (setting.disable_cpoly_clipping_acceleration)
+      if (setting.disable_copy_clipping_acceleration)
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_2);
       break;
     }
