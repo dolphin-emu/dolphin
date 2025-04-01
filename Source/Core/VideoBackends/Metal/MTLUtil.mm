@@ -295,9 +295,8 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
   case TriState::Auto:
 #if TARGET_OS_OSX
     g_features.manual_buffer_upload = false;
-    if (@available(macOS 10.15, *))
-      if (![device hasUnifiedMemory])
-        g_features.manual_buffer_upload = true;
+    if (![device hasUnifiedMemory])
+      g_features.manual_buffer_upload = true;
 #else
     // All iOS devices have unified memory
     g_features.manual_buffer_upload = false;
