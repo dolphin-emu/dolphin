@@ -304,14 +304,8 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
     break;
   }
 
-  g_features.subgroup_ops = false;
-  if (@available(macOS 10.15, iOS 13, *))
-  {
-    // Requires SIMD-scoped reduction operations
-    g_features.subgroup_ops =
-        [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
-    backend_info->bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
-  }
+  g_features.subgroup_ops =
+      [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
   if (g_features.subgroup_ops)
   {
     DetectionResult result = DetectInvertedIsHelper(device);
@@ -322,10 +316,13 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
         DriverDetails::OverrideBug(DriverDetails::BUG_INVERTED_IS_HELPER, is_helper_inverted);
     }
   }
+
+  backend_info->bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
 #if TARGET_OS_OSX
   if (vendor == DriverDetails::VENDOR_INTEL)
     backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
 #endif
+
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     backend_info->bSupportsDynamicSamplerIndexing = false;
 }
