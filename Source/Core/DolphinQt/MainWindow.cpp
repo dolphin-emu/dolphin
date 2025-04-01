@@ -42,7 +42,6 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
@@ -56,10 +55,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -108,7 +105,6 @@
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -126,18 +122,14 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/ResourcePack/Manager.h"
-#include "UICommon/ResourcePack/Manifest.h"
 #include "UICommon/ResourcePack/ResourcePack.h"
-
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
-#include "VideoCommon/VideoConfig.h"
 
 #ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -350,12 +342,12 @@ MainWindow::~MainWindow()
   delete m_render_widget;
   delete m_netplay_dialog;
 
-  for (int i = 0; i < 4; i++)
-  {
-    delete m_gc_tas_input_windows[i];
-    delete m_gba_tas_input_windows[i];
-    delete m_wii_tas_input_windows[i];
-  }
+  for (auto& window : m_gc_tas_input_windows)
+    delete window;
+  for (auto& window : m_gba_tas_input_windows)
+    delete window;
+  for (auto& window : m_wii_tas_input_windows)
+    delete window;
 
   ShutdownControllers();
 
@@ -458,12 +450,16 @@ void MainWindow::CreateComponents()
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i != num_gc_controllers; ++i)
   {
     m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
     m_gba_tas_input_windows[i] = new GBATASInputWindow(nullptr, i);
-    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
+
+  for (int i = 0; i != MAX_WIIMOTES; ++i)
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
+
+  m_wii_tas_input_windows[WIIMOTE_BALANCE_BOARD] = new BalanceBoardTASInputWindow(nullptr);
 
   m_jit_widget = new JITWidget(m_system, this);
   m_log_widget = new LogWidget(this);
@@ -1873,7 +1869,7 @@ void MainWindow::OnStartRecording()
   Movie::ControllerTypeArray controllers{};
   Movie::WiimoteEnabledArray wiimotes{};
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
@@ -1882,8 +1878,10 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
+
+  for (int i = 0; i != MAX_BBMOTES; ++i)
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
 
   if (movie.BeginRecordingInput(controllers, wiimotes))
   {
@@ -1949,7 +1947,7 @@ void MainWindow::ShowTASInput()
     }
   }
 
-  for (int i = 0; i < num_wii_controllers; i++)
+  for (int i = 0; i != MAX_BBMOTES; ++i)
   {
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning(m_system) || m_system.IsWii()))
