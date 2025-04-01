@@ -126,23 +126,53 @@ void AudioPane::CreateWidgets()
 
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  auto* misc_box = new QGroupBox(tr("Miscellaneous Settings"));
-  auto* misc_layout = new QGridLayout;
-  misc_box->setLayout(misc_layout);
+  auto* playback_box = new QGroupBox(tr("Audio Playback Settings"));
+  auto* playback_layout = new QGridLayout;
+  playback_box->setLayout(playback_layout);
+
+  ConfigSlider* audio_buffer_size = new ConfigSlider(16, 512, Config::MAIN_AUDIO_BUFFER_SIZE, 8);
+  QLabel* audio_buffer_size_label = new QLabel;
+
+  audio_buffer_size->setSingleStep(8);
+  audio_buffer_size->setPageStep(8);
+
+  audio_buffer_size->SetDescription(
+      tr("Controls the number of audio samples buffered."
+         " Lower values reduce latency but may cause more crackling or stuttering."
+         "<br><br><dolphin_emphasis>If unsure, set this to 80 ms.</dolphin_emphasis>"));
+
+  // Connect the slider to update the value label live
+  connect(audio_buffer_size, &QSlider::valueChanged, this, [=](int value) {
+    int stepped_value = (value / 8) * 8;
+    audio_buffer_size->setValue(stepped_value);
+    audio_buffer_size_label->setText(tr("%1 ms").arg(stepped_value));
+  });
+
+  // Set initial value display
+  audio_buffer_size_label->setText(tr("%1 ms").arg(audio_buffer_size->value()));
 
   m_audio_fill_gaps = new ConfigBool(tr("Fill Audio Gaps"), Config::MAIN_AUDIO_FILL_GAPS);
 
   m_speed_up_mute_enable = new ConfigBool(tr("Mute When Disabling Speed Limit"),
                                           Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT);
 
-  misc_layout->addWidget(m_audio_fill_gaps, 0, 0, 1, 1);
-  misc_layout->addWidget(m_speed_up_mute_enable, 1, 0, 1, 1);
+  // Create a horizontal layout for the slider + value label
+  auto* buffer_layout = new QHBoxLayout;
+  buffer_layout->addWidget(new ConfigSliderLabel(tr("Audio Buffer Size:"), audio_buffer_size));
+  buffer_layout->addWidget(audio_buffer_size);
+  buffer_layout->addWidget(audio_buffer_size_label);
+
+  playback_layout->addLayout(buffer_layout, 0, 0);
+  playback_layout->addWidget(m_audio_fill_gaps, 1, 0);
+  playback_layout->addWidget(m_speed_up_mute_enable, 2, 0);
+  playback_layout->setRowStretch(3, 1);
+  playback_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   auto* const main_vbox_layout = new QVBoxLayout;
 
   main_vbox_layout->addWidget(dsp_box);
   main_vbox_layout->addWidget(backend_box);
-  main_vbox_layout->addWidget(misc_box);
+  main_vbox_layout->addWidget(playback_box);
 
   m_main_layout = new QHBoxLayout;
   m_main_layout->addLayout(main_vbox_layout);

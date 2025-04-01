@@ -183,6 +183,8 @@
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
     <string name="dsp_emulation_engine">DSP Emulation Engine</string>
+    <string name="audio_buffer_size">Audio Buffer Size</string>
+    <string name="audio_buffer_size_description">Controls the number of audio samples buffered. Lower values reduce latency but may cause more crackling or stuttering. If unsure, set this to 80 ms.</string>
     <string name="audio_fill_gaps">Fill Audio Gaps</string>
     <string name="audio_fill_gaps_description">Repeat existing audio during lag spikes to prevent stuttering. If unsure, leave this checked.</string>
     <string name="audio_volume">Audio Volume</string>
