@@ -565,14 +565,7 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
 
   spirv_cross::CompilerMSL compiler(std::move(*code));
 
-  if (@available(macOS 11, iOS 14, *))
-    options.set_msl_version(2, 3);
-  else if (@available(macOS 10.15, iOS 13, *))
-    options.set_msl_version(2, 2);
-  else if (@available(macOS 10.14, iOS 12, *))
-    options.set_msl_version(2, 1);
-  else
-    options.set_msl_version(2, 0);
+  options.set_msl_version(2, 3);
   options.use_framebuffer_fetch_subpasses = true;
   compiler.set_msl_options(options);
 
