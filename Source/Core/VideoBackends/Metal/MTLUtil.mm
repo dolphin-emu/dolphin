@@ -324,9 +324,8 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
     }
   }
 #if TARGET_OS_OSX
-  if (@available(macOS 11, *))
-    if (vendor == DriverDetails::VENDOR_INTEL)
-      backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
+  if (vendor == DriverDetails::VENDOR_INTEL)
+    backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
 #endif
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     backend_info->bSupportsDynamicSamplerIndexing = false;
