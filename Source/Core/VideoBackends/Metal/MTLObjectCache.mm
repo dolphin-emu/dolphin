@@ -173,10 +173,10 @@ MRCOwned<id<MTLSamplerState>> Metal::ObjectCache::CreateSampler(SamplerSelector 
     [desc setTAddressMode:Convert(sel.WrapV())];
     [desc setMaxAnisotropy:1 << sel.AnisotropicFiltering()];
     [desc setLabel:MRCTransfer([[NSString alloc]
-                       initWithFormat:@"%s%s%s %s%s%s", to_string(sel.MinFilter()),
+                       initWithFormat:@"%s%s%s %s%s%d", to_string(sel.MinFilter()),
                                       to_string(sel.MagFilter()), to_string(sel.MipFilter()),
                                       to_string(sel.WrapU()), to_string(sel.WrapV()),
-                                      sel.AnisotropicFiltering() ? "(AF)" : ""])];
+                                      1 << sel.AnisotropicFiltering()])];
     return MRCTransfer([Metal::g_device newSamplerStateWithDescriptor:desc]);
   }
 }
