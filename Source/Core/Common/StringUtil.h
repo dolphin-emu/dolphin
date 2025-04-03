@@ -123,8 +123,8 @@ requires(detail::IsBooleanEnum<T>()) bool TryParse(const std::string& str, T* ou
   return true;
 }
 
-template <typename T, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
-bool TryParse(std::string str, T* const output)
+template <typename T>
+requires(std::is_floating_point_v<T>) bool TryParse(std::string str, T* const output)
 {
   // Replace commas with dots.
   std::istringstream iss(ReplaceAll(std::move(str), ",", "."));
@@ -169,8 +169,8 @@ std::string ValueToString(double value);
 std::string ValueToString(int value);
 std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
-std::string ValueToString(T value)
+template <typename T>
+requires(std::is_enum_v<T>) std::string ValueToString(T value)
 {
   return ValueToString(static_cast<std::underlying_type_t<T>>(value));
 }
@@ -180,16 +180,17 @@ std::string HexDump(const u8* data, size_t size);
 
 namespace Common
 {
-template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
-std::from_chars_result FromChars(std::string_view sv, T& value, int base = 10)
+template <typename T>
+requires(std::is_integral_v<T>) std::from_chars_result
+    FromChars(std::string_view sv, T& value, int base = 10)
 {
   const char* const first = sv.data();
   const char* const last = first + sv.size();
   return std::from_chars(first, last, value, base);
 }
-template <typename T, typename std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
-std::from_chars_result FromChars(std::string_view sv, T& value,
-                                 std::chars_format fmt = std::chars_format::general)
+template <typename T>
+requires(std::is_floating_point_v<T>) std::from_chars_result
+    FromChars(std::string_view sv, T& value, std::chars_format fmt = std::chars_format::general)
 {
   const char* const first = sv.data();
   const char* const last = first + sv.size();
