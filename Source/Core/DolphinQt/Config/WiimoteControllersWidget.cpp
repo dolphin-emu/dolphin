@@ -14,9 +14,6 @@
 #include <QScreen>
 #include <QVBoxLayout>
 
-#include <map>
-#include <optional>
-
 #include "Common/Config/Config.h"
 
 #include "Core/Config/MainSettings.h"
@@ -26,7 +23,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -37,8 +33,6 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/UICommon.h"
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {
@@ -107,8 +101,6 @@ void WiimoteControllersWidget::CreateLayout()
   m_wiimote_sync = new NonDefaultQPushButton(tr("Sync"));
   m_wiimote_reset = new NonDefaultQPushButton(tr("Reset"));
   m_wiimote_refresh = new NonDefaultQPushButton(tr("Refresh"));
-  m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
-  m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
   m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
   m_wiimote_continuous_scanning = new QCheckBox(tr("Continuous Scanning"));
   m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
@@ -120,37 +112,48 @@ void WiimoteControllersWidget::CreateLayout()
                                                  GetLayoutHorizontalSpacing(m_wiimote_layout));
   m_wiimote_layout->setColumnStretch(2, 1);
 
-  // Passthrough BT
-  m_wiimote_layout->addWidget(m_wiimote_passthrough, m_wiimote_layout->rowCount(), 0, 1, -1);
-
-  int sync_row = m_wiimote_layout->rowCount();
-  m_wiimote_layout->addWidget(m_wiimote_pt_labels[0], sync_row, 1, 1, 2);
-  m_wiimote_layout->addWidget(m_wiimote_sync, sync_row, 3);
-
-  int reset_row = m_wiimote_layout->rowCount();
-  m_wiimote_layout->addWidget(m_wiimote_pt_labels[1], reset_row, 1, 1, 2);
-  m_wiimote_layout->addWidget(m_wiimote_reset, reset_row, 3);
-
   // Emulated BT
   m_wiimote_layout->addWidget(m_wiimote_emu, m_wiimote_layout->rowCount(), 0, 1, -1);
 
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  // Passthrough BT
+  m_wiimote_layout->addWidget(m_wiimote_passthrough, m_wiimote_layout->rowCount(), 0, 1, -1);
+
+  m_emulated_bt_contents = new QWidget;
+  auto* const emulated_bt_layout = new QGridLayout{m_emulated_bt_contents};
+  m_wiimote_layout->addWidget(m_emulated_bt_contents, m_wiimote_layout->rowCount(), 0, 1, -1);
+
+  for (size_t i = 0; i < MAX_WIIMOTES; i++)
   {
-    auto* wm_label = m_wiimote_labels[i] = new QLabel(tr("Wii Remote %1").arg(i + 1));
+    auto* wm_label = new QLabel(tr("Wii Remote %1").arg(i + 1));
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
     auto* wm_button = m_wiimote_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
     for (const auto& item : {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote")})
       wm_box->addItem(item);
 
-    int wm_row = m_wiimote_layout->rowCount();
-    m_wiimote_layout->addWidget(wm_label, wm_row, 1);
-    m_wiimote_layout->addWidget(wm_box, wm_row, 2);
-    m_wiimote_layout->addWidget(wm_button, wm_row, 3);
+    int wm_row = emulated_bt_layout->rowCount();
+    emulated_bt_layout->addWidget(wm_label, wm_row, 1);
+    emulated_bt_layout->addWidget(wm_box, wm_row, 2);
+    emulated_bt_layout->addWidget(wm_button, wm_row, 3);
   }
 
-  m_wiimote_layout->addWidget(m_wiimote_real_balance_board, m_wiimote_layout->rowCount(), 1, 1, -1);
-  m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 1, 1, -1);
+  emulated_bt_layout->addWidget(m_wiimote_real_balance_board, emulated_bt_layout->rowCount(), 1, 1,
+                                -1);
+  emulated_bt_layout->addWidget(m_wiimote_speaker_data, emulated_bt_layout->rowCount(), 1, 1, -1);
+
+  m_passthru_bt_contents = new QWidget;
+  auto* const passthru_bt_layout = new QGridLayout{m_passthru_bt_contents};
+  m_wiimote_layout->addWidget(m_passthru_bt_contents, m_wiimote_layout->rowCount(), 0, 1, -1);
+
+  int sync_row = passthru_bt_layout->rowCount();
+  passthru_bt_layout->addWidget(new QLabel(tr("Sync real Wii Remotes and pair them")), sync_row, 1,
+                                1, 2);
+  passthru_bt_layout->addWidget(m_wiimote_sync, sync_row, 3);
+
+  int reset_row = passthru_bt_layout->rowCount();
+  passthru_bt_layout->addWidget(new QLabel(tr("Reset all saved Wii Remote pairings")), reset_row, 1,
+                                1, 2);
+  passthru_bt_layout->addWidget(m_wiimote_reset, reset_row, 3);
 
   m_wiimote_layout->addWidget(m_wiimote_ciface, m_wiimote_layout->rowCount(), 0, 1, -1);
 
@@ -196,7 +199,7 @@ void WiimoteControllersWidget::ConnectWidgets()
   connect(m_wiimote_refresh, &QPushButton::clicked, this,
           &WiimoteControllersWidget::OnWiimoteRefreshPressed);
 
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < MAX_WIIMOTES; i++)
   {
     connect(m_wiimote_boxes[i], &QComboBox::currentIndexChanged, this, [this] {
       SaveSettings();
@@ -269,7 +272,7 @@ void WiimoteControllersWidget::OnWiimoteConfigure(size_t index)
 
 void WiimoteControllersWidget::LoadSettings(Core::State state)
 {
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < MAX_WIIMOTES; i++)
   {
     SignalBlocking(m_wiimote_boxes[i])
         ->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
@@ -293,40 +296,50 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
 
   const bool running = state != Core::State::Uninitialized;
 
+  // Disable the radio buttons when running.
   m_wiimote_emu->setEnabled(!running);
   m_wiimote_passthrough->setEnabled(!running);
 
-  const bool running_gc = running && !Core::System::GetInstance().IsWii();
-  const bool enable_passthrough = m_wiimote_passthrough->isChecked() && !running_gc;
-  const bool enable_emu_bt = !m_wiimote_passthrough->isChecked() && !running_gc;
+  // First hide both contents.
+  // Otherwise the dialog grows to the total temporary size of both when toggled.
+  m_passthru_bt_contents->hide();
+  m_emulated_bt_contents->hide();
+  m_passthru_bt_contents->setVisible(m_wiimote_passthrough->isChecked());
+  m_emulated_bt_contents->setVisible(m_wiimote_emu->isChecked());
+
+  const bool is_running_gc = running && !Core::System::GetInstance().IsWii();
+
+  // These are not relevant in GC mode.
+  m_passthru_bt_contents->setEnabled(!is_running_gc);
+  m_emulated_bt_contents->setEnabled(!is_running_gc);
+
   const bool is_netplay = NetPlay::IsNetPlayRunning();
-  const bool running_netplay = running && is_netplay;
+  const bool is_running_netplay = running && is_netplay;
 
-  m_wiimote_sync->setEnabled(enable_passthrough);
-  m_wiimote_reset->setEnabled(enable_passthrough);
-
-  for (auto* pt_label : m_wiimote_pt_labels)
-    pt_label->setEnabled(enable_passthrough);
-
+  // Disable non-local wii remotes during NetPlay.
   const int num_local_wiimotes = is_netplay ? NetPlay::NumLocalWiimotes() : 4;
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  int num_real_wiimotes = 0;
+  for (size_t i = 0; i < MAX_WIIMOTES; i++)
   {
-    m_wiimote_labels[i]->setEnabled(enable_emu_bt);
-    m_wiimote_boxes[i]->setEnabled(enable_emu_bt && !running_netplay);
+    num_real_wiimotes += m_wiimote_boxes[i]->currentIndex() == 2;
+
+    m_wiimote_boxes[i]->setEnabled(!is_running_netplay);
 
     const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1;
-    m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote &&
-                                     static_cast<int>(i) < num_local_wiimotes);
+    m_wiimote_buttons[i]->setEnabled(is_emu_wiimote && static_cast<int>(i) < num_local_wiimotes);
   }
 
-  m_wiimote_real_balance_board->setEnabled(enable_emu_bt && !running_netplay);
-  m_wiimote_speaker_data->setEnabled(enable_emu_bt && !running_netplay);
+  num_real_wiimotes += m_wiimote_real_balance_board->isChecked();
 
+  m_wiimote_real_balance_board->setEnabled(!is_running_netplay);
+  m_wiimote_speaker_data->setEnabled(!is_running_netplay);
+
+  const bool is_using_emu_bt = m_wiimote_emu->isChecked() && !is_running_gc;
   const bool ciface_wiimotes = m_wiimote_ciface->isChecked();
 
-  m_wiimote_refresh->setEnabled((enable_emu_bt || ciface_wiimotes) &&
+  m_wiimote_continuous_scanning->setEnabled(is_using_emu_bt || ciface_wiimotes);
+  m_wiimote_refresh->setEnabled(((is_using_emu_bt && num_real_wiimotes != 0) || ciface_wiimotes) &&
                                 !m_wiimote_continuous_scanning->isChecked());
-  m_wiimote_continuous_scanning->setEnabled(enable_emu_bt || ciface_wiimotes);
 }
 
 void WiimoteControllersWidget::SaveSettings()
@@ -346,7 +359,7 @@ void WiimoteControllersWidget::SaveSettings()
         m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
     Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
-    for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+    for (size_t i = 0; i < MAX_WIIMOTES; i++)
     {
       const int index = m_wiimote_boxes[i]->currentIndex();
       Config::SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));
