@@ -133,4 +133,12 @@ private:
   } m_value;
 };
 
+template <typename T>
+concept Enum = std::is_enum_v<T>;
+
+template <typename T, typename Underlying>
+concept TypedEnum = std::is_same_v<std::underlying_type_t<T>, Underlying>;
+
+template <typename T>
+concept BooleanEnum = TypedEnum<T, bool>;
 }  // namespace Common

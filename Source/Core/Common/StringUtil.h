@@ -4,6 +4,7 @@
 #pragma once
 
 #include <charconv>
+#include <concepts>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>
@@ -18,22 +19,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-
-namespace detail
-{
-template <typename T>
-constexpr bool IsBooleanEnum()
-{
-  if constexpr (std::is_enum_v<T>)
-  {
-    return std::is_same_v<std::underlying_type_t<T>, bool>;
-  }
-  else
-  {
-    return false;
-  }
-}
-}  // namespace detail
+#include "Common/EnumUtils.h"
+#include "Common/TypeUtils.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
 
@@ -73,7 +60,7 @@ void TruncateToCString(std::string* s);
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T>
-requires(std::is_integral_v<T> || (std::is_enum_v<T> && !detail::IsBooleanEnum<T>()))
+requires(std::is_integral_v<T> || (std::is_enum_v<T> && !Common::BooleanEnum<T>))
 bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
@@ -111,8 +98,7 @@ bool TryParse(const std::string& str, T* output, int base = 0)
   return true;
 }
 
-template <typename T>
-requires(detail::IsBooleanEnum<T>())
+template <Common::BooleanEnum T>
 bool TryParse(const std::string& str, T* output)
 {
   bool value;
@@ -123,7 +109,7 @@ bool TryParse(const std::string& str, T* output)
   return true;
 }
 
-template <typename T, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
+template <std::floating_point T>
 bool TryParse(std::string str, T* const output)
 {
   // Replace commas with dots.
@@ -169,10 +155,9 @@ std::string ValueToString(double value);
 std::string ValueToString(int value);
 std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
-std::string ValueToString(T value)
+std::string ValueToString(Common::Enum auto value)
 {
-  return ValueToString(static_cast<std::underlying_type_t<T>>(value));
+  return ValueToString(Common::ToUnderlying(value));
 }
 
 // Generates an hexdump-like representation of a binary data blob.
@@ -180,15 +165,13 @@ std::string HexDump(const u8* data, size_t size);
 
 namespace Common
 {
-template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
-std::from_chars_result FromChars(std::string_view sv, T& value, int base = 10)
+std::from_chars_result FromChars(std::string_view sv, std::integral auto& value, int base = 10)
 {
   const char* const first = sv.data();
   const char* const last = first + sv.size();
   return std::from_chars(first, last, value, base);
 }
-template <typename T, typename std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
-std::from_chars_result FromChars(std::string_view sv, T& value,
+std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& value,
                                  std::chars_format fmt = std::chars_format::general)
 {
   const char* const first = sv.data();
