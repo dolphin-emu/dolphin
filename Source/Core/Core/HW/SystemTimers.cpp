@@ -85,7 +85,7 @@ static int GetAudioDMACallbackPeriod(u32 cpu_core_clock, u32 aid_sample_rate_div
 {
   // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
   return static_cast<u64>(cpu_core_clock) * aid_sample_rate_divisor /
-         (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
+         (AudioInterface::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
 void SystemTimersManager::AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late)

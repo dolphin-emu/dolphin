@@ -23,6 +23,9 @@ class Mapping;
 
 namespace AudioInterface
 {
+// 54000000 doesn't work here as it doesn't evenly divide with 32000, but 108000000 does
+static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
+
 enum class SampleRate
 {
   AI32KHz,

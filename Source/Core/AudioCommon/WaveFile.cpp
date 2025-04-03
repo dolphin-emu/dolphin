@@ -7,7 +7,6 @@
 
 #include <fmt/format.h>
 
-#include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -16,7 +15,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
 
@@ -29,7 +27,7 @@ WaveFileWriter::~WaveFileWriter()
   Stop();
 }
 
-bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
+bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate)
 {
   // Ask to delete file
   if (File::Exists(filename))
@@ -68,7 +66,7 @@ bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
   if (basename.empty())
     SplitPath(filename, nullptr, &basename, nullptr);
 
-  current_sample_rate_divisor = sample_rate_divisor;
+  current_sample_rate = sample_rate;
 
   // -----------------
   // Write file header
@@ -81,7 +79,6 @@ bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
   Write(16);          // size of fmt block
   Write(0x00020001);  // two channels, uncompressed
 
-  const u32 sample_rate = Mixer::FIXED_SAMPLE_RATE_DIVIDEND / sample_rate_divisor;
   Write(sample_rate);
   Write(sample_rate * 2 * 2);  // two channels, 16bit
 
@@ -117,8 +114,8 @@ void WaveFileWriter::Write4(const char* ptr)
   file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
-                                        u32 sample_rate_divisor, int l_volume, int r_volume)
+void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, u32 sample_rate,
+                                        int l_volume, int r_volume)
 {
   if (!file)
   {
@@ -157,14 +154,14 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
     conv_buffer[2 * i + 1] = conv_buffer[2 * i + 1] * r_volume / 256;
   }
 
-  if (sample_rate_divisor != current_sample_rate_divisor)
+  if (sample_rate != current_sample_rate)
   {
     Stop();
     file_index++;
     const std::string filename =
         fmt::format("{}{}{}.wav", File::GetUserPath(D_DUMPAUDIO_IDX), basename, file_index);
-    Start(filename, sample_rate_divisor);
-    current_sample_rate_divisor = sample_rate_divisor;
+    Start(filename, sample_rate);
+    current_sample_rate = sample_rate;
   }
 
   file.WriteBytes(conv_buffer.data(), count * 4);

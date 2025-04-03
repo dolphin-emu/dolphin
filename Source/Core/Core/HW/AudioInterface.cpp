@@ -71,8 +71,8 @@ enum
 };
 
 AudioInterfaceManager::AudioInterfaceManager(Core::System& system)
-    : m_ais_sample_rate_divisor(Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 48000),
-      m_aid_sample_rate_divisor(Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 32000), m_system(system)
+    : m_ais_sample_rate_divisor(FIXED_SAMPLE_RATE_DIVIDEND / 48000),
+      m_aid_sample_rate_divisor(FIXED_SAMPLE_RATE_DIVIDEND / 32000), m_system(system)
 {
 }
 
@@ -125,8 +125,7 @@ void AudioInterfaceManager::IncreaseSampleCount(const u32 amount)
 int AudioInterfaceManager::GetAIPeriod() const
 {
   u64 period = m_cpu_cycles_per_sample * (m_interrupt_timing - m_sample_counter);
-  u64 s_period =
-      m_cpu_cycles_per_sample * Mixer::FIXED_SAMPLE_RATE_DIVIDEND / m_ais_sample_rate_divisor;
+  u64 s_period = m_cpu_cycles_per_sample * FIXED_SAMPLE_RATE_DIVIDEND / m_ais_sample_rate_divisor;
   if (period == 0)
     return static_cast<int>(s_period);
   return static_cast<int>(std::min(period, s_period));
@@ -168,7 +167,8 @@ void AudioInterfaceManager::SetAIDSampleRate(SampleRate sample_rate)
   }
 
   SoundStream* sound_stream = m_system.GetSoundStream();
-  sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(m_aid_sample_rate_divisor);
+  sound_stream->GetMixer()->SetDMAInputSampleRate(FIXED_SAMPLE_RATE_DIVIDEND /
+                                                  m_aid_sample_rate_divisor);
 }
 
 void AudioInterfaceManager::SetAISSampleRate(SampleRate sample_rate)
@@ -185,9 +185,10 @@ void AudioInterfaceManager::SetAISSampleRate(SampleRate sample_rate)
   }
 
   m_cpu_cycles_per_sample = static_cast<u64>(m_system.GetSystemTimers().GetTicksPerSecond()) *
-                            m_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
+                            m_ais_sample_rate_divisor / FIXED_SAMPLE_RATE_DIVIDEND;
   SoundStream* sound_stream = m_system.GetSoundStream();
-  sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(m_ais_sample_rate_divisor);
+  sound_stream->GetMixer()->SetStreamInputSampleRate(FIXED_SAMPLE_RATE_DIVIDEND /
+                                                     m_ais_sample_rate_divisor);
 }
 
 void AudioInterfaceManager::Init()

@@ -407,8 +407,7 @@ void Core::SetSampleRates()
   blip_set_rates(m_core->getAudioChannel(m_core, 1), m_core->frequency(m_core), SAMPLE_RATE);
 
   SoundStream* sound_stream = m_system.GetSoundStream();
-  sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
-      m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / SAMPLE_RATE);
+  sound_stream->GetMixer()->SetGBAInputSampleRate(m_device_number, SAMPLE_RATE);
 }
 
 void Core::AddCallbacks()

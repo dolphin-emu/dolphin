@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <bit>
@@ -31,16 +30,15 @@ public:
   // Called from main thread
   void PushSamples(const s16* samples, std::size_t num_samples);
   void PushStreamingSamples(const s16* samples, std::size_t num_samples);
-  void PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
-                                 u32 sample_rate_divisor);
+  void PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples, u32 sample_rate);
   void PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples);
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
   u32 GetSampleRate() const { return m_output_sample_rate; }
 
-  void SetDMAInputSampleRateDivisor(u32 rate_divisor);
-  void SetStreamInputSampleRateDivisor(u32 rate_divisor);
-  void SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor);
+  void SetDMAInputSampleRate(u32 sample_rate);
+  void SetStreamInputSampleRate(u32 sample_rate);
+  void SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate);
 
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
   void SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume);
@@ -51,9 +49,6 @@ public:
 
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
-
-  // 54000000 doesn't work here as it doesn't evenly divide with 32000, but 108000000 does
-  static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
 
 private:
   const std::size_t SURROUND_CHANNELS = 6;
@@ -98,22 +93,21 @@ private:
     using Granule = std::array<StereoPair, GRANULE_SIZE>;
 
   public:
-    MixerFifo(Mixer* mixer, u32 sample_rate_divisor, bool little_endian)
-        : m_mixer(mixer), m_input_sample_rate_divisor(sample_rate_divisor),
-          m_little_endian(little_endian)
+    MixerFifo(Mixer* mixer, u32 sample_rate, bool little_endian)
+        : m_mixer(mixer), m_input_sample_rate(sample_rate), m_little_endian(little_endian)
     {
     }
     void DoState(PointerWrap& p);
     void PushSamples(const s16* samples, std::size_t num_samples);
     void Mix(s16* samples, std::size_t num_samples);
-    void SetInputSampleRateDivisor(u32 rate_divisor);
-    u32 GetInputSampleRateDivisor() const;
+    void SetInputSampleRate(u32 sample_rate);
+    u32 GetInputSampleRate() const;
     void SetVolume(u32 lvolume, u32 rvolume);
     std::pair<s32, s32> GetVolume() const;
 
   private:
     Mixer* m_mixer;
-    u32 m_input_sample_rate_divisor;
+    u32 m_input_sample_rate;
     bool m_little_endian;
 
     Granule m_next_buffer{};
@@ -141,14 +135,12 @@ private:
 
   void RefreshConfig();
 
-  MixerFifo m_dma_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 32000, false};
-  MixerFifo m_streaming_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, false};
-  MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true};
-  MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000, true};
-  std::array<MixerFifo, 4> m_gba_mixers{MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true}};
+  MixerFifo m_dma_mixer{this, 32000, false};
+  MixerFifo m_streaming_mixer{this, 48000, false};
+  MixerFifo m_wiimote_speaker_mixer{this, 3000, true};
+  MixerFifo m_skylander_portal_mixer{this, 8000, true};
+  std::array<MixerFifo, 4> m_gba_mixers{MixerFifo{this, 48000, true}, MixerFifo{this, 48000, true},
+                                        MixerFifo{this, 48000, true}, MixerFifo{this, 48000, true}};
   u32 m_output_sample_rate;
 
   AudioCommon::SurroundDecoder m_surround_decoder;
