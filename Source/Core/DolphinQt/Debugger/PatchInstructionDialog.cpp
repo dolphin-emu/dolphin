@@ -57,7 +57,7 @@ void PatchInstructionDialog::OnEditChanged()
 
   m_preview_label->setText(
       tr("Instruction: %1")
-          .arg(QString::fromStdString(Common::GekkoDisassembler::Disassemble(m_code, m_address))));
+          .arg(QString::fromStdString(Common::GekkoDisassembler::Disassemble(m_code, m_address, false))));
 }
 
 u32 PatchInstructionDialog::GetCode() const
