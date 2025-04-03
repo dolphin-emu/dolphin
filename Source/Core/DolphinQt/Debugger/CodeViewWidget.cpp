@@ -1030,7 +1030,8 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
 
   if (assemble)
   {
-    std::string code_line = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr, true);
+    std::string code_line =
+      m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr, true);
     std::ranges::replace(code_line, '\t', ' ');
 
     AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr),
