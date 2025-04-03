@@ -185,7 +185,13 @@ void PrecisionTimer::SleepUntil(Clock::time_point target)
 
   // Spin for the remaining time.
   while (Clock::now() < target)
+  {
+#if defined(_WIN32)
+    YieldProcessor();
+#else
     std::this_thread::yield();
+#endif
+  }
 }
 
 }  // Namespace Common
