@@ -1,7 +1,7 @@
-option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
-option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
-option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
-option(LINK_WITH_TRUSTED_STORAGE "Explicitly link mbed TLS library to trusted_storage." OFF)
+option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
+option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
+option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
 # Set the project root directory if it's not already defined, as may happen if
 # the library folder is included directly by a parent project, without
@@ -129,11 +129,13 @@ if(WIN32)
     set(libs ${libs} ws2_32)
 endif(WIN32)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
-    SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
-    SET(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
-    SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+if(CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+    set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
 if(HAIKU)
@@ -205,19 +207,20 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
+    set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
     dolphin_disable_warnings(${mbedcrypto_target})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 2.28.0 SOVERSION 7)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 2.28.9 SOVERSION 7)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     add_library(${mbedx509_target} SHARED ${src_x509})
     dolphin_disable_warnings(${mbedx509_target})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 2.28.0 SOVERSION 1)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 2.28.9 SOVERSION 1)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
     dolphin_disable_warnings(${mbedtls_target})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 2.28.0 SOVERSION 14)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 2.28.9 SOVERSION 14)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
@@ -232,11 +235,22 @@ foreach(target IN LISTS target_libraries)
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${thirdparty_inc_public}
         PRIVATE ${MBEDTLS_DIR}/library/
-        PRIVATE ${thirdparty_inc})
+        PRIVATE ${thirdparty_inc}
+        # Needed to include psa_crypto_driver_wrappers.h
+        ${CMAKE_CURRENT_BINARY_DIR})
     target_compile_definitions(${target}
         PRIVATE ${thirdparty_def})
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
     install(TARGETS ${target}
-            DESTINATION ${LIB_INSTALL_DIR}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
             PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 

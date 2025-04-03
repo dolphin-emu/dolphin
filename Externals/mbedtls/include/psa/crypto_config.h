@@ -32,19 +32,7 @@
 #endif
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_CONFIG_H
@@ -60,7 +48,6 @@
 #define PSA_WANT_ALG_CMAC                       1
 #define PSA_WANT_ALG_CFB                        1
 #define PSA_WANT_ALG_CHACHA20_POLY1305          1
-#define PSA_WANT_ALG_CMAC                       1
 #define PSA_WANT_ALG_CTR                        1
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
 #define PSA_WANT_ALG_ECB_NO_PADDING             1
@@ -86,7 +73,9 @@
 #define PSA_WANT_ALG_STREAM_CIPHER              1
 #define PSA_WANT_ALG_TLS12_PRF                  1
 #define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
-#define PSA_WANT_ALG_XTS                        1
+/* PBKDF2-HMAC is not yet supported via the PSA API in Mbed TLS.
+ * Note: when adding support, also adjust include/mbedtls/config_psa.h */
+//#define PSA_WANT_ALG_XTS                        1
 
 #define PSA_WANT_ECC_BRAINPOOL_P_R1_256         1
 #define PSA_WANT_ECC_BRAINPOOL_P_R1_384         1
@@ -94,14 +83,14 @@
 #define PSA_WANT_ECC_MONTGOMERY_255             1
 /*
  * Curve448 is not yet supported via the PSA API in Mbed TLS
- * (https://github.com/ARMmbed/mbedtls/issues/4249). Thus, do not enable it by
+ * (https://github.com/Mbed-TLS/mbedtls/issues/4249). Thus, do not enable it by
  * default.
  */
 //#define PSA_WANT_ECC_MONTGOMERY_448             1
 #define PSA_WANT_ECC_SECP_K1_192                1
 /*
  * SECP224K1 is buggy via the PSA API in Mbed TLS
- * (https://github.com/ARMmbed/mbedtls/issues/3541). Thus, do not enable it by
+ * (https://github.com/Mbed-TLS/mbedtls/issues/3541). Thus, do not enable it by
  * default.
  */
 //#define PSA_WANT_ECC_SECP_K1_224                1

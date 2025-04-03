@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -28,13 +16,14 @@
 #ifndef MBEDTLS_CHECK_CONFIG_H
 #define MBEDTLS_CHECK_CONFIG_H
 
+/* *INDENT-OFF* */
 /*
  * We assume CHAR_BIT is 8 in many places. In practice, this is true on our
  * target platforms, so not an issue, but let's just be extra sure.
  */
 #include <limits.h>
 #if CHAR_BIT != 8
-#error "mbed TLS requires a platform with 8-bit chars"
+#error "Mbed TLS requires a platform with 8-bit chars"
 #endif
 
 #if defined(_WIN32)
@@ -66,10 +55,6 @@
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_HAVE_TIME)
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
-#endif
-
-#if defined(MBEDTLS_AESNI_C) && !defined(MBEDTLS_HAVE_ASM)
-#error "MBEDTLS_AESNI_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
@@ -143,6 +128,11 @@
 #error "MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED defined, but MBEDTLS_ECDH_LEGACY_CONTEXT not disabled"
 #endif
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)           && \
+    !defined(MBEDTLS_ECP_C)
+#error "MBEDTLS_ECP_RESTARTABLE defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC) && !defined(MBEDTLS_HMAC_DRBG_C)
 #error "MBEDTLS_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
@@ -173,7 +163,11 @@
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
-#error "MBEDTLS_PK_PARSE_C defined, but not all prerequesites"
+#error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PKCS5_C) && !defined(MBEDTLS_MD_C)
+#error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
@@ -214,9 +208,30 @@
 #error "MBEDTLS_TEST_NULL_ENTROPY defined, but entropy sources too"
 #endif
 
+#if defined(MBEDTLS_CCM_C) && (                                        \
+    !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) && !defined(MBEDTLS_ARIA_C) )
+#error "MBEDTLS_CCM_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CCM_C) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CCM_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_GCM_C) && (                                        \
-        !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) && !defined(MBEDTLS_ARIA_C) )
+    !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) && !defined(MBEDTLS_ARIA_C) )
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_GCM_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C) && !defined(MBEDTLS_CHACHA20_C)
+#error "MBEDTLS_CHACHAPOLY_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C) && !defined(MBEDTLS_POLY1305_C)
+#error "MBEDTLS_CHACHAPOLY_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
@@ -338,11 +353,11 @@
 #endif
 
 #if defined(MBEDTLS_MEMORY_BACKTRACE) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#error "MBEDTLS_MEMORY_BACKTRACE defined, but not all prerequesites"
+#error "MBEDTLS_MEMORY_BACKTRACE defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_MEMORY_DEBUG) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequesites"
+#error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
@@ -500,6 +515,20 @@
 #error "MBEDTLS_PLATFORM_SNPRINTF_MACRO and MBEDTLS_PLATFORM_STD_SNPRINTF/MBEDTLS_PLATFORM_SNPRINTF_ALT cannot be defined simultaneously"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_VSNPRINTF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_VSNPRINTF_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_VSNPRINTF) ||\
+        defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) )
+#error "MBEDTLS_PLATFORM_VSNPRINTF_MACRO and MBEDTLS_PLATFORM_STD_VSNPRINTF/MBEDTLS_PLATFORM_VSNPRINTF_ALT cannot be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_STD_MEM_HDR) &&\
     !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
 #error "MBEDTLS_PLATFORM_STD_MEM_HDR defined, but not all prerequisites"
@@ -617,6 +646,17 @@
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
 #error "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined, but it cannot coexist with MBEDTLS_USE_PSA_CRYPTO."
+#endif
+
+#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    !defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_ECDSA_C)
+#error "MBEDTLS_PK_C in configuration with MBEDTLS_USE_PSA_CRYPTO and \
+        MBEDTLS_ECDSA_C requires MBEDTLS_PK_WRITE_C to be defined."
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_RSA_C) && \
+    !( defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C) )
+#error "MBEDTLS_PSA_CRYPTO_C with MBEDTLS_RSA_C requires MBEDTLS_PK_PARSE_C and MBEDTLS_PK_WRITE_C"
 #endif
 
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
@@ -761,17 +801,22 @@
     !defined(MBEDTLS_SSL_PROTO_TLS1)   &&      \
     !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&      \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
+#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1)   &&          \
     !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&          \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
+#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SSL_TICKET_C) && \
+    !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
@@ -889,6 +934,10 @@
 #error "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
+#error "MBEDTLS_SSL_CONTEXT_SERIALIZATION defined, but not all prerequisites"
+#endif
+
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the
@@ -896,4 +945,5 @@
  */
 typedef int mbedtls_iso_c_forbids_empty_translation_units;
 
+/* *INDENT-ON* */
 #endif /* MBEDTLS_CHECK_CONFIG_H */
