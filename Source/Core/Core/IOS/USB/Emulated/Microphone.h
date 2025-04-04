@@ -37,6 +37,7 @@ public:
   void UpdateLoudness(std::ranges::input_range auto&& samples);
   const WiiSpeakState& GetSampler() const;
   FloatType ComputeGain(FloatType relative_db) const;
+  void SetSamplingRate(u32 sampling_rate);
 
 private:
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
@@ -44,12 +45,11 @@ private:
 
   void StreamInit();
   void StreamTerminate();
-  void StreamStart();
+  void StreamStart(u32 sampling_rate);
   void StopStream();
 
-  static constexpr u32 SAMPLING_RATE = 8000;
   using SampleType = s16;
-  static constexpr u32 BUFF_SIZE_SAMPLES = 16;
+  static constexpr u32 BUFF_SIZE_SAMPLES = 32;
   static constexpr u32 STREAM_SIZE = BUFF_SIZE_SAMPLES * 500;
 
   std::array<SampleType, STREAM_SIZE> m_stream_buffer{};
@@ -96,8 +96,8 @@ private:
     void Reset();
     void LogStats();
 
-    // Samples used to compute the loudness level
-    static constexpr u16 SAMPLES_NEEDED = SAMPLING_RATE / 125;
+    // Samples used to compute the loudness level (arbitrarily chosen)
+    static constexpr u16 SAMPLES_NEEDED = 128;
     static_assert((SAMPLES_NEEDED % BUFF_SIZE_SAMPLES) == 0);
 
     static constexpr FloatType MAX_AMPLTIUDE = std::numeric_limits<UnsignedSampleType>::max() / 2;
