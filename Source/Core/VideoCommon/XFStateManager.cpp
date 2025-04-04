@@ -14,7 +14,6 @@ void XFStateManager::Init()
   // Initialize state tracking variables
   ResetTexMatrixAChange();
   ResetTexMatrixBChange();
-  ResetPosNormalChange();
   ResetProjection();
   ResetViewportChange();
   ResetTexMatrixInfoChange();
@@ -37,7 +36,6 @@ void XFStateManager::DoState(PointerWrap& p)
 
   p.Do(m_materials_changed);
   p.DoArray(m_tex_matrices_changed);
-  p.Do(m_pos_normal_matrix_changed);
   p.Do(m_projection_changed);
   p.Do(m_viewport_changed);
   p.Do(m_tex_mtx_info_changed);
@@ -53,16 +51,6 @@ void XFStateManager::DoState(PointerWrap& p)
 
 void XFStateManager::InvalidateXFRange(int start, int end)
 {
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
-      ((u32)start >=
-           XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 &&
-       (u32)start < XFMEM_NORMALMATRICES +
-                        ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
-  {
-    m_pos_normal_matrix_changed = true;
-  }
-
   if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 &&
        (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 + 12) ||
       ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 &&
@@ -174,8 +162,6 @@ void XFStateManager::SetTexMatrixChangedA(u32 Value)
   if (g_main_cp_state.matrix_index_a.Hex != Value)
   {
     g_vertex_manager->Flush();
-    if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
-      m_pos_normal_matrix_changed = true;
     m_tex_matrices_changed[0] = true;
     g_main_cp_state.matrix_index_a.Hex = Value;
   }
@@ -199,11 +185,6 @@ void XFStateManager::SetTexMatrixChangedB(u32 Value)
 void XFStateManager::ResetTexMatrixBChange()
 {
   m_tex_matrices_changed[1] = false;
-}
-
-void XFStateManager::ResetPosNormalChange()
-{
-  m_pos_normal_matrix_changed = false;
 }
 
 void XFStateManager::SetProjectionChanged()
