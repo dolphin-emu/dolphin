@@ -37,7 +37,6 @@ signals:
   void BackendChanged(const QString& backend);
 
 private:
-  void LoadSettings();
   void BackendWarning();
 
   void CreateWidgets();
@@ -48,7 +47,6 @@ private:
   void OnEmulationStateChanged(bool running);
 
   // Video
-  QGridLayout* m_video_layout;
   ConfigStringChoice* m_backend_combo;
   ToolTipComboBox* m_adapter_combo;
   ConfigChoice* m_aspect_combo;

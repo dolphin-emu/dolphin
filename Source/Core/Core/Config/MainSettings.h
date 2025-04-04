@@ -125,6 +125,7 @@ extern const Info<bool> MAIN_FPRF;
 extern const Info<bool> MAIN_ACCURATE_NANS;
 extern const Info<bool> MAIN_DISABLE_ICACHE;
 extern const Info<float> MAIN_EMULATION_SPEED;
+extern const Info<bool> MAIN_PRECISION_FRAME_TIMING;
 extern const Info<float> MAIN_OVERCLOCK;
 extern const Info<bool> MAIN_OVERCLOCK_ENABLE;
 extern const Info<bool> MAIN_RAM_OVERRIDE_ENABLE;

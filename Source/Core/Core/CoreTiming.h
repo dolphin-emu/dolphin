@@ -24,6 +24,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/SPSCQueue.h"
+#include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
 
 class PointerWrap;
@@ -214,6 +215,9 @@ private:
 
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
+
+  bool m_use_precision_timer = false;
+  Common::PrecisionTimer m_precision_timer;
 };
 
 }  // namespace CoreTiming
