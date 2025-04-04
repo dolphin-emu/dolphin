@@ -65,14 +65,17 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
   constexpr DT_s FADE_IN_RC = DT_s(0.008);
   constexpr DT_s FADE_OUT_RC = DT_s(0.064);
 
-  const u64 out_sample_rate = m_mixer->m_output_sample_rate;
-  u64 in_sample_rate = FIXED_SAMPLE_RATE_DIVIDEND / m_input_sample_rate_divisor;
+  // We need at least a double because the index jump has 24 bits of fractional precision.
+  const double out_sample_rate = m_mixer->m_output_sample_rate;
+  double in_sample_rate =
+      static_cast<double>(FIXED_SAMPLE_RATE_DIVIDEND) / m_input_sample_rate_divisor;
 
-  const float emulation_speed = m_mixer->m_config_emulation_speed;
+  const double emulation_speed = m_mixer->m_config_emulation_speed;
   if (0 < emulation_speed && emulation_speed != 1.0)
-    in_sample_rate = static_cast<u64>(std::llround(in_sample_rate * emulation_speed));
+    in_sample_rate *= emulation_speed;
 
-  const u32 index_jump = (in_sample_rate << GRANULE_FRAC_BITS) / (out_sample_rate);
+  const double base = static_cast<double>(1 << GRANULE_FRAC_BITS);
+  const u32 index_jump = std::lround(base * in_sample_rate / out_sample_rate);
 
   // These fade in / out multiplier are tuned to match a constant
   // fade speed regardless of the input or the output sample rate.
@@ -83,7 +86,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   // Calculate the ideal length of the granule queue.
   const std::size_t buffer_size_ms = m_mixer->m_config_audio_buffer_ms;
-  const std::size_t buffer_size_samples = buffer_size_ms * in_sample_rate / 1000;
+  const std::size_t buffer_size_samples = std::llround(buffer_size_ms * in_sample_rate / 1000.0);
 
   // Limit the possible queue sizes to any number between 4 and 64.
   const std::size_t buffer_size_granules =
