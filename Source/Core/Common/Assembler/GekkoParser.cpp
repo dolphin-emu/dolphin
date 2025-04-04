@@ -84,6 +84,26 @@ void ParseId(ParseState* state)
   }
 }
 
+void ParseNumLocation(ParseState* state)
+{
+  AssemblerToken tok = state->lexer.Lookahead();
+  switch (tok.token_type)
+  {
+  case TokenType::NumLabFwd:
+    state->plugin.OnTerminal(Terminal::NumLabFwd, tok);
+    break;
+
+  case TokenType::NumLabBwd:
+    state->plugin.OnTerminal(Terminal::NumLabBwd, tok);
+    break;
+
+  default:
+    state->EmitErrorHere(fmt::format("Invalid {} with value '{}'", tok.TypeStr(), tok.ValStr()));
+    return;
+  }
+  state->lexer.Eat();
+}
+
 void ParseIdLocation(ParseState* state)
 {
   std::array<AssemblerToken, 3> toks;
@@ -182,6 +202,11 @@ void ParseBaseexpr(ParseState* state)
   case TokenType::Eq:
   case TokenType::So:
     ParsePpcBuiltin(state);
+    break;
+
+  case TokenType::NumLabFwd:
+  case TokenType::NumLabBwd:
+    ParseNumLocation(state);
     break;
 
   case TokenType::Dot:
@@ -583,6 +608,21 @@ void ParseLabel(ParseState* state)
   if (tokens[0].token_type == TokenType::Identifier && tokens[1].token_type == TokenType::Colon)
   {
     state->plugin.OnLabelDecl(tokens[0].token_val);
+    if (state->error)
+    {
+      return;
+    }
+    state->lexer.EatN<2>();
+  }
+
+  if (tokens[0].token_type == TokenType::DecimalLit && tokens[1].token_type == TokenType::Colon)
+  {
+    std::optional<u32> labnum = tokens[0].EvalToken<u32>();
+    if (!labnum)
+    {
+      return;
+    }
+    state->plugin.OnNumericLabelDecl(tokens[0].token_val, *labnum);
     if (state->error)
     {
       return;
