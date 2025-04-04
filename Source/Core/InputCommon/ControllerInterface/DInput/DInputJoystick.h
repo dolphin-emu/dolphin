@@ -45,7 +45,7 @@ private:
   {
   public:
     Hat(u8 index, const DWORD& hat, u8 direction)
-        : m_hat(hat), m_direction(direction), m_index(index)
+        : m_hat(hat), m_index(index), m_direction(direction)
     {
     }
     std::string GetName() const override;
