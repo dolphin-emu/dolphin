@@ -223,7 +223,7 @@ std::string_view TokenTypeToStr(TokenType tp)
   case TokenType::FPR:
     return "FPR";
   case TokenType::GQR:
-    return "QGR";
+    return "GQR";
   case TokenType::SPR:
     return "SPR";
   case TokenType::CRField:
