@@ -287,6 +287,8 @@ private:
   QAction* m_jit_systemregisters_off;
   QAction* m_jit_branch_off;
   QAction* m_jit_register_cache_off;
+  QMenu* m_symbols_debugger_menu;
+  QAction* m_debugger_show_demangled_names;
 
   bool m_game_selected = false;
 };
