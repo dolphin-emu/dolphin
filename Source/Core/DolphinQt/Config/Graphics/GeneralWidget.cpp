@@ -13,6 +13,9 @@
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
+#include "Common/Config/Layer.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -26,6 +29,7 @@
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
@@ -122,6 +126,7 @@ void GeneralWidget::CreateWidgets()
       new ConfigBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
   m_render_main_window =
       new ConfigBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN, m_game_layer);
+  m_reset_settings = new ToolTipPushButton(tr("Reset Graphics Settings"));
 
   m_options_box->setLayout(m_options_layout);
 
@@ -130,6 +135,8 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_show_messages, 0, 1);
   m_options_layout->addWidget(m_show_ping, 1, 1);
+
+  m_options_layout->addWidget(m_reset_settings, 2, 0, 1, 2);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -177,6 +184,9 @@ void GeneralWidget::ConnectWidgets()
     m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
   });
   m_aspect_combo->currentIndexChanged(m_aspect_combo->currentIndex());
+
+  // Reset
+  connect(m_reset_settings, &QPushButton::clicked, this, &GeneralWidget::OnResetSettingsClicked);
 }
 
 void GeneralWidget::BackendWarning()
@@ -212,6 +222,7 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);
   m_enable_fullscreen->setEnabled(!running);
+  m_reset_settings->setEnabled(!running);
 
   const bool supports_adapters = !g_backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
@@ -248,6 +259,10 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
+  static const char TR_RESET_GRAPHICS_SETTINGS_DESCRIPTION[] =
+      "Resets ALL graphics settings to their default values.<br><br>"
+      "<dolphin_emphasis>This action is irreversible—any customizations you've made will be "
+      "permanently lost.</dolphin_emphasis>";
   static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which aspect ratio to use for displaying the game."
       "<br><br>The aspect ratio of the image sent out by the original consoles varied depending on "
@@ -332,6 +347,8 @@ void GeneralWidget::AddDescriptions()
 
   m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
 
+  m_reset_settings->SetDescription(tr(TR_RESET_GRAPHICS_SETTINGS_DESCRIPTION));
+
   m_shader_compilation_mode[0]->SetDescription(tr(TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION));
 
   m_shader_compilation_mode[1]->SetDescription(tr(TR_SHADER_COMPILE_EXCLUSIVE_UBER_DESCRIPTION));
@@ -374,4 +391,27 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
                                       tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
                                       tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION)
                                           .arg(tr(g_video_backend->GetDisplayName().c_str())));
+}
+
+void GeneralWidget::OnResetSettingsClicked()
+{
+  auto response = ModalMessageBox::question(
+      this, tr("Reset Graphics Settings"),
+      tr("Are you sure you want to restore all Dolphin graphics settings to their default values? "
+         "This action is irreversible!\n"
+         "Any customizations you've made will be permanently lost.\n\n"
+         "Do you wish to continue?"),
+      QMessageBox::StandardButton::Yes | QMessageBox::StandardButton::Cancel,
+      QMessageBox::StandardButton::Cancel);
+
+  if (response != QMessageBox::StandardButton::Yes)
+    return;
+
+  for (const auto& info_variant : Config::GRAPHICS_CONFIG_INFO)
+  {
+    std::visit([](const auto& info) { Config::DeleteKey(GetActiveLayerForConfig(info), info); },
+               info_variant);
+  }
+
+  emit Settings::Instance().ConfigChanged();
 }

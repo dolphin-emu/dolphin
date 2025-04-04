@@ -6,6 +6,8 @@
 #include <string>
 
 #include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
 
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
@@ -22,6 +24,8 @@ enum class VertexLoaderType : int;
 namespace Config
 {
 // Configuration Information
+using InfoVariant = std::variant<Config::Info<u32>, Config::Info<int>, Config::Info<bool>,
+                                 Config::Info<float>, Config::Info<std::string>>;
 
 // Graphics.Hardware
 
@@ -191,5 +195,100 @@ extern const Info<std::string> GFX_DRIVER_LIB_NAME;
 // Vertex loader
 
 extern const Info<VertexLoaderType> GFX_VERTEX_LOADER_TYPE;
+
+// Array containing the configuration keys in the "Graphics settings" window.
+// We target only these explicitly specified keys rather than every "GFX" key,
+// as legacy decisions makes it so we have settings all over the place.
+const std::array<InfoVariant, 91> GRAPHICS_CONFIG_INFO = {GFX_DISABLE_FOG,
+                                                          GFX_SHOW_SPEED_COLORS,
+                                                          GFX_FRAME_DUMPS_RESOLUTION_TYPE,
+                                                          GFX_ENHANCE_HDR_OUTPUT,
+                                                          GFX_CC_CORRECT_GAMMA,
+                                                          GFX_ENABLE_PIXEL_LIGHTING,
+                                                          GFX_ENHANCE_FORCE_TRUE_COLOR,
+                                                          GFX_STEREO_SWAP_EYES,
+                                                          MAIN_RENDER_WINDOW_AUTOSIZE,
+                                                          GFX_CPU_CULL,
+                                                          GFX_CC_CORRECT_COLOR_SPACE,
+                                                          GFX_HACK_EFB_ACCESS_ENABLE,
+                                                          GFX_STEREO_PER_EYE_RESOLUTION_FULL,
+                                                          GFX_ASPECT_RATIO,
+                                                          GFX_WIDESCREEN_HACK,
+                                                          GFX_SHOW_NETPLAY_PING,
+                                                          SYSCONF_PROGRESSIVE_SCAN,
+                                                          GFX_HACK_SKIP_EFB_COPY_TO_RAM,
+                                                          GFX_DUMP_TEXTURES,
+                                                          MAIN_GFX_BACKEND,
+                                                          GFX_HACK_EFB_DEFER_INVALIDATION,
+                                                          GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA,
+                                                          MAIN_RENDER_TO_MAIN,
+                                                          GFX_SHOW_FTIMES,
+                                                          MAIN_FULLSCREEN,
+                                                          GFX_HACK_FAST_TEXTURE_SAMPLING,
+                                                          GFX_OVERLAY_PROJ_STATS,
+                                                          GFX_WAIT_FOR_SHADERS_BEFORE_STARTING,
+                                                          GFX_STEREO_MODE,
+                                                          GFX_BACKEND_MULTITHREADING,
+                                                          GFX_ENHANCE_POST_SHADER,
+                                                          GFX_USE_LOSSLESS,
+                                                          GFX_HACK_DEFER_EFB_COPIES,
+                                                          GFX_ENABLE_WIREFRAME,
+                                                          GFX_HACK_EFB_EMULATE_FORMAT_CHANGES,
+                                                          GFX_TEXFMT_OVERLAY_ENABLE,
+                                                          GFX_SHOW_VTIMES,
+                                                          GFX_ENHANCE_DISABLE_COPY_FILTER,
+                                                          GFX_ENABLE_GPU_TEXTURE_DECODING,
+                                                          GFX_SHOW_GRAPHS,
+                                                          GFX_SHOW_SPEED,
+                                                          GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION,
+                                                          GFX_CC_SDR_DISPLAY_GAMMA_SRGB,
+                                                          GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION,
+                                                          GFX_DUMP_XFB_TARGET,
+                                                          GFX_LOG_RENDER_TIME_TO_FILE,
+                                                          GFX_OVERLAY_STATS,
+                                                          GFX_CUSTOM_ASPECT_RATIO_WIDTH,
+                                                          GFX_SHOW_FPS,
+                                                          GFX_BITRATE_KBPS,
+                                                          GFX_ENHANCE_MAX_ANISOTROPY,
+                                                          GFX_HACK_BBOX_ENABLE,
+                                                          GFX_HACK_VERTEX_ROUNDING,
+                                                          GFX_HACK_VI_SKIP,
+                                                          GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+                                                          GFX_CC_GAME_COLOR_SPACE,
+                                                          GFX_STEREO_DEPTH,
+                                                          GFX_DUMP_EFB_TARGET,
+                                                          GFX_HACK_SKIP_XFB_COPY_TO_RAM,
+                                                          GFX_SSAA,
+                                                          GFX_PERF_SAMP_WINDOW,
+                                                          MAIN_PRECISION_FRAME_TIMING,
+                                                          GFX_SHOW_VPS,
+                                                          GFX_SHADER_COMPILATION_MODE,
+                                                          GFX_HACK_SKIP_DUPLICATE_XFBS,
+                                                          GFX_SAVE_TEXTURE_CACHE_TO_STATE,
+                                                          GFX_MODS_ENABLE,
+                                                          GFX_EFB_SCALE,
+                                                          GFX_DUMP_BASE_TEXTURES,
+                                                          GFX_SHOW_NETPLAY_MESSAGES,
+                                                          GFX_FAST_DEPTH_CALC,
+                                                          GFX_MAX_EFB_SCALE,
+                                                          GFX_CC_HDR_PAPER_WHITE_NITS,
+                                                          GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
+                                                          GFX_ADAPTER,
+                                                          GFX_DUMP_MIP_TEXTURES,
+                                                          GFX_CACHE_HIRES_TEXTURES,
+                                                          GFX_BORDERLESS_FULLSCREEN,
+                                                          GFX_MSAA,
+                                                          GFX_ENABLE_VALIDATION_LAYER,
+                                                          GFX_STEREO_CONVERGENCE,
+                                                          GFX_HIRES_TEXTURES,
+                                                          GFX_CC_GAME_GAMMA,
+                                                          GFX_HACK_IMMEDIATE_XFB,
+                                                          GFX_PNG_COMPRESSION_LEVEL,
+                                                          GFX_ENHANCE_OUTPUT_RESAMPLING,
+                                                          GFX_VSYNC,
+                                                          GFX_CROP,
+                                                          GFX_CUSTOM_ASPECT_RATIO_HEIGHT,
+                                                          GFX_HACK_DISABLE_COPY_TO_VRAM,
+                                                          GFX_HACK_COPY_EFB_SCALED};
 
 }  // namespace Config

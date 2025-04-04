@@ -7,6 +7,8 @@
 
 #include <QWidget>
 
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
+
 class ConfigBool;
 class ConfigChoice;
 class ConfigInteger;
@@ -43,6 +45,7 @@ private:
   void ConnectWidgets();
   void AddDescriptions();
 
+  void OnResetSettingsClicked();
   void OnBackendChanged(const QString& backend_name);
   void OnEmulationStateChanged(bool running);
 
@@ -57,6 +60,7 @@ private:
   ConfigBool* m_enable_fullscreen;
 
   // Options
+  ToolTipPushButton* m_reset_settings;
   ConfigBool* m_show_ping;
   ConfigBool* m_autoadjust_window_size;
   ConfigBool* m_show_messages;
