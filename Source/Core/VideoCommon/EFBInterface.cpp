@@ -14,8 +14,10 @@
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -24,6 +26,11 @@ std::unique_ptr<EFBInterfaceBase> g_efb_interface;
 
 EFBInterfaceBase::~EFBInterfaceBase() = default;
 
+bool EFBInterfaceBase::ShouldSkipAccess(u16 x, u16 y) const
+{
+  return !g_ActiveConfig.bEFBAccessEnable || x >= EFB_WIDTH || y >= EFB_HEIGHT;
+}
+
 void HardwareEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
 {
   g_framebuffer_manager->ReinterpretPixelData(convtype);
@@ -31,7 +38,10 @@ void HardwareEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
 
 u32 HardwareEFBInterface::PeekColorInternal(u16 x, u16 y)
 {
-  u32 color = g_framebuffer_manager->PeekEFBColor(x, y);
+  u32 color = AsyncRequests::GetInstance()->PushBlockingEvent([&] {
+    INCSTAT(g_stats.this_frame.num_efb_peeks);
+    return g_framebuffer_manager->PeekEFBColor(x, y);
+  });
 
   // a little-endian value is expected to be returned
   color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
@@ -54,6 +64,9 @@ u32 HardwareEFBInterface::PeekColorInternal(u16 x, u16 y)
 
 u32 EFBInterfaceBase::PeekColor(u16 x, u16 y)
 {
+  if (ShouldSkipAccess(x, y))
+    return 0;
+
   u32 color = PeekColorInternal(x, y);
 
   // check what to do with the alpha channel (GX_PokeAlphaRead)
@@ -78,10 +91,14 @@ u32 EFBInterfaceBase::PeekColor(u16 x, u16 y)
   }
 }
 
-u32 HardwareEFBInterface::PeekDepth(u16 x, u16 y)
+u32 HardwareEFBInterface::PeekDepthInternal(u16 x, u16 y)
 {
+  float depth = AsyncRequests::GetInstance()->PushBlockingEvent([&] {
+    INCSTAT(g_stats.this_frame.num_efb_peeks);
+    return g_framebuffer_manager->PeekEFBDepth(x, y);
+  });
+
   // Depth buffer is inverted for improved precision near far plane
-  float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
   if (!g_backend_info.bSupportsReversedDepthRange)
     depth = 1.0f - depth;
 
@@ -105,22 +122,42 @@ u32 HardwareEFBInterface::PeekDepth(u16 x, u16 y)
   return z24depth;
 }
 
+u32 EFBInterfaceBase::PeekDepth(u16 x, u16 y)
+{
+  if (ShouldSkipAccess(x, y))
+    return 0;
+
+  return PeekDepthInternal(x, y);
+}
+
 void HardwareEFBInterface::PokeColor(u16 x, u16 y, u32 poke_data)
 {
+  if (ShouldSkipAccess(x, y))
+    return;
+
   // Convert to expected format (BGRA->RGBA)
   // TODO: Check alpha, depending on mode?
   const u32 color =
       ((poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000));
 
-  g_framebuffer_manager->PokeEFBColor(x, y, color);
+  AsyncRequests::GetInstance()->PushEvent([x, y, color] {
+    INCSTAT(g_stats.this_frame.num_efb_pokes);
+    g_framebuffer_manager->PokeEFBColor(x, y, color);
+  });
 }
 
 void HardwareEFBInterface::PokeDepth(u16 x, u16 y, u32 poke_data)
 {
+  if (ShouldSkipAccess(x, y))
+    return;
+
   // Convert to floating-point depth.
   float depth = float(poke_data & 0xFFFFFF) / 16777216.0f;
   if (!g_backend_info.bSupportsReversedDepthRange)
     depth = 1.0f - depth;
 
-  g_framebuffer_manager->PokeEFBDepth(x, y, depth);
+  AsyncRequests::GetInstance()->PushEvent([x, y, depth] {
+    INCSTAT(g_stats.this_frame.num_efb_pokes);
+    g_framebuffer_manager->PokeEFBDepth(x, y, depth);
+  });
 }

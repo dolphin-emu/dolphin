@@ -532,6 +532,18 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
+            IntSliderSetting(
+                context,
+                IntSetting.MAIN_AUDIO_BUFFER_SIZE,
+                R.string.audio_buffer_size,
+                R.string.audio_buffer_size_description,
+                16,
+                512,
+                "ms",
+                8
+            )
+        )
+        sl.add(
             SwitchSetting(
                 context,
                 BooleanSetting.MAIN_AUDIO_FILL_GAPS,

@@ -54,7 +54,8 @@
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
-    <string name="input_binding_no_device">You need to select a device first!</string>
+    <string name="input_binding_no_device">You need to select a device first.</string>
+    <string name="input_binding_disconnected_device">The selected device is disconnected.\n\nPlease reconnect the device or select a different device.</string>
     <string name="input_configure_input">Configure Input</string>
     <string name="input_configure_output">Configure Output</string>
     <string name="input_expression">Expression</string>
@@ -182,6 +183,8 @@
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
     <string name="dsp_emulation_engine">DSP Emulation Engine</string>
+    <string name="audio_buffer_size">Audio Buffer Size</string>
+    <string name="audio_buffer_size_description">Controls the number of audio samples buffered. Lower values reduce latency but may cause more crackling or stuttering. If unsure, set this to 80 ms.</string>
     <string name="audio_fill_gaps">Fill Audio Gaps</string>
     <string name="audio_fill_gaps_description">Repeat existing audio during lag spikes to prevent stuttering. If unsure, leave this checked.</string>
     <string name="audio_volume">Audio Volume</string>
