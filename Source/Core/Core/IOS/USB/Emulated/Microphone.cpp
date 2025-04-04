@@ -47,7 +47,7 @@ void Microphone::StreamInit()
 {
 }
 
-void Microphone::StreamStart()
+void Microphone::StreamStart([[maybe_unused]] u32 sampling_rate)
 {
 }
 
@@ -68,7 +68,7 @@ void Microphone::StreamInit()
   }
 
   // TODO: Not here but rather inside the WiiSpeak device if possible?
-  StreamStart();
+  StreamStart(m_sampler.DEFAULT_SAMPLING_RATE);
 }
 
 void Microphone::StreamTerminate()
@@ -83,12 +83,12 @@ static void StateCallback(cubeb_stream* stream, void* user_data, cubeb_state sta
 {
 }
 
-void Microphone::StreamStart()
+void Microphone::StreamStart(u32 sampling_rate)
 {
   if (!m_cubeb_ctx)
     return;
 
-  m_worker.Execute([this] {
+  m_worker.Execute([this, sampling_rate] {
 #ifdef ANDROID
     JNIEnv* env = IDCache::GetEnvForThread();
     if (jboolean result = env->CallStaticBooleanMethod(
@@ -104,7 +104,7 @@ void Microphone::StreamStart()
 
     cubeb_stream_params params{};
     params.format = CUBEB_SAMPLE_S16LE;
-    params.rate = SAMPLING_RATE;
+    params.rate = sampling_rate;
     params.channels = 1;
     params.layout = CUBEB_LAYOUT_MONO;
 
@@ -264,6 +264,12 @@ bool Microphone::HasData(u32 sample_count = BUFF_SIZE_SAMPLES) const
 Microphone::FloatType Microphone::ComputeGain(FloatType relative_db) const
 {
   return m_loudness.ComputeGain(relative_db);
+}
+
+void Microphone::SetSamplingRate(u32 sampling_rate)
+{
+  StreamStop();
+  StreamStart(sampling_rate);
 }
 
 const Microphone::FloatType Microphone::Loudness::DB_MIN =

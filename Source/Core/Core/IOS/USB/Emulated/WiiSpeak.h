@@ -22,6 +22,8 @@ struct WiiSpeakState
   int gain;
   bool ec_reset;
   bool sp_on;
+
+  static constexpr u32 DEFAULT_SAMPLING_RATE = 16000;
 };
 
 class WiiSpeak final : public Device

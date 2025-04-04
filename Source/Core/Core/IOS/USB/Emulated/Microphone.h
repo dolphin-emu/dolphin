@@ -38,6 +38,7 @@ public:
   u16 ReadIntoBuffer(u8* ptr, u32 size);
   u16 GetLoudnessLevel() const;
   FloatType ComputeGain(FloatType relative_db) const;
+  void SetSamplingRate(u32 sampling_rate);
 
 private:
 #ifdef HAVE_CUBEB
@@ -50,11 +51,10 @@ private:
 
   void StreamInit();
   void StreamTerminate();
-  void StreamStart();
+  void StreamStart(u32 sampling_rate);
   void StreamStop();
 
-  static constexpr u32 SAMPLING_RATE = 8000;
-  static constexpr u32 BUFF_SIZE_SAMPLES = 16;
+  static constexpr u32 BUFF_SIZE_SAMPLES = 32;
   static constexpr u32 STREAM_SIZE = BUFF_SIZE_SAMPLES * 500;
 
   std::array<SampleType, STREAM_SIZE> m_stream_buffer{};
@@ -83,8 +83,8 @@ private:
     void Reset();
     void LogStats();
 
-    // Samples used to compute the loudness level
-    static constexpr u16 SAMPLES_NEEDED = SAMPLING_RATE / 125;
+    // Samples used to compute the loudness level (arbitrarily chosen)
+    static constexpr u16 SAMPLES_NEEDED = 128;
     static_assert((SAMPLES_NEEDED % BUFF_SIZE_SAMPLES) == 0);
 
     static constexpr FloatType MAX_AMPLITUDE =
