@@ -159,7 +159,7 @@ public:
   // Throttle the CPU to the specified target cycle.
   void Throttle(const s64 target_cycle);
 
-  // May be used from any thread.
+  // May be used from CPU or GPU thread.
   void SleepUntil(TimePoint time_point);
 
   // Used by VideoInterface
@@ -216,8 +216,9 @@ private:
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
 
-  bool m_use_precision_timer = false;
-  Common::PrecisionTimer m_precision_timer;
+  std::atomic_bool m_use_precision_timer = false;
+  Common::PrecisionTimer m_precision_cpu_timer;
+  Common::PrecisionTimer m_precision_gpu_timer;
 };
 
 }  // namespace CoreTiming
