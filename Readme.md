@@ -93,33 +93,36 @@ Execute BuildMacOSUniversalBinary.py --help for more details.
 
 To install to your system.
 
-1. `mkdir build`
-2. `cd build`
-3. `cmake ..`
-4. `make -j $(nproc)`
-5. `sudo make install`
+1. `sudo apt install qt6-base-dev qt6-base-dev-tools qt6-svg-dev`
+2. `mkdir build`
+3. `cd build`
+4. `cmake ..`
+5. `make -j $(nproc)`
+6. `sudo make install`
 
 ### Linux Local Build Steps:
 
 Useful for development as root access is not required.
 
-1. `mkdir Build`
-2. `cd Build`
-3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make -j $(nproc)`
-5. `ln -s ../../Data/Sys Binaries/`
+1. `sudo apt install qt6-base-dev qt6-base-dev-tools qt6-svg-dev`
+2. `mkdir Build`
+3. `cd Build`
+4. `cmake .. -DLINUX_LOCAL_DEV=true`
+5. `make -j $(nproc)`
+6. `ln -s ../../Data/Sys Binaries/`
 
 ### Linux Portable Build Steps:
 
 Can be stored on external storage and used on different Linux systems.
 Or useful for having multiple distinct Dolphin setups for testing/development/TAS.
 
-1. `mkdir Build`
-2. `cd Build`
-3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make -j $(nproc)`
-5. `cp -r ../Data/Sys/ Binaries/`
-6. `touch Binaries/portable.txt`
+1. `sudo apt install qt6-base-dev qt6-base-dev-tools qt6-svg-dev`
+2. `mkdir Build`
+3. `cd Build`
+4. `cmake .. -DLINUX_LOCAL_DEV=true`
+5. `make -j $(nproc)`
+6. `cp -r ../Data/Sys/ Binaries/`
+7. `touch Binaries/portable.txt`
 
 ## Building for Android
 
