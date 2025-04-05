@@ -82,4 +82,13 @@ static_assert(!IsNOf<int, 1, int, int>::value);
 static_assert(IsNOf<int, 2, int, int>::value);
 static_assert(IsNOf<int, 2, int, short>::value);  // Type conversions ARE allowed
 static_assert(!IsNOf<int, 2, int, char*>::value);
+
+template <typename T>
+concept Enum = std::is_enum_v<T>;
+
+template <typename T, typename Underlying>
+concept TypedEnum = std::is_same_v<std::underlying_type_t<T>, Underlying>;
+
+template <typename T>
+concept BooleanEnum = TypedEnum<T, bool>;
 }  // namespace Common
