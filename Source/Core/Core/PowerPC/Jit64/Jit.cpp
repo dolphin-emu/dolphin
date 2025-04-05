@@ -957,6 +957,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_gpr_in_use{};
+  BitSet32 previous_fpr_in_use{};
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -976,203 +979,215 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.isLastInstruction = true;
     }
 
-    if (i != 0)
+    if (js.skipInstructions != 0)
     {
-      // Gather pipe writes using a non-immediate address are discovered by profiling.
-      const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
-
-      // Gather pipe writes using an immediate address are explicitly tracked.
-      if (jo.optimizeGatherPipe &&
-          (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
-      {
-        js.fifoBytesSinceCheck = 0;
-        js.mustCheckFifo = false;
-        BitSet32 registersInUse = CallerSavedRegistersInUse();
-        ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-        ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
-        ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-        gatherPipeIntCheck = true;
-      }
-
-      // Gather pipe writes can generate an exception; add an exception check.
-      // TODO: This doesn't really match hardware; the CP interrupt is
-      // asynchronous.
-      if (gatherPipeIntCheck)
-      {
-        TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-        FixupBranch extException = J_CC(CC_NZ, Jump::Near);
-
-        SwitchToFarCode();
-        SetJumpTarget(extException);
-        TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-        FixupBranch noExtIntEnable = J_CC(CC_Z, Jump::Near);
-        MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
-        TEST(32, MatR(RSCRATCH),
-             Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                   ProcessorInterface::INT_CAUSE_PE_FINISH));
-        FixupBranch noCPInt = J_CC(CC_Z, Jump::Near);
-
-        {
-          RCForkGuard gpr_guard = gpr.Fork();
-          RCForkGuard fpr_guard = fpr.Fork();
-
-          gpr.Flush();
-          fpr.Flush();
-
-          MOV(32, PPCSTATE(pc), Imm32(op.address));
-          WriteExternalExceptionExit();
-        }
-        SwitchToNearCode();
-        SetJumpTarget(noCPInt);
-        SetJumpTarget(noExtIntEnable);
-      }
-    }
-
-    if (HandleFunctionHooking(op.address))
-      break;
-
-    if (op.skip)
-    {
-      if (IsDebuggingEnabled())
-      {
-        // The only thing that currently sets op.skip is the BLR following optimization.
-        // If any non-branch instruction starts setting that too, this will need to be changed.
-        ASSERT(op.inst.hex == 0x4e800020);
-        WriteBranchWatch<true>(op.address, op.branchTo, op.inst, RSCRATCH, RSCRATCH2,
-                               CallerSavedRegistersInUse());
-      }
+      js.skipInstructions--;
     }
     else
     {
-      auto& cpu = m_system.GetCPU();
-      auto& power_pc = m_system.GetPowerPC();
-      if (IsDebuggingEnabled() && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
-          !cpu.IsStepping())
+      if (i != 0)
       {
-        gpr.Flush();
-        fpr.Flush();
+        // Gather pipe writes using a non-immediate address are discovered by profiling.
+        const u32 prev_address = m_code_buffer[i - 1].address;
+        bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
 
-        MOV(32, PPCSTATE(pc), Imm32(op.address));
-        ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
-        ABI_PopRegistersAndAdjustStack({}, 0);
-        MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
-        CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));
-        FixupBranch noBreakpoint = J_CC(CC_E);
-
-        Cleanup();
-        MOV(32, PPCSTATE(npc), Imm32(op.address));
-        SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-        JMP(asm_routines.dispatcher_exit, Jump::Near);
-
-        SetJumpTarget(noBreakpoint);
-      }
-
-      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
-      {
-        // This instruction uses FPU - needs to add FP exception bailout
-        TEST(32, PPCSTATE(msr), Imm32(1 << 13));  // Test FP enabled bit
-        FixupBranch b1 = J_CC(CC_Z, Jump::Near);
-
-        SwitchToFarCode();
-        SetJumpTarget(b1);
+        // Gather pipe writes using an immediate address are explicitly tracked.
+        if (jo.optimizeGatherPipe &&
+            (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
         {
-          RCForkGuard gpr_guard = gpr.Fork();
-          RCForkGuard fpr_guard = fpr.Fork();
-
-          gpr.Flush();
-          fpr.Flush();
-
-          // If a FPU exception occurs, the exception handler will read
-          // from PC.  Update PC with the latest value in case that happens.
-          MOV(32, PPCSTATE(pc), Imm32(op.address));
-          OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-          WriteExceptionExit();
+          js.fifoBytesSinceCheck = 0;
+          js.mustCheckFifo = false;
+          BitSet32 registersInUse = CallerSavedRegistersInUse();
+          ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+          ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
+          ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+          gatherPipeIntCheck = true;
         }
-        SwitchToNearCode();
 
-        js.firstFPInstructionFound = true;
+        // Gather pipe writes can generate an exception; add an exception check.
+        // TODO: This doesn't really match hardware; the CP interrupt is
+        // asynchronous.
+        if (gatherPipeIntCheck)
+        {
+          TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+          FixupBranch extException = J_CC(CC_NZ, Jump::Near);
+
+          SwitchToFarCode();
+          SetJumpTarget(extException);
+          TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+          FixupBranch noExtIntEnable = J_CC(CC_Z, Jump::Near);
+          MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
+          TEST(32, MatR(RSCRATCH),
+               Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                     ProcessorInterface::INT_CAUSE_PE_FINISH));
+          FixupBranch noCPInt = J_CC(CC_Z, Jump::Near);
+
+          {
+            RCForkGuard gpr_guard = gpr.Fork();
+            RCForkGuard fpr_guard = fpr.Fork();
+
+            gpr.Flush();
+            fpr.Flush();
+
+            MOV(32, PPCSTATE(pc), Imm32(op.address));
+            WriteExternalExceptionExit();
+          }
+          SwitchToNearCode();
+          SetJumpTarget(noCPInt);
+          SetJumpTarget(noExtIntEnable);
+        }
       }
 
-      if (bJITRegisterCacheOff)
+      if (HandleFunctionHooking(op.address))
+        break;
+
+      if (op.skip)
       {
-        gpr.Flush();
-        fpr.Flush();
+        if (IsDebuggingEnabled())
+        {
+          // The only thing that currently sets op.skip is the BLR following optimization.
+          // If any non-branch instruction starts setting that too, this will need to be changed.
+          ASSERT(op.inst.hex == 0x4e800020);
+          WriteBranchWatch<true>(op.address, op.branchTo, op.inst, RSCRATCH, RSCRATCH2,
+                                 CallerSavedRegistersInUse());
+        }
       }
       else
       {
-        // If we have an input register that is going to be used again, load it pre-emptively,
-        // even if the instruction doesn't strictly need it in a register, to avoid redundant
-        // loads later. Of course, don't do this if we're already out of registers.
-        // As a bit of a heuristic, make sure we have at least one register left over for the
-        // output, which needs to be bound in the actual instruction compilation.
-        // TODO: make this smarter in the case that we're actually register-starved, i.e.
-        // prioritize the more important registers.
-        gpr.PreloadRegisters(op.regsIn & op.gprInUse & ~op.gprDiscardable);
-        fpr.PreloadRegisters(op.fregsIn & op.fprInXmm & ~op.fprDiscardable);
-      }
-
-      CompileInstruction(op);
-
-      js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
-
-      if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
-      {
-        // If we have a fastmem loadstore, we can omit the exception check and let fastmem handle
-        // it.
-        FixupBranch memException;
-        ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
-                   "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!",
-                   op.address);
-        if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+        auto& cpu = m_system.GetCPU();
+        auto& power_pc = m_system.GetPowerPC();
+        if (IsDebuggingEnabled() && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
+            !cpu.IsStepping())
         {
-          TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-          memException = J_CC(CC_NZ, Jump::Near);
+          gpr.Flush();
+          fpr.Flush();
+
+          MOV(32, PPCSTATE(pc), Imm32(op.address));
+          ABI_PushRegistersAndAdjustStack({}, 0);
+          ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
+          ABI_PopRegistersAndAdjustStack({}, 0);
+          MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
+          CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));
+          FixupBranch noBreakpoint = J_CC(CC_E);
+
+          Cleanup();
+          MOV(32, PPCSTATE(npc), Imm32(op.address));
+          SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+          JMP(asm_routines.dispatcher_exit, Jump::Near);
+
+          SetJumpTarget(noBreakpoint);
         }
 
-        SwitchToFarCode();
-        if (!js.fastmemLoadStore)
+        if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
         {
-          m_exception_handler_at_loc[js.fastmemLoadStore] = nullptr;
-          SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+          // This instruction uses FPU - needs to add FP exception bailout
+          TEST(32, PPCSTATE(msr), Imm32(1 << 13));  // Test FP enabled bit
+          FixupBranch b1 = J_CC(CC_Z, Jump::Near);
+
+          SwitchToFarCode();
+          SetJumpTarget(b1);
+          {
+            RCForkGuard gpr_guard = gpr.Fork();
+            RCForkGuard fpr_guard = fpr.Fork();
+
+            gpr.Flush();
+            fpr.Flush();
+
+            // If a FPU exception occurs, the exception handler will read
+            // from PC.  Update PC with the latest value in case that happens.
+            MOV(32, PPCSTATE(pc), Imm32(op.address));
+            OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+            WriteExceptionExit();
+          }
+          SwitchToNearCode();
+
+          js.firstFPInstructionFound = true;
+        }
+
+        if (bJITRegisterCacheOff)
+        {
+          gpr.Flush();
+          fpr.Flush();
         }
         else
         {
-          m_exception_handler_at_loc[js.fastmemLoadStore] = GetWritableCodePtr();
+          // If we have an input register that is going to be used again, load it pre-emptively,
+          // even if the instruction doesn't strictly need it in a register, to avoid redundant
+          // loads later. Of course, don't do this if we're already out of registers.
+          // As a bit of a heuristic, make sure we have at least one register left over for the
+          // output, which needs to be bound in the actual instruction compilation.
+          // TODO: make this smarter in the case that we're actually register-starved, i.e.
+          // prioritize the more important registers.
+          gpr.PreloadRegisters(op.regsIn & op.gprInUse & ~op.gprDiscardable);
+          fpr.PreloadRegisters(op.fregsIn & op.fprInXmm & ~op.fprDiscardable);
         }
 
-        RCForkGuard gpr_guard = gpr.Fork();
-        RCForkGuard fpr_guard = fpr.Fork();
+        CompileInstruction(op);
 
-        gpr.Revert();
-        fpr.Revert();
-        gpr.Flush();
-        fpr.Flush();
+        js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
-        MOV(32, PPCSTATE(pc), Imm32(op.address));
-        WriteExceptionExit();
-        SwitchToNearCode();
+        if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
+        {
+          // If we have a fastmem loadstore, we can omit the exception check and let fastmem handle
+          // it.
+          FixupBranch memException;
+          ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+                     "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!",
+                     op.address);
+          if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+          {
+            TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+            memException = J_CC(CC_NZ, Jump::Near);
+          }
+
+          SwitchToFarCode();
+          if (!js.fastmemLoadStore)
+          {
+            m_exception_handler_at_loc[js.fastmemLoadStore] = nullptr;
+            SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+          }
+          else
+          {
+            m_exception_handler_at_loc[js.fastmemLoadStore] = GetWritableCodePtr();
+          }
+
+          RCForkGuard gpr_guard = gpr.Fork();
+          RCForkGuard fpr_guard = fpr.Fork();
+
+          gpr.Revert();
+          fpr.Revert();
+          gpr.Flush();
+          fpr.Flush();
+
+          MOV(32, PPCSTATE(pc), Imm32(op.address));
+          WriteExceptionExit();
+          SwitchToNearCode();
+        }
+
+        gpr.Commit();
+        fpr.Commit();
       }
-
-      gpr.Commit();
-      fpr.Commit();
-
-      // If we have a register that will never be used again, discard or flush it.
-      if (!bJITRegisterCacheOff)
-      {
-        gpr.Discard(op.gprDiscardable);
-        fpr.Discard(op.fprDiscardable);
-      }
-      gpr.Flush(~op.gprInUse & (op.regsIn | op.regsOut));
-      fpr.Flush(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
-
-      if (opinfo->flags & FL_LOADSTORE)
-        ++js.numLoadStoreInst;
-
-      if (opinfo->flags & FL_USE_FPU)
-        ++js.numFloatingPointInst;
     }
+
+    if (opinfo->flags & FL_LOADSTORE)
+      ++js.numLoadStoreInst;
+
+    if (opinfo->flags & FL_USE_FPU)
+      ++js.numFloatingPointInst;
+
+    js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
+
+    // If we have a register that will never be used again, discard or flush it.
+    if (!bJITRegisterCacheOff)
+    {
+      gpr.Discard(op.gprDiscardable);
+      fpr.Discard(op.fprDiscardable);
+    }
+    gpr.Flush(~op.gprInUse & previous_gpr_in_use);
+    fpr.Flush(~op.fprInUse & previous_fpr_in_use);
+
+    previous_gpr_in_use = op.gprInUse;
+    previous_fpr_in_use = op.fprInUse;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())
@@ -1181,8 +1196,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       NOTICE_LOG_FMT(DYNA_REC, "Unflushed register: {}", ppc_inst);
     }
 #endif
-    i += js.skipInstructions;
-    js.skipInstructions = 0;
   }
 
   if (code_block.m_broken)
