@@ -50,12 +50,6 @@ DSPEmitter::~DSPEmitter()
 
 u16 DSPEmitter::RunCycles(u16 cycles)
 {
-  if (m_dsp_core.DSPState().external_interrupt_waiting.exchange(false, std::memory_order_acquire))
-  {
-    m_dsp_core.CheckExternalInterrupt();
-    m_dsp_core.CheckExceptions();
-  }
-
   m_cycles_left = cycles;
   auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
   exec_addr();
@@ -99,29 +93,37 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
   m_dsp_core.DSPState().reset_dspjit_codespace = false;
 }
 
-static void CheckExceptionsThunk(DSPCore& dsp)
+static bool CheckExceptionsThunk(DSPCore& dsp)
 {
-  dsp.CheckExceptions();
+  return dsp.CheckExceptions();
 }
 
 // Must go out of block if exception is detected
-void DSPEmitter::checkExceptions(u32 retval)
+void DSPEmitter::checkExceptions(u16 retval)
 {
   // Check for interrupts and exceptions
+  // TODO: Maybe we can use CL/CH registers to merge together these checks (with a 16-bit test
+  // afterwards)?
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
-  FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
+  FixupBranch skipCheck = J_CC(CC_NZ, Jump::Near);
+
+  TEST(16, M_SDSP_control_reg(), Imm16(CR_EXTERNAL_INT));
+  FixupBranch skipCheck2 = J_CC(CC_Z, Jump::Near);
+
+  SetJumpTarget(skipCheck);
 
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
 
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
   ABI_CallFunctionP(CheckExceptionsThunk, &m_dsp_core);
-  MOV(32, R(EAX), Imm32(retval));
-  JMP(m_return_dispatcher, Jump::Near);
-  m_gpr.LoadRegs(false);
-  m_gpr.FlushRegs(c, false);
+  TEST(8, R(ABI_RETURN), R(ABI_RETURN));
+  MOV(16, R(EAX), Imm16(retval));
+  J_CC(CC_NZ, m_return_dispatcher);
+  m_gpr.LoadRegs(true);
+  m_gpr.FlushRegs(c, true);
 
-  SetJumpTarget(skipCheck);
+  SetJumpTarget(skipCheck2);
 }
 
 bool DSPEmitter::FlagsNeeded() const
@@ -243,6 +245,8 @@ void DSPEmitter::Compile(u16 start_addr)
   auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
   while (m_compile_pc < start_addr + MAX_BLOCK_SIZE)
   {
+    m_block_size[start_addr]++;
+
     if (analyzer.IsCheckExceptions(m_compile_pc))
       checkExceptions(m_block_size[start_addr]);
 
@@ -251,7 +255,6 @@ void DSPEmitter::Compile(u16 start_addr)
 
     EmitInstruction(inst);
 
-    m_block_size[start_addr]++;
     m_compile_pc += opcode->size;
 
     // If the block was trying to link into itself, remove the link
@@ -435,13 +438,6 @@ void DSPEmitter::CompileDispatcher()
 
   const u8* dispatcherLoop = GetCodePtr();
 
-  FixupBranch exceptionExit;
-  if (Host::OnThread())
-  {
-    CMP(8, M_SDSP_external_interrupt_waiting(), Imm8(0));
-    exceptionExit = J_CC(CC_NE);
-  }
-
   // Check for DSP halt
   TEST(8, M_SDSP_control_reg(), Imm8(CR_HALT));
   FixupBranch _halt = J_CC(CC_NE);
@@ -461,10 +457,6 @@ void DSPEmitter::CompileDispatcher()
 
   // DSP gave up the remaining cycles.
   SetJumpTarget(_halt);
-  if (Host::OnThread())
-  {
-    SetJumpTarget(exceptionExit);
-  }
   // MOV(32, M(&cyclesLeft), Imm32(0));
   ABI_PopRegistersAndAdjustStack(registers_used, 8);
   RET();
@@ -487,14 +479,6 @@ Gen::OpArg DSPEmitter::M_SDSP_exceptions()
 Gen::OpArg DSPEmitter::M_SDSP_control_reg()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, control_reg)));
-}
-
-Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
-{
-  static_assert(decltype(SDSP::external_interrupt_waiting)::is_always_lock_free &&
-                sizeof(SDSP::external_interrupt_waiting) == sizeof(u8));
-
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, external_interrupt_waiting)));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
