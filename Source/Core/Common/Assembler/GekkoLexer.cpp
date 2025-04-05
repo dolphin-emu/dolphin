@@ -187,14 +187,14 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
     if (CaseInsensitiveEquals(val, "rtoc"))
       return T{2};
     [[fallthrough]];
-  case TokenType::GQR:
-    return std::accumulate(val.begin() + 2, val.end(), T{0}, dec_step);
-  case TokenType::FPR:
+  case TokenType::FPR: // BE CAREFUL WHAT YOU PUT IN BETWEEN fallthrough and FPR
     return std::accumulate(val.begin() + 1, val.end(), T{0}, dec_step);
   case TokenType::CRField:
     return std::accumulate(val.begin() + 2, val.end(), T{0}, dec_step);
   case TokenType::SPR:
     return static_cast<T>(*sprg_map.Find(val));
+  case TokenType::GQR:
+    return std::accumulate(val.begin() + 2, val.end(), T{0}, dec_step);
   case TokenType::Lt:
     return T{0};
   case TokenType::Gt:
