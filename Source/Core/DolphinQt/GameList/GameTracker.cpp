@@ -51,9 +51,8 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     }
   });
 
-  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this, [this] {
-    m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}});
-  });
+  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this,
+          [this] { m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}}); });
 
   m_load_thread.Reset("GameList Tracker", [this](Command command) {
     switch (command.type)

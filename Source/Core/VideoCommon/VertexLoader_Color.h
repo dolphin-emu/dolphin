@@ -34,8 +34,7 @@ private:
 
   using SizeTable = EnumMap<EnumMap<u32, ColorFormat::RGBA8888>, VertexComponentFormat::Index16>;
 
-  static constexpr SizeTable s_table_size = []() consteval
-  {
+  static constexpr SizeTable s_table_size = []() consteval {
     SizeTable table{};
 
     using VCF = VertexComponentFormat;
@@ -45,6 +44,5 @@ private:
     table[VCF::Index16] = {2u, 2u, 2u, 2u, 2u, 2u};
 
     return table;
-  }
-  ();
+  }();
 };
