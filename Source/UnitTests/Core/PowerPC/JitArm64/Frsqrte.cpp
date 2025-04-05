@@ -57,18 +57,49 @@ TEST(JitArm64, Frsqrte)
   Core::DeclareAsCPUThread();
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
-  TestFrsqrte test(Core::System::GetInstance());
+  Core::System& system = Core::System::GetInstance();
+  TestFrsqrte test(system);
 
   for (const u64 ivalue : double_test_values)
   {
+    SCOPED_TRACE(fmt::format("frsqrte input: {:016x}\n", ivalue));
+
     const double dvalue = std::bit_cast<double>(ivalue);
 
     const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
     const u64 actual = test.frsqrte(ivalue);
 
-    if (expected != actual)
-      fmt::print("{:016x} -> {:016x} == {:016x}\n", ivalue, actual, expected);
-
     EXPECT_EQ(expected, actual);
+
+    for (u32 zx = 0; zx < 2; ++zx)
+    {
+      for (u32 vxsqrt = 0; vxsqrt < 2; ++vxsqrt)
+      {
+        UReg_FPSCR& fpscr = system.GetPPCState().fpscr;
+        fpscr = {};
+        fpscr.ZX = zx;
+        fpscr.VXSQRT = vxsqrt;
+
+        test.frsqrte(ivalue);
+
+        const u32 value_class = Common::ClassifyDouble(dvalue);
+
+        const bool input_is_zero =
+            value_class == Common::PPC_FPCLASS_NZ || value_class == Common::PPC_FPCLASS_PZ;
+        const bool input_is_negative = value_class == Common::PPC_FPCLASS_NN ||
+                                       value_class == Common::PPC_FPCLASS_ND ||
+                                       value_class == Common::PPC_FPCLASS_NINF;
+
+        const bool zx_expected = input_is_zero || zx;
+        const bool vxsqrt_expected = input_is_negative || vxsqrt;
+        const bool fx_expected = (input_is_zero && !zx) || (input_is_negative && !vxsqrt);
+
+        const u32 fpscr_expected = (zx_expected ? FPSCR_ZX : 0) |
+                                   (vxsqrt_expected ? FPSCR_VXSQRT : 0) |
+                                   (fx_expected ? FPSCR_FX : 0);
+
+        EXPECT_EQ(fpscr_expected, fpscr.Hex);
+      }
+    }
   }
 }
