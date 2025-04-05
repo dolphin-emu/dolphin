@@ -37,6 +37,8 @@ public:
   void UpdateWantDeterminism(bool new_want_determinism) override;
   void DoState(PointerWrap& p) override;
 
+  static std::string GetDeviceNameFromVIDPID(u16 vid, u16 pid);
+
 protected:
   enum class ChangeEvent
   {
