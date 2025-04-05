@@ -853,10 +853,14 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
   if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
-  // Note: We really only need to Throttle prior to to presentation,
-  //  but it is needed here if we want accurate "VBlank" statistics,
-  //  when using GPU-on-Thread or Early/Immediate XFB.
-  m_system.GetCoreTiming().Throttle(ticks);
+  // Note: OutputField above doesn't present when using GPU-on-Thread or Early/Immediate XFB,
+  //  giving "VBlank" measurements here poor pacing without a Throttle call.
+  // If the user actually wants the data, we'll Throttle to make the numbers nice.
+  const bool is_vblank_data_wanted = g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes ||
+                                     g_ActiveConfig.bLogRenderTimeToFile ||
+                                     g_ActiveConfig.bShowGraphs;
+  if (is_vblank_data_wanted)
+    m_system.GetCoreTiming().Throttle(ticks);
 
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
@@ -914,6 +918,10 @@ void VideoInterfaceManager::Update(u64 ticks)
   {
     // Throttle before SI poll so user input is taken just before needed. (lower input latency)
     core_timing.Throttle(ticks);
+
+    // This is a nice place to measure performance so we don't have to Throttle elsewhere.
+    g_perf_metrics.CountPerformanceMarker(ticks, m_system.GetSystemTimers().GetTicksPerSecond());
+
     Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                           Config::Get(Config::MAIN_LOCK_CURSOR));
     auto& si = m_system.GetSerialInterface();
