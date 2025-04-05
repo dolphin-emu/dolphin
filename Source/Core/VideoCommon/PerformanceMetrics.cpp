@@ -88,9 +88,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   m_vps_counter.UpdateStats();
   m_fps_counter.UpdateStats();
 
-  const int movable_flag = Config::Get(Config::GFX_MOVABLE_PERFORMANCE_METRICS) ?
-                               ImGuiWindowFlags_None :
-                               ImGuiWindowFlags_NoMove;
+  const bool movable_overlays = Config::Get(Config::GFX_MOVABLE_PERFORMANCE_METRICS);
+  const int movable_flag = movable_overlays ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoMove;
 
   const float bg_alpha = 0.7f;
   const auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
@@ -122,7 +121,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   // There are too many edge cases to reasonably handle when the display size changes, so just reset
   // the layout to default. Hopefully users aren't changing window sizes or resolutions too often.
   const ImGuiCond set_next_position_condition =
-      display_size_changed ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+      (display_size_changed || !movable_overlays) ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
 
   float window_y = window_padding;
   float window_x = display_size.x - window_padding;
