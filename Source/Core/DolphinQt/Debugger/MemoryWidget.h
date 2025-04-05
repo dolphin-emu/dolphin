@@ -82,6 +82,7 @@ private:
   void RegisterAfterFrameEventCallback();
   void RemoveAfterFrameEventCallback();
   void AutoUpdateTable();
+  void ActivateSearchAddress();
 
   Core::System& m_system;
 

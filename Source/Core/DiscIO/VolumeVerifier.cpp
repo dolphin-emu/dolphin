@@ -697,7 +697,7 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
     // (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
     // If your language is not one of the languages above, consider leaving the string untranslated
     // so that people will recognize it as the name of the game mode.
-    name = Common::FmtFormatT("{0} (Masterpiece)", name);
+    return Common::FmtFormatT("{0} (Masterpiece)", name);
   }
   return name;
 }

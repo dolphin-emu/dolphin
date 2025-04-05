@@ -20,10 +20,13 @@ public:
   virtual void PokeDepth(u16 x, u16 y, u32 depth) = 0;
 
   u32 PeekColor(u16 x, u16 y);
-  virtual u32 PeekDepth(u16 x, u16 y) = 0;
+  u32 PeekDepth(u16 x, u16 y);
 
 protected:
+  bool ShouldSkipAccess(u16 x, u16 y) const;
+
   virtual u32 PeekColorInternal(u16 x, u16 y) = 0;
+  virtual u32 PeekDepthInternal(u16 x, u16 y) = 0;
 };
 
 class HardwareEFBInterface final : public EFBInterfaceBase
@@ -34,7 +37,7 @@ class HardwareEFBInterface final : public EFBInterfaceBase
   void PokeDepth(u16 x, u16 y, u32 depth) override;
 
   u32 PeekColorInternal(u16 x, u16 y) override;
-  u32 PeekDepth(u16 x, u16 y) override;
+  u32 PeekDepthInternal(u16 x, u16 y) override;
 };
 
 extern std::unique_ptr<EFBInterfaceBase> g_efb_interface;

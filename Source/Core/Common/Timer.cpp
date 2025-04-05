@@ -4,6 +4,7 @@
 #include "Common/Timer.h"
 
 #include <chrono>
+#include <thread>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -13,6 +14,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 namespace Common
 {
@@ -91,6 +93,10 @@ u64 Timer::GetLocalTimeSinceJan1970()
 #endif
 }
 
+// This is requested by Timer::IncreaseResolution on Windows.
+// On Linux/other we hope/assume we already have 1ms scheduling granularity.
+static constexpr int TIMER_RESOLUTION_MS = 1;
+
 void Timer::IncreaseResolution()
 {
 #ifdef _WIN32
@@ -110,15 +116,82 @@ void Timer::IncreaseResolution()
                         sizeof(PowerThrottling));
 
   // Not actually sure how useful this is these days.. :')
-  timeBeginPeriod(1);
+  timeBeginPeriod(TIMER_RESOLUTION_MS);
 #endif
 }
 
 void Timer::RestoreResolution()
 {
 #ifdef _WIN32
-  timeEndPeriod(1);
+  timeEndPeriod(TIMER_RESOLUTION_MS);
 #endif
+}
+
+PrecisionTimer::PrecisionTimer()
+{
+#if defined(_WIN32)
+  // "TIMER_HIGH_RESOLUTION" requires Windows 10, version 1803, and later.
+  m_timer_handle =
+      CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+
+  if (m_timer_handle == NULL)
+  {
+    ERROR_LOG_FMT(COMMON, "CREATE_WAITABLE_TIMER_HIGH_RESOLUTION: Error:{}", GetLastError());
+
+    // Create a normal timer if "HIGH_RESOLUTION" isn't available.
+    m_timer_handle = CreateWaitableTimerExW(NULL, NULL, 0, TIMER_ALL_ACCESS);
+    if (m_timer_handle == NULL)
+      ERROR_LOG_FMT(COMMON, "CreateWaitableTimerExW: Error:{}", GetLastError());
+  }
+#endif
+}
+
+PrecisionTimer::~PrecisionTimer()
+{
+#if defined(_WIN32)
+  CloseHandle(m_timer_handle);
+#endif
+}
+
+void PrecisionTimer::SleepUntil(Clock::time_point target)
+{
+  constexpr auto SPIN_TIME =
+      std::chrono::milliseconds{TIMER_RESOLUTION_MS} + std::chrono::microseconds{20};
+
+#if defined(_WIN32)
+  while (true)
+  {
+    // SetWaitableTimerEx takes time in "100 nanosecond intervals".
+    using TimerDuration = std::chrono::duration<LONGLONG, std::ratio<100, std::nano::den>::type>;
+
+    // Apparently waiting longer than the timer resolution gives terrible accuracy.
+    // We'll wait in steps of 95% of the time period.
+    constexpr auto MAX_TICKS =
+        duration_cast<TimerDuration>(std::chrono::milliseconds{TIMER_RESOLUTION_MS}) * 95 / 100;
+
+    const auto wait_time = target - Clock::now() - SPIN_TIME;
+    const auto ticks = std::min(duration_cast<TimerDuration>(wait_time), MAX_TICKS).count();
+    if (ticks <= 0)
+      break;
+
+    const LARGE_INTEGER due_time{.QuadPart = -ticks};
+    SetWaitableTimerEx(m_timer_handle, &due_time, 0, NULL, NULL, NULL, 0);
+    WaitForSingleObject(m_timer_handle, INFINITE);
+  }
+#else
+  // Sleeping on Linux generally isn't as terrible as it is on Windows.
+  std::this_thread::sleep_until(target - SPIN_TIME);
+#endif
+
+  // Spin for the remaining time.
+  while (Clock::now() < target)
+  {
+#if defined(_WIN32)
+    YieldProcessor();
+#else
+    std::this_thread::yield();
+#endif
+  }
 }
 
 }  // Namespace Common

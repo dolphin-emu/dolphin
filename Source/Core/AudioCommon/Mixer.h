@@ -60,21 +60,21 @@ private:
 
   class MixerFifo final
   {
-    static constexpr std::size_t GRANULE_QUEUE_SIZE = 20;
+    static constexpr std::size_t MAX_GRANULE_QUEUE_SIZE = 256;
+    static constexpr std::size_t GRANULE_QUEUE_MASK = MAX_GRANULE_QUEUE_SIZE - 1;
 
-    template <typename T>
-    static s16 ToShort(const T x)
-    {
-      return static_cast<s16>(std::clamp<T>(x, static_cast<T>(std::numeric_limits<s16>::min()),
-                                            static_cast<T>(std::numeric_limits<s16>::max())));
-    }
     struct StereoPair final
     {
       float l = 0.f;
       float r = 0.f;
 
       constexpr StereoPair() = default;
-      constexpr explicit StereoPair(float mono) : l(mono), r(mono) {}
+      constexpr StereoPair(const StereoPair&) = default;
+      constexpr StereoPair& operator=(const StereoPair&) = default;
+      constexpr StereoPair(StereoPair&&) = default;
+      constexpr StereoPair& operator=(StereoPair&&) = default;
+
+      constexpr StereoPair(float mono) : l(mono), r(mono) {}
       constexpr StereoPair(float left, float right) : l(left), r(right) {}
       constexpr StereoPair(s16 left, s16 right) : l(left), r(right) {}
 
@@ -83,38 +83,19 @@ private:
         return StereoPair(l + other.l, r + other.r);
       }
 
-      StereoPair& operator*=(const StereoPair& other)
+      StereoPair operator*(const StereoPair& other) const
       {
-        l *= other.l;
-        r *= other.r;
-        return *this;
+        return StereoPair(l * other.l, r * other.r);
       }
     };
 
-    static constexpr std::size_t GRANULE_BUFFER_SIZE = 256;
-    static constexpr std::size_t GRANULE_BUFFER_MASK = GRANULE_BUFFER_SIZE - 1;
-    static constexpr std::size_t GRANULE_BUFFER_BITS = std::countr_one(GRANULE_BUFFER_MASK);
-    static constexpr std::size_t GRANULE_BUFFER_FRAC_BITS = 32 - GRANULE_BUFFER_BITS;
+    static constexpr std::size_t GRANULE_SIZE = 256;
+    static constexpr std::size_t GRANULE_OVERLAP = GRANULE_SIZE / 2;
+    static constexpr std::size_t GRANULE_MASK = GRANULE_SIZE - 1;
+    static constexpr std::size_t GRANULE_BITS = std::countr_one(GRANULE_MASK);
+    static constexpr std::size_t GRANULE_FRAC_BITS = 32 - GRANULE_BITS;
 
-    using GranuleBuffer = std::array<StereoPair, GRANULE_BUFFER_SIZE>;
-    class Granule final
-    {
-    public:
-      constexpr Granule() = default;
-      constexpr Granule(const GranuleBuffer& input, std::size_t start_index);
-
-      static StereoPair InterpStereoPair(const Granule& front, const Granule& back, u32 frac);
-
-      Granule& operator*=(const StereoPair& x)
-      {
-        for (auto& sample : m_buffer)
-          sample *= x;
-        return *this;
-      }
-
-    private:
-      GranuleBuffer m_buffer{};
-    };
+    using Granule = std::array<StereoPair, GRANULE_SIZE>;
 
   public:
     MixerFifo(Mixer* mixer, u32 sample_rate_divisor, bool little_endian)
@@ -135,19 +116,20 @@ private:
     u32 m_input_sample_rate_divisor;
     bool m_little_endian;
 
-    std::size_t m_buffer_index = 0;
-    GranuleBuffer m_buffer{};
+    Granule m_next_buffer{};
+    std::size_t m_next_buffer_index = 0;
 
     u32 m_current_index = 0;
     Granule m_front, m_back;
 
-    std::array<Granule, GRANULE_QUEUE_SIZE> m_queue;
+    std::atomic<std::size_t> m_granule_queue_size{20};
+    std::array<Granule, MAX_GRANULE_QUEUE_SIZE> m_queue;
     std::atomic<std::size_t> m_queue_head{0};
     std::atomic<std::size_t> m_queue_tail{0};
     std::atomic<bool> m_queue_looping{false};
-    std::size_t m_queue_fade_index = 0;
+    float m_fade_volume = 1.0;
 
-    void Enqueue(const Granule& granule);
+    void Enqueue();
     void Dequeue(Granule* granule);
 
     // Volume ranges from 0-256
@@ -178,7 +160,8 @@ private:
   bool m_log_dsp_audio = false;
 
   float m_config_emulation_speed;
-  bool m_audio_fill_gaps = true;
+  bool m_config_fill_audio_gaps;
+  int m_config_audio_buffer_ms;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
