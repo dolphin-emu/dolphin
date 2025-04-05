@@ -59,7 +59,7 @@ private:
 
   // Push'd from Count()
   //  and Pop'd from UpdateStats()
-  Common::SPSCQueue<DT, false> m_raw_dts;
+  Common::SPSCQueue<DT> m_raw_dts;
   std::atomic<DT> m_last_raw_dt = DT::zero();
 
   // Amount of time to sample dt's over (defaults to config)
