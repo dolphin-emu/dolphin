@@ -4,7 +4,9 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 
@@ -44,6 +46,9 @@ protected:
 
   std::optional<IPCReply> HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
                                          std::function<s32()> submit) const;
+
+  std::map<u64, std::shared_ptr<USB::Device>> m_devices;
+  mutable std::recursive_mutex m_devices_mutex;
 
   USBScanner m_usb_scanner{this};
 

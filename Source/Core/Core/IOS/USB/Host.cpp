@@ -4,7 +4,9 @@
 #include "Core/IOS/USB/Host.h"
 
 #include <functional>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 
@@ -61,7 +63,11 @@ void USBHost::DoState(PointerWrap& p)
 
 std::shared_ptr<USB::Device> USBHost::GetDeviceById(const u64 device_id) const
 {
-  return m_usb_scanner.GetDeviceById(device_id);
+  std::lock_guard lk(m_devices_mutex);
+  const auto it = m_devices.find(device_id);
+  if (it == m_devices.end())
+    return nullptr;
+  return it->second;
 }
 
 void USBHost::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> changed_device)
@@ -85,13 +91,22 @@ void USBHost::Update()
 
 void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 {
-  for (const auto& hook : hooks)
+  std::lock_guard lk(m_devices_mutex);
+
+  for (const auto& [device, event] : hooks)
   {
     INFO_LOG_FMT(IOS_USB, "{} - {} device: {:04x}:{:04x}", GetDeviceName(),
-                 hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
-                 hook.first->GetPid());
-    OnDeviceChange(hook.second, hook.first);
+                 event == ChangeEvent::Inserted ? "New" : "Removed", device->GetVid(),
+                 device->GetPid());
+
+    if (event == ChangeEvent::Inserted)
+      m_devices.emplace(device->GetId(), device);
+    else if (event == ChangeEvent::Removed)
+      m_devices.erase(device->GetId());
+
+    OnDeviceChange(event, device);
   }
+
   if (!hooks.empty())
     OnDeviceChangeEnd();
 }

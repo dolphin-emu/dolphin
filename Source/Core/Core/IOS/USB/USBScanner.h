@@ -32,17 +32,12 @@ public:
   void WaitForFirstScan();
   bool UpdateDevices(bool always_add_hooks = false);
 
-  std::shared_ptr<USB::Device> GetDeviceById(u64 device_id) const;
-
   enum class ChangeEvent
   {
     Inserted,
     Removed,
   };
   using DeviceChangeHooks = std::map<std::shared_ptr<USB::Device>, ChangeEvent>;
-
-  std::map<u64, std::shared_ptr<USB::Device>> m_devices;
-  mutable std::mutex m_devices_mutex;
 
 private:
   bool AddDevice(std::unique_ptr<USB::Device> device);
@@ -52,6 +47,11 @@ private:
                           bool always_add_hooks);
   void CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
                          DeviceChangeHooks& hooks, bool always_add_hooks);
+
+  std::shared_ptr<USB::Device> GetDeviceById(u64 device_id) const;
+
+  std::map<u64, std::shared_ptr<USB::Device>> m_devices;
+  mutable std::mutex m_devices_mutex;
 
   USBHost* m_host = nullptr;
   Common::Flag m_thread_running;
