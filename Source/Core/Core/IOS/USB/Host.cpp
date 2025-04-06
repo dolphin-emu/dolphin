@@ -17,6 +17,7 @@
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBScanner.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -27,18 +28,18 @@ USBHost::USBHost(EmulationKernel& ios, const std::string& device_name)
 
 USBHost::~USBHost()
 {
-  m_usb_scanner.Stop();
+  GetSystem().GetUSBScanner().RemoveClient(this);
 }
 
 std::optional<IPCReply> USBHost::Open(const OpenRequest& request)
 {
   if (!m_has_initialised)
   {
-    m_usb_scanner.Start();
+    GetSystem().GetUSBScanner().AddClient(this);
     // Force a device scan to complete, because some games (including Your Shape) only care
     // about the initial device list (in the first GETDEVICECHANGE reply).
-    m_usb_scanner.WaitForFirstScan();
-    OnDevicesChangedInternal(m_usb_scanner.GetDevices());
+    GetSystem().GetUSBScanner().WaitForFirstScan();
+    OnDevicesChangedInternal(GetSystem().GetUSBScanner().GetDevices());
     m_has_initialised = true;
   }
   return IPCReply(IPC_SUCCESS);
@@ -53,7 +54,7 @@ void USBHost::DoState(PointerWrap& p)
     // already plugged in, and which need to be triggered.
     std::lock_guard lk(m_devices_mutex);
     m_devices.clear();
-    OnDevicesChanged(m_usb_scanner.GetDevices());
+    OnDevicesChanged(GetSystem().GetUSBScanner().GetDevices());
   }
 }
 
@@ -82,7 +83,7 @@ bool USBHost::ShouldAddDevice(const USB::Device& device) const
 void USBHost::Update()
 {
   if (Core::WantsDeterminism())
-    OnDevicesChangedInternal(m_usb_scanner.GetDevices());
+    OnDevicesChangedInternal(GetSystem().GetUSBScanner().GetDevices());
 }
 
 void USBHost::OnDevicesChanged(const USBScanner::DeviceMap& new_devices)
@@ -118,7 +119,7 @@ void USBHost::OnDevicesChangedInternal(const USBScanner::DeviceMap& new_devices)
 
   for (const auto& [id, device] : new_devices)
   {
-    if (!m_devices.contains(id))
+    if (!m_devices.contains(id) && ShouldAddDevice(*device))
     {
       INFO_LOG_FMT(IOS_USB, "{} - New device: {:04x}:{:04x}", GetDeviceName(), device->GetVid(),
                    device->GetPid());

@@ -10,8 +10,8 @@
 #include <thread>
 
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/WaitableFlag.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/LibusbUtils.h"
 
@@ -26,28 +26,34 @@ class USBScanner final
 public:
   using DeviceMap = std::map<u64, std::shared_ptr<USB::Device>>;
 
-  explicit USBScanner(USBHost* host);
   ~USBScanner();
 
-  void Start();
-  void Stop();
+  bool AddClient(USBHost* client);
+  bool RemoveClient(USBHost* client);
+
   void WaitForFirstScan();
 
   DeviceMap GetDevices() const;
 
 private:
+  void StartScanning();
+  void StopScanning();
+
   bool UpdateDevices();
   bool AddNewDevices(DeviceMap* new_devices) const;
-  void AddEmulatedDevices(DeviceMap* new_devices) const;
-  void AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices) const;
+  static void AddEmulatedDevices(DeviceMap* new_devices);
+  static void AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices);
 
   DeviceMap m_devices;
   mutable std::mutex m_devices_mutex;
 
-  USBHost* m_host = nullptr;
+  std::set<USBHost*> m_clients;
+  std::mutex m_clients_mutex;
+
   Common::Flag m_thread_running;
   std::thread m_thread;
-  Common::Event m_first_scan_complete_event;
+  std::mutex m_thread_start_stop_mutex;
+  Common::WaitableFlag m_first_scan_complete_flag;
 
   LibusbUtils::Context m_context;
 };
