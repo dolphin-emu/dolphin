@@ -26,10 +26,7 @@ OH0::OH0(EmulationKernel& ios, const std::string& device_name) : USBHost(ios, de
 {
 }
 
-OH0::~OH0()
-{
-  m_scan_thread.Stop();
-}
+OH0::~OH0() = default;
 
 std::optional<IPCReply> OH0::Open(const OpenRequest& request)
 {
@@ -76,7 +73,7 @@ std::optional<IPCReply> OH0::IOCtlV(const IOCtlVRequest& request)
 
 void OH0::DoState(PointerWrap& p)
 {
-  if (p.IsReadMode() && !m_devices.empty())
+  if (p.IsReadMode() && !m_usb_scanner.m_devices.empty())
   {
     Core::DisplayMessage("It is suggested that you unplug and replug all connected USB devices.",
                          5000);
@@ -117,8 +114,8 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
 
   const u8 interface_class = memory.Read_U8(request.in_vectors[1].address);
   u8 entries_count = 0;
-  std::lock_guard lk(m_devices_mutex);
-  for (const auto& device : m_devices)
+  std::lock_guard lk(m_usb_scanner.m_devices_mutex);
+  for (const auto& device : m_usb_scanner.m_devices)
   {
     if (entries_count >= max_entries_count)
       break;
@@ -234,14 +231,14 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
 
 bool OH0::HasDeviceWithVidPid(const u16 vid, const u16 pid) const
 {
-  return std::ranges::any_of(m_devices, [=](const auto& device) {
+  return std::ranges::any_of(m_usb_scanner.m_devices, [=](const auto& device) {
     return device.second->GetVid() == vid && device.second->GetPid() == pid;
   });
 }
 
 void OH0::OnDeviceChange(const ChangeEvent event, std::shared_ptr<USB::Device> device)
 {
-  std::lock_guard lk(m_devices_mutex);
+  std::lock_guard lk(m_usb_scanner.m_devices_mutex);
   if (event == ChangeEvent::Inserted)
     TriggerHook(m_insertion_hooks, {device->GetVid(), device->GetPid()}, IPC_SUCCESS);
   else if (event == ChangeEvent::Removed)
@@ -262,10 +259,10 @@ void OH0::TriggerHook(std::map<T, u32>& hooks, T value, const ReturnCode return_
 
 std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
 {
-  std::lock_guard lk(m_devices_mutex);
+  std::lock_guard lk(m_usb_scanner.m_devices_mutex);
 
   bool has_device_with_vid_pid = false;
-  for (const auto& device : m_devices)
+  for (const auto& device : m_usb_scanner.m_devices)
   {
     if (device.second->GetVid() != vid || device.second->GetPid() != pid)
       continue;
