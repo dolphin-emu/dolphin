@@ -27,10 +27,7 @@ USB_HIDv4::USB_HIDv4(EmulationKernel& ios, const std::string& device_name)
 {
 }
 
-USB_HIDv4::~USB_HIDv4()
-{
-  m_scan_thread.Stop();
-}
+USB_HIDv4::~USB_HIDv4() = default;
 
 std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
@@ -210,10 +207,10 @@ void USB_HIDv4::TriggerDeviceChangeReply()
   auto& memory = system.GetMemory();
 
   {
-    std::lock_guard lk(m_devices_mutex);
+    std::lock_guard lk(m_usb_scanner.m_devices_mutex);
     const u32 dest = m_devicechange_hook_request->buffer_out;
     u32 offset = 0;
-    for (const auto& device : m_devices)
+    for (const auto& device : m_usb_scanner.m_devices)
     {
       const std::vector<u8> device_section = GetDeviceEntry(*device.second.get());
       if (offset + device_section.size() > m_devicechange_hook_request->buffer_out_size - 1)
