@@ -3,8 +3,10 @@
 
 #include "Core/IOS/USB/USBScanner.h"
 
+#include <algorithm>
 #include <memory>
 #include <mutex>
+#include <ranges>
 #include <set>
 #include <thread>
 #include <utility>
@@ -47,11 +49,6 @@ void USBScanner::WaitForFirstScan()
 
 void USBScanner::Start()
 {
-  if (Core::WantsDeterminism())
-  {
-    UpdateDevices();
-    return;
-  }
   if (m_thread_running.TestAndSet())
   {
     m_thread = std::thread([this] {
@@ -70,40 +67,34 @@ void USBScanner::Stop()
 {
   if (m_thread_running.TestAndClear())
     m_thread.join();
+}
 
-  // Clear all devices and dispatch removal hooks.
-  DeviceChangeHooks hooks;
-  DetectRemovedDevices(std::set<u64>(), hooks);
-  m_host->DispatchHooks(hooks);
+USBScanner::DeviceMap USBScanner::GetDevices() const
+{
+  std::lock_guard lk(m_devices_mutex);
+  return m_devices;
 }
 
 // This is called from the scan thread. Returns false if we failed to update the device list.
-bool USBScanner::UpdateDevices(const bool always_add_hooks)
+bool USBScanner::UpdateDevices()
 {
-  DeviceChangeHooks hooks;
-  std::set<u64> plugged_devices;
-  // If we failed to get a new, up-to-date list of devices, we cannot detect device removals.
-  if (!AddNewDevices(plugged_devices, hooks, always_add_hooks))
+  DeviceMap new_devices;
+  if (!AddNewDevices(&new_devices))
     return false;
-  DetectRemovedDevices(plugged_devices, hooks);
-  m_host->DispatchHooks(hooks);
-  return true;
-}
 
-bool USBScanner::AddDevice(std::unique_ptr<USB::Device> device)
-{
   std::lock_guard lk(m_devices_mutex);
-  if (m_devices.contains(device->GetId()))
-    return false;
+  if (!std::ranges::equal(std::views::keys(m_devices), std::views::keys(new_devices)))
+  {
+    m_devices = std::move(new_devices);
+    m_host->OnDevicesChanged(m_devices);
+  }
 
-  m_devices[device->GetId()] = std::move(device);
   return true;
 }
 
-bool USBScanner::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
-                               const bool always_add_hooks)
+bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
 {
-  AddEmulatedDevices(new_devices, hooks, always_add_hooks);
+  AddEmulatedDevices(new_devices);
 #ifdef __LIBUSB__
   if (!Core::WantsDeterminism())
   {
@@ -121,7 +112,7 @@ bool USBScanner::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& ho
 
         auto usb_device =
             std::make_unique<USB::LibusbDevice>(m_host->GetEmulationKernel(), device, descriptor);
-        CheckAndAddDevice(std::move(usb_device), new_devices, hooks, always_add_hooks);
+        AddDevice(std::move(usb_device), new_devices);
         return true;
       });
       if (ret != LIBUSB_SUCCESS)
@@ -132,60 +123,24 @@ bool USBScanner::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& ho
   return true;
 }
 
-void USBScanner::DetectRemovedDevices(const std::set<u64>& plugged_devices,
-                                      DeviceChangeHooks& hooks)
-{
-  std::lock_guard lk(m_devices_mutex);
-  for (auto it = m_devices.begin(); it != m_devices.end();)
-  {
-    if (!plugged_devices.contains(it->second->GetId()))
-    {
-      hooks.emplace(it->second, ChangeEvent::Removed);
-      it = m_devices.erase(it);
-    }
-    else
-    {
-      ++it;
-    }
-  }
-}
-
-void USBScanner::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
-                                    bool always_add_hooks)
+void USBScanner::AddEmulatedDevices(DeviceMap* new_devices) const
 {
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
     auto skylanderportal = std::make_unique<USB::SkylanderUSB>(m_host->GetEmulationKernel());
-    CheckAndAddDevice(std::move(skylanderportal), new_devices, hooks, always_add_hooks);
+    AddDevice(std::move(skylanderportal), new_devices);
   }
   if (Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
   {
     auto infinity_base = std::make_unique<USB::InfinityUSB>(m_host->GetEmulationKernel());
-    CheckAndAddDevice(std::move(infinity_base), new_devices, hooks, always_add_hooks);
+    AddDevice(std::move(infinity_base), new_devices);
   }
 }
 
-void USBScanner::CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
-                                   DeviceChangeHooks& hooks, bool always_add_hooks)
+void USBScanner::AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices) const
 {
   if (m_host->ShouldAddDevice(*device))
-  {
-    const u64 deviceid = device->GetId();
-    new_devices.insert(deviceid);
-    if (AddDevice(std::move(device)) || always_add_hooks)
-    {
-      hooks.emplace(GetDeviceById(deviceid), ChangeEvent::Inserted);
-    }
-  }
-}
-
-std::shared_ptr<USB::Device> USBScanner::GetDeviceById(const u64 device_id) const
-{
-  std::lock_guard lk(m_devices_mutex);
-  const auto it = m_devices.find(device_id);
-  if (it == m_devices.end())
-    return nullptr;
-  return it->second;
+    (*new_devices)[device->GetId()] = std::move(device);
 }
 
 }  // namespace IOS::HLE
