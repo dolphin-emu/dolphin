@@ -29,16 +29,19 @@ public:
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;
 
-  void UpdateWantDeterminism(bool new_want_determinism) override;
   void DoState(PointerWrap& p) override;
 
   virtual bool ShouldAddDevice(const USB::Device& device) const;
 
-  void DispatchHooks(const USBScanner::DeviceChangeHooks& hooks);
+  void OnDevicesChanged(const USBScanner::DeviceMap& new_devices);
 
 protected:
-  using ChangeEvent = USBScanner::ChangeEvent;
-  using DeviceChangeHooks = USBScanner::DeviceChangeHooks;
+  enum class ChangeEvent
+  {
+    Inserted,
+    Removed,
+  };
+  using DeviceChangeHooks = std::map<std::shared_ptr<USB::Device>, ChangeEvent>;
 
   std::shared_ptr<USB::Device> GetDeviceById(u64 device_id) const;
   virtual void OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> changed_device);
@@ -54,6 +57,7 @@ protected:
 
 private:
   void Update() override;
+  void OnDevicesChangedInternal(const USBScanner::DeviceMap& new_devices);
 
   bool m_has_initialised = false;
 };

@@ -9,6 +9,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -37,17 +38,10 @@ std::optional<IPCReply> USBHost::Open(const OpenRequest& request)
     // Force a device scan to complete, because some games (including Your Shape) only care
     // about the initial device list (in the first GETDEVICECHANGE reply).
     m_usb_scanner.WaitForFirstScan();
+    OnDevicesChangedInternal(m_usb_scanner.GetDevices());
     m_has_initialised = true;
   }
   return IPCReply(IPC_SUCCESS);
-}
-
-void USBHost::UpdateWantDeterminism(const bool new_want_determinism)
-{
-  if (new_want_determinism)
-    m_usb_scanner.Stop();
-  else if (IsOpened())
-    m_usb_scanner.Start();
 }
 
 void USBHost::DoState(PointerWrap& p)
@@ -57,7 +51,9 @@ void USBHost::DoState(PointerWrap& p)
   {
     // After a state has loaded, there may be insertion hooks for devices that were
     // already plugged in, and which need to be triggered.
-    m_usb_scanner.UpdateDevices(true);
+    std::lock_guard lk(m_devices_mutex);
+    m_devices.clear();
+    OnDevicesChanged(m_usb_scanner.GetDevices());
   }
 }
 
@@ -86,28 +82,54 @@ bool USBHost::ShouldAddDevice(const USB::Device& device) const
 void USBHost::Update()
 {
   if (Core::WantsDeterminism())
-    m_usb_scanner.UpdateDevices();
+    OnDevicesChangedInternal(m_usb_scanner.GetDevices());
 }
 
-void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
+void USBHost::OnDevicesChanged(const USBScanner::DeviceMap& new_devices)
+{
+  if (!Core::WantsDeterminism())
+    OnDevicesChangedInternal(new_devices);
+}
+
+void USBHost::OnDevicesChangedInternal(const USBScanner::DeviceMap& new_devices)
 {
   std::lock_guard lk(m_devices_mutex);
 
-  for (const auto& [device, event] : hooks)
+  bool changes = false;
+
+  for (auto it = m_devices.begin(); it != m_devices.end();)
   {
-    INFO_LOG_FMT(IOS_USB, "{} - {} device: {:04x}:{:04x}", GetDeviceName(),
-                 event == ChangeEvent::Inserted ? "New" : "Removed", device->GetVid(),
-                 device->GetPid());
+    const auto& [id, device] = *it;
+    if (!new_devices.contains(id))
+    {
+      INFO_LOG_FMT(IOS_USB, "{} - Removed device: {:04x}:{:04x}", GetDeviceName(), device->GetVid(),
+                   device->GetPid());
 
-    if (event == ChangeEvent::Inserted)
-      m_devices.emplace(device->GetId(), device);
-    else if (event == ChangeEvent::Removed)
-      m_devices.erase(device->GetId());
-
-    OnDeviceChange(event, device);
+      changes = true;
+      auto device_copy = std::move(device);
+      it = m_devices.erase(it);
+      OnDeviceChange(ChangeEvent::Removed, std::move(device_copy));
+    }
+    else
+    {
+      ++it;
+    }
   }
 
-  if (!hooks.empty())
+  for (const auto& [id, device] : new_devices)
+  {
+    if (!m_devices.contains(id))
+    {
+      INFO_LOG_FMT(IOS_USB, "{} - New device: {:04x}:{:04x}", GetDeviceName(), device->GetVid(),
+                   device->GetPid());
+
+      changes = true;
+      m_devices.emplace(id, device);
+      OnDeviceChange(ChangeEvent::Inserted, device);
+    }
+  }
+
+  if (changes)
     OnDeviceChangeEnd();
 }
 

@@ -24,33 +24,24 @@ class USBHost;
 class USBScanner final
 {
 public:
+  using DeviceMap = std::map<u64, std::shared_ptr<USB::Device>>;
+
   explicit USBScanner(USBHost* host);
   ~USBScanner();
 
   void Start();
   void Stop();
   void WaitForFirstScan();
-  bool UpdateDevices(bool always_add_hooks = false);
 
-  enum class ChangeEvent
-  {
-    Inserted,
-    Removed,
-  };
-  using DeviceChangeHooks = std::map<std::shared_ptr<USB::Device>, ChangeEvent>;
+  DeviceMap GetDevices() const;
 
 private:
-  bool AddDevice(std::unique_ptr<USB::Device> device);
-  bool AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks, bool always_add_hooks);
-  void DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceChangeHooks& hooks);
-  void AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
-                          bool always_add_hooks);
-  void CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
-                         DeviceChangeHooks& hooks, bool always_add_hooks);
+  bool UpdateDevices();
+  bool AddNewDevices(DeviceMap* new_devices) const;
+  void AddEmulatedDevices(DeviceMap* new_devices) const;
+  void AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices) const;
 
-  std::shared_ptr<USB::Device> GetDeviceById(u64 device_id) const;
-
-  std::map<u64, std::shared_ptr<USB::Device>> m_devices;
+  DeviceMap m_devices;
   mutable std::mutex m_devices_mutex;
 
   USBHost* m_host = nullptr;
