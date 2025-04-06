@@ -59,7 +59,7 @@ You need a recent version of GCC or Clang with decent c++20 support. CMake will
 inform you if your compiler is too old.
 Many libraries are bundled with Dolphin and used if they're not installed on 
 your system. CMake will inform you if a bundled library is used or if you need
-to install any missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
+to install any missing packages yourself.
 
 Make sure to pull submodules before building:
 ```sh
@@ -87,42 +87,10 @@ application bundle using the following steps:
 
 Doing this is more complex as it requires installation of library dependencies for both x64 and ARM (or universal library
 equivalents) and may require specifying additional arguments to point to relevant library locations. 
-Execute BuildMacOSUniversalBinary.py --help for more details.  
+Execute BuildMacOSUniversalBinary.py --help for more details.
 
-### Linux Global Build Steps:
-
-To install to your system.
-
-1. `sudo apt install qt6-base-dev qt6-base-dev-tools qt6-svg-dev`
-2. `mkdir build`
-3. `cd build`
-4. `cmake ..`
-5. `make -j $(nproc)`
-6. `sudo make install`
-
-### Linux Local Build Steps:
-
-Useful for development as root access is not required.
-
-1. `sudo apt install qt6-base-dev qt6-base-dev-tools qt6-svg-dev`
-2. `mkdir Build`
-3. `cd Build`
-4. `cmake .. -DLINUX_LOCAL_DEV=true`
-5. `make -j $(nproc)`
-6. `ln -s ../../Data/Sys Binaries/`
-
-### Linux Portable Build Steps:
-
-Can be stored on external storage and used on different Linux systems.
-Or useful for having multiple distinct Dolphin setups for testing/development/TAS.
-
-1. `sudo apt install qt6-base-dev qt6-base-dev-tools qt6-svg-dev`
-2. `mkdir Build`
-3. `cd Build`
-4. `cmake .. -DLINUX_LOCAL_DEV=true`
-5. `make -j $(nproc)`
-6. `cp -r ../Data/Sys/ Binaries/`
-7. `touch Binaries/portable.txt`
+## Building for Linux
+Refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for distribution-specific instructions.
 
 ## Building for Android
 
