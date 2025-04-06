@@ -73,11 +73,14 @@ std::optional<IPCReply> OH0::IOCtlV(const IOCtlVRequest& request)
 
 void OH0::DoState(PointerWrap& p)
 {
-  if (p.IsReadMode() && !m_devices.empty())
   {
-    Core::DisplayMessage("It is suggested that you unplug and replug all connected USB devices.",
-                         5000);
-    Core::DisplayMessage("If USB doesn't work properly, an emulation reset may be needed.", 5000);
+    std::lock_guard lk(m_devices_mutex);
+    if (p.IsReadMode() && !m_devices.empty())
+    {
+      Core::DisplayMessage("It is suggested that you unplug and replug all connected USB devices.",
+                           5000);
+      Core::DisplayMessage("If USB doesn't work properly, an emulation reset may be needed.", 5000);
+    }
   }
   p.Do(m_insertion_hooks);
   p.Do(m_removal_hooks);
@@ -206,12 +209,12 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
-  std::lock_guard lock{m_hooks_mutex};
   const u16 vid = memory.Read_U16(request.in_vectors[0].address);
   const u16 pid = memory.Read_U16(request.in_vectors[1].address);
   const bool trigger_only_for_new_device = memory.Read_U8(request.in_vectors[2].address) == 1;
   if (!trigger_only_for_new_device && HasDeviceWithVidPid(vid, pid))
     return IPCReply(IPC_SUCCESS);
+  std::lock_guard lock{m_hooks_mutex};
   // TODO: figure out whether IOS allows more than one hook.
   m_insertion_hooks.insert({{vid, pid}, request.address});
   // The output vector is overwritten with an ID to use with ioctl 31 for cancelling the hook.
@@ -231,6 +234,7 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
 
 bool OH0::HasDeviceWithVidPid(const u16 vid, const u16 pid) const
 {
+  std::lock_guard lk(m_devices_mutex);
   return std::ranges::any_of(m_devices, [=](const auto& device) {
     return device.second->GetVid() == vid && device.second->GetPid() == pid;
   });
