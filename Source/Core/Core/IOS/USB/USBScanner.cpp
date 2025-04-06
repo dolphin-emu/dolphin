@@ -30,24 +30,62 @@
 
 namespace IOS::HLE
 {
-USBScanner::USBScanner(USBHost* host) : m_host(host)
-{
-}
-
 USBScanner::~USBScanner()
 {
-  Stop();
+  StopScanning();
 }
 
 void USBScanner::WaitForFirstScan()
 {
   if (m_thread_running.IsSet())
   {
-    m_first_scan_complete_event.Wait();
+    m_first_scan_complete_flag.Wait(true);
   }
 }
 
-void USBScanner::Start()
+bool USBScanner::AddClient(USBHost* client)
+{
+  bool should_start_scanning;
+  bool client_is_new;
+
+  std::lock_guard thread_lock(m_thread_start_stop_mutex);
+
+  {
+    std::lock_guard clients_lock(m_clients_mutex);
+    should_start_scanning = m_clients.empty();
+    auto [it, newly_added] = m_clients.insert(client);
+    client_is_new = newly_added;
+  }
+
+  if (should_start_scanning)
+    StartScanning();
+
+  return client_is_new;
+}
+
+bool USBScanner::RemoveClient(USBHost* client)
+{
+  std::lock_guard thread_lock(m_thread_start_stop_mutex);
+
+  bool client_was_removed;
+  bool should_stop_scanning;
+
+  {
+    std::lock_guard clients_lock(m_clients_mutex);
+    const bool was_empty = m_clients.empty();
+    client_was_removed = m_clients.erase(client) != 0;
+    should_stop_scanning = !was_empty && m_clients.empty();
+  }
+
+  // The scan thread might be trying to lock m_clients_mutex, so we need to not hold a lock on
+  // m_clients_mutex when trying to join with the scan thread.
+  if (should_stop_scanning)
+    StopScanning();
+
+  return client_was_removed;
+}
+
+void USBScanner::StartScanning()
 {
   if (m_thread_running.TestAndSet())
   {
@@ -56,14 +94,16 @@ void USBScanner::Start()
       while (m_thread_running.IsSet())
       {
         if (UpdateDevices())
-          m_first_scan_complete_event.Set();
+          m_first_scan_complete_flag.Set(true);
         Common::SleepCurrentThread(50);
       }
+      m_devices.clear();
+      m_first_scan_complete_flag.Set(false);
     });
   }
 }
 
-void USBScanner::Stop()
+void USBScanner::StopScanning()
 {
   if (m_thread_running.TestAndClear())
     m_thread.join();
@@ -86,7 +126,10 @@ bool USBScanner::UpdateDevices()
   if (!std::ranges::equal(std::views::keys(m_devices), std::views::keys(new_devices)))
   {
     m_devices = std::move(new_devices);
-    m_host->OnDevicesChanged(m_devices);
+
+    std::lock_guard clients_lock(m_clients_mutex);
+    for (USBHost* client : m_clients)
+      client->OnDevicesChanged(m_devices);
   }
 
   return true;
@@ -110,8 +153,7 @@ bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
         if (!whitelist.contains({descriptor.idVendor, descriptor.idProduct}))
           return true;
 
-        auto usb_device =
-            std::make_unique<USB::LibusbDevice>(m_host->GetEmulationKernel(), device, descriptor);
+        auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
         AddDevice(std::move(usb_device), new_devices);
         return true;
       });
@@ -123,24 +165,23 @@ bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
   return true;
 }
 
-void USBScanner::AddEmulatedDevices(DeviceMap* new_devices) const
+void USBScanner::AddEmulatedDevices(DeviceMap* new_devices)
 {
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
-    auto skylanderportal = std::make_unique<USB::SkylanderUSB>(m_host->GetEmulationKernel());
+    auto skylanderportal = std::make_unique<USB::SkylanderUSB>();
     AddDevice(std::move(skylanderportal), new_devices);
   }
   if (Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
   {
-    auto infinity_base = std::make_unique<USB::InfinityUSB>(m_host->GetEmulationKernel());
+    auto infinity_base = std::make_unique<USB::InfinityUSB>();
     AddDevice(std::move(infinity_base), new_devices);
   }
 }
 
-void USBScanner::AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices) const
+void USBScanner::AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices)
 {
-  if (m_host->ShouldAddDevice(*device))
-    (*new_devices)[device->GetId()] = std::move(device);
+  (*new_devices)[device->GetId()] = std::move(device);
 }
 
 }  // namespace IOS::HLE

@@ -56,7 +56,8 @@ class GPFifoManager;
 namespace IOS::HLE
 {
 class EmulationKernel;
-}
+class USBScanner;
+}  // namespace IOS::HLE
 namespace HSP
 {
 class HSPManager;
@@ -192,6 +193,7 @@ public:
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
   SystemTimers::SystemTimersManager& GetSystemTimers() const;
+  IOS::HLE::USBScanner& GetUSBScanner() const;
   VertexShaderManager& GetVertexShaderManager() const;
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
