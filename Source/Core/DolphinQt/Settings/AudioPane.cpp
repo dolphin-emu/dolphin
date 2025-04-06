@@ -3,6 +3,10 @@
 
 #include "DolphinQt/Settings/AudioPane.h"
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <QFontMetrics>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -11,6 +15,7 @@
 #include <QLabel>
 #include <QRadioButton>
 #include <QSpacerItem>
+#include <QString>
 #include <QVBoxLayout>
 
 #include "AudioCommon/AudioCommon.h"
@@ -80,8 +85,19 @@ void AudioPane::CreateWidgets()
   auto* backend_layout = new QFormLayout;
   backend_box->setLayout(backend_layout);
   m_backend_label = new QLabel(tr("Audio Backend:"));
-  m_backend_combo =
-      new ConfigStringChoice(AudioCommon::GetSoundBackends(), Config::MAIN_AUDIO_BACKEND);
+
+  {
+    std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+    std::vector<std::pair<QString, QString>> translated_backends;
+    translated_backends.reserve(backends.size());
+    for (const std::string& backend : backends)
+    {
+      translated_backends.push_back(
+          std::make_pair(tr(backend.c_str()), QString::fromStdString(backend)));
+    }
+    m_backend_combo = new ConfigStringChoice(translated_backends, Config::MAIN_AUDIO_BACKEND);
+  }
+
   m_dolby_pro_logic = new ConfigBool(tr("Dolby Pro Logic II Decoder"), Config::MAIN_DPL2_DECODER);
   m_dolby_quality_label = new QLabel(tr("Decoding Quality:"));
 
