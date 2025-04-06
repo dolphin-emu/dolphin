@@ -46,6 +46,8 @@ add_library(common
   Crypto/HMAC.h
   Crypto/SHA1.cpp
   Crypto/SHA1.h
+  CWDemangler.cpp
+  CWDemangler.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
   Debug/Threads.h
