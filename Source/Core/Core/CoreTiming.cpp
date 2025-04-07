@@ -463,6 +463,8 @@ void CoreTimingManager::LogPendingEvents() const
 // Should only be called from the CPU thread after the PPC clock has changed
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
+  g_perf_metrics.AdjustClockSpeed(m_globals.global_timer, new_ppc_clock, old_ppc_clock);
+
   m_throttle_clock_per_sec = new_ppc_clock;
 
   for (Event& ev : m_event_queue)
