@@ -175,7 +175,7 @@ ReadHandlingMethod<T>* InvalidRead()
   return ComplexRead<T>([](Core::System&, u32 addr) {
     ERROR_LOG_FMT(MEMMAP, "Trying to read {} bits from an invalid MMIO (addr={:08x})",
                   8 * sizeof(T), addr);
-    return -1;
+    return 0;
   });
 }
 template <typename T>
