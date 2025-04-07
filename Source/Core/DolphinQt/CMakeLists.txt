@@ -294,6 +294,8 @@ add_executable(dolphin-emu
   NANDRepairDialog.h
   NKitWarningDialog.cpp
   NKitWarningDialog.h
+  QtUtils/ApplicationShortcutControl.cpp
+  QtUtils/ApplicationShortcutControl.h
   QtUtils/AspectRatioWidget.cpp
   QtUtils/AspectRatioWidget.h
   QtUtils/BlockUserInputFilter.cpp

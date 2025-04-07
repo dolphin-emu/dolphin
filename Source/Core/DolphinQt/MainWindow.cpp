@@ -104,6 +104,7 @@
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/ApplicationShortcutControl.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -1192,6 +1193,8 @@ void MainWindow::ShowRenderWidget()
     // If we're rendering to main, add it to the stack and update our title when necessary.
     m_rendering_to_main = true;
 
+    ApplicationShortcutControl::Instance()->EnableShortcuts(false);
+
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     m_stack->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -1221,6 +1224,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
+    ApplicationShortcutControl::Instance()->EnableShortcuts(true);
   }
 
   // The following code works around a driver bug that would lead to Dolphin crashing when changing

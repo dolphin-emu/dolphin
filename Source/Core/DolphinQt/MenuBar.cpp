@@ -61,6 +61,7 @@
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/NANDRepairDialog.h"
+#include "DolphinQt/QtUtils/ApplicationShortcutControl.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -577,10 +578,13 @@ void MenuBar::AddViewMenu()
           [purge_action] { purge_action->setEnabled(true); });
   view_menu->addSeparator();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  view_menu->addAction(tr("Search"), QKeySequence::Find, this, &MenuBar::ShowSearch);
+  QAction* search =
+      view_menu->addAction(tr("Search"), QKeySequence::Find, this, &MenuBar::ShowSearch);
 #else
-  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
+  QAction* search =
+      view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 #endif
+  ApplicationShortcutControl::Instance()->AddAction(search);
 }
 
 void MenuBar::AddOptionsMenu()
@@ -665,6 +669,7 @@ void MenuBar::AddHelpMenu()
   help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
 
   documentation->setShortcut(Qt::Key_F1);
+  ApplicationShortcutControl::Instance()->AddAction(documentation);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
