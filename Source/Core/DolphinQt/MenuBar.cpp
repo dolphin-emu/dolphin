@@ -634,13 +634,13 @@ void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
 
-  QAction* website = help_menu->addAction(tr("&Website"));
-  connect(website, &QAction::triggered, this,
-          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
   connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
+  QAction* website = help_menu->addAction(tr("&Website"));
+  connect(website, &QAction::triggered, this,
+          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
@@ -663,6 +663,8 @@ void MenuBar::AddHelpMenu()
 #endif
 
   help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
+
+  documentation->setShortcut(Qt::Key_F1);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
