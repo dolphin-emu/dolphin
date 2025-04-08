@@ -459,6 +459,8 @@ public final class NativeLibrary
 
   private static native String GetCurrentTitleDescriptionUnchecked();
 
+  public static native void CameraSetData(byte[] image);
+
   @Keep
   public static void displayToastMsg(final String text, final boolean long_length)
   {
