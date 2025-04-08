@@ -18,15 +18,11 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
-
-// Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
-static std::array<u8, MAX_BBMOTES> s_last_connect_request_counter;
 
 namespace
 {
@@ -60,6 +56,27 @@ void RefreshConfig()
     OnSourceChanged(i, Config::Get(Config::GetInfoForWiimoteSource(i)));
 }
 
+void DoWiimoteSlotState(PointerWrap& p, int slot, ControllerEmu::EmulatedController* controller)
+{
+  const WiimoteSource source = GetSource(slot);
+  auto state_wiimote_source = u8(source);
+  p.Do(state_wiimote_source);
+
+  if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
+  {
+    // Sync complete state of emulated wiimotes.
+    static_cast<WiimoteEmu::WiimoteBase*>(controller)->DoState(p);
+  }
+
+  if (p.IsReadMode())
+  {
+    // If using a real wiimote or the save-state source does not match the current source,
+    // then force a reconnection on load.
+    if (source == WiimoteSource::Real || source != WiimoteSource(state_wiimote_source))
+      WiimoteCommon::UpdateSource(slot);
+  }
+}
+
 }  // namespace
 
 namespace WiimoteCommon
@@ -80,7 +97,9 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
   switch (GetSource(index))
   {
   case WiimoteSource::Emulated:
-    hid_source = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
+    hid_source = static_cast<WiimoteEmu::WiimoteBase*>(
+        (index == WIIMOTE_BALANCE_BOARD) ? ::BalanceBoard::GetConfig()->GetController(0) :
+                                           ::Wiimote::GetConfig()->GetController(index));
     break;
 
   case WiimoteSource::Real:
@@ -96,10 +115,15 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
 
 }  // namespace WiimoteCommon
 
-namespace Wiimote
+namespace
 {
 static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote", "Wiimote");
+static InputConfig s_bb_config(WIIMOTE_INI_NAME, _trans("Balance Board"), "BalanceBoard",
+                               "BalanceBoard");
+}  // namespace
 
+namespace Wiimote
+{
 InputConfig* GetConfig()
 {
   return &s_config;
@@ -162,8 +186,10 @@ ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::Shinkans
 
 void Shutdown()
 {
+  s_bb_config.UnregisterHotplugCallback();
   s_config.UnregisterHotplugCallback();
 
+  s_bb_config.ClearControllers();
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
@@ -179,13 +205,17 @@ void Initialize(InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
-    for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+    for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_WIIMOTES; ++i)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
+
+    s_bb_config.CreateController<WiimoteEmu::BalanceBoard>(WIIMOTE_BALANCE_BOARD);
   }
 
   s_config.RegisterHotplugCallback();
+  s_bb_config.RegisterHotplugCallback();
 
   LoadConfig();
+  BalanceBoard::LoadConfig();
 
   if (!s_config_callback_id)
     s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
@@ -201,14 +231,15 @@ void Initialize(InitializeMode init_mode)
 
 void ResetAllWiimotes()
 {
-  for (int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+  for (int i = WIIMOTE_CHAN_0; i < MAX_WIIMOTES; ++i)
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->Reset();
+
+  static_cast<WiimoteEmu::BalanceBoard*>(s_bb_config.GetController(0))->Reset();
 }
 
 void LoadConfig()
 {
   s_config.LoadConfig();
-  s_last_connect_request_counter.fill(0);
 }
 
 void GenerateDynamicInputTextures()
@@ -216,37 +247,30 @@ void GenerateDynamicInputTextures()
   s_config.GenerateControllerTextures();
 }
 
-void Resume()
-{
-  WiimoteReal::Resume();
-}
-
-void Pause()
-{
-  WiimoteReal::Pause();
-}
-
 void DoState(PointerWrap& p)
 {
-  for (int i = 0; i < MAX_BBMOTES; ++i)
-  {
-    const WiimoteSource source = GetSource(i);
-    auto state_wiimote_source = u8(source);
-    p.Do(state_wiimote_source);
+  for (int slot = 0; slot < MAX_WIIMOTES; ++slot)
+    DoWiimoteSlotState(p, slot, s_config.GetController(slot));
 
-    if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
-    {
-      // Sync complete state of emulated wiimotes.
-      static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
-    }
-
-    if (p.IsReadMode())
-    {
-      // If using a real wiimote or the save-state source does not match the current source,
-      // then force a reconnection on load.
-      if (source == WiimoteSource::Real || source != WiimoteSource(state_wiimote_source))
-        WiimoteCommon::UpdateSource(i);
-    }
-  }
+  DoWiimoteSlotState(p, WIIMOTE_BALANCE_BOARD, s_bb_config.GetController(0));
 }
 }  // namespace Wiimote
+
+namespace BalanceBoard
+{
+InputConfig* GetConfig()
+{
+  return &s_bb_config;
+}
+
+void LoadConfig()
+{
+  s_bb_config.LoadConfig();
+}
+
+ControllerEmu::ControlGroup* GetBalanceBoardGroup(int number, WiimoteEmu::BalanceBoardGroup group)
+{
+  return static_cast<WiimoteEmu::BalanceBoard*>(s_bb_config.GetController(number))
+      ->GetBalanceBoardGroup(group);
+}
+}  // namespace BalanceBoard
