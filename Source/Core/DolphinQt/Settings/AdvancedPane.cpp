@@ -88,6 +88,19 @@ void AdvancedPane::CreateLayout()
          "needed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   cpu_options_group_layout->addWidget(m_accurate_cpu_cache_checkbox);
 
+  auto* const timing_group = new QGroupBox(tr("Timing"));
+  main_layout->addWidget(timing_group);
+  auto* timing_group_layout = new QVBoxLayout{timing_group};
+  auto* const sync_to_host_refresh =
+      new ConfigBool{tr("Sync to Host Refresh Rate"), Config::MAIN_SYNC_REFRESH_RATE};
+  sync_to_host_refresh->SetDescription(
+      tr("Adjusts emulation speed to match host refresh rate when V-Sync is enabled."
+         "<br>This can make 59.94 FPS games run at 60 FPS."
+         "<br><br>Not needed or recommended for users with variable refresh rate displays."
+         "<br><br>Has no effect when Immediate XFB is in use."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  timing_group_layout->addWidget(sync_to_host_refresh);
+
   auto* clock_override = new QGroupBox(tr("Clock Override"));
   auto* clock_override_layout = new QVBoxLayout();
   clock_override->setLayout(clock_override_layout);
