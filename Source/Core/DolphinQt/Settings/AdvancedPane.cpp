@@ -138,6 +138,17 @@ void AdvancedPane::CreateLayout()
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   timing_group_layout->addWidget(smooth_early_presentation);
 
+  auto* const sync_to_host_refresh =
+      new ConfigBool{tr("Sync to Host Refresh Rate"), Config::MAIN_SYNC_TO_HOST_REFRESH_RATE};
+  sync_to_host_refresh->SetDescription(
+      tr("Adjusts emulation speed to match host refresh rate when V-Sync is enabled."
+         "<br>This can make 59.94 FPS games run at 60 FPS."
+         "<br><br>Not needed or recommended for users with variable refresh rate displays."
+         "<br><br>For best results, turn off Immediately Present XFB"
+         " and Skip Presenting Duplicate Frames."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  timing_group_layout->addWidget(sync_to_host_refresh);
+
   // Make all labels the same width, so that the sliders are aligned.
   const QFontMetrics font_metrics{font()};
   const int label_width = font_metrics.boundingRect(QStringLiteral(" 500% (000.00 VPS)")).width();

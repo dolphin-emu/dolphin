@@ -339,6 +339,8 @@ const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
 const Info<std::string> MAIN_SKYLANDERS_PATH{{System::Main, "General", "SkylandersCollectionPath"},
                                              ""};
 const Info<bool> MAIN_TIME_TRACKING{{System::Main, "General", "EnablePlayTimeTracking"}, true};
+const Info<bool> MAIN_SYNC_TO_HOST_REFRESH_RATE{{System::Main, "General", "SyncToHostRefreshRate"},
+                                                true};
 
 static Info<std::string> MakeISOPathConfigInfo(size_t idx)
 {

@@ -902,9 +902,22 @@ void Presenter::Present(PresentInfo* present_info)
 
     if (present_info != nullptr)
     {
+      auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
       const auto present_time = GetUpdatedPresentationTime(present_info->intended_present_time);
 
-      Core::System::GetInstance().GetCoreTiming().SleepUntil(present_time);
+      // "Sync to Host Refresh Rate" throttle adjustment.
+      if (Config::Get(Config::MAIN_SYNC_TO_HOST_REFRESH_RATE) && Config::Get(Config::GFX_VSYNC))
+      {
+        constexpr DT MAX_ADJUSTMENT = std::chrono::microseconds{100};
+        const auto adjustment =
+            std::clamp(m_ideal_present_time - present_time, -MAX_ADJUSTMENT, MAX_ADJUSTMENT);
+
+        DEBUG_LOG_FMT(VIDEO, "Adjusting throttle by {:.2f} ms.", DT_ms(adjustment).count());
+        core_timing.AdjustThrottleReferenceTime(adjustment);
+      }
+
+      core_timing.SleepUntil(present_time);
 
       // Perhaps in the future a more accurate time can be acquired from the various backends.
       present_info->actual_present_time = Clock::now();
@@ -913,6 +926,12 @@ void Presenter::Present(PresentInfo* present_info)
 
     g_gfx->PresentBackbuffer();
   }
+
+  // "Sync to Host Refresh Rate" targets the timing immediately between the return from two swaps.
+  // Maybe there is a better way to determine a proper vsync deadline ?
+  const auto now = Clock::now();
+  const auto time_since_last_present = now - std::exchange(m_last_after_present_time, now);
+  m_ideal_present_time = now + time_since_last_present / 2;
 
   if (m_xfb_entry)
   {
