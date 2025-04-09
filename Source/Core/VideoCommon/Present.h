@@ -184,6 +184,10 @@ private:
   TimePoint m_next_swap_estimated_time{Clock::now()};
 
   std::atomic_bool m_immediate_swap_happened_this_field{};
+
+  // Used for "Sync to Host Refresh Rate".
+  TimePoint m_last_after_present_time{};
+  TimePoint m_ideal_present_time{};
 };
 
 }  // namespace VideoCommon
