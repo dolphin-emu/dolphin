@@ -22,6 +22,7 @@
     <ClInclude Include="Common\Assembler\GekkoIRGen.h" />
     <ClInclude Include="Common\Assembler\GekkoLexer.h" />
     <ClInclude Include="Common\Assembler\GekkoParser.h" />
+    <ClInclude Include="Common\AtomicUniquePtr.h" />
     <ClInclude Include="Common\BitField.h" />
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
