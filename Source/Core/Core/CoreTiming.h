@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
@@ -215,10 +216,10 @@ private:
   DT m_max_fallback = {};
   DT m_max_variance = {};
   bool m_correct_time_drift = false;
-  double m_emulation_speed = 1.0;
+  bool m_sync_to_host_refresh_rate;
 
   bool IsSpeedUnlimited() const;
-  void UpdateSpeedLimit(s64 cycle, double new_speed);
+  void UpdateSpeedLimit(s64 cycle);
   void ResetThrottle(s64 cycle);
   TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
   void UpdateVISkip(TimePoint current_time, TimePoint target_time);
@@ -231,6 +232,11 @@ private:
   Common::PrecisionTimer m_precision_gpu_timer;
 
   int m_on_state_changed_handle;
+
+  // Set from GPU thread. Used for "Sync to Host Refresh Rate".
+  std::atomic<DT> m_last_presentation_delay{};
+
+  Common::EventHook m_after_frame_hook;
 };
 
 }  // namespace CoreTiming
