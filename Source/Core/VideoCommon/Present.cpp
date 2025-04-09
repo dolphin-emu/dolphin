@@ -165,6 +165,7 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   PresentInfo present_info;
   present_info.emulated_timestamp = ticks;
   present_info.present_count = m_present_count++;
+  present_info.intended_present_time = presentation_time;
   if (is_duplicate)
   {
     present_info.frame_count = m_frame_count - 1;  // Previous frame
@@ -202,6 +203,8 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   if (!is_duplicate || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
   {
     Present(presentation_time);
+    present_info.actual_present_time = Clock::now();
+
     ProcessFrameDumping(ticks);
 
     video_events.after_present_event.Trigger(present_info);
@@ -217,12 +220,15 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   present_info.frame_count = m_frame_count++;
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
+  present_info.intended_present_time = Clock::now();
 
   auto& video_events = GetVideoEvents();
 
   video_events.before_present_event.Trigger(present_info);
 
   Present();
+  present_info.actual_present_time = Clock::now();
+
   ProcessFrameDumping(ticks);
 
   video_events.after_present_event.Trigger(present_info);
