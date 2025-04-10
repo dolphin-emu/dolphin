@@ -78,7 +78,7 @@ bool InitWindow()
     return false;
 
   if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER,
-                                 IID_PPV_ARGS(taskbar_list.GetAddressOf()))))
+                                 IID_PPV_ARGS(&taskbar_list))))
   {
     if (FAILED(taskbar_list->HrInit()))
     {

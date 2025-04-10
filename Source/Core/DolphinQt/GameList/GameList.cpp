@@ -1,10 +1,11 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/ScopeGuard.h"
 #ifdef _WIN32
 #include <QCoreApplication>
 #include <shlobj.h>
-#include <wil/com.h>
+#include <wrl/client.h>
 
 // This file uses some identifiers which are defined as macros in Windows headers.
 // Include and undefine the macros first thing we do to solve build errors.
@@ -785,9 +786,12 @@ void GameList::OpenGCSaveFolder()
 #ifdef _WIN32
 bool GameList::AddShortcutToDesktop()
 {
-  auto init = wil::CoInitializeEx_failfast(COINIT_APARTMENTTHREADED);
-  auto shell_link = wil::CoCreateInstanceNoThrow<ShellLink, IShellLink>();
-  if (!shell_link)
+  if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
+    return false;
+  Common::ScopeGuard init_guard([] { CoUninitialize(); });
+  Microsoft::WRL::ComPtr<IShellLink> shell_link;
+  if (FAILED(
+          CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shell_link))))
     return false;
 
   std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
@@ -800,7 +804,8 @@ bool GameList::AddShortcutToDesktop()
   if (FAILED(shell_link->SetArguments(args.c_str())))
     return false;
 
-  wil::unique_cotaskmem_string desktop;
+  PWSTR desktop;
+  Common::ScopeGuard desktop_guard([&] { CoTaskMemFree(desktop); });
   if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop)))
     return false;
 
@@ -811,8 +816,9 @@ bool GameList::AddShortcutToDesktop()
     return Common::Contains(illegal_characters, ch);
   });
 
-  std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
-  auto persist_file = shell_link.try_query<IPersistFile>();
+  std::wstring desktop_path = std::wstring(desktop) + UTF8ToTStr("\\" + game_name + ".lnk");
+  Microsoft::WRL::ComPtr<IPersistFile> persist_file;
+  shell_link.As(&persist_file);
   if (!persist_file)
     return false;
 
