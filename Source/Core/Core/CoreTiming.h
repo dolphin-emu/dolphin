@@ -202,16 +202,20 @@ private:
   float m_config_oc_inv_factor = 0.0f;
   bool m_config_sync_on_skip_idle = false;
 
-  s64 m_throttle_last_cycle = 0;
-  TimePoint m_throttle_deadline = Clock::now();
-  s64 m_throttle_clock_per_sec = 0;
+  s64 m_throttle_reference_cycle = 0;
+  TimePoint m_throttle_reference_time = Clock::now();
+  u32 m_throttle_adj_clock_per_sec = 0;
   bool m_throttle_disable_vi_int = false;
 
   DT m_max_fallback = {};
   DT m_max_variance = {};
   double m_emulation_speed = 1.0;
 
+  bool IsSpeedUnlimited() const;
+  void UpdateSpeedLimit(s64 cycle, double new_speed);
   void ResetThrottle(s64 cycle);
+  TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
+  void UpdateVISkip(TimePoint current_time, TimePoint target_time);
 
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
