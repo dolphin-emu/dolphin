@@ -22,7 +22,7 @@
 
 static constexpr size_t PROGRESS_LENGTH = 24;
 
-AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achievement)
+AchievementBox::AchievementBox(QWidget* parent, const rc_client_achievement_t* achievement)
     : QGroupBox(parent), m_achievement(achievement)
 {
   const auto& instance = AchievementManager::GetInstance();

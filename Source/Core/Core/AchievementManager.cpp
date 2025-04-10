@@ -22,6 +22,7 @@
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/ActionReplay.h"
@@ -33,6 +34,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
@@ -41,6 +43,12 @@
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <libloaderapi.h>
+#include <rcheevos/include/rc_client_raintegration.h>
+#include <shlwapi.h>
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
     {"User-Agent", Common::GetUserAgentStr()}};
@@ -51,7 +59,7 @@ AchievementManager& AchievementManager::GetInstance()
   return s_instance;
 }
 
-void AchievementManager::Init()
+void AchievementManager::Init(void* hwnd)
 {
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
@@ -73,9 +81,19 @@ void AchievementManager::Init()
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    // attempt to load the integration DLL from the directory containing the main client
+    // executable in x64 build, will look for RA_Integration-x64.dll, then RA_Integration.dll. in
+    // non-x64 build, will only look for RA_Integration.dll
+    rc_client_begin_load_raintegration(m_client, UTF8ToWString(File::GetExeDirectory()).c_str(),
+                                       reinterpret_cast<HWND>(hwnd), "MyClient", "1.0",
+                                       LoadIntegrationCallback, NULL);
+#else   // RC_CLIENT_SUPPORTS_RAINTEGRATION
     if (HasAPIToken())
       Login("");
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   }
 }
 
@@ -163,12 +181,17 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
   rc_client_set_encore_mode_enabled(m_client, Config::Get(Config::RA_ENCORE_ENABLED));
   rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
-  if (volume)
   {
     std::lock_guard lg{m_lock};
-    if (!m_loading_volume)
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    SplitPath(file_path, nullptr, &m_title_estimate, nullptr);
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+    if (volume)
     {
-      m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+      if (!m_loading_volume)
+      {
+        m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+      }
     }
   }
   std::lock_guard lg{m_filereader_lock};
@@ -295,6 +318,18 @@ void AchievementManager::DoFrame()
   if (!IsGameLoaded() || !Core::IsCPUThread())
     return;
   {
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    {
+      std::lock_guard lg{m_memory_lock};
+      auto& system = Core::System::GetInstance();
+      Core::CPUThreadGuard thread_guard(system);
+      u32 ram_size = Core::System::GetInstance().GetMemory().GetRamSizeReal();
+      if (m_cloned_memory.size() != ram_size)
+        m_cloned_memory.resize(ram_size);
+      Core::System::GetInstance().GetMemory().CopyFromEmu(m_cloned_memory.data(), 0x80000000U,
+                                                          m_cloned_memory.size());
+    }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
@@ -621,6 +656,22 @@ std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
   return display_values;
 }
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+const rc_client_raintegration_menu_t* AchievementManager::GetDevelopmentMenu()
+{
+  if (!m_dll_found)
+    return nullptr;
+  return rc_client_raintegration_get_menu(m_client);
+}
+
+u32 AchievementManager::ActivateDevMenuItem(u32 menu_item_id)
+{
+  if (!m_dll_found)
+    return 0;
+  return rc_client_raintegration_activate_menu_item(m_client, menu_item_id);
+}
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
 void AchievementManager::DoState(PointerWrap& p)
 {
   if (!m_client || !Config::Get(Config::RA_ENABLED))
@@ -716,6 +767,7 @@ void AchievementManager::Shutdown()
     // DON'T log out - keep those credentials for next run.
     rc_client_destroy(m_client);
     m_client = nullptr;
+    m_dll_found = false;
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager shut down.");
   }
 }
@@ -1035,6 +1087,7 @@ void AchievementManager::DisplayWelcomeMessage()
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
   const auto& instance = AchievementManager::GetInstance();
+
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
                               client_event->achievement->points),
                   OSD::Duration::VERY_LONG,
@@ -1043,6 +1096,30 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
   AchievementManager::GetInstance().m_update_callback(
       UpdatedItems{.achievements = {client_event->achievement->id}});
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  switch (rc_client_raintegration_get_achievement_state(instance.m_client,
+                                                        client_event->achievement->id))
+  {
+  case RC_CLIENT_RAINTEGRATION_ACHIEVEMENT_STATE_LOCAL:
+    // Achievement only exists locally and has not been uploaded.
+    OSD::AddMessage("Local achievement; not submitted to site.", OSD::Duration::VERY_LONG,
+                    OSD::Color::GREEN);
+    break;
+  case RC_CLIENT_RAINTEGRATION_ACHIEVEMENT_STATE_MODIFIED:
+    // Achievement has been modified locally and differs from the one on the site.
+    OSD::AddMessage("Modified achievement; not submitted to site.", OSD::Duration::VERY_LONG,
+                    OSD::Color::GREEN);
+    break;
+  case RC_CLIENT_RAINTEGRATION_ACHIEVEMENT_STATE_INSECURE:
+    // The player has done something that we consider cheating like modifying the RAM while playing.
+    // Just indicate that the achievement was only unlocked locally, but don't clarify why.
+    OSD::AddMessage("Achievement not submitted to site.", OSD::Duration::VERY_LONG,
+                    OSD::Color::GREEN);
+    break;
+  default:
+    break;
+  }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
@@ -1229,22 +1306,31 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
 {
   if (buffer == nullptr)
     return 0u;
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.m_memory_lock};
+  u32 bytes_read = 0;
+  for (u32 ix = address; ix < address + num_bytes && ix < instance.m_cloned_memory.size(); ix++)
+    buffer[bytes_read++] = instance.m_cloned_memory[ix];
+  return bytes_read;
+#else   // RC_CLIENT_SUPPORTS_RAINTEGRATION
   auto& system = Core::System::GetInstance();
   if (!(Core::IsHostThread() || Core::IsCPUThread()))
   {
     ASSERT_MSG(ACHIEVEMENTS, false, "MemoryPeeker called from wrong thread");
     return 0;
   }
-  Core::CPUThreadGuard threadguard(system);
+  Core::CPUThreadGuard thread_guard(system);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
-    auto value = system.GetMMU().HostTryReadU8(threadguard, address + num_read,
+    auto value = system.GetMMU().HostTryReadU8(thread_guard, address + num_read,
                                                PowerPC::RequestedAddressSpace::Physical);
     if (!value.has_value())
       return num_read;
     buffer[num_read] = value.value().value;
   }
   return num_bytes;
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 }
 
 void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_type,
@@ -1394,5 +1480,93 @@ void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_
     break;
   }
 }
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+void AchievementManager::LoadIntegrationCallback(int result, const char* error_message,
+                                                 rc_client_t* client, void* userdata)
+{
+  auto& instance = AchievementManager::GetInstance();
+  switch (result)
+  {
+  case RC_OK:
+    INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll found.");
+    instance.m_dll_found = true;
+    rc_client_raintegration_set_event_handler(instance.m_client, RAIntegrationEventHandler);
+    rc_client_raintegration_set_write_memory_function(instance.m_client, MemoryPoker);
+    rc_client_raintegration_set_get_game_name_function(instance.m_client, GameTitleEstimateHandler);
+    instance.m_dev_menu_callback();
+    // TODO: hook up menu and dll event handlers
+    break;
+
+  case RC_MISSING_VALUE:
+    INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll not found.");
+    // DLL is not present; do nothing.
+    break;
+
+  default:
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load RAIntegration.dll. {}", error_message);
+    break;
+  }
+
+  if (instance.HasAPIToken())
+    instance.Login("");
+  INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
+}
+
+void AchievementManager::RAIntegrationEventHandler(const rc_client_raintegration_event_t* event,
+                                                   rc_client_t* client)
+{
+  auto& instance = AchievementManager::GetInstance();
+  switch (event->type)
+  {
+  case RC_CLIENT_RAINTEGRATION_EVENT_MENU_CHANGED:
+  case RC_CLIENT_RAINTEGRATION_EVENT_MENUITEM_CHECKED_CHANGED:
+    instance.m_dev_menu_callback();
+    break;
+  case RC_CLIENT_RAINTEGRATION_EVENT_PAUSE:
+  {
+    Core::QueueHostJob([](Core::System& system) { Core::SetState(system, Core::State::Paused); });
+    break;
+  }
+  case RC_CLIENT_RAINTEGRATION_EVENT_HARDCORE_CHANGED:
+    Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
+                             !Config::Get(Config::RA_HARDCORE_ENABLED));
+    break;
+  default:
+    WARN_LOG_FMT(ACHIEVEMENTS, "Unsupported raintegration event. {}", event->type);
+    break;
+  }
+}
+
+void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+{
+  if (buffer == nullptr)
+    return;
+  auto& system = Core::System::GetInstance();
+  if (!(Core::IsHostThread() || Core::IsCPUThread()))
+  {
+    Core::QueueHostJob([address, buffer, num_bytes, client](Core::System& system) {
+      MemoryPoker(address, buffer, num_bytes, client);
+    });
+    return;
+  }
+  Core::CPUThreadGuard threadguard(system);
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.m_memory_lock};
+  for (u32 num_write = 0; num_write < num_bytes; num_write++)
+  {
+    system.GetMMU().HostTryWriteU8(threadguard, buffer[num_write], address + num_write,
+                                   PowerPC::RequestedAddressSpace::Physical);
+    instance.m_cloned_memory[address + num_write] = buffer[num_write];
+  }
+}
+void AchievementManager::GameTitleEstimateHandler(char* buffer, u32 buffer_size,
+                                                  rc_client_t* client)
+{
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.m_lock};
+  strncpy(buffer, instance.m_title_estimate.c_str(), static_cast<size_t>(buffer_size));
+}
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 #endif  // USE_RETRO_ACHIEVEMENTS
