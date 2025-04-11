@@ -1,15 +1,13 @@
+/* SPDX-License-Identifier: 0BSD */
+
 /**
  * \file        lzma/lzma12.h
  * \brief       LZMA1 and LZMA2 filters
+ * \note        Never include this file directly. Use <lzma.h> instead.
  */
 
 /*
  * Author: Lasse Collin
- *
- * This file has been put into the public domain.
- * You can do whatever you want with this file.
- *
- * See ../lzma.h for information about liblzma as a whole.
  */
 
 #ifndef LZMA_H_INTERNAL
@@ -18,23 +16,46 @@
 
 
 /**
- * \brief       LZMA1 Filter ID
+ * \brief       LZMA1 Filter ID (for raw encoder/decoder only, not in .xz)
  *
  * LZMA1 is the very same thing as what was called just LZMA in LZMA Utils,
  * 7-Zip, and LZMA SDK. It's called LZMA1 here to prevent developers from
  * accidentally using LZMA when they actually want LZMA2.
- *
- * LZMA1 shouldn't be used for new applications unless you _really_ know
- * what you are doing. LZMA2 is almost always a better choice.
  */
 #define LZMA_FILTER_LZMA1       LZMA_VLI_C(0x4000000000000001)
+
+/**
+ * \brief       LZMA1 Filter ID with extended options (for raw encoder/decoder)
+ *
+ * This is like LZMA_FILTER_LZMA1 but with this ID a few extra options
+ * are supported in the lzma_options_lzma structure:
+ *
+ *   - A flag to tell the encoder if the end of payload marker (EOPM) alias
+ *     end of stream (EOS) marker must be written at the end of the stream.
+ *     In contrast, LZMA_FILTER_LZMA1 always writes the end marker.
+ *
+ *   - Decoder needs to be told the uncompressed size of the stream
+ *     or that it is unknown (using the special value UINT64_MAX).
+ *     If the size is known, a flag can be set to allow the presence of
+ *     the end marker anyway. In contrast, LZMA_FILTER_LZMA1 always
+ *     behaves as if the uncompressed size was unknown.
+ *
+ * This allows handling file formats where LZMA1 streams are used but where
+ * the end marker isn't allowed or where it might not (always) be present.
+ * This extended LZMA1 functionality is provided as a Filter ID for raw
+ * encoder and decoder instead of adding new encoder and decoder initialization
+ * functions because this way it is possible to also use extra filters,
+ * for example, LZMA_FILTER_X86 in a filter chain with LZMA_FILTER_LZMA1EXT,
+ * which might be needed to handle some file formats.
+ */
+#define LZMA_FILTER_LZMA1EXT    LZMA_VLI_C(0x4000000000000002)
 
 /**
  * \brief       LZMA2 Filter ID
  *
  * Usually you want this instead of LZMA1. Compared to LZMA1, LZMA2 adds
  * support for LZMA_SYNC_FLUSH, uncompressed chunks (smaller expansion
- * when trying to compress uncompressible data), possibility to change
+ * when trying to compress incompressible data), possibility to change
  * lc/lp/pb in the middle of encoding, and some other internal improvements.
  */
 #define LZMA_FILTER_LZMA2       LZMA_VLI_C(0x21)
@@ -114,16 +135,20 @@ typedef enum {
 /**
  * \brief       Test if given match finder is supported
  *
- * Return true if the given match finder is supported by this liblzma build.
- * Otherwise false is returned. It is safe to call this with a value that
- * isn't listed in lzma_match_finder enumeration; the return value will be
- * false.
+ * It is safe to call this with a value that isn't listed in
+ * lzma_match_finder enumeration; the return value will be false.
  *
  * There is no way to list which match finders are available in this
  * particular liblzma version and build. It would be useless, because
  * a new match finder, which the application developer wasn't aware,
  * could require giving additional options to the encoder that the older
  * match finders don't need.
+ *
+ * \param       match_finder    Match finder ID
+ *
+ * \return      lzma_bool:
+ *              - true if the match finder is supported by this liblzma build.
+ *              - false otherwise.
  */
 extern LZMA_API(lzma_bool) lzma_mf_is_supported(lzma_match_finder match_finder)
 		lzma_nothrow lzma_attr_const;
@@ -158,14 +183,20 @@ typedef enum {
 /**
  * \brief       Test if given compression mode is supported
  *
- * Return true if the given compression mode is supported by this liblzma
- * build. Otherwise false is returned. It is safe to call this with a value
- * that isn't listed in lzma_mode enumeration; the return value will be false.
+ * It is safe to call this with a value that isn't listed in lzma_mode
+ * enumeration; the return value will be false.
  *
  * There is no way to list which modes are available in this particular
  * liblzma version and build. It would be useless, because a new compression
  * mode, which the application developer wasn't aware, could require giving
  * additional options to the encoder that the older modes don't need.
+ *
+ * \param       mode    Mode ID.
+ *
+ * \return      lzma_bool:
+ *              - true if the compression mode is supported by this liblzma
+ *                build.
+ *              - false otherwise.
  */
 extern LZMA_API(lzma_bool) lzma_mode_is_supported(lzma_mode mode)
 		lzma_nothrow lzma_attr_const;
@@ -257,7 +288,7 @@ typedef struct {
 	 * \brief       Number of literal context bits
 	 *
 	 * How many of the highest bits of the previous uncompressed
-	 * eight-bit byte (also known as `literal') are taken into
+	 * eight-bit byte (also known as 'literal') are taken into
 	 * account when predicting the bits of the next literal.
 	 *
 	 * E.g. in typical English text, an upper-case letter is
@@ -301,7 +332,7 @@ typedef struct {
 	 * (2^ pb =2^2=4), which is often a good choice when there's
 	 * no better guess.
 	 *
-	 * When the aligment is known, setting pb accordingly may reduce
+	 * When the alignment is known, setting pb accordingly may reduce
 	 * the file size a little. E.g. with text files having one-byte
 	 * alignment (US-ASCII, ISO-8859-*, UTF-8), setting pb=0 can
 	 * improve compression slightly. For UTF-16 text, pb=1 is a good
@@ -374,6 +405,82 @@ typedef struct {
 	 */
 	uint32_t depth;
 
+	/**
+	 * \brief       For LZMA_FILTER_LZMA1EXT: Extended flags
+	 *
+	 * This is used only with LZMA_FILTER_LZMA1EXT.
+	 *
+	 * Currently only one flag is supported, LZMA_LZMA1EXT_ALLOW_EOPM:
+	 *
+	 *   - Encoder: If the flag is set, then end marker is written just
+	 *     like it is with LZMA_FILTER_LZMA1. Without this flag the
+	 *     end marker isn't written and the application has to store
+	 *     the uncompressed size somewhere outside the compressed stream.
+	 *     To decompress streams without the end marker, the application
+	 *     has to set the correct uncompressed size in ext_size_low and
+	 *     ext_size_high.
+	 *
+	 *   - Decoder: If the uncompressed size in ext_size_low and
+	 *     ext_size_high is set to the special value UINT64_MAX
+	 *     (indicating unknown uncompressed size) then this flag is
+	 *     ignored and the end marker must always be present, that is,
+	 *     the behavior is identical to LZMA_FILTER_LZMA1.
+	 *
+	 *     Otherwise, if this flag isn't set, then the input stream
+	 *     must not have the end marker; if the end marker is detected
+	 *     then it will result in LZMA_DATA_ERROR. This is useful when
+	 *     it is known that the stream must not have the end marker and
+	 *     strict validation is wanted.
+	 *
+	 *     If this flag is set, then it is autodetected if the end marker
+	 *     is present after the specified number of uncompressed bytes
+	 *     has been decompressed (ext_size_low and ext_size_high). The
+	 *     end marker isn't allowed in any other position. This behavior
+	 *     is useful when uncompressed size is known but the end marker
+	 *     may or may not be present. This is the case, for example,
+	 *     in .7z files (valid .7z files that have the end marker in
+	 *     LZMA1 streams are rare but they do exist).
+	 */
+	uint32_t ext_flags;
+#	define LZMA_LZMA1EXT_ALLOW_EOPM   UINT32_C(0x01)
+
+	/**
+	 * \brief       For LZMA_FILTER_LZMA1EXT: Uncompressed size (low bits)
+	 *
+	 * The 64-bit uncompressed size is needed for decompression with
+	 * LZMA_FILTER_LZMA1EXT. The size is ignored by the encoder.
+	 *
+	 * The special value UINT64_MAX indicates that the uncompressed size
+	 * is unknown and that the end of payload marker (also known as
+	 * end of stream marker) must be present to indicate the end of
+	 * the LZMA1 stream. Any other value indicates the expected
+	 * uncompressed size of the LZMA1 stream. (If LZMA1 was used together
+	 * with filters that change the size of the data then the uncompressed
+	 * size of the LZMA1 stream could be different than the final
+	 * uncompressed size of the filtered stream.)
+	 *
+	 * ext_size_low holds the least significant 32 bits of the
+	 * uncompressed size. The most significant 32 bits must be set
+	 * in ext_size_high. The macro lzma_set_ext_size(opt_lzma, u64size)
+	 * can be used to set these members.
+	 *
+	 * The 64-bit uncompressed size is split into two uint32_t variables
+	 * because there were no reserved uint64_t members and using the
+	 * same options structure for LZMA_FILTER_LZMA1, LZMA_FILTER_LZMA1EXT,
+	 * and LZMA_FILTER_LZMA2 was otherwise more convenient than having
+	 * a new options structure for LZMA_FILTER_LZMA1EXT. (Replacing two
+	 * uint32_t members with one uint64_t changes the ABI on some systems
+	 * as the alignment of this struct can increase from 4 bytes to 8.)
+	 */
+	uint32_t ext_size_low;
+
+	/**
+	 * \brief       For LZMA_FILTER_LZMA1EXT: Uncompressed size (high bits)
+	 *
+	 * This holds the most significant 32 bits of the uncompressed size.
+	 */
+	uint32_t ext_size_high;
+
 	/*
 	 * Reserved space to allow possible future extensions without
 	 * breaking the ABI. You should not touch these, because the names
@@ -381,22 +488,54 @@ typedef struct {
 	 * with the currently supported options, so it is safe to leave these
 	 * uninitialized.
 	 */
-	uint32_t reserved_int1;
-	uint32_t reserved_int2;
-	uint32_t reserved_int3;
+
+	/** \private     Reserved member. */
 	uint32_t reserved_int4;
+
+	/** \private     Reserved member. */
 	uint32_t reserved_int5;
+
+	/** \private     Reserved member. */
 	uint32_t reserved_int6;
+
+	/** \private     Reserved member. */
 	uint32_t reserved_int7;
+
+	/** \private     Reserved member. */
 	uint32_t reserved_int8;
+
+	/** \private     Reserved member. */
 	lzma_reserved_enum reserved_enum1;
+
+	/** \private     Reserved member. */
 	lzma_reserved_enum reserved_enum2;
+
+	/** \private     Reserved member. */
 	lzma_reserved_enum reserved_enum3;
+
+	/** \private     Reserved member. */
 	lzma_reserved_enum reserved_enum4;
+
+	/** \private     Reserved member. */
 	void *reserved_ptr1;
+
+	/** \private     Reserved member. */
 	void *reserved_ptr2;
 
 } lzma_options_lzma;
+
+
+/**
+ * \brief       Macro to set the 64-bit uncompressed size in ext_size_*
+ *
+ * This might be convenient when decoding using LZMA_FILTER_LZMA1EXT.
+ * This isn't used with LZMA_FILTER_LZMA1 or LZMA_FILTER_LZMA2.
+ */
+#define lzma_set_ext_size(opt_lzma2, u64size) \
+do { \
+	(opt_lzma2).ext_size_low = (uint32_t)(u64size); \
+	(opt_lzma2).ext_size_high = (uint32_t)((uint64_t)(u64size) >> 32); \
+} while (0)
 
 
 /**
@@ -408,13 +547,22 @@ typedef struct {
  * The flags are defined in container.h, because the flags are used also
  * with lzma_easy_encoder().
  *
- * The preset values are subject to changes between liblzma versions.
+ * The preset levels are subject to changes between liblzma versions.
  *
  * This function is available only if LZMA1 or LZMA2 encoder has been enabled
  * when building liblzma.
  *
- * \return      On success, false is returned. If the preset is not
- *              supported, true is returned.
+ * If features (like certain match finders) have been disabled at build time,
+ * then the function may return success (false) even though the resulting
+ * LZMA1/LZMA2 options may not be usable for encoder initialization
+ * (LZMA_OPTIONS_ERROR).
+ *
+ * \param[out]  options Pointer to LZMA1 or LZMA2 options to be filled
+ * \param       preset  Preset level bitwse-ORed with preset flags
+ *
+ * \return      lzma_bool:
+ *              - true if the preset is not supported (failure).
+ *              - false otherwise (success).
  */
 extern LZMA_API(lzma_bool) lzma_lzma_preset(
 		lzma_options_lzma *options, uint32_t preset) lzma_nothrow;

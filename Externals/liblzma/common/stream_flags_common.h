@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       stream_flags_common.h
 /// \brief      Common stuff for Stream flags coders
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +17,10 @@
 /// Size of the Stream Flags field
 #define LZMA_STREAM_FLAGS_SIZE 2
 
+lzma_attr_visibility_hidden
 extern const uint8_t lzma_header_magic[6];
+
+lzma_attr_visibility_hidden
 extern const uint8_t lzma_footer_magic[2];
 
 

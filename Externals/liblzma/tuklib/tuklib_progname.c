@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       tuklib_progname.c
@@ -5,16 +7,13 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "tuklib_progname.h"
 #include <string.h>
 
 
-#if !HAVE_DECL_PROGRAM_INVOCATION_NAME
+#ifndef HAVE_PROGRAM_INVOCATION_NAME
 char *progname = NULL;
 #endif
 
