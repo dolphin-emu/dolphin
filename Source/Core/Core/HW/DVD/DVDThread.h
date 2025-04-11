@@ -6,15 +6,13 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <thread>
 #include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
 #include "Common/SPSCQueue.h"
 
+#include "Common/WorkQueueThread.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/FileMonitor.h"
 
@@ -87,8 +85,6 @@ public:
                               s64 ticks_until_completion);
 
 private:
-  void StartDVDThread();
-  void StopDVDThread();
   void WaitUntilIdle();
 
   void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
@@ -97,8 +93,6 @@ private:
 
   static void GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late);
   void FinishRead(u64 id, s64 cycles_late);
-
-  void DVDThreadMain();
 
   struct ReadRequest
   {
@@ -124,19 +118,17 @@ private:
     u64 realtime_done_us = 0;
   };
 
+  void ProcessReadRequest(ReadRequest&& read_request);
+
   using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
 
   CoreTiming::EventType* m_finish_read = nullptr;
 
   u64 m_next_id = 0;
 
-  std::thread m_dvd_thread;
-  Common::Event m_request_queue_expanded;                   // Is set by CPU thread
-  Common::Event m_result_queue_expanded;                    // Is set by DVD thread
-  Common::Flag m_dvd_thread_exiting = Common::Flag(false);  // Is set by CPU thread
+  Common::WorkQueueThread<ReadRequest> m_dvd_thread;
 
-  Common::SPSCQueue<ReadRequest> m_request_queue;
-  Common::SPSCQueue<ReadResult> m_result_queue;
+  Common::WaitableSPSCQueue<ReadResult> m_result_queue;
   std::map<u64, ReadResult> m_result_map;
 
   std::unique_ptr<DiscIO::Volume> m_disc;
