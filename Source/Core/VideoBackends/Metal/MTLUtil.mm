@@ -262,15 +262,11 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
   backend_info->bSupportsST3CTextures = true;
   backend_info->bSupportsBPTCTextures = true;
 #else
-  bool supports_apple4 = false;
+  backend_info->bSupportsDepthClamp = [device supportsFamily:MTLGPUFamilyApple4];
+
   bool supports_bcn = false;
-  if (@available(iOS 13, *))
-    supports_apple4 = [device supportsFamily:MTLGPUFamilyApple4];
-  else
-    supports_apple4 = [device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1];
   if (@available(iOS 16.4, *))
     supports_bcn = [device supportsBCTextureCompression];
-  backend_info->bSupportsDepthClamp = supports_apple4;
   backend_info->bSupportsST3CTextures = supports_bcn;
   backend_info->bSupportsBPTCTextures = supports_bcn;
 
