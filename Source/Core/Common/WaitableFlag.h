@@ -1,13 +1,7 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Multithreaded event class. This allows waiting in a thread for an event to
-// be triggered in another thread. While waiting, the CPU will be available for
-// other tasks.
-// * Set(): triggers the event and wakes up the waiting thread.
-// * Wait(): waits for the event to be triggered.
-// * Reset(): tries to reset the event before the waiting thread sees it was
-//            triggered. Usually a bad idea.
+// Wrapper around Flag that lets callers wait for the flag to change.
 
 #pragma once
 
@@ -19,12 +13,12 @@
 
 namespace Common
 {
-class Event final
+class WaitableFlag final
 {
 public:
-  void Set()
+  void Set(bool value = true)
   {
-    if (m_flag.TestAndSet())
+    if (m_flag.TestAndSet(value))
     {
       // Lock and immediately unlock m_mutex.
       {
@@ -38,37 +32,32 @@ public:
         std::lock_guard<std::mutex> lk(m_mutex);
       }
 
-      m_condvar.notify_one();
+      m_condvar.notify_all();
     }
   }
 
-  void Wait()
+  void Reset() { Set(false); }
+
+  void Wait(bool expected_value)
   {
-    if (m_flag.TestAndClear())
+    if (m_flag.IsSet() == expected_value)
       return;
 
     std::unique_lock<std::mutex> lk(m_mutex);
-    m_condvar.wait(lk, [&] { return m_flag.TestAndClear(); });
+    m_condvar.wait(lk, [&] { return m_flag.IsSet() == expected_value; });
   }
 
   template <class Rep, class Period>
-  bool WaitFor(const std::chrono::duration<Rep, Period>& rel_time)
+  bool WaitFor(bool expected_value, const std::chrono::duration<Rep, Period>& rel_time)
   {
-    if (m_flag.TestAndClear())
+    if (m_flag.IsSet() == expected_value)
       return true;
 
     std::unique_lock<std::mutex> lk(m_mutex);
-    bool signaled = m_condvar.wait_for(lk, rel_time, [&] { return m_flag.TestAndClear(); });
+    bool signaled =
+        m_condvar.wait_for(lk, rel_time, [&] { return m_flag.IsSet() == expected_value; });
 
     return signaled;
-  }
-
-  void Reset()
-  {
-    // no other action required, since wait loops on
-    // the predicate and any lingering signal will get
-    // cleared on the first iteration
-    m_flag.Clear();
   }
 
 private:

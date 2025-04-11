@@ -25,9 +25,8 @@
 
 namespace IOS::HLE::USB
 {
-LibusbDevice::LibusbDevice(EmulationKernel& ios, libusb_device* device,
-                           const libusb_device_descriptor& descriptor)
-    : m_ios(ios), m_device(device)
+LibusbDevice::LibusbDevice(libusb_device* device, const libusb_device_descriptor& descriptor)
+    : m_device(device)
 {
   libusb_ref_device(m_device);
   m_vid = descriptor.idVendor;
@@ -226,7 +225,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
     }
     const int ret = SetAltSetting(static_cast<u8>(cmd->value));
     if (ret == LIBUSB_SUCCESS)
-      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
+      cmd->GetEmulationKernel().EnqueueIPCReply(cmd->ios_request, cmd->length);
     return ret;
   }
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_DEVICE, REQUEST_SET_CONFIGURATION):
@@ -238,7 +237,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
     if (ret == LIBUSB_SUCCESS)
     {
       ClaimAllInterfaces(cmd->value);
-      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
+      cmd->GetEmulationKernel().EnqueueIPCReply(cmd->ios_request, cmd->length);
     }
     return ret;
   }
@@ -249,7 +248,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   libusb_fill_control_setup(buffer.get(), cmd->request_type, cmd->request, cmd->value, cmd->index,
                             cmd->length);
 
-  auto& system = m_ios.GetSystem();
+  auto& system = cmd->GetEmulationKernel().GetSystem();
   auto& memory = system.GetMemory();
   memory.CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
 

@@ -27,15 +27,11 @@ private:
   bool ShouldAddDevice(const USB::Device& device) const override;
   bool HasInterfaceNumberInIDs() const override { return true; }
 
-  ScanThread& GetScanThread() override { return m_scan_thread; }
-
   struct AdditionalDeviceData
   {
     u8 interrupt_in_endpoint = 0;
     u8 interrupt_out_endpoint = 0;
   };
   std::array<AdditionalDeviceData, 32> m_additional_device_data{};
-
-  ScanThread m_scan_thread{this};
 };
 }  // namespace IOS::HLE
