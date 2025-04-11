@@ -4,7 +4,7 @@
 Run this script from Source/Core/ to find all the #include cycles.
 '''
 
-import subprocess
+import os
 
 def get_local_includes_for(path):
     lines = open(path).read().split('\n')
@@ -12,10 +12,11 @@ def get_local_includes_for(path):
     return [i.split()[1][1:-1] for i in includes if '"' in i.split()[1]]
 
 def find_all_files():
-    '''Could probably use os.walk, but meh.'''
-    f = subprocess.check_output(['find', '.', '-name', '*.h'],
-                                universal_newlines=True).strip().split('\n')
-    return [p[2:] for p in f]
+    """Find all .h files in current directory and subdirectories"""
+    return [os.path.join(root, file)[2:]
+            for root, _, files in os.walk('.')
+            for file in files
+            if file.endswith('.h')]
 
 def make_include_graph():
     return { f: get_local_includes_for(f) for f in find_all_files() }
