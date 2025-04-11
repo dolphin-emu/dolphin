@@ -118,7 +118,7 @@ SoundStream* System::GetSoundStream() const
   return m_impl->m_sound_stream.get();
 }
 
-void System::SetSoundStream(std::unique_ptr<SoundStream> sound_stream)
+void System::SetSoundStream(std::unique_ptr<SoundStream> sound_stream) const
 {
   m_impl->m_sound_stream = std::move(sound_stream);
 }
@@ -128,7 +128,7 @@ bool System::IsSoundStreamRunning() const
   return m_impl->m_sound_stream_running;
 }
 
-void System::SetSoundStreamRunning(bool running)
+void System::SetSoundStreamRunning(bool running) const
 {
   m_impl->m_sound_stream_running = running;
 }
@@ -138,7 +138,7 @@ bool System::IsAudioDumpStarted() const
   return m_impl->m_audio_dump_started;
 }
 
-void System::SetAudioDumpStarted(bool started)
+void System::SetAudioDumpStarted(bool started) const
 {
   m_impl->m_audio_dump_started = started;
 }
@@ -148,7 +148,7 @@ IOS::HLE::EmulationKernel* System::GetIOS() const
   return m_impl->m_ios.get();
 }
 
-void System::SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios)
+void System::SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios) const
 {
   m_impl->m_ios = std::move(ios);
 }

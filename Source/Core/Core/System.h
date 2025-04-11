@@ -149,14 +149,14 @@ public:
   void SetIsBranchWatchIgnoreApploader(bool enable) { m_branch_watch_ignore_apploader = enable; }
 
   SoundStream* GetSoundStream() const;
-  void SetSoundStream(std::unique_ptr<SoundStream> sound_stream);
+  void SetSoundStream(std::unique_ptr<SoundStream> sound_stream) const;
   bool IsSoundStreamRunning() const;
-  void SetSoundStreamRunning(bool running);
+  void SetSoundStreamRunning(bool running) const;
   bool IsAudioDumpStarted() const;
-  void SetAudioDumpStarted(bool started);
+  void SetAudioDumpStarted(bool started) const;
 
   IOS::HLE::EmulationKernel* GetIOS() const;
-  void SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios);
+  void SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios) const;
 
   AudioInterface::AudioInterfaceManager& GetAudioInterface() const;
   CPU::CPUManager& GetCPU() const;
