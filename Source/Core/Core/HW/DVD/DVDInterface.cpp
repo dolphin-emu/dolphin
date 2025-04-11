@@ -259,7 +259,7 @@ void DVDInterface::Init()
   m_system.GetDVDThread().Start();
 
   m_DISR.Hex = 0;
-  m_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
+  m_DICVR.Hex = ShouldLidBeOpen() ? 1 : 0;
   m_DICMDBUF[0] = 0;
   m_DICMDBUF[1] = 0;
   m_DICMDBUF[2] = 0;
@@ -306,7 +306,7 @@ void DVDInterface::ResetDrive(bool spinup)
     // On the Wii, this can only happen if something other than a DVD is inserted into the disc
     // drive (for instance, an audio CD) and only after it attempts to read it.  Otherwise, it will
     // report the cover as opened.
-    SetDriveState(DriveState::CoverOpened);
+    SetDriveState(ShouldLidBeOpen() ? DriveState::CoverOpened : DriveState::NoMediumPresent);
   }
   else if (!spinup)
   {
@@ -500,10 +500,19 @@ bool DVDInterface::AutoChangeDisc(const Core::CPUThreadGuard& guard)
   return true;
 }
 
+bool DVDInterface::ShouldLidBeOpen()
+{
+  // Disc Channel relies on cover being open when no disc is inserted.
+  // The Wii also has no physical cover. (TODO: How does the Wii Mini behave?)
+  // Therefore, the behaviour is only customisable for the GameCube.
+  return (!IsDiscInside() &&
+          (SConfig::GetInstance().bWii || !Config::Get(Config::MAIN_GC_EMPTY_DRIVE_IS_CLOSED)));
+}
+
 void DVDInterface::SetLidOpen()
 {
   const u32 old_value = m_DICVR.CVR;
-  m_DICVR.CVR = IsDiscInside() ? 0 : 1;
+  m_DICVR.CVR = ShouldLidBeOpen() ? 1 : 0;
   if (m_DICVR.CVR != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
