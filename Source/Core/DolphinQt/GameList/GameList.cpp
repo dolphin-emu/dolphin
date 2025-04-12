@@ -93,6 +93,25 @@ protected:
     else
       return QTableView::moveCursor(cursorAction, modifiers);
   }
+
+  virtual void mouseDoubleClickEvent(QMouseEvent* const event) override
+  {
+    if (event->button() == Qt::LeftButton)
+      QTableView::mouseDoubleClickEvent(event);
+  }
+};
+
+class GameListListView : public QListView
+{
+public:
+  explicit GameListListView(QWidget* parent = nullptr) : QListView(parent) {}
+
+protected:
+  virtual void mouseDoubleClickEvent(QMouseEvent* const event) override
+  {
+    if (event->button() == Qt::LeftButton)
+      QListView::mouseDoubleClickEvent(event);
+  }
 };
 }  // namespace
 
@@ -319,7 +338,7 @@ void GameList::resizeEvent(QResizeEvent* event)
 
 void GameList::MakeGridView()
 {
-  m_grid = new QListView(this);
+  m_grid = new GameListListView(this);
   m_grid->setModel(m_grid_proxy);
   m_grid->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
