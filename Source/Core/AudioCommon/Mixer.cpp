@@ -70,7 +70,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
   double in_sample_rate =
       static_cast<double>(FIXED_SAMPLE_RATE_DIVIDEND) / m_input_sample_rate_divisor;
 
-  const double emulation_speed = m_mixer->m_config_emulation_speed;
+  const double emulation_speed = 1.0;  // m_mixer->m_config_emulation_speed;
   if (0 < emulation_speed && emulation_speed != 1.0)
     in_sample_rate *= emulation_speed;
 
