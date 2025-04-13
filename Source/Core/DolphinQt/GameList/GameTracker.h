@@ -17,6 +17,9 @@
 #include "Common/WorkQueueThread.h"
 #include "UICommon/GameFileCache.h"
 
+#pragma push_macro("RemoveDirectory")
+#undef RemoveDirectory
+
 namespace UICommon
 {
 class GameFile;
@@ -100,3 +103,5 @@ private:
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)
 Q_DECLARE_METATYPE(std::string)
+
+#pragma pop_macro("RemoveDirectory")
