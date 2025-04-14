@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -175,7 +176,7 @@ private:
   bool m_is_copy_button_retry = false;
   bool m_got_stop_request = true;
   int m_buffer_size = 0;
-  int m_player_count = 0;
+  std::atomic<int> m_player_count = 0;
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
 
