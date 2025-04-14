@@ -144,7 +144,7 @@ irq5:
 	lri		$ac0.m, #0xbbbb
 	sr		@0xffda, $ac0.m ; pred scale
 	sr		@0xffdb, $ac0.m ; yn1
-	lr		$ix2, @ARAM
+	lr		$ix2, @ACDSAMP
 	sr		@0xffdc, $ac0.m ; yn2
 	rti
 irq6:

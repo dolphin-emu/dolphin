@@ -35,8 +35,8 @@ test_accelerator_addrs_ex:
   lrs $AX0.L, @ACCAL
 
   ; Make the accelerator read memory
-  lrs $AX1.H, @ARAM
-  lrs $AX1.H, @ARAM
+  lrs $AX1.H, @ACDSAMP
+  lrs $AX1.H, @ACDSAMP
   ; AX1 -> new current position after read
   lrs $AX1.H, @ACCAH
   lrs $AX1.L, @ACCAL
