@@ -89,8 +89,8 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
     // Check for required calibration update frequency
     // and if current data is within deadzone distance of mean stable value.
     if (calibration_freq < WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY ||
-        std::ranges::any_of(current_difference.data,
-                            [&](auto c) { return std::abs(c) > deadzone; }))
+        std::ranges::any_of(
+            current_difference.data, [&](auto c) { return std::abs(c) > deadzone; }))
     {
       RestartCalibration();
     }
