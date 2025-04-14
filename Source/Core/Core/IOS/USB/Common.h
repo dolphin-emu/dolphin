@@ -24,11 +24,28 @@ enum StandardDeviceRequestCodes
   REQUEST_SET_INTERFACE = 11,
 };
 
+// See USB HID specification under "Class-Specific Requests":
+//  - https://www.usb.org/sites/default/files/documents/hid1_11.pdf
+namespace HIDRequestCodes
+{
+enum
+{
+  GET_REPORT = 1,
+  GET_IDLE = 2,
+  GET_PROTOCOL = 3,
+  // 0x04~0x08 - Reserved
+  SET_REPORT = 9,
+  SET_IDLE = 10,
+  SET_PROTOCOL = 11,
+};
+}
+
 enum ControlRequestTypes
 {
   DIR_HOST2DEVICE = 0,
   DIR_DEVICE2HOST = 1,
   TYPE_STANDARD = 0,
+  TYPE_CLASS = 1,
   TYPE_VENDOR = 2,
   REC_DEVICE = 0,
   REC_INTERFACE = 1,
