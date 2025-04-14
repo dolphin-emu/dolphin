@@ -37,7 +37,7 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
-  request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LDEBUG);
   switch (request.request)
   {
   case USB::IOCTL_USBV4_GETVERSION:
