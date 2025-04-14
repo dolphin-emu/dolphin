@@ -38,20 +38,20 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   const int i = indexed ? inst.Ix : inst.I;
   const int w = indexed ? inst.Wx : inst.W;
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0);
+  gpr.Lock(ARM64Reg::W30);
   if (!js.assumeNoPairedQuantize)
   {
-    gpr.Lock(ARM64Reg::W0, ARM64Reg::W2, ARM64Reg::W3);
-    fpr.Lock(ARM64Reg::Q1);
+    gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
   }
-  else if (jo.memcheck || !jo.fastmem)
+  else if (jo.memcheck)
   {
     gpr.Lock(ARM64Reg::W0);
   }
 
   constexpr ARM64Reg type_reg = ARM64Reg::W0;
-  constexpr ARM64Reg addr_reg = ARM64Reg::W1;
+  const auto addr_reg = js.assumeNoPairedQuantize ? gpr.GetScopedRegWithPreference(ARM64Reg::W1) :
+                                                    Arm64RegCache::ScopedARM64Reg(ARM64Reg::W1);
   constexpr ARM64Reg scale_reg = ARM64Reg::W2;
   ARM64Reg VS = fpr.RW(inst.RS, RegType::Single, false);
 
@@ -79,24 +79,19 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
-    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    BitSet32 scratch_gprs;
+    BitSet32 scratch_fprs;
 
-    // Wipe the registers we are using as temporaries
     if (!update || early_update)
-      gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
-    if (jo.memcheck || !jo.fastmem)
-      gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
-    fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
-    if (!jo.memcheck)
-      fprs_in_use[DecodeReg(VS)] = 0;
+      scratch_gprs[DecodeReg(addr_reg)] = true;
+    if (jo.memcheck)
+      scratch_gprs[DecodeReg(ARM64Reg::W0)] = true;
 
     u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
       flags |= BackPatchInfo::FLAG_PAIR;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, addr_reg, scratch_gprs, scratch_fprs);
   }
   else
   {
@@ -133,14 +128,13 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
     MOV(gpr.R(inst.RA), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
+  gpr.Unlock(ARM64Reg::W30);
   if (!js.assumeNoPairedQuantize)
   {
-    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W2, ARM64Reg::W3);
-    fpr.Unlock(ARM64Reg::Q1);
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
   }
-  else if (jo.memcheck || !jo.fastmem)
+  else if (jo.memcheck)
   {
     gpr.Unlock(ARM64Reg::W0);
   }
@@ -167,9 +161,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   const int i = indexed ? inst.Ix : inst.I;
   const int w = indexed ? inst.Wx : inst.W;
 
-  fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
-    fpr.Lock(ARM64Reg::Q1);
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
   const bool have_single = fpr.IsSingle(inst.RS);
 
@@ -205,15 +198,18 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     }
   }
 
-  gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  if (!js.assumeNoPairedQuantize || !jo.fastmem)
-    gpr.Lock(ARM64Reg::W0);
-  if (!js.assumeNoPairedQuantize && !jo.fastmem)
-    gpr.Lock(ARM64Reg::W3);
+  gpr.Lock(ARM64Reg::W30);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2);
+    if (!jo.fastmem)
+      gpr.Lock(ARM64Reg::W3);
+  }
 
   constexpr ARM64Reg type_reg = ARM64Reg::W0;
   constexpr ARM64Reg scale_reg = ARM64Reg::W1;
-  constexpr ARM64Reg addr_reg = ARM64Reg::W2;
+  const auto addr_reg = js.assumeNoPairedQuantize ? gpr.GetScopedRegWithPreference(ARM64Reg::W2) :
+                                                    Arm64RegCache::ScopedARM64Reg(ARM64Reg::W2);
 
   if (inst.RA || update)  // Always uses the register on update
   {
@@ -239,22 +235,17 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
-    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    BitSet32 scratch_gprs;
+    BitSet32 scratch_fprs;
 
-    // Wipe the registers we are using as temporaries
-    gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
     if (!update || early_update)
-      gprs_in_use[DecodeReg(ARM64Reg::W2)] = false;
-    if (!jo.fastmem)
-      gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+      scratch_gprs[DecodeReg(addr_reg)] = true;
 
     u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
       flags |= BackPatchInfo::FLAG_PAIR;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, addr_reg, scratch_gprs, scratch_fprs);
   }
   else
   {
@@ -280,12 +271,12 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     MOV(gpr.R(inst.RA), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
-  if (!js.assumeNoPairedQuantize || !jo.fastmem)
-    gpr.Unlock(ARM64Reg::W0);
-  if (!js.assumeNoPairedQuantize && !jo.fastmem)
-    gpr.Unlock(ARM64Reg::W3);
+  gpr.Unlock(ARM64Reg::W30);
   if (!js.assumeNoPairedQuantize)
-    fpr.Unlock(ARM64Reg::Q1);
+  {
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2);
+    if (!jo.fastmem)
+      gpr.Unlock(ARM64Reg::W3);
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  }
 }
