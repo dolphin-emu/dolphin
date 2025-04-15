@@ -715,27 +715,27 @@ void AchievementManager::CloseGame()
 {
   {
     std::lock_guard lg{m_lock};
+    m_active_challenges.clear();
+    m_active_leaderboards.clear();
+    m_game_badge.width = 0;
+    m_game_badge.height = 0;
+    m_game_badge.data.clear();
+    m_unlocked_badges.clear();
+    m_locked_badges.clear();
+    m_leaderboard_map.clear();
+    m_rich_presence.fill('\0');
+    m_queue.Cancel();
+    m_image_queue.Cancel();
+    m_system.store(nullptr, std::memory_order_release);
+    if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+      Discord::UpdateDiscordPresence();
     if (rc_client_get_game_info(m_client))
     {
-      m_active_challenges.clear();
-      m_active_leaderboards.clear();
-      m_game_badge.width = 0;
-      m_game_badge.height = 0;
-      m_game_badge.data.clear();
-      m_unlocked_badges.clear();
-      m_locked_badges.clear();
-      m_leaderboard_map.clear();
-      m_rich_presence.fill('\0');
       rc_api_destroy_fetch_game_data_response(&m_game_data);
-      m_game_data = {};
-      m_queue.Cancel();
-      m_image_queue.Cancel();
       rc_client_unload_game(m_client);
-      m_system.store(nullptr, std::memory_order_release);
-      if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
-        Discord::UpdateDiscordPresence();
-      INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
     }
+    INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
+    m_game_data = {};
   }
 
   m_update_callback(UpdatedItems{.all = true});
@@ -981,6 +981,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
+    instance.CloseGame();
     return;
   }
   if (result != RC_OK)
@@ -994,6 +995,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
       rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
       instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
     }
+    instance.CloseGame();
     return;
   }
 
@@ -1003,6 +1005,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
     ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve game information from client.");
     OSD::AddMessage("Failed to load achievements for this title.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
+    instance.CloseGame();
     return;
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
