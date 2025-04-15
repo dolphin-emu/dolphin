@@ -210,8 +210,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
     INFO_LOG_FMT(SP1, "TAP-Win32 Driver Version {}.{} {}", info[0], info[1],
                  info[2] ? "(DEBUG)" : "");
   }
-  if (!(info[0] > TAP_WIN32_MIN_MAJOR ||
-        (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)))
+  if (info[0] < TAP_WIN32_MIN_MAJOR)
   {
     PanicAlertFmtT("ERROR: This version of Dolphin requires a TAP-Win32 driver"
                    " that is at least version {0}.{1} -- If you recently upgraded your Dolphin"
