@@ -51,7 +51,7 @@ public:
 
   std::string GetName() const override { return m_name; }
 
-  ControlState GetState() const final override { return ControlState(m_value) / m_extent; }
+  ControlState GetState() const final { return ControlState(m_value) / m_extent; }
 
 protected:
   const T& m_value;

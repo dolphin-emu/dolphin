@@ -23,7 +23,7 @@ class FIFOPlayerWindow : public QWidget
 public:
   explicit FIFOPlayerWindow(FifoPlayer& fifo_player, FifoRecorder& fifo_recorder,
                             QWidget* parent = nullptr);
-  ~FIFOPlayerWindow();
+  ~FIFOPlayerWindow() override;
 
 signals:
   void LoadFIFORequested(const QString& path);
@@ -50,7 +50,7 @@ private:
   void UpdateInfo();
   void UpdateLimits();
 
-  bool eventFilter(QObject* object, QEvent* event) final override;
+  bool eventFilter(QObject* object, QEvent* event) final;
 
   FifoPlayer& m_fifo_player;
   FifoRecorder& m_fifo_recorder;

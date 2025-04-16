@@ -23,7 +23,7 @@ class RegisterWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit RegisterWidget(QWidget* parent = nullptr);
-  ~RegisterWidget();
+  ~RegisterWidget() override;
 
 signals:
   void RequestTableUpdate();

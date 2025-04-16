@@ -84,7 +84,7 @@ class NetSSLDevice : public EmulationDevice
 public:
   NetSSLDevice(EmulationKernel& ios, const std::string& device_name);
 
-  virtual ~NetSSLDevice();
+  ~NetSSLDevice() override;
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;

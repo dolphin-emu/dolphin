@@ -14,9 +14,9 @@ public:
   Qt::TextElideMode elideMode() const;
   void setElideMode(Qt::TextElideMode elide_mode);
 
-  QSize sizeHint() const final override;
+  QSize sizeHint() const final;
 
 private:
-  void paintEvent(QPaintEvent* event) final override;
+  void paintEvent(QPaintEvent* event) final;
   Qt::TextElideMode m_elide_mode;
 };

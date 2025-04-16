@@ -45,7 +45,7 @@ public:
   std::size_t DisassembleNearCode(const JitBlock&, std::ostream&) const override { return 0; }
   std::size_t DisassembleFarCode(const JitBlock&, std::ostream&) const override { return 0; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
-  virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
+  bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {
     m_pre_unprotect_time = std::chrono::high_resolution_clock::now();
     Common::UnWriteProtectMemory(m_data, PAGE_GRAN, /*allowExecute*/ false);

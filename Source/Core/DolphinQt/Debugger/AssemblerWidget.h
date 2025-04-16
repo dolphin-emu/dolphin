@@ -31,10 +31,10 @@ public:
 
   bool ApplicationCloseRequest();
 
-  ~AssemblerWidget();
+  ~AssemblerWidget() override;
 
 protected:
-  void closeEvent(QCloseEvent*);
+  void closeEvent(QCloseEvent*) override;
 
 private:
   enum class AsmKind

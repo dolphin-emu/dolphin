@@ -23,7 +23,7 @@ class SwapChain : public D3DCommon::SwapChain
 public:
   SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory,
             ID3D12CommandQueue* d3d_command_queue);
-  ~SwapChain();
+  ~SwapChain() override;
 
   static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi);
 

@@ -21,7 +21,7 @@ class NetworkWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit NetworkWidget(QWidget* parent = nullptr);
-  ~NetworkWidget();
+  ~NetworkWidget() override;
 
 protected:
   void closeEvent(QCloseEvent*) override;

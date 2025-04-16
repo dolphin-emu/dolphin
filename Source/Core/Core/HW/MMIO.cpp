@@ -39,7 +39,7 @@ class ConstantHandlingMethod : public ReadHandlingMethod<T>
 {
 public:
   explicit ConstantHandlingMethod(T value) : value_(value) {}
-  virtual ~ConstantHandlingMethod() = default;
+  ~ConstantHandlingMethod() override = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitConstant(value_);
@@ -62,7 +62,7 @@ class NopHandlingMethod : public WriteHandlingMethod<T>
 {
 public:
   NopHandlingMethod() {}
-  virtual ~NopHandlingMethod() = default;
+  ~NopHandlingMethod() override = default;
   void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override { v.VisitNop(); }
 };
 template <typename T>
@@ -79,7 +79,7 @@ class DirectHandlingMethod : public ReadHandlingMethod<T>, public WriteHandlingM
 {
 public:
   DirectHandlingMethod(T* addr, u32 mask) : addr_(addr), mask_(mask) {}
-  virtual ~DirectHandlingMethod() = default;
+  ~DirectHandlingMethod() override = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitDirect(addr_, mask_);
@@ -122,7 +122,7 @@ public:
   {
   }
 
-  virtual ~ComplexHandlingMethod() = default;
+  ~ComplexHandlingMethod() override = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitComplex(&read_lambda_);

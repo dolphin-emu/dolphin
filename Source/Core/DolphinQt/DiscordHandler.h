@@ -22,7 +22,7 @@ class DiscordHandler : public QObject, public Discord::Handler
 #ifdef USE_DISCORD_PRESENCE
 public:
   explicit DiscordHandler(QWidget* parent);
-  ~DiscordHandler();
+  ~DiscordHandler() override;
 
   void Start();
   void Stop();

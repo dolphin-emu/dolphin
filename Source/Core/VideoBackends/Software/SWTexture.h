@@ -18,7 +18,7 @@ class SWTexture final : public AbstractTexture
 {
 public:
   explicit SWTexture(const TextureConfig& tex_config);
-  ~SWTexture() = default;
+  ~SWTexture() override = default;
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
@@ -40,7 +40,7 @@ class SWStagingTexture final : public AbstractStagingTexture
 {
 public:
   explicit SWStagingTexture(StagingTextureType type, const TextureConfig& config);
-  ~SWStagingTexture();
+  ~SWStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,
