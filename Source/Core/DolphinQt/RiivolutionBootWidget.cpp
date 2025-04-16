@@ -288,7 +288,7 @@ void RiivolutionBootWidget::BootGame()
   m_patches.clear();
   for (const auto& disc : m_discs)
   {
-    auto patches = disc.disc.GeneratePatches(m_game_id);
+    auto patches = disc.disc.GeneratePatches(m_game_id, 0);
 
     // set the file loader for each patch
     for (auto& patch : patches)
@@ -313,7 +313,7 @@ void RiivolutionBootWidget::SaveAsPreset()
   for (const auto& disc : m_discs)
   {
     // filter out XMLs that don't actually contribute to the preset
-    auto patches = disc.disc.GeneratePatches(m_game_id);
+    auto patches = disc.disc.GeneratePatches(m_game_id, 0);
     if (patches.empty())
       continue;
 
