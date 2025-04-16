@@ -243,7 +243,7 @@ private:
   {
   public:
     HapticEffect(SDL_Haptic* haptic);
-    ~HapticEffect();
+    ~HapticEffect() override;
 
   protected:
     virtual bool UpdateParameters(s16 value) = 0;
@@ -254,7 +254,7 @@ private:
     static constexpr u16 DISABLED_EFFECT_TYPE = 0;
 
   private:
-    virtual void SetState(ControlState state) override final;
+    void SetState(ControlState state) final;
     void UpdateEffect();
     SDL_Haptic* const m_haptic;
     int m_id = -1;
@@ -368,7 +368,7 @@ private:
 
 public:
   GameController(SDL_GameController* const gamecontroller, SDL_Joystick* const joystick);
-  ~GameController();
+  ~GameController() override;
 
   std::string GetName() const override;
   std::string GetSource() const override;
@@ -423,7 +423,7 @@ class InputBackend final : public ciface::InputBackend
 {
 public:
   InputBackend(ControllerInterface* controller_interface);
-  ~InputBackend();
+  ~InputBackend() override;
   void PopulateDevices() override;
   void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove) override;
 

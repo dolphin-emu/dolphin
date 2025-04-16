@@ -37,14 +37,14 @@ public:
 class CameraControllerInput : public CameraController
 {
 public:
-  Common::Vec2 GetFieldOfViewMultiplier() const final override;
+  Common::Vec2 GetFieldOfViewMultiplier() const final;
 
   void DoState(PointerWrap& p) override;
 
-  bool IsDirty() const final override { return m_dirty; }
-  void SetClean() final override { m_dirty = false; }
+  bool IsDirty() const final { return m_dirty; }
+  void SetClean() final { m_dirty = false; }
 
-  bool SupportsInput() const final override { return true; }
+  bool SupportsInput() const final { return true; }
 
   virtual void MoveVertical(float amt) = 0;
   virtual void MoveHorizontal(float amt) = 0;

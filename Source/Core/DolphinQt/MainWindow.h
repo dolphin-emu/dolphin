@@ -81,7 +81,7 @@ class MainWindow final : public QMainWindow
 public:
   explicit MainWindow(Core::System& system, std::unique_ptr<BootParameters> boot_parameters,
                       const std::string& movie_path);
-  ~MainWindow();
+  ~MainWindow() override;
 
   WindowSystemInfo GetWindowSystemInfo() const;
 

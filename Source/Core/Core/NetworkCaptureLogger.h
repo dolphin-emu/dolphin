@@ -86,7 +86,7 @@ class PCAPSSLCaptureLogger final : public NetworkCaptureLogger
 {
 public:
   PCAPSSLCaptureLogger();
-  ~PCAPSSLCaptureLogger();
+  ~PCAPSSLCaptureLogger() override;
 
   void OnNewSocket(s32 socket) override;
 

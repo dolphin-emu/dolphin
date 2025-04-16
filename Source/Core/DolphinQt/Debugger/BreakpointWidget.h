@@ -31,7 +31,7 @@ class BreakpointWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit BreakpointWidget(QWidget* parent = nullptr);
-  ~BreakpointWidget();
+  ~BreakpointWidget() override;
 
   void AddBP(u32 addr);
   void AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const QString& condition);

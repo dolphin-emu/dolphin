@@ -23,7 +23,7 @@ class LogWidget final : public QDockWidget, Common::Log::LogListener
   Q_OBJECT
 public:
   explicit LogWidget(QWidget* parent = nullptr);
-  ~LogWidget();
+  ~LogWidget() override;
 
 protected:
   void closeEvent(QCloseEvent*) override;

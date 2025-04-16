@@ -32,7 +32,7 @@ protected:
     m_fs = IOS::HLE::Kernel{}.GetFS();
   }
 
-  virtual ~FileSystemTest()
+  ~FileSystemTest() override
   {
     if (UserDirectoryCreationFailed())
     {

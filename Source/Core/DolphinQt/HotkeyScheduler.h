@@ -16,7 +16,7 @@ class HotkeyScheduler : public QObject
   Q_OBJECT
 public:
   explicit HotkeyScheduler();
-  ~HotkeyScheduler();
+  ~HotkeyScheduler() override;
 
   void Start();
   void Stop();
