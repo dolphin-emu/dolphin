@@ -137,10 +137,14 @@ OpenSLESStream::~OpenSLESStream()
   }
 }
 
-bool OpenSLESStream::SetRunning(bool running)
+bool OpenSLESStream::Start()
 {
-  SLuint32 new_state = running ? SL_PLAYSTATE_PLAYING : SL_PLAYSTATE_PAUSED;
-  return (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, new_state) == SL_RESULT_SUCCESS;
+  return (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING) == SL_RESULT_SUCCESS;
+}
+
+bool OpenSLESStream::Stop()
+{
+  return (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PAUSED) == SL_RESULT_SUCCESS;
 }
 
 void OpenSLESStream::SetVolume(int volume)
