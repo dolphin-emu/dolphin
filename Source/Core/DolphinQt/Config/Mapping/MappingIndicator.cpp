@@ -169,7 +169,7 @@ SquareIndicator::SquareIndicator()
 MixedTriggersIndicator::MixedTriggersIndicator(ControllerEmu::MixedTriggers& group) : m_group(group)
 {
   setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Ignored);
-  setFixedHeight(TRIGGER_INDICATOR_HEIGHT * int(group.GetTriggerCount()) + 1);
+  setFixedHeight(TRIGGER_INDICATOR_HEIGHT * static_cast<int>(group.GetTriggerCount()) + 1);
 }
 
 namespace

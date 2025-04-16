@@ -332,7 +332,7 @@ void NetPlayServer::ThreadFunc()
 
           if (error != ConnectionError::NoError)
           {
-            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", u8(error),
+            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", static_cast<u8>(error),
                          netEvent.peer->address.host, netEvent.peer->address.port);
 
             sf::Packet spac;
@@ -397,7 +397,7 @@ void NetPlayServer::ThreadFunc()
         if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
           INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
         else
-          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", static_cast<int>(netEvent.type));
         break;
       }
     }
@@ -1141,7 +1141,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SyncSaveDataID sub_id;
     packet >> sub_id;
 
-    INFO_LOG_FMT(NETPLAY, "Got client SyncSaveData message: {:x} from client {}", u8(sub_id),
+    INFO_LOG_FMT(NETPLAY, "Got client SyncSaveData message: {:x} from client {}", static_cast<u8>(sub_id),
                  player.pid);
 
     switch (sub_id)
@@ -1198,7 +1198,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SyncCodeID sub_id;
     packet >> sub_id;
 
-    INFO_LOG_FMT(NETPLAY, "Got client SyncCodes message: {:x} from client {}", u8(sub_id),
+    INFO_LOG_FMT(NETPLAY, "Got client SyncCodes message: {:x} from client {}", static_cast<u8>(sub_id),
                  player.pid);
 
     // Check If Code Sync was successful or not

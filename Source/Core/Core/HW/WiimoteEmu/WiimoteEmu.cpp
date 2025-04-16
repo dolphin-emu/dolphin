@@ -461,14 +461,14 @@ GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
     const ControlState y = ir_passthrough->GetObjectPositionY(i);
 
     camera_points[i].position.x =
-        std::clamp(std::lround(x * ControlState(CameraLogic::CAMERA_RES_X - 1)), long(0),
-                   long(CameraLogic::CAMERA_RES_X - 1));
+        std::clamp(std::lround(x * static_cast<ControlState>(CameraLogic::CAMERA_RES_X - 1)),
+                   static_cast<long>(0), static_cast<long>(CameraLogic::CAMERA_RES_X - 1));
     camera_points[i].position.y =
-        std::clamp(std::lround(y * ControlState(CameraLogic::CAMERA_RES_Y - 1)), long(0),
-                   long(CameraLogic::CAMERA_RES_Y - 1));
+        std::clamp(std::lround(y * static_cast<ControlState>(CameraLogic::CAMERA_RES_Y - 1)),
+                   static_cast<long>(0), static_cast<long>(CameraLogic::CAMERA_RES_Y - 1));
     camera_points[i].size =
-        std::clamp(std::lround(size * ControlState(CameraLogic::MAX_POINT_SIZE)), long(0),
-                   long(CameraLogic::MAX_POINT_SIZE));
+        std::clamp(std::lround(size * static_cast<ControlState>(CameraLogic::MAX_POINT_SIZE)),
+                   static_cast<long>(0), static_cast<long>(CameraLogic::MAX_POINT_SIZE));
   }
 
   return camera_points;
@@ -506,7 +506,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
     target_state->camera_points = CameraLogic::GetCameraPoints(
         GetTotalTransformation(),
         Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
-            float(MathUtil::TAU));
+            static_cast<float>(MathUtil::TAU));
   }
   else
   {
@@ -629,7 +629,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     {
       // This happens when IR reporting is enabled but the camera hardware is disabled.
       // It commonly occurs when changing IR sensitivity.
-      std::fill_n(ir_data, ir_size, u8(0xff));
+      std::fill_n(ir_data, ir_size, static_cast<u8>(0xff));
     }
   }
 
@@ -656,7 +656,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
                                       ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
     {
       // Real wiimote seems to fill with 0xff on failed bus read
-      std::fill_n(ext_data, ext_size, u8(0xff));
+      std::fill_n(ext_data, ext_size, static_cast<u8>(0xff));
     }
   }
 
@@ -870,8 +870,8 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
 
 Common::Quaternion Wiimote::GetOrientation() const
 {
-  return Common::Quaternion::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
-         Common::Quaternion::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
+  return Common::Quaternion::RotateZ(static_cast<float>(MathUtil::TAU / -4 * IsSideways())) *
+         Common::Quaternion::RotateX(static_cast<float>(MathUtil::TAU / 4 * IsUpright()));
 }
 
 std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
@@ -943,7 +943,7 @@ Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::
 
 Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  const Common::Vec3 default_accel = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION));
+  const Common::Vec3 default_accel = Common::Vec3(0, 0, static_cast<float>(GRAVITY_ACCELERATION));
   const Common::Vec3 accel = m_imu_accelerometer->GetState().value_or(default_accel);
 
   return OverrideVec3(m_imu_accelerometer, GetAcceleration(accel));

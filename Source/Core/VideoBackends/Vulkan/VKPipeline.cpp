@@ -55,7 +55,7 @@ GetVulkanRasterizationState(const RasterizationState& state)
       depth_clamp,           // VkBool32                                  depthClampEnable
       VK_FALSE,              // VkBool32                                  rasterizerDiscardEnable
       VK_POLYGON_MODE_FILL,  // VkPolygonMode                             polygonMode
-      cull_modes[u32(state.cullmode.Value())],  // VkCullModeFlags        cullMode
+      cull_modes[static_cast<u32>(state.cullmode.Value())],  // VkCullModeFlags        cullMode
       VK_FRONT_FACE_CLOCKWISE,                  // VkFrontFace            frontFace
       VK_FALSE,  // VkBool32                                              depthBiasEnable
       0.0f,      // float                                                 depthBiasConstantFactor
@@ -224,7 +224,7 @@ GetVulkanColorBlendState(const BlendingState& state,
   }
 
   VkLogicOp vk_logic_op =
-      vk_logic_op_enable ? vk_logic_ops[u32(state.logicmode.Value())] : VK_LOGIC_OP_CLEAR;
+      vk_logic_op_enable ? vk_logic_ops[static_cast<u32>(state.logicmode.Value())] : VK_LOGIC_OP_CLEAR;
 
   VkPipelineColorBlendStateCreateInfo vk_state = {
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType

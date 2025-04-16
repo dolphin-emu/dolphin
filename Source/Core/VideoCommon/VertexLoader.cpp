@@ -37,20 +37,20 @@ static void TexMtx_ReadDirect_UByte(VertexLoader* loader)
 
 static void TexMtx_Write_Float(VertexLoader* loader)
 {
-  DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
+  DataWrite(static_cast<float>(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
 static void TexMtx_Write_Float2(VertexLoader* loader)
 {
   DataWrite(0.f);
-  DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
+  DataWrite(static_cast<float>(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
 static void TexMtx_Write_Float3(VertexLoader* loader)
 {
   DataWrite(0.f);
   DataWrite(0.f);
-  DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
+  DataWrite(static_cast<float>(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
 static void SkipVertex(VertexLoader* loader)

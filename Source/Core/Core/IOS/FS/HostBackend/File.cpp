@@ -124,7 +124,7 @@ Result<u32> HostFileSystem::ReadBytesFromFile(Fd fd, u8* ptr, u32 count)
   if (!handle || !handle->host_file->IsOpen())
     return ResultCode::Invalid;
 
-  if ((u8(handle->mode) & u8(Mode::Read)) == 0)
+  if ((static_cast<u8>(handle->mode) & static_cast<u8>(Mode::Read)) == 0)
     return ResultCode::AccessDenied;
 
   const u32 file_size = static_cast<u32>(handle->host_file->GetSize());
@@ -151,7 +151,7 @@ Result<u32> HostFileSystem::WriteBytesToFile(Fd fd, const u8* ptr, u32 count)
   if (!handle || !handle->host_file->IsOpen())
     return ResultCode::Invalid;
 
-  if ((u8(handle->mode) & u8(Mode::Write)) == 0)
+  if ((static_cast<u8>(handle->mode) & static_cast<u8>(Mode::Write)) == 0)
     return ResultCode::AccessDenied;
 
   // File might be opened twice, need to seek before we read

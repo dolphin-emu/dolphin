@@ -235,7 +235,7 @@ std::wstring GetDeviceProperty(const HDEVINFO& device_info, const PSP_DEVINFO_DA
 int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t len, DWORD* written)
 {
   const BOOLEAN result =
-      pHidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, (ULONG)(len - 1));
+      pHidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, static_cast<ULONG>(len - 1));
   if (!result)
   {
     const DWORD err = GetLastError();
@@ -254,7 +254,7 @@ int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t len, DWO
 
   if (written)
   {
-    *written = (result ? (DWORD)len : 0);
+    *written = (result ? static_cast<DWORD>(len) : 0);
   }
 
   return result;
@@ -265,7 +265,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
 {
   DWORD bytes_written;
   LPCVOID write_buffer = buf + 1;
-  DWORD bytes_to_write = (DWORD)(len - 1);
+  DWORD bytes_to_write = static_cast<DWORD>(len - 1);
 
   u8 resized_buffer[MAX_PAYLOAD];
 
@@ -368,7 +368,7 @@ bool GetParentDevice(const DEVINST& child_device_instance, HDEVINFO* parent_devi
 
   // Get the device id of the parent, required to open the device info
   result =
-      CM_Get_Device_ID(parent_device, parent_device_id.data(), (ULONG)parent_device_id.size(), 0);
+      CM_Get_Device_ID(parent_device, parent_device_id.data(), static_cast<ULONG>(parent_device_id.size()), 0);
   if (result != CR_SUCCESS)
   {
     return false;
@@ -467,7 +467,7 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
   Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
 
   u8 buf[MAX_PAYLOAD];
-  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, static_cast<u8>(OutputReportID::RequestStatus), 0};
   int invalid_report_count = 0;
   int rc = WriteToHandle(dev_handle, method, req_status_report, sizeof(req_status_report));
   while (rc > 0)
@@ -476,7 +476,7 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
     if (rc <= 0)
       break;
 
-    switch (InputReportID(buf[1]))
+    switch (static_cast<InputReportID>(buf[1]))
     {
     case InputReportID::Status:
       return true;

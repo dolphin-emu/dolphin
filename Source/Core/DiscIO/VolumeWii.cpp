@@ -41,8 +41,8 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
 {
   ASSERT(m_reader);
 
-  m_has_hashes = m_reader->ReadSwapped<u8>(0x60) == u8(0);
-  m_has_encryption = m_reader->ReadSwapped<u8>(0x61) == u8(0);
+  m_has_hashes = m_reader->ReadSwapped<u8>(0x60) == static_cast<u8>(0);
+  m_has_encryption = m_reader->ReadSwapped<u8>(0x61) == static_cast<u8>(0);
 
   if (m_has_encryption && !m_has_hashes)
     ERROR_LOG_FMT(DISCIO, "Wii disc has encryption but no hashes! This probably won't work well");

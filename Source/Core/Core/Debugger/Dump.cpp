@@ -33,7 +33,7 @@ CDump::~CDump()
 
 int CDump::GetNumberOfSteps()
 {
-  return (int)(m_size / STRUCTUR_SIZE);
+  return static_cast<int>(m_size / STRUCTUR_SIZE);
 }
 
 u32 CDump::GetGPR(int _step, int _gpr)

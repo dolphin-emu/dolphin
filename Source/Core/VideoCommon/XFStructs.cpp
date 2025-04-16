@@ -100,7 +100,7 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
       break;
 
     case XFMEM_DUALTEX:
-      if (xfmem.dualTexTrans.enabled != bool(value & 1))
+      if (xfmem.dualTexTrans.enabled != static_cast<bool>(value & 1))
         g_vertex_manager->Flush();
       xf_state_manager.SetTexMatrixInfoChanged(-1);
       break;

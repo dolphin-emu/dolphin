@@ -65,7 +65,7 @@ void SetIPIdentification(u8* ptr, std::size_t size, u16 value)
 
   u8* const ip_checksum_ptr = ip_ptr + offsetof(Common::IPv4Header, header_checksum);
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(ip_checksum_ptr);
-  checksum_bitcast_ptr = u16(0);
+  checksum_bitcast_ptr = static_cast<u16>(0);
   checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 }
 }  // namespace

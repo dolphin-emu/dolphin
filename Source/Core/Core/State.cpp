@@ -260,7 +260,7 @@ struct SlotWithTimestamp
 // returns first slot number not in the vector, or -1 if all are in the vector
 static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 {
-  for (int i = 1; i <= (int)NUM_STATES; i++)
+  for (int i = 1; i <= static_cast<int>(NUM_STATES); i++)
   {
     if (!Common::Contains(used_slots, i, &SlotWithTimestamp::slot))
       return i;
@@ -298,7 +298,7 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
 {
   std::vector<SlotWithTimestamp> result;
   StateHeader header;
-  for (int i = 1; i <= (int)NUM_STATES; i++)
+  for (int i = 1; i <= static_cast<int>(NUM_STATES); i++)
   {
     std::string filename = MakeStateFilename(i);
     if (File::Exists(filename))
@@ -689,7 +689,7 @@ static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f
     }
 
     u32 max_decompress_size =
-        static_cast<u32>(std::min((u64)LZ4_MAX_INPUT_SIZE, size - total_bytes_read));
+        static_cast<u32>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), size - total_bytes_read));
 
     int bytes_read = LZ4_decompress_safe(
         compressed_data.get(), reinterpret_cast<char*>(raw_buffer.data()) + total_bytes_read,

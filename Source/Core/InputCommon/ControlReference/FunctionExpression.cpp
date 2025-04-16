@@ -487,7 +487,7 @@ class TapExpression : public FunctionExpression
 
     const bool is_time_up = elapsed > seconds;
 
-    const u32 desired_taps = GetArgCount() == 3 ? u32(GetArg(2).GetValue() + 0.5) : 2;
+    const u32 desired_taps = GetArgCount() == 3 ? static_cast<u32>(GetArg(2).GetValue() + 0.5) : 2;
 
     if (input < CONDITION_THRESHOLD)
     {
@@ -718,7 +718,7 @@ Expression& FunctionExpression::GetArg(u32 number)
 
 u32 FunctionExpression::GetArgCount() const
 {
-  return u32(m_args.size());
+  return static_cast<u32>(m_args.size());
 }
 
 void FunctionExpression::SetValue(ControlState)

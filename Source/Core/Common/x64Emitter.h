@@ -130,38 +130,38 @@ struct OpArg
   u32 Imm32() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM32);
-    return (u32)offset;
+    return static_cast<u32>(offset);
   }
   u16 Imm16() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM16);
-    return (u16)offset;
+    return static_cast<u16>(offset);
   }
   u8 Imm8() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM8);
-    return (u8)offset;
+    return static_cast<u8>(offset);
   }
 
   s64 SImm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);
-    return (s64)offset;
+    return static_cast<s64>(offset);
   }
   s32 SImm32() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM32);
-    return (s32)offset;
+    return static_cast<s32>(offset);
   }
   s16 SImm16() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM16);
-    return (s16)offset;
+    return static_cast<s16>(offset);
   }
   s8 SImm8() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM8);
-    return (s8)offset;
+    return static_cast<s8>(offset);
   }
 
   OpArg AsImm64() const
@@ -172,17 +172,17 @@ struct OpArg
   OpArg AsImm32() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u32)offset, SCALE_IMM32);
+    return OpArg(static_cast<u32>(offset), SCALE_IMM32);
   }
   OpArg AsImm16() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u16)offset, SCALE_IMM16);
+    return OpArg(static_cast<u16>(offset), SCALE_IMM16);
   }
   OpArg AsImm8() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u8)offset, SCALE_IMM8);
+    return OpArg(static_cast<u8>(offset), SCALE_IMM8);
   }
 
   constexpr bool IsImm() const
@@ -244,7 +244,7 @@ private:
 template <typename T>
 inline OpArg M(const T* ptr)
 {
-  return OpArg((u64)(const void*)ptr, (int)SCALE_RIP);
+  return OpArg((u64) static_cast<const void*>(ptr), (int)SCALE_RIP);
 }
 constexpr OpArg R(X64Reg value)
 {
@@ -308,7 +308,7 @@ inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
     return 0;
   }
 
-  return (u32)distance;
+  return static_cast<u32>(distance);
 }
 
 struct FixupBranch

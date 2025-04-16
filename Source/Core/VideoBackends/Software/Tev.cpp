@@ -39,20 +39,20 @@ void Tev::SetRasColor(RasColorChan colorChan, u32 swaptable)
   {
     const u8* color = Color[0];
     const auto& swap = bpmem.tevksel.GetSwapTable(swaptable);
-    RasColor.r = color[u32(swap[ColorChannel::Red])];
-    RasColor.g = color[u32(swap[ColorChannel::Green])];
-    RasColor.b = color[u32(swap[ColorChannel::Blue])];
-    RasColor.a = color[u32(swap[ColorChannel::Alpha])];
+    RasColor.r = color[static_cast<u32>(swap[ColorChannel::Red])];
+    RasColor.g = color[static_cast<u32>(swap[ColorChannel::Green])];
+    RasColor.b = color[static_cast<u32>(swap[ColorChannel::Blue])];
+    RasColor.a = color[static_cast<u32>(swap[ColorChannel::Alpha])];
   }
   break;
   case RasColorChan::Color1:
   {
     const u8* color = Color[1];
     const auto& swap = bpmem.tevksel.GetSwapTable(swaptable);
-    RasColor.r = color[u32(swap[ColorChannel::Red])];
-    RasColor.g = color[u32(swap[ColorChannel::Green])];
-    RasColor.b = color[u32(swap[ColorChannel::Blue])];
-    RasColor.a = color[u32(swap[ColorChannel::Alpha])];
+    RasColor.r = color[static_cast<u32>(swap[ColorChannel::Red])];
+    RasColor.g = color[static_cast<u32>(swap[ColorChannel::Green])];
+    RasColor.b = color[static_cast<u32>(swap[ColorChannel::Blue])];
+    RasColor.a = color[static_cast<u32>(swap[ColorChannel::Alpha])];
   }
   break;
   case RasColorChan::AlphaBump:
@@ -386,8 +386,8 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
 void Tev::Draw()
 {
-  ASSERT(Position[0] >= 0 && Position[0] < s32(EFB_WIDTH));
-  ASSERT(Position[1] >= 0 && Position[1] < s32(EFB_HEIGHT));
+  ASSERT(Position[0] >= 0 && Position[0] < static_cast<s32>(EFB_WIDTH));
+  ASSERT(Position[1] >= 0 && Position[1] < static_cast<s32>(EFB_HEIGHT));
 
   INCSTAT(g_stats.this_frame.tev_pixels_in);
 
@@ -465,16 +465,16 @@ void Tev::Draw()
         std::memset(texel, 0, 4);
       }
 
-      RawTexColor.r = texel[u32(ColorChannel::Red)];
-      RawTexColor.g = texel[u32(ColorChannel::Green)];
-      RawTexColor.b = texel[u32(ColorChannel::Blue)];
-      RawTexColor.a = texel[u32(ColorChannel::Alpha)];
+      RawTexColor.r = texel[static_cast<u32>(ColorChannel::Red)];
+      RawTexColor.g = texel[static_cast<u32>(ColorChannel::Green)];
+      RawTexColor.b = texel[static_cast<u32>(ColorChannel::Blue)];
+      RawTexColor.a = texel[static_cast<u32>(ColorChannel::Alpha)];
 
       const auto& swap = bpmem.tevksel.GetSwapTable(ac.tswap);
-      TexColor.r = texel[u32(swap[ColorChannel::Red])];
-      TexColor.g = texel[u32(swap[ColorChannel::Green])];
-      TexColor.b = texel[u32(swap[ColorChannel::Blue])];
-      TexColor.a = texel[u32(swap[ColorChannel::Alpha])];
+      TexColor.r = texel[static_cast<u32>(swap[ColorChannel::Red])];
+      TexColor.g = texel[static_cast<u32>(swap[ColorChannel::Green])];
+      TexColor.b = texel[static_cast<u32>(swap[ColorChannel::Blue])];
+      TexColor.a = texel[static_cast<u32>(swap[ColorChannel::Alpha])];
     }
 
     // set konst for this stage
@@ -541,8 +541,8 @@ void Tev::Draw()
   // regardless of the used destination register - TODO: Verify!
   const auto& color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
   const auto& alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
-  u8 output[4] = {(u8)Reg[alpha_index].a, (u8)Reg[color_index].b, (u8)Reg[color_index].g,
-                  (u8)Reg[color_index].r};
+  u8 output[4] = {static_cast<u8>(Reg[alpha_index].a), static_cast<u8>(Reg[color_index].b), static_cast<u8>(Reg[color_index].g),
+                  static_cast<u8>(Reg[color_index].r)};
 
   if (!TevAlphaTest(output[ALP_C]))
     return;
@@ -611,7 +611,7 @@ void Tev::Draw()
       floatindex = std::clamp(floatindex, 0.f, 9.f);  // TODO: This shouldn't be necessary!
 
       // Get the two closest integer indices, look up the corresponding samples
-      const int indexlower = (int)floatindex;
+      const int indexlower = static_cast<int>(floatindex);
       const int indexupper = indexlower + 1;
       // Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog
       // is too strong without the factor)
@@ -652,7 +652,7 @@ void Tev::Draw()
     }
 
     // lerp from output to fog color
-    const u32 fogInt = (u32)(fog * 256);
+    const u32 fogInt = static_cast<u32>(fog * 256);
     const u32 invFog = 256 - fogInt;
 
     output[RED_C] = (output[RED_C] * invFog + fogInt * bpmem.fog.color.r) >> 8;

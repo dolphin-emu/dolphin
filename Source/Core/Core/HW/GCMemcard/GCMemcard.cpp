@@ -435,7 +435,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
     return 0xFFFF;
 
   u16 block = GetActiveDirectory().m_dir_entries[index].m_first_block;
-  if (block > (u16)m_size_blocks)
+  if (block > static_cast<u16>(m_size_blocks))
     return 0xFFFF;
   return block;
 }
@@ -446,7 +446,7 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
     return 0xFFFF;
 
   u16 blocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
-  if (blocks > (u16)m_size_blocks)
+  if (blocks > static_cast<u16>(m_size_blocks))
     return 0xFFFF;
   return blocks;
 }
@@ -1043,7 +1043,7 @@ bool GCMemcard::Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_j
   m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(size_mbits);
 
   m_size_mb = size_mbits;
-  m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
+  m_size_blocks = static_cast<u32>(m_size_mb) * MBIT_TO_BLOCKS;
   m_data_blocks.clear();
   m_data_blocks.resize(m_size_blocks - MC_FST_BLOCKS);
 
@@ -1083,10 +1083,14 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   const auto [serial1, serial2] = cardheader.CalculateSerial();
 
   // set new serial numbers
-  *(u16*)&FileBuffer[1].m_block[0x0066] = Common::swap16(u16(Common::swap32(serial1) >> 16));
-  *(u16*)&FileBuffer[3].m_block[0x1580] = Common::swap16(u16(Common::swap32(serial2) >> 16));
-  *(u16*)&FileBuffer[1].m_block[0x0060] = Common::swap16(u16(Common::swap32(serial1) & 0xFFFF));
-  *(u16*)&FileBuffer[1].m_block[0x0200] = Common::swap16(u16(Common::swap32(serial2) & 0xFFFF));
+  *(u16*)&FileBuffer[1].m_block[0x0066] =
+      Common::swap16(static_cast<u16>(Common::swap32(serial1) >> 16));
+  *(u16*)&FileBuffer[3].m_block[0x1580] =
+      Common::swap16(static_cast<u16>(Common::swap32(serial2) >> 16));
+  *(u16*)&FileBuffer[1].m_block[0x0060] =
+      Common::swap16(static_cast<u16>(Common::swap32(serial1) & 0xFFFF));
+  *(u16*)&FileBuffer[1].m_block[0x0200] =
+      Common::swap16(static_cast<u16>(Common::swap32(serial2) & 0xFFFF));
 
   // calc 16-bit checksum
   for (i = 0x02; i < 0x8000; i++)
@@ -1104,7 +1108,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   }
 
   // set new checksum
-  *(u16*)&FileBuffer[0].m_block[0x00] = Common::swap16(u16(~chksum));
+  *(u16*)&FileBuffer[0].m_block[0x00] = Common::swap16(static_cast<u16>(~chksum));
 
   return 1;
 }
@@ -1210,7 +1214,7 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 siz
   for (int i = 0; i < 12; i++)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    data->m_serial[i] = (u8)(flash_id[i] + (u32)rand);
+    data->m_serial[i] = static_cast<u8>(flash_id[i] + static_cast<u32>(rand));
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     rand &= (u64)0x0000000000007fffULL;
   }

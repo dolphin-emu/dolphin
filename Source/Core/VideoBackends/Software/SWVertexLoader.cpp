@@ -109,11 +109,11 @@ void SWVertexLoader::SetFormat()
 template <typename T, typename I>
 static T ReadNormalized(I value)
 {
-  T casted = (T)value;
+  T casted = static_cast<T>(value);
   if (!std::numeric_limits<T>::is_integer && std::numeric_limits<I>::is_integer)
   {
     // normalize if non-float is converted to a float
-    casted *= (T)(1.0 / std::numeric_limits<I>::max());
+    casted *= static_cast<T>(1.0 / std::numeric_limits<I>::max());
   }
   return casted;
 }

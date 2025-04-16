@@ -152,7 +152,7 @@ void HardwareEFBInterface::PokeDepth(u16 x, u16 y, u32 poke_data)
     return;
 
   // Convert to floating-point depth.
-  float depth = float(poke_data & 0xFFFFFF) / 16777216.0f;
+  float depth = static_cast<float>(poke_data & 0xFFFFFF) / 16777216.0f;
   if (!g_backend_info.bSupportsReversedDepthRange)
     depth = 1.0f - depth;
 

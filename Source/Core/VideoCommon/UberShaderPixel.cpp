@@ -646,8 +646,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    ss.order = bpmem_tevorder(stage>>1);\n"
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable_tex_odd.StartBit() -
-                TwoTevStageOrders().enable_tex_even.StartBit()));
+            static_cast<int>(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                             TwoTevStageOrders().enable_tex_even.StartBit()));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)

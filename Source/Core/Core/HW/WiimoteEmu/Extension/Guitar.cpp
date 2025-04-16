@@ -83,7 +83,7 @@ Guitar::Guitar() : Extension1stParty(_trans("Guitar"))
   m_buttons->AddInput(Translatability::DoNotTranslate, "+");
 
   // stick
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  constexpr auto gate_radius = static_cast<ControlState>(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_stick =
                           new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 

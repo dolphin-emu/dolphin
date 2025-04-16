@@ -31,7 +31,7 @@ protected:
     // TODO: addr wraps around after 0xff
 
     u8* src = reinterpret_cast<u8*>(reg_data) + addr;
-    count = std::min(count, int(reinterpret_cast<u8*>(reg_data + 1) - src));
+    count = std::min(count, static_cast<int>(reinterpret_cast<u8*>(reg_data + 1) - src));
 
     std::copy_n(src, count, data_out);
 
@@ -47,7 +47,7 @@ protected:
     // TODO: addr wraps around after 0xff
 
     u8* dst = reinterpret_cast<u8*>(reg_data) + addr;
-    count = std::min(count, int(reinterpret_cast<u8*>(reg_data + 1) - dst));
+    count = std::min(count, static_cast<int>(reinterpret_cast<u8*>(reg_data + 1) - dst));
 
     std::copy_n(data_in, count, dst);
 

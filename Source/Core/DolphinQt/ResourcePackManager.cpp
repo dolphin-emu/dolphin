@@ -126,7 +126,7 @@ void ResourcePackManager::RepopulateTable()
     QPixmap logo;
 
     logo.loadFromData(reinterpret_cast<const uchar*>(pack.GetLogo().data()),
-                      (int)pack.GetLogo().size());
+                      static_cast<int>(pack.GetLogo().size()));
 
     logo_item->setIcon(QIcon(logo));
 

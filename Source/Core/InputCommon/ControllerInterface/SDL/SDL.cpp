@@ -1010,7 +1010,7 @@ ControlState GameController::Button::GetState() const
 
 ControlState GameController::Axis::GetState() const
 {
-  return ControlState(SDL_GameControllerGetAxis(m_gc, m_axis)) / m_range;
+  return static_cast<ControlState>(SDL_GameControllerGetAxis(m_gc, m_axis)) / m_range;
 }
 
 bool GameController::Button::IsMatchingName(std::string_view name) const
@@ -1036,7 +1036,7 @@ bool GameController::Button::IsMatchingName(std::string_view name) const
     return name == GetLegacyButtonName(bind.value.button);
   case SDL_CONTROLLER_BINDTYPE_HAT:
     return name == GetLegacyHatName(bind.value.hat.hat,
-                                    GetDirectionFromHatMask(u8(bind.value.hat.hat_mask)));
+                                    GetDirectionFromHatMask(static_cast<u8>(bind.value.hat.hat_mask)));
   default:
     return false;
   }
@@ -1057,7 +1057,7 @@ ControlState GameController::LegacyButton::GetState() const
 
 ControlState GameController::LegacyAxis::GetState() const
 {
-  return ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range;
+  return static_cast<ControlState>(SDL_JoystickGetAxis(m_js, m_index)) / m_range;
 }
 
 ControlState GameController::LegacyHat::GetState() const
@@ -1180,7 +1180,7 @@ void GameController::HapticEffect::SetState(ControlState state)
   // Maximum force value for all SDL effects:
   constexpr s16 MAX_FORCE_VALUE = 0x7fff;
 
-  if (UpdateParameters(s16(state * MAX_FORCE_VALUE)))
+  if (UpdateParameters(static_cast<s16>(state * MAX_FORCE_VALUE)))
   {
     UpdateEffect();
   }

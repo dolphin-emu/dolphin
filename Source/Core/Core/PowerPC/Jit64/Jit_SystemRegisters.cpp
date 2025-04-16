@@ -520,9 +520,9 @@ void Jit64::mtcrf(UGeckoInstruction inst)
         {
           u8 newcr = (gpr.Imm32(inst.RS) >> (28 - (i * 4))) & 0xF;
           u64 newcrval = PowerPC::ConditionRegister::PPCToInternal(newcr);
-          if ((s64)newcrval == (s32)newcrval)
+          if (static_cast<s64>(newcrval) == static_cast<s32>(newcrval))
           {
-            MOV(64, CROffset(i), Imm32((s32)newcrval));
+            MOV(64, CROffset(i), Imm32(static_cast<s32>(newcrval)));
           }
           else
           {

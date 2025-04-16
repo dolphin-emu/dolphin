@@ -496,7 +496,7 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
   const auto& wiimote = *iter;
 
   SQueuedEvent event(
-      u32(sizeof(SHCIEventInquiryResult) + num_responses * sizeof(hci_inquiry_response)), 0);
+      static_cast<u32>(sizeof(SHCIEventInquiryResult) + num_responses * sizeof(hci_inquiry_response)), 0);
 
   const auto inquiry_result = reinterpret_cast<SHCIEventInquiryResult*>(event.buffer);
   inquiry_result->EventType = HCI_EVENT_INQUIRY_RESULT;
@@ -518,8 +518,8 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
                 response->bdaddr[5]);
 
   inquiry_result->PayloadLength =
-      u8(sizeof(SHCIEventInquiryResult) - 2 +
-         (inquiry_result->num_responses * sizeof(hci_inquiry_response)));
+      static_cast<u8>(sizeof(SHCIEventInquiryResult) - 2 +
+                      (inquiry_result->num_responses * sizeof(hci_inquiry_response)));
 
   AddEventToQueue(event);
   SendEventInquiryComplete(num_responses);
@@ -739,7 +739,7 @@ void BluetoothEmuDevice::SendEventCommandComplete(u16 opcode, const void* data, 
 
   SHCIEventCommand* hci_event = reinterpret_cast<SHCIEventCommand*>(event.buffer);
   hci_event->EventType = HCI_EVENT_COMMAND_COMPL;
-  hci_event->PayloadLength = (u8)(sizeof(SHCIEventCommand) - 2 + data_size);
+  hci_event->PayloadLength = static_cast<u8>(sizeof(SHCIEventCommand) - 2 + data_size);
   hci_event->PacketIndicator = 0x01;
   hci_event->Opcode = opcode;
 

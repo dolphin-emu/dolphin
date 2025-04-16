@@ -176,7 +176,7 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
     // offsets with the wrong sign, so whatever.  Since the original code
     // *could* try to wrap an address around, however, this is the correct
     // place to address the issue.)
-    if ((u32)offset >= 0x1000)
+    if (static_cast<u32>(offset) >= 0x1000)
     {
       // This method can potentially clobber the address if it shares a register
       // with the load target. In this case we can just subtract offset from the
@@ -535,12 +535,12 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   {
     if (flags & SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR)
     {
-      LEA(32, RSCRATCH, MDisp(reg_addr, (u32)offset));
+      LEA(32, RSCRATCH, MDisp(reg_addr, static_cast<u32>(offset)));
       reg_addr = RSCRATCH;
     }
     else
     {
-      ADD(32, R(reg_addr), Imm32((u32)offset));
+      ADD(32, R(reg_addr), Imm32(static_cast<u32>(offset)));
     }
   }
 

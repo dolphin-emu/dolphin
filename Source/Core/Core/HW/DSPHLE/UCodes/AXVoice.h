@@ -368,7 +368,7 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
     s64 sample = input[i];
     sample *= volume;
     sample >>= 15;
-    s16 sample16 = ClampS16((s32)sample);
+    s16 sample16 = ClampS16(static_cast<s32>(sample));
 
     out[i] += sample16;
     volume += volume_delta;
@@ -381,7 +381,8 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
 static void LowPassFilter(s16* samples, u32 count, PBLowPassFilter& f)
 {
   for (u32 i = 0; i < count; ++i)
-    f.yn1 = samples[i] = ClampS16((f.a0 * (s32)samples[i] + f.b0 * (s32)f.yn1) >> 15);
+    f.yn1 = samples[i] =
+      ClampS16((f.a0 * static_cast<s32>(samples[i]) + f.b0 * static_cast<s32>(f.yn1)) >> 15);
 }
 
 #ifdef AX_WII
@@ -436,7 +437,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     // unsigned on Wii
     const s32 volume = (u16)pb.vol_env.cur_volume;
 #endif
-    const s32 sample = ((s32)samples[i] * volume) >> 15;
+    const s32 sample = (static_cast<s32>(samples[i]) * volume) >> 15;
     samples[i] = ClampS16(sample);
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }

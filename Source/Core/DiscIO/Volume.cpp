@@ -117,7 +117,7 @@ static std::unique_ptr<VolumeWAD> TryCreateWAD(std::unique_ptr<BlobReader>& read
   // Check for WAD
   // 0x206962 for boot2 wads
   const std::optional<u32> wad_magic = reader->ReadSwapped<u32>(0x02);
-  if (wad_magic == u32(0x00204973) || wad_magic == u32(0x00206962))
+  if (wad_magic == static_cast<u32>(0x00204973) || wad_magic == static_cast<u32>(0x00206962))
     return std::make_unique<VolumeWAD>(std::move(reader));
 
   // No known magic words found

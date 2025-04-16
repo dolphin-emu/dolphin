@@ -196,8 +196,8 @@ void ControlExpressionSyntaxHighlighter::Highlight(QTextDocument* document)
 
     for (auto& token : tokens)
     {
-      int token_length = int(token.string_length);
-      int token_start = int(token.string_position) - block_position;
+      int token_length = static_cast<int>(token.string_length);
+      int token_start = static_cast<int>(token.string_position) - block_position;
       if (token_start < 0)
       {
         token_length += token_start;

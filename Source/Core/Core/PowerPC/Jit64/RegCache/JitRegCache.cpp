@@ -649,7 +649,7 @@ float RegCache::ScoreRegister(X64Reg xreg) const
     u32 regs_in_count = CountRegsIn(preg, lookahead).Count();
     // Totally ad-hoc heuristic to bias based on how many other registers we'll need
     // before this one gets used again.
-    score += 1 + 2 * (5 - log2f(1 + (float)regs_in_count));
+    score += 1 + 2 * (5 - log2f(1 + static_cast<float>(regs_in_count)));
   }
 
   return score;

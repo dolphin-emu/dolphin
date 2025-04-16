@@ -43,7 +43,7 @@ u16 CMailHandler::ReadDSPMailboxHigh()
   {
     m_last_mail = m_pending_mails.front().first;
   }
-  return u16(m_last_mail >> 0x10);
+  return static_cast<u16>(m_last_mail >> 0x10);
 }
 
 u16 CMailHandler::ReadDSPMailboxLow()
@@ -66,7 +66,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
   // (The CPU reads the high word first, and then the low word; since this function returns the low
   // word, this means that the next read of the high word will have the top bit cleared.)
   m_last_mail &= ~0x8000'0000;
-  return u16(m_last_mail & 0xffff);
+  return static_cast<u16>(m_last_mail & 0xffff);
 }
 
 void CMailHandler::ClearPending()

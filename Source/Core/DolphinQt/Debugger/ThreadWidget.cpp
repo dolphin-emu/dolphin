@@ -481,7 +481,7 @@ void ThreadWidget::OnSelectionChanged(int row)
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   Common::Debug::PartialContext context;
 
-  if (row >= 0 && size_t(row) < m_threads.size())
+  if (row >= 0 && static_cast<size_t>(row) < m_threads.size())
     context = m_threads[row]->GetContext(guard);
 
   UpdateThreadContext(context);

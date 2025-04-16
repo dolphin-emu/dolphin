@@ -53,11 +53,11 @@ void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_st
   const u16 stylus_x = MapFloat<u16>(stylus_state.x, CENTER_X, MIN_X, MAX_X);
   const u16 stylus_y = MapFloat<u16>(-stylus_state.y, CENTER_Y, MAX_Y, MIN_Y);
 
-  tablet_data.stylus_x1 = u8(stylus_x);
-  tablet_data.stylus_x2 = u8(stylus_x >> 8);
+  tablet_data.stylus_x1 = static_cast<u8>(stylus_x);
+  tablet_data.stylus_x2 = static_cast<u8>(stylus_x >> 8);
 
-  tablet_data.stylus_y1 = u8(stylus_y);
-  tablet_data.stylus_y2 = u8(stylus_y >> 8);
+  tablet_data.stylus_y1 = static_cast<u8>(stylus_y);
+  tablet_data.stylus_y2 = static_cast<u8>(stylus_y >> 8);
 
   const auto touch_state = m_touch->GetState(m_input_override_function);
 
@@ -79,8 +79,8 @@ void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_st
 
   const u16 pressure = MapFloat<u16>(touch_state.data[0], 0, 0, MAX_PRESSURE);
 
-  tablet_data.pressure1 = u8(pressure);
-  tablet_data.pressure2 = u8(pressure >> 8);
+  tablet_data.pressure1 = static_cast<u8>(pressure);
+  tablet_data.pressure2 = static_cast<u8>(pressure >> 8);
 }
 
 void DrawsomeTablet::Update(const DesiredExtensionState& target_state)

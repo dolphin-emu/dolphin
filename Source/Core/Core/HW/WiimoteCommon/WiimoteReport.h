@@ -209,7 +209,8 @@ struct InputReportStatus
   }
   void SetEstimatedCharge(float charge)
   {
-    battery = u8(std::lround((charge - BATTERY_LEVEL_B) / BATTERY_LEVEL_M * BATTERY_MAX));
+    battery =
+        static_cast<u8>(std::lround((charge - BATTERY_LEVEL_B) / BATTERY_LEVEL_M * BATTERY_MAX));
   }
 
 private:

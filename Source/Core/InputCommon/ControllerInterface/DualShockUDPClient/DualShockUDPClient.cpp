@@ -74,7 +74,7 @@ private:
     std::string GetName() const final override { return m_name; }
     ControlState GetState() const final override
     {
-      return (ControlState(m_input) + m_offset) / m_range;
+      return (static_cast<ControlState>(m_input) + m_offset) / m_range;
     }
 
   private:
@@ -118,7 +118,7 @@ private:
       case BatteryState::Charged:
         return BATTERY_INPUT_MAX_VALUE;
       default:
-        return ControlState(m_battery) / ControlState(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
+        return static_cast<ControlState>(m_battery) / static_cast<ControlState>(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
       }
     }
 

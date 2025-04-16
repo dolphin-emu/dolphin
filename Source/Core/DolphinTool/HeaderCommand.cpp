@@ -78,14 +78,14 @@ int HeaderCommand(const std::vector<std::string>& args)
 
     // File data
     if (const u64 block_size = blob_reader->GetBlockSize())
-      json["block_size"] = picojson::value((double)block_size);
+      json["block_size"] = picojson::value(static_cast<double>(block_size));
 
     const std::string compression_method = blob_reader->GetCompressionMethod();
     if (compression_method != "")
       json["compression_method"] = picojson::value(compression_method);
 
     if (const std::optional<int> compression_level = blob_reader->GetCompressionLevel())
-      json["compression_level"] = picojson::value((double)compression_level.value());
+      json["compression_level"] = picojson::value(static_cast<double>(compression_level.value()));
 
     // Game data
     if (volume)
@@ -93,12 +93,12 @@ int HeaderCommand(const std::vector<std::string>& args)
       json["internal_name"] = picojson::value(volume->GetInternalName());
 
       if (const std::optional<u16> revision = volume->GetRevision())
-        json["revision"] = picojson::value((double)revision.value());
+        json["revision"] = picojson::value(static_cast<double>(revision.value()));
 
       json["game_id"] = picojson::value(volume->GetGameID());
 
       if (const std::optional<u64> title_id = volume->GetTitleID())
-        json["title_id"] = picojson::value((double)title_id.value());
+        json["title_id"] = picojson::value(static_cast<double>(title_id.value()));
 
       json["region"] = picojson::value(DiscIO::GetName(volume->GetRegion(), false));
 

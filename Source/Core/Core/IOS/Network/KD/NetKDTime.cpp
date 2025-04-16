@@ -101,7 +101,7 @@ u64 NetKDTimeDevice::GetAdjustedUTC() const
   if (gm_time.tm_isdst == 1)
     dst_diff = 3600;
 
-  return u64(s64(emulated_time) + utcdiff - dst_diff);
+  return static_cast<u64>(static_cast<s64>(emulated_time) + utcdiff - dst_diff);
 }
 
 void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
@@ -116,6 +116,6 @@ void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
   if (gm_time.tm_isdst == 1)
     dst_diff = 3600;
 
-  utcdiff = s64(emulated_time - wii_utc - dst_diff);
+  utcdiff = static_cast<s64>(emulated_time - wii_utc - dst_diff);
 }
 }  // namespace IOS::HLE

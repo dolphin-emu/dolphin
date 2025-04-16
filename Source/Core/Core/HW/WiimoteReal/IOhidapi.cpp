@@ -27,7 +27,7 @@ static bool IsDeviceUsable(const std::string& device_path)
   // Some third-party adapters (DolphinBar) always expose all four Wii Remotes as HIDs
   // even when they are not connected, which causes an endless error loop when we try to use them.
   // Try to write a report to the device to see if this Wii Remote is really usable.
-  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, static_cast<u8>(OutputReportID::RequestStatus), 0};
   const int result = hid_write(handle, report, sizeof(report));
   // The DolphinBar uses EPIPE to signal the absence of a Wii Remote connected to this HID.
   if (result == -1 && errno != EPIPE)

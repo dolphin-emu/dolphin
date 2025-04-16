@@ -622,7 +622,7 @@ void CheatSearchWidget::RecreateGUITable()
 
   const size_t result_count = m_session->GetResultCount();
   const bool too_many_results = result_count > TABLE_MAX_ROWS;
-  const int result_count_to_display = int(too_many_results ? TABLE_MAX_ROWS : result_count);
+  const int result_count_to_display = static_cast<int>(too_many_results ? TABLE_MAX_ROWS : result_count);
   m_address_table->setRowCount(result_count_to_display);
 
   for (int i = 0; i < result_count_to_display; ++i)

@@ -178,12 +178,12 @@ void NWC24Config::SetChecksum(u32 checksum)
 
 NWC24CreationStage NWC24Config::CreationStage() const
 {
-  return NWC24CreationStage(Common::swap32(u32(m_data.creation_stage)));
+  return static_cast<NWC24CreationStage>(Common::swap32(static_cast<u32>(m_data.creation_stage)));
 }
 
 void NWC24Config::SetCreationStage(NWC24CreationStage creation_stage)
 {
-  m_data.creation_stage = NWC24CreationStage(Common::swap32(u32(creation_stage)));
+  m_data.creation_stage = static_cast<NWC24CreationStage>(Common::swap32(static_cast<u32>(creation_stage)));
 }
 
 u32 NWC24Config::EnableBooting() const

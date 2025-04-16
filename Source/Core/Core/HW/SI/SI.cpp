@@ -162,7 +162,7 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
       std::ostringstream ss;
       for (u8 b : request_copy)
       {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b) << ' ';
       }
       DEBUG_LOG_FMT(
           SERIALINTERFACE,
@@ -360,7 +360,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   // In and out for the 4 SI channels.
-  for (u32 i = 0; i < u32(MAX_SI_CHANNELS); ++i)
+  for (u32 i = 0; i < static_cast<u32>(MAX_SI_CHANNELS); ++i)
   {
     // We need to clear the RDST bit for the SI channel when reading.
     const u32 clear_rdst = ~GetRDSTBit(i);

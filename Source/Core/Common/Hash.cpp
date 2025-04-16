@@ -137,36 +137,36 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
   switch (len & 15)
   {
   case 15:
-    k2 ^= u64(tail[14]) << 48;
+    k2 ^= static_cast<u64>(tail[14]) << 48;
   case 14:
-    k2 ^= u64(tail[13]) << 40;
+    k2 ^= static_cast<u64>(tail[13]) << 40;
   case 13:
-    k2 ^= u64(tail[12]) << 32;
+    k2 ^= static_cast<u64>(tail[12]) << 32;
   case 12:
-    k2 ^= u64(tail[11]) << 24;
+    k2 ^= static_cast<u64>(tail[11]) << 24;
   case 11:
-    k2 ^= u64(tail[10]) << 16;
+    k2 ^= static_cast<u64>(tail[10]) << 16;
   case 10:
-    k2 ^= u64(tail[9]) << 8;
+    k2 ^= static_cast<u64>(tail[9]) << 8;
   case 9:
-    k2 ^= u64(tail[8]) << 0;
+    k2 ^= static_cast<u64>(tail[8]) << 0;
 
   case 8:
-    k1 ^= u64(tail[7]) << 56;
+    k1 ^= static_cast<u64>(tail[7]) << 56;
   case 7:
-    k1 ^= u64(tail[6]) << 48;
+    k1 ^= static_cast<u64>(tail[6]) << 48;
   case 6:
-    k1 ^= u64(tail[5]) << 40;
+    k1 ^= static_cast<u64>(tail[5]) << 40;
   case 5:
-    k1 ^= u64(tail[4]) << 32;
+    k1 ^= static_cast<u64>(tail[4]) << 32;
   case 4:
-    k1 ^= u64(tail[3]) << 24;
+    k1 ^= static_cast<u64>(tail[3]) << 24;
   case 3:
-    k1 ^= u64(tail[2]) << 16;
+    k1 ^= static_cast<u64>(tail[2]) << 16;
   case 2:
-    k1 ^= u64(tail[1]) << 8;
+    k1 ^= static_cast<u64>(tail[1]) << 8;
   case 1:
-    k1 ^= u64(tail[0]) << 0;
+    k1 ^= static_cast<u64>(tail[0]) << 0;
     bmix64(h1, h2, k1, k2, c1, c2);
   };
 

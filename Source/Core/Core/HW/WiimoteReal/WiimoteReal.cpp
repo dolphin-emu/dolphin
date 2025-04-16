@@ -184,7 +184,7 @@ void Wiimote::WriteReport(Report rpt)
   {
     bool const new_rumble_state = (rpt[2] & 0x1) != 0;
 
-    switch (WiimoteCommon::OutputReportID(rpt[1]))
+    switch (static_cast<WiimoteCommon::OutputReportID>(rpt[1]))
     {
     case OutputReportID::Rumble:
       // If this is a rumble report and the rumble state didn't change, we can drop this report.
@@ -218,7 +218,7 @@ void Wiimote::QueueReport(WiimoteCommon::OutputReportID rpt_id, const void* data
 
   Report rpt(size + 2);
   rpt[0] = WR_SET_REPORT | BT_OUTPUT;
-  rpt[1] = u8(rpt_id);
+  rpt[1] = static_cast<u8>(rpt_id);
   std::copy_n(queue_data, size, rpt.begin() + 2);
   WriteReport(std::move(rpt));
 }
@@ -274,7 +274,7 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
 
   // Disallow games from turning off all of the LEDs.
   // It makes Wiimote connection status confusing.
-  if (rpt[1] == u8(OutputReportID::LED))
+  if (rpt[1] == static_cast<u8>(OutputReportID::LED))
   {
     auto& leds_rpt = *reinterpret_cast<OutputReportLeds*>(&rpt[2]);
     if (0 == leds_rpt.leds)
@@ -283,12 +283,12 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
       leds_rpt.leds = 0xf;
     }
   }
-  else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
+  else if (rpt[1] == static_cast<u8>(OutputReportID::SpeakerData) &&
            (!m_speaker_enabled_in_dolphin_config || !m_speaker_enable || m_speaker_mute))
   {
     rpt.resize(3);
     // Translate undesired speaker data reports into rumble reports.
-    rpt[1] = u8(OutputReportID::Rumble);
+    rpt[1] = static_cast<u8>(OutputReportID::Rumble);
     // Keep only the rumble bit.
     rpt[2] &= 0x1;
   }
@@ -359,10 +359,10 @@ bool Wiimote::IsBalanceBoard()
   // Initialise the extension by writing 0x55 to 0xa400f0, then writing 0x00 to 0xa400fb.
   // TODO: Use the structs for building these reports..
   static const u8 init_extension_rpt1[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
+      WR_SET_REPORT | BT_OUTPUT, static_cast<u8>(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
   static const u8 init_extension_rpt2[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
-  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus),
+      WR_SET_REPORT | BT_OUTPUT, static_cast<u8>(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
+  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, static_cast<u8>(OutputReportID::RequestStatus),
                                      0};
   if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
       !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
@@ -379,7 +379,7 @@ bool Wiimote::IsBalanceBoard()
     if (ret == -1)
       continue;
 
-    switch (InputReportID(buf[1]))
+    switch (static_cast<InputReportID>(buf[1]))
     {
     case InputReportID::Status:
     {
@@ -389,7 +389,7 @@ bool Wiimote::IsBalanceBoard()
         return false;
       // Read two bytes from 0xa400fe to identify the extension.
       static const u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
-                                            u8(OutputReportID::ReadData),
+                                            static_cast<u8>(OutputReportID::ReadData),
                                             0x04,
                                             0xa4,
                                             0x00,
@@ -431,7 +431,7 @@ bool Wiimote::IsBalanceBoard()
 
 static bool IsDataReport(const Report& rpt)
 {
-  return rpt.size() >= 2 && rpt[1] >= u8(InputReportID::ReportCore);
+  return rpt.size() >= 2 && rpt[1] >= static_cast<u8>(InputReportID::ReportCore);
 }
 
 bool Wiimote::GetNextReport(Report* report)
@@ -495,7 +495,7 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
     return;
 
   InterruptCallback(rpt.front(), rpt.data() + REPORT_HID_HEADER_SIZE,
-                    u32(rpt.size() - REPORT_HID_HEADER_SIZE));
+                    static_cast<u32>(rpt.size() - REPORT_HID_HEADER_SIZE));
 }
 
 ButtonData Wiimote::GetCurrentlyPressedButtons()
@@ -503,7 +503,7 @@ ButtonData Wiimote::GetCurrentlyPressedButtons()
   Report& rpt = m_last_input_report;
   if (rpt.size() >= 4)
   {
-    const auto mode = InputReportID(rpt[1]);
+    const auto mode = static_cast<InputReportID>(rpt[1]);
 
     // TODO: Button data could also be pulled out of non-data reports if really wanted.
     if (DataReportBuilder::IsValidMode(mode))
@@ -527,12 +527,12 @@ void Wiimote::Prepare()
 bool Wiimote::PrepareOnThread()
 {
   // Set reporting mode to non-continuous core buttons and turn on rumble.
-  u8 static const mode_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::ReportMode), 1,
-                                   u8(InputReportID::ReportCore)};
+  u8 static const mode_report[] = {WR_SET_REPORT | BT_OUTPUT, static_cast<u8>(OutputReportID::ReportMode), 1,
+                                   static_cast<u8>(InputReportID::ReportCore)};
 
   // Request status and turn off rumble.
   u8 static const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT,
-                                         u8(OutputReportID::RequestStatus), 0};
+                                         static_cast<u8>(OutputReportID::RequestStatus), 0};
 
   return IOWrite(mode_report, sizeof(mode_report)) &&
          (Common::SleepCurrentThread(200), IOWrite(req_status_report, sizeof(req_status_report)));
@@ -947,7 +947,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
 
   // Set LEDs.
   OutputReportLeds led_report = {};
-  led_report.leds = u8(1 << (i % WIIMOTE_BALANCE_BOARD));
+  led_report.leds = static_cast<u8>(1 << (i % WIIMOTE_BALANCE_BOARD));
   wm->QueueReport(led_report);
 
   {

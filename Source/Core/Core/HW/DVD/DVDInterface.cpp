@@ -235,9 +235,10 @@ void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = m_system.GetSystemTimers().GetTicksPerSecond() * s64(m_pending_blocks) *
-                     StreamADPCM::SAMPLES_PER_BLOCK * sample_rate_divisor /
-                     Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
+  s64 ticks_to_dtk = m_system.GetSystemTimers().GetTicksPerSecond() *
+                     static_cast<s64>(m_pending_blocks) *
+                     StreamADPCM::SAMPLES_PER_BLOCK *
+                     sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
