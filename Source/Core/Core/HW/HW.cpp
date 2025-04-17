@@ -82,9 +82,9 @@ void Shutdown(Core::System& system)
   system.GetCoreTiming().Shutdown();
 }
 
-void DoState(Core::System& system, PointerWrap& p)
+void DoState(Core::System& system, PointerWrap& p, bool delta)
 {
-  system.GetMemory().DoState(p);
+  system.GetMemory().DoState(p, delta);
   p.DoMarker("Memory");
   system.GetMemoryInterface().DoState(p);
   p.DoMarker("MemoryInterface");

@@ -8,6 +8,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -48,6 +49,7 @@ struct PhysicalMemoryRegion
   } flags;
   u32 shm_position;
   bool active;
+  bool track;
 };
 
 struct LogicalMemoryView
@@ -78,6 +80,7 @@ public:
   u32 GetExRamMask() const { return m_exram_mask; }
 
   bool IsAddressInFastmemArea(const u8* address) const;
+  bool IsAddressInEmulatedMemory(const u8* address) const;
   u8* GetPhysicalBase() const { return m_physical_base; }
   u8* GetLogicalBase() const { return m_logical_base; }
   u8* GetPhysicalPageMappingsBase() const { return m_physical_page_mappings_base; }
@@ -94,10 +97,11 @@ public:
   // Init and Shutdown
   bool IsInitialized() const { return m_is_initialized; }
   void Init();
+  void InitDirtyPages();
   void Shutdown();
   bool InitFastmemArena();
   void ShutdownFastmemArena();
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p, bool delta);
 
   void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
 
@@ -129,6 +133,13 @@ public:
   void Write_U64(u64 var, u32 address);
   void Write_U32_Swap(u32 var, u32 address);
   void Write_U64_Swap(u64 var, u32 address);
+
+  bool IsPageDirty(uintptr_t address);
+  void SetPageDirtyBit(uintptr_t address, size_t size, bool dirty);
+  void ResetDirtyPages();
+  bool HandleFault(uintptr_t fault_address);
+
+  std::map<u64, u8>& GetDirtyPages() { return m_dirty_pages; }
 
   // Templated functions for byteswapped copies.
   template <typename T>
@@ -253,6 +264,11 @@ private:
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
 
   Core::System& m_system;
+
+  std::map<u64, u8> m_dirty_pages;
+
+  u64 GetDirtyPageIndexFromAddress(u64 address);
+  void WriteProtectPhysicalMemoryRegions();
 
   void InitMMIO(bool is_wii);
 };

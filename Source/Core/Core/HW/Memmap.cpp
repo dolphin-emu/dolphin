@@ -47,6 +47,57 @@ MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 
 MemoryManager::~MemoryManager() = default;
 
+u64 MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
+{
+  const size_t page_size = Common::PageSize();
+  const size_t page_mask = page_size - 1;
+  return address & ~page_mask;
+}
+
+bool MemoryManager::HandleFault(uintptr_t fault_address)
+{
+  u8* fault_address_bytes = reinterpret_cast<u8*>(fault_address);
+  if (!IsAddressInEmulatedMemory(fault_address_bytes) || IsPageDirty(fault_address))
+  {
+    return false;
+  }
+  SetPageDirtyBit(fault_address, 0x1, true);
+  bool change_protection =
+      m_arena.VirtualProtectMemoryRegion(fault_address_bytes, 0x1, PAGE_READWRITE);
+
+  if (!change_protection)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+void MemoryManager::WriteProtectPhysicalMemoryRegions()
+{
+  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  {
+    if (!region.active || !region.track)
+      continue;
+
+    bool change_protection =
+        m_arena.VirtualProtectMemoryRegion((*region.out_pointer), region.size, PAGE_READONLY);
+
+    if (!change_protection)
+    {
+      PanicAlertFmt("Memory::WriteProtectPhysicalMemoryRegions(): Failed to write protect for "
+                    "this block of memory at 0x{:08X}.",
+                    reinterpret_cast<u64>(*region.out_pointer));
+    }
+    const size_t page_size = Common::PageSize();
+    const intptr_t out_pointer = reinterpret_cast<intptr_t>(*region.out_pointer);
+    for (size_t i = out_pointer; i < region.size; i += page_size)
+    {
+      m_dirty_pages[i] = false;
+    }
+  }
+}
+
 void MemoryManager::InitMMIO(bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
@@ -69,6 +120,11 @@ void MemoryManager::InitMMIO(bool is_wii)
     m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
     m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
   }
+}
+
+void MemoryManager::InitDirtyPages()
+{
+  WriteProtectPhysicalMemoryRegions();
 }
 
 void MemoryManager::Init()
@@ -95,13 +151,14 @@ void MemoryManager::Init()
   m_exram_mask = GetExRamSize() - 1;
 
   m_physical_regions[0] = PhysicalMemoryRegion{
-      &m_ram, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
+      &m_ram, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, 0, false, true};
   m_physical_regions[1] = PhysicalMemoryRegion{
-      &m_l1_cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
+      &m_l1_cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS, 0, false, false};
   m_physical_regions[2] = PhysicalMemoryRegion{
-      &m_fake_vmem, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0, false};
+      &m_fake_vmem, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0,
+      false,        false};
   m_physical_regions[3] = PhysicalMemoryRegion{
-      &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
+      &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false, true};
 
   const bool wii = m_system.IsWii();
   const bool mmu = m_system.IsMMUMode();
@@ -162,6 +219,21 @@ void MemoryManager::Init()
 bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
 {
   return address >= m_fastmem_arena && address < m_fastmem_arena + m_fastmem_arena_size;
+}
+
+bool MemoryManager::IsAddressInEmulatedMemory(const u8* address) const
+{
+  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  {
+    if (!region.active || !region.track)
+      continue;
+
+    if (address >= *region.out_pointer && address < *region.out_pointer + region.size)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool MemoryManager::InitFastmemArena()
@@ -290,7 +362,7 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
   }
 }
 
-void MemoryManager::DoState(PointerWrap& p)
+void MemoryManager::DoState(PointerWrap& p, bool delta)
 {
   const u32 current_ram_size = GetRamSize();
   const u32 current_l1_cache_size = GetL1CacheSize();
@@ -327,28 +399,60 @@ void MemoryManager::DoState(PointerWrap& p)
     p.SetVerifyMode();
     return;
   }
-
-  p.DoArray(m_ram, current_ram_size);
-  p.DoArray(m_l1_cache, current_l1_cache_size);
-  p.DoMarker("Memory RAM");
-  if (current_have_fake_vmem)
-    p.DoArray(m_fake_vmem, current_fake_vmem_size);
-  p.DoMarker("Memory FakeVMEM");
-  if (current_have_exram)
-    p.DoArray(m_exram, current_exram_size);
-  p.DoMarker("Memory EXRAM");
+  if (delta)
+  {
+    const u32 page_size = static_cast<u32>(Common::PageSize());
+    p.Do(m_dirty_pages);
+    for (size_t i = 0; i < current_ram_size; i += page_size)
+    {
+      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_ram[i])))
+      {
+        p.DoArray(m_ram + i, page_size);
+      }
+    }
+    p.DoArray(m_l1_cache, current_l1_cache_size);
+    p.DoMarker("Memory RAM");
+    if (current_have_fake_vmem)
+    {
+      p.DoArray(m_fake_vmem, current_fake_vmem_size);
+    }
+    p.DoMarker("Memory FakeVMEM");
+    if (current_have_exram)
+    {
+      for (size_t i = 0; i < current_exram_size; i += page_size)
+      {
+        if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_exram[i])))
+        {
+          p.DoArray(m_exram + i, page_size);
+        }
+      }
+    }
+    p.DoMarker("Memory EXRAM");
+  }
+  else
+  {
+    p.DoArray(m_ram, current_ram_size);
+    p.DoArray(m_l1_cache, current_l1_cache_size);
+    p.DoMarker("Memory RAM");
+    if (current_have_fake_vmem)
+      p.DoArray(m_fake_vmem, current_fake_vmem_size);
+    p.DoMarker("Memory FakeVMEM");
+    if (current_have_exram)
+      p.DoArray(m_exram, current_exram_size);
+    p.DoMarker("Memory EXRAM");
+  }
 }
 
 void MemoryManager::Shutdown()
 {
   ShutdownFastmemArena();
+  m_dirty_pages.clear();
 
   m_is_initialized = false;
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
     if (!region.active)
       continue;
-
     m_arena.ReleaseView(*region.out_pointer, region.size);
     *region.out_pointer = nullptr;
   }
@@ -571,6 +675,24 @@ void MemoryManager::Write_U32_Swap(u32 value, u32 address)
 void MemoryManager::Write_U64_Swap(u64 value, u32 address)
 {
   CopyToEmu(address, &value, sizeof(value));
+}
+
+bool MemoryManager::IsPageDirty(uintptr_t address)
+{
+  return m_dirty_pages[GetDirtyPageIndexFromAddress(address)];
+}
+
+void MemoryManager::SetPageDirtyBit(uintptr_t address, size_t size, bool dirty)
+{
+  for (size_t i = 0; i < size; i++)
+  {
+    m_dirty_pages[GetDirtyPageIndexFromAddress(address + i)] = dirty;
+  }
+}
+
+void MemoryManager::ResetDirtyPages()
+{
+  WriteProtectPhysicalMemoryRegions();
 }
 
 }  // namespace Memory

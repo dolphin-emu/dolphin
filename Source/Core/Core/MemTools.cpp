@@ -14,6 +14,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
+#include "Core/HW/Memmap.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/System.h"
@@ -24,6 +25,7 @@
 #ifndef _WIN32
 #include <unistd.h>  // Needed for _POSIX_VERSION
 #endif
+#include <Common/MemoryUtil.h>
 
 #if defined(__APPLE__)
 #ifdef _M_X86_64
@@ -60,8 +62,12 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
     // virtual address of the inaccessible data
     uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
     SContext* ctx = pPtrs->ContextRecord;
-
-    if (Core::System::GetInstance().GetJitInterface().HandleFault(fault_address, ctx))
+    Core::System& system = Core::System::GetInstance();
+    if (system.GetMemory().HandleFault(fault_address))
+    {
+      return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    else if (system.GetJitInterface().HandleFault(fault_address, ctx))
     {
       return EXCEPTION_CONTINUE_EXECUTION;
     }
