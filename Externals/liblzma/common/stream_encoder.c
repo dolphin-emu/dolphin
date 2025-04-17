@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       stream_encoder.c
 /// \brief      Encodes .xz Streams
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -219,8 +218,7 @@ stream_encoder_end(void *coder_ptr, const lzma_allocator *allocator)
 	lzma_next_end(&coder->index_encoder, allocator);
 	lzma_index_end(coder->index, allocator);
 
-	for (size_t i = 0; coder->filters[i].id != LZMA_VLI_UNKNOWN; ++i)
-		lzma_free(coder->filters[i].options, allocator);
+	lzma_filters_free(coder->filters, allocator);
 
 	lzma_free(coder, allocator);
 	return;
@@ -233,6 +231,13 @@ stream_encoder_update(void *coder_ptr, const lzma_allocator *allocator,
 		const lzma_filter *reversed_filters)
 {
 	lzma_stream_coder *coder = coder_ptr;
+	lzma_ret ret;
+
+	// Make a copy to a temporary buffer first. This way it is easier
+	// to keep the encoder state unchanged if an error occurs with
+	// lzma_filters_copy().
+	lzma_filter temp[LZMA_FILTERS_MAX + 1];
+	return_if_error(lzma_filters_copy(filters, temp, allocator));
 
 	if (coder->sequence <= SEQ_BLOCK_INIT) {
 		// There is no incomplete Block waiting to be finished,
@@ -240,31 +245,40 @@ stream_encoder_update(void *coder_ptr, const lzma_allocator *allocator,
 		// trying to initialize the Block encoder with the new
 		// chain. This way we detect if the chain is valid.
 		coder->block_encoder_is_initialized = false;
-		coder->block_options.filters = (lzma_filter *)(filters);
-		const lzma_ret ret = block_encoder_init(coder, allocator);
+		coder->block_options.filters = temp;
+		ret = block_encoder_init(coder, allocator);
 		coder->block_options.filters = coder->filters;
 		if (ret != LZMA_OK)
-			return ret;
+			goto error;
 
 		coder->block_encoder_is_initialized = true;
 
 	} else if (coder->sequence <= SEQ_BLOCK_ENCODE) {
 		// We are in the middle of a Block. Try to update only
 		// the filter-specific options.
-		return_if_error(coder->block_encoder.update(
+		ret = coder->block_encoder.update(
 				coder->block_encoder.coder, allocator,
-				filters, reversed_filters));
+				filters, reversed_filters);
+		if (ret != LZMA_OK)
+			goto error;
 	} else {
 		// Trying to update the filter chain when we are already
 		// encoding Index or Stream Footer.
-		return LZMA_PROG_ERROR;
+		ret = LZMA_PROG_ERROR;
+		goto error;
 	}
 
-	// Free the copy of the old chain and make a copy of the new chain.
-	for (size_t i = 0; coder->filters[i].id != LZMA_VLI_UNKNOWN; ++i)
-		lzma_free(coder->filters[i].options, allocator);
+	// Free the options of the old chain.
+	lzma_filters_free(coder->filters, allocator);
 
-	return lzma_filters_copy(filters, coder->filters, allocator);
+	// Copy the new filter chain in place.
+	memcpy(coder->filters, temp, sizeof(temp));
+
+	return LZMA_OK;
+
+error:
+	lzma_filters_free(temp, allocator);
+	return ret;
 }
 
 
@@ -319,7 +333,7 @@ stream_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 
 	// Initialize the Block encoder. This way we detect unsupported
 	// filter chains when initializing the Stream encoder instead of
-	// giving an error after Stream Header has already written out.
+	// giving an error after Stream Header has already been written out.
 	return stream_encoder_update(coder, allocator, filters, NULL);
 }
 
