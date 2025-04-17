@@ -972,7 +972,8 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
 void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
-  AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  auto& instance = AchievementManager::GetInstance();
+  instance.m_loading_volume.reset(nullptr);
   if (result == RC_API_FAILURE)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Load data request rejected for old Dolphin version.");
@@ -987,6 +988,12 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
     OSD::AddMessage("Achievements are not supported for this title.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
+    if (instance.m_dll_found && result == RC_NO_GAME_LOADED)
+    {
+      // Allow developer tools for unidentified games
+      rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
+      instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
+    }
     return;
   }
 
@@ -1000,7 +1007,6 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
 
-  auto& instance = AchievementManager::GetInstance();
   rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
   instance.m_display_welcome_message = true;
   instance.FetchGameBadges();
