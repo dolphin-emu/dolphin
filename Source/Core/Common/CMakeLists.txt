@@ -154,6 +154,7 @@ add_library(common
   VariantUtil.h
   Version.cpp
   Version.h
+  WaitableFlag.h
   WindowSystemInfo.h
   WorkQueueThread.h
 )
