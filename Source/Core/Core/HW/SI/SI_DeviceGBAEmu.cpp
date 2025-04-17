@@ -120,7 +120,7 @@ int CSIDevice_GBAEmu::TransferInterval()
   return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
-bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
 {
   GCPadStatus pad_status{};
   if (!NetPlay::IsNetPlayRunning())
@@ -149,7 +149,7 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   if (pad_status.button & PadButton::PAD_BUTTON_X)
     m_core->Reset();
 
-  return false;
+  return DataResponse::NoData;
 }
 
 void CSIDevice_GBAEmu::SendCommand(u32 command, u8 poll)

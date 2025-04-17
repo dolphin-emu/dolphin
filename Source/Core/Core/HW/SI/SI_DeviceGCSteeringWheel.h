@@ -13,7 +13,7 @@ public:
   CSIDevice_GCSteeringWheel(Core::System& system, SIDevices device, int device_number);
 
   int RunBuffer(u8* buffer, int request_length) override;
-  bool GetData(u32& hi, u32& low) override;
+  DataResponse GetData(u32& hi, u32& low) override;
   void SendCommand(u32 command, u8 poll) override;
 
 private:
