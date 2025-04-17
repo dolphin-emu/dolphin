@@ -32,7 +32,7 @@ struct Metal::StateTracker::Backref
 {
   std::mutex mtx;
   StateTracker* state_tracker;
-  explicit Backref(StateTracker* state_tracker) : state_tracker(state_tracker) {}
+  explicit Backref(StateTracker* tracker) : state_tracker(tracker) {}
 };
 
 struct Metal::StateTracker::PerfQueryTracker
