@@ -911,6 +911,8 @@ It can efficiently compress both junk data and encrypted Wii data.
 
     <!-- Emulated USB Devices -->
     <string name="emulated_usb_devices">Emulated USB Devices</string>
+    <string name="emulated_camera">Emulated Camera</string>
+    <string name="selected_camera">Selected Camera</string>
     <string name="emulate_skylander_portal">Skylanders Portal</string>
     <string name="skylanders_manager">Skylanders Manager</string>
     <string name="create_skylander_title">Create Skylander</string>

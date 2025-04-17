@@ -425,8 +425,14 @@ add_library(core
   IOS/USB/Bluetooth/WiimoteHIDAttr.h
   IOS/USB/Common.cpp
   IOS/USB/Common.h
+  IOS/USB/Emulated/CameraBase.cpp
+  IOS/USB/Emulated/CameraBase.h
+  IOS/USB/Emulated/DuelScanner.cpp
+  IOS/USB/Emulated/DuelScanner.h
   IOS/USB/Emulated/Infinity.cpp
   IOS/USB/Emulated/Infinity.h
+  IOS/USB/Emulated/MotionCamera.cpp
+  IOS/USB/Emulated/MotionCamera.h
   IOS/USB/Emulated/Skylanders/Skylander.cpp
   IOS/USB/Emulated/Skylanders/Skylander.h
   IOS/USB/Emulated/Skylanders/SkylanderCrypto.cpp

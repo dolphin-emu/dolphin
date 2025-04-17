@@ -22,7 +22,9 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/Emulated/DuelScanner.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Core/IOS/USB/Emulated/MotionCamera.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
@@ -185,6 +187,16 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
                                  bool always_add_hooks)
 {
+  if (Config::Get(Config::MAIN_EMULATED_CAMERA) == 1 && !NetPlay::IsNetPlayRunning())
+  {
+    auto duel_scanner = std::make_unique<USB::DuelScanner>(GetEmulationKernel());
+    CheckAndAddDevice(std::move(duel_scanner), new_devices, hooks, always_add_hooks);
+  }
+  if (Config::Get(Config::MAIN_EMULATED_CAMERA) == 2 && !NetPlay::IsNetPlayRunning())
+  {
+    auto motion_camera = std::make_unique<USB::MotionCamera>(GetEmulationKernel());
+    CheckAndAddDevice(std::move(motion_camera), new_devices, hooks, always_add_hooks);
+  }
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
     auto skylanderportal = std::make_unique<USB::SkylanderUSB>(GetEmulationKernel());

@@ -55,6 +55,12 @@ enum class StringSetting(
         "ResourcePackPath",
         ""
     ),
+    MAIN_SELECTED_CAMERA(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_EMULATED_USB_DEVICES,
+        "SelectedCamera",
+        ""
+    ),
     MAIN_FS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "NANDRootPath", ""),
     MAIN_WII_SD_CARD_IMAGE_PATH(
         Settings.FILE_DOLPHIN,

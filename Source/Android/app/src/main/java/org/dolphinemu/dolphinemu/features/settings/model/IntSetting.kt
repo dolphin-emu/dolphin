@@ -82,6 +82,12 @@ enum class IntSetting(
         "DoubleTapButton",
         NativeLibrary.ButtonType.WIIMOTE_BUTTON_A
     ),
+    MAIN_EMULATED_CAMERA(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_EMULATED_USB_DEVICES,
+        "EmulatedCamera",
+        0
+    ),
     SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
     SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),
     SYSCONF_SENSOR_BAR_POSITION(Settings.FILE_SYSCONF, "BT", "BAR", 0x01),

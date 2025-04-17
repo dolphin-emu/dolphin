@@ -22,6 +22,7 @@ static const std::map<std::pair<u16, u16>, std::string_view> s_wii_peripherals{{
     {{0x057e, 0x0308}, "Wii Speak"},
     {{0x057e, 0x0309}, "Nintendo USB Microphone"},
     {{0x057e, 0x030a}, "Ubisoft Motion Tracking Camera"},
+    {{0x057e, 0x030d}, "Duel Scanner"},
     {{0x0e6f, 0x0129}, "Disney Infinity Reader (Portal Device)"},
     {{0x1430, 0x0100}, "Tony Hawk Ride Skateboard"},
     {{0x1430, 0x0150}, "Skylanders Portal"},
