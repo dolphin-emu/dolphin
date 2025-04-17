@@ -60,13 +60,13 @@ u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
   return (u32)(map << 16) | 0x8080;
 }
 
-bool CSIDevice_DanceMat::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_DanceMat::GetData(u32& hi, u32& low)
 {
   CSIDevice_GCController::GetData(hi, low);
 
   // Identifies the dance mat
   low = 0x8080ffff;
 
-  return true;
+  return DataResponse::Success;
 }
 }  // namespace SerialInterface
