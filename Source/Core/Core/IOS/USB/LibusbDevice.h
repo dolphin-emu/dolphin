@@ -51,8 +51,11 @@ private:
   std::vector<LibusbUtils::ConfigDescriptor> m_config_descriptors;
   u16 m_vid = 0;
   u16 m_pid = 0;
+  u16 m_spoofed_vid = 0;
+  u16 m_spoofed_pid = 0;
   u8 m_active_interface = 0;
   bool m_device_attached = false;
+  bool m_needs_playstation_rock_band_3_instrument_control_transfer = false;
 
   libusb_device* m_device = nullptr;
   libusb_device_handle* m_handle = nullptr;
@@ -71,6 +74,9 @@ private:
   std::map<u8, TransferEndpoint> m_transfer_endpoints;
   static void CtrlTransferCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
+
+  void DisguisePlayStationDevice();
+  int SubmitPlayStationRockBand3InstrumentControlTransfer();
 
   int ClaimAllInterfaces(u8 config_num) const;
   int ReleaseAllInterfaces(u8 config_num) const;
