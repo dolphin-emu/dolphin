@@ -86,6 +86,7 @@ private:
   void OnShowTargetInMemory();
   void OnCopyFunction();
   void OnCopyCode();
+  void OnCopyWholeLine();
   void OnCopyHex();
   void OnRenameSymbol();
   void OnSelectionChanged();

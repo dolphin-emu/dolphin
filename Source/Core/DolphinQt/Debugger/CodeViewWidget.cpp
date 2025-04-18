@@ -579,7 +579,8 @@ void CodeViewWidget::OnContextMenu()
   auto* copy_line_action =
       menu->addAction(tr("Copy Code &Line"), this, &CodeViewWidget::OnCopyCode);
   auto* copy_hex_action = menu->addAction(tr("Copy &Hex"), this, &CodeViewWidget::OnCopyHex);
-
+  auto* copy_whole_line_action =
+      menu->addAction(tr("Copy &Whole Line"), this, &CodeViewWidget::OnCopyWholeLine);
   menu->addAction(tr("Show in &Memory"), this, &CodeViewWidget::OnShowInMemory);
   auto* show_target_memory =
       menu->addAction(tr("Show Target in Memor&y"), this, &CodeViewWidget::OnShowTargetInMemory);
@@ -645,9 +646,9 @@ void CodeViewWidget::OnContextMenu()
   run_until_menu->setEnabled(!target.isEmpty());
   follow_branch_action->setEnabled(follow_branch_enabled);
 
-  for (auto* action :
-       {copy_address_action, copy_line_action, copy_hex_action, function_action, run_to_action,
-        ppc_action, insert_blr_action, insert_nop_action, replace_action, assemble_action})
+  for (auto* action : {copy_address_action, copy_line_action, copy_whole_line_action,
+                       copy_hex_action, function_action, run_to_action, ppc_action,
+                       insert_blr_action, insert_nop_action, replace_action, assemble_action})
   {
     action->setEnabled(running);
   }
@@ -824,6 +825,29 @@ void CodeViewWidget::OnCopyCode()
   }();
 
   QApplication::clipboard()->setText(QString::fromStdString(text));
+}
+
+void CodeViewWidget::OnCopyWholeLine()
+{
+  const u32 addr = GetContextAddress();
+
+  Core::CPUThreadGuard guard(m_system);
+
+  const std::string text_code = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+  std::string whole_line = fmt::format("{:08x} {}", addr, text_code);
+
+  if (IsInstructionLoadStore(text_code))
+  {
+    const std::optional<u32> target_addr =
+        m_system.GetPowerPC().GetDebugInterface().GetMemoryAddressFromInstruction(text_code);
+
+    if (target_addr)
+    {
+      whole_line += fmt::format(" targetting {:08x}", *target_addr);
+    }
+  }
+
+  QApplication::clipboard()->setText(QString::fromStdString(whole_line));
 }
 
 void CodeViewWidget::OnCopyFunction()
