@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 
+#include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QGuiApplication>
@@ -17,6 +18,8 @@
 #include <QSplitter>
 #include <QStyleHints>
 #include <QTableWidget>
+#include <QToolButton>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include "Common/Event.h"
@@ -30,7 +33,10 @@
 #include "DolphinQt/Debugger/BranchWatchDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+constexpr int MAX_SEARCH_ITEMS = 16;
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
@@ -106,10 +112,27 @@ void CodeWidget::CreateWidgets()
   layout->setSpacing(0);
 
   auto* top_layout = new QHBoxLayout;
-  m_search_address = new QLineEdit;
-  m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_address = new QComboBox;
+  m_search_address->setInsertPolicy(QComboBox::InsertAtTop);
+  m_search_address->setDuplicatesEnabled(false);
+  m_search_address->setEditable(true);
+  m_search_address->lineEdit()->setPlaceholderText(tr("Search address"));
+  m_search_address->setMaxVisibleItems(MAX_SEARCH_ITEMS);
+  m_search_address->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+  // Clear all is always at the bottom of the combobox and cannot be in the search field.
+  m_search_address->addItem(tr("Clear all"));
+  m_search_address->setCurrentIndex(-1);
+
+  m_save_address_btn = new QToolButton();
+  m_save_address_btn->setIcon(Resources::GetThemeIcon("debugger_save"));
+  // 24 is a standard button height.
+  m_save_address_btn->setMinimumSize(24, 24);
+  m_save_address_btn->setToolTip(tr("Save address to the address box dropdown."));
+
   m_branch_watch = new QPushButton(tr("Branch Watch"));
+
   top_layout->addWidget(m_search_address);
+  top_layout->addWidget(m_save_address_btn);
   top_layout->addWidget(m_branch_watch);
 
   auto* right_layout = new QVBoxLayout;
@@ -184,9 +207,10 @@ void CodeWidget::ConnectWidgets()
           });
 #endif
 
-  connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
-  connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
+  connect(m_search_address, &QComboBox::currentTextChanged, this, &CodeWidget::OnSearchAddress);
+  connect(m_search_address, &QComboBox::activated, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
+  connect(m_save_address_btn, &QPushButton::pressed, this, &CodeWidget::OnSaveAddress);
   connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
     if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCalls(symbol);
@@ -244,21 +268,69 @@ void CodeWidget::OnPPCSymbolsChanged()
   }
 }
 
+void CodeWidget::OnSaveAddress()
+{
+  if (Core::GetState(m_system) != Core::State::Paused)
+    return;
+
+  u32 addr = m_code_view->GetAddress();
+
+  Core::CPUThreadGuard guard(m_system);
+
+  if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
+    return;
+
+  std::string instruction = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+  std::replace(instruction.begin(), instruction.end(), '\t', ' ');
+  std::string_view symbol = m_system.GetPowerPC().GetDebugInterface().GetDescription(addr);
+
+  std::string text = fmt::format("{:08x}  {}", addr, instruction);
+  if (symbol != " --- ")
+    text = fmt::format("{} -- {}", text, symbol);
+
+  const int existing_entry = m_search_address->findData(addr);
+  if (existing_entry != -1)
+  {
+    m_search_address->setItemText(existing_entry, QString::fromStdString(text));
+    return;
+  }
+
+  // MAX_SEARCH_ITEMS - 2 is that index of the oldest address, -1 is the clear text option.
+  if (m_search_address->count() == MAX_SEARCH_ITEMS)
+    m_search_address->removeItem(MAX_SEARCH_ITEMS - 2);
+
+  m_search_address->insertItem(0, QString::fromStdString(text), addr);
+}
+
 void CodeWidget::ActivateSearchAddress()
 {
   m_search_address->setFocus();
-  m_search_address->selectAll();
+  m_search_address->lineEdit()->selectAll();
 }
 
 void CodeWidget::OnSearchAddress()
 {
+  // If "Clear all" is selected
+  if (m_search_address->currentIndex() == m_search_address->count() - 1)
+  {
+    m_search_address->blockSignals(true);
+    m_search_address->clear();
+    m_search_address->addItem(tr("Clear all"));
+    m_search_address->setCurrentIndex(-1);
+    m_search_address->blockSignals(false);
+    return;
+  }
+
   bool good = true;
-  u32 address = m_search_address->text().toUInt(&good, 16);
+  u32 address = m_search_address->currentData().toUInt(&good);
+
+  if (!good)
+    address = m_search_address->currentText().toUInt(&good, 16);
 
   QPalette palette;
   QFont font;
 
-  if (!good && !m_search_address->text().isEmpty())
+  if (!good && !m_search_address->currentText().isEmpty())
   {
     font.setBold(true);
     palette.setColor(QPalette::Text, Qt::red);
