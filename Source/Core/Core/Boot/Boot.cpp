@@ -623,6 +623,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!Boot_WiiWAD(system, wad))
         return false;
 
+      AchievementManager::GetInstance().LoadGame(&wad);
+
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }

@@ -11,7 +11,6 @@
 #include <fmt/format.h>
 
 #include <rcheevos/include/rc_api_info.h>
-#include <rcheevos/include/rc_hash.h>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
@@ -192,12 +191,9 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     else
       m_title_estimate = "";
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
-    if (volume)
+    if (!m_loading_volume)
     {
-      if (!m_loading_volume)
-      {
-        m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
-      }
+      m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
     }
   }
   std::lock_guard lg{m_filereader_lock};
@@ -215,9 +211,10 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
   }
   else
   {
+    u32 console_id = FindConsoleID(volume->GetVolumeType());
     rc_client_set_read_memory_function(m_client, MemoryVerifier);
-    rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, "", NULL,
-                                           0, LoadGameCallback, NULL);
+    rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
+                                           NULL);
   }
 }
 
@@ -251,7 +248,8 @@ std::string AchievementManager::CalculateHash(const std::string& file_path)
       .close = &AchievementManager::FilereaderClose,
   };
   rc_hash_init_custom_filereader(&volume_reader);
-  rc_hash_generate_from_file(hash_result, RC_CONSOLE_GAMECUBE, file_path.c_str());
+  u32 console_id = FindConsoleID(GetInstance().m_loading_volume->GetVolumeType());
+  rc_hash_generate_from_file(hash_result, console_id, file_path.c_str());
 
   return std::string(hash_result);
 }
@@ -833,6 +831,20 @@ size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, size_
 void AchievementManager::FilereaderClose(void* file_handle)
 {
   delete static_cast<FilereaderState*>(file_handle);
+}
+
+u32 AchievementManager::FindConsoleID(const DiscIO::Platform& platform)
+{
+  switch (platform)
+  {
+  case DiscIO::Platform::GameCubeDisc:
+    return RC_CONSOLE_GAMECUBE;
+  case DiscIO::Platform::WiiDisc:
+  case DiscIO::Platform::WiiWAD:
+    return RC_CONSOLE_WII;
+  default:
+    return RC_CONSOLE_UNKNOWN;
+  }
 }
 
 void AchievementManager::LoadDefaultBadges()

@@ -23,6 +23,7 @@
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
 #include <rcheevos/include/rc_client.h>
+#include <rcheevos/include/rc_hash.h>
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/CommonTypes.h"
@@ -198,6 +199,8 @@ private:
   static int64_t FilereaderTell(void* file_handle);
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
+
+  static u32 FindConsoleID(const DiscIO::Platform& platform);
 
   void LoadDefaultBadges();
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
