@@ -255,7 +255,7 @@ static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, u
   }
 }
 
-static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_node,
+static void ApplyPatchToFile(const Patch& patch, FSTBuilderNode* file_node,
                              std::string_view external_filename, u64 file_patch_offset,
                              u64 raw_external_file_offset, u64 file_patch_length, bool resize)
 {
@@ -352,8 +352,7 @@ static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_no
     content.pop_back();
 }
 
-static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
-                             DiscIO::FSTBuilderNode* file_node)
+static void ApplyPatchToFile(const Patch& patch, const File& file_patch, FSTBuilderNode* file_node)
 {
   // The last two bits of the offset seem to be ignored by actual Riivolution.
   ApplyPatchToFile(patch, file_node, file_patch.m_external, file_patch.m_offset & ~u64(3),
@@ -378,11 +377,11 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
     if (is_file)
     {
       return &fst->emplace_back(
-          DiscIO::FSTBuilderNode{std::string(name), 0, std::vector<BuilderContentSource>()});
+          FSTBuilderNode{std::string(name), 0, std::vector<BuilderContentSource>()});
     }
 
-    auto& new_folder = fst->emplace_back(
-        DiscIO::FSTBuilderNode{std::string(name), 0, std::vector<FSTBuilderNode>()});
+    auto& new_folder =
+        fst->emplace_back(FSTBuilderNode{std::string(name), 0, std::vector<FSTBuilderNode>()});
     return FindFileNodeInFST(path.substr(path_separator + 1),
                              &std::get<std::vector<FSTBuilderNode>>(new_folder.m_content), true);
   }
@@ -398,14 +397,14 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
                            create_if_not_exists);
 }
 
-static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
-                                                     std::vector<FSTBuilderNode>& fst)
+static FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
+                                             std::vector<FSTBuilderNode>& fst)
 {
   for (FSTBuilderNode& node : fst)
   {
     if (node.IsFolder())
     {
-      DiscIO::FSTBuilderNode* result = FindFilenameNodeInFST(filename, node.GetFolderContent());
+      FSTBuilderNode* result = FindFilenameNodeInFST(filename, node.GetFolderContent());
       if (result)
         return result;
     }
@@ -419,13 +418,12 @@ static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
 }
 
 static void ApplyFilePatchToFST(const Patch& patch, const File& file,
-                                std::vector<DiscIO::FSTBuilderNode>* fst,
-                                DiscIO::FSTBuilderNode* dol_node)
+                                std::vector<FSTBuilderNode>* fst, FSTBuilderNode* dol_node)
 {
   if (!file.m_disc.empty() && file.m_disc[0] == '/')
   {
     // If the disc path starts with a / then we should patch that specific disc path.
-    DiscIO::FSTBuilderNode* node =
+    FSTBuilderNode* node =
         FindFileNodeInFST(std::string_view(file.m_disc).substr(1), fst, file.m_create);
     if (node)
       ApplyPatchToFile(patch, file, node);
@@ -438,16 +436,15 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
   else
   {
     // Otherwise we want to patch the first file in the FST that matches that filename.
-    DiscIO::FSTBuilderNode* node = FindFilenameNodeInFST(file.m_disc, *fst);
+    FSTBuilderNode* node = FindFilenameNodeInFST(file.m_disc, *fst);
     if (node)
       ApplyPatchToFile(patch, file, node);
   }
 }
 
 static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
-                                  std::vector<DiscIO::FSTBuilderNode>* fst,
-                                  DiscIO::FSTBuilderNode* dol_node, std::string_view disc_path,
-                                  std::string_view external_path)
+                                  std::vector<FSTBuilderNode>* fst, FSTBuilderNode* dol_node,
+                                  std::string_view disc_path, std::string_view external_path)
 {
   const auto external_files = patch.m_file_data_loader->GetFolderContents(external_path);
   for (const auto& child : external_files)
@@ -485,8 +482,7 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
 }
 
 static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
-                                  std::vector<DiscIO::FSTBuilderNode>* fst,
-                                  DiscIO::FSTBuilderNode* dol_node)
+                                  std::vector<FSTBuilderNode>* fst, FSTBuilderNode* dol_node)
 {
   ApplyFolderPatchToFST(patch, folder, fst, dol_node, folder.m_disc, folder.m_external);
 }
