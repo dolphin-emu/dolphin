@@ -57,7 +57,7 @@ static void DoRoundTripTest(const std::vector<T>& data)
   for (const T& e : data)
   {
     const std::string s = ValueToString(e);
-    T out;
+    T out = T();
     EXPECT_TRUE(TryParse(s, &out));
     EXPECT_EQ(e, out);
   }

@@ -54,10 +54,10 @@ TEST(SPSCQueue, MultiThreaded)
   auto popper = [&q]() {
     for (u32 i = 0; i < 100000; ++i)
     {
-      while (q.Empty())
-        ;
       u32 v;
-      q.Pop(v);
+      while (!q.Pop(v))
+      {
+      }
       EXPECT_EQ(i, v);
     }
   };
