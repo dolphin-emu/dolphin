@@ -93,8 +93,10 @@ void AdvancedPane::CreateLayout()
   clock_override->setLayout(clock_override_layout);
   main_layout->addWidget(clock_override);
 
-  m_cpu_clock_override_checkbox = new QCheckBox(tr("Enable Emulated CPU Clock Override"));
+  m_cpu_clock_override_checkbox =
+      new ConfigBool(tr("Enable Emulated CPU Clock Override"), Config::MAIN_OVERCLOCK_ENABLE);
   clock_override_layout->addWidget(m_cpu_clock_override_checkbox);
+  connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, this, &AdvancedPane::Update);
 
   auto* cpu_clock_override_slider_layout = new QHBoxLayout();
   cpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
@@ -107,24 +109,25 @@ void AdvancedPane::CreateLayout()
   m_cpu_clock_override_slider_label = new QLabel();
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider_label);
 
-  auto* cpu_clock_override_description =
-      new QLabel(tr("Adjusts the emulated CPU's clock rate.\n\n"
-                    "Higher values may make variable-framerate games run at a higher framerate, "
-                    "at the expense of performance. Lower values may activate a game's "
-                    "internal frameskip, potentially improving performance.\n\n"
-                    "WARNING: Changing this from the default (100%) can and will "
-                    "break games and cause glitches. Do so at your own risk. "
-                    "Please do not report bugs that occur with a non-default clock."));
-  cpu_clock_override_description->setWordWrap(true);
-  clock_override_layout->addWidget(cpu_clock_override_description);
+  m_cpu_clock_override_checkbox->SetDescription(
+      tr("Adjusts the emulated CPU's clock rate.<br><br>"
+         "Higher values may make variable-framerate games run at a higher framerate, "
+         "at the expense of performance. Lower values may activate a game's "
+         "internal frameskip, potentially improving performance.<br><br>"
+         "<b>WARNING</b>: Changing this from the default (100%) can and will "
+         "break games and cause glitches. Do so at your own risk. "
+         "Please do not report bugs that occur with a non-default clock."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   auto* ram_override = new QGroupBox(tr("Memory Override"));
   auto* ram_override_layout = new QVBoxLayout();
   ram_override->setLayout(ram_override_layout);
   main_layout->addWidget(ram_override);
 
-  m_ram_override_checkbox = new QCheckBox(tr("Enable Emulated Memory Size Override"));
+  m_ram_override_checkbox =
+      new ConfigBool(tr("Enable Emulated Memory Size Override"), Config::MAIN_RAM_OVERRIDE_ENABLE);
   ram_override_layout->addWidget(m_ram_override_checkbox);
+  connect(m_ram_override_checkbox, &QCheckBox::toggled, this, &AdvancedPane::Update);
 
   auto* mem1_override_slider_layout = new QHBoxLayout();
   mem1_override_slider_layout->setContentsMargins(0, 0, 0, 0);
@@ -148,20 +151,19 @@ void AdvancedPane::CreateLayout()
   m_mem2_override_slider_label = new QLabel();
   mem2_override_slider_layout->addWidget(m_mem2_override_slider_label);
 
-  auto* ram_override_description =
-      new QLabel(tr("Adjusts the amount of RAM in the emulated console.\n\n"
-                    "WARNING: Enabling this will completely break many games. Only a small number "
-                    "of games can benefit from this."));
-
-  ram_override_description->setWordWrap(true);
-  ram_override_layout->addWidget(ram_override_description);
+  m_ram_override_checkbox->SetDescription(
+      tr("Adjusts the amount of RAM in the emulated console.<br><br>"
+         "<b>WARNING</b>: Enabling this will completely break many games.<br>Only a small number "
+         "of games can benefit from this."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));
   rtc_options->setLayout(new QVBoxLayout());
   main_layout->addWidget(rtc_options);
 
-  m_custom_rtc_checkbox = new QCheckBox(tr("Enable Custom RTC"));
+  m_custom_rtc_checkbox = new ConfigBool(tr("Enable Custom RTC"), Config::MAIN_CUSTOM_RTC_ENABLE);
   rtc_options->layout()->addWidget(m_custom_rtc_checkbox);
+  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, this, &AdvancedPane::Update);
 
   m_custom_rtc_datetime = new QDateTimeEdit();
 
@@ -175,11 +177,10 @@ void AdvancedPane::CreateLayout()
   m_custom_rtc_datetime->setTimeSpec(Qt::UTC);
   rtc_options->layout()->addWidget(m_custom_rtc_datetime);
 
-  auto* custom_rtc_description =
-      new QLabel(tr("This setting allows you to set a custom real time clock (RTC) separate from "
-                    "your current system time.\n\nIf unsure, leave this unchecked."));
-  custom_rtc_description->setWordWrap(true);
-  rtc_options->layout()->addWidget(custom_rtc_description);
+  m_custom_rtc_checkbox->SetDescription(
+      tr("This setting allows you to set a custom real time clock (RTC) separate from "
+         "your current system time."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   main_layout->addStretch(1);
 }
@@ -192,19 +193,9 @@ void AdvancedPane::ConnectLayout()
       Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
   });
 
-  connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
-    Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
-    Update();
-  });
-
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     const float factor = m_cpu_clock_override_slider->value() / 100.f;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
-    Update();
-  });
-
-  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
-    Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
     Update();
   });
 
@@ -217,11 +208,6 @@ void AdvancedPane::ConnectLayout()
   connect(m_mem2_override_slider, &QSlider::valueChanged, [this](int slider_value) {
     const u32 mem2_size = m_mem2_override_slider->value() * 0x100000;
     Config::SetBaseOrCurrent(Config::MAIN_MEM2_SIZE, mem2_size);
-    Update();
-  });
-
-  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
-    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });
 
