@@ -44,11 +44,23 @@
             android:id="@+id/banner"
             android:layout_width="144dp"
             android:layout_height="48dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginTop="16dp"
             tools:src="@drawable/no_banner"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_description" />
+
+        <TextView
+            android:id="@+id/text_time_played"
+            style="@android:style/TextAppearance.Material.Caption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/dolphin_onSurface"
+            android:textAlignment="viewStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/banner"
+            tools:text="Played for 1h 23m" />
 
         <View
             android:id="@+id/divider_1"
@@ -58,7 +70,7 @@
             android:background="@color/dolphin_onSurfaceVariant"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/banner" />
+            app:layout_constraintTop_toBottomOf="@id/text_time_played" />
 
         <TextView
             android:id="@+id/label_country"
