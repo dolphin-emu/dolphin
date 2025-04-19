@@ -38,7 +38,7 @@ struct NFSHeader
 };
 static_assert(sizeof(NFSHeader) == 0x200);
 
-class NFSFileReader : public BlobReader
+class NFSFileReader final : public BlobReader
 {
 public:
   static std::unique_ptr<NFSFileReader> Create(File::IOFile first_file,
