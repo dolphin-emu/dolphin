@@ -85,8 +85,7 @@ public:
         if (next_extent > file_size)
           break;
 
-        // TODO: use make_unique_for_overwrite in C++20
-        value = std::unique_ptr<V[]>(new V[value_size]);
+        value = std::make_unique_for_overwrite<V[]>(value_size);
 
         // read key/value and pass to reader
         if (m_file.ReadArray(&key, 1) && m_file.ReadArray(value.get(), value_size) &&
