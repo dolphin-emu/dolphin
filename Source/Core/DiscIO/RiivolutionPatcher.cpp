@@ -450,7 +450,7 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
                                   std::string_view external_path)
 {
   const auto external_files = patch.m_file_data_loader->GetFolderContents(external_path);
-  for (const auto& child : external_files)
+  for (const auto& [filename, is_directory] : external_files)
   {
     const auto combine_paths = [](std::string_view a, std::string_view b) {
       if (a.empty())
@@ -463,10 +463,10 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
         b.remove_prefix(1);
       return fmt::format("{}/{}", a, b);
     };
-    std::string child_disc_path = combine_paths(disc_path, child.m_filename);
-    std::string child_external_path = combine_paths(external_path, child.m_filename);
+    std::string child_disc_path = combine_paths(disc_path, filename);
+    std::string child_external_path = combine_paths(external_path, filename);
 
-    if (child.m_is_directory)
+    if (is_directory)
     {
       if (folder.m_recursive)
         ApplyFolderPatchToFST(patch, folder, fst, dol_node, child_disc_path, child_external_path);
@@ -665,10 +665,10 @@ std::optional<SavegameRedirect> ExtractSavegameRedirect(std::span<const Patch> r
   {
     if (!patch.m_savegame_patches.empty())
     {
-      const auto& save_patch = patch.m_savegame_patches[0];
-      auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external);
+      const auto& [external, clone] = patch.m_savegame_patches[0];
+      auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(external);
       if (resolved)
-        return SavegameRedirect{std::move(*resolved), save_patch.m_clone};
+        return SavegameRedirect{std::move(*resolved), clone};
       return std::nullopt;
     }
   }

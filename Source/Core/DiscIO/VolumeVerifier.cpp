@@ -295,12 +295,12 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
         continue;
     }
 
-    PotentialMatch& potential_match = potential_matches.emplace_back();
+    auto& [size, hashes] = potential_matches.emplace_back();
     const pugi::xml_node rom = game.child("rom");
-    potential_match.size = rom.attribute("size").as_ullong();
-    potential_match.hashes.crc32 = ParseHash(rom.attribute("crc").value());
-    potential_match.hashes.md5 = ParseHash(rom.attribute("md5").value());
-    potential_match.hashes.sha1 = ParseHash(rom.attribute("sha1").value());
+    size = rom.attribute("size").as_ullong();
+    hashes.crc32 = ParseHash(rom.attribute("crc").value());
+    hashes.md5 = ParseHash(rom.attribute("md5").value());
+    hashes.sha1 = ParseHash(rom.attribute("sha1").value());
   }
 
   if (!serials_exist || !versions_exist)
@@ -335,10 +335,11 @@ RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& has
     return m_result;
 
   const std::vector<PotentialMatch> potential_matches = m_future.get();
-  for (PotentialMatch p : potential_matches)
+  for (auto [potential_match_size, potential_match_hashes] : potential_matches)
   {
-    if (HashesMatch(hashes.crc32, p.hashes.crc32) && HashesMatch(hashes.md5, p.hashes.md5) &&
-        HashesMatch(hashes.sha1, p.hashes.sha1) && m_size == p.size)
+    if (HashesMatch(hashes.crc32, potential_match_hashes.crc32) &&
+        HashesMatch(hashes.md5, potential_match_hashes.md5) &&
+        HashesMatch(hashes.sha1, potential_match_hashes.sha1) && m_size == potential_match_size)
     {
       return {Status::GoodDump, Common::GetStringT("Good dump")};
     }
@@ -1232,15 +1233,15 @@ void VolumeVerifier::Process()
   {
     m_group_future = std::async(std::launch::async, [this, read_failed,
                                                      group_index = m_group_index] {
-      const GroupToVerify& group = m_groups[group_index];
+      const auto& [partition, offset, block_index_start, block_index_end] = m_groups[group_index];
       u64 offset_in_group = 0;
-      for (u64 block_index = group.block_index_start; block_index < group.block_index_end;
+      for (u64 block_index = block_index_start; block_index < block_index_end;
            ++block_index, offset_in_group += VolumeWii::BLOCK_TOTAL_SIZE)
       {
-        const u64 block_offset = group.offset + offset_in_group;
+        const u64 block_offset = offset + offset_in_group;
 
-        if (!read_failed && m_volume.CheckBlockIntegrity(
-                                block_index, m_data.data() + offset_in_group, group.partition))
+        if (!read_failed &&
+            m_volume.CheckBlockIntegrity(block_index, m_data.data() + offset_in_group, partition))
         {
           m_biggest_verified_offset =
               std::max(m_biggest_verified_offset, block_offset + VolumeWii::BLOCK_TOTAL_SIZE);
@@ -1250,12 +1251,12 @@ void VolumeVerifier::Process()
           if (m_scrubber.CanBlockBeScrubbed(block_offset))
           {
             WARN_LOG_FMT(DISCIO, "Integrity check failed for unused block at {:#x}", block_offset);
-            m_unused_block_errors[group.partition]++;
+            m_unused_block_errors[partition]++;
           }
           else
           {
             WARN_LOG_FMT(DISCIO, "Integrity check failed for block at {:#x}", block_offset);
-            m_block_errors[group.partition]++;
+            m_block_errors[partition]++;
           }
         }
       }

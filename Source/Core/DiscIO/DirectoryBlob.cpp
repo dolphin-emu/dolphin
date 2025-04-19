@@ -96,9 +96,9 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer, DirectoryBlobReade
 
     if (std::holds_alternative<ContentFile>(m_content_source))
     {
-      const auto& content = std::get<ContentFile>(m_content_source);
-      File::IOFile file(content.m_filename, "rb");
-      if (!file.Seek(content.m_offset + offset_in_content, File::SeekOrigin::Begin) ||
+      const auto& [filename, content_source_offset] = std::get<ContentFile>(m_content_source);
+      File::IOFile file(filename, "rb");
+      if (!file.Seek(content_source_offset + offset_in_content, File::SeekOrigin::Begin) ||
           !file.ReadBytes(*buffer, bytes_to_read))
       {
         return false;
@@ -111,27 +111,28 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer, DirectoryBlobReade
     }
     else if (std::holds_alternative<ContentPartition>(m_content_source))
     {
-      const auto& content = std::get<ContentPartition>(m_content_source);
+      const auto& [content_source_offset, partition_data_offset] =
+          std::get<ContentPartition>(m_content_source);
       const u64 decrypted_size = m_size * VolumeWii::BLOCK_DATA_SIZE / VolumeWii::BLOCK_TOTAL_SIZE;
-      if (!blob->EncryptPartitionData(content.m_offset + offset_in_content, bytes_to_read, *buffer,
-                                      content.m_partition_data_offset, decrypted_size))
+      if (!blob->EncryptPartitionData(content_source_offset + offset_in_content, bytes_to_read,
+                                      *buffer, partition_data_offset, decrypted_size))
       {
         return false;
       }
     }
     else if (std::holds_alternative<ContentVolume>(m_content_source))
     {
-      const auto& source = std::get<ContentVolume>(m_content_source);
-      if (!blob->GetWrappedVolume()->Read(source.m_offset + offset_in_content, bytes_to_read,
-                                          *buffer, source.m_partition))
+      const auto& [content_source_offset, partition] = std::get<ContentVolume>(m_content_source);
+      if (!blob->GetWrappedVolume()->Read(content_source_offset + offset_in_content, bytes_to_read,
+                                          *buffer, partition))
       {
         return false;
       }
     }
     else if (std::holds_alternative<ContentFixedByte>(m_content_source))
     {
-      const ContentFixedByte& source = std::get<ContentFixedByte>(m_content_source);
-      std::fill_n(*buffer, bytes_to_read, source.m_byte);
+      const auto& [byte] = std::get<ContentFixedByte>(m_content_source);
+      std::fill_n(*buffer, bytes_to_read, byte);
     }
     else
     {
@@ -867,8 +868,8 @@ static std::vector<u8> ExtractNodeToVector(std::vector<FSTBuilderNode>* nodes, v
     return data;
 
   DiscContentContainer tmp;
-  for (auto& content : it->GetFileContent())
-    tmp.Add(content.m_offset, content.m_size, std::move(content.m_source));
+  for (auto& [offset, size, source] : it->GetFileContent())
+    tmp.Add(offset, size, std::move(source));
   data.resize(it->m_size);
   tmp.Read(0, it->m_size, data.data(), blob);
   return data;
@@ -1045,8 +1046,8 @@ u64 DirectoryBlobPartition::SetDOLFromFile(const std::string& path, u64 dol_addr
 u64 DirectoryBlobPartition::SetDOL(FSTBuilderNode dol_node, u64 dol_address,
                                    std::vector<u8>* disc_header)
 {
-  for (auto& content : dol_node.GetFileContent())
-    m_contents.Add(dol_address + content.m_offset, content.m_size, std::move(content.m_source));
+  for (auto& [offset, size, source] : dol_node.GetFileContent())
+    m_contents.Add(dol_address + offset, size, std::move(source));
 
   Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, disc_header);
 
@@ -1222,10 +1223,9 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
 
       // write entry to virtual disc
       auto& contents = entry.GetFileContent();
-      for (BuilderContentSource& content : contents)
+      for (auto& [offset, size, source] : contents)
       {
-        m_contents.Add(*data_offset + content.m_offset, content.m_size,
-                       std::move(content.m_source));
+        m_contents.Add(*data_offset + offset, size, std::move(source));
       }
 
       // 32 KiB aligned - many games are fine with less alignment, but not all
