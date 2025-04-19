@@ -43,9 +43,12 @@ add_library(rcheevos
 	rcheevos/src/rhash/hash.c
 	rcheevos/src/rhash/md5.c
 	rcheevos/src/rhash/md5.h
+	rcheevos/src/rhash/rc_hash_internal.h
 	rcheevos/src/rurl/url.c
 	rcheevos/src/rc_client.c
+	rcheevos/src/rc_client_external.c
 	rcheevos/src/rc_client_external.h
+	rcheevos/src/rc_client_external_versions.h
 	rcheevos/src/rc_client_internal.h
 	rcheevos/src/rc_client_raintegration.c
 	rcheevos/src/rc_client_raintegration_internal.h
@@ -61,6 +64,11 @@ target_include_directories(rcheevos PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/rcheevo
 target_include_directories(rcheevos INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(rcheevos PRIVATE "RC_DISABLE_LUA=1" "RCHEEVOS_URL_SSL")
 target_compile_definitions(rcheevos PRIVATE "RC_CLIENT_SUPPORTS_HASH")
+target_compile_definitions(rcheevos PRIVATE "RC_CLIENT_SUPPORTS_EXTERNAL")
+target_compile_definitions(rcheevos PRIVATE "RC_HASH_NO_ENCRYPTED")
+target_compile_definitions(rcheevos PRIVATE "RC_HASH_NO_ROM")
+target_compile_definitions(rcheevos PRIVATE "RC_HASH_NO_ZIP")
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+  target_compile_definitions(rcheevos PRIVATE "RC_CLIENT_SUPPORTS_RAINTEGRATION")
 	target_compile_definitions(rcheevos PRIVATE "_CRT_SECURE_NO_WARNINGS")
 endif()

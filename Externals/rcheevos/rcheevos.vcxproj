@@ -41,6 +41,7 @@
     <ClCompile Include="rcheevos\src\rhash\md5.c" />
     <ClCompile Include="rcheevos\src\rurl\url.c" />
     <ClCompile Include="rcheevos\src\rc_client.c" />
+    <ClCompile Include="rcheevos\src\rc_client_external.c" />
     <ClCompile Include="rcheevos\src\rc_client_raintegration.c" />
     <ClCompile Include="rcheevos\src\rc_compat.c" />
     <ClCompile Include="rcheevos\src\rc_util.c" />
@@ -68,7 +69,9 @@
     <ClInclude Include="rcheevos\src\rcheevos\rc_validate.h" />
     <ClInclude Include="rcheevos\src\rhash\aes.h" />
     <ClInclude Include="rcheevos\src\rhash\md5.h" />
+    <ClInclude Include="rcheevos\src\rhash\rc_hash_internal.h" />
     <ClInclude Include="rcheevos\src\rc_client_external.h" />
+    <ClInclude Include="rcheevos\src\rc_client_external_versions.h" />
     <ClInclude Include="rcheevos\src\rc_client_internal.h" />
     <ClInclude Include="rcheevos\src\rc_client_raintegration_internal.h" />
     <ClInclude Include="rcheevos\src\rc_compat.h" />
@@ -76,7 +79,7 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;RC_CLIENT_SUPPORTS_HASH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;RC_CLIENT_SUPPORTS_HASH;RC_CLIENT_SUPPORTS_EXTERNAL;RC_CLIENT_SUPPORTS_RAINTEGRATION;RC_HASH_NO_ENCRYPTED;RC_HASH_NO_ROM;RC_HASH_NO_ZIP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)rcheevos\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
