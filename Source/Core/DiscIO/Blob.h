@@ -61,7 +61,7 @@ std::string GetName(BlobType blob_type, bool translate);
 class BlobReader
 {
 public:
-  virtual ~BlobReader() {}
+  virtual ~BlobReader() = default;
 
   virtual BlobType GetBlobType() const = 0;
   virtual std::unique_ptr<BlobReader> CopyReader() const = 0;

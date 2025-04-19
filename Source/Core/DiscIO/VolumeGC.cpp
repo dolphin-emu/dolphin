@@ -41,9 +41,7 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(read
   m_converted_banner = [this] { return LoadBannerFile(); };
 }
 
-VolumeGC::~VolumeGC()
-{
-}
+VolumeGC::~VolumeGC() = default;
 
 bool VolumeGC::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {

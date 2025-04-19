@@ -70,9 +70,7 @@ std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(File::IOFile 
   return nullptr;
 }
 
-CompressedBlobReader::~CompressedBlobReader()
-{
-}
+CompressedBlobReader::~CompressedBlobReader() = default;
 
 std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 {
