@@ -1063,3 +1063,5 @@ CPUThreadGuard::~CPUThreadGuard()
 }
 
 }  // namespace Core
+
+PerformanceMetrics g_perf_metrics;
