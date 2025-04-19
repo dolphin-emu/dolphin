@@ -156,15 +156,15 @@ void FIFOAnalyzer::UpdateTree()
 
     recording_item->addChild(frame_item);
 
-    const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame);
-    ASSERT(frame_info.parts.size() != 0);
+    const auto& [parts, part_type_counts] = m_fifo_player.GetAnalyzedFrameInfo(frame);
+    ASSERT(parts.size() != 0);
 
     Common::EnumMap<u32, FramePartType::EFBCopy> part_counts;
     u32 part_start = 0;
 
-    for (u32 part_nr = 0; part_nr < frame_info.parts.size(); part_nr++)
+    for (u32 part_nr = 0; part_nr < parts.size(); part_nr++)
     {
-      const auto& part = frame_info.parts[part_nr];
+      const auto& part = parts[part_nr];
 
       const u32 part_type_nr = part_counts[part.m_type];
       part_counts[part.m_type]++;
@@ -190,9 +190,9 @@ void FIFOAnalyzer::UpdateTree()
     }
 
     // We shouldn't end on a Command (it should end with an EFB copy)
-    ASSERT(part_start == frame_info.parts.size());
+    ASSERT(part_start == parts.size());
     // The counts we computed should match the frame's counts
-    ASSERT(std::ranges::equal(frame_info.part_type_counts, part_counts));
+    ASSERT(std::ranges::equal(part_type_counts, part_counts));
   }
 }
 
@@ -348,18 +348,18 @@ void FIFOAnalyzer::UpdateDetails()
   const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
   const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
 
-  const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+  const auto& [parts, _part_type_counts] = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
   const auto& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = frame_info.parts[start_part_nr].m_start;
-  const u32 object_end = frame_info.parts[end_part_nr].m_end;
+  const u32 object_start = parts[start_part_nr].m_start;
+  const u32 object_end = parts[end_part_nr].m_end;
   const u32 object_size = object_end - object_start;
 
   u32 object_offset = 0;
   // NOTE: object_info.m_cpmem is the state of cpmem _after_ all of the commands in this object.
   // However, it doesn't matter that it doesn't match the start, since it will match by the time
   // primitives are reached.
-  auto callback = DetailCallback(frame_info.parts[end_part_nr].m_cpmem);
+  auto callback = DetailCallback(parts[end_part_nr].m_cpmem);
 
   while (object_offset < object_size)
   {
@@ -431,11 +431,11 @@ void FIFOAnalyzer::BeginSearch()
   const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
   const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
 
-  const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+  const auto& [parts, _part_type_counts] = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = frame_info.parts[start_part_nr].m_start;
-  const u32 object_end = frame_info.parts[end_part_nr].m_end;
+  const u32 object_start = parts[start_part_nr].m_start;
+  const u32 object_end = parts[end_part_nr].m_end;
   const u32 object_size = object_end - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
@@ -614,7 +614,7 @@ public:
     text = QObject::tr("Primitive %1").arg(QString::fromStdString(name));
     text += QLatin1Char{'\n'};
 
-    const auto& vtx_desc = m_cpmem.vtx_desc;
+    const auto& [low, high] = m_cpmem.vtx_desc;
     const auto& vtx_attr = m_cpmem.vtx_attr[vat];
 
     u32 i = 0;
@@ -670,22 +670,21 @@ public:
       ASSERT(i == vertex_num * vertex_size);
 
       text += QLatin1Char{'\n'};
-      if (vtx_desc.low.PosMatIdx)
+      if (low.PosMatIdx)
         process_simple_component(1);
-      for (auto texmtxidx : vtx_desc.low.TexMatIdx)
+      for (auto texmtxidx : low.TexMatIdx)
       {
         if (texmtxidx)
           process_simple_component(1);
       }
-      process_component(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
+      process_component(low.Position, vtx_attr.g0.PosFormat,
                         vtx_attr.g0.PosElements == CoordComponentCount::XY ? 2 : 3);
-      const u32 normal_component_count =
-          vtx_desc.low.Normal == VertexComponentFormat::Direct ? 3 : 1;
+      const u32 normal_component_count = low.Normal == VertexComponentFormat::Direct ? 3 : 1;
       const u32 normal_elements = vtx_attr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
-      process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
+      process_component(low.Normal, vtx_attr.g0.NormalFormat,
                         normal_component_count * normal_elements,
                         vtx_attr.g0.NormalIndex3 ? normal_elements : 1);
-      for (u32 c = 0; c < vtx_desc.low.Color.Size(); c++)
+      for (u32 c = 0; c < low.Color.Size(); c++)
       {
         static constexpr Common::EnumMap<u32, ColorFormat::RGBA8888> component_sizes = {
             2,  // RGB565
@@ -695,7 +694,7 @@ public:
             3,  // RGBA6666
             4,  // RGBA8888
         };
-        switch (vtx_desc.low.Color[c])
+        switch (low.Color[c])
         {
         case VertexComponentFormat::Index8:
           process_simple_component(1);
@@ -710,9 +709,9 @@ public:
           break;
         }
       }
-      for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); t++)
+      for (u32 t = 0; t < high.TexCoord.Size(); t++)
       {
-        process_component(vtx_desc.high.TexCoord[t], vtx_attr.GetTexFormat(t),
+        process_component(high.TexCoord[t], vtx_attr.GetTexFormat(t),
                           vtx_attr.GetTexElements(t) == TexComponentCount::ST ? 2 : 1);
       }
     }
@@ -763,15 +762,15 @@ void FIFOAnalyzer::UpdateDescription()
   const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
   const u32 entry_nr = m_detail_list->currentRow();
 
-  const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+  const auto& [parts, _part_type_counts] = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = frame_info.parts[start_part_nr].m_start;
-  const u32 object_end = frame_info.parts[end_part_nr].m_end;
+  const u32 object_start = parts[start_part_nr].m_start;
+  const u32 object_end = parts[end_part_nr].m_end;
   const u32 object_size = object_end - object_start;
   const u32 entry_start = m_object_data_offsets[entry_nr];
 
-  auto callback = DescriptionCallback(frame_info.parts[end_part_nr].m_cpmem);
+  auto callback = DescriptionCallback(parts[end_part_nr].m_cpmem);
   OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + entry_start],
                             object_size - entry_start, callback);
   m_entry_detail_browser->setText(callback.text);
