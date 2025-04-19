@@ -151,7 +151,7 @@ bool VolumeGC::IsDatelDisc() const
 
 std::array<u8, 20> VolumeGC::GetSyncHash() const
 {
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
 
   AddGamePartitionToSyncHash(context.get());
 

@@ -157,7 +157,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
 std::vector<u8> RedumpVerifier::ReadDatfile(const std::string& system)
 {
-  unzFile file = unzOpen(GetPathForSystem(system).c_str());
+  const unzFile file = unzOpen(GetPathForSystem(system).c_str());
   if (!file)
     return {};
 
@@ -432,7 +432,8 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
     return {m_volume.GetGamePartition()};
   }
 
-  std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
+  const std::optional<u32> partitions_in_first_table =
+      m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
   if (partitions_in_first_table && *partitions_in_first_table > 8)
   {
     // Not sure if 8 actually is the limit, but there certainly aren't any discs
@@ -1023,7 +1024,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   if (!fs)
     return;
 
-  std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
+  const std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
   if (!file_info)
     return;
 

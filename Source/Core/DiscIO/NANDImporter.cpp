@@ -123,7 +123,7 @@ bool NANDImporter::FindSuperblock()
 
 std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& parent_path)
 {
-  std::string name(entry.name, strnlen(entry.name, sizeof(NANDFSTEntry::name)));
+  const std::string name(entry.name, strnlen(entry.name, sizeof(NANDFSTEntry::name)));
 
   if (name.front() == '/' || parent_path.back() == '/')
     return parent_path + name;
@@ -147,7 +147,7 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
     INFO_LOG_FMT(DISCIO, "Entry: {} Path: {}", entry, path);
     m_update_callback();
 
-    Type type = static_cast<Type>(entry.mode & 3);
+    const Type type = static_cast<Type>(entry.mode & 3);
     if (type == Type::File)
     {
       std::vector<u8> data = GetEntryData(entry);
@@ -177,7 +177,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
   std::vector<u8> data{};
   data.reserve(remaining_bytes);
 
-  auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
+  const auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
   while (remaining_bytes > 0)
   {
     if (sub >= m_superblock->fat.size())
@@ -188,7 +188,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
 
     m_aes_ctx->CryptIvZero(&m_nand[NAND_FAT_BLOCK_SIZE * sub], block.get(), NAND_FAT_BLOCK_SIZE);
 
-    size_t size = std::min(remaining_bytes, NAND_FAT_BLOCK_SIZE);
+    const size_t size = std::min(remaining_bytes, NAND_FAT_BLOCK_SIZE);
     data.insert(data.end(), block.get(), block.get() + size);
     remaining_bytes -= size;
 
@@ -210,7 +210,7 @@ bool NANDImporter::ExtractCertificates()
     return false;
   }
 
-  IOS::ES::TMDReader tmd(std::move(tmd_bytes));
+  const IOS::ES::TMDReader tmd(std::move(tmd_bytes));
   IOS::ES::Content content_metadata;
   if (!tmd.GetContent(tmd.GetBootIndex(), &content_metadata))
   {

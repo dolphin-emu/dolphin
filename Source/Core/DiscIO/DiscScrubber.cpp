@@ -72,7 +72,7 @@ void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
   }
   else
   {
-    u64 first_cluster_start = ToClusterOffset(offset) + partition_data_offset;
+    const u64 first_cluster_start = ToClusterOffset(offset) + partition_data_offset;
 
     u64 last_cluster_end;
     if (size == 0)
@@ -102,7 +102,7 @@ u64 DiscScrubber::ToClusterOffset(u64 offset) const
 bool DiscScrubber::ReadFromVolume(const Volume& disc, u64 offset, u32& buffer,
                                   const Partition& partition)
 {
-  std::optional<u32> value = disc.ReadSwapped<u32>(offset, partition);
+  const std::optional<u32> value = disc.ReadSwapped<u32>(offset, partition);
   if (value)
     buffer = *value;
   return value.has_value();
@@ -111,7 +111,7 @@ bool DiscScrubber::ReadFromVolume(const Volume& disc, u64 offset, u32& buffer,
 bool DiscScrubber::ReadFromVolume(const Volume& disc, u64 offset, u64& buffer,
                                   const Partition& partition)
 {
-  std::optional<u64> value = disc.ReadSwappedAndShifted(offset, partition);
+  const std::optional<u64> value = disc.ReadSwappedAndShifted(offset, partition);
   if (value)
     buffer = *value;
   return value.has_value();

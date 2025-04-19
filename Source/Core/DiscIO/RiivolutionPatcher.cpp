@@ -50,7 +50,7 @@ FileDataLoaderHostFS::FileDataLoaderHostFS(std::string sd_root, const std::strin
   // m_patch_root with it.
   if (!patch_root.empty())
   {
-    auto r = MakeAbsoluteFromRelative(patch_root);
+    const auto r = MakeAbsoluteFromRelative(patch_root);
     if (r)
       m_patch_root = std::move(*r);
   }
@@ -82,7 +82,7 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
       break;
 
     // Extract a single path element.
-    size_t separator_position = work.find('/');
+    const size_t separator_position = work.find('/');
     std::string_view element = work.substr(0, separator_position);
 
     if (element == ".")
@@ -165,10 +165,10 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
 std::optional<u64>
 FileDataLoaderHostFS::GetExternalFileSize(std::string_view external_relative_path)
 {
-  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  const auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
     return std::nullopt;
-  ::File::FileInfo f(*path);
+  const ::File::FileInfo f(*path);
   if (!f.IsFile())
     return std::nullopt;
   return f.GetSize();
@@ -176,7 +176,7 @@ FileDataLoaderHostFS::GetExternalFileSize(std::string_view external_relative_pat
 
 std::vector<u8> FileDataLoaderHostFS::GetFileContents(std::string_view external_relative_path)
 {
-  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  const auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
     return {};
   ::File::IOFile f(*path, "rb");
@@ -193,7 +193,7 @@ std::vector<u8> FileDataLoaderHostFS::GetFileContents(std::string_view external_
 std::vector<FileDataLoader::Node>
 FileDataLoaderHostFS::GetFolderContents(std::string_view external_relative_path)
 {
-  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  const auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
     return {};
   ::File::FSTEntry external_files = ::File::ScanDirectoryTree(*path, false);
@@ -208,7 +208,7 @@ BuilderContentSource
 FileDataLoaderHostFS::MakeContentSource(std::string_view external_relative_path,
                                         u64 external_offset, u64 external_size, u64 disc_offset)
 {
-  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  const auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
     return BuilderContentSource{disc_offset, external_size, ContentFixedByte{0}};
   return BuilderContentSource{disc_offset, external_size,
@@ -514,7 +514,7 @@ static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
 {
   for (u32 i = 0; i < value.size(); ++i)
   {
-    auto result = PowerPC::MMU::HostTryReadU8(guard, offset + i);
+    const auto result = PowerPC::MMU::HostTryReadU8(guard, offset + i);
     if (!result || result->value != value[i])
       return false;
   }
@@ -600,7 +600,7 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
       {
         // from the pattern find the next blr instruction
         const u32 blr_address = ram_start + i;
-        auto blr = PowerPC::MMU::HostTryReadU32(guard, blr_address);
+        const auto blr = PowerPC::MMU::HostTryReadU32(guard, blr_address);
         if (blr && blr->value == 0x4e800020)
         {
           // and replace it with a jump to the given offset
@@ -666,7 +666,8 @@ std::optional<SavegameRedirect> ExtractSavegameRedirect(std::span<const Patch> r
     if (!patch.m_savegame_patches.empty())
     {
       const auto& save_patch = patch.m_savegame_patches[0];
-      auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external);
+      const auto resolved =
+          patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external);
       if (resolved)
         return SavegameRedirect{std::move(*resolved), save_patch.m_clone};
       return std::nullopt;

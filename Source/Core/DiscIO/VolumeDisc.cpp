@@ -60,7 +60,7 @@ std::string VolumeDisc::GetMakerID(const Partition& partition) const
 
 std::optional<u16> VolumeDisc::GetRevision(const Partition& partition) const
 {
-  std::optional<u8> revision = ReadSwapped<u8>(7, partition);
+  const std::optional<u8> revision = ReadSwapped<u8>(7, partition);
   return revision ? *revision : std::optional<u16>();
 }
 
@@ -119,7 +119,7 @@ void VolumeDisc::AddGamePartitionToSyncHash(Common::SHA1::Context* context) cons
   const FileSystem* file_system = GetFileSystem(partition);
   if (file_system)
   {
-    std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
+    const std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
     if (file_info && !file_info->IsDirectory())
       ReadAndAddToSyncHash(context, file_info->GetOffset(), file_info->GetSize(), partition);
   }

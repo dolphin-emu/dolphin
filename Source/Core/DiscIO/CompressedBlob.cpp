@@ -82,7 +82,7 @@ std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 {
-  u64 start = m_block_pointers[block_num];
+  const u64 start = m_block_pointers[block_num];
   if (block_num < m_header.num_blocks - 1)
     return m_block_pointers[block_num + 1] - start;
   else if (block_num == m_header.num_blocks - 1)
@@ -95,7 +95,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
   bool uncompressed = false;
-  u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
+  const u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
   if (offset & (1ULL << 63))
@@ -144,8 +144,8 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     z.next_out = out_ptr;
     z.avail_out = m_header.block_size;
     inflateInit(&z);
-    int status = inflate(&z, Z_FULL_FLUSH);
-    u32 uncomp_size = m_header.block_size - z.avail_out;
+    const int status = inflate(&z, Z_FULL_FLUSH);
+    const u32 uncomp_size = m_header.block_size - z.avail_out;
     if (status != Z_STREAM_END)
     {
       // this seem to fire wrongly from time to time
@@ -205,7 +205,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 {
   state->compressed_buffer.resize(block_size);
 
-  int retval = deflateReset(&state->z);
+  const int retval = deflateReset(&state->z);
   state->z.next_in = parameters.data.data();
   state->z.avail_in = block_size;
   state->z.next_out = state->compressed_buffer.data();
@@ -315,7 +315,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   u64 position = 0;
   int num_compressed = 0;
   int num_stored = 0;
-  int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
+  const int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
 
   const auto compress = [&](CompressThreadState* state, CompressParameters parameters) {
     return Compress(state, std::move(parameters), block_size, &hashes, &num_stored,
@@ -393,7 +393,7 @@ bool IsGCZBlob(File::IOFile& file)
   if (!file.Seek(0, File::SeekOrigin::Begin))
     return false;
   CompressedBlobHeader header;
-  bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
+  const bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
   file.Seek(position, File::SeekOrigin::Begin);
   return is_gcz;
 }

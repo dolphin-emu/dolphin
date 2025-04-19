@@ -158,7 +158,7 @@ bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
   if (encrypted_data.size() != Common::AlignUp(content.size, 0x40))
     return false;
 
-  auto context = Common::AES::CreateContextDecrypt(ticket.GetTitleKey().data());
+  const auto context = Common::AES::CreateContextDecrypt(ticket.GetTitleKey().data());
 
   std::array<u8, 16> iv{};
   iv[0] = static_cast<u8>(content.index >> 8);
@@ -334,7 +334,7 @@ std::array<u8, 20> VolumeWAD::GetSyncHash() const
   // We can skip hashing the contents since the TMD contains hashes of the contents.
   // We specifically don't hash the ticket, since its console ID can differ without any problems.
 
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
 
   AddTMDToSyncHash(context.get(), PARTITION_NONE);
 
