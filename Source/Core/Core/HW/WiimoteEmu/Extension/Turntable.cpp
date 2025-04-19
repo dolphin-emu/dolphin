@@ -68,7 +68,7 @@ Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
                       new ControllerEmu::Slider("Table Right", _trans("Right Table")));
 
   // stick
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  constexpr auto gate_radius = static_cast<ControlState>(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_stick =
                           new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 

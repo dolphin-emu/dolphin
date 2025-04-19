@@ -63,7 +63,7 @@ void Jit64AsmRoutineManager::Generate()
   MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
 
   // something that can't pass the BLR test
-  MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
+  MOV(64, MDisp(RSP, 8), Imm32(static_cast<u32>(-1)));
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);

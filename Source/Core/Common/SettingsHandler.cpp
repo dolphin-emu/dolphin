@@ -66,7 +66,7 @@ SettingsReader::SettingsReader(const SettingsBuffer& buffer) : m_decoded{""}
   u32 key = INITIAL_SEED;
   for (u32 position = 0; position < buffer.size(); ++position)
   {
-    m_decoded.push_back((u8)(buffer[position] ^ key));
+    m_decoded.push_back(static_cast<u8>(buffer[position] ^ key));
     key = (key >> 31) | (key << 1);
   }
 

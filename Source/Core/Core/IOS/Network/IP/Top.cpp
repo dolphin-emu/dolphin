@@ -193,7 +193,7 @@ static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
   if (GetIpForwardTable(nullptr, &forward_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
   {
     forward_table =
-        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forward_table_size));
+        std::unique_ptr<MIB_IPFORWARDTABLE>(static_cast<PMIB_IPFORWARDTABLE>(operator new(forward_table_size)));
   }
 
   DWORD result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
@@ -354,7 +354,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   DWORD ip_table_size = 0;
   if (GetIpAddrTable(nullptr, &ip_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
   {
-    ip_table = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ip_table_size));
+    ip_table = std::unique_ptr<MIB_IPADDRTABLE>(static_cast<PMIB_IPADDRTABLE>(operator new(ip_table_size)));
   }
 
   // find the interface IP used for the default route and use that
@@ -695,7 +695,7 @@ IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request)
   const u32 optname = memory.Read_U32(request.buffer_in + 8);
   u32 optlen = memory.Read_U32(request.buffer_in + 0xc);
   u8 optval[20];
-  optlen = std::min(optlen, (u32)sizeof(optval));
+  optlen = std::min(optlen, static_cast<u32>(sizeof(optval)));
   memory.CopyFromEmu(optval, request.buffer_in + 0x10, optlen);
 
   INFO_LOG_FMT(IOS_NET,
@@ -1057,7 +1057,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
           FREE(AdapterAddresses);
         }
 
-        AdapterAddresses = (PIP_ADAPTER_ADDRESSES)MALLOC(OutBufferLength);
+        AdapterAddresses = static_cast<PIP_ADAPTER_ADDRESSES>(MALLOC(OutBufferLength));
         if (AdapterAddresses == nullptr)
         {
           RetVal = GetLastError();
@@ -1080,10 +1080,10 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
               INFO_LOG_FMT(IOS_NET, "Name of valid interface: {}",
                            WStringToUTF8(AdapterList->FriendlyName));
               INFO_LOG_FMT(IOS_NET, "DNS: {}.{}.{}.{}",
-                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]),
-                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3]),
-                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4]),
-                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]));
+                           static_cast<u8>(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]),
+                           static_cast<u8>(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3]),
+                           static_cast<u8>(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4]),
+                           static_cast<u8>(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]));
               address = Common::swap32(
                   *(u32*)(&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]));
               break;
@@ -1295,7 +1295,7 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
       memory.Write_U32(result_iter->ai_family, addr + 0x04);
       memory.Write_U32(result_iter->ai_socktype, addr + 0x08);
       memory.Write_U32(result_iter->ai_protocol, addr + 0x0C);
-      memory.Write_U32((u32)result_iter->ai_addrlen, addr + 0x10);
+      memory.Write_U32(static_cast<u32>(result_iter->ai_addrlen), addr + 0x10);
       // what to do? where to put? the buffer of 0x834 doesn't allow space for this
       memory.Write_U32(/*result->ai_cannonname*/ 0, addr + 0x14);
 

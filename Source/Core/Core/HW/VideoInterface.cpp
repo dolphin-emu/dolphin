@@ -355,7 +355,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_unknown_aa_register =
-                       (vi.m_unknown_aa_register & 0x0000FFFF) | ((u32)val << 16);
+                       (vi.m_unknown_aa_register & 0x0000FFFF) | (static_cast<u32>(val) << 16);
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (hi)");
                  }));
   mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {

@@ -91,7 +91,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
 std::string GCPad::GetName() const
 {
-  return std::string("GCPad") + char('1' + m_index);
+  return std::string("GCPad") + static_cast<char>('1' + m_index);
 }
 
 InputConfig* GCPad::GetConfig() const

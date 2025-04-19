@@ -1226,7 +1226,7 @@ void DSPEmitter::lsl(const UDSPInstruction opc)
   get_long_acc(rreg);
 
   //	acc <<= shift;
-  SHL(64, R(RAX), Imm8((u8)shift));
+  SHL(64, R(RAX), Imm8(static_cast<u8>(shift)));
 
   //	dsp_set_long_acc(rreg, acc);
   set_long_acc(rreg);
@@ -1285,7 +1285,7 @@ void DSPEmitter::asl(const UDSPInstruction opc)
   //	u64 acc = dsp_get_long_acc(rreg);
   get_long_acc(rreg);
   //	acc <<= shift;
-  SHL(64, R(RAX), Imm8((u8)shift));
+  SHL(64, R(RAX), Imm8(static_cast<u8>(shift)));
   //	dsp_set_long_acc(rreg, acc);
   set_long_acc(rreg);
   //	Update_SR_Register64(dsp_get_long_acc(rreg));
@@ -1315,7 +1315,7 @@ void DSPEmitter::asr(const UDSPInstruction opc)
   //	s64 acc = dsp_get_long_acc(dreg);
   get_long_acc(dreg);
   //	acc >>= shift;
-  SAR(64, R(RAX), Imm8((u8)shift));
+  SAR(64, R(RAX), Imm8(static_cast<u8>(shift)));
 
   //	dsp_set_long_acc(dreg, acc);
   set_long_acc(dreg);

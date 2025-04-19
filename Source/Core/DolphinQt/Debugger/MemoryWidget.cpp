@@ -138,16 +138,16 @@ void MemoryWidget::CreateWidgets()
   m_input_combo = new QComboBox;
   m_input_combo->setMaxVisibleItems(20);
   // Order here determines combo list order.
-  m_input_combo->addItem(tr("Hex Byte String"), int(Type::HexString));
-  m_input_combo->addItem(tr("ASCII"), int(Type::ASCII));
-  m_input_combo->addItem(tr("Float"), int(Type::Float32));
-  m_input_combo->addItem(tr("Double"), int(Type::Double));
-  m_input_combo->addItem(tr("Unsigned 8"), int(Type::Unsigned8));
-  m_input_combo->addItem(tr("Unsigned 16"), int(Type::Unsigned16));
-  m_input_combo->addItem(tr("Unsigned 32"), int(Type::Unsigned32));
-  m_input_combo->addItem(tr("Signed 8"), int(Type::Signed8));
-  m_input_combo->addItem(tr("Signed 16"), int(Type::Signed16));
-  m_input_combo->addItem(tr("Signed 32"), int(Type::Signed32));
+  m_input_combo->addItem(tr("Hex Byte String"), static_cast<int>(Type::HexString));
+  m_input_combo->addItem(tr("ASCII"), static_cast<int>(Type::ASCII));
+  m_input_combo->addItem(tr("Float"), static_cast<int>(Type::Float32));
+  m_input_combo->addItem(tr("Double"), static_cast<int>(Type::Double));
+  m_input_combo->addItem(tr("Unsigned 8"), static_cast<int>(Type::Unsigned8));
+  m_input_combo->addItem(tr("Unsigned 16"), static_cast<int>(Type::Unsigned16));
+  m_input_combo->addItem(tr("Unsigned 32"), static_cast<int>(Type::Unsigned32));
+  m_input_combo->addItem(tr("Signed 8"), static_cast<int>(Type::Signed8));
+  m_input_combo->addItem(tr("Signed 16"), static_cast<int>(Type::Signed16));
+  m_input_combo->addItem(tr("Signed 32"), static_cast<int>(Type::Signed32));
 
   // Search Options
   auto* search_group = new QGroupBox(tr("Search"));
@@ -190,18 +190,18 @@ void MemoryWidget::CreateWidgets()
 
   m_display_combo = new QComboBox;
   m_display_combo->setMaxVisibleItems(20);
-  m_display_combo->addItem(tr("Hex 8"), int(Type::Hex8));
-  m_display_combo->addItem(tr("Hex 16"), int(Type::Hex16));
-  m_display_combo->addItem(tr("Hex 32"), int(Type::Hex32));
-  m_display_combo->addItem(tr("Unsigned 8"), int(Type::Unsigned8));
-  m_display_combo->addItem(tr("Unsigned 16"), int(Type::Unsigned16));
-  m_display_combo->addItem(tr("Unsigned 32"), int(Type::Unsigned32));
-  m_display_combo->addItem(tr("Signed 8"), int(Type::Signed8));
-  m_display_combo->addItem(tr("Signed 16"), int(Type::Signed16));
-  m_display_combo->addItem(tr("Signed 32"), int(Type::Signed32));
-  m_display_combo->addItem(tr("ASCII"), int(Type::ASCII));
-  m_display_combo->addItem(tr("Float"), int(Type::Float32));
-  m_display_combo->addItem(tr("Double"), int(Type::Double));
+  m_display_combo->addItem(tr("Hex 8"), static_cast<int>(Type::Hex8));
+  m_display_combo->addItem(tr("Hex 16"), static_cast<int>(Type::Hex16));
+  m_display_combo->addItem(tr("Hex 32"), static_cast<int>(Type::Hex32));
+  m_display_combo->addItem(tr("Unsigned 8"), static_cast<int>(Type::Unsigned8));
+  m_display_combo->addItem(tr("Unsigned 16"), static_cast<int>(Type::Unsigned16));
+  m_display_combo->addItem(tr("Unsigned 32"), static_cast<int>(Type::Unsigned32));
+  m_display_combo->addItem(tr("Signed 8"), static_cast<int>(Type::Signed8));
+  m_display_combo->addItem(tr("Signed 16"), static_cast<int>(Type::Signed16));
+  m_display_combo->addItem(tr("Signed 32"), static_cast<int>(Type::Signed32));
+  m_display_combo->addItem(tr("ASCII"), static_cast<int>(Type::ASCII));
+  m_display_combo->addItem(tr("Float"), static_cast<int>(Type::Float32));
+  m_display_combo->addItem(tr("Double"), static_cast<int>(Type::Double));
 
   m_align_combo = new QComboBox;
   // i18n: "Fixed" here means that the alignment is always the same
@@ -842,10 +842,10 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
   const s32 offset = m_search_offset->text().toInt(&target.is_good_offset, 16);
   const u32 neg_offset = offset != std::numeric_limits<s32>::min() ?
                              -offset :
-                             u32(std::numeric_limits<s32>::max()) + 1;
+                             static_cast<u32>(std::numeric_limits<s32>::max()) + 1;
   target.is_good_offset |= m_search_offset->text().isEmpty();
   target.is_good_offset &= offset >= 0 || neg_offset <= addr;
-  target.is_good_offset &= offset <= 0 || (std::numeric_limits<u32>::max() - u32(offset)) >= addr;
+  target.is_good_offset &= offset <= 0 || (std::numeric_limits<u32>::max() - static_cast<u32>(offset)) >= addr;
 
   if (!target.is_good_address || !target.is_good_offset)
     return target;
@@ -853,7 +853,7 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
   if (offset < 0)
     target.address = addr - neg_offset;
   else
-    target.address = addr + u32(offset);
+    target.address = addr + static_cast<u32>(offset);
   return target;
 }
 

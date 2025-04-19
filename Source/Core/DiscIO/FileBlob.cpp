@@ -84,7 +84,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     if (i % progress_monitor == 0)
     {
       const bool was_cancelled =
-          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers);
+          !callback(Common::GetStringT("Unpacking"), static_cast<float>(i) / static_cast<float>(num_buffers));
       if (was_cancelled)
       {
         success = false;

@@ -202,12 +202,12 @@ int FramebufferManager::EFBToScaledY(int y) const
 
 float FramebufferManager::EFBToScaledXf(float x) const
 {
-  return x * ((float)GetEFBWidth() / (float)EFB_WIDTH);
+  return x * (static_cast<float>(GetEFBWidth()) / static_cast<float>(EFB_WIDTH));
 }
 
 float FramebufferManager::EFBToScaledYf(float y) const
 {
-  return y * ((float)GetEFBHeight() / (float)EFB_HEIGHT);
+  return y * (static_cast<float>(GetEFBHeight()) / static_cast<float>(EFB_HEIGHT));
 }
 
 std::tuple<u32, u32> FramebufferManager::CalculateTargetSize()

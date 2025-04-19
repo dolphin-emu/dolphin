@@ -158,7 +158,7 @@ bool FifoDataFile::Save(const std::string& filename)
   header.texMemSize = TEX_MEM_SIZE;
 
   header.frameListOffset = frameListOffset;
-  header.frameCount = (u32)m_Frames.size();
+  header.frameCount = static_cast<u32>(m_Frames.size());
 
   header.flags = m_Flags;
 

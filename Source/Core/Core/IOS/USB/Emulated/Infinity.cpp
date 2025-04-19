@@ -141,7 +141,7 @@ InfinityUSB::InfinityUSB(EmulationKernel& ios) : m_ios(ios)
 {
   m_vid = 0x0E6F;
   m_pid = 0x0129;
-  m_id = (u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1));
+  m_id = (static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 | static_cast<u64>(9) << 8 | static_cast<u64>(1));
   m_device_descriptor = DeviceDescriptor{0x12,   0x1,    0x200, 0x0, 0x0, 0x0, 0x20,
                                          0x0E6F, 0x0129, 0x200, 0x1, 0x2, 0x3, 0x1};
   m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x29, 0x1, 0x1, 0x0, 0x80, 0xFA});
@@ -585,7 +585,7 @@ static u32 InfinityCRC32(const std::array<u8, 16>& buffer)
   u32 ret = 0;
   for (u32 i = 0; i < 12; ++i)
   {
-    u8 index = u8(ret & 0xFF) ^ buffer[i];
+    u8 index = static_cast<u8>(ret & 0xFF) ^ buffer[i];
     ret = ((ret >> 8) ^ CRC32_TABLE[index]);
   }
 
@@ -611,8 +611,8 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
   std::array<u8, 16> infinity_decrypted_block = {};
   ctx->CryptIvZero(&buf[16], infinity_decrypted_block.data(), 16);
 
-  u32 number = u32(infinity_decrypted_block[1]) << 16 | u32(infinity_decrypted_block[2]) << 8 |
-               u32(infinity_decrypted_block[3]);
+  u32 number = static_cast<u32>(infinity_decrypted_block[1]) << 16 | static_cast<u32>(infinity_decrypted_block[2]) << 8 |
+               static_cast<u32>(infinity_decrypted_block[3]);
   DEBUG_LOG_FMT(IOS_USB, "Toy Number: {}", number);
 
   InfinityFigure& figure = m_figures[static_cast<u8>(position)];
@@ -685,13 +685,13 @@ bool InfinityBase::CreateFigure(const std::string& file_path, u32 figure_num)
   u32 other_blocks = 0x778788;
   for (s8 i = 2; i >= 0; i--)
   {
-    file_data[0x38 - i] = u8((first_block >> i * 8) & 0xFF);
+    file_data[0x38 - i] = static_cast<u8>((first_block >> i * 8) & 0xFF);
   }
   for (u32 index = 1; index < 0x05; index++)
   {
     for (s8 i = 2; i >= 0; i--)
     {
-      file_data[((index * 0x40) + 0x38) - i] = u8((other_blocks >> i * 8) & 0xFF);
+      file_data[((index * 0x40) + 0x38) - i] = static_cast<u8>((other_blocks >> i * 8) & 0xFF);
     }
   }
   // Create the vector to calculate the SHA1 hash with
@@ -820,9 +820,9 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
                                     0x00, 0x00, 0x00, 0x01, 0xD1, 0x1F};
 
   // Figure Number, input by end user
-  figure_data[1] = u8((figure_num >> 16) & 0xFF);
-  figure_data[2] = u8((figure_num >> 8) & 0xFF);
-  figure_data[3] = u8(figure_num & 0xFF);
+  figure_data[1] = static_cast<u8>((figure_num >> 16) & 0xFF);
+  figure_data[2] = static_cast<u8>((figure_num >> 8) & 0xFF);
+  figure_data[3] = static_cast<u8>(figure_num & 0xFF);
 
   // Manufacture date, formatted as YY/MM/DD. Set to Infinity 1.0 release date
   figure_data[4] = 0x0D;
@@ -832,7 +832,7 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
   u32 checksum = InfinityCRC32(figure_data);
   for (s8 i = 3; i >= 0; i--)
   {
-    figure_data[15 - i] = u8((checksum >> i * 8) & 0xFF);
+    figure_data[15 - i] = static_cast<u8>((checksum >> i * 8) & 0xFF);
   }
   DEBUG_LOG_FMT(IOS_USB, "Block 1: \n{}", HexDump(figure_data.data(), 16));
   return figure_data;
@@ -840,8 +840,8 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
 
 void InfinityBase::DescrambleAndSeed(u8* buf, u8 sequence, std::array<u8, 32>& reply_buf)
 {
-  u64 value = u64(buf[4]) << 56 | u64(buf[5]) << 48 | u64(buf[6]) << 40 | u64(buf[7]) << 32 |
-              u64(buf[8]) << 24 | u64(buf[9]) << 16 | u64(buf[10]) << 8 | u64(buf[11]);
+  u64 value = static_cast<u64>(buf[4]) << 56 | static_cast<u64>(buf[5]) << 48 | static_cast<u64>(buf[6]) << 40 | static_cast<u64>(buf[7]) << 32 |
+              static_cast<u64>(buf[8]) << 24 | static_cast<u64>(buf[9]) << 16 | static_cast<u64>(buf[10]) << 8 | static_cast<u64>(buf[11]);
   u32 seed = Descramble(value);
   GenerateSeed(seed);
   GetBlankResponse(sequence, reply_buf);
@@ -852,14 +852,14 @@ void InfinityBase::GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf
   u32 next_random = GetNext();
   u64 scrambled_next_random = Scramble(next_random, 0);
   reply_buf = {0xAA, 0x09, sequence};
-  reply_buf[3] = u8((scrambled_next_random >> 56) & 0xFF);
-  reply_buf[4] = u8((scrambled_next_random >> 48) & 0xFF);
-  reply_buf[5] = u8((scrambled_next_random >> 40) & 0xFF);
-  reply_buf[6] = u8((scrambled_next_random >> 32) & 0xFF);
-  reply_buf[7] = u8((scrambled_next_random >> 24) & 0xFF);
-  reply_buf[8] = u8((scrambled_next_random >> 16) & 0xFF);
-  reply_buf[9] = u8((scrambled_next_random >> 8) & 0xFF);
-  reply_buf[10] = u8(scrambled_next_random & 0xFF);
+  reply_buf[3] = static_cast<u8>((scrambled_next_random >> 56) & 0xFF);
+  reply_buf[4] = static_cast<u8>((scrambled_next_random >> 48) & 0xFF);
+  reply_buf[5] = static_cast<u8>((scrambled_next_random >> 40) & 0xFF);
+  reply_buf[6] = static_cast<u8>((scrambled_next_random >> 32) & 0xFF);
+  reply_buf[7] = static_cast<u8>((scrambled_next_random >> 24) & 0xFF);
+  reply_buf[8] = static_cast<u8>((scrambled_next_random >> 16) & 0xFF);
+  reply_buf[9] = static_cast<u8>((scrambled_next_random >> 8) & 0xFF);
+  reply_buf[10] = static_cast<u8>(scrambled_next_random & 0xFF);
   reply_buf[11] = GenerateChecksum(reply_buf, 11);
 }
 

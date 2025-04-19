@@ -55,9 +55,10 @@ void PCAP::AddPacket(const u8* bytes, size_t size)
   std::chrono::system_clock::time_point now(std::chrono::system_clock::now());
   auto ts = now.time_since_epoch();
   PCAPRecordHeader rec_hdr = {
-      (u32)std::chrono::duration_cast<std::chrono::seconds>(ts).count(),
-      (u32)(std::chrono::duration_cast<std::chrono::microseconds>(ts).count() % 1000000), (u32)size,
-      (u32)size};
+      static_cast<u32>(std::chrono::duration_cast<std::chrono::seconds>(ts).count()),
+      static_cast<u32>(std::chrono::duration_cast<std::chrono::microseconds>(ts).count() % 1000000),
+      static_cast<u32>(size),
+      static_cast<u32>(size)};
   m_fp->WriteBytes(&rec_hdr, sizeof(rec_hdr));
   m_fp->WriteBytes(bytes, size);
 }

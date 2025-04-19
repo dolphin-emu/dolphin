@@ -94,7 +94,7 @@ private:
     {
     }
     std::string GetName() const final override { return m_name; }
-    ControlState GetState() const final override { return ControlState(m_input) / m_range; }
+    ControlState GetState() const final override { return static_cast<ControlState>(m_input) / m_range; }
 
   private:
     const char* m_name;

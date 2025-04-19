@@ -270,12 +270,12 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     // to the EFB borders for over-offset copies. The arcade virtual console games (e.g. 1942) are
     // known for configuring these out-of-range copies.
 
-    if (u32(srcRect.right) > EFB_WIDTH || u32(srcRect.bottom) > EFB_HEIGHT)
+    if (static_cast<u32>(srcRect.right) > EFB_WIDTH || static_cast<u32>(srcRect.bottom) > EFB_HEIGHT)
     {
       WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", srcRect.GetWidth(),
                    srcRect.GetHeight(), srcRect.left, srcRect.top, destStride);
 
-      if (u32(srcRect.left) >= EFB_WIDTH || u32(srcRect.top) >= EFB_HEIGHT)
+      if (static_cast<u32>(srcRect.left) >= EFB_WIDTH || static_cast<u32>(srcRect.top) >= EFB_HEIGHT)
       {
         // This is not a sane src rectangle, it doesn't touch any valid image data at all
         // Just ignore it

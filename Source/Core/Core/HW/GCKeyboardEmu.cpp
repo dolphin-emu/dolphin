@@ -84,7 +84,7 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 
 std::string GCKeyboard::GetName() const
 {
-  return std::string("GCKeyboard") + char('1' + m_index);
+  return std::string("GCKeyboard") + static_cast<char>('1' + m_index);
 }
 
 InputConfig* GCKeyboard::GetConfig() const

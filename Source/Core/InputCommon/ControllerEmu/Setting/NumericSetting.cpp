@@ -46,7 +46,7 @@ void NumericSetting<T>::SetExpressionFromValue()
 {
   // Always include -/+ sign to prevent CoalesceExpression binding.
   // e.g. 1 is a valid input name for keyboard devices, +1 is not.
-  m_value.m_input.SetExpression(fmt::format("{:+g}", ControlState(GetValue())));
+  m_value.m_input.SetExpression(fmt::format("{:+g}", static_cast<ControlState>(GetValue())));
 }
 
 template <typename T>

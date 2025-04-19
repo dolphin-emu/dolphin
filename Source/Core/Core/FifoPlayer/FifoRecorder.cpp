@@ -379,7 +379,7 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
     // Record memory update
     MemoryUpdate memUpdate;
     memUpdate.address = address;
-    memUpdate.fifoPosition = (u32)(m_FifoData.size());
+    memUpdate.fifoPosition = static_cast<u32>(m_FifoData.size());
     memUpdate.type = type;
     memUpdate.data.resize(size);
     std::copy_n(newData, size, memUpdate.data.begin());
@@ -447,7 +447,7 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
     memcpy(m_File->GetCPMem(), cpMem, FifoDataFile::CP_MEM_SIZE * 4);
     memcpy(m_File->GetXFMem(), xfMem, FifoDataFile::XF_MEM_SIZE * 4);
 
-    u32 xfRegsCopySize = std::min((u32)FifoDataFile::XF_REGS_SIZE, xfRegsSize);
+    u32 xfRegsCopySize = std::min(static_cast<u32>(FifoDataFile::XF_REGS_SIZE), xfRegsSize);
     memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
 
     memcpy(m_File->GetTexMem(), texMem_ptr, FifoDataFile::TEX_MEM_SIZE);

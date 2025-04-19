@@ -31,8 +31,8 @@ public:
   ~ElfReader();
   u32 Read32(int off) const { return base32[off >> 2]; }
   // Quick accessors
-  ElfType GetType() const { return (ElfType)(header->e_type); }
-  ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
+  ElfType GetType() const { return static_cast<ElfType>(header->e_type); }
+  ElfMachine GetMachine() const { return static_cast<ElfMachine>(header->e_machine); }
   u32 GetEntryPoint() const override { return entryPoint; }
   u32 GetFlags() const { return (u32)(header->e_flags); }
   bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;

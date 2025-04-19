@@ -57,7 +57,7 @@ u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
   if (pad_status.button & PAD_BUTTON_START)
     map |= 0x1000;
 
-  return (u32)(map << 16) | 0x8080;
+  return static_cast<u32>(map << 16) | 0x8080;
 }
 
 bool CSIDevice_DanceMat::GetData(u32& hi, u32& low)

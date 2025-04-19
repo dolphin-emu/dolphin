@@ -48,10 +48,10 @@ struct ConditionRegister
   static constexpr u64 PPCToInternal(u8 value)
   {
     u64 cr_val = 0x100000000;
-    cr_val |= (u64) !!(value & CR_SO) << CR_EMU_SO_BIT;
-    cr_val |= (u64) !(value & CR_EQ);
-    cr_val |= (u64) !(value & CR_GT) << 63;
-    cr_val |= (u64) !!(value & CR_LT) << CR_EMU_LT_BIT;
+    cr_val |= static_cast<u64>(!!(value & CR_SO)) << CR_EMU_SO_BIT;
+    cr_val |= static_cast<u64>(!(value & CR_EQ));
+    cr_val |= static_cast<u64>(!(value & CR_GT)) << 63;
+    cr_val |= static_cast<u64>(!!(value & CR_LT)) << CR_EMU_LT_BIT;
 
     return cr_val;
   }

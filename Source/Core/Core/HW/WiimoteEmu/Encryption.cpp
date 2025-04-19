@@ -521,12 +521,12 @@ EncryptionKey::KeyData KeyGen1stParty::GenerateKeyData(const EncryptionKey::Rand
     t0[i] = keygen_sbox_1st_party[rand[i]];
 
   return {
-      u8((std::rotr<u8>(ans[0] ^ t0[5], t0[2]) - t0[9]) ^ t0[4]),
-      u8((std::rotr<u8>(ans[1] ^ t0[1], t0[0]) - t0[5]) ^ t0[7]),
-      u8((std::rotr<u8>(ans[2] ^ t0[6], t0[8]) - t0[2]) ^ t0[0]),
-      u8((std::rotr<u8>(ans[3] ^ t0[4], t0[7]) - t0[3]) ^ t0[2]),
-      u8((std::rotr<u8>(ans[4] ^ t0[1], t0[6]) - t0[3]) ^ t0[4]),
-      u8((std::rotr<u8>(ans[5] ^ t0[7], t0[8]) - t0[5]) ^ t0[9]),
+      static_cast<u8>((std::rotr<u8>(ans[0] ^ t0[5], t0[2]) - t0[9]) ^ t0[4]),
+      static_cast<u8>((std::rotr<u8>(ans[1] ^ t0[1], t0[0]) - t0[5]) ^ t0[7]),
+      static_cast<u8>((std::rotr<u8>(ans[2] ^ t0[6], t0[8]) - t0[2]) ^ t0[0]),
+      static_cast<u8>((std::rotr<u8>(ans[3] ^ t0[4], t0[7]) - t0[3]) ^ t0[2]),
+      static_cast<u8>((std::rotr<u8>(ans[4] ^ t0[1], t0[6]) - t0[3]) ^ t0[4]),
+      static_cast<u8>((std::rotr<u8>(ans[5] ^ t0[7], t0[8]) - t0[5]) ^ t0[9]),
   };
 }
 
@@ -547,12 +547,12 @@ EncryptionKey::KeyData KeyGen3rdParty::GenerateKeyData(const EncryptionKey::Rand
     t0[i] = keygen_sbox_3rd_party[rand[i]];
 
   return {
-      u8(t0[7] ^ (t0[6] + std::rotl<u8>(ans[0] ^ t0[0], t0[1]))),
-      u8(t0[1] ^ (t0[3] + std::rotl<u8>(ans[1] ^ t0[4], t0[2]))),
-      u8(t0[5] ^ (t0[4] + std::rotl<u8>(ans[2] ^ t0[2], t0[8]))),
-      u8(t0[0] ^ (t0[7] + std::rotl<u8>(ans[3] ^ t0[6], t0[9]))),
-      u8(t0[1] ^ (t0[8] + std::rotl<u8>(ans[4] ^ t0[5], t0[4]))),
-      u8(t0[5] ^ (t0[8] + std::rotl<u8>(ans[5] ^ t0[9], t0[3]))),
+      static_cast<u8>(t0[7] ^ (t0[6] + std::rotl<u8>(ans[0] ^ t0[0], t0[1]))),
+      static_cast<u8>(t0[1] ^ (t0[3] + std::rotl<u8>(ans[1] ^ t0[4], t0[2]))),
+      static_cast<u8>(t0[5] ^ (t0[4] + std::rotl<u8>(ans[2] ^ t0[2], t0[8]))),
+      static_cast<u8>(t0[0] ^ (t0[7] + std::rotl<u8>(ans[3] ^ t0[6], t0[9]))),
+      static_cast<u8>(t0[1] ^ (t0[8] + std::rotl<u8>(ans[4] ^ t0[5], t0[4]))),
+      static_cast<u8>(t0[5] ^ (t0[8] + std::rotl<u8>(ans[5] ^ t0[9], t0[3]))),
   };
 }
 

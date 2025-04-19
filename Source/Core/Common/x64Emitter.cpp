@@ -206,12 +206,12 @@ void XEmitter::CheckFlags()
 
 void XEmitter::WriteModRM(int mod, int reg, int rm)
 {
-  Write8((u8)((mod << 6) | ((reg & 7) << 3) | (rm & 7)));
+  Write8(static_cast<u8>((mod << 6) | ((reg & 7) << 3) | (rm & 7)));
 }
 
 void XEmitter::WriteSIB(int scale, int index, int base)
 {
-  Write8((u8)((scale << 6) | ((index & 7) << 3) | (base & 7)));
+  Write8(static_cast<u8>((scale << 6) | ((index & 7) << 3) | (base & 7)));
 }
 
 void OpArg::WriteREX(XEmitter* emit, int opBits, int bits, int customOp) const
@@ -273,7 +273,7 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
                       bool warn_64bit_offset) const
 {
   if (_operandReg == INVALID_REG)
-    _operandReg = (X64Reg)this->operandReg;
+    _operandReg = static_cast<X64Reg>(this->operandReg);
   int mod = 0;
   int ireg = indexReg;
   bool SIB = false;
@@ -286,12 +286,12 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
     emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
     // TODO : add some checks
     u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
-    s64 distance = (s64)offset - (s64)ripAddr;
+    s64 distance = static_cast<s64>(offset) - static_cast<s64>(ripAddr);
     ASSERT_MSG(DYNA_REC,
                (distance < 0x80000000LL && distance >= -0x80000000LL) || !warn_64bit_offset,
                "WriteRest: op out of range ({:#x} uses {:#x})", ripAddr, offset);
-    s32 offs = (s32)distance;
-    emit->Write32((u32)offs);
+    s32 offs = static_cast<s32>(distance);
+    emit->Write32(static_cast<u32>(offs));
     return;
   }
 
@@ -322,7 +322,7 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
 
     // Okay, we're fine. Just disp encoding.
     // We need displacement. Which size?
-    int ioff = (int)(s64)offset;
+    int ioff = static_cast<int>(static_cast<s64>(offset));
     if (ioff == 0 && (_offsetOrBaseReg & 7) != 5)
     {
       mod = 0;  // No displacement
@@ -384,16 +384,16 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
       ss = 0;
       break;
     }
-    emit->Write8((u8)((ss << 6) | ((ireg & 7) << 3) | (_offsetOrBaseReg & 7)));
+    emit->Write8(static_cast<u8>((ss << 6) | ((ireg & 7) << 3) | (_offsetOrBaseReg & 7)));
   }
 
   if (mod == 1)  // 8-bit disp
   {
-    emit->Write8((u8)(s8)(s32)offset);
+    emit->Write8(static_cast<u8>(static_cast<s8>((s32)offset)));
   }
   else if (mod == 2 || (scale >= SCALE_NOBASE_2 && scale <= SCALE_NOBASE_8))  // 32-bit disp
   {
-    emit->Write32((u32)offset);
+    emit->Write32(static_cast<u32>(offset));
   }
 }
 
@@ -407,7 +407,7 @@ void XEmitter::Rex(int w, int r, int x, int b)
   r = r ? 1 : 0;
   x = x ? 1 : 0;
   b = b ? 1 : 0;
-  u8 rx = (u8)(0x40 | (w << 3) | (r << 2) | (x << 1) | (b));
+  u8 rx = static_cast<u8>(0x40 | (w << 3) | (r << 2) | (x << 1) | (b));
   if (rx != 0x40)
     Write8(rx);
 }
@@ -417,21 +417,21 @@ void XEmitter::JMP(const u8* addr, const Jump jump)
   u64 fn = (u64)addr;
   if (jump == Jump::Short)
   {
-    s64 distance = (s64)(fn - ((u64)code + 2));
+    s64 distance = static_cast<s64>(fn - ((u64)code + 2));
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump::Short target too far away ({}), needs Jump::Near", distance);
     // 8 bits will do
     Write8(0xEB);
-    Write8((u8)(s8)distance);
+    Write8(static_cast<u8>(static_cast<s8>(distance)));
   }
   else
   {
-    s64 distance = (s64)(fn - ((u64)code + 5));
+    s64 distance = static_cast<s64>(fn - ((u64)code + 5));
 
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump::Near target too far away ({}), needs indirect register", distance);
     Write8(0xE9);
-    Write32((u32)(s32)distance);
+    Write32(static_cast<u32>(static_cast<s32>(distance)));
   }
 }
 
@@ -470,7 +470,7 @@ void XEmitter::CALL(const void* fnptr)
   ASSERT_MSG(DYNA_REC, distance < 0x0000000080000000ULL || distance >= 0xFFFFFFFF80000000ULL,
              "CALL out of range ({} calls {})", fmt::ptr(code), fmt::ptr(fnptr));
   Write8(0xE8);
-  Write32(u32(distance));
+  Write32(static_cast<u32>(distance));
 }
 
 FixupBranch XEmitter::CALL()
@@ -548,20 +548,20 @@ FixupBranch XEmitter::J_CC(CCFlags conditionCode, const Jump jump)
 void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
 {
   u64 fn = (u64)addr;
-  s64 distance = (s64)(fn - ((u64)code + 2));
+  s64 distance = static_cast<s64>(fn - ((u64)code + 2));
   if (distance < -0x80 || distance >= 0x80)
   {
-    distance = (s64)(fn - ((u64)code + 6));
+    distance = static_cast<s64>(fn - ((u64)code + 6));
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump target too far away ({}), needs indirect register", distance);
     Write8(0x0F);
     Write8(0x80 + conditionCode);
-    Write32((u32)(s32)distance);
+    Write32(static_cast<u32>(static_cast<s32>(distance)));
   }
   else
   {
     Write8(0x70 + conditionCode);
-    Write8((u8)(s8)distance);
+    Write8(static_cast<u8>(static_cast<s8>(distance)));
   }
 }
 
@@ -575,7 +575,7 @@ void XEmitter::SetJumpTarget(const FixupBranch& branch)
     s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump::Short target too far away ({}), needs Jump::Near", distance);
-    branch.ptr[-1] = (u8)(s8)distance;
+    branch.ptr[-1] = static_cast<u8>(static_cast<s8>(distance));
   }
   else if (branch.type == FixupBranch::Type::Branch32Bit)
   {
@@ -608,7 +608,7 @@ void XEmitter::RET_FAST()
 // The first sign of decadence: optimized NOPs.
 void XEmitter::NOP(size_t size)
 {
-  DEBUG_ASSERT((int)size > 0);
+  DEBUG_ASSERT(static_cast<int>(size) > 0);
   while (true)
   {
     switch (size)
@@ -784,17 +784,17 @@ void XEmitter::WriteSimple1Byte(int bits, u8 byte, X64Reg reg)
 {
   if (bits == 16)
     Write8(0x66);
-  Rex(bits == 64, 0, 0, (int)reg >> 3);
-  Write8(byte + ((int)reg & 7));
+  Rex(bits == 64, 0, 0, static_cast<int>(reg) >> 3);
+  Write8(byte + (static_cast<int>(reg) & 7));
 }
 
 void XEmitter::WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
 {
   if (bits == 16)
     Write8(0x66);
-  Rex(bits == 64, 0, 0, (int)reg >> 3);
+  Rex(bits == 64, 0, 0, static_cast<int>(reg) >> 3);
   Write8(byte1);
-  Write8(byte2 + ((int)reg & 7));
+  Write8(byte2 + (static_cast<int>(reg) & 7));
 }
 
 void XEmitter::CWD(int bits)
@@ -835,16 +835,16 @@ void XEmitter::PUSH(int bits, const OpArg& reg)
     {
     case 8:
       Write8(0x6A);
-      Write8((u8)(s8)reg.offset);
+      Write8(static_cast<u8>(static_cast<s8>(reg.offset)));
       break;
     case 16:
       Write8(0x66);
       Write8(0x68);
-      Write16((u16)(s16)(s32)reg.offset);
+      Write16(static_cast<u16>(static_cast<s16>((s32)reg.offset)));
       break;
     case 32:
       Write8(0x68);
-      Write32((u32)reg.offset);
+      Write32(static_cast<u32>(reg.offset));
       break;
     default:
       ASSERT_MSG(DYNA_REC, 0, "PUSH - Bad imm bits");
@@ -857,7 +857,7 @@ void XEmitter::PUSH(int bits, const OpArg& reg)
       Write8(0x66);
     reg.WriteREX(this, bits, bits);
     Write8(0xFF);
-    reg.WriteRest(this, 0, (X64Reg)6);
+    reg.WriteRest(this, 0, static_cast<X64Reg>(6));
   }
 }
 
@@ -913,7 +913,7 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
   dest.operandReg = 0;
   dest.WriteREX(this, 0, 8);
   Write8(0x0F);
-  Write8(0x90 + (u8)flag);
+  Write8(0x90 + static_cast<u8>(flag));
   dest.WriteRest(this);
 }
 
@@ -926,7 +926,7 @@ void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
   src.operandReg = dest;
   src.WriteREX(this, bits, bits);
   Write8(0x0F);
-  Write8(0x40 + (u8)flag);
+  Write8(0x40 + static_cast<u8>(flag));
   src.WriteRest(this);
 }
 
@@ -978,7 +978,7 @@ void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bo
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "WriteBitSearchType - Imm argument");
   CheckFlags();
-  src.operandReg = (u8)dest;
+  src.operandReg = static_cast<u8>(dest);
   if (bits == 16)
     Write8(0x66);
   if (rep)
@@ -1028,7 +1028,7 @@ void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
     MOV(dbits, R(dest), src);
     return;
   }
-  src.operandReg = (u8)dest;
+  src.operandReg = static_cast<u8>(dest);
   if (dbits == 16)
     Write8(0x66);
   src.WriteREX(this, dbits, sbits);
@@ -1061,7 +1061,7 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
     MOV(dbits, R(dest), src);
     return;
   }
-  src.operandReg = (u8)dest;
+  src.operandReg = static_cast<u8>(dest);
   if (dbits == 16)
     Write8(0x66);
   // the 32bit result is automatically zero extended to 64bit
@@ -1183,7 +1183,7 @@ void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src, MovInfo* inf
 void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "LEA - Imm argument");
-  src.operandReg = (u8)dest;
+  src.operandReg = static_cast<u8>(dest);
   if (bits == 16)
     Write8(0x66);  // TODO: performance warning
   src.WriteREX(this, bits, bits);
@@ -1212,7 +1212,7 @@ void XEmitter::WriteShift(int bits, OpArg dest, const OpArg& shift, int ext)
   if (shift.GetImmBits() == 8)
   {
     // ok an imm
-    u8 imm = (u8)shift.offset;
+    u8 imm = static_cast<u8>(shift.offset);
     if (imm == 1)
     {
       Write8(bits == 8 ? 0xD0 : 0xD1);
@@ -1229,7 +1229,7 @@ void XEmitter::WriteShift(int bits, OpArg dest, const OpArg& shift, int ext)
   }
   dest.WriteRest(this, writeImm ? 1 : 0);
   if (writeImm)
-    Write8((u8)shift.offset);
+    Write8(static_cast<u8>(shift.offset));
 }
 
 // large rotates and shift are slower on Intel than AMD
@@ -1282,8 +1282,8 @@ void XEmitter::WriteBitTest(int bits, const OpArg& dest, const OpArg& index, int
     dest.WriteREX(this, bits, bits);
     Write8(0x0F);
     Write8(0xBA);
-    dest.WriteRest(this, 1, (X64Reg)ext);
-    Write8((u8)index.offset);
+    dest.WriteRest(this, 1, static_cast<X64Reg>(ext));
+    Write8(static_cast<u8>(index.offset));
   }
   else
   {
@@ -1338,7 +1338,7 @@ void XEmitter::SHRD(int bits, const OpArg& dest, const OpArg& src, const OpArg& 
     Write8(0x0F);
     Write8(0xAC);
     dest.WriteRest(this, 1, operand);
-    Write8((u8)shift.offset);
+    Write8(static_cast<u8>(shift.offset));
   }
   else
   {
@@ -1373,7 +1373,7 @@ void XEmitter::SHLD(int bits, const OpArg& dest, const OpArg& src, const OpArg& 
     Write8(0x0F);
     Write8(0xA4);
     dest.WriteRest(this, 1, operand);
-    Write8((u8)shift.offset);
+    Write8(static_cast<u8>(shift.offset));
   }
   else
   {
@@ -1388,7 +1388,7 @@ void OpArg::WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg _operandReg, int bit
   if (bits == 16)
     emit->Write8(0x66);
 
-  this->operandReg = (u8)_operandReg;
+  this->operandReg = static_cast<u8>(_operandReg);
   WriteREX(emit, bits, bits);
   emit->Write8(op);
   WriteRest(emit);
@@ -1425,14 +1425,14 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
       if (!scale && offsetOrBaseReg == AL && op_def.eaximm8 != 0xCC)
       {
         emit->Write8(op_def.eaximm8);
-        emit->Write8((u8)operand.offset);
+        emit->Write8(static_cast<u8>(operand.offset));
         return;
       }
       // mov reg, imm8
       if (!scale && op == NormalOp::MOV)
       {
         emit->Write8(0xB0 + (offsetOrBaseReg & 7));
-        emit->Write8((u8)operand.offset);
+        emit->Write8(static_cast<u8>(operand.offset));
         return;
       }
       // op r/m8, imm8
@@ -1447,8 +1447,10 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
       // if the instruction supports simm8.
       // op r/m, imm8
       if (op_def.simm8 != 0xCC &&
-          ((operand.scale == SCALE_IMM16 && (s16)operand.offset == (s8)operand.offset) ||
-           (operand.scale == SCALE_IMM32 && (s32)operand.offset == (s8)operand.offset)))
+          ((operand.scale == SCALE_IMM16 &&
+            static_cast<s16>(operand.offset) == static_cast<s8>(operand.offset)) ||
+           (operand.scale == SCALE_IMM32 &&
+            static_cast<s32>(operand.offset) == static_cast<s8>(operand.offset))))
       {
         emit->Write8(op_def.simm8);
         immToWrite = 8;
@@ -1460,9 +1462,9 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
         {
           emit->Write8(0xB8 + (offsetOrBaseReg & 7));
           if (bits == 16)
-            emit->Write16((u16)operand.offset);
+            emit->Write16(static_cast<u16>(operand.offset));
           else
-            emit->Write32((u32)operand.offset);
+            emit->Write32(static_cast<u32>(operand.offset));
           return;
         }
         // op eax, imm
@@ -1470,9 +1472,9 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
         {
           emit->Write8(op_def.eaximm32);
           if (bits == 16)
-            emit->Write16((u16)operand.offset);
+            emit->Write16(static_cast<u16>(operand.offset));
           else
-            emit->Write32((u32)operand.offset);
+            emit->Write32(static_cast<u32>(operand.offset));
           return;
         }
         // op r/m, imm
@@ -1524,7 +1526,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
   }
   else
   {
-    _operandReg = (X64Reg)operand.offsetOrBaseReg;
+    _operandReg = static_cast<X64Reg>(operand.offsetOrBaseReg);
     WriteREX(emit, bits, bits, _operandReg);
     // op r/m, reg
     if (toRM)
@@ -1543,13 +1545,13 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
   case 0:
     break;
   case 8:
-    emit->Write8((u8)operand.offset);
+    emit->Write8(static_cast<u8>(operand.offset));
     break;
   case 16:
-    emit->Write16((u16)operand.offset);
+    emit->Write16(static_cast<u16>(operand.offset));
     break;
   case 32:
-    emit->Write32((u32)operand.offset);
+    emit->Write32(static_cast<u32>(operand.offset));
     break;
   default:
     ASSERT_MSG(DYNA_REC, 0, "WriteNormalOp - Unhandled case");
@@ -1753,12 +1755,13 @@ void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a1, const OpArg& a2)
     Write8(0x66);
   a1.WriteREX(this, bits, bits, regOp);
 
-  if (a2.GetImmBits() == 8 || (a2.GetImmBits() == 16 && (s8)a2.offset == (s16)a2.offset) ||
-      (a2.GetImmBits() == 32 && (s8)a2.offset == (s32)a2.offset))
+  if (a2.GetImmBits() == 8 ||
+      (a2.GetImmBits() == 16 && static_cast<s8>(a2.offset) == static_cast<s16>(a2.offset)) ||
+      (a2.GetImmBits() == 32 && static_cast<s8>(a2.offset) == static_cast<s32>(a2.offset)))
   {
     Write8(0x6B);
     a1.WriteRest(this, 1, regOp);
-    Write8((u8)a2.offset);
+    Write8(static_cast<u8>(a2.offset));
   }
   else
   {
@@ -1766,12 +1769,12 @@ void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a1, const OpArg& a2)
     if (a2.GetImmBits() == 16 && bits == 16)
     {
       a1.WriteRest(this, 2, regOp);
-      Write16((u16)a2.offset);
+      Write16(static_cast<u16>(a2.offset));
     }
     else if (a2.GetImmBits() == 32 && (bits == 32 || bits == 64))
     {
       a1.WriteRest(this, 4, regOp);
-      Write32((u32)a2.offset);
+      Write32(static_cast<u32>(a2.offset));
     }
     else
     {
@@ -1854,7 +1857,7 @@ void XEmitter::WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, co
                            X64Reg regOp3, int W)
 {
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, 1);
-  Write8((u8)regOp3 << 4);
+  Write8(static_cast<u8>(regOp3) << 4);
 }
 
 void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
@@ -2512,19 +2515,19 @@ void XEmitter::PUNPCKLQDQ(X64Reg dest, const OpArg& arg)
 
 void XEmitter::PSRLW(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x71, (X64Reg)2, R(reg));
+  WriteSSEOp(0x66, 0x71, static_cast<X64Reg>(2), R(reg));
   Write8(shift);
 }
 
 void XEmitter::PSRLD(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x72, (X64Reg)2, R(reg));
+  WriteSSEOp(0x66, 0x72, static_cast<X64Reg>(2), R(reg));
   Write8(shift);
 }
 
 void XEmitter::PSRLQ(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x73, (X64Reg)2, R(reg));
+  WriteSSEOp(0x66, 0x73, static_cast<X64Reg>(2), R(reg));
   Write8(shift);
 }
 
@@ -2535,31 +2538,31 @@ void XEmitter::PSRLQ(X64Reg reg, const OpArg& arg)
 
 void XEmitter::PSRLDQ(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
+  WriteSSEOp(0x66, 0x73, static_cast<X64Reg>(3), R(reg));
   Write8(shift);
 }
 
 void XEmitter::PSLLW(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x71, (X64Reg)6, R(reg));
+  WriteSSEOp(0x66, 0x71, static_cast<X64Reg>(6), R(reg));
   Write8(shift);
 }
 
 void XEmitter::PSLLD(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x72, (X64Reg)6, R(reg));
+  WriteSSEOp(0x66, 0x72, static_cast<X64Reg>(6), R(reg));
   Write8(shift);
 }
 
 void XEmitter::PSLLQ(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x73, (X64Reg)6, R(reg));
+  WriteSSEOp(0x66, 0x73, static_cast<X64Reg>(6), R(reg));
   Write8(shift);
 }
 
 void XEmitter::PSLLDQ(X64Reg reg, int shift)
 {
-  WriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
+  WriteSSEOp(0x66, 0x73, static_cast<X64Reg>(7), R(reg));
   Write8(shift);
 }
 
@@ -3338,15 +3341,15 @@ void XEmitter::BZHI(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
 }
 void XEmitter::BLSR(int bits, X64Reg regOp, const OpArg& arg)
 {
-  WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x1, regOp, arg);
+  WriteBMI1Op(bits, 0x00, 0x38F3, static_cast<X64Reg>(0x1), regOp, arg);
 }
 void XEmitter::BLSMSK(int bits, X64Reg regOp, const OpArg& arg)
 {
-  WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x2, regOp, arg);
+  WriteBMI1Op(bits, 0x00, 0x38F3, static_cast<X64Reg>(0x2), regOp, arg);
 }
 void XEmitter::BLSI(int bits, X64Reg regOp, const OpArg& arg)
 {
-  WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x3, regOp, arg);
+  WriteBMI1Op(bits, 0x00, 0x38F3, static_cast<X64Reg>(0x3), regOp, arg);
 }
 void XEmitter::BEXTR(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
 {

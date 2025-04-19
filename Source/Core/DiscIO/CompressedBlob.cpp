@@ -95,7 +95,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
   bool uncompressed = false;
-  u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
+  u32 comp_block_size = static_cast<u32>(GetBlockCompressedSize(block_num));
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
   if (offset & (1ULL << 63))
@@ -300,7 +300,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   header.data_size = infile->GetDataSize();
 
   // round upwards!
-  header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
+  header.num_blocks = static_cast<u32>((header.data_size + (block_size - 1)) / block_size);
 
   std::vector<u64> offsets(header.num_blocks);
   std::vector<u32> hashes(header.num_blocks);

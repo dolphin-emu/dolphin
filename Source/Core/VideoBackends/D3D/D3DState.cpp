@@ -382,7 +382,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
          D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
          D3D11_LOGIC_OP_SET}};
     tdesc.LogicOpEnable = TRUE;
-    tdesc.LogicOp = logic_ops[u32(state.logicmode.Value())];
+    tdesc.LogicOp = logic_ops[static_cast<u32>(state.logicmode.Value())];
 
     ComPtr<ID3D11BlendState1> res;
     HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
@@ -420,10 +420,10 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
        use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
        D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
-  tdesc.SrcBlend = src_factors[u32(state.srcfactor.Value())];
-  tdesc.SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
-  tdesc.DestBlend = dst_factors[u32(state.dstfactor.Value())];
-  tdesc.DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
+  tdesc.SrcBlend = src_factors[static_cast<u32>(state.srcfactor.Value())];
+  tdesc.SrcBlendAlpha = src_factors[static_cast<u32>(state.srcfactoralpha.Value())];
+  tdesc.DestBlend = dst_factors[static_cast<u32>(state.dstfactor.Value())];
+  tdesc.DestBlendAlpha = dst_factors[static_cast<u32>(state.dstfactoralpha.Value())];
   tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
   tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
@@ -445,7 +445,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 
   D3D11_RASTERIZER_DESC desc = {};
   desc.FillMode = D3D11_FILL_SOLID;
-  desc.CullMode = cull_modes[u32(state.cullmode.Value())];
+  desc.CullMode = cull_modes[static_cast<u32>(state.cullmode.Value())];
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
@@ -481,7 +481,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
     depthdc.DepthEnable = TRUE;
     depthdc.DepthWriteMask =
         state.updateenable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    depthdc.DepthFunc = d3dCmpFuncs[u32(state.func.Value())];
+    depthdc.DepthFunc = d3dCmpFuncs[static_cast<u32>(state.func.Value())];
   }
   else
   {

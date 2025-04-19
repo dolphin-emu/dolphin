@@ -40,7 +40,7 @@ int Line2Addr(int line)  // -1 for not found
 
 const char* GetLineText(int line)
 {
-  if (line >= 0 && line < (int)lines.size())
+  if (line >= 0 && line < static_cast<int>(lines.size()))
   {
     return lines[line].c_str();
   }

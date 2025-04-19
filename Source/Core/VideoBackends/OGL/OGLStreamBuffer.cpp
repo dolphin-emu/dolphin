@@ -150,9 +150,9 @@ public:
       glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
       m_iterator = 0;
     }
-    u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-                                        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
-                                            GL_MAP_UNSYNCHRONIZED_BIT);
+    u8* pointer = static_cast<u8*>(glMapBufferRange(m_buffertype, m_iterator, size,
+                                                    GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
+                                                    GL_MAP_UNSYNCHRONIZED_BIT));
     return std::make_pair(pointer, m_iterator);
   }
 
@@ -185,9 +185,9 @@ public:
   std::pair<u8*, u32> Map(u32 size) override
   {
     AllocMemory(size);
-    u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-                                        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
-                                            GL_MAP_UNSYNCHRONIZED_BIT);
+    u8* pointer = static_cast<u8*>(glMapBufferRange(m_buffertype, m_iterator, size,
+                                                    GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
+                                                    GL_MAP_UNSYNCHRONIZED_BIT));
     return std::make_pair(pointer, m_iterator);
   }
 
@@ -229,9 +229,9 @@ public:
                     GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
                         (coherent ? GL_MAP_COHERENT_BIT : 0));
     m_pointer =
-        (u8*)glMapBufferRange(m_buffertype, 0, m_size,
-                              GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                  (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
+        static_cast<u8*>(glMapBufferRange(m_buffertype, 0, m_size,
+                                          GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+                                          (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT)));
   }
 
   ~BufferStorage()

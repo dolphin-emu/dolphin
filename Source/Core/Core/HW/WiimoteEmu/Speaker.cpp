@@ -77,13 +77,13 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
     {
-      samples[i] = ((s16)(s8)data[i]) * 0x100;
+      samples[i] = static_cast<s16>(static_cast<s8>(data[i])) * 0x100;
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 12000000;
     volume_divisor = 0xff;
-    sample_length = (unsigned int)length;
+    sample_length = static_cast<unsigned int>(length);
   }
   else if (reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
   {
@@ -97,7 +97,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 6000000;
     volume_divisor = 0x7F;
-    sample_length = (unsigned int)length * 2;
+    sample_length = static_cast<unsigned int>(length) * 2;
   }
   else
   {
@@ -113,7 +113,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 
   // SetWiimoteSpeakerVolume expects values from 0 to 255.
   // Multiply by 256, floor to int, and clamp to 255 for a uniformly mapped conversion.
-  const double volume = float(reg_data.volume) * 256.f / volume_divisor;
+  const double volume = static_cast<float>(reg_data.volume) * 256.f / volume_divisor;
 
   // This used the "Constant Power Pan Law", but it is undesirable
   // if the pan is 0, and it implied that the loudness of a wiimote speaker
@@ -123,8 +123,8 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   // because you can lower their volume from the Wii settings and because they are
   // already extremely low quality, so any additional quality loss isn't welcome.
   speaker_pan = std::clamp(speaker_pan, -1.f, 1.f);
-  const u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
-  const u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
+  const u32 l_volume = std::min(static_cast<u32>(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
+  const u32 r_volume = std::min(static_cast<u32>(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
   auto& system = Core::System::GetInstance();
   SoundStream* sound_stream = system.GetSoundStream();

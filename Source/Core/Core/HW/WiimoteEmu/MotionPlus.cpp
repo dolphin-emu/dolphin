@@ -62,7 +62,7 @@ Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationB
   const auto sign_fix = Common::Vec3(-1, +1, -1);
 
   // Adjust deg/s to rad/s.
-  constexpr auto scalar = float(MathUtil::TAU / 360);
+  constexpr auto scalar = static_cast<float>(MathUtil::TAU / 360);
 
   return gyro.GetNormalizedValue(calibration.value) * sign_fix * Common::Vec3(calibration.degrees) *
          scalar;
@@ -149,8 +149,8 @@ void MotionPlus::CalibrationData::UpdateChecksum()
   crc_result = Common::UpdateCRC32(crc_result, reinterpret_cast<const u8*>(this), 0xe);
   crc_result = Common::UpdateCRC32(crc_result, reinterpret_cast<const u8*>(this) + 0x10, 0xe);
 
-  crc32_lsb = u16(crc_result);
-  crc32_msb = u16(crc_result >> 16);
+  crc32_lsb = static_cast<u16>(crc_result);
+  crc32_msb = static_cast<u16>(crc_result >> 16);
 }
 
 void MotionPlus::DoState(PointerWrap& p)
@@ -435,14 +435,16 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       {
         constexpr u8 INIT_OFFSET = offsetof(Register, init_trigger);
         std::array<u8, 1> enc_data = {0x55};
-        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, int(enc_data.size()), enc_data.data());
+        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, static_cast<int>(enc_data.size()),
+                           enc_data.data());
       }
 
       // Read identifier
       {
         constexpr u8 ID_OFFSET = offsetof(Register, ext_identifier);
         std::array<u8, 6> id_data = {};
-        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, int(id_data.size()), id_data.data());
+        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, static_cast<int>(id_data.size()),
+                          id_data.data());
         m_reg_data.passthrough_ext_id_0 = id_data[0];
         m_reg_data.passthrough_ext_id_4 = id_data[4];
         m_reg_data.passthrough_ext_id_5 = id_data[5];
@@ -452,7 +454,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       {
         constexpr u8 CAL_OFFSET = offsetof(Register, calibration_data);
         m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, CAL_OFFSET,
-                          int(m_reg_data.passthrough_ext_calib.size()),
+                          static_cast<int>(m_reg_data.passthrough_ext_calib.size()),
                           m_reg_data.passthrough_ext_calib.data());
       }
     }
@@ -538,7 +540,7 @@ MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& an
     result.is_slow.data[i] = is_slow;
 
     const s32 value = std::lround(rad_per_sec * (is_slow ? SLOW_SCALE : FAST_SCALE));
-    result.gyro.value.data[i] = u16(std::clamp(value + ZERO_VALUE, 0, MAX_VALUE));
+    result.gyro.value.data[i] = static_cast<u16>(std::clamp(value + ZERO_VALUE, 0, MAX_VALUE));
   }
   return result;
 }
@@ -546,7 +548,8 @@ MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& an
 MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
 {
   return DataFormat::Data{DataFormat::GyroRawValue{DataFormat::GyroType{
-                              u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE)}},
+                              static_cast<u16>(ZERO_VALUE), static_cast<u16>(ZERO_VALUE),
+                              static_cast<u16>(ZERO_VALUE)}},
                           DataFormat::SlowType{true, true, true}};
 }
 
@@ -627,19 +630,19 @@ void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data
     const u16 roll_value = gyroscope_data.gyro.value.y;
     const u16 yaw_value = gyroscope_data.gyro.value.z;
 
-    mplus_data.yaw_slow = u8(yaw_slow);
-    mplus_data.roll_slow = u8(roll_slow);
-    mplus_data.pitch_slow = u8(pitch_slow);
+    mplus_data.yaw_slow = static_cast<u8>(yaw_slow);
+    mplus_data.roll_slow = static_cast<u8>(roll_slow);
+    mplus_data.pitch_slow = static_cast<u8>(pitch_slow);
 
     // Bits 0-7
-    mplus_data.yaw1 = u8(yaw_value);
-    mplus_data.roll1 = u8(roll_value);
-    mplus_data.pitch1 = u8(pitch_value);
+    mplus_data.yaw1 = static_cast<u8>(yaw_value);
+    mplus_data.roll1 = static_cast<u8>(roll_value);
+    mplus_data.pitch1 = static_cast<u8>(pitch_value);
 
     // Bits 8-13
-    mplus_data.yaw2 = u8(yaw_value >> 8);
-    mplus_data.roll2 = u8(roll_value >> 8);
-    mplus_data.pitch2 = u8(pitch_value >> 8);
+    mplus_data.yaw2 = static_cast<u8>(yaw_value >> 8);
+    mplus_data.roll2 = static_cast<u8>(roll_value >> 8);
+    mplus_data.pitch2 = static_cast<u8>(pitch_value >> 8);
   }
 
   mplus_data.extension_connected = is_ext_connected;

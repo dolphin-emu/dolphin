@@ -305,7 +305,7 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
 {
   const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
   const bool size_changed =
-      (m_backbuffer_width != (int)info.width || m_backbuffer_height != (int)info.height);
+      (m_backbuffer_width != static_cast<int>(info.width) || m_backbuffer_height != static_cast<int>(info.height));
   m_backbuffer_width = info.width;
   m_backbuffer_height = info.height;
   m_backbuffer_scale = info.scale;
@@ -534,8 +534,8 @@ u32 Presenter::AutoIntegralScale() const
   u32 source_height = m_last_xfb_height;
   const u32 target_width = m_target_rectangle.GetWidth();
   const u32 target_height = m_target_rectangle.GetHeight();
-  const float source_aspect_ratio = (float)source_width / source_height;
-  const float target_aspect_ratio = (float)target_width / target_height;
+  const float source_aspect_ratio = static_cast<float>(source_width) / source_height;
+  const float target_aspect_ratio = static_cast<float>(target_width) / target_height;
   if (source_aspect_ratio >= target_aspect_ratio)
     source_width = std::round(source_height * target_aspect_ratio);
   else

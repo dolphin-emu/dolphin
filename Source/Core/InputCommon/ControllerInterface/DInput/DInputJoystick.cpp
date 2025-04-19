@@ -127,8 +127,8 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
     return;
 
   // max of 32 buttons and 4 hats / the limit of the data format I am using
-  js_caps.dwButtons = std::min((DWORD)32, js_caps.dwButtons);
-  js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
+  js_caps.dwButtons = std::min(static_cast<DWORD>(32), js_caps.dwButtons);
+  js_caps.dwPOVs = std::min(static_cast<DWORD>(4), js_caps.dwPOVs);
 
   // m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
 
@@ -244,7 +244,7 @@ Core::DeviceRemoval Joystick::UpdateInput()
         if (evt->dwOfs < DIJOFS_BUTTON(0))
           *(DWORD*)(((BYTE*)&m_state_in) + evt->dwOfs) = evt->dwData;
         else
-          ((BYTE*)&m_state_in)[evt->dwOfs] = (BYTE)evt->dwData;
+          ((BYTE*)&m_state_in)[evt->dwOfs] = static_cast<BYTE>(evt->dwData);
       }
 
       // seems like this needs to be done maybe...
@@ -289,12 +289,12 @@ std::string Joystick::Hat::GetName() const
 
 ControlState Joystick::Axis::GetState() const
 {
-  return ControlState(m_axis - m_base) / m_range;
+  return static_cast<ControlState>(m_axis - m_base) / m_range;
 }
 
 ControlState Joystick::Button::GetState() const
 {
-  return ControlState(m_button > 0);
+  return static_cast<ControlState>(m_button > 0);
 }
 
 ControlState Joystick::Hat::GetState() const
@@ -306,6 +306,6 @@ ControlState Joystick::Hat::GetState() const
   if (is_centered)
     return 0;
 
-  return (std::abs(int(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
+  return (std::abs(static_cast<int>(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
 }
 }  // namespace ciface::DInput

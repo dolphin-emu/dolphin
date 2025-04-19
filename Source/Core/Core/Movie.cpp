@@ -1271,7 +1271,7 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
 
   if (serialized.length > serialized.data.size())
   {
-    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}", int(serialized.length),
+    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}", static_cast<int>(serialized.length),
                    m_current_byte);
     EndPlayInput(!m_read_only);
     return false;
@@ -1281,7 +1281,7 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
   if (m_current_byte + serialized.length > m_temp_input.size())
   {
     PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", m_current_byte,
-                   int(serialized.length), m_temp_input.size());
+                   static_cast<int>(serialized.length), m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }

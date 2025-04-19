@@ -133,7 +133,7 @@ TEST_F(MappingTest, ReadWriteComplex)
 
   u8 val = m_mapping->Read<u8>(*m_system, 0x0C001234);
   EXPECT_EQ(0x12, val);
-  m_mapping->Write(*m_system, 0x0C001234, (u8)0x34);
+  m_mapping->Write(*m_system, 0x0C001234, static_cast<u8>(0x34));
 
   EXPECT_TRUE(read_called);
   EXPECT_TRUE(write_called);

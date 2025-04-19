@@ -106,12 +106,12 @@ void AXWiiUCode::HandleCommandList()
       {
         volume = m_cmdlist[curr_idx++];
         u32 addresses[6] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-            (u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
-            (u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
+            static_cast<u32>(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+            static_cast<u32>(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+            static_cast<u32>(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+            static_cast<u32>(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+            static_cast<u32>(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
+            static_cast<u32>(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
         };
         curr_idx += 12;
         UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC_OLD, addresses, volume);
@@ -140,10 +140,10 @@ void AXWiiUCode::HandleCommandList()
       case CMD_WM_OUTPUT_OLD:
       {
         u32 addresses[4] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+            static_cast<u32>(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+            static_cast<u32>(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+            static_cast<u32>(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+            static_cast<u32>(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
         };
         curr_idx += 8;
         OutputWMSamples(addresses);
@@ -203,12 +203,12 @@ void AXWiiUCode::HandleCommandList()
       {
         volume = m_cmdlist[curr_idx++];
         u32 addresses[6] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-            (u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
-            (u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
+            static_cast<u32>(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+            static_cast<u32>(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+            static_cast<u32>(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+            static_cast<u32>(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+            static_cast<u32>(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
+            static_cast<u32>(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
         };
         curr_idx += 12;
         UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC, addresses, volume);
@@ -238,10 +238,10 @@ void AXWiiUCode::HandleCommandList()
       case CMD_WM_OUTPUT:
       {
         u32 addresses[4] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+            static_cast<u32>(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+            static_cast<u32>(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+            static_cast<u32>(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+            static_cast<u32>(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
         };
         curr_idx += 8;
         OutputWMSamples(addresses);
@@ -274,10 +274,10 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
 void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = (int*)HLEMemory_Get_Pointer(memory, val_addr);
+  int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, val_addr));
   for (int i = 0; i < 32 * 3; ++i)
   {
-    int val = (int)Common::swap32(*ptr++);
+    int val = static_cast<int>(Common::swap32(*ptr++));
     if (neg)
       val = -val;
 
@@ -289,15 +289,15 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
 void AXWiiUCode::AddSubToLR(u32 val_addr)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = (int*)HLEMemory_Get_Pointer(memory, val_addr);
+  int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, val_addr));
   for (int i = 0; i < 32 * 3; ++i)
   {
-    int val = (int)Common::swap32(*ptr++);
+    int val = static_cast<int>(Common::swap32(*ptr++));
     m_samples_main_left[i] += val;
   }
   for (int i = 0; i < 32 * 3; ++i)
   {
-    int val = (int)Common::swap32(*ptr++);
+    int val = static_cast<int>(Common::swap32(*ptr++));
     m_samples_main_right[i] -= val;
   }
 }
@@ -347,7 +347,7 @@ AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
   if (mixer_control & 0x40000000)
     ret |= MIX_AUXC_S | MIX_AUXC_S_RAMP;
 
-  return (AXMixControl)ret;
+  return static_cast<AXMixControl>(ret);
 }
 
 void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals)
@@ -355,8 +355,8 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nval
   float curr = vol1;
   for (size_t i = 0; i < nvals; ++i)
   {
-    curr += (vol2 - vol1) / (float)nvals;
-    output[i] = (u16)curr;
+    curr += (vol2 - vol1) / static_cast<float>(nvals);
+    output[i] = static_cast<u16>(curr);
   }
 }
 
@@ -526,7 +526,7 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   auto& memory = m_dsphle->GetSystem().GetMemory();
   if (write_addr)
   {
-    int* ptr = (int*)HLEMemory_Get_Pointer(memory, write_addr);
+    int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, write_addr));
     for (const auto& buffer : buffers)
     {
       for (u32 j = 0; j < 3 * 32; ++j)
@@ -535,14 +535,14 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   }
 
   // Then read the buffers from the CPU and add to our main buffers.
-  const int* ptr = (int*)HLEMemory_Get_Pointer(memory, read_addr);
+  const int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, read_addr));
   for (auto& main_buffer : main_buffers)
   {
     for (u32 j = 0; j < 3 * 32; ++j)
     {
-      s64 sample = (s64)(s32)Common::swap32(*ptr++);
+      s64 sample = (s64) static_cast<s32>(Common::swap32(*ptr++));
       sample *= volume_ramp[j];
-      main_buffer[j] += (s32)(sample >> 15);
+      main_buffer[j] += static_cast<s32>(sample >> 15);
     }
   }
 }
@@ -555,7 +555,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   int* auxc_buffer = aux_id ? m_samples_auxC_surround : m_samples_auxC_right;
 
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* upload_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[0]);
+  int* upload_ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, addresses[0]));
   for (u32 i = 0; i < 96; ++i)
     *upload_ptr++ = Common::swap32(aux_left[i]);
   for (u32 i = 0; i < 96; ++i)
@@ -563,7 +563,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   for (u32 i = 0; i < 96; ++i)
     *upload_ptr++ = Common::swap32(aux_surround[i]);
 
-  upload_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[1]);
+  upload_ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, addresses[1]));
   for (u32 i = 0; i < 96; ++i)
     *upload_ptr++ = Common::swap32(auxc_buffer[i]);
 
@@ -575,7 +575,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
                       m_samples_auxC_left};
   for (u32 mix_i = 0; mix_i < 4; ++mix_i)
   {
-    int* dl_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[2 + mix_i]);
+    int* dl_ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, addresses[2 + mix_i]));
     for (u32 i = 0; i < 96; ++i)
       aux_left[i] = Common::swap32(dl_ptr[i]);
 
@@ -583,7 +583,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
     {
       s64 sample = (s64)(s32)aux_left[i];
       sample *= volume_ramp[i];
-      mix_dest[mix_i][i] += (s32)(sample >> 15);
+      mix_dest[mix_i][i] += static_cast<s32>(sample >> 15);
     }
   }
 }
@@ -644,11 +644,11 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
   for (u32 i = 0; i < 4; ++i)
   {
     int* in = buffers[i];
-    u16* out = (u16*)HLEMemory_Get_Pointer(memory, addresses[i]);
+    u16* out = static_cast<u16*>(HLEMemory_Get_Pointer(memory, addresses[i]));
     for (u32 j = 0; j < 3 * 6; ++j)
     {
       s16 sample = ClampS16(in[j]);
-      out[j] = Common::swap16((u16)sample);
+      out[j] = Common::swap16(static_cast<u16>(sample));
     }
   }
 }

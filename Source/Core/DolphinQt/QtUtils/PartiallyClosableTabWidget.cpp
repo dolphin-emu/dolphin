@@ -13,7 +13,7 @@ PartiallyClosableTabWidget::PartiallyClosableTabWidget(QWidget* parent) : QTabWi
 
 void PartiallyClosableTabWidget::setTabUnclosable(int index)
 {
-  QTabBar::ButtonPosition closeSide = (QTabBar::ButtonPosition)style()->styleHint(
-      QStyle::SH_TabBar_CloseButtonPosition, nullptr, this);
+  QTabBar::ButtonPosition closeSide = static_cast<QTabBar::ButtonPosition>(style()->styleHint(
+      QStyle::SH_TabBar_CloseButtonPosition, nullptr, this));
   tabBar()->setTabButton(index, closeSide, nullptr);
 }

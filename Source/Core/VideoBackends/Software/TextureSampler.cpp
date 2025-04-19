@@ -103,10 +103,10 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
     SampleMip(s, t, baseMip + 1, linear, texmap, sampledTex);
     AddTexel(sampledTex, texel, lodFract);
 
-    sample[0] = (u8)(texel[0] >> 4);
-    sample[1] = (u8)(texel[1] >> 4);
-    sample[2] = (u8)(texel[2] >> 4);
-    sample[3] = (u8)(texel[3] >> 4);
+    sample[0] = static_cast<u8>(texel[0] >> 4);
+    sample[1] = static_cast<u8>(texel[1] >> 4);
+    sample[2] = static_cast<u8>(texel[2] >> 4);
+    sample[3] = static_cast<u8>(texel[3] >> 4);
   }
   else
 #endif
@@ -239,10 +239,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
       AddTexel(sampledTex, texel, (fractS) * (fractT));
     }
 
-    sample[0] = (u8)(texel[0] >> 14);
-    sample[1] = (u8)(texel[1] >> 14);
-    sample[2] = (u8)(texel[2] >> 14);
-    sample[3] = (u8)(texel[3] >> 14);
+    sample[0] = static_cast<u8>(texel[0] >> 14);
+    sample[1] = static_cast<u8>(texel[1] >> 14);
+    sample[2] = static_cast<u8>(texel[2] >> 14);
+    sample[3] = static_cast<u8>(texel[3] >> 14);
   }
   else
   {

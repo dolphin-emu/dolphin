@@ -62,7 +62,7 @@ static void MultipleVec3Perspective(const Vec3& vec, const Projection::Raw& proj
   result.x = proj[0] * vec.x + proj[1] * vec.z;
   result.y = proj[2] * vec.y + proj[3] * vec.z;
   // result.z = (proj[4] * vec.z + proj[5]);
-  result.z = (proj[4] * vec.z + proj[5]) * (1.0f - (float)1e-7);
+  result.z = (proj[4] * vec.z + proj[5]) * (1.0f - static_cast<float>(1e-7));
   result.w = -vec.z;
 }
 
@@ -422,14 +422,14 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
     break;
     case TexGenType::Color0:
       ASSERT(texinfo.inputform == TexInputForm::AB11);
-      dst->texCoords[coordNum].x = (float)dst->color[0][0] / 255.0f;
-      dst->texCoords[coordNum].y = (float)dst->color[0][1] / 255.0f;
+      dst->texCoords[coordNum].x = static_cast<float>(dst->color[0][0]) / 255.0f;
+      dst->texCoords[coordNum].y = static_cast<float>(dst->color[0][1]) / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     case TexGenType::Color1:
       ASSERT(texinfo.inputform == TexInputForm::AB11);
-      dst->texCoords[coordNum].x = (float)dst->color[1][0] / 255.0f;
-      dst->texCoords[coordNum].y = (float)dst->color[1][1] / 255.0f;
+      dst->texCoords[coordNum].x = static_cast<float>(dst->color[1][0]) / 255.0f;
+      dst->texCoords[coordNum].y = static_cast<float>(dst->color[1][1]) / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     default:

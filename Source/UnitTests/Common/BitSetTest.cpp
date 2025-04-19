@@ -27,7 +27,7 @@ TEST(BitSet, BitGetSet)
   bs[3] = bs[8] = bs[11] = true;
   EXPECT_TRUE(bs[3]);
   EXPECT_FALSE(bs[4]);
-  EXPECT_EQ((u32)((1 << 3) | (1 << 8) | (1 << 11)), bs.m_val);
+  EXPECT_EQ(static_cast<u32>((1 << 3) | (1 << 8) | (1 << 11)), bs.m_val);
 }
 
 TEST(BitSet, Count)

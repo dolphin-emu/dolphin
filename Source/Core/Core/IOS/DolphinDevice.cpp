@@ -47,7 +47,7 @@ IPCReply GetVersion(Core::System& system, const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const auto length = std::min(size_t(request.io_vectors[0].size), Common::GetScmDescStr().size());
+  const auto length = std::min(static_cast<size_t>(request.io_vectors[0].size), Common::GetScmDescStr().size());
 
   auto& memory = system.GetMemory();
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
@@ -71,7 +71,7 @@ IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
   const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
 
-  const u32 core_clock = u32(float(system.GetSystemTimers().GetTicksPerSecond()) * oc);
+  const u32 core_clock = static_cast<u32>(static_cast<float>(system.GetSystemTimers().GetTicksPerSecond()) * oc);
 
   auto& memory = system.GetMemory();
   memory.Write_U32(core_clock, request.io_vectors[0].address);
@@ -114,7 +114,7 @@ IPCReply SetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
   }
 
   auto& memory = system.GetMemory();
-  const float speed = float(memory.Read_U32(request.in_vectors[0].address)) / 100.0f;
+  const float speed = static_cast<float>(memory.Read_U32(request.in_vectors[0].address)) / 100.0f;
   Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
 
   return IPCReply(IPC_SUCCESS);

@@ -158,10 +158,11 @@ void GBASockServer::ClockSync(Core::System& system)
   }
   else
   {
-    time_slice = (u32)(core_timing.GetTicks() - m_last_time_slice);
+    time_slice = static_cast<u32>(core_timing.GetTicks() - m_last_time_slice);
   }
 
-  time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
+  time_slice = static_cast<u32>(static_cast<u64>(time_slice) * 16777216 /
+                                system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
   char bytes[4] = {0, 0, 0, 0};
   bytes[0] = (time_slice >> 24) & 0xff;

@@ -131,7 +131,7 @@ void MemoryManager::Init()
     if (!region.active)
       continue;
 
-    *region.out_pointer = (u8*)m_arena.CreateView(region.shm_position, region.size);
+    *region.out_pointer = static_cast<u8*>(m_arena.CreateView(region.shm_position, region.size));
 
     if (!*region.out_pointer)
     {
@@ -217,7 +217,7 @@ bool MemoryManager::InitFastmemArena()
       continue;
 
     u8* base = m_physical_base + region.physical_address;
-    u8* view = (u8*)m_arena.MapInMemoryRegion(region.shm_position, region.size, base);
+    u8* view = static_cast<u8*>(m_arena.MapInMemoryRegion(region.shm_position, region.size, base));
 
     if (base != view)
     {

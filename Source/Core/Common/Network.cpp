@@ -267,7 +267,7 @@ void DHCPPacket::AddOption(u8 fnc, const std::vector<u8>& params)
 {
   if (params.size() > 255)
     return;
-  std::vector<u8> opt = {fnc, u8(params.size())};
+  std::vector<u8> opt = {fnc, static_cast<u8>(params.size())};
   opt.insert(opt.end(), params.begin(), params.end());
   options.emplace_back(std::move(opt));
 }
@@ -386,11 +386,11 @@ std::vector<u8> TCPPacket::Build() const
 
   auto ip_checksum_bitcast_ptr =
       Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
-  ip_checksum_bitcast_ptr = u16(0);
+  ip_checksum_bitcast_ptr = static_cast<u16>(0);
   ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(tcp_ptr + offsetof(TCPHeader, checksum));
-  checksum_bitcast_ptr = u16(0);
+  checksum_bitcast_ptr = static_cast<u16>(0);
   checksum_bitcast_ptr = ComputeTCPNetworkChecksum(
       ip_header.source_addr, ip_header.destination_addr, tcp_ptr, tcp_length, IPPROTO_TCP);
 
@@ -436,11 +436,11 @@ std::vector<u8> UDPPacket::Build() const
 
   auto ip_checksum_bitcast_ptr =
       Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
-  ip_checksum_bitcast_ptr = u16(0);
+  ip_checksum_bitcast_ptr = static_cast<u16>(0);
   ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(udp_ptr + offsetof(UDPHeader, checksum));
-  checksum_bitcast_ptr = u16(0);
+  checksum_bitcast_ptr = static_cast<u16>(0);
   checksum_bitcast_ptr = ComputeTCPNetworkChecksum(
       ip_header.source_addr, ip_header.destination_addr, udp_ptr, udp_length, IPPROTO_UDP);
 
