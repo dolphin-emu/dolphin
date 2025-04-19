@@ -32,6 +32,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
@@ -103,6 +104,10 @@ void WiiPane::ConnectLayout()
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
+
+  // USB Keyboard
+  connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::SetUSBKeyboardConnected);
 }
 
 void WiiPane::CreateMisc()
@@ -115,8 +120,8 @@ void WiiPane::CreateMisc()
   m_screensaver_checkbox = new ConfigBool(tr("Enable Screen Saver"), Config::SYSCONF_SCREENSAVER);
   m_wiilink_checkbox =
       new ConfigBool(tr("Enable WiiConnect24 via WiiLink"), Config::MAIN_WII_WIILINK_ENABLE);
-  m_connect_keyboard_checkbox =
-      new ConfigBool(tr("Connect USB Keyboard"), Config::MAIN_WII_KEYBOARD);
+  m_connect_keyboard_checkbox = new ToolTipCheckBox(tr("Connect USB Keyboard"));
+  m_connect_keyboard_checkbox->setChecked(Config::Get(Config::MAIN_WII_KEYBOARD));
 
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
   m_aspect_ratio_choice = new ConfigChoiceMap<bool>({{tr("4:3"), false}, {tr("16:9"), true}},
