@@ -245,7 +245,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 
 static ConversionResultCode Output(OutputParameters parameters, File::IOFile* outfile,
                                    u64* position, std::vector<u64>* offsets, int progress_monitor,
-                                   u32 num_blocks, CompressCB callback)
+                                   u32 num_blocks, const CompressCB& callback)
 {
   u64 offset = *position;
   if (!parameters.compressed)
@@ -276,7 +276,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
                   const std::string& outfile_path, u32 sub_type, int block_size,
-                  CompressCB callback)
+                  const CompressCB& callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 
