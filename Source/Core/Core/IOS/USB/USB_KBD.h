@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <array>
 #include <queue>
 #include <string>
-#include <type_traits>
 
 #include "Common/CommonTypes.h"
+#include "Common/Keyboard.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
@@ -32,7 +31,13 @@ private:
     Event = 2
   };
 
-  using PressedKeyData = std::array<u8, 6>;
+  struct State
+  {
+    u8 modifiers = 0;
+    Common::HIDPressedKeys pressed_keys{};
+
+    auto operator<=>(const State&) const = default;
+  };
 
 #pragma pack(push, 1)
   struct MessageData
@@ -41,26 +46,15 @@ private:
     u32 unk1 = 0;
     u8 modifiers = 0;
     u8 unk2 = 0;
-    PressedKeyData pressed_keys{};
+    Common::HIDPressedKeys pressed_keys{};
 
-    MessageData(MessageType msg_type, u8 modifiers, PressedKeyData pressed_keys);
+    MessageData(MessageType msg_type, const State& state);
   };
   static_assert(std::is_trivially_copyable_v<MessageData>,
                 "MessageData must be trivially copyable, as it's copied into emulated memory.");
 #pragma pack(pop)
   std::queue<MessageData> m_message_queue;
-
-  std::array<bool, 256> m_old_key_buffer{};
-  u8 m_old_modifiers = 0;
-
-  bool IsKeyPressed(int key) const;
-
-  // This stuff should probably die
-  enum
-  {
-    KBD_LAYOUT_QWERTY = 0,
-    KBD_LAYOUT_AZERTY = 1
-  };
-  int m_keyboard_layout = KBD_LAYOUT_QWERTY;
+  State m_previous_state;
+  int m_keyboard_layout = Common::KBD_LAYOUT_QWERTY;
 };
 }  // namespace IOS::HLE
