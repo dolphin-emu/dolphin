@@ -358,6 +358,8 @@ void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 
 // Main.EmulatedUSBDevices
 
+extern const Info<int> MAIN_EMULATED_CAMERA;
+extern const Info<std::string> MAIN_SELECTED_CAMERA;
 extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
 extern const Info<bool> MAIN_EMULATE_INFINITY_BASE;
 

@@ -220,6 +220,7 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        PermissionsHandler.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 PermissionsHandler.setWritePermissionDenied()

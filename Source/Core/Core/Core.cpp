@@ -900,6 +900,8 @@ void UpdateTitle(Core::System& system)
   }
 
   Host_UpdateTitle(message);
+  //Host_CameraStart(320, 240);
+  //Host_CameraStart(640, 480);
 }
 
 void Shutdown(Core::System& system)

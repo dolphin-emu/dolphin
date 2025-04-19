@@ -75,6 +75,7 @@
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 #include "DolphinQt/CheatsManager.h"
+#include "DolphinQt/CameraQt/CameraQt.h"
 #include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -570,6 +571,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+  connect(m_menu_bar, &MenuBar::ShowCameraWindow, this, &MainWindow::ShowCameraWindow);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
@@ -1385,6 +1387,19 @@ void MainWindow::ShowFIFOPlayer()
   m_fifo_window->show();
   m_fifo_window->raise();
   m_fifo_window->activateWindow();
+}
+
+void MainWindow::ShowCameraWindow()
+{
+  if (!m_camera_window)
+  {
+    m_camera_window = new CameraWindow();
+  }
+
+  SetQWidgetWindowDecorations(m_camera_window);
+  m_camera_window->show();
+  m_camera_window->raise();
+  m_camera_window->activateWindow();
 }
 
 void MainWindow::ShowSkylanderPortal()

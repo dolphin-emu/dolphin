@@ -30,6 +30,7 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
+#include "DolphinQt/CameraQt/CameraQt.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -189,6 +190,8 @@ int main(int argc, char* argv[])
   // queued in the Core first.
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
                    &app, [] { Core::HostDispatchJobs(Core::System::GetInstance()); });
+
+  CameraManager camera;
 
   std::optional<std::string> save_state_path;
   if (options.is_set("save_state"))

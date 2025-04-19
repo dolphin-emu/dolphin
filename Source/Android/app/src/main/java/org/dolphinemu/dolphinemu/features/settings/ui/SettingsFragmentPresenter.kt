@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.UserDataActivity
+import org.dolphinemu.dolphinemu.features.camera.Camera
 import org.dolphinemu.dolphinemu.features.input.model.ControlGroupEnabledSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting
@@ -186,6 +187,28 @@ class SettingsFragmentPresenter(
     }
 
     private fun addTopLevelSettings(sl: ArrayList<SettingsItem>) {
+        sl.add(
+            SingleChoiceSetting(
+                context,
+                IntSetting.MAIN_EMULATED_CAMERA,
+                R.string.emulated_camera,
+                0,
+                R.array.emulatedCameraEntries,
+                R.array.emulatedCameraValues
+            )
+        )
+        var camerasEntries = Camera.getCameraEntries()
+        var cameraValues = Camera.getCameraValues()
+        sl.add(
+            StringSingleChoiceSetting(
+                context,
+                StringSetting.MAIN_SELECTED_CAMERA,
+                R.string.selected_camera,
+                0,
+                camerasEntries,
+                cameraValues
+            )
+        )
         sl.add(SubmenuSetting(context, R.string.config, MenuTag.CONFIG))
         sl.add(SubmenuSetting(context, R.string.graphics_settings, MenuTag.GRAPHICS))
 
@@ -876,6 +899,18 @@ class SettingsFragmentPresenter(
         )
 
         sl.add(HeaderSetting(context, R.string.emulated_usb_devices, 0))
+//        var camerasEntries = Camera.getCameraEntries()
+//        var cameraValues = Camera.getCameraValues()
+//        sl.add(
+//            StringSingleChoiceSetting(
+//                context,
+//                StringSetting.MAIN_EMULATE_CAMERA,
+//                R.string.emulate_camera,
+//                0,
+//                camerasEntries,
+//                cameraValues
+//            )
+//        )
         sl.add(
             SwitchSetting(
                 context,

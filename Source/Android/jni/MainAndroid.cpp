@@ -45,6 +45,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
+#include "Core/IOS/USB/Emulated/MotionCamera.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
@@ -134,6 +135,18 @@ void Host_Message(HostMessageID id)
 void Host_UpdateTitle(const std::string& title)
 {
   __android_log_write(ANDROID_LOG_INFO, DOLPHIN_TAG, title.c_str());
+}
+
+void Host_CameraStart(u16 width, u16 height)
+{
+    JNIEnv* env = IDCache::GetEnvForThread();
+    env->CallStaticVoidMethod(IDCache::GetCameraClass(), IDCache::GetCameraStart(), width, height);
+}
+
+void Host_CameraStop()
+{
+    JNIEnv* env = IDCache::GetEnvForThread();
+    env->CallStaticVoidMethod(IDCache::GetCameraClass(), IDCache::GetCameraStop());
 }
 
 void Host_UpdateDiscordClientID(const std::string& client_id)
@@ -488,6 +501,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
   if (g_presenter)
     g_presenter->ChangeSurface(s_surf);
 
+  env->CallStaticVoidMethod(IDCache::GetCameraClass(), IDCache::GetCameraResume());
+
   s_surface_cv.notify_all();
 }
 
@@ -831,5 +846,14 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked
     description = SConfig::GetInstance().GetTitleDescription();
 
   return ToJString(env, description);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_CameraSetData(JNIEnv* env, jclass, jbyteArray image)
+{
+    jlong size = env->GetArrayLength(image);
+    jbyte* buffer = env->GetByteArrayElements(image, nullptr);
+    Core::System::GetInstance().GetCameraBase().SetData(reinterpret_cast<const u8 *>(buffer), size);
+    env->ReleaseByteArrayElements(image, buffer, 0);
 }
 }
