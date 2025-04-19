@@ -93,6 +93,8 @@ add_library(common
   JitRegister.h
   JsonUtil.h
   JsonUtil.cpp
+  Keyboard.h
+  Keyboard.cpp
   Lazy.h
   LinearDiskCache.h
   Logging/ConsoleListener.h
