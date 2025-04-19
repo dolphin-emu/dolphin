@@ -442,12 +442,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 
   auto path_to_physical_name = [](const fs::path& path) {
 #ifdef _WIN32
-    // TODO Ideally this would not be needed - dolphin really should not have code directly mucking
-    // about with directory separators (for host paths - emulated paths may require it) and instead
-    // use fs::path to interact with them.
-    auto wpath = path.wstring();
-    std::ranges::replace(wpath, L'\\', L'/');
-    return WStringToUTF8(wpath);
+    return WStringToUTF8(path.generic_wstring());
 #else
     return PathToString(path);
 #endif
