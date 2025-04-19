@@ -78,17 +78,17 @@ void CPUManager::StartTimePlayedTimer()
 
   while (true)
   {
-    const std::string game_id = SConfig::GetInstance().GetGameID();
-    TimePlayed time_played(game_id);
+    TimePlayed time_played;
     auto curr_time = timer.now();
 
     // Check that emulation is not paused
     // If the emulation is paused, wait for SetStepping() to reactivate
     if (m_state == State::Running)
     {
+      const std::string game_id = SConfig::GetInstance().GetGameID();
       const auto diff_time =
           std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - prev_time);
-      time_played.AddTime(diff_time);
+      time_played.AddTime(game_id, diff_time);
     }
     else if (m_state == State::Stepping)
     {
