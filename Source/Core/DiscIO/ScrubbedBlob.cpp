@@ -22,7 +22,7 @@ ScrubbedBlob::ScrubbedBlob(std::unique_ptr<BlobReader> blob_reader, DiscScrubber
 
 std::unique_ptr<ScrubbedBlob> ScrubbedBlob::Create(const std::string& path)
 {
-  std::unique_ptr<VolumeDisc> disc = CreateDisc(path);
+  const std::unique_ptr<VolumeDisc> disc = CreateDisc(path);
   if (!disc)
     return nullptr;
 
