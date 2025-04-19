@@ -244,7 +244,7 @@ private:
   std::optional<DiscIO::Partition> m_wrapped_partition = std::nullopt;
 };
 
-class DirectoryBlobReader : public BlobReader
+class DirectoryBlobReader final : public BlobReader
 {
   friend DiscContent;
 

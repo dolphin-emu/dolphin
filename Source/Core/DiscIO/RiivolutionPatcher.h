@@ -45,7 +45,7 @@ public:
   ResolveSavegameRedirectPath(std::string_view external_relative_path) = 0;
 };
 
-class FileDataLoaderHostFS : public FileDataLoader
+class FileDataLoaderHostFS final : public FileDataLoader
 {
 public:
   // sd_root should be an absolute path to the folder representing our virtual SD card
