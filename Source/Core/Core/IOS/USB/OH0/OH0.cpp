@@ -76,6 +76,7 @@ std::optional<IPCReply> OH0::IOCtlV(const IOCtlVRequest& request)
 
 void OH0::DoState(PointerWrap& p)
 {
+  std::lock_guard lk(m_devices_mutex);
   if (p.IsReadMode() && !m_devices.empty())
   {
     Core::DisplayMessage("It is suggested that you unplug and replug all connected USB devices.",
@@ -243,9 +244,17 @@ void OH0::OnDeviceChange(const ChangeEvent event, std::shared_ptr<USB::Device> d
 {
   std::lock_guard lk(m_devices_mutex);
   if (event == ChangeEvent::Inserted)
+  {
     TriggerHook(m_insertion_hooks, {device->GetVid(), device->GetPid()}, IPC_SUCCESS);
+  }
   else if (event == ChangeEvent::Removed)
+  {
     TriggerHook(m_removal_hooks, device->GetId(), IPC_SUCCESS);
+
+    // This fixes a problem where Rock Band 3 randomly fails to detect reconnected microphones.
+    // Real IOS behavior untested.
+    m_opened_devices.erase(device->GetId());
+  }
 }
 
 template <typename T>
@@ -286,6 +295,7 @@ std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
 void OH0::DeviceClose(const u64 device_id)
 {
   TriggerHook(m_removal_hooks, device_id, IPC_ENOENT);
+  std::lock_guard lk(m_devices_mutex);
   m_opened_devices.erase(device_id);
 }
 
