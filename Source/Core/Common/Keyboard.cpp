@@ -1,25 +1,21 @@
-// Copyright 2009 Dolphin Emulator Project
+// Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/IOS/USB/USB_KBD.h"
+#include "Common/Keyboard.h"
 
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
-#include "Common/Swap.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"  // Local core functions
-#include "Core/HW/Memmap.h"
-#include "Core/System.h"
-#include "InputCommon/ControlReference/ControlReference.h"  // For background input check
+#include <array>
+#include <utility>
 
-namespace IOS::HLE
-{
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace
 {
 // Crazy ugly
 #ifdef _WIN32
-constexpr std::array<u8, 256> s_key_codes_qwerty{
+constexpr std::size_t KEYBOARD_STATE_SIZE = 256;
+constexpr std::array<u8, KEYBOARD_STATE_SIZE> VK_HID_QWERTY{
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x2A,  // Backspace
     0x2B,  // Tab
@@ -91,7 +87,7 @@ constexpr std::array<u8, 256> s_key_codes_qwerty{
     0x00,  // Nothing interesting past this point.
 };
 
-constexpr std::array<u8, 256> s_key_codes_azerty{
+constexpr std::array<u8, KEYBOARD_STATE_SIZE> VK_HID_AZERTY{
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x2A,  // Backspace
     0x2B,  // Tab
@@ -162,72 +158,85 @@ constexpr std::array<u8, 256> s_key_codes_azerty{
     0x38,  // '!'
     0x00,  // Nothing interesting past this point.
 };
-#else
-constexpr std::array<u8, 256> s_key_codes_qwerty{};
 
-constexpr std::array<u8, 256> s_key_codes_azerty{};
+u8 MapVirtualKeyToHID(u8 virtual_key, int keyboard_layout)
+{
+  switch (keyboard_layout)
+  {
+  case Common::KBD_LAYOUT_AZERTY:
+    return VK_HID_AZERTY[virtual_key];
+  case Common::KBD_LAYOUT_QWERTY:
+  default:
+    return VK_HID_QWERTY[virtual_key];
+  }
+}
+#else
+u8 MapVirtualKeyToHID(u8 virtual_key, int keyboard_layout)
+{
+  return virtual_key;
+}
 #endif
 }  // Anonymous namespace
 
-USB_KBD::MessageData::MessageData(MessageType type, const State& state)
-    : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{state.modifiers},
-      pressed_keys{state.pressed_keys}
+namespace Common
 {
+bool Common::IsVirtualKeyPressed(int virtual_key)
+{
+#ifdef _WIN32
+  return (GetAsyncKeyState(virtual_key) & 0x8000) != 0;
+#else
+  // TODO: do it for non-Windows platforms
+  return false;
+#endif
 }
 
-// TODO: support in netplay/movies.
-
-USB_KBD::USB_KBD(EmulationKernel& ios, const std::string& device_name)
-    : EmulationDevice(ios, device_name)
+u8 Common::PollHIDModifiers()
 {
-}
-
-std::optional<IPCReply> USB_KBD::Open(const OpenRequest& request)
-{
-  INFO_LOG_FMT(IOS, "USB_KBD: Open");
-  Common::IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("USB Keyboard")
-      ->Get("Layout", &m_keyboard_layout, Common::KBD_LAYOUT_QWERTY);
-
-  m_message_queue = {};
-  m_previous_state = {};
-
-  // m_message_queue.emplace(MessageType::KeyboardConnect, {});
-  return Device::Open(request);
-}
-
-std::optional<IPCReply> USB_KBD::Write(const ReadWriteRequest& request)
-{
-  // Stubbed.
-  return IPCReply(IPC_SUCCESS);
-}
-
-std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
-{
-  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
-      ControlReference::GetInputGate() && !m_message_queue.empty())
+  u8 modifiers = 0;
+#ifdef _WIN32
+  using VkHidPair = std::pair<int, u8>;
+  // References:
+  // https://learn.microsoft.com/windows/win32/inputdev/virtual-key-codes
+  // https://www.usb.org/document-library/device-class-definition-hid-111
+  static const std::vector<VkHidPair> MODIFIERS_MAP{
+      {VK_LCONTROL, 0x01},  // HID modifier: Bit 0 - LEFT CTRL
+      {VK_LSHIFT, 0x02},    // HID modifier: Bit 1 - LEFT SHIFT
+      {VK_LMENU, 0x04},     // HID modifier: Bit 2 - LEFT ALT
+      {VK_LWIN, 0x08},      // HID modifier: Bit 3 - LEFT GUI
+      {VK_RCONTROL, 0x10},  // HID modifier: Bit 4 - RIGHT CTRL
+      {VK_RSHIFT, 0x20},    // HID modifier: Bit 5 - RIGHT SHIFT
+      {VK_RMENU, 0x40},     // HID modifier: Bit 6 - RIGHT ALT
+      {VK_RWIN, 0x80}       // HID modifier: Bit 7 - RIGHT GUI
+  };
+  for (const auto& [virtual_key, hid_modifier] : MODIFIERS_MAP)
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
-    memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
-    m_message_queue.pop();
+    if (IsVirtualKeyPressed(virtual_key))
+      modifiers |= hid_modifier;
   }
-  return IPCReply(IPC_SUCCESS);
+#else
+  // TODO: Implementation for non-Windows platforms
+#endif
+  return modifiers;
 }
 
-void USB_KBD::Update()
+HIDPressedKeys PollHIDPressedKeys(int keyboard_layout)
 {
-  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
-    return;
+  HIDPressedKeys pressed_keys{};
+  auto it = pressed_keys.begin();
 
-  const State current_state{.modifiers = Common::PollHIDModifiers(),
-                            .pressed_keys = Common::PollHIDPressedKeys(m_keyboard_layout)};
+#ifdef _WIN32
+  for (std::size_t virtual_key = 0; virtual_key < KEYBOARD_STATE_SIZE; ++virtual_key)
+  {
+    if (!IsVirtualKeyPressed(static_cast<int>(virtual_key)))
+      continue;
 
-  if (current_state == m_previous_state)
-    return;
-
-  m_message_queue.emplace(MessageType::Event, current_state);
-  m_previous_state = std::move(current_state);
+    *it = MapVirtualKeyToHID(static_cast<u8>(virtual_key), keyboard_layout);
+    if (++it == pressed_keys.end())
+      break;
+  }
+#else
+  // TODO: Implementation for non-Windows platforms
+#endif
+  return pressed_keys;
 }
-}  // namespace IOS::HLE
+}  // namespace Common
