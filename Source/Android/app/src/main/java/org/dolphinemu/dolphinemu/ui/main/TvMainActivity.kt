@@ -76,17 +76,11 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         presenter.onResume()
     }
 
-    override fun onStart() {
-        super.onStart()
-        StartupHandler.checkSessionReset(this)
-    }
-
     override fun onStop() {
         super.onStop()
         if (isChangingConfigurations) {
             MainPresenter.skipRescanningLibrary()
         }
-        StartupHandler.setSessionTime(this)
     }
 
     private fun setupUI() {
