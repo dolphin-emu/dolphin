@@ -92,10 +92,10 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
       iss.ignore();
     iss >> std::hex >> bp.address;
     iss >> flags;
-    bp.is_enabled = flags.find('n') != flags.npos;
-    bp.log_on_hit = flags.find('l') != flags.npos;
-    bp.break_on_hit = flags.find('b') != flags.npos;
-    if (flags.find('c') != std::string::npos)
+    bp.is_enabled = flags.contains('n');
+    bp.log_on_hit = flags.contains('l');
+    bp.break_on_hit = flags.contains('b');
+    if (flags.contains('c'))
     {
       iss >> std::ws;
       std::string condition;
@@ -266,12 +266,12 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
 
     mc.is_ranged = mc.start_address != mc.end_address;
-    mc.is_enabled = flags.find('n') != flags.npos;
-    mc.is_break_on_read = flags.find('r') != flags.npos;
-    mc.is_break_on_write = flags.find('w') != flags.npos;
-    mc.log_on_hit = flags.find('l') != flags.npos;
-    mc.break_on_hit = flags.find('b') != flags.npos;
-    if (flags.find('c') != std::string::npos)
+    mc.is_enabled = flags.contains('n');
+    mc.is_break_on_read = flags.contains('r');
+    mc.is_break_on_write = flags.contains('w');
+    mc.log_on_hit = flags.contains('l');
+    mc.break_on_hit = flags.contains('b');
+    if (flags.contains('c'))
     {
       iss >> std::ws;
       std::string condition;
