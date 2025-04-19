@@ -59,9 +59,14 @@ static ComPtr<ID3D11ShaderResourceView>
 CreateTexelBufferView(ID3D11Buffer* buffer, TexelBufferFormat format, DXGI_FORMAT srv_format)
 {
   ComPtr<ID3D11ShaderResourceView> srv;
-  CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(buffer, srv_format, 0,
-                                            VertexManager::TEXEL_STREAM_BUFFER_SIZE /
-                                                VertexManager::GetTexelBufferElementSize(format));
+  D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+  srv_desc.Format = srv_format;
+  srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+  srv_desc.BufferEx.FirstElement = 0;
+  srv_desc.BufferEx.NumElements =
+      VertexManager::TEXEL_STREAM_BUFFER_SIZE / VertexManager::GetTexelBufferElementSize(format);
+  srv_desc.BufferEx.Flags = 0;
+
   HRESULT hr = D3D::device->CreateShaderResourceView(buffer, &srv_desc, &srv);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create SRV for texel buffer: {}", DX11HRWrap(hr));
   return srv;
@@ -80,7 +85,7 @@ bool VertexManager::Initialize()
                              D3D11_BIND_INDEX_BUFFER | D3D11_BIND_VERTEX_BUFFER,
                              D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-  for (int i = 0; i < BUFFER_COUNT; i++)
+  for (u32 i = 0; i < BUFFER_COUNT; i++)
   {
     HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i]);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create buffer: {}", DX11HRWrap(hr));
