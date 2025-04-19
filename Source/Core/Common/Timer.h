@@ -5,10 +5,6 @@
 
 #include "Common/CommonTypes.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
 namespace Common
 {
 class Timer
@@ -49,7 +45,8 @@ public:
 
 private:
 #ifdef _WIN32
-  HANDLE m_timer_handle;
+  // Using void* to avoid including Windows.h in this header just for HANDLE.
+  void* m_timer_handle;
 #endif
 };
 
