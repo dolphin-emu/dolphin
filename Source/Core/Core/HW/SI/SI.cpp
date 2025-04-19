@@ -562,15 +562,18 @@ void SerialInterfaceManager::UpdateDevices()
   {
     // ERRLATCH bit is maintained.
     u32 errlatch = m_channel[i].in_hi.ERRLATCH.Value();
-    if (m_channel[i].device->GetData(m_channel[i].in_hi.hex, m_channel[i].in_lo.hex))
+    switch (m_channel[i].device->GetData(m_channel[i].in_hi.hex, m_channel[i].in_lo.hex))
     {
+    case DataResponse::Success:
       m_status_reg.hex |= GetRDSTBit(i);
-    }
-    else
-    {
+      break;
+    case DataResponse::ErrorNoResponse:
+      SetNoResponse(i);
+      [[fallthrough]];
+    case DataResponse::NoData:
       errlatch = 1;
       m_channel[i].in_hi.ERRSTAT = 1;
-      SetNoResponse(i);
+      break;
     }
 
     m_channel[i].in_hi.ERRLATCH = errlatch;

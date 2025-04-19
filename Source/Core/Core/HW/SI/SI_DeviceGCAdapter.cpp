@@ -69,7 +69,7 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
   return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
-bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
 {
   CSIDevice_GCController::GetData(hi, low);
 
@@ -78,7 +78,7 @@ bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
     hi &= CSIDevice_TaruKonga::HI_BUTTON_MASK;
   }
 
-  return true;
+  return DataResponse::Success;
 }
 
 void CSIDevice_GCController::Rumble(int pad_num, ControlState strength, SIDevices device)

@@ -63,8 +63,7 @@ public:
   // Run the SI Buffer
   int RunBuffer(u8* buffer, int request_length) override;
 
-  // Return true on new data
-  bool GetData(u32& hi, u32& low) override;
+  DataResponse GetData(u32& hi, u32& low) override;
 
   // Send a command directly
   void SendCommand(u32 command, u8 poll) override;
@@ -96,7 +95,7 @@ class CSIDevice_TaruKonga final : public CSIDevice_GCController
 public:
   CSIDevice_TaruKonga(Core::System& system, SIDevices device, int device_number);
 
-  bool GetData(u32& hi, u32& low) override;
+  DataResponse GetData(u32& hi, u32& low) override;
 
   static const u32 HI_BUTTON_MASK =
       (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_BUTTON_START | PAD_TRIGGER_R)
