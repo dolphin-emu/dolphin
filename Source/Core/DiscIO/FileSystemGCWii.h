@@ -102,7 +102,7 @@ private:
   // Maps the end offset of files to FST indexes
   mutable std::map<u64, u32> m_offset_file_info_cache;
 
-  std::unique_ptr<FileInfo> FindFileInfo(std::string_view path, const FileInfo& file_info) const;
+  static std::unique_ptr<FileInfo> FindFileInfo(std::string_view path, const FileInfo& file_info);
 };
 
 }  // namespace DiscIO

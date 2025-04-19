@@ -25,7 +25,7 @@ public:
   bool IsNKit() const override;
 
 protected:
-  Region RegionCodeToRegion(std::optional<u32> region_code) const;
+  static Region RegionCodeToRegion(std::optional<u32> region_code);
   void AddGamePartitionToSyncHash(Common::SHA1::Context* context) const;
 };
 
