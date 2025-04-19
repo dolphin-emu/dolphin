@@ -11,8 +11,6 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/VideoConfig.h"
 
-PerformanceMetrics g_perf_metrics;
-
 void PerformanceMetrics::Reset()
 {
   m_fps_counter.Reset();
