@@ -79,29 +79,29 @@ void AchievementManager::Init()
   }
 }
 
-picojson::value AchievementManager::LoadApprovedList()
+auto AchievementManager::LoadApprovedList() -> std::variant<picojson::value, ErrorString>
 {
   picojson::value temp;
   std::string error;
   if (!JsonFromFile(fmt::format("{}{}{}", File::GetSysDirectory(), DIR_SEP, APPROVED_LIST_FILENAME),
                     &temp, &error))
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load approved game settings list {}",
-                 APPROVED_LIST_FILENAME);
-    WARN_LOG_FMT(ACHIEVEMENTS, "Error: {}", error);
-    return {};
+    error = fmt::format("Failed to load approved game settings list {}. Error: {}",
+                        APPROVED_LIST_FILENAME, error);
+    WARN_LOG_FMT(ACHIEVEMENTS, "{}", error);
+    return error;
   }
   auto context = Common::SHA1::CreateContext();
   context->Update(temp.serialize());
   auto digest = context->Finish();
   if (digest != APPROVED_LIST_HASH)
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to verify approved game settings list {}",
-                 APPROVED_LIST_FILENAME);
-    WARN_LOG_FMT(ACHIEVEMENTS, "Expected hash {}, found hash {}",
-                 Common::SHA1::DigestToString(APPROVED_LIST_HASH),
-                 Common::SHA1::DigestToString(digest));
-    return {};
+    error = fmt::format(
+        "Failed to verify approved game settings list {}. Expected hash {}, found hash {}",
+        APPROVED_LIST_FILENAME, Common::SHA1::DigestToString(APPROVED_LIST_HASH),
+        Common::SHA1::DigestToString(digest));
+    WARN_LOG_FMT(ACHIEVEMENTS, "{}", error);
+    return error;
   }
   return temp;
 }
@@ -386,6 +386,15 @@ bool AchievementManager::IsHardcoreModeActive() const
   return rc_client_is_processing_required(m_client);
 }
 
+bool AchievementManager::IsApprovedCodesListValid(std::string* error_out) const
+{
+  std::lock_guard lg{m_lock};
+  const bool is_valid = std::holds_alternative<picojson::value>(*m_ini_root);
+  if (error_out && !is_valid)
+    *error_out = std::get<std::string>(*m_ini_root);
+  return is_valid;
+}
+
 template <typename T>
 void AchievementManager::FilterApprovedIni(std::vector<T>& codes, const std::string& game_id,
                                            u16 revision) const
@@ -402,7 +411,7 @@ void AchievementManager::FilterApprovedIni(std::vector<T>& codes, const std::str
     return;
 
   // Approved codes list failed to hash
-  if (!m_ini_root->is<picojson::value::object>())
+  if (!std::holds_alternative<picojson::value>(*m_ini_root))
   {
     codes.clear();
     return;
@@ -423,10 +432,12 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
     return true;
 
   // Approved codes list failed to hash
-  if (!m_ini_root->is<picojson::value::object>())
+  if (!std::holds_alternative<picojson::value>(*m_ini_root))
     return false;
 
   INFO_LOG_FMT(ACHIEVEMENTS, "Verifying code {}", code.name);
+
+  const picojson::value& ini_root = std::get<picojson::value>(*m_ini_root);
 
   bool verified = false;
 
@@ -435,7 +446,7 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
     auto config = filename.substr(0, filename.length() - 4);
-    if (m_ini_root->contains(config) && m_ini_root->get(config).contains(hash))
+    if (ini_root.contains(config) && ini_root.get(config).contains(hash))
       verified = true;
   }
 
