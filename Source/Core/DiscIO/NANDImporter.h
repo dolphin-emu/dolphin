@@ -70,7 +70,7 @@ private:
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
-  std::vector<u8> GetEntryData(const NANDFSTEntry& entry);
+  std::vector<u8> GetEntryData(const NANDFSTEntry& entry) const;
   void ExportKeys();
 
   std::string m_nand_root;
