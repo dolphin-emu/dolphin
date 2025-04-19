@@ -18,6 +18,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #include <rcheevos/include/rc_api_runtime.h>
@@ -134,6 +135,7 @@ public:
   std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
 
+  bool IsApprovedCodesListValid(std::string* error_out = nullptr) const;
   void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches, const std::string& game_id,
                              u16 revision) const;
   void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes, const std::string& game_id,
@@ -176,7 +178,8 @@ private:
     std::unique_ptr<DiscIO::Volume> volume;
   };
 
-  static picojson::value LoadApprovedList();
+  using ErrorString = std::string;
+  static std::variant<picojson::value, ErrorString> LoadApprovedList();
 
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);
@@ -259,7 +262,7 @@ private:
   std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point m_last_progress_message = std::chrono::steady_clock::now();
 
-  Common::Lazy<picojson::value> m_ini_root{LoadApprovedList};
+  Common::Lazy<std::variant<picojson::value, ErrorString>> m_ini_root{LoadApprovedList};
 
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   bool m_challenges_updated = false;
@@ -301,6 +304,8 @@ public:
   }
 
   constexpr bool IsHardcoreModeActive() { return false; }
+
+  constexpr bool IsApprovedCodesListValid(std::string* error_out = nullptr) { return true; }
 
   constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id)
   {

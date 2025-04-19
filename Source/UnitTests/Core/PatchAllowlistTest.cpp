@@ -18,6 +18,7 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
 #include "Core/GeckoCode.h"
@@ -38,7 +39,14 @@ void ReadVerified(const Common::IniFile& ini, const std::string& filename,
 void CheckHash(const std::string& game_id, GameHashes* game_hashes, const std::string& hash,
                const std::string& patch_name);
 
-TEST(PatchAllowlist, VerifyHashes)
+TEST(PatchAllowlist, VerifyJsonMatchesExecutable)
+{
+  std::string error;
+  if (!AchievementManager::GetInstance().IsApprovedCodesListValid(&error))
+    ADD_FAILURE() << error;
+}
+
+TEST(PatchAllowlist, VerifyInisMatchJson)
 {
   // Load allowlist
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";

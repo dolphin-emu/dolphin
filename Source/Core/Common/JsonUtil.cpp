@@ -60,6 +60,7 @@ bool JsonFromFile(const std::string& filename, picojson::value* root, std::strin
   std::string json_data;
   if (!File::ReadFileToString(filename, json_data))
   {
+    *error = "Failed to read " + filename;
     return false;
   }
 
