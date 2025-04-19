@@ -101,7 +101,7 @@ class HostDisassemblerBochs final : public HostDisassembler
 {
 public:
   explicit HostDisassemblerBochs();
-  ~HostDisassemblerBochs() = default;
+  ~HostDisassemblerBochs() override = default;
 
 private:
   disassembler m_disasm;

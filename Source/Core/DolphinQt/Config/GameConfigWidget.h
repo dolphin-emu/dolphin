@@ -29,7 +29,7 @@ class GameConfigWidget : public QWidget
   Q_OBJECT
 public:
   explicit GameConfigWidget(const UICommon::GameFile& game);
-  ~GameConfigWidget();
+  ~GameConfigWidget() override;
 
 private:
   void CreateWidgets();

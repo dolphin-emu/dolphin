@@ -32,7 +32,7 @@ class WASAPIStream final : public SoundStream
 #ifdef _WIN32
 public:
   explicit WASAPIStream();
-  ~WASAPIStream();
+  ~WASAPIStream() override;
   bool Init() override;
   bool SetRunning(bool running) override;
 

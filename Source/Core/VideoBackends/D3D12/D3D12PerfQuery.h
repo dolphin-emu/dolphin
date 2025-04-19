@@ -13,7 +13,7 @@ class PerfQuery final : public PerfQueryBase
 {
 public:
   PerfQuery();
-  ~PerfQuery();
+  ~PerfQuery() override;
 
   static PerfQuery* GetInstance() { return static_cast<PerfQuery*>(g_perf_query.get()); }
 

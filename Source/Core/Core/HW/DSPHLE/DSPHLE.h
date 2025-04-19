@@ -28,7 +28,7 @@ public:
   DSPHLE(DSPHLE&& other) = delete;
   DSPHLE& operator=(const DSPHLE& other) = delete;
   DSPHLE& operator=(DSPHLE&& other) = delete;
-  ~DSPHLE();
+  ~DSPHLE() override;
 
   bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;

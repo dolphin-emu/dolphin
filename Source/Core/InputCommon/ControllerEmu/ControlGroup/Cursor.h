@@ -24,7 +24,7 @@ public:
 
   Cursor(std::string name, std::string ui_name);
 
-  ReshapeData GetReshapableState(bool adjusted) const final override;
+  ReshapeData GetReshapableState(bool adjusted) const final;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
   // Modifies the state

@@ -35,7 +35,7 @@ class GraphicsModListWidget : public QWidget
   Q_OBJECT
 public:
   explicit GraphicsModListWidget(const UICommon::GameFile& game);
-  ~GraphicsModListWidget();
+  ~GraphicsModListWidget() override;
 
   void SaveToDisk();
 

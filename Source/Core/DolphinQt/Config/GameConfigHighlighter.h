@@ -17,7 +17,7 @@ class GameConfigHighlighter : public QSyntaxHighlighter
 
 public:
   explicit GameConfigHighlighter(QTextDocument* parent = nullptr);
-  ~GameConfigHighlighter();
+  ~GameConfigHighlighter() override;
 
 protected:
   void highlightBlock(const QString& text) override;
