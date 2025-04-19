@@ -118,25 +118,25 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
   {
     for (const auto& section_node : options.children("section"))
     {
-      Section& section = disc.m_sections.emplace_back();
-      section.m_name = section_node.attribute("name").as_string();
+      auto& [section_name, section_options] = disc.m_sections.emplace_back();
+      section_name = section_node.attribute("name").as_string();
       for (const auto& option_node : section_node.children("option"))
       {
-        Option& option = section.m_options.emplace_back();
-        option.m_id = option_node.attribute("id").as_string();
-        option.m_name = option_node.attribute("name").as_string();
-        option.m_selected_choice = option_node.attribute("default").as_uint(0);
+        auto& [option_name, option_id, choices, selected_choice] = section_options.emplace_back();
+        option_id = option_node.attribute("id").as_string();
+        option_name = option_node.attribute("name").as_string();
+        selected_choice = option_node.attribute("default").as_uint(0);
         auto option_params = ReadParams(option_node);
         for (const auto& choice_node : option_node.children("choice"))
         {
-          Choice& choice = option.m_choices.emplace_back();
-          choice.m_name = choice_node.attribute("name").as_string();
+          auto& [choice_name, patch_references] = choices.emplace_back();
+          choice_name = choice_node.attribute("name").as_string();
           auto choice_params = ReadParams(choice_node, option_params);
           for (const auto& patchref_node : choice_node.children("patch"))
           {
-            PatchReference& patchref = choice.m_patch_references.emplace_back();
-            patchref.m_id = patchref_node.attribute("id").as_string();
-            patchref.m_params = ReadParams(patchref_node, choice_params);
+            auto& [patch_reference_id, params] = patch_references.emplace_back();
+            patch_reference_id = patchref_node.attribute("id").as_string();
+            params = ReadParams(patchref_node, choice_params);
           }
         }
       }
@@ -144,17 +144,17 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
     for (const auto& macro_node : options.children("macros"))
     {
       const std::string macro_id = macro_node.attribute("id").as_string();
-      for (auto& section : disc.m_sections)
+      for (auto& [name, section_options] : disc.m_sections)
       {
-        auto option_to_clone = std::ranges::find(section.m_options, macro_id, &Option::m_id);
-        if (option_to_clone == section.m_options.end())
+        auto option_to_clone = std::ranges::find(section_options, macro_id, &Option::m_id);
+        if (option_to_clone == section_options.end())
           continue;
 
         Option cloned_option = *option_to_clone;
         cloned_option.m_name = macro_node.attribute("name").as_string();
-        for (auto& choice : cloned_option.m_choices)
-          for (auto& patch_ref : choice.m_patch_references)
-            patch_ref.m_params = ReadParams(macro_node, patch_ref.m_params);
+        for (auto& [choice_name, patch_references] : cloned_option.m_choices)
+          for (auto& [patch_reference_id, params] : patch_references)
+            params = ReadParams(macro_node, params);
       }
     }
   }
@@ -173,44 +173,46 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
       const std::string_view patch_name(patch_subnode.name());
       if (patch_name == "file" || patch_name == "dolphin_sys_file")
       {
-        auto& file = patch_name == "dolphin_sys_file" ? patch.m_sys_file_patches.emplace_back() :
-                                                        patch.m_file_patches.emplace_back();
-        file.m_disc = patch_subnode.attribute("disc").as_string();
-        file.m_external = patch_subnode.attribute("external").as_string();
-        file.m_resize = patch_subnode.attribute("resize").as_bool(true);
-        file.m_create = patch_subnode.attribute("create").as_bool(false);
-        file.m_offset = patch_subnode.attribute("offset").as_uint(0);
-        file.m_fileoffset = patch_subnode.attribute("fileoffset").as_uint(0);
-        file.m_length = patch_subnode.attribute("length").as_uint(0);
+        auto& [patch_disc, external, resize, create, offset, fileoffset, length] =
+            patch_name == "dolphin_sys_file" ? patch.m_sys_file_patches.emplace_back() :
+                                               patch.m_file_patches.emplace_back();
+        patch_disc = patch_subnode.attribute("disc").as_string();
+        external = patch_subnode.attribute("external").as_string();
+        resize = patch_subnode.attribute("resize").as_bool(true);
+        create = patch_subnode.attribute("create").as_bool(false);
+        offset = patch_subnode.attribute("offset").as_uint(0);
+        fileoffset = patch_subnode.attribute("fileoffset").as_uint(0);
+        length = patch_subnode.attribute("length").as_uint(0);
       }
       else if (patch_name == "folder" || patch_name == "dolphin_sys_folder")
       {
-        auto& folder = patch_name == "dolphin_sys_folder" ?
-                           patch.m_sys_folder_patches.emplace_back() :
-                           patch.m_folder_patches.emplace_back();
-        folder.m_disc = patch_subnode.attribute("disc").as_string();
-        folder.m_external = patch_subnode.attribute("external").as_string();
-        folder.m_resize = patch_subnode.attribute("resize").as_bool(true);
-        folder.m_create = patch_subnode.attribute("create").as_bool(false);
-        folder.m_recursive = patch_subnode.attribute("recursive").as_bool(true);
-        folder.m_length = patch_subnode.attribute("length").as_uint(0);
+        auto& [patch_disc, external, resize, create, recursive, length] =
+            patch_name == "dolphin_sys_folder" ? patch.m_sys_folder_patches.emplace_back() :
+                                                 patch.m_folder_patches.emplace_back();
+        patch_disc = patch_subnode.attribute("disc").as_string();
+        external = patch_subnode.attribute("external").as_string();
+        resize = patch_subnode.attribute("resize").as_bool(true);
+        create = patch_subnode.attribute("create").as_bool(false);
+        recursive = patch_subnode.attribute("recursive").as_bool(true);
+        length = patch_subnode.attribute("length").as_uint(0);
       }
       else if (patch_name == "savegame")
       {
-        auto& savegame = patch.m_savegame_patches.emplace_back();
-        savegame.m_external = patch_subnode.attribute("external").as_string();
-        savegame.m_clone = patch_subnode.attribute("clone").as_bool(true);
+        auto& [external, clone] = patch.m_savegame_patches.emplace_back();
+        external = patch_subnode.attribute("external").as_string();
+        clone = patch_subnode.attribute("clone").as_bool(true);
       }
       else if (patch_name == "memory")
       {
-        auto& memory = patch.m_memory_patches.emplace_back();
-        memory.m_offset = patch_subnode.attribute("offset").as_uint(0);
-        memory.m_value = ReadHexString(patch_subnode.attribute("value").as_string());
-        memory.m_valuefile = patch_subnode.attribute("valuefile").as_string();
-        memory.m_original = ReadHexString(patch_subnode.attribute("original").as_string());
-        memory.m_ocarina = patch_subnode.attribute("ocarina").as_bool(false);
-        memory.m_search = patch_subnode.attribute("search").as_bool(false);
-        memory.m_align = patch_subnode.attribute("align").as_uint(1);
+        auto& [offset, value, valuefile, original, ocarina, search, align] =
+            patch.m_memory_patches.emplace_back();
+        offset = patch_subnode.attribute("offset").as_uint(0);
+        value = ReadHexString(patch_subnode.attribute("value").as_string());
+        valuefile = patch_subnode.attribute("valuefile").as_string();
+        original = ReadHexString(patch_subnode.attribute("original").as_string());
+        ocarina = patch_subnode.attribute("ocarina").as_bool(false);
+        search = patch_subnode.attribute("search").as_bool(false);
+        align = patch_subnode.attribute("align").as_uint(1);
       }
     }
   }
@@ -273,13 +275,13 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
         while (!sv.empty())
         {
           bool replaced = false;
-          for (const auto& r : replacements)
+          for (const auto& [substring, replacement] : replacements)
           {
-            if (sv.starts_with(r.first))
+            if (sv.starts_with(substring))
             {
-              for (char c : r.second)
+              for (char c : replacement)
                 result.push_back(c);
-              sv = sv.substr(r.first.size());
+              sv = sv.substr(substring.size());
               replaced = true;
               break;
             }
@@ -294,17 +296,17 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
 
   // Take only selected patches, replace placeholders in all strings, and return them.
   std::vector<Patch> active_patches;
-  for (const auto& section : m_sections)
+  for (const auto& [name, options] : m_sections)
   {
-    for (const auto& option : section.m_options)
+    for (const auto& option : options)
     {
       const u32 selected = option.m_selected_choice;
       if (selected == 0 || selected > option.m_choices.size())
         continue;
-      const Choice& choice = option.m_choices[selected - 1];
-      for (const auto& patch_ref : choice.m_patch_references)
+      const auto& [choice_name, patch_references] = option.m_choices[selected - 1];
+      for (const auto& [id, params] : patch_references)
       {
-        const auto patch = std::ranges::find(m_patches, patch_ref.m_id, &Patch::m_id);
+        const auto patch = std::ranges::find(m_patches, id, &Patch::m_id);
         if (patch == m_patches.end())
           continue;
 
@@ -312,8 +314,8 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
         replacements.emplace_back(std::pair{"{$__gameid}", game_id_no_region});
         replacements.emplace_back(std::pair{"{$__region}", game_region});
         replacements.emplace_back(std::pair{"{$__maker}", game_developer});
-        for (const auto& param : patch_ref.m_params)
-          replacements.emplace_back(std::pair{"{$" + param.first + "}", param.second});
+        for (const auto& [substring, replacement] : params)
+          replacements.emplace_back(std::pair{"{$" + substring + "}", replacement});
 
         Patch& new_patch = active_patches.emplace_back(*patch);
         new_patch.m_root = replace_variables(new_patch.m_root, replacements);
@@ -327,9 +329,9 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
           folder.m_disc = replace_variables(folder.m_disc, replacements);
           folder.m_external = replace_variables(folder.m_external, replacements);
         }
-        for (auto& savegame : new_patch.m_savegame_patches)
+        for (auto& [external, clone] : new_patch.m_savegame_patches)
         {
-          savegame.m_external = replace_variables(savegame.m_external, replacements);
+          external = replace_variables(external, replacements);
         }
         for (auto& memory : new_patch.m_memory_patches)
         {
@@ -347,38 +349,38 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     std::optional<u16> revision, std::optional<u8> disc_number)
 {
   std::vector<Patch> result;
-  for (const auto& patch_info : descriptor.patches)
+  for (const auto& [xml, root, options] : descriptor.patches)
   {
-    auto parsed = ParseFile(patch_info.xml);
+    auto parsed = ParseFile(xml);
     if (!parsed || !parsed->IsValidForGame(game_id, revision, disc_number))
       continue;
 
-    for (auto& section : parsed->m_sections)
+    for (auto& [section_name, section_options] : parsed->m_sections)
     {
-      for (auto& option : section.m_options)
+      for (auto& [option_name, id, choices, selected_choice] : section_options)
       {
         const auto* info = [&]() -> const GameModDescriptorRiivolutionPatchOption* {
-          for (const auto& o : patch_info.options)
+          for (const auto& o : options)
           {
-            if (o.section_name == section.m_name)
+            if (o.section_name == section_name)
             {
-              if (!o.option_id.empty() && o.option_id == option.m_id)
+              if (!o.option_id.empty() && o.option_id == id)
                 return &o;
-              if (!o.option_name.empty() && o.option_name == option.m_name)
+              if (!o.option_name.empty() && o.option_name == option_name)
                 return &o;
             }
           }
           return nullptr;
         }();
-        if (info && info->choice <= option.m_choices.size())
-          option.m_selected_choice = info->choice;
+        if (info && info->choice <= choices.size())
+          selected_choice = info->choice;
       }
     }
 
     for (auto& p : parsed->GeneratePatches(game_id))
     {
       p.m_file_data_loader =
-          std::make_shared<FileDataLoaderHostFS>(patch_info.root, parsed->m_xml_path, p.m_root);
+          std::make_shared<FileDataLoaderHostFS>(root, parsed->m_xml_path, p.m_root);
       result.emplace_back(std::move(p));
     }
   }
@@ -451,9 +453,9 @@ std::optional<Config> ParseConfigString(std::string_view xml)
   const auto options = riivolution.children("option");
   for (const auto& option_node : options)
   {
-    auto& option = config.m_options.emplace_back();
-    option.m_id = option_node.attribute("id").as_string();
-    option.m_default = option_node.attribute("default").as_uint(0);
+    auto& [option_id, option_default] = config.m_options.emplace_back();
+    option_id = option_node.attribute("id").as_string();
+    option_default = option_node.attribute("default").as_uint(0);
   }
 
   return config;
@@ -464,11 +466,11 @@ std::string WriteConfigString(const Config& config)
   pugi::xml_document doc;
   auto riivolution = doc.append_child("riivolution");
   riivolution.append_attribute("version").set_value(config.m_version);
-  for (const auto& option : config.m_options)
+  for (const auto& [option_id, option_default] : config.m_options)
   {
     auto option_node = riivolution.append_child("option");
-    option_node.append_attribute("id").set_value(option.m_id.c_str());
-    option_node.append_attribute("default").set_value(option.m_default);
+    option_node.append_attribute("id").set_value(option_id.c_str());
+    option_node.append_attribute("default").set_value(option_default);
   }
 
   std::stringstream ss;
@@ -495,21 +497,21 @@ bool WriteConfigFile(const std::string& filename, const Config& config)
 
 void ApplyConfigDefaults(Disc* disc, const Config& config)
 {
-  for (const auto& config_option : config.m_options)
+  for (const auto& [option_id, option_default] : config.m_options)
   {
     auto* matching_option = [&]() -> Option* {
-      for (auto& section : disc->m_sections)
+      for (auto& [name, options] : disc->m_sections)
       {
-        for (auto& option : section.m_options)
+        for (auto& option : options)
         {
           if (option.m_id.empty())
           {
-            if ((section.m_name + option.m_name) == config_option.m_id)
+            if ((name + option.m_name) == option_id)
               return &option;
           }
           else
           {
-            if (option.m_id == config_option.m_id)
+            if (option.m_id == option_id)
               return &option;
           }
         }
@@ -517,7 +519,7 @@ void ApplyConfigDefaults(Disc* disc, const Config& config)
       return nullptr;
     }();
     if (matching_option)
-      matching_option->m_selected_choice = config_option.m_default;
+      matching_option->m_selected_choice = option_default;
   }
 }
 }  // namespace DiscIO::Riivolution

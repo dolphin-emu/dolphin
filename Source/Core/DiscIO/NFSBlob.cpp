@@ -59,9 +59,8 @@ std::vector<NFSLBARange> NFSFileReader::GetLBARanges(const NFSHeader& header)
 
   for (size_t i = 0; i < lba_range_count; ++i)
   {
-    const NFSLBARange& unswapped_lba_range = header.lba_ranges[i];
-    lba_ranges.push_back(NFSLBARange{Common::swap32(unswapped_lba_range.start_block),
-                                     Common::swap32(unswapped_lba_range.num_blocks)});
+    const auto& [start_block, num_blocks] = header.lba_ranges[i];
+    lba_ranges.push_back(NFSLBARange{Common::swap32(start_block), Common::swap32(num_blocks)});
   }
 
   return lba_ranges;
@@ -108,8 +107,8 @@ std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
 u64 NFSFileReader::CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_ranges)
 {
   u64 total_blocks = 0;
-  for (const NFSLBARange& range : lba_ranges)
-    total_blocks += range.num_blocks;
+  for (const auto& [start_block, num_blocks] : lba_ranges)
+    total_blocks += num_blocks;
 
   return sizeof(NFSHeader) + total_blocks * BLOCK_SIZE;
 }
@@ -117,8 +116,8 @@ u64 NFSFileReader::CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_
 u64 NFSFileReader::CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba_ranges)
 {
   u32 greatest_block_index = 0;
-  for (const NFSLBARange& range : lba_ranges)
-    greatest_block_index = std::max(greatest_block_index, range.start_block + range.num_blocks);
+  for (const auto& [start_block, num_blocks] : lba_ranges)
+    greatest_block_index = std::max(greatest_block_index, start_block + num_blocks);
 
   return u64(greatest_block_index) * BLOCK_SIZE;
 }
@@ -188,15 +187,14 @@ u64 NFSFileReader::ToPhysicalBlockIndex(u64 logical_block_index)
 {
   u64 physical_blocks_so_far = 0;
 
-  for (const NFSLBARange& range : m_lba_ranges)
+  for (const auto& [start_block, num_blocks] : m_lba_ranges)
   {
-    if (logical_block_index >= range.start_block &&
-        logical_block_index < range.start_block + range.num_blocks)
+    if (logical_block_index >= start_block && logical_block_index < start_block + num_blocks)
     {
-      return physical_blocks_so_far + (logical_block_index - range.start_block);
+      return physical_blocks_so_far + (logical_block_index - start_block);
     }
 
-    physical_blocks_so_far += range.num_blocks;
+    physical_blocks_so_far += num_blocks;
   }
 
   return std::numeric_limits<u64>::max();

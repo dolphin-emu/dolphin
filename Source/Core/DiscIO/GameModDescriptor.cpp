@@ -49,17 +49,17 @@ ParseRiivolutionOptions(const picojson::array& array)
     if (!option_object.is<picojson::object>())
       continue;
 
-    auto& option = options.emplace_back();
+    auto& [section_name, option_id, option_name, choice] = options.emplace_back();
     for (const auto& [key, value] : option_object.get<picojson::object>())
     {
       if (key == "section-name" && value.is<std::string>())
-        option.section_name = value.get<std::string>();
+        section_name = value.get<std::string>();
       else if (key == "option-id" && value.is<std::string>())
-        option.option_id = value.get<std::string>();
+        option_id = value.get<std::string>();
       else if (key == "option-name" && value.is<std::string>())
-        option.option_name = value.get<std::string>();
+        option_name = value.get<std::string>();
       else if (key == "choice" && value.is<double>())
-        option.choice = MathUtil::SaturatingCast<u32>(value.get<double>());
+        choice = MathUtil::SaturatingCast<u32>(value.get<double>());
     }
   }
   return options;
@@ -78,15 +78,15 @@ static GameModDescriptorRiivolution ParseRiivolutionObject(const std::string& js
         if (!patch_object.is<picojson::object>())
           continue;
 
-        auto& patch = r.patches.emplace_back();
+        auto& [xml, root, options] = r.patches.emplace_back();
         for (const auto& [key, value] : patch_object.get<picojson::object>())
         {
           if (key == "xml" && value.is<std::string>())
-            patch.xml = MakeAbsolute(json_directory, value.get<std::string>());
+            xml = MakeAbsolute(json_directory, value.get<std::string>());
           else if (key == "root" && value.is<std::string>())
-            patch.root = MakeAbsolute(json_directory, value.get<std::string>());
+            root = MakeAbsolute(json_directory, value.get<std::string>());
           else if (key == "options" && value.is<picojson::array>())
-            patch.options = ParseRiivolutionOptions(value.get<picojson::array>());
+            options = ParseRiivolutionOptions(value.get<picojson::array>());
         }
       }
     }
@@ -152,26 +152,26 @@ static picojson::object
 WriteGameModDescriptorRiivolution(const GameModDescriptorRiivolution& riivolution)
 {
   picojson::array json_patches;
-  for (const auto& patch : riivolution.patches)
+  for (const auto& [xml, root, options] : riivolution.patches)
   {
     picojson::object json_patch;
-    if (!patch.xml.empty())
-      json_patch["xml"] = picojson::value(patch.xml);
-    if (!patch.root.empty())
-      json_patch["root"] = picojson::value(patch.root);
-    if (!patch.options.empty())
+    if (!xml.empty())
+      json_patch["xml"] = picojson::value(xml);
+    if (!root.empty())
+      json_patch["root"] = picojson::value(root);
+    if (!options.empty())
     {
       picojson::array json_options;
-      for (const auto& option : patch.options)
+      for (const auto& [section_name, option_id, option_name, choice] : options)
       {
         picojson::object json_option;
-        if (!option.section_name.empty())
-          json_option["section-name"] = picojson::value(option.section_name);
-        if (!option.option_id.empty())
-          json_option["option-id"] = picojson::value(option.option_id);
-        if (!option.option_name.empty())
-          json_option["option-name"] = picojson::value(option.option_name);
-        json_option["choice"] = picojson::value(static_cast<double>(option.choice));
+        if (!section_name.empty())
+          json_option["section-name"] = picojson::value(section_name);
+        if (!option_id.empty())
+          json_option["option-id"] = picojson::value(option_id);
+        if (!option_name.empty())
+          json_option["option-name"] = picojson::value(option_name);
+        json_option["choice"] = picojson::value(static_cast<double>(choice));
         json_options.emplace_back(std::move(json_option));
       }
       json_patch["options"] = picojson::value(std::move(json_options));
