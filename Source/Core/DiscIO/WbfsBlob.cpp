@@ -44,9 +44,7 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 
-WbfsFileReader::~WbfsFileReader()
-{
-}
+WbfsFileReader::~WbfsFileReader() = default;
 
 std::unique_ptr<BlobReader> WbfsFileReader::CopyReader() const
 {
