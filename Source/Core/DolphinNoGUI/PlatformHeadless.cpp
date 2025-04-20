@@ -10,7 +10,7 @@
 
 namespace
 {
-class PlatformHeadless : public Platform
+class PlatformHeadless final : public Platform
 {
 public:
   void SetTitle(const std::string& title) override;

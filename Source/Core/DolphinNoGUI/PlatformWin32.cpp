@@ -17,7 +17,7 @@
 
 namespace
 {
-class PlatformWin32 : public Platform
+class PlatformWin32 final : public Platform
 {
 public:
   ~PlatformWin32() override;
