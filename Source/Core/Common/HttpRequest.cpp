@@ -147,10 +147,6 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
       m_curl.get(), CURLOPT_LOW_SPEED_TIME,
       static_cast<long>(std::chrono::duration_cast<std::chrono::seconds>(timeout_ms).count()));
   curl_easy_setopt(m_curl.get(), CURLOPT_LOW_SPEED_LIMIT, 1);
-#ifdef _WIN32
-  // ALPN support is enabled by default but requires Windows >= 8.1.
-  curl_easy_setopt(m_curl.get(), CURLOPT_SSL_ENABLE_ALPN, false);
-#endif
 }
 
 bool HttpRequest::Impl::IsValid() const
