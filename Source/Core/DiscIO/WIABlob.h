@@ -41,7 +41,7 @@ constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian
 constexpr u32 RVZ_MAGIC = 0x015A5652;  // "RVZ\x1" (byteswapped to little endian)
 
 template <bool RVZ>
-class WIARVZFileReader : public BlobReader
+class WIARVZFileReader final : public BlobReader
 {
 public:
   ~WIARVZFileReader();
