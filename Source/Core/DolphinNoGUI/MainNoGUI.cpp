@@ -5,9 +5,7 @@
 
 #include <OptionParser.h>
 #include <csignal>
-#include <cstddef>
 #include <cstdio>
-#include <cstring>
 #include <string>
 #include <vector>
 
@@ -31,8 +29,6 @@
 #include "UICommon/DiscordPresence.h"
 #endif
 #include "UICommon/UICommon.h"
-
-#include "InputCommon/GCAdapter.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
