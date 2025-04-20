@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <thread>
 #include <utility>
@@ -250,9 +251,9 @@ bool VolumeWii::HasWiiEncryption() const
 
 std::vector<Partition> VolumeWii::GetPartitions() const
 {
-  std::vector<Partition> partitions;
-  for (const auto& pair : m_partitions)
-    partitions.push_back(pair.first);
+  std::vector<Partition> partitions(m_partitions.size());
+  const auto partitions_view = std::views::keys(m_partitions);
+  std::ranges::copy(partitions_view, partitions.begin());
   return partitions;
 }
 
