@@ -415,7 +415,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   };
 
   auto get_addr = [](const sockaddr* addr) {
-    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr;
+    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr;
   };
 
   const auto default_interface_address = get_default_address();
@@ -430,12 +430,12 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   for (const ifaddrs* iface = iflist; iface; iface = iface->ifa_next)
   {
     if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
-        get_addr(iface->ifa_addr) == default_interface_address->s_addr)
+        get_addr(iface->ifa_addr).s_addr == default_interface_address->s_addr)
     {
       // this isnt fully correct, but this will make calls to get the routing table at least return
       // the gateway
       if (routing_table.empty())
-        routing_table = {{0, 0, 0, get_addr(iface->ifa_dstaddr)}};
+        routing_table = {{0, {}, {}, get_addr(iface->ifa_dstaddr)}};
 
       return DefaultInterface{get_addr(iface->ifa_addr), get_addr(iface->ifa_netmask),
                               get_addr(iface->ifa_broadaddr), routing_table};
