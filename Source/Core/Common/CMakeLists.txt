@@ -333,7 +333,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(WIN32)
-  target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
+  target_sources(common PRIVATE
+    VCRuntimeUpdater.h
+    VCRuntimeUpdater.cpp
+    HRWrap.h
+    HRWrap.cpp
+    PEVersion.h
+    PEVersion.cpp
+  )
 endif()
 
 if(USE_UPNP)

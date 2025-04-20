@@ -20,6 +20,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include "Common/VCRuntimeUpdater.h"
 #else
 #include <sys/types.h>
 #include <unistd.h>
@@ -166,6 +167,11 @@ static std::string GetPlatformID()
 #endif
 }
 
+static bool IsTestMode()
+{
+  return std::getenv("DOLPHIN_UPDATE_SERVER_URL") != nullptr;
+}
+
 static std::string GetUpdateServerUrl()
 {
   auto server_url = std::getenv("DOLPHIN_UPDATE_SERVER_URL");
@@ -292,6 +298,19 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   INFO_LOG_FMT(COMMON, "Updater command line: {}", command_line);
 
 #ifdef _WIN32
+
+  // Attempt to get the latest vcruntime. This is a workaround for the main Dolphin
+  // app not downloading or parsing the manifest nor files of the next Dolphin version (Updater does
+  // that). However, Updater may require a more recent vcruntime (although we can't know for sure at
+  // this point).
+  auto vcruntime_updater = VCRuntimeUpdater();
+  if (vcruntime_updater.InstalledVersionIsOutdated())
+  {
+    if (!vcruntime_updater.Run(IsTestMode()))
+      NOTICE_LOG_FMT(COMMON,
+                     "Dolphin failed to install latest vcruntime. Updater may fail to run.");
+  }
+
   STARTUPINFO sinfo{.cb = sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;

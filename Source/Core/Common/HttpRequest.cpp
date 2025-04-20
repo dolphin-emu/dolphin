@@ -28,6 +28,7 @@ public:
 
   bool IsValid() const;
   std::string GetHeaderValue(std::string_view name) const;
+  std::optional<std::chrono::system_clock::time_point> GetModifiedTime(const std::string& url);
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max);
@@ -88,6 +89,12 @@ s32 HttpRequest::GetLastResponseCode() const
 std::string HttpRequest::GetHeaderValue(std::string_view name) const
 {
   return m_impl->GetHeaderValue(name);
+}
+
+std::optional<std::chrono::system_clock::time_point>
+HttpRequest::GetModifiedTime(const std::string& url)
+{
+  return m_impl->GetModifiedTime(url);
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers,
@@ -225,6 +232,34 @@ static size_t header_callback(char* buffer, size_t size, size_t nitems, void* us
 
   headers->emplace(std::string{key}, std::string{value});
   return nitems * size;
+}
+
+std::optional<std::chrono::system_clock::time_point>
+HttpRequest::Impl::GetModifiedTime(const std::string& url)
+{
+  m_response_headers.clear();
+
+  curl_easy_setopt(m_curl.get(), CURLOPT_URL, url.c_str());
+  curl_easy_setopt(m_curl.get(), CURLOPT_FILETIME, 1);
+
+  std::vector<u8> buffer;
+  curl_easy_setopt(m_curl.get(), CURLOPT_WRITEFUNCTION, CurlWriteCallback);
+  curl_easy_setopt(m_curl.get(), CURLOPT_WRITEDATA, &buffer);
+
+  auto res = curl_easy_perform(m_curl.get());
+  if (res != CURLE_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "{}({}) failed: {}", __func__, url, m_error_string);
+    return {};
+  }
+
+  curl_off_t filetime;
+  res = curl_easy_getinfo(m_curl.get(), CURLINFO_FILETIME_T, &filetime);
+  if (res != CURLE_OK || filetime < 0)
+  {
+    return {};
+  }
+  return std::chrono::system_clock::from_time_t(filetime);
 }
 
 HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method method,

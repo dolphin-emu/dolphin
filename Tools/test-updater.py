@@ -137,6 +137,13 @@ if __name__ == "__main__":
                 "AutoUpdate": {"UpdateTrack": "updater-test"},
             },
         )
+        create_entries_in_ini(
+            tmp_dolphin.joinpath("User/Config/Logger.ini"),
+            {
+                "Logs": {"COMMON": "True"},
+                "Options": {"Verbosity": "2", "WriteToFile": "True"},
+            },
+        )
 
         tmp_dolphin_next = tmp_dir.joinpath("dolphin_next")
         print(f"install next to {tmp_dolphin_next}")
@@ -162,7 +169,7 @@ if __name__ == "__main__":
         tmp_env = os.environ
         tmp_env.update({"DOLPHIN_UPDATE_SERVER_URL": DOLPHIN_UPDATE_SERVER_URL})
         tmp_dolphin_bin = tmp_dolphin.joinpath(dolphin_bin_path.name)
-        result = subprocess.run(tmp_dolphin_bin, env=tmp_env)
+        result = subprocess.run(tmp_dolphin_bin, env=tmp_env, cwd=tmp_dolphin)
         assert result.returncode == 0
 
         assert HTTPRequestHandler.done.wait(60 * 2)
@@ -197,5 +204,6 @@ if __name__ == "__main__":
                 continue
         assert not failed
 
-        print(tmp_dolphin.joinpath("User/Logs/Updater.log").read_text())
+        print(tmp_dolphin.joinpath("User/Logs/dolphin.log").read_text(encoding='utf-8'))
+        print(tmp_dolphin.joinpath("User/Logs/Updater.log").read_text(encoding='utf-8'))
         # while True: time.sleep(1)

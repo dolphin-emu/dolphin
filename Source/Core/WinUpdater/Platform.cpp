@@ -6,10 +6,9 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/HttpRequest.h"
-#include "Common/IOFile.h"
-#include "Common/ScopeGuard.h"
+#include "Common/PEVersion.h"
 #include "Common/StringUtil.h"
+#include "Common/VCRuntimeUpdater.h"
 #include "Common/WindowsRegistry.h"
 
 #include "UpdaterCommon/Platform.h"
@@ -18,29 +17,6 @@
 
 namespace Platform
 {
-struct BuildVersion
-{
-  u32 major{};
-  u32 minor{};
-  u32 build{};
-  auto operator<=>(BuildVersion const& rhs) const = default;
-  static std::optional<BuildVersion> from_string(const std::string& str)
-  {
-    auto components = SplitString(str, '.');
-    // Allow variable number of components (truncating after "build"), but not
-    // empty.
-    if (components.size() == 0)
-      return {};
-    BuildVersion version;
-    if (!TryParse(components[0], &version.major, 10))
-      return {};
-    if (components.size() > 1 && !TryParse(components[1], &version.minor, 10))
-      return {};
-    if (components.size() > 2 && !TryParse(components[2], &version.build, 10))
-      return {};
-    return version;
-  }
-};
 
 enum class VersionCheckStatus
 {
@@ -52,8 +28,8 @@ enum class VersionCheckStatus
 struct VersionCheckResult
 {
   VersionCheckStatus status{VersionCheckStatus::NothingToDo};
-  std::optional<BuildVersion> current_version{};
-  std::optional<BuildVersion> target_version{};
+  std::optional<PEVersion> current_version{};
+  std::optional<PEVersion> target_version{};
 };
 
 class BuildInfo
@@ -79,12 +55,12 @@ public:
     return it->second;
   }
 
-  std::optional<BuildVersion> GetVersion(const std::string& name) const
+  std::optional<PEVersion> GetVersion(const std::string& name) const
   {
     auto str = GetString(name);
     if (!str.has_value())
       return {};
-    return BuildVersion::from_string(str.value());
+    return PEVersion::from_string(str.value());
   }
 
 private:
@@ -118,47 +94,10 @@ struct BuildInfos
   BuildInfo next;
 };
 
-// This default value should be kept in sync with the value of VCToolsUpdateURL in
-// build_info.txt.in
-static const char* VCToolsUpdateURLDefault = "https://aka.ms/vs/17/release/vc_redist.x64.exe";
-#define VC_RUNTIME_REGKEY R"(SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\)"
-
-static const char* VCRuntimeRegistrySubkey()
-{
-  return VC_RUNTIME_REGKEY
-#ifdef _M_X86_64
-      "x64";
-#elif _M_ARM_64
-      "arm64";
-#else
-#error unsupported architecture
-#endif
-}
-
-static bool ReadVCRuntimeVersionField(u32* value, const char* name)
-{
-  return WindowsRegistry::ReadValue(value, VCRuntimeRegistrySubkey(), name);
-}
-
-static std::optional<BuildVersion> GetInstalledVCRuntimeVersion()
-{
-  u32 installed;
-  if (!ReadVCRuntimeVersionField(&installed, "Installed") || !installed)
-    return {};
-  BuildVersion version;
-  if (!ReadVCRuntimeVersionField(&version.major, "Major") ||
-      !ReadVCRuntimeVersionField(&version.minor, "Minor") ||
-      !ReadVCRuntimeVersionField(&version.build, "Bld"))
-  {
-    return {};
-  }
-  return version;
-}
-
 static VersionCheckResult VCRuntimeVersionCheck(const BuildInfos& build_infos)
 {
   VersionCheckResult result;
-  result.current_version = GetInstalledVCRuntimeVersion();
+  result.current_version = VCRuntimeUpdater::GetInstalledVersion();
   result.target_version = build_infos.next.GetVersion("VCToolsVersion");
 
   auto existing_version = build_infos.current.GetVersion("VCToolsVersion");
@@ -180,53 +119,15 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 {
   UI::SetDescription("Updating VC++ Redist, please wait...");
 
-  Common::HttpRequest req;
-  req.FollowRedirects(10);
-  auto resp = req.Get(build_info.GetString("VCToolsUpdateURL").value_or(VCToolsUpdateURLDefault));
-  if (!resp)
-    return false;
-
-  // Write it to current working directory.
-  auto redist_path = std::filesystem::current_path() / L"vc_redist.x64.exe";
-  auto redist_path_u8 = WStringToUTF8(redist_path.wstring());
-  File::IOFile redist_file;
-  redist_file.Open(redist_path_u8, "wb");
-  if (!redist_file.WriteBytes(resp->data(), resp->size()))
-    return false;
-  redist_file.Close();
-
-  Common::ScopeGuard redist_deleter([&] { File::Delete(redist_path_u8); });
-
-  // The installer also supports /passive and /quiet. We normally pass neither (the
-  // exception being test automation) to allow the user to see and interact with the installer.
-  std::wstring cmdline = redist_path.filename().wstring() + L" /install /norestart";
-  if (UI::IsTestMode())
-    cmdline += L" /passive /quiet";
-
-  STARTUPINFOW startup_info{.cb = sizeof(startup_info)};
-  PROCESS_INFORMATION process_info;
-  if (!CreateProcessW(redist_path.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr,
-                      nullptr, &startup_info, &process_info))
-  {
-    return false;
-  }
-  CloseHandle(process_info.hThread);
-
-  // Wait for it to run
-  WaitForSingleObject(process_info.hProcess, INFINITE);
-  DWORD exit_code;
-  bool has_exit_code = GetExitCodeProcess(process_info.hProcess, &exit_code);
-  CloseHandle(process_info.hProcess);
-  // NOTE: Some nonzero exit codes can still be considered success (e.g. if installation was
-  // bypassed because the same version already installed).
-  return has_exit_code &&
-         (exit_code == ERROR_SUCCESS || exit_code == ERROR_SUCCESS_REBOOT_REQUIRED);
+  return VCRuntimeUpdater().DownloadAndRun(build_info.GetString("VCToolsUpdateURL"),
+                                           UI::IsTestMode());
 }
 
-static BuildVersion CurrentOSVersion()
+static PEVersion CurrentOSVersion()
 {
   OSVERSIONINFOW info = WindowsRegistry::GetOSVersion();
-  return {.major = info.dwMajorVersion, .minor = info.dwMinorVersion, .build = info.dwBuildNumber};
+  return PEVersion::from_u32(info.dwMajorVersion, info.dwMinorVersion, info.dwBuildNumber)
+      .value_or(PEVersion{.major = 0});
 }
 
 static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
@@ -234,7 +135,7 @@ static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
   VersionCheckResult result;
   result.current_version = CurrentOSVersion();
 
-  constexpr BuildVersion WIN11_BASE{10, 0, 22000};
+  constexpr PEVersion WIN11_BASE{10, 0, 22000};
   const char* version_name =
       (result.current_version >= WIN11_BASE) ? "OSMinimumVersionWin11" : "OSMinimumVersionWin10";
   result.target_version = build_info.GetVersion(version_name);

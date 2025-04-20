@@ -142,6 +142,7 @@
     <ClInclude Include="Common\NandPaths.h" />
     <ClInclude Include="Common\Network.h" />
     <ClInclude Include="Common\PcapFile.h" />
+    <ClInclude Include="Common\PEVersion.h" />
     <ClInclude Include="Common\Profiler.h" />
     <ClInclude Include="Common\Projection.h" />
     <ClInclude Include="Common\QoSSession.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="Common\Unreachable.h" />
     <ClInclude Include="Common\UPnP.h" />
     <ClInclude Include="Common\VariantUtil.h" />
+    <ClInclude Include="Common\VCRuntimeUpdater.h" />
     <ClInclude Include="Common\Version.h" />
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
@@ -827,6 +829,7 @@
     <ClCompile Include="Common\NandPaths.cpp" />
     <ClCompile Include="Common\Network.cpp" />
     <ClCompile Include="Common\PcapFile.cpp" />
+    <ClCompile Include="Common\PEVersion.cpp" />
     <ClCompile Include="Common\Profiler.cpp" />
     <ClCompile Include="Common\QoSSession.cpp" />
     <ClCompile Include="Common\Random.cpp" />
@@ -842,6 +845,7 @@
     <ClCompile Include="Common\TraversalClient.cpp" />
     <ClCompile Include="Common\UPnP.cpp" />
     <ClCompile Include="Common\WindowsRegistry.cpp" />
+    <ClCompile Include="Common\VCRuntimeUpdater.cpp" />
     <ClCompile Include="Common\Version.cpp" />
     <ClCompile Include="Core\AchievementManager.cpp" />
     <ClCompile Include="Core\ActionReplay.cpp" />

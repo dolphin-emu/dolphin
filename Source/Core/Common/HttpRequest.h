@@ -48,6 +48,7 @@ public:
   s32 GetLastResponseCode() const;
   std::string EscapeComponent(const std::string& string);
   std::string GetHeaderValue(std::string_view name) const;
+  std::optional<std::chrono::system_clock::time_point> GetModifiedTime(const std::string& url);
   Response Get(const std::string& url, const Headers& headers = {},
                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
   Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
