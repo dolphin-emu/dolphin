@@ -4,10 +4,10 @@
 #include "DolphinNoGUI/Platform.h"
 
 #include <OptionParser.h>
+#include <csignal>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <signal.h>
 #include <string>
 #include <vector>
 
@@ -307,8 +307,8 @@ int main(int argc, char* argv[])
   });
 
 #ifdef _WIN32
-  signal(SIGINT, signal_handler);
-  signal(SIGTERM, signal_handler);
+  std::signal(SIGINT, signal_handler);
+  std::signal(SIGTERM, signal_handler);
 #else
   // Shut down cleanly on SIGINT and SIGTERM
   struct sigaction sa;
