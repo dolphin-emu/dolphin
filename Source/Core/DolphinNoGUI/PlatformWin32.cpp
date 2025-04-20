@@ -36,7 +36,7 @@ private:
   static bool RegisterRenderWindowClass();
   bool CreateRenderWindow();
   void UpdateWindowPosition();
-  void ProcessEvents();
+  void ProcessEvents() const;
 
   HWND m_hwnd{};
 
@@ -155,7 +155,7 @@ void PlatformWin32::UpdateWindowPosition()
   m_window_height = rc.bottom - rc.top;
 }
 
-void PlatformWin32::ProcessEvents()
+void PlatformWin32::ProcessEvents() const
 {
   MSG msg;
   while (PeekMessage(&msg, m_hwnd, 0, 0, PM_REMOVE))
