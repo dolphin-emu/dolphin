@@ -63,7 +63,7 @@ bool PlatformWin32::RegisterRenderWindowClass()
   wc.hInstance = GetModuleHandle(nullptr);
   wc.hIcon = LoadIcon(nullptr, IDI_ICON1);
   wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-  wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+  wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
   wc.lpszMenuName = nullptr;
   wc.lpszClassName = WINDOW_CLASS_NAME;
   wc.hIconSm = LoadIcon(nullptr, IDI_ICON1);
