@@ -427,6 +427,8 @@ add_library(core
   IOS/USB/Common.h
   IOS/USB/Emulated/Infinity.cpp
   IOS/USB/Emulated/Infinity.h
+  IOS/USB/Emulated/Skateboard.cpp
+  IOS/USB/Emulated/Skateboard.h
   IOS/USB/Emulated/Skylanders/Skylander.cpp
   IOS/USB/Emulated/Skylanders/Skylander.h
   IOS/USB/Emulated/Skylanders/SkylanderCrypto.cpp
