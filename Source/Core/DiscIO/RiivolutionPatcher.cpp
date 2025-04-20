@@ -210,7 +210,7 @@ FileDataLoaderHostFS::MakeContentSource(std::string_view external_relative_path,
 {
   auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
-    return BuilderContentSource{disc_offset, external_size, ContentFixedByte{0}};
+    return BuilderContentSource{disc_offset, external_size, ContentFixedByte{}};
   return BuilderContentSource{disc_offset, external_size,
                               ContentFile{std::move(*path), external_offset}};
 }
@@ -284,7 +284,7 @@ static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_no
     {
       // Insert an padding area between the old file and the patch data.
       content.emplace_back(BuilderContentSource{file_node->m_size, patch_start - file_node->m_size,
-                                                ContentFixedByte{0}});
+                                                ContentFixedByte{}});
     }
 
     insert_where = content.size();
@@ -340,7 +340,7 @@ static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_no
   if (external_filesize < patch_size)
   {
     BuilderContentSource padding{patch_start + external_filesize, patch_size - external_filesize,
-                                 ContentFixedByte{0}};
+                                 ContentFixedByte{}};
     content.emplace(content.begin() + insert_where, std::move(padding));
   }
 
