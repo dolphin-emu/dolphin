@@ -3,16 +3,13 @@
 
 #include "DolphinNoGUI/Platform.h"
 
-#include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/State.h"
 #include "Core/System.h"
 
 #include <Windows.h>
 #include <climits>
-#include <cstdio>
 #include <dwmapi.h>
 
 #include "VideoCommon/Present.h"

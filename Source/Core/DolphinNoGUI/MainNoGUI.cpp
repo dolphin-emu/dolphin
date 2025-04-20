@@ -4,9 +4,7 @@
 #include "DolphinNoGUI/Platform.h"
 
 #include <OptionParser.h>
-#include <cstddef>
 #include <cstdio>
-#include <cstring>
 #include <signal.h>
 #include <string>
 #include <vector>
@@ -31,8 +29,6 @@
 #include "UICommon/DiscordPresence.h"
 #endif
 #include "UICommon/UICommon.h"
-
-#include "InputCommon/GCAdapter.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
