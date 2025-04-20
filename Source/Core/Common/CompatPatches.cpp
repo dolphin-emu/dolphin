@@ -124,76 +124,6 @@ private:
   PIMAGE_DATA_DIRECTORY directories;
 };
 
-struct UcrtPatchInfo
-{
-  u32 checksum;
-  u32 rva;
-  u32 length;
-};
-
-bool ApplyUcrtPatch(const wchar_t* name, const UcrtPatchInfo& patch)
-{
-  auto module = GetModuleHandleW(name);
-  if (!module)
-    return false;
-  auto pe = (PIMAGE_NT_HEADERS)((uintptr_t)module + ((PIMAGE_DOS_HEADER)module)->e_lfanew);
-  if (pe->OptionalHeader.CheckSum != patch.checksum)
-    return false;
-  void* patch_addr = (void*)((uintptr_t)module + patch.rva);
-  size_t patch_size = patch.length;
-  ModifyProtectedRegion(patch_addr, patch_size, [=] { memset(patch_addr, 0x90, patch_size); });
-  FlushInstructionCache(GetCurrentProcess(), patch_addr, patch_size);
-  return true;
-}
-
-#pragma comment(lib, "version.lib")
-
-struct Version
-{
-  u16 major;
-  u16 minor;
-  u16 build;
-  u16 qfe;
-  Version& operator=(u64&& rhs)
-  {
-    major = static_cast<u16>(rhs >> 48);
-    minor = static_cast<u16>(rhs >> 32);
-    build = static_cast<u16>(rhs >> 16);
-    qfe = static_cast<u16>(rhs);
-    return *this;
-  }
-};
-
-static std::optional<std::wstring> GetModulePath(const wchar_t* name)
-{
-  auto module = GetModuleHandleW(name);
-  if (module == nullptr)
-    return std::nullopt;
-
-  return Common::GetModuleName(module);
-}
-
-static bool GetModuleVersion(const wchar_t* name, Version* version)
-{
-  auto path = GetModulePath(name);
-  if (!path)
-    return false;
-  DWORD handle;
-  DWORD data_len = GetFileVersionInfoSizeW(path->c_str(), &handle);
-  if (!data_len)
-    return false;
-  std::vector<u8> block(data_len);
-  if (!GetFileVersionInfoW(path->c_str(), 0, data_len, block.data()))
-    return false;
-  void* buf;
-  UINT buf_len;
-  if (!VerQueryValueW(block.data(), LR"(\)", &buf, &buf_len))
-    return false;
-  auto info = static_cast<VS_FIXEDFILEINFO*>(buf);
-  *version = (static_cast<u64>(info->dwFileVersionMS) << 32) | info->dwFileVersionLS;
-  return true;
-}
-
 void CompatPatchesInstall(LdrWatcher* watcher)
 {
   watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event) {
@@ -206,40 +136,6 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       auto patcher = ImportPatcher(event.base_address);
                       patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
                     }});
-  watcher->Install(
-      {{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
-         // ucrtbase implements caching between fseek/fread, old versions have a bug
-         // such that some reads return incorrect data. This causes noticeable bugs
-         // in dolphin since we use these APIs for reading game images.
-         Version version;
-         if (!GetModuleVersion(event.name.c_str(), &version))
-           return;
-         const u16 fixed_build = 10548;
-         if (version.build >= fixed_build)
-           return;
-         const UcrtPatchInfo patches[] = {
-             // 10.0.10240.16384 (th1.150709-1700)
-             {0xF61ED, 0x6AE7B, 5},
-             // 10.0.10240.16390 (th1_st1.150714-1601)
-             {0xF5ED9, 0x6AE7B, 5},
-             // 10.0.10137.0 (th1.150602-2238)
-             {0xF8B5E, 0x63ED6, 2},
-         };
-         for (const auto& patch : patches)
-         {
-           if (ApplyUcrtPatch(event.name.c_str(), patch))
-             return;
-         }
-         // If we reach here, the version is buggy (afaik) and patching failed
-         const auto msg = fmt::format(
-             L"You are running {} version {}.{}.{}.{}.\n"
-             L"An important fix affecting Dolphin was introduced in build {}.\n"
-             L"You can use Dolphin, but there will be known bugs.\n"
-             L"Please update this file by installing the latest Universal C Runtime.\n",
-             event.name, version.major, version.minor, version.build, version.qfe, fixed_build);
-         // Use MessageBox for maximal user annoyance
-         MessageBoxW(nullptr, msg.c_str(), L"WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
-       }});
 }
 
 int __cdecl EnableCompatPatches()
