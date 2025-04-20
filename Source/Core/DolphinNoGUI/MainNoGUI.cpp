@@ -201,7 +201,8 @@ int main(int argc, char* argv[])
 {
   Core::DeclareAsHostThread();
 
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
+  const auto parser =
+      CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   parser->add_option("-p", "--platform")
       .action("store")
       .help("Window platform to use [%choices]")
