@@ -46,6 +46,7 @@
       <PreprocessorDefinitions>HAVE_SDL2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_RETRO_ACHIEVEMENTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>RC_CLIENT_SUPPORTS_HASH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RC_CLIENT_SUPPORTS_RAINTEGRATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAVE_CUBEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
       <!-- Warnings one may want to ignore when using Level4.
