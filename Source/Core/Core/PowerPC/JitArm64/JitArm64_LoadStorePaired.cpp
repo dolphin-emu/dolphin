@@ -89,7 +89,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
       gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
     fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
     if (!jo.memcheck)
-      fprs_in_use[DecodeReg(VS)] = 0;
+      fprs_in_use[DecodeReg(VS)] = false;
 
     u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
