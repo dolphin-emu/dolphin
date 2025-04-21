@@ -165,6 +165,7 @@ private:
   Result m_result;
   bool m_is_tgc = false;
   bool m_is_datel = false;
+  bool m_is_triforce = false;
   bool m_is_not_retail = false;
 
   bool m_redump_verification;
