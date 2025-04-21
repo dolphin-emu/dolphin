@@ -3080,7 +3080,10 @@ struct ExampleDualListBox
     {
         const int* a = (const int*)lhs;
         const int* b = (const int*)rhs;
-        return (*a - *b) > 0 ? +1 : -1;
+        if (*a != *b){
+          return (*a - *b) > 0 ? +1 : -1;
+          }
+        return 0;
     }
     void SortItems(int n)
     {
