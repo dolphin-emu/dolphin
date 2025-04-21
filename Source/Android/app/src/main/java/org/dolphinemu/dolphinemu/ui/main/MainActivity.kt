@@ -103,11 +103,6 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         presenter.onResume()
     }
 
-    override fun onStart() {
-        super.onStart()
-        StartupHandler.checkSessionReset(this)
-    }
-
     override fun onStop() {
         super.onStop()
         if (isChangingConfigurations) {
@@ -116,8 +111,6 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
             // If the currently selected platform tab changed, save it to disk
             NativeConfig.save(NativeConfig.LAYER_BASE)
         }
-
-        StartupHandler.setSessionTime(this)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
