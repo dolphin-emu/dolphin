@@ -43,7 +43,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
   }
 }
 
-bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 {
   if (m_mode == 6)
   {
@@ -95,7 +95,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
     return CSIDevice_GCController::GetData(hi, low);
   }
 
-  return true;
+  return DataResponse::Success;
 }
 
 void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)

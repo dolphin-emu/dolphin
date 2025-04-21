@@ -68,7 +68,7 @@ KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus() const
   return Keyboard::GetStatus(m_device_number);
 }
 
-bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_Keyboard::GetData(u32& hi, u32& low)
 {
   const KeyboardStatus key_status = GetKeyboardStatus();
   const KeyArray key = MapKeys(key_status);
@@ -77,7 +77,7 @@ bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
   hi = m_counter << 24;
   low = key[0] << 24 | key[1] << 16 | key[2] << 8 | checksum;
 
-  return true;
+  return DataResponse::Success;
 }
 
 void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
