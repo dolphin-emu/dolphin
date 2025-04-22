@@ -100,7 +100,7 @@ TEST(PatchAllowlist, VerifyHashes)
         continue;
       // Hash patch
       auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch.entries.size())));
+      context->Update(Common::BitCastToArray<u8>(patch.entries.size()));
       for (const auto& entry : patch.entries)
       {
         context->Update(Common::BitCastToArray<u8>(entry.type));
@@ -120,7 +120,7 @@ TEST(PatchAllowlist, VerifyHashes)
         continue;
       // Hash patch
       auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.codes.size())));
+      context->Update(Common::BitCastToArray<u8>(code.codes.size()));
       for (const auto& entry : code.codes)
       {
         context->Update(Common::BitCastToArray<u8>(entry.address));
@@ -137,7 +137,7 @@ TEST(PatchAllowlist, VerifyHashes)
         continue;
       // Hash patch
       auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.ops.size())));
+      context->Update(Common::BitCastToArray<u8>(code.ops.size()));
       for (const auto& entry : code.ops)
       {
         context->Update(Common::BitCastToArray<u8>(entry.cmd_addr));
