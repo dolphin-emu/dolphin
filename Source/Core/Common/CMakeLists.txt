@@ -351,6 +351,11 @@ if(USE_UPNP)
   target_link_libraries(common PRIVATE Miniupnpc::miniupnpc)
 endif()
 
+if(ENABLE_SDL)
+  target_link_libraries(common PRIVATE SDL3::SDL3)
+  target_compile_definitions(common PRIVATE -DHAVE_SDL3)
+endif()
+
 if(ENABLE_LLVM)
   find_package(LLVM CONFIG)
   if(LLVM_FOUND)

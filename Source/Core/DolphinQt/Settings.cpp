@@ -25,6 +25,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Contains.h"
 #include "Common/FileUtil.h"
+#include "Common/Keyboard.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -938,7 +939,13 @@ bool Settings::IsUSBKeyboardConnected() const
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
   if (IsUSBKeyboardConnected() != connected)
+  {
     Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
+    if (connected)
+      Common::KeyboardContext::NotifyInit();
+    else
+      Common::KeyboardContext::NotifyQuit();
+  }
 }
 
 bool Settings::IsWiiSpeakMuted() const

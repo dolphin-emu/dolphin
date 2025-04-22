@@ -3,6 +3,7 @@
 
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
+#include <optional>
 #include <span>
 #include <thread>
 #include <vector>
@@ -14,6 +15,7 @@
 #include <SDL3/SDL.h>
 
 #include "Common/Event.h"
+#include "Common/Keyboard.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -21,9 +23,82 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/Host.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
+
+namespace
+{
+using UniqueSDLWindow = std::unique_ptr<SDL_Window, void (*)(SDL_Window*)>;
+
+// Based on sdl2-compat 76eb981a4c376bcaf615c0af37d46512ba45cfb8
+SDL_Window* SDL_CreateWindowFrom(void* handle)
+{
+  SDL_PropertiesID props = SDL_CreateProperties();
+  if (!props)
+    return nullptr;
+
+  if (const char* hint = SDL_GetHint("SDL_VIDEO_WINDOW_SHARE_PIXEL_FORMAT"); hint)
+  {
+    // This hint is a pointer (in string form) of the address of
+    // the window to share a pixel format with
+    SDL_Window* other_window = nullptr;
+    if (SDL_sscanf(hint, "%p", &other_window))
+    {
+      void* ptr = SDL_GetPointerProperty(SDL_GetWindowProperties(other_window),
+                                         SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+      SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_PIXEL_FORMAT_HWND_POINTER, ptr);
+      SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+    }
+  }
+
+  if (SDL_GetHintBoolean("SDL_VIDEO_FOREIGN_WINDOW_OPENGL", false))
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+
+  if (SDL_GetHintBoolean("SDL_VIDEO_FOREIGN_WINDOW_VULKAN", false))
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+
+  SDL_SetPointerProperty(props, "sdl2-compat.external_window", handle);
+  SDL_Window* window = SDL_CreateWindowWithProperties(props);
+  SDL_DestroyProperties(props);
+
+  // SDL3 has per-window text input, so we must enable on this window if it's active
+  if (SDL_EventEnabled(SDL_EVENT_TEXT_INPUT))
+  {
+    props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_TEXT);
+    SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, SDL_CAPITALIZE_NONE);
+    SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false);
+    SDL_StartTextInputWithProperties(window, props);
+    SDL_DestroyProperties(props);
+  }
+
+  return window;
+}
+
+std::optional<const char*> UpdateKeyboardHandle(UniqueSDLWindow* unique_window)
+{
+  std::optional<const char*> error;
+
+  void* keyboard_handle = Common::KeyboardContext::GetWindowHandle();
+  SDL_Window* keyboard_window = SDL_CreateWindowFrom(keyboard_handle);
+  if (keyboard_window == nullptr)
+    error = SDL_GetError();
+
+  unique_window->reset(keyboard_window);
+  if (error.has_value())
+    return error;
+
+  // SDL aggressive hooking might make the window borderless sometimes
+  if (!Host_RendererIsFullscreen())
+  {
+    SDL_SetWindowFullscreen(keyboard_window, 0);
+    SDL_SetWindowBordered(keyboard_window, true);
+  }
+  return error;
+}
+}  // namespace
 
 namespace ciface::SDL
 {
@@ -45,6 +120,7 @@ private:
   Uint32 m_stop_event_type;
   Uint32 m_populate_event_type;
   std::thread m_hotplug_thread;
+  UniqueSDLWindow m_keyboard_window{nullptr, SDL_DestroyWindow};
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -180,7 +256,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
         return;
       }
 
-      const Uint32 custom_events_start = SDL_RegisterEvents(2);
+      const Uint32 custom_events_start = SDL_RegisterEvents(5);
       if (custom_events_start == static_cast<Uint32>(-1))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
@@ -188,6 +264,9 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       }
       m_stop_event_type = custom_events_start;
       m_populate_event_type = custom_events_start + 1;
+      Common::KeyboardContext::s_sdl_init_event_type = custom_events_start + 2;
+      Common::KeyboardContext::s_sdl_update_event_type = custom_events_start + 3;
+      Common::KeyboardContext::s_sdl_quit_event_type = custom_events_start + 4;
 
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
       // individual joystick events as well as the custom populate event will be handled _after_
@@ -286,6 +365,40 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   else if (e.type == m_stop_event_type)
   {
     return false;
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_init_event_type)
+  {
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to init subsystem to capture keyboard input: {}",
+                    SDL_GetError());
+      return true;
+    }
+
+    if (const auto error = UpdateKeyboardHandle(&m_keyboard_window); error.has_value())
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to attach window to capture keyboard input: {}", *error);
+      return true;
+    }
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_update_event_type)
+  {
+    if (!SDL_WasInit(SDL_INIT_VIDEO))
+      return true;
+
+    // Release previous SDLWindow
+    m_keyboard_window.reset();
+
+    if (const auto error = UpdateKeyboardHandle(&m_keyboard_window); error.has_value())
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to switch window to capture keyboard input: {}", *error);
+      return true;
+    }
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_quit_event_type)
+  {
+    m_keyboard_window.reset();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
   }
 
   return true;
