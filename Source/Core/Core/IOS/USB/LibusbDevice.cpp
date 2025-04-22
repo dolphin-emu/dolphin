@@ -438,6 +438,10 @@ static int DoForEachInterface(const Configs& configs, u8 config_num, Function ac
 
 int LibusbDevice::ClaimAllInterfaces(u8 config_num) const
 {
+  // On windows claiming fails for composite usb devices. Detaching also doesn't do anything on windows either.
+#ifdef _WIN32
+  return LIBUSB_SUCCESS;
+#endif
   const int ret = DoForEachInterface(m_config_descriptors, config_num, [this](u8 i) {
   // On macos detaching would fail without root or entitlement.
   // We assume user is using GCAdapterDriver and therefore don't want to detach anything
