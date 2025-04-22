@@ -348,6 +348,8 @@ void AchievementManager::DoFrame()
 
 bool AchievementManager::CanPause()
 {
+  if (!IsGameLoaded())
+    return true;
   u32 frames_to_next_pause = 0;
   bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
   if (!can_pause)
