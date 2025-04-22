@@ -425,7 +425,6 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   const u32 ipl_hash = Common::ComputeCRC32(data.data(), data.size());
   bool known_ipl = false;
   bool pal_ipl = false;
-  bool triforce_ipl = false;
   switch (ipl_hash)
   {
   case NTSC_v1_0:
@@ -442,7 +441,6 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
     break;
   case Triforce:
     known_ipl = true;
-    triforce_ipl = true;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
