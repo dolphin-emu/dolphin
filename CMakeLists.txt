@@ -24,7 +24,7 @@ endif()
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15.0" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlagsOverride.cmake")
 
