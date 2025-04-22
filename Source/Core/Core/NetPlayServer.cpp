@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -414,10 +415,10 @@ void NetPlayServer::ThreadFunc()
   INFO_LOG_FMT(NETPLAY, "NetPlayServer shutting down.");
 
   // close listening socket and client sockets
-  for (auto& player_entry : m_players)
+  for (const auto& player_entry : std::views::values(m_players))
   {
-    ClearPeerPlayerId(player_entry.second.socket);
-    enet_peer_disconnect(player_entry.second.socket, 0);
+    ClearPeerPlayerId(player_entry.socket);
+    enet_peer_disconnect(player_entry.socket, 0);
   }
   m_players.clear();
 }
@@ -491,13 +492,13 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
 
   SendResponseToPlayer(new_player, MessageID::HostInputAuthority, m_host_input_authority);
 
-  for (const auto& existing_player : m_players)
+  for (const auto& existing_player : std::views::values(m_players))
   {
-    SendResponseToPlayer(new_player, MessageID::PlayerJoin, existing_player.second.pid,
-                         existing_player.second.name, existing_player.second.revision);
+    SendResponseToPlayer(new_player, MessageID::PlayerJoin, existing_player.pid,
+                         existing_player.name, existing_player.revision);
 
-    SendResponseToPlayer(new_player, MessageID::GameStatus, existing_player.second.pid,
-                         static_cast<u8>(existing_player.second.game_status));
+    SendResponseToPlayer(new_player, MessageID::GameStatus, existing_player.pid,
+                         static_cast<u8>(existing_player.game_status));
   }
 
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
@@ -1514,7 +1515,7 @@ bool NetPlayServer::RequestStartGame()
     {
       // Set titles for host-side loading in WiiRoot
       std::vector<u64> titles;
-      for (const auto& [title_id, storage] : save_sync_info->wii_saves)
+      for (const auto& title_id : std::views::keys(save_sync_info->wii_saves))
         titles.push_back(title_id);
       m_dialog->SetHostWiiSyncData(
           std::move(titles),
@@ -2206,11 +2207,11 @@ u64 NetPlayServer::GetInitialNetPlayRTC() const
 void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
                                   const u8 channel_id)
 {
-  for (auto& p : m_players)
+  for (auto& p : std::views::values(m_players))
   {
-    if (p.second.pid && p.second.pid != skip_pid)
+    if (p.pid && p.pid != skip_pid)
     {
-      Send(p.second.socket, packet, channel_id);
+      Send(p.socket, packet, channel_id);
     }
   }
 }
@@ -2222,11 +2223,11 @@ void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 ch
 
 void NetPlayServer::KickPlayer(PlayerId player)
 {
-  for (auto& current_player : m_players)
+  for (auto& current_player : std::views::values(m_players))
   {
-    if (current_player.second.pid == player)
+    if (current_player.pid == player)
     {
-      enet_peer_disconnect(current_player.second.socket, 0);
+      enet_peer_disconnect(current_player.socket, 0);
       return;
     }
   }
@@ -2423,10 +2424,10 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
         else
         {
-          for (auto& pl : m_players)
+          for (auto& pl : std::views::values(m_players))
           {
-            if (pl.second.pid != e.target_pid)
-              players.push_back(pl.second.pid);
+            if (pl.pid != e.target_pid)
+              players.push_back(pl.pid);
           }
         }
         player_count = players.size();
