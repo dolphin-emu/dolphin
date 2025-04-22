@@ -756,7 +756,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Swaps endian of Triforce DI commands, and zeroes out random bytes to prevent unknown read
   // subcommand errors
   auto& dvd_thread = m_system.GetDVDThread();
-  if (dvd_thread.GetDiscType() == DiscIO::Platform::Triforce)
+  if (dvd_thread.HasDisc() && dvd_thread.GetDiscType() == DiscIO::Platform::Triforce)
   {
     // TODO(C++23): Use std::byteswap and a bitwise AND for increased clarity
     m_DICMDBUF[0] <<= 24;
