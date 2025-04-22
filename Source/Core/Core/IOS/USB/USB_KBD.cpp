@@ -15,7 +15,7 @@
 
 namespace IOS::HLE
 {
-USB_KBD::MessageData::MessageData(MessageType type, const State& state)
+USB_KBD::MessageData::MessageData(MessageType type, const Common::HIDPressedState& state)
     : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{state.modifiers},
       pressed_keys{state.pressed_keys}
 {
@@ -38,9 +38,19 @@ std::optional<IPCReply> USB_KBD::Open(const OpenRequest& request)
 
   m_message_queue = {};
   m_previous_state = {};
+  m_keyboard_context = Common::KeyboardContext::GetInstance();
 
   // m_message_queue.emplace(MessageType::KeyboardConnect, {});
   return Device::Open(request);
+}
+
+std::optional<IPCReply> USB_KBD::Close(u32 fd)
+{
+  INFO_LOG_FMT(IOS, "USB_KBD: Close");
+
+  m_keyboard_context.reset();
+
+  return Device::Close(fd);
 }
 
 std::optional<IPCReply> USB_KBD::Write(const ReadWriteRequest& request)
@@ -64,11 +74,13 @@ std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
 
 void USB_KBD::Update()
 {
-  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
+  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active ||
+      !m_keyboard_context)
+  {
     return;
+  }
 
-  const State current_state{.modifiers = Common::PollHIDModifiers(),
-                            .pressed_keys = Common::PollHIDPressedKeys(m_keyboard_layout)};
+  const auto current_state = m_keyboard_context->GetPressedState(m_keyboard_layout);
 
   if (current_state == m_previous_state)
     return;

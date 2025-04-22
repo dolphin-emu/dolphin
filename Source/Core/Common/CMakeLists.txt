@@ -349,6 +349,11 @@ if(OPROFILE_FOUND)
   target_link_libraries(common PRIVATE OProfile::OProfile)
 endif()
 
+if(ENABLE_SDL)
+  target_link_libraries(common PRIVATE SDL2::SDL2)
+  target_compile_definitions(common PRIVATE -DHAVE_SDL2)
+endif()
+
 if(ENABLE_LLVM)
   find_package(LLVM CONFIG)
   if(LLVM_FOUND)
