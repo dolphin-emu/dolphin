@@ -3,6 +3,7 @@
 
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
+#include <optional>
 #include <thread>
 #include <vector>
 
@@ -13,11 +14,42 @@
 #include <SDL.h>
 
 #include "Common/Event.h"
+#include "Common/Keyboard.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Core/Host.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
+
+namespace
+{
+using UniqueSDLWindow = std::unique_ptr<SDL_Window, void (*)(SDL_Window*)>;
+
+std::optional<const char*> UpdateKeyboardHandle(UniqueSDLWindow* unique_window)
+{
+  std::optional<const char*> error;
+
+  // Doesn't seem to work with X11 until SDL 3.10:
+  //  - https://github.com/libsdl-org/SDL/pull/10467
+  const void* keyboard_handle = Common::KeyboardContext::GetWindowHandle();
+  SDL_Window* keyboard_window = SDL_CreateWindowFrom(keyboard_handle);
+  if (keyboard_window == nullptr)
+    error = SDL_GetError();
+
+  unique_window->reset(keyboard_window);
+  if (error.has_value())
+    return error;
+
+  // SDL aggressive hooking might make the window borderless sometimes
+  if (!Host_RendererIsFullscreen())
+  {
+    SDL_SetWindowFullscreen(keyboard_window, 0);
+    SDL_SetWindowBordered(keyboard_window, SDL_TRUE);
+  }
+  return error;
+}
+}  // namespace
 
 namespace ciface::SDL
 {
@@ -39,6 +71,7 @@ private:
   Uint32 m_stop_event_type;
   Uint32 m_populate_event_type;
   std::thread m_hotplug_thread;
+  UniqueSDLWindow m_keyboard_window{nullptr, SDL_DestroyWindow};
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -145,7 +178,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
         return;
       }
 
-      const Uint32 custom_events_start = SDL_RegisterEvents(2);
+      const Uint32 custom_events_start = SDL_RegisterEvents(5);
       if (custom_events_start == static_cast<Uint32>(-1))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
@@ -153,6 +186,9 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       }
       m_stop_event_type = custom_events_start;
       m_populate_event_type = custom_events_start + 1;
+      Common::KeyboardContext::s_sdl_init_event_type = custom_events_start + 2;
+      Common::KeyboardContext::s_sdl_update_event_type = custom_events_start + 3;
+      Common::KeyboardContext::s_sdl_quit_event_type = custom_events_start + 4;
 
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
       // individual joystick events as well as the custom populate event will be handled _after_
@@ -275,6 +311,40 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   else if (e.type == m_stop_event_type)
   {
     return false;
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_init_event_type)
+  {
+    if (const int error = SDL_InitSubSystem(SDL_INIT_VIDEO); error != 0)
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to init subsystem to capture keyboard input: {}",
+                    SDL_GetError());
+      return true;
+    }
+
+    if (const auto error = UpdateKeyboardHandle(&m_keyboard_window); error.has_value())
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to attach window to capture keyboard input: {}", *error);
+      return true;
+    }
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_update_event_type)
+  {
+    if (!SDL_WasInit(SDL_INIT_VIDEO))
+      return true;
+
+    // Release previous SDLWindow
+    m_keyboard_window.reset();
+
+    if (const auto error = UpdateKeyboardHandle(&m_keyboard_window); error.has_value())
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to switch window to capture keyboard input: {}", *error);
+      return true;
+    }
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_quit_event_type)
+  {
+    m_keyboard_window.reset();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
   }
 
   return true;

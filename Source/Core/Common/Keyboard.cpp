@@ -4,11 +4,24 @@
 #include "Common/Keyboard.h"
 
 #include <array>
+#include <mutex>
 #include <utility>
 
 #ifdef _WIN32
 #include <windows.h>
+#elif defined(HAVE_SDL2)
+#include <SDL_events.h>
+#include <SDL_keyboard.h>
 #endif
+
+#ifdef HAVE_SDL2
+// Will be overridden by Dolphin's SDL InputBackend
+u32 Common::KeyboardContext::s_sdl_init_event_type(-1);
+u32 Common::KeyboardContext::s_sdl_update_event_type(-1);
+u32 Common::KeyboardContext::s_sdl_quit_event_type(-1);
+#endif
+
+#include "Core/Config/MainSettings.h"
 
 namespace
 {
@@ -173,59 +186,180 @@ u8 MapVirtualKeyToHID(u8 virtual_key, int keyboard_layout)
 #else
 u8 MapVirtualKeyToHID(u8 virtual_key, int keyboard_layout)
 {
+  // SDL2 keyboard state uses scan codes already based on HID usage id
   return virtual_key;
 }
 #endif
+
+std::weak_ptr<Common::KeyboardContext> s_keyboard_context;
+std::mutex s_keyboard_context_mutex;
+
+// Will be updated by DolphinQt's Host:
+//  - SetRenderHandle
+//  - SetFullscreen
+Common::KeyboardContext::HandlerState s_handler_state{};
 }  // Anonymous namespace
 
 namespace Common
 {
-bool Common::IsVirtualKeyPressed(int virtual_key)
+KeyboardContext::KeyboardContext()
+{
+  if (Config::Get(Config::MAIN_WII_KEYBOARD))
+    Init();
+}
+
+KeyboardContext::~KeyboardContext()
+{
+  if (Config::Get(Config::MAIN_WII_KEYBOARD))
+    Quit();
+}
+
+void KeyboardContext::Init()
+{
+#if !defined(_WIN32) && defined(HAVE_SDL2)
+  SDL_Event event{s_sdl_init_event_type};
+  SDL_PushEvent(&event);
+  m_keyboard_state = SDL_GetKeyboardState(nullptr);
+#endif
+  m_is_ready = true;
+}
+
+void KeyboardContext::Quit()
+{
+  m_is_ready = false;
+#if !defined(_WIN32) && defined(HAVE_SDL2)
+  SDL_Event event{s_sdl_quit_event_type};
+  SDL_PushEvent(&event);
+#endif
+}
+
+const void* KeyboardContext::HandlerState::GetHandle() const
+{
+  if (is_rendering_to_main && !is_fullscreen)
+    return main_handle;
+  return renderer_handle;
+}
+
+void KeyboardContext::NotifyInit()
+{
+  if (auto self = s_keyboard_context.lock())
+    self->Init();
+}
+
+void KeyboardContext::NotifyHandlerChanged(const KeyboardContext::HandlerState& state)
+{
+  s_handler_state = state;
+  if (s_keyboard_context.expired())
+    return;
+#if !defined(_WIN32) && defined(HAVE_SDL2)
+  SDL_Event event{s_sdl_update_event_type};
+  SDL_PushEvent(&event);
+#endif
+}
+
+void KeyboardContext::NotifyQuit()
+{
+  if (auto self = s_keyboard_context.lock())
+    self->Quit();
+}
+
+const void* KeyboardContext::GetWindowHandle()
+{
+  return s_handler_state.GetHandle();
+}
+
+std::shared_ptr<KeyboardContext> KeyboardContext::GetInstance()
+{
+  const std::lock_guard guard(s_keyboard_context_mutex);
+  std::shared_ptr<KeyboardContext> ptr = s_keyboard_context.lock();
+  if (!ptr)
+  {
+    ptr = std::shared_ptr<KeyboardContext>(new KeyboardContext);
+    s_keyboard_context = ptr;
+  }
+  return ptr;
+}
+
+HIDPressedState KeyboardContext::GetPressedState(int keyboard_layout) const
+{
+  return m_is_ready ? HIDPressedState{.modifiers = PollHIDModifiers(),
+                                      .pressed_keys = PollHIDPressedKeys(keyboard_layout)} :
+                      HIDPressedState{};
+}
+
+bool KeyboardContext::IsVirtualKeyPressed(int virtual_key) const
 {
 #ifdef _WIN32
   return (GetAsyncKeyState(virtual_key) & 0x8000) != 0;
+#elif defined(HAVE_SDL2)
+  if (virtual_key >= SDL_NUM_SCANCODES)
+    return false;
+  return m_keyboard_state[virtual_key] == 1;
 #else
-  // TODO: do it for non-Windows platforms
+  // TODO: Android implementation
   return false;
 #endif
 }
 
-u8 Common::PollHIDModifiers()
+u8 KeyboardContext::PollHIDModifiers() const
 {
   u8 modifiers = 0;
-#ifdef _WIN32
+
   using VkHidPair = std::pair<int, u8>;
+
   // References:
   // https://learn.microsoft.com/windows/win32/inputdev/virtual-key-codes
+  // https://wiki.libsdl.org/SDL2/SDL_Scancode
   // https://www.usb.org/document-library/device-class-definition-hid-111
+  //
+  // HID modifier: Bit 0 - LEFT CTRL
+  // HID modifier: Bit 1 - LEFT SHIFT
+  // HID modifier: Bit 2 - LEFT ALT
+  // HID modifier: Bit 3 - LEFT GUI
+  // HID modifier: Bit 4 - RIGHT CTRL
+  // HID modifier: Bit 5 - RIGHT SHIFT
+  // HID modifier: Bit 6 - RIGHT ALT
+  // HID modifier: Bit 7 - RIGHT GUI
   static const std::vector<VkHidPair> MODIFIERS_MAP{
-      {VK_LCONTROL, 0x01},  // HID modifier: Bit 0 - LEFT CTRL
-      {VK_LSHIFT, 0x02},    // HID modifier: Bit 1 - LEFT SHIFT
-      {VK_LMENU, 0x04},     // HID modifier: Bit 2 - LEFT ALT
-      {VK_LWIN, 0x08},      // HID modifier: Bit 3 - LEFT GUI
-      {VK_RCONTROL, 0x10},  // HID modifier: Bit 4 - RIGHT CTRL
-      {VK_RSHIFT, 0x20},    // HID modifier: Bit 5 - RIGHT SHIFT
-      {VK_RMENU, 0x40},     // HID modifier: Bit 6 - RIGHT ALT
-      {VK_RWIN, 0x80}       // HID modifier: Bit 7 - RIGHT GUI
+#ifdef _WIN32
+      {VK_LCONTROL, 0x01}, {VK_LSHIFT, 0x02},   {VK_LMENU, 0x04},
+      {VK_LWIN, 0x08},     {VK_RCONTROL, 0x10}, {VK_RSHIFT, 0x20},
+      {VK_RMENU, 0x40},    {VK_RWIN, 0x80}
+#elif defined(HAVE_SDL2)
+      {SDL_SCANCODE_LCTRL, 0x01}, {SDL_SCANCODE_LSHIFT, 0x02}, {SDL_SCANCODE_LALT, 0x04},
+      {SDL_SCANCODE_LGUI, 0x08},  {SDL_SCANCODE_RCTRL, 0x10},  {SDL_SCANCODE_RSHIFT, 0x20},
+      {SDL_SCANCODE_RALT, 0x40},  {SDL_SCANCODE_RGUI, 0x80}
+#else
+  // TODO: Android implementation
+#endif
   };
+
   for (const auto& [virtual_key, hid_modifier] : MODIFIERS_MAP)
   {
     if (IsVirtualKeyPressed(virtual_key))
       modifiers |= hid_modifier;
   }
-#else
-  // TODO: Implementation for non-Windows platforms
-#endif
+
   return modifiers;
 }
 
-HIDPressedKeys PollHIDPressedKeys(int keyboard_layout)
+HIDPressedKeys KeyboardContext::PollHIDPressedKeys(int keyboard_layout) const
 {
   HIDPressedKeys pressed_keys{};
   auto it = pressed_keys.begin();
 
 #ifdef _WIN32
-  for (std::size_t virtual_key = 0; virtual_key < KEYBOARD_STATE_SIZE; ++virtual_key)
+  const std::size_t begin = 0;
+  const std::size_t end = KEYBOARD_STATE_SIZE;
+#elif defined(HAVE_SDL2)
+  const std::size_t begin = SDL_SCANCODE_A;
+  const std::size_t end = SDL_SCANCODE_LCTRL;
+#else
+  const std::size_t begin = 0;
+  const std::size_t end = 0;
+#endif
+
+  for (std::size_t virtual_key = begin; virtual_key < end; ++virtual_key)
   {
     if (!IsVirtualKeyPressed(static_cast<int>(virtual_key)))
       continue;
@@ -234,9 +368,6 @@ HIDPressedKeys PollHIDPressedKeys(int keyboard_layout)
     if (++it == pressed_keys.end())
       break;
   }
-#else
-  // TODO: Implementation for non-Windows platforms
-#endif
   return pressed_keys;
 }
 }  // namespace Common

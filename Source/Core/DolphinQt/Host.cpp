@@ -16,6 +16,7 @@
 #endif
 
 #include "Common/Common.h"
+#include "Common/Keyboard.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -61,6 +62,11 @@ Host* Host::GetInstance()
 void Host::SetRenderHandle(void* handle)
 {
   m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+
+  Common::KeyboardContext::NotifyHandlerChanged({.main_handle = m_main_window_handle.load(),
+                                                 .renderer_handle = handle,
+                                                 .is_fullscreen = m_render_fullscreen.load(),
+                                                 .is_rendering_to_main = m_render_to_main.load()});
 
   if (m_render_handle == handle)
     return;
@@ -175,6 +181,11 @@ bool Host::GetRenderFullscreen()
 void Host::SetRenderFullscreen(bool fullscreen)
 {
   m_render_fullscreen = fullscreen;
+
+  Common::KeyboardContext::NotifyHandlerChanged({.main_handle = m_main_window_handle.load(),
+                                                 .renderer_handle = m_render_handle.load(),
+                                                 .is_fullscreen = fullscreen,
+                                                 .is_rendering_to_main = m_render_to_main.load()});
 
   if (g_gfx && g_gfx->IsFullscreen() != fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
   {
