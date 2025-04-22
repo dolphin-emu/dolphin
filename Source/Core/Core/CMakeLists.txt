@@ -449,6 +449,8 @@ add_library(core
   IOS/USB/USB_KBD.h
   IOS/USB/USB_VEN/VEN.cpp
   IOS/USB/USB_VEN/VEN.h
+  IOS/USB/USBScanner.cpp
+  IOS/USB/USBScanner.h
   IOS/USB/USBV0.cpp
   IOS/USB/USBV0.h
   IOS/USB/USBV4.cpp

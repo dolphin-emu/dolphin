@@ -171,6 +171,7 @@
     <ClInclude Include="Common\UPnP.h" />
     <ClInclude Include="Common\VariantUtil.h" />
     <ClInclude Include="Common\Version.h" />
+    <ClInclude Include="Common\WaitableFlag.h" />
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
@@ -413,6 +414,7 @@
     <ClInclude Include="Core\IOS\USB\USB_HID\HIDv5.h" />
     <ClInclude Include="Core\IOS\USB\USB_KBD.h" />
     <ClInclude Include="Core\IOS\USB\USB_VEN\VEN.h" />
+    <ClInclude Include="Core\IOS\USB\USBScanner.h" />
     <ClInclude Include="Core\IOS\USB\USBV0.h" />
     <ClInclude Include="Core\IOS\USB\USBV4.h" />
     <ClInclude Include="Core\IOS\USB\USBV5.h" />
@@ -1077,6 +1079,7 @@
     <ClCompile Include="Core\IOS\USB\USB_HID\HIDv5.cpp" />
     <ClCompile Include="Core\IOS\USB\USB_KBD.cpp" />
     <ClCompile Include="Core\IOS\USB\USB_VEN\VEN.cpp" />
+    <ClCompile Include="Core\IOS\USB\USBScanner.cpp" />
     <ClCompile Include="Core\IOS\USB\USBV0.cpp" />
     <ClCompile Include="Core\IOS\USB\USBV4.cpp" />
     <ClCompile Include="Core\IOS\USB\USBV5.cpp" />

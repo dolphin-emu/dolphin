@@ -27,10 +27,7 @@ USB_HIDv4::USB_HIDv4(EmulationKernel& ios, const std::string& device_name)
 {
 }
 
-USB_HIDv4::~USB_HIDv4()
-{
-  m_scan_thread.Stop();
-}
+USB_HIDv4::~USB_HIDv4() = default;
 
 std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {

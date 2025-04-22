@@ -15,6 +15,11 @@
 
 namespace IOS::HLE::USB
 {
+EmulationKernel& TransferCommand::GetEmulationKernel() const
+{
+  return m_ios;
+}
+
 std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 {
   ASSERT_MSG(IOS_USB, data_address != 0, "Invalid data_address");

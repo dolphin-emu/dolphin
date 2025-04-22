@@ -26,8 +26,7 @@ namespace IOS::HLE::USB
 class LibusbDevice final : public Device
 {
 public:
-  LibusbDevice(EmulationKernel& ios, libusb_device* device,
-               const libusb_device_descriptor& device_descriptor);
+  LibusbDevice(libusb_device* device, const libusb_device_descriptor& device_descriptor);
   ~LibusbDevice();
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
@@ -46,8 +45,6 @@ public:
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
 private:
-  EmulationKernel& m_ios;
-
   std::vector<LibusbUtils::ConfigDescriptor> m_config_descriptors;
   u16 m_vid = 0;
   u16 m_pid = 0;
