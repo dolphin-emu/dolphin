@@ -56,7 +56,7 @@ private:
   // Apply volume to a buffer. The volume is a fixed point integer, usually
   // 1.15 or 4.12 in the DAC UCode.
   template <size_t N, size_t B>
-  void ApplyVolumeInPlace(std::array<s16, N>* buf, u16 vol)
+  static void ApplyVolumeInPlace(std::array<s16, N>* buf, u16 vol)
   {
     for (size_t i = 0; i < N; ++i)
     {
@@ -83,8 +83,8 @@ private:
   // Note: On a real GC, the stepping happens in 32 steps instead. But hey,
   // we can do better here with very low risk. Why not? :)
   template <size_t N>
-  s32 AddBuffersWithVolumeRamp(std::array<s16, N>* dst, const std::array<s16, N>& src, s32 vol,
-                               s32 step)
+  static s32 AddBuffersWithVolumeRamp(std::array<s16, N>* dst, const std::array<s16, N>& src,
+                                      s32 vol, s32 step)
   {
     if (!vol && !step)
       return vol;
@@ -100,7 +100,7 @@ private:
 
   // Does not use std::array because it needs to be able to process partial
   // buffers. Volume is in 1.15 format.
-  void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, u16 vol)
+  static void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, u16 vol)
   {
     while (count--)
     {
@@ -157,7 +157,7 @@ private:
 
   // Raw samples (pre-resampling) that need to be generated to result in 0x50
   // post-resampling input samples.
-  u16 NeededRawSamplesCount(const VPB& vpb);
+  static u16 NeededRawSamplesCount(const VPB& vpb);
 
   // Resamples raw samples to 0x50 input samples, using the resampling ratio
   // and current position information from the VPB.
@@ -185,8 +185,8 @@ private:
   // behavior.
   void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 
-  void ApplyLowPassFilter(MixingBuffer* buf, VPB* vpb);
-  void ApplyBiquadFilter(MixingBuffer* buf, VPB* vpb);
+  static void ApplyLowPassFilter(MixingBuffer* buf, VPB* vpb);
+  static void ApplyBiquadFilter(MixingBuffer* buf, VPB* vpb);
 
   // Applies the reverb effect to Dolby mixed voices based on a set of
   // per-buffer parameters. Is called twice: once before frame rendering and
