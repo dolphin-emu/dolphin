@@ -307,6 +307,8 @@ private:
 
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 namespace ActionReplay
 {
 struct ARCode;
@@ -333,12 +335,14 @@ public:
 
   constexpr bool IsHardcoreModeActive() { return false; }
 
-  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id)
+  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
+                                        u16 revision)
   {
     return true;
   };
 
-  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id)
+  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
+                                     u16 revision)
   {
     return true;
   };
