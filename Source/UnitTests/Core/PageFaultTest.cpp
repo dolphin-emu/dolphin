@@ -92,8 +92,8 @@ TEST(PageFault, PageFault)
   perform_invalid_access(data);
   auto end = std::chrono::high_resolution_clock::now();
 
-  auto difference_in_nanoseconds = [](auto start, auto end) {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+  auto difference_in_nanoseconds = [](auto diff_start, auto diff_end) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(diff_end - diff_start).count();
   };
 
   EMM::UninstallExceptionHandler();
