@@ -175,7 +175,8 @@ static bool ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
 }
 
 static bool HandleExtractPartition(const std::string& output, const std::string& single_file_path,
-                                   const std::string& partition_name, DiscIO::Volume& disc_volume,
+                                   const std::string& partition_name,
+                                   const DiscIO::Volume& disc_volume,
                                    const DiscIO::Partition& partition, bool quiet, bool single)
 {
   std::string file;
