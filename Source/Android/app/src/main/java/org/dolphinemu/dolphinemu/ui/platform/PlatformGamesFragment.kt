@@ -73,9 +73,9 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
             return
 
         if (binding.gridGames.adapter != null) {
-            val platform = requireArguments().getSerializable(ARG_PLATFORM) as Platform
+            val platformTab = requireArguments().getSerializable(ARG_PLATFORM_TAB) as PlatformTab
             (binding.gridGames.adapter as GameAdapter?)!!.swapDataSet(
-                GameFileCacheManager.getGameFilesForPlatform(platform)
+                GameFileCacheManager.getGameFilesForPlatformTab(platformTab)
             )
         }
     }
@@ -108,13 +108,13 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     companion object {
-        private const val ARG_PLATFORM = "platform"
+        private const val ARG_PLATFORM_TAB = "platform_tab"
 
         @JvmStatic
-        fun newInstance(platform: Platform?): PlatformGamesFragment {
+        fun newInstance(platformTab: PlatformTab?): PlatformGamesFragment {
             val fragment = PlatformGamesFragment()
             val args = Bundle()
-            args.putSerializable(ARG_PLATFORM, platform)
+            args.putSerializable(ARG_PLATFORM_TAB, platformTab)
             fragment.arguments = args
             return fragment
         }
