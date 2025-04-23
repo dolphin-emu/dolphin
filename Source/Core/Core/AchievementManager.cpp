@@ -1316,7 +1316,7 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
   if (instance.m_dll_found)
   {
     std::lock_guard lg{instance.m_memory_lock};
-    if (u64(address) + num_bytes >= instance.m_cloned_memory.size())
+    if (u64(address) + num_bytes > instance.m_cloned_memory.size())
     {
       ERROR_LOG_FMT(ACHIEVEMENTS,
                     "Attempt to read past memory size: size {} address {} write length {}",
