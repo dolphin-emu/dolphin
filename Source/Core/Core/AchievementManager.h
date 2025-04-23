@@ -171,8 +171,8 @@ public:
   void SetDevMenuUpdateCallback(std::function<void(void)> callback)
   {
     m_dev_menu_callback = callback;
-  };
-  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); };
+  }
+  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   void DoState(PointerWrap& p);
@@ -339,13 +339,13 @@ public:
                                         u16 revision)
   {
     return true;
-  };
+  }
 
   constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
                                      u16 revision)
   {
     return true;
-  };
+  }
 
   constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
 

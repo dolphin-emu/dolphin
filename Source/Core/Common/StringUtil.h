@@ -73,7 +73,7 @@ void TruncateToCString(std::string* s);
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T>
-  requires(std::is_integral_v<T> || (std::is_enum_v<T> && !detail::IsBooleanEnum<T>()))
+requires(std::is_integral_v<T> || (std::is_enum_v<T> && !detail::IsBooleanEnum<T>()))
 bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
@@ -112,7 +112,7 @@ bool TryParse(const std::string& str, T* output, int base = 0)
 }
 
 template <typename T>
-  requires(detail::IsBooleanEnum<T>())
+requires(detail::IsBooleanEnum<T>())
 bool TryParse(const std::string& str, T* output)
 {
   bool value;
