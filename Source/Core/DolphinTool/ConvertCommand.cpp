@@ -153,7 +153,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   }
 
   // --scrub
-  const bool scrub = static_cast<bool>(options.get("scrub"));
+  const bool scrub = options.get("scrub");
 
   // Open the volume
   std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
