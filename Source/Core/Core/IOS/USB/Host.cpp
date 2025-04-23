@@ -11,6 +11,14 @@
 #include <string>
 #include <utility>
 
+#ifdef __LIBUSB__
+#include <libusb.h>
+#endif
+
+#ifdef HAVE_LIBUDEV
+#include <libudev.h>
+#endif
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -43,6 +51,68 @@ std::optional<IPCReply> USBHost::Open(const OpenRequest& request)
     m_has_initialised = true;
   }
   return IPCReply(IPC_SUCCESS);
+}
+
+std::string USBHost::GetDeviceNameFromVIDPID(u16 vid, u16 pid)
+{
+  std::string device_name;
+#ifdef __LIBUSB__
+  LibusbUtils::Context context;
+
+  if (!context.IsValid())
+    return device_name;
+
+  context.GetDeviceList([&device_name, vid, pid](libusb_device* device) {
+    libusb_device_descriptor desc;
+
+    if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
+      return true;
+
+    if (desc.idVendor == vid && desc.idProduct == pid)
+    {
+      libusb_device_handle* handle;
+      if (libusb_open(device, &handle) == LIBUSB_SUCCESS)
+      {
+        unsigned char buffer[256];
+        if (desc.iProduct &&
+            libusb_get_string_descriptor_ascii(handle, desc.iProduct, buffer, sizeof(buffer)) > 0)
+        {
+          device_name = reinterpret_cast<char*>(buffer);
+          libusb_close(handle);
+        }
+      }
+      return false;
+    }
+    return true;
+  });
+
+  if (!device_name.empty())
+    return device_name;
+#endif
+#ifdef HAVE_LIBUDEV
+  udev* udev = udev_new();
+  if (!udev)
+    return device_name;
+
+  udev_hwdb* hwdb = udev_hwdb_new(udev);
+  if (hwdb)
+  {
+    const std::string modalias = fmt::format("usb:v{:04X}p{:04X}*", vid, pid);
+    udev_list_entry* entries = udev_hwdb_get_properties_list_entry(hwdb, modalias.c_str(), 0);
+
+    if (entries)
+    {
+      udev_list_entry* device_name_entry =
+          udev_list_entry_get_by_name(entries, "ID_MODEL_FROM_DATABASE");
+      if (device_name_entry)
+      {
+        device_name = udev_list_entry_get_value(device_name_entry);
+      }
+    }
+    udev_hwdb_unref(hwdb);
+  }
+#endif
+  return device_name;
 }
 
 void USBHost::DoState(PointerWrap& p)
