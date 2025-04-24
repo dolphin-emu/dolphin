@@ -220,9 +220,8 @@ u16 Accelerator::ReadSample(const s16* coefs)
   }
 
   // Check for loop.
-  // Somehow, YN1 and YN2 must be initialized with their "loop" values,
-  // so yeah, it seems likely that we should raise an exception to let
-  // the DSP program do that, at least if DSP_FORMAT == 0x0A.
+  // YN1 and YN2 need to be initialized with their "loop" values,
+  // which is usually done upon this exception.
   if (m_current_address == (m_end_address + step_size - 1))
   {
     // Set address back to start address.
