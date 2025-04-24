@@ -84,7 +84,7 @@ void GPFifoManager::ResetGatherPipe()
 
 void GPFifoManager::UpdateGatherPipe()
 {
-  auto& system = m_system;
+  const auto& system = m_system;
   auto& memory = system.GetMemory();
   auto& processor_interface = system.GetProcessorInterface();
 
