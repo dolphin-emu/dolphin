@@ -160,7 +160,7 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
     if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
       std::ostringstream ss;
-      for (u8 b : request_copy)
+      for (const u8 b : request_copy)
       {
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
       }
@@ -203,7 +203,7 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
     p.Do(m_channel[i].out.hex);
     p.Do(m_channel[i].has_recent_device_change);
 
-    std::unique_ptr<ISIDevice>& device = m_channel[i].device;
+    const std::unique_ptr<ISIDevice>& device = m_channel[i].device;
     SIDevices type = device->GetDeviceType();
     p.Do(type);
 
@@ -225,7 +225,7 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
 template <int device_number>
 void SerialInterfaceManager::DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  auto& si = system.GetSerialInterface();
+  const auto& si = system.GetSerialInterface();
   si.m_channel[device_number].device->OnEvent(userdata, cyclesLate);
 }
 
@@ -282,7 +282,7 @@ void SerialInterfaceManager::Init()
       }
       else if (movie.IsUsingPad(i))
       {
-        SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
+        const SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
         if (movie.IsUsingBongo(i))
           m_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
@@ -331,7 +331,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
     mmio->Register(address, MMIO::ComplexRead<u32>([i](Core::System& system, u32) {
-                     auto& si = system.GetSerialInterface();
+                     const auto& si = system.GetSerialInterface();
                      u32 val;
                      std::memcpy(&val, &si.m_si_buffer[i], sizeof(val));
                      return Common::swap32(val);
@@ -347,7 +347,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
     mmio->Register(address, MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
-                     auto& si = system.GetSerialInterface();
+                     const auto& si = system.GetSerialInterface();
                      u16 val;
                      std::memcpy(&val, &si.m_si_buffer[i], sizeof(val));
                      return Common::swap16(val);
@@ -487,7 +487,7 @@ void SerialInterfaceManager::RemoveDevice(int device_number)
 
 void SerialInterfaceManager::AddDevice(std::unique_ptr<ISIDevice> device)
 {
-  int device_number = device->GetDeviceNumber();
+  const int device_number = device->GetDeviceNumber();
 
   // Delete the old device
   RemoveDevice(device_number);

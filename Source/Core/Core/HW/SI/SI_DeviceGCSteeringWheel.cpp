@@ -34,7 +34,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_STEERING);
+    const u32 id = Common::swap32(SI_GC_STEERING);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -47,7 +47,7 @@ DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 {
   if (m_mode == 6)
   {
-    GCPadStatus pad_status = GetPadStatus();
+    const GCPadStatus pad_status = GetPadStatus();
 
     hi = (u32)((u8)pad_status.stickX);  // Steering
     hi |= 0x800;                        // Pedal connected flag
