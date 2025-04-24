@@ -6,7 +6,7 @@ include "dsp_base.inc"
 ; and verify things look correct
 loop_read_test:
   ; Set the sample format
-  sr @0xffd1, $AC0.H
+  sr @FORMAT, $AC0.H
 
   ; Test parameters
   lri $AC0.M, #0x0000 ; start
@@ -39,7 +39,7 @@ end_of_read_loop:
 
 loop_write_test:
   ; Set the sample format
-  sr @0xffd1, $AC0.H
+  sr @FORMAT, $AC0.H
 
   ; Test parameters
   lri $AC0.M, #0x0000 ; start
@@ -86,12 +86,12 @@ call loop_write_test
 jmp end_of_test
 
 load_hw_reg_to_regs:
-  lr $AR0, @0xffd1 ; format
+  lr $AR0, @FORMAT
   lr $AR1, @0xffd2 ; unknown
-  lr $AR2, @0xffda ; pred scale
-  lr $AR3, @0xffdb ; yn1
-  lr $IX0, @0xffdc ; yn2
-  lr $IX1, @0xffdf ; unknown accelerator register
+  lr $AR2, @PRED_SCALE
+  lr $AR3, @YN1
+  lr $IX0, @YN2
+  lr $IX1, @ACIN
 
   lri $AC0.H, #0
   lrs $AC0.M, @ACSAH

@@ -12,7 +12,7 @@ include "dsp_base.inc"
 ;   AC1.M/L: end address
 test_accelerator_addrs_ex:
   ; Set the sample format
-  sr @0xffd1, $AC0.H
+  sr @FORMAT, $AC0.H
 
   ; Set the accelerator start and current address.
   srs @ACSAH, $AC0.M
