@@ -14,6 +14,7 @@ enum class MenuTag {
     CONFIG_GAME_CUBE("config_gamecube"),
     CONFIG_SERIALPORT1("config_serialport1"),
     CONFIG_WII("config_wii"),
+    CONFIG_ACHIEVEMENTS("config_achievements"),
     CONFIG_ADVANCED("config_advanced"),
     CONFIG_LOG("config_log"),
     DEBUG("debug"),
