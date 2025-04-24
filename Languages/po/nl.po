@@ -29,7 +29,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-04 21:45+0200\n"
+"POT-Creation-Date: 2025-04-24 23:37+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2024\n"
 "Language-Team: Dutch (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -40,7 +40,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1444
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1452
 msgid ""
 "\n"
 "\n"
@@ -52,7 +52,7 @@ msgstr ""
 "Omdat GameCube-schijfafbeeldingen weinig verificatiedata bevatten kunnen er "
 "problemen zijn die Dolphin niet kan detecteren."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1450
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1458
 msgid ""
 "\n"
 "\n"
@@ -79,7 +79,7 @@ msgstr " (schijf %1)"
 msgid "! Not"
 msgstr "! Niet"
 
-#: Source/Core/Core/Boot/Boot.cpp:263
+#: Source/Core/Core/Boot/Boot.cpp:264
 msgid "\"{0}\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"{0}\" is een ongeldig GCM/ISO-bestand."
 
@@ -116,8 +116,8 @@ msgstr ""
 "%1\n"
 "wil lid worden van uw partij."
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:67
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:74
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:72
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:79
 msgid "%1 %"
 msgstr "%1 %"
 
@@ -142,11 +142,11 @@ msgstr "%1 (%2)"
 msgid "%1 (Copy)"
 msgstr "%1 (Kopie)"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:99
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:100
 msgid "%1 (Disc %2, Revision %3)"
 msgstr "%1 (Schijf %2, Revisie %3)"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:103
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:104
 msgid "%1 (Revision %3)"
 msgstr "%1 (Revisie %3)"
 
@@ -185,11 +185,11 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr "%1 Grafische Configuratie"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:295
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:281
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:309
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:295
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (MEM2)"
 
@@ -244,8 +244,8 @@ msgstr "%1 is %2 aan het spelen"
 msgid "%1 memory ranges"
 msgstr "%1 geheugen reeksen"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:148
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:152
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:164
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:168
 msgid "%1 ms"
 msgstr "%1 ms"
 
@@ -262,11 +262,11 @@ msgstr "%1 sessie gevonden"
 msgid "%1 sessions found"
 msgstr "%1 sessies gevonden"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:191
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:207
 msgid "%1%"
 msgstr "%1%"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:278
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:264
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
@@ -379,7 +379,7 @@ msgstr "&3x"
 msgid "&4x"
 msgstr "&4x"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:665
+#: Source/Core/DolphinQt/MenuBar.cpp:676
 msgid "&About"
 msgstr "&Over"
 
@@ -400,11 +400,11 @@ msgstr "&Nieuwe Code Toevoegen..."
 msgid "&Add..."
 msgstr "&Toevoegen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:553
+#: Source/Core/DolphinQt/MenuBar.cpp:564
 msgid "&Assembler"
 msgstr "&Assembler"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:598
+#: Source/Core/DolphinQt/MenuBar.cpp:609
 msgid "&Audio Settings"
 msgstr "&Geluidsinstellingen"
 
@@ -424,11 +424,11 @@ msgstr ""
 msgid "&Break on Hit"
 msgstr "&Breek bij Hit."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:522
+#: Source/Core/DolphinQt/MenuBar.cpp:533
 msgid "&Breakpoints"
 msgstr "&Breekpunten"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:648
+#: Source/Core/DolphinQt/MenuBar.cpp:659
 msgid "&Bug Tracker"
 msgstr "&Bug-tracker"
 
@@ -436,15 +436,15 @@ msgstr "&Bug-tracker"
 msgid "&Cancel"
 msgstr "&Annuleren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:270
+#: Source/Core/DolphinQt/MenuBar.cpp:275
 msgid "&Cheats Manager"
 msgstr "&Cheats Beheer"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:658
+#: Source/Core/DolphinQt/MenuBar.cpp:669
 msgid "&Check for Updates..."
 msgstr "&Controleer op updates..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1044
+#: Source/Core/DolphinQt/MenuBar.cpp:1056
 msgid "&Clear Symbols"
 msgstr "Symbolen &wissen"
 
@@ -452,7 +452,7 @@ msgstr "Symbolen &wissen"
 msgid "&Clone..."
 msgstr "&Klonen…"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:487
+#: Source/Core/DolphinQt/MenuBar.cpp:498
 msgid "&Code"
 msgstr "&Code"
 
@@ -464,7 +464,7 @@ msgstr ""
 msgid "&Connected"
 msgstr "&Verbonden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:600
+#: Source/Core/DolphinQt/MenuBar.cpp:611
 msgid "&Controller Settings"
 msgstr "&Controllerinstellingen"
 
@@ -504,11 +504,11 @@ msgstr "Code &bewerken…"
 msgid "&Edit..."
 msgstr "&Bewerken…"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:250
+#: Source/Core/DolphinQt/MenuBar.cpp:255
 msgid "&Eject Disc"
 msgstr "Schijf &uitwerpen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:361
+#: Source/Core/DolphinQt/MenuBar.cpp:372
 msgid "&Emulation"
 msgstr "&Emulatie"
 
@@ -533,40 +533,40 @@ msgid "&Export as .gci..."
 msgstr "Als .gci exporteren…"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:512
-#: Source/Core/DolphinQt/MenuBar.cpp:240
+#: Source/Core/DolphinQt/MenuBar.cpp:245
 msgid "&File"
 msgstr "&Bestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:620
+#: Source/Core/DolphinQt/MenuBar.cpp:631
 msgid "&Font..."
 msgstr "&Lettertype..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:367
+#: Source/Core/DolphinQt/MenuBar.cpp:378
 msgid "&Frame Advance"
 msgstr "&Frame Voorwaarts"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:602
+#: Source/Core/DolphinQt/MenuBar.cpp:613
 msgid "&Free Look Settings"
 msgstr "&Vrije-kijkinstellingen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1046
+#: Source/Core/DolphinQt/MenuBar.cpp:1058
 msgid "&Generate Symbols From"
 msgstr "Symbolen &genereren van"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:644
+#: Source/Core/DolphinQt/MenuBar.cpp:655
 msgid "&GitHub Repository"
 msgstr "&GitHub-repository"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:597
+#: Source/Core/DolphinQt/MenuBar.cpp:608
 msgid "&Graphics Settings"
 msgstr "&Grafische instellingen"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:536
-#: Source/Core/DolphinQt/MenuBar.cpp:635
+#: Source/Core/DolphinQt/MenuBar.cpp:646
 msgid "&Help"
 msgstr "&Hulp"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:601
+#: Source/Core/DolphinQt/MenuBar.cpp:612
 msgid "&Hotkey Settings"
 msgstr "&Sneltoetsinstellingen"
 
@@ -586,7 +586,7 @@ msgstr "State &importeren…"
 msgid "&Import..."
 msgstr "&Importeren…"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:276
+#: Source/Core/DolphinQt/MenuBar.cpp:281
 msgid "&Infinity Base"
 msgstr "&Infinity Base"
 
@@ -598,7 +598,7 @@ msgstr "&Voeg BLR in"
 msgid "&Interframe Blending"
 msgstr "&Interframe Menging"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:547
+#: Source/Core/DolphinQt/MenuBar.cpp:558
 msgid "&JIT"
 msgstr "&JIT"
 
@@ -610,11 +610,11 @@ msgstr "&Taal:"
 msgid "&Load Branch Watch"
 msgstr "&Laad Branch Watch"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:384
+#: Source/Core/DolphinQt/MenuBar.cpp:395
 msgid "&Load State"
 msgstr "State &laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1052
+#: Source/Core/DolphinQt/MenuBar.cpp:1064
 msgid "&Load Symbol Map"
 msgstr "Symbol-map &laden"
 
@@ -628,7 +628,7 @@ msgstr "&Laad bestand naar huidig adres"
 msgid "&Lock Watches"
 msgstr "&Vergrendel Watches"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:479
+#: Source/Core/DolphinQt/MenuBar.cpp:490
 msgid "&Lock Widgets In Place"
 msgstr "&Vergrendel Widgets op hun Plaats"
 
@@ -636,7 +636,7 @@ msgstr "&Vergrendel Widgets op hun Plaats"
 msgid "&Log on Hit"
 msgstr "&Log bij Hit."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:531
+#: Source/Core/DolphinQt/MenuBar.cpp:542
 msgid "&Memory"
 msgstr "&Geheugen"
 
@@ -644,7 +644,7 @@ msgstr "&Geheugen"
 msgid "&Misc. Controls"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:795
+#: Source/Core/DolphinQt/MenuBar.cpp:807
 msgid "&Movie"
 msgstr "&Opname"
 
@@ -652,7 +652,7 @@ msgstr "&Opname"
 msgid "&Mute"
 msgstr "&Dempen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:539
+#: Source/Core/DolphinQt/MenuBar.cpp:550
 msgid "&Network"
 msgstr "&Netwerk"
 
@@ -661,11 +661,11 @@ msgid "&No"
 msgstr "&Nee"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:136
-#: Source/Core/DolphinQt/MenuBar.cpp:242 Source/Core/DolphinQt/MenuBar.cpp:244
+#: Source/Core/DolphinQt/MenuBar.cpp:247 Source/Core/DolphinQt/MenuBar.cpp:249
 msgid "&Open..."
 msgstr "&Openen…"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:588
+#: Source/Core/DolphinQt/MenuBar.cpp:599
 msgid "&Options"
 msgstr "&Opties"
 
@@ -673,15 +673,15 @@ msgstr "&Opties"
 msgid "&Origin and Destination"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1072
+#: Source/Core/DolphinQt/MenuBar.cpp:1084
 msgid "&Patch HLE Functions"
 msgstr "&Patch HLE Functies"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:363
+#: Source/Core/DolphinQt/MenuBar.cpp:374
 msgid "&Pause"
 msgstr "&Pauze"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:362
+#: Source/Core/DolphinQt/MenuBar.cpp:373
 msgid "&Play"
 msgstr "&Spelen"
 
@@ -689,7 +689,7 @@ msgstr "&Spelen"
 msgid "&Properties"
 msgstr "&Eigenschappen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:810
+#: Source/Core/DolphinQt/MenuBar.cpp:822
 msgid "&Read-Only Mode"
 msgstr "&Alleen-lezen-modus"
 
@@ -697,7 +697,7 @@ msgstr "&Alleen-lezen-modus"
 msgid "&Refresh List"
 msgstr "Lijst &verversen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:495
+#: Source/Core/DolphinQt/MenuBar.cpp:506
 msgid "&Registers"
 msgstr "&Registers"
 
@@ -715,11 +715,11 @@ msgid "&Rename Symbol"
 msgstr "&Hernoem Symbool"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:410
-#: Source/Core/DolphinQt/MenuBar.cpp:365
+#: Source/Core/DolphinQt/MenuBar.cpp:376
 msgid "&Reset"
 msgstr "&Resetten"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:267
+#: Source/Core/DolphinQt/MenuBar.cpp:272
 msgid "&Resource Pack Manager"
 msgstr "&Resource Pack Beheer"
 
@@ -727,7 +727,7 @@ msgstr "&Resource Pack Beheer"
 msgid "&Save Branch Watch"
 msgstr "&Sla Branch Watch op"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1053
+#: Source/Core/DolphinQt/MenuBar.cpp:1065
 msgid "&Save Symbol Map"
 msgstr "&Symbol-map opslaan"
 
@@ -735,7 +735,7 @@ msgstr "&Symbol-map opslaan"
 msgid "&Scan e-Reader Card(s)..."
 msgstr "&Scan e-Reader Kaart(en)..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:275
+#: Source/Core/DolphinQt/MenuBar.cpp:280
 msgid "&Skylanders Portal"
 msgstr "&Skylanders Portal"
 
@@ -743,7 +743,7 @@ msgstr "&Skylanders Portal"
 msgid "&Speed Limit:"
 msgstr "&Snelheidslimiet:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:364
+#: Source/Core/DolphinQt/MenuBar.cpp:375
 msgid "&Stop"
 msgstr "&Stoppen"
 
@@ -751,7 +751,7 @@ msgstr "&Stoppen"
 msgid "&Theme:"
 msgstr "&Thema:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:504
+#: Source/Core/DolphinQt/MenuBar.cpp:515
 msgid "&Threads"
 msgstr "&Threads"
 
@@ -763,7 +763,7 @@ msgstr "&Gereedschap"
 msgid "&Toolbar Visibility"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:265
+#: Source/Core/DolphinQt/MenuBar.cpp:270
 msgid "&Tools"
 msgstr "&Gereedschap"
 
@@ -778,17 +778,17 @@ msgid "&Unlock Watches"
 msgstr "Watches &ontgrendelen"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:257
-#: Source/Core/DolphinQt/MenuBar.cpp:453
+#: Source/Core/DolphinQt/MenuBar.cpp:464
 msgid "&View"
 msgstr "&Weergave"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/MenuBar.cpp:514
+#: Source/Core/DolphinQt/MenuBar.cpp:525
 msgid "&Watch"
 msgstr "&Watch"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:637
+#: Source/Core/DolphinQt/MenuBar.cpp:648
 msgid "&Website"
 msgstr "&Website"
 
@@ -800,11 +800,11 @@ msgstr "&Wiki"
 msgid "&Yes"
 msgstr "&Ja"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1367
+#: Source/Core/DolphinQt/MenuBar.cpp:1411
 msgid "'%1' not found, no symbol names generated"
 msgstr "'%1' niet gevonden, geen symboolnamen gegenereerd"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1592
+#: Source/Core/DolphinQt/MenuBar.cpp:1636
 msgid "'%1' not found, scanning for common functions instead"
 msgstr "'%1' niet gevonden, in plaats daarvan zoeken naar algemene functies"
 
@@ -1087,7 +1087,7 @@ msgstr "8x Anisotropisch"
 msgid "< Less-than"
 msgstr "< Minder dan"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:132
+#: Source/Core/Core/HW/EXI/EXI_Device.h:130
 msgid "<Nothing>"
 msgstr "<Niks>"
 
@@ -1146,8 +1146,8 @@ msgstr "> Meer dan"
 msgid "? Conditional"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1559
-#: Source/Core/DolphinQt/MainWindow.cpp:1626
+#: Source/Core/DolphinQt/MainWindow.cpp:1584
+#: Source/Core/DolphinQt/MainWindow.cpp:1651
 msgid "A NetPlay Session is already in progress!"
 msgstr "Er is al een NetPlay sesie bezig!"
 
@@ -1184,7 +1184,7 @@ msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 "Een save state kan niet worden gebruikt zonder een spel te specificeren. "
 
-#: Source/Core/DolphinQt/MainWindow.cpp:965
+#: Source/Core/DolphinQt/MainWindow.cpp:977
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1192,7 +1192,7 @@ msgstr ""
 "Er wordt al afgesloten. Niet-opgeslagen data kan verloren gaan wanneer u de "
 "huidige emulatie stopzet voordat het afsluiten voltooid wordt. Stop forceren?"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:161
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:212
 msgid ""
 "A supported Bluetooth device could not be found.\n"
 "You must manually connect your Wii Remote."
@@ -1200,7 +1200,7 @@ msgstr ""
 "Er is geen ondersteunde Bluetooth apparaat gevonden.\n"
 "Koppel je Wii-afstandsbediening handmatig aan het systeem."
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:234
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:306
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr ""
 "Een synchronisatie kan alleen worden geactiveerd wanneer er een Wii spel "
@@ -1211,7 +1211,7 @@ msgid "A&uto Save"
 msgstr "A&utomatisch Opslaan"
 
 #. i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
-#: Source/Core/Core/HW/EXI/EXI_Device.h:98
+#: Source/Core/Core/HW/EXI/EXI_Device.h:96
 msgid "AD16"
 msgstr "AD16"
 
@@ -1291,7 +1291,7 @@ msgid "Achievement Settings"
 msgstr "Prestatie-instellingen"
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:29
-#: Source/Core/DolphinQt/MenuBar.cpp:287
+#: Source/Core/DolphinQt/MenuBar.cpp:293
 msgid "Achievements"
 msgstr "Prestaties"
 
@@ -1478,7 +1478,7 @@ msgstr "Toevoegen..."
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:185
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
-#: Source/Core/DolphinQt/MenuBar.cpp:1047
+#: Source/Core/DolphinQt/MenuBar.cpp:1059
 msgid "Address"
 msgstr "Adres"
 
@@ -1508,7 +1508,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:289
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:305
 msgid ""
 "Adjusts audio output volume.<br><br><dolphin_emphasis>If unsure, leave this "
 "at 100%.</dolphin_emphasis>"
@@ -1533,49 +1533,33 @@ msgstr ""
 "weergave en het ontbreken van tekst.<br><br><dolphin_emphasis>In geval van "
 "twijfel de meest rechter waarde gebruiken.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:152
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid ""
-"Adjusts the amount of RAM in the emulated console.\n"
-"\n"
-"WARNING: Enabling this will completely break many games. Only a small number "
-"of games can benefit from this."
+"Adjusts the amount of RAM in the emulated console.<br><br><b>WARNING</b>: "
+"Enabling this will completely break many games.<br>Only a small number of "
+"games can benefit from this.<br><br><dolphin_emphasis>If unsure, leave this "
+"unchecked.</dolphin_emphasis>"
 msgstr ""
-"Past de hoeveelheid RAM in de geëmuleerde console aan.\n"
-"\n"
-"WAARSCHUWING: Dit inschakelen zal vele spellen kapot maken. Slechts een "
-"klein aantal spellen kan hiervan profiteren."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:111
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:113
 msgid ""
-"Adjusts the emulated CPU's clock rate.\n"
-"\n"
-"Higher values may make variable-framerate games run at a higher framerate, "
-"at the expense of performance. Lower values may activate a game's internal "
-"frameskip, potentially improving performance.\n"
-"\n"
-"WARNING: Changing this from the default (100%) can and will break games and "
-"cause glitches. Do so at your own risk. Please do not report bugs that occur "
-"with a non-default clock."
+"Adjusts the emulated CPU's clock rate.<br><br>Higher values may make "
+"variable-framerate games run at a higher framerate, at the expense of "
+"performance. Lower values may activate a game's internal frameskip, "
+"potentially improving performance.<br><br><b>WARNING</b>: Changing this from "
+"the default (100%) can and will break games and cause glitches. Do so at "
+"your own risk. Please do not report bugs that occur with a non-default clock."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Past de kloksnelheid van de geëmuleerde CPU aan.\n"
-"\n"
-"Hogere waarden kunnen ervoor zorgen dat variabele framerate spellen op een "
-"hogere framerate draaien, ten koste van prestaties. Lagere waarden kunnen de "
-"interne frameskip van een spel activeren, waardoor prestaties mogelijk "
-"verbeteren.\n"
-"\n"
-"WAARSCHUWING: Het veranderen van de standaard (100%) kan en zal spellen "
-"breken en glitches veroorzaken. Doe dit op eigen risico. Rapporteer "
-"alstublieft geen bugs die plaatsvinden als u dit aanpast."
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:286
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:302
 msgid ""
 "Adjusts the quality setting of the Dolby Pro Logic II decoder. Higher "
 "presets increases audio latency.<br><br><dolphin_emphasis>If unsure, select "
 "High.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:104
+#: Source/Core/Core/HW/EXI/EXI_Device.h:102
 msgid "Advance Game Port"
 msgstr "Advance Game Port"
 
@@ -1646,7 +1630,7 @@ msgstr "Alles Double"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:440
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:591
-#: Source/Core/DolphinQt/MainWindow.cpp:793
+#: Source/Core/DolphinQt/MainWindow.cpp:800
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:139
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:345
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1663,7 +1647,7 @@ msgstr "Alle Bestanden (*)"
 msgid "All Float"
 msgstr "Alle Float"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:792
+#: Source/Core/DolphinQt/MainWindow.cpp:799
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "Alle GC/Wii bestanden"
@@ -1672,8 +1656,8 @@ msgstr "Alle GC/Wii bestanden"
 msgid "All Hexadecimal"
 msgstr "Alle Hexadecimaal"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1422
-#: Source/Core/DolphinQt/MainWindow.cpp:1434
+#: Source/Core/DolphinQt/MainWindow.cpp:1447
+#: Source/Core/DolphinQt/MainWindow.cpp:1459
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Alle Save States (*.sav *.s##);; Alle Bestanden (*)"
 
@@ -1689,11 +1673,11 @@ msgstr "Alles Unsigned Integer"
 msgid "All files (*)"
 msgstr "Alle Bestanden (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1216
+#: Source/Core/Core/NetPlayServer.cpp:1217
 msgid "All players' codes synchronized."
 msgstr "Codes van alle spelers gesynchroniseerd."
 
-#: Source/Core/Core/NetPlayServer.cpp:1158
+#: Source/Core/Core/NetPlayServer.cpp:1159
 msgid "All players' saves synchronized."
 msgstr "Saves van alle spelers gesynchroniseerd."
 
@@ -1757,7 +1741,7 @@ msgid "Angle"
 msgstr "Hoek"
 
 #. i18n: Refers to the dead-zone setting of gyroscope input.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:41
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:40
 msgid "Angular velocity to ignore and remap."
 msgstr "Hoeksnelheid om te negeren en te remappen."
 
@@ -1773,15 +1757,15 @@ msgstr "Anti-Aliasing:"
 msgid "Any Region"
 msgstr "Elke Regio"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1737
+#: Source/Core/DolphinQt/MenuBar.cpp:1781
 msgid "Append Signature To"
 msgstr "Voeg Signatuur toe aan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1065
+#: Source/Core/DolphinQt/MenuBar.cpp:1077
 msgid "Append to &Existing Signature File..."
 msgstr "Toevoegen aan &Bestaand Signatuurbestand..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1069
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
 msgid "Appl&y Signature File..."
 msgstr "P&as Signatuur Toe..."
 
@@ -1793,7 +1777,7 @@ msgstr ""
 "Past een post-processing effect toe na het verwerken van een frame. <br><br /"
 "><dolphin_emphasis>In geval van twijfel selecteer (uit).</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:128
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:133
 msgid "Apploader Date:"
 msgstr "Apploader Datum:"
 
@@ -1801,7 +1785,7 @@ msgstr "Apploader Datum:"
 msgid "Apply"
 msgstr "Toepassen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1760
+#: Source/Core/DolphinQt/MenuBar.cpp:1804
 msgid "Apply Signature File"
 msgstr "Pas Signatuurbestand toe"
 
@@ -1821,7 +1805,7 @@ msgstr "Weet u zeker dat u dit bestand wilt verwijderen?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "Weet u zeker dat u dit pakket wilt verwijderen?"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:272
 msgid "Are you sure you want to log out of RetroAchievements?"
 msgstr ""
 
@@ -1829,7 +1813,7 @@ msgstr ""
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Weet u zeker dat u NetPlay wilt afsluiten?"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:286
 msgid "Are you sure you want to turn hardcore mode off?"
 msgstr ""
 
@@ -1893,19 +1877,19 @@ msgstr "Koppel MotionPlus"
 msgid "Audio"
 msgstr "Audio"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:301
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:317
 msgid "Audio Backend"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:82
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:87
 msgid "Audio Backend:"
 msgstr "Audio-backend:"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:161
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:177
 msgid "Audio Buffer Size:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:129
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:145
 msgid "Audio Playback Settings"
 msgstr ""
 
@@ -1962,9 +1946,13 @@ msgstr "Venstergrootte automatisch aanpassen"
 msgid "Auto-Hide"
 msgstr "Automatisch Verbergen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1377
+#: Source/Core/DolphinQt/MenuBar.cpp:1421
 msgid "Auto-detect RSO modules?"
 msgstr "Auto-detect RSO module?"
+
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:69
+msgid "Automatic"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:239
 msgid "Automatically Sync with Folder"
@@ -2042,7 +2030,7 @@ msgstr "Backend"
 msgid "Backend Multithreading"
 msgstr "Backend Multi-threading"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:79
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:84
 msgid "Backend Settings"
 msgstr "Backend-instellingen"
 
@@ -2057,7 +2045,7 @@ msgstr "Achtergrondinput"
 
 #: Source/Core/Core/FreeLookManager.cpp:96
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:21
 msgid "Backward"
 msgstr "Achteruit"
@@ -2089,15 +2077,15 @@ msgstr "Verkeerde waarde opgegeven."
 #: Source/Core/DolphinQt/GameList/GameList.cpp:998
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:241
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:152
-#: Source/Core/DolphinQt/MenuBar.cpp:692
+#: Source/Core/DolphinQt/MenuBar.cpp:703
 msgid "Banner"
 msgstr "Banner"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:147
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:152
 msgid "Banner Details"
 msgstr "Banner Details"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:171
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:176
 msgid "Banner:"
 msgstr "Banner:"
 
@@ -2179,7 +2167,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1008
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:255
-#: Source/Core/DolphinQt/MenuBar.cpp:702
+#: Source/Core/DolphinQt/MenuBar.cpp:713
 msgid "Block Size"
 msgstr "Blokgrootte"
 
@@ -2209,6 +2197,10 @@ msgstr "Blauw Links"
 msgid "Blue Right"
 msgstr "Blauw Rechts"
 
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:152
+msgid "Bluetooth adapter"
+msgstr ""
+
 #: Source/Core/Core/IOS/USB/Bluetooth/BTStub.cpp:14
 msgid ""
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. "
@@ -2217,15 +2209,15 @@ msgstr ""
 "Bluetooth passthrough modus staat aan, maar Dolphin is gecompileerd zonder "
 "libusb. Passthrough  mode kan niet gebruikt worden."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:607
+#: Source/Core/DolphinQt/MenuBar.cpp:618
 msgid "Boot to Pause"
 msgstr "Opstarten naar Pauze"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1786
+#: Source/Core/DolphinQt/MainWindow.cpp:1811
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND backup bestanden (*.bin);;Alle bestanden (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1812
+#: Source/Core/DolphinQt/MainWindow.cpp:1837
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii sleutelbestand (*.bin);;Alle Bestanden (*)"
 
@@ -2380,19 +2372,19 @@ msgstr "Breekpunt tegengekomen! Uitstappen afgebroken."
 msgid "Breakpoints"
 msgstr "Breekpunten"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:107
+#: Source/Core/Core/HW/EXI/EXI_Device.h:105
 msgid "Broadband Adapter (HLE)"
 msgstr "Breedbandadapter (HLE)"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:100
+#: Source/Core/Core/HW/EXI/EXI_Device.h:98
 msgid "Broadband Adapter (TAP)"
 msgstr "Breedbandadapter (TAP)"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:105
+#: Source/Core/Core/HW/EXI/EXI_Device.h:103
 msgid "Broadband Adapter (XLink Kai)"
 msgstr "Breedbandadapter (XLink Kai)"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:106
+#: Source/Core/Core/HW/EXI/EXI_Device.h:104
 msgid "Broadband Adapter (tapserver)"
 msgstr "Breedbandadapter (tapserver)"
 
@@ -2410,7 +2402,7 @@ msgstr "Breedbandadapterfout"
 msgid "Broadband Adapter MAC Address"
 msgstr "Breedbandadapter-MAC-adres"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:282
+#: Source/Core/DolphinQt/MenuBar.cpp:287
 msgid "Browse &NetPlay Sessions...."
 msgstr "Blader &NetPlay Sessies...."
 
@@ -2471,7 +2463,7 @@ msgstr "Door: %1"
 msgid "C Stick"
 msgstr "C Stick"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1064
+#: Source/Core/DolphinQt/MenuBar.cpp:1076
 msgid "C&reate Signature File..."
 msgstr "M&aak Signatuurbestand aan..."
 
@@ -2531,7 +2523,7 @@ msgstr "Kalibreren"
 msgid "Calibration"
 msgstr "Kalibratie"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:45
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:44
 msgid "Calibration Period"
 msgstr "Kalibratieperiode"
 
@@ -2577,14 +2569,14 @@ msgstr "Kan de schurken voor deze trofee niet aanpassen"
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Kan Wii-afstandsbediening niet vinden via verbindingshendel {0:02x}"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1552
-#: Source/Core/DolphinQt/MainWindow.cpp:1619
+#: Source/Core/DolphinQt/MainWindow.cpp:1577
+#: Source/Core/DolphinQt/MainWindow.cpp:1644
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Kan geen NetPlay-sessie starten als spel nog draait!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:159
-#: Source/Core/DolphinQt/MenuBar.cpp:1410
+#: Source/Core/DolphinQt/MenuBar.cpp:1454
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:62
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:49
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:280
@@ -2623,7 +2615,7 @@ msgstr ""
 msgid "Cannot compare against last value on first search."
 msgstr "Kan niet vergelijken met de laatste waarde bij de eerste zoekactie."
 
-#: Source/Core/Core/Boot/Boot.cpp:646
+#: Source/Core/Core/Boot/Boot.cpp:650
 msgid "Cannot find the GC IPL."
 msgstr "Kan de GC IPL niet vinden."
 
@@ -2643,7 +2635,7 @@ msgstr "Kan GCI map niet op een leeg pad zetten."
 msgid "Cannot set memory card to an empty path."
 msgstr "Kan geheugenkaart niet op een leeg pad zetten."
 
-#: Source/Core/Core/Boot/Boot.cpp:644
+#: Source/Core/Core/Boot/Boot.cpp:648
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Kan het spel niet starten, omdat de GC IPL niet kon worden gevonden."
 
@@ -2675,7 +2667,7 @@ msgstr "Centreer en Kalibreer"
 msgid "Change &Disc"
 msgstr "&Schijf wisselen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:249
+#: Source/Core/DolphinQt/MenuBar.cpp:254
 msgid "Change &Disc..."
 msgstr "&Schijf wisselen…"
 
@@ -2760,7 +2752,7 @@ msgstr "Cheat Zoeken"
 msgid "Cheats Manager"
 msgstr "Cheats Beheer"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:311
+#: Source/Core/DolphinQt/MenuBar.cpp:322
 msgid "Check NAND..."
 msgstr "Controleer NAND..."
 
@@ -2800,11 +2792,11 @@ msgstr "Kies een Map om naar Uit te Pakken"
 msgid "Choose GCI Base Folder"
 msgstr "Kies GCI Basismap"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1780
+#: Source/Core/DolphinQt/MenuBar.cpp:1824
 msgid "Choose Priority Input File"
 msgstr "Kies Prioriteit Inputbestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1785
+#: Source/Core/DolphinQt/MenuBar.cpp:1829
 msgid "Choose Secondary Input File"
 msgstr "Kies Secundair Inputbestand"
 
@@ -2844,7 +2836,7 @@ msgid "Clear Branch Watch"
 msgstr "Leeg Branch Watch"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:595
-#: Source/Core/DolphinQt/MenuBar.cpp:924
+#: Source/Core/DolphinQt/MenuBar.cpp:936
 msgid "Clear Cache"
 msgstr "Leeg Cache"
 
@@ -2865,7 +2857,7 @@ msgstr "Clone en &Wijzig Code..."
 msgid "Close"
 msgstr "Sluiten"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:590 Source/Core/DolphinQt/MenuBar.cpp:593
+#: Source/Core/DolphinQt/MenuBar.cpp:601 Source/Core/DolphinQt/MenuBar.cpp:604
 msgid "Co&nfiguration"
 msgstr "Co&nfiguratie"
 
@@ -2918,7 +2910,7 @@ msgstr "Kleurruimte"
 msgid "Column &Visibility"
 msgstr "Kolom &Zichtbaarheid"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1067
+#: Source/Core/DolphinQt/MenuBar.cpp:1079
 msgid "Combine &Two Signature Files..."
 msgstr "Combineer &Twee Signatuurbestanden..."
 
@@ -2931,7 +2923,7 @@ msgstr "Algemeen"
 msgid "Comparand:"
 msgstr "Vergelijking:"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1418
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1426
 msgid ""
 "Compared to the Wii disc release of the game, problems of low severity were "
 "found. Despite this, it's possible that this is a good dump compared to the "
@@ -2942,7 +2934,7 @@ msgstr ""
 "vergeleken met de Wii U eShop release van het spel. Dolphin kan dit niet "
 "verifiëren."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1382
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1390
 msgid ""
 "Compared to the Wii disc release of the game, this is a bad dump. Despite "
 "this, it's possible that this is a good dump compared to the Wii U eShop "
@@ -2962,7 +2954,7 @@ msgstr "Shaders Compileren"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1009
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:257
-#: Source/Core/DolphinQt/MenuBar.cpp:703
+#: Source/Core/DolphinQt/MenuBar.cpp:714
 msgid "Compression"
 msgstr "Compressie"
 
@@ -3069,7 +3061,7 @@ msgstr "Config"
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:87
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:153
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:157
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:141
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:192
 msgid "Configure"
 msgstr "Configureren"
 
@@ -3099,17 +3091,17 @@ msgstr "Configureer Output"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:406
 #: Source/Core/DolphinQt/GameList/GameList.cpp:650
 #: Source/Core/DolphinQt/GameList/GameList.cpp:831
-#: Source/Core/DolphinQt/MainWindow.cpp:964
-#: Source/Core/DolphinQt/MainWindow.cpp:1752
+#: Source/Core/DolphinQt/MainWindow.cpp:992
+#: Source/Core/DolphinQt/MainWindow.cpp:1777
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "Bevestigen"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:291
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:286
 msgid "Confirm Hardcore Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:277
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:272
 msgid "Confirm Logout"
 msgstr ""
 
@@ -3121,7 +3113,7 @@ msgstr "Backend-wijziging bevestigen"
 msgid "Confirm on Stop"
 msgstr "Bevestiging bij Stop"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1320
+#: Source/Core/DolphinQt/MenuBar.cpp:1364
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:501
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:240
 msgid "Confirmation"
@@ -3132,7 +3124,7 @@ msgstr "Bevestiging"
 msgid "Connect"
 msgstr "Verbind"
 
-#: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/DolphinQt/MenuBar.cpp:355
+#: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/DolphinQt/MenuBar.cpp:366
 msgid "Connect Balance Board"
 msgstr "Verbind Balance Board"
 
@@ -3140,7 +3132,7 @@ msgstr "Verbind Balance Board"
 msgid "Connect USB Keyboard"
 msgstr "USB-toetsenbord verbinden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:347
+#: Source/Core/DolphinQt/MenuBar.cpp:358
 msgid "Connect Wii Remote %1"
 msgstr "Verbind Wii-afstandsbediening %1"
 
@@ -3160,11 +3152,11 @@ msgstr "Verbind Wii-afstandsbediening 3"
 msgid "Connect Wii Remote 4"
 msgstr "Verbind Wii-afstandsbediening 4"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:340
+#: Source/Core/DolphinQt/MenuBar.cpp:351
 msgid "Connect Wii Remotes"
 msgstr "Verbind Wii-afstandsbedieningen"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:116
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:163
 msgid "Connect Wii Remotes for Emulated Controllers"
 msgstr "Verbind Wii-afstandbediening voor Geëmuleerde Controllers"
 
@@ -3184,11 +3176,11 @@ msgstr "Verbinden"
 msgid "Connection Type:"
 msgstr "Verbindingstype:"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1224
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1225
 msgid "Content {0:08x} is corrupt."
 msgstr "Inhoud {0:08x} is beschadigd."
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:113
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:160
 msgid "Continuous Scanning"
 msgstr "Continu Scannen"
 
@@ -3258,7 +3250,7 @@ msgstr ""
 "virtuele objecten op de voorgrond van een scherm moeten worden getoond."
 "<br><br>Een hogere waarde zorgt voor een sterker 'uit het scherm' effect."
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:140
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:156
 msgid ""
 "Controls the number of audio samples buffered. Lower values reduce latency "
 "but may cause more crackling or stuttering.<br><br><dolphin_emphasis>If "
@@ -3489,7 +3481,7 @@ msgstr ""
 "Kon geen updateinformatie van Nintendo downloaden. Controleer uw "
 "internetverbinding en probeer het opnieuw."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:170
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:165
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -3499,7 +3491,7 @@ msgstr ""
 "\n"
 "De geëmuleerde console stopt nu."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:176
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:171
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "The following error occurred when Dolphin tried to use an adapter:\n"
@@ -3545,7 +3537,7 @@ msgstr ""
 "Kon titel {0:016x} niet starten omdat het in de NAND mist.\n"
 "De geëmuleerde software zal nu waarschijnlijk vast lopen."
 
-#: Source/Core/Core/Boot/Boot.cpp:285 Source/Core/Core/Boot/Boot.cpp:302
+#: Source/Core/Core/Boot/Boot.cpp:286 Source/Core/Core/Boot/Boot.cpp:303
 msgid "Could not recognize file {0}"
 msgstr "Kon het bestand {0} niet herkennen"
 
@@ -3596,7 +3588,7 @@ msgstr ""
 msgid "Couldn't read file."
 msgstr "Kon bestand niet lezen."
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:124
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:129
 msgid "Country:"
 msgstr "Land:"
 
@@ -3667,7 +3659,7 @@ msgstr ""
 "Kan de prestaties beïnvloeden.<br><br><dolphin_emphasis>In geval van twijfel "
 "leeg laten.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:322
+#: Source/Core/DolphinQt/MenuBar.cpp:333
 msgid "Current Region"
 msgstr "Huidige Regio"
 
@@ -3711,7 +3703,7 @@ msgstr "Aangepaste Beeldverhouding Breedte"
 msgid "Custom Aspect Ratio:"
 msgstr "Aangepaste Beeldverhouding:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:159
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:160
 msgid "Custom RTC Options"
 msgstr "Aangepaste RTC Opties"
 
@@ -3778,11 +3770,11 @@ msgstr "DJ Draaitafel"
 msgid "DK Bongos"
 msgstr "DK Bongos"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:298
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:314
 msgid "DSP Emulation Engine"
 msgstr "DSP Emulatie Engine"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:52
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:57
 msgid "DSP Emulation Engine:"
 msgstr ""
 
@@ -3790,7 +3782,7 @@ msgstr ""
 msgid "DSP HLE (fast)"
 msgstr "DSP HLE (snel)"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:48
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:53
 msgid "DSP Options"
 msgstr ""
 
@@ -3857,7 +3849,7 @@ msgid "Datel MaxDrive/Pro files"
 msgstr "Datel MaxDrive/Pro bestanden"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:41
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:37
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:36
 msgid "Dead Zone"
 msgstr "Dead Zone"
 
@@ -3875,11 +3867,11 @@ msgstr "Debugging"
 msgid "Decimal"
 msgstr "Decimaal"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:309
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:325
 msgid "Decoding Quality"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:86
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:102
 msgid "Decoding Quality:"
 msgstr "Decoderingskwaliteit:"
 
@@ -3926,7 +3918,7 @@ msgstr "Standaard"
 msgid "Default Config (Read Only)"
 msgstr "Standaardconfiguratie (Alleen-lezen)"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:100
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:116
 msgid "Default Device"
 msgstr "Standaardapparaat"
 
@@ -4002,13 +3994,13 @@ msgstr "Diepte:"
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1000
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:243
-#: Source/Core/DolphinQt/MenuBar.cpp:694
+#: Source/Core/DolphinQt/MenuBar.cpp:705
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:92
 msgid "Description"
 msgstr "Beschrijving"
 
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:120
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:159
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:164
 msgid "Description:"
 msgstr "Beschrijving:"
 
@@ -4051,7 +4043,7 @@ msgstr "Ontkoppeld"
 msgid "Detect Input"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1411
+#: Source/Core/DolphinQt/MenuBar.cpp:1455
 msgid "Detecting RSO Modules"
 msgstr "RSO Module Detecteren"
 
@@ -4117,11 +4109,11 @@ msgstr "Schakel EFB VRAM Kopieën uit"
 msgid "Disable Emulation Speed Limit"
 msgstr "Schakel Emulatie Snelheidslimit uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:904
+#: Source/Core/DolphinQt/MenuBar.cpp:916
 msgid "Disable Fastmem"
 msgstr "Schakel Fastmem uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:910
+#: Source/Core/DolphinQt/MenuBar.cpp:922
 msgid "Disable Fastmem Arena"
 msgstr "Schakel Fastmem Arena uit"
 
@@ -4129,11 +4121,11 @@ msgstr "Schakel Fastmem Arena uit"
 msgid "Disable Fog"
 msgstr "Schakel Mist uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:896
+#: Source/Core/DolphinQt/MenuBar.cpp:908
 msgid "Disable JIT Cache"
 msgstr "JIT-cache uitschakelen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:916
+#: Source/Core/DolphinQt/MenuBar.cpp:928
 msgid "Disable Large Entry Points Map"
 msgstr "Schakel Large Entry Points Map uit"
 
@@ -4191,7 +4183,7 @@ msgid "Discard"
 msgstr "Verwerpen"
 
 #. i18n: Settings that affect how achievements are displayed while playing.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:141
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:137
 msgid "Display Settings"
 msgstr "Weergave-instellingen"
 
@@ -4232,11 +4224,11 @@ msgstr ""
 "Machtigt u Dolphin om informatie te rapporteren aan de ontwikkelaars van "
 "Dolphin?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1753
+#: Source/Core/DolphinQt/MainWindow.cpp:1778
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Wilt u \"%1\" toevoegen aan de lijst met Spelpaden?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1321
+#: Source/Core/DolphinQt/MenuBar.cpp:1365
 msgid "Do you want to clear the list of symbol names?"
 msgstr "Wilt u de lijst met symboolnamen legen?"
 
@@ -4246,16 +4238,22 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr "Wilt u de %n geselecteerde save bestand(en) verwijderen?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:968
+#: Source/Core/DolphinQt/MainWindow.cpp:990
 msgid "Do you want to stop the current emulation?"
 msgstr "Wilt u de emulatie stoppen?"
+
+#: Source/Core/DolphinQt/MainWindow.cpp:985
+msgid ""
+"Do you want to stop the current emulation? Unsaved achievement modifications "
+"detected."
+msgstr ""
 
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:86
 msgid "Do you want to try to repair the NAND?"
 msgstr "Wilt u proberen de NAND te repareren?"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:85
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:306
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:101
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:322
 msgid "Dolby Pro Logic II Decoder"
 msgstr "Dolby Pro Logic II Decoder"
 
@@ -4268,22 +4266,22 @@ msgstr "Dolphin FIFO Log (*.dff)"
 msgid "Dolphin Game Mod Preset"
 msgstr "Dolphin Spel Modificatie Voorinstelling "
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1622
-#: Source/Core/DolphinQt/MenuBar.cpp:1639
-#: Source/Core/DolphinQt/MenuBar.cpp:1658
+#: Source/Core/DolphinQt/MenuBar.cpp:1666
+#: Source/Core/DolphinQt/MenuBar.cpp:1683
+#: Source/Core/DolphinQt/MenuBar.cpp:1702
 msgid "Dolphin Map File (*.map)"
 msgstr "Dolphin Mapbestand (*.map)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:79
+#: Source/Core/DolphinQt/MenuBar.cpp:84
 msgid "Dolphin Signature CSV File"
 msgstr "Dolphin CSV Signatuurbestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:79
+#: Source/Core/DolphinQt/MenuBar.cpp:84
 msgid "Dolphin Signature File"
 msgstr "Dolphin Signatuurbestand"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1834
-#: Source/Core/DolphinQt/MainWindow.cpp:1912
+#: Source/Core/DolphinQt/MainWindow.cpp:1859
+#: Source/Core/DolphinQt/MainWindow.cpp:1937
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Opname (*.dtm)"
 
@@ -4327,11 +4325,15 @@ msgstr "Dolphin kon de gevraagde actie niet voltooien."
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "Dolphin is een vrije en open-source GameCub- en Wii-emulator."
 
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1380
+msgid "Dolphin is currently unable to verify Triforce games."
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1004
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin is te oud voor de traversal server"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1371
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1372
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
@@ -4339,11 +4341,11 @@ msgstr ""
 "Dolphin kan TGC bestanden niet verifiëren, omdat het geen dumps zijn van "
 "werkelijke schijven."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1364
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1365
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "Dolphin kan ongelicenseerde schijven niet verifiëren."
 
-#: Source/Core/Core/HW/EXI/EXI_Device.cpp:141
+#: Source/Core/Core/HW/EXI/EXI_Device.cpp:142
 msgid ""
 "Dolphin was built with Cubeb disabled. The Microphone device cannot be used."
 msgstr ""
@@ -4365,7 +4367,7 @@ msgstr "Niet Updaten"
 msgid "Don't show this again"
 msgstr "Laat dit niet meer tonen"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:374
+#: Source/Core/DiscIO/CompressedBlob.cpp:372
 msgid "Done compressing disc image."
 msgstr "Comprimeren van schijfafbeelding voltooid."
 
@@ -4387,7 +4389,7 @@ msgstr "Double"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:35
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:44
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:19
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:18
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:25
 msgid "Down"
 msgstr "Omlaag"
@@ -4441,7 +4443,7 @@ msgstr "Dual-Core"
 msgid "Dual View"
 msgstr "Dubbele Weergave"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:94
+#: Source/Core/Core/HW/EXI/EXI_Device.h:92
 msgid "Dummy"
 msgstr "Dummy"
 
@@ -4461,7 +4463,7 @@ msgstr "Dump &FakeVMEM"
 msgid "Dump &MRAM"
 msgstr "Dump &MRAM"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:865
+#: Source/Core/DolphinQt/MenuBar.cpp:877
 msgid "Dump Audio"
 msgstr "Dump Audio"
 
@@ -4473,7 +4475,7 @@ msgstr "Basistexturen dumpen"
 msgid "Dump EFB Target"
 msgstr "Dump EFB Doel"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:859
+#: Source/Core/DolphinQt/MenuBar.cpp:871
 msgid "Dump Frames"
 msgstr "Dump Frames"
 
@@ -4554,7 +4556,7 @@ msgstr "Duur van Tubo-knop los Laten (frames):"
 msgid "Dutch"
 msgstr "Nederlands"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:259
+#: Source/Core/DolphinQt/MenuBar.cpp:264
 msgid "E&xit"
 msgstr "Sl&uiten"
 
@@ -4669,7 +4671,7 @@ msgstr "Element"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Embedded Frame Buffer (EFB)"
 
-#: Source/Core/Core/State.cpp:644
+#: Source/Core/Core/State.cpp:635
 msgid "Empty"
 msgstr "Leeg"
 
@@ -4689,7 +4691,7 @@ msgstr "Emuleer Infinity Base"
 msgid "Emulate Skylander Portal"
 msgstr "Emuleer Skylander Portal"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:112
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:159
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Bluetooth-adapter Wii emuleren"
 
@@ -4701,11 +4703,11 @@ msgstr ""
 "Emuleert de schijfsnelheid van echte hardware. Uitschakelen kan "
 "instabiliteit veroorzaken. Staat standaard op <b>Aan</b>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:274
+#: Source/Core/DolphinQt/MenuBar.cpp:279
 msgid "Emulated USB Devices"
 msgstr "Geëmuleerde USB Apparaten"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:194
 msgid "Emulated Wii Remote"
 msgstr "Geëmuleerde Wii-afstandsbediening"
 
@@ -4743,7 +4745,7 @@ msgstr "Activeer Cheats"
 msgid "Enable Controller Inpu&t"
 msgstr "Schakel Controller Inpu&t in"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:163
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:164
 msgid "Enable Custom RTC"
 msgstr "Activeer Aangepaste RTC"
 
@@ -4751,7 +4753,7 @@ msgstr "Activeer Aangepaste RTC"
 msgid "Enable Debugging UI"
 msgstr "Activeer Degugging UI"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:112
 msgid "Enable Discord Presence"
 msgstr "Activeer Discord Presence"
 
@@ -4763,15 +4765,15 @@ msgstr "Activeer Dual-Core"
 msgid "Enable Dual Core (speedhack)"
 msgstr "Activeer Dual-Core (snelheidshack)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:96
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:97
 msgid "Enable Emulated CPU Clock Override"
 msgstr "Activeer Overschrijven van Geëmuleerde CPU Klok"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:126
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:128
 msgid "Enable Emulated Memory Size Override"
 msgstr "Schakel Gemuleerde Geheugen Grootte Overschrijven in"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:103
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:99
 msgid "Enable Encore Achievements"
 msgstr "Activeer Encore Prestaties"
 
@@ -4783,11 +4785,11 @@ msgstr "Activeer FPRF"
 msgid "Enable Graphics Mods"
 msgstr "Schakel Grafische Mods in"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:83
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
 msgid "Enable Hardcore Mode"
 msgstr "Schakel Hardcore-modus in"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:85
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:81
 msgid ""
 "Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended "
 "to provide an experience as close to gaming on the original hardware as "
@@ -4809,7 +4811,7 @@ msgstr ""
 msgid "Enable Iterative Input Mapping"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:935
+#: Source/Core/DolphinQt/MenuBar.cpp:947
 msgid "Enable JIT Block Profiling"
 msgstr "Activeer JIT Blok Profilering"
 
@@ -4822,7 +4824,7 @@ msgstr "Activeer MMU"
 msgid "Enable Play Time Tracking"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:120
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Enable Progress Notifications"
 msgstr "Activeer Voortgangsmeldingen"
 
@@ -4830,7 +4832,7 @@ msgstr "Activeer Voortgangsmeldingen"
 msgid "Enable Progressive Scan"
 msgstr "Activeer Progressieve Scan"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:68
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:64
 msgid "Enable RetroAchievements.org Integration"
 msgstr "Activeer RetroAchievements.org Integratie"
 
@@ -4843,15 +4845,15 @@ msgstr "Activeer Trillen"
 msgid "Enable Screen Saver"
 msgstr "Activeer Schermbeveiliger"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:115
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:162
 msgid "Enable Speaker Data"
 msgstr "Activeer Speaker Data"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:109
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:105
 msgid "Enable Spectator Mode"
 msgstr "Activeer Toeschouwer Modus"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:97
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:93
 msgid "Enable Unofficial Achievements"
 msgstr "Activeer Onofficiële Prestaties"
 
@@ -4880,7 +4882,7 @@ msgstr ""
 "spellen crashes en andere problemen veroorzaken. (AAN = Compatibel, UIT = "
 "Ontgrendeld)"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:70
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:66
 msgid ""
 "Enable integration with RetroAchievements for earning achievements and "
 "competing in leaderboards.<br><br>Must log in with a RetroAchievements "
@@ -4888,14 +4890,14 @@ msgid ""
 "token to maintain login."
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:122
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
 "Enable progress notifications on achievements.<br><br>Displays a brief popup "
 "message whenever the player makes progress on an achievement that tracks an "
 "accumulated value, such as 60 out of 120 stars."
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:105
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:101
 msgid ""
 "Enable unlocking achievements in Encore Mode.<br><br>Encore Mode re-enables "
 "achievements the player has already unlocked on the site so that the player "
@@ -4904,7 +4906,7 @@ msgid ""
 "game load."
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:111
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:107
 msgid ""
 "Enable unlocking achievements in Spectator Mode.<br><br>While in Spectator "
 "Mode, achievements and leaderboards will be processed and displayed on "
@@ -4914,7 +4916,7 @@ msgid ""
 "launch, it can be toggled freely while the game is running."
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:99
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:95
 msgid ""
 "Enable unlocking unofficial achievements as well as official achievements."
 "<br><br>Unofficial achievements may be optional or unfinished achievements "
@@ -4922,7 +4924,7 @@ msgid ""
 "for testing or simply for fun.<br><br>Setting takes effect on next game load."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:283
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:299
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends "
 "only. <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -5078,7 +5080,7 @@ msgstr ""
 msgid "End Addr"
 msgstr "Eind Adres"
 
-#: Source/Core/Core/NetPlayServer.cpp:132
+#: Source/Core/Core/NetPlayServer.cpp:133
 msgid "Enet Didn't Initialize"
 msgstr "Enet niet geïnitialiseerd"
 
@@ -5126,7 +5128,7 @@ msgid ""
 "to."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1382
+#: Source/Core/DolphinQt/MenuBar.cpp:1426
 msgid "Enter the RSO module address:"
 msgstr "Voer adres van de RSO-module in:"
 
@@ -5171,26 +5173,26 @@ msgstr "Voer adres van de RSO-module in:"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 #: Source/Core/DolphinQt/Main.cpp:220 Source/Core/DolphinQt/Main.cpp:236
-#: Source/Core/DolphinQt/Main.cpp:243 Source/Core/DolphinQt/MainWindow.cpp:315
-#: Source/Core/DolphinQt/MainWindow.cpp:323
-#: Source/Core/DolphinQt/MainWindow.cpp:1143
-#: Source/Core/DolphinQt/MainWindow.cpp:1551
-#: Source/Core/DolphinQt/MainWindow.cpp:1558
-#: Source/Core/DolphinQt/MainWindow.cpp:1618
-#: Source/Core/DolphinQt/MainWindow.cpp:1625
-#: Source/Core/DolphinQt/MainWindow.cpp:1731
-#: Source/Core/DolphinQt/MenuBar.cpp:222 Source/Core/DolphinQt/MenuBar.cpp:1276
-#: Source/Core/DolphinQt/MenuBar.cpp:1366
-#: Source/Core/DolphinQt/MenuBar.cpp:1389
-#: Source/Core/DolphinQt/MenuBar.cpp:1404
-#: Source/Core/DolphinQt/MenuBar.cpp:1436
-#: Source/Core/DolphinQt/MenuBar.cpp:1461
-#: Source/Core/DolphinQt/MenuBar.cpp:1678
-#: Source/Core/DolphinQt/MenuBar.cpp:1690
-#: Source/Core/DolphinQt/MenuBar.cpp:1702
-#: Source/Core/DolphinQt/MenuBar.cpp:1724
-#: Source/Core/DolphinQt/MenuBar.cpp:1750
-#: Source/Core/DolphinQt/MenuBar.cpp:1802
+#: Source/Core/DolphinQt/Main.cpp:243 Source/Core/DolphinQt/MainWindow.cpp:322
+#: Source/Core/DolphinQt/MainWindow.cpp:330
+#: Source/Core/DolphinQt/MainWindow.cpp:1168
+#: Source/Core/DolphinQt/MainWindow.cpp:1576
+#: Source/Core/DolphinQt/MainWindow.cpp:1583
+#: Source/Core/DolphinQt/MainWindow.cpp:1643
+#: Source/Core/DolphinQt/MainWindow.cpp:1650
+#: Source/Core/DolphinQt/MainWindow.cpp:1756
+#: Source/Core/DolphinQt/MenuBar.cpp:227 Source/Core/DolphinQt/MenuBar.cpp:1320
+#: Source/Core/DolphinQt/MenuBar.cpp:1410
+#: Source/Core/DolphinQt/MenuBar.cpp:1433
+#: Source/Core/DolphinQt/MenuBar.cpp:1448
+#: Source/Core/DolphinQt/MenuBar.cpp:1480
+#: Source/Core/DolphinQt/MenuBar.cpp:1505
+#: Source/Core/DolphinQt/MenuBar.cpp:1722
+#: Source/Core/DolphinQt/MenuBar.cpp:1734
+#: Source/Core/DolphinQt/MenuBar.cpp:1746
+#: Source/Core/DolphinQt/MenuBar.cpp:1768
+#: Source/Core/DolphinQt/MenuBar.cpp:1794
+#: Source/Core/DolphinQt/MenuBar.cpp:1846
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:316
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:482
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:743
@@ -5222,7 +5224,7 @@ msgstr "Fout Log"
 msgid "Error Opening Adapter: %1"
 msgstr "Fout bij openen van adapter: %1"
 
-#: Source/Core/Core/NetPlayServer.cpp:1508
+#: Source/Core/Core/NetPlayServer.cpp:1509
 msgid "Error collecting save data!"
 msgstr "Fout bij verzamelen van save data!"
 
@@ -5242,7 +5244,7 @@ msgstr ""
 msgid "Error obtaining session list: %1"
 msgstr "Fout in het verkrijgen van sessie lijst: %1"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:316
+#: Source/Core/DolphinQt/MainWindow.cpp:323
 msgid "Error occurred while loading some texture packs"
 msgstr "Fout opgetreden bij het laden van sommige texture packs"
 
@@ -5258,11 +5260,11 @@ msgstr "Fout bij het verwerken van data."
 msgid "Error reading file: {0}"
 msgstr "Fout bij het lezen van bestand: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1544
+#: Source/Core/Core/NetPlayServer.cpp:1545
 msgid "Error synchronizing cheat codes!"
 msgstr "Fout bij het synchroniseren van cheat codes!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1530
+#: Source/Core/Core/NetPlayServer.cpp:1531
 msgid "Error synchronizing save data!"
 msgstr "Fout bij synchroniseren van save data!"
 
@@ -5328,11 +5330,11 @@ msgstr ""
 "maar deze zijn niet geladen. Spellen kunnen wellicht lettertypes niet juist "
 "weergeven, of crashen."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1321
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1322
 msgid "Errors were found in {0} blocks in the {1} partition."
 msgstr "Er zijn fouten gevonden in {0} blokken in de {1} partitie."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1332
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1333
 msgid "Errors were found in {0} unused blocks in the {1} partition."
 msgstr "Er zijn fouten gevonden in {0} ongebruikte blokken in de {1} partitie."
 
@@ -5341,7 +5343,7 @@ msgstr "Er zijn fouten gevonden in {0} ongebruikte blokken in de {1} partitie."
 msgid "Euphoria"
 msgstr "Euforie"
 
-#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:324
+#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:335
 #: Source/Core/UICommon/NetPlayIndex.cpp:249
 msgid "Europe"
 msgstr "Europa"
@@ -5395,7 +5397,7 @@ msgstr "Verwachtte naam van variabele."
 msgid "Experimental"
 msgstr "Experimenteel"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:338
+#: Source/Core/DolphinQt/MenuBar.cpp:349
 msgid "Export All Wii Saves"
 msgstr "Exporteer alle Wii Saves"
 
@@ -5410,7 +5412,7 @@ msgstr "Exporteren Mislukt"
 msgid "Export Recording"
 msgstr "Exporteer Opname"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:803
+#: Source/Core/DolphinQt/MenuBar.cpp:815
 msgid "Export Recording..."
 msgstr "Exporteer Opname..."
 
@@ -5438,7 +5440,7 @@ msgstr "Exporteer als .&gcs..."
 msgid "Export as .&sav..."
 msgstr "Exporteer als .&sav..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1201
+#: Source/Core/DolphinQt/MenuBar.cpp:1245
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
@@ -5466,7 +5468,7 @@ msgstr "Extern"
 msgid "External Frame Buffer (XFB)"
 msgstr "Externe Frame Buffer (XFB)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:312
+#: Source/Core/DolphinQt/MenuBar.cpp:323
 msgid "Extract Certificates from NAND"
 msgstr "Certificaten uitpakken van NAND"
 
@@ -5504,7 +5506,7 @@ msgid "FD"
 msgstr "FD"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:40
-#: Source/Core/DolphinQt/MenuBar.cpp:272
+#: Source/Core/DolphinQt/MenuBar.cpp:277
 msgid "FIFO Player"
 msgstr "FIFO Speler"
 
@@ -5524,11 +5526,11 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "Mislukt om deze sessie aan de NetPlay index toe voegen: %1"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1751
+#: Source/Core/DolphinQt/MenuBar.cpp:1795
 msgid "Failed to append to signature file '%1'"
 msgstr "Mislukt om signatuurbestand toe te voegen aan bestand '%1'"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:672
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:667
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr ""
 "Mislukt om toegang te krijgen tot de interface voor BT passthrough: {0}"
@@ -5601,7 +5603,7 @@ msgstr ""
 msgid "Failed to delete the selected file."
 msgstr "Kon het geselecteerde bestand niet verwijderen."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:665
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:660
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "Kon kernel driver voor BT passthrough niet ontkoppelen: {0}"
 
@@ -5626,7 +5628,7 @@ msgstr "Exporteren van %n van de %1 save bestand(en) is mislukt."
 msgid "Failed to export the following save files:"
 msgstr "Kon de volgende save bestanden niet exporteren:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1276
+#: Source/Core/DolphinQt/MenuBar.cpp:1320
 msgid "Failed to extract certificates from NAND"
 msgstr "Kon geen certificaten uitpakken van NAND"
 
@@ -5656,14 +5658,14 @@ msgstr "Kon één of meerdere D3D symbolen niet vinden"
 msgid "Failed to import \"%1\"."
 msgstr "Mislukt om \"%1\" te importeren."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1177
+#: Source/Core/DolphinQt/MenuBar.cpp:1221
 msgid ""
 "Failed to import save file. Please launch the game once, then try again."
 msgstr ""
 "Save bestand importeren mislukt. Start het spel eerst en probeer het dan "
 "opnieuw."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1171
+#: Source/Core/DolphinQt/MenuBar.cpp:1215
 msgid ""
 "Failed to import save file. The given file appears to be corrupted or is not "
 "a valid Wii save."
@@ -5671,7 +5673,7 @@ msgstr ""
 "Save bestand importeren mislukt. Het bestand lijkt beschadigd te zijn of is "
 "geen geldige Wii-save."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1184
+#: Source/Core/DolphinQt/MenuBar.cpp:1228
 msgid ""
 "Failed to import save file. Your NAND may be corrupt, or something is "
 "preventing access to files within it. Try repairing your NAND (Tools -> "
@@ -5681,7 +5683,7 @@ msgstr ""
 "verhindert de toegang tot bestanden erin. Probeer uw NAND te repareren "
 "(Tools -> Beheer NAND -> Controleer NAND...) en importeer de save opnieuw."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1143
+#: Source/Core/DolphinQt/MainWindow.cpp:1168
 msgid "Failed to init core"
 msgstr "Kon core niet initiëren"
 
@@ -5704,11 +5706,11 @@ msgid "Failed to install pack: %1"
 msgstr "Het is niet gelukt om het pakket te installeren: %1"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:636
-#: Source/Core/DolphinQt/MenuBar.cpp:1142
+#: Source/Core/DolphinQt/MenuBar.cpp:1186
 msgid "Failed to install this title to the NAND."
 msgstr "Kon deze titel niet installeren op de NAND."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1653
+#: Source/Core/DolphinQt/MainWindow.cpp:1678
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5716,8 +5718,8 @@ msgstr ""
 "Luisteren naar poort %1 mislukt. Is er nog een exemplaar van de NetPlay-"
 "server actief?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1404
-#: Source/Core/DolphinQt/MenuBar.cpp:1461
+#: Source/Core/DolphinQt/MenuBar.cpp:1448
+#: Source/Core/DolphinQt/MenuBar.cpp:1505
 msgid "Failed to load RSO module at %1"
 msgstr "Kon RSO-module op %1 niet laden"
 
@@ -5729,7 +5731,7 @@ msgstr "Kon d3d11.dll niet laden"
 msgid "Failed to load dxgi.dll"
 msgstr "Kon dxgi.dll niet laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1690
+#: Source/Core/DolphinQt/MenuBar.cpp:1734
 msgid "Failed to load map file '%1'"
 msgstr "Kon mapbestand'%1' niet laden"
 
@@ -5745,7 +5747,7 @@ msgstr ""
 "Mislukt om Skylander bestand te laden:\n"
 "%1"
 
-#: Source/Core/Core/Boot/Boot.cpp:600
+#: Source/Core/Core/Boot/Boot.cpp:604
 msgid "Failed to load the executable to memory."
 msgstr "Kon het uitvoerbare bestand niet in het geheugen laden."
 
@@ -5761,7 +5763,7 @@ msgstr ""
 msgid "Failed to modify Skylander!"
 msgstr "Mislukt om Skylander te wijzigen!"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:223
+#: Source/Core/DolphinQt/MenuBar.cpp:228
 msgid "Failed to open \"%1\" for writing."
 msgstr "Mislukt om \"%1\" te openen voor schrijven."
 
@@ -5770,12 +5772,12 @@ msgid "Failed to open \"{0}\" for writing."
 msgstr "Mislukt om \"{0}\" te openen voor schrijven."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
-#: Source/Core/DolphinQt/MainWindow.cpp:1731
+#: Source/Core/DolphinQt/MainWindow.cpp:1756
 #: Source/Core/DolphinQt/RenderWidget.cpp:125
 msgid "Failed to open '%1'"
 msgstr "Kon '%1' niet openen"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:648
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:643
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
 msgstr ""
 
@@ -5811,7 +5813,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "Openen bestand mislukt."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1652
+#: Source/Core/DolphinQt/MainWindow.cpp:1677
 msgid "Failed to open server"
 msgstr "Kon server niet openen"
 
@@ -5851,7 +5853,7 @@ msgstr ""
 msgid "Failed to open the input file \"%1\"."
 msgstr "Kan het inputbestand \"% 1\" niet openen."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:287 Source/Core/DiscIO/FileBlob.cpp:58
+#: Source/Core/DiscIO/CompressedBlob.cpp:285 Source/Core/DiscIO/FileBlob.cpp:58
 #: Source/Core/DiscIO/WIABlob.cpp:2049
 msgid ""
 "Failed to open the output file \"{0}\".\n"
@@ -5879,7 +5881,7 @@ msgstr "Lezen DFF bestand mislukt."
 msgid "Failed to read from file."
 msgstr "Lezen bestand mislukt."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:378 Source/Core/DiscIO/FileBlob.cpp:98
+#: Source/Core/DiscIO/CompressedBlob.cpp:376 Source/Core/DiscIO/FileBlob.cpp:98
 #: Source/Core/DiscIO/WIABlob.cpp:2064
 msgid "Failed to read from the input file \"{0}\"."
 msgstr "Lezen van het inputbestand \"{0}\" is mislukt."
@@ -5969,19 +5971,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr "Mislukt om FIFO op te slaan."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1679
+#: Source/Core/DolphinQt/MenuBar.cpp:1723
 msgid "Failed to save code map to path '%1'"
 msgstr "Kon code map niet opslaan naar pad '%1'"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1724
+#: Source/Core/DolphinQt/MenuBar.cpp:1768
 msgid "Failed to save signature file '%1'"
 msgstr "Kon signatuurbestand '%1' niet opslaan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1703
+#: Source/Core/DolphinQt/MenuBar.cpp:1747
 msgid "Failed to save symbol map to path '%1'"
 msgstr "Kon symbool map niet opslaan naar pad '%1'"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1803
+#: Source/Core/DolphinQt/MenuBar.cpp:1847
 msgid "Failed to save to signature file '%1'"
 msgstr "Kon niet opslaan naar signatuurbestand '%1'"
 
@@ -6026,7 +6028,7 @@ msgstr "Schrijven van omgeleide save mislukt."
 msgid "Failed to write savefile to disk."
 msgstr "Schrijven van save bestand naar schijf mislukt."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:382
+#: Source/Core/DiscIO/CompressedBlob.cpp:380
 #: Source/Core/DiscIO/FileBlob.cpp:104 Source/Core/DiscIO/WIABlob.cpp:2068
 msgid ""
 "Failed to write the output file \"{0}\".\n"
@@ -6038,7 +6040,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:634
 #: Source/Core/DolphinQt/GameList/GameList.cpp:664
 #: Source/Core/DolphinQt/GameList/GameList.cpp:856
-#: Source/Core/DolphinQt/MenuBar.cpp:1142
+#: Source/Core/DolphinQt/MenuBar.cpp:1186
 msgid "Failure"
 msgstr "Gefaald"
 
@@ -6083,7 +6085,7 @@ msgstr "Bestand Details"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1007
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:253
-#: Source/Core/DolphinQt/MenuBar.cpp:701
+#: Source/Core/DolphinQt/MenuBar.cpp:712
 msgid "File Format"
 msgstr "Bestandsformaat"
 
@@ -6097,18 +6099,18 @@ msgstr "Bestandsinfo"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1002
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:247
-#: Source/Core/DolphinQt/MenuBar.cpp:696
+#: Source/Core/DolphinQt/MenuBar.cpp:707
 msgid "File Name"
 msgstr "Bestandsnaam"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1003
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:249
-#: Source/Core/DolphinQt/MenuBar.cpp:697
+#: Source/Core/DolphinQt/MenuBar.cpp:708
 msgid "File Path"
 msgstr "Bestandspad"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1006
-#: Source/Core/DolphinQt/MenuBar.cpp:700
+#: Source/Core/DolphinQt/MenuBar.cpp:711
 msgid "File Size"
 msgstr "Bestandsgrootte"
 
@@ -6124,7 +6126,7 @@ msgstr "Bestand bevat geen codes."
 msgid "Filename"
 msgstr "Bestandsnaam"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:294
+#: Source/Core/DiscIO/CompressedBlob.cpp:292
 msgid "Files opened, ready to compress."
 msgstr "Bestanden geopend, gereed voor compressie."
 
@@ -6151,8 +6153,8 @@ msgstr ""
 msgid "Filesystem"
 msgstr "Bestandssysteem"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:154
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:332
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:170
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:348
 msgid "Fill Audio Gaps"
 msgstr ""
 
@@ -6321,7 +6323,7 @@ msgstr "Formaat:"
 
 #: Source/Core/Core/FreeLookManager.cpp:95
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:20
 msgid "Forward"
 msgstr "Vooruit"
@@ -6465,7 +6467,7 @@ msgid "Function"
 msgstr "Functie"
 
 #. i18n: Settings that affect the functionality of unlocking achievements.
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:135
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:131
 msgid "Function Settings"
 msgstr "Functie-instellingen"
 
@@ -6521,7 +6523,7 @@ msgstr "GBA%1 ROM uitgeschakeld"
 msgid "GC Port %1"
 msgstr "GC Poort %1"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:103
+#: Source/Core/Core/HW/EXI/EXI_Device.h:101
 msgid "GCI Folder"
 msgstr "GCI Map"
 
@@ -6682,11 +6684,11 @@ msgid "Game Gamma:"
 msgstr "Gamma Spel:"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1004
-#: Source/Core/DolphinQt/MenuBar.cpp:698
+#: Source/Core/DolphinQt/MenuBar.cpp:709
 msgid "Game ID"
 msgstr "Spel ID"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:123
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:128
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:111
 msgid "Game ID:"
 msgstr "Spel ID:"
@@ -6843,7 +6845,7 @@ msgstr ""
 msgid "Generated AR code(s)."
 msgstr "Gegenereerde AR code(s)."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1360
+#: Source/Core/DolphinQt/MenuBar.cpp:1404
 msgid "Generated symbol names from '%1'"
 msgstr "Gegenereerde symboolnamen van '%1'"
 
@@ -6857,7 +6859,7 @@ msgstr "Duits"
 msgid "Germany"
 msgstr "Duitsland"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:162
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:157
 msgid "GetDeviceList failed: {0}"
 msgstr "GetDeviceList mislukt: {0}"
 
@@ -6932,7 +6934,7 @@ msgstr "Groen Links"
 msgid "Green Right"
 msgstr "Groen Rechts"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:673
+#: Source/Core/DolphinQt/MenuBar.cpp:684
 msgid "Grid View"
 msgstr "Rasterweergave"
 
@@ -6965,7 +6967,7 @@ msgstr "HDR Papier Wit Nits:"
 msgid "HDR Post-Processing"
 msgstr "HDR Post-Processing"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:54
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:59
 msgid "HLE (recommended)"
 msgstr ""
 
@@ -7019,7 +7021,7 @@ msgstr "Verbergen"
 msgid "Hide &Controls"
 msgstr "Verberg &Bediening"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:769
+#: Source/Core/DolphinQt/MenuBar.cpp:781
 msgid "Hide All"
 msgstr "Alles verbergen"
 
@@ -7046,11 +7048,11 @@ msgstr ""
 msgid "High"
 msgstr "Hoog"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:89
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:105
 msgid "High (Latency ~40 ms)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:89
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:105
 msgid "Highest (Latency ~80 ms)"
 msgstr ""
 
@@ -7190,7 +7192,7 @@ msgstr "De ingevoerde ID is ongeldig!"
 msgid "ID:"
 msgstr "ID:"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:137
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:142
 msgid "IOS Version:"
 msgstr "IOS-versie:"
 
@@ -7413,7 +7415,7 @@ msgstr ""
 "en vermindert prestaties enigszins.<br><br><dolphin_emphasis>In geval van "
 "twijfel leeg laten.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:309
+#: Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "Import BootMii NAND Backup..."
 msgstr "BootMii-NAND-back-up importeren…"
 
@@ -7428,15 +7430,15 @@ msgstr "Importeren mislukt"
 msgid "Import Save File(s)"
 msgstr "Save-bestand(en) importeren"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:336
+#: Source/Core/DolphinQt/MenuBar.cpp:347
 msgid "Import Wii Save..."
 msgstr "Wii-save importeren…"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1795
+#: Source/Core/DolphinQt/MainWindow.cpp:1820
 msgid "Importing NAND backup"
 msgstr "NAND-back-up importeren"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1805
+#: Source/Core/DolphinQt/MainWindow.cpp:1830
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -7567,8 +7569,8 @@ msgstr "Info"
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/GameList/GameList.cpp:720
 #: Source/Core/DolphinQt/GameList/GameList.cpp:782
-#: Source/Core/DolphinQt/MenuBar.cpp:1359
-#: Source/Core/DolphinQt/MenuBar.cpp:1602
+#: Source/Core/DolphinQt/MenuBar.cpp:1403
+#: Source/Core/DolphinQt/MenuBar.cpp:1646
 msgid "Information"
 msgstr "Informatie"
 
@@ -7582,10 +7584,10 @@ msgstr "Injecteren"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:438
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:276
-#: Source/Core/DolphinQt/MenuBar.cpp:1382
-#: Source/Core/DolphinQt/MenuBar.cpp:1442
-#: Source/Core/DolphinQt/MenuBar.cpp:1709
-#: Source/Core/DolphinQt/MenuBar.cpp:1734
+#: Source/Core/DolphinQt/MenuBar.cpp:1426
+#: Source/Core/DolphinQt/MenuBar.cpp:1486
+#: Source/Core/DolphinQt/MenuBar.cpp:1753
+#: Source/Core/DolphinQt/MenuBar.cpp:1778
 msgid "Input"
 msgstr "Input"
 
@@ -7633,7 +7635,7 @@ msgstr "Installatiepartitie (%1)"
 msgid "Install Update"
 msgstr "Installeer Update"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:307
+#: Source/Core/DolphinQt/MenuBar.cpp:318
 msgid "Install WAD..."
 msgstr "WAD installeren…"
 
@@ -7657,7 +7659,7 @@ msgstr "Instructie"
 msgid "Instruction Breakpoint"
 msgstr "Instructiebreekpunt"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1831
+#: Source/Core/DolphinQt/MenuBar.cpp:1875
 msgid "Instruction:"
 msgstr "Instructie:"
 
@@ -7687,19 +7689,19 @@ msgstr "Intensiteit"
 msgid "Interface"
 msgstr "Interface"
 
-#: Source/Core/Core/State.cpp:680
+#: Source/Core/Core/State.cpp:671
 msgid "Internal LZ4 Error - Tried decompressing {0} bytes"
 msgstr "Interne LZ4-fout - Geprobeerd {0} bytes decomprimeren"
 
-#: Source/Core/Core/State.cpp:333
+#: Source/Core/Core/State.cpp:329
 msgid "Internal LZ4 Error - compression failed"
 msgstr "Interne LZ4-fout - compressie mislukt"
 
-#: Source/Core/Core/State.cpp:700
+#: Source/Core/Core/State.cpp:691
 msgid "Internal LZ4 Error - decompression failed ({0}, {1}, {2})"
 msgstr "Interne LZ4-fout - decompressie mislukt ({0}, {1}, {2})"
 
-#: Source/Core/Core/State.cpp:713
+#: Source/Core/Core/State.cpp:704
 msgid "Internal LZ4 Error - payload size mismatch ({0} / {1}))"
 msgstr "Interne LZ4-fout - grootte van de data komt niet overeen ({0} / {1}))"
 
@@ -7712,7 +7714,7 @@ msgstr "Interne LZO fout - compressie is mislukt"
 msgid "Internal LZO Error - decompression failed"
 msgstr "Interne LZO fout - decompressie is mislukt"
 
-#: Source/Core/Core/State.cpp:544
+#: Source/Core/Core/State.cpp:538
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}) \n"
 "Unable to retrieve outdated savestate version info."
@@ -7720,7 +7722,7 @@ msgstr ""
 "Interne LZO-fout - decompressie mislukt ({0}) ({1})\n"
 "Niet in staat om verouderde savestate versie-informatie op te halen."
 
-#: Source/Core/Core/State.cpp:557
+#: Source/Core/Core/State.cpp:551
 msgid ""
 "Internal LZO Error - failed to parse decompressed version cookie and version "
 "string length ({0})"
@@ -7728,7 +7730,7 @@ msgstr ""
 "Interne LZO-fout - parsen van gedecomprimeerde versie-string lengte en "
 "versie-cookie mislukt ({0})"
 
-#: Source/Core/Core/State.cpp:574
+#: Source/Core/Core/State.cpp:566
 msgid ""
 "Internal LZO Error - failed to parse decompressed version string ({0} / {1})"
 msgstr ""
@@ -7753,7 +7755,7 @@ msgstr "Interne fout bij het genereren van AR code."
 msgid "Interpreter (slowest)"
 msgstr "Interpreter (traagst)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:876
+#: Source/Core/DolphinQt/MenuBar.cpp:888
 msgid "Interpreter Core"
 msgstr "Interpreter Core"
 
@@ -7769,7 +7771,7 @@ msgstr "Ongeldige JSON ontvangen van auto-update service: {0}"
 msgid "Invalid Mixed Code"
 msgstr "Ongeldige Gemengde Code"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:324
+#: Source/Core/DolphinQt/MainWindow.cpp:331
 msgid "Invalid Pack %1 provided: %2"
 msgstr "Ongeldige Pakket %1 ingevoerd: %2"
 
@@ -7778,7 +7780,7 @@ msgstr "Ongeldige Pakket %1 ingevoerd: %2"
 msgid "Invalid Player ID"
 msgstr "Ongeldige Speler-ID"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1389
+#: Source/Core/DolphinQt/MenuBar.cpp:1433
 msgid "Invalid RSO module address: %1"
 msgstr "Ongeldig RSO-moduleadres: %1"
 
@@ -7880,11 +7882,11 @@ msgstr "Italië"
 msgid "Item"
 msgstr "Voorwerp"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:874
+#: Source/Core/DolphinQt/MenuBar.cpp:886
 msgid "JIT"
 msgstr "JIT"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:888
+#: Source/Core/DolphinQt/MenuBar.cpp:900
 msgid "JIT Block Linking Off"
 msgstr "JIT Block Linking Uit"
 
@@ -7892,47 +7894,47 @@ msgstr "JIT Block Linking Uit"
 msgid "JIT Blocks"
 msgstr "JIT Blokken"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1025
+#: Source/Core/DolphinQt/MenuBar.cpp:1037
 msgid "JIT Branch Off"
 msgstr "JIT Branch Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:997
+#: Source/Core/DolphinQt/MenuBar.cpp:1009
 msgid "JIT FloatingPoint Off"
 msgstr "JIT FloatingPoint Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1004
+#: Source/Core/DolphinQt/MenuBar.cpp:1016
 msgid "JIT Integer Off"
 msgstr "JIT Integer Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:982
+#: Source/Core/DolphinQt/MenuBar.cpp:994
 msgid "JIT LoadStore Floating Off"
 msgstr "JIT LoadStore Floating Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:954
+#: Source/Core/DolphinQt/MenuBar.cpp:966
 msgid "JIT LoadStore Off"
 msgstr "JIT LoadStore Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:990
+#: Source/Core/DolphinQt/MenuBar.cpp:1002
 msgid "JIT LoadStore Paired Off"
 msgstr "JIT LoadStore Paired Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:968
+#: Source/Core/DolphinQt/MenuBar.cpp:980
 msgid "JIT LoadStore lXz Off"
 msgstr "JIT LoadStore lXz Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:961
+#: Source/Core/DolphinQt/MenuBar.cpp:973
 msgid "JIT LoadStore lbzx Off"
 msgstr "JIT LoadStore lbzx Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:975
+#: Source/Core/DolphinQt/MenuBar.cpp:987
 msgid "JIT LoadStore lwz Off"
 msgstr "JIT LoadStore lwz Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:948
+#: Source/Core/DolphinQt/MenuBar.cpp:960
 msgid "JIT Off (JIT Core)"
 msgstr "JIT Uit (JIT Core)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1011
+#: Source/Core/DolphinQt/MenuBar.cpp:1023
 msgid "JIT Paired Off"
 msgstr "JIT Paired Uit"
 
@@ -7944,11 +7946,11 @@ msgstr "JIT Recompiler voor ARM64 (aanbevolen)"
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "JIT Recompiler voor x86-64 (aanbevolen)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1032
+#: Source/Core/DolphinQt/MenuBar.cpp:1044
 msgid "JIT Register Cache Off"
 msgstr "JIT Registercache Uit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1018
+#: Source/Core/DolphinQt/MenuBar.cpp:1030
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SysteemRegisters Uit"
 
@@ -7968,7 +7970,7 @@ msgstr ""
 msgid "JIT is not active"
 msgstr "JIT is niet actief"
 
-#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:326
+#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:337
 msgid "Japan"
 msgstr "Japan"
 
@@ -8034,7 +8036,7 @@ msgstr "KiB"
 msgid "Kick Player"
 msgstr "Speler kicken"
 
-#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:328
+#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:339
 msgid "Korea"
 msgstr "Korea"
 
@@ -8060,11 +8062,11 @@ msgstr "L&aad ROM..."
 msgid "L-Analog"
 msgstr "L-Analoog"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:56
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:61
 msgid "LLE Interpreter (very slow)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:55
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:60
 msgid "LLE Recompiler (slow)"
 msgstr ""
 
@@ -8094,16 +8096,16 @@ msgstr "Laatst geplaatst:"
 msgid "Last reset:"
 msgstr "Laatste reset:"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:325
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:341
 msgid "Latency"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:119
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:135
 msgid "Latency:  000 ms"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:117
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:198
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:133
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:214
 msgid "Latency: %1 ms"
 msgstr ""
 
@@ -8111,7 +8113,7 @@ msgstr ""
 msgid "Launching these titles may also fix the issues."
 msgstr "Het starten van deze spellen kan de problemen ook verhelpen."
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:64
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:62
 msgid "Leaderboards"
 msgstr "Leiderborden"
 
@@ -8121,7 +8123,7 @@ msgstr "Leiderborden"
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:41
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:215
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:19
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:26
@@ -8215,11 +8217,11 @@ msgstr "Licht"
 msgid "Limit Chunked Upload Speed:"
 msgstr "Beperk chunked-uploadsnelheid:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:708
+#: Source/Core/DolphinQt/MenuBar.cpp:719
 msgid "List Columns"
 msgstr "Lijstkolommen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:670
+#: Source/Core/DolphinQt/MenuBar.cpp:681
 msgid "List View"
 msgstr "Lijstweergave"
 
@@ -8235,11 +8237,11 @@ msgstr "Luisteren"
 msgid "Load"
 msgstr "Laden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1057
+#: Source/Core/DolphinQt/MenuBar.cpp:1069
 msgid "Load &Bad Map File..."
 msgstr "Laad &Slechte Mapbestand..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1056
+#: Source/Core/DolphinQt/MenuBar.cpp:1068
 msgid "Load &Other Map File..."
 msgstr "Laad &Ander Mapbestand..."
 
@@ -8259,7 +8261,7 @@ msgstr "Laad Aangepaste Textures"
 msgid "Load File"
 msgstr "Laad Bestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:292
+#: Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "Load GameCube Main Menu"
 msgstr "GameCube Hoofdmenu Laden"
 
@@ -8272,8 +8274,8 @@ msgstr "Laad Alleen Host Save Data"
 msgid "Load Last State"
 msgstr "Laad Laatste State"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1621
-#: Source/Core/DolphinQt/MenuBar.cpp:1638
+#: Source/Core/DolphinQt/MenuBar.cpp:1665
+#: Source/Core/DolphinQt/MenuBar.cpp:1682
 msgid "Load Map File"
 msgstr "Laad Mapbestand"
 
@@ -8374,19 +8376,19 @@ msgstr "Laad State Slot 8"
 msgid "Load State Slot 9"
 msgstr "Laad State Slot 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:385
+#: Source/Core/DolphinQt/MenuBar.cpp:396
 msgid "Load State from File"
 msgstr "Laad State van Bestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:386
+#: Source/Core/DolphinQt/MenuBar.cpp:397
 msgid "Load State from Selected Slot"
 msgstr "Laad State van Geselecteerde Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:387
+#: Source/Core/DolphinQt/MenuBar.cpp:398
 msgid "Load State from Slot"
 msgstr "Laad State van Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1102
+#: Source/Core/DolphinQt/MenuBar.cpp:1114
 msgid "Load Wii System Menu %1"
 msgstr "Wii-systeemmenu %1 laden"
 
@@ -8398,11 +8400,11 @@ msgstr "Laad en Schrijf Alleen Host Save Data"
 msgid "Load from Selected Slot"
 msgstr "Laden van Geselecteerde Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:445
+#: Source/Core/DolphinQt/MenuBar.cpp:456
 msgid "Load from Slot %1 - %2"
 msgstr "Laad van Slot Slot %1 - %2"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1101
+#: Source/Core/DolphinQt/MenuBar.cpp:1113
 msgid "Load vWii System Menu %1"
 msgstr "Laad vWii Systeem Menu %1"
 
@@ -8410,7 +8412,7 @@ msgstr "Laad vWii Systeem Menu %1"
 msgid "Load..."
 msgstr "Laden..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1603
+#: Source/Core/DolphinQt/MenuBar.cpp:1647
 msgid "Loaded symbols from '%1'"
 msgstr "Symbolen geladen van '%1'"
 
@@ -8462,16 +8464,16 @@ msgstr "Log"
 msgid "Log Configuration"
 msgstr "Logconfiguratie"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:200
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:74
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:196
 msgid "Log In"
 msgstr "Aanmelden"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:929
+#: Source/Core/DolphinQt/MenuBar.cpp:941
 msgid "Log JIT Instruction Coverage"
 msgstr "Log JIT Instructiedekking"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:79
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:75
 msgid "Log Out"
 msgstr "Afmelden"
 
@@ -8487,19 +8489,19 @@ msgstr "Log Types"
 msgid "Logger Outputs"
 msgstr "Logger Outputs"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:80
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:76
 msgid "Login Failed"
 msgstr "Inloggen Mislukt"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:46
 msgid "Login Failed - Invalid Username/Password"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:53
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:49
 msgid "Login Failed - No Internet Connection"
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:52
 msgid "Login Failed - Server Error"
 msgstr ""
 
@@ -8525,11 +8527,11 @@ msgstr "Verbinding met NetPlay-server verloren..."
 msgid "Low"
 msgstr "Laag"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:88
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:104
 msgid "Low (Latency ~20 ms)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:88
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:104
 msgid "Lowest (Latency ~10 ms)"
 msgstr ""
 
@@ -8593,12 +8595,12 @@ msgstr "Zorg ervoor dat er een Skylander in slot %1 zit!"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1001
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:245
-#: Source/Core/DolphinQt/MenuBar.cpp:695
+#: Source/Core/DolphinQt/MenuBar.cpp:706
 msgid "Maker"
 msgstr "Maker"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:125
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:158
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:130
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:163
 msgid "Maker:"
 msgstr "Maker:"
 
@@ -8614,7 +8616,7 @@ msgstr ""
 "mist emulatie rekent.<br><br><dolphin_emphasis>In geval van twijfel leeg "
 "laten.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:308
+#: Source/Core/DolphinQt/MenuBar.cpp:319
 msgid "Manage NAND"
 msgstr "Beheer NAND"
 
@@ -8626,7 +8628,7 @@ msgstr "Handmatige Texture Sampling"
 msgid "Mapping"
 msgstr "Mapping"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:96
+#: Source/Core/Core/HW/EXI/EXI_Device.h:94
 msgid "Mask ROM"
 msgstr "Mask ROM"
 
@@ -8668,11 +8670,11 @@ msgstr "Geheugen"
 msgid "Memory Breakpoint"
 msgstr "Geheugenbreekpunt"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:95
+#: Source/Core/Core/HW/EXI/EXI_Device.h:93
 msgid "Memory Card"
 msgstr "Geheugenkaart"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:301
+#: Source/Core/DolphinQt/MenuBar.cpp:312
 msgid "Memory Card Manager"
 msgstr "Geheugenkaart Beheer"
 
@@ -8680,7 +8682,7 @@ msgstr "Geheugenkaart Beheer"
 msgid "Memory Card Path:"
 msgstr "Geheugenkaartpad:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:121
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:122
 msgid "Memory Override"
 msgstr "Geheugen overschrijven"
 
@@ -8700,7 +8702,7 @@ msgstr "MemoryCard: Read opgeroepen met onjuiste bron adres ({0:#x})"
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "MemoryCard: Write opgeroepen met ongeldige bestemming adres ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1776
+#: Source/Core/DolphinQt/MainWindow.cpp:1801
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -8716,7 +8718,7 @@ msgstr ""
 msgid "MiB"
 msgstr "MiB"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:99 Source/Core/Core/HW/GCPadEmu.h:62
+#: Source/Core/Core/HW/EXI/EXI_Device.h:97 Source/Core/Core/HW/GCPadEmu.h:62
 #: Source/Core/DolphinQt/Config/Mapping/GCMicrophone.cpp:26
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:449
 msgid "Microphone"
@@ -8771,7 +8773,7 @@ msgstr ""
 "- Titel: {3}\n"
 "- Hash: {4:02X}"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:108
+#: Source/Core/Core/HW/EXI/EXI_Device.h:106
 msgid "Modem Adapter (tapserver)"
 msgstr "Modem Adapter (tapserver)"
 
@@ -8799,8 +8801,8 @@ msgstr "Wijzig Slot"
 msgid "Modifying Skylander: %1"
 msgstr "Wijzig Skylander: %1"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1410
-#: Source/Core/DolphinQt/MenuBar.cpp:1561
+#: Source/Core/DolphinQt/MenuBar.cpp:1454
+#: Source/Core/DolphinQt/MenuBar.cpp:1605
 msgid "Modules found: %1"
 msgstr "Module gevonden: %1"
 
@@ -8864,12 +8866,12 @@ msgstr ""
 msgid "Multiplier"
 msgstr "Vermenigvuldiger"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:156
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:329
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:172
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
 msgid "Mute When Disabling Speed Limit"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:295
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:311
 msgid ""
 "Mutes the audio when overriding the emulation speed limit (default hotkey: "
 "Tab). <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -8880,10 +8882,10 @@ msgstr ""
 msgid "N&o to All"
 msgstr "N&ee op Alles"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1231
-#: Source/Core/DolphinQt/MenuBar.cpp:1240
-#: Source/Core/DolphinQt/MenuBar.cpp:1258
-#: Source/Core/DolphinQt/MenuBar.cpp:1262
+#: Source/Core/DolphinQt/MenuBar.cpp:1275
+#: Source/Core/DolphinQt/MenuBar.cpp:1284
+#: Source/Core/DolphinQt/MenuBar.cpp:1302
+#: Source/Core/DolphinQt/MenuBar.cpp:1306
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:29
 msgid "NAND Check"
 msgstr "NAND-controle"
@@ -8892,7 +8894,7 @@ msgstr "NAND-controle"
 msgid "NKit Warning"
 msgstr "NKit-waarschuwing"
 
-#: Source/Core/DiscIO/Enums.cpp:121 Source/Core/DolphinQt/MenuBar.cpp:294
+#: Source/Core/DiscIO/Enums.cpp:121 Source/Core/DolphinQt/MenuBar.cpp:305
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:222
 msgid "NTSC-J"
 msgstr "NTSC-J"
@@ -8925,7 +8927,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>In geval van twijfel op 2.35 laten.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DiscIO/Enums.cpp:124 Source/Core/DolphinQt/MenuBar.cpp:296
+#: Source/Core/DiscIO/Enums.cpp:124 Source/Core/DolphinQt/MenuBar.cpp:307
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:222
 msgid "NTSC-U"
 msgstr "NTSC-U"
@@ -8953,9 +8955,9 @@ msgstr "Naam van uw sessie zoals weergegeven in de server browser"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:89
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:118
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:122
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:157
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:164
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:125
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:162
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:169
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:109
 msgid "Name:"
 msgstr "Naam:"
@@ -9166,7 +9168,7 @@ msgstr "Geen graphics mod geselecteerd"
 msgid "No input"
 msgstr "Geen input"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1242
+#: Source/Core/DolphinQt/MenuBar.cpp:1286
 msgid "No issues have been detected."
 msgstr "Er zijn geen problemen gedetecteerd."
 
@@ -9178,11 +9180,11 @@ msgstr "Geen overeenkomend spel gevonden"
 msgid "No paths found in the M3U file \"{0}\""
 msgstr "Geen mappen gevonden in het M3U-bestand \"{0}\""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1411
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1419
 msgid "No problems were found."
 msgstr "Er zijn geen problemen gevonden"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1405
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1413
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -9205,7 +9207,7 @@ msgstr "Geen opname geladen."
 msgid "No save data found."
 msgstr "Geen save data gevonden."
 
-#: Source/Core/Core/State.cpp:1034
+#: Source/Core/Core/State.cpp:1020
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "Geen undo.dtm gevonden, het ongedaan maken van de state laden wordt "
@@ -9214,7 +9216,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:35
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:125
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:423
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:194
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:424
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:121
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:139
@@ -9413,7 +9415,7 @@ msgid ""
 "performed in the emulated software."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:640
+#: Source/Core/DolphinQt/MenuBar.cpp:651
 msgid "Online &Documentation"
 msgstr "Online &Documentatie"
 
@@ -9421,7 +9423,7 @@ msgstr "Online &Documentatie"
 msgid "Only Show Collection"
 msgstr "Alleen Collectie Tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1734
+#: Source/Core/DolphinQt/MenuBar.cpp:1778
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -9433,7 +9435,7 @@ msgstr ""
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1709
+#: Source/Core/DolphinQt/MenuBar.cpp:1753
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -9452,7 +9454,7 @@ msgstr "Openen"
 msgid "Open &Containing Folder"
 msgstr "&Bijbehorende map openen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:255
+#: Source/Core/DolphinQt/MenuBar.cpp:260
 msgid "Open &User Folder"
 msgstr "&Gebruikersmap openen"
 
@@ -9585,11 +9587,11 @@ msgstr "Ander spel..."
 msgid "Output"
 msgstr "Output"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:316
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:332
 msgid "Output Device"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:108
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:124
 msgid "Output Device:"
 msgstr ""
 
@@ -9605,11 +9607,11 @@ msgstr "Output Resampling:"
 msgid "Overwritten"
 msgstr "Overschrijven"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:799
+#: Source/Core/DolphinQt/MenuBar.cpp:811
 msgid "P&lay Input Recording..."
 msgstr "Input Opname Af&spelen..."
 
-#: Source/Core/DiscIO/Enums.cpp:127 Source/Core/DolphinQt/MenuBar.cpp:299
+#: Source/Core/DiscIO/Enums.cpp:127 Source/Core/DolphinQt/MenuBar.cpp:310
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:222
 msgid "PAL"
 msgstr "PAL"
@@ -9631,7 +9633,7 @@ msgstr "PNG Compressie Level"
 msgid "PNG Compression Level:"
 msgstr "PNG Compressie Level:"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:198
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:203
 msgid "PNG image file (*.png);; All Files (*)"
 msgstr "PNG afbeeldingsbestand (*.png);; Alle bestanden (*)"
 
@@ -9682,11 +9684,11 @@ msgstr "Parseerfout"
 msgid "Passive"
 msgstr "Passief"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:106
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:151
 msgid "Passthrough a Bluetooth adapter"
 msgstr "Bluetooth-adapter doorgeven"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:75
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:71
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:166
 msgid "Password"
 msgstr "Wachtwoord"
@@ -9728,7 +9730,7 @@ msgstr "Pauze"
 msgid "Pause Branch Watch"
 msgstr "Pauzeer Branch Watch"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:820
+#: Source/Core/DolphinQt/MenuBar.cpp:832
 msgid "Pause at End of Movie"
 msgstr "Pauzeer aan het Einde van de Opname"
 
@@ -9773,7 +9775,7 @@ msgstr "Top snelheid van buitenwaartse zwaai beweging."
 msgid "Per-Pixel Lighting"
 msgstr "Per-Pixel Belichting"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:320
+#: Source/Core/DolphinQt/MenuBar.cpp:331
 msgid "Perform Online System Update"
 msgstr "Voer Online Systeemupdate Uit"
 
@@ -9807,7 +9809,7 @@ msgstr "Fysieke adresruimte"
 msgid "PiB"
 msgstr "PiB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1312
+#: Source/Core/DolphinQt/MenuBar.cpp:1356
 msgid "Pick a debug font"
 msgstr "Kies een debug-lettertype"
 
@@ -9815,16 +9817,16 @@ msgstr "Kies een debug-lettertype"
 msgid "Ping"
 msgstr "Ping"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:30
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:29
 msgid "Pitch Down"
 msgstr "Stamp Omlaag"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:29
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:28
 msgid "Pitch Up"
 msgstr "Stamp Omhoog"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:997
-#: Source/Core/DolphinQt/MenuBar.cpp:691
+#: Source/Core/DolphinQt/MenuBar.cpp:702
 msgid "Platform"
 msgstr "Platform"
 
@@ -10061,7 +10063,7 @@ msgstr "Privé en Openbaar"
 msgid "Problem"
 msgstr "Probleem"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1436
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1444
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
@@ -10069,7 +10071,7 @@ msgstr ""
 "Er zijn zeer ernstige problemen gevonden. Het spel zal waarschijnlijk niet "
 "werken."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1425
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1433
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
@@ -10077,7 +10079,7 @@ msgstr ""
 "Er zijn problemen met lage ernst gevonden. Het spel zal waarschijnlijk goed "
 "werken."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1431
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1439
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -10094,7 +10096,7 @@ msgstr "Profiel"
 msgid "Program Counter"
 msgstr "Programmateller"
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:62
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:60
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:345
 #: Source/Core/DolphinQt/ConvertDialog.cpp:435
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:282
@@ -10112,7 +10114,7 @@ msgstr ""
 msgid "Public"
 msgstr "Openbaar"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:572
+#: Source/Core/DolphinQt/MenuBar.cpp:583
 msgid "Purge Game List Cache"
 msgstr "Gamelijstcache opschonen"
 
@@ -10139,7 +10141,7 @@ msgstr "Quality of Service (QoS) is succesvol geactiveerd."
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:453
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1775
+#: Source/Core/DolphinQt/MainWindow.cpp:1800
 msgid "Question"
 msgstr "Vraag"
 
@@ -10164,11 +10166,11 @@ msgstr "R-Analoog"
 msgid "READY"
 msgstr "GEREED"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1049
+#: Source/Core/DolphinQt/MenuBar.cpp:1061
 msgid "RSO Modules"
 msgstr "RSO Modules"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1377
+#: Source/Core/DolphinQt/MenuBar.cpp:1421
 msgid "RSO auto-detection"
 msgstr "RSO autodetectie"
 
@@ -10242,11 +10244,11 @@ msgstr "Lezen of Schrijven"
 msgid "Read-Only Mode"
 msgstr "Alleen-Lezen Modus"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:114
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:161
 msgid "Real Balance Board"
 msgstr "Echt Balance Board"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:143
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:194
 msgid "Real Wii Remote"
 msgstr "Echte Wii-afstandsbediening"
 
@@ -10324,7 +10326,7 @@ msgstr "Redump.org Status:"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:111
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:109
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:156
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:89
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/DolphinQt/ToolBar.cpp:117
@@ -10354,7 +10356,7 @@ msgid "Refreshing..."
 msgstr "Verversen..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1005
-#: Source/Core/DolphinQt/MenuBar.cpp:699
+#: Source/Core/DolphinQt/MenuBar.cpp:710
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
 msgstr "Regio"
@@ -10450,7 +10452,7 @@ msgstr ""
 msgid "Repeat Instructions"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:292
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:308
 msgid ""
 "Repeat existing audio during lag spikes to prevent stuttering."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
@@ -10474,7 +10476,7 @@ msgstr ""
 #: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:190
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:990
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:165
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:108
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:155
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:740
 msgid "Reset"
 msgstr "Reset"
@@ -10483,7 +10485,7 @@ msgstr "Reset"
 msgid "Reset All"
 msgstr "Reset Alles"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:614
+#: Source/Core/DolphinQt/MenuBar.cpp:625
 msgid "Reset Ignore Panic Handler"
 msgstr "Reset Negeer Panic Handler"
 
@@ -10511,7 +10513,7 @@ msgstr "Reset Waarde"
 msgid "Reset View"
 msgstr "Reset Weergave"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:111
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:158
 msgid "Reset all saved Wii Remote pairings"
 msgstr "Reset alle opgeslagen Wii-afstandsbediening koppelingen"
 
@@ -10539,6 +10541,10 @@ msgstr "Herstel Standaardinstellingen"
 msgid "Restore Instruction"
 msgstr "Herstel Instructie"
 
+#: Source/Core/DolphinQt/MenuBar.cpp:295
+msgid "RetroAchievements Development"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:744
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
 msgid "Retry"
@@ -10562,7 +10568,7 @@ msgstr "Revisie: %1"
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:45
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:218
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:27
@@ -10599,11 +10605,11 @@ msgstr "Knop Omlaag"
 msgid "Rocker Up"
 msgstr "Knop Omhoog"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:31
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:30
 msgid "Roll Left"
 msgstr "Rol Links"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:32
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:31
 msgid "Roll Right"
 msgstr "Rol Rechts"
 
@@ -10768,11 +10774,11 @@ msgstr "SSL context"
 msgid "START"
 msgstr "START"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1061
+#: Source/Core/DolphinQt/MenuBar.cpp:1073
 msgid "Sa&ve Code"
 msgstr "Code Op&slaan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:400
+#: Source/Core/DolphinQt/MenuBar.cpp:411
 msgid "Sa&ve State"
 msgstr "S&la State Op"
 
@@ -10802,7 +10808,7 @@ msgstr ""
 msgid "Save Branch Watch Snapshot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1790
+#: Source/Core/DolphinQt/MenuBar.cpp:1834
 msgid "Save Combined Output File As"
 msgstr ""
 
@@ -10816,7 +10822,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:591
 #: Source/Core/DolphinQt/GameList/GameList.cpp:596
-#: Source/Core/DolphinQt/MenuBar.cpp:1200
+#: Source/Core/DolphinQt/MenuBar.cpp:1244
 msgid "Save Export"
 msgstr "Export Opslaan"
 
@@ -10838,15 +10844,15 @@ msgstr "Spel Opslag"
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr "Spel Save Bestanden (*.sav);;All Files (*)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1158
-#: Source/Core/DolphinQt/MenuBar.cpp:1167
-#: Source/Core/DolphinQt/MenuBar.cpp:1170
-#: Source/Core/DolphinQt/MenuBar.cpp:1176
-#: Source/Core/DolphinQt/MenuBar.cpp:1183
+#: Source/Core/DolphinQt/MenuBar.cpp:1202
+#: Source/Core/DolphinQt/MenuBar.cpp:1211
+#: Source/Core/DolphinQt/MenuBar.cpp:1214
+#: Source/Core/DolphinQt/MenuBar.cpp:1220
+#: Source/Core/DolphinQt/MenuBar.cpp:1227
 msgid "Save Import"
 msgstr "Import Opslaan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1656
+#: Source/Core/DolphinQt/MenuBar.cpp:1700
 msgid "Save Map File"
 msgstr "Sla Map Bestand op"
 
@@ -10858,11 +10864,11 @@ msgstr "Sla Oudste State op"
 msgid "Save Preset"
 msgstr "Voorinstelling opslaan"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1912
+#: Source/Core/DolphinQt/MainWindow.cpp:1937
 msgid "Save Recording File As"
 msgstr "Sla Opnamebestand op Als"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1712
+#: Source/Core/DolphinQt/MenuBar.cpp:1756
 msgid "Save Signature File"
 msgstr ""
 
@@ -10912,23 +10918,23 @@ msgstr "Save State Slot 8"
 msgid "Save State Slot 9"
 msgstr "Save State Slot 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:401
+#: Source/Core/DolphinQt/MenuBar.cpp:412
 msgid "Save State to File"
 msgstr "Save State naar Bestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:403
+#: Source/Core/DolphinQt/MenuBar.cpp:414
 msgid "Save State to Oldest Slot"
 msgstr "Save State naar Oudste Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:402
+#: Source/Core/DolphinQt/MenuBar.cpp:413
 msgid "Save State to Selected Slot"
 msgstr "Save State naar Geselecteerde Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:404
+#: Source/Core/DolphinQt/MenuBar.cpp:415
 msgid "Save State to Slot"
 msgstr "Save State naar Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1058
+#: Source/Core/DolphinQt/MenuBar.cpp:1070
 msgid "Save Symbol Map &As..."
 msgstr "Sla Symbol Map Op &Als..."
 
@@ -10944,11 +10950,11 @@ msgstr "Save en Laad State"
 msgid "Save as Preset..."
 msgstr "Opslaan als voorinstelling..."
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:186
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:191
 msgid "Save as..."
 msgstr "Opslaan als..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1159
+#: Source/Core/DolphinQt/MenuBar.cpp:1203
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
@@ -10966,7 +10972,7 @@ msgstr "Save in de Zelfde Map als de ROM"
 msgid "Save to Selected Slot"
 msgstr "Opslaan naar Geselecteerde Slot"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:446
+#: Source/Core/DolphinQt/MenuBar.cpp:457
 msgid "Save to Slot %1 - %2"
 msgstr "Opslaan naar Slot %1 - %2"
 
@@ -10974,7 +10980,7 @@ msgstr "Opslaan naar Slot %1 - %2"
 msgid "Save..."
 msgstr "Opslaan..."
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:218
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:290
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr ""
 "Opgeslagen Wii-afstandsbediening koppelingen kunnen alleen gerest worden "
@@ -11002,7 +11008,7 @@ msgstr "Schermafdruk"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:153
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:84
-#: Source/Core/DolphinQt/MenuBar.cpp:580 Source/Core/DolphinQt/MenuBar.cpp:582
+#: Source/Core/DolphinQt/MenuBar.cpp:591 Source/Core/DolphinQt/MenuBar.cpp:593
 msgid "Search"
 msgstr "Zoeken"
 
@@ -11031,7 +11037,7 @@ msgstr ""
 "Zoeken is momenteel niet mogelijk in de virtuele adresruimte. Laat het spel "
 "een tijdje draaien en probeer het opnieuw."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:931
+#: Source/Core/DolphinQt/MenuBar.cpp:943
 msgid "Search for an Instruction"
 msgstr "Zoek naar Instructie"
 
@@ -11039,7 +11045,7 @@ msgstr "Zoek naar Instructie"
 msgid "Search games..."
 msgstr "Zoek Spellen..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1831
+#: Source/Core/DolphinQt/MenuBar.cpp:1875
 msgid "Search instruction"
 msgstr "Zoek instructie"
 
@@ -11080,7 +11086,7 @@ msgid "Select Dump Path"
 msgstr "Selecteer Dump Pad"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:571
-#: Source/Core/DolphinQt/MenuBar.cpp:1194
+#: Source/Core/DolphinQt/MenuBar.cpp:1238
 msgid "Select Export Directory"
 msgstr "Selecteer Export Map"
 
@@ -11100,7 +11106,7 @@ msgstr "Selecteer GBA ROM"
 msgid "Select GBA Saves Path"
 msgstr "Selecteer GBA Saves Pad"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1811
+#: Source/Core/DolphinQt/MainWindow.cpp:1836
 msgid "Select Keys File (OTP/SEEPROM Dump)"
 msgstr ""
 
@@ -11112,7 +11118,7 @@ msgstr "Selecteer Laatste State"
 msgid "Select Load Path"
 msgstr "Selecteer Laad Pad"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1785
+#: Source/Core/DolphinQt/MainWindow.cpp:1810
 msgid "Select NAND Backup"
 msgstr ""
 
@@ -11128,7 +11134,7 @@ msgstr "Selecteer Riivolution XML bestand"
 msgid "Select SD Card Image"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1149
+#: Source/Core/DolphinQt/MenuBar.cpp:1193
 msgid "Select Save File"
 msgstr ""
 
@@ -11140,7 +11146,7 @@ msgstr "Selecteer Skylander Collectie"
 msgid "Select Skylander File"
 msgstr "Selecteer Skylander Bestand"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:447
+#: Source/Core/DolphinQt/MenuBar.cpp:458
 msgid "Select Slot %1 - %2"
 msgstr "Selecteer Slot %1 - %2"
 
@@ -11148,7 +11154,7 @@ msgstr "Selecteer Slot %1 - %2"
 msgid "Select State"
 msgstr "Selecteer State"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:417
+#: Source/Core/DolphinQt/MenuBar.cpp:428
 msgid "Select State Slot"
 msgstr "Selecteer State Slot"
 
@@ -11192,7 +11198,7 @@ msgstr "Selecteer State Slot 8"
 msgid "Select State Slot 9"
 msgstr "Selecteer State Slot 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1128
+#: Source/Core/DolphinQt/MenuBar.cpp:1172
 msgid "Select Title to Install to NAND"
 msgstr ""
 
@@ -11209,13 +11215,13 @@ msgstr "Selecteer Wii-NAND-basismap"
 msgid "Select a Directory"
 msgstr "Selecteer een Map"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:197
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:202
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:583
 #: Source/Core/DolphinQt/GBAWidget.cpp:217
 #: Source/Core/DolphinQt/GBAWidget.cpp:249
-#: Source/Core/DolphinQt/MainWindow.cpp:788
-#: Source/Core/DolphinQt/MainWindow.cpp:1422
-#: Source/Core/DolphinQt/MainWindow.cpp:1434
+#: Source/Core/DolphinQt/MainWindow.cpp:795
+#: Source/Core/DolphinQt/MainWindow.cpp:1447
+#: Source/Core/DolphinQt/MainWindow.cpp:1459
 msgid "Select a File"
 msgstr "Selecteer een Bestand"
 
@@ -11239,11 +11245,11 @@ msgstr "Selecteer een Spel"
 msgid "Select e-Reader Cards"
 msgstr "Selecteer e-Reader Kaarten"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1442
+#: Source/Core/DolphinQt/MenuBar.cpp:1486
 msgid "Select the RSO module address:"
 msgstr "Selecteer het RSO module adres:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1834
+#: Source/Core/DolphinQt/MainWindow.cpp:1859
 msgid "Select the Recording File to Play"
 msgstr "Selecteer Opnamebestand om Af te Spelen"
 
@@ -11259,9 +11265,9 @@ msgstr "Selecteer Font"
 msgid "Selected controller profile does not exist"
 msgstr "Geselecteerde controller profiel bestaat niet"
 
-#: Source/Core/Core/NetPlayServer.cpp:1347
-#: Source/Core/Core/NetPlayServer.cpp:1721
-#: Source/Core/Core/NetPlayServer.cpp:2049
+#: Source/Core/Core/NetPlayServer.cpp:1348
+#: Source/Core/Core/NetPlayServer.cpp:1722
+#: Source/Core/Core/NetPlayServer.cpp:2050
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:491
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:896
 msgid "Selected game doesn't exist in game list!"
@@ -11291,7 +11297,7 @@ msgstr ""
 "Selecteert een hardware-adapter om te gebruiken.<br><br><dolphin_emphasis>In "
 "geval van twijfel de eerste selecteren.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:330
 msgid ""
 "Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
 "Default Device.</dolphin_emphasis>"
@@ -11316,7 +11322,7 @@ msgid ""
 "Corrected Internal Resolution\".</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:267
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:283
 msgid ""
 "Selects how the Digital Signal Processor (DSP) is emulated. Determines how "
 "the audio is processed and what system features are available."
@@ -11370,7 +11376,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:277
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:293
 msgid ""
 "Selects which audio API to use internally.<br><br><dolphin_emphasis>If "
 "unsure, select %1.</dolphin_emphasis>"
@@ -11500,7 +11506,7 @@ msgstr ""
 msgid "Sets the Wii system language."
 msgstr "Stelt de Wii-systeemtaal in."
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:280
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:296
 msgid ""
 "Sets the audio latency in milliseconds. Higher values may reduce audio "
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
@@ -11538,13 +11544,13 @@ msgstr ""
 "virtuele adresruimte. Dit zal werken voor de overgrote meerderheid van "
 "spellen."
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:61
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:59
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:27
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:70
 msgid "Settings"
 msgstr "Instellingen"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:440
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:447
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMem: Kan setting.txt niet aanmaken"
 
@@ -11579,11 +11585,11 @@ msgstr "Shinkansen Controller"
 msgid "Show % Speed"
 msgstr "Snelheidspercentage tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:454
+#: Source/Core/DolphinQt/MenuBar.cpp:465
 msgid "Show &Log"
 msgstr "Toon &Log"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:467
+#: Source/Core/DolphinQt/MenuBar.cpp:478
 msgid "Show &Toolbar"
 msgstr "&Werkbalk tonen"
 
@@ -11591,11 +11597,11 @@ msgstr "&Werkbalk tonen"
 msgid "Show Active Title in Window Title"
 msgstr "Actieve game in venstertitel weergeven"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:768
+#: Source/Core/DolphinQt/MenuBar.cpp:780
 msgid "Show All"
 msgstr "Alles tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:755
+#: Source/Core/DolphinQt/MenuBar.cpp:767
 msgid "Show Australia"
 msgstr "Australië tonen"
 
@@ -11608,7 +11614,7 @@ msgstr "Huidig spel op Discord tonen"
 msgid "Show Disabled Codes First"
 msgstr "Toon Eerst de Uitgeschakelde Codes"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:730
+#: Source/Core/DolphinQt/MenuBar.cpp:742
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL tonen"
 
@@ -11621,7 +11627,7 @@ msgstr "Toon Geactiveerde Codes Eerst"
 msgid "Show FPS"
 msgstr "FPS tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:838
+#: Source/Core/DolphinQt/MenuBar.cpp:850
 msgid "Show Frame Counter"
 msgstr "Frameteller tonen"
 
@@ -11629,15 +11635,15 @@ msgstr "Frameteller tonen"
 msgid "Show Frame Times"
 msgstr "Frametijden tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:756
+#: Source/Core/DolphinQt/MenuBar.cpp:768
 msgid "Show France"
 msgstr "Frankrijk tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:728
+#: Source/Core/DolphinQt/MenuBar.cpp:739
 msgid "Show GameCube"
 msgstr "GameCube tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:757
+#: Source/Core/DolphinQt/MenuBar.cpp:769
 msgid "Show Germany"
 msgstr "Duitsland tonen"
 
@@ -11649,31 +11655,31 @@ msgstr "Golfmodus-overlay tonen"
 msgid "Show Infinity Base"
 msgstr "Toon Infinity Base"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:844
+#: Source/Core/DolphinQt/MenuBar.cpp:856
 msgid "Show Input Display"
 msgstr "Inputweergave tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:758
+#: Source/Core/DolphinQt/MenuBar.cpp:770
 msgid "Show Italy"
 msgstr "Italië tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:752
+#: Source/Core/DolphinQt/MenuBar.cpp:764
 msgid "Show JPN"
 msgstr "JPN tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:759
+#: Source/Core/DolphinQt/MenuBar.cpp:771
 msgid "Show Korea"
 msgstr "Korea tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:832
+#: Source/Core/DolphinQt/MenuBar.cpp:844
 msgid "Show Lag Counter"
 msgstr "Vertragingsteller tonen"
 
-#: Source/Core/DolphinQt/Config/InfoWidget.cpp:153
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:158
 msgid "Show Language:"
 msgstr "Taal tonen:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:460
+#: Source/Core/DolphinQt/MenuBar.cpp:471
 msgid "Show Log &Configuration"
 msgstr "Toon Log &Configuratie"
 
@@ -11685,7 +11691,7 @@ msgstr "NetPlay-berichten tonen"
 msgid "Show NetPlay Ping"
 msgstr "NetPlay-ping tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:760
+#: Source/Core/DolphinQt/MenuBar.cpp:772
 msgid "Show Netherlands"
 msgstr "Nederland tonen"
 
@@ -11693,7 +11699,7 @@ msgstr "Nederland tonen"
 msgid "Show On-Screen Display Messages"
 msgstr "On-screen-berichtgevingen tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:753
+#: Source/Core/DolphinQt/MenuBar.cpp:765
 msgid "Show PAL"
 msgstr "PAL tonen"
 
@@ -11706,7 +11712,7 @@ msgstr "PC weergeven"
 msgid "Show Performance Graphs"
 msgstr "Prestatiegrafieken tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:733
+#: Source/Core/DolphinQt/MenuBar.cpp:745
 msgid "Show Platforms"
 msgstr "Platforms tonen"
 
@@ -11714,15 +11720,15 @@ msgstr "Platforms tonen"
 msgid "Show Projection Statistics"
 msgstr "Toon Projectiestatistieken"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:767
+#: Source/Core/DolphinQt/MenuBar.cpp:779
 msgid "Show Regions"
 msgstr "Regio's tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:826
+#: Source/Core/DolphinQt/MenuBar.cpp:838
 msgid "Show Rerecord Counter"
 msgstr "Heropnameteller tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:761
+#: Source/Core/DolphinQt/MenuBar.cpp:773
 msgid "Show Russia"
 msgstr "Rusland tonen"
 
@@ -11730,7 +11736,7 @@ msgstr "Rusland tonen"
 msgid "Show Skylanders Portal"
 msgstr "Toon Skylanders Portal"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:762
+#: Source/Core/DolphinQt/MenuBar.cpp:774
 msgid "Show Spain"
 msgstr "Spanje tonen"
 
@@ -11742,11 +11748,11 @@ msgstr "Snelheidskleuren tonen"
 msgid "Show Statistics"
 msgstr "Statistieken tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:851
+#: Source/Core/DolphinQt/MenuBar.cpp:863
 msgid "Show System Clock"
 msgstr "Systeemklok tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:763
+#: Source/Core/DolphinQt/MenuBar.cpp:775
 msgid "Show Taiwan"
 msgstr "Taiwan tonen"
 
@@ -11754,11 +11760,15 @@ msgstr "Taiwan tonen"
 msgid "Show Target in Memor&y"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:754
+#: Source/Core/DolphinQt/MenuBar.cpp:740
+msgid "Show Triforce"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:766
 msgid "Show USA"
 msgstr "VS tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:765
+#: Source/Core/DolphinQt/MenuBar.cpp:777
 msgid "Show Unknown"
 msgstr "Onbekend tonen"
 
@@ -11770,15 +11780,15 @@ msgstr "VBlank-tijden tonen"
 msgid "Show VPS"
 msgstr "VPS tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:729
+#: Source/Core/DolphinQt/MenuBar.cpp:741
 msgid "Show WAD"
 msgstr "WAD tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:727
+#: Source/Core/DolphinQt/MenuBar.cpp:738
 msgid "Show Wii"
 msgstr "Wii tonen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:764
+#: Source/Core/DolphinQt/MenuBar.cpp:776
 msgid "Show World"
 msgstr "Wereld tonen"
 
@@ -11955,7 +11965,7 @@ msgstr " Schakel Zijwaarts"
 msgid "Sideways Wii Remote"
 msgstr "Wii-afstandsbediening Zijwaarts"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1048
+#: Source/Core/DolphinQt/MenuBar.cpp:1060
 msgid "Signature Database"
 msgstr "Signatuurdatabase"
 
@@ -12100,11 +12110,11 @@ msgstr "Socket table"
 msgid "Software Renderer"
 msgstr "Software Renderer"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1311
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1312
 msgid "Some of the data could not be read."
 msgstr "Een deel van de data kon niet worden gelezen."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1039
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1040
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
@@ -12215,7 +12225,7 @@ msgstr "Standaardcontroller"
 msgid "Start"
 msgstr "Start"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:281
+#: Source/Core/DolphinQt/MenuBar.cpp:286
 msgid "Start &NetPlay..."
 msgstr "Start &NetPlay..."
 
@@ -12232,7 +12242,7 @@ msgstr "Start Nieuwe Cheat Zoekopdracht"
 msgid "Start Profiling"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:797
+#: Source/Core/DolphinQt/MenuBar.cpp:809
 msgid "Start Re&cording Input"
 msgstr "Start Input &Opname"
 
@@ -12346,7 +12356,7 @@ msgstr "Stick"
 msgid "Stop"
 msgstr "Stoppen"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:800
+#: Source/Core/DolphinQt/MenuBar.cpp:812
 msgid "Stop Playing/Recording Input"
 msgstr "Afspelen/opnemen van input stoppen"
 
@@ -12435,8 +12445,8 @@ msgstr "Stylus"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:536
 #: Source/Core/DolphinQt/GameList/GameList.cpp:634
 #: Source/Core/DolphinQt/GameList/GameList.cpp:664
-#: Source/Core/DolphinQt/MenuBar.cpp:231 Source/Core/DolphinQt/MenuBar.cpp:1137
-#: Source/Core/DolphinQt/MenuBar.cpp:1271
+#: Source/Core/DolphinQt/MenuBar.cpp:236 Source/Core/DolphinQt/MenuBar.cpp:1181
+#: Source/Core/DolphinQt/MenuBar.cpp:1315
 msgid "Success"
 msgstr "Geslaagd"
 
@@ -12463,7 +12473,7 @@ msgstr "Exporteren van %n van de %1 save bestand(en) gelukt."
 msgid "Successfully exported save files"
 msgstr "Save bestanden succesvol geëxporteerd"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1272
+#: Source/Core/DolphinQt/MenuBar.cpp:1316
 msgid "Successfully extracted certificates from NAND"
 msgstr "Certificaten succesvol uitgepakt van NAND"
 
@@ -12475,12 +12485,12 @@ msgstr "Bestand succesvol uitgepakt."
 msgid "Successfully extracted system data."
 msgstr "Systeemdata succesvol uitgepakt."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1167
+#: Source/Core/DolphinQt/MenuBar.cpp:1211
 msgid "Successfully imported save file."
 msgstr "Save bestand succesvol geïmporteerd."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:635
-#: Source/Core/DolphinQt/MenuBar.cpp:1138
+#: Source/Core/DolphinQt/MenuBar.cpp:1182
 msgid "Successfully installed this title to the NAND."
 msgstr "Titel succesvol geïnstalleerd op de NAND."
 
@@ -12578,11 +12588,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:163
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:143
-#: Source/Core/DolphinQt/MenuBar.cpp:1042
+#: Source/Core/DolphinQt/MenuBar.cpp:1054
 msgid "Symbols"
 msgstr "Symbolen"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:107
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:154
 msgid "Sync"
 msgstr "Sync"
 
@@ -12590,7 +12600,7 @@ msgstr "Sync"
 msgid "Sync AR/Gecko Codes"
 msgstr "AR/Gecko Codes Synchroniseren"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:110
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:157
 msgid "Sync real Wii Remotes and pair them"
 msgstr "Echte Wii-afstandsbedieningen synchroniseren en paren"
 
@@ -12631,7 +12641,7 @@ msgstr "Synchroniseren van save data..."
 msgid "System Language:"
 msgstr "Systeemtaal:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:816
+#: Source/Core/DolphinQt/MenuBar.cpp:828
 msgid "TAS Input"
 msgstr "TAS-input"
 
@@ -12644,7 +12654,7 @@ msgstr "TAS-tools"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:505
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1011
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:261
-#: Source/Core/DolphinQt/MenuBar.cpp:705
+#: Source/Core/DolphinQt/MenuBar.cpp:716
 msgid "Tags"
 msgstr "Tags"
 
@@ -12662,7 +12672,7 @@ msgstr "Staart"
 msgid "Taiwan"
 msgstr "Taiwan"
 
-#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:369
+#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:380
 msgid "Take Screenshot"
 msgstr "Maak Screenshot"
 
@@ -12741,11 +12751,11 @@ msgstr ""
 "\n"
 "Wilt u echt Direct3D 11 gebruiken? In geval van twijfel 'Nee' selecteren."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:595
+#: Source/Core/DiscIO/VolumeVerifier.cpp:596
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr "De H3 hashtabel voor de {0} partitie is onjuist."
 
-#: Source/Core/Core/Boot/Boot.cpp:441
+#: Source/Core/Core/Boot/Boot.cpp:445
 msgid "The IPL file is not a known good dump. (CRC32: {0:x})"
 msgstr "Het IPL bestand is geen bekende goede dump. (CRC32: {0:x})"
 
@@ -12755,11 +12765,11 @@ msgstr "Het IPL bestand is geen bekende goede dump. (CRC32: {0:x})"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:478
+#: Source/Core/DiscIO/VolumeVerifier.cpp:479
 msgid "The Masterpiece partitions are missing."
 msgstr "De Masterpiece partities ontbreken."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1263
+#: Source/Core/DolphinQt/MenuBar.cpp:1307
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
@@ -12767,11 +12777,11 @@ msgstr ""
 "De NAND kon niet worden gerepareerd. Het wordt aanbevolen om een back-up te "
 "maken van uw huidige gegevens en opnieuw te beginnen met een nieuwe NAND."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1258
+#: Source/Core/DolphinQt/MenuBar.cpp:1302
 msgid "The NAND has been repaired."
 msgstr "De NAND is gerepareerd."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:994
+#: Source/Core/DiscIO/VolumeVerifier.cpp:995
 msgid ""
 "The TMD is not correctly signed. If you move or copy this title to the SD "
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
@@ -12797,15 +12807,15 @@ msgstr ""
 "langzamer het wordt bijgewerkt.<br><br><dolphin_emphasis>In geval van "
 "twijfel op 1000ms laten.</dolphin_emphasis>"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:463
+#: Source/Core/DiscIO/VolumeVerifier.cpp:464
 msgid "The channel partition is missing."
 msgstr "De kanaalpartitie ontbreekt."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:459
+#: Source/Core/DiscIO/VolumeVerifier.cpp:460
 msgid "The data partition is missing."
 msgstr "De datapartitie ontbreekt."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:495
+#: Source/Core/DiscIO/VolumeVerifier.cpp:496
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. You will be unable to share input recordings and use "
@@ -12815,7 +12825,7 @@ msgstr ""
 "laadtijden beinvloeden. U kunt geen input opnames delen en niet NetPlay "
 "gebruiken met iemand die een goede dump heeft."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:608
+#: Source/Core/DiscIO/VolumeVerifier.cpp:609
 msgid ""
 "The data size for the {0} partition is not evenly divisible by the block "
 "size."
@@ -12951,7 +12961,7 @@ msgstr ""
 "geheugenkaarten. Hernoem dit bestand naar %2, %3, of %4, passend bij de "
 "regio van de save bestanden die erop staan."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:429
+#: Source/Core/DiscIO/VolumeVerifier.cpp:430
 msgid "The filesystem is invalid or could not be read."
 msgstr "Het bestandssysteem is ongeldig of kon niet gelezen worden."
 
@@ -12965,7 +12975,7 @@ msgstr ""
 "Hernoem deze map naar %2, %3, of %4, overeenkomstig met de regio van de "
 "opgeslagen bestanden."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:772
+#: Source/Core/DiscIO/VolumeVerifier.cpp:773
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
@@ -12973,15 +12983,15 @@ msgstr ""
 "Het formaat waarin de schijfafbeelding is opgeslagen, slaat de grote van de "
 "schijfafbeelding niet op."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:878
+#: Source/Core/DiscIO/VolumeVerifier.cpp:879
 msgid "The game ID is inconsistent."
 msgstr "Het spel ID is inconsistent."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:889
+#: Source/Core/DiscIO/VolumeVerifier.cpp:890
 msgid "The game ID is unusually short."
 msgstr "Het spel ID is ongewoon kort."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:870
+#: Source/Core/DiscIO/VolumeVerifier.cpp:871
 msgid "The game ID is {0} but should be {1}."
 msgstr "Het spel ID is {0} maar zou {1} moeten zijn."
 
@@ -13039,7 +13049,7 @@ msgstr ""
 "De hostcode is te lang.\n"
 "Controleer nogmaals of u de juiste code heeft."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:467
+#: Source/Core/DiscIO/VolumeVerifier.cpp:468
 msgid "The install partition is missing."
 msgstr "De installatiepartitie ontbreekt."
 
@@ -13086,7 +13096,7 @@ msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr ""
 "Het opgenomen spel ({0}) is niet hetzelfde als het geselecteerde spel ({1})"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:907
+#: Source/Core/DiscIO/VolumeVerifier.cpp:908
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -13141,7 +13151,7 @@ msgstr ""
 "\"Nee\" selecteren."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:967
+#: Source/Core/DiscIO/VolumeVerifier.cpp:968
 msgid "The specified common key index is {0} but should be {1}."
 msgstr ""
 "De gespecificeerde gedeelde sleutel index is {0} maar zou {1} moeten zijn."
@@ -13150,7 +13160,7 @@ msgstr ""
 msgid "The specified file \"{0}\" does not exist"
 msgstr "Het opgegeven bestand \"{0}\" bestaat niet"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1221
+#: Source/Core/DolphinQt/MenuBar.cpp:1265
 msgid ""
 "The system-reserved part of your NAND contains %1 blocks (%2 KiB) of data, "
 "out of an allowed maximum of %3 blocks (%4 KiB)."
@@ -13163,7 +13173,7 @@ msgid "The target memory card already contains a file \"%1\"."
 msgstr "De doelgeheugenkaart bevat al een bestand \"% 1\"."
 
 #. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
-#: Source/Core/DiscIO/VolumeVerifier.cpp:985
+#: Source/Core/DiscIO/VolumeVerifier.cpp:986
 msgid "The ticket is not correctly signed."
 msgstr "Het ticket is niet correct ondertekend."
 
@@ -13175,7 +13185,7 @@ msgstr "De totale tijd dat dit figuur gebruikt is binnen een spel in seconden"
 msgid "The toy code for this figure. Only available for real figures."
 msgstr "De figuur-code voor dit figuur. Alleen beschikbaar voor echte figuren."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:517
+#: Source/Core/DiscIO/VolumeVerifier.cpp:518
 msgid "The type of a partition could not be read."
 msgstr "Het type van een partitie kon niet worden gelezen."
 
@@ -13203,19 +13213,19 @@ msgstr ""
 "De update is geannuleerd. Het wordt ten zeerste aanbevolen om de update af "
 "te maken om problemen te voorkomen."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:678
+#: Source/Core/DiscIO/VolumeVerifier.cpp:679
 msgid "The update partition does not contain the IOS used by this title."
 msgstr "De updatepartitie bevat niet de IOS die wordt gebruikt door dit spel."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:455
+#: Source/Core/DiscIO/VolumeVerifier.cpp:456
 msgid "The update partition is missing."
 msgstr "De updatepartitie ontbreekt."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:486
+#: Source/Core/DiscIO/VolumeVerifier.cpp:487
 msgid "The update partition is not at its normal position."
 msgstr "De updatepartitie staat niet op zijn normale positie."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1213
+#: Source/Core/DolphinQt/MenuBar.cpp:1257
 msgid ""
 "The user-accessible part of your NAND contains %1 blocks (%2 KiB) of data, "
 "out of an allowed maximum of %3 blocks (%4 KiB)."
@@ -13223,19 +13233,19 @@ msgstr ""
 "Het door de gebruiker toegankelijke deel van uw NAND bevat %1 blokken (%2 "
 "KiB) aan data, uit het toegestane maximum van %3 blokken (%4 KiB)."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:637
+#: Source/Core/DiscIO/VolumeVerifier.cpp:638
 msgid "The {0} partition does not have a valid file system."
 msgstr "De {0} partitie heeft geen geldig bestandssysteem. "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:566
+#: Source/Core/DiscIO/VolumeVerifier.cpp:567
 msgid "The {0} partition does not seem to contain valid data."
 msgstr "De {0} partitie bevat geen geldige data."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:588
+#: Source/Core/DiscIO/VolumeVerifier.cpp:589
 msgid "The {0} partition is not correctly signed."
 msgstr "De {0} partitie is niet correct ondertekend."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:533
+#: Source/Core/DiscIO/VolumeVerifier.cpp:534
 msgid "The {0} partition is not properly aligned."
 msgstr "De {0} partitie is niet goed uitgelijnd."
 
@@ -13243,7 +13253,7 @@ msgstr "De {0} partitie is niet goed uitgelijnd."
 msgid "Theme"
 msgstr "Thema"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:443
+#: Source/Core/DiscIO/VolumeVerifier.cpp:444
 msgid "There are too many partitions in the first partition table."
 msgstr "Er zijn te veel partities in de eerste partitietabel."
 
@@ -13262,7 +13272,7 @@ msgstr ""
 msgid "There is nothing to save!"
 msgstr ""
 
-#: Source/Core/Core/State.cpp:1044
+#: Source/Core/Core/State.cpp:1030
 msgid "There is nothing to undo!"
 msgstr "Er is niks om ongedaan te maken!"
 
@@ -13294,7 +13304,7 @@ msgstr "Deze Gecko code bevat geen regels."
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:932
+#: Source/Core/DiscIO/VolumeVerifier.cpp:933
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -13310,11 +13320,11 @@ msgstr "Dit Skylander-type kan nog niet worden gewijzigd!"
 msgid "This USB device is already whitelisted."
 msgstr "Dit USB apparaat staat al op de whitelist."
 
-#: Source/Core/Core/ConfigManager.cpp:361
+#: Source/Core/Core/ConfigManager.cpp:372
 msgid "This WAD is not bootable."
 msgstr "Deze WAD is niet opstartbaar."
 
-#: Source/Core/Core/ConfigManager.cpp:356
+#: Source/Core/Core/ConfigManager.cpp:367
 msgid "This WAD is not valid."
 msgstr "Deze WAD is niet geldig."
 
@@ -13339,16 +13349,16 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr "Dit kan niet ongedaan gemaakt worden!"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:819
+#: Source/Core/DiscIO/VolumeVerifier.cpp:820
 msgid "This debug disc image has the size of a retail disc image."
 msgstr ""
 "Deze debug schijfafbeelding heeft de grootte van een retail schijfafbeelding."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:842
+#: Source/Core/DiscIO/VolumeVerifier.cpp:843
 msgid "This disc image has an unusual size."
 msgstr "Deze schijfafbeelding heeft een ongebruikelijke grootte."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:836
+#: Source/Core/DiscIO/VolumeVerifier.cpp:837
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. You will likely be unable to share input recordings "
@@ -13358,7 +13368,7 @@ msgstr ""
 "laadtijden waarschijnlijk langer.  U kunt waarschijnlijk geen input opnames "
 "delen en NetPlay niet gebruiken met iemand die een goede dump heeft."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1004
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1005
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -13370,7 +13380,7 @@ msgstr ""
 "geconverteerd. De CRC32 van dit bestand kan overeenkomen met de CRC32 van "
 "een goede dump, hoewel de bestanden niet identiek zijn."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:792
+#: Source/Core/DiscIO/VolumeVerifier.cpp:793
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -13379,7 +13389,7 @@ msgstr ""
 "de schijfafbeelding in verschillende stukken heeft opgeslagen, moet u deze "
 "in één bestand samenvoegen."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:789
+#: Source/Core/DiscIO/VolumeVerifier.cpp:790
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -13416,7 +13426,7 @@ msgstr "Dit bestand bevat geen geldig Wii bestandssysteem."
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "Dit bestand lijkt niet op een BootMii NAND-back-up."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:764
+#: Source/Core/DiscIO/VolumeVerifier.cpp:765
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -13437,11 +13447,11 @@ msgstr ""
 "grafische kaart of stuurprogramma's ondersteunen dit niet. Als gevolg "
 "hiervan zult u bugs of vastlopers ervaren tijdens het uitvoeren van dit spel."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1396
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1404
 msgid "This is a bad dump."
 msgstr "Dit is een slechte dump."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1389
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1397
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
@@ -13449,7 +13459,7 @@ msgstr ""
 "Dit is een slechte dump. Dit betekend niet per se dat het spel niet goed "
 "werkt."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1356
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1357
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -13457,7 +13467,7 @@ msgstr ""
 "Dit is een goede dump volgens Redump.org, maar Dolphin heeft problemen "
 "gevonden. Dit is misschien een fout in Dolphin."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1351
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1352
 msgid "This is a good dump."
 msgstr "Dit is een goede dump."
 
@@ -13469,17 +13479,12 @@ msgstr ""
 msgid "This session requires a password:"
 msgstr "Deze sessie heeft een wachtwoord nodig:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:179
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:181
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
-"your current system time.\n"
-"\n"
-"If unsure, leave this unchecked."
+"your current system time.<br><br><dolphin_emphasis>If unsure, leave this "
+"unchecked.</dolphin_emphasis>"
 msgstr ""
-"Met deze instelling kunt u een aangepaste real-time klok (RTC) instellen die "
-"los staat van uw huidige systeemtijd.\n"
-"\n"
-"In geval van twijfel leeg laten."
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:76
 msgid "This software should not be used to play games you do not legally own."
@@ -13487,16 +13492,16 @@ msgstr ""
 "Deze software moet niet worden gebruikt om spellen te spelen die u niet "
 "legaal bezit."
 
-#: Source/Core/Core/ConfigManager.cpp:379
+#: Source/Core/Core/ConfigManager.cpp:390
 msgid "This title cannot be booted."
 msgstr "Deze titel kan niet worden opgestart."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:940
+#: Source/Core/DiscIO/VolumeVerifier.cpp:941
 msgid "This title is set to use an invalid IOS."
 msgstr "Dit spel gebruikt een ongeldige IOS."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:954
+#: Source/Core/DiscIO/VolumeVerifier.cpp:955
 msgid "This title is set to use an invalid common key."
 msgstr "Dit spel gebruikt een ongeldige gedeelde sleutel."
 
@@ -13609,7 +13614,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1010
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
-#: Source/Core/DolphinQt/MenuBar.cpp:704
+#: Source/Core/DolphinQt/MenuBar.cpp:715
 msgid "Time Played"
 msgstr ""
 
@@ -13620,7 +13625,7 @@ msgid "Time Spent (ns)"
 msgstr ""
 
 #. i18n: Refers to the "Calibration" setting of gyroscope input.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:49
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:48
 msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr ""
 "Tijdsperiode van stabiele input om kalibratie te activeren. (nul om uit te "
@@ -13633,7 +13638,7 @@ msgstr "Timed Out"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:999
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:237
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:154
-#: Source/Core/DolphinQt/MenuBar.cpp:693
+#: Source/Core/DolphinQt/MenuBar.cpp:704
 msgid "Title"
 msgstr "Titel"
 
@@ -13641,7 +13646,7 @@ msgstr "Titel"
 msgid "To"
 msgstr "Naar"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:202
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:198
 msgid "To log in, stop the current emulation."
 msgstr ""
 
@@ -13651,7 +13656,7 @@ msgstr ""
 msgid "To:"
 msgstr "Naar:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:366
+#: Source/Core/DolphinQt/MenuBar.cpp:377
 msgid "Toggle &Fullscreen"
 msgstr "&Volledig scherm omschakelen"
 
@@ -13844,9 +13849,13 @@ msgstr ""
 "Tracht branches van tevoren te vertalen, waardoor de prestaties in de meeste "
 "gevallen verbeteren. Standaard ingesteld op <b>Waar</b>"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:101
-msgid "Triforce AM Baseboard"
-msgstr "Triforce AM Baseboard"
+#: Source/Core/Core/HW/EXI/EXI_Device.h:99
+msgid "Triforce Baseboard"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/InfoWidget.cpp:127
+msgid "Triforce ID:"
+msgstr ""
 
 #: Source/Core/Core/HW/GCPadEmu.h:60
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:224
@@ -13897,7 +13906,7 @@ msgstr "USB Emulatie"
 msgid "USB Emulation Devices"
 msgstr "USB Emulatie Apparaat"
 
-#: Source/Core/Core/HW/EXI/EXI_Device.h:102
+#: Source/Core/Core/HW/EXI/EXI_Device.h:100
 msgid "USB Gecko"
 msgstr "USB Gecko"
 
@@ -13944,7 +13953,7 @@ msgstr ""
 "het shadercompilatie met minimale impact op de prestaties, maar de "
 "resultaten zijn afhankelijk van het gedrag van video-stuurprogramma's."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1436
+#: Source/Core/DolphinQt/MenuBar.cpp:1480
 msgid "Unable to auto-detect RSO module"
 msgstr "Kan RSO-module niet automatisch detecteren"
 
@@ -14016,11 +14025,11 @@ msgstr "Ongecomprimeerde GC/Wii-afbeeldingen (*.iso *.gcm)"
 msgid "Undead"
 msgstr "Ondood"
 
-#: Source/Core/Core/HotkeyManager.cpp:181 Source/Core/DolphinQt/MenuBar.cpp:388
+#: Source/Core/Core/HotkeyManager.cpp:181 Source/Core/DolphinQt/MenuBar.cpp:399
 msgid "Undo Load State"
 msgstr "Laad State Ongedaan Maken"
 
-#: Source/Core/Core/HotkeyManager.cpp:182 Source/Core/DolphinQt/MenuBar.cpp:405
+#: Source/Core/Core/HotkeyManager.cpp:182 Source/Core/DolphinQt/MenuBar.cpp:416
 msgid "Undo Save State"
 msgstr "Save State Ongedaan Maken"
 
@@ -14041,11 +14050,11 @@ msgstr ""
 "van deze titel uit de NAND, zonder dat zijn save data wordt verwijderd. "
 "Doorgaan?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:330
+#: Source/Core/DolphinQt/MenuBar.cpp:341
 msgid "United States"
 msgstr "Verenigde Staten"
 
-#: Source/Core/Core/State.cpp:648 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:639 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107 Source/Core/DiscIO/Enums.cpp:133
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:86
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:45
@@ -14062,15 +14071,19 @@ msgstr "Onbekend"
 msgid "Unknown (Id:%1 Var:%2)"
 msgstr "Onbekend (Id:%1 Var:%2)"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1174
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1183
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "Onbekend DVD commando {0:08x} - fatale fout"
+
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:73
+msgid "Unknown Device"
+msgstr ""
 
 #: Source/Core/Core/NetPlayClient.cpp:1338
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "Onbekend SYNC_CODES bericht ontvangen met id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1245
+#: Source/Core/Core/NetPlayServer.cpp:1246
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -14082,7 +14095,7 @@ msgstr ""
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Onbekend SYNC_SAVE_DATA-bericht ontvangen met id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1188
+#: Source/Core/Core/NetPlayServer.cpp:1189
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -14126,7 +14139,7 @@ msgstr "Onbekende fout."
 msgid "Unknown message received with id : {0}"
 msgstr "Onbekend bericht ontvangen met id : {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1253
+#: Source/Core/Core/NetPlayServer.cpp:1254
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 "Onbekend bericht ontvangen met id: {0} ontvangen van speler: {1} Speler "
@@ -14201,7 +14214,7 @@ msgstr "Unsigned Integer"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:34
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:20
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:18
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:17
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:24
 msgid "Up"
 msgstr "Omhoog"
@@ -14300,7 +14313,7 @@ msgstr "Gebruik PAL60 Modus (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Gebruik Panic Handlers"
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:114
 msgid ""
 "Use RetroAchievements rich presence in your Discord status.<br><br>Show "
 "Current Game on Discord must be enabled."
@@ -14358,7 +14371,7 @@ msgstr ""
 "besturingsuitdrukking. U kunt ze gebruiken om waarden op te slaan of te "
 "verkrijgen tussen input en output van dezelfde controller."
 
-#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:73
+#: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:69
 msgid "Username"
 msgstr "Gebruikersnaam"
 
@@ -14548,8 +14561,8 @@ msgstr "Virtuele adresruimte"
 #: Source/Core/Core/HotkeyManager.cpp:341
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:64
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:320
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:69
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:336
 msgid "Volume"
 msgstr "Volume"
 
@@ -14569,7 +14582,7 @@ msgstr "Volume Omhoog"
 msgid "Vulkan"
 msgstr "Vulkan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1129
+#: Source/Core/DolphinQt/MenuBar.cpp:1173
 msgid "WAD files (*.wad)"
 msgstr "WAD bestanden (*.wad)"
 
@@ -14702,9 +14715,9 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:217
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:233
-#: Source/Core/DolphinQt/MenuBar.cpp:1591
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:289
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:305
+#: Source/Core/DolphinQt/MenuBar.cpp:1635
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:474
 msgid "Warning"
 msgstr "Waarschuwing"
@@ -14874,7 +14887,7 @@ msgstr "Wii"
 
 #. i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
 #. which is (usually) the first thing users see when a Wii console starts.
-#: Source/Core/Core/TitleDatabase.cpp:86
+#: Source/Core/Core/TitleDatabase.cpp:89
 msgid "Wii Menu"
 msgstr "Wii-menu"
 
@@ -14891,7 +14904,7 @@ msgstr "Wii-afstandsbediening"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:31
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:36
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:457
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:139
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:190
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:43
 msgid "Wii Remote %1"
 msgstr "Wii-afstandsbediening %1"
@@ -14912,7 +14925,7 @@ msgstr "Gyroscoop van Wii-afstandbediening"
 msgid "Wii Remote Settings"
 msgstr "Wii-afstandsbedienings-instellingen"
 
-#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:103
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:148
 msgid "Wii Remotes"
 msgstr "Wii-afstandsbedieningen"
 
@@ -14936,11 +14949,11 @@ msgstr "Wii en Wii-afstandsbediening"
 msgid "Wii data is not public yet"
 msgstr "Wii data is nog niet publiek"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1150
+#: Source/Core/DolphinQt/MenuBar.cpp:1194
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "Wii save bestanden (*.bin);;All Files (*)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:80
+#: Source/Core/DolphinQt/MenuBar.cpp:85
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools Signatuur MEGA Bestand"
 
@@ -14957,7 +14970,7 @@ msgstr "Venstergrootte"
 msgid "Wipe &Inspection Data"
 msgstr "Wis &Inspectie Data"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:941
+#: Source/Core/DolphinQt/MenuBar.cpp:953
 msgid "Wipe JIT Block Profiling Data"
 msgstr ""
 
@@ -14983,7 +14996,7 @@ msgstr "Wereld"
 msgid "Write"
 msgstr "Schrijven"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:944
+#: Source/Core/DolphinQt/MenuBar.cpp:956
 msgid "Write JIT Block Log Dump"
 msgstr "Schrijf JIT Blok Log Dump"
 
@@ -15032,7 +15045,7 @@ msgstr "Verkeerde regio"
 msgid "Wrong revision"
 msgstr "Verkeerde revisie"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:231
+#: Source/Core/DolphinQt/MenuBar.cpp:236
 msgid "Wrote to \"%1\"."
 msgstr "Schreef naar \"%1\"."
 
@@ -15064,11 +15077,11 @@ msgstr "XLink Kai BBA Bestemmings Adres"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:33
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:32
 msgid "Yaw Left"
 msgstr "Gier Links"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:34
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:33
 msgid "Yaw Right"
 msgstr "Gier Rechts"
 
@@ -15235,7 +15248,7 @@ msgstr ""
 "Wilt u nu stoppen om het probleem op te lossen?\n"
 "Als u \"Nee\" kiest, kan het geluid vervormd zijn."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1233
+#: Source/Core/DolphinQt/MenuBar.cpp:1277
 msgid ""
 "Your NAND contains more data than allowed. Wii software may behave "
 "incorrectly or not allow saving."
@@ -15314,6 +15327,7 @@ msgstr "standaard"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:747
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:414
+#: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:88
 msgid "disconnected"
 msgstr "verbinding verbroken"
 
@@ -15385,7 +15399,7 @@ msgid "or select a device"
 msgstr "of selecteer een apparaat"
 
 #. i18n: "s" is the symbol for seconds.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:47
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:46
 msgid "s"
 msgstr "s"
 
@@ -15418,24 +15432,24 @@ msgstr "niet-uitgelijnd"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:700
+#: Source/Core/DiscIO/VolumeVerifier.cpp:701
 msgid "{0} (Masterpiece)"
 msgstr "{0} (Masterpiece)"
 
-#: Source/Core/UICommon/GameFile.cpp:840
+#: Source/Core/UICommon/GameFile.cpp:843
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
-#: Source/Core/Core/Boot/Boot.cpp:448
+#: Source/Core/Core/Boot/Boot.cpp:452
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 "{0} IPL gevonden in {1} map. Het is mogelijk dat de schijf niet herkend wordt"
 
-#: Source/Core/Core/NetPlayServer.cpp:1237
+#: Source/Core/Core/NetPlayServer.cpp:1238
 msgid "{0} failed to synchronize codes."
 msgstr "{0} kon codes niet synchroniseren."
 
-#: Source/Core/Core/NetPlayServer.cpp:1179
+#: Source/Core/Core/NetPlayServer.cpp:1180
 msgid "{0} failed to synchronize."
 msgstr "{0} kon niet synchroniseren."
 
@@ -15448,7 +15462,7 @@ msgstr ""
 " Controleer of u toegang hebt om te schrijven of verplaats het bestand "
 "buiten Dolphin"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:265
+#: Source/Core/DiscIO/CompressedBlob.cpp:263
 #: Source/Core/DiscIO/WIABlob.cpp:1709
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "{0} van {1} blokken. Compressieverhouding {2}%"
@@ -15486,7 +15500,7 @@ msgid "°"
 msgstr "°"
 
 #. i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:39
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:38
 msgid "°/s"
 msgstr "°/s"
 
