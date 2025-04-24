@@ -183,6 +183,7 @@ void AcceleratorSetup(HLEAccelerator* accelerator, PB_TYPE* pb)
   accelerator->SetSampleFormat(pb->audio_addr.sample_format);
   accelerator->SetYn1(pb->adpcm.yn1);
   accelerator->SetYn2(pb->adpcm.yn2);
+  accelerator->SetGain(pb->adpcm.gain);
   accelerator->SetPredScale(pb->adpcm.pred_scale);
 }
 

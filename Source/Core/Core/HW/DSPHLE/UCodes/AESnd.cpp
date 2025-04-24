@@ -266,12 +266,11 @@ void AESndAccelerator::WriteMemory(u32 address, u8 value)
 
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
 
-void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
+void AESndUCode::SetUpAccelerator(u16 format, u16 gain)
 {
   // setup_accl
   m_accelerator.SetSampleFormat(format);
-  // not currently implemented, but it doesn't matter since the gain is configured to be a no-op
-  // m_accelerator.SetGain(gain);
+  m_accelerator.SetGain(gain);
   m_accelerator.SetStartAddress(m_parameter_block.buf_start);
   m_accelerator.SetEndAddress(m_parameter_block.buf_end);
   m_accelerator.SetCurrentAddress(m_parameter_block.buf_curr);
