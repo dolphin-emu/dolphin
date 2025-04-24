@@ -126,7 +126,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
   u16 val = 0;
   u8 step_size = 0;
   s16 raw_sample;
-  if (m_sample_format.decode == FormatDecode::MMIOPCMHalt ||
+  if (m_sample_format.decode == FormatDecode::MMIOPCMNoInc ||
       m_sample_format.decode == FormatDecode::MMIOPCMInc)
   {
     // The addresses can be complete nonsense in either of these modes
@@ -184,7 +184,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
     }
     break;
   }
-  case FormatDecode::MMIOPCMHalt:
+  case FormatDecode::MMIOPCMNoInc:
   case FormatDecode::PCM:  // 16-bit PCM audio
   case FormatDecode::MMIOPCMInc:
   {
@@ -211,7 +211,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
     m_yn2 = m_yn1;
     m_yn1 = val;
     step_size = 2;
-    if (m_sample_format.decode != FormatDecode::MMIOPCMHalt)
+    if (m_sample_format.decode != FormatDecode::MMIOPCMNoInc)
     {
       m_current_address += 1;
     }

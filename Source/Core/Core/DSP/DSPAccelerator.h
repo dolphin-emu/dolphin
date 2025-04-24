@@ -64,10 +64,10 @@ protected:
 
   enum class FormatDecode : u16
   {
-    ADPCM = 0,        // ADPCM reads from ARAM, ACCA increments
-    MMIOPCMHalt = 1,  // PCM Reads from ACIN, ACCA doesn't increment
-    PCM = 2,          // PCM reads from ARAM, ACCA increments
-    MMIOPCMInc = 3    // PCM reads from ACIN, ACCA increments
+    ADPCM = 0,         // ADPCM reads from ARAM, ACCA increments
+    MMIOPCMNoInc = 1,  // PCM Reads from ACIN, ACCA doesn't increment
+    PCM = 2,           // PCM reads from ARAM, ACCA increments
+    MMIOPCMInc = 3     // PCM reads from ACIN, ACCA increments
   };
 
   // When reading samples (at least in PCM mode), they are multiplied by the gain, then divided by
