@@ -77,6 +77,7 @@
     <string name="enable_cheats">Enable Cheats</string>
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
+    <string name="achievements_submenu">Achievements</string>
     <string name="gamecube_submenu">GameCube</string>
     <string name="ipl_settings">IPL Settings</string>
     <string name="skip_main_menu">Skip Main Menu</string>
@@ -952,4 +953,13 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="mute_wii_speak">Mute Wii Speak</string>
     <string name="wii_speak_permission_warning">Missing Microphone Permission</string>
     <string name="wii_speak_permission_warning_description">Wii Speak emulation requires microphone permission. You might need to restart the game for the permission to be effective.</string>
+
+    <!-- Achievements -->
+    <string name="achievements_enabled">Enable Achievements</string>
+    <string name="achievements_hardcore_enabled">Enable Hardcore Mode</string>
+    <string name="achievements_unofficial_enabled">Enable Unofficial Achievements</string>
+    <string name="achievements_encore_enabled">Enable Encore Mode</string>
+    <string name="achievements_spectator_enabled">Enable Spectator Mode</string>
+    <string name="achievements_discord_presence_enabled">Enable Discord Presence</string>
+    <string name="achievements_progress_enabled">Enable Progress Notifications</string>
 </resources>
