@@ -704,7 +704,7 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 \Address{0xFFD7} & \Register{ACEAL}   & Accelerator end address L     \\ \hline
 \Address{0xFFD8} & \Register{ACCAH}   & Accelerator current address H \\ \hline
 \Address{0xFFD9} & \Register{ACCAL}   & Accelerator current address L \\ \hline
-\Address{0xFFDA} & \Register{SCALE}   & ADPCM predictor and scale     \\ \hline
+\Address{0xFFDA} & \Register{PRED\_SCALE} & ADPCM predictor and scale \\ \hline
 \Address{0xFFDB} & \Register{YN1}     & ADPCM output history Y[N - 1] \\ \hline
 \Address{0xFFDC} & \Register{YN2}     & ADPCM output history Y[N - 2] \\ \hline
 \Address{0xFFDD} & \Register{ACDSAMP} & Accelerator processed sample  \\ \hline
@@ -840,7 +840,7 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator current address}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFDA}{SCALE}{ADPCM predictor and scale}{---- ---- -ppp ssss}
+\RegisterBitOverview{0xFFDA}{PRED\_SCALE}{ADPCM predictor and scale}{---- ---- -ppp ssss}
 
 \begin{RegisterBitDescriptions}
 \RegisterBitDescription{6--4}{d}{R/W}{Used to decide which pair of coefficients to use (\Register{COEF\_A1\_p} and \Register{COEF\_A2\_p}, at $\Address{0xFFA0} + 2p$ and $\Address{0xFFA0} + 2p + 1$)}
@@ -852,13 +852,13 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitOverview{0xFFDB}{YN1}{ADPCM YN1}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDSAMP} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A1 coefficient selected by SCALE and scaled per FORMAT.}
+\RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDSAMP} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A1 coefficient selected by PRED\_SCALE and scaled per FORMAT.}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFDC}{YN2}{ADPCM YN2}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A2 coefficient selected by SCALE and scaled per FORMAT.  Writing this value starts the accelerator.}
+\RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A2 coefficient selected by PRED\_SCALE and scaled per FORMAT.  Writing this value starts the accelerator.}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFDD}{ACDSAMP}{Accelerator data}{dddd dddd dddd dddd}
