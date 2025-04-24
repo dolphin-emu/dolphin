@@ -18,7 +18,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX1.H, #0x100
 MULXMVZ	$AX0.L, $AX1.H, $ACC0     ; UNSIGNED
@@ -37,7 +37,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX1.H, #0x100
 MULXMV	$AX0.L, $AX1.H, $ACC0     ; UNSIGNED
@@ -56,7 +56,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX1.H, #0x100
 MULXAC	$AX0.L, $AX1.H, $ACC0     ; UNSIGNED
@@ -75,7 +75,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX1.H, #0x100
 MULX	$AX0.L, $AX1.H     ; UNSIGNED
@@ -95,7 +95,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX1.L, #0x100
 MADDX	$AX0.L, $AX1.L     ; SIGNED (!)
@@ -115,7 +115,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AC0.M, #0xFFFF
 LRI		$AX0.H, #0x100
 MULC	$AC0.M, $AX0.H     ; SIGNED (!)
@@ -135,7 +135,7 @@ call send_back
 
 CLR     $ACC0
 CLRP
-SET15	
+SET15
 LRI     $AC0.M, #0xFFFF
 LRI		$AX0.H, #0x100
 MULCAC	$AC0.M, $AX0.H, $ACC0     ; SIGNED (!)
@@ -154,7 +154,7 @@ MOVP    $ACC0
 call send_back
 
 CLR     $ACC0
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX0.H, #0x100
 MUL		$AX0.L, $AX0.H	; SIGNED (!)
@@ -173,7 +173,7 @@ MOVP    $ACC0
 call send_back
 
 CLR     $ACC0
-SET15	
+SET15
 LRI     $AX0.L, #0xFFFF
 LRI		$AX0.H, #0x100
 MULAC	$AX0.L, $AX0.H, $ACC0     ; SIGNED (!)
@@ -187,65 +187,3 @@ CLR15
 
 ; We're done, DO NOT DELETE THIS LINE
 jmp end_of_test
-
-; test accelerator
-
-; TODO: DSPSpy puts a 16-bit ramp at 0x10000000
-LRIS $AC1.M, #0x0a    ; 16-bit PCM audio
-;SRS	@SampleFormat, $AC1.M
-; Start accelerator position
-LRI $AC1.M, #0x0100
-SRS @ACCAH, $AC1.M
-LRI $AC1.M, #0x1000
-SRS @ACCAH, $AC1.M
-; Current accelerator position
-LRI $AC1.M, #0x0100
-SRS @ACCAH, $AC1.M
-LRI $AC1.M, #0x1000
-SRS @ACCAH, $AC1.M
-; End accelerator position
-LRI $AC1.M, #0x0100
-SRS @ACCAH, $AC1.M
-LRI $AC1.M, #0x2000
-SRS @ACCAH, $AC1.M
-
-; Now to the interesting parameter - gain.
-LRI $AC1.M, #0xFFFF
-SRS @GAIN, $AC1.M
-
-; Let's now load a sample through the accelerator.
-LRS $AC1.M, @ACDSAMP
-call send_back
-
-jmp end_of_test
-
-; test addpaxz
-call send_back
-
-clrp
-lri $AX0.L, #0x1111
-lri $AX0.H, #0x2222
-call send_back
-
-clrp
-addpaxz $ACC0, $AX0.H
-
-call send_back
-
-clrp
-set40
-addpaxz $ACC0, $AX0.H
-set16
-
-call send_back
-
-clrp
-set15
-addpaxz $ACC0, $AX0.H
-clr15
-
-call send_back
-
-
-jmp end_of_test
-
