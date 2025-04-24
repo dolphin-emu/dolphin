@@ -2020,7 +2020,7 @@ void MainWindow::ShowAchievementSettings()
 
 void MainWindow::OnHardcoreChanged()
 {
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     Settings::Instance().SetDebugModeEnabled(false);
   emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
