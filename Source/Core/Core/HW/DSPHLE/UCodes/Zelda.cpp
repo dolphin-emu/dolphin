@@ -1114,7 +1114,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
       for (u16 i = 0; i < 8; ++i)
         (*last8_samples_buffers[rpb_idx])[i] = buffer[0x50 + i];
 
-      auto ApplyFilter = [&]() {
+      auto ApplyFilter = [&] {
         // Filter the buffer using provided coefficients.
         for (u16 i = 0; i < 0x50; ++i)
         {
