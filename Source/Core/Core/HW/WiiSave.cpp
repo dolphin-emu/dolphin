@@ -300,7 +300,7 @@ public:
       return {};
     }
 
-    Md5 md5_file = header.md5;
+    const Md5 md5_file = header.md5;
     header.md5 = s_md5_blanker;
     Md5 md5_calc;
     mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
@@ -449,7 +449,7 @@ private:
     Common::SHA1::Digest data_sha1;
     {
       const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
-      auto data = std::make_unique<u8[]>(data_size);
+      const auto data = std::make_unique<u8[]>(data_size);
       m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
       if (!m_file.ReadBytes(data.get(), data_size))
         return false;
