@@ -17,7 +17,7 @@ public:
   SoundStream() : m_mixer(new Mixer(48000)) {}
   virtual ~SoundStream() {}
   static bool IsValid() { return false; }
-  Mixer* GetMixer() const { return m_mixer.get(); }
+  Mixer* GetMixer() { return m_mixer.get(); }
   virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
   // Returns true if successful.

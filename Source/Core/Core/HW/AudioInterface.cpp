@@ -124,8 +124,8 @@ void AudioInterfaceManager::IncreaseSampleCount(const u32 amount)
 
 int AudioInterfaceManager::GetAIPeriod() const
 {
-  u64 period = m_cpu_cycles_per_sample * (m_interrupt_timing - m_sample_counter);
-  u64 s_period =
+  const u64 period = m_cpu_cycles_per_sample * (m_interrupt_timing - m_sample_counter);
+  const u64 s_period =
       m_cpu_cycles_per_sample * Mixer::FIXED_SAMPLE_RATE_DIVIDEND / m_ais_sample_rate_divisor;
   if (period == 0)
     return static_cast<int>(s_period);
@@ -287,9 +287,9 @@ void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   auto& ai = system.GetAudioInterface();
+                   const auto& ai = system.GetAudioInterface();
                    const u64 cycles_streamed =
-                       ai.IsPlaying() ? (system.GetCoreTiming().GetTicks() - ai.m_last_cpu_time) :
+                       ai.IsPlaying() ? system.GetCoreTiming().GetTicks() - ai.m_last_cpu_time :
                                         ai.m_last_cpu_time;
                    return ai.m_sample_counter +
                           static_cast<u32>(cycles_streamed / ai.m_cpu_cycles_per_sample);
