@@ -3,6 +3,8 @@
 
 #include "Core/FreeLookConfig.h"
 
+#include <optional>
+
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/AchievementSettings.h"
@@ -14,7 +16,8 @@ namespace FreeLook
 {
 static Config s_config;
 static Config s_active_config;
-static bool s_has_registered_callback = false;
+static std::optional<CPUThreadConfigCallback::ConfigChangedCallbackID>
+    s_config_changed_callback_id = std::nullopt;
 
 Config& GetConfig()
 {
@@ -39,14 +42,23 @@ Config::Config()
 
 void Config::Refresh()
 {
-  if (!s_has_registered_callback)
+  if (!s_config_changed_callback_id.has_value())
   {
-    CPUThreadConfigCallback::AddConfigChangedCallback([] { s_config.Refresh(); });
-    s_has_registered_callback = true;
+    s_config_changed_callback_id =
+        CPUThreadConfigCallback::AddConfigChangedCallback([] { s_config.Refresh(); });
   }
 
   camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
   enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED) &&
             !AchievementManager::GetInstance().IsHardcoreModeActive();
+}
+
+void Config::Shutdown()
+{
+  if (!s_config_changed_callback_id.has_value())
+    return;
+
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(*s_config_changed_callback_id);
+  s_config_changed_callback_id.reset();
 }
 }  // namespace FreeLook
