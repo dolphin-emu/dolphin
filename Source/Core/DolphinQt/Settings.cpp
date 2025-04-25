@@ -59,7 +59,7 @@ Settings::Settings()
     });
   });
 
-  Config::AddConfigChangedCallback([this] {
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] {
     static std::atomic<bool> do_once{true};
     if (do_once.exchange(false))
     {
@@ -94,7 +94,10 @@ Settings::Settings()
   });
 }
 
-Settings::~Settings() = default;
+Settings::~Settings()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 void Settings::UnregisterDevicesChangedCallback()
 {
