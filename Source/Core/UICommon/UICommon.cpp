@@ -50,6 +50,9 @@
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/USBUtils.h"
 
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
+
 #ifdef HAVE_QTDBUS
 #include "UICommon/DBusUtils.h"
 #endif
@@ -57,8 +60,6 @@
 #ifdef __APPLE__
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
-
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace UICommon
 {
@@ -152,6 +153,7 @@ void Shutdown()
   WiimoteReal::Shutdown();
   Common::Log::LogManager::Shutdown();
   Discord::Shutdown();
+  g_Config.Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
 }
