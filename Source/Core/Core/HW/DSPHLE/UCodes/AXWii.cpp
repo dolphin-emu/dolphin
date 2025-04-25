@@ -360,7 +360,7 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nval
   }
 }
 
-void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb)
+void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb) const
 {
   // The Wii PB memory layout changed twice.
   // For HLE, we use the largest struct version.
@@ -399,7 +399,7 @@ void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb)
   }
 }
 
-void AXWiiUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii& pb)
+void AXWiiUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii& pb) const
 {
   const char* src = (const char*)&pb;
   constexpr size_t updates_begin = offsetof(AXPBWii, updates);

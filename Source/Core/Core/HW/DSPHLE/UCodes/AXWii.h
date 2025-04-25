@@ -68,8 +68,8 @@ protected:
   void OutputWMSamples(u32* addresses);  // 4 addresses
 
 private:
-  void ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb);
-  void WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii& pb);
+  void ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb) const;
+  void WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii& pb) const;
 
   enum CmdType
   {

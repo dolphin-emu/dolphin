@@ -89,7 +89,7 @@ bool AXUCode::LoadResamplingCoefficients(bool require_same_checksum, u32 desired
   return false;
 }
 
-void AXUCode::SignalWorkEnd()
+void AXUCode::SignalWorkEnd() const
 {
   // Signal end of processing
   // TODO: figure out how many cycles this is actually supposed to take
@@ -285,7 +285,7 @@ void AXUCode::HandleCommandList()
   }
 }
 
-AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
+AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control) const
 {
   u32 ret = 0;
 
@@ -412,7 +412,7 @@ static bool HasLpf(u32 crc)
 }
 
 // Read a PB from MRAM/ARAM
-void AXUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb)
+void AXUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb) const
 {
   if (HasLpf(m_crc))
   {
@@ -435,7 +435,7 @@ void AXUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb)
 }
 
 // Write a PB back to MRAM/ARAM
-void AXUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb)
+void AXUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb) const
 {
   if (HasLpf(m_crc))
   {
@@ -532,7 +532,7 @@ void AXUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
     sample += (int)Common::swap32(*ptr++);
 }
 
-void AXUCode::UploadLRS(u32 dst_addr)
+void AXUCode::UploadLRS(u32 dst_addr) const
 {
   int buffers[3][5 * 32];
 
@@ -605,7 +605,7 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
   }
 }
 
-void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
+void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr) const
 {
   int surround_buffer[5 * 32];
 

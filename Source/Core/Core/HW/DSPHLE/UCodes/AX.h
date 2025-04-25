@@ -124,10 +124,10 @@ protected:
   // Convert a mixer_control bitfield to our internal representation for that
   // value. Required because that bitfield has a different meaning in some
   // versions of AX.
-  AXMixControl ConvertMixerControl(u32 mixer_control);
+  AXMixControl ConvertMixerControl(u32 mixer_control) const;
 
   virtual void HandleCommandList();
-  void SignalWorkEnd();
+  void SignalWorkEnd() const;
 
   struct BufferDesc
   {
@@ -162,10 +162,10 @@ protected:
   void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
   void ProcessPBList(u32 pb_addr);
   void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
-  void UploadLRS(u32 dst_addr);
+  void UploadLRS(u32 dst_addr) const;
   void SetMainLR(u32 src_addr);
   void RunCompressor(u16 threshold, u16 release_stages, u32 table_addr, u32 millis);
-  void OutputSamples(u32 out_addr, u32 surround_addr);
+  void OutputSamples(u32 out_addr, u32 surround_addr) const;
   void MixAUXBLR(u32 ul_addr, u32 dl_addr);
   void SetOppositeLR(u32 src_addr);
   void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl, u32 auxb_l_dl,
@@ -175,8 +175,8 @@ protected:
   void DoAXState(PointerWrap& p);
 
 private:
-  void ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb);
-  void WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb);
+  void ReadPB(Memory::MemoryManager& memory, u32 addr, AXPB& pb) const;
+  void WritePB(Memory::MemoryManager& memory, u32 addr, const AXPB& pb) const;
 
   enum CmdType
   {

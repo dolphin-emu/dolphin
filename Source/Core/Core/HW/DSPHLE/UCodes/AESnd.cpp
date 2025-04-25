@@ -220,7 +220,7 @@ void AESndUCode::DMAInParameterBlock()
   m_parameter_block.flags = HLEMemory_Read_U32(memory, m_parameter_block_addr + 40);
 }
 
-void AESndUCode::DMAOutParameterBlock()
+void AESndUCode::DMAOutParameterBlock() const
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   HLEMemory_Write_U32(memory, m_parameter_block_addr + 0, m_parameter_block.out_buf);
