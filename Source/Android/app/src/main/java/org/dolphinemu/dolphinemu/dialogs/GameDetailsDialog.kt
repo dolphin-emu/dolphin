@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.databinding.DialogGameDetailsBinding
 import org.dolphinemu.dolphinemu.databinding.DialogGameDetailsTvBinding
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.model.GameFile
 
 class GameDetailsDialog : DialogFragment() {
@@ -35,6 +36,21 @@ class GameDetailsDialog : DialogFragment() {
         if (requireActivity() is AppCompatActivity) {
             binding = DialogGameDetailsBinding.inflate(layoutInflater)
             binding.apply {
+                if (BooleanSetting.MAIN_TIME_TRACKING.boolean) {
+                    lifecycleScope.launch {
+                        val totalMs = gameFile.getTimePlayedMs()
+                        val totalMinutes = totalMs / 60000
+                        val totalHours = totalMinutes / 60
+                        textTimePlayed.text = resources.getString(
+                            R.string.game_details_time_played,
+                            totalHours,
+                            totalMinutes % 60
+                        )
+                    }
+                } else {
+                    textTimePlayed.visibility = View.GONE
+                }
+
                 textGameTitle.text = gameFile.getTitle()
                 textDescription.text = gameFile.getDescription()
                 if (gameFile.getDescription().isEmpty()) {
@@ -87,6 +103,21 @@ class GameDetailsDialog : DialogFragment() {
         } else {
             tvBinding = DialogGameDetailsTvBinding.inflate(layoutInflater)
             tvBinding.apply {
+                if (BooleanSetting.MAIN_TIME_TRACKING.boolean) {
+                    lifecycleScope.launch {
+                        val totalMs = gameFile.getTimePlayedMs()
+                        val totalMinutes = totalMs / 60000
+                        val totalHours = totalMinutes / 60
+                        textTimePlayed.text = resources.getString(
+                            R.string.game_details_time_played,
+                            totalHours,
+                            totalMinutes % 60
+                        )
+                    }
+                } else {
+                    textTimePlayed.visibility = View.GONE
+                }
+
                 textGameTitle.text = gameFile.getTitle()
                 textDescription.text = gameFile.getDescription()
                 if (gameFile.getDescription().isEmpty()) {

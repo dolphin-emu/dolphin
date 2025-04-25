@@ -153,6 +153,8 @@
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
+    <string name="time_tracking">Enable Play Time Tracking</string>
+    <string name="time_tracking_description">Tracks the time you spend playing games and shows it in the game details.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
     <string name="show_titles_in_game_list">Show Titles</string>
     <string name="change_theme">Change App Theme</string>
@@ -517,6 +519,7 @@
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
 
     <!-- Game Details Screen -->
+    <string name="game_details_time_played">Played for %1$dh %2$dm</string>
     <string name="game_details_country">Country</string>
     <string name="game_details_company">Company</string>
     <string name="game_details_game_id">Game ID</string>

@@ -3,6 +3,8 @@
 package org.dolphinemu.dolphinemu.model
 
 import androidx.annotation.Keep
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Keep
 class GameFile private constructor(private val pointer: Long) {
@@ -53,6 +55,15 @@ class GameFile private constructor(private val pointer: Long) {
     external fun getBannerWidth(): Int
 
     external fun getBannerHeight(): Int
+
+    suspend fun getTimePlayedMs(): Long {
+        // getTimePlayedMsInternal reads from disk, so let's use coroutines.
+        return withContext(Dispatchers.IO) {
+            getTimePlayedMsInternal()
+        }
+    }
+
+    external private fun getTimePlayedMsInternal(): Long
 
     val customCoverPath: String
         get() = "${getPath().substring(0, getPath().lastIndexOf("."))}.cover.png"

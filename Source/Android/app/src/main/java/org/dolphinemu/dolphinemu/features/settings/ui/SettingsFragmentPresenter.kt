@@ -344,6 +344,14 @@ class SettingsFragmentPresenter(
                 R.string.osd_messages_description
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_TIME_TRACKING,
+                R.string.time_tracking,
+                R.string.time_tracking_description
+            )
+        )
 
         val appTheme: AbstractIntSetting = object : AbstractIntSetting {
             override val isOverridden: Boolean
