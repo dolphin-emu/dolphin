@@ -28,7 +28,7 @@ void CARDUCode::Update()
   // check if we have something to send
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
