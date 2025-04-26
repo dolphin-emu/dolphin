@@ -34,6 +34,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
+#include "Common/Config/Config.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
@@ -277,7 +278,7 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     Settings::Instance().SetDebugModeEnabled(false);
   // This needs to trigger on both RA_HARDCORE_ENABLED and RA_ENABLED
-  Config::AddConfigChangedCallback(
+  m_config_changed_callback_id = Config::AddConfigChangedCallback(
       [this]() { QueueOnObject(this, [this] { this->OnHardcoreChanged(); }); });
   // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
@@ -351,6 +352,7 @@ MainWindow::~MainWindow()
   Settings::Instance().ResetNetPlayServer();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
   AchievementManager::GetInstance().Shutdown();
 #endif  // USE_RETRO_ACHIEVEMENTS
 

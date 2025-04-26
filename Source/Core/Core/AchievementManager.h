@@ -26,6 +26,7 @@
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
 #include "Common/JsonUtil.h"
@@ -264,6 +265,7 @@ private:
   bool m_is_runtime_initialized = false;
   UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
   Badge m_default_player_badge;
   Badge m_default_game_badge;
   Badge m_default_unlocked_badge;

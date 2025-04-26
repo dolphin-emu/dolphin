@@ -190,6 +190,7 @@ struct VideoConfig final
   VideoConfig() = default;
   void Refresh();
   void VerifyValidity();
+  static void Shutdown();
 
   // General
   bool bVSync = false;
