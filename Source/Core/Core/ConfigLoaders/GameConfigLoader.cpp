@@ -174,6 +174,13 @@ static SectionKey GetINILocationFromConfig(const Location& location)
   return {Config::GetSystemName(location.system) + "." + location.section, location.key};
 }
 
+const Common::IniDirectory& GetDefaultGameSettings()
+{
+  static Common::IniDirectory s_sys_inis(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP
+                                         "default.bin.zstd");
+  return s_sys_inis;
+}
+
 // INI Game layer configuration loader
 class INIGameConfigLayerLoader final : public Config::ConfigLayerLoader
 {
@@ -189,8 +196,9 @@ public:
     Common::IniFile ini;
     if (layer->GetLayer() == Config::LayerType::GlobalGame)
     {
+      auto& sys_inis = GetDefaultGameSettings();
       for (const std::string& filename : GetGameIniFilenames(m_id, m_revision))
-        ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+        ini.Load(sys_inis, filename, true);
     }
     else
     {

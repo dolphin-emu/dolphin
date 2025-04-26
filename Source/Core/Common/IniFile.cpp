@@ -7,10 +7,13 @@
 #include <cstddef>
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
+
+#include <zstd.h>
 
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -246,6 +249,25 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
   std::ifstream in;
   File::OpenFStream(in, filename, std::ios::in);
 
+  return Load(in);
+}
+
+bool IniFile::Load(const IniDirectory& dir, const std::string& filename, bool keep_current_data)
+{
+  if (!keep_current_data)
+    sections.clear();
+
+  auto content = dir.Get(filename);
+  if (!content)
+    return false;
+
+  // TODO: avoid string copy
+  std::stringstream in{std::string(*content), std::ios::in};
+  return Load(in);
+}
+
+bool IniFile::Load(std::istream& in)
+{
   if (in.fail())
     return false;
 
@@ -311,8 +333,6 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
       }
     }
   }
-
-  in.close();
   return true;
 }
 
@@ -350,6 +370,38 @@ bool IniFile::Save(const std::string& filename)
   out.close();
 
   return File::RenameSync(temp, filename);
+}
+
+IniDirectory::IniDirectory(const std::string& filename)
+{
+  std::string src;
+  if (!File::ReadFileToString(filename, src))
+    return;
+  unsigned long long want_size = ZSTD_getFrameContentSize(src.data(), src.size());
+  if (want_size == ZSTD_CONTENTSIZE_UNKNOWN || want_size == ZSTD_CONTENTSIZE_ERROR)
+    return;
+  m_data.reset(want_size);
+  size_t got_size = ZSTD_decompress(m_data.data(), want_size, src.data(), src.size());
+  if (got_size != want_size)
+    return;
+
+  for (size_t i = 0; i < m_data.size();)
+  {
+    auto name = std::string_view(&m_data[i]);
+    i += name.size() + 1;
+    auto content = std::string_view(&m_data[i]);
+    i += content.size() + 1;
+    m_files.emplace(name, content);
+  }
+}
+
+std::optional<std::string_view> IniDirectory::Get(std::string_view filename) const
+{
+  const auto it = m_files.find(filename);
+  if (it == m_files.end())
+    return {};
+
+  return it->second;
 }
 
 // Unit test. TODO: Move to the real unit test framework.
