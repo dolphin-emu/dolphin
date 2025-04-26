@@ -264,7 +264,7 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
   if (!PathEndsWith(dol_path, "/sys/main.dol"))
     return false;
 
-  const size_t chars_to_remove = std::string("sys/main.dol").size();
+  static constexpr size_t chars_to_remove = std::string_view("sys/main.dol").size();
   *partition_root = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   if (File::GetSize(*partition_root + "sys/boot.bin") < 0x20)
@@ -339,9 +339,21 @@ static bool IsMainDolForNonGamePartition(const std::string& path)
   return false;  // volume_path is the game partition's /sys/main.dol
 }
 
+static bool IsBootBin(const std::string& path)
+{
+  if (!PathEndsWith(path, "/sys/boot.bin"))
+    return false;
+
+  static constexpr size_t chars_to_remove = std::string_view("sys/boot.bin").size();
+  const std::string partition_root = path.substr(0, path.size() - chars_to_remove);
+
+  return File::Exists(partition_root + "sys/main.dol");
+}
+
 bool ShouldHideFromGameList(const std::string& volume_path)
 {
-  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path);
+  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path) ||
+         IsBootBin(volume_path);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
