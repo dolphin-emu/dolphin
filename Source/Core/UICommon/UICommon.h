@@ -14,6 +14,8 @@ namespace UICommon
 void Init();
 void Shutdown();
 
+void FlushUnsavedData();
+
 void InitControllers(const WindowSystemInfo& wsi);
 void ShutdownControllers();
 
