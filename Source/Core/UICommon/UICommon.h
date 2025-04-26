@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 
 struct WindowSystemInfo;
 
@@ -14,6 +15,8 @@ namespace UICommon
 void Init();
 void Shutdown();
 
+// Triggered from the Host-thread on Android before a potential process termination.
+[[nodiscard]] Common::EventHook AddFlushUnsavedDataCallback(std::function<void()> callback);
 void FlushUnsavedData();
 
 void InitControllers(const WindowSystemInfo& wsi);
