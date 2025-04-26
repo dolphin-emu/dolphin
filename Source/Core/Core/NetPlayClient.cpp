@@ -862,6 +862,8 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.allow_sd_writes;
     packet >> m_net_settings.oc_enable;
     packet >> m_net_settings.oc_factor;
+    packet >> m_net_settings.vi_oc_enable;
+    packet >> m_net_settings.vi_oc_factor;
 
     for (auto slot : ExpansionInterface::SLOTS)
       packet >> m_net_settings.exi_device[slot];

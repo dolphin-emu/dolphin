@@ -119,7 +119,9 @@ void CoreTimingManager::Shutdown()
 void CoreTimingManager::RefreshConfig()
 {
   m_config_oc_factor =
-      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
+      (Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f) *
+      (Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_VI_OVERCLOCK) :
+                                                       1.0f);
   m_config_oc_inv_factor = 1.0f / m_config_oc_factor;
   m_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
 
@@ -480,6 +482,11 @@ void CoreTimingManager::UpdateVISkip(TimePoint current_time, TimePoint target_ti
 bool CoreTimingManager::GetVISkip() const
 {
   return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
+}
+
+float CoreTimingManager::GetOverclock() const
+{
+  return m_config_oc_factor;
 }
 
 bool CoreTimingManager::UseSyncOnSkipIdle() const

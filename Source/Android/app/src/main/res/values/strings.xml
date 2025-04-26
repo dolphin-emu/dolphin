@@ -376,7 +376,7 @@
     <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
     <string name="clock_override">Clock Override</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
-    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
+    <string name="overclock_enable_description">On games that have an unstable frame rate despite full emulation speed, higher values can improve their performance, requiring a powerful device. Lower values reduce the emulated console\'s performance, but improve the emulation speed.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
     <string name="memory_override">Memory Override</string>
@@ -385,6 +385,10 @@
     <string name="main_mem1_size">MEM1 Size</string>
     <string name="main_mem2_size">MEM2 Size</string>
     <string name="gpu_options">GPU Options</string>
+    <string name="vi_overclock_enable">Override VBI Frequency</string>
+    <string name="vi_overclock_enable_description">Makes games run at a different frame rate, making the emulation less demanding when lowered, or improving smoothness when increased. This may affect gameplay speed, as it is often tied to the frame rate.</string>
+    <string name="vi_overclock_title">VBI Frequency</string>
+    <string name="vi_overclock_title_description">Adjusts the VBI frequency rate if \"Override VBI Frequency\" is enabled.\nAlso adjusts the emulated CPU\'s clock speed, to keep it relatively the same.</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
     <string name="custom_rtc_options">Custom RTC Options</string>
