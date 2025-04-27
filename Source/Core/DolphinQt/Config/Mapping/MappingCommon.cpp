@@ -26,7 +26,7 @@ constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
 // Ignore the mouse-click when queuing more buttons with "alternate mappings" enabled.
 constexpr auto INPUT_DETECT_ENDING_IGNORE_TIME = std::chrono::milliseconds(50);
 
-bool ContainsAnalogInput(const ciface::Core::InputDetector::Results& results)
+static bool ContainsAnalogInput(const ciface::Core::InputDetector::Results& results)
 {
   return std::ranges::any_of(results, [](auto& detection) { return detection.smoothness > 1; });
 }
