@@ -962,4 +962,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_spectator_enabled">Enable Spectator Mode</string>
     <string name="achievements_discord_presence_enabled">Enable Discord Presence</string>
     <string name="achievements_progress_enabled">Enable Progress Notifications</string>
+    <string name="achievements_username">Username</string>
+    <string name="achievements_password">Password</string>
+    <string name="achievements_login">Log In</string>
+    <string name="achievements_logout">Log Out</string>
 </resources>

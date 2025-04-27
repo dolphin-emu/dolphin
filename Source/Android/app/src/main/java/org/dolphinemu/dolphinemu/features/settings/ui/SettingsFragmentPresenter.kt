@@ -31,6 +31,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
+import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
@@ -953,6 +954,33 @@ class SettingsFragmentPresenter(
             )
         )
         if (BooleanSetting.ACHIEVEMENTS_ENABLED.boolean) {
+            if (StringSetting.ACHIEVEMENTS_API_TOKEN.string == "") {
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.achievements_login,
+                        0,
+                        0,
+                        0,
+                        false
+                    ) {
+                      fragmentView.showDialogFragment(LoginDialog())
+                      loadSettingsList()
+                    })
+            } else {
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.achievements_logout,
+                        0,
+                        0,
+                        0,
+                        false
+                    ) {
+                      logout()
+                      loadSettingsList()
+                    })
+            }
             sl.add(
                 SwitchSetting(
                     context,
