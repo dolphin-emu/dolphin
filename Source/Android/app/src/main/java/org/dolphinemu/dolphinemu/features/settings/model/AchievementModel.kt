@@ -7,5 +7,11 @@ object AchievementModel {
     external fun init()
 
     @JvmStatic
+    external fun login(password: String)
+
+    @JvmStatic
+    external fun logout()
+
+    @JvmStatic
     external fun shutdown()
 }
