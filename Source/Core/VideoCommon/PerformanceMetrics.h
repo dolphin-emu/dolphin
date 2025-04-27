@@ -7,6 +7,7 @@
 #include <deque>
 
 #include "Common/CommonTypes.h"
+#include "Core/Core.h"
 #include "VideoCommon/PerformanceTracker.h"
 
 namespace Core
@@ -29,6 +30,7 @@ public:
 
   void CountFrame();
   void CountVBlank();
+  void OnEmulationStateChanged(Core::State state);
 
   // Call from CPU thread.
   void CountThrottleSleep(DT sleep);

@@ -868,7 +868,7 @@ static void Step()
 {
   auto& system = Core::System::GetInstance();
   system.GetCPU().SetStepping(true);
-  Core::CallOnStateChangedCallbacks(Core::State::Paused);
+  Core::NotifyStateChanged(Core::State::Paused);
 }
 
 static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)

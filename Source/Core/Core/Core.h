@@ -167,7 +167,7 @@ using StateChangedCallbackFunc = std::function<void(Core::State)>;
 int AddOnStateChangedCallback(StateChangedCallbackFunc callback);
 // Also invalidates the handle
 bool RemoveOnStateChangedCallback(int* handle);
-void CallOnStateChangedCallbacks(Core::State state);
+void NotifyStateChanged(Core::State state);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(Core::System& system, bool initial = false);
