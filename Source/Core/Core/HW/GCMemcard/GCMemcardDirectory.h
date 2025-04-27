@@ -5,10 +5,9 @@
 
 #include <mutex>
 #include <string>
-#include <thread>
 #include <vector>
 
-#include "Common/Event.h"
+#include "Common/FlushThread.h"
 #include "Core/HW/GCMemcard/GCIFile.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardBase.h"
@@ -19,12 +18,12 @@
 void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
                             DiscIO::Region region);
 
-class GCMemcardDirectory : public MemoryCardBase
+class GCMemcardDirectory final : public MemoryCardBase
 {
 public:
   GCMemcardDirectory(const std::string& directory, ExpansionInterface::Slot slot,
                      const Memcard::HeaderData& header_data, u32 game_id);
-  ~GCMemcardDirectory();
+  ~GCMemcardDirectory() override;
 
   GCMemcardDirectory(const GCMemcardDirectory&) = delete;
   GCMemcardDirectory& operator=(const GCMemcardDirectory&) = delete;
@@ -33,8 +32,6 @@ public:
 
   static std::vector<std::string> GetFileNamesForGameID(const std::string& directory,
                                                         const std::string& game_id);
-  void FlushToFile();
-  void FlushThread();
   s32 Read(u32 src_address, s32 length, u8* dest_address) override;
   s32 Write(u32 dest_address, s32 length, const u8* src_address) override;
   void ClearBlock(u32 address) override;
@@ -42,6 +39,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
+  void FlushToFile();
   bool LoadGCI(Memcard::GCIFile gci);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* dest_address);
@@ -61,8 +59,6 @@ private:
   std::vector<Memcard::GCIFile> m_saves;
 
   std::string m_save_directory;
-  Common::Event m_flush_trigger;
   std::mutex m_write_mutex;
-  Common::Flag m_exiting;
-  std::thread m_flush_thread;
+  Common::FlushThread m_flush_thread;
 };
