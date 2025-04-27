@@ -15,6 +15,19 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_init(JNI
 }
 
 JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_login(JNIEnv* env, jclass,
+                                                                              jstring password)
+{
+  AchievementManager::GetInstance().Login(GetJString(env, password));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_logout(JNIEnv* env, jclass)
+{
+  AchievementManager::GetInstance().Logout();
+}
+
+JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_shutdown(JNIEnv* env,
                                                                                  jclass)
 {
