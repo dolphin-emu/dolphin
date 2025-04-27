@@ -137,8 +137,12 @@ void EnhancementsWidget::CreateWidgets()
 
   m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
-  m_post_processing_effect = new ConfigStringChoice(VideoCommon::PostProcessing::GetShaderList(),
-                                                    Config::GFX_ENHANCE_POST_SHADER, m_game_layer);
+  // The post-processing effect "(off)" has the config value "", so we need to use the constructor
+  // that sets ConfigStringChoice's m_text_is_data to false. m_post_processing_effect is cleared in
+  // LoadPostProcessingShaders so it's pointless to fill it with real data here.
+  const std::vector<std::pair<QString, QString>> separate_data_and_text;
+  m_post_processing_effect =
+      new ConfigStringChoice(separate_data_and_text, Config::GFX_ENHANCE_POST_SHADER, m_game_layer);
   m_configure_post_processing_effect = new NonDefaultQPushButton(tr("Configure"));
   m_configure_post_processing_effect->setDisabled(true);
 
@@ -287,7 +291,7 @@ void EnhancementsWidget::LoadPostProcessingShaders()
 
   // Populate widget
   if (stereo_mode != StereoMode::Anaglyph && stereo_mode != StereoMode::Passive)
-    m_post_processing_effect->addItem(tr("(off)"));
+    m_post_processing_effect->addItem(tr("(off)"), QStringLiteral(""));
 
   auto selected_shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
 
@@ -295,7 +299,8 @@ void EnhancementsWidget::LoadPostProcessingShaders()
 
   for (const auto& shader : shaders)
   {
-    m_post_processing_effect->addItem(QString::fromStdString(shader));
+    const QString name = QString::fromStdString(shader);
+    m_post_processing_effect->addItem(name, name);
     if (selected_shader == shader)
     {
       m_post_processing_effect->setCurrentIndex(m_post_processing_effect->count() - 1);
@@ -314,7 +319,7 @@ void EnhancementsWidget::LoadPostProcessingShaders()
       selected_shader = "";
 
     const int index =
-        std::max(0, m_post_processing_effect->findText(QString::fromStdString(selected_shader)));
+        std::max(0, m_post_processing_effect->findData(QString::fromStdString(selected_shader)));
     m_post_processing_effect->setCurrentIndex(index);
 
     // Save forced shader, but avoid forcing an option into a game ini layer.
