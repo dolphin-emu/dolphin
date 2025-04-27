@@ -4,9 +4,7 @@
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 
 #include <algorithm>
-#include <chrono>
 #include <cstring>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -25,8 +23,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Common/Thread.h"
-#include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -181,8 +177,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionInterface::Slot slot,
                                        const Memcard::HeaderData& header_data, u32 game_id)
     : MemoryCardBase(slot, header_data.m_size_mb), m_game_id(game_id), m_last_block(-1),
-      m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0), m_save_directory(directory),
-      m_exiting(false)
+      m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0), m_save_directory(directory)
 {
   // Use existing header data if available
   {
@@ -256,44 +251,19 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
   m_dir2 = m_dir1;
   m_bat2 = m_bat1;
 
-  m_flush_thread = std::thread(&GCMemcardDirectory::FlushThread, this);
-}
-
-void GCMemcardDirectory::FlushThread()
-{
-  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
+  if (Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
-    return;
-  }
+    m_flush_thread.Reset(fmt::format("Memcard {} flushing thread", m_card_slot),
+                         std::bind_front(&GCMemcardDirectory::FlushToFile, this));
 
-  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_slot).c_str());
-
-  constexpr std::chrono::seconds flush_interval{1};
-  while (true)
-  {
-    // no-op until signalled
-    m_flush_trigger.Wait();
-
-    if (m_exiting.TestAndClear())
-      return;
-    // no-op as long as signalled within flush_interval
-    while (m_flush_trigger.WaitFor(flush_interval))
-    {
-      if (m_exiting.TestAndClear())
-        return;
-    }
-
-    FlushToFile();
+    m_flush_thread.SetFlushDelay(std::chrono::seconds{1});
   }
 }
 
 GCMemcardDirectory::~GCMemcardDirectory()
 {
-  m_exiting.Set();
-  m_flush_trigger.Set();
-  m_flush_thread.join();
-
-  FlushToFile();
+  // Trigger one more flush on Shutdown since Write doesn't always SetDirty.
+  m_flush_thread.SetDirty();
 }
 
 s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
@@ -417,7 +387,7 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
   if (extra)
     extra = Write(dest_address + length, extra, src_address + length);
   if (offset + length == Memcard::BLOCK_SIZE)
-    m_flush_trigger.Set();
+    m_flush_thread.SetDirty();
   return length + extra;
 }
 
@@ -620,7 +590,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 
 void GCMemcardDirectory::FlushToFile()
 {
-  std::unique_lock l(m_write_mutex);
+  std::lock_guard lk{m_write_mutex};
   Memcard::DEntry invalid;
   for (Memcard::GCIFile& save : m_saves)
   {
@@ -719,7 +689,7 @@ void GCMemcardDirectory::FlushToFile()
 
 void GCMemcardDirectory::DoState(PointerWrap& p)
 {
-  std::unique_lock l(m_write_mutex);
+  std::lock_guard lk{m_write_mutex};
   m_last_block = -1;
   m_last_block_address = nullptr;
   p.Do(m_save_directory);
@@ -735,10 +705,10 @@ void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterfac
                             DiscIO::Region region)
 {
   File::CreateFullPath(directory_name);
-  const std::string ini_memcard = Config::GetMemcardPath(card_slot, region);
+  std::string ini_memcard = Config::GetMemcardPath(card_slot, region);
   if (File::Exists(ini_memcard))
   {
-    auto [error_code, memcard] = Memcard::GCMemcard::Open(ini_memcard.c_str());
+    auto [error_code, memcard] = Memcard::GCMemcard::Open(std::move(ini_memcard));
     if (!error_code.HasCriticalErrors() && memcard && memcard->IsValid())
     {
       for (u8 i = 0; i < Memcard::DIRLEN; i++)
