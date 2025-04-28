@@ -35,7 +35,6 @@
 [submodule "Externals/libspng/libspng"]
 	path = Externals/libspng/libspng
 	url = https://github.com/randy408/libspng.git
-	branch = v0.7.2
 	shallow = true
 [submodule "Externals/VulkanMemoryAllocator"]
 	path = Externals/VulkanMemoryAllocator
