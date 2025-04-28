@@ -113,7 +113,7 @@ QTextCharFormat GetCommentCharFormat()
 ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocument* parent)
     : QObject(parent)
 {
-  connect(parent, &QTextDocument::contentsChanged, this, [this, parent]() { Highlight(parent); });
+  connect(parent, &QTextDocument::contentsChanged, this, [this, parent] { Highlight(parent); });
 }
 
 void QComboBoxWithMouseWheelDisabled::wheelEvent(QWheelEvent* event)

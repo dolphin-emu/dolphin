@@ -570,7 +570,7 @@ void NetPlayDialog::UpdateDiscordPresence()
   if (m_player_count == 0 || m_current_game_name.empty())
     return;
 
-  const auto use_default = [this]() {
+  const auto use_default = [this] {
     Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::Empty, "",
                                    m_current_game_name);
   };

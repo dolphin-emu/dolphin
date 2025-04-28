@@ -518,7 +518,7 @@ bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GR
     if (read_function && success)
       success = read_function(i);
 
-    hash_futures[i] = std::async(std::launch::async, [&in, &out, &hash_futures, success, i]() {
+    hash_futures[i] = std::async(std::launch::async, [&in, &out, &hash_futures, success, i] {
       const size_t h1_base = Common::AlignDown(i, 8);
 
       if (success)

@@ -345,7 +345,7 @@ void HotkeyScheduler::Run()
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
         m_profile_cycler.NextWiimoteProfileForGame(3);
 
-      auto ShowVolume = []() {
+      auto ShowVolume = [] {
         OSD::AddMessage(std::string("Volume: ") +
                         (Config::Get(Config::MAIN_AUDIO_MUTED) ?
                              "Muted" :
@@ -450,7 +450,7 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(fmt::format("Copy EFB: {}", new_value ? "to Texture" : "to RAM"));
       }
 
-      auto ShowXFBCopies = []() {
+      auto ShowXFBCopies = [] {
         OSD::AddMessage(fmt::format(
             "Copy XFB: {}{}", Config::Get(Config::GFX_HACK_IMMEDIATE_XFB) ? " (Immediate)" : "",
             Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM) ? "to Texture" : "to RAM"));
@@ -504,7 +504,7 @@ void HotkeyScheduler::Run()
         AudioCommon::UpdateSoundStream(system);
       }
 
-      auto ShowEmulationSpeed = []() {
+      auto ShowEmulationSpeed = [] {
         const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
         if (!AchievementManager::GetInstance().IsHardcoreModeActive() ||
             Config::Get(Config::MAIN_EMULATION_SPEED) >= 1.0f ||

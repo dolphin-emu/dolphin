@@ -186,7 +186,7 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
   xml_root_layout->addWidget(xml_root_line_edit, 0);
   xml_root_layout->addWidget(xml_root_open, 0);
   disc_layout->addLayout(xml_root_layout);
-  connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index]() {
+  connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index] {
     QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
         this, tr("Select the Virtual SD Card Root"), xml_root_line_edit->text()));
     if (!dir.isEmpty())

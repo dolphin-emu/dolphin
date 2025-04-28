@@ -279,7 +279,7 @@ void WiiPane::CreateSDCard()
       progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
       auto success = std::async(std::launch::async, [&] {
         const bool good = Common::SyncSDFolderToSDImage(
-            [&progress_dialog]() { return progress_dialog.WasCanceled(); }, false);
+            [&progress_dialog] { return progress_dialog.WasCanceled(); }, false);
         progress_dialog.Reset();
         return good;
       });
@@ -303,7 +303,7 @@ void WiiPane::CreateSDCard()
       progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
       auto success = std::async(std::launch::async, [&] {
         const bool good = Common::SyncSDImageToSDFolder(
-            [&progress_dialog]() { return progress_dialog.WasCanceled(); });
+            [&progress_dialog] { return progress_dialog.WasCanceled(); });
         progress_dialog.Reset();
         return good;
       });

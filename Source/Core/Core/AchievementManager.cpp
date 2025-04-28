@@ -380,7 +380,7 @@ bool AchievementManager::CanPause()
 
 void AchievementManager::DoIdle()
 {
-  std::thread([this]() {
+  std::thread([this] {
     while (true)
     {
       Common::SleepCurrentThread(1000);
@@ -959,7 +959,7 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
                                                     rc_client_t* client, void* userdata)
 {
   u32* leaderboard_id = static_cast<u32*>(userdata);
-  Common::ScopeGuard on_end_scope([&]() { delete leaderboard_id; });
+  Common::ScopeGuard on_end_scope([&] { delete leaderboard_id; });
 
   if (result != RC_OK)
   {
@@ -1372,7 +1372,7 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
 
   m_image_queue.Push([this, badge, badge_type, function = std::move(function),
                       callback_data = std::move(callback_data)] {
-    Common::ScopeGuard on_end_scope([&]() {
+    Common::ScopeGuard on_end_scope([&] {
       if (m_display_welcome_message && badge_type == RC_IMAGE_TYPE_GAME)
         DisplayWelcomeMessage();
     });

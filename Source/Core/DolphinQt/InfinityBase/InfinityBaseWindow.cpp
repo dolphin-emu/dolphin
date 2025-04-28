@@ -266,7 +266,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
     }
   });
 
-  connect(buttons, &QDialogButtonBox::accepted, this, [=, this]() {
+  connect(buttons, &QDialogButtonBox::accepted, this, [=, this] {
     bool ok_char = false;
     const u32 char_number = edit_num->text().toULong(&ok_char);
     if (!ok_char)

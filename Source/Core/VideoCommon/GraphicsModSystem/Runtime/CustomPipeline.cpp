@@ -53,7 +53,7 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
       continue;
     }
 
-    const auto parse_identifier = [&]() {
+    const auto parse_identifier = [&] {
       const u32 start = i;
       for (; i < source.size(); i++)
       {
@@ -76,7 +76,7 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
     }
     else if (source[i] == '#')
     {
-      const auto parse_until_end_of_preprocessor = [&]() {
+      const auto parse_until_end_of_preprocessor = [&] {
         bool continue_until_next_newline = false;
         for (; i < source.size(); i++)
         {

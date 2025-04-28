@@ -176,7 +176,7 @@ void RegisterWidget::ShowContextMenu()
       const std::string type_string =
           fmt::format("{}{}", type == RegisterType::gpr ? "r" : "f", m_table->currentItem()->row());
       menu->addAction(tr("Run until hit (ignoring breakpoints)"),
-                      [this, type_string]() { AutoStep(type_string); });
+                      [this, type_string] { AutoStep(type_string); });
     }
 
     for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})

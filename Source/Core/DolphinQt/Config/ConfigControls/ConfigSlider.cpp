@@ -113,7 +113,7 @@ void ConfigSliderU32::OnConfigChanged()
 ConfigSliderLabel::ConfigSliderLabel(const QString& text, ConfigSlider* slider)
     : QLabel(text), m_slider(QPointer<ConfigSlider>(slider))
 {
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this]() {
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     // Label shares font changes with slider to mark game ini settings.
     if (m_slider)
       setFont(m_slider->font());

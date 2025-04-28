@@ -343,7 +343,7 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
     if (m_previous_mapping_button)
     {
       connect(m_previous_mapping_button, &MappingButton::QueueNextButtonMapping,
-              [this, button]() { m_parent->QueueInputDetection(button); });
+              [this, button] { m_parent->QueueInputDetection(button); });
     }
     m_previous_mapping_button = button;
   }
@@ -383,7 +383,7 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
   const auto button = new QPushButton(tr("..."));
   button->setFixedWidth(QFontMetrics(font()).boundingRect(button->text()).width() * 2);
 
-  button->connect(button, &QPushButton::clicked, [this, &setting]() {
+  button->connect(button, &QPushButton::clicked, [this, &setting] {
     if (setting.IsSimpleValue())
       setting.SetExpressionFromValue();
 

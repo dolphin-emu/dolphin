@@ -88,7 +88,7 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   }
 
   // Fails to change font if it's directly called at this time. Is there a better workaround?
-  QTimer::singleShot(100, this, [this]() {
+  QTimer::singleShot(100, this, [this] {
     SetItalics();
     Config::OnConfigChanged();
   });
