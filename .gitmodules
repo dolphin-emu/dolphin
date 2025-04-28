@@ -95,3 +95,6 @@
 [submodule "Externals/miniupnpc/miniupnp"]
 	path = Externals/miniupnpc/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
+[submodule "Externals/mbedtls/mbedtls"]
+	path = Externals/mbedtls/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git

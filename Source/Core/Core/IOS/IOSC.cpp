@@ -395,15 +395,21 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     ASSERT(signature.size() == expected_key_size);
 
     mbedtls_rsa_context rsa;
-    mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
+    mbedtls_rsa_init(&rsa);
     Common::ScopeGuard context_guard{[&rsa] { mbedtls_rsa_free(&rsa); }};
 
-    mbedtls_mpi_read_binary(&rsa.N, entry->data.data(), entry->data.size());
-    mbedtls_mpi_read_binary(&rsa.E, reinterpret_cast<const u8*>(&entry->misc_data), 4);
-    rsa.len = entry->data.size();
+    if (mbedtls_rsa_import_raw(&rsa, entry->data.data(), entry->data.size(), nullptr, 0, nullptr, 0,
+                               nullptr, 0, reinterpret_cast<const u8*>(&entry->misc_data),
+                               4) != 0 ||
+        mbedtls_rsa_complete(&rsa) != 0)
+    {
+      WARN_LOG_FMT(IOS, "VerifyPublicKeySign: Failed to import RSA key");
+      return IOSC_FAIL_CHECKVALUE;
+    }
 
-    int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1,
-                                       0, sha1.data(), signature.data());
+    int ret =
+        mbedtls_rsa_pkcs1_verify(&rsa, MBEDTLS_MD_SHA1, static_cast<unsigned int>(sha1.size()),
+                                 sha1.data(), signature.data());
     if (ret != 0 && m_console_type == ConsoleType::RVT)
     {
       // Some dev signatures do not have proper PKCS#1 padding. Just powmod and check it ends with

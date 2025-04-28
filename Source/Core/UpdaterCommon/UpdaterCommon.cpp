@@ -147,8 +147,7 @@ std::optional<std::string> GzipInflate(const std::string& data)
 Manifest::Hash ComputeHash(const std::string& contents)
 {
   std::array<u8, 32> full;
-  mbedtls_sha256_ret(reinterpret_cast<const u8*>(contents.data()), contents.size(), full.data(),
-                     false);
+  mbedtls_sha256(reinterpret_cast<const u8*>(contents.data()), contents.size(), full.data(), false);
 
   Manifest::Hash out;
   std::copy_n(full.begin(), 16, out.begin());

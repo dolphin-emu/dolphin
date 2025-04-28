@@ -108,7 +108,7 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
 
     std::array<u8, BLOCK_SIZE> hash_out = {};
 
-    mbedtls_md5_ret(hash_in.data(), 0x56, hash_out.data());
+    mbedtls_md5(hash_in.data(), 0x56, hash_out.data());
 
     mbedtls_aes_context aes_context = {};
 
@@ -394,7 +394,7 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
 
     std::array<u8, BLOCK_SIZE> hash_out = {};
 
-    mbedtls_md5_ret(hash_in.data(), 0x56, hash_out.data());
+    mbedtls_md5(hash_in.data(), 0x56, hash_out.data());
 
     mbedtls_aes_context aes_context = {};
 

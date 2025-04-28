@@ -33,14 +33,14 @@ std::optional<IPCReply> ShaDevice::Open(const OpenRequest& request)
 
 static void ConvertContext(const ShaDevice::ShaContext& src, mbedtls_sha1_context* dest)
 {
-  std::ranges::copy(src.length, std::begin(dest->total));
-  std::ranges::copy(src.states, std::begin(dest->state));
+  std::ranges::copy(src.length, std::begin(dest->private_total));
+  std::ranges::copy(src.states, std::begin(dest->private_state));
 }
 
 static void ConvertContext(const mbedtls_sha1_context& src, ShaDevice::ShaContext* dest)
 {
-  std::ranges::copy(src.total, std::begin(dest->length));
-  std::ranges::copy(src.state, std::begin(dest->states));
+  std::ranges::copy(src.private_total, std::begin(dest->length));
+  std::ranges::copy(src.private_state, std::begin(dest->states));
 }
 
 HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request)
@@ -57,16 +57,16 @@ HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequ
   // reset the context
   if (command == ShaIoctlv::InitState)
   {
-    ret = mbedtls_sha1_starts_ret(&context);
+    ret = mbedtls_sha1_starts(&context);
   }
   else
   {
     std::vector<u8> input_data(request.in_vectors[0].size);
     memory.CopyFromEmu(input_data.data(), request.in_vectors[0].address, input_data.size());
-    ret = mbedtls_sha1_update_ret(&context, input_data.data(), input_data.size());
+    ret = mbedtls_sha1_update(&context, input_data.data(), input_data.size());
     if (!ret && command == ShaIoctlv::FinalizeState)
     {
-      ret = mbedtls_sha1_finish_ret(&context, output_hash.data());
+      ret = mbedtls_sha1_finish(&context, output_hash.data());
     }
   }
 
