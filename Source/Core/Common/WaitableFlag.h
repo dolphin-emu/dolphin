@@ -6,6 +6,7 @@
 #pragma once
 
 #include <chrono>
+#include <concepts>
 #include <condition_variable>
 #include <mutex>
 
@@ -64,6 +65,44 @@ private:
   Flag m_flag;
   std::condition_variable m_condvar;
   std::mutex m_mutex;
+};
+
+// A thread-safe counter that can be waited on.
+// std::mutex interface is provided for use with scope-based locks.
+// lock/unlock just change the internal counter. They alone don't provide thread synchronization.
+// Add functionality as needed.
+template <std::integral T>
+class WaitableCounter
+{
+public:
+  explicit WaitableCounter(T initial_value = {}) : m_counter{initial_value} {}
+
+  void lock(T count = 1)
+  {
+    m_counter.fetch_add(count, std::memory_order_release);
+    m_counter.notify_all();
+  }
+  void unlock(T count = 1) { lock(0 - count); }
+
+  // Waits until lock'ed an exact amount of times.
+  void WaitForValue(const T& value)
+  {
+    while (true)
+    {
+      const auto current_value = m_counter.load(std::memory_order_acquire);
+      if (current_value == value)
+        break;
+      WaitForValueChange(current_value);
+    }
+  }
+
+  void WaitForValueChange(const T& old_value)
+  {
+    m_counter.wait(old_value, std::memory_order_acquire);
+  }
+
+private:
+  std::atomic<T> m_counter{};
 };
 
 }  // namespace Common
