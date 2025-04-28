@@ -15,6 +15,7 @@
 #include <string_view>
 
 #include "Common/CommonTypes.h"
+#include "Common/Functional.h"
 
 struct BootParameters;
 struct WindowSystemInfo;
@@ -159,7 +160,8 @@ void OnFrameEnd(Core::System& system);
 
 // Run a function on the CPU thread, asynchronously.
 // This is only valid to call from the host thread, since it uses PauseAndLock() internally.
-void RunOnCPUThread(Core::System& system, std::function<void()> function, bool wait_for_completion);
+void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
+                    bool wait_for_completion);
 
 // for calling back into UI code without introducing a dependency on it in core
 using StateChangedCallbackFunc = std::function<void(Core::State)>;

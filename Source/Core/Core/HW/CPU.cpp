@@ -60,7 +60,7 @@ void CPUManager::ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 {
   while (!m_pending_jobs.empty())
   {
-    auto callback = m_pending_jobs.front();
+    auto callback = std::move(m_pending_jobs.front());
     m_pending_jobs.pop();
     state_lock.unlock();
     callback();
@@ -414,7 +414,7 @@ bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control
   return was_unpaused;
 }
 
-void CPUManager::AddCPUThreadJob(std::function<void()> function)
+void CPUManager::AddCPUThreadJob(Common::MoveOnlyFunction<void()> function)
 {
   std::unique_lock state_lock(m_state_change_lock);
   m_pending_jobs.push(std::move(function));

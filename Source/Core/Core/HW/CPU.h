@@ -4,11 +4,11 @@
 #pragma once
 
 #include <condition_variable>
-#include <functional>
 #include <mutex>
 #include <queue>
 
 #include "Common/Event.h"
+#include "Common/Functional.h"
 
 namespace Common
 {
@@ -99,7 +99,7 @@ public:
 
   // Adds a job to be executed during on the CPU thread. This should be combined with
   // PauseAndLock(), as while the CPU is in the run loop, it won't execute the function.
-  void AddCPUThreadJob(std::function<void()> function);
+  void AddCPUThreadJob(Common::MoveOnlyFunction<void()> function);
 
 private:
   void FlushStepSyncEventLocked();
@@ -135,7 +135,7 @@ private:
   bool m_state_system_request_stepping = false;
   bool m_state_cpu_step_instruction = false;
   Common::Event* m_state_cpu_step_instruction_sync = nullptr;
-  std::queue<std::function<void()>> m_pending_jobs;
+  std::queue<Common::MoveOnlyFunction<void()>> m_pending_jobs;
   Common::Event m_time_played_finish_sync;
 
   Core::System& m_system;
