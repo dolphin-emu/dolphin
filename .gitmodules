@@ -92,3 +92,6 @@
 [submodule "Externals/pugixml/pugixml"]
 	path = Externals/pugixml/pugixml
 	url = https://github.com/zeux/pugixml.git
+[submodule "Externals/miniupnpc/miniupnp"]
+	path = Externals/miniupnpc/miniupnp
+	url = https://github.com/miniupnp/miniupnp.git
