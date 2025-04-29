@@ -656,6 +656,11 @@ PRIVATE
   ZLIB::ZLIB
 )
 
+if(LIBUDEV_FOUND)
+  target_include_directories(core PRIVATE ${LIBUDEV_INCLUDE_DIR})
+  target_link_libraries(core PRIVATE ${LIBUDEV_LIBRARY})
+endif()
+
 if (APPLE)
   target_link_libraries(core
   PRIVATE
