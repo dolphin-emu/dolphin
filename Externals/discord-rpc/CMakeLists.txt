@@ -1,4 +1,6 @@
-cmake_minimum_required (VERSION 3.2.0)
+# TODO: Replace DiscordRPC which has been deprecated with
+#       the Discord Social SDK https://discord.com/developers/docs/rich-presence/overview
+cmake_minimum_required (VERSION 3.6)
 project (DiscordRPC)
 
 include(GNUInstallDirs)
