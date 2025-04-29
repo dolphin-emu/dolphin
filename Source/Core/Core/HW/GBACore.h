@@ -127,7 +127,6 @@ private:
   u64 m_last_gc_ticks = 0;
   u64 m_gc_ticks_remainder = 0;
   u16 m_keys = 0;
-  bool m_link_enabled = false;
   bool m_force_disconnect = false;
 
   std::weak_ptr<GBAHostInterface> m_host;
