@@ -6,8 +6,9 @@
 #define PYCPARSE  // Remove static functions from the header
 #include <mgba/core/interface.h>
 #undef PYCPARSE
+#include <mgba-util/audio-buffer.h>
+#include <mgba-util/audio-resampler.h>
 #include <mgba-util/vfs.h>
-#include <mgba/core/blip_buf.h>
 #include <mgba/core/log.h>
 #include <mgba/core/timing.h>
 #include <mgba/internal/gb/gb.h>
@@ -42,6 +43,8 @@ mLogger s_stub_logger = {
 
 constexpr auto SAMPLES = 512;
 constexpr auto SAMPLE_RATE = 48000;
+
+static struct mAudioResampler resampler;
 
 // libmGBA does not return the correct frequency for some GB models
 static u32 GetCoreFrequency(mCore* core)
@@ -215,9 +218,9 @@ bool Core::Start(u64 gc_ticks)
     }
     rom_guard.Dismiss();
 
-    std::array<char, 17> game_title{};
-    m_core->getGameTitle(m_core, game_title.data());
-    m_game_title = game_title.data();
+    struct mGameInfo info;
+    m_core->getGameInfo(m_core, &info);
+    m_game_title = info.title;
 
     m_save_path = NetPlay::IsNetPlayRunning() ? NetPlay::GetGBASavePath(m_device_number) :
                                                 GetSavePath(m_rom_path, m_device_number);
@@ -376,17 +379,15 @@ void Core::SetSIODriver()
   if (m_core->platform(m_core) != mPLATFORM_GBA)
     return;
 
-  GBASIOJOYCreate(&m_sio_driver);
-  GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver, SIO_JOYBUS);
+  GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver);
 
   m_sio_driver.core = this;
-  m_sio_driver.load = [](GBASIODriver* driver) {
+  m_sio_driver.init = [](GBASIODriver* driver) {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = true;
     return true;
   };
-  m_sio_driver.unload = [](GBASIODriver* driver) {
+  m_sio_driver.deinit = [](GBASIODriver* driver) {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = false;
-    return true;
   };
 }
 
@@ -403,8 +404,8 @@ void Core::SetVideoBuffer()
 void Core::SetSampleRates()
 {
   m_core->setAudioBufferSize(m_core, SAMPLES);
-  blip_set_rates(m_core->getAudioChannel(m_core, 0), m_core->frequency(m_core), SAMPLE_RATE);
-  blip_set_rates(m_core->getAudioChannel(m_core, 1), m_core->frequency(m_core), SAMPLE_RATE);
+
+  mAudioResamplerSetSource(&resampler, m_core->getAudioBuffer(m_core), SAMPLE_RATE, true);
 
   SoundStream* sound_stream = m_system.GetSoundStream();
   sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
@@ -435,11 +436,10 @@ void Core::SetAVStream()
     auto core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
-  m_stream.postAudioBuffer = [](mAVStream* stream, blip_t* left, blip_t* right) {
+  m_stream.postAudioBuffer = [](mAVStream* stream, struct mAudioBuffer* audio_buffer) {
     auto core = static_cast<AVStream*>(stream)->core;
     std::vector<s16> buffer(SAMPLES * 2);
-    blip_read_samples(left, &buffer[0], SAMPLES, 1);
-    blip_read_samples(right, &buffer[1], SAMPLES, 1);
+    mAudioBufferRead(audio_buffer, buffer.data(), SAMPLES);
 
     SoundStream* sound_stream = core->m_system.GetSoundStream();
     sound_stream->GetMixer()->PushGBASamples(core->m_device_number, &buffer[0], SAMPLES);
@@ -723,9 +723,9 @@ bool Core::GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::strin
     return false;
   }
 
-  std::array<char, 17> game_title{};
-  core->getGameTitle(core, game_title.data());
-  title = game_title.data();
+  struct mGameInfo info;
+  core->getGameInfo(core, &info);
+  title = info.title;
 
   core->deinit(core);
   return true;
