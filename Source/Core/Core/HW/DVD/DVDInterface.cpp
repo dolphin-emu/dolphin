@@ -518,7 +518,17 @@ bool DVDInterface::UpdateRunningGameMetadata(std::optional<u64> title_id)
   return dvd_thread.UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
 }
 
-void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
+void DVDInterface::RegisterMMIOWii(MMIO::Mapping* mmio, u32 base)
+{
+  RegisterMMIO(mmio, base, ~0x1F);
+}
+
+void DVDInterface::RegisterMMIOGamecube(MMIO::Mapping* mmio, u32 base)
+{
+  RegisterMMIO(mmio, base, ~0xFC00001F);
+}
+
+void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, u32 base, int mask)
 {
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&m_DISR.Hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
@@ -582,7 +592,7 @@ void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
   // started in Wii mode. (Also, normally in Wii mode the DI MMIOs are only written by the
   // IOS /dev/di module, but we *do* emulate /dev/di writing the DI MMIOs.)
   mmio->Register(base | DI_DMA_ADDRESS_REGISTER, MMIO::DirectRead<u32>(&m_DIMAR),
-                 MMIO::DirectWrite<u32>(&m_DIMAR, is_wii ? ~0x1F : ~0xFC00001F));
+                 MMIO::DirectWrite<u32>(&m_DIMAR, mask));
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&m_DILENGTH),
                  MMIO::DirectWrite<u32>(&m_DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&m_DICR.Hex),

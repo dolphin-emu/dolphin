@@ -254,6 +254,7 @@ private:
 
   Core::System& m_system;
 
-  void InitMMIO(bool is_wii);
+  void InitMMIO();
+  void InitMMIOWii();
 };
 }  // namespace Memory

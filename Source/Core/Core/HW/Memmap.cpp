@@ -47,7 +47,7 @@ MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 
 MemoryManager::~MemoryManager() = default;
 
-void MemoryManager::InitMMIO(bool is_wii)
+void MemoryManager::InitMMIO()
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
 
@@ -57,18 +57,20 @@ void MemoryManager::InitMMIO(bool is_wii)
   m_system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
   m_system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
   m_system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
-  m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
+  m_system.GetDVDInterface().RegisterMMIOGamecube(m_mmio_mapping.get(), 0x0C006000);
   m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
   m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
   m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
-  if (is_wii)
-  {
-    m_system.GetWiiIPC().RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
-    m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
-    m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
-    m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
-    m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
-  }
+}
+
+void MemoryManager::InitMMIOWii()
+{
+  InitMMIO();
+  m_system.GetWiiIPC().RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
+  m_system.GetDVDInterface().RegisterMMIOWii(m_mmio_mapping.get(), 0x0D006000);
+  m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
+  m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
+  m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
 }
 
 void MemoryManager::Init()
@@ -151,7 +153,10 @@ void MemoryManager::Init()
   m_physical_page_mappings_base = reinterpret_cast<u8*>(m_physical_page_mappings.data());
   m_logical_page_mappings_base = reinterpret_cast<u8*>(m_logical_page_mappings.data());
 
-  InitMMIO(wii);
+  if (wii)
+    InitMMIOWii();
+  else
+    InitMMIO();
 
   Clear();
 

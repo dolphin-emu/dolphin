@@ -136,7 +136,8 @@ public:
   void Shutdown();
   void DoState(PointerWrap& p);
 
-  void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
+  void RegisterMMIOWii(MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIOGamecube(MMIO::Mapping* mmio, u32 base);
 
   void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
                std::optional<std::vector<std::string>> auto_disc_change_paths);
@@ -184,6 +185,7 @@ private:
   u32 AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process);
 
   void SetLidOpen();
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base, int mask);
   void UpdateInterrupts();
   void GenerateDIInterrupt(DIInterruptType dvd_interrupt);
 
