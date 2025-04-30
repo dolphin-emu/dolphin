@@ -122,7 +122,7 @@ public:
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
-  void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
+  void LoadGame(const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
 
@@ -193,8 +193,7 @@ private:
 
   static picojson::value LoadApprovedList();
 
-  static void* FilereaderOpenByFilepath(const char* path_utf8);
-  static void* FilereaderOpenByVolume(const char* path_utf8);
+  static void* FilereaderOpen(const char* path_utf8);
   static void FilereaderSeek(void* file_handle, int64_t offset, int origin);
   static int64_t FilereaderTell(void* file_handle);
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
