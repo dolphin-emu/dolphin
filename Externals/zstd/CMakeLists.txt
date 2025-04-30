@@ -1,4 +1,8 @@
-project(zstd C ASM)
+project(zstd C)
+
+if(NOT MSVC)
+    enable_language(ASM)
+endif()
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -120,7 +124,6 @@ set(ZSTD_SRCS
     zstd/lib/compress/zstd_preSplit.c
     zstd/lib/compress/zstdmt_compress.c
     zstd/lib/decompress/huf_decompress.c
-    zstd/lib/decompress/huf_decompress_amd64.S
     zstd/lib/decompress/zstd_ddict.c
     zstd/lib/decompress/zstd_decompress.c
     zstd/lib/decompress/zstd_decompress_block.c
@@ -128,6 +131,12 @@ set(ZSTD_SRCS
 
 add_library(zstd STATIC ${ZSTD_SRCS} ${ZSTD_PUBLIC_HDRS} ${ZSTD_PRIVATE_HDRS})
 target_compile_definitions(zstd PUBLIC ZSTD_LEGACY_SUPPORT=0)
+
+if(MSVC)
+    target_compile_definitions(zstd PUBLIC ZSTD_DISABLE_ASM)
+else()
+    target_sources(zstd PRIVATE zstd/lib/decompress/huf_decompress_amd64.S)
+endif()
 
 dolphin_disable_warnings(zstd)
 add_library(zstd::zstd ALIAS zstd)
