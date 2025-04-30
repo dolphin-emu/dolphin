@@ -155,6 +155,6 @@ int __cdecl EnableCompatPatches()
 // referencing it doesn't require ugly decorated names.
 // Use /include:enableCompatPatches linker flag to enable this.
 extern "C" {
-__declspec(allocate(".CRT$XCZ")) decltype(&EnableCompatPatches)
-    enableCompatPatches = EnableCompatPatches;
+__declspec(allocate(".CRT$XCZ")) decltype(&EnableCompatPatches) enableCompatPatches =
+    EnableCompatPatches;
 }

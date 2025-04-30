@@ -672,7 +672,10 @@ void ZeldaUCode::RenderAudio()
 // Utility to define 32 bit accessors/modifiers methods based on two 16 bit
 // fields named _l and _h.
 #define DEFINE_32BIT_ACCESSOR(field_name, name)                                                    \
-  u32 Get##name() const { return (field_name##_h << 16) | field_name##_l; }                        \
+  u32 Get##name() const                                                                            \
+  {                                                                                                \
+    return (field_name##_h << 16) | field_name##_l;                                                \
+  }                                                                                                \
   void Set##name(u32 v)                                                                            \
   {                                                                                                \
     field_name##_h = v >> 16;                                                                      \

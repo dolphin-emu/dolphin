@@ -80,19 +80,19 @@ public:
   [[noreturn]] void setSourceModel(QAbstractItemModel* source_model) override { Crash(); }
   bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
 
-  template <bool BranchWatchProxyModel::*member>
+  template <bool BranchWatchProxyModel::* member>
   void OnToggled(bool enabled)
   {
     this->*member = enabled;
     invalidateRowsFilter();
   }
-  template <QString BranchWatchProxyModel::*member>
+  template <QString BranchWatchProxyModel::* member>
   void OnSymbolTextChanged(const QString& text)
   {
     this->*member = text;
     invalidateRowsFilter();
   }
-  template <std::optional<u32> BranchWatchProxyModel::*member>
+  template <std::optional<u32> BranchWatchProxyModel::* member>
   void OnAddressTextChanged(const QString& text)
   {
     bool ok = false;

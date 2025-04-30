@@ -18,7 +18,7 @@ namespace Config
 // Setting a key to an object of this type will delete the key.
 struct DefaultState
 {
-  friend constexpr bool operator==(DefaultState, DefaultState) { return true; };
+  friend constexpr bool operator==(DefaultState, DefaultState) { return true; }
 };
 
 namespace detail

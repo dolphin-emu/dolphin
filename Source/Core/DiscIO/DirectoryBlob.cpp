@@ -1166,7 +1166,7 @@ void DirectoryBlobPartition::WriteEntryData(std::vector<u8>* fst_data, u32* entr
 
   (*fst_data)[(*entry_offset)++] = (name_offset >> 16) & 0xff;
   (*fst_data)[(*entry_offset)++] = (name_offset >> 8) & 0xff;
-  (*fst_data)[(*entry_offset)++] = (name_offset)&0xff;
+  (*fst_data)[(*entry_offset)++] = (name_offset) & 0xff;
 
   Write32((u32)(data_offset >> address_shift), *entry_offset, fst_data);
   *entry_offset += 4;
