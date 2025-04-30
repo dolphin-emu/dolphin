@@ -7,8 +7,8 @@
 #include <memory>
 #include <optional>
 #include <utility>
-#include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/SPSCQueue.h"
 
@@ -120,7 +120,7 @@ private:
 
   void ProcessReadRequest(ReadRequest&& read_request);
 
-  using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
+  using ReadResult = std::pair<ReadRequest, Common::UniqueBuffer<u8>>;
 
   CoreTiming::EventType* m_finish_read = nullptr;
 
