@@ -111,7 +111,7 @@ private:
   NWC24::Mail::WC24SendList m_send_list;
   NWC24::Mail::WC24FriendList m_friend_list;
   Common::WorkQueueThreadSP<AsyncTask> m_work_queue;
-  Common::WorkQueueThreadSP<std::function<void()>> m_scheduler_work_queue;
+  Common::AsyncWorkThreadSP m_scheduler_work_queue;
   std::mutex m_async_reply_lock;
   std::mutex m_scheduler_buffer_lock;
   std::queue<AsyncReply> m_async_replies;

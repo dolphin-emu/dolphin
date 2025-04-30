@@ -78,9 +78,8 @@ void AchievementManager::Init(void* hwnd)
                              });
     m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { SetHardcoreMode(); });
     SetHardcoreMode();
-    m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
-    m_image_queue.Reset("AchievementManagerImageQueue",
-                        [](const std::function<void()>& func) { func(); });
+    m_queue.Reset("AchievementManagerQueue");
+    m_image_queue.Reset("AchievementManagerImageQueue");
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
     // Attempt to load the integration DLL from the directory containing the main client executable.
@@ -1258,7 +1257,7 @@ void AchievementManager::Request(const rc_api_request_t* request,
 {
   std::string url = request->url;
   std::string post_data = request->post_data;
-  AchievementManager::GetInstance().m_queue.EmplaceItem(
+  AchievementManager::GetInstance().m_queue.Push(
       [url = std::move(url), post_data = std::move(post_data), callback = std::move(callback),
        callback_data = std::move(callback_data)] {
         Common::HttpRequest http_request;
@@ -1354,7 +1353,7 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
 
 void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_type,
                                     const AchievementManager::BadgeNameFunction function,
-                                    const UpdatedItems callback_data)
+                                    UpdatedItems callback_data)
 {
   if (!m_client || !HasAPIToken())
   {
@@ -1364,8 +1363,8 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
     return;
   }
 
-  m_image_queue.EmplaceItem([this, badge, badge_type, function = std::move(function),
-                             callback_data = std::move(callback_data)] {
+  m_image_queue.Push([this, badge, badge_type, function = std::move(function),
+                      callback_data = std::move(callback_data)] {
     Common::ScopeGuard on_end_scope([&]() {
       if (m_display_welcome_message && badge_type == RC_IMAGE_TYPE_GAME)
         DisplayWelcomeMessage();

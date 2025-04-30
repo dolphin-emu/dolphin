@@ -299,8 +299,8 @@ private:
   std::string m_title_estimate;
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
-  Common::WorkQueueThread<std::function<void()>> m_queue;
-  Common::WorkQueueThread<std::function<void()>> m_image_queue;
+  Common::AsyncWorkThread m_queue;
+  Common::AsyncWorkThread m_image_queue;
   mutable std::recursive_mutex m_lock;
   std::recursive_mutex m_filereader_lock;
 };  // class AchievementManager
