@@ -126,7 +126,7 @@ private:
 
   u64 m_next_id = 0;
 
-  Common::WorkQueueThread<ReadRequest> m_dvd_thread;
+  Common::WorkQueueThreadSP<ReadRequest> m_dvd_thread;
 
   Common::WaitableSPSCQueue<ReadResult> m_result_queue;
   std::map<u64, ReadResult> m_result_map;
