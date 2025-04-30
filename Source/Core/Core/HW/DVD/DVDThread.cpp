@@ -270,7 +270,7 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   // We have now obtained the right ReadResult.
 
   const ReadRequest& request = result.first;
-  const std::vector<u8>& buffer = result.second;
+  const auto& buffer = result.second;
 
   DEBUG_LOG_FMT(DVDINTERFACE,
                 "Disc has been read. Real time: {} us. "
@@ -310,9 +310,9 @@ void DVDThread::ProcessReadRequest(ReadRequest&& request)
 {
   m_file_logger.Log(*m_disc, request.partition, request.dvd_offset);
 
-  std::vector<u8> buffer(request.length);
+  Common::UniqueBuffer<u8> buffer(request.length);
   if (!m_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
-    buffer.resize(0);
+    buffer.reset();
 
   request.realtime_done_us = Common::Timer::NowUs();
 
