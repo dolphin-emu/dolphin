@@ -87,3 +87,6 @@
 [submodule "Externals/SFML/SFML"]
 	path = Externals/SFML/SFML
 	url = https://github.com/SFML/SFML.git
+[submodule "Externals/zstd/zstd"]
+	path = Externals/zstd/zstd
+	url = https://github.com/facebook/zstd.git
