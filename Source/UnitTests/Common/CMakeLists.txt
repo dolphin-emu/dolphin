@@ -19,6 +19,7 @@ add_dolphin_test(SettingsHandlerTest SettingsHandlerTest.cpp)
 add_dolphin_test(SPSCQueueTest SPSCQueueTest.cpp)
 add_dolphin_test(StringUtilTest StringUtilTest.cpp)
 add_dolphin_test(SwapTest SwapTest.cpp)
+add_dolphin_test(WorkQueueThreadTest WorkQueueThreadTest.cpp)
 
 if (_M_X86_64)
   add_dolphin_test(x64EmitterTest x64EmitterTest.cpp)
