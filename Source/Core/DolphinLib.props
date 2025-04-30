@@ -63,7 +63,6 @@
     <ClInclude Include="Common\FileUtil.h" />
     <ClInclude Include="Common\FixedSizeQueue.h" />
     <ClInclude Include="Common\Flag.h" />
-    <ClInclude Include="Common\FloatUtils.h" />
     <ClInclude Include="Common\FormatUtil.h" />
     <ClInclude Include="Common\FPURoundMode.h" />
     <ClInclude Include="Common\Functional.h" />
@@ -248,6 +247,7 @@
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
     <ClInclude Include="Core\FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoRecorder.h" />
+    <ClInclude Include="Core\FloatUtils.h" />
     <ClInclude Include="Core\FreeLookConfig.h" />
     <ClInclude Include="Core\FreeLookManager.h" />
     <ClInclude Include="Core\GeckoCode.h" />

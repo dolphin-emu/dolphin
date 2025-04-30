@@ -4,11 +4,10 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include <cmath>
-#include <limits>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 #include "Common/Unreachable.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"

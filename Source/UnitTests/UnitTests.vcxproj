@@ -51,7 +51,6 @@
     <ClCompile Include="Common\FileUtilTest.cpp" />
     <ClCompile Include="Common\FixedSizeQueueTest.cpp" />
     <ClCompile Include="Common\FlagTest.cpp" />
-    <ClCompile Include="Common\FloatUtilsTest.cpp" />
     <ClCompile Include="Common\MathUtilTest.cpp" />
     <ClCompile Include="Common\NandPathsTest.cpp" />
     <ClCompile Include="Common\SettingsHandlerTest.cpp" />
@@ -66,6 +65,7 @@
     <ClCompile Include="Core\DSP\DSPTestText.cpp" />
     <ClCompile Include="Core\DSP\HermesBinary.cpp" />
     <ClCompile Include="Core\DSP\HermesText.cpp" />
+    <ClCompile Include="Core\FloatUtilsTest.cpp" />
     <ClCompile Include="Core\IOS\ES\FormatsTest.cpp" />
     <ClCompile Include="Core\IOS\FS\FileSystemTest.cpp" />
     <ClCompile Include="Core\IOS\USB\SkylandersTest.cpp" />

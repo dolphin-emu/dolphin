@@ -125,12 +125,12 @@ inline u64 RoundMantissaBitsFinite(u64 bits)
 {
   const u64 replacement_exp = 0x4000000000000000ull;
 
-  // To round only the mantissa, we assume the CPU can change the rounding mode,
-  // create new double with an exponent that won't cause issues, round to a single,
-  // and convert back to a double while restoring the original exponent again!
-  // The removing the exponent is done via subtraction instead of bitwise
-  // operations due to the possibility that the rounding will cause an overflow
-  // into the exponent
+  // To round only the mantissa, we assume the host CPU properly matches
+  // the emulated CPU's rounding mode so the rounding of the mantissa will
+  // go in the correct direction
+  // The removing and restoring of the exponent is done via subtraction instead of
+  // bitwise operations due to the possibility that the rounding will cause an overflow
+  // from the mantissa into the exponent (incrementing it by 1)
   u64 resized_bits = (bits & (Common::DOUBLE_FRAC | Common::DOUBLE_SIGN)) | replacement_exp;
 
   float rounded_float = static_cast<float>(std::bit_cast<double>(resized_bits));
@@ -174,8 +174,8 @@ inline double RoundMantissaFinite(double value)
 
 inline double RoundMantissa(double value)
 {
-  // The double version of the function just converts to and from bits again
-  // This would be a necessary step anyways, so it just simplifies code
+  // This function just bitcasts the double value parameter so it
+  // can be used in the more common function that operates on the raw bits
   u64 bits = std::bit_cast<u64>(value);
   u64 rounded_bits = RoundMantissaBits(bits);
   return std::bit_cast<double>(rounded_bits);

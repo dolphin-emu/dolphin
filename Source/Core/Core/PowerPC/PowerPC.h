@@ -11,11 +11,11 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/ConditionRegister.h"
 #include "Core/PowerPC/Gekko.h"

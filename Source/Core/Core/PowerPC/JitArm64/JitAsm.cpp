@@ -10,12 +10,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumUtils.h"
-#include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
+#include "Core/FloatUtils.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"

@@ -3,10 +3,11 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
+#include <bit>
 #include <cmath>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -183,10 +184,11 @@ void Interpreter::ps_rsqrte(Interpreter& interpreter, UGeckoInstruction inst)
   const double ps0 = ppc_state.ps[inst.FB].PS0AsDouble();
   double ps1 = ppc_state.ps[inst.FB].PS1AsReciprocalDouble();
 
-  if (ps1 > 0.0)
+  if (std::bit_cast<s64>(ps1) > 0)
   {
-    // If ps1 is <0, we want the result to remain NaN even for
-    // the smallest of subnormals which would be truncated to 0
+    // If ps1 is < 0.0, we want the result to remain < 0.0 even for
+    // the smallest of subnormals which would otherwise be truncated to 0.0,
+    // specifically so the proper exception is set
     ps1 = Common::TruncateMantissa(ps1);
   }
 

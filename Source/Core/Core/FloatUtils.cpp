@@ -1,8 +1,7 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/FloatUtils.h"
-#include "Core/PowerPC/Gekko.h"
+#include "Core/FloatUtils.h"
 
 #include <bit>
 #include <cmath>

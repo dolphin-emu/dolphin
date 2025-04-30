@@ -23,10 +23,10 @@
 
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
-#include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
+#include "Core/FloatUtils.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PPCSymbolDB.h"

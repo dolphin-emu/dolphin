@@ -40,7 +40,6 @@ public:
     MOV(ARM64Reg::X1, ARM64Reg::X0);
     m_float_emit.FMOV(ARM64Reg::D0, ARM64Reg::X0);
     m_float_emit.FRECPE(ARM64Reg::D0, ARM64Reg::D0);
-    m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
     BL(raw_fres);
     MOV(ARM64Reg::X30, ARM64Reg::X15);
     MOV(PPC_REG, ARM64Reg::X14);
