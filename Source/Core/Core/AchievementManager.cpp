@@ -997,6 +997,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
       // Allow developer tools for unidentified games
       rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
       instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
+      return;
     }
     instance.CloseGame();
     return;
