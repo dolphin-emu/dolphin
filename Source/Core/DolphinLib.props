@@ -823,7 +823,6 @@
     <ClCompile Include="Common\FileSearch.cpp" />
     <ClCompile Include="Common\FilesystemWatcher.cpp" />
     <ClCompile Include="Common\FileUtil.cpp" />
-    <ClCompile Include="Common\FloatUtils.cpp" />
     <ClCompile Include="Common\GekkoDisassembler.cpp" />
     <ClCompile Include="Common\GL\GLContext.cpp" />
     <ClCompile Include="Common\GL\GLExtensions\GLExtensions.cpp" />
@@ -928,6 +927,7 @@
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoRecorder.cpp" />
+    <ClCompile Include="Core\FloatUtils.cpp" />
     <ClCompile Include="Core\FreeLookConfig.cpp" />
     <ClCompile Include="Core\FreeLookManager.cpp" />
     <ClCompile Include="Core\GeckoCode.cpp" />
