@@ -98,6 +98,27 @@ public:
       m_items.WaitForEmpty();
   }
 
+  [[nodiscard]] bool Empty() const { return m_items.Empty(); }
+  [[nodiscard]] auto Size() const { return m_items.Size(); }
+
+  // Takes unprocessed items in a blocking manner.
+  void GatherItems(std::invocable<T&&> auto&& gather_func)
+  {
+    auto lg = GetLockGuard();
+
+    // Fast path avoids round trip thread communication and saves ~20us.
+    if (m_items.Empty())
+      return;
+
+    RunCommand([&] {
+      while (!m_items.Empty())
+      {
+        gather_func(std::move(m_items.Front()));
+        m_items.Pop();
+      }
+    });
+  }
+
 private:
   using CommandFunction = std::function<void()>;
 
