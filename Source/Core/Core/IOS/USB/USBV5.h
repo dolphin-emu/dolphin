@@ -83,6 +83,7 @@ protected:
 
   using Handler = std::function<std::optional<IPCReply>(USBV5Device&)>;
   std::optional<IPCReply> HandleDeviceIOCtl(const IOCtlRequest& request, Handler handler);
+  IPCReply GetUSBVersion(const IOCtlRequest& request) const;
 
   void OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> device) override;
   void OnDeviceChangeEnd() override;
