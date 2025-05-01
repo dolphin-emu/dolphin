@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -61,17 +62,35 @@ void DVDThread::Stop()
 
 void DVDThread::DoState(PointerWrap& p)
 {
-  // Ensure all requests are completed with results Push'd to m_result_queue.
-  WaitUntilIdle();
+  std::vector<ReadRequest> requests;
 
-  // Move all results from result_queue to result_map because
-  // PointerWrap::Do supports std::map but not Common::WaitableSPSCQueue.
+  // Gather incomplete requests.
+  // The dvd thread request queue is then empty.
+  m_dvd_thread.GatherItems(
+      [&](ReadRequest&& request) { requests.emplace_back(std::move(request)); });
+
+  // Move completed results to our map.
   // This won't affect the behavior of FinishRead.
-  ReadResult result;
-  while (m_result_queue.Pop(result))
+  for (ReadResult result; m_result_queue.Pop(result);)
     m_result_map.emplace(result.first.id, std::move(result));
 
-  p.Do(m_result_map);
+  // Copy the original request data from our completed result map.
+  for (const auto& result : m_result_map | std::views::values)
+    requests.emplace_back(result.first);
+
+  // All requests (complete and incomplete) are state saved without any result data.
+  p.Do(requests);
+
+  // If we are changing state, we need to rebuild our result map.
+  if (p.IsReadMode())
+    m_result_map.clear();
+
+  const std::size_t incomplete_request_count = requests.size() - m_result_map.size();
+
+  // Re-queue all the requests that don't have results in our map.
+  for (auto& request : std::span(requests).first(incomplete_request_count))
+    m_dvd_thread.Push(std::move(request));
+
   p.Do(m_next_id);
 
   // m_disc isn't savestated (because it points to files on the
@@ -88,12 +107,6 @@ void DVDThread::DoState(PointerWrap& p)
     else
       m_disc.reset();
   }
-
-  // TODO: Savestates can be smaller if the buffers of results aren't saved,
-  // but instead get re-read from the disc when loading the savestate.
-
-  // TODO: It would be possible to create a savestate faster by stopping
-  // the DVD thread regardless of whether there are pending requests.
 
   // After loading a savestate, the debug log in FinishRead will report
   // screwed up times for requests that were submitted before the savestate
