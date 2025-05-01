@@ -20,6 +20,7 @@
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
