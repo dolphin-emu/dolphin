@@ -278,7 +278,7 @@ void Stop(Core::System& system)  // - Hammertime!
 
   s_state.store(State::Stopping);
 
-  CallOnStateChangedCallbacks(State::Stopping);
+  NotifyStateChanged(State::Stopping);
 
   // Dump left over jobs
   HostDispatchJobs(system);
@@ -467,11 +467,11 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi)
 {
-  CallOnStateChangedCallbacks(State::Starting);
+  NotifyStateChanged(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_state.store(State::Uninitialized);
 
-    CallOnStateChangedCallbacks(State::Uninitialized);
+    NotifyStateChanged(State::Uninitialized);
 
     INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -711,7 +711,7 @@ void SetState(Core::System& system, State state, bool report_state_change,
   // Certain callers only change the state momentarily. Sending a callback for them causes
   // unwanted updates, such as the Pause/Play button flickering between states on frame advance.
   if (report_state_change)
-    CallOnStateChangedCallbacks(GetState(system));
+    NotifyStateChanged(GetState(system));
 }
 
 State GetState(Core::System& system)
@@ -877,7 +877,7 @@ void Callback_NewField(Core::System& system)
     {
       s_frame_step = false;
       system.GetCPU().Break();
-      CallOnStateChangedCallbacks(Core::GetState(system));
+      NotifyStateChanged(Core::GetState(system));
     }
   }
 
@@ -942,13 +942,14 @@ bool RemoveOnStateChangedCallback(int* handle)
   return false;
 }
 
-void CallOnStateChangedCallbacks(Core::State state)
+void NotifyStateChanged(Core::State state)
 {
   for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
   {
     if (on_state_changed_callback)
       on_state_changed_callback(state);
   }
+  g_perf_metrics.OnEmulationStateChanged(state);
 }
 
 void UpdateWantDeterminism(Core::System& system, bool initial)

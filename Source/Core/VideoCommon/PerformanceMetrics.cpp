@@ -35,6 +35,12 @@ void PerformanceMetrics::CountVBlank()
   m_vps_counter.Count();
 }
 
+void PerformanceMetrics::OnEmulationStateChanged([[maybe_unused]] Core::State state)
+{
+  m_fps_counter.InvalidateLastTime();
+  m_vps_counter.InvalidateLastTime();
+}
+
 void PerformanceMetrics::CountThrottleSleep(DT sleep)
 {
   m_time_sleeping += sleep;

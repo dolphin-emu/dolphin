@@ -348,7 +348,7 @@ void CPUManager::Break()
 void CPUManager::Continue()
 {
   SetStepping(false);
-  Core::CallOnStateChangedCallbacks(Core::State::Running);
+  Core::NotifyStateChanged(Core::State::Running);
 }
 
 bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
