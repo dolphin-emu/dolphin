@@ -324,6 +324,11 @@ public:
 };
 }  // namespace
 
+template<typename T>
+bool IsTargetWithinTypeBounds(u8 target) {
+  return target >= std::numeric_limits<T>::min() && target <= std::numeric_limits<T>::max();
+}
+
 void FIFOAnalyzer::UpdateDetails()
 {
   // Clearing the detail list can update the selection, which causes UpdateDescription to be called
@@ -365,6 +370,7 @@ void FIFOAnalyzer::UpdateDetails()
   while (object_offset < object_size)
   {
     const u32 start_offset = object_offset;
+    ASSERT(IsTargetWithinTypeBounds<int>(start_offset));
     m_object_data_offsets.push_back(start_offset);
 
     object_offset += OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + start_offset],
@@ -508,6 +514,10 @@ void FIFOAnalyzer::ShowSearchResult(size_t index)
   }
 
   const auto& result = m_search_results[index];
+
+  ASSERT(IsTargetWithinTypeBounds<int>(result.m_frame));
+  ASSERT(IsTargetWithinTypeBounds<int>(result.m_object_idx));
+  ASSERT(IsTargetWithinTypeBounds<int>(result.m_cmd));
 
   QTreeWidgetItem* object_item =
       m_tree_widget->topLevelItem(0)->child(result.m_frame)->child(result.m_object_idx);
