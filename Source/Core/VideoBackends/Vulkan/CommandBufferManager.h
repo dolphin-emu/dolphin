@@ -161,7 +161,7 @@ private:
     u32 present_image_index;
     u32 command_buffer_index;
   };
-  Common::WorkQueueThread<PendingCommandBufferSubmit> m_submit_thread;
+  Common::WorkQueueThreadSP<PendingCommandBufferSubmit> m_submit_thread;
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   Common::Flag m_last_present_failed;
   Common::Flag m_last_present_done;
