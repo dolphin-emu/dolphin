@@ -18,9 +18,8 @@ static constexpr double SAMPLE_RC_RATIO = 0.25;
 static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12u;
 static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8u;
 
-PerformanceTracker::PerformanceTracker(std::optional<std::string> log_name,
-                                       const std::optional<DT> sample_window_duration)
-    : m_log_name{std::move(log_name)}, m_sample_window_duration{sample_window_duration}
+PerformanceTracker::PerformanceTracker(std::optional<std::string> log_name)
+    : m_log_name{std::move(log_name)}
 {
   Reset();
 }
@@ -102,10 +101,9 @@ void PerformanceTracker::HandleRawDt(DT diff)
   LogRenderTimeToFile(diff);
 }
 
-DT PerformanceTracker::GetSampleWindow() const
+DT PerformanceTracker::GetSampleWindow()
 {
-  return m_sample_window_duration.value_or(
-      duration_cast<DT>(DT_us{std::max(1, g_ActiveConfig.iPerfSampleUSec)}));
+  return duration_cast<DT>(DT_us{std::max(1, g_ActiveConfig.iPerfSampleUSec)});
 }
 
 double PerformanceTracker::GetHzAvg() const

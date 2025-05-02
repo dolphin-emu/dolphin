@@ -14,8 +14,7 @@
 class PerformanceTracker
 {
 public:
-  explicit PerformanceTracker(std::optional<std::string> log_name = std::nullopt,
-                              std::optional<DT> sample_window_duration = std::nullopt);
+  explicit PerformanceTracker(std::optional<std::string> log_name = std::nullopt);
   ~PerformanceTracker() = default;
 
   PerformanceTracker(const PerformanceTracker&) = delete;
@@ -34,7 +33,7 @@ public:
   void Count();
 
   // May call from any thread.
-  DT GetSampleWindow() const;
+  static DT GetSampleWindow();
   double GetHzAvg() const;
   DT GetDtAvg() const;
   DT GetDtStd() const;
@@ -60,9 +59,6 @@ private:
   //  and Pop'd from UpdateStats()
   Common::SPSCQueue<DT> m_raw_dts;
   std::atomic<DT> m_last_raw_dt = DT::zero();
-
-  // Amount of time to sample dt's over (defaults to config)
-  const std::optional<DT> m_sample_window_duration;
 
   // Queue + Running Total used to calculate average dt
   DT m_dt_total = DT::zero();
