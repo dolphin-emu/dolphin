@@ -138,7 +138,10 @@ int GetGameLayout()
 u8 MapVirtualKeyToHID(u8 virtual_key, int host_layout, int game_layout)
 {
   // SDL2 keyboard state uses scan codes already based on HID usage id
-  return TranslateUsageID(virtual_key, host_layout, game_layout);
+  u8 usage_id = virtual_key;
+  if (Config::Get(Config::MAIN_WII_KEYBOARD_TRANSLATION))
+    usage_id = TranslateUsageID(usage_id, host_layout, game_layout);
+  return usage_id;
 }
 
 std::weak_ptr<Common::KeyboardContext> s_keyboard_context;
