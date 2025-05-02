@@ -108,7 +108,6 @@ class SystemTimersManager;
 }
 namespace VideoCommon
 {
-class CustomAssetLoader;
 }
 namespace VideoInterface
 {
@@ -197,7 +196,6 @@ public:
   VertexShaderManager& GetVertexShaderManager() const;
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
-  VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
 
 private:
   System();
