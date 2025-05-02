@@ -45,8 +45,8 @@ ConfigStringChoice::ConfigStringChoice(const std::vector<std::pair<QString, QStr
   for (const auto& [option_text, option_data] : options)
     addItem(option_text, option_data);
 
-  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
   Load();
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
 void ConfigStringChoice::Update(int index)
