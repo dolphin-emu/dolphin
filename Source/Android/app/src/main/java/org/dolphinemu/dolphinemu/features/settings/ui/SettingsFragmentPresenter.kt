@@ -100,10 +100,6 @@ class SettingsFragmentPresenter(
             }
         }
 
-    fun loadDefaultSettings() {
-        loadSettingsList()
-    }
-
     private fun loadSettingsList() {
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
