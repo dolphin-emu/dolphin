@@ -31,10 +31,6 @@ USB_KBD::USB_KBD(EmulationKernel& ios, const std::string& device_name)
 std::optional<IPCReply> USB_KBD::Open(const OpenRequest& request)
 {
   INFO_LOG_FMT(IOS, "USB_KBD: Open");
-  Common::IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("USB Keyboard")
-      ->Get("Layout", &m_keyboard_layout, Common::KBD_LAYOUT_QWERTY);
 
   m_message_queue = {};
   m_previous_state = {};
@@ -80,7 +76,7 @@ void USB_KBD::Update()
     return;
   }
 
-  const auto current_state = m_keyboard_context->GetPressedState(m_keyboard_layout);
+  const auto current_state = m_keyboard_context->GetPressedState();
 
   if (current_state == m_previous_state)
     return;
