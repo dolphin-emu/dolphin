@@ -44,17 +44,16 @@ void PerformanceTracker::Count()
 {
   const TimePoint current_time{Clock::now()};
 
-  const DT diff{current_time - m_last_time};
-  m_last_time = current_time;
-
-  if (!m_is_last_time_sane)
+  if (m_is_last_time_sane.exchange(true, std::memory_order_relaxed))
   {
-    m_is_last_time_sane = true;
-    return;
+    const DT diff{current_time - std::exchange(m_last_time, current_time)};
+    m_last_raw_dt.store(diff, std::memory_order_relaxed);
+    m_raw_dts.Push(diff);
   }
-
-  m_last_raw_dt = diff;
-  m_raw_dts.Push(diff);
+  else
+  {
+    m_last_time = current_time;
+  }
 }
 
 void PerformanceTracker::UpdateStats()
@@ -67,7 +66,9 @@ void PerformanceTracker::UpdateStats()
   MathUtil::RunningVariance<double> variance;
   for (auto dt : m_dt_queue)
     variance.Push(DT_s(dt).count());
-  m_dt_std = std::chrono::duration_cast<DT>(DT_s(variance.PopulationStandardDeviation()));
+
+  const auto dt_std = std::chrono::duration_cast<DT>(DT_s(variance.PopulationStandardDeviation()));
+  m_dt_std.store(dt_std, std::memory_order_relaxed);
 }
 
 void PerformanceTracker::HandleRawDt(DT diff)
@@ -85,18 +86,19 @@ void PerformanceTracker::HandleRawDt(DT diff)
   // Simple Moving Average Throughout the Window
   const DT dt_avg = m_dt_total / m_dt_queue.size();
   const double hz = DT_s(1.0) / dt_avg;
-  m_dt_avg = dt_avg;
+  m_dt_avg.store(dt_avg, std::memory_order_relaxed);
 
   // Exponential Moving Average
   const DT_s rc = SAMPLE_RC_RATIO * std::min(window, m_dt_total);
   const double a = 1.0 - std::exp(-(DT_s(diff) / rc));
 
   // Sometimes euler averages can break when the average is inf/nan
-  const auto hz_avg = m_hz_avg.load();
+  auto hz_avg = m_hz_avg.load(std::memory_order_relaxed);
   if (std::isfinite(hz_avg))
-    m_hz_avg = hz_avg + a * (hz - hz_avg);
+    hz_avg = hz_avg + a * (hz - hz_avg);
   else
-    m_hz_avg = hz;
+    hz_avg = hz;
+  m_hz_avg.store(hz_avg, std::memory_order_relaxed);
 
   LogRenderTimeToFile(diff);
 }
@@ -109,22 +111,22 @@ DT PerformanceTracker::GetSampleWindow() const
 
 double PerformanceTracker::GetHzAvg() const
 {
-  return m_hz_avg;
+  return m_hz_avg.load(std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetDtAvg() const
 {
-  return m_dt_avg;
+  return m_dt_avg.load(std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetDtStd() const
 {
-  return m_dt_std;
+  return m_dt_std.load(std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetLastRawDt() const
 {
-  return m_last_raw_dt;
+  return m_last_raw_dt.load(std::memory_order_relaxed);
 }
 
 void PerformanceTracker::InvalidateLastTime()
