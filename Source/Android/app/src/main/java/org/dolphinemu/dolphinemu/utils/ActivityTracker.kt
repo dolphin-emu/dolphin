@@ -11,20 +11,18 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     private var firstStart = true
 
     private fun isMainActivity(activity: Activity): Boolean {
-      return activity is MainView
+        return activity is MainView
     }
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
-      if (isMainActivity(activity)) {
-        firstStart = bundle == null
-      }
+        if (isMainActivity(activity)) {
+            firstStart = bundle == null
+        }
     }
 
     override fun onActivityStarted(activity: Activity) {
-      if (isMainActivity(activity)) {
         StartupHandler.reportStartToAnalytics(activity.applicationContext, firstStart)
         firstStart = false
-      }
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -44,9 +42,9 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStopped(activity: Activity) {
-      if (isMainActivity(activity)) {
-        StartupHandler.updateSessionTimestamp(activity.applicationContext)
-      }
+        if (isMainActivity(activity)) {
+            StartupHandler.updateSessionTimestamp(activity.applicationContext)
+        }
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, bundle: Bundle) {}
