@@ -282,6 +282,7 @@ void MenuBar::AddToolsMenu()
   usb_device_menu->addAction(tr("&Skylanders Portal"), this, &MenuBar::ShowSkylanderPortal);
   usb_device_menu->addAction(tr("&Infinity Base"), this, &MenuBar::ShowInfinityBase);
   usb_device_menu->addAction(tr("&Wii Speak"), this, &MenuBar::ShowWiiSpeakWindow);
+  usb_device_menu->addAction(tr("&Keyboard"), this, &MenuBar::ShowKeyboard);
   tools_menu->addMenu(usb_device_menu);
 
   tools_menu->addSeparator();

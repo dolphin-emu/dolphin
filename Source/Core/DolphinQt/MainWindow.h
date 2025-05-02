@@ -38,6 +38,7 @@ class GCTASInputWindow;
 class GraphicsWindow;
 class HotkeyScheduler;
 class InfinityBaseWindow;
+class KeyboardWindow;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
@@ -179,6 +180,7 @@ private:
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
+  void ShowKeyboard();
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
@@ -253,6 +255,7 @@ private:
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;
   WiiSpeakWindow* m_wii_speak_window = nullptr;
+  KeyboardWindow* m_keyboard_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 

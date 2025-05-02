@@ -190,6 +190,8 @@ const Info<u64> MAIN_WII_SD_CARD_FILESIZE{{System::Main, "Core", "WiiSDCardFiles
 const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const Info<int> MAIN_WII_KEYBOARD_HOST_LAYOUT{{System::Main, "Core", "WiiKeyboardHostLayout"}, 0};
 const Info<int> MAIN_WII_KEYBOARD_GAME_LAYOUT{{System::Main, "Core", "WiiKeyboardGameLayout"}, 0};
+const Info<bool> MAIN_WII_KEYBOARD_TRANSLATION{{System::Main, "Core", "WiiKeyboardTranslation"},
+                                               false};
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
 const Info<std::string> MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES{
