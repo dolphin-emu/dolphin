@@ -91,6 +91,9 @@ std::optional<const char*> UpdateKeyboardHandle(UniqueSDLWindow* unique_window)
     SDL_SetWindowFullscreen(keyboard_window, 0);
     SDL_SetWindowBordered(keyboard_window, true);
   }
+
+  Common::KeyboardContext::UpdateLayout();
+
   return error;
 }
 }  // namespace
@@ -397,6 +400,10 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   {
     m_keyboard_window.reset();
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
+  }
+  else if (e.type == SDL_EVENT_KEYMAP_CHANGED)
+  {
+    Common::KeyboardContext::UpdateLayout();
   }
 
   return true;

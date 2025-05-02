@@ -48,7 +48,6 @@ private:
 #pragma pack(pop)
   std::queue<MessageData> m_message_queue;
   Common::HIDPressedState m_previous_state;
-  int m_keyboard_layout = Common::KBD_LAYOUT_QWERTY;
   std::shared_ptr<Common::KeyboardContext> m_keyboard_context;
 };
 }  // namespace IOS::HLE
