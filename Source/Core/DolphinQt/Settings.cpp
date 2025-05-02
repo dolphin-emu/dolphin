@@ -945,6 +945,7 @@ void Settings::SetUSBKeyboardConnected(bool connected)
       Common::KeyboardContext::NotifyInit();
     else
       Common::KeyboardContext::NotifyQuit();
+    emit USBKeyboardConnectionChanged(connected);
   }
 }
 
