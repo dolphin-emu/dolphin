@@ -295,6 +295,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 
       QLocale::setDefault(QLocale(exact_language_code));
       UICommon::SetLocale(exact_language_code.toStdString());
+      QApplication::setLayoutDirection(QLocale(exact_language_code).textDirection());
 
       return true;
     }
