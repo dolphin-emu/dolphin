@@ -12,16 +12,15 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
-#include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
-static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;
-static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8;
+static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12u;
+static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8u;
 
-PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
+PerformanceTracker::PerformanceTracker(std::optional<std::string> log_name,
                                        const std::optional<DT> sample_window_duration)
-    : m_log_name{log_name}, m_sample_window_duration{sample_window_duration}
+    : m_log_name{std::move(log_name)}, m_sample_window_duration{sample_window_duration}
 {
   Reset();
 }
@@ -131,7 +130,7 @@ DT PerformanceTracker::GetLastRawDt() const
 
 void PerformanceTracker::InvalidateLastTime()
 {
-  m_is_last_time_sane = false;
+  m_is_last_time_sane.store(false, std::memory_order_relaxed);
 }
 
 void PerformanceTracker::ImPlotPlotLines(const char* label) const
@@ -162,12 +161,7 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
     ++point_index;
   };
 
-  // Rightmost point.
-  const auto update_time = Clock::now() - m_last_time;
-  const auto predicted_frame_time = std::max(update_time, m_dt_queue.front());
-  add_point(predicted_frame_time, DT{}, 0);
-
-  // Other points, right to left.
+  // add points, right to left.
   for (auto dt : m_dt_queue)
     add_point(dt, dt, x[point_index - 1]);
 

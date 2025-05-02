@@ -14,8 +14,8 @@
 class PerformanceTracker
 {
 public:
-  PerformanceTracker(const std::optional<std::string> log_name = std::nullopt,
-                     const std::optional<DT> sample_window_duration = std::nullopt);
+  explicit PerformanceTracker(std::optional<std::string> log_name = std::nullopt,
+                              std::optional<DT> sample_window_duration = std::nullopt);
   ~PerformanceTracker() = default;
 
   PerformanceTracker(const PerformanceTracker&) = delete;
@@ -44,7 +44,7 @@ public:
 private:
   void LogRenderTimeToFile(DT val);
 
-  void HandleRawDt(DT value);
+  void HandleRawDt(DT diff);
   void PushFront(DT value);
   void PopBack();
 
