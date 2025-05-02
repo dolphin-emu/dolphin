@@ -10,12 +10,63 @@
 
 namespace Common
 {
+namespace HIDUsageID
+{
+// See HID Usage Tables - Keyboard (0x07):
+// https://usb.org/sites/default/files/hut1_21.pdf
 enum
 {
-  KBD_LAYOUT_QWERTY = 0,
-  KBD_LAYOUT_AZERTY = 1
+  A = 0x04,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W,
+  X,
+  Y,
+  Z,
+  COLON = 0x33,
+  A_AZERTY = Q,
+  M_AZERTY = COLON,
+  Q_AZERTY = A,
+  W_AZERTY = Z,
+  Z_AZERTY = W,
+  Y_QWERTZ = Z,
+  Z_QWERTZ = Y,
 };
+}  // namespace HIDUsageID
 
+namespace KeyboardLayout
+{
+enum
+{
+  AUTO = 0,
+  QWERTY = 1,
+  AZERTY = 2,
+  QWERTZ = 4,
+  // Translation
+  QWERTY_AZERTY = QWERTY | AZERTY,
+  QWERTY_QWERTZ = QWERTY | QWERTZ,
+  AZERTY_QWERTZ = AZERTY | QWERTZ
+};
+}
 using HIDPressedKeys = std::array<u8, 6>;
 
 struct HIDPressedState
@@ -44,10 +95,11 @@ public:
   static void NotifyInit();
   static void NotifyHandlerChanged(const HandlerState& state);
   static void NotifyQuit();
+  static void UpdateLayout();
   static const void* GetWindowHandle();
   static std::shared_ptr<KeyboardContext> GetInstance();
 
-  HIDPressedState GetPressedState(int keyboard_layout) const;
+  HIDPressedState GetPressedState() const;
 
 #ifdef HAVE_SDL2
   static u32 s_sdl_init_event_type;
@@ -62,9 +114,11 @@ private:
   void Quit();
   bool IsVirtualKeyPressed(int virtual_key) const;
   u8 PollHIDModifiers() const;
-  HIDPressedKeys PollHIDPressedKeys(int keyboard_layout) const;
+  HIDPressedKeys PollHIDPressedKeys() const;
 
   bool m_is_ready = false;
+  int m_host_layout = KeyboardLayout::AUTO;
+  int m_game_layout = KeyboardLayout::AUTO;
 #ifdef HAVE_SDL2
   const u8* m_keyboard_state = nullptr;
 #endif
