@@ -79,6 +79,8 @@ void GeneralWidget::CreateWidgets()
                                             Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH, m_game_layer);
   m_custom_aspect_height = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
                                              Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT, m_game_layer);
+  ToggleCustomAspectRatio(m_aspect_combo->currentIndex());
+
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC, m_game_layer);
   m_enable_fullscreen =
@@ -169,14 +171,17 @@ void GeneralWidget::ConnectWidgets()
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
-  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
-    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
-                                        (index == static_cast<int>(AspectMode::CustomStretch));
-    m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
-    m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
-    m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
-  });
-  m_aspect_combo->currentIndexChanged(m_aspect_combo->currentIndex());
+  connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
+          &GeneralWidget::ToggleCustomAspectRatio);
+}
+
+void GeneralWidget::ToggleCustomAspectRatio(int index)
+{
+  const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
+                                      (index == static_cast<int>(AspectMode::CustomStretch));
+  m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
+  m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
+  m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
 }
 
 void GeneralWidget::BackendWarning()
