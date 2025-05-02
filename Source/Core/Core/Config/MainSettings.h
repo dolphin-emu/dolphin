@@ -106,6 +106,8 @@ extern const Info<bool> MAIN_WII_SD_CARD;
 extern const Info<bool> MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC;
 extern const Info<u64> MAIN_WII_SD_CARD_FILESIZE;
 extern const Info<bool> MAIN_WII_KEYBOARD;
+extern const Info<int> MAIN_WII_KEYBOARD_HOST_LAYOUT;
+extern const Info<int> MAIN_WII_KEYBOARD_GAME_LAYOUT;
 extern const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const Info<std::string> MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES;
 extern const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
