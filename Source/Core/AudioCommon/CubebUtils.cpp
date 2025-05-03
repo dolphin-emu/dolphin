@@ -4,19 +4,14 @@
 #include "AudioCommon/CubebUtils.h"
 
 #include <cstdarg>
-#include <cstddef>
 #include <cstring>
-#include <thread>
+#include <string_view>
 
-#include "Common/Assert.h"
-#include "Common/CommonPaths.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 
 #include <cubeb/cubeb.h>
-
-static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
 {
@@ -31,7 +26,10 @@ static void LogCallback(const char* format, ...)
 
   va_list args;
   va_start(args, format);
-  const char* filename = va_arg(args, const char*) + s_path_cutoff_point;
+  const char* filename = va_arg(args, const char*);
+  const auto last_slash = std::string_view(filename).find_last_of("/\\");
+  if (last_slash != std::string_view::npos)
+    filename = filename + last_slash + 1;
   const int lineno = va_arg(args, int);
   const std::string adapted_format(StripWhitespace(format + strlen("%s:%d:")));
   const std::string message = StringFromFormatV(adapted_format.c_str(), args);
@@ -58,14 +56,6 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   if (shared)
     return shared;
 
-  const char* filename = __FILE__;
-  const char* match_point = strstr(filename, DIR_SEP "Source" DIR_SEP "Core" DIR_SEP);
-  if (!match_point)
-    match_point = strstr(filename, R"(\Source\Core\)");
-  if (match_point)
-  {
-    s_path_cutoff_point = match_point - filename + strlen(DIR_SEP "Externals" DIR_SEP);
-  }
   if (cubeb_set_log_callback(CUBEB_LOG_NORMAL, LogCallback) != CUBEB_OK)
   {
     ERROR_LOG_FMT(AUDIO, "Error setting cubeb log callback");
