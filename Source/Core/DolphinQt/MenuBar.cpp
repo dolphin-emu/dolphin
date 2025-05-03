@@ -64,6 +64,7 @@
 #include "DolphinQt/NANDRepairDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -464,7 +465,8 @@ void MenuBar::UpdateStateSlotMenu()
 
 void MenuBar::AddViewMenu()
 {
-  QMenu* view_menu = addMenu(tr("&View"));
+  auto* const view_menu{new QtUtils::NonAutodismissibleMenu(tr("&View"), this)};
+  addMenu(view_menu);
   QAction* show_log = view_menu->addAction(tr("Show &Log"));
   show_log->setCheckable(true);
   show_log->setChecked(Settings::Instance().IsLogVisible());
@@ -719,7 +721,8 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Tags"), &Config::MAIN_GAMELIST_COLUMN_TAGS}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  m_cols_menu = view_menu->addMenu(tr("List Columns"));
+  m_cols_menu = new QtUtils::NonAutodismissibleMenu(tr("List Columns"), view_menu);
+  view_menu->addMenu(m_cols_menu);
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())
@@ -745,7 +748,8 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
       {tr("Show ELF/DOL"), &Config::MAIN_GAMELIST_LIST_ELF_DOL}};
 
   QActionGroup* platform_group = new QActionGroup(this);
-  QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
+  auto* const plat_menu{new QtUtils::NonAutodismissibleMenu(tr("Show Platforms"), view_menu)};
+  view_menu->addMenu(plat_menu);
   platform_group->setExclusive(false);
 
   for (const auto& key : platform_map.keys())
@@ -779,7 +783,8 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
       {tr("Show World"), &Config::MAIN_GAMELIST_LIST_WORLD},
       {tr("Show Unknown"), &Config::MAIN_GAMELIST_LIST_UNKNOWN}};
 
-  QMenu* const region_menu = view_menu->addMenu(tr("Show Regions"));
+  auto* const region_menu{new QtUtils::NonAutodismissibleMenu(tr("Show Regions"), view_menu)};
+  view_menu->addMenu(region_menu);
   const QAction* const show_all_regions = region_menu->addAction(tr("Show All"));
   const QAction* const hide_all_regions = region_menu->addAction(tr("Hide All"));
   region_menu->addSeparator();
@@ -807,7 +812,8 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
 
 void MenuBar::AddMovieMenu()
 {
-  auto* movie_menu = addMenu(tr("&Movie"));
+  auto* const movie_menu{new QtUtils::NonAutodismissibleMenu(tr("&Movie"), this)};
+  addMenu(movie_menu);
   m_recording_start =
       movie_menu->addAction(tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
