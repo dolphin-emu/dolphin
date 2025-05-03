@@ -11,7 +11,6 @@
 #include <fmt/format.h>
 
 #include <rcheevos/include/rc_api_info.h>
-#include <rcheevos/include/rc_hash.h>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
@@ -161,13 +160,13 @@ bool AchievementManager::HasAPIToken() const
   return !Config::Get(Config::RA_API_TOKEN).empty();
 }
 
-void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Volume* volume)
+void AchievementManager::LoadGame(const DiscIO::Volume* volume)
 {
   if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
   {
     return;
   }
-  if (file_path.empty() && volume == nullptr)
+  if (volume == nullptr)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Called Load Game without a game.");
     return;
@@ -184,20 +183,22 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   {
     std::lock_guard lg{m_lock};
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-    SplitPath(file_path, nullptr, &m_title_estimate, nullptr);
+    const auto& names = volume->GetLongNames();
+    if (names.contains(DiscIO::Language::English))
+      m_title_estimate = names.at(DiscIO::Language::English);
+    else if (!names.empty())
+      m_title_estimate = names.begin()->second;
+    else
+      m_title_estimate = "";
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
-    if (volume)
+    if (!m_loading_volume)
     {
-      if (!m_loading_volume)
-      {
-        m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
-      }
+      m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
     }
   }
   std::lock_guard lg{m_filereader_lock};
   rc_hash_filereader volume_reader{
-      .open = (volume) ? &AchievementManager::FilereaderOpenByVolume :
-                         &AchievementManager::FilereaderOpenByFilepath,
+      .open = &AchievementManager::FilereaderOpen,
       .seek = &AchievementManager::FilereaderSeek,
       .tell = &AchievementManager::FilereaderTell,
       .read = &AchievementManager::FilereaderRead,
@@ -206,13 +207,14 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   rc_hash_init_custom_filereader(&volume_reader);
   if (rc_client_get_game_info(m_client))
   {
-    rc_client_begin_change_media(m_client, file_path.c_str(), NULL, 0, ChangeMediaCallback, NULL);
+    rc_client_begin_change_media(m_client, "", NULL, 0, ChangeMediaCallback, NULL);
   }
   else
   {
+    u32 console_id = FindConsoleID(volume->GetVolumeType());
     rc_client_set_read_memory_function(m_client, MemoryVerifier);
-    rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, file_path.c_str(), NULL,
-                                           0, LoadGameCallback, NULL);
+    rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
+                                           NULL);
   }
 }
 
@@ -237,15 +239,17 @@ void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
 std::string AchievementManager::CalculateHash(const std::string& file_path)
 {
   char hash_result[33] = "0";
+  GetInstance().m_loading_volume = std::move(DiscIO::CreateVolume(file_path));
   rc_hash_filereader volume_reader{
-      .open = &AchievementManager::FilereaderOpenByFilepath,
+      .open = &AchievementManager::FilereaderOpen,
       .seek = &AchievementManager::FilereaderSeek,
       .tell = &AchievementManager::FilereaderTell,
       .read = &AchievementManager::FilereaderRead,
       .close = &AchievementManager::FilereaderClose,
   };
   rc_hash_init_custom_filereader(&volume_reader);
-  rc_hash_generate_from_file(hash_result, RC_CONSOLE_GAMECUBE, file_path.c_str());
+  u32 console_id = FindConsoleID(GetInstance().m_loading_volume->GetVolumeType());
+  rc_hash_generate_from_file(hash_result, console_id, file_path.c_str());
 
   return std::string(hash_result);
 }
@@ -774,16 +778,7 @@ void AchievementManager::Shutdown()
   }
 }
 
-void* AchievementManager::FilereaderOpenByFilepath(const char* path_utf8)
-{
-  auto state = std::make_unique<FilereaderState>();
-  state->volume = DiscIO::CreateVolume(path_utf8);
-  if (!state->volume)
-    return nullptr;
-  return state.release();
-}
-
-void* AchievementManager::FilereaderOpenByVolume(const char* path_utf8)
+void* AchievementManager::FilereaderOpen(const char* path_utf8)
 {
   auto state = std::make_unique<FilereaderState>();
   {
@@ -836,6 +831,20 @@ size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, size_
 void AchievementManager::FilereaderClose(void* file_handle)
 {
   delete static_cast<FilereaderState*>(file_handle);
+}
+
+u32 AchievementManager::FindConsoleID(const DiscIO::Platform& platform)
+{
+  switch (platform)
+  {
+  case DiscIO::Platform::GameCubeDisc:
+    return RC_CONSOLE_GAMECUBE;
+  case DiscIO::Platform::WiiDisc:
+  case DiscIO::Platform::WiiWAD:
+    return RC_CONSOLE_WII;
+  default:
+    return RC_CONSOLE_UNKNOWN;
+  }
 }
 
 void AchievementManager::LoadDefaultBadges()
@@ -997,6 +1006,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
       // Allow developer tools for unidentified games
       rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
       instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
+      return;
     }
     instance.CloseGame();
     return;
