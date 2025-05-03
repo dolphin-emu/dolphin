@@ -7,7 +7,6 @@ endif()
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
-include(CheckCSourceCompiles)
 
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
