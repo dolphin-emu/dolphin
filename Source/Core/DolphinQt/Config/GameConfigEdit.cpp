@@ -105,11 +105,19 @@ void GameConfigEdit::AddDescription(const QString& keyword, const QString& descr
 
 void GameConfigEdit::LoadFile()
 {
-  QFile file(m_path);
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    return;
+  if (m_read_only)
+  {
+    // HACK
+    m_edit->setPlainText(m_path);
+  }
+  else
+  {
+    QFile file(m_path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+      return;
 
-  m_edit->setPlainText(QString::fromStdString(file.readAll().toStdString()));
+    m_edit->setPlainText(QString::fromStdString(file.readAll().toStdString()));
+  }
 }
 
 void GameConfigEdit::SaveFile()

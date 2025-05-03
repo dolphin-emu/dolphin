@@ -510,8 +510,9 @@ Common::IniFile SConfig::LoadGameIni() const
 Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
+  auto& sys_inis = ConfigLoaders::GetDefaultGameSettings();
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(sys_inis, filename, true);
   return game_ini;
 }
 
@@ -526,8 +527,9 @@ Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u
 Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
+  auto& sys_inis = ConfigLoaders::GetDefaultGameSettings();
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(sys_inis, filename, true);
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;

@@ -11,6 +11,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
+class IniDirectory;
+}
+
 namespace Config
 {
 class ConfigLayerLoader;
@@ -18,6 +23,8 @@ class ConfigLayerLoader;
 
 namespace ConfigLoaders
 {
+const Common::IniDirectory& GetDefaultGameSettings();
+
 std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optional<u16> revision);
 
 std::unique_ptr<Config::ConfigLayerLoader> GenerateGlobalGameConfigLoader(const std::string& id,

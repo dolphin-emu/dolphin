@@ -6,15 +6,31 @@
 #include <algorithm>
 #include <list>
 #include <map>
+#include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 namespace Common
 {
+
+class IniDirectory
+{
+public:
+  IniDirectory(const std::string& filename);
+  static const IniDirectory& GetInstance();
+  std::optional<std::string_view> Get(std::string_view filename) const;
+
+private:
+  Common::UniqueBuffer<char> m_data;
+  std::map<std::string_view, std::string_view> m_files;
+};
+
 class IniFile
 {
 public:
@@ -92,6 +108,8 @@ public:
    * user-specified) and should eventually be replaced with a less stupid system.
    */
   bool Load(const std::string& filename, bool keep_current_data = false);
+  bool Load(const IniDirectory& dir, const std::string& filename, bool keep_current_data = false);
+  bool Load(std::istream& in);
 
   bool Save(const std::string& filename);
 
@@ -145,4 +163,5 @@ private:
 
   static const std::string& NULL_STRING;
 };
+
 }  // namespace Common

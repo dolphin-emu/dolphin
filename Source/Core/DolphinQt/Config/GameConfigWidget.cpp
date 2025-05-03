@@ -17,6 +17,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Config/Layer.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -39,13 +40,29 @@
 static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
                         u16 revision, bool read_only)
 {
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+  if (read_only)
   {
-    const std::string ini_path = path + filename;
-    if (File::Exists(ini_path))
+    auto& sys_inis = ConfigLoaders::GetDefaultGameSettings();
+    for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
     {
-      auto* edit = new GameConfigEdit(nullptr, QString::fromStdString(ini_path), read_only);
-      tab->addTab(edit, QString::fromStdString(filename));
+      if (auto content = sys_inis.Get(filename))
+      {
+        auto* edit =
+            new GameConfigEdit(nullptr, QString::fromStdString(std::string(*content)), read_only);
+        tab->addTab(edit, QString::fromStdString(filename));
+      }
+    }
+  }
+  else
+  {
+    for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    {
+      const std::string ini_path = path + filename;
+      if (File::Exists(ini_path))
+      {
+        auto* edit = new GameConfigEdit(nullptr, QString::fromStdString(ini_path), read_only);
+        tab->addTab(edit, QString::fromStdString(filename));
+      }
     }
   }
 }
@@ -65,8 +82,7 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   CreateWidgets();
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GameConfigWidget::LoadSettings);
 
-  PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
-              m_game.GetRevision(), true);
+  PopulateTab(m_default_tab, "", m_game_id, m_game.GetRevision(), true);
   PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(),
               false);
 
