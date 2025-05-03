@@ -94,8 +94,8 @@ static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_h
 
 Presenter::Presenter()
 {
-  m_config_changed =
-      ConfigChangedEvent::Register([this](u32 bits) { ConfigChanged(bits); }, "Presenter");
+  m_config_changed = GetVideoEvents().config_changed_event.Register(
+      [this](u32 bits) { ConfigChanged(bits); }, "Presenter");
 }
 
 Presenter::~Presenter()
@@ -195,14 +195,16 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
     }
   }
 
-  BeforePresentEvent::Trigger(present_info);
+  auto& video_events = GetVideoEvents();
+
+  video_events.before_present_event.Trigger(present_info);
 
   if (!is_duplicate || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
   {
     Present(presentation_time);
     ProcessFrameDumping(ticks);
 
-    AfterPresentEvent::Trigger(present_info);
+    video_events.after_present_event.Trigger(present_info);
   }
 }
 
@@ -216,12 +218,14 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
 
-  BeforePresentEvent::Trigger(present_info);
+  auto& video_events = GetVideoEvents();
+
+  video_events.before_present_event.Trigger(present_info);
 
   Present();
   ProcessFrameDumping(ticks);
 
-  AfterPresentEvent::Trigger(present_info);
+  video_events.after_present_event.Trigger(present_info);
 }
 
 void Presenter::ProcessFrameDumping(u64 ticks) const
@@ -925,7 +929,7 @@ void Presenter::DoState(PointerWrap& p)
   if (p.IsReadMode() && m_last_xfb_stride != 0)
   {
     // This technically counts as the end of the frame
-    AfterFrameEvent::Trigger(Core::System::GetInstance());
+    GetVideoEvents().after_frame_event.Trigger(Core::System::GetInstance());
 
     ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
                   m_last_xfb_ticks);

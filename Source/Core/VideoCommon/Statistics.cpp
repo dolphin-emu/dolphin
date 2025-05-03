@@ -20,18 +20,8 @@
 
 Statistics g_stats;
 
-static Common::EventHook s_before_frame_event =
-    BeforeFrameEvent::Register([] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
-
-static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
-    [](const Core::System& system) {
-      DolphinAnalytics::Instance().ReportPerformanceInfo({
-          .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
-          .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
-          .num_draw_calls = g_stats.this_frame.num_draw_calls,
-      });
-    },
-    "Statistics::PerformanceSample");
+static Common::EventHook s_before_frame_event;
+static Common::EventHook s_after_frame_event;
 
 static bool clear_scissors;
 
@@ -506,4 +496,26 @@ void Statistics::DisplayScissor()
   }
 
   ImGui::End();
+}
+
+void Statistics::Init()
+{
+  s_before_frame_event = GetVideoEvents().before_frame_event.Register([] { g_stats.ResetFrame(); },
+                                                                      "Statistics::ResetFrame");
+
+  s_after_frame_event = GetVideoEvents().after_frame_event.Register(
+      [](const Core::System& system) {
+        DolphinAnalytics::Instance().ReportPerformanceInfo({
+            .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
+            .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
+            .num_draw_calls = g_stats.this_frame.num_draw_calls,
+        });
+      },
+      "Statistics::PerformanceSample");
+}
+
+void Statistics::Shutdown()
+{
+  s_before_frame_event.reset();
+  s_after_frame_event.reset();
 }
