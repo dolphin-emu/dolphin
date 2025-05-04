@@ -330,10 +330,11 @@ void AchievementManager::DoFrame()
       if (!system)
         return;
       Core::CPUThreadGuard thread_guard(*system);
-      u32 ram_size = system->GetMemory().GetRamSizeReal();
-      if (m_cloned_memory.size() != ram_size)
-        m_cloned_memory.resize(ram_size);
-      system->GetMemory().CopyFromEmu(m_cloned_memory.data(), 0, m_cloned_memory.size());
+      u32 mem2_size = system->GetMemory().GetExRamSizeReal();
+      if (m_cloned_memory.size() != MEM1_SIZE + mem2_size)
+        m_cloned_memory.resize(MEM1_SIZE + mem2_size);
+      system->GetMemory().CopyFromEmu(m_cloned_memory.data(), 0, MEM1_SIZE);
+      system->GetMemory().CopyFromEmu(m_cloned_memory.data() + MEM1_SIZE, MEM2_START, mem2_size);
     }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
     std::lock_guard lg{m_lock};
@@ -1351,6 +1352,8 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
     return 0;
   }
   Core::CPUThreadGuard thread_guard(system);
+  if (address > MEM1_SIZE)
+    address += (MEM2_START - MEM1_SIZE);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
     auto value = system.GetMMU().HostTryReadU8(thread_guard, address + num_read,
@@ -1591,7 +1594,10 @@ void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_
     return;
   Core::CPUThreadGuard thread_guard(*system);
   std::lock_guard lg{instance.m_memory_lock};
-  system->GetMemory().CopyToEmu(address, buffer, num_bytes);
+  if (address < MEM1_SIZE)
+    system->GetMemory().CopyToEmu(address, buffer, num_bytes);
+  else
+    system->GetMemory().CopyToEmu(address - MEM1_SIZE + MEM2_START, buffer, num_bytes);
   std::copy(buffer, buffer + num_bytes, instance.m_cloned_memory.begin() + address);
 }
 void AchievementManager::GameTitleEstimateHandler(char* buffer, u32 buffer_size,
