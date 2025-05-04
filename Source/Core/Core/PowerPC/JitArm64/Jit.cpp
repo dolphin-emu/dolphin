@@ -1401,7 +1401,7 @@ void JitArm64::LogGeneratedCode() const
        std::span{m_code_buffer.data(), code_block.m_num_instructions})
   {
     fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
-               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
+               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address, false));
   }
 
   const JitBlock* const block = js.curBlock;

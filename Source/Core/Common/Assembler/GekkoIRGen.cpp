@@ -719,6 +719,7 @@ void GekkoIRPlugin::EvalTerminalRel(Terminal type, const AssemblerToken& tok)
   case Terminal::Bin:
   case Terminal::GPR:
   case Terminal::FPR:
+  case Terminal::GQR:
   case Terminal::SPR:
   case Terminal::CRField:
   case Terminal::Lt:
@@ -797,6 +798,7 @@ void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
   case Terminal::Bin:
   case Terminal::GPR:
   case Terminal::FPR:
+  case Terminal::GQR:
   case Terminal::SPR:
   case Terminal::CRField:
   case Terminal::Lt:

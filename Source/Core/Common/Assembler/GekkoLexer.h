@@ -31,6 +31,7 @@ enum class TokenType
   FloatLit,
   GPR,
   FPR,
+  GQR,
   CRField,
   SPR,
   Lt,
