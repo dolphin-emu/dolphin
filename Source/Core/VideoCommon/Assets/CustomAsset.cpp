@@ -23,6 +23,16 @@ bool CustomAsset::Load()
   return load_information.m_bytes_loaded != 0;
 }
 
+void CustomAsset::Unload()
+{
+  UnloadImpl();
+  {
+    std::lock_guard lk(m_info_lock);
+    m_bytes_loaded = 0;
+    m_last_loaded_time = {};
+  }
+}
+
 CustomAssetLibrary::TimeType CustomAsset::GetLastWriteTime() const
 {
   return m_owning_library->GetLastAssetWriteTime(m_asset_id);
