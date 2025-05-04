@@ -719,6 +719,8 @@ void AchievementManager::DoState(PointerWrap& p)
 
 void AchievementManager::CloseGame()
 {
+  m_queue.Cancel();
+  m_image_queue.Cancel();
   {
     std::lock_guard lg{m_lock};
     m_active_challenges.clear();
@@ -730,8 +732,6 @@ void AchievementManager::CloseGame()
     m_locked_badges.clear();
     m_leaderboard_map.clear();
     m_rich_presence.fill('\0');
-    m_queue.Cancel();
-    m_image_queue.Cancel();
     m_system.store(nullptr, std::memory_order_release);
     if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
       Discord::UpdateDiscordPresence();
