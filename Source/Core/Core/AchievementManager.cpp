@@ -1317,10 +1317,10 @@ void AchievementManager::Request(const rc_api_request_t* request,
 u32 AchievementManager::MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
 {
   auto& system = Core::System::GetInstance();
-  u32 ram_size = system.GetMemory().GetRamSizeReal();
-  if (address >= ram_size)
-    return 0;
-  return std::min(ram_size - address, num_bytes);
+  u32 mem2_size = system.GetMemory().GetExRamSizeReal();
+  if (address < MEM1_SIZE + mem2_size)
+    return std::min(MEM1_SIZE + mem2_size - address, num_bytes);
+  return 0;
 }
 
 u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
