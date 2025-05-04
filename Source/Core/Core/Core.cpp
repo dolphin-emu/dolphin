@@ -809,7 +809,8 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
   return was_unpaused;
 }
 
-void RunOnCPUThread(Core::System& system, std::function<void()> function, bool wait_for_completion)
+void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
+                    bool wait_for_completion)
 {
   // If the CPU thread is not running, assume there is no active CPU thread we can race against.
   if (!IsRunning(system) || IsCPUThread())

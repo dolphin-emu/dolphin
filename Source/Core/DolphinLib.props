@@ -62,6 +62,7 @@
     <ClInclude Include="Common\FloatUtils.h" />
     <ClInclude Include="Common\FormatUtil.h" />
     <ClInclude Include="Common\FPURoundMode.h" />
+    <ClInclude Include="Common\Functional.h" />
     <ClInclude Include="Common\GekkoDisassembler.h" />
     <ClInclude Include="Common\GL\GLContext.h" />
     <ClInclude Include="Common\GL\GLExtensions\AMD_pinned_memory.h" />
