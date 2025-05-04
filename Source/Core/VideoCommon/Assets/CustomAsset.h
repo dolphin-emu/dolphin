@@ -28,6 +28,10 @@ public:
   // Loads the asset from the library returning a pass/fail result
   bool Load();
 
+  // Unloads the asset data, resets the bytes loaded and
+  // returns the number of bytes unloaded
+  std::size_t Unload();
+
   // Queries the last time the asset was modified or standard epoch time
   // if the asset hasn't been modified yet
   // Note: not thread safe, expected to be called by the loader
@@ -53,6 +57,7 @@ protected:
 
 private:
   virtual CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) = 0;
+  virtual void UnloadImpl() = 0;
   CustomAssetLibrary::AssetID m_asset_id;
   std::size_t m_handle;
 
@@ -89,6 +94,14 @@ protected:
   bool m_loaded = false;
   mutable std::mutex m_data_lock;
   std::shared_ptr<UnderlyingType> m_data;
+
+private:
+  void UnloadImpl() override
+  {
+    std::lock_guard lk(m_data_lock);
+    m_loaded = false;
+    m_data.reset();
+  }
 };
 
 // A helper struct that contains
