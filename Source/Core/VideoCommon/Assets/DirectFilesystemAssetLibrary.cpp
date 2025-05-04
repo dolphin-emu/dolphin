@@ -23,20 +23,6 @@ namespace VideoCommon
 {
 namespace
 {
-std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_time_type file_time)
-{
-#ifdef _WIN32
-  return std::chrono::clock_cast<std::chrono::system_clock>(file_time);
-#else
-  // Note: all compilers should switch to chrono::clock_cast
-  // once it is available for use
-  const auto system_time_now = std::chrono::system_clock::now();
-  const auto file_time_now = decltype(file_time)::clock::now();
-  return std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-      file_time - file_time_now + system_time_now);
-#endif
-}
-
 std::size_t GetAssetSize(const CustomTextureData& data)
 {
   std::size_t total = 0;
@@ -50,30 +36,6 @@ std::size_t GetAssetSize(const CustomTextureData& data)
   return total;
 }
 }  // namespace
-CustomAssetLibrary::TimeType
-DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
-{
-  std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
-      iter != m_assetid_to_asset_map_path.end())
-  {
-    const auto& asset_map_path = iter->second;
-    CustomAssetLibrary::TimeType max_entry;
-    for (const auto& [key, value] : asset_map_path)
-    {
-      std::error_code ec;
-      const auto tp = std::filesystem::last_write_time(value, ec);
-      if (ec)
-        continue;
-      auto tp_sys = FileTimeToSysTime(tp);
-      if (tp_sys > max_entry)
-        max_entry = tp_sys;
-    }
-    return max_entry;
-  }
-
-  return {};
-}
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const AssetID& asset_id,
                                                                            PixelShaderData* data)
@@ -158,7 +120,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
   if (!PixelShaderData::FromJson(asset_id, root_obj, data))
     return {};
 
-  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{approx_mem_size};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const AssetID& asset_id,
@@ -216,7 +178,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
     return {};
   }
 
-  return LoadInfo{metadata_size, GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{metadata_size};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetID& asset_id,
@@ -311,7 +273,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   if (!MeshData::FromJson(asset_id, root_obj, data))
     return {};
 
-  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{approx_mem_size};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
@@ -395,7 +357,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     if (!LoadMips(texture_path->second, &data->m_texture.m_slices[0]))
       return {};
 
-    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size, GetLastAssetWriteTime(asset_id)};
+    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
   }
   else if (ext == ".png")
   {
@@ -426,7 +388,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     if (!LoadMips(texture_path->second, &slice))
       return {};
 
-    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size, GetLastAssetWriteTime(asset_id)};
+    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
   }
 
   ERROR_LOG_FMT(VIDEO, "Asset '{}' error - extension '{}' unknown!", asset_id, ext);
