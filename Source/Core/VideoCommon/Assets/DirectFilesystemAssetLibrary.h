@@ -25,9 +25,6 @@ public:
   LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) override;
   LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) override;
 
-  // Gets the latest time from amongst all the files in the asset map
-  TimeType GetLastAssetWriteTime(const AssetID& asset_id) const override;
-
   // Assigns the asset id to a map of files, how this map is read is dependent on the data
   // For instance, a raw texture would expect the map to have a single entry and load that
   // file as the asset.  But a model file data might have its data spread across multiple files

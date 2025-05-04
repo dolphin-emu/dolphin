@@ -33,11 +33,6 @@ void CustomAsset::Unload()
   }
 }
 
-CustomAssetLibrary::TimeType CustomAsset::GetLastWriteTime() const
-{
-  return m_owning_library->GetLastAssetWriteTime(m_asset_id);
-}
-
 const CustomAssetLibrary::TimeType& CustomAsset::GetLastLoadedTime() const
 {
   std::lock_guard lk(m_info_lock);
