@@ -37,7 +37,7 @@ void CEXIMic::StreamInit()
   if (!m_coinit_success)
     return;
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
+  m_work_queue.Push([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
     m_cubeb_ctx = CubebUtils::GetContext();
@@ -57,7 +57,7 @@ void CEXIMic::StreamTerminate()
     if (!m_coinit_success)
       return;
     Common::Event sync_event;
-    m_work_queue.EmplaceItem([this, &sync_event] {
+    m_work_queue.Push([this, &sync_event] {
       Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
       m_cubeb_ctx.reset();
@@ -105,7 +105,7 @@ void CEXIMic::StreamStart()
   if (!m_coinit_success)
     return;
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
+  m_work_queue.Push([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
     // Open stream with current parameters
@@ -152,7 +152,7 @@ void CEXIMic::StreamStop()
   {
 #ifdef _WIN32
     Common::Event sync_event;
-    m_work_queue.EmplaceItem([this, &sync_event] {
+    m_work_queue.Push([this, &sync_event] {
       Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
       if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
@@ -200,7 +200,7 @@ CEXIMic::CEXIMic(Core::System& system, int index)
     : IEXIDevice(system), slot(index)
 #ifdef _WIN32
       ,
-      m_work_queue("Mic Worker", [](const std::function<void()>& func) { func(); })
+      m_work_queue("Mic Worker")
 #endif
 {
   m_position = 0;
@@ -218,7 +218,7 @@ CEXIMic::CEXIMic(Core::System& system, int index)
 
 #ifdef _WIN32
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
+  m_work_queue.Push([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
     auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
@@ -238,7 +238,7 @@ CEXIMic::~CEXIMic()
   if (m_should_couninit)
   {
     Common::Event sync_event;
-    m_work_queue.EmplaceItem([this, &sync_event] {
+    m_work_queue.Push([this, &sync_event] {
       Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
       m_should_couninit = false;
       CoUninitialize();

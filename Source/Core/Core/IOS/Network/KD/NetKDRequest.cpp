@@ -169,8 +169,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
   });
 
   m_handle_mail = !ios.GetIOSC().IsUsingDefaultId() && !m_send_list.IsDisabled();
-  m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker",
-                               [](std::function<void()> task) { task(); });
+  m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker");
 
   m_scheduler_timer_thread = std::thread([this] { SchedulerTimer(); });
 }
@@ -218,7 +217,7 @@ void NetKDRequestDevice::SchedulerTimer()
       std::lock_guard lg(m_scheduler_lock);
       if (m_mail_span <= mail_time_state && m_handle_mail)
       {
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Mail); });
+        m_scheduler_work_queue.Push([this] { SchedulerWorker(SchedulerEvent::Mail); });
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Mail Task from Scheduler");
         mail_time_state = 0;
       }
@@ -226,7 +225,7 @@ void NetKDRequestDevice::SchedulerTimer()
       if (m_download_span <= download_time_state && !m_dl_list.IsDisabled())
       {
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Download); });
+        m_scheduler_work_queue.Push([this] { SchedulerWorker(SchedulerEvent::Download); });
         download_time_state = 0;
       }
     }

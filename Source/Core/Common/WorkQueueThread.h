@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <functional>
+#include <future>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -12,8 +13,6 @@
 #include "Common/Event.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
-
-// A thread that executes the given function for every item placed into its queue.
 
 namespace Common
 {
@@ -158,6 +157,38 @@ private:
   using ProducerMutex = std::conditional_t<IsSingleProducer, DummyMutex, std::recursive_mutex>;
   ProducerMutex m_mutex;
 };
+
+// A WorkQueueThread-like class that takes functions to invoke.
+template <template <typename> typename WorkThread>
+class AsyncWorkThreadBase
+{
+public:
+  using FuncType = std::function<void()>;
+
+  AsyncWorkThreadBase() = default;
+  explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
+
+  void Reset(std::string thread_name)
+  {
+    m_worker.Reset(std::move(thread_name), std::invoke<FuncType>);
+  }
+
+  void Push(FuncType func) { m_worker.Push(std::move(func)); }
+
+  auto PushBlocking(FuncType func)
+  {
+    std::packaged_task task{std::move(func)};
+    m_worker.EmplaceItem([&] { task(); });
+    return task.get_future().get();
+  }
+
+  void Cancel() { m_worker.Cancel(); }
+  void Shutdown() { m_worker.Shutdown(); }
+  void WaitForCompletion() { m_worker.WaitForCompletion(); }
+
+private:
+  WorkThread<FuncType> m_worker;
+};
 }  // namespace detail
 
 // Multiple threads may use the public interface.
@@ -168,5 +199,8 @@ using WorkQueueThread = detail::WorkQueueThreadBase<T, false>;
 // It uses no mutex but only one thread can safely manipulate the queue.
 template <typename T>
 using WorkQueueThreadSP = detail::WorkQueueThreadBase<T, true>;
+
+using AsyncWorkThread = detail::AsyncWorkThreadBase<WorkQueueThread>;
+using AsyncWorkThreadSP = detail::AsyncWorkThreadBase<WorkQueueThreadSP>;
 
 }  // namespace Common
