@@ -683,6 +683,20 @@ QFont Settings::GetDebugFont() const
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
 
+void Settings::SetShowDemangledNames(bool enabled)
+{
+  if (IsShowDemangledNames() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showdemanglednames"), enabled);
+
+  emit ShowDemangledNamesChanged(enabled);
+}
+
+bool Settings::IsShowDemangledNames() const
+{
+  return QSettings().value(QStringLiteral("debugger/showdemanglednames")).toBool();
+}
+
 void Settings::SetAutoUpdateTrack(const QString& mode)
 {
   if (mode == GetAutoUpdateTrack())
