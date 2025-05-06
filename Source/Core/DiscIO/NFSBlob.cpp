@@ -184,7 +184,7 @@ u64 NFSFileReader::GetRawSize() const
   return m_raw_size;
 }
 
-u64 NFSFileReader::ToPhysicalBlockIndex(u64 logical_block_index)
+u64 NFSFileReader::ToPhysicalBlockIndex(u64 logical_block_index) const
 {
   u64 physical_blocks_so_far = 0;
 
