@@ -114,12 +114,9 @@
  */
 #pragma pack(1)
 template <std::size_t position, std::size_t bits, typename T,
-          // StorageType is T for non-enum types and the underlying type of T if
-          // T is an enumeration. Note that T is wrapped within an enable_if in the
-          // former case to workaround compile errors which arise when using
-          // std::underlying_type<T>::type directly.
-          typename StorageType = typename std::conditional_t<
-              std::is_enum<T>::value, std::underlying_type<T>, std::enable_if<true, T>>::type>
+          // StorageType is T for non-enum or the underlying-type for an enum.
+          typename StorageType = std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
+                                                    std::type_identity<T>>::type>
 struct BitField
 {
 private:
@@ -212,12 +209,9 @@ class BitFieldArrayIterator;
 
 #pragma pack(1)
 template <std::size_t position, std::size_t bits, std::size_t size, typename T,
-          // StorageType is T for non-enum types and the underlying type of T if
-          // T is an enumeration. Note that T is wrapped within an enable_if in the
-          // former case to workaround compile errors which arise when using
-          // std::underlying_type<T>::type directly.
-          typename StorageType = typename std::conditional_t<
-              std::is_enum<T>::value, std::underlying_type<T>, std::enable_if<true, T>>::type>
+          // StorageType is T for non-enum or the underlying-type for an enum.
+          typename StorageType = std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
+                                                    std::type_identity<T>>::type>
 struct BitFieldArray
 {
   using Ref = BitFieldArrayRef<position, bits, size, T, StorageType>;
