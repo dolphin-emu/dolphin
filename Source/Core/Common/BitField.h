@@ -119,13 +119,12 @@ template <std::size_t position, std::size_t bits, typename T,
                                                     std::type_identity<T>>::type>
 struct BitField
 {
-private:
+public:
   // This constructor might be considered ambiguous:
   // Would it initialize the storage or just the bitfield?
   // Hence, delete it. Use the assignment operator to set bitfield values!
   BitField(T val) = delete;
 
-public:
   // Force default constructor to be created
   // so that we can use this within unions
   constexpr BitField() = default;
@@ -214,18 +213,17 @@ template <std::size_t position, std::size_t bits, std::size_t size, typename T,
                                                     std::type_identity<T>>::type>
 struct BitFieldArray
 {
+public:
   using Ref = BitFieldArrayRef<position, bits, size, T, StorageType>;
   using ConstRef = BitFieldArrayConstRef<position, bits, size, T, StorageType>;
   using Iterator = BitFieldArrayIterator<position, bits, size, T, StorageType>;
   using ConstIterator = BitFieldArrayConstIterator<position, bits, size, T, StorageType>;
 
-private:
   // This constructor might be considered ambiguous:
   // Would it initialize the storage or just the bitfield?
   // Hence, delete it. Use the assignment operator to set bitfield values!
   BitFieldArray(T val) = delete;
 
-public:
   // Force default constructor to be created
   // so that we can use this within unions
   constexpr BitFieldArray() = default;
@@ -238,7 +236,6 @@ public:
   // code expects that this class is trivially copyable.
   BitFieldArray& operator=(const BitFieldArray&) = delete;
 
-public:
   constexpr bool IsSigned() const { return std::is_signed<T>(); }
   constexpr std::size_t StartBit() const { return position; }
   constexpr std::size_t NumBits() const { return bits; }
