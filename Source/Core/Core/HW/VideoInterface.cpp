@@ -712,6 +712,8 @@ void VideoInterfaceManager::UpdateParameters()
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
   m_target_refresh_rate =
       static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
+
+  VIUpdateParameters::Trigger();
 }
 
 double VideoInterfaceManager::GetTargetRefreshRate() const

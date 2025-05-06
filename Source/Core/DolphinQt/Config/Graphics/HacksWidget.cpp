@@ -111,12 +111,15 @@ void HacksWidget::CreateWidgets()
   m_save_texture_cache_state = new ConfigBool(
       tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE, m_game_layer);
   m_vi_skip = new ConfigBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP, m_game_layer);
+  m_refresh_rate_rounding = new ConfigBool(tr("Refresh Rate Rounding"),
+                                           Config::GFX_HACK_REFRESH_RATE_ROUNDING, m_game_layer);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
   other_layout->addWidget(m_vertex_rounding, 1, 0);
   other_layout->addWidget(m_save_texture_cache_state, 1, 1);
   other_layout->addWidget(m_vi_skip, 2, 0);
+  other_layout->addWidget(m_refresh_rate_rounding, 2, 1);
 
   main_layout->addWidget(efb_box);
   main_layout->addWidget(texture_cache_box);
@@ -239,6 +242,10 @@ void HacksWidget::AddDescriptions()
                  "<dolphin_emphasis>WARNING: Can cause freezes and compatibility "
                  "issues.</dolphin_emphasis> <br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_REFRESH_RATE_ROUNDING_DESCRIPTION[] =
+      QT_TR_NOOP("Alters emulation speed for an integer refresh rate. <br><br>"
+                 "e.g. (29.97 -> 30) and (59.94 -> 60) <br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
@@ -255,6 +262,7 @@ void HacksWidget::AddDescriptions()
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
   m_vi_skip->SetDescription(tr(TR_VI_SKIP_DESCRIPTION));
+  m_refresh_rate_rounding->SetDescription(tr(TR_REFRESH_RATE_ROUNDING_DESCRIPTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()

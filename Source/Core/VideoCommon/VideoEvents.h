@@ -26,6 +26,9 @@ using BeforeFrameEvent = Common::HookableEvent<"BeforeFrame">;
 //       If this matters to your usecase, you should use BeforePresent instead.
 using AfterFrameEvent = Common::HookableEvent<"AfterFrame", Core::System&>;
 
+// An event called after parameters are updated in VideoInterface.
+using VIUpdateParameters = Common::HookableEvent<"VIParametersChanged">;
+
 struct PresentInfo
 {
   enum class PresentReason
