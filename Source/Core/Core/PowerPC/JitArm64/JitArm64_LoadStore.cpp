@@ -7,6 +7,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
 
@@ -805,8 +806,15 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     SDIV(WB, reg_downcount, reg_cycle_count);  // WB = downcount / cycle_count
     SUB(WA, loop_counter, 1);                  // WA = CTR - 1
     // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
-    CMP(WB, WA);
-    CSEL(WA, WB, WA, CCFlags::CC_LO);  // WA = min(WB, WA)
+    if (cpu_info.bCSSC)
+    {
+      UMIN(WA, WB, WA);
+    }
+    else
+    {
+      CMP(WB, WA);
+      CSEL(WA, WB, WA, CCFlags::CC_LO);  // WA = min(WB, WA)
+    }
 
     // WA now holds the amount of loops to execute minus 1, which is the amount we need to adjust
     // downcount, CTR, and Rb by to exit the loop construct with the right values in those
