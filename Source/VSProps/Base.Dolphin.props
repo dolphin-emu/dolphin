@@ -11,7 +11,6 @@
 
       <!--For now, header-only libs don't have their own vcxproj/exports, so just supply their include paths to all Dolphin code-->
       <AdditionalIncludeDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir)OpenAL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)expr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)rangeset\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
