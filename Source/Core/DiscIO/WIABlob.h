@@ -359,7 +359,8 @@ private:
                                      std::mutex* reusable_groups_mutex, GroupEntry* group_entry,
                                      u64* bytes_written);
   static ConversionResultCode RunCallback(size_t groups_written, u64 bytes_read, u64 bytes_written,
-                                          u32 total_groups, u64 iso_size, CompressCB callback);
+                                          u32 total_groups, u64 iso_size,
+                                          const CompressCB& callback);
 
   bool m_valid;
   WIARVZCompressionType m_compression_type;

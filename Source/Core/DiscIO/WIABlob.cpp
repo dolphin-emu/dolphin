@@ -1700,7 +1700,7 @@ ConversionResultCode WIARVZFileReader<RVZ>::Output(std::vector<OutputParametersE
 template <bool RVZ>
 ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u64 bytes_read,
                                                         u64 bytes_written, u32 total_groups,
-                                                        u64 iso_size, CompressCB callback)
+                                                        u64 iso_size, const CompressCB& callback)
 {
   int ratio = 0;
   if (bytes_read != 0)
@@ -2040,7 +2040,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
                        const std::string& outfile_path, bool rvz,
                        WIARVZCompressionType compression_type, int compression_level,
-                       int chunk_size, CompressCB callback)
+                       int chunk_size, const CompressCB& callback)
 {
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)

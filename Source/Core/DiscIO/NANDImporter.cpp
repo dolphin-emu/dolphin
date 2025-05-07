@@ -25,7 +25,7 @@ NANDImporter::~NANDImporter() = default;
 
 void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
                                  std::function<void()> update_callback,
-                                 std::function<std::string()> get_otp_dump_path)
+                                 const std::function<std::string()>& get_otp_dump_path)
 {
   m_update_callback = std::move(update_callback);
 
@@ -40,7 +40,7 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
 }
 
 bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
-                               std::function<std::string()> get_otp_dump_path)
+                               const std::function<std::string()>& get_otp_dump_path)
 {
   constexpr size_t NAND_TOTAL_BLOCKS = 0x40000;
   constexpr size_t NAND_BLOCK_SIZE = 0x800;
