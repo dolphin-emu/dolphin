@@ -129,7 +129,7 @@ public:
   HLEAccelerator(HLEAccelerator&&) = delete;
   HLEAccelerator& operator=(const HLEAccelerator&) = delete;
   HLEAccelerator& operator=(HLEAccelerator&&) = delete;
-  ~HLEAccelerator() = default;
+  ~HLEAccelerator() override = default;
 
   PB_TYPE* acc_pb = nullptr;
 

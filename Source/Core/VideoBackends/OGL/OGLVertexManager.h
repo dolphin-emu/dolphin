@@ -18,7 +18,7 @@ class GLVertexFormat : public NativeVertexFormat
 {
 public:
   GLVertexFormat(const PortableVertexDeclaration& vtx_decl);
-  ~GLVertexFormat();
+  ~GLVertexFormat() override;
 
   GLuint VAO;
 };

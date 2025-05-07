@@ -17,7 +17,7 @@ class Host final : public QObject
   Q_OBJECT
 
 public:
-  ~Host();
+  ~Host() override;
 
   static Host* GetInstance();
 

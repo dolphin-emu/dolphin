@@ -45,7 +45,7 @@ class CompressedBlobReader final : public SectorReader
 public:
   static std::unique_ptr<CompressedBlobReader> Create(File::IOFile file,
                                                       const std::string& filename);
-  ~CompressedBlobReader();
+  ~CompressedBlobReader() override;
 
   const CompressedBlobHeader& GetHeader() const { return m_header; }
 

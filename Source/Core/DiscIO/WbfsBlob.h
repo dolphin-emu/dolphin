@@ -18,7 +18,7 @@ static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little 
 class WbfsFileReader final : public BlobReader
 {
 public:
-  ~WbfsFileReader();
+  ~WbfsFileReader() override;
 
   static std::unique_ptr<WbfsFileReader> Create(File::IOFile file, const std::string& path);
 

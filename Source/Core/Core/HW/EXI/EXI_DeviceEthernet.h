@@ -216,7 +216,7 @@ class CEXIETHERNET : public IEXIDevice
 {
 public:
   CEXIETHERNET(Core::System& system, BBADeviceType type);
-  virtual ~CEXIETHERNET();
+  ~CEXIETHERNET() override;
   void SetCS(int cs) override;
   bool IsPresent() const override;
   bool IsInterruptSet() override;

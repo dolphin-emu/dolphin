@@ -18,7 +18,7 @@ class GBAHost : public GBAHostInterface
 {
 public:
   explicit GBAHost(std::weak_ptr<HW::GBA::Core> core);
-  ~GBAHost();
+  ~GBAHost() override;
   void GameChanged() override;
   void FrameEnded(const std::vector<u32>& video_buffer) override;
 

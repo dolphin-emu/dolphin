@@ -17,7 +17,7 @@ class OGLGfx final : public AbstractGfx
 {
 public:
   OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
-  ~OGLGfx();
+  ~OGLGfx() override;
 
   bool IsHeadless() const override;
 
@@ -67,9 +67,9 @@ public:
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  virtual void SelectLeftBuffer() override;
-  virtual void SelectRightBuffer() override;
-  virtual void SelectMainBuffer() override;
+  void SelectLeftBuffer() override;
+  void SelectRightBuffer() override;
+  void SelectMainBuffer() override;
 
   std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 

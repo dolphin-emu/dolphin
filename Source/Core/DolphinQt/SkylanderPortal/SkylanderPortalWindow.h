@@ -56,7 +56,7 @@ private:
   QVBoxLayout* CreateSlotLayout();
   QVBoxLayout* CreateFinderLayout();
   void closeEvent(QCloseEvent* bar) override;
-  bool eventFilter(QObject* object, QEvent* event) final override;
+  bool eventFilter(QObject* object, QEvent* event) final;
 
   // UI
   void EmulatePortal(bool emulate);

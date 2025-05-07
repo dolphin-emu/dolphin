@@ -29,7 +29,7 @@ class VolumeGC final : public VolumeDisc
 {
 public:
   VolumeGC(std::unique_ptr<BlobReader> reader);
-  ~VolumeGC();
+  ~VolumeGC() override;
   bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;

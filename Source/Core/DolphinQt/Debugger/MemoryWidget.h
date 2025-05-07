@@ -32,7 +32,7 @@ class MemoryWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit MemoryWidget(Core::System& system, QWidget* parent = nullptr);
-  ~MemoryWidget();
+  ~MemoryWidget() override;
 
   void SetAddress(u32 address);
   void Update();
