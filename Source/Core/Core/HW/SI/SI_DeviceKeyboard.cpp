@@ -35,7 +35,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_KEYBOARD);
+    const u32 id = Common::swap32(SI_GC_KEYBOARD);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }

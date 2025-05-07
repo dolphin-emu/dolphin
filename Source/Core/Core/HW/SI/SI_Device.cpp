@@ -92,7 +92,7 @@ int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
-  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
+  const u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
 
   switch (cmd)
   {
