@@ -281,7 +281,7 @@ private:
   {
     u32 word;
 
-    inline void set(u32 const next_page, u32 const packet_length, u32 const status)
+    void set(u32 const next_page, u32 const packet_length, u32 const status)
     {
       word = 0;
       word |= (status & 0xff) << 24;
@@ -290,10 +290,7 @@ private:
     }
   };
 
-  inline u16 page_ptr(int const index) const
-  {
-    return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
-  }
+  u16 page_ptr(int const index) const { return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index]; }
 
   bool IsMXCommand(u32 const data);
   bool IsWriteCommand(u32 const data);
