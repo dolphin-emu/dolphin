@@ -61,8 +61,11 @@ void WiiSpeakWindow::CreateMainWindow()
   auto* config_layout = new QHBoxLayout();
 
   auto checkbox_mic_muted = new QCheckBox(tr("Mute"), this);
-  checkbox_mic_muted->setChecked(Config::Get(Config::MAIN_WII_SPEAK_MUTED));
-  connect(checkbox_mic_muted, &QCheckBox::toggled, this, &WiiSpeakWindow::SetWiiSpeakMuted);
+  checkbox_mic_muted->setChecked(Settings::Instance().IsWiiSpeakMuted());
+  connect(&Settings::Instance(), &Settings::WiiSpeakMuteChanged, checkbox_mic_muted,
+          &QCheckBox::setChecked);
+  connect(checkbox_mic_muted, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::SetWiiSpeakMuted);
   checkbox_mic_muted->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   config_layout->addWidget(checkbox_mic_muted);
 
@@ -120,11 +123,6 @@ void WiiSpeakWindow::CreateMainWindow()
 void WiiSpeakWindow::EmulateWiiSpeak(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_WII_SPEAK, emulate);
-}
-
-void WiiSpeakWindow::SetWiiSpeakMuted(bool muted)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_MUTED, muted);
 }
 
 void WiiSpeakWindow::OnEmulationStateChanged(Core::State state)
