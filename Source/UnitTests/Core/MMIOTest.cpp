@@ -56,12 +56,12 @@ TEST(IsMMIOAddress, SpecialAddresses)
 class MappingTest : public testing::Test
 {
 protected:
-  virtual void SetUp() override
+  void SetUp() override
   {
     m_system = &Core::System::GetInstance();
     m_mapping = std::make_unique<MMIO::Mapping>();
   }
-  virtual void TearDown() override
+  void TearDown() override
   {
     m_system = nullptr;
     m_mapping.reset();
