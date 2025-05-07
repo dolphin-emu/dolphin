@@ -111,7 +111,7 @@ bool PlatformX11::Init()
   ProcessEvents();
 
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
-    UICommon::InhibitScreenSaver(true);
+    UICommon::InhibitScreenSaver();
 
 #ifdef HAVE_XRANDR
   m_xrr_config = new X11Utils::XRRConfiguration(m_display, m_window);

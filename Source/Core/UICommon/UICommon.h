@@ -18,6 +18,8 @@ void InitControllers(const WindowSystemInfo& wsi);
 void ShutdownControllers();
 
 void InhibitScreenSaver(bool inhibit);
+void InhibitScreenSaver();
+void Uninhibit();
 
 // Calls std::locale::global, selecting a fallback locale if the
 // requested locale isn't available
