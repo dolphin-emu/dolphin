@@ -485,40 +485,52 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-void InhibitScreenSaver(bool inhibit)
+void InhibitScreenSaver()
 {
   // Inhibit the screensaver. Depending on the operating system this may also
   // disable low-power states and/or screen dimming.
 
 #ifdef HAVE_QTDBUS
-  DBusUtils::InhibitScreenSaver(inhibit);
+  DBusUtils::InhibitScreenSaver();
 #endif
 
 #ifdef _WIN32
   // Prevents Windows from sleeping, turning off the display, or idling
-  SetThreadExecutionState(ES_CONTINUOUS |
-                          (inhibit ? (ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED) : 0));
+  SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 #endif
 
 #ifdef __APPLE__
   static IOPMAssertionID s_power_assertion = kIOPMNullAssertionID;
-  if (inhibit)
+  CFStringRef reason_for_activity = CFSTR("Emulation Running");
+  if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
+                                  kIOPMAssertionLevelOn, reason_for_activity,
+                                  &s_power_assertion) != kIOReturnSuccess)
   {
-    CFStringRef reason_for_activity = CFSTR("Emulation Running");
-    if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
-                                    kIOPMAssertionLevelOn, reason_for_activity,
-                                    &s_power_assertion) != kIOReturnSuccess)
-    {
-      s_power_assertion = kIOPMNullAssertionID;
-    }
+    s_power_assertion = kIOPMNullAssertionID;
   }
-  else
+#endif
+}
+
+void Uninhibit()
+{
+  // Inhibit the screensaver. Depending on the operating system this may also
+  // disable low-power states and/or screen dimming.
+
+#ifdef HAVE_QTDBUS
+  DBusUtils::Uninhibit();
+#endif
+
+#ifdef _WIN32
+  // Prevents Windows from sleeping, turning off the display, or idling
+  SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+
+#ifdef __APPLE__
+  static IOPMAssertionID s_power_assertion = kIOPMNullAssertionID;
+  if (s_power_assertion != kIOPMNullAssertionID)
   {
-    if (s_power_assertion != kIOPMNullAssertionID)
-    {
-      IOPMAssertionRelease(s_power_assertion);
-      s_power_assertion = kIOPMNullAssertionID;
-    }
+    IOPMAssertionRelease(s_power_assertion);
+    s_power_assertion = kIOPMNullAssertionID;
   }
 #endif
 }

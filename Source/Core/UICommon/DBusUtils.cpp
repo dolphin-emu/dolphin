@@ -18,7 +18,6 @@ static bool InhibitFDO();
 static bool InhibitXfce();
 static bool InhibitMate();
 static bool InhibitPortal();
-static void Uninhibit();
 
 static constexpr char s_app_id[] = "org.DolphinEmu.dolphin-emu";
 
@@ -33,17 +32,12 @@ static QString s_portal_handle;
 
 // Uses D-Bus to inhibit the screensaver
 // Tries various D-Bus interfaces until it finds one that works
-void InhibitScreenSaver(bool inhibit)
+void InhibitScreenSaver()
 {
-  if (inhibit)
-  {
-    if (s_fdo_cookie || s_xfce_cookie || s_mate_cookie || !s_portal_handle.isEmpty())
-      return;
-    if (!InhibitFDO() && !InhibitXfce() && !InhibitMate() && !InhibitPortal())
-      INFO_LOG_FMT(VIDEO, "Could not inhibit screensaver: No services available");
-  }
-  else
-    Uninhibit();
+  if (s_fdo_cookie || s_xfce_cookie || s_mate_cookie || !s_portal_handle.isEmpty())
+    return;
+  if (!InhibitFDO() && !InhibitXfce() && !InhibitMate() && !InhibitPortal())
+    INFO_LOG_FMT(VIDEO, "Could not inhibit screensaver: No services available");
 }
 
 // Inhibits screensaver on Xfce desktop
