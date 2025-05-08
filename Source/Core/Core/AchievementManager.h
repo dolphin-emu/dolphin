@@ -351,7 +351,7 @@ public:
     return true;
   }
 
-  constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
+  constexpr void LoadGame(const DiscIO::Volume*) {}
 
   constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 
