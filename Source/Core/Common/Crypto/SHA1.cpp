@@ -3,6 +3,7 @@
 
 #include "SHA1.h"
 
+#include <algorithm>
 #include <array>
 #include <memory>
 
@@ -67,75 +68,58 @@ protected:
   virtual void ProcessBlock(const u8* msg) = 0;
   virtual Digest GetDigest() = 0;
 
-  virtual void Update(const u8* msg, size_t len) override
+  void Update(const u8* msg, size_t len) override
   {
-    if (len == 0)
-      return;
-    msg_len += len;
+    m_msg_length += len;
 
-    if (block_used)
+    size_t count_to_fill_block = m_block.size() - m_block_position;
+
+    while (len >= count_to_fill_block)
     {
-      if (block_used + len >= block.size())
-      {
-        size_t rem = block.size() - block_used;
-        std::memcpy(&block[block_used], msg, rem);
-        ProcessBlock(&block[0]);
-        block_used = 0;
-        msg += rem;
-        len -= rem;
-      }
-      else
-      {
-        std::memcpy(&block[block_used], msg, len);
-        block_used += len;
-        return;
-      }
+      std::copy_n(msg, count_to_fill_block, m_block.data() + m_block_position);
+      ProcessBlock(m_block.data());
+
+      msg += count_to_fill_block;
+      len -= count_to_fill_block;
+
+      m_block_position = 0;
+      count_to_fill_block = m_block.size();
     }
-    while (len >= BLOCK_LEN)
-    {
-      ProcessBlock(msg);
-      msg += BLOCK_LEN;
-      len -= BLOCK_LEN;
-    }
-    if (len)
-    {
-      std::memcpy(&block[0], msg, len);
-      block_used = len;
-    }
+
+    std::copy_n(msg, len, m_block.data() + m_block_position);
+    m_block_position += len;
   }
 
-  virtual Digest Finish() override
+  Digest Finish() override
   {
-    // block_used is guaranteed < BLOCK_LEN
-    block[block_used++] = 0x80;
+    // m_block_position is guaranteed < BLOCK_LEN
+    m_block[m_block_position++] = 0x80;
 
     constexpr size_t MSG_LEN_POS = BLOCK_LEN - sizeof(u64);
-    if (block_used > MSG_LEN_POS)
+
+    if (m_block_position > MSG_LEN_POS)
     {
       // Pad current block and process it
-      std::memset(&block[block_used], 0, BLOCK_LEN - block_used);
-      ProcessBlock(&block[0]);
-
-      // Pad a new block
-      std::memset(&block[0], 0, MSG_LEN_POS);
-    }
-    else
-    {
-      // Pad current block
-      std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
+      std::fill(m_block.begin() + m_block_position, m_block.end(), 0x00);
+      ProcessBlock(m_block.data());
+      m_block_position = 0;
     }
 
-    Common::BigEndianValue<u64> msg_bitlen(msg_len * 8);
-    std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
+    // Pad block.
+    std::fill(m_block.data() + m_block_position, m_block.data() + MSG_LEN_POS, 0x00);
+    m_block_position = MSG_LEN_POS;
 
-    ProcessBlock(&block[0]);
+    // Write the message length.
+    const Common::BigEndianValue<u64> msg_bit_length{m_msg_length * CHAR_BIT};
+    Update(reinterpret_cast<const u8*>(&msg_bit_length), sizeof(msg_bit_length));
 
     return GetDigest();
   }
 
-  alignas(64) std::array<u8, BLOCK_LEN> block{};
-  size_t block_used{};
-  size_t msg_len{};
+private:
+  alignas(64) std::array<u8, BLOCK_LEN> m_block{};
+  size_t m_block_position{};
+  size_t m_msg_length{};
 };
 
 template <typename ValueType, size_t Size>
