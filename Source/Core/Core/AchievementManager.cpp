@@ -238,7 +238,7 @@ void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
 std::string AchievementManager::CalculateHash(const std::string& file_path)
 {
   char hash_result[33] = "0";
-  GetInstance().m_loading_volume = std::move(DiscIO::CreateVolume(file_path));
+  GetInstance().m_loading_volume = DiscIO::CreateVolume(file_path);
   rc_hash_filereader volume_reader{
       .open = &AchievementManager::FilereaderOpen,
       .seek = &AchievementManager::FilereaderSeek,
