@@ -21,6 +21,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/Emulated/HIDKeyboard.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/Emulated/WiiSpeak.h"
@@ -186,6 +187,11 @@ void USBScanner::AddEmulatedDevices(DeviceMap* new_devices)
   {
     auto wii_speak = std::make_unique<USB::WiiSpeak>();
     AddDevice(std::move(wii_speak), new_devices);
+  }
+  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !NetPlay::IsNetPlayRunning())
+  {
+    auto keyboard = std::make_unique<USB::HIDKeyboard>();
+    AddDevice(std::move(keyboard), new_devices);
   }
 }
 

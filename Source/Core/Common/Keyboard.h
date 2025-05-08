@@ -69,13 +69,16 @@ enum
 }
 using HIDPressedKeys = std::array<u8, 6>;
 
+#pragma pack(push, 1)
 struct HIDPressedState
 {
   u8 modifiers = 0;
+  u8 oem = 0;
   HIDPressedKeys pressed_keys{};
 
   auto operator<=>(const HIDPressedState&) const = default;
 };
+#pragma pack(pop)
 
 class KeyboardContext
 {
