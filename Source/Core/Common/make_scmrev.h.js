@@ -5,8 +5,17 @@ var outfile			= "./scmrev.h";
 var cmd_revision	= " rev-parse HEAD";
 var cmd_describe	= " describe --always --long --dirty";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
-var cmd_commits_ahead = " rev-list --count HEAD ^master";
 var cmd_get_tag       = " describe --exact-match HEAD";
+
+function RemoteBranchExists(remote) {
+	var cmd = gitexe + " ls-remote --heads " + remote + " master";
+	try {
+		var output = wshShell.Exec(cmd).StdOut.ReadLine();
+		return output.trim() !== "";
+	} catch (e) {
+		return false;
+	}
+}
 
 function GetGitExe()
 {
@@ -92,8 +101,12 @@ function GetFileContents(f)
 	}
 }
 
-// get info from git
 var gitexe = GetGitExe();
+
+var base_branch = RemoteBranchExists("upstream") ? "upstream/master" : "master";
+var cmd_commits_ahead = " rev-list --count HEAD ^" + base_branch;
+
+// get info from git
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
