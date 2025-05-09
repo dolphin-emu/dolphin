@@ -62,7 +62,7 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
 #ifdef _WIN32
   // Riivolution treats a backslash as just a standard filename character, but we can't replicate
   // this properly on Windows. So if a file contains a backslash, immediately error out.
-  if (external_relative_path.find("\\") != std::string_view::npos)
+  if (external_relative_path.contains("\\"))
     return std::nullopt;
 #endif
 

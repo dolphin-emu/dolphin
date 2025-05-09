@@ -103,7 +103,7 @@ static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
 
     // Decode escaped invalid file system characters so that games (such as Harry Potter and the
     // Half-Blood Prince) can find what they expect.
-    if (it->virtualName.find("__") != std::string::npos)
+    if (it->virtualName.contains("__"))
       it->virtualName = Common::UnescapeFileName(it->virtualName);
 
     // Drop files that have too long filenames.
