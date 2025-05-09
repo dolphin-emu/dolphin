@@ -134,7 +134,9 @@ public:
   PB_TYPE* acc_pb = nullptr;
 
 protected:
-  void OnEndException() override
+  void OnRawReadEndException() override {}
+  void OnRawWriteEndException() override {}
+  void OnSampleReadEndException() override
   {
     if (acc_pb->audio_addr.looping)
     {
@@ -181,6 +183,7 @@ void AcceleratorSetup(HLEAccelerator* accelerator, PB_TYPE* pb)
   accelerator->SetSampleFormat(pb->audio_addr.sample_format);
   accelerator->SetYn1(pb->adpcm.yn1);
   accelerator->SetYn2(pb->adpcm.yn2);
+  accelerator->SetGain(pb->adpcm.gain);
   accelerator->SetPredScale(pb->adpcm.pred_scale);
 }
 
@@ -189,7 +192,7 @@ void AcceleratorSetup(HLEAccelerator* accelerator, PB_TYPE* pb)
 // by the accelerator on real hardware).
 u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 {
-  return accelerator->Read(accelerator->acc_pb->adpcm.coefs);
+  return accelerator->ReadSample(accelerator->acc_pb->adpcm.coefs);
 }
 
 // Reads samples from the input callback, resamples them to <count> samples at
