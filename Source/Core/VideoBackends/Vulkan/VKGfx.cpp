@@ -16,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/MainSettings.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
@@ -316,6 +317,9 @@ void VKGfx::PresentBackbuffer()
   // End drawing to backbuffer
   StateTracker::GetInstance()->EndRenderPass();
 
+  const bool wait_for_completion =
+      Config::Get(Config::MAIN_SYNC_REFRESH_RATE) && g_ActiveConfig.bVSyncActive;
+
   if (m_swap_chain->IsCurrentImageValid())
   {
     // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
@@ -327,12 +331,13 @@ void VKGfx::PresentBackbuffer()
     // Because this final command buffer is rendering to the swap chain, we need to wait for
     // the available semaphore to be signaled before executing the buffer. This final submission
     // can happen off-thread in the background while we're preparing the next frame.
-    g_command_buffer_mgr->SubmitCommandBuffer(true, false, true, m_swap_chain->GetSwapChain(),
+    g_command_buffer_mgr->SubmitCommandBuffer(true, wait_for_completion, true,
+                                              m_swap_chain->GetSwapChain(),
                                               m_swap_chain->GetCurrentImageIndex());
   }
   else
   {
-    g_command_buffer_mgr->SubmitCommandBuffer(true, false, true);
+    g_command_buffer_mgr->SubmitCommandBuffer(true, wait_for_completion, true);
   }
 
   // New cmdbuffer, so invalidate state.
