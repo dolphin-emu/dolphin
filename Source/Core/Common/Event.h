@@ -11,15 +11,17 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
 
 #include "Common/Flag.h"
+#include "Common/WaitableFlag.h"
 
 namespace Common
 {
-class Event final
+class TimedEvent final
 {
 public:
   void Set()
@@ -75,6 +77,30 @@ private:
   Flag m_flag;
   std::condition_variable m_condvar;
   std::mutex m_mutex;
+};
+
+// An auto-resetting WaitableFlag. Only sensible for one waiting thread.
+class Event final
+{
+public:
+  void Set() { m_flag.Set(); }
+
+  void Wait()
+  {
+    m_flag.Wait(true);
+
+    // This might run concurrently with the next Set, clearing m_flag before notification.
+    // "Missing" that event later is fine as long as all the data is visible *now*.
+    m_flag.Reset();
+    // This store-load barrier prevents the Reset-store ordering after pertinent data loads.
+    // Without it, we could observe stale data AND miss the next event, i.e. deadlock.
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+  }
+
+  void Reset() { m_flag.Reset(); }
+
+private:
+  WaitableFlag m_flag{};
 };
 
 }  // namespace Common
