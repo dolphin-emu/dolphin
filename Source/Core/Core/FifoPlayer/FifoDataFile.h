@@ -62,7 +62,7 @@ public:
   void SetIsWii(bool isWii);
   bool GetIsWii() const;
   bool HasBrokenEFBCopies() const;
-  bool ShouldGenerateFakeVIUpdates() const;
+  static bool ShouldGenerateFakeVIUpdates();
 
   u32* GetBPMem() { return m_BPMem.data(); }
   u32* GetCPMem() { return m_CPMem.data(); }
@@ -85,7 +85,7 @@ private:
     FLAG_IS_WII = 1
   };
 
-  void PadFile(size_t numBytes, File::IOFile& file);
+  static void PadFile(size_t numBytes, File::IOFile& file);
 
   void SetFlag(u32 flag, bool set);
   bool GetFlag(u32 flag) const;
