@@ -203,7 +203,7 @@ static std::string spr_name(int i)
   case 9:
     return "CTR";
   case 18:
-    return "DSIR";
+    return "DSISR";
   case 19:
     return "DAR";
   case 22:
@@ -214,6 +214,10 @@ static std::string spr_name(int i)
     return "SRR0";
   case 27:
     return "SRR1";
+  case 268:
+    return "TBLr";
+  case 269:
+    return "TBUr";
   case 272:
     return "SPRG0";
   case 273:
@@ -224,6 +228,10 @@ static std::string spr_name(int i)
     return "SPRG3";
   case 282:
     return "EAR";
+  case 284:
+    return "TBLw";
+  case 285:
+    return "TBUw";
   case 287:
     return "PVR";
   case 528:
@@ -258,6 +266,38 @@ static std::string spr_name(int i)
     return "DBAT3U";
   case 543:
     return "DBAT3L";
+  case 560:
+    return "IBAT4U";
+  case 561:
+    return "IBAT4L";
+  case 562:
+    return "IBAT5U";
+  case 563:
+    return "IBAT5L";
+  case 564:
+    return "IBAT6U";
+  case 565:
+    return "IBAT6L";
+  case 566:
+    return "IBAT7U";
+  case 567:
+    return "IBAT7L";
+  case 568:
+    return "DBAT4U";
+  case 569:
+    return "DBAT4L";
+  case 570:
+    return "DBAT5U";
+  case 571:
+    return "DBAT5L";
+  case 572:
+    return "DBAT6U";
+  case 573:
+    return "DBAT6L";
+  case 574:
+    return "DBAT7U";
+  case 575:
+    return "DBAT7L";
   case 912:
     return "GQR0";
   case 913:
@@ -279,9 +319,9 @@ static std::string spr_name(int i)
   case 921:
     return "WPAR";
   case 922:
-    return "DMA_U";
+    return "DMAU";
   case 923:
-    return "DMA_L";
+    return "DMAL";
   case 924:
     return "ECID_U";
   case 925:
@@ -328,10 +368,14 @@ static std::string spr_name(int i)
     return "IABR";
   case 1011:
     return "HID4";
+  case 1012:
+    return "TDCL";
   case 1013:
     return "DABR";
   case 1017:
     return "L2CR";
+  case 1018:
+    return "TDCH";
   case 1019:
     return "ICTC";
   case 1020:
