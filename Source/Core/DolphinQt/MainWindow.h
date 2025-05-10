@@ -38,6 +38,7 @@ class GCTASInputWindow;
 class GraphicsWindow;
 class HotkeyScheduler;
 class InfinityBaseWindow;
+class KeyboardWindow;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
@@ -177,6 +178,7 @@ private:
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
+  void ShowKeyboard();
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
@@ -250,6 +252,7 @@ private:
   FIFOPlayerWindow* m_fifo_window = nullptr;
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;
+  KeyboardWindow* m_keyboard_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 
