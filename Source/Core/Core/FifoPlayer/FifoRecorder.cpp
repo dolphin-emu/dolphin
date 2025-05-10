@@ -37,12 +37,7 @@ public:
   OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
                                           u32 vertex_size, u16 num_vertices,
                                           const u8* vertex_data));
-  OPCODE_CALLBACK(void OnDisplayList(u32 address, u32 size))
-  {
-    WARN_LOG_FMT(VIDEO,
-                 "Unhandled display list call {:08x} {:08x}; should have been inlined earlier",
-                 address, size);
-  }
+  OPCODE_CALLBACK(void OnDisplayList(u32 address, u32 size));
   OPCODE_CALLBACK(void OnNop(u32 count)) {}
   OPCODE_CALLBACK(void OnUnknown(u8 opcode, const u8* data)) {}
 
@@ -212,6 +207,13 @@ void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(
   m_owner->UseMemory(array_start, array_size, MemoryUpdate::Type::VertexStream);
 }
 
+void FifoRecorder::FifoRecordAnalyzer::OnDisplayList(u32 address, u32 size)
+{
+  m_owner->UseMemory(address, size, MemoryUpdate::Type::DisplayList);
+  // OpcodeDecoding will call WriteGPCommand for the contents of the display list, so we don't need
+  // to process it here.
+}
+
 FifoRecorder::FifoRecorder(Core::System& system) : m_system(system)
 {
 }
@@ -310,7 +312,7 @@ FifoDataFile* FifoRecorder::GetRecordedFile() const
   return m_File.get();
 }
 
-void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
+void FifoRecorder::WriteGPCommand(const u8* data, u32 size, bool in_display_list)
 {
   if (!m_SkipNextData)
   {
@@ -325,10 +327,14 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
                     analyzed_size, size);
     }
 
-    // Copy data to buffer
-    size_t currentSize = m_FifoData.size();
-    m_FifoData.resize(currentSize + size);
-    memcpy(&m_FifoData[currentSize], data, size);
+    // Copy data to buffer (display lists are recorded by FifoRecordAnalyzer::OnDisplayList and
+    // do not need to be inlined)
+    if (!in_display_list)
+    {
+      size_t currentSize = m_FifoData.size();
+      m_FifoData.resize(currentSize + size);
+      memcpy(&m_FifoData[currentSize], data, size);
+    }
   }
 
   if (m_FrameEnded && !m_FifoData.empty())
@@ -359,17 +365,15 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
   auto& memory = m_system.GetMemory();
 
   u8* curData;
-  u8* newData;
   if (address & 0x10000000)
   {
     curData = &m_ExRam[address & memory.GetExRamMask()];
-    newData = &memory.GetEXRAM()[address & memory.GetExRamMask()];
   }
   else
   {
     curData = &m_Ram[address & memory.GetRamMask()];
-    newData = &memory.GetRAM()[address & memory.GetRamMask()];
   }
+  u8* newData = memory.GetPointerForRange(address, size);
 
   if (!dynamicUpdate && memcmp(curData, newData, size) != 0)
   {
@@ -433,6 +437,54 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
     m_SkipFutureData = true;
     // Signal video backend that it should not call this function when the next frame ends
     m_IsRecording = false;
+
+    size_t fifo_bytes = 0;
+    size_t update_bytes = 0;
+    size_t xf_bytes = 0;
+    size_t tex_bytes = 0;
+    size_t vert_bytes = 0;
+    size_t tmem_bytes = 0;
+    size_t dl_bytes = 0;
+    size_t update_overhead = 0;
+
+    for (u32 i = 0; i < m_File->GetFrameCount(); i++)
+    {
+      auto frame = m_File->GetFrame(i);
+      fifo_bytes += frame.fifoData.size();
+
+      for (auto& update : frame.memoryUpdates)
+      {
+        update_bytes += update.data.size() + 24;
+        update_overhead += 24;
+        switch (update.type)
+        {
+        case MemoryUpdate::Type::TextureMap:
+          tex_bytes += update.data.size() + 24;
+          break;
+        case MemoryUpdate::Type::XFData:
+          xf_bytes += update.data.size() + 24;
+          break;
+        case MemoryUpdate::Type::VertexStream:
+          vert_bytes += update.data.size() + 24;
+          break;
+        case MemoryUpdate::Type::TMEM:
+          tmem_bytes += update.data.size() + 24;
+          break;
+        case MemoryUpdate::Type::DisplayList:
+          dl_bytes += update.data.size() + 24;
+          break;
+        }
+      }
+    }
+
+    fmt::print("FifoBytes: {}\n", fifo_bytes);
+    fmt::print("Updates: {}\n", update_bytes);
+    fmt::print("TexBytes: {}\n", tex_bytes);
+    fmt::print("XfBytes: {}\n", xf_bytes);
+    fmt::print("VertBytes: {}\n", vert_bytes);
+    fmt::print("TmemBytes: {}\n", tmem_bytes);
+    fmt::print("DlBytes: {}\n", dl_bytes);
+    fmt::print("Overhead: {}\n", update_overhead);
   }
 }
 
