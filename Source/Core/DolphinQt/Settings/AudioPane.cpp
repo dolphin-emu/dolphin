@@ -76,7 +76,7 @@ void AudioPane::CreateWidgets()
   m_volume_slider->setOrientation(Qt::Vertical);
 
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-  m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(tr("%1 %").arg(100)).width());
+  m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(volume_box->title()).width());
 
   volume_layout->addWidget(m_volume_slider, 0, Qt::AlignHCenter);
   volume_layout->addWidget(m_volume_indicator, 0, Qt::AlignHCenter);
