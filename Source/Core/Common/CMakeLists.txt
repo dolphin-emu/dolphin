@@ -20,6 +20,7 @@ add_library(common
   BlockingLoop.h
   Buffer.h
   ChunkFile.h
+  CircularQueue.h
   CodeBlock.h
   ColorUtil.cpp
   ColorUtil.h

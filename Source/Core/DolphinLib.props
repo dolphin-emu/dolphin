@@ -28,6 +28,7 @@
     <ClInclude Include="Common\BlockingLoop.h" />
     <ClInclude Include="Common\Buffer.h" />
     <ClInclude Include="Common\ChunkFile.h" />
+    <ClInclude Include="Common\CircularQueue.h" />
     <ClInclude Include="Common\CodeBlock.h" />
     <ClInclude Include="Common\ColorUtil.h" />
     <ClInclude Include="Common\Common.h" />
