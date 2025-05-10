@@ -237,7 +237,7 @@ void AudioPane::OnBackendChanged()
     m_latency_slider->setEnabled(AudioCommon::SupportsLatencyControl(backend));
   }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
   bool is_wasapi = backend == BACKEND_WASAPI;
   m_wasapi_device_label->setHidden(!is_wasapi);
   m_wasapi_device_combo->setHidden(!is_wasapi);

@@ -19,6 +19,7 @@
 typedef NTSTATUS(NTAPI* PRTL_HEAP_COMMIT_ROUTINE)(IN PVOID Base, IN OUT PVOID* CommitAddress,
                                                   IN OUT PSIZE_T CommitSize);
 
+#ifndef __MINGW32__
 typedef struct _RTL_HEAP_PARAMETERS
 {
   ULONG Length;
@@ -33,6 +34,7 @@ typedef struct _RTL_HEAP_PARAMETERS
   PRTL_HEAP_COMMIT_ROUTINE CommitRoutine;
   SIZE_T Reserved[2];
 } RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
+#endif
 
 typedef PVOID (*RtlCreateHeap_t)(_In_ ULONG Flags, _In_opt_ PVOID HeapBase,
                                  _In_opt_ SIZE_T ReserveSize, _In_opt_ SIZE_T CommitSize,
@@ -134,10 +136,11 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       // crash if applied before module initialization (i.e. called on the Ldr
                       // callout path).
                       auto patcher = ImportPatcher(event.base_address);
-                      patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
+                      patcher.PatchIAT("kernel32.dll", "HeapCreate", (void*)HeapCreateLow4GB);
                     }});
 }
 
+#ifdef _MSC_VER
 int __cdecl EnableCompatPatches()
 {
   static LdrWatcher watcher;
@@ -157,4 +160,5 @@ int __cdecl EnableCompatPatches()
 extern "C" {
 __declspec(allocate(".CRT$XCZ")) decltype(&EnableCompatPatches) enableCompatPatches =
     EnableCompatPatches;
-}
+};
+#endif

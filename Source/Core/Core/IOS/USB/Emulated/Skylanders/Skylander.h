@@ -77,12 +77,12 @@ public:
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
-  std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 interface, u8 alt) const override;
+  std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 iface, u8 alt) const override;
   bool Attach() override;
-  bool AttachAndChangeInterface(u8 interface) override;
+  bool AttachAndChangeInterface(u8 iface) override;
   int CancelTransfer(u8 endpoint) override;
-  int ChangeInterface(u8 interface) override;
-  int GetNumberOfAltSettings(u8 interface) override;
+  int ChangeInterface(u8 iface) override;
+  int GetNumberOfAltSettings(u8 iface) override;
   int SetAltSetting(u8 alt_setting) override;
   int SubmitTransfer(std::unique_ptr<CtrlMessage> message) override;
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
