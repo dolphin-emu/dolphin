@@ -76,6 +76,9 @@ public:
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = VideoCommon::CustomTextureData::ArraySlice::Level;
   static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
+  // This is hardcoded to 24MiB because rcheevos currently hardcodes it to 24MiB.
+  static constexpr u32 MEM1_SIZE = 0x01800000;
+  static constexpr u32 MEM2_START = 0x10000000;
 
   static constexpr std::string_view DEFAULT_PLAYER_BADGE_FILENAME = "achievements_player.png";
   static constexpr std::string_view DEFAULT_GAME_BADGE_FILENAME = "achievements_game.png";
