@@ -1,108 +1,155 @@
-// Copyright 2023 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 
-#include "Common/MemoryUtil.h"
-#include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include <set>
+
+#include "Common/Thread.h"
 
 namespace VideoCommon
 {
-void CustomAssetLoader::Init()
+void CustomAssetLoader::Initialize(u64 max_memory_allowed)
 {
-  m_asset_monitor_thread_shutdown.Clear();
-
-  const size_t sys_mem = Common::MemPhysical();
-  const size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
-  // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
-  m_max_memory_available =
-      (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
-
-  m_asset_monitor_thread = std::thread([this]() {
-    Common::SetCurrentThreadName("Asset monitor");
-    while (true)
-    {
-      if (m_asset_monitor_thread_shutdown.IsSet())
-      {
-        break;
-      }
-
-      std::this_thread::sleep_for(TIME_BETWEEN_ASSET_MONITOR_CHECKS);
-
-      std::lock_guard lk(m_asset_load_lock);
-      for (auto& [asset_id, asset_to_monitor] : m_assets_to_monitor)
-      {
-        if (auto ptr = asset_to_monitor.lock())
-        {
-          const auto write_time = ptr->GetLastWriteTime();
-          if (write_time > ptr->GetLastLoadedTime())
-          {
-            (void)ptr->Load();
-          }
-        }
-      }
-    }
-  });
-
-  m_asset_load_thread.Reset("Custom Asset Loader", [this](std::weak_ptr<CustomAsset> asset) {
-    if (auto ptr = asset.lock())
-    {
-      if (m_memory_exceeded)
-        return;
-
-      if (ptr->Load())
-      {
-        std::lock_guard lk(m_asset_load_lock);
-        const std::size_t asset_memory_size = ptr->GetByteSizeInMemory();
-        m_total_bytes_loaded += asset_memory_size;
-        m_assets_to_monitor.try_emplace(ptr->GetAssetId(), ptr);
-        if (m_total_bytes_loaded > m_max_memory_available)
-        {
-          ERROR_LOG_FMT(VIDEO,
-                        "Asset memory exceeded with asset '{}', future assets won't load until "
-                        "memory is available.",
-                        ptr->GetAssetId());
-          m_memory_exceeded = true;
-        }
-      }
-    }
-  });
+  m_max_memory_allowed = max_memory_allowed;
+  ResizeWorkerThreads(2);
 }
 
 void CustomAssetLoader::Shutdown()
 {
-  m_asset_load_thread.StopAndCancel();
-
-  m_asset_monitor_thread_shutdown.Set();
-  m_asset_monitor_thread.join();
-  m_assets_to_monitor.clear();
-  m_total_bytes_loaded = 0;
+  Reset(false);
 }
 
-std::shared_ptr<GameTextureAsset>
-CustomAssetLoader::LoadGameTexture(const CustomAssetLibrary::AssetID& asset_id,
-                                   std::shared_ptr<CustomAssetLibrary> library)
+bool CustomAssetLoader::StartWorkerThreads(u32 num_worker_threads)
 {
-  return LoadOrCreateAsset<GameTextureAsset>(asset_id, m_game_textures, std::move(library));
+  for (u32 i = 0; i < num_worker_threads; i++)
+  {
+    m_worker_threads.emplace_back(&CustomAssetLoader::WorkerThreadRun, this);
+  }
+
+  return HasWorkerThreads();
 }
 
-std::shared_ptr<PixelShaderAsset>
-CustomAssetLoader::LoadPixelShader(const CustomAssetLibrary::AssetID& asset_id,
-                                   std::shared_ptr<CustomAssetLibrary> library)
+bool CustomAssetLoader::ResizeWorkerThreads(u32 num_worker_threads)
 {
-  return LoadOrCreateAsset<PixelShaderAsset>(asset_id, m_pixel_shaders, std::move(library));
+  if (m_worker_threads.size() == num_worker_threads)
+    return true;
+
+  StopWorkerThreads();
+  return StartWorkerThreads(num_worker_threads);
 }
 
-std::shared_ptr<MaterialAsset>
-CustomAssetLoader::LoadMaterial(const CustomAssetLibrary::AssetID& asset_id,
-                                std::shared_ptr<CustomAssetLibrary> library)
+bool CustomAssetLoader::HasWorkerThreads() const
 {
-  return LoadOrCreateAsset<MaterialAsset>(asset_id, m_materials, std::move(library));
+  return !m_worker_threads.empty();
 }
 
-std::shared_ptr<MeshAsset> CustomAssetLoader::LoadMesh(const CustomAssetLibrary::AssetID& asset_id,
-                                                       std::shared_ptr<CustomAssetLibrary> library)
+void CustomAssetLoader::StopWorkerThreads()
 {
-  return LoadOrCreateAsset<MeshAsset>(asset_id, m_meshes, std::move(library));
+  if (!HasWorkerThreads())
+    return;
+
+  // Signal worker threads to stop, and wake all of them.
+  {
+    std::lock_guard guard(m_assets_to_load_lock);
+    m_exit_flag.Set();
+    m_worker_thread_wake.notify_all();
+  }
+
+  // Wait for worker threads to exit.
+  for (std::thread& thr : m_worker_threads)
+    thr.join();
+  m_worker_threads.clear();
+  m_exit_flag.Clear();
 }
+
+void CustomAssetLoader::WorkerThreadRun()
+{
+  Common::SetCurrentThreadName("Asset Loader Worker");
+  std::unique_lock load_lock(m_assets_to_load_lock);
+  std::set<std::size_t> handles_in_progress;
+  while (!m_exit_flag.IsSet())
+  {
+    m_worker_thread_wake.wait(load_lock);
+
+    while (!m_assets_to_load.empty() && !m_exit_flag.IsSet())
+    {
+      const auto iter = m_assets_to_load.begin();
+      const auto item = *iter;
+      m_assets_to_load.erase(iter);
+      const auto [it, inserted] = handles_in_progress.insert(item->GetHandle());
+      const auto last_request_time = m_last_request_time;
+
+      // Was the asset added by another call to 'ScheduleAssetsToLoad'
+      // while a load for that asset is still in progress on a worker?
+      if (!inserted)
+        continue;
+
+      if ((m_asset_memory_used + m_asset_memory_loaded) > m_max_memory_allowed)
+        break;
+
+      load_lock.unlock();
+
+      // Prevent a second load from occurring when a load finishes after
+      // a new asset request is triggered by 'ScheduleAssetsToLoad'
+      if (last_request_time > item->GetLastLoadedTime() && item->Load())
+      {
+        std::lock_guard guard(m_assets_loaded_lock);
+        m_asset_memory_loaded += item->GetByteSizeInMemory();
+        m_asset_handles_loaded.push_back(item->GetHandle());
+      }
+
+      load_lock.lock();
+      handles_in_progress.erase(item->GetHandle());
+    }
+  }
+}
+
+std::vector<std::size_t> CustomAssetLoader::TakeLoadedAssetHandles()
+{
+  std::vector<std::size_t> completed_asset_handles;
+  {
+    std::lock_guard guard(m_assets_loaded_lock);
+    m_asset_handles_loaded.swap(completed_asset_handles);
+    m_asset_memory_loaded = 0;
+  }
+
+  return completed_asset_handles;
+}
+
+void CustomAssetLoader::ScheduleAssetsToLoad(const std::list<CustomAsset*>& assets_to_load)
+{
+  if (assets_to_load.empty()) [[unlikely]]
+    return;
+
+  // There's new assets to process, notify worker threads
+  {
+    std::lock_guard guard(m_assets_to_load_lock);
+    m_assets_to_load = assets_to_load;
+    m_last_request_time = std::chrono::steady_clock::now();
+    m_worker_thread_wake.notify_all();
+  }
+}
+
+void CustomAssetLoader::SetAssetMemoryUsed(u64 memory_used)
+{
+  m_asset_memory_used = memory_used;
+}
+
+void CustomAssetLoader::Reset(bool restart_worker_threads)
+{
+  const std::size_t worker_thread_count = m_worker_threads.size();
+  StopWorkerThreads();
+
+  m_assets_to_load.clear();
+  m_asset_memory_used = 0;
+  m_asset_handles_loaded.clear();
+  m_asset_memory_loaded = 0;
+
+  if (restart_worker_threads)
+  {
+    StartWorkerThreads(static_cast<u32>(worker_thread_count));
+  }
+}
+
 }  // namespace VideoCommon

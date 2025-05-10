@@ -56,6 +56,7 @@
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FatFsUtil.h" />
     <ClInclude Include="Common\FileSearch.h" />
+    <ClInclude Include="Common\FilesystemWatcher.h" />
     <ClInclude Include="Common\FileUtil.h" />
     <ClInclude Include="Common\FixedSizeQueue.h" />
     <ClInclude Include="Common\Flag.h" />
@@ -665,12 +666,15 @@
     <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLoader.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomResourceManager.h" />
     <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\MaterialAsset.h" />
     <ClInclude Include="VideoCommon\Assets\MeshAsset.h" />
     <ClInclude Include="VideoCommon\Assets\ShaderAsset.h" />
     <ClInclude Include="VideoCommon\Assets\TextureAsset.h" />
+    <ClInclude Include="VideoCommon\Assets\Types.h" />
+    <ClInclude Include="VideoCommon\Assets\WatchableFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
@@ -807,6 +811,7 @@
     <ClCompile Include="Common\ENet.cpp" />
     <ClCompile Include="Common\FatFsUtil.cpp" />
     <ClCompile Include="Common\FileSearch.cpp" />
+    <ClCompile Include="Common\FilesystemWatcher.cpp" />
     <ClCompile Include="Common\FileUtil.cpp" />
     <ClCompile Include="Common\FloatUtils.cpp" />
     <ClCompile Include="Common\GekkoDisassembler.cpp" />
@@ -1314,6 +1319,7 @@
     <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAssetLoader.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomResourceManager.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\Assets\MaterialAsset.cpp" />
