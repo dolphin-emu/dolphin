@@ -1027,6 +1027,27 @@ class SettingsFragmentPresenter(
                 false
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_VI_FREQUENCY_ENABLE,
+                R.string.vi_frequency_enable,
+                R.string.vi_frequency_enable_description
+            )
+        )
+        sl.add(
+            PercentSliderSetting(
+                context,
+                FloatSetting.MAIN_VI_FREQUENCY,
+                R.string.vi_frequency_title,
+                R.string.vi_frequency_title_description,
+                0f,
+                500f,
+                "%",
+                1f,
+                false
+            )
+        )
 
         val mem1Size = ScaledIntSetting(1024 * 1024, IntSetting.MAIN_MEM1_SIZE)
         val mem2Size = ScaledIntSetting(1024 * 1024, IntSetting.MAIN_MEM2_SIZE)

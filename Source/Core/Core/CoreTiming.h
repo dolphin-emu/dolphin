@@ -165,6 +165,8 @@ public:
   // Used by VideoInterface
   bool GetVISkip() const;
 
+  float GetOverclock() const;
+
   bool UseSyncOnSkipIdle() const;
 
 private:
