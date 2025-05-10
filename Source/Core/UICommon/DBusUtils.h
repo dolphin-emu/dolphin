@@ -6,6 +6,6 @@
 namespace DBusUtils
 {
 
-void InhibitScreenSaver(bool inhibit);
+void InhibitScreenSaver();
 
 }  // namespace DBusUtils
