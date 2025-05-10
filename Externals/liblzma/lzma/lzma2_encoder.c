@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma2_encoder.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -310,7 +309,8 @@ lzma2_encoder_options_update(void *coder_ptr, const lzma_filter *filter)
 
 static lzma_ret
 lzma2_encoder_init(lzma_lz_encoder *lz, const lzma_allocator *allocator,
-		const void *options, lzma_lz_options *lz_options)
+		lzma_vli id lzma_attribute((__unused__)), const void *options,
+		lzma_lz_options *lz_options)
 {
 	if (options == NULL)
 		return LZMA_PROG_ERROR;
@@ -340,7 +340,7 @@ lzma2_encoder_init(lzma_lz_encoder *lz, const lzma_allocator *allocator,
 
 	// Initialize LZMA encoder
 	return_if_error(lzma_lzma_encoder_create(&coder->lzma, allocator,
-			&coder->opt_cur, lz_options));
+			LZMA_FILTER_LZMA2, &coder->opt_cur, lz_options));
 
 	// Make sure that we will always have enough history available in
 	// case we need to use uncompressed chunks. They are used when the
@@ -378,6 +378,9 @@ lzma_lzma2_encoder_memusage(const void *options)
 extern lzma_ret
 lzma_lzma2_props_encode(const void *options, uint8_t *out)
 {
+	if (options == NULL)
+		return LZMA_PROG_ERROR;
+
 	const lzma_options_lzma *const opt = options;
 	uint32_t d = my_max(opt->dict_size, LZMA_DICT_SIZE_MIN);
 
@@ -404,6 +407,9 @@ extern uint64_t
 lzma_lzma2_block_size(const void *options)
 {
 	const lzma_options_lzma *const opt = options;
+
+	if (!IS_ENC_DICT_SIZE_VALID(opt->dict_size))
+		return UINT64_MAX;
 
 	// Use at least 1 MiB to keep compression ratio better.
 	return my_max((uint64_t)(opt->dict_size) * 3, UINT64_C(1) << 20);
