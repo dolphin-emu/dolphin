@@ -77,31 +77,24 @@ void CPUManager::StartTimePlayedTimer()
   auto prev_time = timer.now();
   auto& time_played_manager = TimePlayedManager::GetInstance();
 
-  while (true)
+  while (m_state != State::PowerDown)
   {
+    m_time_played_finish_sync.WaitFor(std::chrono::seconds(30));
     auto curr_time = timer.now();
 
-    // Check that emulation is not paused
-    // If the emulation is paused, wait for SetStepping() to reactivate
-    if (m_state == State::Running)
-    {
-      const std::string game_id = SConfig::GetInstance().GetGameID();
-      const auto diff_time =
-          std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - prev_time);
-      time_played_manager.AddTime(game_id, diff_time);
-    }
-    else if (m_state == State::Stepping)
+    const std::string game_id = SConfig::GetInstance().GetGameID();
+    const auto diff_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - prev_time);
+    time_played_manager.AddTime(game_id, diff_time);
+
+    // If the emulation is paused, wait for SetStateLocked() to reactivate
+    if (m_state == State::Stepping)
     {
       m_time_played_finish_sync.Wait();
       curr_time = timer.now();
     }
 
     prev_time = curr_time;
-
-    if (m_state == State::PowerDown)
-      return;
-
-    m_time_played_finish_sync.WaitFor(std::chrono::seconds(30));
   }
 }
 
@@ -299,7 +292,17 @@ bool CPUManager::SetStateLocked(State s)
     return false;
   if (s == State::Stepping)
     m_system.GetPowerPC().GetBreakPoints().ClearTemporary();
-  m_state = s;
+
+  // CPUThreadGuard is used in various places to avoid racing with the CPU thread. CPUThreadGuard
+  // can indirectly call SetStateLocked, which can result in it getting called with the same state
+  // that m_state already had. Since m_time_played_finish_sync only needs to be Set when m_state
+  // changes, avoid doing so when it hasn't.
+  if (m_state != s)
+  {
+    m_state = s;
+    m_time_played_finish_sync.Set();
+  }
+
   return true;
 }
 
@@ -322,7 +325,6 @@ void CPUManager::SetStepping(bool stepping)
   else if (SetStateLocked(State::Running))
   {
     m_state_cpu_cvar.notify_one();
-    m_time_played_finish_sync.Set();
     RunAdjacentSystems(true);
   }
 }
