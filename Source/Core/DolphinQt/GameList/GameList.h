@@ -20,6 +20,8 @@ namespace UICommon
 class GameFile;
 }
 
+class ViewScrollLock;
+
 class GameList final : public QStackedWidget
 {
   Q_OBJECT
@@ -100,6 +102,7 @@ private:
   void UpdateFont();
 
   GameListModel m_model;
+  ViewScrollLock* m_viewScrollLock;
   QSortFilterProxyModel* m_list_proxy;
   QSortFilterProxyModel* m_grid_proxy;
 
