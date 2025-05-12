@@ -52,8 +52,9 @@ class AdvancedMappingDialog(
         selectDefaultDevice()
     }
 
-    val expression: String
+    var expression: String
         get() = binding.editExpression.text.toString()
+        set(value) = binding.editExpression.setText(value)
 
     override fun onItemClick(adapterView: AdapterView<*>?, view: View, position: Int, id: Long) =
         setSelectedDevice(devices[position])
