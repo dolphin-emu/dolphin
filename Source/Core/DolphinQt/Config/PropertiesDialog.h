@@ -5,12 +5,14 @@
 
 #include <QDialog>
 
+#include "DolphinQt/Config/SettingsWindow.h"
+
 namespace UICommon
 {
 class GameFile;
 }
 
-class PropertiesDialog final : public QDialog
+class PropertiesDialog final : public StackedSettingsWindow
 {
   Q_OBJECT
 public:
