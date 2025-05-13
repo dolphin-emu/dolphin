@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include "VideoCommon/VideoEvents.h"
 
 class GeometryShaderManager;
 class Interpreter;
@@ -198,6 +199,7 @@ public:
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
   VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
+  VideoEvents& GetVideoEvents() const;
 
 private:
   System();

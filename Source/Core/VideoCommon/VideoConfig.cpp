@@ -387,10 +387,10 @@ void CheckForConfigChanges()
   }
 
   // Notify all listeners
-  ConfigChangedEvent::Trigger(changed_bits);
+  GetVideoEvents().config_changed_event.Trigger(changed_bits);
 
   // TODO: Move everything else to the ConfigChanged event
 }
 
-static Common::EventHook s_check_config_event = AfterFrameEvent::Register(
+static Common::EventHook s_check_config_event = GetVideoEvents().after_frame_event.Register(
     [](Core::System&) { CheckForConfigChanges(); }, "CheckForConfigChanges");

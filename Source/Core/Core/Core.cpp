@@ -112,7 +112,7 @@ static std::atomic<State> s_state = State::Uninitialized;
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
 
-void Callback_FramePresented(const PresentInfo& present_info);
+static void Callback_FramePresented(const PresentInfo& present_info);
 
 struct HostJob
 {
@@ -130,8 +130,8 @@ static thread_local bool tls_is_host_thread = false;
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi);
 
-static Common::EventHook s_frame_presented =
-    AfterPresentEvent::Register(&Core::Callback_FramePresented, "Core Frame Presented");
+static Common::EventHook s_frame_presented = GetVideoEvents().after_present_event.Register(
+    &Core::Callback_FramePresented, "Core Frame Presented");
 
 bool GetIsThrottlerTempDisabled()
 {

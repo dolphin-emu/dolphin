@@ -17,8 +17,8 @@ CustomShaderCache::CustomShaderCache()
   m_async_uber_shader_compiler = g_gfx->CreateAsyncShaderCompiler();
   m_async_uber_shader_compiler->StartWorkerThreads(1);  // TODO
 
-  m_frame_end_handler = AfterFrameEvent::Register([this](Core::System&) { RetrieveAsyncShaders(); },
-                                                  "RetrieveAsyncShaders");
+  m_frame_end_handler = GetVideoEvents().after_frame_event.Register(
+      [this](Core::System&) { RetrieveAsyncShaders(); }, "RetrieveAsyncShaders");
 }
 
 CustomShaderCache::~CustomShaderCache()
