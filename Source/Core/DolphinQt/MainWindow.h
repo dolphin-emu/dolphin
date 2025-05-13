@@ -27,7 +27,6 @@ class BreakpointWidget;
 struct BootParameters;
 class CheatsManager;
 class CodeWidget;
-class ControllersWindow;
 class DiscordHandler;
 class DragEnterEvent;
 class FIFOPlayerWindow;
@@ -246,7 +245,6 @@ private:
   u32 m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 
-  ControllersWindow* m_controllers_window = nullptr;
   SettingsWindow* m_settings_window = nullptr;
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;

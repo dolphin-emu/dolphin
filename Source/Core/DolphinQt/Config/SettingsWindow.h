@@ -31,10 +31,16 @@ private:
   QListWidget* m_navigation_list;
 };
 
-enum class TabIndex
+enum class SettingsWindowPaneIndex : int
 {
   General = 0,
-  Audio = 2
+  Controllers,
+  Interface,
+  Audio,
+  Paths,
+  GameCube,
+  Wii,
+  Advanced,
 };
 
 class SettingsWindow final : public StackedSettingsWindow
@@ -43,6 +49,5 @@ class SettingsWindow final : public StackedSettingsWindow
 public:
   explicit SettingsWindow(QWidget* parent = nullptr);
 
-  void SelectGeneralPane();
-  void SelectAudioPane();
+  void SelectPane(SettingsWindowPaneIndex);
 };

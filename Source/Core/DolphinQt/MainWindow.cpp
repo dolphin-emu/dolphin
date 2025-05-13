@@ -77,7 +77,6 @@
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 #include "DolphinQt/CheatsManager.h"
-#include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/LogConfigWidget.h"
@@ -1283,16 +1282,8 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 
 void MainWindow::ShowControllersWindow()
 {
-  if (!m_controllers_window)
-  {
-    m_controllers_window = new ControllersWindow(this);
-    InstallHotkeyFilter(m_controllers_window);
-  }
-
-  SetQWidgetWindowDecorations(m_controllers_window);
-  m_controllers_window->show();
-  m_controllers_window->raise();
-  m_controllers_window->activateWindow();
+  ShowSettingsWindow();
+  m_settings_window->SelectPane(SettingsWindowPaneIndex::Controllers);
 }
 
 void MainWindow::ShowFreeLookWindow()
@@ -1331,13 +1322,13 @@ void MainWindow::ShowSettingsWindow()
 void MainWindow::ShowAudioWindow()
 {
   ShowSettingsWindow();
-  m_settings_window->SelectAudioPane();
+  m_settings_window->SelectPane(SettingsWindowPaneIndex::Audio);
 }
 
 void MainWindow::ShowGeneralWindow()
 {
   ShowSettingsWindow();
-  m_settings_window->SelectGeneralPane();
+  m_settings_window->SelectPane(SettingsWindowPaneIndex::General);
 }
 
 void MainWindow::ShowAboutDialog()

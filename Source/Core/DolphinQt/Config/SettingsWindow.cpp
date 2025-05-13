@@ -9,6 +9,9 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
+#include "Common/EnumUtils.h"
+
+#include "DolphinQt/Config/ControllersPane.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings/AdvancedPane.h"
@@ -133,7 +136,9 @@ SettingsWindow::SettingsWindow(QWidget* parent) : StackedSettingsWindow{parent}
 {
   setWindowTitle(tr("Settings"));
 
+  // If you change the order, don't forget to update the SettingsWindowPaneIndex enum.
   AddWrappedPane(new GeneralPane, tr("General"));
+  AddWrappedPane(new ControllersPane, tr("Controllers"));
   AddWrappedPane(new InterfacePane, tr("Interface"));
   AddWrappedPane(new AudioPane, tr("Audio"));
   AddWrappedPane(new PathPane, tr("Paths"));
@@ -144,12 +149,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : StackedSettingsWindow{parent}
   OnDoneCreatingPanes();
 }
 
-void SettingsWindow::SelectAudioPane()
+void SettingsWindow::SelectPane(SettingsWindowPaneIndex index)
 {
-  ActivatePane(static_cast<int>(TabIndex::Audio));
-}
-
-void SettingsWindow::SelectGeneralPane()
-{
-  ActivatePane(static_cast<int>(TabIndex::General));
+  ActivatePane(Common::ToUnderlying(index));
 }
