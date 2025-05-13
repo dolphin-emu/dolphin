@@ -16,6 +16,7 @@ import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.datepicker.CalendarConstraints
@@ -541,6 +542,25 @@ class SettingsAdapter(
         } else {
             seekbarProgress.toInt().toString()
         }
+    }
+
+    override fun onViewRecycled(holder: SettingViewHolder) {
+        super.onViewRecycled(holder)
+        holder.onViewRecycled()
+    }
+
+    override fun onViewAttachedToWindow(holder: SettingViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        holder.onViewAttachedToWindow()
+    }
+
+    override fun onViewDetachedFromWindow(holder: SettingViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        holder.onViewDetachedFromWindow()
+    }
+
+    fun getFragmentLifecycle(): Lifecycle {
+        return fragmentView.getFragmentLifecycle()
     }
 
     private fun getValueForSingleChoiceSelection(item: SingleChoiceSetting, which: Int): Int {
