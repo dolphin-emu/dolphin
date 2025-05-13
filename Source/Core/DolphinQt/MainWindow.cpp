@@ -1709,7 +1709,10 @@ void MainWindow::UpdateScreenSaverInhibition()
 
   m_is_screensaver_inhibited = inhibit;
 
-  UICommon::InhibitScreenSaver(inhibit);
+  if (inhibit)
+    UICommon::InhibitScreenSaver();
+  else
+    UICommon::Uninhibit();
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
