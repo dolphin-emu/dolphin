@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import org.dolphinemu.dolphinemu.databinding.ListItemAdvancedMappingControlBinding
+import org.dolphinemu.dolphinemu.features.input.model.CoreDevice
 import java.util.function.Consumer
 
 class AdvancedMappingControlAdapter(
@@ -14,7 +15,7 @@ class AdvancedMappingControlAdapter(
     private val onClickCallback: Consumer<String>
 ) : RecyclerView.Adapter<AdvancedMappingControlViewHolder>() {
 
-    private var controls = emptyArray<String>()
+    private var controls = emptyArray<CoreDevice.Control>()
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -30,7 +31,7 @@ class AdvancedMappingControlAdapter(
 
     override fun getItemCount(): Int = controls.size
 
-    fun setControls(controls: Array<String>) {
+    fun setControls(controls: Array<CoreDevice.Control>) {
         this.controls = controls
         notifyDataSetChanged()
     }

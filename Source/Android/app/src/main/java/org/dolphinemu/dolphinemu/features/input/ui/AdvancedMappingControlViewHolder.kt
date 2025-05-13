@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.features.input.ui
 
 import androidx.lifecycle.Lifecycle
 import org.dolphinemu.dolphinemu.databinding.ListItemAdvancedMappingControlBinding
+import org.dolphinemu.dolphinemu.features.input.model.CoreDevice
 import org.dolphinemu.dolphinemu.utils.LifecycleViewHolder
 import java.util.function.Consumer
 
@@ -13,14 +14,14 @@ class AdvancedMappingControlViewHolder(
     onClickCallback: Consumer<String>
 ) : LifecycleViewHolder(binding.root, parentLifecycle) {
 
-    private lateinit var name: String
+    private lateinit var control: CoreDevice.Control
 
     init {
-        binding.root.setOnClickListener { onClickCallback.accept(name) }
+        binding.root.setOnClickListener { onClickCallback.accept(control.getName()) }
     }
 
-    fun bind(name: String) {
-        this.name = name
-        binding.textName.text = name
+    fun bind(control: CoreDevice.Control) {
+        this.control = control
+        binding.textName.text = control.getName()
     }
 }

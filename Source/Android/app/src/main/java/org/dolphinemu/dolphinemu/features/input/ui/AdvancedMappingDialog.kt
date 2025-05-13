@@ -73,7 +73,7 @@ class AdvancedMappingDialog(
     }
 
     private fun setControls(controls: Array<CoreDevice.Control>) =
-        controlAdapter.setControls(controls.map { it.getName() }.toTypedArray())
+        controlAdapter.setControls(controls)
 
     private fun onControlClicked(control: String) {
         val expression =
