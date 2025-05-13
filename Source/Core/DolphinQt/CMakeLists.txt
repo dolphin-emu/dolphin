@@ -93,8 +93,8 @@ add_executable(dolphin-emu
   Config/Graphics/EnhancementsWidget.h
   Config/Graphics/GeneralWidget.cpp
   Config/Graphics/GeneralWidget.h
-  Config/Graphics/GraphicsWindow.cpp
-  Config/Graphics/GraphicsWindow.h
+  Config/Graphics/GraphicsPane.cpp
+  Config/Graphics/GraphicsPane.h
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/HacksWidget.h
   Config/Graphics/ColorCorrectionConfigWindow.cpp
