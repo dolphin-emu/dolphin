@@ -287,7 +287,6 @@ jobs:
         run: |
           rm '/usr/local/bin/2to3' || true
           echo "HOMEBREW_NO_AUTO_UPDATE=1" >> $GITHUB_ENV
-          brew upgrade cmake
           brew install \
           ffmpeg \
           libpng \
@@ -296,6 +295,7 @@ jobs:
           sound-touch \
           hidapi \
           qt@6
+#         brew upgrade cmake
       - name: "Build ${{ matrix.build_type }} Dolphin"
         shell: bash
         working-directory: ${{ github.workspace }}
