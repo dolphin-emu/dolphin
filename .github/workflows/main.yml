@@ -123,8 +123,9 @@ jobs:
             Invoke-WebRequest -Uri https://www.ssl.com/download/codesigntool-for-windows/ -UseBasicParsing -OutFile ".\CodeSignTool.zip"
             7z x CodeSignTool.zip
             Remove-Item CodeSignTool.zip
+            cd ..
           }
-          ./CodeSignTool.bat sign -credential_id="${{ secrets.ES_CREDENTIAL_ID }}" -username="${{ secrets.ES_USERNAME }}" -password="${{ secrets.ES_PASSWORD }}" -totp_secret="${{ secrets.ES_TOTP_SECRET }}" -input_file_path="${{ github.workspace }}\Binary\x64\Slippi_Dolphin.exe" -override="true"
+          ./CodeSignTool/CodeSignTool.bat sign -credential_id="${{ secrets.ES_CREDENTIAL_ID }}" -username="${{ secrets.ES_USERNAME }}" -password="${{ secrets.ES_PASSWORD }}" -totp_secret="${{ secrets.ES_TOTP_SECRET }}" -input_file_path="${{ github.workspace }}\Binary\x64\Slippi_Dolphin.exe" -override="true"
       - name: Package Artifact
         working-directory: ${{ github.workspace }}
         run: |
