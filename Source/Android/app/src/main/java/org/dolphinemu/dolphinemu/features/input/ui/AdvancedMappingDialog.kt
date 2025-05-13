@@ -3,6 +3,8 @@
 package org.dolphinemu.dolphinemu.features.input.ui
 
 import android.content.Context
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
@@ -38,7 +40,7 @@ class AdvancedMappingDialog(
             ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, devices)
         binding.dropdownDevice.setAdapter(deviceAdapter)
 
-        controlAdapter = AdvancedMappingControlAdapter(lifecycle) {
+        controlAdapter = AdvancedMappingControlAdapter(lifecycle, controlReference.isInput()) {
             control: String -> onControlClicked(control)
         }
         binding.listControl.adapter = controlAdapter
@@ -59,6 +61,16 @@ class AdvancedMappingDialog(
 
     override fun onItemClick(adapterView: AdapterView<*>?, view: View, position: Int, id: Long) =
         setSelectedDevice(devices[position])
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        ControllerInterface.dispatchKeyEvent(event)
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        ControllerInterface.dispatchGenericMotionEvent(event)
+        return super.dispatchGenericMotionEvent(event)
+    }
 
     private fun setSelectedDevice(deviceString: String) {
         selectedDevice = deviceString

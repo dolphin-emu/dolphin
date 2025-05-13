@@ -3,17 +3,26 @@
 package org.dolphinemu.dolphinemu.features.input.ui.viewholder
 
 import android.view.View
+import androidx.lifecycle.Lifecycle
 import org.dolphinemu.dolphinemu.databinding.ListItemMappingBinding
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder
+import org.dolphinemu.dolphinemu.utils.Log
 
 class InputMappingControlSettingViewHolder(
     private val binding: ListItemMappingBinding,
     adapter: SettingsAdapter
 ) : SettingViewHolder(binding.getRoot(), adapter) {
     lateinit var setting: InputMappingControlSetting
+
+    init {
+        ControllerInterface.inputStateChanged.observe(this) {
+            updateInputValue()
+        }
+    }
 
     override val item: SettingsItem
         get() = setting
@@ -26,6 +35,7 @@ class InputMappingControlSettingViewHolder(
         binding.buttonAdvancedSettings.setOnClickListener { clicked: View -> onLongClick(clicked) }
 
         setStyle(binding.textSettingName, setting)
+        updateInputValue()
     }
 
     override fun onClick(clicked: View) {
@@ -51,5 +61,17 @@ class InputMappingControlSettingViewHolder(
         adapter.onAdvancedInputMappingClick(setting, bindingAdapterPosition)
 
         return true
+    }
+
+    private fun updateInputValue() {
+        if (adapter.getFragmentLifecycle().currentState == Lifecycle.State.DESTROYED) {
+            throw IllegalStateException("InputMappingControlSettingViewHolder leak")
+        }
+
+        if (setting.isInput) {
+            // TODO
+            Log.info("InputMappingControlSettingViewHolder: Value of " + setting.name + " is " +
+                    setting.state)
+        }
     }
 }

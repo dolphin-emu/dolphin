@@ -11,7 +11,9 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -22,11 +24,11 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
@@ -195,6 +197,16 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
                 }
             }
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        ControllerInterface.dispatchKeyEvent(event)
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        ControllerInterface.dispatchGenericMotionEvent(event)
+        return super.dispatchGenericMotionEvent(event)
     }
 
     private fun canonicalizeIfPossible(uri: Uri): Uri {

@@ -12,6 +12,7 @@ import java.util.function.Consumer
 
 class AdvancedMappingControlAdapter(
     private val parentLifecycle: Lifecycle,
+    private val isInput: Boolean,
     private val onClickCallback: Consumer<String>
 ) : RecyclerView.Adapter<AdvancedMappingControlViewHolder>() {
 
@@ -23,7 +24,7 @@ class AdvancedMappingControlAdapter(
     ): AdvancedMappingControlViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = ListItemAdvancedMappingControlBinding.inflate(inflater)
-        return AdvancedMappingControlViewHolder(binding, parentLifecycle, onClickCallback)
+        return AdvancedMappingControlViewHolder(binding, parentLifecycle, isInput, onClickCallback)
     }
 
     override fun onBindViewHolder(holder: AdvancedMappingControlViewHolder, position: Int) =
