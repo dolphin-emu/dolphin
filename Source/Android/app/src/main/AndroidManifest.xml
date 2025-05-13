@@ -39,6 +39,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/backup_rules_api_31"
         android:supportsRtl="true"
+        android:appCategory="game"
         android:isGame="true"
         android:banner="@drawable/banner_tv"
         android:hasFragileUserData="true"
@@ -46,6 +47,9 @@
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>
+        <meta-data
+            android:name="android.game_mode_config"
+            android:resource="@xml/game_mode_config" />
         <profileable
             android:shell="true"
             tools:targetApi="29" />
