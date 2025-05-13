@@ -32,8 +32,6 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
-#include "UICommon/GameFile.h"
-
 GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
                                  bool restart_required)
     : m_game_id(std::move(game_id)), m_gametdb_id(std::move(gametdb_id)),
@@ -105,7 +103,7 @@ void GeckoCodeWidget::CreateWidgets()
 
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 
-  auto* layout = new QVBoxLayout;
+  auto* const layout = new QVBoxLayout{this};
 
   layout->addWidget(m_warning);
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -139,8 +137,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
-
-  WrapInScrollArea(this, layout);
 }
 
 void GeckoCodeWidget::ConnectWidgets()

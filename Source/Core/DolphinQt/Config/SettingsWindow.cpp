@@ -110,7 +110,7 @@ void StackedSettingsWindow::OnDoneCreatingPanes()
   // Make sure the first item is actually selected by default.
   ActivatePane(0);
   // Take on the preferred size.
-  adjustSize();
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
 void StackedSettingsWindow::AddPane(QWidget* widget, const QString& name)
