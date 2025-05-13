@@ -1002,7 +1002,7 @@ void InputBackend::PopulateDevices()
 extern "C" {
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchKeyEvent(
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchKeyEventNative(
     JNIEnv* env, jclass, jobject key_event)
 {
   const jint action = env->CallIntMethod(key_event, s_key_event_get_action);
@@ -1046,7 +1046,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchGenericMotionEvent(
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchGenericMotionEventNative(
     JNIEnv* env, jclass, jobject motion_event)
 {
   const jint device_id = env->CallIntMethod(motion_event, s_input_event_get_device_id);
@@ -1090,7 +1090,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEvent(
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEventNative(
     JNIEnv* env, jclass, jstring j_device_qualifier, jstring j_axis_name, jfloat value)
 {
   ciface::Core::DeviceQualifier device_qualifier;
