@@ -2,14 +2,17 @@
 
 package org.dolphinemu.dolphinemu.features.input.ui
 
-import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.Lifecycle
 import org.dolphinemu.dolphinemu.databinding.ListItemAdvancedMappingControlBinding
+import org.dolphinemu.dolphinemu.utils.LifecycleViewHolder
 import java.util.function.Consumer
 
 class AdvancedMappingControlViewHolder(
     private val binding: ListItemAdvancedMappingControlBinding,
+    parentLifecycle: Lifecycle,
     onClickCallback: Consumer<String>
-) : RecyclerView.ViewHolder(binding.root) {
+) : LifecycleViewHolder(binding.root, parentLifecycle) {
+
     private lateinit var name: String
 
     init {

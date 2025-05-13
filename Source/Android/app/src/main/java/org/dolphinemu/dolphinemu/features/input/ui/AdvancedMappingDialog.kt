@@ -38,8 +38,9 @@ class AdvancedMappingDialog(
             ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, devices)
         binding.dropdownDevice.setAdapter(deviceAdapter)
 
-        controlAdapter =
-            AdvancedMappingControlAdapter { control: String -> onControlClicked(control) }
+        controlAdapter = AdvancedMappingControlAdapter(lifecycle) {
+            control: String -> onControlClicked(control)
+        }
         binding.listControl.adapter = controlAdapter
         binding.listControl.layoutManager = LinearLayoutManager(context)
 
