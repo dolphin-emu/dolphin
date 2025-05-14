@@ -29,6 +29,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
+#include "Common/Functional.h"
 #include "Common/HttpRequest.h"
 #include "Common/JsonUtil.h"
 #include "Common/Lazy.h"
@@ -121,8 +122,12 @@ public:
   };
   using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
+  using AsyncCallback = Common::MoveOnlyFunction<void()>;
+  using AsyncCallbackHandler = Common::MoveOnlyFunction<void(AsyncCallback)>;
+
   static AchievementManager& GetInstance();
-  void Init(void* hwnd);
+
+  void Init(void* hwnd, AsyncCallbackHandler async_callback_handler);
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
@@ -308,6 +313,8 @@ private:
   Common::AsyncWorkThread m_image_queue;
   mutable std::recursive_mutex m_lock;
   std::recursive_mutex m_filereader_lock;
+
+  AsyncCallbackHandler m_async_callback_handler;
 };  // class AchievementManager
 
 #else  // USE_RETRO_ACHIEVEMENTS
