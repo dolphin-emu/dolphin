@@ -58,13 +58,14 @@ AchievementManager& AchievementManager::GetInstance()
   return s_instance;
 }
 
-void AchievementManager::Init(void* hwnd)
+void AchievementManager::Init(void* hwnd, AsyncCallbackHandler async_callback_handler)
 {
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
     {
       std::lock_guard lg{m_lock};
+      m_async_callback_handler = std::move(async_callback_handler);
       m_client = rc_client_create(MemoryVerifier, Request);
     }
     std::string host_url = Config::Get(Config::RA_HOST_URL);
@@ -1269,8 +1270,7 @@ void AchievementManager::Request(const rc_api_request_t* request,
   std::string url = request->url;
   std::string post_data = request->post_data;
   AchievementManager::GetInstance().m_queue.Push(
-      [url = std::move(url), post_data = std::move(post_data), callback = std::move(callback),
-       callback_data = std::move(callback_data)] {
+      [url = std::move(url), post_data = std::move(post_data), callback, callback_data] {
         Common::HttpRequest http_request;
         Common::HttpRequest::Response http_response;
         if (!post_data.empty())
@@ -1284,22 +1284,28 @@ void AchievementManager::Request(const rc_api_request_t* request,
                                            Common::HttpRequest::AllowedReturnCodes::All);
         }
 
-        rc_api_server_response_t server_response;
-        if (http_response.has_value() && http_response->size() > 0)
-        {
-          server_response.body = reinterpret_cast<const char*>(http_response->data());
-          server_response.body_length = http_response->size();
-          server_response.http_status_code = http_request.GetLastResponseCode();
-        }
-        else
-        {
-          static constexpr char error_message[] = "Failed HTTP request.";
-          server_response.body = error_message;
-          server_response.body_length = sizeof(error_message);
-          server_response.http_status_code = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
-        }
+        const auto response_code = http_request.GetLastResponseCode();
 
-        callback(&server_response, callback_data);
+        // The callback needs to be invoked inside our async callback handler
+        //  as it may trigger a shutdown which will wait on this very job to complete.
+        AchievementManager::GetInstance().m_async_callback_handler(
+            [callback, callback_data, http_response = std::move(http_response), response_code] {
+              rc_api_server_response_t server_response;
+              if (http_response.has_value() && http_response->size() > 0)
+              {
+                server_response.body = reinterpret_cast<const char*>(http_response->data());
+                server_response.body_length = http_response->size();
+                server_response.http_status_code = response_code;
+              }
+              else
+              {
+                static constexpr char error_message[] = "Failed HTTP request.";
+                server_response.body = error_message;
+                server_response.body_length = sizeof(error_message);
+                server_response.http_status_code = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
+              }
+              callback(&server_response, callback_data);
+            });
       });
 }
 
