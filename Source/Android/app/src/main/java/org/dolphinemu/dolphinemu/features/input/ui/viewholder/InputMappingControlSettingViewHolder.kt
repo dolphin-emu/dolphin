@@ -10,13 +10,16 @@ import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSe
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder
-import org.dolphinemu.dolphinemu.utils.Log
+import kotlin.math.abs
 
 class InputMappingControlSettingViewHolder(
     private val binding: ListItemMappingBinding,
     adapter: SettingsAdapter
 ) : SettingViewHolder(binding.getRoot(), adapter) {
+
     lateinit var setting: InputMappingControlSetting
+
+    private var previousState = Float.POSITIVE_INFINITY
 
     init {
         ControllerInterface.inputStateChanged.observe(this) {
@@ -33,6 +36,10 @@ class InputMappingControlSettingViewHolder(
         binding.textSettingName.text = setting.name
         binding.textSettingDescription.text = setting.value
         binding.buttonAdvancedSettings.setOnClickListener { clicked: View -> onLongClick(clicked) }
+
+        if (!setting.isInput) {
+            binding.controlStateBar.visibility = View.INVISIBLE
+        }
 
         setStyle(binding.textSettingName, setting)
         updateInputValue()
@@ -69,9 +76,16 @@ class InputMappingControlSettingViewHolder(
         }
 
         if (setting.isInput) {
-            // TODO
-            Log.info("InputMappingControlSettingViewHolder: Value of " + setting.name + " is " +
-                    setting.state)
+            val state = setting.state.toFloat()
+            if (abs(state - previousState) >= stateUpdateThreshold) {
+                previousState = state
+                binding.controlStateBar.state = state
+            }
         }
+    }
+
+    companion object {
+        // For performance, require state to change by a certain threshold before we update the UI
+        private val stateUpdateThreshold = 0.01f
     }
 }
