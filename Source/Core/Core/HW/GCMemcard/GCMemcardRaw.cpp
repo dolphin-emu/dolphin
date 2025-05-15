@@ -62,7 +62,7 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
     const auto& sram = Core::System::GetInstance().GetSRAM();
     const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
-    const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
+    const bool shift_jis = m_filename.contains(".JAP.raw");
     const u32 rtc_bias = sram.settings.rtc_bias;
     const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =

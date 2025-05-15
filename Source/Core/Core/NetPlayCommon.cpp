@@ -231,10 +231,10 @@ static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::st
     std::string name;
     packet >> name;
 
-    if (name.find('/') != std::string::npos)
+    if (name.contains('/'))
       return false;
 #ifdef _WIN32
-    if (name.find('\\') != std::string::npos)
+    if (name.contains('\\'))
       return false;
 #endif
     if (std::ranges::all_of(name, [](char c) { return c == '.'; }))

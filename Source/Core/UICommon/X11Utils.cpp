@@ -111,7 +111,7 @@ void XRRConfiguration::Update()
   unsigned int fullWidth, fullHeight;
   char* output_name = nullptr;
   char auxFlag = '\0';
-  if (fullscreen_display_res.find(':') == std::string::npos)
+  if (!fullscreen_display_res.contains(':'))
   {
     fullWidth = fb_width;
     fullHeight = fb_height;
