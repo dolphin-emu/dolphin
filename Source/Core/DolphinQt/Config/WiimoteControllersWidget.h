@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <array>
+
 #include <QWidget>
 
-#include <array>
+#include "Common/WorkQueueThread.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 
 class QCheckBox;
 class QComboBox;
@@ -26,17 +29,21 @@ class WiimoteControllersWidget final : public QWidget
   Q_OBJECT
 public:
   explicit WiimoteControllersWidget(QWidget* parent);
+  ~WiimoteControllersWidget();
 
   void UpdateBluetoothAvailableStatus();
-  void RefreshBluetoothAdapters();
 
 private:
   void SaveSettings();
   void OnBluetoothPassthroughDeviceChanged(int index);
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
+  void OnBluetoothAdapterRefreshComplete(
+      const std::vector<IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo>& devices);
   void OnWiimoteRefreshPressed();
   void OnWiimoteConfigure(size_t index);
+  void StartBluetoothAdapterRefresh();
+  void UpdateBluetoothAdapterWidgetsEnabled(Core::State state);
 
   void CreateLayout();
   void ConnectWidgets();
@@ -50,10 +57,14 @@ private:
   std::array<QHBoxLayout*, 4> m_wiimote_groups;
   std::array<QLabel*, 2> m_wiimote_pt_labels;
 
+  Common::AsyncWorkThreadSP m_bluetooth_adapter_refresh_thread;
+  bool m_bluetooth_adapter_scan_in_progress = false;
+
   QRadioButton* m_wiimote_emu;
   QRadioButton* m_wiimote_passthrough;
   QLabel* m_bluetooth_adapters_label;
   QComboBox* m_bluetooth_adapters;
+  QPushButton* m_bluetooth_adapters_refresh;
   QPushButton* m_wiimote_sync;
   QPushButton* m_wiimote_reset;
   QCheckBox* m_wiimote_continuous_scanning;
