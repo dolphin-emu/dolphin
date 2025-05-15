@@ -32,6 +32,7 @@
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
@@ -259,18 +260,14 @@ void GameConfigWidget::CreateWidgets()
       "settings are disabled when the global graphics backend doesn't "
       "match the game setting.");
 
-  auto help_icon = style()->standardIcon(QStyle::SP_MessageBoxQuestion);
-  auto* help_label = new QLabel(tr("These settings override core Dolphin settings."));
-  help_label->setToolTip(help_msg);
-  auto help_label_icon = new QLabel();
-  help_label_icon->setPixmap(help_icon.pixmap(12, 12));
-  help_label_icon->setToolTip(help_msg);
-  auto* help_layout = new QHBoxLayout();
-  help_layout->addWidget(help_label);
-  help_layout->addWidget(help_label_icon);
-  help_layout->addStretch();
+  auto* const help_label = new QLabel(tr("These settings override core Dolphin settings."));
 
-  layout->addLayout(help_layout);
+  auto* const help_widget =
+      QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxQuestion, help_label);
+
+  help_widget->setToolTip(help_msg);
+
+  layout->addWidget(help_widget);
   layout->addWidget(tab_widget);
   setLayout(layout);
 }

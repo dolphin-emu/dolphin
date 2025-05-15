@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QStyle>
 
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Settings.h"
 
 GraphicsModWarningWidget::GraphicsModWarningWidget(QWidget* parent) : QWidget(parent)
@@ -23,28 +24,17 @@ GraphicsModWarningWidget::GraphicsModWarningWidget(QWidget* parent) : QWidget(pa
 
 void GraphicsModWarningWidget::CreateWidgets()
 {
-  auto* icon = new QLabel;
-
-  const auto size = 1.5 * QFontMetrics(font()).height();
-
-  QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size);
-
-  icon->setPixmap(warning_icon);
-
   m_text = new QLabel();
-  m_config_button = new QPushButton(tr("Configure Dolphin"));
 
+  m_config_button = new QPushButton(tr("Configure Dolphin"));
   m_config_button->setHidden(true);
 
-  auto* layout = new QHBoxLayout;
+  auto* const layout = new QHBoxLayout{this};
 
-  layout->addWidget(icon);
-  layout->addWidget(m_text, 1);
+  layout->addWidget(QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxWarning, m_text));
   layout->addWidget(m_config_button);
 
   layout->setContentsMargins(0, 0, 0, 0);
-
-  setLayout(layout);
 }
 
 void GraphicsModWarningWidget::Update()
