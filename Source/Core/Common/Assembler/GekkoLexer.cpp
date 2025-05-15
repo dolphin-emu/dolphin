@@ -187,12 +187,14 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
     if (CaseInsensitiveEquals(val, "rtoc"))
       return T{2};
     [[fallthrough]];
-  case TokenType::FPR:
+  case TokenType::FPR:  // BE CAREFUL WHAT YOU PUT IN BETWEEN fallthrough and FPR
     return std::accumulate(val.begin() + 1, val.end(), T{0}, dec_step);
   case TokenType::CRField:
     return std::accumulate(val.begin() + 2, val.end(), T{0}, dec_step);
   case TokenType::SPR:
     return static_cast<T>(*sprg_map.Find(val));
+  case TokenType::GQR:
+    return std::accumulate(val.begin() + 2, val.end(), T{0}, dec_step);
   case TokenType::Lt:
     return T{0};
   case TokenType::Gt:
@@ -223,6 +225,8 @@ std::string_view TokenTypeToStr(TokenType tp)
     return "GPR";
   case TokenType::FPR:
     return "FPR";
+  case TokenType::GQR:
+    return "GQR";
   case TokenType::SPR:
     return "SPR";
   case TokenType::CRField:
@@ -670,6 +674,15 @@ TokenType Lexer::ClassifyAlnum() const
   else if (std::tolower(alnum[0]) == 'f' && valid_regnum(alnum.substr(1)))
   {
     return TokenType::FPR;
+  }
+  else if (std::tolower(alnum[0]) == 'p' && valid_regnum(alnum.substr(1)))
+  {
+    return TokenType::FPR;
+  }
+  else if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "qr") &&
+           alnum[2] >= '0' && alnum[2] <= '7')
+  {
+    return TokenType::GQR;
   }
   else if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") &&
            alnum[2] >= '0' && alnum[2] <= '7')

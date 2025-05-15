@@ -228,7 +228,7 @@ void CodeViewWidget::FontBasedSizing()
   // Similarly, the longest parameter set is 'rtoc, rtoc, r10, 10, 10 (00000800)' (0x5c425294u),
   // but one is unlikely to encounter that in practice, so let's use a slightly more reasonable
   // 'r31, r31, 16, 16, 31 (ffff0000)'. The user can resize the columns as necessary anyway.
-  const std::string disas = Common::GekkoDisassembler::Disassemble(0x57ff843fu, 0);
+  const std::string disas = Common::GekkoDisassembler::Disassemble(0x57ff843fu, 0, false);
   const auto split = disas.find('\t');
   const std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
   const std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
@@ -1030,7 +1030,12 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
 
   if (assemble)
   {
-    AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
+    std::string code_line =
+        m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr, true);
+    std::ranges::replace(code_line, '\t', ' ');
+
+    AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr),
+                                     QString::fromStdString(code_line));
     SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() == QDialog::Accepted)
     {

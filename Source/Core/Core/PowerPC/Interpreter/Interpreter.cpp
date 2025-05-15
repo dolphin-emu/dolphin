@@ -97,7 +97,8 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
   }
 
-  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, m_ppc_state.pc);
+  const std::string ppc_inst =
+      Common::GekkoDisassembler::Disassemble(inst.hex, m_ppc_state.pc, false);
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
@@ -294,7 +295,7 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
 
   const u32 last_pc = interpreter.m_last_pc;
   const u32 opcode = PowerPC::MMU::HostRead_U32(guard, last_pc);
-  const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
+  const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc, false);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
   Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::POWERPC,
                                    Common::Log::LogLevel::LNOTICE);

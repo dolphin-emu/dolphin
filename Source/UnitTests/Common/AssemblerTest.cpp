@@ -6,7 +6,9 @@
 #include <string_view>
 #include <vector>
 
+#include <fmt/format.h>
 #include "Common/Assembler/GekkoAssembler.h"
+#include "Common/GekkoDisassembler.h"
 
 using namespace Common::GekkoAssembler;
 
@@ -453,6 +455,45 @@ TEST(Assembler, AllInstructions)
   for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expected_instructions[i]) << " -> i=" << i;
+  }
+}
+
+TEST(Assembler, RoundTripTest)
+{
+  auto res = Assemble(instructions, 0);
+  ASSERT_TRUE(!IsFailure(res));
+  auto&& code_blocks = GetT(res);
+  ASSERT_EQ(code_blocks.size(), 1);
+  ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expected_instructions));
+  ASSERT_EQ(code_blocks[0].instructions.size() & 3, 0);
+
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); i += sizeof(u32))
+  {
+    const u32 hex_code =
+        (code_blocks[0].instructions[i] << 24) | (code_blocks[0].instructions[i + 1] << 16) |
+        (code_blocks[0].instructions[i + 2] << 8) | code_blocks[0].instructions[i + 3];
+    std::string text_code = Common::GekkoDisassembler::Disassemble(hex_code, 0, true);
+    // NEED TO FIX ABSOLUTE ADDRESSES COMING IN FROM DISASSEMBLER
+    size_t posArrow = text_code.find("->");
+    if (posArrow != std::string::npos)
+    {
+      u32 address = (u32)strtoul(text_code.substr(posArrow + 2).c_str(), nullptr, 16) & 0xFFFF;
+      if (address & 0x8000)
+      {
+        text_code = fmt::format("{} -0x{:04X}", text_code.substr(0, posArrow), 0x10000 - address);
+      }
+      else
+      {
+        text_code = fmt::format("{} 0x{:04X}", text_code.substr(0, posArrow), address);
+      }
+    }
+    auto recompiled = Assemble(text_code, 0);
+    auto&& code_blocks_reassembled = GetT(recompiled);
+    for (size_t j = 0; j < sizeof(u32); j++)
+    {
+      EXPECT_EQ(code_blocks[0].instructions[i + j], code_blocks_reassembled[0].instructions[j])
+          << " -> i=" << i;
+    }
   }
 }
 

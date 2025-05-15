@@ -493,7 +493,7 @@ void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
 
   if (cnd != nullptr)
   {
-    m_opcode = fmt::format("t{}{}", dmode ? 'd' : 'w', cnd);
+    m_opcode = fmt::format("t{}{}i", dmode ? 'd' : 'w', cnd);
   }
   else
   {
@@ -556,8 +556,8 @@ size_t GekkoDisassembler::branch(u32 in, std::string_view bname, int aform, int 
   char y = (char)(bo & 1);
   const char* ext = b_ext[aform * 2 + (int)(in & 1)];
 
-  if (bdisp < 0)
-    y ^= 1;
+  /* if (bdisp < 0)
+      y ^= 1; */
   y = (y != 0) ? '+' : '-';
 
   if (bo & 4)
@@ -675,7 +675,7 @@ void GekkoDisassembler::nooper(u32 in, std::string_view name)
   }
 }
 
-void GekkoDisassembler::rlw(u32 in, std::string_view name, int i)
+void GekkoDisassembler::rlw(u32 in, std::string_view name, int i, bool for_assemble)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -684,8 +684,16 @@ void GekkoDisassembler::rlw(u32 in, std::string_view name, int i)
   int me = (int)PPCGETM(in);
 
   m_opcode = fmt::format("rlw{}{}", name, (in & 1) ? "." : "");
-  m_operands = fmt::format("{}, {}, {}{}, {}, {} ({:08x})", regnames[a], regnames[s], regsel[i],
-                           bsh, mb, me, HelperRotateMask(bsh, mb, me));
+  if (!for_assemble)
+  {
+    m_operands = fmt::format("{}, {}, {}{}, {}, {} ({:08x})", regnames[a], regnames[s], regsel[i],
+                             bsh, mb, me, HelperRotateMask(bsh, mb, me));
+  }
+  else
+  {
+    m_operands =
+        fmt::format("{}, {}, {}{}, {}, {}", regnames[a], regnames[s], regsel[i], bsh, mb, me);
+  }
 }
 
 void GekkoDisassembler::ori(u32 in, std::string_view name)
@@ -1063,7 +1071,7 @@ void GekkoDisassembler::mtfsb(u32 in, int n)
 #define IX ((inst >> 7) & 0x7)
 #define WX ((inst >> 10) & 0x1)
 
-void GekkoDisassembler::ps(u32 inst)
+void GekkoDisassembler::ps(u32 inst, bool for_assemble)
 {
   switch ((inst >> 1) & 0x1F)
   {
@@ -1078,88 +1086,200 @@ void GekkoDisassembler::ps(u32 inst)
     return;
 
   case 18:
-    m_opcode = "ps_div";
-    m_operands = fmt::format("p{}, p{}/p{}", FD, FA, FB);
+    m_opcode = fmt::format("ps_div{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}/p{}", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 20:
-    m_opcode = "ps_sub";
-    m_operands = fmt::format("p{}, p{}-p{}", FD, FA, FB);
+    m_opcode = fmt::format("ps_sub{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}-p{}", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 21:
-    m_opcode = "ps_add";
-    m_operands = fmt::format("p{}, p{}+p{}", FD, FA, FB);
+    m_opcode = fmt::format("ps_add{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}+p{}", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 23:
-    m_opcode = "ps_sel";
-    m_operands = fmt::format("p{}>=0?p{}:p{}", FD, FA, FC);
+    m_opcode = fmt::format("ps_sel{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}>=0?p{}:p{}", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 24:
-    m_opcode = "ps_res";
-    m_operands = fmt::format("p{}, (1/p{})", FD, FB);
+    m_opcode = fmt::format("ps_res{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, (1/p{})", FD, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}", FD, FB);
+    }
     return;
 
   case 25:
-    m_opcode = "ps_mul";
-    m_operands = fmt::format("p{}, p{}*p{}", FD, FA, FC);
+    m_opcode = fmt::format("ps_mul{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}", FD, FA, FC);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FC);
+    }
     return;
 
   case 26:  // rsqrte
-    m_opcode = "ps_rsqrte";
+    m_opcode = fmt::format("ps_rsqrte{}", rcsel[inst & 1]);
     m_operands = fmt::format("p{}, p{}", FD, FB);
     return;
 
   case 28:  // msub
-    m_opcode = "ps_msub";
-    m_operands = fmt::format("p{}, p{}*p{}-p{}", FD, FA, FC, FB);
+    m_opcode = fmt::format("ps_msub{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}-p{}", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 29:  // madd
-    m_opcode = "ps_madd";
-    m_operands = fmt::format("p{}, p{}*p{}+p{}", FD, FA, FC, FB);
+    m_opcode = fmt::format("ps_madd{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}+p{}", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 30:  // nmsub
-    m_opcode = "ps_nmsub";
-    m_operands = fmt::format("p{}, -(p{}*p{}-p{})", FD, FA, FC, FB);
+    m_opcode = fmt::format("ps_nmsub{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, -(p{}*p{}-p{})", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 31:  // nmadd
-    m_opcode = "ps_nmadd";
-    m_operands = fmt::format("p{}, -(p{}*p{}+p{})", FD, FA, FC, FB);
+    m_opcode = fmt::format("ps_nmadd{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, -(p{}*p{}+p{})", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 10:
-    m_opcode = "ps_sum0";
-    m_operands = fmt::format("p{}, 0=p{}+p{}, 1=p{}", FD, FA, FB, FC);
+    m_opcode = fmt::format("ps_sum0{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, 0=p{}+p{}, 1=p{}", FD, FA, FB, FC);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 11:
-    m_opcode = "ps_sum1";
-    m_operands = fmt::format("p{}, 0=p{}, 1=p{}+p{}", FD, FC, FA, FB);
+    m_opcode = fmt::format("ps_sum1{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, 0=p{}, 1=p{}+p{}", FD, FC, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 12:
-    m_opcode = "ps_muls0";
-    m_operands = fmt::format("p{}, p{}*p{}[0]", FD, FA, FC);
+    m_opcode = fmt::format("ps_muls0{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}[0]", FD, FA, FC);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FC);
+    }
     return;
 
   case 13:
-    m_opcode = "ps_muls1";
-    m_operands = fmt::format("p{}, p{}*p{}[1]", FD, FA, FC);
+    m_opcode = fmt::format("ps_muls1{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}[1]", FD, FA, FC);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FC);
+    }
     return;
 
   case 14:
-    m_opcode = "ps_madds0";
-    m_operands = fmt::format("p{}, p{}*p{}[0]+p{}", FD, FA, FC, FB);
+    m_opcode = fmt::format("ps_madds0{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}[0]+p{}", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
 
   case 15:
-    m_opcode = "ps_madds1";
-    m_operands = fmt::format("p{}, p{}*p{}[1]+p{}", FD, FA, FC, FB);
+    m_opcode = fmt::format("ps_madds1{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}*p{}[1]+p{}", FD, FA, FC, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}, p{}", FD, FA, FC, FB);
+    }
     return;
   }
 
@@ -1167,23 +1287,44 @@ void GekkoDisassembler::ps(u32 inst)
   {
   // 10-bit suckers  (?)
   case 40:  // nmadd
-    m_opcode = "ps_neg";
-    m_operands = fmt::format("p{}, -p{}", FD, FB);
+    m_opcode = fmt::format("ps_neg{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, -p{}", FD, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}", FD, FB);
+    }
     return;
 
   case 72:  // nmadd
-    m_opcode = "ps_mr";
+    m_opcode = fmt::format("ps_mr{}", rcsel[inst & 1]);
     m_operands = fmt::format("p{}, p{}", FD, FB);
     return;
 
   case 136:
-    m_opcode = "ps_nabs";
-    m_operands = fmt::format("p{}, -|p{}|", FD, FB);
+    m_opcode = fmt::format("ps_nabs{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, -|p{}|", FD, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}", FD, FB);
+    }
     return;
 
   case 264:
-    m_opcode = "ps_abs";
-    m_operands = fmt::format("p{}, |p{}|", FD, FB);
+    m_opcode = fmt::format("ps_abs{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, |p{}|", FD, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}", FD, FB);
+    }
     return;
 
   case 0:
@@ -1200,23 +1341,51 @@ void GekkoDisassembler::ps(u32 inst)
     return;
   }
   case 528:
-    m_opcode = "ps_merge00";
-    m_operands = fmt::format("p{}, p{}[0], p{}[0]", FD, FA, FB);
+    m_opcode = fmt::format("ps_merge00{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}[0], p{}[0]", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 560:
-    m_opcode = "ps_merge01";
-    m_operands = fmt::format("p{}, p{}[0], p{}[1]", FD, FA, FB);
+    m_opcode = fmt::format("ps_merge01{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}[0], p{}[1]", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 592:
-    m_opcode = "ps_merge10";
-    m_operands = fmt::format("p{}, p{}[1], p{}[0]", FD, FA, FB);
+    m_opcode = fmt::format("ps_merge10{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}[1], p{}[0]", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 624:
-    m_opcode = "ps_merge11";
-    m_operands = fmt::format("p{}, p{}[1], p{}[1]", FD, FA, FB);
+    m_opcode = fmt::format("ps_merge11{}", rcsel[inst & 1]);
+    if (!for_assemble)
+    {
+      m_operands = fmt::format("p{}, p{}[1], p{}[1]", FD, FA, FB);
+    }
+    else
+    {
+      m_operands = fmt::format("p{}, p{}, p{}", FD, FA, FB);
+    }
     return;
 
   case 1014:
@@ -1261,7 +1430,7 @@ void GekkoDisassembler::ps_mem(u32 inst)
 
 // Disassemble PPC instruction and return a pointer to the next
 // instruction, or nullptr if an error occurred.
-u32* GekkoDisassembler::DoDisassembly(bool big_endian)
+u32* GekkoDisassembler::DoDisassembly(bool for_assemble, bool big_endian)
 {
   u32 in = *m_instr;
 
@@ -1284,7 +1453,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     break;
 
   case 4:
-    ps(in);
+    ps(in, for_assemble);
     break;
 
   case 56:
@@ -1405,15 +1574,15 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     break;
 
   case 20:
-    rlw(in, "imi", 0);  // rlwimi
+    rlw(in, "imi", 0, for_assemble);  // rlwimi
     break;
 
   case 21:
-    rlw(in, "inm", 0);  // rlwinm
+    rlw(in, "inm", 0, for_assemble);  // rlwinm
     break;
 
   case 23:
-    rlw(in, "nm", 1);  // rlwnm
+    rlw(in, "nm", 1, for_assemble);  // rlwnm
     break;
 
   case 24:
@@ -2319,7 +2488,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 
 // simplified interface
 std::string GekkoDisassembler::Disassemble(u32 opcode, u32 current_instruction_address,
-                                           bool big_endian)
+                                           bool for_assemble, bool big_endian)
 {
   u32 opc = opcode;
   u32 addr = current_instruction_address;
@@ -2327,7 +2496,7 @@ std::string GekkoDisassembler::Disassemble(u32 opcode, u32 current_instruction_a
   m_instr = (u32*)&opc;
   m_iaddr = (u32*)&addr;
 
-  DoDisassembly(big_endian);
+  DoDisassembly(for_assemble, big_endian);
 
   return m_opcode.append("\t").append(m_operands);
 }
