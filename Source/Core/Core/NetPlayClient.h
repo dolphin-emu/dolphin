@@ -116,7 +116,7 @@ public:
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
                 const std::string& name, const NetTraversalConfig& traversal_config);
-  ~NetPlayClient();
+  ~NetPlayClient() override;
 
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;

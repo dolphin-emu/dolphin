@@ -65,7 +65,8 @@ public:
   CustomDelegate(BreakpointWidget* parent) : QStyledItemDelegate(parent) {}
 
 private:
-  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+  void paint(QPainter* painter, const QStyleOptionViewItem& option,
+             const QModelIndex& index) const override
   {
     Q_ASSERT(index.isValid());
 

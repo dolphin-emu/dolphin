@@ -44,7 +44,7 @@ public:
   Settings(Settings&&) = delete;
   Settings& operator=(Settings&&) = delete;
 
-  ~Settings();
+  ~Settings() override;
 
   void UnregisterDevicesChangedCallback();
 

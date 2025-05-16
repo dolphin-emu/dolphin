@@ -44,7 +44,7 @@ template <bool RVZ>
 class WIARVZFileReader final : public BlobReader
 {
 public:
-  ~WIARVZFileReader();
+  ~WIARVZFileReader() override;
 
   static std::unique_ptr<WIARVZFileReader> Create(File::IOFile file, const std::string& path);
 

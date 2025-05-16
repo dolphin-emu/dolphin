@@ -25,7 +25,7 @@ class USBHost : public EmulationDevice
 {
 public:
   USBHost(EmulationKernel& ios, const std::string& device_name);
-  virtual ~USBHost();
+  ~USBHost() override;
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;
 

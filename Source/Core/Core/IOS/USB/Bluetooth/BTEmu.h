@@ -41,7 +41,7 @@ class BluetoothEmuDevice final : public BluetoothBaseDevice
 public:
   BluetoothEmuDevice(EmulationKernel& ios, const std::string& device_name);
 
-  virtual ~BluetoothEmuDevice();
+  ~BluetoothEmuDevice() override;
 
   std::optional<IPCReply> Close(u32 fd) override;
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;

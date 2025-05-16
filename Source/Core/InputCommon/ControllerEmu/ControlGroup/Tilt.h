@@ -18,12 +18,12 @@ public:
 
   explicit Tilt(const std::string& name);
 
-  ReshapeData GetReshapableState(bool adjusted) const final override;
-  ControlState GetGateRadiusAtAngle(double angle) const final override;
+  ReshapeData GetReshapableState(bool adjusted) const final;
+  ControlState GetGateRadiusAtAngle(double angle) const final;
 
   // Tilt is using the gate radius to adjust the tilt angle so we must provide an unadjusted value
   // for the default input radius.
-  ControlState GetDefaultInputRadiusAtAngle(double angle) const final override;
+  ControlState GetDefaultInputRadiusAtAngle(double angle) const final;
 
   StateData GetState() const;
 

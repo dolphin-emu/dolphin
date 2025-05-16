@@ -27,7 +27,7 @@ class LibusbDevice final : public Device
 {
 public:
   LibusbDevice(libusb_device* device, const libusb_device_descriptor& device_descriptor);
-  ~LibusbDevice();
+  ~LibusbDevice() override;
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;

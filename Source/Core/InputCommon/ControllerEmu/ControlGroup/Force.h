@@ -18,10 +18,10 @@ public:
 
   explicit Force(const std::string& name);
 
-  ReshapeData GetReshapableState(bool adjusted) const final override;
-  ControlState GetGateRadiusAtAngle(double ang) const final override;
+  ReshapeData GetReshapableState(bool adjusted) const final;
+  ControlState GetGateRadiusAtAngle(double ang) const final;
 
-  ControlState GetDefaultInputRadiusAtAngle(double angle) const final override;
+  ControlState GetDefaultInputRadiusAtAngle(double angle) const final;
 
   StateData GetState(bool adjusted = true) const;
 

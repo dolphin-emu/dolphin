@@ -31,7 +31,7 @@ public:
   {
     m_active_block = &m_output_result.blocks.emplace_back(base_addr);
   }
-  virtual ~GekkoIRPlugin() = default;
+  ~GekkoIRPlugin() override = default;
 
   void OnDirectivePre(GekkoDirective directive) override;
   void OnDirectivePost(GekkoDirective directive) override;
