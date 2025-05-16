@@ -442,6 +442,25 @@ std::shared_ptr<ciface::Core::Device> FindDevice(jint device_id)
   return device;
 }
 
+void RegisterDevicesChangedCallbackIfNeeded(JNIEnv* env, jclass controller_interface_class)
+{
+  static bool registered = false;
+  if (registered)
+    return;
+  registered = true;
+
+  const jclass global_controller_interface_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(controller_interface_class));
+  const jmethodID controller_interface_on_devices_changed =
+      env->GetStaticMethodID(global_controller_interface_class, "onDevicesChanged", "()V");
+
+  g_controller_interface.RegisterDevicesChangedCallback(
+      [global_controller_interface_class, controller_interface_on_devices_changed] {
+        IDCache::GetEnvForThread()->CallStaticVoidMethod(global_controller_interface_class,
+                                                         controller_interface_on_devices_changed);
+      });
+}
+
 }  // namespace
 
 namespace ciface::Android
@@ -903,6 +922,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
   env->CallStaticVoidMethod(s_controller_interface_class,
                             s_controller_interface_register_input_device_listener);
+
+  RegisterDevicesChangedCallbackIfNeeded(env, s_controller_interface_class);
 }
 
 InputBackend::~InputBackend()
