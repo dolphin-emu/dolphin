@@ -168,7 +168,7 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
   }
 }
 
-std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
+std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry) const
 {
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
 
