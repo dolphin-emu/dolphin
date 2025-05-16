@@ -26,7 +26,7 @@ static u64 s_expected_callback = 0;
 static s64 s_lateness = 0;
 
 template <unsigned int IDX>
-void CallbackTemplate(Core::System& system, u64 userdata, s64 lateness)
+void CallbackTemplate(Core::System& system, const u64 userdata, const s64 lateness)
 {
   static_assert(IDX < CB_IDS.size(), "IDX out of range");
   s_callbacks_ran_flags.set(IDX);
@@ -73,8 +73,8 @@ private:
   std::string m_profile_path;
 };
 
-static void AdvanceAndCheck(Core::System& system, u32 idx, int downcount, int expected_lateness = 0,
-                            int cpu_downcount = 0)
+static void AdvanceAndCheck(Core::System& system, const u32 idx, const int downcount,
+                            const int expected_lateness = 0, const int cpu_downcount = 0)
 {
   s_callbacks_ran_flags = 0;
   s_expected_callback = CB_IDS[idx];
@@ -132,7 +132,7 @@ namespace SharedSlotTest
 static unsigned int s_counter = 0;
 
 template <unsigned int ID>
-void FifoCallback(Core::System& system, u64 userdata, s64 lateness)
+void FifoCallback(Core::System& system, const u64 userdata, const s64 lateness)
 {
   static_assert(ID < CB_IDS.size(), "ID out of range");
   s_callbacks_ran_flags.set(ID);
@@ -206,7 +206,7 @@ namespace ChainSchedulingTest
 {
 static int s_reschedules = 0;
 
-static void RescheduleCallback(Core::System& system, u64 userdata, s64 lateness)
+static void RescheduleCallback(Core::System& system, const u64 userdata, const s64 lateness)
 {
   --s_reschedules;
   EXPECT_TRUE(s_reschedules >= 0);
@@ -269,7 +269,7 @@ namespace ScheduleIntoPastTest
 {
 static CoreTiming::EventType* s_cb_next = nullptr;
 
-static void ChainCallback(Core::System& system, u64 userdata, s64 lateness)
+static void ChainCallback(Core::System& system, const u64 userdata, const s64 lateness)
 {
   EXPECT_EQ(CB_IDS[0] + 1, userdata);
   EXPECT_EQ(0, lateness);
