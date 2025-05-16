@@ -123,7 +123,6 @@ jobs:
             Invoke-WebRequest -Uri https://www.ssl.com/download/codesigntool-for-windows/ -UseBasicParsing -OutFile ".\CodeSignTool.zip"
             7z x CodeSignTool.zip
             Remove-Item CodeSignTool.zip
-            cd ..
           } else {
             cd .\CodeSignTool
           }
