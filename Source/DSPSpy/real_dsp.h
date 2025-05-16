@@ -8,8 +8,8 @@
 class RealDSP : public IDSP
 {
 public:
-  virtual void Init();
-  virtual void Reset();
-  virtual u32 CheckMailTo();
-  virtual void SendMailTo(u32 mail);
+  void Init() override;
+  void Reset() override;
+  u32 CheckMailTo() override;
+  void SendMailTo(u32 mail) override;
 };
