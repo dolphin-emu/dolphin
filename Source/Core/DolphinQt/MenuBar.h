@@ -94,6 +94,7 @@ signals:
   void ShowResourcePackManager();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
+  void ShowKeyboard();
   void ConnectWiiRemote(int id);
 
 #ifdef USE_RETRO_ACHIEVEMENTS

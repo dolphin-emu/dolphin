@@ -95,6 +95,7 @@
 #include "DolphinQt/Debugger/ThreadWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/DiscordHandler.h"
+#include "DolphinQt/EmulatedUSB/Keyboard.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/GameList/GameList.h"
@@ -583,6 +584,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
+  connect(m_menu_bar, &MenuBar::ShowKeyboard, this, &MainWindow::ShowKeyboard);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -1440,6 +1442,19 @@ void MainWindow::ShowInfinityBase()
   m_infinity_window->show();
   m_infinity_window->raise();
   m_infinity_window->activateWindow();
+}
+
+void MainWindow::ShowKeyboard()
+{
+  if (!m_keyboard_window)
+  {
+    m_keyboard_window = new KeyboardWindow();
+  }
+
+  SetQWidgetWindowDecorations(m_keyboard_window);
+  m_keyboard_window->show();
+  m_keyboard_window->raise();
+  m_keyboard_window->activateWindow();
 }
 
 void MainWindow::StateLoad()
