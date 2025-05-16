@@ -32,8 +32,10 @@ std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_ti
   // once it is available for use
   const auto system_time_now = std::chrono::system_clock::now();
   const auto file_time_now = decltype(file_time)::clock::now();
-  return std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+  const auto sys_time = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
       file_time - file_time_now + system_time_now);
+  // Normalize to milliseconds to avoid precision issues
+  return std::chrono::time_point_cast<std::chrono::milliseconds>(sys_time);
 #endif
 }
 
