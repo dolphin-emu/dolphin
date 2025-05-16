@@ -21,7 +21,6 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 namespace WiiUpdate
 {
@@ -130,7 +129,6 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
     return res;
   });
 
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
   return result.get();
 }

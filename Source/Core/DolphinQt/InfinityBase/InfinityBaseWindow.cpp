@@ -26,7 +26,6 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -159,7 +158,6 @@ void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
 void InfinityBaseWindow::CreateFigure(FigureUIPosition slot)
 {
   CreateFigureDialog create_dlg(this, slot);
-  SetQWidgetWindowDecorations(&create_dlg);
   if (create_dlg.exec() == CreateFigureDialog::Accepted)
   {
     LoadFigurePath(slot, create_dlg.GetFilePath());

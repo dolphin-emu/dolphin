@@ -15,7 +15,6 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "InputCommon/InputConfig.h"
 
@@ -43,7 +42,6 @@ void WiimoteEmuExtensionMotionInput::CreateNunchukLayout()
   warning_layout->addWidget(warning_input_sources_button);
   connect(warning_input_sources_button, &QPushButton::clicked, this, [this] {
     ControllerInterfaceWindow window{this};
-    SetQWidgetWindowDecorations(&window);
     window.exec();
   });
   layout->addLayout(warning_layout, 0, 0, 1, -1);

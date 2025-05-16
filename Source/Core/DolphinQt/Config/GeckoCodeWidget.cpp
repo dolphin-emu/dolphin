@@ -30,7 +30,6 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
@@ -210,7 +209,6 @@ void GeckoCodeWidget::AddCode()
   code.enabled = true;
 
   m_cheat_code_editor->SetGeckoCode(&code);
-  SetQWidgetWindowDecorations(m_cheat_code_editor);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
@@ -228,7 +226,6 @@ void GeckoCodeWidget::EditCode()
   const int index = item->data(Qt::UserRole).toInt();
 
   m_cheat_code_editor->SetGeckoCode(&m_gecko_codes[index]);
-  SetQWidgetWindowDecorations(m_cheat_code_editor);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 

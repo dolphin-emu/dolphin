@@ -23,7 +23,6 @@
 #include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
     : m_game_id(std::move(game_id)), m_game_revision(game_revision),
@@ -257,7 +256,6 @@ void ARCodeWidget::OnCodeAddClicked()
   ar.enabled = true;
 
   m_cheat_code_editor->SetARCode(&ar);
-  SetQWidgetWindowDecorations(m_cheat_code_editor);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
@@ -275,7 +273,6 @@ void ARCodeWidget::OnCodeEditClicked()
 
   const auto* const selected = items[0];
   auto& current_ar = m_ar_codes[m_code_list->row(selected)];
-  SetQWidgetWindowDecorations(m_cheat_code_editor);
 
   if (current_ar.user_defined)
   {
