@@ -247,6 +247,8 @@ add_executable(dolphin-emu
   DiscordHandler.h
   DiscordJoinRequestDialog.cpp
   DiscordJoinRequestDialog.h
+  EmulatedUSB/Keyboard.cpp
+  EmulatedUSB/Keyboard.h
   FIFO/FIFOAnalyzer.cpp
   FIFO/FIFOAnalyzer.h
   FIFO/FIFOPlayerWindow.cpp
