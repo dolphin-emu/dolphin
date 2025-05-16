@@ -64,13 +64,13 @@ TEST(Jit64, Frsqrte)
   Core::DeclareAsCPUThread();
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
-  TestCommonAsmRoutines routines(Core::System::GetInstance());
+  const TestCommonAsmRoutines routines(Core::System::GetInstance());
 
   UReg_FPSCR fpscr;
 
   for (const u64 ivalue : double_test_values)
   {
-    double dvalue = std::bit_cast<double>(ivalue);
+    const double dvalue = std::bit_cast<double>(ivalue);
 
     u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
 
