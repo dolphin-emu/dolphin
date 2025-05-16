@@ -25,7 +25,7 @@ class AdvancedMappingDialog(
     private val controlReference: ControlReference,
     private val controller: EmulatedController
 ) : AlertDialog(context), OnItemClickListener {
-    private val devices: Array<String> = ControllerInterface.getAllDeviceStrings()
+    private lateinit var devices: Array<String>
     private val controlAdapter: AdvancedMappingControlAdapter
     private lateinit var selectedDevice: String
 
@@ -35,10 +35,6 @@ class AdvancedMappingDialog(
         binding.dropdownDevice.isSaveEnabled = false
 
         binding.dropdownDevice.onItemClickListener = this
-
-        val deviceAdapter =
-            ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, devices)
-        binding.dropdownDevice.setAdapter(deviceAdapter)
 
         controlAdapter = AdvancedMappingControlAdapter(lifecycle, controlReference.isInput()) {
             control: String -> onControlClicked(control)
@@ -52,6 +48,12 @@ class AdvancedMappingDialog(
 
         binding.editExpression.setText(controlReference.getExpression())
 
+        ControllerInterface.devicesChanged.observe(this) {
+            onDevicesChanged()
+            setSelectedDevice(selectedDevice)
+        }
+
+        onDevicesChanged()
         selectDefaultDevice()
     }
 
@@ -70,6 +72,13 @@ class AdvancedMappingDialog(
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         ControllerInterface.dispatchGenericMotionEvent(event)
         return super.dispatchGenericMotionEvent(event)
+    }
+
+    private fun onDevicesChanged() {
+        devices = ControllerInterface.getAllDeviceStrings()
+        binding.dropdownDevice.setAdapter(
+            ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, devices)
+        )
     }
 
     private fun setSelectedDevice(deviceString: String) {

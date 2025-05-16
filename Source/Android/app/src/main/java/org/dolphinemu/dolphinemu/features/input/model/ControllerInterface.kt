@@ -30,9 +30,13 @@ object ControllerInterface {
 
     private var inputStateUpdatePending = AtomicBoolean(false)
     private val inputStateVersion = MutableLiveData(0)
+    private val devicesVersion = MutableLiveData(0)
 
     val inputStateChanged: LiveData<Int>
         get() = inputStateVersion
+
+    val devicesChanged: LiveData<Int>
+        get() = devicesVersion
 
     /**
      * Activities which want to pass on inputs to native code
@@ -114,6 +118,14 @@ object ControllerInterface {
                     inputStateVersion.value = inputStateVersion.value?.plus(1)
                 }
             }
+        }
+    }
+
+    @Keep
+    @JvmStatic
+    private fun onDevicesChanged() {
+        Handler(Looper.getMainLooper()).post {
+            devicesVersion.value = devicesVersion.value?.plus(1)
         }
     }
 
