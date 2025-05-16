@@ -29,6 +29,8 @@ std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
   switch (request.request)
   {
   case USB::IOCTL_USBV5_GETVERSION:
+    if (request.buffer_out == 0 || request.buffer_out_size != 32)
+      return IPCReply(IPC_EINVAL);
     memory.Write_U32(USBV5_VERSION, request.buffer_out);
     return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_GETDEVICECHANGE:
