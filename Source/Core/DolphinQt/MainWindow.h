@@ -56,6 +56,7 @@ class ThreadWidget;
 class ToolBar;
 class WatchWidget;
 class WiiTASInputWindow;
+class WiiSpeakWindow;
 struct WindowSystemInfo;
 
 namespace Core
@@ -177,6 +178,7 @@ private:
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
+  void ShowWiiSpeakWindow();
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
@@ -250,6 +252,7 @@ private:
   FIFOPlayerWindow* m_fifo_window = nullptr;
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;
+  WiiSpeakWindow* m_wii_speak_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 
