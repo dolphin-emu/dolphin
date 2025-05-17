@@ -44,6 +44,7 @@
     <ClCompile Include="Common\BlockingLoopTest.cpp" />
     <ClCompile Include="Common\BusyLoopTest.cpp" />
     <ClCompile Include="Common\CommonFuncsTest.cpp" />
+    <ClCompile Include="Common\CircularQueueTest.cpp" />
     <ClCompile Include="Common\Crypto\EcTest.cpp" />
     <ClCompile Include="Common\Crypto\SHA1Test.cpp" />
     <ClCompile Include="Common\EnumFormatterTest.cpp" />
