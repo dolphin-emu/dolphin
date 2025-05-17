@@ -994,22 +994,22 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    instance.CloseGame();
     return;
+  }
+  if (result == RC_NO_GAME_LOADED && instance.m_dll_found)
+  {
+    // Allow developer tools for unidentified games
+    rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
+    instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
+    WARN_LOG_FMT(ACHIEVEMENTS, "Unrecognized title ready for development.");
+    OSD::AddMessage("Unrecognized title loaded for development.", OSD::Duration::VERY_LONG,
+                    OSD::Color::YELLOW);
   }
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
     OSD::AddMessage("Achievements are not supported for this title.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    if (instance.m_dll_found && result == RC_NO_GAME_LOADED)
-    {
-      // Allow developer tools for unidentified games
-      rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
-      instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
-      return;
-    }
-    instance.CloseGame();
     return;
   }
 
