@@ -79,13 +79,21 @@ void WiimoteControllersWidget::StartBluetoothAdapterRefresh()
 
   m_bluetooth_adapter_scan_in_progress = true;
 
+  // An artifical minimum time so "Refreshing..." is readable even if a scan completes instantly.
+  static constexpr auto minimum_scan_time = std::chrono::milliseconds{250};
+
   const auto scan_func = [this]() {
     INFO_LOG_FMT(COMMON, "Refreshing Bluetooth adapter list...");
+
+    const auto scan_start_time = Clock::now();
     auto device_list = IOS::HLE::BluetoothRealDevice::ListDevices();
+
     INFO_LOG_FMT(COMMON, "{} Bluetooth adapters available.", device_list.size());
     const auto refresh_complete_func = [this, devices = std::move(device_list)]() {
       OnBluetoothAdapterRefreshComplete(devices);
     };
+
+    std::this_thread::sleep_until(scan_start_time + minimum_scan_time);
     QueueOnObject(this, refresh_complete_func);
   };
 
