@@ -136,7 +136,7 @@ bool RCOpArg::IsImm() const
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))
   {
-    return rc->R(*preg).IsImm();
+    return rc->IsImm(*preg);
   }
   else if (std::holds_alternative<u32>(contents))
   {
@@ -149,7 +149,7 @@ s32 RCOpArg::SImm32() const
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))
   {
-    return rc->R(*preg).SImm32();
+    return rc->SImm32(*preg);
   }
   else if (const u32* imm = std::get_if<u32>(&contents))
   {
@@ -163,7 +163,7 @@ u32 RCOpArg::Imm32() const
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))
   {
-    return rc->R(*preg).Imm32();
+    return rc->Imm32(*preg);
   }
   else if (const u32* imm = std::get_if<u32>(&contents))
   {
@@ -297,25 +297,16 @@ bool RegCache::SanityCheck() const
 {
   for (size_t i = 0; i < m_regs.size(); i++)
   {
-    switch (m_regs[i].GetLocationType())
-    {
-    case PPCCachedReg::LocationType::Default:
-    case PPCCachedReg::LocationType::Discarded:
-    case PPCCachedReg::LocationType::SpeculativeImmediate:
-    case PPCCachedReg::LocationType::Immediate:
-      break;
-    case PPCCachedReg::LocationType::Bound:
+    if (m_regs[i].IsInHostRegister())
     {
       if (m_regs[i].IsLocked() || m_regs[i].IsRevertable())
         return false;
 
-      Gen::X64Reg xr = m_regs[i].Location()->GetSimpleReg();
+      Gen::X64Reg xr = m_regs[i].GetHostRegister();
       if (m_xregs[xr].IsLocked())
         return false;
       if (m_xregs[xr].Contents() != i)
         return false;
-      break;
-    }
     }
   }
   return true;
@@ -379,13 +370,7 @@ void RegCache::Discard(BitSet32 pregs)
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
-    if (m_regs[i].IsBound())
-    {
-      X64Reg xr = RX(i);
-      m_xregs[xr].Unbind();
-    }
-
-    m_regs[i].SetDiscarded();
+    DiscardRegister(i);
   }
 }
 
@@ -401,25 +386,7 @@ void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_r
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
-    switch (m_regs[i].GetLocationType())
-    {
-    case PPCCachedReg::LocationType::Default:
-      break;
-    case PPCCachedReg::LocationType::Discarded:
-      ASSERT_MSG(DYNA_REC, ignore_discarded_registers != IgnoreDiscardedRegisters::No,
-                 "Attempted to flush discarded PPC reg {}", i);
-      break;
-    case PPCCachedReg::LocationType::SpeculativeImmediate:
-      // We can have a cached value without a host register through speculative constants.
-      // It must be cleared when flushing, otherwise it may be out of sync with PPCSTATE,
-      // if PPCSTATE is modified externally (e.g. fallback to interpreter).
-      m_regs[i].SetFlushed();
-      break;
-    case PPCCachedReg::LocationType::Bound:
-    case PPCCachedReg::LocationType::Immediate:
-      StoreFromRegister(i);
-      break;
-    }
+    StoreFromRegister(i, FlushMode::Full, ignore_discarded_registers);
   }
 }
 
@@ -427,9 +394,9 @@ void RegCache::Reset(BitSet32 pregs)
 {
   for (preg_t i : pregs)
   {
-    ASSERT_MSG(DYNA_REC, !m_regs[i].IsAway(),
+    ASSERT_MSG(DYNA_REC, !m_regs[i].IsInHostRegister(),
                "Attempted to reset a loaded register (did you mean to flush it?)");
-    m_regs[i].SetFlushed();
+    m_regs[i].SetFlushed(false);
   }
 }
 
@@ -465,7 +432,7 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
   {
     if (NumFreeRegisters() < 2)
       return;
-    if (!R(preg).IsImm())
+    if (!IsImm(preg))
       BindToRegister(preg, true, false);
   }
 }
@@ -492,84 +459,68 @@ void RegCache::FlushX(X64Reg reg)
   }
 }
 
-void RegCache::DiscardRegContentsIfCached(preg_t preg)
+void RegCache::DiscardRegister(preg_t preg)
 {
-  if (m_regs[preg].IsBound())
+  if (m_regs[preg].IsInHostRegister())
   {
-    X64Reg xr = m_regs[preg].Location()->GetSimpleReg();
+    X64Reg xr = m_regs[preg].GetHostRegister();
     m_xregs[xr].Unbind();
-    m_regs[preg].SetFlushed();
   }
+
+  m_regs[preg].SetDiscarded();
 }
 
 void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 {
-  if (!m_regs[i].IsBound())
+  if (!m_regs[i].IsInHostRegister())
   {
     X64Reg xr = GetFreeXReg();
 
-    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg {} already dirty", Common::ToUnderlying(xr));
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Invalid transaction state");
 
-    m_xregs[xr].SetBoundTo(i, makeDirty || m_regs[i].IsAway());
+    m_xregs[xr].SetBoundTo(i);
 
     if (doLoad)
-    {
-      ASSERT_MSG(DYNA_REC, !m_regs[i].IsDiscarded(), "Attempted to load a discarded value");
       LoadRegister(i, xr);
-    }
 
     ASSERT_MSG(DYNA_REC,
-               std::ranges::none_of(
-                   m_regs, [xr](const auto& l) { return l.has_value() && l->IsSimpleReg(xr); },
-                   &PPCCachedReg::Location),
+               std::ranges::none_of(m_regs,
+                                    [xr](const auto& r) {
+                                      return r.IsInHostRegister() && r.GetHostRegister() == xr;
+                                    }),
                "Xreg {} already bound", Common::ToUnderlying(xr));
 
-    m_regs[i].SetBoundTo(xr);
+    m_regs[i].SetInHostRegister(xr, makeDirty);
   }
   else
   {
     // reg location must be simplereg; memory locations
     // and immediates are taken care of above.
     if (makeDirty)
-      m_xregs[RX(i)].MakeDirty();
+      m_regs[i].SetDirty();
   }
+
+  if (makeDirty)
+    DiscardImm(i);
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(),
              "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
 }
 
-void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
+void RegCache::StoreFromRegister(preg_t i, FlushMode mode,
+                                 IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction on {} is in progress!", i);
 
-  bool doStore = false;
+  if (!m_regs[i].IsInDefaultLocation())
+    StoreRegister(i, GetDefaultLocation(i), ignore_discarded_registers);
 
-  switch (m_regs[i].GetLocationType())
-  {
-  case PPCCachedReg::LocationType::Default:
-  case PPCCachedReg::LocationType::Discarded:
-  case PPCCachedReg::LocationType::SpeculativeImmediate:
-    return;
-  case PPCCachedReg::LocationType::Bound:
-  {
-    X64Reg xr = RX(i);
-    doStore = m_xregs[xr].IsDirty();
-    if (mode == FlushMode::Full)
-      m_xregs[xr].Unbind();
-    break;
-  }
-  case PPCCachedReg::LocationType::Immediate:
-    doStore = true;
-    break;
-  }
+  if (mode == FlushMode::Full && m_regs[i].IsInHostRegister())
+    m_xregs[m_regs[i].GetHostRegister()].Unbind();
 
-  if (doStore)
-    StoreRegister(i, GetDefaultLocation(i));
-  if (mode == FlushMode::Full)
-    m_regs[i].SetFlushed();
+  m_regs[i].SetFlushed(mode != FlushMode::Full);
 }
 
 X64Reg RegCache::GetFreeXReg()
@@ -634,7 +585,7 @@ float RegCache::ScoreRegister(X64Reg xreg) const
   // bias a bit against dirty registers. Testing shows that a bias of 2 seems roughly
   // right: 3 causes too many extra clobbers, while 1 saves very few clobbers relative
   // to the number of extra stores it causes.
-  if (m_xregs[xreg].IsDirty())
+  if (!m_regs[preg].IsInDefaultLocation())
     score += 2;
 
   // If the register isn't actually needed in a physical register for a later instruction,
@@ -655,16 +606,10 @@ float RegCache::ScoreRegister(X64Reg xreg) const
   return score;
 }
 
-const OpArg& RegCache::R(preg_t preg) const
-{
-  ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
-  return m_regs[preg].Location().value();
-}
-
 X64Reg RegCache::RX(preg_t preg) const
 {
-  ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - {}", preg);
-  return m_regs[preg].Location()->GetSimpleReg();
+  ASSERT_MSG(DYNA_REC, m_regs[preg].IsInHostRegister(), "Not in host register - {}", preg);
+  return m_regs[preg].GetHostRegister();
 }
 
 void RegCache::Lock(preg_t preg)
@@ -720,29 +665,23 @@ void RegCache::Realize(preg_t preg)
     return;
   }
 
-  switch (m_regs[preg].GetLocationType())
+  if (IsImm(preg))
   {
-  case PPCCachedReg::LocationType::Default:
-    if (kill_mem)
-    {
-      do_bind();
-      return;
-    }
-    m_constraints[preg].Realized(RCConstraint::RealizedLoc::Mem);
-    return;
-  case PPCCachedReg::LocationType::Discarded:
-  case PPCCachedReg::LocationType::Bound:
-    do_bind();
-    return;
-  case PPCCachedReg::LocationType::Immediate:
-  case PPCCachedReg::LocationType::SpeculativeImmediate:
     if (dirty || kill_imm)
-    {
       do_bind();
-      return;
-    }
-    m_constraints[preg].Realized(RCConstraint::RealizedLoc::Imm);
-    break;
+    else
+      m_constraints[preg].Realized(RCConstraint::RealizedLoc::Imm);
+  }
+  else if (!m_regs[preg].IsInHostRegister())
+  {
+    if (kill_mem)
+      do_bind();
+    else
+      m_constraints[preg].Realized(RCConstraint::RealizedLoc::Mem);
+  }
+  else
+  {
+    do_bind();
   }
 }
 
