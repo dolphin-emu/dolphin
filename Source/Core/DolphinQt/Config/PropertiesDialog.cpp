@@ -65,6 +65,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   const int padding_width = 120;
   const int padding_height = 100;
+  tab_widget->addTab(GetWrappedWidget(info, this, padding_width, padding_height), tr("Info"));
   tab_widget->addTab(GetWrappedWidget(game_config, this, padding_width, padding_height),
                      tr("Game Config"));
   tab_widget->addTab(GetWrappedWidget(patches, this, padding_width, padding_height), tr("Patches"));
@@ -73,7 +74,6 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
                      tr("Gecko Codes"));
   tab_widget->addTab(GetWrappedWidget(graphics_mod_list, this, padding_width, padding_height),
                      tr("Graphics Mods"));
-  tab_widget->addTab(GetWrappedWidget(info, this, padding_width, padding_height), tr("Info"));
 
   if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
   {
