@@ -38,6 +38,22 @@ float3 LinearTosRGBGamma(float3 color)
 	return color;
 }
 
+float3 Rec709_Luminance = float3(0.2126, 0.7152, 0.0722);
+
+float Luminance(float3 color, bool native_color_space)
+{
+	if (native_color_space && OptionEnabled(correct_color_space))
+	{
+		if (game_color_space == 0)
+			color *= from_NTSCM;
+		else if (game_color_space == 1)
+			color *= from_NTSCJ;
+		else if (game_color_space == 2)
+			color *= from_PAL;
+	}
+	return dot(color, Rec709_Luminance);
+}
+
 /***** COLOR SAMPLING *****/
 
 // Non filtered gamma corrected sample (nearest neighbor)
@@ -89,7 +105,23 @@ float4 BilinearSample(float3 uvw, float gamma)
 	float4 c22 = QuickSampleByPixel(int_pixel + float2(1.5, 1.5), uvw.z, gamma);
 
 	// Blend the 4 samples by their weight
-	return lerp(lerp(c11, c21, frac_pixel.x), lerp(c12, c22, frac_pixel.x), frac_pixel.y);
+	float4 avg_c = lerp(lerp(c11, c21, frac_pixel.x), lerp(c12, c22, frac_pixel.x), frac_pixel.y);
+
+	// Calculate the average of the gamma space luminance, as that can be used to
+	// properly determine the perceptual brightness the color should have.
+	float l11 = pow(Luminance(c11.rgb, true), 1.0 / gamma);
+	float l21 = pow(Luminance(c21.rgb, true), 1.0 / gamma);
+	float l12 = pow(Luminance(c12.rgb, true), 1.0 / gamma);
+	float l22 = pow(Luminance(c22.rgb, true), 1.0 / gamma);
+	float target_avg_c_lum = lerp(lerp(l11, l21, frac_pixel.x), lerp(l12, l22, frac_pixel.x), frac_pixel.y);
+
+	float avg_c_lum = Luminance(avg_c.rgb, true);
+	if (avg_c_lum != 0.0)
+	{
+		avg_c.rgb *= pow(target_avg_c_lum, gamma) / avg_c_lum;
+	}
+
+	return avg_c;
 }
 
 /***** Bicubic Interpolation *****/
@@ -173,7 +205,7 @@ float4 SharpBilinearSample(float3 uvw, float gamma)
 	float2 texel = uvw.xy * source_size;
 	float2 texel_floored = floor(texel);
 	float2 s = fract(texel);
-	float scale = max(floor(max(target_size.x * inverted_source_size.x, target_size.y * inverted_source_size.y)), 1.f);
+	float scale = max(floor(max(target_size.x * inverted_source_size.x, target_size.y * inverted_source_size.y)), 1.0);
 	float region_range = 0.5 - (0.5 / scale);
 
 	// Figure out where in the texel to sample to get correct pre-scaled bilinear.
@@ -228,15 +260,28 @@ float4 AreaSampling(float3 uvw, float gamma)
 
 	// Initialize the color accumulator.
 	float4 avg_color = float4(0.0, 0.0, 0.0, 0.0);
+	float avg_luminance = 0.0;
+	float4 temp_color;
+
+	float luminance_gamma = gamma; // For now, default to the user selected gamma (alternatively we could fix it to anything between 2.2 and 3.0)
+	float luminance_inv_gamma = 1.0 / luminance_gamma;
 
 	// Prevents rounding errors due to the coordinates flooring above
 	const float2 offset = float2(0.5, 0.5);
 
 	// Accumulate corner pixels.
-	avg_color += area_nw * QuickSampleByPixel(float2(f_beg.x, f_beg.y) + offset, uvw.z, gamma);
-	avg_color += area_ne * QuickSampleByPixel(float2(f_end.x, f_beg.y) + offset, uvw.z, gamma);
-	avg_color += area_sw * QuickSampleByPixel(float2(f_beg.x, f_end.y) + offset, uvw.z, gamma);
-	avg_color += area_se * QuickSampleByPixel(float2(f_end.x, f_end.y) + offset, uvw.z, gamma);
+	temp_color = QuickSampleByPixel(float2(f_beg.x, f_beg.y) + offset, uvw.z, gamma);
+	avg_color += area_nw * temp_color;
+	avg_luminance += area_nw * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
+	temp_color = QuickSampleByPixel(float2(f_end.x, f_beg.y) + offset, uvw.z, gamma);
+	avg_color += area_ne * temp_color;
+	avg_luminance += area_ne * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
+	temp_color = QuickSampleByPixel(float2(f_beg.x, f_end.y) + offset, uvw.z, gamma);
+	avg_color += area_sw * temp_color;
+	avg_luminance += area_sw * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
+	temp_color = QuickSampleByPixel(float2(f_end.x, f_end.y) + offset, uvw.z, gamma);
+	avg_color += area_se * temp_color;
+	avg_luminance += area_se * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
 
 	// Determine the size of the pixel box.
 	int x_range = int(f_end.x - f_beg.x - 0.5);
@@ -258,8 +303,12 @@ float4 AreaSampling(float3 uvw, float gamma)
 		if (ix < x_range)
 		{
 			float x = f_beg.x + 1.0 + float(ix);
-			avg_color += area_n * QuickSampleByPixel(float2(x, f_beg.y) + offset, uvw.z, gamma);
-			avg_color += area_s * QuickSampleByPixel(float2(x, f_end.y) + offset, uvw.z, gamma);
+			temp_color = QuickSampleByPixel(float2(x, f_beg.y) + offset, uvw.z, gamma);
+			avg_color += area_n * temp_color;
+			avg_luminance += area_n * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
+			temp_color = QuickSampleByPixel(float2(x, f_end.y) + offset, uvw.z, gamma);
+			avg_color += area_s * temp_color;
+			avg_luminance += area_s * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
 		}
 	}
 
@@ -269,16 +318,22 @@ float4 AreaSampling(float3 uvw, float gamma)
 		if (iy < y_range)
 		{
 			float y = f_beg.y + 1.0 + float(iy);
-
-			avg_color += area_w * QuickSampleByPixel(float2(f_beg.x, y) + offset, uvw.z, gamma);
-			avg_color += area_e * QuickSampleByPixel(float2(f_end.x, y) + offset, uvw.z, gamma);
+			
+			temp_color = QuickSampleByPixel(float2(f_beg.x, y) + offset, uvw.z, gamma);
+			avg_color += area_w * temp_color;
+			avg_luminance += area_w * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
+			temp_color = QuickSampleByPixel(float2(f_end.x, y) + offset, uvw.z, gamma);
+			avg_color += area_e * temp_color;
+			avg_luminance += area_e * pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
 
 			for (int ix = 0; ix < max_iterations; ++ix)
 			{
 				if (ix < x_range)
 				{
 					float x = f_beg.x + 1.0 + float(ix);
-					avg_color += QuickSampleByPixel(float2(x, y) + offset, uvw.z, gamma);
+					temp_color = QuickSampleByPixel(float2(x, y) + offset, uvw.z, gamma);
+					avg_color += temp_color;
+					avg_luminance += pow(Luminance(temp_color.rgb, true), luminance_inv_gamma);
 				}
 			}
 		}
@@ -288,9 +343,22 @@ float4 AreaSampling(float3 uvw, float gamma)
 	float area_corners = area_nw + area_ne + area_sw + area_se;
 	float area_edges = float(x_range) * (area_n + area_s) + float(y_range) * (area_w + area_e);
 	float area_center = float(x_range) * float(y_range);
+	
+	float4 nrm_color = avg_color / (area_corners + area_edges + area_center);
+	float target_nrm_color_luminance = avg_luminance / (area_corners + area_edges + area_center);
+
+	// Restore the averaged "gamma" space luminance, for better gamma correction.
+	// This retains the best feature of gamma correct sampling (no hue shifts),
+	// while also maintaining the perceptual "brightness" level of blending two colors with an alpha
+	// (in linear space a 0.5 alpha won't produce a color that has a perceptual brightness in the middle point of the two source colors).
+	float nrm_color_luminance = Luminance(nrm_color.rgb, true);
+	if (nrm_color_luminance != 0.0)
+	{
+		nrm_color.rgb *= pow(target_nrm_color_luminance, luminance_gamma) / nrm_color_luminance;
+	}
 
 	// Return the normalized average color.
-	return avg_color / (area_corners + area_edges + area_center);
+	return nrm_color;
 }
 
 /***** Main Functions *****/
@@ -353,7 +421,7 @@ void main()
 		// Doing linear sampling in "gamma space" on linear texture formats isn't correct.
 		// If the source and target resolutions don't match, the GPU will return a color
 		// that is the average of 4 gamma space colors, but gamma space colors can't be blended together,
-		// gamma neeeds to be de-applied first. This makes a big difference if colors change
+		// gamma needs to be de-applied first. This makes a big difference if colors change
 		// drastically between two pixels.
 
 		color = LinearGammaCorrectedSample(game_gamma);
@@ -401,7 +469,7 @@ void main()
 	// Restore the original gamma without changes
 	else
 	{
-			color.rgb = pow(color.rgb, float3(1.0 / game_gamma));
+		color.rgb = pow(color.rgb, float3(1.0 / game_gamma));
 	}
 
 	SetOutput(color);

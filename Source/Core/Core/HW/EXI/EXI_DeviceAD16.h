@@ -28,7 +28,7 @@ private:
   union AD16Reg
   {
     u32 U32 = 0;
-    u32 U8[4];
+    u8 U8[4];
   };
 
   // STATE_TO_SAVE

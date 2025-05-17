@@ -347,13 +347,15 @@ class SettingsAdapter(
         dialog.setButton(
             AlertDialog.BUTTON_NEUTRAL,
             context.getString(R.string.clear)
-        ) { _: DialogInterface?, _: Int ->
-            item.clearValue()
-            notifyItemChanged(position)
-            fragmentView.onSettingChanged()
-        }
+        ) { _: DialogInterface?, _: Int -> }
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
+
+        // We're setting this OnClickListener late so that pressing the Clear button won't result
+        // in the dialog closing
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+            dialog.expression = ""
+        }
     }
 
     fun onFilePickerDirectoryClick(item: SettingsItem, position: Int) {

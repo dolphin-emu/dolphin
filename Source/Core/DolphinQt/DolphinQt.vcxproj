@@ -195,6 +195,7 @@
     <ClCompile Include="QtUtils\FileOpenEventFilter.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
+    <ClCompile Include="QtUtils\NonAutodismissibleMenu.cpp" />
     <ClCompile Include="QtUtils\NonDefaultQPushButton.cpp" />
     <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
     <ClCompile Include="QtUtils\QtUtils.cpp" />
@@ -482,7 +483,6 @@
   <Import Project="$(ExternalsDir)picojson\exports.props" />
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />
-  <Import Project="$(ExternalsDir)soundtouch\exports.props" />
   <Import Project="$(ExternalsDir)xxhash\exports.props" />
   <Import Project="$(ExternalsDir)zstd\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

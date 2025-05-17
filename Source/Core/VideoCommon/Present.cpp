@@ -5,6 +5,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/System.h"
@@ -17,7 +18,6 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/PostProcessing.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
@@ -157,7 +157,8 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
   return old_xfb_id == m_last_xfb_id;
 }
 
-void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
+                       TimePoint presentation_time)
 {
   bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
@@ -198,7 +199,7 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
 
   if (!is_duplicate || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
   {
-    Present();
+    Present(presentation_time);
     ProcessFrameDumping(ticks);
 
     AfterPresentEvent::Trigger(present_info);
@@ -228,7 +229,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
   if (g_frame_dumper->IsFrameDumping() && m_xfb_entry)
   {
     MathUtil::Rectangle<int> target_rect;
-    switch (g_ActiveConfig.frame_dumps_resolution_type)
+    switch (Config::Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE))
     {
     default:
     case FrameDumpResolutionType::WindowResolution:
@@ -787,7 +788,7 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                   const MathUtil::Rectangle<int>& source_rc)
 {
   if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
-      g_ActiveConfig.backend_info.bUsesExplictQuadBuffering)
+      g_backend_info.bUsesExplictQuadBuffering)
   {
     // Quad-buffered stereo is annoying on GL.
     g_gfx->SelectLeftBuffer();
@@ -814,7 +815,7 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   }
 }
 
-void Presenter::Present()
+void Presenter::Present(std::optional<TimePoint> presentation_time)
 {
   m_present_count++;
 
@@ -867,6 +868,10 @@ void Presenter::Present()
   // Present to the window system.
   {
     std::lock_guard<std::mutex> guard(m_swap_mutex);
+
+    if (presentation_time.has_value())
+      Core::System::GetInstance().GetCoreTiming().SleepUntil(*presentation_time);
+
     g_gfx->PresentBackbuffer();
   }
 

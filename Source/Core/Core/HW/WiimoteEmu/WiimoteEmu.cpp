@@ -17,13 +17,10 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Common/MsgHandler.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/Movie.h"
-#include "Core/System.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -39,8 +36,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -589,9 +584,6 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
 
 void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
-  auto& movie = Core::System::GetInstance().GetMovie();
-  movie.SetPolledDevice();
-
   if (InputReportID::ReportDisabled == m_reporting_mode)
   {
     // The wiimote is in this disabled after an extension change.
@@ -607,78 +599,66 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-  if (movie.IsPlayingInput() && movie.PlayWiimote(m_bt_device_index, rpt_builder,
-                                                  m_active_extension, GetExtensionEncryptionKey()))
+  // Core buttons:
+  if (rpt_builder.HasCore())
   {
-    // Update buttons in status struct from movie:
-    rpt_builder.GetCoreData(&m_status.buttons);
+    rpt_builder.SetCoreData(m_status.buttons);
   }
-  else
+
+  // Acceleration:
+  if (rpt_builder.HasAccel())
   {
-    // Core buttons:
-    if (rpt_builder.HasCore())
+    rpt_builder.SetAccelData(target_state.acceleration);
+  }
+
+  // IR Camera:
+  if (rpt_builder.HasIR())
+  {
+    // Note: Camera logic currently contains no changing state so we can just update it here.
+    // If that changes this should be moved to Wiimote::Update();
+    m_camera_logic.Update(target_state.camera_points);
+
+    // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
+    const u8 camera_data_offset =
+        CameraLogic::REPORT_DATA_OFFSET + rpt_builder.GetIRDataFormatOffset();
+
+    u8* ir_data = rpt_builder.GetIRDataPtr();
+    const u8 ir_size = rpt_builder.GetIRDataSize();
+
+    if (ir_size != m_i2c_bus.BusRead(CameraLogic::I2C_ADDR, camera_data_offset, ir_size, ir_data))
     {
-      rpt_builder.SetCoreData(m_status.buttons);
-    }
-
-    // Acceleration:
-    if (rpt_builder.HasAccel())
-    {
-      rpt_builder.SetAccelData(target_state.acceleration);
-    }
-
-    // IR Camera:
-    if (rpt_builder.HasIR())
-    {
-      // Note: Camera logic currently contains no changing state so we can just update it here.
-      // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(target_state.camera_points);
-
-      // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
-      const u8 camera_data_offset =
-          CameraLogic::REPORT_DATA_OFFSET + rpt_builder.GetIRDataFormatOffset();
-
-      u8* ir_data = rpt_builder.GetIRDataPtr();
-      const u8 ir_size = rpt_builder.GetIRDataSize();
-
-      if (ir_size != m_i2c_bus.BusRead(CameraLogic::I2C_ADDR, camera_data_offset, ir_size, ir_data))
-      {
-        // This happens when IR reporting is enabled but the camera hardware is disabled.
-        // It commonly occurs when changing IR sensitivity.
-        std::fill_n(ir_data, ir_size, u8(0xff));
-      }
-    }
-
-    // Extension port:
-    if (rpt_builder.HasExt())
-    {
-      // Prepare extension input first as motion-plus may read from it.
-      // This currently happens in Wiimote::Update();
-      // TODO: Separate extension input data preparation from Update.
-      // GetActiveExtension()->PrepareInput();
-
-      if (m_is_motion_plus_attached)
-      {
-        // TODO: Make input preparation triggered by bus read.
-        m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
-                                       target_state.motion_plus.value() :
-                                       MotionPlus::GetDefaultGyroscopeData());
-      }
-
-      u8* ext_data = rpt_builder.GetExtDataPtr();
-      const u8 ext_size = rpt_builder.GetExtDataSize();
-
-      if (ext_size != m_i2c_bus.BusRead(ExtensionPort::REPORT_I2C_SLAVE,
-                                        ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
-      {
-        // Real wiimote seems to fill with 0xff on failed bus read
-        std::fill_n(ext_data, ext_size, u8(0xff));
-      }
+      // This happens when IR reporting is enabled but the camera hardware is disabled.
+      // It commonly occurs when changing IR sensitivity.
+      std::fill_n(ir_data, ir_size, u8(0xff));
     }
   }
 
-  movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
-                           GetExtensionEncryptionKey());
+  // Extension port:
+  if (rpt_builder.HasExt())
+  {
+    // Prepare extension input first as motion-plus may read from it.
+    // This currently happens in Wiimote::Update();
+    // TODO: Separate extension input data preparation from Update.
+    // GetActiveExtension()->PrepareInput();
+
+    if (m_is_motion_plus_attached)
+    {
+      // TODO: Make input preparation triggered by bus read.
+      m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
+                                     target_state.motion_plus.value() :
+                                     MotionPlus::GetDefaultGyroscopeData());
+    }
+
+    u8* ext_data = rpt_builder.GetExtDataPtr();
+    const u8 ext_size = rpt_builder.GetExtDataSize();
+
+    if (ext_size != m_i2c_bus.BusRead(ExtensionPort::REPORT_I2C_SLAVE,
+                                      ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
+    {
+      // Real wiimote seems to fill with 0xff on failed bus read
+      std::fill_n(ext_data, ext_size, u8(0xff));
+    }
+  }
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
@@ -741,10 +721,11 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // B
   m_buttons->SetControlExpression(1, "`Click 1`");
 #endif
-  m_buttons->SetControlExpression(2, "`1`");     // 1
-  m_buttons->SetControlExpression(3, "`2`");     // 2
-  m_buttons->SetControlExpression(4, "Q");       // -
-  m_buttons->SetControlExpression(5, "E");       // +
+  // 1 2 - +
+  m_buttons->SetControlExpression(2, "`1`");
+  m_buttons->SetControlExpression(3, "`2`");
+  m_buttons->SetControlExpression(4, "Q");
+  m_buttons->SetControlExpression(5, "E");
 
 #ifdef _WIN32
   m_buttons->SetControlExpression(6, "RETURN");  // Home
@@ -809,7 +790,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
-  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
+  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults();
 }
 
 Extension* Wiimote::GetNoneExtension() const
@@ -820,14 +801,6 @@ Extension* Wiimote::GetNoneExtension() const
 Extension* Wiimote::GetActiveExtension() const
 {
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
-}
-
-EncryptionKey Wiimote::GetExtensionEncryptionKey() const
-{
-  if (ExtensionNumber::NONE == GetActiveExtensionNumber())
-    return {};
-
-  return static_cast<EncryptedExtension*>(GetActiveExtension())->ext_key;
 }
 
 bool Wiimote::IsSideways() const

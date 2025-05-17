@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/Projection.h"
 #include "Common/SettingsHandler.h"
 #include "Common/StringUtil.h"
 
@@ -62,8 +63,7 @@ u8 GetAreaCode(std::string_view area)
       {"CHN", 6},
   }};
 
-  const auto entry_pos = std::find_if(regions.cbegin(), regions.cend(),
-                                      [&area](const auto& entry) { return entry.first == area; });
+  const auto entry_pos = std::ranges::find(regions, area, Common::Projection::Key{});
   if (entry_pos != regions.end())
     return entry_pos->second;
 
@@ -79,8 +79,7 @@ HardwareModel GetHardwareModel(std::string_view model)
       {"RVD", HardwareModel::RVD},
   }};
 
-  const auto entry_pos = std::find_if(models.cbegin(), models.cend(),
-                                      [&model](const auto& entry) { return entry.first == model; });
+  const auto entry_pos = std::ranges::find(models, model, Common::Projection::Key{});
   if (entry_pos != models.cend())
     return entry_pos->second;
 
@@ -170,8 +169,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
   });
 
   m_handle_mail = !ios.GetIOSC().IsUsingDefaultId() && !m_send_list.IsDisabled();
-  m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker",
-                               [](std::function<void()> task) { task(); });
+  m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker");
 
   m_scheduler_timer_thread = std::thread([this] { SchedulerTimer(); });
 }
@@ -219,7 +217,7 @@ void NetKDRequestDevice::SchedulerTimer()
       std::lock_guard lg(m_scheduler_lock);
       if (m_mail_span <= mail_time_state && m_handle_mail)
       {
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Mail); });
+        m_scheduler_work_queue.Push([this] { SchedulerWorker(SchedulerEvent::Mail); });
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Mail Task from Scheduler");
         mail_time_state = 0;
       }
@@ -227,7 +225,7 @@ void NetKDRequestDevice::SchedulerTimer()
       if (m_download_span <= download_time_state && !m_dl_list.IsDisabled())
       {
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Download); });
+        m_scheduler_work_queue.Push([this] { SchedulerWorker(SchedulerEvent::Download); });
         download_time_state = 0;
       }
     }

@@ -46,7 +46,7 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.1.5}
+\date{\today\\v0.1.7}
 
 % Title formatting commands
 \newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
@@ -263,6 +263,8 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.1.3            & 2022.05.27    & Pokechu22       & Renamed \texttt{CMPAR} instruction to \texttt{CMPAXH}                                    \\ \hline
 0.1.4            & 2022.06.02    & Pokechu22       & Fixed typos; added sections on 16-bit and 40-bit modes and on main and extended opcode writing to the same register. \\ \hline
 0.1.5            & 2022.09.29    & vpelletier      & Fixed \texttt{BLOOP} and \texttt{BLOOPI} suboperation order \\ \hline
+0.1.6            & 2022.06.20    & xperia64        & Accelerator documentation updates, fix register typo in ANDC and ORC descriptions        \\ \hline
+0.1.7            & 2025.04.21    & Tilka           & Fixed typos and complained about GFDL                                                    \\ \hline
 \end{tabular}
 \end{table}
 
@@ -387,7 +389,7 @@ You may not copy, modify, sublicense, or distribute the Document except as expre
 
 The Free Software Foundation may publish new, revised versions of the GNU Free Documentation License from time to time. Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns. See https://www.gnu.org/licenses/.
 
-Each version of the License is given a distinguishing version number. If the Document specifies that a particular numbered version of this License "or any later version" applies to it, you have the option of following the terms and conditions either of that specified version or of any later version that has been published (not as a draft) by the Free Software Foundation. If the Document does not specify a version number of this License, you may choose any version ever published (not as a draft) by the Free Software Foundation. 
+Each version of the License is given a distinguishing version number. If the Document specifies that a particular numbered version of this License "or any later version" applies to it, you have the option of following the terms and conditions either of that specified version or of any later version that has been published (not as a draft) by the Free Software Foundation. If the Document does not specify a version number of this License, you may choose any version ever published (not as a draft) by the Free Software Foundation.
 
 \pagebreak{}
 
@@ -655,15 +657,15 @@ Exception vectors are located at address \Address{0x0000} in Instruction RAM.
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Level} & \textbf{Address} & \textbf{Name}  & \textbf{Description}          \\ \hline
-0              & \Address{0x0000} & \texttt{RESET} &                               \\ \hline
-1              & \Address{0x0002} & \texttt{STOVF} & Stack under/overflow          \\ \hline
-2              & \Address{0x0004} &                &                               \\ \hline
-3              & \Address{0x0006} &                &                               \\ \hline
-4              & \Address{0x0008} &                &                               \\ \hline
-5              & \Address{0x000A} & \texttt{ACCOV} & Accelerator address overflow  \\ \hline
-6              & \Address{0x000C} &                &                               \\ \hline
-7              & \Address{0x000E} & \texttt{INT}   & External interrupt (from CPU) \\ \hline
+\textbf{Level} & \textbf{Address} & \textbf{Name}   & \textbf{Description}                      \\ \hline
+0              & \Address{0x0000} & \texttt{RESET}  &                                           \\ \hline
+1              & \Address{0x0002} & \texttt{STOVF}  & Stack under/overflow                      \\ \hline
+2              & \Address{0x0004} &                 &                                           \\ \hline
+3              & \Address{0x0006} & \texttt{ACRROV} & Accelerator raw read address overflow     \\ \hline
+4              & \Address{0x0008} & \texttt{ACRWOV} & Accelerator raw write address overflow    \\ \hline
+5              & \Address{0x000A} & \texttt{ACSOV}  & Accelerator sample read address overflow  \\ \hline
+6              & \Address{0x000C} &                 &                                           \\ \hline
+7              & \Address{0x000E} & \texttt{INT}    & External interrupt (from CPU)             \\ \hline
 \end{tabular}
 \end{table}
 
@@ -681,11 +683,11 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 \hline
 \textbf{Address} & \textbf{Name}      & \textbf{Description}          \\ \hline
 \multicolumn{3}{|l|}{\textit{ADPCM Coefficients}}                     \\ \hline
-\Address{0xFFA0} & \Register{COEF\_A1\_0} & A1 Coefficient \# 0 \\ \hline
-\Address{0xFFA1} & \Register{COEF\_A2\_0} & A2 Coefficient \# 0 \\ \hline
-\multicolumn{3}{|c|}{$\vdots$}                                  \\ \hline
-\Address{0xFFAE} & \Register{COEF\_A1\_7} & A1 Coefficient \# 7 \\ \hline
-\Address{0xFFAF} & \Register{COEF\_A2\_7} & A2 Coefficient \# 7 \\ \hline
+\Address{0xFFA0} & \Register{COEF\_A1\_0} & A1 Coefficient \# 0       \\ \hline
+\Address{0xFFA1} & \Register{COEF\_A2\_0} & A2 Coefficient \# 0       \\ \hline
+\multicolumn{3}{|c|}{$\vdots$}                                        \\ \hline
+\Address{0xFFAE} & \Register{COEF\_A1\_7} & A1 Coefficient \# 7       \\ \hline
+\Address{0xFFAF} & \Register{COEF\_A2\_7} & A2 Coefficient \# 7       \\ \hline
 \multicolumn{3}{|l|}{\textit{DMA Interface}}                          \\ \hline
 \Address{0xFFC9} & \Register{DSCR}    & DMA control                   \\ \hline
 \Address{0xFFCB} & \Register{DSBL}    & Block length                  \\ \hline
@@ -695,19 +697,19 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 \multicolumn{3}{|l|}{\textit{Accelerator}}                            \\ \hline
 \Address{0xFFD1} & \Register{FORMAT}  & Accelerator sample format     \\ \hline
 \Address{0xFFD2} & \Register{ACUNK1}  & Unknown, usually 3            \\ \hline
-\Address{0xFFD3} & \Register{ACDATA1} & Alternative ARAM interface    \\ \hline
+\Address{0xFFD3} & \Register{ACDRAW}  & Accelerator raw data          \\ \hline
 \Address{0xFFD4} & \Register{ACSAH}   & Accelerator start address H   \\ \hline
 \Address{0xFFD5} & \Register{ACSAL}   & Accelerator start address L   \\ \hline
 \Address{0xFFD6} & \Register{ACEAH}   & Accelerator end address H     \\ \hline
 \Address{0xFFD7} & \Register{ACEAL}   & Accelerator end address L     \\ \hline
 \Address{0xFFD8} & \Register{ACCAH}   & Accelerator current address H \\ \hline
 \Address{0xFFD9} & \Register{ACCAL}   & Accelerator current address L \\ \hline
-\Address{0xFFDA} & \Register{SCALE}   & ADPCM predictor and scale     \\ \hline
-\Address{0xFFDB} & \Register{YN1}     & ADPCM YN1                     \\ \hline
-\Address{0xFFDC} & \Register{YN2}     & ADPCM YN2                     \\ \hline
-\Address{0xFFDD} & \Register{ACDAT}   & Accelerator data              \\ \hline
+\Address{0xFFDA} & \Register{PRED\_SCALE} & ADPCM predictor and scale \\ \hline
+\Address{0xFFDB} & \Register{YN1}     & ADPCM output history Y[N - 1] \\ \hline
+\Address{0xFFDC} & \Register{YN2}     & ADPCM output history Y[N - 2] \\ \hline
+\Address{0xFFDD} & \Register{ACDSAMP} & Accelerator processed sample  \\ \hline
 \Address{0xFFDE} & \Register{GAIN}    & Gain                          \\ \hline
-\Address{0xFFDF} & \Register{ACUNK2}  & Unknown, usually \Value{0x0C} \\ \hline
+\Address{0xFFDF} & \Register{ACIN}    & Accelerator input             \\ \hline
 \Address{0xFFED} & \Register{AMDM}    & ARAM DMA Request Mask         \\ \hline
 \multicolumn{3}{|l|}{\textit{Interrupts}}                             \\ \hline
 \Address{0xFFFB} & \Register{DIRQ}    & IRQ request                   \\ \hline
@@ -762,20 +764,29 @@ The GameCube DSP is connected to the memory bus through a DMA channel. DMA can b
 \section{Accelerator}
 
 The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
-Current address for the accelerator can be set or read from the \Register{ACCA} register. Reading from accelerator memory is done by reading from the \Register{ACDAT} register.
-This register contains data from ARAM pointed to by the \Register{ACCA} register.
+Current address for the accelerator can be set or read from the \Register{ACCA} register. Accessing accelerator memory is done by reading or writing the \Register{ACDRAW} register for raw data, or reading the \Register{ACDSAMP} register for processed sample data.
+These registers contain raw or processed sample data from ARAM pointed to by the \Register{ACCA} register.
 After reading the data, \Register{ACCA} is incremented by one.
-After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
+After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and an exception is generated. Raw reads generate exception \Exception{ACRROV}, raw writes generate exception \Exception{ACRWOV}, and sample reads generate exception \Exception{ACSOV}.
 
-\RegisterBitOverview{0xFFD1}{FORMAT}{Accelerator sample format}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFD1}{FORMAT}{Accelerator sample format}{---- ---- --gg ddss}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}
-\Value{0x00} - ADPCM audio \\
-\Value{0x05} - u8 reads (D3) \\
-\Value{0x06} - u16 reads (D3) \\
-\Value{0x0A} - 16-bit PCM audio, u16 writes (D3) \\
-\Value{0x19} - 8-bit PCM audio
+\RegisterBitDescription{5--4}{g}{R/W}{\begin{tabular}[c]{@{}l@{}}
+\Value{0} - PCM gain/coef scaling = 1/2048 \\
+\Value{1} - PCM gain/coef scaling = 1/1 \\
+\Value{2} - PCM gain/coef scaling = 1/65536 \\
+\end{tabular}}
+\RegisterBitDescription{3--2}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}
+\Value{0} - ADPCM decoding from ARAM \\
+\Value{1} - PCM decoding from \Register{ACIN}, \Register{ACCA} doesn't increment \\
+\Value{2} - PCM decoding from ARAM \\
+\Value{3} - PCM decoding from \Register{ACIN}, \Register{ACCA} increments \\
+\end{tabular}}
+\RegisterBitDescription{1--0}{s}{R/W}{\begin{tabular}[c]{@{}l@{}}
+\Value{0} - 4-bit \\
+\Value{1} - 8-bit \\
+\Value{2} - 16-bit \\
 \end{tabular}}
 \end{RegisterBitDescriptions}
 
@@ -785,10 +796,10 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitDescription{15--0}{d}{R/W}{Usually 3}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFD3}{ACDATA1}{Alternative ARAM interface}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFD3}{ACDRAW}{Raw ARAM Access}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Reads from or writes to data pointed to by current accelerator address, and then increments the current address.  It is unclear whether this respects the start and end addresses.}
+\RegisterBitDescription{15--0}{d}{R/W}{Reads from or writes to raw data pointed to by current accelerator address, and then increments the current address.  Reads respect the FORMAT size. Writes are always 16-bit and treat the addresses as such.  Writes require that the uppermost bit of the current address is set.  Reads that overflow the end address throw exception \Exception{ACRROV}.  Writes that overflow throw exception \Exception{ACRWOV}.}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFD4}{ACSAH}{Accelerator Start Address H}{dddd dddd dddd dddd}
@@ -829,7 +840,7 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator current address}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFDA}{SCALE}{ADPCM predictor and scale}{---- ---- -ppp ssss}
+\RegisterBitOverview{0xFFDA}{PRED\_SCALE}{ADPCM predictor and scale}{---- ---- -ppp ssss}
 
 \begin{RegisterBitDescriptions}
 \RegisterBitDescription{6--4}{d}{R/W}{Used to decide which pair of coefficients to use (\Register{COEF\_A1\_p} and \Register{COEF\_A2\_p}, at $\Address{0xFFA0} + 2p$ and $\Address{0xFFA0} + 2p + 1$)}
@@ -841,31 +852,31 @@ After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, 
 \RegisterBitOverview{0xFFDB}{YN1}{ADPCM YN1}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDAT} when \Register{ACDAT} is read.  Used when calculating ADPCM, but updated for all sample formats.}
+\RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDSAMP} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A1 coefficient selected by PRED\_SCALE and scaled per FORMAT.}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFDC}{YN1}{ADPCM YN2}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFDC}{YN2}{ADPCM YN2}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDAT} is read.  Used when calculating ADPCM, but updated for all sample formats.  Writing this value starts the accelerator.}
+\RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDSAMP} is read.  Used and updated for all sample formats.  Multiplied by the A2 coefficient selected by PRED\_SCALE and scaled per FORMAT.  Writing this value starts the accelerator.}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFDD}{ACDAT}{Accelerator data}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFDD}{ACDSAMP}{Accelerator data}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Reads new data from the accelerator.  When there is no data left, returns 0.}
+\RegisterBitDescription{15--0}{d}{R}{Reads new proccessed sample data from the accelerator.  Data is processed per FORMAT.  When there is no data left, returns 0.}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFDE}{GAIN}{Gain}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Exact behavior unknown}
+\RegisterBitDescription{15--0}{d}{R/W}{Applied in PCM FORMATs.  Raw sample is multiplied by GAIN, then scaled per the gain scale bits of FORMAT.}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFDF}{ACUNK2}{Unknown 2}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFDF}{ACIN}{Accelerator Input}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R/W}{Usually \Value{0x0C}}
+\RegisterBitDescription{15--0}{d}{R/W}{Used as the sample input in place of ARAM reads when FORMAT specifies it.}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFEF}{AMDM}{ARAM DMA Request Mask}{---- ---- ---- ---m}
@@ -1006,7 +1017,7 @@ Functions used for describing opcode operation.
 \begin{description}
   \item \Function{PUSH\_STACK(\$stR)}
   \begin{description}
-	\item \textbf{Description:} \\ 
+	\item \textbf{Description:} \\
       Pushes value onto given stack referenced by stack register \Register{\$stR}. Operation moves values down in internal stack.
 
     \item \textbf{Operation:} \\
@@ -1017,7 +1028,7 @@ Functions used for describing opcode operation.
 \begin{description}
   \item \Function{POP\_STACK(\$stR)}
   \begin{description}
-	\item \textbf{Description:} \\ 
+	\item \textbf{Description:} \\
       Pops value from stack referenced by stack register \Register{\$stR}. Operation moves values up in internal stack.
 
     \item \textbf{Operation:} \\
@@ -1358,7 +1369,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Logic AND middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ax(1-D)}.m.
+    \item Logic AND middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ac(1-D)}.m.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3640,7 +3651,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Logic OR middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ax(1-D).m}.
+    \item Logic OR middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ac(1-D).m}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}

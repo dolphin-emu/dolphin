@@ -336,8 +336,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     char name[512]{};
     static constexpr char ENTRY_OF_STRING[] = " (entry of ";
     static constexpr std::string_view ENTRY_OF_VIEW(ENTRY_OF_STRING);
-    auto parse_entry_of = [](char* name) {
-      if (char* s1 = strstr(name, ENTRY_OF_STRING); s1 != nullptr)
+    auto parse_entry_of = [](char* name_buf) {
+      if (char* s1 = strstr(name_buf, ENTRY_OF_STRING); s1 != nullptr)
       {
         char container[512];
         char* ptr = s1 + ENTRY_OF_VIEW.size();
@@ -350,17 +350,17 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
           strcpy(s1, ptr);
           *s2 = '\0';
           strcat(container, "::");
-          strcat(container, name);
-          strcpy(name, container);
+          strcat(container, name_buf);
+          strcpy(name_buf, container);
         }
       }
     };
-    auto was_alignment = [](const char* name) {
-      return *name == ' ' || (*name >= '0' && *name <= '9');
+    auto was_alignment = [](const char* name_buf) {
+      return *name_buf == ' ' || (*name_buf >= '0' && *name_buf <= '9');
     };
-    auto parse_alignment = [](char* name, u32* alignment) {
-      const std::string buffer(StripWhitespace(name));
-      return sscanf(buffer.c_str(), "%i %511[^\r\n]", alignment, name);
+    auto parse_alignment = [](char* name_buf, u32* alignment_buf) {
+      const std::string buffer(StripWhitespace(name_buf));
+      return sscanf(buffer.c_str(), "%i %511[^\r\n]", alignment_buf, name_buf);
     };
     switch (column_count)
     {
@@ -455,8 +455,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
 // Save symbol map similar to CodeWarrior's map file
 bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
 {
-  File::IOFile f(filename, "w");
-  if (!f)
+  File::IOFile file(filename, "w");
+  if (!file)
     return false;
 
   // Write .text section
@@ -464,7 +464,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
       m_functions |
       std::views::filter([](auto f) { return f.second.type == Common::Symbol::Type::Function; }) |
       std::views::transform([](auto f) { return f.second; });
-  f.WriteString(".text section layout\n");
+  file.WriteString(".text section layout\n");
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
@@ -474,7 +474,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
     if (!symbol.object_name.empty())
       line += fmt::format(" \t{0}", symbol.object_name);
     line += "\n";
-    f.WriteString(line);
+    file.WriteString(line);
   }
 
   // Write .data section
@@ -482,7 +482,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
       m_functions |
       std::views::filter([](auto f) { return f.second.type == Common::Symbol::Type::Data; }) |
       std::views::transform([](auto f) { return f.second; });
-  f.WriteString("\n.data section layout\n");
+  file.WriteString("\n.data section layout\n");
   for (const auto& symbol : data_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
@@ -492,7 +492,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
     if (!symbol.object_name.empty())
       line += fmt::format(" \t{0}", symbol.object_name);
     line += "\n";
-    f.WriteString(line);
+    file.WriteString(line);
   }
 
   return true;

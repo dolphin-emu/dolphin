@@ -67,7 +67,7 @@ void* MemArena::CreateView(s64 offset, size_t size)
     return nullptr;
   }
 
-  vm_address_t address;
+  vm_address_t address = 0;
   constexpr vm_prot_t prot = VM_PROT_READ | VM_PROT_WRITE;
 
   kern_return_t retval = vm_map(mach_task_self(), &address, size, 0, VM_FLAGS_ANYWHERE, m_shm_entry,
@@ -88,7 +88,7 @@ void MemArena::ReleaseView(void* view, size_t size)
 
 u8* MemArena::ReserveMemoryRegion(size_t memory_size)
 {
-  vm_address_t address;
+  vm_address_t address = 0;
 
   kern_return_t retval = vm_allocate(mach_task_self(), &address, memory_size, VM_FLAGS_ANYWHERE);
   if (retval != KERN_SUCCESS)

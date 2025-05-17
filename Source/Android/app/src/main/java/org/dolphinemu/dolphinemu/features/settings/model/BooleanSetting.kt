@@ -30,7 +30,7 @@ enum class BooleanSetting(
         "OverrideRegionSettings",
         false
     ),
-    MAIN_AUDIO_STRETCH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioStretch", false),
+    MAIN_AUDIO_FILL_GAPS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioFillGaps", true),
     MAIN_BBA_XLINK_CHAT_OSD(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,
@@ -100,6 +100,12 @@ enum class BooleanSetting(
         "OverclockEnable",
         false
     ),
+    MAIN_VI_OVERCLOCK_ENABLE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "VIOverclockEnable",
+        false
+    ),
     MAIN_RAM_OVERRIDE_ENABLE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,
@@ -132,6 +138,12 @@ enum class BooleanSetting(
     ),
     MAIN_WII_WIILINK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EnableWiiLink", false),
     MAIN_DSP_JIT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "EnableJIT", true),
+    MAIN_TIME_TRACKING(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_GENERAL,
+        "EnablePlayTimeTracking",
+        true
+    ),
     MAIN_EXPAND_TO_CUTOUT_AREA(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_INTERFACE,
@@ -916,6 +928,7 @@ enum class BooleanSetting(
             MAIN_RAM_OVERRIDE_ENABLE,
             MAIN_CUSTOM_RTC_ENABLE,
             MAIN_DSP_JIT,
+            MAIN_TIME_TRACKING,
             MAIN_EMULATE_SKYLANDER_PORTAL,
             MAIN_EMULATE_INFINITY_BASE
         )

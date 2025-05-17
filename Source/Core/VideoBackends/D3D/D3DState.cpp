@@ -35,7 +35,7 @@ void StateManager::Apply()
   // our bindings and sets them to null to prevent hazards.
   if (m_dirtyFlags.test(DirtyFlag_Framebuffer))
   {
-    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    if (g_backend_info.bSupportsBBox)
     {
       D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
           m_pending.framebuffer->GetNumRTVs(),
@@ -344,10 +344,10 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   sampdc.MinLOD = state.tm1.min_lod / 16.f;
   sampdc.MipLODBias = state.tm0.lod_bias / 256.f;
 
-  if (state.tm0.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering != 0)
   {
     sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
-    sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
+    sampdc.MaxAnisotropy = 1u << state.tm0.anisotropic_filtering;
   }
 
   ComPtr<ID3D11SamplerState> res;
@@ -363,7 +363,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
+  if (state.logicopenable && g_backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];

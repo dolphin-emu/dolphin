@@ -183,7 +183,8 @@ void LoadPatches()
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance().FilterApprovedPatches(s_on_frame, sconfig.GetGameID());
+  AchievementManager::GetInstance().FilterApprovedPatches(s_on_frame, sconfig.GetGameID(),
+                                                          sconfig.GetRevision());
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // Check if I'm syncing Codes
@@ -194,8 +195,10 @@ void LoadPatches()
   }
   else
   {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni), sconfig.GetGameID());
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni, sconfig.GetGameID());
+    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni), sconfig.GetGameID(),
+                          sconfig.GetRevision());
+    ActionReplay::LoadAndApplyCodes(globalIni, localIni, sconfig.GetGameID(),
+                                    sconfig.GetRevision());
   }
 }
 
@@ -293,6 +296,17 @@ static void ApplyStartupPatches(Core::System& system)
 {
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);
+
+  const auto& ppc_state = system.GetPPCState();
+  if (!ppc_state.msr.DR || !ppc_state.msr.IR)
+  {
+    DEBUG_LOG_FMT(ACTIONREPLAY,
+                  "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
+                  "MSR = {:#010x}",
+                  ppc_state.pc, ppc_state.msr.Hex);
+    return;
+  }
+
   ApplyPatches(guard, s_on_frame);
 }
 
@@ -329,7 +343,7 @@ bool ApplyFramePatches(Core::System& system)
 void Shutdown()
 {
   s_on_frame.clear();
-  ActionReplay::ApplyCodes({}, "");
+  ActionReplay::ApplyCodes({}, "", 0);
   Gecko::Shutdown();
 }
 

@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QDesktopServices>
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QFontDialog>
 #include <QInputDialog>
@@ -63,13 +64,19 @@
 #include "DolphinQt/NANDRepairDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <rcheevos/include/rc_client_raintegration.h>
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
@@ -284,8 +291,14 @@ void MenuBar::AddToolsMenu()
   tools_menu->addSeparator();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
-
+  m_achievements_action =
+      tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  m_achievements_dev_menu = tools_menu->addMenu(tr("RetroAchievements Development"));
+  AchievementManager::GetInstance().SetDevMenuUpdateCallback(
+      [this]() { QueueOnObject(this, [this] { this->UpdateAchievementDevelopmentMenu(); }); });
+  m_achievements_dev_menu->menuAction()->setVisible(false);
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   tools_menu->addSeparator();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
@@ -334,6 +347,8 @@ void MenuBar::AddToolsMenu()
 
   m_import_wii_save =
       tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  m_import_wii_saves =
+      tools_menu->addAction(tr("Import Wii Saves..."), this, &MenuBar::ImportWiiSaves);
   m_export_wii_saves =
       tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
@@ -450,7 +465,8 @@ void MenuBar::UpdateStateSlotMenu()
 
 void MenuBar::AddViewMenu()
 {
-  QMenu* view_menu = addMenu(tr("&View"));
+  auto* const view_menu{new QtUtils::NonAutodismissibleMenu(tr("&View"), this)};
+  addMenu(view_menu);
   QAction* show_log = view_menu->addAction(tr("Show &Log"));
   show_log->setCheckable(true);
   show_log->setChecked(Settings::Instance().IsLogVisible());
@@ -701,10 +717,12 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("File Format"), &Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT},
       {tr("Block Size"), &Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE},
       {tr("Compression"), &Config::MAIN_GAMELIST_COLUMN_COMPRESSION},
+      {tr("Time Played"), &Config::MAIN_GAMELIST_COLUMN_TIME_PLAYED},
       {tr("Tags"), &Config::MAIN_GAMELIST_COLUMN_TAGS}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  m_cols_menu = view_menu->addMenu(tr("List Columns"));
+  m_cols_menu = new QtUtils::NonAutodismissibleMenu(tr("List Columns"), view_menu);
+  view_menu->addMenu(m_cols_menu);
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())
@@ -725,11 +743,13 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
   static const QMap<QString, const Config::Info<bool>*> platform_map{
       {tr("Show Wii"), &Config::MAIN_GAMELIST_LIST_WII},
       {tr("Show GameCube"), &Config::MAIN_GAMELIST_LIST_GC},
+      {tr("Show Triforce"), &Config::MAIN_GAMELIST_LIST_TRI},
       {tr("Show WAD"), &Config::MAIN_GAMELIST_LIST_WAD},
       {tr("Show ELF/DOL"), &Config::MAIN_GAMELIST_LIST_ELF_DOL}};
 
   QActionGroup* platform_group = new QActionGroup(this);
-  QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
+  auto* const plat_menu{new QtUtils::NonAutodismissibleMenu(tr("Show Platforms"), view_menu)};
+  view_menu->addMenu(plat_menu);
   platform_group->setExclusive(false);
 
   for (const auto& key : platform_map.keys())
@@ -763,7 +783,8 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
       {tr("Show World"), &Config::MAIN_GAMELIST_LIST_WORLD},
       {tr("Show Unknown"), &Config::MAIN_GAMELIST_LIST_UNKNOWN}};
 
-  QMenu* const region_menu = view_menu->addMenu(tr("Show Regions"));
+  auto* const region_menu{new QtUtils::NonAutodismissibleMenu(tr("Show Regions"), view_menu)};
+  view_menu->addMenu(region_menu);
   const QAction* const show_all_regions = region_menu->addAction(tr("Show All"));
   const QAction* const hide_all_regions = region_menu->addAction(tr("Hide All"));
   region_menu->addSeparator();
@@ -791,7 +812,8 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
 
 void MenuBar::AddMovieMenu()
 {
-  auto* movie_menu = addMenu(tr("&Movie"));
+  auto* const movie_menu{new QtUtils::NonAutodismissibleMenu(tr("&Movie"), this)};
+  addMenu(movie_menu);
   m_recording_start =
       movie_menu->addAction(tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
@@ -1085,6 +1107,7 @@ void MenuBar::UpdateToolsMenu(const Core::State state)
   m_import_backup->setEnabled(is_uninitialized);
   m_check_nand->setEnabled(is_uninitialized);
   m_import_wii_save->setEnabled(is_uninitialized);
+  m_import_wii_saves->setEnabled(is_uninitialized);
   m_export_wii_saves->setEnabled(is_uninitialized);
 
   if (is_uninitialized)
@@ -1122,6 +1145,38 @@ void MenuBar::UpdateToolsMenu(const Core::State state)
   }
 }
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+void MenuBar::UpdateAchievementDevelopmentMenu()
+{
+  auto* dev_menu = AchievementManager::GetInstance().GetDevelopmentMenu();
+  if (dev_menu)
+  {
+    m_achievements_dev_menu->menuAction()->setVisible(true);
+    m_achievements_dev_menu->clear();
+    for (u32 i = 0; i < dev_menu->num_items; i++)
+    {
+      const auto& menu_item = dev_menu->items[i];
+      if (menu_item.label == nullptr)
+      {
+        m_achievements_dev_menu->addSeparator();
+        continue;
+      }
+      auto* ra_dev_menu_item = m_achievements_dev_menu->addAction(
+          QString::fromStdString(menu_item.label), this,
+          [menu_item]() { AchievementManager::GetInstance().ActivateDevMenuItem(menu_item.id); });
+      ra_dev_menu_item->setEnabled(menu_item.enabled);
+      // Recommended hardcode by RAIntegration.dll developer Jamiras
+      ra_dev_menu_item->setCheckable(i < 2);
+      ra_dev_menu_item->setChecked(menu_item.checked);
+    }
+  }
+  else
+  {
+    m_achievements_dev_menu->menuAction()->setVisible(false);
+  }
+}
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
 void MenuBar::InstallWAD()
 {
   QString wad_file = DolphinFileDialog::getOpenFileName(this, tr("Select Title to Install to NAND"),
@@ -1156,7 +1211,8 @@ void MenuBar::ImportWiiSave()
     return ModalMessageBox::question(
                this, tr("Save Import"),
                tr("Save data for this title already exists in the NAND. Consider backing up "
-                  "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
+                  "the current data before overwriting.\n\nOverwrite existing save data?")) ==
+           QMessageBox::Yes;
   };
 
   const auto result = WiiSave::Import(file.toStdString(), can_overwrite);
@@ -1185,6 +1241,95 @@ void MenuBar::ImportWiiSave()
            "NAND...), then import the save again."));
     break;
   }
+}
+
+void MenuBar::ImportWiiSaves()
+{
+  QString folder =
+      DolphinFileDialog::getExistingDirectory(this, tr("Select Save Folder"), QDir::currentPath());
+
+  if (folder.isEmpty())
+    return;
+
+  QDirIterator it(folder, QStringList(QStringLiteral("*.bin")), QDir::Files,
+                  QDirIterator::Subdirectories);
+  QStringList failure_details;
+  size_t success_count = 0;
+  size_t fail_count = 0;
+  bool yes_all = false;
+  bool no_all = false;
+
+  while (it.hasNext())
+  {
+    const QString file = it.next();
+
+    auto can_overwrite = [&] {
+      if (yes_all)
+        return true;
+      if (no_all)
+        return false;
+
+      auto response = ModalMessageBox::question(
+          this, tr("Save Import"),
+          tr("%1: Save data for this title already exists in the NAND. Consider backing up "
+             "the current data before overwriting.\n\nOverwrite existing save data?")
+              .arg(file),
+          QMessageBox::StandardButton::YesAll | QMessageBox::StandardButton::Yes |
+              QMessageBox::StandardButton::No | QMessageBox::StandardButton::NoAll);
+
+      if (response == QMessageBox::YesAll)
+      {
+        yes_all = true;
+        return true;
+      }
+      else if (response == QMessageBox::NoAll)
+      {
+        no_all = true;
+        return false;
+      }
+      return response == QMessageBox::Yes;
+    };
+
+    const auto result = WiiSave::Import(file.toStdString(), can_overwrite);
+    switch (result)
+    {
+    case WiiSave::CopyResult::Success:
+      success_count++;
+      break;
+    case WiiSave::CopyResult::CorruptedSource:
+      fail_count++;
+      failure_details.append(tr("%1: Failed to import save file. The given file appears to be "
+                                "corrupted or is not a valid Wii save.")
+                                 .arg(file));
+      break;
+    case WiiSave::CopyResult::TitleMissing:
+      fail_count++;
+      failure_details.append(
+          tr("%1: Failed to import save file. Please launch the game once, then try again.")
+              .arg(file));
+      break;
+    case WiiSave::CopyResult::Cancelled:
+      break;
+    default:
+      fail_count++;
+      failure_details.append(
+          tr("%1: Failed to import save file. Your NAND may be corrupt, or something is preventing "
+             "access to files within it. Try repairing your NAND (Tools -> Manage NAND -> Check "
+             "NAND...), then import the save again.")
+              .arg(file));
+      break;
+    }
+  }
+
+  if (success_count == 0 && fail_count == 0)
+    return;
+
+  ModalMessageBox::information(this, tr("Save Import"),
+                               tr("Successfully imported %1 save file(s) with %2 failure(s)")
+                                   .arg(success_count)
+                                   .arg(fail_count),
+                               QMessageBox::Ok, QMessageBox::NoButton, Qt::WindowModal,
+                               failure_details.join(QStringLiteral("\n\n")));
 }
 
 void MenuBar::ExportWiiSaves()

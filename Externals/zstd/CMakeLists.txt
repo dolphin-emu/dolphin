@@ -1,9 +1,12 @@
 project(zstd C)
 
+if(NOT MSVC)
+    enable_language(ASM)
+endif()
+
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
-include(CheckCSourceCompiles)
 
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
@@ -56,73 +59,88 @@ add_definitions(-DXXH_NAMESPACE=ZSTD_)
 #============================================================================
 
 set(ZSTD_PUBLIC_HDRS
-    lib/zstd.h
+    zstd/lib/zstd.h
+    zstd/lib/zstd_errors.h
 )
 set(ZSTD_PRIVATE_HDRS
-    lib/common/bitstream.h
-    lib/common/compiler.h
-    lib/common/cpu.h
-    lib/common/debug.h
-    lib/common/error_private.h
-    lib/common/fse.h
-    lib/common/huf.h
-    lib/common/mem.h
-    lib/common/pool.h
-    lib/common/threading.h
-    lib/common/xxhash.h
-    lib/common/zstd_errors.h
-    lib/common/zstd_internal.h
-    lib/compress/hist.h
-    lib/compress/zstd_compress_internal.h
-    lib/compress/zstd_compress_literals.h
-    lib/compress/zstd_compress_sequences.h
-    lib/compress/zstd_cwksp.h
-    lib/compress/zstd_double_fast.h
-    lib/compress/zstd_fast.h
-    lib/compress/zstd_lazy.h
-    lib/compress/zstd_ldm.h
-    lib/compress/zstd_opt.h
-    lib/compress/zstdmt_compress.h
-    lib/decompress/zstd_ddict.h
-    lib/decompress/zstd_decompress_block.h
-    lib/decompress/zstd_decompress_internal.h
+    zstd/lib/common/allocations.h
+    zstd/lib/common/bits.h
+    zstd/lib/common/bitstream.h
+    zstd/lib/common/compiler.h
+    zstd/lib/common/cpu.h
+    zstd/lib/common/debug.h
+    zstd/lib/common/error_private.h
+    zstd/lib/common/fse.h
+    zstd/lib/common/huf.h
+    zstd/lib/common/mem.h
+    zstd/lib/common/pool.h
+    zstd/lib/common/portability_macros.h
+    zstd/lib/common/threading.h
+    zstd/lib/common/xxhash.h
+    zstd/lib/common/zstd_deps.h
+    zstd/lib/common/zstd_internal.h
+    zstd/lib/common/zstd_trace.h
+    zstd/lib/compress/clevels.h
+    zstd/lib/compress/hist.h
+    zstd/lib/compress/zstd_compress_internal.h
+    zstd/lib/compress/zstd_compress_literals.h
+    zstd/lib/compress/zstd_compress_sequences.h
+    zstd/lib/compress/zstd_compress_superblock.h
+    zstd/lib/compress/zstd_cwksp.h
+    zstd/lib/compress/zstd_double_fast.h
+    zstd/lib/compress/zstd_fast.h
+    zstd/lib/compress/zstd_lazy.h
+    zstd/lib/compress/zstd_ldm.h
+    zstd/lib/compress/zstd_ldm_geartab.h
+    zstd/lib/compress/zstd_opt.h
+    zstd/lib/compress/zstd_preSplit.h
+    zstd/lib/compress/zstdmt_compress.h
+    zstd/lib/decompress/zstd_ddict.h
+    zstd/lib/decompress/zstd_decompress_block.h
+    zstd/lib/decompress/zstd_decompress_internal.h
 )
 set(ZSTD_SRCS
-    lib/common/debug.c
-    lib/common/entropy_common.c
-    lib/common/error_private.c
-    lib/common/fse_decompress.c
-    lib/common/pool.c
-    lib/common/threading.c
-    lib/common/xxhash.c
-    lib/common/zstd_common.c
-    lib/compress/fse_compress.c
-    lib/compress/hist.c
-    lib/compress/huf_compress.c
-    lib/compress/zstd_compress.c
-    lib/compress/zstd_compress_literals.c
-    lib/compress/zstd_compress_sequences.c
-    lib/compress/zstd_double_fast.c
-    lib/compress/zstd_fast.c
-    lib/compress/zstd_lazy.c
-    lib/compress/zstd_ldm.c
-    lib/compress/zstd_opt.c
-    lib/compress/zstdmt_compress.c
-    lib/decompress/huf_decompress.c
-    lib/decompress/zstd_ddict.c
-    lib/decompress/zstd_decompress.c
-    lib/decompress/zstd_decompress_block.c
+    zstd/lib/common/debug.c
+    zstd/lib/common/entropy_common.c
+    zstd/lib/common/error_private.c
+    zstd/lib/common/fse_decompress.c
+    zstd/lib/common/pool.c
+    zstd/lib/common/threading.c
+    zstd/lib/common/xxhash.c
+    zstd/lib/common/zstd_common.c
+    zstd/lib/compress/fse_compress.c
+    zstd/lib/compress/hist.c
+    zstd/lib/compress/huf_compress.c
+    zstd/lib/compress/zstd_compress.c
+    zstd/lib/compress/zstd_compress_literals.c
+    zstd/lib/compress/zstd_compress_sequences.c
+    zstd/lib/compress/zstd_compress_superblock.c
+    zstd/lib/compress/zstd_double_fast.c
+    zstd/lib/compress/zstd_fast.c
+    zstd/lib/compress/zstd_lazy.c
+    zstd/lib/compress/zstd_ldm.c
+    zstd/lib/compress/zstd_opt.c
+    zstd/lib/compress/zstd_preSplit.c
+    zstd/lib/compress/zstdmt_compress.c
+    zstd/lib/decompress/huf_decompress.c
+    zstd/lib/decompress/zstd_ddict.c
+    zstd/lib/decompress/zstd_decompress.c
+    zstd/lib/decompress/zstd_decompress_block.c
 )
 
 add_library(zstd STATIC ${ZSTD_SRCS} ${ZSTD_PUBLIC_HDRS} ${ZSTD_PRIVATE_HDRS})
+target_compile_definitions(zstd PUBLIC ZSTD_LEGACY_SUPPORT=0)
+
+if(MSVC)
+    target_compile_definitions(zstd PUBLIC ZSTD_DISABLE_ASM)
+else()
+    target_sources(zstd PRIVATE zstd/lib/decompress/huf_decompress_amd64.S)
+endif()
+
 dolphin_disable_warnings(zstd)
 add_library(zstd::zstd ALIAS zstd)
 
 target_include_directories(zstd
 PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib
-PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/common
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/compress
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/decompress
+    ${CMAKE_CURRENT_SOURCE_DIR}/zstd/lib
 )

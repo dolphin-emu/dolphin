@@ -80,7 +80,7 @@ std::unordered_map<BTH_ADDR, std::time_t> s_connect_times;
 
 bool load_hid()
 {
-  auto loader = [&]() {
+  auto loader = [&] {
     s_hid_lib = ::LoadLibrary(_T("hid.dll"));
     if (!s_hid_lib)
     {
@@ -116,7 +116,7 @@ bool load_hid()
 
 bool load_bthprops()
 {
-  auto loader = [&]() {
+  auto loader = [&] {
     s_bthprops_lib = ::LoadLibrary(_T("bthprops.cpl"));
     if (!s_bthprops_lib)
     {

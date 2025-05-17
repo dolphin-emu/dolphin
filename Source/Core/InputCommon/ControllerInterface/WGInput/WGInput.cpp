@@ -62,7 +62,7 @@ static constexpr std::array wgi_button_names = {
 template <typename T, typename M>
 struct MemberName
 {
-  M T::*ptr;
+  M T::* ptr;
   const char* name;
 };
 

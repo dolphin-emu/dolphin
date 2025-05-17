@@ -27,7 +27,7 @@ public:
   // If the associated OTP/SEEPROM dump (keys.bin) is not included in the image,
   // get_otp_dump_path will be called to get a path to it.
   void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback,
-                     std::function<std::string()> get_otp_dump_path);
+                     const std::function<std::string()>& get_otp_dump_path);
   bool ExtractCertificates();
 
   enum class Type
@@ -64,12 +64,13 @@ public:
 #pragma pack(pop)
 
 private:
-  bool ReadNANDBin(const std::string& path_to_bin, std::function<std::string()> get_otp_dump_path);
+  bool ReadNANDBin(const std::string& path_to_bin,
+                   const std::function<std::string()>& get_otp_dump_path);
   bool FindSuperblock();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
-  std::vector<u8> GetEntryData(const NANDFSTEntry& entry);
+  std::vector<u8> GetEntryData(const NANDFSTEntry& entry) const;
   void ExportKeys();
 
   std::string m_nand_root;

@@ -399,8 +399,8 @@ constexpr bdaddr_t BDADDR_ANY{};
  * and OCF (OpCode Command Field) from OpCode.
  */
 
-#define HCI_OPCODE(gf, cf) ((((gf)&0x3f) << 10) | ((cf)&0x3ff))
-#define HCI_OCF(op) ((op)&0x3ff)
+#define HCI_OPCODE(gf, cf) ((((gf) & 0x3f) << 10) | ((cf) & 0x3ff))
+#define HCI_OCF(op) ((op) & 0x3ff)
 #define HCI_OGF(op) (((op) >> 10) & 0x3f)
 
 /*
@@ -408,10 +408,10 @@ constexpr bdaddr_t BDADDR_ANY{};
  * PB (Packet boundary) flags.
  */
 
-#define HCI_CON_HANDLE(h) ((h)&0x0fff)
-#define HCI_PB_FLAG(h) (((h)&0x3000) >> 12)
-#define HCI_BC_FLAG(h) (((h)&0xc000) >> 14)
-#define HCI_MK_CON_HANDLE(h, pb, bc) (((h)&0x0fff) | (((pb)&3) << 12) | (((bc)&3) << 14))
+#define HCI_CON_HANDLE(h) ((h) & 0x0fff)
+#define HCI_PB_FLAG(h) (((h) & 0x3000) >> 12)
+#define HCI_BC_FLAG(h) (((h) & 0xc000) >> 14)
+#define HCI_MK_CON_HANDLE(h, pb, bc) (((h) & 0x0fff) | (((pb) & 3) << 12) | (((bc) & 3) << 14))
 
 /* PB flag values */
 /* 00 - reserved for future use */

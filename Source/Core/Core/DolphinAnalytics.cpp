@@ -26,6 +26,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
+#include "Common/EnumUtils.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -137,8 +138,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 34> GAME_QUIRKS_NAMES{
-    "directly-reads-wiimote-input",
+constexpr std::array GAME_QUIRKS_NAMES{
     "uses-DVDLowStopLaser",
     "uses-DVDLowOffset",
     "uses-DVDLowReadDiskBca",
@@ -297,7 +297,7 @@ void DolphinAnalytics::MakeBaseBuilder()
       s64 minor_version;  // NSInteger minorVersion
       s64 patch_version;  // NSInteger patchVersion
     };
-    // Under arm64, we need to call objc_msgSend to recieve a struct.
+    // Under arm64, we need to call objc_msgSend to receive a struct.
     // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
 #ifdef _M_ARM_64
 #define msgSend objc_msgSend
@@ -365,6 +365,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
+  builder.AddData("cfg-vi-oc-enable", Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE));
+  builder.AddData("cfg-vi-oc-factor", Config::Get(Config::MAIN_VI_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
@@ -374,7 +376,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   // Video configuration.
   builder.AddData("cfg-gfx-multisamples", g_Config.iMultisamples);
   builder.AddData("cfg-gfx-ssaa", g_Config.bSSAA);
-  builder.AddData("cfg-gfx-anisotropy", g_Config.iMaxAnisotropy);
+  builder.AddData("cfg-gfx-anisotropy", Common::ToUnderlying(g_Config.iMaxAnisotropy));
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
   builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(g_Config.aspect_mode));
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
@@ -397,32 +399,31 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 
   // GPU features.
-  if (g_Config.iAdapter < static_cast<int>(g_Config.backend_info.Adapters.size()))
+  if (g_Config.iAdapter < static_cast<int>(g_backend_info.Adapters.size()))
   {
-    builder.AddData("gpu-adapter", g_Config.backend_info.Adapters[g_Config.iAdapter]);
+    builder.AddData("gpu-adapter", g_backend_info.Adapters[g_Config.iAdapter]);
   }
-  else if (!g_Config.backend_info.AdapterName.empty())
+  else if (!g_backend_info.AdapterName.empty())
   {
-    builder.AddData("gpu-adapter", g_Config.backend_info.AdapterName);
+    builder.AddData("gpu-adapter", g_backend_info.AdapterName);
   }
-  builder.AddData("gpu-has-exclusive-fullscreen",
-                  g_Config.backend_info.bSupportsExclusiveFullscreen);
-  builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
-  builder.AddData("gpu-has-primitive-restart", g_Config.backend_info.bSupportsPrimitiveRestart);
-  builder.AddData("gpu-has-geometry-shaders", g_Config.backend_info.bSupportsGeometryShaders);
-  builder.AddData("gpu-has-3d-vision", g_Config.backend_info.bSupports3DVision);
-  builder.AddData("gpu-has-early-z", g_Config.backend_info.bSupportsEarlyZ);
-  builder.AddData("gpu-has-binding-layout", g_Config.backend_info.bSupportsBindingLayout);
-  builder.AddData("gpu-has-bbox", g_Config.backend_info.bSupportsBBox);
+  builder.AddData("gpu-has-exclusive-fullscreen", g_backend_info.bSupportsExclusiveFullscreen);
+  builder.AddData("gpu-has-dual-source-blend", g_backend_info.bSupportsDualSourceBlend);
+  builder.AddData("gpu-has-primitive-restart", g_backend_info.bSupportsPrimitiveRestart);
+  builder.AddData("gpu-has-geometry-shaders", g_backend_info.bSupportsGeometryShaders);
+  builder.AddData("gpu-has-3d-vision", g_backend_info.bSupports3DVision);
+  builder.AddData("gpu-has-early-z", g_backend_info.bSupportsEarlyZ);
+  builder.AddData("gpu-has-binding-layout", g_backend_info.bSupportsBindingLayout);
+  builder.AddData("gpu-has-bbox", g_backend_info.bSupportsBBox);
   builder.AddData("gpu-has-fragment-stores-and-atomics",
-                  g_Config.backend_info.bSupportsFragmentStoresAndAtomics);
-  builder.AddData("gpu-has-gs-instancing", g_Config.backend_info.bSupportsGSInstancing);
-  builder.AddData("gpu-has-post-processing", g_Config.backend_info.bSupportsPostProcessing);
-  builder.AddData("gpu-has-palette-conversion", g_Config.backend_info.bSupportsPaletteConversion);
-  builder.AddData("gpu-has-clip-control", g_Config.backend_info.bSupportsClipControl);
-  builder.AddData("gpu-has-ssaa", g_Config.backend_info.bSupportsSSAA);
-  builder.AddData("gpu-has-logic-ops", g_Config.backend_info.bSupportsLogicOp);
-  builder.AddData("gpu-has-framebuffer-fetch", g_Config.backend_info.bSupportsFramebufferFetch);
+                  g_backend_info.bSupportsFragmentStoresAndAtomics);
+  builder.AddData("gpu-has-gs-instancing", g_backend_info.bSupportsGSInstancing);
+  builder.AddData("gpu-has-post-processing", g_backend_info.bSupportsPostProcessing);
+  builder.AddData("gpu-has-palette-conversion", g_backend_info.bSupportsPaletteConversion);
+  builder.AddData("gpu-has-clip-control", g_backend_info.bSupportsClipControl);
+  builder.AddData("gpu-has-ssaa", g_backend_info.bSupportsSSAA);
+  builder.AddData("gpu-has-logic-ops", g_backend_info.bSupportsLogicOp);
+  builder.AddData("gpu-has-framebuffer-fetch", g_backend_info.bSupportsFramebufferFetch);
 
   // NetPlay / recording.
   builder.AddData("netplay", NetPlay::IsNetPlayRunning());

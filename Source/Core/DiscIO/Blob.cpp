@@ -78,9 +78,7 @@ void SectorReader::SetChunkSize(int block_cnt)
   SetSectorSize(m_block_size);
 }
 
-SectorReader::~SectorReader()
-{
-}
+SectorReader::~SectorReader() = default;
 
 const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
 {

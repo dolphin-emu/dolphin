@@ -74,6 +74,133 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
+static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& host_config,
+                                   const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("mat3x4 dolphin_position_matrix()\n");
+  out.Write("{{\n");
+  out.Write("\tmat3x4 result;\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  {
+    // Vertex format has a per-vertex matrix
+    out.Write("\tint posidx = int(posmtx.r);\n"
+              "\tresult[0] = " I_TRANSFORMMATRICES "[posidx];\n"
+              "\tresult[1] = " I_TRANSFORMMATRICES "[posidx + 1];\n"
+              "\tresult[2] = " I_TRANSFORMMATRICES "[posidx + 2];\n");
+  }
+  else
+  {
+    // One shared matrix
+    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[0];\n"
+              "\tresult[1] = " I_POSNORMALMATRIX "[1];\n"
+              "\tresult[2] = " I_POSNORMALMATRIX "[2];\n");
+  }
+  out.Write("\treturn result;\n");
+  out.Write("}}\n\n");
+
+  // The scale of the transform matrix is used to control the size of the emboss map effect, by
+  // changing the scale of the transformed binormals (which only get used by emboss map texgens).
+  // By normalising the first transformed normal (which is used by lighting calculations and needs
+  // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
+  // and not scaling for lighting.
+  out.Write("mat3 dolphin_normal_matrix()\n");
+  out.Write("{{\n");
+  out.Write("\tmat3 result;\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  {
+    // Vertex format has a per-vertex matrix
+    out.Write("\tint posidx = int(posmtx.r);\n");
+    out.Write("\tint normidx = posidx & 31;\n"
+              "\tresult[0] = " I_NORMALMATRICES "[normidx].xyz;\n"
+              "\tresult[1] = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
+              "\tresult[2] = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
+  }
+  else
+  {
+    // One shared matrix
+    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[3].xyz;\n"
+              "\tresult[1] = " I_POSNORMALMATRIX "[4].xyz;\n"
+              "\tresult[2] = " I_POSNORMALMATRIX "[5].xyz;\n");
+  }
+  out.Write("\treturn result;\n");
+  out.Write("}}\n\n");
+}
+
+static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& host_config,
+                                    const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  for (u32 i = 0; i < uid_data->numTexGens; ++i)
+  {
+    auto& texinfo = uid_data->texMtxInfo[i];
+    out.Write("vec3 dolphin_transform_texcoord{}(vec4 coord)\n", i);
+    out.Write("{{\n");
+    if (texinfo.texgentype != TexGenType::Regular)
+    {
+      out.Write("\treturn vec3(coord.xyz);\n");
+    }
+    else
+    {
+      out.Write("\tvec3 result;\n");
+      if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
+      {
+        out.Write("\tint tmp = int(rawtex{}.z);\n", i);
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TRANSFORMMATRICES
+                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES
+                    "[tmp+1]), dot(coord, " I_TRANSFORMMATRICES "[tmp+2]));\n");
+        }
+        else
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TRANSFORMMATRICES
+                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES "[tmp+1]), 1);\n");
+        }
+      }
+      else
+      {
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
+                    "[{}]), dot(coord, " I_TEXMATRICES "[{}]));\n",
+                    3 * i, 3 * i + 1, 3 * i + 2);
+        }
+        else
+        {
+          out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
+                    "[{}]), 1);\n",
+                    3 * i, 3 * i + 1);
+        }
+      }
+      // CHECKME: does this only work for regular tex gen types?
+      if (uid_data->dualTexTrans_enabled)
+      {
+        auto& postInfo = uid_data->postMtxInfo[i];
+
+        out.Write("\tvec4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
+                  "\tvec4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
+                  "\tvec4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
+                  postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+
+        if (postInfo.normalize)
+          out.Write("\tresult = normalize(result);\n");
+
+        // multiply by postmatrix
+        out.Write("\tresult = vec3(dot(P0.xyz, result) + P0.w, dot(P1.xyz, result) + "
+                  "P1.w, dot(P2.xyz, result) + P2.w);\n");
+      }
+
+      // When q is 0, the GameCube appears to have a special case
+      // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+      // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+      // TODO: check if this only affects XF_TEXGEN_REGULAR
+      out.Write("\tif(result.z == 0.0f)\n"
+                "\t\tresult.xy = clamp(result.xy / 2.0f, vec2(-1.0f,-1.0f), vec2(1.0f,1.0f));\n");
+      out.Write("\treturn result;\n");
+    }
+    out.Write("}}\n\n");
+  }
+}
+
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                     const vertex_shader_uid_data* uid_data)
 {
@@ -115,6 +242,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
+  GenerateLightingShaderHeader(out, uid_data->lighting);
 
   if (uid_data->vs_expand == VSExpand::None)
   {
@@ -260,6 +388,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
+  // Note: this is done after to ensure above global variables are accessible
+  WriteTransformMatrices(api_type, host_config, uid_data, out);
+  WriteTexCoordTransforms(api_type, host_config, uid_data, out);
+
   out.Write("void main()\n{{\n");
 
   if (uid_data->vs_expand != VSExpand::None)
@@ -305,50 +437,17 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
-  // transforms
-  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
-  {
-    // Vertex format has a per-vertex matrix
-    out.Write("int posidx = int(posmtx.r);\n"
-              "float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
-              "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
-              "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n"
-              "int normidx = posidx & 31;\n"
-              "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
-              "float3 N1 = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
-              "float3 N2 = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
-  }
-  else
-  {
-    // One shared matrix
-    out.Write("float4 P0 = " I_POSNORMALMATRIX "[0];\n"
-              "float4 P1 = " I_POSNORMALMATRIX "[1];\n"
-              "float4 P2 = " I_POSNORMALMATRIX "[2];\n"
-              "float3 N0 = " I_POSNORMALMATRIX "[3].xyz;\n"
-              "float3 N1 = " I_POSNORMALMATRIX "[4].xyz;\n"
-              "float3 N2 = " I_POSNORMALMATRIX "[5].xyz;\n");
-  }
+  out.Write("\tvec4 pos = vec4(rawpos * dolphin_position_matrix(), 1.0);\n");
 
-  out.Write("// Multiply the position vector by the position matrix\n"
-            "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
   if ((uid_data->components & VB_HAS_NORMAL) == 0)
-    out.Write("float3 rawnormal = " I_CACHED_NORMAL ".xyz;\n");
-  if ((uid_data->components & VB_HAS_TANGENT) == 0)
-    out.Write("float3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
-  if ((uid_data->components & VB_HAS_BINORMAL) == 0)
-    out.Write("float3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
+    out.Write("\tvec3 rawnormal = " I_CACHED_NORMAL ".xyz;\n");
+  out.Write("\tvec3 _normal = normalize(rawnormal * dolphin_normal_matrix());\n");
 
-  // The scale of the transform matrix is used to control the size of the emboss map effect, by
-  // changing the scale of the transformed binormals (which only get used by emboss map texgens).
-  // By normalising the first transformed normal (which is used by lighting calculations and needs
-  // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
-  // and not scaling for lighting.
-  out.Write("float3 _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
-            "rawnormal)));\n"
-            "float3 _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, "
-            "rawtangent));\n"
-            "float3 _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
-            "rawbinormal));\n");
+  if ((uid_data->components & VB_HAS_TANGENT) == 0)
+    out.Write("\tvec3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
+
+  if ((uid_data->components & VB_HAS_BINORMAL) == 0)
+    out.Write("\tvec3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
 
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
@@ -357,7 +456,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
             "float3 ldir, h, cosAttn, distAttn;\n"
             "float dist, dist2, attn;\n");
 
-  GenerateLightingShaderCode(out, uid_data->lighting, "vertex_color_", "o.colors_");
+  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+  {
+    out.Write(
+        "\to.colors_{0} = dolphin_calculate_lighting_chn{0}(vertex_color_{0}, pos.xyz, _normal);\n",
+        chan);
+  }
 
   // transform texcoords
   out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
@@ -422,9 +526,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       // transform the light dir into tangent space
       out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
                 LIGHT_POS_PARAMS(texinfo.embosslightshift));
-      out.Write(
-          "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
-          i, texinfo.embosssourceshift);
+      out.Write("vec3 tangent = rawtangent * dolphin_normal_matrix();\n");
+      out.Write("vec3 binormal = rawbinormal * dolphin_normal_matrix();\n");
+      out.Write("o.tex{}.xyz = o.tex{}.xyz + vec3(dot(ldir, tangent), "
+                "dot(ldir, binormal), 0.0);\n",
+                i, texinfo.embosssourceshift);
 
       break;
     case TexGenType::Color0:
@@ -434,73 +540,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
       break;
     case TexGenType::Regular:
-    default:
-      if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
-      {
-        out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
-                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES
-                    "[tmp+1]), dot(coord, " I_TRANSFORMMATRICES "[tmp+2]));\n",
-                    i);
-        }
-        else
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
-                    "[tmp]), dot(coord, " I_TRANSFORMMATRICES "[tmp+1]), 1);\n",
-                    i);
-        }
-      }
-      else
-      {
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
-                    "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
-                    "[{}]));\n",
-                    i, 3 * i, 3 * i + 1, 3 * i + 2);
-        }
-        else
-        {
-          out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
-                    "[{}]), dot(coord, " I_TEXMATRICES "[{}]), 1);\n",
-                    i, 3 * i, 3 * i + 1);
-        }
-      }
+      out.Write("o.tex{0}.xyz = dolphin_transform_texcoord{0}(coord);\n", i);
       break;
-    }
-
-    // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
-    {
-      auto& postInfo = uid_data->postMtxInfo[i];
-
-      out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
-                "float4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
-                "float4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
-
-      if (postInfo.normalize)
-        out.Write("o.tex{}.xyz = normalize(o.tex{}.xyz);\n", i, i);
-
-      // multiply by postmatrix
-      out.Write(
-          "o.tex{0}.xyz = float3(dot(P0.xyz, o.tex{0}.xyz) + P0.w, dot(P1.xyz, o.tex{0}.xyz) + "
-          "P1.w, dot(P2.xyz, o.tex{0}.xyz) + P2.w);\n",
-          i);
-    }
-
-    // When q is 0, the GameCube appears to have a special case
-    // This can be seen in devkitPro's neheGX Lesson08 example for Wii
-    // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
-    // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == TexGenType::Regular)
-    {
-      out.Write(
-          "if(o.tex{0}.z == 0.0f)\n"
-          "\to.tex{0}.xy = clamp(o.tex{0}.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n",
-          i);
+    default:
+      ASSERT(false);
     }
 
     out.Write("}}\n");
@@ -531,8 +574,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     else
     {
-      out.Write("other_pos = float4(dot(P0, other_pos), dot(P1, other_pos), dot(P2, other_pos), "
-                "1.0f);\n");
+      out.Write("other_pos = vec4(other_pos * dolphin_position_matrix(), 1.0);\n");
     }
     GenerateVSLineExpansion(out, "", uid_data->numTexGens);
   }

@@ -189,8 +189,8 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
 // Conversely, we also shouldn't just accept any changes to SYSCONF, as it may cause
 // temporary settings (from Movie, Netplay, game INIs, etc.) to stick around.
 //
-// To avoid inconveniences in most cases, we accept changes that aren't being overriden by a
-// non-base layer, and restore only the overriden settings.
+// To avoid inconveniences in most cases, we accept changes that aren't being overridden by a
+// non-base layer, and restore only the overridden settings.
 static void RestoreSYSCONF()
 {
   // This layer contains the new SYSCONF settings (including any temporary settings).

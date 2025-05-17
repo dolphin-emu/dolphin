@@ -117,16 +117,16 @@ std::string GetName(Region region, bool translate)
 
   switch (region)
   {
-  case DiscIO::Region::NTSC_J:
+  case Region::NTSC_J:
     name = _trans("NTSC-J");
     break;
-  case DiscIO::Region::NTSC_U:
+  case Region::NTSC_U:
     name = _trans("NTSC-U");
     break;
-  case DiscIO::Region::PAL:
+  case Region::PAL:
     name = _trans("PAL");
     break;
-  case DiscIO::Region::NTSC_K:
+  case Region::NTSC_K:
     name = _trans("NTSC-K");
     break;
   default:
@@ -139,7 +139,8 @@ std::string GetName(Region region, bool translate)
 
 bool IsDisc(Platform volume_type)
 {
-  return volume_type == Platform::GameCubeDisc || volume_type == Platform::WiiDisc;
+  return volume_type == Platform::GameCubeDisc || volume_type == Platform::Triforce ||
+         volume_type == Platform::WiiDisc;
 }
 
 bool IsWii(Platform volume_type)

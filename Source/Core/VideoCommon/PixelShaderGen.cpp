@@ -345,8 +345,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
-                                  const ShaderHostConfig& host_config, bool bounding_box,
-                                  const CustomPixelShaderContents& custom_details)
+                                  const ShaderHostConfig& host_config, bool bounding_box)
 {
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
@@ -425,14 +424,6 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
     out.Write("{}", s_shader_uniforms);
     out.Write("}};\n");
-  }
-
-  if (!custom_details.shaders.empty() &&
-      !custom_details.shaders.back().material_uniform_block.empty())
-  {
-    out.Write("UBO_BINDING(std140, 3) uniform CustomShaderBlock {{\n");
-    out.Write("{}", custom_details.shaders.back().material_uniform_block);
-    out.Write("}} custom_uniforms;\n");
   }
 
   if (bounding_box)
@@ -642,7 +633,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int size_t = size.y;
   int num_layers = size.z;
 )");
-      if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
+      if (g_backend_info.bSupportsTextureQueryLevels)
       {
         out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
       }
@@ -671,7 +662,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 )");
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
+    if (g_backend_info.bSupportsCoarseDerivatives)
     {
       // The software renderer uses the equivalent of coarse derivatives, so use them here for
       // consistency.  This hasn't been hardware tested.
@@ -761,132 +752,8 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }
 }
 
-void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_stages, bool per_pixel_lighting,
-                                 const pixel_shader_uid_data* uid_data)
-{
-  out->Write("\tCustomShaderData custom_data;\n");
-
-  if (per_pixel_lighting)
-  {
-    out->Write("\tcustom_data.position = WorldPos;\n");
-    out->Write("\tcustom_data.normal = Normal;\n");
-  }
-  else
-  {
-    out->Write("\tcustom_data.position = float3(0, 0, 0);\n");
-    out->Write("\tcustom_data.normal = float3(0, 0, 0);\n");
-  }
-
-  if (uid_data->genMode_numtexgens == 0) [[unlikely]]
-  {
-    out->Write("\tcustom_data.texcoord[0] = float3(0, 0, 0);\n");
-  }
-  else
-  {
-    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
-    {
-      out->Write("\tif (tex{0}.z == 0.0)\n", i);
-      out->Write("\t{{\n");
-      out->Write("\t\tcustom_data.texcoord[{0}] = tex{0};\n", i);
-      out->Write("\t}}\n");
-      out->Write("\telse {{\n");
-      out->Write("\t\tcustom_data.texcoord[{0}] = float3(tex{0}.xy / tex{0}.z, 0);\n", i);
-      out->Write("\t}}\n");
-    }
-  }
-
-  for (u32 i = 0; i < 8; i++)
-  {
-    // Shader compilation complains if every index isn't initialized
-    out->Write("\tcustom_data.texmap_to_texcoord_index[{0}] = 0;\n", i);
-  }
-
-  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
-  {
-    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
-    {
-      u32 texcoord = uid_data->GetTevindirefCoord(i);
-      const u32 texmap = uid_data->GetTevindirefMap(i);
-
-      // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
-      // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
-      // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
-      // the number of tex gens to 2 (bug 11462).
-      if (texcoord >= uid_data->genMode_numtexgens)
-        texcoord = 0;
-
-      out->Write("\tcustom_data.texmap_to_texcoord_index[{}] = {};\n", texmap, texcoord);
-    }
-  }
-  out->Write("\tcustom_data.texcoord_count = {};\n", uid_data->genMode_numtexgens);
-
-  // Try and do a best guess on what the texcoord index is
-  // Note: one issue with this would be textures that are used
-  // multiple times in the same draw but with different texture coordinates.
-  // In that scenario, only the last texture coordinate would be defined.
-  // This issue can be seen in how Rogue Squadron 2 does bump mapping
-  for (u32 i = 0; i < num_stages; i++)
-  {
-    auto& tevstage = uid_data->stagehash[i];
-    // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
-    // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
-    u32 texcoord = tevstage.tevorders_texcoord;
-    const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens;
-    if (!has_tex_coord)
-      texcoord = 0;
-
-    out->Write("\tcustom_data.texmap_to_texcoord_index[{}] = {};\n", tevstage.tevorders_texmap,
-               texcoord);
-  }
-
-  if (per_pixel_lighting)
-    GenerateCustomLightingImplementation(out, uid_data->lighting, "colors_");
-
-  for (u32 i = 0; i < 16; i++)
-  {
-    // Shader compilation complains if every struct isn't initialized
-
-    // Color Input
-    for (u32 j = 0; j < 4; j++)
-    {
-      out->Write("\tcustom_data.tev_stages[{}].input_color[{}].input_type = "
-                 "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED;\n",
-                 i, j);
-      out->Write("\tcustom_data.tev_stages[{}].input_color[{}].value = "
-                 "float3(0, 0, 0);\n",
-                 i, j);
-    }
-
-    // Alpha Input
-    for (u32 j = 0; j < 4; j++)
-    {
-      out->Write("\tcustom_data.tev_stages[{}].input_alpha[{}].input_type = "
-                 "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED;\n",
-                 i, j);
-      out->Write("\tcustom_data.tev_stages[{}].input_alpha[{}].value = "
-                 "float(0);\n",
-                 i, j);
-    }
-
-    // Texmap
-    out->Write("\tcustom_data.tev_stages[{}].texmap = 0u;\n", i);
-
-    // Output
-    out->Write("\tcustom_data.tev_stages[{}].output_color = "
-               "float4(0, 0, 0, 0);\n",
-               i);
-  }
-
-  // Actual data will be filled out in the tev stage code, just set the
-  // stage count for now
-  out->Write("\tcustom_data.tev_stage_count = {};\n", num_stages);
-
-  // Time
-  out->Write("\tcustom_data.time_ms = time_ms;\n");
-}
-
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo, bool has_custom_shaders);
+                       APIType api_type, bool stereo);
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
                             bool clamp, TevScale scale);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
@@ -898,9 +765,14 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
                        bool use_dual_source);
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
+static void WriteEmulatedFragmentBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
+                                            const pixel_shader_uid_data* uid_data, ShaderCode& out);
+static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& host_config,
+                                     const pixel_shader_uid_data* uid_data, ShaderCode& out);
+
 ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data,
-                                   const CustomPixelShaderContents& custom_details)
+                                   CustomPixelContents custom_contents)
 {
   ShaderCode out;
 
@@ -917,15 +789,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // Stuff that is shared between ubershaders and pixelgen.
   WriteBitfieldExtractHeader(out, api_type, host_config);
 
-  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box, custom_details);
-
-  // Custom shader details
-  WriteCustomShaderStructDef(&out, uid_data->genMode_numtexgens);
-  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
-  {
-    const auto& shader_details = custom_details.shaders[i];
-    out.Write(fmt::runtime(shader_details.custom_shader), i);
-  }
+  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
 
   out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
             "sampleTexture(texmap, samp[texmap], uv, layer)\n");
@@ -1057,16 +921,38 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
+  if (!custom_contents.uniforms.empty())
+  {
+    out.Write("UBO_BINDING(std140, 3) uniform CustomShaderBlock {{\n");
+    out.Write("{}", custom_contents.uniforms);
+    out.Write("}} custom_uniforms;\n");
+  }
+
+  if (per_pixel_lighting)
+  {
+    GenerateLightingShaderHeader(out, uid_data->lighting);
+  }
+
+  WriteFragmentDefinitions(api_type, host_config, uid_data, out);
+  WriteEmulatedFragmentBodyHeader(api_type, host_config, uid_data, out);
+
+  if (custom_contents.shader.empty())
+  {
+    out.Write("void process_fragment(in DolphinFragmentInput frag_input, out DolphinFragmentOutput "
+              "frag_output)\n");
+    out.Write("{{\n");
+
+    out.Write("\tdolphin_process_emulated_fragment(frag_input, frag_output);\n");
+
+    out.Write("}}\n");
+  }
+  else
+  {
+    out.Write("{}\n", custom_contents.shader);
+  }
+
   out.Write("void main()\n{{\n");
   out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
-
-  bool has_custom_shaders = false;
-  if (std::any_of(custom_details.shaders.begin(), custom_details.shaders.end(),
-                  [](const std::optional<CustomPixelShader>& ps) { return ps.has_value(); }))
-  {
-    WriteCustomShaderStructImpl(&out, numStages, per_pixel_lighting, uid_data);
-    has_custom_shaders = true;
-  }
 
   if (use_framebuffer_fetch)
   {
@@ -1102,113 +988,31 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tint layer = 0;\n");
   }
 
-  out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
-            "[3], prev = " I_COLORS "[0];\n"
-            "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, "
-            "0, 0);\n"
-            "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
-            "\tint alphabump=0;\n"
-            "\tint3 tevcoord=int3(0, 0, 0);\n"
-            "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
-            "\tint4 "
-            "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,"
-            "0);\n\n");  // tev combiner inputs
-
-  // On GLSL, input variables must not be assigned to.
-  // This is why we declare these variables locally instead.
-  out.Write("\tfloat4 col0 = colors_0;\n"
-            "\tfloat4 col1 = colors_1;\n");
-
+  out.Write("\tDolphinFragmentInput frag_input;\n");
+  out.Write("\tfrag_input.color_0 = colors_0;\n");
+  out.Write("\tfrag_input.color_1 = colors_1;\n");
+  out.Write("\tfrag_input.layer = layer;\n");
   if (per_pixel_lighting)
   {
-    out.Write("\tfloat3 _normal = normalize(Normal.xyz);\n\n"
-              "\tfloat3 pos = WorldPos;\n");
-
-    out.Write("\tint4 lacc;\n"
-              "\tfloat3 ldir, h, cosAttn, distAttn;\n"
-              "\tfloat dist, dist2, attn;\n");
-
-    // TODO: Our current constant usage code isn't able to handle more than one buffer.
-    //       So we can't mark the VS constant as used here. But keep them here as reference.
-    // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
-    // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
-    // out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-    GenerateLightingShaderCode(out, uid_data->lighting, "colors_", "col");
-    // The number of colors available to TEV is determined by numColorChans.
-    // Normally this is performed in the vertex shader after lighting, but with per-pixel lighting,
-    // we need to perform it here.  (It needs to be done after lighting, as what was originally
-    // black might become a different color after lighting).
-    if (uid_data->numColorChans == 0)
-      out.Write("col0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    if (uid_data->numColorChans <= 1)
-      out.Write("col1 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  }
-
-  if (uid_data->genMode_numtexgens == 0)
-  {
-    // TODO: This is a hack to ensure that shaders still compile when setting out of bounds tex
-    // coord indices to 0.  Ideally, it shouldn't exist at all, but the exact behavior hasn't been
-    // tested.
-    out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n\n");
+    out.Write("\tfrag_input.normal = normalize(Normal);\n");
+    out.Write("\tfrag_input.position = WorldPos;\n");
   }
   else
   {
-    out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
-    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
-    {
-      out.Write("\tint2 fixpoint_uv{} = int2(", i);
-      out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
-      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
-      // TODO: S24 overflows here?
-    }
+    out.Write("\tfrag_input.normal = vec3(0, 0, 0);\n");
+    out.Write("\tfrag_input.position = vec3(0, 0, 0);\n");
   }
-
-  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
+  for (u32 i = 0; i < uid_data->genMode_numtexgens; i++)
   {
-    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
-    {
-      u32 texcoord = uid_data->GetTevindirefCoord(i);
-      const u32 texmap = uid_data->GetTevindirefMap(i);
-
-      // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
-      // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
-      // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
-      // the number of tex gens to 2 (bug 11462).
-      if (texcoord >= uid_data->genMode_numtexgens)
-        texcoord = 0;
-
-      out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
-      out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
-                (i & 1) ? "zw" : "xy");
-
-      out.Write("\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i,
-                texmap);
-    }
+    out.Write("\tfrag_input.tex{0} = tex{0};\n", i);
   }
 
-  for (u32 i = 0; i < numStages; i++)
-  {
-    // Build the equation for this stage
-    WriteStage(out, uid_data, i, api_type, stereo, has_custom_shaders);
-  }
+  if (!custom_contents.shader.empty())
+    GenerateCustomLighting(&out, uid_data->lighting);
 
-  {
-    // The results of the last texenv stage are put onto the screen,
-    // regardless of the used destination register
-    TevStageCombiner::ColorCombiner last_cc;
-    TevStageCombiner::AlphaCombiner last_ac;
-    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc;
-    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac;
-    if (last_cc.dest != TevOutput::Prev)
-    {
-      out.Write("\tprev.rgb = {};\n", tev_c_output_table[last_cc.dest]);
-    }
-    if (last_ac.dest != TevOutput::Prev)
-    {
-      out.Write("\tprev.a = {};\n", tev_a_output_table[last_ac.dest]);
-    }
-  }
-  out.Write("\tprev = prev & 255;\n");
+  out.Write("\tDolphinFragmentOutput frag_output;\n");
+  out.Write("\tprocess_fragment(frag_input, frag_output);\n");
+  out.Write("\tivec4 prev = frag_output.main & 255;\n");
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
@@ -1288,10 +1092,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // ztextures anyway
   if (uid_data->ztex_op != ZTexOp::Disabled && !skip_ztexture)
   {
-    // use the texture input of the last texture stage (textemp), hopefully this has been read and
+    // use the texture input of the last texture stage, hopefully this has been read and
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
-    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS "[1].w {};\n",
+    out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, frag_output.last_texture.xyzw) + " I_ZBIAS
+              "[1].w {};\n",
               (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
@@ -1314,23 +1119,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
 
   WriteFog(out, uid_data);
-
-  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
-  {
-    const auto& shader_details = custom_details.shaders[i];
-
-    if (!shader_details.custom_shader.empty())
-    {
-      out.Write("\t{{\n");
-      out.Write("\t\tcustom_data.final_color = float4(prev.r / 255.0, prev.g / 255.0, prev.b "
-                "/ 255.0, prev.a / 255.0);\n");
-      out.Write("\t\tCustomShaderOutput custom_output = {}_{}(custom_data);\n",
-                CUSTOM_PIXELSHADER_COLOR_FUNC, i);
-      out.Write("\t\tprev = int4(custom_output.main_rt.r * 255, custom_output.main_rt.g * 255, "
-                "custom_output.main_rt.b * 255, custom_output.main_rt.a * 255);\n");
-      out.Write("\t}}\n\n");
-    }
-  }
 
   if (uid_data->logic_op_enable)
     WriteLogicOp(out, uid_data);
@@ -1356,7 +1144,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo, bool has_custom_shaders)
+                       APIType api_type, bool stereo)
 {
   using Common::EnumMap;
 
@@ -1614,8 +1402,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
-    out.Write("\ttextemp = sampleTextureWrapper({}u, tevcoord.xy, layer).{}{}{}{};\n",
-              stage.tevorders_texmap, rgba_swizzle[stage.tex_swap_r],
+    out.Write("\trawtextemp = sampleTextureWrapper({}u, tevcoord.xy, layer);\n",
+              stage.tevorders_texmap);
+    out.Write("\ttextemp = rawtextemp.{}{}{}{};\n", rgba_swizzle[stage.tex_swap_r],
               rgba_swizzle[stage.tex_swap_g], rgba_swizzle[stage.tex_swap_b],
               rgba_swizzle[stage.tex_swap_a]);
   }
@@ -1750,58 +1539,6 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write(", -1024, 1023)");
 
   out.Write(";\n");
-
-  if (has_custom_shaders)
-  {
-    // Color input
-    out.Write(
-        "\tcustom_data.tev_stages[{}].input_color[0].value = {} / float3(255.0, 255.0, 255.0);\n",
-        n, tev_c_input_table[cc.a]);
-    out.Write("\tcustom_data.tev_stages[{}].input_color[0].input_type = {};\n", n,
-              tev_c_input_type[cc.a]);
-    out.Write(
-        "\tcustom_data.tev_stages[{}].input_color[1].value = {} / float3(255.0, 255.0, 255.0);\n",
-        n, tev_c_input_table[cc.b]);
-    out.Write("\tcustom_data.tev_stages[{}].input_color[1].input_type = {};\n", n,
-              tev_c_input_type[cc.b]);
-    out.Write(
-        "\tcustom_data.tev_stages[{}].input_color[2].value = {} / float3(255.0, 255.0, 255.0);\n",
-        n, tev_c_input_table[cc.c]);
-    out.Write("\tcustom_data.tev_stages[{}].input_color[2].input_type = {};\n", n,
-              tev_c_input_type[cc.c]);
-    out.Write(
-        "\tcustom_data.tev_stages[{}].input_color[3].value = {} / float3(255.0, 255.0, 255.0);\n",
-        n, tev_c_input_table[cc.d]);
-    out.Write("\tcustom_data.tev_stages[{}].input_color[3].input_type = {};\n", n,
-              tev_c_input_type[cc.d]);
-
-    // Alpha input
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[0].value = {} / float(255.0);\n", n,
-              tev_a_input_table[ac.a]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[0].input_type = {};\n", n,
-              tev_a_input_type[ac.a]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[1].value = {} / float(255.0);\n", n,
-              tev_a_input_table[ac.b]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[1].input_type = {};\n", n,
-              tev_a_input_type[ac.b]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[2].value = {} / float(255.0);\n", n,
-              tev_a_input_table[ac.c]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[2].input_type = {};\n", n,
-              tev_a_input_type[ac.c]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[3].value = {} / float(255.0);\n", n,
-              tev_a_input_table[ac.d]);
-    out.Write("\tcustom_data.tev_stages[{}].input_alpha[3].input_type = {};\n", n,
-              tev_a_input_type[ac.d]);
-
-    // Texmap
-    out.Write("\tcustom_data.tev_stages[{}].texmap = {}u;\n", n, stage.tevorders_texmap);
-
-    // Output
-    out.Write("\tcustom_data.tev_stages[{}].output_color.rgb = {} / float3(255.0, 255.0, 255.0);\n",
-              n, tev_c_output_table[cc.dest]);
-    out.Write("\tcustom_data.tev_stages[{}].output_color.a = {} / float(255.0);\n", n,
-              tev_a_output_table[ac.dest]);
-  }
 }
 
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
@@ -1922,8 +1659,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   }
   if (per_pixel_depth)
   {
-    out.Write("\t\tdepth = {};\n",
-              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? "0.0" : "1.0");
+    out.Write("\t\tdepth = {};\n", !g_backend_info.bSupportsReversedDepthRange ? "0.0" : "1.0");
   }
 
   // ZCOMPLOC HACK:
@@ -2182,4 +1918,199 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   }
 
   out.Write("\treal_ocol0 = blend_result;\n");
+}
+
+void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  const bool per_pixel_lighting = host_config.per_pixel_lighting;
+  const bool stereo = host_config.stereo;
+  const u32 numStages = uid_data->genMode_numtevstages + 1;
+
+  out.Write("\tvec4 col0 = frag_input.color_0;\n");
+  out.Write("\tvec4 col1 = frag_input.color_1;\n");
+  out.Write("\tint layer = frag_input.layer;\n");
+
+  out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
+            "[3], prev = " I_COLORS "[0];\n"
+            "\tint4 rastemp = int4(0, 0, 0, 0), rawtextemp = int4(0, 0, 0, 0), "
+            "textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n"
+            "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
+            "\tint alphabump=0;\n"
+            "\tint3 tevcoord=int3(0, 0, 0);\n"
+            "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
+            "\tint4 "
+            "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,"
+            "0);\n\n");  // tev combiner inputs
+
+  if (per_pixel_lighting)
+  {
+    if (uid_data->numColorChans > 0)
+    {
+      out.Write("\tcol0 = dolphin_calculate_lighting_chn0(col0, frag_input.position, "
+                "frag_input.normal);\n");
+    }
+    else
+    {
+      // The number of colors available to TEV is determined by numColorChans.
+      // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+      out.Write("\tcol0 = vec4(0.0, 0.0, 0.0, 0.0);\n");
+    }
+
+    if (uid_data->numColorChans == 2)
+    {
+      out.Write("\tcol1 = dolphin_calculate_lighting_chn1(col1, frag_input.position, "
+                "frag_input.normal);\n");
+    }
+    else
+    {
+      // The number of colors available to TEV is determined by numColorChans.
+      // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+      out.Write("\tcol1 = vec4(0.0, 0.0, 0.0, 0.0);\n");
+    }
+  }
+
+  if (uid_data->genMode_numtexgens == 0)
+  {
+    // TODO: This is a hack to ensure that shaders still compile when setting out of bounds tex
+    // coord indices to 0.  Ideally, it shouldn't exist at all, but the exact behavior hasn't been
+    // tested.
+    out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n\n");
+  }
+  else
+  {
+    out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
+    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
+    {
+      out.Write("\tint2 fixpoint_uv{} = int2(", i);
+      out.Write("(frag_input.tex{}.z == 0.0 ? frag_input.tex{}.xy : frag_input.tex{}.xy / "
+                "frag_input.tex{}.z)",
+                i, i, i, i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
+      // TODO: S24 overflows here?
+    }
+  }
+
+  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
+  {
+    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
+    {
+      u32 texcoord = uid_data->GetTevindirefCoord(i);
+      const u32 texmap = uid_data->GetTevindirefMap(i);
+
+      // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord
+      // does not exist), then tex coord 0 is used (though sometimes glitchy effects happen on
+      // console). This affects the Mario portrait in Luigi's Mansion, where the developers forgot
+      // to set the number of tex gens to 2 (bug 11462).
+      if (texcoord >= uid_data->genMode_numtexgens)
+        texcoord = 0;
+
+      out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
+      out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
+                (i & 1) ? "zw" : "xy");
+
+      out.Write("\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i,
+                texmap);
+    }
+  }
+
+  for (u32 i = 0; i < numStages; i++)
+  {
+    // Build the equation for this stage
+    WriteStage(out, uid_data, i, api_type, stereo);
+  }
+
+  {
+    // The results of the last texenv stage are put onto the screen,
+    // regardless of the used destination register
+    TevStageCombiner::ColorCombiner last_cc;
+    TevStageCombiner::AlphaCombiner last_ac;
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc;
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac;
+    if (last_cc.dest != TevOutput::Prev)
+    {
+      out.Write("\tprev.rgb = {};\n", tev_c_output_table[last_cc.dest]);
+    }
+    if (last_ac.dest != TevOutput::Prev)
+    {
+      out.Write("\tprev.a = {};\n", tev_a_output_table[last_ac.dest]);
+    }
+  }
+
+  out.Write("\tfrag_output.last_texture = rawtextemp;\n");
+  out.Write("\tfrag_output.main = prev;\n");
+}
+
+static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& host_config,
+                                     const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("struct DolphinLightData\n");
+  out.Write("{{\n");
+  out.Write("\tfloat3 position;\n");
+  out.Write("\tfloat3 direction;\n");
+  out.Write("\tfloat3 color;\n");
+  out.Write("\tuint attenuation_type;\n");
+  out.Write("\tfloat4 cosatt;\n");
+  out.Write("\tfloat4 distatt;\n");
+  out.Write("}};\n\n");
+
+  out.Write("struct DolphinFragmentInput\n");
+  out.Write("{{\n");
+  out.Write("\tvec4 color_0;\n");
+  out.Write("\tvec4 color_1;\n");
+  out.Write("\tint layer;\n");
+  out.Write("\tvec3 normal;\n");
+  out.Write("\tvec3 position;\n");
+  for (u32 i = 0; i < uid_data->genMode_numtexgens; i++)
+  {
+    out.Write("\tvec3 tex{};\n", i);
+  }
+  for (u32 i = uid_data->genMode_numtexgens; i < 8; i++)
+  {
+    out.Write("\tvec3 tex{};\n", i);
+  }
+  out.Write("\n");
+
+  out.Write("\tDolphinLightData[8] lights_chan0_color;\n");
+  out.Write("\tDolphinLightData[8] lights_chan0_alpha;\n");
+  out.Write("\tDolphinLightData[8] lights_chan1_color;\n");
+  out.Write("\tDolphinLightData[8] lights_chan1_alpha;\n");
+  out.Write("\tfloat4[2] ambient_lighting;\n");
+  out.Write("\tfloat4[2] base_material;\n");
+  out.Write("\tuint light_chan0_color_count;\n");
+  out.Write("\tuint light_chan0_alpha_count;\n");
+  out.Write("\tuint light_chan1_color_count;\n");
+  out.Write("\tuint light_chan1_alpha_count;\n");
+
+  out.Write("}};\n\n");
+
+  out.Write("struct DolphinFragmentOutput\n");
+  out.Write("{{\n");
+  out.Write("\tivec4 main;\n");
+  out.Write("\tivec4 last_texture;\n");
+  out.Write("}};\n\n");
+
+  // CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE "enum" values
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {}u;\n",
+            static_cast<u32>(AttenuationFunc::None));
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {}u;\n",
+            static_cast<u32>(AttenuationFunc::Spec));
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {}u;\n",
+            static_cast<u32>(AttenuationFunc::Dir));
+  out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
+            static_cast<u32>(AttenuationFunc::Spot));
+}
+
+static void WriteEmulatedFragmentBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
+                                            const pixel_shader_uid_data* uid_data, ShaderCode& out)
+{
+  constexpr std::string_view emulated_fragment_definition =
+      "void dolphin_process_emulated_fragment(in DolphinFragmentInput frag_input, out "
+      "DolphinFragmentOutput frag_output)";
+  out.Write("{}\n", emulated_fragment_definition);
+  out.Write("{{\n");
+
+  WriteFragmentBody(api_type, host_config, uid_data, out);
+
+  out.Write("}}\n");
 }

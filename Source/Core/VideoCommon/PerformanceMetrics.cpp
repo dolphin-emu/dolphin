@@ -3,14 +3,12 @@
 
 #include "VideoCommon/PerformanceMetrics.h"
 
-#include <mutex>
+#include <algorithm>
 
 #include <imgui.h>
 #include <implot.h>
 
-#include "Core/CoreTiming.h"
-#include "Core/HW/VideoInterface.h"
-#include "Core/System.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/VideoConfig.h"
 
 PerformanceMetrics g_perf_metrics;
@@ -19,11 +17,12 @@ void PerformanceMetrics::Reset()
 {
   m_fps_counter.Reset();
   m_vps_counter.Reset();
-  m_speed_counter.Reset();
 
   m_time_sleeping = DT::zero();
-  m_real_times.fill(Clock::now());
-  m_cpu_times.fill(Core::System::GetInstance().GetCoreTiming().GetCPUTimePoint(0));
+  m_samples = {};
+
+  m_speed = 0;
+  m_max_speed = 0;
 }
 
 void PerformanceMetrics::CountFrame()
@@ -36,20 +35,47 @@ void PerformanceMetrics::CountVBlank()
   m_vps_counter.Count();
 }
 
+void PerformanceMetrics::OnEmulationStateChanged([[maybe_unused]] Core::State state)
+{
+  m_fps_counter.InvalidateLastTime();
+  m_vps_counter.InvalidateLastTime();
+}
+
 void PerformanceMetrics::CountThrottleSleep(DT sleep)
 {
-  std::unique_lock lock(m_time_lock);
   m_time_sleeping += sleep;
 }
 
-void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
+void PerformanceMetrics::AdjustClockSpeed(s64 ticks, u32 new_ppc_clock, u32 old_ppc_clock)
 {
-  std::unique_lock lock(m_time_lock);
-  m_speed_counter.Count();
+  for (auto& sample : m_samples)
+  {
+    const s64 diff = (sample.core_ticks - ticks) * new_ppc_clock / old_ppc_clock;
+    sample.core_ticks = ticks + diff;
+  }
+}
 
-  m_real_times[m_time_index] = Clock::now() - m_time_sleeping;
-  m_cpu_times[m_time_index] = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
-  m_time_index += 1;
+void PerformanceMetrics::CountPerformanceMarker(s64 core_ticks, u32 ticks_per_second)
+{
+  const auto clock_time = Clock::now();
+  const auto work_time = clock_time - m_time_sleeping;
+
+  m_samples.emplace_back(
+      PerfSample{.clock_time = clock_time, .work_time = work_time, .core_ticks = core_ticks});
+
+  const auto sample_window = std::chrono::microseconds{g_ActiveConfig.iPerfSampleUSec};
+  while (clock_time - m_samples.front().clock_time > sample_window)
+    m_samples.pop_front();
+
+  // Avoid division by zero when we just have one sample.
+  if (m_samples.size() < 2)
+    return;
+
+  const PerfSample& oldest = m_samples.front();
+  const auto elapsed_core_time = DT_s(core_ticks - oldest.core_ticks) / ticks_per_second;
+
+  m_speed.store(elapsed_core_time / (clock_time - oldest.clock_time), std::memory_order_relaxed);
+  m_max_speed.store(elapsed_core_time / (work_time - oldest.work_time), std::memory_order_relaxed);
 }
 
 double PerformanceMetrics::GetFPS() const
@@ -64,32 +90,32 @@ double PerformanceMetrics::GetVPS() const
 
 double PerformanceMetrics::GetSpeed() const
 {
-  return m_speed_counter.GetHzAvg() / 100.0;
+  return m_speed.load(std::memory_order_relaxed);
 }
 
 double PerformanceMetrics::GetMaxSpeed() const
 {
-  std::shared_lock lock(m_time_lock);
-  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
-         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
-}
-
-double PerformanceMetrics::GetLastSpeedDenominator() const
-{
-  return DT_s(m_speed_counter.GetLastRawDt()).count() *
-         Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate();
+  return m_max_speed.load(std::memory_order_relaxed);
 }
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
+  m_vps_counter.UpdateStats();
+  m_fps_counter.UpdateStats();
+
+  const bool movable_overlays = Config::Get(Config::GFX_MOVABLE_PERFORMANCE_METRICS);
+  const int movable_flag = movable_overlays ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoMove;
+
   const float bg_alpha = 0.7f;
   const auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | movable_flag |
                            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
 
   const double fps = GetFPS();
   const double vps = GetVPS();
   const double speed = GetSpeed();
+
+  static ImVec2 last_display_size(-1.0f, -1.0f);
 
   // Change Color based on % Speed
   float r = 0.0f, g = 1.0f, b = 1.0f;
@@ -102,12 +128,42 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
   const float window_padding = 8.f * backbuffer_scale;
   const float window_width = 93.f * backbuffer_scale;
+
+  const ImVec2& display_size = ImGui::GetIO().DisplaySize;
+  const bool display_size_changed =
+      display_size.x != last_display_size.x || display_size.y != last_display_size.y;
+  last_display_size = display_size;
+  // There are too many edge cases to reasonably handle when the display size changes, so just reset
+  // the layout to default. Hopefully users aren't changing window sizes or resolutions too often.
+  const ImGuiCond set_next_position_condition =
+      (display_size_changed || !movable_overlays) ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+
   float window_y = window_padding;
-  float window_x = ImGui::GetIO().DisplaySize.x - window_padding;
+  float window_x = display_size.x - window_padding;
+
+  const auto clamp_window_position = [&]() {
+    const ImVec2 position = ImGui::GetWindowPos();
+    const ImVec2 size = ImGui::GetWindowSize();
+    const float window_min_x = window_padding;
+    const float window_max_x = display_size.x - window_padding - size.x;
+    const float window_min_y = window_padding;
+    const float window_max_y = display_size.y - window_padding - size.y;
+
+    if (window_min_x > window_max_x || window_min_y > window_max_y)
+      return;
+
+    const float clamped_window_x = std::clamp(position.x, window_min_x, window_max_x);
+    const float clamped_window_y = std::clamp(position.y, window_min_y, window_max_y);
+    const bool window_needs_clamping =
+        (clamped_window_x != position.x) || (clamped_window_y != position.y);
+
+    if (window_needs_clamping)
+      ImGui::SetWindowPos(ImVec2(clamped_window_x, clamped_window_y), ImGuiCond_Always);
+  };
 
   const float graph_width = 50.f * backbuffer_scale + 3.f * window_width + 2.f * window_padding;
   const float graph_height =
-      std::min(200.f * backbuffer_scale, ImGui::GetIO().DisplaySize.y - 85.f * backbuffer_scale);
+      std::min(200.f * backbuffer_scale, display_size.y - 85.f * backbuffer_scale);
 
   const bool stack_vertically = !g_ActiveConfig.bShowGraphs;
 
@@ -118,7 +174,9 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 4.f * backbuffer_scale));
 
     // Position in the top-right corner of the screen.
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
+                            ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(graph_width, graph_height));
     ImGui::SetNextWindowBgAlpha(bg_alpha);
     window_y += graph_height + window_padding;
@@ -143,6 +201,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                                                                    1000.0 / 2.000,
                                                                    1000.0,
                                                                    2000.0};
+
+      clamp_window_position();
 
       const DT vblank_time = m_vps_counter.GetDtAvg() + 2 * m_vps_counter.GetDtStd();
       const DT frame_time = m_fps_counter.GetDtAvg() + 2 * m_fps_counter.GetDtStd();
@@ -192,7 +252,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     // Position in the top-right corner of the screen.
     float window_height = 47.f * backbuffer_scale;
 
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
+                            ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
     ImGui::SetNextWindowBgAlpha(bg_alpha);
 
@@ -203,6 +264,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
     if (ImGui::Begin("SpeedStats", nullptr, imgui_flags))
     {
+      clamp_window_position();
       ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", 100.0 * speed);
       ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Max:%6.0lf%%", 100.0 * GetMaxSpeed());
     }
@@ -215,7 +277,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     float window_height = (12.f + 17.f * count) * backbuffer_scale;
 
     // Position in the top-right corner of the screen.
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
+                            ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
     ImGui::SetNextWindowBgAlpha(bg_alpha);
 
@@ -226,6 +289,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
     if (ImGui::Begin("FPSStats", nullptr, imgui_flags))
     {
+      clamp_window_position();
       if (g_ActiveConfig.bShowFPS)
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), "FPS:%7.2lf", fps);
       if (g_ActiveConfig.bShowFTimes)
@@ -245,7 +309,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     float window_height = (12.f + 17.f * count) * backbuffer_scale;
 
     // Position in the top-right corner of the screen.
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
+                            ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_width, (12.f + 17.f * count) * backbuffer_scale));
     ImGui::SetNextWindowBgAlpha(bg_alpha);
 
@@ -256,6 +321,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
     if (ImGui::Begin("VPSStats", nullptr, imgui_flags))
     {
+      clamp_window_position();
       if (g_ActiveConfig.bShowVPS)
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), "VPS:%7.2lf", vps);
       if (g_ActiveConfig.bShowVTimes)

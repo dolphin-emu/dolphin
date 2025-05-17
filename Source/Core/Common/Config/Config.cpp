@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Projection.h"
+
 namespace Config
 {
 using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
@@ -18,10 +20,11 @@ using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
 static Layers s_layers;
 static std::vector<std::pair<ConfigChangedCallbackID, ConfigChangedCallback>> s_callbacks;
 static size_t s_next_callback_id = 0;
-static u32 s_callback_guards = 0;
+static std::atomic<u32> s_callback_guards = 0;
 static std::atomic<u64> s_config_version = 0;
 
 static std::shared_mutex s_layers_rw_lock;
+static std::mutex s_callbacks_lock;
 
 using ReadLock = std::shared_lock<std::shared_mutex>;
 using WriteLock = std::unique_lock<std::shared_mutex>;
@@ -67,6 +70,7 @@ void RemoveLayer(LayerType layer)
 
 ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func)
 {
+  std::lock_guard lock(s_callbacks_lock);
   const ConfigChangedCallbackID callback_id{s_next_callback_id};
   ++s_next_callback_id;
   s_callbacks.emplace_back(std::make_pair(callback_id, std::move(func)));
@@ -75,6 +79,7 @@ ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func)
 
 void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
 {
+  std::lock_guard lock(s_callbacks_lock);
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {
     if (it->first == callback_id)
@@ -94,6 +99,8 @@ void OnConfigChanged()
 
   if (s_callback_guards)
     return;
+
+  std::lock_guard lock(s_callbacks_lock);
 
   for (const auto& callback : s_callbacks)
     callback.second();
@@ -168,8 +175,7 @@ const std::string& GetSystemName(System system)
 
 std::optional<System> GetSystemFromName(const std::string& name)
 {
-  const auto system = std::find_if(system_to_name.begin(), system_to_name.end(),
-                                   [&name](const auto& entry) { return entry.second == name; });
+  const auto system = std::ranges::find(system_to_name, name, Common::Projection::Value{});
   if (system != system_to_name.end())
     return system->first;
 

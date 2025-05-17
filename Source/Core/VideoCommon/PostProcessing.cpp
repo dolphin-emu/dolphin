@@ -685,7 +685,7 @@ std::string PostProcessing::GetHeader(bool user_post_process) const
   ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
   ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_backend_info.bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) in VertexData {\n";
     ss << "  float3 v_tex0;\n";
@@ -770,7 +770,7 @@ std::string PostProcessing::GetFooter() const
 static std::string GetVertexShaderBody()
 {
   std::ostringstream ss;
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_backend_info.bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) out VertexData {\n";
     ss << "  float3 v_tex0;\n";
@@ -789,12 +789,12 @@ static std::string GetVertexShaderBody()
   ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
 
   // Vulkan Y needs to be inverted on every pass
-  if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
+  if (g_backend_info.api_type == APIType::Vulkan)
   {
     ss << "  opos.y = -opos.y;\n";
   }
   // OpenGL Y needs to be inverted in all passes except the last one
-  else if (g_ActiveConfig.backend_info.api_type == APIType::OpenGL)
+  else if (g_backend_info.api_type == APIType::OpenGL)
   {
     ss << "  if (intermediary_buffer != 0)\n";
     ss << "    opos.y = -opos.y;\n";
@@ -887,7 +887,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                static_cast<float>(src.GetHeight()) * rcp_src_height};
   builtin_uniforms.src_layer = static_cast<s32>(src_layer);
   builtin_uniforms.time = static_cast<u32>(m_timer.ElapsedMs());
-  builtin_uniforms.graphics_api = static_cast<s32>(g_ActiveConfig.backend_info.api_type);
+  builtin_uniforms.graphics_api = static_cast<s32>(g_backend_info.api_type);
   builtin_uniforms.intermediary_buffer = static_cast<s32>(intermediary_buffer);
 
   builtin_uniforms.resampling_method = static_cast<s32>(g_ActiveConfig.output_resampling_mode);
@@ -1009,7 +1009,7 @@ static bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
   switch (g_ActiveConfig.stereo_mode)
   {
   case StereoMode::QuadBuffer:
-    return !g_ActiveConfig.backend_info.bUsesExplictQuadBuffering;
+    return !g_backend_info.bUsesExplictQuadBuffering;
   case StereoMode::Anaglyph:
   case StereoMode::Passive:
     return is_intermediary_buffer;

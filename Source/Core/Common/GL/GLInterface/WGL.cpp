@@ -234,7 +234,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     return false;
 
   RECT window_rect = {};
-  m_window_handle = reinterpret_cast<HWND>(wsi.render_surface);
+  m_window_handle = static_cast<HWND>(wsi.render_surface);
   if (!GetClientRect(m_window_handle, &window_rect))
     return false;
 

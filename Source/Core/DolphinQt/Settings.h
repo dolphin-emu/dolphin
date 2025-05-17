@@ -10,6 +10,7 @@
 #include <QRadioButton>
 #include <QSettings>
 
+#include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -197,7 +198,6 @@ signals:
   void CursorVisibilityChanged();
   void LockCursorChanged();
   void KeepWindowOnTopChanged(bool top);
-  void VolumeChanged(int volume);
   void NANDRefresh();
   void RegistersVisibilityChanged(bool visible);
   void ThreadsVisibilityChanged(bool visible);
@@ -223,7 +223,6 @@ signals:
   void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);
   void EnableGfxModsChanged(bool enabled);
-  void HardcoreStateChanged();
 
 private:
   Settings();
@@ -234,6 +233,7 @@ private:
   std::shared_ptr<NetPlay::NetPlayClient> m_client;
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
   ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
 
 Q_DECLARE_METATYPE(Core::State);

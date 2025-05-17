@@ -29,9 +29,8 @@ jmethodID GetGameFileConstructor();
 jclass GetGameFileCacheClass();
 jfieldID GetGameFileCachePointer();
 
-jclass GetLinkedHashMapClass();
-jmethodID GetLinkedHashMapInit();
-jmethodID GetLinkedHashMapPut();
+jclass GetPairClass();
+jmethodID GetPairConstructor();
 
 jclass GetHashMapClass();
 jmethodID GetHashMapInit();
@@ -93,6 +92,10 @@ jclass GetControlReferenceClass();
 jfieldID GetControlReferencePointer();
 jmethodID GetControlReferenceConstructor();
 
+jclass GetControlGroupContainerClass();
+jfieldID GetControlGroupContainerPointer();
+jmethodID GetControlGroupContainerConstructor();
+
 jclass GetEmulatedControllerClass();
 jfieldID GetEmulatedControllerPointer();
 jmethodID GetEmulatedControllerConstructor();
@@ -108,6 +111,9 @@ jmethodID GetCoreDeviceConstructor();
 jclass GetCoreDeviceControlClass();
 jfieldID GetCoreDeviceControlPointer();
 jmethodID GetCoreDeviceControlConstructor();
+
+jclass GetInputDetectorClass();
+jfieldID GetInputDetectorPointer();
 
 jmethodID GetRunnableRun();
 

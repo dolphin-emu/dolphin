@@ -11,7 +11,7 @@
 #  FFmpeg_LIBRARIES: aggregate all the paths to the libraries
 #  FFmpeg_FOUND: True if all components have been found
 #
-# This module defines the following targets, which are prefered over variables:
+# This module defines the following targets, which are preferred over variables:
 #
 #  FFmpeg::<component>: Target to use <component> directly, with include path,
 #    library and dependencies set up. If you are using a static build, you are

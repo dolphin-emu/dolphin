@@ -24,7 +24,7 @@ int CSIDevice_DanceMat::RunBuffer(u8* buffer, int request_length)
   {
     ISIDevice::RunBuffer(buffer, request_length);
 
-    u32 id = Common::swap32(SI_DANCEMAT);
+    const u32 id = Common::swap32(SI_DANCEMAT);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -60,13 +60,13 @@ u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
   return (u32)(map << 16) | 0x8080;
 }
 
-bool CSIDevice_DanceMat::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_DanceMat::GetData(u32& hi, u32& low)
 {
   CSIDevice_GCController::GetData(hi, low);
 
   // Identifies the dance mat
   low = 0x8080ffff;
 
-  return true;
+  return DataResponse::Success;
 }
 }  // namespace SerialInterface

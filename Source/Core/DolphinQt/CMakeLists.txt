@@ -314,6 +314,8 @@ add_executable(dolphin-emu
   QtUtils/ImageConverter.h
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
+  QtUtils/NonAutodismissibleMenu.cpp
+  QtUtils/NonAutodismissibleMenu.h
   QtUtils/NonDefaultQPushButton.cpp
   QtUtils/NonDefaultQPushButton.h
   QtUtils/ParallelProgressDialog.h
@@ -412,6 +414,9 @@ PRIVATE
   -DQT_USE_QSTRINGBUILDER
   -DQT_NO_CAST_FROM_ASCII
   -DQT_NO_CAST_TO_ASCII
+  # This Qt version should match Externals/Qt.
+  # It disables deprecation warnings we can't fix yet.
+  -DQT_WARN_DEPRECATED_UP_TO=0x060501
 )
 
 target_include_directories(dolphin-emu
@@ -674,4 +679,7 @@ endif()
 if(USE_RETRO_ACHIEVEMENTS)
   target_link_libraries(dolphin-emu PRIVATE rcheevos)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
+  if(RC_CLIENT_SUPPORTS_RAINTEGRATION)
+    target_compile_definitions(dolphin-emu PRIVATE -DRC_CLIENT_SUPPORTS_RAINTEGRATION)
+  endif()
 endif()

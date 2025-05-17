@@ -54,7 +54,8 @@
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
-    <string name="input_binding_no_device">You need to select a device first!</string>
+    <string name="input_binding_no_device">You need to select a device first.</string>
+    <string name="input_binding_disconnected_device">The selected device is disconnected.\n\nPlease reconnect the device or select a different device.</string>
     <string name="input_configure_input">Configure Input</string>
     <string name="input_configure_output">Configure Output</string>
     <string name="input_expression">Expression</string>
@@ -132,7 +133,8 @@
 
     <!-- SerialPort1 Subsetting Fragment -->
     <string name="serialport1_submenu">Serial Port 1</string>
-    <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a></string>
+    <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a>
+    </string>
     <string name="xlink_kai_bba_ip">XLink Kai IP Address/hostname</string>
     <string name="xlink_kai_bba_ip_description">IP address or hostname of device running the XLink Kai client</string>
     <string name="bba_tapserver_destination">Tapserver destination</string>
@@ -151,6 +153,8 @@
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
+    <string name="time_tracking">Enable Play Time Tracking</string>
+    <string name="time_tracking_description">Tracks the time you spend playing games and shows it in the game details.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
     <string name="show_titles_in_game_list">Show Titles</string>
     <string name="change_theme">Change App Theme</string>
@@ -181,8 +185,10 @@
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
     <string name="dsp_emulation_engine">DSP Emulation Engine</string>
-    <string name="audio_stretch">Audio Stretching</string>
-    <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
+    <string name="audio_buffer_size">Audio Buffer Size</string>
+    <string name="audio_buffer_size_description">Controls the number of audio samples buffered. Lower values reduce latency but may cause more crackling or stuttering. If unsure, set this to 80 ms.</string>
+    <string name="audio_fill_gaps">Fill Audio Gaps</string>
+    <string name="audio_fill_gaps_description">Repeat existing audio during lag spikes to prevent stuttering. If unsure, leave this checked.</string>
     <string name="audio_volume">Audio Volume</string>
 
     <!-- Path Settings -->
@@ -370,7 +376,7 @@
     <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
     <string name="clock_override">Clock Override</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
-    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
+    <string name="overclock_enable_description">On games that have an unstable frame rate despite full emulation speed, higher values can improve their performance, requiring a powerful device. Lower values reduce the emulated console\'s performance, but improve the emulation speed.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
     <string name="memory_override">Memory Override</string>
@@ -379,6 +385,10 @@
     <string name="main_mem1_size">MEM1 Size</string>
     <string name="main_mem2_size">MEM2 Size</string>
     <string name="gpu_options">GPU Options</string>
+    <string name="vi_overclock_enable">Override VBI Frequency</string>
+    <string name="vi_overclock_enable_description">Makes games run at a different frame rate, making the emulation less demanding when lowered, or improving smoothness when increased. This may affect gameplay speed, as it is often tied to the frame rate.</string>
+    <string name="vi_overclock_title">VBI Frequency</string>
+    <string name="vi_overclock_title_description">Adjusts the VBI frequency rate if \"Override VBI Frequency\" is enabled.\nAlso adjusts the emulated CPU\'s clock speed, to keep it relatively the same.</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
     <string name="custom_rtc_options">Custom RTC Options</string>
@@ -513,6 +523,7 @@
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
 
     <!-- Game Details Screen -->
+    <string name="game_details_time_played">Played for %1$dh %2$dm</string>
     <string name="game_details_country">Country</string>
     <string name="game_details_company">Company</string>
     <string name="game_details_game_id">Game ID</string>
@@ -877,9 +888,15 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="about_branch">Branch:\n%s</string>
     <string name="about_revision">Revision:\n%s</string>
     <string name="about_dolphin_description">Dolphin is a free and open-source GameCube and Wii emulator.\n\nThis software should not be used to play games you do not legally own.</string>
-    <string name="about_website"><a href="https://dolphin-emu.org/">Website</a></string>
-    <string name="about_github"><a href="https://github.com/dolphin-emu/dolphin">GitHub</a></string>
-    <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
+    <string name="about_website">
+        <a href="https://dolphin-emu.org/">Website</a>
+    </string>
+    <string name="about_github">
+        <a href="https://github.com/dolphin-emu/dolphin">GitHub</a>
+    </string>
+    <string name="about_support">
+        <a href="https://forums.dolphin-emu.org/">Support</a>
+    </string>
     <string name="about_copyright_warning">\u00A9 2003–2024+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
     <string name="system_driver">System driver</string>
     <string name="system_driver_desc">The GPU driver that is part of the OS.</string>

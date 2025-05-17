@@ -2,7 +2,6 @@
 <Project>
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
-    <ClInclude Include="AudioCommon\AudioStretcher.h" />
     <ClInclude Include="AudioCommon\CubebStream.h" />
     <ClInclude Include="AudioCommon\CubebUtils.h" />
     <ClInclude Include="AudioCommon\Enums.h" />
@@ -27,6 +26,7 @@
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
     <ClInclude Include="Common\BlockingLoop.h" />
+    <ClInclude Include="Common\Buffer.h" />
     <ClInclude Include="Common\ChunkFile.h" />
     <ClInclude Include="Common\CodeBlock.h" />
     <ClInclude Include="Common\ColorUtil.h" />
@@ -62,6 +62,7 @@
     <ClInclude Include="Common\FloatUtils.h" />
     <ClInclude Include="Common\FormatUtil.h" />
     <ClInclude Include="Common\FPURoundMode.h" />
+    <ClInclude Include="Common\Functional.h" />
     <ClInclude Include="Common\GekkoDisassembler.h" />
     <ClInclude Include="Common\GL\GLContext.h" />
     <ClInclude Include="Common\GL\GLExtensions\AMD_pinned_memory.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="Common\Network.h" />
     <ClInclude Include="Common\PcapFile.h" />
     <ClInclude Include="Common\Profiler.h" />
+    <ClInclude Include="Common\Projection.h" />
     <ClInclude Include="Common\QoSSession.h" />
     <ClInclude Include="Common\Random.h" />
     <ClInclude Include="Common\Result.h" />
@@ -171,6 +173,7 @@
     <ClInclude Include="Common\UPnP.h" />
     <ClInclude Include="Common\VariantUtil.h" />
     <ClInclude Include="Common\Version.h" />
+    <ClInclude Include="Common\WaitableFlag.h" />
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
@@ -281,6 +284,7 @@
     <ClInclude Include="Core\HW\EXI\EXI_Device.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceAD16.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceAGP.h" />
+    <ClInclude Include="Core\HW\EXI\EXI_DeviceBaseboard.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceDummy.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceEthernet.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceGecko.h" />
@@ -412,6 +416,7 @@
     <ClInclude Include="Core\IOS\USB\USB_HID\HIDv5.h" />
     <ClInclude Include="Core\IOS\USB\USB_KBD.h" />
     <ClInclude Include="Core\IOS\USB\USB_VEN\VEN.h" />
+    <ClInclude Include="Core\IOS\USB\USBScanner.h" />
     <ClInclude Include="Core\IOS\USB\USBV0.h" />
     <ClInclude Include="Core\IOS\USB\USBV4.h" />
     <ClInclude Include="Core\IOS\USB\USBV5.h" />
@@ -459,6 +464,7 @@
     <ClInclude Include="Core\SyncIdentifier.h" />
     <ClInclude Include="Core\SysConf.h" />
     <ClInclude Include="Core\System.h" />
+    <ClInclude Include="Core\TimePlayed.h" />
     <ClInclude Include="Core\TitleDatabase.h" />
     <ClInclude Include="Core\WC24PatchEngine.h" />
     <ClInclude Include="Core\WiiRoot.h" />
@@ -536,6 +542,7 @@
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="InputCommon\ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\SDL\SDL.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\SDL\SDLGamepad.h" />
     <ClInclude Include="InputCommon\ControlReference\ControlReference.h" />
     <ClInclude Include="InputCommon\ControlReference\ExpressionParser.h" />
     <ClInclude Include="InputCommon\ControlReference\FunctionExpression.h" />
@@ -614,14 +621,13 @@
     <ClInclude Include="VideoBackends\Software\Clipper.h" />
     <ClInclude Include="VideoBackends\Software\CopyRegion.h" />
     <ClInclude Include="VideoBackends\Software\EfbCopy.h" />
-    <ClInclude Include="VideoBackends\Software\EfbInterface.h" />
     <ClInclude Include="VideoBackends\Software\NativeVertexFormat.h" />
     <ClInclude Include="VideoBackends\Software\Rasterizer.h" />
     <ClInclude Include="VideoBackends\Software\SetupUnit.h" />
     <ClInclude Include="VideoBackends\Software\SWBoundingBox.h" />
+    <ClInclude Include="VideoBackends\Software\SWEfbInterface.h" />
     <ClInclude Include="VideoBackends\Software\SWGfx.h" />
     <ClInclude Include="VideoBackends\Software\SWOGLWindow.h" />
-    <ClInclude Include="VideoBackends\Software\SWRenderer.h" />
     <ClInclude Include="VideoBackends\Software\SWTexture.h" />
     <ClInclude Include="VideoBackends\Software\SWVertexLoader.h" />
     <ClInclude Include="VideoBackends\Software\Tev.h" />
@@ -679,6 +685,7 @@
     <ClInclude Include="VideoCommon\CPUCullImpl.h" />
     <ClInclude Include="VideoCommon\DataReader.h" />
     <ClInclude Include="VideoCommon\DriverDetails.h" />
+    <ClInclude Include="VideoCommon\EFBInterface.h" />
     <ClInclude Include="VideoCommon\Fifo.h" />
     <ClInclude Include="VideoCommon\FramebufferManager.h" />
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
@@ -728,7 +735,6 @@
     <ClInclude Include="VideoCommon\PixelShaderManager.h" />
     <ClInclude Include="VideoCommon\PostProcessing.h" />
     <ClInclude Include="VideoCommon\Present.h" />
-    <ClInclude Include="VideoCommon\RenderBase.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
@@ -769,7 +775,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AudioCommon\AudioCommon.cpp" />
-    <ClCompile Include="AudioCommon\AudioStretcher.cpp" />
     <ClCompile Include="AudioCommon\CubebStream.cpp" />
     <ClCompile Include="AudioCommon\CubebUtils.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
@@ -949,6 +954,7 @@
     <ClCompile Include="Core\HW\EXI\EXI_Device.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceAD16.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceAGP.cpp" />
+    <ClCompile Include="Core\HW\EXI\EXI_DeviceBaseboard.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceDummy.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceEthernet.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceGecko.cpp" />
@@ -1076,6 +1082,7 @@
     <ClCompile Include="Core\IOS\USB\USB_HID\HIDv5.cpp" />
     <ClCompile Include="Core\IOS\USB\USB_KBD.cpp" />
     <ClCompile Include="Core\IOS\USB\USB_VEN\VEN.cpp" />
+    <ClCompile Include="Core\IOS\USB\USBScanner.cpp" />
     <ClCompile Include="Core\IOS\USB\USBV0.cpp" />
     <ClCompile Include="Core\IOS\USB\USBV4.cpp" />
     <ClCompile Include="Core\IOS\USB\USBV5.cpp" />
@@ -1125,6 +1132,7 @@
     <ClCompile Include="Core\State.cpp" />
     <ClCompile Include="Core\SysConf.cpp" />
     <ClCompile Include="Core\System.cpp" />
+    <ClCompile Include="Core\TimePlayed.cpp" />
     <ClCompile Include="Core\TitleDatabase.cpp" />
     <ClCompile Include="Core\WiiRoot.cpp" />
     <ClCompile Include="Core\WiiUtils.cpp" />
@@ -1197,6 +1205,7 @@
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\SDL\SDL.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\SDL\SDLGamepad.cpp" />
     <ClCompile Include="InputCommon\ControlReference\ControlReference.cpp" />
     <ClCompile Include="InputCommon\ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="InputCommon\ControlReference\FunctionExpression.cpp" />
@@ -1267,14 +1276,13 @@
     <ClCompile Include="VideoBackends\OGL\SamplerCache.cpp" />
     <ClCompile Include="VideoBackends\Software\Clipper.cpp" />
     <ClCompile Include="VideoBackends\Software\EfbCopy.cpp" />
-    <ClCompile Include="VideoBackends\Software\EfbInterface.cpp" />
     <ClCompile Include="VideoBackends\Software\Rasterizer.cpp" />
     <ClCompile Include="VideoBackends\Software\SetupUnit.cpp" />
     <ClCompile Include="VideoBackends\Software\SWmain.cpp" />
     <ClCompile Include="VideoBackends\Software\SWBoundingBox.cpp" />
+    <ClCompile Include="VideoBackends\Software\SWEfbInterface.cpp" />
     <ClCompile Include="VideoBackends\Software\SWGfx.cpp" />
     <ClCompile Include="VideoBackends\Software\SWOGLWindow.cpp" />
-    <ClCompile Include="VideoBackends\Software\SWRenderer.cpp" />
     <ClCompile Include="VideoBackends\Software\SWTexture.cpp" />
     <ClCompile Include="VideoBackends\Software\SWVertexLoader.cpp" />
     <ClCompile Include="VideoBackends\Software\Tev.cpp" />
@@ -1322,6 +1330,7 @@
     <ClCompile Include="VideoCommon\CPMemory.cpp" />
     <ClCompile Include="VideoCommon\CPUCull.cpp" />
     <ClCompile Include="VideoCommon\DriverDetails.cpp" />
+    <ClCompile Include="VideoCommon\EFBInterface.cpp" />
     <ClCompile Include="VideoCommon\Fifo.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
@@ -1362,7 +1371,6 @@
     <ClCompile Include="VideoCommon\PixelShaderManager.cpp" />
     <ClCompile Include="VideoCommon\PostProcessing.cpp" />
     <ClCompile Include="VideoCommon\Present.cpp" />
-    <ClCompile Include="VideoCommon\RenderBase.cpp" />
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />
     <ClCompile Include="VideoCommon\ShaderGenCommon.cpp" />

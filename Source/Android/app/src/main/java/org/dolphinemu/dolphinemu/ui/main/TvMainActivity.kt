@@ -30,7 +30,7 @@ import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.model.TvSettingsItem
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
-import org.dolphinemu.dolphinemu.ui.platform.Platform
+import org.dolphinemu.dolphinemu.ui.platform.PlatformTab
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler
@@ -76,17 +76,11 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         presenter.onResume()
     }
 
-    override fun onStart() {
-        super.onStart()
-        StartupHandler.checkSessionReset(this)
-    }
-
     override fun onStop() {
         super.onStop()
         if (isChangingConfigurations) {
             MainPresenter.skipRescanningLibrary()
         }
-        StartupHandler.setSessionTime(this)
     }
 
     private fun setupUI() {
@@ -246,9 +240,11 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
             GameFileCacheManager.startLoad()
         }
 
-        for (platform in Platform.values()) {
-            val row =
-                buildGamesRow(platform, GameFileCacheManager.getGameFilesForPlatform(platform))
+        for (platformTab in PlatformTab.values()) {
+            val row = buildGamesRow(
+                platformTab,
+                GameFileCacheManager.getGameFilesForPlatformTab(platformTab)
+            )
 
             // Add row to the adapter only if it is not empty.
             if (row != null) {
@@ -261,7 +257,7 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         browseFragment!!.adapter = rowsAdapter
     }
 
-    private fun buildGamesRow(platform: Platform, gameFiles: Collection<GameFile?>): ListRow? {
+    private fun buildGamesRow(platformTab: PlatformTab, gameFiles: Collection<GameFile?>): ListRow? {
         // If there are no games, don't return a Row.
         if (gameFiles.isEmpty()) {
             return null
@@ -275,7 +271,7 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         gameRows.add(row)
 
         // Create a header for this row.
-        val header = HeaderItem(platform.toInt().toLong(), getString(platform.headerName))
+        val header = HeaderItem(platformTab.toInt().toLong(), getString(platformTab.headerName))
 
         // Create the row, passing it the filled adapter and the header, and give it to the master adapter.
         return ListRow(header, row)

@@ -47,7 +47,7 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, CompressCB callback)
+                    const std::string& outfile_path, const CompressCB& callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 

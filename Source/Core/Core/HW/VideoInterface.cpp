@@ -13,8 +13,10 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -41,7 +43,10 @@ VideoInterfaceManager::VideoInterfaceManager(Core::System& system) : m_system(sy
 {
 }
 
-VideoInterfaceManager::~VideoInterfaceManager() = default;
+VideoInterfaceManager::~VideoInterfaceManager()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 static constexpr std::array<u32, 2> CLOCK_FREQUENCIES{{
     27000000,
@@ -173,6 +178,22 @@ void VideoInterfaceManager::Preset(bool _bNTSC)
 void VideoInterfaceManager::Init()
 {
   Preset(true);
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+void VideoInterfaceManager::RefreshConfig()
+{
+  m_config_vi_oc_factor =
+      Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_VI_OVERCLOCK) : 1.0f;
+  if (AchievementManager::GetInstance().IsHardcoreModeActive() && m_config_vi_oc_factor < 1.0f)
+  {
+    Config::SetCurrent(Config::MAIN_VI_OVERCLOCK, 1.0f);
+    m_config_vi_oc_factor = 1.0f;
+    OSD::AddMessage("Minimum VBI frequency is 100% in Hardcore Mode");
+  }
+  UpdateRefreshRate();
 }
 
 void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -488,7 +509,8 @@ float VideoInterfaceManager::GetAspectRatio() const
   float vertical_period = tick_length * GetTicksPerField();
   float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
   float vertical_active_area = active_lines * horizontal_period;
-  float horizontal_active_area = tick_length * GetTicksPerSample() * active_width_samples;
+  float horizontal_active_area =
+      tick_length * GetTicksPerSample() * active_width_samples / m_config_vi_oc_factor;
 
   // We are approximating the horizontal/vertical flyback transformers that control the
   // position of the electron beam on the screen. Our flyback transformers create a
@@ -687,14 +709,31 @@ float VideoInterfaceManager::GetAspectRatio() const
 
 void VideoInterfaceManager::UpdateParameters()
 {
-  u32 equ_hl = 3 * m_vertical_timing_register.EQU;
-  u32 acv_hl = 2 * m_vertical_timing_register.ACV;
-  m_odd_field_first_hl = equ_hl + m_vblank_timing_odd.PRB;
-  m_odd_field_last_hl = m_odd_field_first_hl + acv_hl - 1;
+  const u32 equ_hl = 3 * m_vertical_timing_register.EQU;
+  const u32 acv_hl = 2 * m_vertical_timing_register.ACV;
 
-  m_even_field_first_hl = equ_hl + m_vblank_timing_even.PRB + GetHalfLinesPerOddField();
+  // Odd field:
+  m_odd_field_first_hl = equ_hl + m_vblank_timing_odd.PRB;
+  const u32 odd_field_end = m_odd_field_first_hl + acv_hl;
+  m_odd_field_last_hl = odd_field_end - 1;
+
+  // Many GC games establish differing PRB/PSB values for odd/even fields.
+  // Added together they are equal, but because we OutputField *before* PSB
+  //  that can result in inconsistent pacing between odd/even fields.
+  // This will adjust the even-field to match the odd-field pacing,
+  //  accounting for the otherwise-ignored even-field PSB.
+  const s32 odd_even_psb_diff = m_vblank_timing_odd.PSB - m_vblank_timing_even.PSB;
+
+  // Even field:
+  m_even_field_first_hl = odd_field_end + m_vblank_timing_odd.PSB + equ_hl +
+                          m_vblank_timing_even.PRB - odd_even_psb_diff;
   m_even_field_last_hl = m_even_field_first_hl + acv_hl - 1;
 
+  UpdateRefreshRate();
+}
+
+void VideoInterfaceManager::UpdateRefreshRate()
+{
   m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
   m_target_refresh_rate =
@@ -723,7 +762,7 @@ u32 VideoInterfaceManager::GetTicksPerSample() const
 
 u32 VideoInterfaceManager::GetTicksPerHalfLine() const
 {
-  return GetTicksPerSample() * m_h_timing_0.HLW;
+  return GetTicksPerSample() * m_h_timing_0.HLW / m_config_vi_oc_factor;
 }
 
 u32 VideoInterfaceManager::GetTicksPerField() const
@@ -783,7 +822,8 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
   // Multiply the stride by 2 to get the byte offset for each subsequent line.
   fbStride *= 2;
 
-  if (potentially_interlaced_xfb && interlaced_video_mode && g_ActiveConfig.bForceProgressive)
+  if (potentially_interlaced_xfb && interlaced_video_mode &&
+      Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE))
   {
     // Strictly speaking, in interlaced mode, we're only supposed to read
     // half of the lines of the XFB, and use that to display a field; the
@@ -839,6 +879,15 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
   if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
+  // Note: OutputField above doesn't present when using GPU-on-Thread or Early/Immediate XFB,
+  //  giving "VBlank" measurements here poor pacing without a Throttle call.
+  // If the user actually wants the data, we'll Throttle to make the numbers nice.
+  const bool is_vblank_data_wanted = g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes ||
+                                     g_ActiveConfig.bLogRenderTimeToFile ||
+                                     g_ActiveConfig.bShowGraphs;
+  if (is_vblank_data_wanted)
+    m_system.GetCoreTiming().Throttle(ticks);
+
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
   Core::OnFrameEnd(m_system);
@@ -848,43 +897,57 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 // Run when: When a frame is scanned (progressive/interlace)
 void VideoInterfaceManager::Update(u64 ticks)
 {
+  constexpr u32 odd_field_begin = 0;
+  // Even-field begins where the odd-field ends.
+  const u32 even_field_begin = GetHalfLinesPerOddField();
+
+  const bool is_at_field_boundary =
+      m_half_line_count == odd_field_begin || m_half_line_count == even_field_begin;
+
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
-  if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
+  if (is_at_field_boundary)
     m_system.GetMovie().FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment
   // the number of frames we've actually drawn
 
-  if (m_half_line_count == m_even_field_first_hl)
-  {
-    BeginField(FieldType::Even, ticks);
-  }
-  else if (m_half_line_count == m_odd_field_first_hl)
+  if (m_half_line_count == m_odd_field_first_hl)
   {
     BeginField(FieldType::Odd, ticks);
   }
-  else if (m_half_line_count == m_even_field_last_hl)
+  else if (m_half_line_count == m_even_field_first_hl)
   {
-    EndField(FieldType::Even, ticks);
+    BeginField(FieldType::Even, ticks);
   }
   else if (m_half_line_count == m_odd_field_last_hl)
   {
     EndField(FieldType::Odd, ticks);
   }
+  else if (m_half_line_count == m_even_field_last_hl)
+  {
+    EndField(FieldType::Even, ticks);
+  }
 
   // If this half-line is at a field boundary, deal with frame stepping before potentially
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
-  if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
+  if (is_at_field_boundary)
     Core::Callback_NewField(m_system);
 
-  // If an SI poll is scheduled to happen on this half-line, do it!
+  auto& core_timing = m_system.GetCoreTiming();
 
-  if (m_half_line_of_next_si_poll == m_half_line_count)
+  // If an SI poll is scheduled to happen on this half-line, do it!
+  if (m_half_line_count == m_half_line_of_next_si_poll)
   {
+    // Throttle before SI poll so user input is taken just before needed. (lower input latency)
+    core_timing.Throttle(ticks);
+
+    // This is a nice place to measure performance so we don't have to Throttle elsewhere.
+    g_perf_metrics.CountPerformanceMarker(ticks, m_system.GetSystemTimers().GetTicksPerSecond());
+
     Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                           Config::Get(Config::MAIN_LOCK_CURSOR));
     auto& si = m_system.GetSerialInterface();
@@ -895,28 +958,24 @@ void VideoInterfaceManager::Update(u64 ticks)
   // If this half-line is at the actual boundary of either field, schedule an SI poll to happen
   // some number of half-lines in the future
 
-  if (m_half_line_count == 0)
+  if (is_at_field_boundary)
   {
-    m_half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first results start at vsync
-  }
-  if (m_half_line_count == GetHalfLinesPerEvenField())
-  {
-    m_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + NUM_HALF_LINES_FOR_SI_POLL;
+    // first results start at vsync
+    m_half_line_of_next_si_poll = m_half_line_count + NUM_HALF_LINES_FOR_SI_POLL;
   }
 
   // Move to the next half-line and potentially roll-over the count to zero. If we've reached
   // the beginning of a new full-line, update the timer
 
-  m_half_line_count++;
+  ++m_half_line_count;
   if (m_half_line_count == GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
   {
     m_half_line_count = 0;
   }
 
-  auto& core_timing = m_system.GetCoreTiming();
   if (!(m_half_line_count & 1))
   {
-    m_ticks_last_line_start = core_timing.GetTicks();
+    m_ticks_last_line_start = ticks;
   }
 
   // TODO: Findout why skipping interrupts acts as a frameskip

@@ -53,7 +53,7 @@ class ConfigComplexChoice final : public ToolTipComboBox
   Q_OBJECT
 
   using InfoVariant = std::variant<Config::Info<u32>, Config::Info<int>, Config::Info<bool>>;
-  using OptionVariant = std::variant<u32, int, bool>;
+  using OptionVariant = std::variant<Config::DefaultState, u32, int, bool>;
 
 public:
   ConfigComplexChoice(const InfoVariant setting1, const InfoVariant setting2,
@@ -62,6 +62,7 @@ public:
   void Add(const QString& name, const OptionVariant option1, const OptionVariant option2);
   void Refresh();
   void Reset();
+  void SetDefault(int index);
   const std::pair<Config::Location, Config::Location> GetLocation() const;
 
 private:
@@ -73,4 +74,5 @@ private:
   const InfoVariant m_setting1;
   const InfoVariant m_setting2;
   std::vector<std::pair<OptionVariant, OptionVariant>> m_options;
+  int m_default_index = -1;
 };

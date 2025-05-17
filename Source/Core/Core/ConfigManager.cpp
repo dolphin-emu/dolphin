@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <climits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -43,8 +44,11 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
@@ -98,30 +102,75 @@ void SConfig::LoadSettings()
   Config::Load();
 }
 
+const std::string SConfig::GetGameID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_game_id;
+}
+
+const std::string SConfig::GetGameTDBID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_gametdb_id;
+}
+
+const std::string SConfig::GetTitleName() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_title_name;
+}
+
+const std::string SConfig::GetTitleDescription() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_title_description;
+}
+
+std::string SConfig::GetTriforceID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_triforce_id;
+}
+
+u64 SConfig::GetTitleID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_title_id;
+}
+
+u16 SConfig::GetRevision() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_revision;
+}
+
 void SConfig::ResetRunningGameMetadata()
 {
-  SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  SetRunningGameMetadata("00000000", "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
                                      const DiscIO::Partition& partition)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   if (partition == volume.GetGamePartition())
   {
-    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(),
+    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(), volume.GetTriforceID(),
                            volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0),
                            volume.GetRegion());
   }
   else
   {
     SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(partition),
-                           volume.GetTitleID(partition).value_or(0),
+                           volume.GetTriforceID(), volume.GetTitleID(partition).value_or(0),
                            volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const u64 tmd_title_id = tmd.GetTitleId();
 
   // If we're launching a disc game, we want to read the revision from
@@ -132,23 +181,28 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
       !Core::System::GetInstance().GetDVDInterface().UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id, tmd.GetTitleVersion(),
-                           tmd.GetRegion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), "", tmd_title_id,
+                           tmd.GetTitleVersion(), tmd.GetRegion());
   }
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id)
 {
-  SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown);
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  SetRunningGameMetadata(game_id, "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     u64 title_id, u16 revision, DiscIO::Region region)
+                                     std::string triforce_id, u64 title_id, u16 revision,
+                                     DiscIO::Region region)
 {
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
-                           m_title_id != title_id || m_revision != revision;
+                           m_triforce_id != triforce_id || m_title_id != title_id ||
+                           m_revision != revision;
   m_game_id = game_id;
   m_gametdb_id = gametdb_id;
+  m_triforce_id = triforce_id;
   m_title_id = title_id;
   m_revision = revision;
 
@@ -181,7 +235,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   const Core::TitleDatabase title_database;
   auto& system = Core::System::GetInstance();
   const DiscIO::Language language = GetLanguageAdjustedForRegion(system.IsWii(), region);
-  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, m_triforce_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
@@ -197,7 +251,20 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
-void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
+void SConfig::OnESTitleChanged()
+{
+  auto& system = Core::System::GetInstance();
+  Pad::LoadConfig();
+  Keyboard::LoadConfig();
+  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  {
+    Wiimote::LoadConfig();
+  }
+
+  ReloadTextures(system);
+}
+
+void SConfig::OnTitleDirectlyBooted(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
   if (!Core::IsRunningOrStarting(system))
@@ -211,9 +278,27 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   }
   CBoot::LoadMapFromFilename(guard, ppc_symbol_db);
   HLE::Reload(system);
+
   PatchEngine::Reload(system);
-  HiresTexture::Update();
   WC24PatchEngine::Reload();
+
+  // Note: Wii is handled by ES title change
+  if (!system.IsWii())
+  {
+    ReloadTextures(system);
+  }
+}
+
+void SConfig::ReloadTextures(Core::System& system)
+{
+  Pad::GenerateDynamicInputTextures();
+  Keyboard::GenerateDynamicInputTextures();
+  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  {
+    Wiimote::GenerateDynamicInputTextures();
+  }
+
+  HiresTexture::Update();
 }
 
 void SConfig::LoadDefaults()
@@ -222,6 +307,7 @@ void SConfig::LoadDefaults()
 
   auto& system = Core::System::GetInstance();
   system.SetIsWii(false);
+  system.SetIsTriforce(false);
 
   ResetRunningGameMetadata();
 }
@@ -245,6 +331,7 @@ struct SetGameMetadata
   {
     *region = disc.volume->GetRegion();
     system.SetIsWii(disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc);
+    system.SetIsTriforce(disc.volume->GetVolumeType() == DiscIO::Platform::Triforce);
     config->m_disc_booted_from_game_list = true;
     config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
     return true;

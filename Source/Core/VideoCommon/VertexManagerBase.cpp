@@ -156,7 +156,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+  PrimitiveType new_primitive_type = g_backend_info.bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
   if (m_current_primitive_type != new_primitive_type) [[unlikely]]
@@ -243,7 +243,7 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
   {
     if (g_Config.UseVSForLinePointExpand())
     {
-      if (g_Config.backend_info.bSupportsPrimitiveRestart)
+      if (g_backend_info.bSupportsPrimitiveRestart)
       {
         switch (primitive)
         {
@@ -287,7 +287,7 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
       }
     }
   }
-  else if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  else if (g_backend_info.bSupportsPrimitiveRestart)
   {
     switch (primitive)
     {
@@ -348,8 +348,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable &&
-      g_ActiveConfig.backend_info.bSupportsBBox)
+  if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable && g_backend_info.bSupportsBBox)
   {
     g_bounding_box->Flush();
   }
@@ -645,9 +644,6 @@ void VertexManagerBase::Flush()
     // Same with GPU texture decoding, which uses compute shaders.
     g_texture_cache->BindTextures(used_textures, samplers);
 
-    if (PerfQueryBase::ShouldEmulate())
-      g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-
     if (!skip)
     {
       UpdatePipelineConfig();
@@ -669,14 +665,8 @@ void VertexManagerBase::Flush()
       }
     }
 
-    // Track the total emulated state draws
-    INCSTAT(g_stats.this_frame.num_draw_calls);
-
     // Even if we skip the draw, emulated state should still be impacted
     OnDraw();
-
-    if (PerfQueryBase::ShouldEmulate())
-      g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
     // The EFB cache is now potentially stale.
     g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
@@ -1090,8 +1080,7 @@ void VertexManagerBase::RenderDrawCall(
                VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
                m_index_generator.GetIndexLen(), &base_vertex, &base_index);
 
-  if (g_ActiveConfig.backend_info.api_type != APIType::D3D &&
-      g_ActiveConfig.UseVSForLinePointExpand() &&
+  if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
       (primitive_type == PrimitiveType::Points || primitive_type == PrimitiveType::Lines))
   {
     // VS point/line expansion puts the vertex id at gl_VertexID << 2
@@ -1100,7 +1089,16 @@ void VertexManagerBase::RenderDrawCall(
     base_vertex <<= 2;
   }
 
+  if (PerfQueryBase::ShouldEmulate())
+    g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+
   DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
+
+  // Track the total emulated state draws
+  INCSTAT(g_stats.this_frame.num_draw_calls);
+
+  if (PerfQueryBase::ShouldEmulate())
+    g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 }
 
 const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
@@ -1131,7 +1129,7 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
       {
         // D3D has issues compiling large custom ubershaders
         // use specialized shaders instead
-        if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
+        if (g_backend_info.api_type == APIType::D3D)
         {
           if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
                   current_pipeline_config, custom_shaders, current_pipeline->m_config))

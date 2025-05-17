@@ -16,6 +16,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/MappingCommon.h"
+#include "InputCommon/InputConfig.h"
 
 namespace MappingCommon
 {
@@ -30,10 +31,10 @@ bool ContainsAnalogInput(const ciface::Core::InputDetector::Results& results)
   return std::ranges::any_of(results, [](auto& detection) { return detection.smoothness > 1; });
 }
 
-class MappingProcessor : public QWidget
+class MappingProcessor : public QObject
 {
 public:
-  MappingProcessor(MappingWindow* parent) : QWidget{parent}, m_parent{parent}
+  MappingProcessor(MappingWindow* parent) : QObject{parent}, m_parent{parent}
   {
     using MW = MappingWindow;
     using MP = MappingProcessor;
@@ -135,6 +136,7 @@ public:
     m_parent->Save();
     m_parent->GetController()->UpdateSingleControlReference(g_controller_interface,
                                                             control_reference);
+    m_parent->GetController()->GetConfig()->GenerateControllerTextures();
   }
 
   void UpdateInputDetectionStartTimer()
@@ -149,9 +151,9 @@ public:
 
   bool UnQueueInputDetection(MappingButton* button)
   {
+    button->ConfigChanged();
     if (!std::erase(m_clicked_mapping_buttons, button))
       return false;
-    button->ConfigChanged();
     UpdateInputDetectionStartTimer();
     return true;
   }
@@ -170,7 +172,7 @@ public:
       // Ignore the mouse-click that queued this new detection and finalize the current mapping.
       auto results = m_input_detector->TakeResults();
       ciface::MappingCommon::RemoveDetectionsAfterTimePoint(
-          &results, ciface::Core::DeviceContainer::Clock::now() - INPUT_DETECT_ENDING_IGNORE_TIME);
+          &results, Clock::now() - INPUT_DETECT_ENDING_IGNORE_TIME);
       FinalizeMapping(&results);
     }
     UpdateInputDetectionStartTimer();

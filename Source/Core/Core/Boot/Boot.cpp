@@ -236,7 +236,8 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 #endif
 
   static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
+      {".gcm", ".bin", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol",
+       ".elf"}};
   if (disc_image_extensions.contains(extension))
   {
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
@@ -406,6 +407,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   // DOL-101(EUR) (PAL Revision 1.2)
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
+  constexpr u32 Triforce = 0xD1883221;  // The Triforce's special IPL
 
   // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
   constexpr size_t max_ipl_size = 2 * 1024 * 1024;
@@ -437,6 +439,8 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
     pal_ipl = true;
     known_ipl = true;
     break;
+  case Triforce:
+    known_ipl = true;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
@@ -550,7 +554,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!EmulatedBS2(system, guard, system.IsWii(), *volume, riivolution_patches))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
 
@@ -593,15 +597,13 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         SetupGCMemory(system, guard);
       }
 
-      AchievementManager::GetInstance().LoadGame(executable.path, nullptr);
-
       if (!executable.reader->LoadIntoMemory(system))
       {
         PanicAlertFmtT("Failed to load the executable to memory.");
         return false;
       }
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleDirectlyBooted(guard);
 
       ppc_state.pc = executable.reader->GetEntryPoint();
 
@@ -621,7 +623,9 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!Boot_WiiWAD(system, wad))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      AchievementManager::GetInstance().LoadGame(&wad);
+
+      SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
 
@@ -631,7 +635,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!BootNANDTitle(system, nand_title.id))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
 
@@ -657,7 +661,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                 ipl.disc->auto_disc_change_paths);
       }
 
-      SConfig::OnNewTitleLoad(guard);
+      SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
 

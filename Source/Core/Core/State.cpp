@@ -4,7 +4,6 @@
 #include "Core/State.h"
 
 #include <algorithm>
-#include <atomic>
 #include <condition_variable>
 #include <filesystem>
 #include <locale>
@@ -12,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -31,12 +29,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Common/TimeUtil.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -46,7 +42,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -71,14 +67,14 @@ static unsigned char __LZO_MMODEL out[OUT_LEN];
 static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
-static std::vector<u8> s_undo_load_buffer;
+static Common::UniqueBuffer<u8> s_undo_load_buffer;
 static std::mutex s_undo_load_buffer_mutex;
 
 static std::mutex s_load_or_save_in_progress_mutex;
 
 struct CompressAndDumpState_args
 {
-  std::vector<u8> buffer_vector;
+  Common::UniqueBuffer<u8> buffer;
   std::string filename;
   std::shared_ptr<Common::Event> state_write_done_event;
 };
@@ -99,7 +95,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 169;  // Last changed in PR 13074
+constexpr u32 STATE_VERSION = 174;  // Last changed in PR 13342
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
@@ -205,7 +201,7 @@ static void DoState(Core::System& system, PointerWrap& p)
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
-void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
+void LoadFromBuffer(Core::System& system, Common::UniqueBuffer<u8>& buffer)
 {
   if (NetPlay::IsNetPlayRunning())
   {
@@ -229,20 +225,21 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
       true);
 }
 
-void SaveToBuffer(Core::System& system, std::vector<u8>& buffer)
+void SaveToBuffer(Core::System& system, Common::UniqueBuffer<u8>& buffer)
 {
   Core::RunOnCPUThread(
       system,
       [&] {
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
-
         DoState(system, p_measure);
-        const size_t buffer_size = reinterpret_cast<size_t>(ptr);
-        buffer.resize(buffer_size);
+
+        const size_t new_buffer_size = ptr - (u8*)(nullptr);
+        if (new_buffer_size > buffer.size())
+          buffer.reset(new_buffer_size);
 
         ptr = buffer.data();
-        PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
+        PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Write);
         DoState(system, p);
       },
       true);
@@ -312,26 +309,20 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
   return result;
 }
 
-static bool CompareTimestamp(const SlotWithTimestamp& lhs, const SlotWithTimestamp& rhs)
-{
-  return lhs.timestamp < rhs.timestamp;
-}
-
 static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f)
 {
   u64 total_bytes_compressed = 0;
 
   while (true)
   {
-    u64 bytes_left_to_compress = size - total_bytes_compressed;
+    const u64 bytes_left_to_compress = size - total_bytes_compressed;
 
-    int bytes_to_compress =
+    const int bytes_to_compress =
         static_cast<int>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), bytes_left_to_compress));
-    int compressed_buffer_size = LZ4_compressBound(bytes_to_compress);
-    auto compressed_buffer = std::make_unique<char[]>(compressed_buffer_size);
-    s32 compressed_len =
-        LZ4_compress_default(reinterpret_cast<const char*>(raw_buffer) + total_bytes_compressed,
-                             compressed_buffer.get(), bytes_to_compress, compressed_buffer_size);
+    Common::UniqueBuffer<char> compressed_buffer(LZ4_compressBound(bytes_to_compress));
+    const int compressed_len = LZ4_compress_default(
+        reinterpret_cast<const char*>(raw_buffer) + total_bytes_compressed, compressed_buffer.get(),
+        bytes_to_compress, int(compressed_buffer.size()));
 
     if (compressed_len == 0)
     {
@@ -385,8 +376,8 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
 
 static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args& save_args)
 {
-  const u8* const buffer_data = save_args.buffer_vector.data();
-  const size_t buffer_size = save_args.buffer_vector.size();
+  const u8* const buffer_data = save_args.buffer.data();
+  const size_t buffer_size = save_args.buffer.size();
   const std::string& filename = save_args.filename;
 
   // Find free temporary filename.
@@ -487,11 +478,10 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
         DoState(system, p_measure);
-        const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+        const size_t buffer_size = ptr - (u8*)(nullptr);
 
         // Then actually do the write.
-        std::vector<u8> current_buffer;
-        current_buffer.resize(buffer_size);
+        Common::UniqueBuffer<u8> current_buffer(buffer_size);
         ptr = current_buffer.data();
         PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
         DoState(system, p);
@@ -503,7 +493,7 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
           std::shared_ptr<Common::Event> sync_event;
 
           CompressAndDumpState_args save_args;
-          save_args.buffer_vector = std::move(current_buffer);
+          save_args.buffer = std::move(current_buffer);
           save_args.filename = filename;
           if (wait)
           {
@@ -536,8 +526,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   // Just read the first block, since it will contain the full revision string
   lzo_uint32 cur_len = 0;  // size of compressed bytes
   lzo_uint new_len = 0;    // size of uncompressed bytes
-  std::vector<u8> buffer;
-  buffer.resize(header.legacy_header.lzo_size);
+  Common::UniqueBuffer<u8> buffer(header.legacy_header.lzo_size);
 
   if (!f.ReadArray(&cur_len, 1) || !f.ReadBytes(out, cur_len))
     return false;
@@ -568,11 +557,9 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   // Read in the string
   if (buffer.size() >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
   {
-    auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
-    memcpy(version_buffer.get(), buffer.data() + sizeof(StateHeaderVersion),
-           header.version_header.version_string_length);
-    header.version_string =
-        std::string(version_buffer.get(), header.version_header.version_string_length);
+    header.version_string.assign(
+        reinterpret_cast<char*>(buffer.data() + sizeof(StateHeaderVersion)),
+        header.version_header.version_string_length);
   }
   else
   {
@@ -618,15 +605,14 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
       return false;
     }
 
-    auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
-    if (!f.ReadBytes(version_buffer.get(), header.version_header.version_string_length))
+    std::string version_buffer(header.version_header.version_string_length, '\0');
+    if (!f.ReadBytes(version_buffer.data(), version_buffer.size()))
     {
       Core::DisplayMessage("Failed to read state version string", 2000);
       return false;
     }
 
-    header.version_string =
-        std::string(version_buffer.get(), header.version_header.version_string_length);
+    header.version_string = std::move(version_buffer);
   }
 
   return true;
@@ -666,9 +652,9 @@ u64 GetUnixTimeOfSlot(int slot)
          (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
-static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f)
+static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::IOFile& f)
 {
-  raw_buffer.resize(size);
+  raw_buffer.reset(size);
 
   u64 total_bytes_read = 0;
   while (true)
@@ -686,7 +672,7 @@ static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f
       return false;
     }
 
-    auto compressed_data = std::make_unique<char[]>(compressed_data_len);
+    Common::UniqueBuffer<char> compressed_data(compressed_data_len);
     if (!f.ReadBytes(compressed_data.get(), compressed_data_len))
     {
       PanicAlertFmt("Could not read state data");
@@ -769,7 +755,7 @@ static bool ValidateHeaders(const StateHeader& header)
   return success;
 }
 
-static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
+static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<u8>& ret_data)
 {
   File::IOFile f;
 
@@ -807,13 +793,13 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
     return;
   }
 
-  std::vector<u8> buffer;
+  Common::UniqueBuffer<u8> buffer;
 
   switch (extended_header.base_header.compression_type)
   {
   case CompressionType::LZ4:
   {
-    Core::DisplayMessage("Decompressing State...", 500);
+    Core::DisplayMessage("Decompressing State...", OSD::Duration::SHORT);
     if (!DecompressLZ4(buffer, extended_header.base_header.uncompressed_size, f))
       return;
 
@@ -833,7 +819,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
     }
 
     const auto size = static_cast<size_t>(file_size - header_len);
-    buffer.resize(size);
+    buffer.reset(size);
 
     if (!f.ReadBytes(buffer.data(), size))
     {
@@ -893,7 +879,7 @@ void LoadAs(Core::System& system, const std::string& filename)
 
         // brackets here are so buffer gets freed ASAP
         {
-          std::vector<u8> buffer;
+          Common::UniqueBuffer<u8> buffer;
           LoadFileStateData(filename, buffer);
 
           if (!buffer.empty())
@@ -959,13 +945,8 @@ void Shutdown()
 {
   s_save_thread.Shutdown();
 
-  // swapping with an empty vector, rather than clear()ing
-  // this gives a better guarantee to free the allocated memory right NOW (as opposed to, actually,
-  // never)
-  {
-    std::lock_guard lk(s_undo_load_buffer_mutex);
-    std::vector<u8>().swap(s_undo_load_buffer);
-  }
+  std::lock_guard lk(s_undo_load_buffer_mutex);
+  s_undo_load_buffer.reset();
 }
 
 static std::string MakeStateFilename(int number)
@@ -999,7 +980,7 @@ void LoadLastSaved(Core::System& system, int i)
     return;
   }
 
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
   Load(system, (used_slots.end() - i)->slot);
 }
 
@@ -1015,7 +996,7 @@ void SaveFirstSaved(Core::System& system)
   }
 
   // overwrite the oldest state
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
   Save(system, used_slots.front().slot, true);
 }
 

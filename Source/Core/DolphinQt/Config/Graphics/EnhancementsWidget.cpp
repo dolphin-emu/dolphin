@@ -12,13 +12,12 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
@@ -63,14 +62,14 @@ EnhancementsWidget::EnhancementsWidget(GameConfigWidget* parent, Config::Layer* 
           &EnhancementsWidget::OnConfigChanged);
 }
 
-constexpr int ANISO_DEFAULT = 0;
-constexpr int ANISO_2X = 1;
-constexpr int ANISO_4X = 2;
-constexpr int ANISO_8X = 3;
-constexpr int ANISO_16X = 4;
-constexpr int FILTERING_DEFAULT = 0;
-constexpr int FILTERING_NEAREST = 1;
-constexpr int FILTERING_LINEAR = 2;
+constexpr int ANISO_1x = Common::ToUnderlying(AnisotropicFilteringMode::Force1x);
+constexpr int ANISO_2X = Common::ToUnderlying(AnisotropicFilteringMode::Force2x);
+constexpr int ANISO_4X = Common::ToUnderlying(AnisotropicFilteringMode::Force4x);
+constexpr int ANISO_8X = Common::ToUnderlying(AnisotropicFilteringMode::Force8x);
+constexpr int ANISO_16X = Common::ToUnderlying(AnisotropicFilteringMode::Force16x);
+constexpr int FILTERING_DEFAULT = Common::ToUnderlying(TextureFilteringMode::Default);
+constexpr int FILTERING_NEAREST = Common::ToUnderlying(TextureFilteringMode::Nearest);
+constexpr int FILTERING_LINEAR = Common::ToUnderlying(TextureFilteringMode::Linear);
 
 void EnhancementsWidget::CreateWidgets()
 {
@@ -129,13 +128,15 @@ void EnhancementsWidget::CreateWidgets()
       new ConfigComplexChoice(Config::GFX_ENHANCE_MAX_ANISOTROPY,
                               Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, m_game_layer);
 
-  m_texture_filtering_combo->Add(tr("Default"), ANISO_DEFAULT, FILTERING_DEFAULT);
+  m_texture_filtering_combo->Add(tr("Default"), Config::DefaultState{}, FILTERING_DEFAULT);
+  m_texture_filtering_combo->Add(tr("1x Anisotropic"), ANISO_1x, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("2x Anisotropic"), ANISO_2X, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("4x Anisotropic"), ANISO_4X, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("8x Anisotropic"), ANISO_8X, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("16x Anisotropic"), ANISO_16X, FILTERING_DEFAULT);
-  m_texture_filtering_combo->Add(tr("Force Nearest"), ANISO_DEFAULT, FILTERING_NEAREST);
-  m_texture_filtering_combo->Add(tr("Force Linear"), ANISO_DEFAULT, FILTERING_LINEAR);
+  m_texture_filtering_combo->Add(tr("Force Nearest and 1x Anisotropic "), ANISO_1x,
+                                 FILTERING_NEAREST);
+  m_texture_filtering_combo->Add(tr("Force Linear and 1x Anisotropic"), ANISO_1x, FILTERING_LINEAR);
   m_texture_filtering_combo->Add(tr("Force Linear and 2x Anisotropic"), ANISO_2X, FILTERING_LINEAR);
   m_texture_filtering_combo->Add(tr("Force Linear and 4x Anisotropic"), ANISO_4X, FILTERING_LINEAR);
   m_texture_filtering_combo->Add(tr("Force Linear and 8x Anisotropic"), ANISO_8X, FILTERING_LINEAR);
@@ -343,19 +344,19 @@ void EnhancementsWidget::LoadPPShaders()
 
 void EnhancementsWidget::OnBackendChanged()
 {
-  m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-  m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-  m_hdr->setEnabled(g_Config.backend_info.bSupportsHDROutput);
+  m_output_resampling_combo->setEnabled(g_backend_info.bSupportsPostProcessing);
+  m_configure_color_correction->setEnabled(g_backend_info.bSupportsPostProcessing);
+  m_hdr->setEnabled(g_backend_info.bSupportsHDROutput);
 
   // Stereoscopy
-  const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+  const bool supports_stereoscopy = g_backend_info.bSupportsGeometryShaders;
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);
   m_3d_swap_eyes->setEnabled(supports_stereoscopy);
 
   // PostProcessing
-  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
+  const bool supports_postprocessing = g_backend_info.bSupportsPostProcessing;
   if (!supports_postprocessing)
   {
     m_configure_pp_effect->setEnabled(false);
@@ -421,14 +422,14 @@ void EnhancementsWidget::UpdateAAOptions()
   m_aa_combo->Reset();
   m_aa_combo->Add(tr("None"), (u32)1, false);
 
-  std::vector<u32> aa_modes = g_Config.backend_info.AAModes;
+  const std::vector<u32>& aa_modes = g_backend_info.AAModes;
   for (const u32 aa_mode : aa_modes)
   {
     if (aa_mode > 1)
       m_aa_combo->Add(tr("%1x MSAA").arg(aa_mode), aa_mode, false);
   }
 
-  if (g_Config.backend_info.bSupportsSSAA)
+  if (g_backend_info.bSupportsSSAA)
   {
     for (const u32 aa_mode : aa_modes)
     {

@@ -38,6 +38,6 @@ private:
     int value = 0;
   };
 
-  std::atomic<State> m_ui_thread_state;
-  std::atomic<State> m_cpu_thread_state;
+  std::atomic<State> m_ui_thread_state = State{};
+  std::atomic<State> m_cpu_thread_state = State{};
 };

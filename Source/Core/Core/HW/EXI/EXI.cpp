@@ -66,6 +66,18 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
   m_channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
 
+void ExpansionInterfaceManager::AddSP1Device()
+{
+  EXIDeviceType sp1_device = EXIDeviceType::Baseboard;
+  auto& system = Core::System::GetInstance();
+  if (system.IsTriforce())
+  {
+    sp1_device = Config::Get(Config::MAIN_SERIAL_PORT_1);
+  }
+
+  m_channels[0]->AddDevice(sp1_device, SlotToEXIDevice(Slot::SP1));
+}
+
 u8 SlotToEXIChannel(Slot slot)
 {
   switch (slot)
@@ -76,6 +88,8 @@ u8 SlotToEXIChannel(Slot slot)
     return 1;
   case Slot::SP1:
     return 0;
+  case Slot::SP2:
+    return 2;
   default:
     PanicAlertFmt("Unhandled slot {}", slot);
     return 0;
@@ -92,6 +106,8 @@ u8 SlotToEXIDevice(Slot slot)
     return 0;
   case Slot::SP1:
     return 2;
+  case Slot::SP2:
+    return 0;
   default:
     PanicAlertFmt("Unhandled slot {}", slot);
     return 0;
@@ -141,9 +157,11 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     AddMemoryCard(slot);
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
+  AddSP1Device();
   m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
                                                      SlotToEXIDevice(Slot::SP1));
-  m_channels[2]->AddDevice(EXIDeviceType::AD16, 0);
+  m_channels[SlotToEXIChannel(Slot::SP2)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_2),
+                                                     SlotToEXIDevice(Slot::SP2));
 
   m_event_type_change_device = core_timing.RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
   m_event_type_update_interrupts =

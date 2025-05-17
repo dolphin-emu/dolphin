@@ -29,7 +29,7 @@ void BoundingBox::Disable(PixelShaderManager& pixel_shader_manager)
 
 void BoundingBox::Flush()
 {
-  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!g_ActiveConfig.bBBoxEnable || !g_backend_info.bSupportsBBox)
     return;
 
   m_is_valid = false;
@@ -57,7 +57,7 @@ void BoundingBox::Flush()
 
 void BoundingBox::Readback()
 {
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!g_backend_info.bSupportsBBox)
     return;
 
   auto read_values = Read(0, NUM_BBOX_VALUES);
@@ -76,7 +76,7 @@ u16 BoundingBox::Get(u32 index)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 
-  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!g_ActiveConfig.bBBoxEnable || !g_backend_info.bSupportsBBox)
     return m_bounding_box_fallback[index];
 
   if (!m_is_valid)
@@ -89,7 +89,7 @@ void BoundingBox::Set(u32 index, u16 value)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 
-  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!g_ActiveConfig.bBBoxEnable || !g_backend_info.bSupportsBBox)
   {
     m_bounding_box_fallback[index] = value;
     return;
@@ -120,12 +120,12 @@ void BoundingBox::DoState(PointerWrap& p)
   {
     p.Do(backend_values);
 
-    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    if (g_backend_info.bSupportsBBox)
       Write(0, backend_values);
   }
   else
   {
-    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    if (g_backend_info.bSupportsBBox)
       backend_values = Read(0, NUM_BBOX_VALUES);
 
     p.Do(backend_values);

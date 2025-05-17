@@ -20,6 +20,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
@@ -285,7 +286,7 @@ bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
                                                     TLUTFormat tlutfmt)
 {
-  DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
+  DEBUG_ASSERT(g_backend_info.bSupportsPaletteConversion);
 
   const AbstractPipeline* pipeline = g_shader_cache->GetPaletteConversionPipeline(tlutfmt);
   if (!pipeline)
@@ -404,7 +405,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_wi
     return;
   }
 
-  const u32 max = g_ActiveConfig.backend_info.MaxTextureSize;
+  const u32 max = g_backend_info.MaxTextureSize;
   if (max < new_width || max < new_height)
   {
     ERROR_LOG_FMT(VIDEO, "Texture too big, width = {}, height = {}", new_width, new_height);
@@ -1038,7 +1039,8 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
     state.tm1.max_lod = 255;
 
   // Anisotropic filtering option.
-  if (g_ActiveConfig.iMaxAnisotropy != 0 && IsAnisostropicEnhancementSafe(tm0))
+  if (g_ActiveConfig.iMaxAnisotropy != AnisotropicFilteringMode::Default &&
+      IsAnisostropicEnhancementSafe(tm0))
   {
     // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
     // For predictable results on all hardware/drivers, only use one of:
@@ -1051,11 +1053,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
     state.tm0.mag_filter = FilterMode::Linear;
     if (tm0.mipmap_filter != MipMode::None)
       state.tm0.mipmap_filter = FilterMode::Linear;
-    state.tm0.anisotropic_filtering = true;
-  }
-  else
-  {
-    state.tm0.anisotropic_filtering = false;
+    state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
   }
 
   if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)
@@ -1068,7 +1066,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
     state.tm0.lod_bias = std::clamp<s32>(state.tm0.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
-    state.tm0.anisotropic_filtering = false;
+    state.tm0.anisotropic_filtering = 0;
   }
 
   return state;
@@ -1416,7 +1414,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       // EFB copies have slightly different rules as EFB copy formats have different
       // meanings from texture formats.
       if ((base_hash == entry->hash &&
-           (!texture_info.GetPaletteSize() || g_Config.backend_info.bSupportsPaletteConversion)) ||
+           (!texture_info.GetPaletteSize() || g_backend_info.bSupportsPaletteConversion)) ||
           IsPlayingBackFifologWithBrokenEFBCopies)
       {
         // The texture format in VRAM must match the format that the copy was created with. Some
@@ -1451,7 +1449,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
         // TODO: We should check width/height/levels for EFB copies. I'm not sure what effect
         // checking width/height/levels would have.
-        if (!texture_info.GetPaletteSize() || !g_Config.backend_info.bSupportsPaletteConversion)
+        if (!texture_info.GetPaletteSize() || !g_backend_info.bSupportsPaletteConversion)
           return entry;
 
         // Note that we found an unconverted EFB copy, then continue.  We'll
@@ -1665,11 +1663,8 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
   if (!assets_data.empty())
   {
     const auto calculate_max_levels = [&]() {
-      const auto max_element = std::max_element(
-          assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs->m_texture.m_slices[0].m_levels.size() <
-                   rhs->m_texture.m_slices[0].m_levels.size();
-          });
+      const auto max_element = std::ranges::max_element(
+          assets_data, {}, [](const auto& v) { return v->m_texture.m_slices[0].m_levels.size(); });
       return (*max_element)->m_texture.m_slices[0].m_levels.size();
     };
     const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
@@ -2026,8 +2021,7 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
   if (candidates.empty())
     return;
 
-  std::sort(candidates.begin(), candidates.end(),
-            [](const TCacheEntry* a, const TCacheEntry* b) { return a->id < b->id; });
+  std::ranges::sort(candidates, {}, &TCacheEntry::id);
 
   // We only upscale when necessary to preserve resolution. i.e. when there are upscaled partial
   // copies to be stitched together.
@@ -2239,8 +2233,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   // Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush
   // which stalls any further CPU processing.
   const bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
-  bool copy_to_vram =
-      g_ActiveConfig.backend_info.bSupportsCopyToVram && !g_ActiveConfig.bDisableCopyToVRAM;
+  bool copy_to_vram = g_backend_info.bSupportsCopyToVram && !g_ActiveConfig.bDisableCopyToVRAM;
   bool copy_to_ram =
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
       !copy_to_vram;
@@ -2851,7 +2844,7 @@ bool TextureCacheBase::CreateUtilityTextures()
   if (!m_efb_encoding_framebuffer)
     return false;
 
-  if (g_ActiveConfig.backend_info.bSupportsGPUTextureDecoding)
+  if (g_backend_info.bSupportsGPUTextureDecoding)
   {
     constexpr TextureConfig decoding_texture_config(
         1024, 1024, 1, 1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_ComputeImage,

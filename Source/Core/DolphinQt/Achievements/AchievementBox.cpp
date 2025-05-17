@@ -22,7 +22,7 @@
 
 static constexpr size_t PROGRESS_LENGTH = 24;
 
-AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achievement)
+AchievementBox::AchievementBox(QWidget* parent, const rc_client_achievement_t* achievement)
     : QGroupBox(parent), m_achievement(achievement)
 {
   const auto& instance = AchievementManager::GetInstance();
@@ -85,7 +85,7 @@ void AchievementBox::UpdateData()
       color = AchievementManager::GOLD;
     else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
       color = AchievementManager::BLUE;
-    QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
+    QImage i_badge(badge.data.data(), badge.width, badge.height, QImage::Format_RGBA8888);
     m_badge->setPixmap(
         QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     m_badge->adjustSize();

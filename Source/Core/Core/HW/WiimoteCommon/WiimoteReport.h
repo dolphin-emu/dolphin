@@ -149,11 +149,12 @@ static_assert(sizeof(OutputReportReadData) == 6, "Wrong size");
 struct OutputReportSpeakerData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerData;
+  static constexpr size_t DATA_SIZE = 20;
 
   u8 rumble : 1;
   u8 : 2;
   u8 length : 5;
-  u8 data[20];
+  std::array<u8, DATA_SIZE> data;
 };
 static_assert(sizeof(OutputReportSpeakerData) == 21, "Wrong size");
 

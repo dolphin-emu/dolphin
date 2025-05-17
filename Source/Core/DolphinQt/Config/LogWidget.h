@@ -18,7 +18,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QTimer;
 
-class LogWidget final : public QDockWidget, Common::Log::LogListener
+class LogWidget final : public QDockWidget
 {
   Q_OBJECT
 public:
@@ -29,6 +29,23 @@ protected:
   void closeEvent(QCloseEvent*) override;
 
 private:
+  // LogListener instances are owned by LogManager, so we can't make LogWidget inherit from
+  // LogListener, since Qt should be in control of LogWidget's lifetime. Instead we have
+  // this LogListenerImpl class to act as an adapter.
+  class LogListenerImpl final : public Common::Log::LogListener
+  {
+  public:
+    explicit LogListenerImpl(LogWidget* log_widget) : m_log_widget(log_widget) {}
+
+  private:
+    void Log(Common::Log::LogLevel level, const char* text) override
+    {
+      m_log_widget->Log(level, text);
+    }
+
+    LogWidget* m_log_widget;
+  };
+
   void UpdateLog();
   void UpdateFont();
   void CreateWidgets();
@@ -36,7 +53,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void Log(Common::Log::LogLevel level, const char* text) override;
+  void Log(Common::Log::LogLevel level, const char* text);
 
   // Log
   QCheckBox* m_log_wrap;

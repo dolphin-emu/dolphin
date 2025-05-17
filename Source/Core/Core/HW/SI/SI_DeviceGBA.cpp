@@ -49,11 +49,11 @@ static void GBAConnectionWaiter()
   sf::TcpListener clock_server;
 
   // "dolphin gba"
-  if (server.listen(0xd6ba) != sf::Socket::Done)
+  if (server.listen(0xd6ba) != sf::Socket::Status::Done)
     return;
 
   // "clock"
-  if (clock_server.listen(0xc10c) != sf::Socket::Done)
+  if (clock_server.listen(0xc10c) != sf::Socket::Status::Done)
     return;
 
   server.setBlocking(false);
@@ -62,14 +62,14 @@ static void GBAConnectionWaiter()
   auto new_client = std::make_unique<sf::TcpSocket>();
   while (s_server_running.IsSet())
   {
-    if (server.accept(*new_client) == sf::Socket::Done)
+    if (server.accept(*new_client) == sf::Socket::Status::Done)
     {
       std::lock_guard lk(s_cs_gba);
       s_waiting_socks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
     }
-    if (clock_server.accept(*new_client) == sf::Socket::Done)
+    if (clock_server.accept(*new_client) == sf::Socket::Status::Done)
     {
       std::lock_guard lk(s_cs_gba_clk);
       s_waiting_clocks.push(std::move(new_client));
@@ -146,7 +146,7 @@ void GBASockServer::ClockSync(Core::System& system)
     if (!(m_clock_sync = GetNextClock()))
       return;
 
-  auto& core_timing = system.GetCoreTiming();
+  const auto& core_timing = system.GetCoreTiming();
 
   u32 time_slice = 0;
 
@@ -169,8 +169,8 @@ void GBASockServer::ClockSync(Core::System& system)
   bytes[2] = (time_slice >> 8) & 0xff;
   bytes[3] = time_slice & 0xff;
 
-  sf::Socket::Status status = m_clock_sync->send(bytes, 4);
-  if (status == sf::Socket::Disconnected)
+  const sf::Socket::Status status = m_clock_sync->send(bytes, 4);
+  if (status == sf::Socket::Status::Disconnected)
   {
     m_clock_sync->disconnect();
     m_clock_sync = nullptr;
@@ -210,7 +210,7 @@ void GBASockServer::Send(const u8* si_buffer)
   else
     status = m_client->send(send_data.data(), 1);
 
-  if (status == sf::Socket::Disconnected)
+  if (status == sf::Socket::Status::Disconnected)
     Disconnect();
 }
 
@@ -223,19 +223,19 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   {
     sf::SocketSelector selector;
     selector.add(*m_client);
-    selector.wait(sf::milliseconds(1000));
+    (void)selector.wait(sf::milliseconds(1000));
   }
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
-  sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
-  if (recv_stat == sf::Socket::Disconnected)
+  const sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
+  if (recv_stat == sf::Socket::Status::Disconnected)
   {
     Disconnect();
     return 0;
   }
 
-  if (recv_stat == sf::Socket::NotReady || num_received == 0)
+  if (recv_stat == sf::Socket::Status::NotReady || num_received == 0)
   {
     m_booted = false;
     return 0;
@@ -256,8 +256,8 @@ void GBASockServer::Flush()
   u8 byte;
   while (num_received)
   {
-    sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
-    if (recv_stat != sf::Socket::Done)
+    const sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
+    if (recv_stat != sf::Socket::Status::Done)
       break;
   }
 }
@@ -296,7 +296,8 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
+    const int elapsed_time =
+        static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd) > elapsed_time)
       return 0;
@@ -319,7 +320,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     default:
       break;
     }
-    int num_data_received = m_sock_server.Receive(buffer, bytes);
+    const int num_data_received = m_sock_server.Receive(buffer, bytes);
 
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)
@@ -348,9 +349,9 @@ int CSIDevice_GBA::TransferInterval()
   return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
-bool CSIDevice_GBA::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GBA::GetData(u32& hi, u32& low)
 {
-  return false;
+  return DataResponse::NoData;
 }
 
 void CSIDevice_GBA::SendCommand(u32 command, u8 poll)

@@ -12,6 +12,7 @@ enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
 enum class StereoPerEyeResolution : int;
 enum class TextureFilteringMode : int;
+enum class AnisotropicFilteringMode : int;
 enum class OutputResamplingMode : int;
 enum class ColorCorrectionRegion : int;
 enum class TriState : int;
@@ -47,6 +48,7 @@ extern const Info<bool> GFX_SHOW_VTIMES;
 extern const Info<bool> GFX_SHOW_GRAPHS;
 extern const Info<bool> GFX_SHOW_SPEED;
 extern const Info<bool> GFX_SHOW_SPEED_COLORS;
+extern const Info<bool> GFX_MOVABLE_PERFORMANCE_METRICS;
 extern const Info<int> GFX_PERF_SAMP_WINDOW;
 extern const Info<bool> GFX_SHOW_NETPLAY_PING;
 extern const Info<bool> GFX_SHOW_NETPLAY_MESSAGES;
@@ -110,7 +112,8 @@ extern const Info<bool> GFX_MODS_ENABLE;
 // Graphics.Enhancements
 
 extern const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING;
-extern const Info<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
+// NOTE - this is x in (1 << x)
+extern const Info<AnisotropicFilteringMode> GFX_ENHANCE_MAX_ANISOTROPY;
 extern const Info<OutputResamplingMode> GFX_ENHANCE_OUTPUT_RESAMPLING;
 extern const Info<std::string> GFX_ENHANCE_POST_SHADER;
 extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;

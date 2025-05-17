@@ -203,6 +203,8 @@ add_library(core
   HW/EXI/EXI_DeviceAD16.h
   HW/EXI/EXI_DeviceAGP.cpp
   HW/EXI/EXI_DeviceAGP.h
+  HW/EXI/EXI_DeviceBaseboard.cpp
+  HW/EXI/EXI_DeviceBaseboard.h
   HW/EXI/EXI_DeviceDummy.cpp
   HW/EXI/EXI_DeviceDummy.h
   HW/EXI/EXI_DeviceEthernet.cpp
@@ -447,6 +449,8 @@ add_library(core
   IOS/USB/USB_KBD.h
   IOS/USB/USB_VEN/VEN.cpp
   IOS/USB/USB_VEN/VEN.h
+  IOS/USB/USBScanner.cpp
+  IOS/USB/USBScanner.h
   IOS/USB/USBV0.cpp
   IOS/USB/USBV0.h
   IOS/USB/USBV4.cpp
@@ -539,6 +543,8 @@ add_library(core
   SysConf.h
   System.cpp
   System.h
+  TimePlayed.cpp
+  TimePlayed.h
   TitleDatabase.cpp
   TitleDatabase.h
   WC24PatchEngine.cpp
@@ -649,6 +655,11 @@ PRIVATE
   LZ4::LZ4
   ZLIB::ZLIB
 )
+
+if(LIBUDEV_FOUND)
+  target_include_directories(core PRIVATE ${LIBUDEV_INCLUDE_DIR})
+  target_link_libraries(core PRIVATE ${LIBUDEV_LIBRARY})
+endif()
 
 if (APPLE)
   target_link_libraries(core
@@ -785,4 +796,7 @@ if(USE_RETRO_ACHIEVEMENTS)
   target_link_libraries(core PUBLIC rcheevos)
   target_compile_definitions(core PUBLIC -DUSE_RETRO_ACHIEVEMENTS)
   target_compile_definitions(core PUBLIC -DRC_CLIENT_SUPPORTS_HASH)
+  if(RC_CLIENT_SUPPORTS_RAINTEGRATION)
+    target_compile_definitions(core PUBLIC -DRC_CLIENT_SUPPORTS_RAINTEGRATION)
+  endif()
 endif()

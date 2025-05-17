@@ -201,6 +201,9 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
     return T{2};
   case TokenType::So:
     return T{3};
+  case TokenType::NumLabFwd:
+  case TokenType::NumLabBwd:
+    return std::accumulate(val.begin(), val.end() - 1, T{0}, dec_step);
   default:
     return std::nullopt;
   }
@@ -616,7 +619,7 @@ const Lexer& Lexer::Step() const
 
 TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invalid_region) const
 {
-  // The open quote has alread been matched
+  // The open quote has already been matched
   const size_t string_start = m_scan_pos.index - 1;
   TokenType token_type = TokenType::StringLit;
 
@@ -723,9 +726,9 @@ AssemblerToken Lexer::LexSingle() const
   }
   else if (h == '0')
   {
-    const char imm_type = Peek();
+    const char nextch = Peek();
 
-    if (imm_type == 'x')
+    if (nextch == 'x')
     {
       token_type = TokenType::HexadecimalLit;
       Step();
@@ -733,20 +736,32 @@ AssemblerToken Lexer::LexSingle() const
       {
       }
     }
-    else if (imm_type == 'b')
+    else if (nextch == 'b')
     {
-      token_type = TokenType::BinaryLit;
       Step();
-      for (char c = Peek(); IsBinary(c); c = Step().Peek())
+      if (!IsBinary(Peek()))
       {
+        token_type = TokenType::NumLabBwd;
+      }
+      else
+      {
+        token_type = TokenType::BinaryLit;
+        for (char c = Peek(); IsBinary(c); c = Step().Peek())
+        {
+        }
       }
     }
-    else if (IsOctal(imm_type))
+    else if (IsOctal(nextch))
     {
       token_type = TokenType::OctalLit;
       for (char c = Peek(); IsOctal(c); c = Step().Peek())
       {
       }
+    }
+    else if (nextch == 'f')
+    {
+      Step();
+      token_type = TokenType::NumLabFwd;
     }
     else
     {
@@ -758,7 +773,22 @@ AssemblerToken Lexer::LexSingle() const
     for (char c = Peek(); std::isdigit(c); c = Step().Peek())
     {
     }
-    token_type = TokenType::DecimalLit;
+    switch (Peek())
+    {
+    case 'f':
+      token_type = TokenType::NumLabFwd;
+      Step();
+      break;
+
+    case 'b':
+      token_type = TokenType::NumLabBwd;
+      Step();
+      break;
+
+    default:
+      token_type = TokenType::DecimalLit;
+      break;
+    }
   }
   else if (h == '<' || h == '>')
   {

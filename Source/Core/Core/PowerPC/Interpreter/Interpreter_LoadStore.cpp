@@ -957,9 +957,6 @@ void Interpreter::lswi(Interpreter& interpreter, UGeckoInstruction inst)
   }
 }
 
-// todo : optimize ?
-// stswi - bizarro string instruction
-// FIXME: Should rollback if a DSI occurs
 void Interpreter::stswi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
@@ -973,38 +970,13 @@ void Interpreter::stswi(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  u32 n = 32;
-  if (inst.NB != 0)
-    n = inst.NB;
-
-  u32 r = u32{inst.RS} - 1;
-  u32 i = 0;
-  while (n > 0)
-  {
-    if (i == 0)
-    {
-      r++;
-      r &= 31;
-    }
-    interpreter.m_mmu.Write_U8((ppc_state.gpr[r] >> (24 - i)) & 0xFF, EA);
-    if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
-    {
-      return;
-    }
-
-    i += 8;
-    if (i == 32)
-      i = 0;
-    EA++;
-    n--;
-  }
+  Helper_StoreString(interpreter, EA, inst.NB == 0 ? 32 : inst.NB, inst.RS);
 }
 
-// TODO: is this right? is it DSI interruptible?
 void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  u32 EA = Helper_Get_EA_X(ppc_state, inst);
+  const u32 EA = Helper_Get_EA_X(ppc_state, inst);
 
   if (ppc_state.msr.LE)
   {
@@ -1012,22 +984,68 @@ void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  u32 n = u8(ppc_state.xer_stringctrl);
-  u32 r = inst.RS;
-  u32 i = 0;
+  Helper_StoreString(interpreter, EA, u8(ppc_state.xer_stringctrl), inst.RS);
+}
 
-  while (n > 0)
+void Interpreter::Helper_StoreString(Interpreter& interpreter, const u32 EA, u32 n, u32 r)
+{
+  // Helper for stswi/stswx, the oddball store string instructions.
+  //
+  // If we ask the MMU code to write to uncached memory and the start or end address isn't divisible
+  // by 4, it results in surrounding bytes getting overwritten. stswi/stswx should never trigger
+  // this behavior, so we need to be careful to only use 32-bit writes with proper alignment here.
+  //
+  // TODO: How should DSI exceptions in the middle of the instruction be handled?
+
+  auto& ppc_state = interpreter.m_ppc_state;
+
+  const u32 misalignment_bytes = EA & 3;
+  const u32 misalignment_bits = misalignment_bytes * 8;
+
+  u32 current_address = EA & ~3;
+  u64 current_value = 0;
+  if (misalignment_bytes != 0)
   {
-    interpreter.m_mmu.Write_U8((ppc_state.gpr[r] >> (24 - i)) & 0xFF, EA);
+    // Handle misalignment at start
+    current_value = interpreter.m_mmu.Read_U32(current_address);
+    if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+      return;
+    current_value <<= misalignment_bits;
+    current_value &= 0xFFFF'FFFF'0000'0000;
+    n += misalignment_bytes;
+  }
 
-    EA++;
-    n--;
-    i += 8;
-    if (i == 32)
+  while (n >= 4)
+  {
+    current_value |= ppc_state.gpr[r];
+    interpreter.m_mmu.Write_U32(static_cast<u32>(current_value >> misalignment_bits),
+                                current_address);
+    if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+      return;
+
+    current_value <<= 32;
+    current_address += 4;
+    n -= 4;
+    r = (r + 1) & 0x1f;  // wrap
+  }
+
+  if (n != 0)
+  {
+    // Handle misalignment at end
+    if (n > misalignment_bytes)
     {
-      i = 0;
-      r = (r + 1) & 0x1f;  // wrap
+      current_value |= ppc_state.gpr[r];
+      current_value <<= (n - misalignment_bytes) * 8;
     }
+    else
+    {
+      current_value >>= (misalignment_bytes - n) * 8;
+    }
+    current_value &= 0xFFFF'FFFF'0000'0000;
+    current_value |= (interpreter.m_mmu.Read_U32(current_address) << (n * 8)) & 0xFFFF'FFFF;
+    if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+      return;
+    interpreter.m_mmu.Write_U32(static_cast<u32>(current_value >> (n * 8)), current_address);
   }
 }
 

@@ -12,7 +12,6 @@
 // sequentially for access.
 struct HostThreadLock
 {
-public:
   explicit HostThreadLock() : m_lock(s_host_identity_mutex) { Core::DeclareAsHostThread(); }
 
   ~HostThreadLock()
