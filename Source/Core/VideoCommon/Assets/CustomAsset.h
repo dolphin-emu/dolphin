@@ -18,7 +18,7 @@ class CustomAsset
 {
 public:
   CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
-              const CustomAssetLibrary::AssetID& asset_id);
+              const CustomAssetLibrary::AssetID& asset_id, u64 session_id);
   virtual ~CustomAsset() = default;
   CustomAsset(const CustomAsset&) = delete;
   CustomAsset(CustomAsset&&) = delete;
@@ -27,6 +27,9 @@ public:
 
   // Loads the asset from the library returning a pass/fail result
   bool Load();
+
+  // Unloads the asset data, resets the time and bytes loaded
+  void Unload();
 
   // Queries the last time the asset was modified or standard epoch time
   // if the asset hasn't been modified yet
@@ -39,6 +42,11 @@ public:
   // Returns an id that uniquely identifies this asset
   const CustomAssetLibrary::AssetID& GetAssetId() const;
 
+  // Returns an id that is unique to this game session
+  // This is a faster form to hash and can be used
+  // as an index
+  std::size_t GetHandle() const;
+
   // A rough estimate of how much space this asset
   // will take in memroy
   std::size_t GetByteSizeInMemory() const;
@@ -48,7 +56,9 @@ protected:
 
 private:
   virtual CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) = 0;
+  virtual void UnloadImpl() = 0;
   CustomAssetLibrary::AssetID m_asset_id;
+  std::size_t m_handle;
 
   mutable std::mutex m_info_lock;
   std::size_t m_bytes_loaded = 0;
@@ -83,6 +93,14 @@ protected:
   bool m_loaded = false;
   mutable std::mutex m_data_lock;
   std::shared_ptr<UnderlyingType> m_data;
+
+private:
+  void UnloadImpl() override
+  {
+    std::lock_guard lk(m_data_lock);
+    m_loaded = false;
+    m_data.reset();
+  }
 };
 
 // A helper struct that contains

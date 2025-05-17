@@ -14,6 +14,8 @@ add_library(videocommon
   Assets/CustomAssetLibrary.h
   Assets/CustomAssetLoader.cpp
   Assets/CustomAssetLoader.h
+  Assets/CustomResourceManager.cpp
+  Assets/CustomResourceManager.h
   Assets/CustomTextureData.cpp
   Assets/CustomTextureData.h
   Assets/DirectFilesystemAssetLibrary.cpp
@@ -26,6 +28,8 @@ add_library(videocommon
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
   Assets/TextureAsset.h
+  Assets/Types.h
+  Assets/WatchableFilesystemAssetLibrary.h
   AsyncRequests.cpp
   AsyncRequests.h
   AsyncShaderCompiler.cpp
