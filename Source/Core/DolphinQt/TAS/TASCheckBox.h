@@ -25,7 +25,7 @@ protected:
   void mousePressEvent(QMouseEvent* event) override;
 
 private slots:
-  void OnUIValueChanged(int new_value);
+  void OnUIValueChanged(Qt::CheckState new_value);
   void ApplyControllerValueChange();
 
 private:

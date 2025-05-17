@@ -15,7 +15,7 @@ TASCheckBox::TASCheckBox(const QString& text, TASInputWindow* parent)
 {
   setTristate(true);
 
-  connect(this, &TASCheckBox::stateChanged, this, &TASCheckBox::OnUIValueChanged);
+  connect(this, &TASCheckBox::checkStateChanged, this, &TASCheckBox::OnUIValueChanged);
 }
 
 bool TASCheckBox::GetValue() const
@@ -58,7 +58,7 @@ void TASCheckBox::mousePressEvent(QMouseEvent* event)
   setCheckState(Qt::PartiallyChecked);
 }
 
-void TASCheckBox::OnUIValueChanged(int new_value)
+void TASCheckBox::OnUIValueChanged(Qt::CheckState new_value)
 {
   m_state.OnUIValueChanged(new_value);
 }
