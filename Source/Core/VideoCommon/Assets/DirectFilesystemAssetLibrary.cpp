@@ -17,6 +17,7 @@
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/RenderState.h"
 
 namespace VideoCommon
@@ -277,7 +278,37 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
-                                                                       TextureData* data)
+                                                                       CustomTextureData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+  if (asset_map.empty())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - raw texture expected to have one or two files mapped!",
+                  asset_id);
+    return {};
+  }
+
+  const auto texture_path = asset_map.find("texture");
+
+  if (texture_path == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a texture entry mapped!", asset_id);
+    return {};
+  }
+
+  if (!LoadTextureDataFromFile(asset_id, texture_path->second,
+                               TextureAndSamplerData::Type::Type_Texture2D, data))
+  {
+    return {};
+  }
+  if (!PurgeInvalidMipsFromTextureData(asset_id, data))
+    return {};
+
+  return LoadInfo{GetAssetSize(*data)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
+                                                                       TextureAndSamplerData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
@@ -330,7 +361,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     }
 
     const auto& root_obj = root.get<picojson::object>();
-    if (!TextureData::FromJson(asset_id, root_obj, data))
+    if (!TextureAndSamplerData::FromJson(asset_id, root_obj, data))
     {
       return {};
     }
@@ -338,61 +369,15 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   else
   {
     data->m_sampler = RenderState::GetLinearSamplerState();
-    data->m_type = TextureData::Type::Type_Texture2D;
+    data->m_type = TextureAndSamplerData::Type::Type_Texture2D;
   }
 
-  auto ext = PathToString(texture_path->second.extension());
-  Common::ToLower(&ext);
-  if (ext == ".dds")
-  {
-    if (!LoadDDSTexture(&data->m_texture, PathToString(texture_path->second)))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load dds texture!", asset_id);
-      return {};
-    }
+  if (!LoadTextureDataFromFile(asset_id, texture_path->second, data->m_type, &data->m_texture))
+    return {};
+  if (!PurgeInvalidMipsFromTextureData(asset_id, &data->m_texture))
+    return {};
 
-    if (data->m_texture.m_slices.empty()) [[unlikely]]
-      data->m_texture.m_slices.push_back({});
-
-    if (!LoadMips(texture_path->second, &data->m_texture.m_slices[0]))
-      return {};
-
-    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
-  }
-  else if (ext == ".png")
-  {
-    // PNG could support more complicated texture types in the future
-    // but for now just error
-    if (data->m_type != TextureData::Type::Type_Texture2D)
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - PNG is not supported for texture type '{}'!",
-                    asset_id, data->m_type);
-      return {};
-    }
-
-    // If we have no slices, create one
-    if (data->m_texture.m_slices.empty())
-      data->m_texture.m_slices.push_back({});
-
-    auto& slice = data->m_texture.m_slices[0];
-    // If we have no levels, create one to pass into LoadPNGTexture
-    if (slice.m_levels.empty())
-      slice.m_levels.push_back({});
-
-    if (!LoadPNGTexture(&slice.m_levels[0], PathToString(texture_path->second)))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load png texture!", asset_id);
-      return {};
-    }
-
-    if (!LoadMips(texture_path->second, &slice))
-      return {};
-
-    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
-  }
-
-  ERROR_LOG_FMT(VIDEO, "Asset '{}' error - extension '{}' unknown!", asset_id, ext);
-  return {};
+  return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
@@ -400,58 +385,6 @@ void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
 {
   std::lock_guard lk(m_lock);
   m_asset_id_to_asset_map_path[asset_id] = std::move(asset_path_map);
-}
-
-bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_path,
-                                            CustomTextureData::ArraySlice* data)
-{
-  if (!data) [[unlikely]]
-    return false;
-
-  std::string path;
-  std::string filename;
-  std::string extension;
-  SplitPath(PathToString(asset_path), &path, &filename, &extension);
-
-  std::string extension_lower = extension;
-  Common::ToLower(&extension_lower);
-
-  // Load additional mip levels
-  for (u32 mip_level = static_cast<u32>(data->m_levels.size());; mip_level++)
-  {
-    const auto mip_level_filename = filename + fmt::format("_mip{}", mip_level);
-
-    const auto full_path = path + mip_level_filename + extension;
-    if (!File::Exists(full_path))
-      return true;
-
-    VideoCommon::CustomTextureData::ArraySlice::Level level;
-    if (extension_lower == ".dds")
-    {
-      if (!LoadDDSTexture(&level, full_path, mip_level))
-      {
-        ERROR_LOG_FMT(VIDEO, "Custom mipmap '{}' failed to load", mip_level_filename);
-        return false;
-      }
-    }
-    else if (extension_lower == ".png")
-    {
-      if (!LoadPNGTexture(&level, full_path))
-      {
-        ERROR_LOG_FMT(VIDEO, "Custom mipmap '{}' failed to load", mip_level_filename);
-        return false;
-      }
-    }
-    else
-    {
-      ERROR_LOG_FMT(VIDEO, "Custom mipmap '{}' has unsupported extension", mip_level_filename);
-      return false;
-    }
-
-    data->m_levels.push_back(std::move(level));
-  }
-
-  return true;
 }
 
 VideoCommon::Assets::AssetMap
