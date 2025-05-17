@@ -19,4 +19,16 @@ QWidget* CreateIconWarning(QWidget* parent, QStyle::StandardPixmap standard_pixm
 // Similar to QWidget::adjustSize except maximum size is 9/10 of screen rather than 2/3.
 void AdjustSizeWithinScreen(QWidget* widget);
 
+// A QWidget that returns the minimumSizeHint as the primary sizeHint.
+// Useful for QListWidget which hints a fairly large height even when entirely empty.
+// usage: QtUtils::MinimumSizeHintWidget<QListWidget>
+template <typename Widget>
+class MinimumSizeHintWidget : public Widget
+{
+public:
+  using Widget::Widget;
+
+  QSize sizeHint() const override { return Widget::minimumSizeHint(); }
+};
+
 }  // namespace QtUtils
