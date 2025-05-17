@@ -9,6 +9,7 @@
 #include "DolphinQt/Config/CommonControllersWidget.h"
 #include "DolphinQt/Config/GamecubeControllersWidget.h"
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
@@ -41,6 +42,7 @@ void ControllersWindow::CreateMainLayout()
   layout->addWidget(m_button_box);
 
   WrapInScrollArea(this, layout);
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
 void ControllersWindow::ConnectWidgets()
