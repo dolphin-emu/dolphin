@@ -23,7 +23,7 @@ class AdvancedMappingControlAdapter(
         viewType: Int
     ): AdvancedMappingControlViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val binding = ListItemAdvancedMappingControlBinding.inflate(inflater)
+        val binding = ListItemAdvancedMappingControlBinding.inflate(inflater, parent, false)
         return AdvancedMappingControlViewHolder(binding, parentLifecycle, isInput, onClickCallback)
     }
 

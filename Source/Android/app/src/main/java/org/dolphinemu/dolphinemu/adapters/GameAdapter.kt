@@ -37,7 +37,8 @@ class GameAdapter : RecyclerView.Adapter<GameViewHolder>(),
      * @return The created ViewHolder with references to all the child view's members.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
-        val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context))
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = CardGameBinding.inflate(inflater, parent, false)
         binding.root.apply {
             setOnClickListener(this@GameAdapter)
             setOnLongClickListener(this@GameAdapter)
