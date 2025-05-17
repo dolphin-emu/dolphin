@@ -20,6 +20,9 @@
 
 #include "UICommon/GameFile.h"
 
+#pragma push_macro("RemoveDirectory")
+#undef RemoveDirectory
+
 // NOTE: Qt likes to be case-sensitive here even though it shouldn't be thus this ugly regex hack
 static const QStringList game_filters{
     QStringLiteral("*.[gG][cC][mM]"),     QStringLiteral("*.[bB][iI][nN]"),
@@ -368,3 +371,5 @@ void GameTracker::PurgeCache()
   m_needs_purge = true;
   Settings::Instance().RefreshGameList();
 }
+
+#pragma pop_macro("RemoveDirectory")

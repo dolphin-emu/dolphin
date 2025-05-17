@@ -581,6 +581,10 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 
 #endif
 
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 std::string UTF16ToUTF8(std::u16string_view input)
 {
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
@@ -592,6 +596,9 @@ std::u16string UTF8ToUTF16(std::string_view input)
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
   return converter.from_bytes(input.data(), input.data() + input.size());
 }
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
 
 // This is a replacement for path::u8path, which is deprecated starting with C++20.
 std::filesystem::path StringToPath(std::string_view path)
@@ -607,7 +614,7 @@ std::filesystem::path StringToPath(std::string_view path)
 // path::u8string returns std::u8string starting with C++20, which is annoying to convert.
 std::string PathToString(const std::filesystem::path& path)
 {
-#ifdef _MSC_VER
+#ifdef _WIN32
   return WStringToUTF8(path.native());
 #else
   return path.native();
@@ -625,7 +632,7 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
     return {};
 
   std::vector<std::string> argv(nargs);
-  for (size_t i = 0; i < nargs; ++i)
+  for (int i = 0; i < nargs; ++i)
   {
     argv[i] = WStringToUTF8(tokenized[i]);
   }
