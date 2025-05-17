@@ -61,7 +61,7 @@ TEST(SPSCQueue, MultiThreaded)
 
   constexpr u32 reps = 100000;
 
-  auto inserter = [&]() {
+  auto inserter = [&] {
     for (u32 i = 0; i != reps; ++i)
       q.Push({sptr, i});
 
@@ -71,7 +71,7 @@ TEST(SPSCQueue, MultiThreaded)
     EXPECT_EQ(sptr.use_count(), 2);
   };
 
-  auto popper = [&]() {
+  auto popper = [&] {
     for (u32 i = 0; i != reps; ++i)
     {
       q.WaitForData();

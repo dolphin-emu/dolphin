@@ -125,7 +125,7 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
 
   X64Reg coords = XMM0;
 
-  const auto write_zfreeze = [&]() {  // zfreeze
+  const auto write_zfreeze = [&] {  // zfreeze
     if (native_format == &m_native_vtx_decl.position)
     {
       CMP(32, R(remaining_reg), Imm8(3));
