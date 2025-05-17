@@ -31,13 +31,13 @@ TEST(TMDReader, Validity)
   tmd = IOS::ES::TMDReader{{1, 2, 3}};
   EXPECT_FALSE(tmd.IsValid()) << "IsValid should be false when reading an invalid TMD";
 
-  tmd = IOS::ES::TMDReader{std::vector<u8>(soup01_tmd.cbegin(), soup01_tmd.cend() - 1)};
+  tmd = IOS::ES::TMDReader{std::vector(soup01_tmd.cbegin(), soup01_tmd.cend() - 1)};
   EXPECT_FALSE(tmd.IsValid()) << "IsValid should be false when reading an invalid TMD";
 
-  tmd = IOS::ES::TMDReader{std::vector<u8>(soup01_tmd.cbegin(), soup01_tmd.cend())};
+  tmd = IOS::ES::TMDReader{std::vector(soup01_tmd.cbegin(), soup01_tmd.cend())};
   EXPECT_TRUE(tmd.IsValid()) << "IsValid should be true when reading a valid TMD";
 
-  tmd = IOS::ES::TMDReader{std::vector<u8>(ios59_tmd.cbegin(), ios59_tmd.cend())};
+  tmd = IOS::ES::TMDReader{std::vector(ios59_tmd.cbegin(), ios59_tmd.cend())};
   EXPECT_TRUE(tmd.IsValid()) << "IsValid should be true when reading a valid TMD";
 }
 
@@ -91,7 +91,7 @@ class GameTMDReaderTest : public TMDReaderTest
 protected:
   void SetUp() override
   {
-    m_raw_tmd = std::vector<u8>(soup01_tmd.cbegin(), soup01_tmd.cend());
+    m_raw_tmd = std::vector(soup01_tmd.cbegin(), soup01_tmd.cend());
     TMDReaderTest::SetUp();
   }
   u64 GetTitleId() const override { return 0x00010000534f5550; }
@@ -99,7 +99,7 @@ protected:
   std::string GetGameID() const override { return "SOUP01"; }
   std::vector<u8> GetRawView() const override
   {
-    return std::vector<u8>(soup01_tmd_view.cbegin(), soup01_tmd_view.cend());
+    return std::vector(soup01_tmd_view.cbegin(), soup01_tmd_view.cend());
   }
 };
 
@@ -150,7 +150,7 @@ class IOSTMDReaderTest : public TMDReaderTest
 protected:
   void SetUp() override
   {
-    m_raw_tmd = std::vector<u8>(ios59_tmd.cbegin(), ios59_tmd.cend());
+    m_raw_tmd = std::vector(ios59_tmd.cbegin(), ios59_tmd.cend());
     TMDReaderTest::SetUp();
   }
   u64 GetTitleId() const override { return 0x000000010000003b; }
@@ -158,7 +158,7 @@ protected:
   std::string GetGameID() const override { return "000000010000003b"; }
   std::vector<u8> GetRawView() const override
   {
-    return std::vector<u8>(ios59_tmd_view.cbegin(), ios59_tmd_view.cend());
+    return std::vector(ios59_tmd_view.cbegin(), ios59_tmd_view.cend());
   }
 };
 
