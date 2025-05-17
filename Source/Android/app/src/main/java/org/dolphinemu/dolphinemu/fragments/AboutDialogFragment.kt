@@ -38,10 +38,8 @@ class AboutDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (!resources.getBoolean(R.bool.hasTouch)) {
-            BottomSheetBehavior.from<View>(view.parent as View).state =
-                BottomSheetBehavior.STATE_EXPANDED
-        }
+        BottomSheetBehavior.from<View>(view.parent as View).state =
+            BottomSheetBehavior.STATE_EXPANDED
 
         val wark = resources.getString(R.string.wark)
         val branch = String.format(

@@ -44,11 +44,9 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Pins fragment to the top of the dialog ensures the dialog is expanded in landscape by default
-        if (!resources.getBoolean(R.bool.hasTouch)) {
-            BottomSheetBehavior.from<View>(view.parent as View).state =
-                BottomSheetBehavior.STATE_EXPANDED
-        }
+        // Ensure the dialog is expanded in landscape by default
+        BottomSheetBehavior.from<View>(view.parent as View).state =
+            BottomSheetBehavior.STATE_EXPANDED
 
         if (activity is AppCompatActivity) {
             setUpCoverButtons()
