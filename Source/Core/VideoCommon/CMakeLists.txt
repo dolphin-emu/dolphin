@@ -10,7 +10,6 @@ add_library(videocommon
   AbstractTexture.h
   Assets/CustomAsset.cpp
   Assets/CustomAsset.h
-  Assets/CustomAssetLibrary.cpp
   Assets/CustomAssetLibrary.h
   Assets/CustomAssetLoader.cpp
   Assets/CustomAssetLoader.h
@@ -26,6 +25,8 @@ add_library(videocommon
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
   Assets/TextureAsset.h
+  Assets/TextureAssetUtils.cpp
+  Assets/TextureAssetUtils.h
   Assets/Types.h
   AsyncRequests.cpp
   AsyncRequests.h

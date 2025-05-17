@@ -10,10 +10,11 @@
 
 namespace VideoCommon
 {
+class CustomTextureData;
 struct MaterialData;
 struct MeshData;
 struct PixelShaderData;
-struct TextureData;
+struct TextureAndSamplerData;
 
 // This class provides functionality to load
 // specific data (like textures).  Where this data
@@ -31,12 +32,11 @@ public:
 
   virtual ~CustomAssetLibrary() = default;
 
-  // Loads a texture, if there are no levels, bytes loaded will be empty
-  virtual LoadInfo LoadTexture(const AssetID& asset_id, TextureData* data) = 0;
+  // Loads a texture with a sampler and type, if there are no levels, bytes loaded will be empty
+  virtual LoadInfo LoadTexture(const AssetID& asset_id, TextureAndSamplerData* data) = 0;
 
-  // Loads a texture as a game texture, providing additional checks like confirming
-  // each mip level size is correct and that the format is consistent across the data
-  LoadInfo LoadGameTexture(const AssetID& asset_id, TextureData* data);
+  // Loads a texture, if there are no levels, bytes loaded will be empty
+  virtual LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) = 0;
 
   // Loads a pixel shader
   virtual LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) = 0;

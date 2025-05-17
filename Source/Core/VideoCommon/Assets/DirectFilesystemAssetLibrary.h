@@ -10,6 +10,7 @@
 
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/Assets/Types.h"
 
 namespace VideoCommon
@@ -19,7 +20,8 @@ namespace VideoCommon
 class DirectFilesystemAssetLibrary final : public CustomAssetLibrary
 {
 public:
-  LoadInfo LoadTexture(const AssetID& asset_id, TextureData* data) override;
+  LoadInfo LoadTexture(const AssetID& asset_id, TextureAndSamplerData* data) override;
+  LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) override;
   LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) override;
   LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) override;
   LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) override;
@@ -30,9 +32,6 @@ public:
   void SetAssetIDMapData(const AssetID& asset_id, Assets::AssetMap asset_path_map);
 
 private:
-  // Loads additional mip levels into the texture structure until _mip<N> texture is not found
-  bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArraySlice* data);
-
   // Gets the asset map given an asset id
   Assets::AssetMap GetAssetMapForID(const AssetID& asset_id) const;
 

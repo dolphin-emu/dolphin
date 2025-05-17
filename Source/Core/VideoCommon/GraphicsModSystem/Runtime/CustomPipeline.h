@@ -28,7 +28,7 @@ struct CustomPipeline
 
   struct CachedTextureAsset
   {
-    VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> m_cached_asset;
+    VideoCommon::CachedAsset<VideoCommon::TextureAsset> m_cached_asset;
     std::unique_ptr<AbstractTexture> m_texture;
     std::string m_sampler_code;
     std::string m_define_code;
