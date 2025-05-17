@@ -26,7 +26,8 @@ public:
   CubebStream& operator=(CubebStream&& other) = delete;
   ~CubebStream() override;
   bool Init() override;
-  bool SetRunning(bool running) override;
+  bool Start() override;
+  bool Stop() override;
   void SetVolume(int) override;
   static bool IsValid() { return true; }
 
