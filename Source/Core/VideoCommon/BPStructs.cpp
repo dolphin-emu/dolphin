@@ -198,7 +198,6 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       WARN_LOG_FMT(VIDEO, "GXSetDrawDone ??? (value {:#04X})", bp.newvalue & 0xFFFF);
       return;
     }
-    return;
   case BPMEM_PE_TOKEN_ID:  // Pixel Engine Token ID
   {
     INCSTAT(g_stats.this_frame.num_token);
