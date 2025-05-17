@@ -274,9 +274,7 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
   NetPlayInit();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance().Init(reinterpret_cast<void*>(winId()), [this](auto func) {
-    QueueOnObject(this, std::move(func));
-  });
+  AchievementManager::GetInstance().Init(reinterpret_cast<void*>(winId()));
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     Settings::Instance().SetDebugModeEnabled(false);
   // This needs to trigger on both RA_HARDCORE_ENABLED and RA_ENABLED
