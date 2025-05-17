@@ -67,7 +67,6 @@
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
@@ -1392,7 +1391,6 @@ void MenuBar::CheckNAND()
 
   {
     NANDRepairDialog dialog(result, this);
-    SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() != QDialog::Accepted)
       return;
   }
@@ -1563,7 +1561,6 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
 
     return matches;
   });
-  SetQWidgetWindowDecorations(progress.GetRaw());
   progress.GetRaw()->exec();
 
   const auto matches = future.get();

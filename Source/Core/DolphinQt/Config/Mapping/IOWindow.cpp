@@ -28,7 +28,6 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -259,8 +258,6 @@ IOWindow::IOWindow(MappingWindow* window, ControllerEmu::EmulatedController* con
     : QDialog(window), m_reference(ref), m_original_expression(ref->GetExpression()),
       m_controller(controller), m_type(type)
 {
-  SetQWidgetWindowDecorations(this);
-
   CreateMainLayout();
 
   connect(window, &MappingWindow::Update, this, &IOWindow::Update);
