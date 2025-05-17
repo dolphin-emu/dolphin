@@ -253,43 +253,6 @@ bool IsPressed(int id, bool held)
   return false;
 }
 
-// This function exists to load the old "Keys" group so pre-existing configs don't break.
-// TODO: Remove this at a future date when we're confident most configs are migrated.
-static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
-{
-  Common::IniFile inifile;
-  if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Hotkeys.ini"))
-  {
-    if (!inifile.Exists("Hotkeys") && inifile.Exists("Hotkeys1"))
-    {
-      auto sec = inifile.GetOrCreateSection("Hotkeys1");
-
-      {
-        std::string defdev;
-        sec->Get("Device", &defdev, "");
-        controller->SetDefaultDevice(defdev);
-      }
-
-      for (auto& group : controller->groups)
-      {
-        for (auto& control : group->controls)
-        {
-          std::string key("Keys/" + control->name);
-
-          if (sec->Exists(key))
-          {
-            std::string expression;
-            sec->Get(key, &expression, "");
-            control->control_ref->SetExpression(std::move(expression));
-          }
-        }
-      }
-
-      controller->UpdateReferences(g_controller_interface);
-    }
-  }
-}
-
 void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
@@ -308,7 +271,6 @@ void Initialize()
 void LoadConfig()
 {
   s_config.LoadConfig();
-  LoadLegacyConfig(s_config.GetController(0));
 }
 
 ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
