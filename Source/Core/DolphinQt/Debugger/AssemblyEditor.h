@@ -18,7 +18,7 @@ class AsmEditor : public QPlainTextEdit
   Q_OBJECT;
 
 public:
-  AsmEditor(const QString& file_path, int editor_num, bool dark_scheme, QWidget* parent = nullptr);
+  AsmEditor(const QString& path, int editor_num, bool dark_scheme, QWidget* parent = nullptr);
   void LineNumberAreaPaintEvent(QPaintEvent* event);
   int LineNumberAreaWidth();
   const QString& Path() const { return m_path; }
