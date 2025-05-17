@@ -9,7 +9,6 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
@@ -17,7 +16,7 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
-CommonControllersWidget::CommonControllersWidget(QWidget* parent) : QWidget(parent)
+CommonControllersWidget::CommonControllersWidget(QWidget* parent) : QGroupBox{parent}
 {
   CreateLayout();
   LoadSettings();
@@ -30,22 +29,15 @@ CommonControllersWidget::CommonControllersWidget(QWidget* parent) : QWidget(pare
 void CommonControllersWidget::CreateLayout()
 {
   // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-  m_common_box = new QGroupBox(tr("Common"));
-  m_common_layout = new QVBoxLayout();
+  setTitle(tr("Common"));
+
   m_common_bg_input = new QCheckBox(tr("Background Input"));
   m_common_configure_controller_interface =
       new NonDefaultQPushButton(tr("Alternate Input Sources"));
 
-  m_common_layout->addWidget(m_common_bg_input);
-  m_common_layout->addWidget(m_common_configure_controller_interface);
-
-  m_common_box->setLayout(m_common_layout);
-
-  auto* layout = new QVBoxLayout;
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setAlignment(Qt::AlignTop);
-  layout->addWidget(m_common_box);
-  setLayout(layout);
+  auto* const layout = new QVBoxLayout{this};
+  layout->addWidget(m_common_bg_input);
+  layout->addWidget(m_common_configure_controller_interface);
 }
 
 void CommonControllersWidget::ConnectWidgets()
@@ -57,7 +49,7 @@ void CommonControllersWidget::ConnectWidgets()
 
 void CommonControllersWidget::OnControllerInterfaceConfigure()
 {
-  ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+  auto* const window = new ControllerInterfaceWindow(this);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   SetQWidgetWindowDecorations(window);

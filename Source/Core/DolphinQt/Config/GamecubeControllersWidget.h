@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QGroupBox>
 
 #include <array>
 
 class QComboBox;
 class QHBoxLayout;
 class QGridLayout;
-class QGroupBox;
 class QPushButton;
 
 namespace Core
@@ -18,7 +17,7 @@ namespace Core
 enum class State;
 }
 
-class GamecubeControllersWidget final : public QWidget
+class GamecubeControllersWidget final : public QGroupBox
 {
   Q_OBJECT
 public:
@@ -34,9 +33,6 @@ private:
   void CreateLayout();
   void ConnectWidgets();
 
-  // Gamecube
-  QGroupBox* m_gc_box;
-  QGridLayout* m_gc_layout;
   std::array<QComboBox*, 4> m_gc_controller_boxes;
   std::array<QPushButton*, 4> m_gc_buttons;
   std::array<QHBoxLayout*, 4> m_gc_groups;

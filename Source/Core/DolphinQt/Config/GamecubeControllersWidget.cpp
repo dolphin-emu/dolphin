@@ -12,7 +12,6 @@
 
 #include <optional>
 #include <utility>
-#include <vector>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -61,7 +60,8 @@ static SerialInterface::SIDevices FromGCMenuIndex(const int menudevice)
   return s_gc_types[menudevice].first;
 }
 
-GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(parent)
+GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent)
+    : QGroupBox{tr("GameCube Controllers"), parent}
 {
   CreateLayout();
   ConnectWidgets();
@@ -75,10 +75,8 @@ GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(
 
 void GamecubeControllersWidget::CreateLayout()
 {
-  m_gc_box = new QGroupBox(tr("GameCube Controllers"));
-  m_gc_layout = new QGridLayout();
-  m_gc_layout->setVerticalSpacing(7);
-  m_gc_layout->setColumnStretch(1, 1);
+  auto* const layout = new QGridLayout{this};
+  layout->setColumnStretch(1, 1);
 
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
@@ -91,18 +89,11 @@ void GamecubeControllersWidget::CreateLayout()
       gc_box->addItem(tr(item.second));
     }
 
-    int controller_row = m_gc_layout->rowCount();
-    m_gc_layout->addWidget(gc_label, controller_row, 0);
-    m_gc_layout->addWidget(gc_box, controller_row, 1);
-    m_gc_layout->addWidget(gc_button, controller_row, 2);
+    int controller_row = layout->rowCount();
+    layout->addWidget(gc_label, controller_row, 0);
+    layout->addWidget(gc_box, controller_row, 1);
+    layout->addWidget(gc_button, controller_row, 2);
   }
-  m_gc_box->setLayout(m_gc_layout);
-
-  auto* layout = new QVBoxLayout;
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setAlignment(Qt::AlignTop);
-  layout->addWidget(m_gc_box);
-  setLayout(layout);
 }
 
 void GamecubeControllersWidget::ConnectWidgets()

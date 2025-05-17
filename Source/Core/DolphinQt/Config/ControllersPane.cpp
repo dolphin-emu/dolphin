@@ -19,7 +19,6 @@ void ControllersPane::showEvent(QShowEvent* event)
   QWidget::showEvent(event);
 
   m_wiimote_controllers->UpdateBluetoothAvailableStatus();
-  m_wiimote_controllers->RefreshBluetoothAdapters();
 }
 
 void ControllersPane::CreateMainLayout()
@@ -33,4 +32,5 @@ void ControllersPane::CreateMainLayout()
   layout->addWidget(gamecube_controllers);
   layout->addWidget(m_wiimote_controllers);
   layout->addWidget(common);
+  layout->addStretch(1);
 }
