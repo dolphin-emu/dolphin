@@ -5,6 +5,7 @@
     <ClInclude Include="AudioCommon\CubebStream.h" />
     <ClInclude Include="AudioCommon\CubebUtils.h" />
     <ClInclude Include="AudioCommon\Enums.h" />
+    <ClInclude Include="AudioCommon\FreeSurroundDecoder.h" />
     <ClInclude Include="AudioCommon\Mixer.h" />
     <ClInclude Include="AudioCommon\NullSoundStream.h" />
     <ClInclude Include="AudioCommon\OpenALStream.h" />
@@ -777,6 +778,7 @@
     <ClCompile Include="AudioCommon\AudioCommon.cpp" />
     <ClCompile Include="AudioCommon\CubebStream.cpp" />
     <ClCompile Include="AudioCommon\CubebUtils.cpp" />
+    <ClCompile Include="AudioCommon\FreeSurroundDecoder.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
     <ClCompile Include="AudioCommon\NullSoundStream.cpp" />
     <ClCompile Include="AudioCommon\OpenALStream.cpp" />
