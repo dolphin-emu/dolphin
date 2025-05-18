@@ -382,6 +382,9 @@ void Core::SetSIODriver()
   GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver);
 
   m_sio_driver.core = this;
+  m_sio_driver.handlesMode = [](GBASIODriver* driver, GBASIOMode mode) {
+    return mode == GBA_SIO_JOYBUS;
+  };
   m_sio_driver.init = [](GBASIODriver* driver) {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = true;
     return true;
