@@ -25,10 +25,14 @@ public:
 
   void AddTime(const std::string& game_id, std::chrono::milliseconds time_emulated);
 
+  void SetTimePlayed(const std::string& game_id, std::chrono::milliseconds time_played);
+
   std::chrono::milliseconds GetTimePlayed(const std::string& game_id) const;
 
   using UpdateEvent =
       Common::HookableEvent<"Time Played Update", const std::string&, std::chrono::milliseconds>;
+
+  static constexpr int MAX_HOURS = 999'999;
 
 private:
   TimePlayedManager();

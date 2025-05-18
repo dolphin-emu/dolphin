@@ -13,6 +13,9 @@
 #include "Common/IniFile.h"
 #include "Common/NandPaths.h"
 
+static constexpr std::chrono::milliseconds MAX_TIME_PLAYED =
+    std::chrono::hours(TimePlayedManager::MAX_HOURS) + std::chrono::minutes(59);
+
 TimePlayedManager::TimePlayedManager()
     : m_ini_path(File::GetUserPath(D_CONFIG_IDX) + "TimePlayed.ini")
 {
@@ -33,18 +36,34 @@ void TimePlayedManager::AddTime(const std::string& game_id,
 {
   const std::string filtered_game_id = Common::EscapeFileName(game_id);
   u64 previous_time;
-  u64 new_time;
+  std::chrono::milliseconds capped_new_time;
 
   {
     std::lock_guard guard(m_mutex);
 
     m_time_list->Get(filtered_game_id, &previous_time);
-    new_time = previous_time + static_cast<u64>(time_emulated.count());
-    m_time_list->Set(filtered_game_id, new_time);
+    const auto new_time = std::chrono::milliseconds(previous_time) + time_emulated;
+    capped_new_time = std::min(MAX_TIME_PLAYED, new_time);
+    m_time_list->Set(filtered_game_id, static_cast<u64>(capped_new_time.count()));
     m_ini.Save(m_ini_path);
   }
 
-  UpdateEvent::Trigger(filtered_game_id, static_cast<std::chrono::milliseconds>(new_time));
+  UpdateEvent::Trigger(filtered_game_id, capped_new_time);
+}
+
+void TimePlayedManager::SetTimePlayed(const std::string& game_id,
+                                      const std::chrono::milliseconds time_played)
+{
+  const std::string filtered_game_id = Common::EscapeFileName(game_id);
+  const std::chrono::milliseconds capped_time_played = std::min(MAX_TIME_PLAYED, time_played);
+
+  {
+    std::lock_guard guard(m_mutex);
+    m_time_list->Set(filtered_game_id, static_cast<u64>(capped_time_played.count()));
+    m_ini.Save(m_ini_path);
+  }
+
+  UpdateEvent::Trigger(filtered_game_id, capped_time_played);
 }
 
 std::chrono::milliseconds TimePlayedManager::GetTimePlayed(const std::string& game_id) const
