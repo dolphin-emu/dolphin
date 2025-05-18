@@ -1269,8 +1269,7 @@ void AchievementManager::Request(const rc_api_request_t* request,
   std::string url = request->url;
   std::string post_data = request->post_data;
   AchievementManager::GetInstance().m_queue.Push(
-      [url = std::move(url), post_data = std::move(post_data), callback = std::move(callback),
-       callback_data = std::move(callback_data)] {
+      [url = std::move(url), post_data = std::move(post_data), callback, callback_data] {
         Common::HttpRequest http_request;
         Common::HttpRequest::Response http_response;
         if (!post_data.empty())
