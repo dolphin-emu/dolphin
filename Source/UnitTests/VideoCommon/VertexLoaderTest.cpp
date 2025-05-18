@@ -553,11 +553,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(VertexLoaderNormalTest, NormalAll)
 {
-  VertexComponentFormat addr;
-  ComponentFormat format;
-  NormalComponentCount elements;
-  bool index3;
-  std::tie(addr, format, elements, index3) = GetParam();
+  auto [addr, format, elements, index3] = GetParam();
 
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
   m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
