@@ -285,9 +285,9 @@ void LaunchApplication(std::string path)
   }
 }
 
-void Sleep(int sleep)
+void Sleep(int seconds)
 {
-  ::Sleep(sleep * 1000);
+  ::Sleep(seconds * 1000);
 }
 
 void WaitForPID(u32 pid)
