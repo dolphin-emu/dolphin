@@ -7,7 +7,7 @@
 #include <atomic>
 #include <bit>
 
-#include "AudioCommon/SurroundDecoder.h"
+#include "AudioCommon/SurroundDecoder/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
