@@ -244,13 +244,13 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
   // Initialize DriverDetails first so we can use it later
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
   std::string name = [[device name] UTF8String];
-  if (name.find("NVIDIA") != std::string::npos)
+  if (name.contains("NVIDIA"))
     vendor = DriverDetails::VENDOR_NVIDIA;
-  else if (name.find("AMD") != std::string::npos)
+  else if (name.contains("AMD"))
     vendor = DriverDetails::VENDOR_ATI;
-  else if (name.find("Intel") != std::string::npos)
+  else if (name.contains("Intel"))
     vendor = DriverDetails::VENDOR_INTEL;
-  else if (name.find("Apple") != std::string::npos)
+  else if (name.contains("Apple"))
     vendor = DriverDetails::VENDOR_APPLE;
   const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
   double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;

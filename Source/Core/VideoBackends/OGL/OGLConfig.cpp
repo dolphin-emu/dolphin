@@ -53,11 +53,11 @@ void InitDriverInfo()
   {
     vendor = DriverDetails::VENDOR_ATI;
   }
-  else if (sversion.find("Mesa") != std::string::npos)
+  else if (sversion.contains("Mesa"))
   {
     vendor = DriverDetails::VENDOR_MESA;
   }
-  else if (svendor.find("Intel") != std::string::npos)
+  else if (svendor.contains("Intel"))
   {
     vendor = DriverDetails::VENDOR_INTEL;
   }
@@ -121,13 +121,12 @@ void InitDriverInfo()
     else if (svendor == "Intel Open Source Technology Center")
     {
       driver = DriverDetails::DRIVER_I965;
-      if (srenderer.find("Sandybridge") != std::string::npos)
+      if (srenderer.contains("Sandybridge"))
         family = DriverDetails::Family::INTEL_SANDY;
-      else if (srenderer.find("Ivybridge") != std::string::npos)
+      else if (srenderer.contains("Ivybridge"))
         family = DriverDetails::Family::INTEL_IVY;
     }
-    else if (srenderer.find("AMD") != std::string::npos ||
-             srenderer.find("ATI") != std::string::npos)
+    else if (srenderer.contains("AMD") || srenderer.contains("ATI"))
     {
       driver = DriverDetails::DRIVER_R600;
     }
