@@ -11,10 +11,10 @@
 TEST(BlockingLoop, MultiThreaded)
 {
   Common::BlockingLoop loop;
-  std::atomic<int> signaled_a(0);
-  std::atomic<int> received_a(0);
-  std::atomic<int> signaled_b(0);
-  std::atomic<int> received_b(0);
+  std::atomic signaled_a(0);
+  std::atomic received_a(0);
+  std::atomic signaled_b(0);
+  std::atomic received_b(0);
   for (int i = 0; i < 100; i++)
   {
     // Invalidate the current state.
