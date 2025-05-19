@@ -105,6 +105,11 @@ static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
 
+// Threads other than the CPU thread must hold this when taking on the role of the CPU thread.
+// The CPU thread is not required to hold this when doing normal work, but must hold it if writing
+// to s_state.
+static std::recursive_mutex s_core_mutex;
+
 // The value Paused is never stored in this variable. The core is considered to be in
 // the Paused state if this variable is Running and the CPU reports that it's stepping.
 static std::atomic<State> s_state = State::Uninitialized;
@@ -224,6 +229,8 @@ bool WantsDeterminism()
 // BootManager.cpp
 bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
+  std::lock_guard lock(s_core_mutex);
+
   if (s_emu_thread.joinable())
   {
     if (!IsUninitialized(system))
@@ -271,15 +278,19 @@ static void ResetRumble()
 // Called from GUI thread
 void Stop(Core::System& system)  // - Hammertime!
 {
-  const State state = s_state.load();
-  if (state == State::Stopping || state == State::Uninitialized)
-    return;
+  {
+    std::lock_guard lock(s_core_mutex);
 
-  AchievementManager::GetInstance().CloseGame();
+    const State state = s_state.load();
+    if (state == State::Stopping || state == State::Uninitialized)
+      return;
 
-  s_state.store(State::Stopping);
+    s_state.store(State::Stopping);
+  }
 
   NotifyStateChanged(State::Stopping);
+
+  AchievementManager::GetInstance().CloseGame();
 
   // Dump left over jobs
   HostDispatchJobs(system);
@@ -337,7 +348,7 @@ void UndeclareAsHostThread()
 static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
-  // SetState must be called on the host thread, so we defer it for later.
+  // SetState isn't safe to call from the CPU thread, so we ask the host thread to call it.
   QueueHostJob([force_paused](Core::System& system) {
     bool paused = SConfig::GetInstance().bBootToPause || force_paused;
     SetState(system, paused ? State::Paused : State::Running, true, true);
@@ -351,6 +362,7 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
 static void CpuThread(Core::System& system, const std::optional<std::string>& savestate_path,
                       bool delete_savestate)
 {
+  std::unique_lock core_lock(s_core_mutex);
   DeclareAsCPUThread();
 
   if (system.IsDualCoreMode())
@@ -381,7 +393,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   }
 
   // If s_state is Starting, change it to Running. But if it's already been set to Stopping
-  // by the host thread, don't change it.
+  // because another thread called Stop, don't change it.
   State expected = State::Starting;
   s_state.compare_exchange_strong(expected, State::Running);
 
@@ -408,6 +420,8 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
       }
     }
   }
+
+  core_lock.unlock();
 
   // Enter CPU run loop. When we leave it - we are done.
   system.GetCPU().Run();
@@ -440,14 +454,19 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   // Enter CPU run loop. When we leave it - we are done.
   if (auto cpu_core = system.GetFifoPlayer().GetCPUCore())
   {
-    system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
+    {
+      std::lock_guard core_lock(s_core_mutex);
 
-    // If s_state is Starting, change it to Running. But if it's already been set to Stopping
-    // by the host thread, don't change it.
-    State expected = State::Starting;
-    s_state.compare_exchange_strong(expected, State::Running);
+      system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
 
-    CPUSetInitialExecutionState();
+      // If s_state is Starting, change it to Running. But if it's already been set to Stopping
+      // because another thread called Stop, don't change it.
+      State expected = State::Starting;
+      s_state.compare_exchange_strong(expected, State::Running);
+
+      CPUSetInitialExecutionState();
+    }
+
     system.GetCPU().Run();
 
     system.GetPowerPC().InjectExternalCPUCore(nullptr);
@@ -470,7 +489,10 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 {
   NotifyStateChanged(State::Starting);
   Common::ScopeGuard flag_guard{[] {
-    s_state.store(State::Uninitialized);
+    {
+      std::lock_guard lock(s_core_mutex);
+      s_state.store(State::Uninitialized);
+    }
 
     NotifyStateChanged(State::Uninitialized);
 
@@ -674,35 +696,39 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 void SetState(Core::System& system, State state, bool report_state_change,
               bool override_achievement_restrictions)
 {
-  // State cannot be controlled until the CPU Thread is operational
-  if (s_state.load() != State::Running)
-    return;
+  {
+    std::lock_guard lock(s_core_mutex);
 
-  switch (state)
-  {
-  case State::Paused:
-#ifdef USE_RETRO_ACHIEVEMENTS
-    if (!override_achievement_restrictions && !AchievementManager::GetInstance().CanPause())
+    // State cannot be controlled until the CPU Thread is operational
+    if (s_state.load() != State::Running)
       return;
-#endif  // USE_RETRO_ACHIEVEMENTS
-    // NOTE: GetState() will return State::Paused immediately, even before anything has
-    //   stopped (including the CPU).
-    system.GetCPU().SetStepping(true);  // Break
-    Wiimote::Pause();
-    ResetRumble();
+
+    switch (state)
+    {
+    case State::Paused:
 #ifdef USE_RETRO_ACHIEVEMENTS
-    AchievementManager::GetInstance().DoIdle();
+      if (!override_achievement_restrictions && !AchievementManager::GetInstance().CanPause())
+        return;
 #endif  // USE_RETRO_ACHIEVEMENTS
-    break;
-  case State::Running:
-  {
-    system.GetCPU().SetStepping(false);
-    Wiimote::Resume();
-    break;
-  }
-  default:
-    PanicAlertFmt("Invalid state");
-    break;
+      // NOTE: GetState() will return State::Paused immediately, even before anything has
+      //   stopped (including the CPU).
+      system.GetCPU().SetStepping(true);  // Break
+      Wiimote::Pause();
+      ResetRumble();
+#ifdef USE_RETRO_ACHIEVEMENTS
+      AchievementManager::GetInstance().DoIdle();
+#endif  // USE_RETRO_ACHIEVEMENTS
+      break;
+    case State::Running:
+    {
+      system.GetCPU().SetStepping(false);
+      Wiimote::Resume();
+      break;
+    }
+    default:
+      PanicAlertFmt("Invalid state");
+      break;
+    }
   }
 
   // Certain callers only change the state momentarily. Sending a callback for them causes
@@ -773,39 +799,44 @@ void SaveScreenShot(std::string_view name)
 
 static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unlock)
 {
-  // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
-
-  if (!IsRunning(system))
-    return true;
-
   bool was_unpaused = true;
+
   if (do_lock)
+    s_core_mutex.lock();
+
+  if (IsRunning(system))
   {
-    // first pause the CPU
-    // This acquires a wrapper mutex and converts the current thread into
-    // a temporary replacement CPU Thread.
-    was_unpaused = system.GetCPU().PauseAndLock(true);
+    if (do_lock)
+    {
+      // first pause the CPU
+      // This acquires a wrapper mutex and converts the current thread into
+      // a temporary replacement CPU Thread.
+      was_unpaused = system.GetCPU().PauseAndLock(true);
+    }
+
+    // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
+    system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
+
+    // video has to come after CPU, because CPU thread can wait for video thread
+    // (s_efbAccessRequested).
+    system.GetFifo().PauseAndLock(do_lock, false);
+
+    ResetRumble();
+
+    // CPU is unlocked last because CPU::PauseAndLock contains the synchronization
+    // mechanism that prevents CPU::Break from racing.
+    if (!do_lock)
+    {
+      // The CPU is responsible for managing the Audio and FIFO state so we use its
+      // mechanism to unpause them. If we unpaused the systems above when releasing
+      // the locks then they could call CPU::Break which would require detecting it
+      // and re-pausing with CPU::SetStepping.
+      was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
+    }
   }
 
-  // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
-
-  // video has to come after CPU, because CPU thread can wait for video thread
-  // (s_efbAccessRequested).
-  system.GetFifo().PauseAndLock(do_lock, false);
-
-  ResetRumble();
-
-  // CPU is unlocked last because CPU::PauseAndLock contains the synchronization
-  // mechanism that prevents CPU::Break from racing.
   if (!do_lock)
-  {
-    // The CPU is responsible for managing the Audio and FIFO state so we use its
-    // mechanism to unpause them. If we unpaused the systems above when releasing
-    // the locks then they could call CPU::Break which would require detecting it
-    // and re-pausing with CPU::SetStepping.
-    was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
-  }
+    s_core_mutex.unlock();
 
   return was_unpaused;
 }
@@ -813,8 +844,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
 void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
                     bool wait_for_completion)
 {
-  // If the CPU thread is not running, assume there is no active CPU thread we can race against.
-  if (!IsRunning(system) || IsCPUThread())
+  if (IsCPUThread())
   {
     function();
     return;
@@ -956,6 +986,8 @@ void NotifyStateChanged(Core::State state)
 
 void UpdateWantDeterminism(Core::System& system, bool initial)
 {
+  const Core::CPUThreadGuard guard(system);
+
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
@@ -964,7 +996,6 @@ void UpdateWantDeterminism(Core::System& system, bool initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
 
-    const Core::CPUThreadGuard guard(system);
     s_wants_determinism = new_want_determinism;
     const auto ios = system.GetIOS();
     if (ios)
@@ -1026,6 +1057,9 @@ void DoFrameStep(Core::System& system)
     OSD::AddMessage("Frame stepping is disabled in RetroAchievements hardcore mode");
     return;
   }
+
+  std::lock_guard lock(s_core_mutex);
+
   if (GetState(system) == State::Paused)
   {
     // if already paused, frame advance for 1 frame
