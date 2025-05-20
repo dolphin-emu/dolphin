@@ -91,6 +91,46 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
   }
 }
 
+void PPCSymbolDB::AddKnownNote(u32 start_addr, u32 size, const std::string& name)
+{
+  auto iter = m_notes.find(start_addr);
+
+  if (iter != m_notes.end())
+  {
+    // Already got it, just update the name and size.
+    Common::Note* tempfunc = &iter->second;
+    tempfunc->name = name;
+    tempfunc->size = size;
+  }
+  else
+  {
+    Common::Note tf;
+    tf.name = name;
+    tf.address = start_addr;
+    tf.size = size;
+
+    m_notes[start_addr] = tf;
+  }
+}
+
+void PPCSymbolDB::DetermineNoteLayers()
+{
+  if (m_notes.empty())
+    return;
+
+  for (auto& note : m_notes)
+    note.second.layer = 0;
+
+  for (auto iter = m_notes.begin(); iter != m_notes.end(); ++iter)
+  {
+    const u32 range = iter->second.address + iter->second.size;
+    auto search = m_notes.lower_bound(range);
+
+    while (--search != iter)
+      search->second.layer += 1;
+  }
+}
+
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
   auto it = m_functions.lower_bound(addr);
@@ -108,6 +148,36 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
     if (addr >= it->second.address && addr < it->second.address + it->second.size)
       return &it->second;
   }
+
+  return nullptr;
+}
+
+Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
+{
+  if (m_notes.empty())
+    return nullptr;
+
+  auto itn = m_notes.lower_bound(addr);
+
+  // If the address is exactly the start address of a symbol, we're done.
+  if (itn != m_notes.end() && itn->second.address == addr)
+    return &itn->second;
+
+  // Otherwise, check whether the address is within the bounds of a symbol.
+  if (itn == m_notes.begin())
+    return nullptr;
+
+  do
+  {
+    --itn;
+
+    // If itn's range reaches the address.
+    if (addr < itn->second.address + itn->second.size)
+      return &itn->second;
+
+    // If layer is 0, it's the last note that could possibly reach the address, as there are no more
+    // underlying notes.
+  } while (itn != m_notes.begin() && itn->second.layer != 0);
 
   return nullptr;
 }
@@ -406,6 +476,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     if (strlen(name) > 0)
     {
       bool good;
+      // Notes will be treated the same as Data.
       const Common::Symbol::Type type = section_name == ".text" || section_name == ".init" ?
                                             Common::Symbol::Type::Function :
                                             Common::Symbol::Type::Data;
@@ -438,7 +509,11 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       if (good)
       {
         ++good_count;
-        AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type);
+
+        if (section_name == ".note")
+          AddKnownNote(vaddress, size, name);
+        else
+          AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type);
       }
       else
       {
@@ -448,6 +523,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
   }
 
   Index();
+  DetermineNoteLayers();
   NOTICE_LOG_FMT(SYMBOLS, "{} symbols loaded, {} symbols ignored.", good_count, bad_count);
   return true;
 }
@@ -492,6 +568,17 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
     if (!symbol.object_name.empty())
       line += fmt::format(" \t{0}", symbol.object_name);
     line += "\n";
+    file.WriteString(line);
+  }
+
+  // Write .note section
+  auto note_symbols = m_notes | std::views::transform([](auto f) { return f.second; });
+  file.WriteString("\n.note section layout\n");
+  for (const auto& symbol : note_symbols)
+  {
+    // Write symbol address, size, virtual address, alignment, name
+    const std::string line = fmt::format("{:08x} {:06x} {:08x} {} {}\n", symbol.address,
+                                         symbol.size, symbol.address, 0, symbol.name);
     file.WriteString(line);
   }
 
