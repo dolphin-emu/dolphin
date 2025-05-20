@@ -182,6 +182,16 @@ Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
   return nullptr;
 }
 
+void PPCSymbolDB::DeleteFunction(u32 start_address)
+{
+  m_functions.erase(start_address);
+}
+
+void PPCSymbolDB::DeleteNote(u32 start_address)
+{
+  m_notes.erase(start_address);
+}
+
 std::string_view PPCSymbolDB::GetDescription(u32 addr)
 {
   if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))

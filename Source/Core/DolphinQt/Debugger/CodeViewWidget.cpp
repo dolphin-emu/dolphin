@@ -37,6 +37,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Debugger/AssembleInstructionDialog.h"
+#include "DolphinQt/Debugger/EditSymbolDialog.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/FromStdString.h"
@@ -579,8 +580,6 @@ void CodeViewWidget::OnContextMenu()
 
   const u32 addr = GetContextAddress();
 
-  const bool has_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
-
   auto* follow_branch_action =
       menu->addAction(tr("Follow &Branch"), this, &CodeViewWidget::OnFollowBranch);
 
@@ -600,17 +599,17 @@ void CodeViewWidget::OnContextMenu()
       menu->addAction(tr("Copy Tar&get Address"), this, &CodeViewWidget::OnCopyTargetAddress);
   menu->addSeparator();
 
-  auto* symbol_rename_action =
-      menu->addAction(tr("&Rename Symbol"), this, &CodeViewWidget::OnRenameSymbol);
-  auto* symbol_size_action =
-      menu->addAction(tr("Set Symbol &Size"), this, &CodeViewWidget::OnSetSymbolSize);
-  auto* symbol_end_action =
-      menu->addAction(tr("Set Symbol &End Address"), this, &CodeViewWidget::OnSetSymbolEndAddress);
+  auto* symbol_add_action =
+      menu->addAction(tr("&Add function symbol"), this, &CodeViewWidget::OnAddFunction);
+  auto* symbol_edit_action =
+      menu->addAction(tr("&Edit function symbol"), this, &CodeViewWidget::OnEditSymbol);
+
+  auto* note_add_action = menu->addAction(tr("Add Note"), this, &CodeViewWidget::OnAddNote);
+  auto* note_edit_action = menu->addAction(tr("Edit Note"), this, &CodeViewWidget::OnEditNote);
+
   menu->addSeparator();
 
   auto* run_to_action = menu->addAction(tr("Run &to Here"), this, &CodeViewWidget::OnRunToHere);
-  auto* function_action =
-      menu->addAction(tr("&Add Function"), this, &CodeViewWidget::OnAddFunction);
   auto* ppc_action = menu->addAction(tr("PPC vs Host"), this, &CodeViewWidget::OnPPCComparison);
   auto* insert_blr_action = menu->addAction(tr("&Insert BLR"), this, &CodeViewWidget::OnInsertBLR);
   auto* insert_nop_action = menu->addAction(tr("Insert &NOP"), this, &CodeViewWidget::OnInsertNOP);
@@ -659,19 +658,23 @@ void CodeViewWidget::OnContextMenu()
   follow_branch_action->setEnabled(follow_branch_enabled);
 
   for (auto* action :
-       {copy_address_action, copy_line_action, copy_hex_action, function_action, run_to_action,
-        ppc_action, insert_blr_action, insert_nop_action, replace_action, assemble_action})
+       {copy_address_action, copy_line_action, copy_hex_action, symbol_add_action,
+        symbol_edit_action, note_add_action, note_edit_action, run_to_action, ppc_action,
+        insert_blr_action, insert_nop_action, replace_action, assemble_action})
   {
     action->setEnabled(running);
   }
-
-  for (auto* action : {symbol_rename_action, symbol_size_action, symbol_end_action})
-    action->setEnabled(has_symbol);
 
   for (auto* action : {copy_target_memory, show_target_memory})
   {
     action->setEnabled(valid_load_store);
   }
+
+  auto* note = m_ppc_symbol_db.GetNoteFromAddr(addr);
+  note_edit_action->setEnabled(note != nullptr);
+  // A note cannot be added ontop of the starting address of another note.
+  if (note != nullptr && note->address == addr)
+    note_add_action->setEnabled(false);
 
   restore_action->setEnabled(running &&
                              m_system.GetPowerPC().GetDebugInterface().HasEnabledPatch(addr));
@@ -896,6 +899,13 @@ void CodeViewWidget::OnPPCComparison()
 void CodeViewWidget::OnAddFunction()
 {
   const u32 addr = GetContextAddress();
+  const int confirm =
+      QMessageBox::warning(this, tr("Add Function Symbol"),
+                           tr("Force new function symbol to be made at %1?").arg(addr, 0, 16),
+                           QMessageBox::Ok | QMessageBox::Cancel);
+
+  if (confirm != QMessageBox::Ok)
+    return;
 
   Core::CPUThreadGuard guard(m_system);
 
@@ -932,25 +942,80 @@ void CodeViewWidget::OnFollowBranch()
   SetAddress(branch_addr, SetAddressUpdate::WithDetailedUpdate);
 }
 
-void CodeViewWidget::OnRenameSymbol()
+void CodeViewWidget::OnEditSymbol()
 {
   const u32 addr = GetContextAddress();
-
   Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
-  if (!symbol)
+  if (symbol == nullptr)
+  {
+    OnAddFunction();
+    return;
+  }
+
+  std::string name = symbol->name;
+  u32 size = symbol->size;
+  const u32 symbol_address = symbol->address;
+
+  EditSymbolDialog dialog(this, symbol_address, &size, &name);
+
+  if (dialog.exec() != QDialog::Accepted)
     return;
 
-  bool good;
-  const QString name =
-      QInputDialog::getText(this, tr("Rename Symbol"), tr("Symbol Name:"), QLineEdit::Normal,
-                            QString::fromStdString(symbol->name), &good, Qt::WindowCloseButtonHint);
-
-  if (good && !name.isEmpty())
+  if (dialog.DeleteRequested())
   {
-    symbol->Rename(name.toStdString());
-    emit Host::GetInstance()->PPCSymbolsChanged();
+    OnDeleteSymbol();
+    return;
   }
+
+  if (symbol->name != name)
+    symbol->Rename(name);
+
+  if (symbol->size != size)
+  {
+    Core::CPUThreadGuard guard(m_system);
+    PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, size);
+  }
+
+  emit Host::GetInstance()->PPCSymbolsChanged();
+}
+
+void CodeViewWidget::OnDeleteSymbol()
+{
+  const u32 addr = GetContextAddress();
+  Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
+
+  if (symbol == nullptr)
+    return;
+
+  const int confirm = QMessageBox::warning(this, tr("Delete Function Symbol"),
+                                           tr("Delete function symbol: %1\nat %2?")
+                                               .arg(QString::fromStdString(symbol->name))
+                                               .arg(addr, 0, 16),
+                                           QMessageBox::Ok | QMessageBox::Cancel);
+
+  if (confirm != QMessageBox::Ok)
+    return;
+
+  m_ppc_symbol_db.DeleteFunction(symbol->address);
+
+  emit Host::GetInstance()->PPCSymbolsChanged();
+}
+
+void CodeViewWidget::OnAddNote()
+{
+  const u32 note_address = GetContextAddress();
+  std::string name = "";
+  u32 size = 4;
+
+  EditSymbolDialog dialog(this, note_address, &size, &name, EditSymbolDialog::Type::Note);
+
+  if (dialog.exec() != QDialog::Accepted || dialog.DeleteRequested())
+    return;
+
+  m_ppc_symbol_db.AddKnownNote(note_address, size, name);
+  m_ppc_symbol_db.DetermineNoteLayers();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void CodeViewWidget::OnSelectionChanged()
@@ -966,53 +1031,57 @@ void CodeViewWidget::OnSelectionChanged()
   }
 }
 
-void CodeViewWidget::OnSetSymbolSize()
+void CodeViewWidget::OnEditNote()
 {
-  const u32 addr = GetContextAddress();
+  const u32 context_address = GetContextAddress();
+  Common::Note* const note = m_ppc_symbol_db.GetNoteFromAddr(context_address);
 
-  Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
-
-  if (!symbol)
+  if (note == nullptr)
     return;
 
-  bool good;
-  const int size = QInputDialog::getInt(
-      this, tr("Rename Symbol"), tr("Symbol Size (%1):").arg(QString::fromStdString(symbol->name)),
-      symbol->size, 1, 0xFFFF, 1, &good, Qt::WindowCloseButtonHint);
+  std::string name = note->name;
+  u32 size = note->size;
+  const u32 note_address = note->address;
 
-  if (!good)
+  EditSymbolDialog dialog(this, note_address, &size, &name, EditSymbolDialog::Type::Note);
+
+  if (dialog.exec() != QDialog::Accepted)
     return;
 
-  Core::CPUThreadGuard guard(m_system);
+  if (dialog.DeleteRequested())
+  {
+    OnDeleteNote();
+    return;
+  }
 
-  PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, size);
+  if (note->name != name || note->size != size)
+  {
+    m_ppc_symbol_db.AddKnownNote(note_address, size, name);
+    m_ppc_symbol_db.DetermineNoteLayers();
+  }
+
   emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
-void CodeViewWidget::OnSetSymbolEndAddress()
+void CodeViewWidget::OnDeleteNote()
 {
-  const u32 addr = GetContextAddress();
+  const u32 context_address = GetContextAddress();
+  Common::Note* const note = m_ppc_symbol_db.GetNoteFromAddr(context_address);
 
-  Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
-
-  if (!symbol)
+  if (note == nullptr)
     return;
 
-  bool good;
-  const QString name = QInputDialog::getText(
-      this, tr("Set Symbol End Address"),
-      tr("Symbol End Address (%1):").arg(QString::fromStdString(symbol->name)), QLineEdit::Normal,
-      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good,
-      Qt::WindowCloseButtonHint);
+  const int confirm = QMessageBox::warning(this, tr("Delete Note"),
+                                           tr("Delete Note: %1\nat %2?")
+                                               .arg(QString::fromStdString(note->name))
+                                               .arg(context_address, 0, 16),
+                                           QMessageBox::Ok | QMessageBox::Cancel);
 
-  const u32 address = name.toUInt(&good, 16);
-
-  if (!good)
+  if (confirm != QMessageBox::Ok)
     return;
 
-  Core::CPUThreadGuard guard(m_system);
+  m_ppc_symbol_db.DeleteNote(note->address);
 
-  PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, address - symbol->address);
   emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
