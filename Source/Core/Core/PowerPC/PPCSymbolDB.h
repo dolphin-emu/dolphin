@@ -31,6 +31,8 @@ public:
   bool NoteExists() const { return !m_notes.empty(); }
   Common::Note* GetNoteFromAddr(u32 addr);
   void DetermineNoteLayers();
+  void DeleteFunction(u32 start_address);
+  void DeleteNote(u32 start_address);
 
   std::string_view GetDescription(u32 addr);
 
