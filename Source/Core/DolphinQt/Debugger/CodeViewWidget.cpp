@@ -137,8 +137,9 @@ constexpr int CODE_VIEW_COLUMN_ADDRESS = 1;
 constexpr int CODE_VIEW_COLUMN_INSTRUCTION = 2;
 constexpr int CODE_VIEW_COLUMN_PARAMETERS = 3;
 constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
-constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 5;
-constexpr int CODE_VIEW_COLUMNCOUNT = 6;
+constexpr int CODE_VIEW_COLUMN_NOTE = 5;
+constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 6;
+constexpr int CODE_VIEW_COLUMNCOUNT = 7;
 
 CodeViewWidget::CodeViewWidget()
     : m_system(Core::System::GetInstance()), m_ppc_symbol_db(m_system.GetPPCSymbolDB())
@@ -161,6 +162,7 @@ CodeViewWidget::CodeViewWidget()
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_INSTRUCTION, new QTableWidgetItem(tr("Instr.")));
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_PARAMETERS, new QTableWidgetItem(tr("Parameters")));
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_DESCRIPTION, new QTableWidgetItem(tr("Symbols")));
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_NOTE, new QTableWidgetItem(tr("Notes")));
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_BRANCH_ARROWS, new QTableWidgetItem(tr("Branches")));
 
   setFont(Settings::Instance().GetDebugFont());
@@ -331,7 +333,14 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
     std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
     std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
-    const std::string_view desc = debug_interface.GetDescription(addr);
+    std::string desc;
+    desc = debug_interface.GetDescription(addr);
+    const int color = debug_interface.GetColor(guard, addr);
+
+    const Common::Note* note = m_ppc_symbol_db.GetNoteFromAddr(addr);
+    std::string note_string;
+    if (note != nullptr)
+      note_string = note->name;
 
     // Adds whitespace and a minimum size to ins and param. Helps to prevent frequent resizing while
     // scrolling.
@@ -344,9 +353,11 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     auto* ins_item = new QTableWidgetItem(ins_formatted);
     auto* param_item = new QTableWidgetItem(param_formatted);
     auto* description_item = new QTableWidgetItem(desc_formatted);
+    auto* note_item = new QTableWidgetItem(QString::fromStdString(note_string));
     auto* branch_item = new QTableWidgetItem();
 
-    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item, branch_item})
+    for (auto* item :
+         {bp_item, addr_item, ins_item, param_item, description_item, note_item, branch_item})
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setData(Qt::UserRole, addr);
@@ -408,6 +419,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     setItem(i, CODE_VIEW_COLUMN_INSTRUCTION, ins_item);
     setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
     setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
+    setItem(i, CODE_VIEW_COLUMN_NOTE, note_item);
     setItem(i, CODE_VIEW_COLUMN_BRANCH_ARROWS, branch_item);
 
     if (addr == GetAddress())
@@ -415,6 +427,9 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
       selectRow(addr_item->row());
     }
   }
+
+  m_ppc_symbol_db.NoteExists() ? showColumn(CODE_VIEW_COLUMN_NOTE) :
+                                 hideColumn(CODE_VIEW_COLUMN_NOTE);
 
   CalculateBranchIndentation();
 
