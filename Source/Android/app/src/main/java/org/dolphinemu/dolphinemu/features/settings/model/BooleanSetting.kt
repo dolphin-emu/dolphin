@@ -871,6 +871,42 @@ enum class BooleanSetting(
         Settings.SECTION_LOGGER_OPTIONS,
         "WriteToFile",
         false
+    ),
+        ACHIEVEMENTS_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "Enabled",
+        true
+    ),
+        ACHIEVEMENTS_HARDCORE_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "HardcoreEnabled",
+        false
+    ),
+        ACHIEVEMENTS_UNOFFICIAL_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "UnofficialEnabled",
+        false
+    ),
+        ACHIEVEMENTS_ENCORE_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "EncoreEnabled",
+        false
+    ),
+        ACHIEVEMENTS_SPECTATOR_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "SpectatorEnabled",
+        false
+    ),
+        ACHIEVEMENTS_PROGRESS_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "ProgressEnabled",
+        true
     );
 
     override val isOverridden: Boolean
@@ -930,7 +966,10 @@ enum class BooleanSetting(
             MAIN_DSP_JIT,
             MAIN_TIME_TRACKING,
             MAIN_EMULATE_SKYLANDER_PORTAL,
-            MAIN_EMULATE_INFINITY_BASE
+            MAIN_EMULATE_INFINITY_BASE,
+            ACHIEVEMENTS_UNOFFICIAL_ENABLED,
+            ACHIEVEMENTS_ENCORE_ENABLED,
+            ACHIEVEMENTS_SPECTATOR_ENABLED
         )
         private val NOT_RUNTIME_EDITABLE: Set<BooleanSetting> =
             HashSet(listOf(*NOT_RUNTIME_EDITABLE_ARRAY))
