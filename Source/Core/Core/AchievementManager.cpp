@@ -58,14 +58,13 @@ AchievementManager& AchievementManager::GetInstance()
   return s_instance;
 }
 
-void AchievementManager::Init(void* hwnd, AsyncCallbackHandler async_callback_handler)
+void AchievementManager::Init(void* hwnd)
 {
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
     {
       std::lock_guard lg{m_lock};
-      m_async_callback_handler = std::move(async_callback_handler);
       m_client = rc_client_create(MemoryVerifier, Request);
     }
     std::string host_url = Config::Get(Config::RA_HOST_URL);
@@ -994,22 +993,22 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    instance.CloseGame();
     return;
+  }
+  if (result == RC_NO_GAME_LOADED && instance.m_dll_found)
+  {
+    // Allow developer tools for unidentified games
+    rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
+    instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
+    WARN_LOG_FMT(ACHIEVEMENTS, "Unrecognized title ready for development.");
+    OSD::AddMessage("Unrecognized title loaded for development.", OSD::Duration::VERY_LONG,
+                    OSD::Color::YELLOW);
   }
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
     OSD::AddMessage("Achievements are not supported for this title.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    if (instance.m_dll_found && result == RC_NO_GAME_LOADED)
-    {
-      // Allow developer tools for unidentified games
-      rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
-      instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
-      return;
-    }
-    instance.CloseGame();
     return;
   }
 
@@ -1284,28 +1283,22 @@ void AchievementManager::Request(const rc_api_request_t* request,
                                            Common::HttpRequest::AllowedReturnCodes::All);
         }
 
-        const auto response_code = http_request.GetLastResponseCode();
+        rc_api_server_response_t server_response;
+        if (http_response.has_value() && http_response->size() > 0)
+        {
+          server_response.body = reinterpret_cast<const char*>(http_response->data());
+          server_response.body_length = http_response->size();
+          server_response.http_status_code = http_request.GetLastResponseCode();
+        }
+        else
+        {
+          static constexpr char error_message[] = "Failed HTTP request.";
+          server_response.body = error_message;
+          server_response.body_length = sizeof(error_message);
+          server_response.http_status_code = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
+        }
 
-        // The callback needs to be invoked inside our async callback handler
-        //  as it may trigger a shutdown which will wait on this very job to complete.
-        AchievementManager::GetInstance().m_async_callback_handler(
-            [callback, callback_data, http_response = std::move(http_response), response_code] {
-              rc_api_server_response_t server_response;
-              if (http_response.has_value() && http_response->size() > 0)
-              {
-                server_response.body = reinterpret_cast<const char*>(http_response->data());
-                server_response.body_length = http_response->size();
-                server_response.http_status_code = response_code;
-              }
-              else
-              {
-                static constexpr char error_message[] = "Failed HTTP request.";
-                server_response.body = error_message;
-                server_response.body_length = sizeof(error_message);
-                server_response.http_status_code = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
-              }
-              callback(&server_response, callback_data);
-            });
+        callback(&server_response, callback_data);
       });
 }
 

@@ -6,12 +6,13 @@
 
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -21,7 +22,7 @@
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -251,14 +252,9 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 
   auto& instance = AchievementManager::GetInstance();
   if (Config::Get(Config::RA_ENABLED))
-  {
-    instance.Init(reinterpret_cast<void*>(winId()),
-                  [this](auto func) { QueueOnObject(this, std::move(func)); });
-  }
+    instance.Init(reinterpret_cast<void*>(winId()));
   else
-  {
     instance.Shutdown();
-  }
 }
 
 void AchievementSettingsWidget::Login()
