@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -35,7 +36,7 @@ public:
   void Unload();
 
   // Returns the time that the data was last loaded
-  const TimeType& GetLastLoadedTime() const;
+  TimeType GetLastLoadedTime() const;
 
   // Returns an id that uniquely identifies this asset
   const CustomAssetLibrary::AssetID& GetAssetId() const;
@@ -58,9 +59,8 @@ private:
   CustomAssetLibrary::AssetID m_asset_id;
   std::size_t m_handle;
 
-  mutable std::mutex m_info_lock;
-  std::size_t m_bytes_loaded = 0;
-  TimeType m_last_loaded_time = {};
+  std::atomic<std::size_t> m_bytes_loaded = 0;
+  std::atomic<TimeType> m_last_loaded_time = {};
 };
 
 // An abstract class that is expected to
