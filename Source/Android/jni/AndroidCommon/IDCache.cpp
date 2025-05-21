@@ -118,6 +118,10 @@ static jfieldID s_input_detector_pointer;
 
 static jmethodID s_runnable_run;
 
+static jclass s_audio_utils_class;
+static jmethodID s_audio_utils_get_sample_rate;
+static jmethodID s_audio_utils_get_frames_per_buffer;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -543,6 +547,21 @@ jmethodID GetRunnableRun()
   return s_runnable_run;
 }
 
+jclass GetAudioUtilsClass()
+{
+  return s_audio_utils_class;
+}
+
+jmethodID GetAudioUtilsGetSampleRate()
+{
+  return s_audio_utils_get_sample_rate;
+}
+
+jmethodID GetAudioUtilsGetFramesPerBuffer()
+{
+  return s_audio_utils_get_frames_per_buffer;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -769,6 +788,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_runnable_run = env->GetMethodID(runnable_class, "run", "()V");
   env->DeleteLocalRef(runnable_class);
 
+  const jclass audio_utils_class = env->FindClass("org/dolphinemu/dolphinemu/utils/AudioUtils");
+  s_audio_utils_class = reinterpret_cast<jclass>(env->NewGlobalRef(audio_utils_class));
+  s_audio_utils_get_sample_rate = env->GetStaticMethodID(audio_utils_class, "getSampleRate", "()I");
+  s_audio_utils_get_frames_per_buffer =
+      env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
+  env->DeleteLocalRef(audio_utils_class);
+
   return JNI_VERSION;
 }
 
@@ -804,5 +830,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_core_device_class);
   env->DeleteGlobalRef(s_core_device_control_class);
   env->DeleteGlobalRef(s_input_detector_class);
+  env->DeleteGlobalRef(s_audio_utils_class);
 }
 }
