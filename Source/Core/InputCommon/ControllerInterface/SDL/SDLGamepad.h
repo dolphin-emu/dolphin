@@ -5,8 +5,8 @@
 
 #include <array>
 
-#include <SDL.h>
-#include <SDL_haptic.h>
+#include <SDL3/SDL_gamepad.h>
+#include <SDL3/SDL_haptic.h>
 
 #include "Common/MathUtil.h"
 
@@ -29,45 +29,13 @@ std::string GetLegacyHatName(int index, int direction)
   return "Hat " + std::to_string(index) + ' ' + "NESW"[direction];
 }
 
-constexpr int GetDirectionFromHatMask(u8 mask)
+constexpr int GetDirectionFromHatMask(int mask)
 {
   return MathUtil::IntLog2(mask);
 }
 
 static_assert(GetDirectionFromHatMask(SDL_HAT_UP) == 0);
 static_assert(GetDirectionFromHatMask(SDL_HAT_LEFT) == 3);
-
-ControlState GetBatteryValueFromSDLPowerLevel(SDL_JoystickPowerLevel sdl_power_level)
-{
-  // Values come from comments in SDL_joystick.h
-  // A proper percentage will be exposed in SDL3.
-  ControlState result;
-  switch (sdl_power_level)
-  {
-  case SDL_JOYSTICK_POWER_EMPTY:
-    result = 0.025;
-    break;
-  case SDL_JOYSTICK_POWER_LOW:
-    result = 0.125;
-    break;
-  case SDL_JOYSTICK_POWER_MEDIUM:
-    result = 0.45;
-    break;
-  case SDL_JOYSTICK_POWER_FULL:
-    result = 0.85;
-    break;
-  case SDL_JOYSTICK_POWER_WIRED:
-  case SDL_JOYSTICK_POWER_MAX:
-    result = 1.0;
-    break;
-  case SDL_JOYSTICK_POWER_UNKNOWN:
-  default:
-    result = 0.0;
-    break;
-  }
-
-  return result * ciface::BATTERY_INPUT_MAX_VALUE;
-}
 
 }  // namespace
 
@@ -82,29 +50,29 @@ private:
   {
   public:
     std::string GetName() const override;
-    Button(SDL_GameController* gc, SDL_GameControllerButton button) : m_gc(gc), m_button(button) {}
+    Button(SDL_Gamepad* gc, const SDL_GamepadBinding& binding) : m_gc(gc), m_binding(binding) {}
     ControlState GetState() const override;
     bool IsMatchingName(std::string_view name) const override;
 
   private:
-    SDL_GameController* const m_gc;
-    const SDL_GameControllerButton m_button;
+    SDL_Gamepad* const m_gc;
+    const SDL_GamepadBinding m_binding;
   };
 
   class Axis : public Core::Device::Input
   {
   public:
     std::string GetName() const override;
-    Axis(SDL_GameController* gc, Sint16 range, SDL_GameControllerAxis axis)
+    Axis(SDL_Gamepad* gc, Sint16 range, SDL_GamepadAxis axis)
         : m_gc(gc), m_range(range), m_axis(axis)
     {
     }
     ControlState GetState() const override;
 
   private:
-    SDL_GameController* const m_gc;
+    SDL_Gamepad* const m_gc;
     const Sint16 m_range;
-    const SDL_GameControllerAxis m_axis;
+    const SDL_GamepadAxis m_axis;
   };
 
   // Legacy inputs
@@ -180,7 +148,7 @@ private:
     std::string GetName() const override { return m_name; }
     void SetState(ControlState state) override
     {
-      const auto new_state = state * std::numeric_limits<Uint16>::max();
+      const auto new_state = std::lround(state * std::numeric_limits<Uint16>::max());
       if (m_state == new_state)
         return;
 
@@ -205,7 +173,7 @@ private:
     std::string GetName() const override { return "Motor"; }
     void SetState(ControlState state) override
     {
-      const auto new_state = state * std::numeric_limits<Uint16>::max();
+      const auto new_state = std::lround(state * std::numeric_limits<Uint16>::max());
       if (m_low_state == new_state && m_high_state == new_state)
         return;
 
@@ -327,7 +295,7 @@ private:
   class MotionInput : public Input
   {
   public:
-    MotionInput(std::string name, SDL_GameController* gc, SDL_SensorType type, int index,
+    MotionInput(std::string name, SDL_Gamepad* gc, SDL_SensorType type, int index,
                 ControlState scale)
         : m_name(std::move(name)), m_gc(gc), m_type(type), m_index(index), m_scale(scale)
     {
@@ -340,7 +308,7 @@ private:
   private:
     std::string m_name;
 
-    SDL_GameController* const m_gc;
+    SDL_Gamepad* const m_gc;
     SDL_SensorType const m_type;
     int const m_index;
 
@@ -348,26 +316,25 @@ private:
   };
 
 public:
-  GameController(SDL_GameController* const gamecontroller, SDL_Joystick* const joystick);
-  ~GameController();
+  GameController(SDL_Gamepad* gamecontroller, SDL_Joystick* joystick);
+  ~GameController() override;
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  int GetSDLInstanceID() const;
+  SDL_JoystickID GetSDLInstanceID() const;
   Core::DeviceRemoval UpdateInput() override
   {
-    m_battery_value = GetBatteryValueFromSDLPowerLevel(SDL_JoystickCurrentPowerLevel(m_joystick));
+    UpdateBatteryLevel();
 
     // We only support one touchpad and one finger.
     const int touchpad_index = 0;
     const int finger_index = 0;
 
-    if (SDL_GameControllerGetNumTouchpads(m_gamecontroller) > touchpad_index &&
-        SDL_GameControllerGetNumTouchpadFingers(m_gamecontroller, touchpad_index) > finger_index)
+    if (SDL_GetNumGamepadTouchpads(m_gamecontroller) > touchpad_index &&
+        SDL_GetNumGamepadTouchpadFingers(m_gamecontroller, touchpad_index) > finger_index)
     {
-      Uint8 state = 0;
-      SDL_GameControllerGetTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, &state,
-                                          &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
+      SDL_GetGamepadTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, nullptr,
+                                   &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
       m_touchpad_x = m_touchpad_x * 2 - 1;
       m_touchpad_y = m_touchpad_y * 2 - 1;
     }
@@ -378,15 +345,16 @@ public:
 private:
   void UpdateRumble()
   {
-    SDL_GameControllerRumble(m_gamecontroller, m_low_freq_rumble, m_high_freq_rumble,
-                             RUMBLE_LENGTH_MS);
+    SDL_RumbleGamepad(m_gamecontroller, m_low_freq_rumble, m_high_freq_rumble, RUMBLE_LENGTH_MS);
   }
 
   void UpdateRumbleTriggers()
   {
-    SDL_GameControllerRumbleTriggers(m_gamecontroller, m_trigger_l_rumble, m_trigger_r_rumble,
-                                     RUMBLE_LENGTH_MS);
+    SDL_RumbleGamepadTriggers(m_gamecontroller, m_trigger_l_rumble, m_trigger_r_rumble,
+                              RUMBLE_LENGTH_MS);
   }
+
+  bool UpdateBatteryLevel();
 
   Uint16 m_low_freq_rumble = 0;
   Uint16 m_high_freq_rumble = 0;
@@ -394,7 +362,7 @@ private:
   Uint16 m_trigger_l_rumble = 0;
   Uint16 m_trigger_r_rumble = 0;
 
-  SDL_GameController* const m_gamecontroller;
+  SDL_Gamepad* const m_gamecontroller;
   std::string m_name;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
@@ -413,35 +381,35 @@ struct SDLMotionAxis
 using SDLMotionAxisList = std::array<SDLMotionAxis, 6>;
 
 static constexpr std::array<const char*, 21> s_sdl_button_names = {
-    "Button S",    // SDL_CONTROLLER_BUTTON_A
-    "Button E",    // SDL_CONTROLLER_BUTTON_B
-    "Button W",    // SDL_CONTROLLER_BUTTON_X
-    "Button N",    // SDL_CONTROLLER_BUTTON_Y
-    "Back",        // SDL_CONTROLLER_BUTTON_BACK
-    "Guide",       // SDL_CONTROLLER_BUTTON_GUIDE
-    "Start",       // SDL_CONTROLLER_BUTTON_START
-    "Thumb L",     // SDL_CONTROLLER_BUTTON_LEFTSTICK
-    "Thumb R",     // SDL_CONTROLLER_BUTTON_RIGHTSTICK
-    "Shoulder L",  // SDL_CONTROLLER_BUTTON_LEFTSHOULDER
-    "Shoulder R",  // SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
-    "Pad N",       // SDL_CONTROLLER_BUTTON_DPAD_UP
-    "Pad S",       // SDL_CONTROLLER_BUTTON_DPAD_DOWN
-    "Pad W",       // SDL_CONTROLLER_BUTTON_DPAD_LEFT
-    "Pad E",       // SDL_CONTROLLER_BUTTON_DPAD_RIGHT
-    "Misc 1",      // SDL_CONTROLLER_BUTTON_MISC1
-    "Paddle 1",    // SDL_CONTROLLER_BUTTON_PADDLE1
-    "Paddle 2",    // SDL_CONTROLLER_BUTTON_PADDLE2
-    "Paddle 3",    // SDL_CONTROLLER_BUTTON_PADDLE3
-    "Paddle 4",    // SDL_CONTROLLER_BUTTON_PADDLE4
-    "Touchpad",    // SDL_CONTROLLER_BUTTON_TOUCHPAD
+    "Button S",    // SDL_GAMEPAD_BUTTON_SOUTH
+    "Button E",    // SDL_GAMEPAD_BUTTON_EAST
+    "Button W",    // SDL_GAMEPAD_BUTTON_WEST
+    "Button N",    // SDL_GAMEPAD_BUTTON_NORTH
+    "Back",        // SDL_GAMEPAD_BUTTON_BACK
+    "Guide",       // SDL_GAMEPAD_BUTTON_GUIDE
+    "Start",       // SDL_GAMEPAD_BUTTON_START
+    "Thumb L",     // SDL_GAMEPAD_BUTTON_LEFT_STICK
+    "Thumb R",     // SDL_GAMEPAD_BUTTON_RIGHT_STICK
+    "Shoulder L",  // SDL_GAMEPAD_BUTTON_LEFT_SHOULDER
+    "Shoulder R",  // SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER
+    "Pad N",       // SDL_GAMEPAD_BUTTON_DPAD_UP
+    "Pad S",       // SDL_GAMEPAD_BUTTON_DPAD_DOWN
+    "Pad W",       // SDL_GAMEPAD_BUTTON_DPAD_LEFT
+    "Pad E",       // SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+    "Misc 1",      // SDL_GAMEPAD_BUTTON_MISC1
+    "Paddle 1",    // SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1
+    "Paddle 2",    // SDL_GAMEPAD_BUTTON_LEFT_PADDLE1
+    "Paddle 3",    // SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2
+    "Paddle 4",    // SDL_GAMEPAD_BUTTON_LEFT_PADDLE2
+    "Touchpad",    // SDL_GAMEPAD_BUTTON_TOUCHPAD
 };
 static constexpr std::array<const char*, 6> s_sdl_axis_names = {
-    "Left X",     // SDL_CONTROLLER_AXIS_LEFTX
-    "Left Y",     // SDL_CONTROLLER_AXIS_LEFTY
-    "Right X",    // SDL_CONTROLLER_AXIS_RIGHTX
-    "Right Y",    // SDL_CONTROLLER_AXIS_RIGHTY
-    "Trigger L",  // SDL_CONTROLLER_AXIS_TRIGGERLEFT
-    "Trigger R",  // SDL_CONTROLLER_AXIS_TRIGGERRIGHT
+    "Left X",     // SDL_GAMEPAD_AXIS_LEFTX
+    "Left Y",     // SDL_GAMEPAD_AXIS_LEFTY
+    "Right X",    // SDL_GAMEPAD_AXIS_RIGHTX
+    "Right Y",    // SDL_GAMEPAD_AXIS_RIGHTY
+    "Trigger L",  // SDL_GAMEPAD_AXIS_LEFT_TRIGGER
+    "Trigger R",  // SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
 };
 static constexpr SDLMotionAxisList SDL_AXES_ACCELEROMETER = {{
     {"Up", 1, 1},

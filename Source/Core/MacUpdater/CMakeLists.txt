@@ -19,8 +19,6 @@ set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
   OUTPUT_NAME "Dolphin Updater")
 
-target_compile_options(MacUpdater PRIVATE -x objective-c++)
-
 # Copy icon into the bundle
 target_sources(MacUpdater PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
 set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
