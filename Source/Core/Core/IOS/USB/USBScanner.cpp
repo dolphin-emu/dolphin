@@ -23,6 +23,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/IOS/USB/Emulated/WiiSpeak.h"
 #include "Core/IOS/USB/Host.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
@@ -180,6 +181,11 @@ void USBScanner::AddEmulatedDevices(DeviceMap* new_devices)
   {
     auto infinity_base = std::make_unique<USB::InfinityUSB>();
     AddDevice(std::move(infinity_base), new_devices);
+  }
+  if (Config::Get(Config::MAIN_EMULATE_WII_SPEAK) && !NetPlay::IsNetPlayRunning())
+  {
+    auto wii_speak = std::make_unique<USB::WiiSpeak>();
+    AddDevice(std::move(wii_speak), new_devices);
   }
 }
 

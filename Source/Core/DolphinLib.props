@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ItemGroup>
-    <ClInclude Include="AudioCommon\AudioCommon.h" />
+  <ItemGroup Condition="'$(EnableCubeb)'!='false'">
     <ClInclude Include="AudioCommon\CubebStream.h" />
     <ClInclude Include="AudioCommon\CubebUtils.h" />
+    <ClInclude Include="Core\HW\EXI\EXI_DeviceMic.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioCommon\AudioCommon.h" />
     <ClInclude Include="AudioCommon\Enums.h" />
     <ClInclude Include="AudioCommon\Mixer.h" />
     <ClInclude Include="AudioCommon\NullSoundStream.h" />
@@ -290,7 +293,6 @@
     <ClInclude Include="Core\HW\EXI\EXI_DeviceGecko.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceIPL.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMemoryCard.h" />
-    <ClInclude Include="Core\HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceModem.h" />
     <ClInclude Include="Core\HW\EXI\EXI.h" />
     <ClInclude Include="Core\HW\GBACore.h" />
@@ -405,9 +407,11 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Infinity.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\Microphone.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\WiiSpeak.h" />
     <ClInclude Include="Core\IOS\USB\Host.h" />
     <ClInclude Include="Core\IOS\USB\LibusbDevice.h" />
     <ClInclude Include="Core\IOS\USB\OH0\OH0.h" />
@@ -773,10 +777,13 @@
     <ClInclude Include="VideoCommon\XFStateManager.h" />
     <ClInclude Include="VideoCommon\XFStructs.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AudioCommon\AudioCommon.cpp" />
+  <ItemGroup Condition="'$(EnableCubeb)'!='false'">
     <ClCompile Include="AudioCommon\CubebStream.cpp" />
     <ClCompile Include="AudioCommon\CubebUtils.cpp" />
+    <ClCompile Include="Core\HW\EXI\EXI_DeviceMic.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AudioCommon\AudioCommon.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
     <ClCompile Include="AudioCommon\NullSoundStream.cpp" />
     <ClCompile Include="AudioCommon\OpenALStream.cpp" />
@@ -960,7 +967,6 @@
     <ClCompile Include="Core\HW\EXI\EXI_DeviceGecko.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceIPL.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMemoryCard.cpp" />
-    <ClCompile Include="Core\HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceModem.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI.cpp" />
     <ClCompile Include="Core\HW\GBACore.cpp" />
@@ -1071,9 +1077,11 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Infinity.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\Microphone.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\WiiSpeak.cpp" />
     <ClCompile Include="Core\IOS\USB\Host.cpp" />
     <ClCompile Include="Core\IOS\USB\LibusbDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\OH0\OH0.cpp" />

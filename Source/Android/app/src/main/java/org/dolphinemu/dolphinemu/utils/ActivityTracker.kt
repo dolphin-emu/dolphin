@@ -9,12 +9,15 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     private val resumedActivities = HashSet<Activity>()
     private var backgroundExecutionAllowed = false
     private var firstStart = true
+    var currentActivity : Activity? = null
+        private set
 
     private fun isMainActivity(activity: Activity): Boolean {
         return activity is MainView
     }
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
+        currentActivity = activity
         if (isMainActivity(activity)) {
             firstStart = bundle == null
         }
@@ -26,6 +29,7 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     }
 
     override fun onActivityResumed(activity: Activity) {
+        currentActivity = activity
         resumedActivities.add(activity)
         if (!backgroundExecutionAllowed && !resumedActivities.isEmpty()) {
             backgroundExecutionAllowed = true
@@ -34,6 +38,9 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     }
 
     override fun onActivityPaused(activity: Activity) {
+        if (currentActivity === activity) {
+            currentActivity = null
+        }
         resumedActivities.remove(activity)
         if (backgroundExecutionAllowed && resumedActivities.isEmpty()) {
             backgroundExecutionAllowed = false

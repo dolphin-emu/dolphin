@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder
 
+import android.app.Activity
 import android.view.View
 import android.widget.CompoundButton
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding
@@ -10,6 +11,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import java.io.File
 import java.util.*
 
@@ -55,6 +57,13 @@ class SwitchSettingViewHolder(
             // need to disable the option again to prevent the same issue from occurring.
             if (setting.setting === BooleanSetting.MAIN_SKIP_IPL && !iplExists && isChecked) {
                 binding.settingSwitch.isEnabled = false
+            }
+
+            if (setting.setting === BooleanSetting.MAIN_EMULATE_WII_SPEAK && isChecked) {
+                if (!PermissionsHandler.hasRecordAudioPermission(itemView.context)) {
+                  val currentActivity = adapter.fragmentActivity as Activity
+                  PermissionsHandler.requestRecordAudioPermission(currentActivity)
+                }
             }
 
             adapter.onBooleanClick(setting, binding.settingSwitch.isChecked)
