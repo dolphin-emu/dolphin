@@ -139,10 +139,6 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_unloadGameIn
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_save(
     JNIEnv*, jclass, jint layer)
 {
-  // HostThreadLock is used to ensure we don't try to save to SYSCONF at the same time as
-  // emulation shutdown does
-  HostThreadLock guard;
-
   return GetLayer(layer, {})->Save();
 }
 
