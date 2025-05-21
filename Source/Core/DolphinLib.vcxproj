@@ -38,7 +38,6 @@
   <Import Project="$(ExternalsDir)enet\exports.props" />
   <Import Project="$(ExternalsDir)FatFs\exports.props" />
   <Import Project="$(ExternalsDir)fmt\exports.props" />
-  <Import Project="$(ExternalsDir)FreeSurround\exports.props" />
   <Import Project="$(ExternalsDir)glslang\exports.props" />
   <Import Project="$(ExternalsDir)imgui\exports.props" />
   <Import Project="$(ExternalsDir)implot\exports.props" />

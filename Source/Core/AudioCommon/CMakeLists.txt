@@ -3,6 +3,8 @@ add_library(audiocommon
   AudioCommon.h
   CubebStream.h
   Enums.h
+  FreeSurroundDecoder.cpp
+  FreeSurroundDecoder.h
   Mixer.cpp
   Mixer.h
   SurroundDecoder.cpp
@@ -85,10 +87,7 @@ endif()
 
 target_link_libraries(audiocommon
 PUBLIC
-  common
-
-PRIVATE
-  FreeSurround)
+  common)
 
 if(ENABLE_CUBEB)
   target_link_libraries(audiocommon PRIVATE cubeb::cubeb)
