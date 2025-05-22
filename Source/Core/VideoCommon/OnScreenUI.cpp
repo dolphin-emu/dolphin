@@ -4,6 +4,7 @@
 #include "VideoCommon/OnScreenUI.h"
 
 #include "Common/EnumMap.h"
+#include "Common/FileUtil.h"
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
 
@@ -57,6 +58,7 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
 
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;
+  SetFont();
   SetScale(scale);
 
   PortableVertexDeclaration vdecl = {};
@@ -279,11 +281,12 @@ void OnScreenUI::DrawDebugText()
   {
     // Position under the FPS display.
     ImGui::SetNextWindowPos(
-        ImVec2(ImGui::GetIO().DisplaySize.x - 10.f * m_backbuffer_scale, 80.f * m_backbuffer_scale),
+        ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * m_backbuffer_scale,
+               80.f * m_backbuffer_scale),
         ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
-        ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(5.0f * ImGui::GetFontSize() * m_backbuffer_scale,
+                                               2.1f * ImGui::GetFontSize() * m_backbuffer_scale),
+                                        ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
       auto& movie = Core::System::GetInstance().GetMovie();
@@ -415,6 +418,22 @@ void OnScreenUI::Finalize()
 std::unique_lock<std::mutex> OnScreenUI::GetImGuiLock()
 {
   return std::unique_lock<std::mutex>(m_imgui_mutex);
+}
+
+void OnScreenUI::SetFont()
+{
+  const std::string path = File::GetUserPath(D_THEMES_IDX) + "imgui_font.ttf";
+  if (!File::Exists(path))
+    return;
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.Fonts->AddFontFromFileTTF(path.c_str(), 12);
+  auto* font_18 = io.Fonts->AddFontFromFileTTF(path.c_str(), 18);
+  io.Fonts->AddFontFromFileTTF(path.c_str(), 24);
+  io.Fonts->AddFontFromFileTTF(path.c_str(), 36);
+  io.Fonts->AddFontFromFileTTF(path.c_str(), 48);
+  io.Fonts->Build();
+  io.FontDefault = font_18;
 }
 
 void OnScreenUI::SetScale(float backbuffer_scale)

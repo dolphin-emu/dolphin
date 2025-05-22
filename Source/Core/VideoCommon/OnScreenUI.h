@@ -49,6 +49,7 @@ public:
   // Recompiles ImGui pipeline - call when stereo mode changes.
   bool RecompileImGuiPipeline();
 
+  void SetFont();
   void SetScale(float backbuffer_scale);
 
   void Finalize();
