@@ -166,6 +166,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 # Support functions
 include(CheckAndAddFlag)
+include(CheckAndAddWarning)
 include(CheckCCompilerFlag)
 include(DolphinCompileDefinitions)
 include(DolphinDisableWarningsMSVC)
