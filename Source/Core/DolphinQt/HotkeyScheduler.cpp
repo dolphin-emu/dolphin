@@ -301,9 +301,7 @@ void HotkeyScheduler::Run()
         {
           const bool muted = !Settings::Instance().IsWiiSpeakMuted();
           Settings::Instance().SetWiiSpeakMuted(muted);
-          // i18n: Wii Speak (un)muted notification message
-          const QString msg = tr("Wii Speak %1").arg(muted ? tr("muted") : tr("unmuted"));
-          OSD::AddMessage(msg.toStdString());
+          OSD::AddMessage(muted ? "Wii Speak muted" : "Wii Speak unmuted");
         }
       }
 
