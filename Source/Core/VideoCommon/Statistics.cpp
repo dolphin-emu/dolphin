@@ -323,7 +323,7 @@ void Statistics::DisplayScissor()
     }
   };
   constexpr auto NUM_SCISSOR_COLUMNS = 8;
-  const auto draw_scissor_table_header = [&]() {
+  const auto draw_scissor_table_header = [&] {
     ImGui::TableSetupColumn("#");
     ImGui::TableSetupColumn("x0");
     ImGui::TableSetupColumn("y0");
@@ -413,7 +413,7 @@ void Statistics::DisplayScissor()
     }
   };
   constexpr auto NUM_VIEWPORT_COLUMNS = 5;
-  const auto draw_viewport_table_header = [&]() {
+  const auto draw_viewport_table_header = [&] {
     ImGui::TableSetupColumn("#");
     ImGui::TableSetupColumn("vx0");
     ImGui::TableSetupColumn("vy0");

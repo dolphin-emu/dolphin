@@ -131,7 +131,7 @@ void Init()
   Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
 
   Config::Init();
-  const auto config_changed_callback = []() {
+  const auto config_changed_callback = [] {
     InitCustomPaths();
     RefreshConfig();
   };

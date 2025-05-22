@@ -1569,7 +1569,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
       continue;
     }
 
-    const auto pad_exception_lists = [&entry]() {
+    const auto pad_exception_lists = [&entry] {
       while (entry.exception_lists.size() % 4 != 0)
         entry.exception_lists.push_back(0);
     };

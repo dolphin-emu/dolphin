@@ -80,7 +80,7 @@ std::string BuildExpression(const Core::InputDetector::Results& detections,
     new_alternation = true;
   };
 
-  const auto handle_release = [&]() {
+  const auto handle_release = [&] {
     if (!new_alternation)
       return;
 

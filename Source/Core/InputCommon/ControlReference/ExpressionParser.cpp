@@ -360,7 +360,7 @@ HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
     }
   }
 
-  return Suppressor(std::make_unique<std::function<void()>>([this, modifiers, final_input]() {
+  return Suppressor(std::make_unique<std::function<void()>>([this, modifiers, final_input] {
                       for (auto& modifier : *modifiers)
                         RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
                     }).release(),
