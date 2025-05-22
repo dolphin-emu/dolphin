@@ -3,17 +3,25 @@
 
 #include "DolphinQt/Config/InfoWidget.h"
 
+#include <chrono>
+
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
+#include <QString>
 #include <QTextEdit>
 
+#include "Common/HookableEvent.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/TimePlayed.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -22,6 +30,7 @@
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ImageConverter.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "UICommon/UICommon.h"
 
@@ -37,10 +46,17 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   if (!game.GetLanguages().empty())
     layout->addWidget(CreateBannerDetails());
 
+  layout->addWidget(CreateTimePlayedDetails());
+
+  layout->addStretch(1);
+
   setLayout(layout);
 }
 
-InfoWidget::~InfoWidget() = default;
+InfoWidget::~InfoWidget()
+{
+  m_time_played_update_event.reset();
+}
 
 QGroupBox* InfoWidget::CreateFileDetails()
 {
@@ -179,6 +195,78 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
   group->setLayout(layout);
   return group;
+}
+
+QGroupBox* InfoWidget::CreateTimePlayedDetails()
+{
+  const auto set_time_played = [this]() {
+    const int hours = m_hours_played->text().toInt();
+    const int minutes = m_minutes_played->text().toInt();
+    const std::chrono::milliseconds time_played =
+        std::chrono::hours(hours) + std::chrono::minutes(minutes);
+    TimePlayedManager::GetInstance().SetTimePlayed(m_game.GetGameID(), time_played);
+  };
+
+  auto* const time_played_label = new QLabel(tr("Time Played:"));
+
+  m_hours_played = new QSpinBox;
+  m_hours_played->setRange(0, TimePlayedManager::MAX_HOURS);
+  connect(m_hours_played, &QSpinBox::valueChanged, this, set_time_played);
+
+  m_minutes_played = new QSpinBox;
+  m_minutes_played->setRange(0, 59);
+  connect(m_minutes_played, &QSpinBox::valueChanged, this, set_time_played);
+
+  auto* const hours_label = new QLabel(tr("Hours"));
+  hours_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+  auto* const minutes_label = new QLabel(tr("Minutes"));
+  minutes_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+  auto* const time_played_layout = new QHBoxLayout;
+  time_played_layout->addWidget(m_hours_played);
+  time_played_layout->addWidget(hours_label);
+  time_played_layout->addWidget(m_minutes_played);
+  time_played_layout->addWidget(minutes_label);
+
+  auto* const layout = new QFormLayout;
+  layout->addRow(time_played_label, time_played_layout);
+
+  const auto update_time_played = [this](const std::string& game_id,
+                                         const std::chrono::milliseconds time_played) {
+    if (game_id != m_game.GetGameID())
+      return;
+
+    using namespace std::chrono_literals;
+
+    const auto hours_played = time_played / 1h;
+    const auto minutes_played = (time_played % 60min) / 1min;
+
+    QSignalBlocker hours_blocker(m_hours_played);
+    QSignalBlocker minutes_blocker(m_minutes_played);
+
+    m_hours_played->setValue(hours_played);
+    m_minutes_played->setValue(minutes_played);
+  };
+
+  const std::chrono::milliseconds time_played =
+      TimePlayedManager::GetInstance().GetTimePlayed(m_game.GetGameID());
+  update_time_played(m_game.GetGameID(), time_played);
+
+  const auto update_time_played_on_host_thread =
+      [this, update_time_played](const std::string& game_id,
+                                 const std::chrono::milliseconds time_played) {
+        QueueOnObject(this, [update_time_played, game_id, time_played]() {
+          update_time_played(game_id, time_played);
+        });
+      };
+  m_time_played_update_event =
+      TimePlayedManager::UpdateEvent::Register(update_time_played_on_host_thread, "InfoWidget");
+
+  auto* const group_box = new QGroupBox(tr("Time Played Details"));
+  group_box->setLayout(layout);
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  return group_box;
 }
 
 QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
