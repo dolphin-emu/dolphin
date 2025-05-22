@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <bit>
-#include <cmath>
 
 #include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
