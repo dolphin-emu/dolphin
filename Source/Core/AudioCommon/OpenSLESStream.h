@@ -6,7 +6,6 @@
 #include <thread>
 
 #include "AudioCommon/SoundStream.h"
-#include "Common/Event.h"
 
 class OpenSLESStream final : public SoundStream
 {
