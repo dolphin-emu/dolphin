@@ -893,7 +893,8 @@ void IRPassthroughMappingIndicator::Draw()
 
   p.scale(1.0, -1.0);
 
-  auto pen = GetInputDotPen(m_ir_group.enabled ? GetAdjustedInputColor() : GetRawInputColor());
+  auto pen =
+      GetInputDotPen(m_ir_group.enabled.GetValue() ? GetAdjustedInputColor() : GetRawInputColor());
 
   for (std::size_t i = 0; i != WiimoteEmu::CameraLogic::NUM_POINTS; ++i)
   {
