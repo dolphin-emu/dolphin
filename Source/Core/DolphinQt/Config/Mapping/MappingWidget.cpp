@@ -103,6 +103,34 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     break;
   }
 
+  if (group->HasEnabledSetting())
+  {
+    AddSettingWidget(form_layout, group->enabled_setting.get());
+
+    auto enable_labels = [form_layout](bool enabled) {
+      // Skipping the "Enabled" checkbox row itself.
+      constexpr int start_index = 1;
+      for (int i = start_index; i < form_layout->count(); ++i)
+      {
+        auto* const item = form_layout->itemAt(i, QFormLayout::LabelRole);
+        if (item == nullptr)
+          continue;
+
+        auto* const widget = item->widget();
+        if (widget == nullptr)
+          continue;
+
+        widget->setEnabled(enabled);
+      }
+    };
+
+    connect(this, &MappingWidget::Update, this, [group, enable_labels, enabled = true]() mutable {
+      if (enabled == group->enabled_setting->GetValue())
+        return;
+      enable_labels(enabled = !enabled);
+    });
+  }
+
   if (indicator)
   {
     const auto indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
@@ -131,28 +159,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     CreateControl(control.get(), form_layout, !indicator);
 
   AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Normal);
-
-  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
-  {
-    QLabel* group_enable_label = new QLabel(tr("Enable"));
-    QCheckBox* group_enable_checkbox = new QCheckBox();
-    group_enable_checkbox->setChecked(group->enabled);
-    form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
-    auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
-                                     group_enable_checkbox] {
-      group->enabled = group_enable_checkbox->isChecked();
-      for (int i = 0; i < form_layout->count(); ++i)
-      {
-        QWidget* widget = form_layout->itemAt(i)->widget();
-        if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
-          widget->setEnabled(group->enabled);
-      }
-    };
-    enable_group_by_checkbox();
-    connect(group_enable_checkbox, &QCheckBox::toggled, this, enable_group_by_checkbox);
-    connect(this, &MappingWidget::ConfigChanged, this,
-            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
-  }
 
   const auto advanced_setting_count =
       std::ranges::count(group->numeric_settings, ControllerEmu::SettingVisibility::Advanced,
@@ -202,36 +208,42 @@ void MappingWidget::AddSettingWidgets(QFormLayout* layout, ControllerEmu::Contro
     if (setting->GetVisibility() != visibility)
       continue;
 
-    QWidget* setting_widget = nullptr;
+    AddSettingWidget(layout, setting.get());
+  }
+}
 
-    switch (setting->GetType())
-    {
-    case ControllerEmu::SettingType::Double:
-      setting_widget = new MappingDouble(
-          this, static_cast<ControllerEmu::NumericSetting<double>*>(setting.get()));
-      break;
+void MappingWidget::AddSettingWidget(QFormLayout* layout,
+                                     ControllerEmu::NumericSettingBase* setting)
+{
+  QWidget* setting_widget = nullptr;
 
-    case ControllerEmu::SettingType::Bool:
-      setting_widget =
-          new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
-      break;
+  switch (setting->GetType())
+  {
+  case ControllerEmu::SettingType::Double:
+    setting_widget =
+        new MappingDouble(this, static_cast<ControllerEmu::NumericSetting<double>*>(setting));
+    break;
 
-    default:
-      // FYI: Widgets for additional types can be implemented as needed.
-      break;
-    }
+  case ControllerEmu::SettingType::Bool:
+    setting_widget =
+        new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting));
+    break;
 
-    if (setting_widget)
-    {
-      const auto hbox = new QHBoxLayout;
+  default:
+    // FYI: Widgets for additional types can be implemented as needed.
+    break;
+  }
 
-      hbox->addWidget(setting_widget);
-      setting_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  if (setting_widget != nullptr)
+  {
+    auto* const hbox = new QHBoxLayout;
 
-      hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
+    hbox->addWidget(setting_widget);
+    setting_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-      layout->addRow(tr(setting->GetUIName()), hbox);
-    }
+    hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
+
+    layout->addRow(tr(setting->GetUIName()), hbox);
   }
 }
 

@@ -497,7 +497,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
 
   // Calculate IR camera state.
-  if (m_ir_passthrough->enabled)
+  if (m_ir_passthrough->enabled.GetValue())
   {
     target_state->camera_points = GetPassthroughCameraPoints(m_ir_passthrough);
   }
