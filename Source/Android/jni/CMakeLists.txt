@@ -59,16 +59,16 @@ PRIVATE
 
 target_include_directories(main
 PRIVATE
-    ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
-    ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
+    ${PROJECT_SOURCE_DIR}/Externals/libadrenotools/include
+    ${PROJECT_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
 )
 
-file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
-file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/)
-file(COPY ${CMAKE_SOURCE_DIR}/Data/Sys DESTINATION ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
+file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/Source/Android/app/src/main/assets/)
+file(REMOVE_RECURSE ${PROJECT_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/)
+file(COPY ${PROJECT_SOURCE_DIR}/Data/Sys DESTINATION ${PROJECT_SOURCE_DIR}/Source/Android/app/src/main/assets/)
 
 # Delete folders that aren't used by the Android version of Dolphin
-file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/Themes/)
+file(REMOVE_RECURSE ${PROJECT_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/Themes/)
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} main)
 
