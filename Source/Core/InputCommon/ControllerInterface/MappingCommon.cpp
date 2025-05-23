@@ -139,7 +139,7 @@ void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results* detections)
   const auto is_spurious = [&](const auto& detection) {
     return std::ranges::any_of(*detections, [&](const auto& d) {
       // This is a spurious digital detection if a "smooth" (analog) detection is temporally near.
-      return &d != &detection && d.smoothness > 1 && d.smoothness > detection.smoothness &&
+      return &d != &detection && d.IsAnalogPress() && !detection.IsAnalogPress() &&
              abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
     });
   };

@@ -217,6 +217,8 @@ public:
     Clock::time_point press_time;
     std::optional<Clock::time_point> release_time;
     ControlState smoothness = 0;
+
+    bool IsAnalogPress() const { return smoothness > 1.00001; }
   };
 
   Device::Input* FindInput(std::string_view name, const Device* def_dev) const;
