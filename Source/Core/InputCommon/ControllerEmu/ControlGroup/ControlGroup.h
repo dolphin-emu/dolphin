@@ -90,10 +90,12 @@ public:
   }
 
   void AddEnable(SettingValue<bool>* value, const NumericSettingDetails& details,
-                std::common_type_t<bool> default_value_, std::common_type_t<bool> min_value = false,
-                std::common_type_t<bool> max_value = true)
+                 std::common_type_t<bool> default_value_,
+                 std::common_type_t<bool> min_value = false,
+                 std::common_type_t<bool> max_value = true)
   {
-     enable_setting = std::make_unique<NumericSetting<bool>>(value, details, default_value_, min_value, max_value);
+    enable_setting = std::make_unique<NumericSetting<bool>>(value, details, default_value_,
+                                                            min_value, max_value);
   }
 
   void AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg);

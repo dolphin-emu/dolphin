@@ -55,7 +55,6 @@ void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& 
   // enabled
   if (default_value != DefaultValue::AlwaysEnabled && enable_setting)
     enable_setting->LoadFromIni(*sec, group);
-  
 
   for (auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);
@@ -101,7 +100,7 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
 
 void ControlGroup::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
 {
-  if(enable_setting)
+  if (enable_setting)
     enable_setting->GetInputReference().UpdateReference(env);
 
   for (auto& control : controls)

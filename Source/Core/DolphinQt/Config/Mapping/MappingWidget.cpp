@@ -170,7 +170,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
         return;
       group_enable_checkbox->setChecked(group->enabled.GetValue());
     });
-
   }
 
   const auto advanced_setting_count =
