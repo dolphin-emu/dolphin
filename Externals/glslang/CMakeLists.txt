@@ -74,8 +74,3 @@ endif()
 
 add_library(glslang STATIC ${SRCS})
 dolphin_disable_warnings(glslang)
-
-target_include_directories(glslang
-PRIVATE
-	${CMAKE_SOURCE_DIR}/Externals/glslang
-)
