@@ -63,6 +63,7 @@
     <ClInclude Include="Common\FixedSizeQueue.h" />
     <ClInclude Include="Common\Flag.h" />
     <ClInclude Include="Common\FloatUtils.h" />
+    <ClInclude Include="Common\FlushThread.h" />
     <ClInclude Include="Common\FormatUtil.h" />
     <ClInclude Include="Common\FPURoundMode.h" />
     <ClInclude Include="Common\Functional.h" />

@@ -8,19 +8,16 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/Config/SessionSettings.h"
@@ -35,11 +32,10 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
-                       u16 size_mbits)
-    : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
+MemoryCard::MemoryCard(std::string filename, ExpansionInterface::Slot card_slot, u16 size_mbits)
+    : MemoryCardBase(card_slot, size_mbits)
 {
-  File::IOFile file(m_filename, "rb");
+  File::IOFile file(filename, "rb");
   if (file)
   {
     // Measure size of the existing memcard file.
@@ -48,7 +44,7 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
     memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
 
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "Reading memory card {}", m_filename);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "Reading memory card {}", filename);
     file.ReadBytes(&m_memcard_data[0], m_memory_card_size);
   }
   else
@@ -62,7 +58,7 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
     const auto& sram = Core::System::GetInstance().GetSRAM();
     const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
-    const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
+    const bool shift_jis = filename.find(".JAP.raw") != std::string::npos;
     const u32 rtc_bias = sram.settings.rtc_bias;
     const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =
@@ -76,95 +72,62 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     INFO_LOG_FMT(EXPANSIONINTERFACE, "No memory card found. A new one was created instead.");
   }
 
-  // Class members (including inherited ones) have now been initialized, so
-  // it's safe to startup the flush thread (which reads them).
   m_flush_buffer = std::make_unique<u8[]>(m_memory_card_size);
-  m_flush_thread = std::thread(&MemoryCard::FlushThread, this);
-}
 
-MemoryCard::~MemoryCard()
-{
-  if (m_flush_thread.joinable())
+  if (Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
-    m_flush_trigger.Set();
+    m_flush_thread.Reset(fmt::format("Memcard {} flushing thread", m_card_slot),
+                         std::bind_front(&MemoryCard::FlushToFile, this, std::move(filename)));
 
-    m_flush_thread.join();
+    m_flush_thread.SetFlushDelay(std::chrono::seconds{1});
   }
 }
 
-void MemoryCard::FlushThread()
+MemoryCard::~MemoryCard() = default;
+
+void MemoryCard::FlushToFile(const std::string& filename)
 {
-  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
+  File::IOFile file(filename, "r+b");
+
+  if (!file)
   {
+    std::string dir;
+    SplitPath(filename, &dir, nullptr, nullptr);
+    if (!File::IsDirectory(dir))
+    {
+      File::CreateFullPath(dir);
+    }
+    file.Open(filename, "wb");
+  }
+
+  // Note - file may have changed above, after ctor
+  if (!file)
+  {
+    PanicAlertFmtT(
+        "Could not write memory card file {0}.\n\n"
+        "Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
+        "Are you receiving this after moving the emulator directory?\nIf so, then you may "
+        "need to re-specify your memory card location in the options.",
+        filename);
+
+    // This flush is unsuccessful.
     return;
   }
 
-  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_slot).c_str());
-
-  const auto flush_interval = std::chrono::seconds(15);
-
-  while (true)
   {
-    // If triggered, we're exiting.
-    // If timed out, check if we need to flush.
-    const bool do_exit = m_flush_trigger.WaitFor(flush_interval);
-    if (!do_exit)
-    {
-      const bool is_dirty = m_dirty.TestAndClear();
-      if (!is_dirty)
-      {
-        continue;
-      }
-    }
-
-    // Opening the file is purposefully done each iteration to ensure the
-    // file doesn't disappear out from under us after the first check.
-    File::IOFile file(m_filename, "r+b");
-
-    if (!file)
-    {
-      std::string dir;
-      SplitPath(m_filename, &dir, nullptr, nullptr);
-      if (!File::IsDirectory(dir))
-      {
-        File::CreateFullPath(dir);
-      }
-      file.Open(m_filename, "wb");
-    }
-
-    // Note - file may have changed above, after ctor
-    if (!file)
-    {
-      PanicAlertFmtT(
-          "Could not write memory card file {0}.\n\n"
-          "Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
-          "Are you receiving this after moving the emulator directory?\nIf so, then you may "
-          "need to re-specify your memory card location in the options.",
-          m_filename);
-
-      // Exit the flushing thread - further flushes will be ignored unless
-      // the thread is recreated.
-      return;
-    }
-
-    {
-      std::unique_lock l(m_flush_mutex);
-      memcpy(&m_flush_buffer[0], &m_memcard_data[0], m_memory_card_size);
-    }
-    file.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
-
-    if (do_exit)
-      return;
-
-    Core::DisplayMessage(fmt::format("Wrote to Memory Card {}",
-                                     m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B'),
-                         4000);
+    std::unique_lock l(m_flush_mutex);
+    memcpy(&m_flush_buffer[0], &m_memcard_data[0], m_memory_card_size);
   }
+  file.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
+
+  Core::DisplayMessage(fmt::format("Wrote to Memory Card {}",
+                                   m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B'),
+                       4000);
 }
 
 void MemoryCard::MakeDirty()
 {
-  m_dirty.Set();
+  m_flush_thread.SetDirty();
 }
 
 s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
@@ -203,7 +166,7 @@ void MemoryCard::ClearBlock(u32 address)
     PanicAlertFmtT("MemoryCard: ClearBlock called on invalid address ({0:#x})", address);
     return;
   }
-  else
+
   {
     std::unique_lock l(m_flush_mutex);
     memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
