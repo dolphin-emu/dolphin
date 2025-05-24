@@ -72,20 +72,38 @@ protected:
   {
     m_msg_length += len;
 
-    size_t count_to_fill_block = m_block.size() - m_block_position;
-
-    while (len >= count_to_fill_block)
+    // Block has some partial data. Copy msg into it.
+    if (m_block_position != 0)
     {
+      const size_t count_to_fill_block = m_block.size() - m_block_position;
+
+      // Not enough to fill block.
+      if (len < count_to_fill_block)
+      {
+        std::copy_n(msg, len, m_block.data() + m_block_position);
+
+        m_block_position += len;
+        return;
+      }
+
       std::copy_n(msg, count_to_fill_block, m_block.data() + m_block_position);
       ProcessBlock(m_block.data());
 
       msg += count_to_fill_block;
       len -= count_to_fill_block;
-
       m_block_position = 0;
-      count_to_fill_block = m_block.size();
     }
 
+    // Our block is empty. We can process msg blocks directly, avoiding unnecessary copies.
+    while (len >= m_block.size())
+    {
+      ProcessBlock(msg);
+
+      msg += m_block.size();
+      len -= m_block.size();
+    }
+
+    // Copy any remaining partial data into block.
     std::copy_n(msg, len, m_block.data() + m_block_position);
     m_block_position += len;
   }
