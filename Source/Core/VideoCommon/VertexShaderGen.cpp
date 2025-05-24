@@ -201,8 +201,119 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
   }
 }
 
+static void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_config,
+                               const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write("struct DolphinVertexInput\n");
+  out.Write("{{\n");
+  out.Write("\tvec4 color_0;\n");
+  out.Write("\tvec4 color_1;\n");
+  out.Write("\tvec4 position;\n");
+  out.Write("\tvec3 normal;\n");
+  out.Write("\tvec3 binormal;\n");
+  out.Write("\tvec3 tangent;\n");
+  for (u32 i = 0; i < 8; i++)
+  {
+    out.Write("\tvec4 texture_coord_{};\n", i);
+  }
+  out.Write("}};\n\n");
+
+  out.Write("struct DolphinVertexOutput\n");
+  out.Write("{{\n");
+  out.Write("\tvec4 color_0;\n");
+  out.Write("\tvec4 color_1;\n");
+  out.Write("\tvec4 position;\n");
+  out.Write("\tvec3 normal;\n");
+  for (u32 i = 0; i < 8; i++)
+  {
+    out.Write("\tvec3 texture_coord_{};\n", i);
+  }
+  out.Write("}};\n\n");
+}
+
+static void WriteVertexDefines(APIType, const ShaderHostConfig&,
+                               const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  if ((uid_data->components & VB_HAS_COL0) != 0)
+  {
+    out.Write("#define HAS_COLOR_0 1\n");
+  }
+  else
+  {
+    out.Write("#define HAS_COLOR_0 0\n");
+  }
+
+  if ((uid_data->components & VB_HAS_COL1) != 0)
+  {
+    out.Write("#define HAS_COLOR_1 1\n");
+  }
+  else
+  {
+    out.Write("#define HAS_COLOR_1 0\n");
+  }
+
+  if ((uid_data->components & VB_HAS_NORMAL) != 0)
+  {
+    out.Write("#define HAS_NORMAL 1\n");
+  }
+  else
+  {
+    out.Write("#define HAS_NORMAL 0\n");
+  }
+
+  if ((uid_data->components & VB_HAS_BINORMAL) != 0)
+  {
+    out.Write("#define HAS_BINORMAL 1\n");
+  }
+  else
+  {
+    out.Write("#define HAS_BINORMAL 0\n");
+  }
+
+  if ((uid_data->components & VB_HAS_TANGENT) != 0)
+  {
+    out.Write("#define HAS_TANGENT 1\n");
+  }
+  else
+  {
+    out.Write("#define HAS_TANGENT 0\n");
+  }
+
+  for (u32 i = 0; i < uid_data->numTexGens; i++)
+  {
+    if ((uid_data->components & (VB_HAS_UV0 << i)) != 0)
+    {
+      out.Write("#define HAS_TEXTURE_COORD_{} 1\n", i);
+    }
+    else
+    {
+      out.Write("#define HAS_TEXTURE_COORD_{} 0\n", i);
+    }
+  }
+
+  for (u32 i = uid_data->numTexGens; i < 8; i++)
+  {
+    out.Write("#define HAS_TEXTURE_COORD_{} 0\n", i);
+  }
+}
+
+static void WriteEmulatedVertexBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
+                                          const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  constexpr std::string_view emulated_fragment_definition =
+      "void dolphin_process_emulated_vertex(in DolphinVertexInput vertex_input, out "
+      "DolphinVertexOutput vertex_output)";
+  out.Write("{}\n", emulated_fragment_definition);
+  out.Write("{{\n");
+
+  WriteVertexBody(api_type, host_config, uid_data, out);
+
+  out.Write("}}\n");
+}
+
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                    const vertex_shader_uid_data* uid_data)
+                                    const vertex_shader_uid_data* uid_data,
+                                    CustomVertexContents custom_contents)
 {
   ShaderCode out;
 
@@ -220,6 +331,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
+
+  if (!custom_contents.uniforms.empty())
+  {
+    out.Write("UBO_BINDING(std140, 3) uniform CustomShaderBlock {{\n");
+    out.Write("{}", custom_contents.uniforms);
+    out.Write("}} custom_uniforms;\n");
+  }
 
   if (uid_data->vs_expand != VSExpand::None)
   {
@@ -391,6 +509,24 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // Note: this is done after to ensure above global variables are accessible
   WriteTransformMatrices(api_type, host_config, uid_data, out);
   WriteTexCoordTransforms(api_type, host_config, uid_data, out);
+  WriteVertexDefines(api_type, host_config, uid_data, out);
+  WriteVertexStructs(api_type, host_config, uid_data, out);
+  WriteEmulatedVertexBodyHeader(api_type, host_config, uid_data, out);
+
+  if (custom_contents.shader.empty())
+  {
+    out.Write("void process_vertex(in DolphinVertexInput vertex_input, out DolphinVertexOutput "
+              "vertex_output)\n");
+    out.Write("{{\n");
+
+    out.Write("\tdolphin_process_emulated_vertex(vertex_input, vertex_output);\n");
+
+    out.Write("}}\n");
+  }
+  else
+  {
+    out.Write("{}\n", custom_contents.shader);
+  }
 
   out.Write("void main()\n{{\n");
 
@@ -437,49 +573,53 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
-  out.Write("\tvec4 pos = vec4(rawpos * dolphin_position_matrix(), 1.0);\n");
+  out.Write("\tDolphinVertexInput vertex_input;\n");
+  out.Write("\tvertex_input.color_0 = vertex_color_0;\n");
+  out.Write("\tvertex_input.color_1 = vertex_color_1;\n");
+  out.Write("\tvertex_input.position = rawpos;\n");
 
-  if ((uid_data->components & VB_HAS_NORMAL) == 0)
-    out.Write("\tvec3 rawnormal = " I_CACHED_NORMAL ".xyz;\n");
-  out.Write("\tvec3 _normal = normalize(rawnormal * dolphin_normal_matrix());\n");
-
-  if ((uid_data->components & VB_HAS_TANGENT) == 0)
-    out.Write("\tvec3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
-
-  if ((uid_data->components & VB_HAS_BINORMAL) == 0)
-    out.Write("\tvec3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
-
-  out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
-            "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
-
-  out.Write("int4 lacc;\n"
-            "float3 ldir, h, cosAttn, distAttn;\n"
-            "float dist, dist2, attn;\n");
-
-  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+  if ((uid_data->components & VB_HAS_NORMAL) != 0)
   {
-    out.Write(
-        "\to.colors_{0} = dolphin_calculate_lighting_chn{0}(vertex_color_{0}, pos.xyz, _normal);\n",
-        chan);
+    out.Write("\tvertex_input.normal = rawnormal;\n");
+  }
+  else
+  {
+    out.Write("\tvertex_input.normal = " I_CACHED_NORMAL ".xyz;\n");
   }
 
-  // transform texcoords
-  out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
+  if ((uid_data->components & VB_HAS_BINORMAL) != 0)
+  {
+    out.Write("\tvertex_input.binormal = rawbinormal;\n");
+  }
+  else
+  {
+    out.Write("\tvertex_input.binormal = " I_CACHED_BINORMAL ".xyz;\n");
+  }
+
+  if ((uid_data->components & VB_HAS_TANGENT) != 0)
+  {
+    out.Write("\tvertex_input.tangent = rawtangent;\n");
+  }
+  else
+  {
+    out.Write("\tvertex_input.tangent = " I_CACHED_TANGENT ".xyz;\n");
+  }
+
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
     auto& texinfo = uid_data->texMtxInfo[i];
 
-    out.Write("{{\n");
-    out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
+    out.Write("\t{{\n");
+    out.Write("\t\tvec4 coord = vec4(0.0, 0.0, 1.0, 1.0);\n");
     switch (texinfo.sourcerow)
     {
     case SourceRow::Geom:
-      out.Write("coord.xyz = rawpos.xyz;\n");
+      out.Write("\t\tcoord.xyz = rawpos.xyz;\n");
       break;
     case SourceRow::Normal:
       if ((uid_data->components & VB_HAS_NORMAL) != 0)
       {
-        out.Write("coord.xyz = rawnormal.xyz;\n");
+        out.Write("\t\tcoord.xyz = rawnormal.xyz;\n");
       }
       break;
     case SourceRow::Colors:
@@ -488,13 +628,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     case SourceRow::BinormalT:
       if ((uid_data->components & VB_HAS_TANGENT) != 0)
       {
-        out.Write("coord.xyz = rawtangent.xyz;\n");
+        out.Write("\t\tcoord.xyz = rawtangent.xyz;\n");
       }
       break;
     case SourceRow::BinormalB:
       if ((uid_data->components & VB_HAS_BINORMAL) != 0)
       {
-        out.Write("coord.xyz = rawbinormal.xyz;\n");
+        out.Write("\t\tcoord.xyz = rawbinormal.xyz;\n");
       }
       break;
     default:
@@ -502,51 +642,51 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
       if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
       {
-        out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
+        out.Write("\t\tcoord = vec4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
       break;
     }
     // Input form of AB11 sets z element to 1.0
 
     if (texinfo.inputform == TexInputForm::AB11)
-      out.Write("coord.z = 1.0;\n");
+      out.Write("\t\tcoord.z = 1.0;\n");
 
     // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
     // See https://bugs.dolphin-emu.org/issues/11458
-    out.Write("// Convert NaN to 1\n");
-    out.Write("if (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
-    out.Write("if (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
-    out.Write("if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
+    out.Write("\t\t// Convert NaN to 1\n");
+    out.Write("\t\tif (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
+    out.Write("\t\tif (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
+    out.Write("\t\tif (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
-    // first transformation
-    switch (texinfo.texgentype)
-    {
-    case TexGenType::EmbossMap:  // calculate tex coords into bump map
+    out.Write("\t\tvertex_input.texture_coord_{0} = coord;\n", i);
+    out.Write("\t}}\n");
+  }
 
-      // transform the light dir into tangent space
-      out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                LIGHT_POS_PARAMS(texinfo.embosslightshift));
-      out.Write("vec3 tangent = rawtangent * dolphin_normal_matrix();\n");
-      out.Write("vec3 binormal = rawbinormal * dolphin_normal_matrix();\n");
-      out.Write("o.tex{}.xyz = o.tex{}.xyz + vec3(dot(ldir, tangent), "
-                "dot(ldir, binormal), 0.0);\n",
-                i, texinfo.embosssourceshift);
+  // Initialize other texture coordinates that are unused
+  for (u32 i = uid_data->numTexGens; i < 8; i++)
+  {
+    out.Write("\tvertex_input.texture_coord_{0} = vec4(0, 0, 0, 0);\n", i);
+  }
 
-      break;
-    case TexGenType::Color0:
-      out.Write("o.tex{}.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
-      break;
-    case TexGenType::Color1:
-      out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
-      break;
-    case TexGenType::Regular:
-      out.Write("o.tex{0}.xyz = dolphin_transform_texcoord{0}(coord);\n", i);
-      break;
-    default:
-      ASSERT(false);
-    }
+  out.Write("\tDolphinVertexOutput vertex_output;\n");
+  out.Write("\tprocess_vertex(vertex_input, vertex_output);\n");
 
-    out.Write("}}\n");
+  out.Write("\to.pos = vec4(dot(" I_PROJECTION "[0], vertex_output.position), dot(" I_PROJECTION
+            "[1], vertex_output.position), dot(" I_PROJECTION
+            "[2], vertex_output.position), dot(" I_PROJECTION "[3], vertex_output.position));\n");
+  for (u32 i = 0; i < uid_data->numTexGens; ++i)
+  {
+    out.Write("\to.tex{0} = vertex_output.texture_coord_{0};\n", i);
+  }
+
+  out.Write("\to.colors_0 = vertex_output.color_0;\n");
+  out.Write("\to.colors_1 = vertex_output.color_1;\n");
+  if (per_pixel_lighting)
+  {
+    out.Write("\to.Normal = vertex_output.normal;\n");
+
+    // TODO: Rename, this is actually in Viewspace...
+    out.Write("\to.WorldPos = vertex_output.position.xyz;\n");
   }
 
   if (uid_data->vs_expand == VSExpand::Line)
@@ -584,37 +724,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     GenerateVSPointExpansion(out, "", uid_data->numTexGens);
   }
 
-  if (per_pixel_lighting)
-  {
-    // When per-pixel lighting is enabled, the vertex colors are passed through
-    // unmodified so we can evaluate the lighting in the pixel shader.
-
-    // Lighting is also still computed in the vertex shader since it can be used to
-    // generate texture coordinates. We generated them above, so now the colors can
-    // be reverted to their previous stage.
-    out.Write("o.colors_0 = vertex_color_0;\n");
-    out.Write("o.colors_1 = vertex_color_1;\n");
-    // Note that the numColorChans logic is performed in the pixel shader.
-  }
-  else
-  {
-    // The number of colors available to TEV is determined by numColorChans.
-    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
-    if (uid_data->numColorChans == 0)
-      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    if (uid_data->numColorChans <= 1)
-      out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  }
-
   // clipPos/w needs to be done in pixel shader, not here
   if (!host_config.fast_depth_calc)
     out.Write("o.clipPos = o.pos;\n");
-
-  if (per_pixel_lighting)
-  {
-    out.Write("o.Normal = _normal;\n"
-              "o.WorldPos = pos.xyz;\n");
-  }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
   // our own depth clipping and calculate the depth range before the perspective divide if
@@ -734,4 +846,84 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("}}\n");
 
   return out;
+}
+
+void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
+                     const vertex_shader_uid_data* uid_data, ShaderCode& out)
+{
+  out.Write(
+      "\tvertex_output.position = vec4(vertex_input.position * dolphin_position_matrix(), 1.0);\n");
+
+  out.Write("\tvertex_output.normal = normalize(vertex_input.normal * dolphin_normal_matrix());\n");
+
+  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+  {
+    out.Write(
+        "\tvec4 vertex_lighting_{0} = dolphin_calculate_lighting_chn{0}(vertex_input.color_{0}, "
+        "vertex_output.position.xyz, vertex_output.normal);\n",
+        chan);
+    out.Write("\tvertex_output.color_{0} = vertex_lighting_{0};\n", chan);
+  }
+
+  if (host_config.per_pixel_lighting)
+  {
+    // When per-pixel lighting is enabled, the vertex colors are passed through
+    // unmodified so we can evaluate the lighting in the pixel shader.
+    out.Write("\tvertex_output.color_0 = vertex_input.color_0;\n");
+    out.Write("\tvertex_output.color_1 = vertex_input.color_1;\n");
+  }
+  else
+  {
+    // The number of colors available to TEV is determined by numColorChans.
+    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+    if (uid_data->numColorChans == 0)
+      out.Write("\tvertex_output.color_0 = vec4(0.0, 0.0, 0.0, 0.0);\n");
+    if (uid_data->numColorChans <= 1)
+      out.Write("\tvertex_output.color_1 = vec4(0.0, 0.0, 0.0, 0.0);\n");
+  }
+
+  for (u32 i = 0; i < uid_data->numTexGens; ++i)
+  {
+    auto& texinfo = uid_data->texMtxInfo[i];
+
+    switch (texinfo.texgentype)
+    {
+    case TexGenType::EmbossMap:  // calculate tex coords into bump map
+
+      out.Write("\t{{\n");
+      // transform the light dir into tangent space
+      out.Write("\t\tvec3 ldir = normalize(" LIGHT_POS ".xyz - vertex_output.position.xyz);\n",
+                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+
+      out.Write("\t\tvec3 tangent = vertex_input.tangent * dolphin_normal_matrix();\n");
+      out.Write("\t\tvec3 binormal = vertex_input.binormal * dolphin_normal_matrix();\n");
+      out.Write("\t\tvertex_output.texture_coord_{}.xyz = vertex_output.texture_coord_{}.xyz + "
+                "vec3(dot(ldir, tangent), "
+                "dot(ldir, binormal), 0.0);\n",
+                i, texinfo.embosssourceshift);
+      out.Write("\t}}\n");
+      break;
+    case TexGenType::Color0:
+      out.Write("\tvertex_output.texture_coord_{}.xyz = vec3(vertex_lighting_0.x, "
+                "vertex_lighting_0.y, 1);\n",
+                i);
+      break;
+    case TexGenType::Color1:
+      out.Write("\tvertex_output.texture_coord_{}.xyz = vec3(vertex_lighting_1.x, "
+                "vertex_lighting_1.y, 1);\n",
+                i);
+      break;
+    case TexGenType::Regular:
+      out.Write("\tvertex_output.texture_coord_{0} = "
+                "dolphin_transform_texcoord{0}(vertex_input.texture_coord_{0});\n",
+                i);
+      break;
+    };
+  }
+
+  // Fill out output that is unused
+  for (u32 i = uid_data->numTexGens; i < 8; i++)
+  {
+    out.Write("\tvertex_output.texture_coord_{0} = vec3(0, 0, 0);\n", i);
+  }
 }
