@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <type_traits>
 
 #include "Common/TypeUtils.h"
 
@@ -15,11 +14,10 @@ namespace Common
 {
 // A type that allows lookup of values associated with an enum as the key.
 // Designed for enums whose numeric values start at 0 and increment continuously with few gaps.
-template <typename V, auto last_member>
+template <typename V, Common::Enum auto last_member>
 class EnumMap final
 {
   using T = decltype(last_member);
-  static_assert(std::is_enum_v<T>);
   static constexpr size_t s_size = static_cast<size_t>(last_member) + 1;
 
   using array_type = std::array<V, s_size>;
@@ -34,8 +32,9 @@ public:
   constexpr EnumMap& operator=(EnumMap&& other) = default;
 
   // Constructor that accepts exactly size Vs (enforcing that all must be specified).
-  template <typename... T, typename = std::enable_if_t<Common::IsNOf<V, s_size, T...>::value>>
-  constexpr EnumMap(T... values) : m_array{static_cast<V>(values)...}
+  template <typename... T>
+  constexpr EnumMap(T... values) requires(Common::IsNOf<V, s_size, T...>::value)
+      : m_array{static_cast<V>(values)...}
   {
   }
 
