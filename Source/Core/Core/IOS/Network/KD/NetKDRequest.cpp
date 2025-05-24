@@ -888,6 +888,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     // to be registered. Due to the high likelihood of multiple users having the same Wii Number,
     // Nintendo's register endpoint will most likely return a duplicate registration error.
     m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
+    m_config.SetChecksum(m_config.CalculateNwc24ConfigChecksum());
     m_config.WriteConfig();
     m_config.WriteCBK();
 
@@ -984,6 +985,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
   m_config.SetPassword(password);
   m_config.SetMailCheckID(mail_check_id);
+  m_config.SetChecksum(m_config.CalculateNwc24ConfigChecksum());
   m_config.WriteConfig();
   m_config.WriteCBK();
 
