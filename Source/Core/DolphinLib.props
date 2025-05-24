@@ -132,6 +132,7 @@
     <ClInclude Include="Common\IOFile.h" />
     <ClInclude Include="Common\JitRegister.h" />
     <ClInclude Include="Common\JsonUtil.h" />
+    <ClInclude Include="Common\Keyboard.h" />
     <ClInclude Include="Common\Lazy.h" />
     <ClInclude Include="Common\LdrWatcher.h" />
     <ClInclude Include="Common\LinearDiskCache.h" />
@@ -830,6 +831,7 @@
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
     <ClCompile Include="Common\JsonUtil.cpp" />
+    <ClCompile Include="Common\Keyboard.cpp" />
     <ClCompile Include="Common\LdrWatcher.cpp" />
     <ClCompile Include="Common\Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="Common\Logging\LogManager.cpp" />
