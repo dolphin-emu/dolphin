@@ -121,8 +121,8 @@ void VerifyWidget::ConnectWidgets()
 {
   connect(m_verify_button, &QPushButton::clicked, this, &VerifyWidget::Verify);
 
-  connect(m_md5_checkbox, &QCheckBox::stateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
-  connect(m_sha1_checkbox, &QCheckBox::stateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
+  connect(m_md5_checkbox, &QCheckBox::checkStateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
+  connect(m_sha1_checkbox, &QCheckBox::checkStateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
 }
 
 static void SetHash(QLineEdit* line_edit, const std::vector<u8>& hash)
