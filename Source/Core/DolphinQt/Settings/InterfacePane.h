@@ -33,6 +33,7 @@ private:
   void UpdateShowDebuggingCheckbox();
   void LoadUserStyle();
   void OnUserStyleChanged();
+  void OnImguiSizeChanged();
   void OnLanguageChanged();
 
   void OnEmulationStateChanged(Core::State state);
@@ -43,6 +44,7 @@ private:
   ConfigStringChoice* m_combobox_theme;
   ToolTipComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
+  ToolTipComboBox* m_combobox_imgui_size;
   ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
   ToolTipCheckBox* m_checkbox_show_debugging_ui;

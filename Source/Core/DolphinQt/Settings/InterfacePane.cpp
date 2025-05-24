@@ -36,6 +36,8 @@
 
 #include "UICommon/GameFile.h"
 
+#include <imgui.h>
+
 static ConfigStringChoice* MakeLanguageComboBox()
 {
   using QPair = std::pair<QString, QString>;
@@ -151,6 +153,18 @@ void InterfacePane::CreateUI()
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
 
+  // ImGui font size
+  m_combobox_imgui_size = new ToolTipComboBox;
+  combobox_layout->addRow(tr("&Imgui Font Size:"), m_combobox_imgui_size);
+  for (auto i : {"12", "18", "24", "36", "48"})
+  {
+    m_combobox_imgui_size->addItem(QString::fromStdString(i));
+  }
+  if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().Fonts->Fonts.size() < 2)
+    m_combobox_imgui_size->setEnabled(false);
+  else
+    m_combobox_imgui_size->setCurrentIndex(1);
+
   // TODO: Support forcing light/dark on other OSes too.
 #ifdef _WIN32
   m_combobox_userstyle->addItem(tr("(Light)"), static_cast<int>(Settings::StyleType::Light));
@@ -250,6 +264,8 @@ void InterfacePane::ConnectLayout()
           &Settings::ThemeChanged);
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnUserStyleChanged);
+  connect(m_combobox_imgui_size, &QComboBox::currentIndexChanged, this,
+          &InterfacePane::OnImguiSizeChanged);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnLanguageChanged);
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
@@ -313,6 +329,22 @@ void InterfacePane::OnUserStyleChanged()
   if (!is_builtin_type)
     Settings::Instance().SetUserStyleName(selected_style.toString());
   Settings::Instance().ApplyStyle();
+}
+
+void InterfacePane::OnImguiSizeChanged()
+{
+  if (ImGui::GetCurrentContext() == nullptr)
+    return;
+
+  if (ImGui::GetIO().Fonts->Fonts.size() < 2)
+  {
+    m_combobox_imgui_size->setEnabled(false);
+    return;
+  }
+  ImGuiIO& io = ImGui::GetIO();
+  auto fonts = io.Fonts->Fonts;
+  const int size = m_combobox_imgui_size->currentIndex();
+  io.FontDefault = fonts[size];
 }
 
 void InterfacePane::OnLanguageChanged()
