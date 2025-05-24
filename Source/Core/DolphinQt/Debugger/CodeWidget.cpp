@@ -29,7 +29,6 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/BranchWatchDialog.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
@@ -222,7 +221,6 @@ void CodeWidget::OnBranchWatchDialog()
     m_branch_watch_dialog = new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(),
                                                   m_ppc_symbol_db, this, this);
   }
-  SetQWidgetWindowDecorations(m_branch_watch_dialog);
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();

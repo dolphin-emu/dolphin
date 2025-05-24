@@ -25,7 +25,6 @@
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/PostProcessing.h"
@@ -629,7 +628,6 @@ void EnhancementsWidget::AddDescriptions()
 void EnhancementsWidget::ConfigureColorCorrection()
 {
   ColorCorrectionConfigWindow dialog(this);
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }
 
@@ -637,6 +635,5 @@ void EnhancementsWidget::ConfigurePostProcessingShader()
 {
   const std::string shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
   PostProcessingConfigWindow dialog(this, shader);
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }
