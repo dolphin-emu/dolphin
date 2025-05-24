@@ -29,6 +29,7 @@
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace CoreTiming
 {
@@ -105,6 +106,19 @@ void CoreTimingManager::Init()
 
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
+
+  m_after_frame_hook = AfterPresentEvent::Register(
+      [this](const PresentInfo& info) {
+        const bool sync_to_host_active =
+            Config::Get(Config::MAIN_SYNC_REFRESH_RATE) && g_ActiveConfig.bVSyncActive;
+
+        const auto presentation_time = PresentationTime{.ticks = info.emulated_timestamp,
+                                                        .time = Clock::now(),
+                                                        .sync_to_host_active = sync_to_host_active};
+
+        m_last_presentation.Store(std::make_unique<PresentationTime>(presentation_time));
+      },
+      "CoreTiming AfterPresentEvent");
 }
 
 void CoreTimingManager::Shutdown()
@@ -114,6 +128,8 @@ void CoreTimingManager::Shutdown()
   ClearPendingEvents();
   UnregisterAllEvents();
   CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  m_after_frame_hook.reset();
+  m_last_presentation = nullptr;
 }
 
 void CoreTimingManager::RefreshConfig()
@@ -204,6 +220,7 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // The stave state has changed the time, so our previous Throttle targets are invalid.
     // Especially when global_time goes down; So we create a fake throttle update.
     ResetThrottle(m_globals.global_timer);
+    m_last_presentation = nullptr;
   }
 }
 
@@ -406,6 +423,14 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
+  // Adjust throttle based on last presentation if "Sync to Host Refresh Rate" was active.
+  const auto last_presentation = m_last_presentation.Exchange(nullptr);
+  if (last_presentation && last_presentation->sync_to_host_active)
+  {
+    m_throttle_reference_cycle = last_presentation->ticks;
+    m_throttle_reference_time = last_presentation->time;
+  }
+
   if (IsSpeedUnlimited())
   {
     ResetThrottle(target_cycle);

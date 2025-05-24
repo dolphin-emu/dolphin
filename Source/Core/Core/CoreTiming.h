@@ -22,7 +22,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Common/AtomicUniquePtr.h"
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
@@ -225,6 +227,16 @@ private:
   std::atomic_bool m_use_precision_timer = false;
   Common::PrecisionTimer m_precision_cpu_timer;
   Common::PrecisionTimer m_precision_gpu_timer;
+
+  struct PresentationTime
+  {
+    u64 ticks;
+    Clock::time_point time;
+    bool sync_to_host_active;
+  };
+  Common::AtomicUniquePtr<PresentationTime> m_last_presentation;
+
+  Common::EventHook m_after_frame_hook;
 };
 
 }  // namespace CoreTiming
