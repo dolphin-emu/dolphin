@@ -53,8 +53,8 @@ void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& 
   const std::string group(base + name + "/");
 
   // enabled
-  if (default_value != DefaultValue::AlwaysEnabled)
-    sec->Get(group + "Enabled", &enabled, default_value != DefaultValue::Disabled);
+  if (default_value != DefaultValue::AlwaysEnabled && enable_setting)
+    enable_setting->LoadFromIni(*sec, group);
 
   for (auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);
@@ -79,7 +79,8 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
   const std::string group(base + name + "/");
 
   // enabled
-  sec->Set(group + "Enabled", enabled, default_value != DefaultValue::Disabled);
+  if (enable_setting)
+    enable_setting->SaveToIni(*sec, group);
 
   for (auto& setting : numeric_settings)
     setting->SaveToIni(*sec, group);
@@ -99,6 +100,9 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
 
 void ControlGroup::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
 {
+  if (enable_setting)
+    enable_setting->GetInputReference().UpdateReference(env);
+
   for (auto& control : controls)
     control->control_ref->UpdateReference(env);
 

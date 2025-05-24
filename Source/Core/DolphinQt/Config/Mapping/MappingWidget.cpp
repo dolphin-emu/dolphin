@@ -136,22 +136,40 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   {
     QLabel* group_enable_label = new QLabel(tr("Enable"));
     QCheckBox* group_enable_checkbox = new QCheckBox();
-    group_enable_checkbox->setChecked(group->enabled);
-    form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
+    group_enable_checkbox->setChecked(group->enabled.GetValue());
+    QPushButton* advanced_button = CreateSettingAdvancedMappingButton(*group->enable_setting);
+
+    const auto hbox = new QHBoxLayout;
+    hbox->addWidget(group_enable_checkbox);
+    hbox->addWidget(advanced_button);
+    form_layout->insertRow(0, group_enable_label, hbox);
+
     auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
                                      group_enable_checkbox] {
-      group->enabled = group_enable_checkbox->isChecked();
       for (int i = 0; i < form_layout->count(); ++i)
       {
         QWidget* widget = form_layout->itemAt(i)->widget();
         if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
-          widget->setEnabled(group->enabled);
+          widget->setEnabled(group->enabled.GetValue());
       }
     };
     enable_group_by_checkbox();
-    connect(group_enable_checkbox, &QCheckBox::toggled, this, enable_group_by_checkbox);
-    connect(this, &MappingWidget::ConfigChanged, this,
-            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
+    connect(group_enable_checkbox, &QCheckBox::stateChanged, this, enable_group_by_checkbox);
+    connect(group_enable_checkbox, &QCheckBox::pressed, this, [group_enable_checkbox, group] {
+      group->enabled.SetValue(!group_enable_checkbox->isChecked());
+    });
+    connect(this, &MappingWidget::ConfigChanged, this, [group_enable_checkbox, group] {
+      group_enable_checkbox->setChecked(group->enabled.GetValue());
+      if (group->enabled.IsSimpleValue())
+        group_enable_checkbox->setText({});
+      else
+        group_enable_checkbox->setText(QString::fromUtf8("🎮"));
+    });
+    connect(this, &MappingWidget::Update, this, [group_enable_checkbox, group] {
+      if (group->enabled.IsSimpleValue())
+        return;
+      group_enable_checkbox->setChecked(group->enabled.GetValue());
+    });
   }
 
   const auto advanced_setting_count =
