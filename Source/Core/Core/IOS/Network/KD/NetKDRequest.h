@@ -123,7 +123,7 @@ private:
   u32 m_download_span = 2;
   u32 m_mail_span = 1;
   bool m_handle_mail;
-  Common::Event m_shutdown_event;
+  Common::TimedEvent m_shutdown_event;
   std::mutex m_scheduler_lock;
   std::thread m_scheduler_timer_thread;
 };

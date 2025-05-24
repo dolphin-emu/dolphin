@@ -501,7 +501,7 @@ void CodeWidget::Step()
   if (!cpu.IsStepping())
     return;
 
-  Common::Event sync_event;
+  Common::TimedEvent sync_event;
 
   auto& power_pc = m_system.GetPowerPC();
   PowerPC::CoreMode old_mode = power_pc.GetMode();
