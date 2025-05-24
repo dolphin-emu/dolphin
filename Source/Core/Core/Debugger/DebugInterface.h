@@ -104,6 +104,10 @@ public:
   {
     return 0xFFFFFFFF;
   }
+  virtual u32 GetNoteColor(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return 0xFFFFFFFF;
+  }
   virtual std::string_view GetDescription(u32 /*address*/) const = 0;
   virtual void Clear(const CPUThreadGuard& guard) = 0;
 };
