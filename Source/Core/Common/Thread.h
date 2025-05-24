@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <thread>
 
 #ifndef _WIN32

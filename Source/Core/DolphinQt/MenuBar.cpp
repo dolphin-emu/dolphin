@@ -170,7 +170,6 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Symbols
   m_symbols->setEnabled(running);
 
-  UpdateStateSlotMenu();
   UpdateToolsMenu(state);
 
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
