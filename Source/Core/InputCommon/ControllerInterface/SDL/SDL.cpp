@@ -3,6 +3,8 @@
 
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
+#include <optional>
+#include <span>
 #include <thread>
 #include <vector>
 
@@ -10,14 +12,75 @@
 #include <Windows.h>
 #endif
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "Common/Event.h"
+#include "Common/Keyboard.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Core/Host.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
+
+namespace
+{
+using UniqueSDLWindow = std::unique_ptr<SDL_Window, void (*)(SDL_Window*)>;
+
+// Based on sdl2-compat
+SDL_Window* SDL_CreateWindowFrom(void* handle)
+{
+  SDL_Window* window;
+  {
+    SDL_PropertiesID props;
+    props = SDL_CreateProperties();
+    if (!props)
+    {
+      return NULL;
+    }
+    SDL_SetPointerProperty(props, "sdl2-compat.external_window", handle);
+    window = SDL_CreateWindowWithProperties(props);
+    SDL_DestroyProperties(props);
+  }
+  if (SDL_TextInputActive(window))
+  {
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_TEXT);
+    SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, SDL_CAPITALIZE_NONE);
+    SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false);
+    SDL_StartTextInputWithProperties(window, props);
+    SDL_DestroyProperties(props);
+  }
+  return window;
+}
+
+std::optional<const char*> UpdateKeyboardHandle(UniqueSDLWindow* unique_window)
+{
+  std::optional<const char*> error;
+
+  // Doesn't seem to work with X11 until SDL 3.10:
+  //  - https://github.com/libsdl-org/SDL/pull/10467
+  void* keyboard_handle = Common::KeyboardContext::GetWindowHandle();
+  SDL_Window* keyboard_window = SDL_CreateWindowFrom(keyboard_handle);
+  if (keyboard_window == nullptr)
+    error = SDL_GetError();
+
+  unique_window->reset(keyboard_window);
+  if (error.has_value())
+    return error;
+
+  // SDL aggressive hooking might make the window borderless sometimes
+  if (!Host_RendererIsFullscreen())
+  {
+    SDL_SetWindowFullscreen(keyboard_window, 0);
+    SDL_SetWindowBordered(keyboard_window, true);
+  }
+
+  Common::KeyboardContext::UpdateLayout();
+
+  return error;
+}
+}  // namespace
 
 namespace ciface::SDL
 {
@@ -31,7 +94,7 @@ public:
   void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove) override;
 
 private:
-  void OpenAndAddDevice(int index);
+  void OpenAndAddDevice(SDL_JoystickID instance_id);
 
   bool HandleEventAndContinue(const SDL_Event& e);
 
@@ -39,6 +102,7 @@ private:
   Uint32 m_stop_event_type;
   Uint32 m_populate_event_type;
   std::thread m_hotplug_thread;
+  UniqueSDLWindow m_keyboard_window{nullptr, SDL_DestroyWindow};
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -48,10 +112,10 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
 
 static void EnableSDLLogging()
 {
-  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
-  SDL_LogSetOutputFunction(
+  SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
+  SDL_SetLogOutputFunction(
       [](void*, int category, SDL_LogPriority priority, const char* message) {
-        std::string category_name;
+        std::string_view category_name{};
         switch (category)
         {
         case SDL_LOG_CATEGORY_APPLICATION:
@@ -81,8 +145,10 @@ static void EnableSDLLogging()
         case SDL_LOG_CATEGORY_TEST:
           category_name = "test";
           break;
+        case SDL_LOG_CATEGORY_GPU:
+          category_name = "gpu";
+          break;
         default:
-          category_name = fmt::format("unknown({})", category);
           break;
         }
 
@@ -108,8 +174,16 @@ static void EnableSDLLogging()
           break;
         }
 
-        GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "{}: {}",
-                        category_name, message);
+        if (category_name.empty())
+        {
+          GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "unknown({}): {}",
+                          category, message);
+        }
+        else
+        {
+          GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "{}: {}",
+                          category_name, message);
+        }
       },
       nullptr);
 }
@@ -122,9 +196,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // This is required on windows so that SDL's joystick code properly pumps window messages
   SDL_SetHint(SDL_HINT_JOYSTICK_THREAD, "1");
 
-  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
-  // We want buttons to come in as positions, not labels
-  SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "0");
+  SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
+
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
   SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "0");
 
@@ -139,13 +212,13 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
     {
       Common::ScopeGuard init_guard([this] { m_init_event.Set(); });
 
-      if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) != 0)
+      if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
         return;
       }
 
-      const Uint32 custom_events_start = SDL_RegisterEvents(2);
+      const Uint32 custom_events_start = SDL_RegisterEvents(5);
       if (custom_events_start == static_cast<Uint32>(-1))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
@@ -153,6 +226,9 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       }
       m_stop_event_type = custom_events_start;
       m_populate_event_type = custom_events_start + 1;
+      Common::KeyboardContext::s_sdl_init_event_type = custom_events_start + 2;
+      Common::KeyboardContext::s_sdl_update_event_type = custom_events_start + 3;
+      Common::KeyboardContext::s_sdl_quit_event_type = custom_events_start + 4;
 
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
       // individual joystick events as well as the custom populate event will be handled _after_
@@ -160,7 +236,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       // duplicate devices. Adding devices will actually "fail" here, as the ControllerInterface
       // hasn't finished initializing yet.
       SDL_Event e;
-      while (SDL_PollEvent(&e) != 0)
+      while (SDL_PollEvent(&e))
       {
         if (!HandleEventAndContinue(e))
           return;
@@ -179,7 +255,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 #endif
 
     SDL_Event e;
-    while (SDL_WaitEvent(&e) != 0)
+    while (SDL_WaitEvent(&e))
     {
       if (!HandleEventAndContinue(e))
         return;
@@ -221,20 +297,20 @@ void InputBackend::PopulateDevices()
   SDL_PushEvent(&populate_event);
 }
 
-void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove)
+void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>&)
 {
-  SDL_GameControllerUpdate();
+  SDL_UpdateGamepads();
 }
 
-void InputBackend::OpenAndAddDevice(int index)
+void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
 {
-  SDL_GameController* gc = SDL_GameControllerOpen(index);
-  SDL_Joystick* js = SDL_JoystickOpen(index);
+  SDL_Gamepad* gc = SDL_OpenGamepad(instance_id);
+  SDL_Joystick* js = SDL_OpenJoystick(instance_id);
 
-  if (js)
+  if (js != nullptr)
   {
-    if (SDL_JoystickNumButtons(js) > 255 || SDL_JoystickNumAxes(js) > 255 ||
-        SDL_JoystickNumHats(js) > 255 || SDL_JoystickNumBalls(js) > 255)
+    if (SDL_GetNumJoystickButtons(js) > 255 || SDL_GetNumJoystickAxes(js) > 255 ||
+        SDL_GetNumJoystickHats(js) > 255 || SDL_GetNumJoystickBalls(js) > 255)
     {
       // This device is invalid, don't use it
       // Some crazy devices (HP webcam 2100) end up as HID devices
@@ -249,17 +325,12 @@ void InputBackend::OpenAndAddDevice(int index)
 
 bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
 {
-  if (e.type == SDL_JOYDEVICEADDED)
+  if (e.type == SDL_EVENT_JOYSTICK_ADDED)
   {
-    // NOTE: SDL_JOYDEVICEADDED's `jdevice.which` is a device index in SDL2.
-    // It will change to an "instance ID" in SDL3.
-    // OpenAndAddDevice impl and calls will need refactoring when changing to SDL3.
-    static_assert(!SDL_VERSION_ATLEAST(3, 0, 0), "Refactoring is needed for SDL3.");
     OpenAndAddDevice(e.jdevice.which);
   }
-  else if (e.type == SDL_JOYDEVICEREMOVED)
+  else if (e.type == SDL_EVENT_JOYSTICK_REMOVED)
   {
-    // NOTE: SDL_JOYDEVICEREMOVED's `jdevice.which` is an "instance ID".
     GetControllerInterface().RemoveDevice([&e](const auto* device) {
       return device->GetSource() == "SDL" &&
              static_cast<const GameController*>(device)->GetSDLInstanceID() == e.jdevice.which;
@@ -268,13 +339,55 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   else if (e.type == m_populate_event_type)
   {
     GetControllerInterface().PlatformPopulateDevices([this] {
-      for (int i = 0; i < SDL_NumJoysticks(); ++i)
-        OpenAndAddDevice(i);
+      int joystick_count = 0;
+      auto* const joystick_ids = SDL_GetJoysticks(&joystick_count);
+      for (auto instance_id : std::span(joystick_ids, joystick_count))
+        OpenAndAddDevice(instance_id);
+
+      SDL_free(joystick_ids);
     });
   }
   else if (e.type == m_stop_event_type)
   {
     return false;
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_init_event_type)
+  {
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to init subsystem to capture keyboard input: {}",
+                    SDL_GetError());
+      return true;
+    }
+
+    if (const auto error = UpdateKeyboardHandle(&m_keyboard_window); error.has_value())
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to attach window to capture keyboard input: {}", *error);
+      return true;
+    }
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_update_event_type)
+  {
+    if (!SDL_WasInit(SDL_INIT_VIDEO))
+      return true;
+
+    // Release previous SDLWindow
+    m_keyboard_window.reset();
+
+    if (const auto error = UpdateKeyboardHandle(&m_keyboard_window); error.has_value())
+    {
+      ERROR_LOG_FMT(IOS_USB, "SDL failed to switch window to capture keyboard input: {}", *error);
+      return true;
+    }
+  }
+  else if (e.type == Common::KeyboardContext::s_sdl_quit_event_type)
+  {
+    m_keyboard_window.reset();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+  }
+  else if (e.type == SDL_EVENT_KEYMAP_CHANGED)
+  {
+    Common::KeyboardContext::UpdateLayout();
   }
 
   return true;

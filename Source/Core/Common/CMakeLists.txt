@@ -93,6 +93,8 @@ add_library(common
   JitRegister.h
   JsonUtil.h
   JsonUtil.cpp
+  Keyboard.h
+  Keyboard.cpp
   Lazy.h
   LinearDiskCache.h
   Logging/ConsoleListener.h
@@ -345,6 +347,11 @@ endif()
 
 if(OPROFILE_FOUND)
   target_link_libraries(common PRIVATE OProfile::OProfile)
+endif()
+
+if(ENABLE_SDL)
+  target_link_libraries(common PRIVATE SDL3::SDL3)
+  target_compile_definitions(common PRIVATE -DHAVE_SDL3)
 endif()
 
 if(ENABLE_LLVM)
