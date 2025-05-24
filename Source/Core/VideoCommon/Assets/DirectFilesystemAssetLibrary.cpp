@@ -13,30 +13,19 @@
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/System.h"
+#include "VideoCommon/Assets/CustomResourceManager.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/RenderState.h"
 
 namespace VideoCommon
 {
 namespace
 {
-std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_time_type file_time)
-{
-#ifdef _WIN32
-  return std::chrono::clock_cast<std::chrono::system_clock>(file_time);
-#else
-  // Note: all compilers should switch to chrono::clock_cast
-  // once it is available for use
-  const auto system_time_now = std::chrono::system_clock::now();
-  const auto file_time_now = decltype(file_time)::clock::now();
-  return std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-      file_time - file_time_now + system_time_now);
-#endif
-}
-
 std::size_t GetAssetSize(const CustomTextureData& data)
 {
   std::size_t total = 0;
@@ -50,30 +39,6 @@ std::size_t GetAssetSize(const CustomTextureData& data)
   return total;
 }
 }  // namespace
-CustomAssetLibrary::TimeType
-DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
-{
-  std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
-      iter != m_assetid_to_asset_map_path.end())
-  {
-    const auto& asset_map_path = iter->second;
-    CustomAssetLibrary::TimeType max_entry;
-    for (const auto& [key, value] : asset_map_path)
-    {
-      std::error_code ec;
-      const auto tp = std::filesystem::last_write_time(value, ec);
-      if (ec)
-        continue;
-      auto tp_sys = FileTimeToSysTime(tp);
-      if (tp_sys > max_entry)
-        max_entry = tp_sys;
-    }
-    return max_entry;
-  }
-
-  return {};
-}
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const AssetID& asset_id,
                                                                            PixelShaderData* data)
@@ -158,7 +123,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
   if (!PixelShaderData::FromJson(asset_id, root_obj, data))
     return {};
 
-  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{approx_mem_size};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const AssetID& asset_id,
@@ -216,7 +181,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
     return {};
   }
 
-  return LoadInfo{metadata_size, GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{metadata_size};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetID& asset_id,
@@ -311,11 +276,41 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   if (!MeshData::FromJson(asset_id, root_obj, data))
     return {};
 
-  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+  return LoadInfo{approx_mem_size};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
-                                                                       TextureData* data)
+                                                                       CustomTextureData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+  if (asset_map.empty())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - raw texture expected to have one or two files mapped!",
+                  asset_id);
+    return {};
+  }
+
+  const auto texture_path = asset_map.find("texture");
+
+  if (texture_path == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a texture entry mapped!", asset_id);
+    return {};
+  }
+
+  if (!LoadTextureDataFromFile(asset_id, texture_path->second,
+                               TextureAndSamplerData::Type::Type_Texture2D, data))
+  {
+    return {};
+  }
+  if (!PurgeInvalidMipsFromTextureData(asset_id, data))
+    return {};
+
+  return LoadInfo{GetAssetSize(*data)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
+                                                                       TextureAndSamplerData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
@@ -368,7 +363,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     }
 
     const auto& root_obj = root.get<picojson::object>();
-    if (!TextureData::FromJson(asset_id, root_obj, data))
+    if (!TextureAndSamplerData::FromJson(asset_id, root_obj, data))
     {
       return {};
     }
@@ -376,128 +371,62 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   else
   {
     data->m_sampler = RenderState::GetLinearSamplerState();
-    data->m_type = TextureData::Type::Type_Texture2D;
+    data->m_type = TextureAndSamplerData::Type::Type_Texture2D;
   }
 
-  auto ext = PathToString(texture_path->second.extension());
-  Common::ToLower(&ext);
-  if (ext == ".dds")
-  {
-    if (!LoadDDSTexture(&data->m_texture, PathToString(texture_path->second)))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load dds texture!", asset_id);
-      return {};
-    }
+  if (!LoadTextureDataFromFile(asset_id, texture_path->second, data->m_type, &data->m_texture))
+    return {};
+  if (!PurgeInvalidMipsFromTextureData(asset_id, &data->m_texture))
+    return {};
 
-    if (data->m_texture.m_slices.empty()) [[unlikely]]
-      data->m_texture.m_slices.push_back({});
-
-    if (!LoadMips(texture_path->second, &data->m_texture.m_slices[0]))
-      return {};
-
-    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size, GetLastAssetWriteTime(asset_id)};
-  }
-  else if (ext == ".png")
-  {
-    // PNG could support more complicated texture types in the future
-    // but for now just error
-    if (data->m_type != TextureData::Type::Type_Texture2D)
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - PNG is not supported for texture type '{}'!",
-                    asset_id, data->m_type);
-      return {};
-    }
-
-    // If we have no slices, create one
-    if (data->m_texture.m_slices.empty())
-      data->m_texture.m_slices.push_back({});
-
-    auto& slice = data->m_texture.m_slices[0];
-    // If we have no levels, create one to pass into LoadPNGTexture
-    if (slice.m_levels.empty())
-      slice.m_levels.push_back({});
-
-    if (!LoadPNGTexture(&slice.m_levels[0], PathToString(texture_path->second)))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load png texture!", asset_id);
-      return {};
-    }
-
-    if (!LoadMips(texture_path->second, &slice))
-      return {};
-
-    return LoadInfo{GetAssetSize(data->m_texture) + metadata_size, GetLastAssetWriteTime(asset_id)};
-  }
-
-  ERROR_LOG_FMT(VIDEO, "Asset '{}' error - extension '{}' unknown!", asset_id, ext);
-  return {};
+  return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
-                                                     AssetMap asset_path_map)
+                                                     VideoCommon::Assets::AssetMap asset_path_map)
 {
-  std::lock_guard lk(m_lock);
-  m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
-}
-
-bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_path,
-                                            CustomTextureData::ArraySlice* data)
-{
-  if (!data) [[unlikely]]
-    return false;
-
-  std::string path;
-  std::string filename;
-  std::string extension;
-  SplitPath(PathToString(asset_path), &path, &filename, &extension);
-
-  std::string extension_lower = extension;
-  Common::ToLower(&extension_lower);
-
-  // Load additional mip levels
-  for (u32 mip_level = static_cast<u32>(data->m_levels.size());; mip_level++)
+  VideoCommon::Assets::AssetMap previous_asset_map;
   {
-    const auto mip_level_filename = filename + fmt::format("_mip{}", mip_level);
-
-    const auto full_path = path + mip_level_filename + extension;
-    if (!File::Exists(full_path))
-      return true;
-
-    VideoCommon::CustomTextureData::ArraySlice::Level level;
-    if (extension_lower == ".dds")
-    {
-      if (!LoadDDSTexture(&level, full_path, mip_level))
-      {
-        ERROR_LOG_FMT(VIDEO, "Custom mipmap '{}' failed to load", mip_level_filename);
-        return false;
-      }
-    }
-    else if (extension_lower == ".png")
-    {
-      if (!LoadPNGTexture(&level, full_path))
-      {
-        ERROR_LOG_FMT(VIDEO, "Custom mipmap '{}' failed to load", mip_level_filename);
-        return false;
-      }
-    }
-    else
-    {
-      ERROR_LOG_FMT(VIDEO, "Custom mipmap '{}' has unsupported extension", mip_level_filename);
-      return false;
-    }
-
-    data->m_levels.push_back(std::move(level));
+    std::lock_guard lk(m_asset_map_lock);
+    previous_asset_map = m_asset_id_to_asset_map_path[asset_id];
   }
 
-  return true;
+  {
+    std::lock_guard lk(m_path_map_lock);
+    for (const auto& [name, path] : previous_asset_map)
+    {
+      m_path_to_asset_id.erase(PathToString(path));
+    }
+
+    for (const auto& [name, path] : asset_path_map)
+    {
+      m_path_to_asset_id[PathToString(path)] = asset_id;
+    }
+  }
+
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    m_asset_id_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  }
 }
 
-DirectFilesystemAssetLibrary::AssetMap
+void DirectFilesystemAssetLibrary::PathModified(std::string_view path)
+{
+  std::lock_guard lk(m_path_map_lock);
+  if (const auto iter = m_path_to_asset_id.find(path); iter != m_path_to_asset_id.end())
+  {
+    auto& system = Core::System::GetInstance();
+    auto& resource_manager = system.GetCustomResourceManager();
+    resource_manager.MarkAssetDirty(iter->second);
+  }
+}
+
+VideoCommon::Assets::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
-  std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
-      iter != m_assetid_to_asset_map_path.end())
+  std::lock_guard lk(m_asset_map_lock);
+  if (auto iter = m_asset_id_to_asset_map_path.find(asset_id);
+      iter != m_asset_id_to_asset_map_path.end())
   {
     return iter->second;
   }
