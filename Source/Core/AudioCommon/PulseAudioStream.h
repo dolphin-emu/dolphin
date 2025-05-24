@@ -8,7 +8,6 @@
 #endif
 
 #include "AudioCommon/SoundStream.h"
-#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
 
