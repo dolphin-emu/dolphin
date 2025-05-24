@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "DiscIO/Enums.h"
+#include "UICommon/USBUtils.h"
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No Audio Output")
@@ -357,8 +358,8 @@ extern const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS;
 
 extern const Info<bool> MAIN_USB_PASSTHROUGH_DISGUISE_PLAYSTATION_AS_WII;
 extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;
-std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist();
-void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
+std::vector<USBUtils::DeviceInfo> GetUSBDeviceWhitelist();
+void SetUSBDeviceWhitelist(const std::vector<USBUtils::DeviceInfo>& devices);
 
 // Main.EmulatedUSBDevices
 

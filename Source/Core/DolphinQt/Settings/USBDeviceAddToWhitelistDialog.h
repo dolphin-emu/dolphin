@@ -3,7 +3,11 @@
 
 #pragma once
 
+#include <vector>
+
 #include <QDialog>
+
+#include "UICommon/USBUtils.h"
 
 class QTimer;
 class QDialog;
@@ -44,5 +48,5 @@ private:
 
   void OnDeviceSelection();
 
-  std::map<std::pair<quint16, quint16>, std::string> m_shown_devices;
+  std::vector<USBUtils::DeviceInfo> m_shown_devices;
 };
