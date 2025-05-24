@@ -81,7 +81,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fmt", "..\Externals\fmt\fmt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv_cross", "..\Externals\spirv_cross\spirv_cross.vcxproj", "{3D780617-EC8C-4721-B9FD-DFC9BB658C7C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL2", "..\Externals\SDL\SDL2.vcxproj", "{8DC244EE-A0BD-4038-BAF7-CFAFA5EB2BAA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL3", "..\Externals\SDL\SDL3.vcxproj", "{8DC244EE-A0BD-4038-BAF7-CFAFA5EB2BAA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FatFs", "..\Externals\FatFs\FatFs.vcxproj", "{3F17D282-A77D-4931-B844-903AD0809A5E}"
 EndProject
