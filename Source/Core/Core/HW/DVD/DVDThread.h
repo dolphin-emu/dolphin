@@ -6,9 +6,8 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <utility>
-#include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/SPSCQueue.h"
 
@@ -114,19 +113,25 @@ private:
 
     // Only used for logging
     u64 time_started_ticks = 0;
+  };
+
+  struct ReadResult
+  {
+    ReadRequest request;
+    Common::UniqueBuffer<u8> buffer;
+
+    // Only used for logging
     u64 realtime_started_us = 0;
     u64 realtime_done_us = 0;
   };
 
-  void ProcessReadRequest(ReadRequest&& read_request);
-
-  using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
+  void ProcessReadRequest(ReadResult&& async_request);
 
   CoreTiming::EventType* m_finish_read = nullptr;
 
   u64 m_next_id = 0;
 
-  Common::WorkQueueThreadSP<ReadRequest> m_dvd_thread;
+  Common::WorkQueueThreadSP<ReadResult> m_dvd_thread;
 
   Common::WaitableSPSCQueue<ReadResult> m_result_queue;
   std::map<u64, ReadResult> m_result_map;
