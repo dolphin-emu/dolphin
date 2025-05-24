@@ -6,6 +6,7 @@
 #include <QDateTimeEdit>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QScreen>
 
 namespace QtUtils
 {
@@ -33,6 +34,15 @@ QWidget* CreateIconWarning(QWidget* parent, QStyle::StandardPixmap standard_pixm
   layout->addWidget(icon);
   layout->addWidget(label, 1);
   return widget;
+}
+
+void AdjustSizeWithinScreen(QWidget* widget)
+{
+  const auto screen_size = widget->screen()->availableSize();
+
+  const auto adj_screen_size = screen_size * 9 / 10;
+
+  widget->resize(widget->sizeHint().boundedTo(adj_screen_size));
 }
 
 }  // namespace QtUtils

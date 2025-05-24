@@ -156,8 +156,8 @@ void ColorCorrectionConfigWindow::Create()
   layout->addStretch();
   layout->addWidget(m_button_box);
 
-  setLayout(layout);
   WrapInScrollArea(this, layout);
+  adjustSize();
 }
 
 void ColorCorrectionConfigWindow::ConnectWidgets()

@@ -3,17 +3,15 @@
 
 #include "DolphinQt/CheatsManager.h"
 
-#include <functional>
-
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 
-#include "Core/ActionReplay.h"
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-#include "UICommon/GameFile.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "DolphinQt/CheatSearchFactoryWidget.h"
 #include "DolphinQt/CheatSearchWidget.h"
@@ -35,6 +33,8 @@ CheatsManager::CheatsManager(Core::System& system, QWidget* parent)
 
   CreateWidgets();
   ConnectWidgets();
+
+  QtUtils::AdjustSizeWithinScreen(this);
 
   auto& settings = Settings::GetQSettings();
   restoreGeometry(settings.value(QStringLiteral("cheatsmanager/geometry")).toByteArray());
@@ -124,18 +124,19 @@ void CheatsManager::CreateWidgets()
   m_tab_widget = new PartiallyClosableTabWidget;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
-  int tab_index;
+  int tab_index = 0;
 
   m_ar_code = new ARCodeWidget(m_game_id, m_revision, false);
-  tab_index = m_tab_widget->addTab(m_ar_code, tr("AR Code"));
+  tab_index = m_tab_widget->addTab(GetWrappedWidget(m_ar_code), tr("AR Code"));
   m_tab_widget->setTabUnclosable(tab_index);
 
   m_gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision, false);
-  tab_index = m_tab_widget->addTab(m_gecko_code, tr("Gecko Codes"));
+  tab_index = m_tab_widget->addTab(GetWrappedWidget(m_gecko_code), tr("Gecko Codes"));
   m_tab_widget->setTabUnclosable(tab_index);
 
   m_cheat_search_new = new CheatSearchFactoryWidget();
-  tab_index = m_tab_widget->addTab(m_cheat_search_new, tr("Start New Cheat Search"));
+  tab_index =
+      m_tab_widget->addTab(GetWrappedWidget(m_cheat_search_new), tr("Start New Cheat Search"));
   m_tab_widget->setTabUnclosable(tab_index);
 
   auto* layout = new QVBoxLayout;

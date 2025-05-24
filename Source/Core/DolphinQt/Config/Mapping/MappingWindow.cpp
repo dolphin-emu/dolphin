@@ -50,6 +50,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
@@ -96,6 +97,8 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
                   [] { HotkeyManagerEmu::Enable(false); });
 
   MappingCommon::CreateMappingProcessor(this);
+
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
 void MappingWindow::CreateDevicesLayout()
@@ -543,7 +546,7 @@ void MappingWindow::PopulateProfileSelection()
 
 QWidget* MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
-  QWidget* wrapper = GetWrappedWidget(widget, this, 150, 210);
+  auto* const wrapper = GetWrappedWidget(widget);
   m_tab_widget->addTab(wrapper, name);
   return wrapper;
 }

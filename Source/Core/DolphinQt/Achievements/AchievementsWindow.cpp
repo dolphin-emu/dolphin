@@ -56,20 +56,21 @@ void AchievementsWindow::CreateMainLayout()
   m_settings_widget = new AchievementSettingsWidget(m_tab_widget);
   m_progress_widget = new AchievementProgressWidget(m_tab_widget);
   m_leaderboard_widget = new AchievementLeaderboardWidget(m_tab_widget);
-  m_tab_widget->addTab(GetWrappedWidget(m_settings_widget, this, 125, 100), tr("Settings"));
-  m_tab_widget->addTab(GetWrappedWidget(m_progress_widget, this, 125, 100), tr("Progress"));
-  m_tab_widget->setTabVisible(1, is_game_loaded);
-  m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget, this, 125, 100), tr("Leaderboards"));
-  m_tab_widget->setTabVisible(2, is_game_loaded);
+  m_tab_widget->addTab(GetWrappedWidget(m_settings_widget), tr("Settings"));
+  m_tab_widget->addTab(GetWrappedWidget(m_progress_widget), tr("Progress"));
+  m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget), tr("Leaderboards"));
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
-  auto* layout = new QVBoxLayout();
+  auto* const layout = new QVBoxLayout{this};
   layout->addWidget(m_header_widget);
   layout->addWidget(m_tab_widget);
   layout->addWidget(m_button_box);
 
-  WrapInScrollArea(this, layout);
+  adjustSize();
+
+  m_tab_widget->setTabVisible(1, is_game_loaded);
+  m_tab_widget->setTabVisible(2, is_game_loaded);
 }
 
 void AchievementsWindow::ConnectWidgets()

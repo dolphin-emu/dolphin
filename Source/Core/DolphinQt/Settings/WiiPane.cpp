@@ -24,7 +24,6 @@
 #include "Common/Config/Config.h"
 #include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -36,6 +35,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -98,13 +98,11 @@ WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
 
 void WiiPane::CreateLayout()
 {
-  m_main_layout = new QVBoxLayout;
+  m_main_layout = new QVBoxLayout{this};
   CreateMisc();
   CreateSDCard();
   CreateWhitelistedUSBPassthroughDevices();
   CreateWiiRemoteSettings();
-  m_main_layout->addStretch(1);
-  setLayout(m_main_layout);
 }
 
 void WiiPane::ConnectLayout()
@@ -324,7 +322,8 @@ void WiiPane::CreateSDCard()
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
 {
-  m_whitelist_usb_list = new QListWidget();
+  m_whitelist_usb_list = new QtUtils::MinimumSizeHintWidget<QListWidget>;
+
   m_whitelist_usb_add_button = new NonDefaultQPushButton(tr("Add..."));
   m_whitelist_usb_remove_button = new NonDefaultQPushButton(tr("Remove"));
 
