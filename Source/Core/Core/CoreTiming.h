@@ -211,6 +211,7 @@ private:
 
   DT m_max_fallback = {};
   DT m_max_variance = {};
+  bool m_correct_time_drift = false;
   double m_emulation_speed = 1.0;
 
   bool IsSpeedUnlimited() const;
@@ -225,6 +226,8 @@ private:
   std::atomic_bool m_use_precision_timer = false;
   Common::PrecisionTimer m_precision_cpu_timer;
   Common::PrecisionTimer m_precision_gpu_timer;
+
+  int m_on_state_changed_handle;
 };
 
 }  // namespace CoreTiming
