@@ -3,18 +3,21 @@
 
 #include "DolphinQt/GameList/GameListModel.h"
 
+#include <chrono>
+#include <string>
+
 #include <QDir>
 #include <QFileInfo>
 #include <QPixmap>
 #include <QRegularExpression>
 
 #include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 #include "Core/TimePlayed.h"
 
 #include "DiscIO/Enums.h"
 
 #include "DolphinQt/QtUtils/ImageConverter.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -23,7 +26,8 @@
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
-GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
+GameListModel::GameListModel(QObject* parent)
+    : QAbstractTableModel(parent), m_time_played_manager(TimePlayedManager::GetInstance())
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::AddGame);
   connect(&m_tracker, &GameTracker::GameUpdated, this, &GameListModel::UpdateGame);
@@ -34,8 +38,6 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
           &GameTracker::RefreshAll);
   connect(&Settings::Instance(), &Settings::TitleDBReloadRequested,
           [this] { m_title_database = Core::TitleDatabase(); });
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &GameListModel::OnEmulationStateChanged);
 
   for (const QString& dir : Settings::Instance().GetPaths())
     m_tracker.AddDirectory(dir);
@@ -48,6 +50,28 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutAboutToBeChanged();
     emit layoutChanged();
   });
+
+  const auto on_time_played_update = [this](const std::string& game_id,
+                                            const std::chrono::milliseconds) {
+    const auto update_cell = [this, game_id]() {
+      for (int model_row = 0; model_row < m_games.size(); ++model_row)
+      {
+        if (game_id != m_games[model_row]->GetGameID())
+          continue;
+
+        const QModelIndex time_played_index =
+            index(model_row, static_cast<int>(Column::TimePlayed));
+        emit dataChanged(time_played_index, time_played_index);
+
+        // Multiple entries in the GameList can have the same GameID, so don't break out of the
+        // loop when a match is found.
+      }
+    };
+    QueueOnObject(this, update_cell);
+  };
+
+  m_time_played_update_event =
+      TimePlayedManager::UpdateEvent::Register(on_time_played_update, "GameListModel");
 
   auto& settings = Settings::GetQSettings();
 
@@ -195,19 +219,22 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole)
     {
       const std::string game_id = game.GetGameID();
-      const std::chrono::milliseconds total_time = m_timer.GetTimePlayed(game_id);
+      const std::chrono::milliseconds total_time = m_time_played_manager.GetTimePlayed(game_id);
       const auto total_minutes = std::chrono::duration_cast<std::chrono::minutes>(total_time);
       const auto total_hours = std::chrono::duration_cast<std::chrono::hours>(total_time);
+      const auto total_seconds = std::chrono::duration_cast<std::chrono::seconds>(total_time);
 
       // i18n: A time displayed as hours and minutes
-      QString formatted_time =
-          tr("%1h %2m").arg(total_hours.count()).arg(total_minutes.count() % 60);
+      QString formatted_time = tr("%1h %2m %3s")
+                                   .arg(total_hours.count())
+                                   .arg(total_minutes.count() % 60)
+                                   .arg(total_seconds.count() % 60);
       return formatted_time;
     }
     if (role == SORT_ROLE)
     {
       const std::string game_id = game.GetGameID();
-      return static_cast<qlonglong>(m_timer.GetTimePlayed(game_id).count());
+      return static_cast<qlonglong>(m_time_played_manager.GetTimePlayed(game_id).count());
     }
     break;
   case Column::Tags:
@@ -506,12 +533,4 @@ void GameListModel::DeleteTag(const QString& name)
 void GameListModel::PurgeCache()
 {
   m_tracker.PurgeCache();
-}
-
-void GameListModel::OnEmulationStateChanged(Core::State state)
-{
-  if (state == Core::State::Uninitialized)
-  {
-    m_timer.Reload();
-  }
 }
