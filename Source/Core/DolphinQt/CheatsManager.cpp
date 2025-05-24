@@ -12,6 +12,7 @@
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 
 #include "UICommon/GameFile.h"
 
@@ -79,7 +80,8 @@ void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
 
 void CheatsManager::RegisterAfterFrameEventCallback()
 {
-  m_VI_end_field_event = VIEndFieldEvent::Register([this] { OnFrameEnd(); }, "CheatsManager");
+  m_VI_end_field_event = m_system.GetVideoEvents().vi_end_field_event.Register(
+      [this] { OnFrameEnd(); }, "CheatsManager");
 }
 
 void CheatsManager::RemoveAfterFrameEventCallback()
