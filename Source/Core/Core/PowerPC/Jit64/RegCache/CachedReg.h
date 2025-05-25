@@ -16,111 +16,79 @@ using preg_t = size_t;
 class PPCCachedReg
 {
 public:
-  enum class LocationType
-  {
-    /// Value is currently at its default location
-    Default,
-    /// Value is not stored anywhere because we know it won't be read before the next write
-    Discarded,
-    /// Value is currently bound to a x64 register
-    Bound,
-    /// Value is known as an immediate and has not been written back to its default location
-    Immediate,
-    /// Value is known as an immediate and is already present at its default location
-    SpeculativeImmediate,
-  };
-
   PPCCachedReg() = default;
 
-  explicit PPCCachedReg(Gen::OpArg default_location_)
-      : default_location(default_location_), location(default_location_)
+  explicit PPCCachedReg(Gen::OpArg default_location) : m_default_location(default_location) {}
+
+  Gen::OpArg GetDefaultLocation() const { return m_default_location; }
+
+  Gen::X64Reg GetHostRegister() const
   {
+    ASSERT(m_in_host_register);
+    return m_host_register;
   }
 
-  const std::optional<Gen::OpArg>& Location() const { return location; }
+  bool IsInDefaultLocation() const { return m_in_default_location; }
+  bool IsInHostRegister() const { return m_in_host_register; }
 
-  LocationType GetLocationType() const
+  void SetFlushed(bool maintain_host_register)
   {
-    if (!location.has_value())
-      return LocationType::Discarded;
-
-    if (!away)
-    {
-      ASSERT(!revertable);
-
-      if (location->IsImm())
-        return LocationType::SpeculativeImmediate;
-
-      ASSERT(*location == default_location);
-      return LocationType::Default;
-    }
-
-    ASSERT(location->IsImm() || location->IsSimpleReg());
-    return location->IsImm() ? LocationType::Immediate : LocationType::Bound;
+    ASSERT(!m_revertable);
+    if (!maintain_host_register)
+      m_in_host_register = false;
+    m_in_default_location = true;
   }
 
-  bool IsAway() const { return away; }
-  bool IsDiscarded() const { return !location.has_value(); }
-  bool IsBound() const { return GetLocationType() == LocationType::Bound; }
-
-  void SetBoundTo(Gen::X64Reg xreg)
+  void SetInHostRegister(Gen::X64Reg xreg, bool dirty)
   {
-    away = true;
-    location = Gen::R(xreg);
+    if (dirty)
+      m_in_default_location = false;
+    m_in_host_register = true;
+    m_host_register = xreg;
   }
+
+  void SetDirty() { m_in_default_location = false; }
 
   void SetDiscarded()
   {
-    ASSERT(!revertable);
-    away = false;
-    location = std::nullopt;
+    ASSERT(!m_revertable);
+    m_in_default_location = false;
+    m_in_host_register = false;
   }
 
-  void SetFlushed()
-  {
-    ASSERT(!revertable);
-    away = false;
-    location = default_location;
-  }
-
-  void SetToImm32(u32 imm32, bool dirty = true)
-  {
-    away |= dirty;
-    location = Gen::Imm32(imm32);
-  }
-
-  bool IsRevertable() const { return revertable; }
+  bool IsRevertable() const { return m_revertable; }
   void SetRevertable()
   {
-    ASSERT(IsBound());
-    revertable = true;
+    ASSERT(m_in_host_register);
+    m_revertable = true;
   }
   void SetRevert()
   {
-    ASSERT(revertable);
-    revertable = false;
-    SetFlushed();
+    ASSERT(m_revertable);
+    m_revertable = false;
+    SetFlushed(false);
   }
   void SetCommit()
   {
-    ASSERT(revertable);
-    revertable = false;
+    ASSERT(m_revertable);
+    m_revertable = false;
   }
 
-  bool IsLocked() const { return locked > 0; }
-  void Lock() { locked++; }
+  bool IsLocked() const { return m_locked > 0; }
+  void Lock() { m_locked++; }
   void Unlock()
   {
     ASSERT(IsLocked());
-    locked--;
+    m_locked--;
   }
 
 private:
-  Gen::OpArg default_location{};
-  std::optional<Gen::OpArg> location{};
-  bool away = false;  // value not in source register
-  bool revertable = false;
-  size_t locked = 0;
+  Gen::OpArg m_default_location{};
+  Gen::X64Reg m_host_register{};
+  bool m_in_default_location = true;
+  bool m_in_host_register = false;
+  bool m_revertable = false;
+  size_t m_locked = 0;
 };
 
 class X64CachedReg
@@ -128,24 +96,19 @@ class X64CachedReg
 public:
   preg_t Contents() const { return ppcReg; }
 
-  void SetBoundTo(preg_t ppcReg_, bool dirty_)
+  void SetBoundTo(preg_t ppcReg_)
   {
     free = false;
     ppcReg = ppcReg_;
-    dirty = dirty_;
   }
 
   void Unbind()
   {
     ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
     free = true;
-    dirty = false;
   }
 
   bool IsFree() const { return free && !locked; }
-
-  bool IsDirty() const { return dirty; }
-  void MakeDirty() { dirty = true; }
 
   bool IsLocked() const { return locked > 0; }
   void Lock() { locked++; }
@@ -158,7 +121,6 @@ public:
 private:
   preg_t ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
   bool free = true;
-  bool dirty = false;
   size_t locked = 0;
 };
 
