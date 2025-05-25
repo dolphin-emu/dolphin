@@ -498,9 +498,13 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
-  menu->addAction(tr("Add to watch"), this, [this, address] {
-    const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
-    emit RequestWatch(name, address);
+  menu->addAction(tr("Add to watch"), this, [this] {
+    for (auto* const item : m_address_table->selectedItems())
+    {
+      const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+      const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
+      emit RequestWatch(name, address);
+    }
   });
   menu->addAction(tr("Generate Action Replay Code(s)"), this, &CheatSearchWidget::GenerateARCodes);
 
