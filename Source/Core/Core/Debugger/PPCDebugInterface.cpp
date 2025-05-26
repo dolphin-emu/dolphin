@@ -276,7 +276,8 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
   return threads;
 }
 
-std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u32 address) const
+std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u32 address,
+                                           bool for_assemble) const
 {
   if (guard)
   {
@@ -286,7 +287,7 @@ std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u3
     }
 
     const u32 op = PowerPC::MMU::HostRead_Instruction(*guard, address);
-    std::string disasm = Common::GekkoDisassembler::Disassemble(op, address);
+    std::string disasm = Common::GekkoDisassembler::Disassemble(op, address, for_assemble);
     const UGeckoInstruction inst{op};
 
     if (inst.OPCD == 1)

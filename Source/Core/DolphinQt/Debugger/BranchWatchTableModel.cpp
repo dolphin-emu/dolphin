@@ -306,7 +306,7 @@ static QVariant GetValidSymbolStringVariant(const QVariant& symbol_name_v)
 
 static QString GetInstructionMnemonic(u32 hex)
 {
-  const std::string disas = Common::GekkoDisassembler::Disassemble(hex, 0);
+  const std::string disas = Common::GekkoDisassembler::Disassemble(hex, 0, false);
   const std::string::size_type split = disas.find('\t');
   // I wish I could disassemble just the mnemonic!
   if (split == std::string::npos)

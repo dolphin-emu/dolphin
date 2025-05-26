@@ -18,6 +18,7 @@ enum class HighlightFormat
   Immediate,
   GPR,
   FPR,
+  GQR,
   SPR,
   CRField,
   CRFlag,

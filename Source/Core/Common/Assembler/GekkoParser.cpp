@@ -147,6 +147,9 @@ void ParsePpcBuiltin(ParseState* state)
   case TokenType::FPR:
     state->plugin.OnTerminal(Terminal::FPR, tok);
     break;
+  case TokenType::GQR:
+    state->plugin.OnTerminal(Terminal::GQR, tok);
+    break;
   case TokenType::SPR:
     state->plugin.OnTerminal(Terminal::SPR, tok);
     break;
@@ -196,6 +199,7 @@ void ParseBaseexpr(ParseState* state)
   case TokenType::GPR:
   case TokenType::FPR:
   case TokenType::SPR:
+  case TokenType::GQR:
   case TokenType::CRField:
   case TokenType::Lt:
   case TokenType::Gt:
