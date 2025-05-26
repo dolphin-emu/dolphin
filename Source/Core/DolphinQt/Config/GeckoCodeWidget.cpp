@@ -29,6 +29,7 @@
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
@@ -74,7 +75,7 @@ void GeckoCodeWidget::CreateWidgets()
 #ifdef USE_RETRO_ACHIEVEMENTS
   m_hc_warning = new HardcoreWarningWidget(this);
 #endif  // USE_RETRO_ACHIEVEMENTS
-  m_code_list = new QListWidget;
+  m_code_list = new QtUtils::MinimumSizeHintWidget<QListWidget>;
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
 
