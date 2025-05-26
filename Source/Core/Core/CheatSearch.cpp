@@ -506,6 +506,23 @@ bool Cheats::CheatSearchSession<T>::WasFirstSearchDone() const
 }
 
 template <typename T>
+bool Cheats::CheatSearchSession<T>::WriteValue(const Core::CPUThreadGuard& guard,
+                                               std::span<u32> addresses) const
+{
+  if (!m_value)
+    return false;
+
+  T value = m_value.value();
+  bool result = true;
+  for (auto address : addresses)
+  {
+    if (!PowerPC::MMU::HostTryWrite<T>(guard, value, address, m_address_space).has_value())
+      result = false;
+  }
+  return result;
+}
+
+template <typename T>
 std::unique_ptr<Cheats::CheatSearchSessionBase> Cheats::CheatSearchSession<T>::Clone() const
 {
   return std::make_unique<Cheats::CheatSearchSession<T>>(*this);
