@@ -16,11 +16,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="pugixml.cpp" />
+    <ClCompile Include="pugixml\src\pugixml.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pugixml.hpp" />
-    <ClInclude Include="pugiconfig.hpp" />
+    <ClInclude Include="pugixml\src\pugixml.hpp" />
+    <ClInclude Include="pugixml\src\pugiconfig.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
