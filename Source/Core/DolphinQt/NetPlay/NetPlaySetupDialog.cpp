@@ -32,7 +32,6 @@ NetPlaySetupDialog::NetPlaySetupDialog(const GameListModel& game_list_model, QWi
     : QDialog(parent), m_game_list_model(game_list_model)
 {
   setWindowTitle(tr("NetPlay Setup"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateMainLayout();
 

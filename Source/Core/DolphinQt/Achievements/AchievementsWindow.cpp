@@ -27,7 +27,6 @@
 AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Achievements"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateMainLayout();
   ConnectWidgets();

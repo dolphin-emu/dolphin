@@ -17,7 +17,6 @@ ControllerInterfaceWindow::ControllerInterfaceWindow(QWidget* parent) : QDialog(
   CreateMainLayout();
 
   setWindowTitle(tr("Alternate Input Sources"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 void ControllerInterfaceWindow::CreateMainLayout()

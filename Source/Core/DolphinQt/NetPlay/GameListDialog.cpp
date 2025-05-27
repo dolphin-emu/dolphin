@@ -14,7 +14,6 @@
 GameListDialog::GameListDialog(const GameListModel& game_list_model, QWidget* parent)
     : QDialog(parent), m_game_list_model(game_list_model)
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowTitle(tr("Select a game"));
 
   CreateWidgets();

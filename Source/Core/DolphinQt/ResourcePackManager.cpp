@@ -24,7 +24,6 @@ ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
   RepopulateTable();
 
   setWindowTitle(tr("Resource Pack Manager"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   resize(QSize(900, 600));
 }

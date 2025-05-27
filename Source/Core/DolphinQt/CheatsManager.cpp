@@ -26,7 +26,6 @@ CheatsManager::CheatsManager(Core::System& system, QWidget* parent)
     : QDialog(parent), m_system(system)
 {
   setWindowTitle(tr("Cheats Manager"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &CheatsManager::OnStateChanged);

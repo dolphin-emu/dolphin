@@ -268,7 +268,6 @@ IOWindow::IOWindow(MappingWindow* window, ControllerEmu::EmulatedController* con
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &IOWindow::ConfigChanged);
 
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   ConfigChanged();
 
