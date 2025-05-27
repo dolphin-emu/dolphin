@@ -37,10 +37,6 @@ modules:
           project-id: 20540
           stable-only: true
           url-template: https://www.freedesktop.org/software/libevdev/libevdev-$version.tar.xz
-
-  # build the vendored SDL2 from Externals until the runtime gets 2.30.9
-  - SDL2/SDL2.json
-
   - name: dolphin-emu
     buildsystem: cmake-ninja
     builddir: true

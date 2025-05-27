@@ -132,6 +132,7 @@
     <ClInclude Include="Common\IOFile.h" />
     <ClInclude Include="Common\JitRegister.h" />
     <ClInclude Include="Common\JsonUtil.h" />
+    <ClInclude Include="Common\Keyboard.h" />
     <ClInclude Include="Common\Lazy.h" />
     <ClInclude Include="Common\LdrWatcher.h" />
     <ClInclude Include="Common\LinearDiskCache.h" />
@@ -406,6 +407,7 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteDevice.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\HIDKeyboard.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Infinity.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Microphone.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\Skylander.h" />
@@ -830,6 +832,7 @@
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
     <ClCompile Include="Common\JsonUtil.cpp" />
+    <ClCompile Include="Common\Keyboard.cpp" />
     <ClCompile Include="Common\LdrWatcher.cpp" />
     <ClCompile Include="Common\Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="Common\Logging\LogManager.cpp" />
@@ -1076,6 +1079,7 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\HIDKeyboard.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Infinity.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Microphone.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\Skylander.cpp" />
