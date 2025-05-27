@@ -379,7 +379,7 @@ static bool Subtype_RamWriteAndFill(const Core::CPUThreadGuard& guard, const ARA
     const u32 repeat = data >> 8;
     for (u32 i = 0; i <= repeat; ++i)
     {
-      PowerPC::MMU::HostWrite_U8(guard, data & 0xFF, new_addr + i);
+      PowerPC::MMU::HostWrite<u8>(guard, data & 0xFF, new_addr + i);
       LogInfo("Wrote {:08x} to address {:08x}", data & 0xFF, new_addr + i);
     }
     LogInfo("--------");
@@ -393,7 +393,7 @@ static bool Subtype_RamWriteAndFill(const Core::CPUThreadGuard& guard, const ARA
     const u32 repeat = data >> 16;
     for (u32 i = 0; i <= repeat; ++i)
     {
-      PowerPC::MMU::HostWrite_U16(guard, data & 0xFFFF, new_addr + i * 2);
+      PowerPC::MMU::HostWrite<u16>(guard, data & 0xFFFF, new_addr + i * 2);
       LogInfo("Wrote {:08x} to address {:08x}", data & 0xFFFF, new_addr + i * 2);
     }
     LogInfo("--------");
@@ -404,7 +404,7 @@ static bool Subtype_RamWriteAndFill(const Core::CPUThreadGuard& guard, const ARA
   case DATATYPE_32BIT:  // Dword write
     LogInfo("32-bit Write");
     LogInfo("--------");
-    PowerPC::MMU::HostWrite_U32(guard, data, new_addr);
+    PowerPC::MMU::HostWrite<u32>(guard, data, new_addr);
     LogInfo("Wrote {:08x} to address {:08x}", data, new_addr);
     LogInfo("--------");
     break;
@@ -424,7 +424,7 @@ static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAd
                                    const u32 data)
 {
   const u32 new_addr = addr.GCAddress();
-  const u32 ptr = PowerPC::MMU::HostRead_U32(guard, new_addr);
+  const u32 ptr = PowerPC::MMU::HostRead<u32>(guard, new_addr);
 
   LogInfo("Hardware Address: {:08x}", new_addr);
   LogInfo("Size: {:08x}", addr.size);
@@ -440,7 +440,7 @@ static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAd
     LogInfo("Pointer: {:08x}", ptr);
     LogInfo("Byte: {:08x}", thebyte);
     LogInfo("Offset: {:08x}", offset);
-    PowerPC::MMU::HostWrite_U8(guard, thebyte, ptr + offset);
+    PowerPC::MMU::HostWrite<u8>(guard, thebyte, ptr + offset);
     LogInfo("Wrote {:08x} to address {:08x}", thebyte, ptr + offset);
     LogInfo("--------");
     break;
@@ -455,7 +455,7 @@ static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAd
     LogInfo("Pointer: {:08x}", ptr);
     LogInfo("Byte: {:08x}", theshort);
     LogInfo("Offset: {:08x}", offset);
-    PowerPC::MMU::HostWrite_U16(guard, theshort, ptr + offset);
+    PowerPC::MMU::HostWrite<u16>(guard, theshort, ptr + offset);
     LogInfo("Wrote {:08x} to address {:08x}", theshort, ptr + offset);
     LogInfo("--------");
     break;
@@ -465,7 +465,7 @@ static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAd
   case DATATYPE_32BIT:
     LogInfo("Write 32-bit to pointer");
     LogInfo("--------");
-    PowerPC::MMU::HostWrite_U32(guard, data, ptr);
+    PowerPC::MMU::HostWrite<u32>(guard, data, ptr);
     LogInfo("Wrote {:08x} to address {:08x}", data, ptr);
     LogInfo("--------");
     break;
@@ -493,17 +493,19 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
   case DATATYPE_8BIT:
     LogInfo("8-bit Add");
     LogInfo("--------");
-    PowerPC::MMU::HostWrite_U8(guard, PowerPC::MMU::HostRead_U8(guard, new_addr) + data, new_addr);
-    LogInfo("Wrote {:02x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, new_addr), new_addr);
+    PowerPC::MMU::HostWrite<u8>(guard, PowerPC::MMU::HostRead<u8>(guard, new_addr) + data,
+                                new_addr);
+    LogInfo("Wrote {:02x} to address {:08x}", PowerPC::MMU::HostRead<u8>(guard, new_addr),
+            new_addr);
     LogInfo("--------");
     break;
 
   case DATATYPE_16BIT:
     LogInfo("16-bit Add");
     LogInfo("--------");
-    PowerPC::MMU::HostWrite_U16(guard, PowerPC::MMU::HostRead_U16(guard, new_addr) + data,
-                                new_addr);
-    LogInfo("Wrote {:04x} to address {:08x}", PowerPC::MMU::HostRead_U16(guard, new_addr),
+    PowerPC::MMU::HostWrite<u16>(guard, PowerPC::MMU::HostRead<u16>(guard, new_addr) + data,
+                                 new_addr);
+    LogInfo("Wrote {:04x} to address {:08x}", PowerPC::MMU::HostRead<u16>(guard, new_addr),
             new_addr);
     LogInfo("--------");
     break;
@@ -511,9 +513,9 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
   case DATATYPE_32BIT:
     LogInfo("32-bit Add");
     LogInfo("--------");
-    PowerPC::MMU::HostWrite_U32(guard, PowerPC::MMU::HostRead_U32(guard, new_addr) + data,
-                                new_addr);
-    LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U32(guard, new_addr),
+    PowerPC::MMU::HostWrite<u32>(guard, PowerPC::MMU::HostRead<u32>(guard, new_addr) + data,
+                                 new_addr);
+    LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead<u32>(guard, new_addr),
             new_addr);
     LogInfo("--------");
     break;
@@ -523,12 +525,12 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
     LogInfo("32-bit floating Add");
     LogInfo("--------");
 
-    const u32 read = PowerPC::MMU::HostRead_U32(guard, new_addr);
+    const u32 read = PowerPC::MMU::HostRead<u32>(guard, new_addr);
     const float read_float = std::bit_cast<float>(read);
     // data contains an (unsigned?) integer value
     const float fread = read_float + static_cast<float>(data);
     const u32 newval = std::bit_cast<u32>(fread);
-    PowerPC::MMU::HostWrite_U32(guard, newval, new_addr);
+    PowerPC::MMU::HostWrite<u32>(guard, newval, new_addr);
     LogInfo("Old Value {:08x}", read);
     LogInfo("Increment {:08x}", data);
     LogInfo("New value {:08x}", newval);
@@ -586,7 +588,7 @@ static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 v
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      PowerPC::MMU::HostWrite_U8(guard, val & 0xFF, curr_addr);
+      PowerPC::MMU::HostWrite<u8>(guard, val & 0xFF, curr_addr);
       curr_addr += addr_incr;
       val += val_incr;
       LogInfo("Write {:08x} to address {:08x}", val & 0xFF, curr_addr);
@@ -602,7 +604,7 @@ static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 v
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      PowerPC::MMU::HostWrite_U16(guard, val & 0xFFFF, curr_addr);
+      PowerPC::MMU::HostWrite<u16>(guard, val & 0xFFFF, curr_addr);
       LogInfo("Write {:08x} to address {:08x}", val & 0xFFFF, curr_addr);
       curr_addr += addr_incr * 2;
       val += val_incr;
@@ -617,7 +619,7 @@ static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 v
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      PowerPC::MMU::HostWrite_U32(guard, val, curr_addr);
+      PowerPC::MMU::HostWrite<u32>(guard, val, curr_addr);
       LogInfo("Write {:08x} to address {:08x}", val, curr_addr);
       curr_addr += addr_incr * 4;
       val += val_incr;
@@ -658,15 +660,15 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
     {  // Memory Copy With Pointers Support
       LogInfo("Memory Copy With Pointers Support");
       LogInfo("--------");
-      const u32 ptr_dest = PowerPC::MMU::HostRead_U32(guard, addr_dest);
+      const u32 ptr_dest = PowerPC::MMU::HostRead<u32>(guard, addr_dest);
       LogInfo("Resolved Dest Address to: {:08x}", ptr_dest);
-      const u32 ptr_src = PowerPC::MMU::HostRead_U32(guard, addr_src);
+      const u32 ptr_src = PowerPC::MMU::HostRead<u32>(guard, addr_src);
       LogInfo("Resolved Src Address to: {:08x}", ptr_src);
       for (int i = 0; i < num_bytes; ++i)
       {
-        PowerPC::MMU::HostWrite_U8(guard, PowerPC::MMU::HostRead_U8(guard, ptr_src + i),
-                                   ptr_dest + i);
-        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, ptr_src + i),
+        PowerPC::MMU::HostWrite<u8>(guard, PowerPC::MMU::HostRead<u8>(guard, ptr_src + i),
+                                    ptr_dest + i);
+        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead<u8>(guard, ptr_src + i),
                 ptr_dest + i);
       }
       LogInfo("--------");
@@ -677,9 +679,9 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
       LogInfo("--------");
       for (int i = 0; i < num_bytes; ++i)
       {
-        PowerPC::MMU::HostWrite_U8(guard, PowerPC::MMU::HostRead_U8(guard, addr_src + i),
-                                   addr_dest + i);
-        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, addr_src + i),
+        PowerPC::MMU::HostWrite<u8>(guard, PowerPC::MMU::HostRead<u8>(guard, addr_src + i),
+                                    addr_dest + i);
+        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead<u8>(guard, addr_src + i),
                 addr_dest + i);
       }
       LogInfo("--------");
@@ -787,16 +789,17 @@ static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& add
   switch (addr.size)
   {
   case DATATYPE_8BIT:
-    result = CompareValues(PowerPC::MMU::HostRead_U8(guard, new_addr), (data & 0xFF), addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead<u8>(guard, new_addr), (data & 0xFF), addr.type);
     break;
 
   case DATATYPE_16BIT:
-    result = CompareValues(PowerPC::MMU::HostRead_U16(guard, new_addr), (data & 0xFFFF), addr.type);
+    result =
+        CompareValues(PowerPC::MMU::HostRead<u16>(guard, new_addr), (data & 0xFFFF), addr.type);
     break;
 
   case DATATYPE_32BIT_FLOAT:
   case DATATYPE_32BIT:
-    result = CompareValues(PowerPC::MMU::HostRead_U32(guard, new_addr), data, addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead<u32>(guard, new_addr), data, addr.type);
     break;
 
   default:
