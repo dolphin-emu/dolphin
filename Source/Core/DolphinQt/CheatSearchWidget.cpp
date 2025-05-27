@@ -542,11 +542,12 @@ void CheatSearchWidget::GenerateARCodes()
     auto result = Cheats::GenerateActionReplayCode(*m_session, index);
     if (result)
     {
-      emit ActionReplayCodeGenerated(*result);
       had_success = true;
+      emit ActionReplayCodeGenerated(*result);
     }
     else
     {
+      had_error = true;
       const auto new_error_code = result.Error();
       if (!had_error)
       {
@@ -557,8 +558,6 @@ void CheatSearchWidget::GenerateARCodes()
         // If we have a different error code signify multiple errors with an empty optional<>.
         error_code.reset();
       }
-
-      had_error = true;
     }
   }
 
