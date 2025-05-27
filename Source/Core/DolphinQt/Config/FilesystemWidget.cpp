@@ -70,6 +70,7 @@ void FilesystemWidget::CreateWidgets()
   header->setSectionResizeMode(0, QHeaderView::Stretch);
   header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   header->setStretchLastSection(false);
+  header->setDefaultAlignment(Qt::AlignCenter);
 
 // Windows: Set style to (old) windows, which draws branch lines
 #ifdef _WIN32
