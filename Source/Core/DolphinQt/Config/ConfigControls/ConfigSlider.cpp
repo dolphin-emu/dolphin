@@ -80,6 +80,36 @@ void ConfigSlider::OnConfigChanged()
   }
 }
 
+ConfigSliderU32::ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting,
+                                 u32 scale)
+    : ConfigSliderU32(minimum, maximum, setting, nullptr, scale)
+{
+}
+
+ConfigSliderU32::ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting,
+                                 Config::Layer* layer, u32 scale)
+    : ConfigControl(Qt::Horizontal, setting.GetLocation(), layer), m_setting(setting),
+      m_scale(scale)
+
+{
+  setMinimum(minimum);
+  setMaximum(maximum);
+  setValue(ReadValue(setting));
+  OnConfigChanged();
+
+  connect(this, &ConfigSliderU32::valueChanged, this, &ConfigSliderU32::Update);
+}
+
+void ConfigSliderU32::Update(u32 value)
+{
+  SaveValue(m_setting, value * m_scale);
+}
+
+void ConfigSliderU32::OnConfigChanged()
+{
+  setValue(ReadValue(m_setting) / m_scale);
+}
+
 ConfigSliderLabel::ConfigSliderLabel(const QString& text, ConfigSlider* slider)
     : QLabel(text), m_slider(QPointer<ConfigSlider>(slider))
 {
