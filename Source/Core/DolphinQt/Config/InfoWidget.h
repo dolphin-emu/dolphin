@@ -8,6 +8,8 @@
 
 #include <QWidget>
 
+#include "Common/HookableEvent.h"
+
 #include "UICommon/GameFile.h"
 
 namespace DiscIO
@@ -19,6 +21,7 @@ class QComboBox;
 class QGroupBox;
 class QLineEdit;
 class QPixmap;
+class QSpinBox;
 class QTextEdit;
 
 class InfoWidget final : public QWidget
@@ -35,6 +38,7 @@ private:
   QGroupBox* CreateFileDetails();
   QGroupBox* CreateGameDetails();
   QGroupBox* CreateBannerDetails();
+  QGroupBox* CreateTimePlayedDetails();
   QLineEdit* CreateValueDisplay(const QString& value);
   QLineEdit* CreateValueDisplay(const std::string& value = "");
   void CreateLanguageSelector();
@@ -46,4 +50,8 @@ private:
   QLineEdit* m_name = {};
   QLineEdit* m_maker = {};
   QTextEdit* m_description = {};
+  QSpinBox* m_hours_played = {};
+  QSpinBox* m_minutes_played = {};
+
+  Common::EventHook m_time_played_update_event;
 };
