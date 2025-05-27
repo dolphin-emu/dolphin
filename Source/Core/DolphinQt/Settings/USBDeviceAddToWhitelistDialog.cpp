@@ -16,6 +16,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <fmt/format.h>
+
 #include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -101,27 +103,34 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   // i18n: PID means Product ID (in the context of a USB device), not Process ID
   device_pid_textbox->setPlaceholderText(tr("Device PID (e.g., 0305)"));
 }
-
 void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
 {
-  const auto& current_devices = USBUtils::GetInsertedDevices();
+#ifdef __LIBUSB__
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+
+  const auto& current_devices =
+      USBUtils::ListDevices([&whitelist](const libusb_device_descriptor& desc) {
+        return std::ranges::find(whitelist, USBUtils::DeviceInfo{desc.idVendor, desc.idProduct}) ==
+               whitelist.end();
+      });
+
   if (current_devices == m_shown_devices)
     return;
   const auto selection_string = usb_inserted_devices_list->currentItem();
   usb_inserted_devices_list->clear();
-  auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : current_devices)
   {
-    if (whitelist.contains({device.first.first, device.first.second}))
-      continue;
-    usb_inserted_devices_list->addItem(QString::fromStdString(device.second));
+    const std::string name = device.name ? *device.name : tr("Unknown Device").toStdString();
+    QString device_text =
+        QString::fromStdString(fmt::format("{:04x}:{:04x} - {}", device.vid, device.pid, name));
+    usb_inserted_devices_list->addItem(device_text);
   }
 
   usb_inserted_devices_list->setCurrentItem(selection_string);
 
   m_shown_devices = current_devices;
+#endif
 }
-
 void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 {
   const std::string vid_string(StripWhitespace(device_vid_textbox->text().toStdString()));
@@ -143,15 +152,16 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 
   const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
+  USBUtils::DeviceInfo new_device{vid, pid};
 
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  auto it = whitelist.emplace(vid, pid);
-  if (!it.second)
+  if (std::ranges::find(whitelist, new_device) != whitelist.end())
   {
     ModalMessageBox::critical(this, tr("USB Whitelist Error"),
                               tr("This USB device is already whitelisted."));
     return;
   }
+  whitelist.push_back(new_device);
   Config::SetUSBDeviceWhitelist(whitelist);
   Config::Save();
   accept();
