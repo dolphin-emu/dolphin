@@ -137,6 +137,8 @@ else()
 endif()
 
 if(APPLE)
+  enable_language(OBJC)
+  enable_language(OBJCXX)
   option(MACOS_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
   option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
   # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
@@ -602,7 +604,7 @@ if(UNIX)
 endif()
 
 if(ENABLE_SDL)
-  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.30.9)
+  dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
 endif()
 
 if(ENABLE_ANALYTICS)
