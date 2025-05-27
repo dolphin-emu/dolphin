@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <bit>
-#include <cmath>
 
 #include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
+#include "Common/CircularQueue.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 
@@ -61,7 +60,6 @@ private:
   class MixerFifo final
   {
     static constexpr std::size_t MAX_GRANULE_QUEUE_SIZE = 256;
-    static constexpr std::size_t GRANULE_QUEUE_MASK = MAX_GRANULE_QUEUE_SIZE - 1;
 
     struct StereoPair final
     {
@@ -123,9 +121,8 @@ private:
     Granule m_front, m_back;
 
     std::atomic<std::size_t> m_granule_queue_size{20};
-    std::array<Granule, MAX_GRANULE_QUEUE_SIZE> m_queue;
-    std::atomic<std::size_t> m_queue_head{0};
-    std::atomic<std::size_t> m_queue_tail{0};
+    Common::SPSCCircularArray<Granule, MAX_GRANULE_QUEUE_SIZE> m_queue;
+
     std::atomic<bool> m_queue_looping{false};
     float m_fade_volume = 1.0;
 
