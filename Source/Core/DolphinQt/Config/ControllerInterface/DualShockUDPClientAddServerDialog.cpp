@@ -29,7 +29,6 @@ DualShockUDPClientAddServerDialog::DualShockUDPClientAddServerDialog(QWidget* pa
 void DualShockUDPClientAddServerDialog::CreateWidgets()
 {
   setWindowTitle(tr("Add New DSU Server"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   m_main_layout = new QGridLayout;
 

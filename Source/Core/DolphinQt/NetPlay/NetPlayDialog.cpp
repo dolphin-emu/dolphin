@@ -97,8 +97,6 @@ NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
     : QDialog(parent), m_game_list_model(game_list_model),
       m_start_game_callback(std::move(start_game_callback))
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
   setWindowTitle(tr("NetPlay"));
   setWindowIcon(Resources::GetAppIcon());
 

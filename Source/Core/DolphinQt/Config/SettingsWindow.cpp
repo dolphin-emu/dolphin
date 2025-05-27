@@ -25,7 +25,6 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
   // Set Window Properties
   setWindowTitle(tr("Settings"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   // Main Layout
   QVBoxLayout* layout = new QVBoxLayout;

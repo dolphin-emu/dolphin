@@ -17,7 +17,6 @@
 
 PadMappingDialog::PadMappingDialog(QWidget* parent) : QDialog(parent)
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowTitle(tr("Assign Controllers"));
 
   CreateWidgets();

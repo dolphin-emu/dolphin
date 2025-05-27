@@ -45,7 +45,6 @@ ControllerEmu::InputOverrideFunction InputOverrider::GetInputOverrideFunction() 
 
 TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
   QGridLayout* settings_layout = new QGridLayout;
