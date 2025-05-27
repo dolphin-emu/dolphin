@@ -192,6 +192,7 @@ extern const Info<bool> MAIN_RENDER_WINDOW_AUTOSIZE;
 extern const Info<bool> MAIN_KEEP_WINDOW_ON_TOP;
 extern const Info<bool> MAIN_DISABLE_SCREENSAVER;
 extern const Info<bool> MAIN_TIME_TRACKING;
+extern const Info<bool> MAIN_SYNC_REFRESH_RATE;
 
 // Main.General
 
