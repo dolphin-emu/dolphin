@@ -82,7 +82,6 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
@@ -527,9 +526,6 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   // Wiimote input config is loaded in OnESTitleChanged
 
   FreeLook::LoadInputConfig();
-
-  system.GetCustomAssetLoader().Init();
-  Common::ScopeGuard asset_loader_guard([&system] { system.GetCustomAssetLoader().Shutdown(); });
 
   system.GetMovie().Init(*boot);
   Common::ScopeGuard movie_guard([&system] { system.GetMovie().Shutdown(); });
