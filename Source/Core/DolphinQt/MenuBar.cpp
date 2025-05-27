@@ -1644,7 +1644,7 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 
         for (; len < MODULE_NAME_MAX_LENGTH; ++len)
         {
-          const auto res = PowerPC::MMU::HostRead_U8(guard, *found_addr - (len + 1));
+          const auto res = PowerPC::MMU::HostRead<u8>(guard, *found_addr - (len + 1));
           if (!std::isprint(res))
           {
             break;
@@ -1988,7 +1988,7 @@ void MenuBar::SearchInstruction()
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal();
        addr += 4)
   {
-    if (op_std == PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr), addr))
+    if (op_std == PPCTables::GetInstructionName(PowerPC::MMU::HostRead<u32>(guard, addr), addr))
     {
       NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op_std, addr);
       found = true;

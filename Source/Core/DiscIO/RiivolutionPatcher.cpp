@@ -510,7 +510,7 @@ static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
 {
   for (u32 i = 0; i < value.size(); ++i)
   {
-    auto result = PowerPC::MMU::HostTryReadU8(guard, offset + i);
+    auto result = PowerPC::MMU::HostTryRead<u8>(guard, offset + i);
     if (!result || result->value != value[i])
       return false;
   }
@@ -532,7 +532,7 @@ static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
   auto& system = guard.GetSystem();
   const u32 size = static_cast<u32>(value.size());
   for (u32 i = 0; i < size; ++i)
-    PowerPC::MMU::HostTryWriteU8(guard, value[i], offset + i);
+    PowerPC::MMU::HostTryWrite<u8>(guard, value[i], offset + i);
   const u32 overlapping_hook_count = HLE::UnpatchRange(system, offset, offset + size);
   if (overlapping_hook_count != 0)
   {
@@ -596,13 +596,13 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
       {
         // from the pattern find the next blr instruction
         const u32 blr_address = ram_start + i;
-        auto blr = PowerPC::MMU::HostTryReadU32(guard, blr_address);
+        auto blr = PowerPC::MMU::HostTryRead<u32>(guard, blr_address);
         if (blr && blr->value == 0x4e800020)
         {
           // and replace it with a jump to the given offset
           const u32 target = memory_patch.m_offset | 0x80000000;
           const u32 jmp = ((target - blr_address) & 0x03fffffc) | 0x48000000;
-          PowerPC::MMU::HostTryWriteU32(guard, jmp, blr_address);
+          PowerPC::MMU::HostTryWrite<u32>(guard, jmp, blr_address);
           const u32 overlapping_hook_count =
               HLE::UnpatchRange(system, blr_address, blr_address + 4);
           if (overlapping_hook_count != 0)

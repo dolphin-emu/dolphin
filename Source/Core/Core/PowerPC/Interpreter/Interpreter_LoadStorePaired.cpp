@@ -69,24 +69,9 @@ SType ScaleAndClamp(double ps, u32 st_scale)
 }
 
 template <typename T>
-static T ReadUnpaired(PowerPC::MMU& mmu, u32 addr);
-
-template <>
-u8 ReadUnpaired<u8>(PowerPC::MMU& mmu, u32 addr)
+static T ReadUnpaired(PowerPC::MMU& mmu, u32 addr)
 {
-  return mmu.Read_U8(addr);
-}
-
-template <>
-u16 ReadUnpaired<u16>(PowerPC::MMU& mmu, u32 addr)
-{
-  return mmu.Read_U16(addr);
-}
-
-template <>
-u32 ReadUnpaired<u32>(PowerPC::MMU& mmu, u32 addr)
-{
-  return mmu.Read_U32(addr);
+  return mmu.Read<T>(addr);
 }
 
 template <typename T>
@@ -95,43 +80,28 @@ static std::pair<T, T> ReadPair(PowerPC::MMU& mmu, u32 addr);
 template <>
 std::pair<u8, u8> ReadPair<u8>(PowerPC::MMU& mmu, u32 addr)
 {
-  const u16 val = mmu.Read_U16(addr);
+  const u16 val = mmu.Read<u16>(addr);
   return {u8(val >> 8), u8(val)};
 }
 
 template <>
 std::pair<u16, u16> ReadPair<u16>(PowerPC::MMU& mmu, u32 addr)
 {
-  const u32 val = mmu.Read_U32(addr);
+  const u32 val = mmu.Read<u32>(addr);
   return {u16(val >> 16), u16(val)};
 }
 
 template <>
 std::pair<u32, u32> ReadPair<u32>(PowerPC::MMU& mmu, u32 addr)
 {
-  const u64 val = mmu.Read_U64(addr);
+  const u64 val = mmu.Read<u64>(addr);
   return {u32(val >> 32), u32(val)};
 }
 
 template <typename T>
-static void WriteUnpaired(PowerPC::MMU& mmu, T val, u32 addr);
-
-template <>
-void WriteUnpaired<u8>(PowerPC::MMU& mmu, u8 val, u32 addr)
+static void WriteUnpaired(PowerPC::MMU& mmu, T val, u32 addr)
 {
-  mmu.Write_U8(val, addr);
-}
-
-template <>
-void WriteUnpaired<u16>(PowerPC::MMU& mmu, u16 val, u32 addr)
-{
-  mmu.Write_U16(val, addr);
-}
-
-template <>
-void WriteUnpaired<u32>(PowerPC::MMU& mmu, u32 val, u32 addr)
-{
-  mmu.Write_U32(val, addr);
+  mmu.Write<T>(val, addr);
 }
 
 template <typename T>
@@ -140,19 +110,19 @@ static void WritePair(PowerPC::MMU& mmu, T val1, T val2, u32 addr);
 template <>
 void WritePair<u8>(PowerPC::MMU& mmu, u8 val1, u8 val2, u32 addr)
 {
-  mmu.Write_U16((u16{val1} << 8) | u16{val2}, addr);
+  mmu.Write<u16>((u16{val1} << 8) | u16{val2}, addr);
 }
 
 template <>
 void WritePair<u16>(PowerPC::MMU& mmu, u16 val1, u16 val2, u32 addr)
 {
-  mmu.Write_U32((u32{val1} << 16) | u32{val2}, addr);
+  mmu.Write<u32>((u32{val1} << 16) | u32{val2}, addr);
 }
 
 template <>
 void WritePair<u32>(PowerPC::MMU& mmu, u32 val1, u32 val2, u32 addr)
 {
-  mmu.Write_U64((u64{val1} << 32) | u64{val2}, addr);
+  mmu.Write<u64>((u64{val1} << 32) | u64{val2}, addr);
 }
 
 template <typename T>

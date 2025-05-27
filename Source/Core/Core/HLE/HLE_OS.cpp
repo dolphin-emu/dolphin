@@ -62,8 +62,9 @@ static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterTy
 
   // Is gpr3 pointing to a pointer (including nullptr) rather than an ASCII string
   if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3]) &&
-      (PowerPC::MMU::HostIsRAMAddress(guard, PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3])) ||
-       PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3]) == 0))
+      (PowerPC::MMU::HostIsRAMAddress(guard,
+                                      PowerPC::MMU::HostRead<u32>(guard, ppc_state.gpr[3])) ||
+       PowerPC::MMU::HostRead<u32>(guard, ppc_state.gpr[3]) == 0))
   {
     if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[4]))
     {
@@ -117,7 +118,7 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
   std::string report_message = GetStringVA(system, guard, 4);
   if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[5]))
   {
-    const u32 size = system.GetMMU().Read_U32(ppc_state.gpr[5]);
+    const u32 size = system.GetMMU().Read<u32>(ppc_state.gpr[5]);
     if (size > report_message.size())
       WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses an invalid size of {:#010x}", size);
     else if (size == 0)
@@ -178,12 +179,12 @@ static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType param
       PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3] + 0xF))
   {
     // The fd is stored as a short at FILE+0xE.
-    fd = static_cast<short>(PowerPC::MMU::HostRead_U16(guard, ppc_state.gpr[3] + 0xE));
+    fd = static_cast<short>(PowerPC::MMU::HostRead<u16>(guard, ppc_state.gpr[3] + 0xE));
   }
   if (fd != 1 && fd != 2)
   {
     // On RVL SDK it seems stored at FILE+0x2.
-    fd = static_cast<short>(PowerPC::MMU::HostRead_U16(guard, ppc_state.gpr[3] + 0x2));
+    fd = static_cast<short>(PowerPC::MMU::HostRead<u16>(guard, ppc_state.gpr[3] + 0x2));
   }
   if (fd != 1 && fd != 2)
     return;
