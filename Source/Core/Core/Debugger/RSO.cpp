@@ -17,31 +17,32 @@
 void RSOHeaderView::Load(const Core::CPUThreadGuard& guard, u32 address)
 {
   m_address = address;
-  m_header.entry.next_entry = PowerPC::MMU::HostRead_U32(guard, address);
-  m_header.entry.prev_entry = PowerPC::MMU::HostRead_U32(guard, address + 0x04);
-  m_header.entry.section_count = PowerPC::MMU::HostRead_U32(guard, address + 0x08);
-  m_header.entry.section_table_offset = PowerPC::MMU::HostRead_U32(guard, address + 0xC);
-  m_header.entry.name_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x10);
-  m_header.entry.name_size = PowerPC::MMU::HostRead_U32(guard, address + 0x14);
-  m_header.entry.version = PowerPC::MMU::HostRead_U32(guard, address + 0x18);
-  m_header.entry.bss_size = PowerPC::MMU::HostRead_U32(guard, address + 0x1C);
-  m_header.section_info.prolog_section_index = PowerPC::MMU::HostRead_U8(guard, address + 0x20);
-  m_header.section_info.epilog_section_index = PowerPC::MMU::HostRead_U8(guard, address + 0x21);
-  m_header.section_info.unresolved_section_index = PowerPC::MMU::HostRead_U8(guard, address + 0x22);
-  m_header.section_info.bss_section_index = PowerPC::MMU::HostRead_U8(guard, address + 0x23);
-  m_header.section_info.prolog_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x24);
-  m_header.section_info.epilog_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x28);
-  m_header.section_info.unresolved_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x2C);
-  m_header.relocation_tables.internals_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x30);
-  m_header.relocation_tables.internals_size = PowerPC::MMU::HostRead_U32(guard, address + 0x34);
-  m_header.relocation_tables.externals_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x38);
-  m_header.relocation_tables.externals_size = PowerPC::MMU::HostRead_U32(guard, address + 0x3C);
-  m_header.symbol_tables.exports_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x40);
-  m_header.symbol_tables.exports_size = PowerPC::MMU::HostRead_U32(guard, address + 0x44);
-  m_header.symbol_tables.exports_name_table = PowerPC::MMU::HostRead_U32(guard, address + 0x48);
-  m_header.symbol_tables.imports_offset = PowerPC::MMU::HostRead_U32(guard, address + 0x4C);
-  m_header.symbol_tables.imports_size = PowerPC::MMU::HostRead_U32(guard, address + 0x50);
-  m_header.symbol_tables.imports_name_table = PowerPC::MMU::HostRead_U32(guard, address + 0x54);
+  m_header.entry.next_entry = PowerPC::MMU::HostRead<u32>(guard, address);
+  m_header.entry.prev_entry = PowerPC::MMU::HostRead<u32>(guard, address + 0x04);
+  m_header.entry.section_count = PowerPC::MMU::HostRead<u32>(guard, address + 0x08);
+  m_header.entry.section_table_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0xC);
+  m_header.entry.name_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x10);
+  m_header.entry.name_size = PowerPC::MMU::HostRead<u32>(guard, address + 0x14);
+  m_header.entry.version = PowerPC::MMU::HostRead<u32>(guard, address + 0x18);
+  m_header.entry.bss_size = PowerPC::MMU::HostRead<u32>(guard, address + 0x1C);
+  m_header.section_info.prolog_section_index = PowerPC::MMU::HostRead<u8>(guard, address + 0x20);
+  m_header.section_info.epilog_section_index = PowerPC::MMU::HostRead<u8>(guard, address + 0x21);
+  m_header.section_info.unresolved_section_index =
+      PowerPC::MMU::HostRead<u8>(guard, address + 0x22);
+  m_header.section_info.bss_section_index = PowerPC::MMU::HostRead<u8>(guard, address + 0x23);
+  m_header.section_info.prolog_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x24);
+  m_header.section_info.epilog_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x28);
+  m_header.section_info.unresolved_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x2C);
+  m_header.relocation_tables.internals_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x30);
+  m_header.relocation_tables.internals_size = PowerPC::MMU::HostRead<u32>(guard, address + 0x34);
+  m_header.relocation_tables.externals_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x38);
+  m_header.relocation_tables.externals_size = PowerPC::MMU::HostRead<u32>(guard, address + 0x3C);
+  m_header.symbol_tables.exports_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x40);
+  m_header.symbol_tables.exports_size = PowerPC::MMU::HostRead<u32>(guard, address + 0x44);
+  m_header.symbol_tables.exports_name_table = PowerPC::MMU::HostRead<u32>(guard, address + 0x48);
+  m_header.symbol_tables.imports_offset = PowerPC::MMU::HostRead<u32>(guard, address + 0x4C);
+  m_header.symbol_tables.imports_size = PowerPC::MMU::HostRead<u32>(guard, address + 0x50);
+  m_header.symbol_tables.imports_name_table = PowerPC::MMU::HostRead<u32>(guard, address + 0x54);
 
   // Prevent an invalid name going wild
   if (m_header.entry.name_size < 0x100)
@@ -181,8 +182,8 @@ void RSOSectionsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::
   for (std::size_t i = 0; i < count; ++i)
   {
     RSOSection section;
-    section.offset = PowerPC::MMU::HostRead_U32(guard, address);
-    section.size = PowerPC::MMU::HostRead_U32(guard, address + 4);
+    section.offset = PowerPC::MMU::HostRead<u32>(guard, address);
+    section.size = PowerPC::MMU::HostRead<u32>(guard, address + 4);
     m_sections.emplace_back(std::move(section));
     address += sizeof(RSOSection);
   }
@@ -209,9 +210,9 @@ void RSOImportsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::s
   for (std::size_t i = 0; i < count; ++i)
   {
     RSOImport rso_import;
-    rso_import.name_offset = PowerPC::MMU::HostRead_U32(guard, address);
-    rso_import.code_offset = PowerPC::MMU::HostRead_U32(guard, address + 4);
-    rso_import.entry_offset = PowerPC::MMU::HostRead_U32(guard, address + 8);
+    rso_import.name_offset = PowerPC::MMU::HostRead<u32>(guard, address);
+    rso_import.code_offset = PowerPC::MMU::HostRead<u32>(guard, address + 4);
+    rso_import.entry_offset = PowerPC::MMU::HostRead<u32>(guard, address + 8);
     m_imports.emplace_back(std::move(rso_import));
     address += sizeof(RSOImport);
   }
@@ -238,10 +239,10 @@ void RSOExportsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::s
   for (std::size_t i = 0; i < count; ++i)
   {
     RSOExport rso_export;
-    rso_export.name_offset = PowerPC::MMU::HostRead_U32(guard, address);
-    rso_export.code_offset = PowerPC::MMU::HostRead_U32(guard, address + 4);
-    rso_export.section_index = PowerPC::MMU::HostRead_U32(guard, address + 8);
-    rso_export.hash = PowerPC::MMU::HostRead_U32(guard, address + 12);
+    rso_export.name_offset = PowerPC::MMU::HostRead<u32>(guard, address);
+    rso_export.code_offset = PowerPC::MMU::HostRead<u32>(guard, address + 4);
+    rso_export.section_index = PowerPC::MMU::HostRead<u32>(guard, address + 8);
+    rso_export.hash = PowerPC::MMU::HostRead<u32>(guard, address + 12);
     m_exports.emplace_back(std::move(rso_export));
     address += sizeof(RSOExport);
   }
@@ -268,9 +269,9 @@ void RSOInternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, std:
   for (std::size_t i = 0; i < count; ++i)
   {
     RSOInternalsEntry entry;
-    entry.r_offset = PowerPC::MMU::HostRead_U32(guard, address);
-    entry.r_info = PowerPC::MMU::HostRead_U32(guard, address + 4);
-    entry.r_addend = PowerPC::MMU::HostRead_U32(guard, address + 8);
+    entry.r_offset = PowerPC::MMU::HostRead<u32>(guard, address);
+    entry.r_info = PowerPC::MMU::HostRead<u32>(guard, address + 4);
+    entry.r_addend = PowerPC::MMU::HostRead<u32>(guard, address + 8);
     m_entries.emplace_back(std::move(entry));
     address += sizeof(RSOInternalsEntry);
   }
@@ -297,9 +298,9 @@ void RSOExternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, std:
   for (std::size_t i = 0; i < count; ++i)
   {
     RSOExternalsEntry entry;
-    entry.r_offset = PowerPC::MMU::HostRead_U32(guard, address);
-    entry.r_info = PowerPC::MMU::HostRead_U32(guard, address + 4);
-    entry.r_addend = PowerPC::MMU::HostRead_U32(guard, address + 8);
+    entry.r_offset = PowerPC::MMU::HostRead<u32>(guard, address);
+    entry.r_info = PowerPC::MMU::HostRead<u32>(guard, address + 4);
+    entry.r_addend = PowerPC::MMU::HostRead<u32>(guard, address + 8);
     m_entries.emplace_back(std::move(entry));
     address += sizeof(RSOExternalsEntry);
   }
