@@ -91,10 +91,9 @@ enum class ConsoleType : u32
   ReservedTDEVSystem = 0x20000007,
 };
 
-// This is an RAII alternative to using PauseAndLock. If constructed from the host thread, the CPU
-// thread is paused, and the current thread temporarily becomes the CPU thread. If constructed from
-// the CPU thread, nothing special happens. This should only be constructed on the CPU thread or the
-// host thread.
+// This is an RAII alternative to using PauseAndLock. If constructed from any thread other than the
+// CPU thread, the CPU thread is paused, and the current thread temporarily becomes the CPU thread.
+// If constructed from the CPU thread, nothing special happens.
 //
 // Some functions use a parameter of this type to indicate that the function should only be called
 // from the CPU thread. If the parameter is a pointer, the function has a fallback for being called
@@ -118,6 +117,8 @@ private:
   bool m_was_unpaused = false;
 };
 
+// These three are normally called from the Host thread. However, they can be called from any thread
+// that isn't launched by the emulator core.
 bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
 void Stop(Core::System& system);
 void Shutdown(Core::System& system);
@@ -126,8 +127,6 @@ void DeclareAsCPUThread();
 void UndeclareAsCPUThread();
 void DeclareAsGPUThread();
 void UndeclareAsGPUThread();
-void DeclareAsHostThread();
-void UndeclareAsHostThread();
 
 std::string StopMessage(bool main_thread, std::string_view message);
 
@@ -140,11 +139,11 @@ bool IsUninitialized(Core::System& system);
 
 bool IsCPUThread();  // this tells us whether we are the CPU thread.
 bool IsGPUThread();
-bool IsHostThread();
 
 bool WantsDeterminism();
 
-// [NOT THREADSAFE] For use by Host only
+// SetState can't be called by the CPU thread, but can be called by any thread that isn't launched
+// by the emulator core.
 void SetState(Core::System& system, State state, bool report_state_change = true,
               bool initial_execution_state = false);
 State GetState(Core::System& system);
@@ -159,7 +158,6 @@ void FrameUpdateOnCPUThread();
 void OnFrameEnd(Core::System& system);
 
 // Run a function on the CPU thread, asynchronously.
-// This is only valid to call from the host thread, since it uses PauseAndLock() internally.
 void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
                     bool wait_for_completion);
 
@@ -171,7 +169,6 @@ int AddOnStateChangedCallback(StateChangedCallbackFunc callback);
 bool RemoveOnStateChangedCallback(int* handle);
 void NotifyStateChanged(Core::State state);
 
-// Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(Core::System& system, bool initial = false);
 
 // Queue an arbitrary function to asynchronously run once on the Host thread later.
