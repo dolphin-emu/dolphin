@@ -427,6 +427,8 @@ add_library(core
   IOS/USB/Bluetooth/WiimoteHIDAttr.h
   IOS/USB/Common.cpp
   IOS/USB/Common.h
+  IOS/USB/Emulated/HIDKeyboard.cpp
+  IOS/USB/Emulated/HIDKeyboard.h
   IOS/USB/Emulated/Infinity.cpp
   IOS/USB/Emulated/Infinity.h
   IOS/USB/Emulated/Microphone.cpp
