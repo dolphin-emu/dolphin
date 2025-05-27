@@ -22,8 +22,8 @@ set_target_properties(MacUpdater PROPERTIES
 target_compile_options(MacUpdater PRIVATE -x objective-c++)
 
 # Copy icon into the bundle
-target_sources(MacUpdater PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
-set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+target_sources(MacUpdater PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Data/Dolphin.icns")
+set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/../../../Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
 target_link_libraries(MacUpdater PRIVATE
     "-framework Cocoa"
@@ -71,7 +71,7 @@ endif()
 if(MACOS_CODE_SIGNING)
   add_custom_command(TARGET MacUpdater
     POST_BUILD
-    COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../../../Tools/mac-codesign.sh"
     "${MACOS_CODE_SIGNING_IDENTITY}"
     "$<TARGET_BUNDLE_DIR:MacUpdater>"
   )

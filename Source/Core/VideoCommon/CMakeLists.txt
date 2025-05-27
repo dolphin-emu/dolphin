@@ -263,11 +263,11 @@ endif()
 # Silence warnings on glslang by flagging it as a system include
 target_include_directories(videocommon
 SYSTEM PUBLIC
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Externals/glslang/glslang/Public
 SYSTEM PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
-  ${CMAKE_SOURCE_DIR}/Externals/glslang
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Externals/glslang/StandAlone
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Externals/glslang/SPIRV
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Externals/glslang
 )
 
 if(MSVC)
