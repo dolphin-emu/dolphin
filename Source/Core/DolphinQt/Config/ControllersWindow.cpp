@@ -14,7 +14,6 @@
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Controller Settings"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   m_gamecube_controllers = new GamecubeControllersWidget(this);
   m_wiimote_controllers = new WiimoteControllersWidget(this);

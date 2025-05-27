@@ -30,7 +30,6 @@ bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
 NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("NKit Warning"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
   QVBoxLayout* main_layout = new QVBoxLayout;

@@ -98,7 +98,6 @@ GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
   resize(650, 500);
 
   setWindowTitle(tr("GameCube Memory Card Manager"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GCMemcardManager::~GCMemcardManager() = default;
