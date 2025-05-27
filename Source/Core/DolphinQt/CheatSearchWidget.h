@@ -77,6 +77,7 @@ private:
                        UpdateSource source);
   void RecreateGUITable();
   void GenerateARCodes();
+  void WriteValue();
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
 
