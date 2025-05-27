@@ -230,20 +230,20 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
         {
         case PatchType::Patch8Bit:
           if (!entry.conditional ||
-              PowerPC::MMU::HostRead_U8(guard, addr) == static_cast<u8>(comparand))
+              PowerPC::MMU::HostRead<u8>(guard, addr) == static_cast<u8>(comparand))
           {
             ApplyMemoryPatch<u8>(guard, static_cast<u8>(value), addr);
           }
           break;
         case PatchType::Patch16Bit:
           if (!entry.conditional ||
-              PowerPC::MMU::HostRead_U16(guard, addr) == static_cast<u16>(comparand))
+              PowerPC::MMU::HostRead<u16>(guard, addr) == static_cast<u16>(comparand))
           {
             ApplyMemoryPatch<u16>(guard, static_cast<u16>(value), addr);
           }
           break;
         case PatchType::Patch32Bit:
-          if (!entry.conditional || PowerPC::MMU::HostRead_U32(guard, addr) == comparand)
+          if (!entry.conditional || PowerPC::MMU::HostRead<u32>(guard, addr) == comparand)
             ApplyMemoryPatch<u32>(guard, value, addr);
           break;
         default:
@@ -280,7 +280,7 @@ static bool IsStackValid(const Core::CPUThreadGuard& guard)
     return false;
 
   // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
-  const u32 next_SP = PowerPC::MMU::HostRead_U32(guard, SP);
+  const u32 next_SP = PowerPC::MMU::HostRead<u32>(guard, SP);
   if (next_SP <= SP || !PowerPC::MMU::HostIsRAMAddress(guard, next_SP) ||
       !PowerPC::MMU::HostIsRAMAddress(guard, next_SP + 4))
   {
@@ -288,7 +288,7 @@ static bool IsStackValid(const Core::CPUThreadGuard& guard)
   }
 
   // Check the link register makes sense (that it points to a valid IBAT address)
-  const u32 address = PowerPC::MMU::HostRead_U32(guard, next_SP + 4);
+  const u32 address = PowerPC::MMU::HostRead<u32>(guard, next_SP + 4);
   return PowerPC::MMU::HostIsInstructionRAMAddress(guard, address) &&
          0 != PowerPC::MMU::HostRead_Instruction(guard, address);
 }
