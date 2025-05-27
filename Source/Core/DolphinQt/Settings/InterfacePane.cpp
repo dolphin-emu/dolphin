@@ -9,7 +9,9 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QRadioButton>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -28,13 +30,18 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
+
+#include <imgui.h>
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {
@@ -150,6 +157,37 @@ void InterfacePane::CreateUI()
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
+
+  // ImGui Font
+  auto* imgui_layout = new QHBoxLayout;
+
+  m_imgui_font_edit =
+      new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_IMGUI_FONT_PATH)), this);
+  connect(m_imgui_font_edit, &QLineEdit::editingFinished, [this] {
+    Config::SetBase(Config::MAIN_IMGUI_FONT_PATH, m_imgui_font_edit->text().toStdString());
+  });
+
+  QPushButton* imgui_font_browse = new NonDefaultQPushButton(QStringLiteral("..."));
+  connect(imgui_font_browse, &QPushButton::clicked, this, &InterfacePane::ImguiFontBrowse);
+
+  imgui_layout->addWidget(m_imgui_font_edit);
+  imgui_layout->addWidget(imgui_font_browse);
+  imgui_layout->setContentsMargins(0, 0, 0, 0);
+  combobox_layout->addRow(tr("Imgui Font Path:"), imgui_layout);
+
+  // ImGui Font Size
+  auto* imgui_size_layout = new QHBoxLayout();
+
+  m_imgui_size = new ConfigSlider(12, 40, Config::MAIN_IMGUI_FONT_SIZE);
+  auto* imgui_size_number = new QLabel(QString::number(m_imgui_size->value()));
+  connect(m_imgui_size, &QSlider::valueChanged, this, [this, imgui_size_number](int value) {
+    imgui_size_number->setText(QString::number(value));
+  });
+
+  imgui_size_layout->addWidget(m_imgui_size);
+  imgui_size_layout->addWidget(imgui_size_number);
+  imgui_size_layout->setContentsMargins(0, 0, 0, 0);
+  combobox_layout->addRow(tr("Imgui Font Size:"), imgui_size_layout);
 
   // TODO: Support forcing light/dark on other OSes too.
 #ifdef _WIN32
@@ -313,6 +351,23 @@ void InterfacePane::OnUserStyleChanged()
   if (!is_builtin_type)
     Settings::Instance().SetUserStyleName(selected_style.toString());
   Settings::Instance().ApplyStyle();
+}
+
+void InterfacePane::ImguiFontBrowse()
+{
+  QString path = QString::fromStdString(Config::Get(Config::MAIN_IMGUI_FONT_PATH));
+  if (path.isEmpty())
+    path = QStandardPaths::standardLocations(QStandardPaths::FontsLocation)[0];
+
+  QString file = QDir::toNativeSeparators(
+      DolphinFileDialog::getOpenFileName(this, tr("Select ttf Font"), path, QStringLiteral("*.ttf"),
+                                         nullptr, QFileDialog::DontUseNativeDialog));
+
+  if (!file.isEmpty())
+  {
+    Config::SetBaseOrCurrent(Config::MAIN_IMGUI_FONT_PATH, file.toStdString());
+    m_imgui_font_edit->setText(file);
+  }
 }
 
 void InterfacePane::OnLanguageChanged()

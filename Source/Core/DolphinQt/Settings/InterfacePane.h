@@ -6,9 +6,11 @@
 #include <QWidget>
 
 class ConfigBool;
+class ConfigSlider;
 class ConfigRadioInt;
 class ConfigStringChoice;
 class QLabel;
+class QLineEdit;
 class QVBoxLayout;
 class ToolTipCheckBox;
 class ToolTipComboBox;
@@ -33,6 +35,7 @@ private:
   void UpdateShowDebuggingCheckbox();
   void LoadUserStyle();
   void OnUserStyleChanged();
+  void ImguiFontBrowse();
   void OnLanguageChanged();
 
   void OnEmulationStateChanged(Core::State state);
@@ -43,6 +46,8 @@ private:
   ConfigStringChoice* m_combobox_theme;
   ToolTipComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
+  QLineEdit* m_imgui_font_edit;
+  ConfigSlider* m_imgui_size;
   ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
   ToolTipCheckBox* m_checkbox_show_debugging_ui;
