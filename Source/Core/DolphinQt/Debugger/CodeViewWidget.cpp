@@ -40,7 +40,6 @@
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/FromStdString.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -743,7 +742,6 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
             .arg(QString::fromStdString(fmt::format("{:#x}", fmt::join(mem_out, ", "))));
 
     msgbox.setInformativeText(msgtext);
-    SetQWidgetWindowDecorations(&msgbox);
     msgbox.exec();
 
   } while (msgbox.clickedButton() == (QAbstractButton*)run_button);
@@ -1031,7 +1029,6 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
   if (assemble)
   {
     AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
-    SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() == QDialog::Accepted)
     {
       debug_interface.SetPatch(guard, addr, dialog.GetCode());
@@ -1041,7 +1038,6 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
   else
   {
     PatchInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
-    SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() == QDialog::Accepted)
     {
       debug_interface.SetPatch(guard, addr, dialog.GetCode());

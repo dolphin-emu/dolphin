@@ -50,7 +50,6 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
@@ -269,7 +268,6 @@ void MappingWindow::OnDeleteProfilePressed()
     error.setIcon(QMessageBox::Critical);
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(profile_name));
-    SetQWidgetWindowDecorations(&error);
     error.exec();
     return;
   }
@@ -282,7 +280,6 @@ void MappingWindow::OnDeleteProfilePressed()
   confirm.setInformativeText(tr("This cannot be undone!"));
   confirm.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
 
-  SetQWidgetWindowDecorations(&confirm);
   if (confirm.exec() != QMessageBox::Yes)
   {
     return;
@@ -310,7 +307,6 @@ void MappingWindow::OnLoadProfilePressed()
     error.setIcon(QMessageBox::Critical);
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(m_profiles_combo->currentText()));
-    SetQWidgetWindowDecorations(&error);
     error.exec();
     return;
   }

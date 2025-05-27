@@ -27,7 +27,6 @@
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoBackendBase.h"
@@ -199,7 +198,6 @@ void GeneralWidget::BackendWarning()
       confirm_sw.setWindowTitle(tr("Confirm backend change"));
       confirm_sw.setText(tr(warningMessage->c_str()));
 
-      SetQWidgetWindowDecorations(&confirm_sw);
       if (confirm_sw.exec() != QMessageBox::Yes)
       {
         m_backend_combo->setCurrentIndex(m_previous_backend);
