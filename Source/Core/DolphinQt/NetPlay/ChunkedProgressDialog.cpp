@@ -45,7 +45,6 @@ ChunkedProgressDialog::ChunkedProgressDialog(QWidget* parent) : QDialog(parent)
   CreateWidgets();
   ConnectWidgets();
   setWindowTitle(tr("Data Transfer"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 void ChunkedProgressDialog::CreateWidgets()
