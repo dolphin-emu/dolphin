@@ -23,8 +23,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="minizip-ng\compat\ioapi.c" />
-    <ClCompile Include="minizip-ng\compat\unzip.c" />
     <ClCompile Include="minizip-ng\mz_crypt.c" />
     <ClCompile Include="minizip-ng\mz_os.c" />
     <ClCompile Include="minizip-ng\mz_os_win32.c" />
@@ -39,8 +37,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="minizip-ng\mz.h" />
-    <ClCompile Include="minizip-ng\compat\ioapi.h" />
-    <ClCompile Include="minizip-ng\compat\unzip.h" />
     <ClInclude Include="minizip-ng\mz_crypt.h" />
     <ClInclude Include="minizip-ng\mz_os.h" />
     <ClInclude Include="minizip-ng\mz_strm.h" />
