@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Title of the app -->
+    <string name="app_name">Dolphin 模拟器</string>
+    <string name="host">app</string>
+    <string name="scheme">dolphinemu</string>
+
+    <string name="none">无</string>
+
+    <string name="controller_0">GameCube 控制器 1</string>
+    <string name="controller_1">GameCube 控制器 2</string>
+    <string name="controller_2">GameCube 控制器 3</string>
+    <string name="controller_3">GameCube 控制器 4</string>
+
+    <string name="wiimote_0">Wii 遥控器 1</string>
+    <string name="wiimote_1">Wii 遥控器 2</string>
+    <string name="wiimote_2">Wii 遥控器 3</string>
+    <string name="wiimote_3">Wii 遥控器 4</string>
+
+    <string name="wiimote_extension_0">Wii 遥控器扩展 1</string>
+    <string name="wiimote_extension_1">Wii 遥控器扩展 2</string>
+    <string name="wiimote_extension_2">Wii 遥控器扩展 3</string>
+    <string name="wiimote_extension_3">Wii 遥控器扩展 4</string>
+
+    <string name="real_balance_board">真实平衡板</string>
+
+    <string name="wiimote">Wii 遥控器</string>
+    <string name="wiimote_general">按钮</string>
+    <string name="wiimote_motion_simulation">动作模拟</string>
+    <string name="wiimote_motion_input">动作输入</string>
+    <string name="wiimote_extensions">扩展</string>
+
+    <string name="input_device">设备</string>
+    <string name="input_device_all_devices">为其他设备创建映射</string>
+    <string name="input_device_all_devices_description">检测所有设备的输入，而不仅仅是选定的设备。</string>
+    <string name="input_profile">配置文件</string>
+    <string name="input_profiles_empty">您尚未创建任何配置文件。</string>
+    <string name="input_profiles">配置文件</string>
+    <string name="input_profile_new">(新配置文件)</string>
+    <string name="input_profile_load">加载</string>
+    <string name="input_profile_save">保存</string>
+    <string name="input_profile_delete">删除</string>
+    <string name="input_profile_confirm_load">您是否要放弃当前控制器设置并加载配置文件"%1$s"？</string>
+    <string name="input_profile_confirm_save">您是否要覆盖配置文件"%1$s"？</string>
+    <string name="input_profile_confirm_delete">您是否要删除配置文件"%1$s"？</string>
+    <string name="input_reset_to_default">默认</string>
+    <string name="input_reset_to_default_description">将此控制器的设置重置为默认值。</string>
+    <string name="input_clear">清除</string>
+    <string name="input_clear_description">清除此控制器的设置。</string>
+    <string name="input_reset_warning">您确定吗？您当前的控制器设置将被删除。</string>
+    <string name="keyboard_controller_warning">您正在配置"键盘控制器"。此设备专门用于"梦幻之星Online第一章与第二章"。如果您不确定，请返回并配置"标准控制器"。</string>
+    <string name="old_controller_settings">您的控制器设置来自旧版本的Dolphin，在此版本中将无法工作。按"默认"以使用新设置重新开始。</string>
+
+    <!-- Main Preference Fragment -->
+    <string name="settings">设置</string>
+    <string name="game_settings">游戏设置: %1$s</string>
+    <string name="config">配置</string>
+    <string name="graphics_settings">图形设置</string>
+    <string name="gcpad_settings">GameCube 输入</string>
+    <string name="wiimote_settings">Wii 输入</string>
+    <string name="settings_saved">已保存设置到INI文件</string>
+    <string name="settings_saved_game_specific">已保存 %1$s 的设置</string>
+    
+    <!-- General Preference Fragment -->
+    <string name="general_submenu">通用</string>
+    <string name="dual_core">双核心 (加速)</string>
+    <string name="dual_core_description">将工作负载分配到两个CPU核心而不是一个。提高速度。</string>
+    <string name="enable_cheats">启用作弊码</string>
+    <string name="speed_limit">速度限制 (0% = 无限制)</string>
+    <string name="overclock_warning">警告：更改此默认值(100%)将导致游戏崩溃和故障。请不要报告在非默认时钟下出现的错误。</string>
+    
+    <!-- Graphics Settings -->
+    <string name="video_backend">视频后端</string>
+    <string name="shader_compilation_mode">着色器编译模式</string>
+    <string name="compile_shaders_before_starting">启动前编译着色器</string>
+    <string name="compile_shaders_before_starting_description">这会在启动游戏时造成延迟，但会减少早期的卡顿。</string>
+    <string name="aspect_ratio">宽高比</string>
+    <string name="auto">自动</string>
+    
+    <!-- Enhancements -->
+    <string name="enhancements">增强</string>
+    <string name="anisotropic_filtering">各向异性过滤</string>
+    <string name="anisotropic_filtering_description">增强斜视角下纹理的视觉质量。可能在少数游戏中造成问题。</string>
+    <string name="texture_filtering">纹理过滤</string>
+    <string name="texture_filtering_description">覆盖游戏选择的纹理缩放过滤器。除"默认"外的任何选项都会改变游戏纹理的外观，并可能在少数游戏中造成问题。</string>
+    <string name="color_correction">色彩校正</string>
+    <string name="post_processing_effect">后处理效果</string>
+    <string name="off">关闭</string>
+    <string name="scaled_efb_copy">缩放EFB拷贝</string>
+    <string name="scaled_efb_copy_description">大大提高使用渲染到纹理效果生成的纹理质量。提高内部分辨率将改善此设置的效果。稍微降低性能，可能会导致问题（但不太可能）。</string>
+    <string name="per_pixel_lighting">逐像素光照</string>
+    <string name="per_pixel_lighting_description">逐像素计算3D图形的光照，而不是逐顶点。降低模拟速度（取决于您的GPU）。这通常是一个安全的增强功能，但有时可能会导致问题。</string>
+    <string name="force_24bit_color">强制24位色</string>
+    <string name="force_24bit_color_description">强制游戏以24位渲染RGB颜色通道，从而通过减少色带来提高质量。对性能没有影响，并且在大多数游戏中不会导致任何问题。</string>
+    
+    <!-- Interface Preference Fragment -->
+    <string name="interface_submenu">界面</string>
+    <string name="emulation_screen_orientation">模拟时屏幕方向</string>
+    <string name="expand_to_cutout_area">扩展到刘海区域</string>
+    <string name="expand_to_cutout_area_description">将显示区域扩展到包括刘海区域。</string>
+    <string name="panic_handlers">使用异常处理</string>
+    <string name="panic_handlers_description">当可能发生严重错误时显示消息框。禁用此功能可能会避免烦人的非致命消息，但可能会导致重大崩溃没有任何解释。</string>
+    <string name="osd_messages">显示屏幕消息</string>
+    <string name="osd_messages_description">在模拟屏幕区域上显示消息。这些消息包括记忆卡写入、视频后端和CPU信息以及JIT缓存清除。</string>
+    <string name="time_tracking">启用游戏时间追踪</string>
+    <string name="time_tracking_description">跟踪您玩游戏的时间并在游戏详情中显示。</string>
+    <string name="download_game_covers">从GameTDB.com下载游戏封面</string>
+    <string name="show_titles_in_game_list">显示标题</string>
+    <string name="change_theme">更改应用主题</string>
+    <string name="change_theme_mode">更改主题模式</string>
+    <string name="use_black_backgrounds">使用黑色背景</string>
+    <string name="use_black_backgrounds_description">使用深色主题时，应用黑色背景。</string>
+    
+    <!-- Audio Settings -->
+    <string name="audio_submenu">音频</string>
+    <string name="dsp_emulation_engine">DSP模拟引擎</string>
+    <string name="audio_buffer_size">音频缓冲大小</string>
+    <string name="audio_buffer_size_description">控制缓冲的音频样本数量。较低的值会减少延迟，但可能会导致更多的爆音或卡顿。如果不确定，请设置为80毫秒。</string>
+    <string name="audio_fill_gaps">填充音频间隙</string>
+    <string name="audio_fill_gaps_description">在延迟峰值期间重复现有音频以防止卡顿。如果不确定，请保持勾选。</string>
+    <string name="audio_volume">音频音量</string>
+    
+    <!-- Paths Settings -->
+    <string name="paths_submenu">路径</string>
+    <string name="search_subfolders">在子文件夹中搜索游戏文件</string>
+    <string name="default_ISO">默认ISO</string>
+    <string name="wii_NAND_root">Wii NAND根目录</string>
+    <string name="dump_path">转储路径</string>
+    <string name="load_path">加载路径</string>
+    
+    <!-- Log Settings -->
+    <string name="log">日志</string>
+    <string name="debug">调试</string>
+    
+    <!-- Wii Settings -->
+    <string name="wii">Wii</string>
+    <string name="wii_widescreen">宽屏</string>
+    <string name="wii_widescreen_description">在支持的游戏中将宽高比从4:3更改为16:9。</string>
+    <string name="wii_misc_settings">杂项设置</string>
+    <string name="wii_sd_card_settings">SD卡设置</string>
+    <string name="wii_wiimote_settings">Wii遥控器设置</string>
+    <string name="wii_pal60">使用PAL60模式 (EuRGB60)</string>
+    <string name="wii_pal60_description">在支持的PAL游戏中将刷新率从50 Hz更改为60 Hz。</string>
+    <string name="wii_screensaver">启用屏幕保护</string>
+    <string name="wii_screensaver_description">五分钟不活动后调暗屏幕。</string>
+    <string name="wii_enable_wiilink">通过WiiLink启用WiiConnect24</string>
+    <string name="wii_enable_wiilink_description">为WiiConnect24频道启用WiiLink服务。请阅读服务条款：https://www.wiilink24.com/tos</string>
+    <string name="sound_mode">声音</string>
+    <string name="insert_sd_card">插入SD卡</string>
+    <string name="insert_sd_card_description">支持SD和SDHC。默认大小为128 MB。</string>
+    <string name="wii_sd_card_allow_writes">允许写入SD卡</string>
+    <string name="wii_sd_card_sync">自动与文件夹同步</string>
+    <string name="wii_sd_card_sync_description">开始和结束模拟时，将SD卡与SD同步文件夹同步。</string>
+    <string name="wii_sd_card_path">SD卡路径</string>
+    <string name="wii_sd_sync_folder">SD同步文件夹</string>
+    <string name="wii_sd_card_folder_to_file">立即打包SD卡</string>
+    <string name="wii_sd_card_file_to_folder">立即解包SD卡</string>
+    <string name="wii_converting">正在转换…</string>
+    <string name="wii_convert_success">转换完成。</string>
+    <string name="wii_convert_failure">转换失败。</string>
+    <string name="wiimote_rumble">Wii遥控器震动</string>
+    <string name="wiimote_volume">Wii遥控器扬声器音量</string>
+    <string name="sensor_bar_sensitivity">感应条灵敏度</string>
+    <string name="sensor_bar_position">感应条位置</string>
+    <string name="wiimote_scanning">Wii遥控器持续扫描</string>
+    <string name="wiimote_scanning_description">如果您使用DolphinBar支持真实Wii遥控器，请保持此选项开启。</string>
+    <string name="wiimote_speaker">Wii遥控器扬声器</string>
+    <string name="wiimote_speaker_description">通过真实Wii遥控器上的扬声器启用声音输出（需要DolphinBar）。</string>
+    
+    <!-- Region Settings -->
+    <string name="override_region_settings">允许区域设置不匹配</string>
+    <string name="auto_disc_change">自动更换光盘</string>
+    <string name="fallback_region">备用区域</string>
+    <string name="enable_save_states">启用即时存档</string>
+    <string name="enable_save_states_description">警告：即时存档可能与未来版本的Dolphin不兼容，并且在某些情况下可能会导致无法创建正常存档。切勿将即时存档作为保存进度的唯一方式。</string>
+    <string name="analytics">启用使用统计报告</string>
+    <string name="analytics_desc">如果授权，Dolphin可以收集有关其性能、功能使用和配置的数据，以及有关您的系统硬件和操作系统的数据。\n\n绝不会收集私人数据。这些数据帮助我们了解人们和模拟游戏如何使用Dolphin，并优先考虑我们的工作。它还帮助我们识别导致错误、性能和稳定性问题的罕见配置。可以随时通过Dolphin的设置撤销此授权。</string>
+    <string name="analytics_new_id">生成新的统计身份</string>
+    <string name="analytics_new_id_confirmation">您确定要生成新的统计身份吗？</string>
+    
+    <!-- System Languages -->
+    <string name="language_japanese">日语</string>
+    <string name="language_english">英语</string>
+    <string name="language_german">德语</string>
+    <string name="language_french">法语</string>
+    <string name="language_spanish">西班牙语</string>
+    <string name="language_italian">意大利语</string>
+    <string name="language_dutch">荷兰语</string>
+    <string name="language_simplified_chinese">简体中文</string>
+    <string name="language_traditional_chinese">繁体中文</string>
+    <string name="language_korean">韩语</string>
+    
+    <!-- Device Settings -->
+    <string name="device_settings">设备设置</string>
+    <string name="slot_a_device">GameCube插槽A设备</string>
+    <string name="slot_b_device">GameCube插槽B设备</string>
+    <string name="serial_port_1_device">GameCube串行端口1设备</string>
+    
+    <!-- Top/Bottom -->
+    <string name="top">顶部</string>
+    <string name="bottom">底部</string>
+    
+    <!-- Misc -->
+    <string name="nothing">无</string>
+    <string name="gci_folder">GCI文件夹</string>
+    <string name="stereo">立体声</string>
+    <string name="mono">单声道</string>
+    <string name="surround">环绕声</string>
+    <string name="pal">PAL</string>
+    <string name="ntsc_j">NTSC-J</string>
+    <string name="ntsc_u">NTSC-U</string>
+    <string name="pack_sd_card_now">立即打包SD卡</string>
+    <string name="unpack_sd_card_now">立即解包SD卡</string>
+
+    <!-- GameCube Settings -->
+    <string name="gamecube">GameCube</string>
+    <string name="gamecube_submenu">GameCube</string>
+    <string name="ipl_settings">IPL设置</string>
+    <string name="skip_main_menu">跳过主菜单</string>
+    <string name="system_language">系统语言</string>
+
+    <!-- Advanced Settings -->
+    <string name="advanced_submenu">高级</string>
+    <string name="cpu_options">CPU 选项</string>
+    <string name="cpu_core">CPU 核心</string>
+    <string name="enable_mmu">启用 MMU</string>
+    <string name="enable_mmu_description">启用内存管理单元。某些游戏需要此功能，但可能降低性能。</string>
+    <string name="pause_on_panic">出现异常时暂停</string>
+    <string name="pause_on_panic_description">如果发生读/写或未知指令异常，则暂停模拟。性能影响与启用 MMU 相同。</string>
+    <string name="enable_write_back_cache">启用回写缓存 (慢)</string>
+    <string name="enable_write_back_cache_description">启用 CPU 回写缓存模拟。启用会对性能产生重大影响。除非绝对需要，否则应禁用此选项。</string>
+    <string name="clock_override">时钟覆盖</string>
+    <string name="override_emulated_cpu_clock_speed">覆盖模拟 CPU 时钟速度</string>
+    <string name="override_emulated_cpu_clock_speed_description">在帧率不稳定的游戏中，较高的值可以提高性能，但需要强大的设备。较低的值会降低模拟主机性能，但提高模拟速度。</string>
+    <string name="emulated_cpu_clock_speed">模拟 CPU 时钟速度</string>
+    <string name="emulated_cpu_clock_speed_description">调整模拟 CPU 的时钟速率（如果启用"覆盖模拟 CPU 时钟速度"）。</string>
+    
+    <string name="override_vbi_frequency">覆盖 VBI 频率</string>
+    <string name="override_vbi_frequency_description">使游戏以不同的帧率运行，降低时可减轻模拟负担，提高时可增强流畅度。这可能会影响游戏速度，因为游戏速度通常与帧率相关联。</string>
+    <string name="vbi_frequency">VBI 频率</string>
+    <string name="vbi_frequency_description">调整 VBI 频率（如果启用"覆盖 VBI 频率"）。同时调整模拟 CPU 的时钟速度，以保持相对一致。</string>
+    
+    <string name="memory_override">内存覆盖</string>
+    <string name="enable_emulated_memory_size_override">启用模拟内存大小覆盖</string>
+    <string name="enable_emulated_memory_size_override_description">调整模拟主机中的 RAM 数量。</string>
+    <string name="mem1_size">MEM1 大小</string>
+    <string name="mem2_size">MEM2 大小</string>
+    <string name="memory_override_warning">警告：启用此功能将导致许多游戏完全崩溃。只有少数游戏可以从中受益。</string>
+    
+    <string name="gpu_options">GPU 选项</string>
+    <string name="synchronize_gpu_thread">同步 GPU 线程</string>
+    <string name="synchronize_gpu_thread_description">同步 GPU 线程可以减少双核心启用时游戏崩溃或不稳定的风险，但也会降低双核心带来的性能提升。如果不确定，选择"空闲跳过时"。选择"从不"是有风险的，不推荐！</string>
+    
+    <string name="custom_rtc_options">自定义 RTC 选项</string>
+    <string name="enable_custom_rtc">启用自定义 RTC</string>
+    <string name="enable_custom_rtc_description">此设置允许您设置独立于当前系统时间的自定义实时时钟 (RTC)。</string>
+    <string name="set_custom_rtc">设置自定义 RTC</string>
+    
+    <string name="misc_settings">杂项设置</string>
+    <string name="emulate_disc_speed">模拟光盘速度</string>
+    <string name="emulate_disc_speed_description">启用模拟光盘速度。禁用此功能可能会导致某些游戏崩溃和其他问题。</string>
+    
+    <!-- Synchronize GPU Thread Options -->
+    <string name="sync_gpu_never">从不</string>
+    <string name="sync_gpu_idle">空闲跳过时</string>
+    <string name="sync_gpu_always">始终</string>
+    
+    <!-- Emulated USB Devices -->
+    <string name="emulated_usb_devices">模拟 USB 设备</string>
+    <string name="emulate_skylander_portal">模拟 Skylanders 传送门</string>
+    <string name="skylanders_manager">Skylanders 管理器</string>
+    <string name="create_skylander_title">创建 Skylander</string>
+    <string name="skylander_label">Skylander</string>
+    <string name="skylander_slot">插槽 %1$d</string>
+    <string name="skylander_id">ID</string>
+    <string name="skylander_variant">变种</string>
+    <string name="invalid_skylander">无效的 Skylander 选择</string>
+    
+    <string name="emulate_infinity_base">模拟 Infinity 底座</string>
+    <string name="infinity_manager">Infinity 管理器</string>
+    <string name="load_figure">加载</string>
+    <string name="remove_figure">移除</string>
+    <string name="create_figure">创建</string>
+    <string name="create_figure_title">创建角色</string>
+    <string name="infinity_label">Infinity 角色</string>
+    <string name="infinity_number">角色编号</string>
+    <string name="invalid_infinity_figure">无效的角色选择</string>
+    <string name="infinity_hexagon_label">能量盘/游戏套装</string>
+    <string name="infinity_power_hex_two_label">能量盘二</string>
+    <string name="infinity_power_hex_three_label">能量盘三</string>
+    <string name="infinity_p1_label">玩家一</string>
+    <string name="infinity_p2_label">玩家二</string>
+    <string name="infinity_p1a1_label">P1 能力一</string>
+    <string name="infinity_p2a1_label">P2 能力一</string>
+    <string name="infinity_p1a2_label">P1 能力二</string>
+    <string name="infinity_p2a2_label">P2 能力二</string>
+    <string name="incompatible_figure_selected">选择了不兼容的角色</string>
+    <string name="select_compatible_figure">请选择一个兼容的角色文件</string>
+    
+    <string name="emulate_wii_speak">模拟 Wii Speak</string>
+    <string name="mute_wii_speak">静音 Wii Speak</string>
+    <string name="wii_speak_permission_warning">缺少麦克风权限</string>
+    <string name="wii_speak_permission_warning_description">Wii Speak 模拟需要麦克风权限。您可能需要重新启动游戏才能使权限生效。</string>
+    
+    <!-- Double Tap Buttons -->
+    <string name="double_tap_a">A 按钮</string>
+    <string name="double_tap_b">B 按钮</string>
+    <string name="double_tap_2">2 按钮</string>
+    <string name="double_tap_classic_a">传统 A</string>
+    
+    <!-- IR Modes -->
+    <string name="ir_disabled">禁用</string>
+    <string name="ir_follow">跟随</string>
+    <string name="ir_drag">拖动</string>
+    
+    <!-- Motion Control Options -->
+    <string name="motion_device_with_pointer">使用设备传感器（带指针模拟）</string>
+    <string name="motion_device_without_pointer">使用设备传感器（不带指针模拟）</string>
+    <string name="motion_no_device">不使用设备传感器</string>
+    
+    <!-- Compression Options -->
+    <string name="compression_none">无压缩</string>
+    <string name="compression_purge">清除</string>
+    <string name="compression_deflate">Deflate</string>
+    <string name="compression_bzip2">bzip2（慢）</string>
+    <string name="compression_lzma">LZMA（慢）</string>
+    <string name="compression_lzma2">LZMA2（慢）</string>
+    <string name="compression_zstandard">Zstandard（推荐）</string>
+    
+    <!-- Block sizes -->
+    <string name="block_size_32_kib">32 KiB</string>
+    <string name="block_size_64_kib">64 KiB</string>
+    <string name="block_size_128_kib">128 KiB</string>
+    <string name="block_size_256_kib">256 KiB</string>
+    <string name="block_size_512_kib">512 KiB</string>
+    <string name="block_size_1_mib">1 MiB</string>
+    <string name="block_size_2_mib">2 MiB</string>
+    
+    <!-- Custom GPU drivers -->
+    <string name="gpu_driver_dialog_title">选择 Dolphin 的 GPU 驱动</string>
+    <string name="gpu_driver_dialog_system">默认</string>
+    <string name="gpu_driver_dialog_install">安装驱动</string>
+    <string name="gpu_driver_dialog_uninstall_done">成功切换到系统驱动</string>
+    <string name="gpu_driver_submenu">GPU 驱动</string>
+    <string name="gpu_driver_install_inprogress">正在安装 GPU 驱动…</string>
+    <string name="gpu_driver_install_success">GPU 驱动安装成功</string>
+    <string name="gpu_driver_install_invalid_archive">无法解压提供的驱动包</string>
+    <string name="gpu_driver_install_missing_metadata">提供的驱动包由于缺少元数据而无效。</string>
+    <string name="gpu_driver_install_invalid_metadata">提供的驱动包包含无效的元数据，可能已损坏。</string>
+    <string name="gpu_driver_install_unsupported_android_version">您的设备不满足提供的驱动的最低 Android 版本要求。</string>
+    <string name="gpu_driver_install_already_installed">提供的驱动包已经安装。</string>
+    <string name="gpu_driver_install_file_not_found">找不到或无法访问所选文件。</string>
+    
+    <!-- Input Binding -->
+    <string name="input_binding">输入绑定</string>
+    <string name="input_binding_description">按下或移动输入设备以绑定到 %1$s。</string>
+    <string name="input_binding_no_device">您需要先选择一个设备。</string>
+    <string name="input_binding_disconnected_device">所选设备已断开连接。\n\n请重新连接设备或选择其他设备。</string>
+    <string name="input_configure_input">配置输入</string>
+    <string name="input_configure_output">配置输出</string>
+    <string name="input_expression">表达式</string>
+    
+    <!-- Gamepad Controls -->
+    <string name="gamepad_start">开始</string>
+    <string name="gamepad_d_pad">方向键</string>
+    <string name="gamepad_main_stick">主摇杆</string>
+    <string name="gamepad_c_stick">C 摇杆</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_nunchuk_stick">双节棍摇杆</string>
+    <string name="gamepad_left_stick">左摇杆</string>
+    <string name="gamepad_right_stick">右摇杆</string>
+    
+    <!-- Statistics Submenu -->
+    <string name="statistics_submenu">统计</string>
+    <string name="show_fps">显示 FPS</string>
+    <string name="show_fps_description">显示每秒渲染的不同帧数，作为视觉流畅度的衡量标准。</string>
+    <string name="show_ftimes">显示帧时间</string>
+    <string name="show_ftimes_description">显示每个渲染帧之间的平均时间（毫秒）及其标准偏差。</string>
+    <string name="show_vps">显示 VPS</string>
+    <string name="show_vps_description">显示每秒渲染的帧数，作为模拟速度的衡量标准。</string>
+    <string name="show_vtimes">显示垂直同步时间</string>
+    <string name="show_vtimes_description">显示每个渲染帧之间的平均时间（毫秒）及其标准偏差。</string>
+    <string name="show_graphs">显示性能图表</string>
+    <string name="show_graphs_description">显示帧时间图表及统计数据，作为模拟性能的表示。</string>
+    <string name="performance_sample_window">性能采样窗口</string>
+    <string name="performance_sample_window_description">FPS 和 VPS 计数器采样的时间量。值越高，FPS/VPS 计数器越稳定，但更新速度越慢。</string>
+    <string name="show_speed">显示速度百分比</string>
+    <string name="show_speed_description">显示模拟速度相对于全速的百分比。</string>
+    <string name="show_speed_colors">显示速度颜色</string>
+    <string name="show_speed_colors_description">根据模拟速度改变 FPS 计数器的颜色。</string>
+    <string name="log_render_time_to_file">记录渲染时间到文件</string>
+    <string name="log_render_time_to_file_description">将每帧的渲染时间记录到 User/Logs/render_time.txt。使用此功能测量 Dolphin 的性能。</string>
+    
+    <!-- Game Properties Screen -->
+    <string name="properties_details">详情</string>
+    <string name="properties_start_with_riivolution">使用 Riivolution 补丁启动</string>
+    <string name="properties_set_default_iso">设为默认 ISO</string>
+    <string name="properties_convert">转换文件</string>
+    <string name="properties_system_update">执行系统更新</string>
+    <string name="properties_edit_game_settings">编辑游戏设置</string>
+    <string name="properties_edit_cheats">编辑作弊码</string>
+    <string name="properties_clear_game_settings">清除游戏设置和作弊码</string>
+    <string name="properties_clear_game_settings_confirmation">您确定要删除此游戏的所有特定设置和作弊码吗？</string>
+    <string name="properties_clear_success">已清除 %1$s 的设置</string>
+    <string name="properties_clear_failure">无法清除 %1$s 的设置</string>
+    <string name="properties_clear_missing">没有可删除的游戏设置</string>
+    <string name="preferences_save_exit">保存并退出</string>
+    <string name="preferences_game_properties">游戏属性</string>
+    <string name="preferences_game_properties_with_game_id">游戏属性: %1$s</string>
+    <string name="game_ini_junk_title">发现垃圾数据</string>
+    <string name="game_ini_junk_question">此游戏的设置文件包含由旧版本 Dolphin 添加的无关数据。这可能会阻止全局设置按预期工作。\n\n您是否要通过删除此游戏的设置文件来修复此问题？您添加的所有特定游戏设置和作弊码都将被删除。此操作无法撤消。</string>
+    
+    <!-- Game Details Screen -->
+    <string name="game_details_time_played">已游玩 %1$d小时 %2$d分钟</string>
+    <string name="game_details_country">国家/地区</string>
+    <string name="game_details_company">公司</string>
+    <string name="game_details_game_id">游戏 ID</string>
+    <string name="game_details_revision">修订版</string>
+    <string name="game_details_file_size">文件大小</string>
+    <string name="game_details_file_format">文件格式</string>
+    <string name="game_details_compression">压缩</string>
+    <string name="game_details_block_size">块大小</string>
+    <string name="game_details_no_compression">无压缩</string>
+    <string name="game_details_size_and_format">%1$s (%2$s)</string>
+    
+    <!-- Cheats Screen -->
+    <string name="cheats">作弊码</string>
+    <string name="cheats_with_game_id">作弊码: %1$s</string>
+    <string name="cheats_header_ar">AR 码</string>
+    <string name="cheats_header_gecko">Gecko 码</string>
+    <string name="cheats_header_patch">补丁</string>
+    <string name="cheats_header_graphics_mod">图形模组</string>
+    <string name="cheats_add_ar">添加新 AR 码</string>
+    <string name="cheats_add_gecko">添加新 Gecko 码</string>
+    <string name="cheats_add_patch">添加新补丁</string>
+    <string name="cheats_download_gecko">下载 Gecko 码</string>
+    <string name="cheats_name">名称</string>
+    <string name="cheats_creator">创建者</string>
+    <string name="cheats_notes">备注</string>
+    <string name="cheats_code">代码</string>
+    <string name="cheats_edit">编辑</string>
+    <string name="cheats_delete">删除</string>
+    <string name="cheats_delete_confirmation">您确定要删除"%1$s"吗？</string>
+    <string name="cheats_error_no_name">名称不能为空</string>
+    <string name="cheats_error_no_code_lines">代码不能为空</string>
+    <string name="cheats_error_on_line">第 %1$d 行出错</string>
+    <string name="cheats_error_mixed_encryption">行必须全部加密或全部未加密</string>
+    <string name="cheats_downloading">正在下载…</string>
+    <string name="cheats_download_failed">下载代码失败。</string>
+    <string name="cheats_download_empty">文件不包含任何代码。</string>
+    <string name="cheats_download_succeeded">已下载 %1$d 个代码。（添加了 %2$d 个）</string>
+    <string name="cheats_disabled_warning">Dolphin 的作弊系统当前已禁用。</string>
+    <string name="gfx_mods_disabled_warning">图形模组当前已禁用。</string>
+    <string name="cheats_open_settings">设置</string>
+    
+    <!-- Convert Screen -->
+    <string name="convert_format">格式</string>
+    <string name="convert_block_size">块大小</string>
+    <string name="convert_compression">压缩</string>
+    <string name="convert_compression_level">压缩级别</string>
+    <string name="convert_remove_junk_data">移除垃圾数据（不可逆）</string>
+    <string name="convert_convert">转换</string>
+    <string name="convert_converting">正在转换</string>
+    <string name="convert_warning_iso">转换为 ISO 时移除垃圾数据不会节省任何空间（除非您之后将 ISO 文件打包为 ZIP 等压缩格式）。您确定要继续吗？</string>
+    <string name="convert_warning_gcz">将 Wii 光盘映像转换为 GCZ 而不移除垃圾数据，与转换为 ISO 相比不会节省明显的空间。您确定要继续吗？</string>
+    <string name="convert_warning_nkit">Dolphin 无法将 NKit 文件转换为非 NKit 文件。在 Dolphin 中转换 NKit 文件将产生另一个 NKit 文件。\n\n如果您想将 NKit 文件转换为非 NKit 文件，可以使用您最初将文件转换为 NKit 格式时使用的相同程序。\n\n您确定要继续吗？</string>
+    <string name="convert_success_message">光盘映像已成功转换。</string>
+    <string name="convert_failure_message">Dolphin 无法完成请求的操作。</string>
+    
+    <!-- About dialog -->
+    <string name="about_dolphin">Dolphin</string>
+    <string name="about_dolphin_image">Dolphin 标志</string>
+    <string name="about_branch">分支:\n%s</string>
+    <string name="about_revision">修订版:\n%s</string>
+    <string name="about_dolphin_description">Dolphin 是一款免费开源的 GameCube 和 Wii 模拟器。\n\n本软件不应用于玩您不合法拥有的游戏。</string>
+    <string name="about_website">
+        <a href="https://dolphin-emu.org/">网站</a>
+    </string>
+    <string name="about_github">
+        <a href="https://github.com/dolphin-emu/dolphin">GitHub</a>
+    </string>
+    <string name="about_support">
+        <a href="https://forums.dolphin-emu.org/">支持</a>
+    </string>
+    <string name="about_copyright_warning">\u00A9 2003–2024+ Dolphin 团队。\u201cGameCube\u201d 和 \u201cWii\u201d 是任天堂的商标。Dolphin 与任天堂没有任何关联。</string>
+    <string name="system_driver">系统驱动</string>
+    <string name="system_driver_desc">作为操作系统一部分的 GPU 驱动。</string>
+    
+    <!-- Game Grid Screen -->
+    <string name="platform_gamecube">GameCube 游戏</string>
+    <string name="platform_wii">Wii 游戏</string>
+    <string name="platform_wiiware">WiiWare 游戏</string>
+    <string name="add_games">添加游戏</string>
+    <string name="add_directory_title">添加文件夹到库</string>
+    <string name="grid_menu_settings">设置</string>
+    <string name="grid_menu_grid_options">网格选项</string>
+    <string name="grid_menu_refresh">刷新库</string>
+    <string name="grid_menu_open_file">打开文件</string>
+    <string name="grid_menu_install_wad">安装 WAD</string>
+    <string name="grid_menu_import_wii_save">导入 Wii 存档</string>
+    <string name="grid_menu_import_nand_backup">导入 BootMii NAND 备份</string>
+    <string name="grid_menu_online_system_update">执行在线系统更新</string>
+    <string name="grid_menu_load_wii_system_menu">加载 Wii 系统菜单</string>
+    <string name="grid_menu_load_wii_system_menu_installed">加载 Wii 系统菜单 (%s)</string>
+    <string name="grid_menu_load_vwii_system_menu_installed">加载 vWii 系统菜单 (%s)</string>
+    <string name="grid_menu_about">关于</string>
+    <string name="import_in_progress">正在导入…</string>
+    <string name="export_in_progress">正在导出…</string>
+    <string name="do_not_close_app">请勿关闭应用！</string>
+    <string name="wad_install_success">成功将此标题安装到 NAND。</string>
+    <string name="wad_install_failure">无法将此标题安装到 NAND。</string>
+    <string name="wii_save_exists">此标题的存档数据已存在于 NAND 中。在覆盖前，请考虑备份当前数据。\n现在覆盖？</string>
+    <string name="wii_save_import_success">成功导入存档文件。</string>
+    <string name="wii_save_import_error">无法导入存档文件。您的 NAND 可能已损坏，或者有东西阻止访问其中的文件。</string>
+    <string name="wii_save_import_corruped_source">无法导入存档文件。给定的文件似乎已损坏或不是有效的 Wii 存档。</string>
+    <string name="wii_save_import_title_missing">无法导入存档文件。请先启动游戏一次，然后再试。</string>
+    <string name="nand_import_warning">将新 NAND 合并到当前选择的 NAND 上将覆盖已存在的频道和游戏存档。此过程不可逆，因此建议您保留两个 NAND 的备份。您确定要继续吗？</string>
+    <string name="system_menu_not_installed_title">未安装</string>
+    <string name="system_menu_not_installed_message">Wii 菜单尚未安装。您想现在安装它吗？\n\n将从互联网下载约 110 MiB 的数据。建议使用 Wi-Fi 连接。</string>
+    
+    <!-- Emulation Menu -->
+    <string name="pause_emulation">暂停模拟</string>
+    <string name="unpause_emulation">恢复模拟</string>
+    <string name="emulation_screenshot">截图</string>
+    <string name="emulation_savestate">保存状态</string>
+    <string name="emulation_loadstate">加载状态</string>
+    <string name="emulation_exit">退出模拟</string>
+    <string name="emulation_state_slot">插槽 %1$d\n\n%2$s</string>
+    <string name="emulation_state_slot_empty">插槽 %1$d\n\n空</string>
+    <string name="emulation_quicksave">快速保存</string>
+    <string name="emulation_quickload">快速加载</string>
+    <string name="emulation_refresh_wiimotes">刷新 Wii 遥控器</string>
+    <string name="emulation_overlay_controls">叠加控制</string>
+    <string name="emulation_edit_layout">编辑布局</string>
+    <string name="emulation_done">完成</string>
+    <string name="emulation_toggle_controls">切换控制</string>
+    <string name="emulation_latching_controls">锁定控制</string>
+    <string name="emulation_toggle_all">全部切换</string>
+    <string name="emulation_control_scale">缩放</string>
+    <string name="emulation_control_opacity">不透明度</string>
+    <string name="emulation_control_adjustments">调整控制</string>
+    <string name="emulation_control_joystick_rel_center">相对摇杆中心</string>
+    <string name="emulation_choose_controller">选择控制器</string>
+    <string name="emulation_more_controller_settings">更多设置</string>
+    <string name="emulation_menu_help">按返回键访问菜单。\n长按返回键退出模拟。</string>
+    <string name="emulation_touch_overlay_reset">重置叠加层</string>
+    <string name="emulation_ir_group">触摸 IR 指针</string>
+    <string name="emulation_ir_recenter">始终重新居中</string>
+    <string name="emulation_ir_mode">IR 模式</string>
+    <string name="emulation_ir_sensitivity">IR 灵敏度</string>
+    <string name="emulation_choose_doubletap">双击按钮</string>
+    <string name="emulation_change_disc">更换光盘</string>
+    
+    <!-- File Pickers -->
+    <string name="no_file_extension">所选文件似乎没有文件扩展名。\n\n仍要继续吗？</string>
+    <string name="wrong_file_extension_single">所选文件的扩展名为"%1$s"，但预期的是"%2$s"。\n\n仍要继续吗？</string>
+    <string name="wrong_file_extension_multiple">所选文件的扩展名为"%1$s"，但预期的扩展名之一是：%2$s\n\n仍要继续吗？</string>
+    <string name="wrong_file_extension_in_directory">在所选位置未找到兼容文件。\n\n支持的格式有：%1$s</string>
+    <string name="unavailable_paths">Dolphin 无法访问一个或多个配置的路径。您想在开始前修复此问题吗？</string>
+    
+    <!-- Misc -->
+    <string name="enabled">已启用</string>
+    <string name="default_values">默认值</string>
+    <string name="slider_setting_value">%.0f%2$s</string>
+    <string name="slider_setting_float_value">%.2f%2$s</string>
+    <string name="disc_number">光盘 %1$d</string>
+    <string name="replug_gc_adapter">无法打开 GameCube 适配器。请重新插入设备。</string>
+    <string name="disabled_gc_overlay_notice">所选 GameCube 控制器设置为"无"</string>
+    <string name="ignore_warning_alert_messages">本次会话忽略</string>
+    
+    <!-- Extra Leanback Homescreen Channels-->
+    <string name="homescreen_favorites">收藏夹</string>
+    
+    <string name="select_dir">选择此目录</string>
+    
+    <!-- Wii Remote extensions -->
+    <string name="extension_none">无</string>
+    <string name="extension_nunchuk">双截棍</string>
+    <string name="extension_classic">传统控制器</string>
+    <string name="extension_guitar">吉他</string>
+    <string name="extension_drums">鼓</string>
+    <string name="extension_turntable">转盘</string>
+    
+    <!-- GameCube Gamepad Types -->
+    <string name="gcpad_disabled">无</string>
+    <string name="gcpad_emulated">标准控制器</string>
+    <string name="gcpad_keyboard">键盘控制器</string>
+    <string name="gcpad_steering_wheel">方向盘</string>
+    <string name="gcpad_dance_mat">跳舞毯</string>
+    <string name="gcpad_taru_konga">DK 邦戈鼓</string>
+    <string name="gcpad_gc_adapter">GameCube 适配器</string>
+    
+    <!-- Wiimote Types -->
+    <string name="wiimote_disabled">无</string>
+    <string name="wiimote_emulated">模拟 Wii 遥控器</string>
+    <string name="wiimote_real">真实 Wii 遥控器（需要 DolphinBar）</string>
+    
+    <!-- Country Names -->
+    <string name="country_europe">欧洲</string>
+    <string name="country_japan">日本</string>
+    <string name="country_usa">美国</string>
+    <string name="country_australia">澳大利亚</string>
+    <string name="country_france">法国</string>
+    <string name="country_germany">德国</string>
+    <string name="country_italy">意大利</string>
+    <string name="country_korea">韩国</string>
+    <string name="country_netherlands">荷兰</string>
+    <string name="country_russia">俄罗斯</string>
+    <string name="country_spain">西班牙</string>
+    <string name="country_taiwan">台湾</string>
+    <string name="country_world">世界</string>
+    <string name="country_unknown">未知</string>
+    
+    <!-- GC Adapter Menu-->
+    <string name="gc_adapter_rumble">启用震动</string>
+    <string name="gc_adapter_rumble_description">为此 GameCube 控制器启用震动功能。</string>
+    <string name="gc_adapter_bongos">邦戈鼓控制器</string>
+    <string name="gc_adapter_bongos_description">如果您在此端口使用邦戈鼓，请启用此项。</string>
+    
+    <string name="path_not_changeable_scoped_storage">由于 Android 11 及更高版本的范围存储政策，您无法更改此路径。</string>
+    <string name="load_settings">正在加载设置…</string>
+    <string name="setting_not_runtime_editable">游戏运行时无法更改此设置。</string>
+    <string name="ipl_not_found">未找到 IPL</string>
+    <string name="setting_clear_info">长按设置可清除它。</string>
+    <string name="setting_clear_confirm">您想要将此设置恢复为默认值吗？</string>
+    <string name="setting_cleared">设置已清除</string>
+    
+    <string name="external_storage_not_mounted">需要外部存储可用才能使用 Dolphin</string>
+    
+    <!-- Riivolution Boot Screen -->
+    <string name="riivolution_riivolution">Riivolution</string>
+    <string name="riivolution_sd_root">SD 根目录: %1$s</string>
+    <string name="riivolution_disabled">已禁用</string>
+    <string name="riivolution_start">开始</string>
+    
+    <!-- User Data -->
+    <string name="user_data_submenu">用户数据</string>
+    <string name="user_data_old_location">您的用户数据（设置、存档等）存储在卸载应用时<b>不会</b>被删除的位置：</string>
+    <string name="user_data_new_location">您的用户数据（设置、存档等）存储在卸载应用时<b>将被删除</b>的位置：</string>
+    <!-- Android 10 and up support android:hasFragileUserData -->
+    <string name="user_data_new_location_android_10">您的用户数据（设置、存档等）存储在卸载应用时默认<b>将被删除</b>的位置：</string>
+    <string name="user_data_new_location_android_11">由于您使用的是 Android 11 或更新版本，文件管理器应用无法像访问常规文件夹那样访问此文件夹。相反，Dolphin 充当文件提供者。</string>
+    <string name="user_data_open_system_file_manager">打开系统文件管理器</string>
+    <string name="user_data_open_user_folder">打开用户数据文件夹</string>
+    
+    <string name="user_data_import">导入用户数据</string>
+    <string name="user_data_export">导出用户数据</string>
+    <string name="user_data_open_system_file_manager_failed">抱歉，Dolphin 在您的设备上找不到系统文件管理器。</string>
+    <string name="user_data_import_warning">您确定要用此文件中的数据替换您的用户数据吗？所有现有用户数据将被删除！</string>
+    <string name="user_data_import_invalid_file">此文件似乎不包含 Dolphin 用户数据。</string>
+    <string name="user_data_import_success">用户数据已导入。</string>
+    <string name="user_data_import_failure">导入用户数据失败。</string>
+    <string name="user_data_export_success">您的用户数据已导出。</string>
+    <string name="user_data_export_failure">导出用户数据失败。</string>
+    
+    <!-- Theme options -->
+    <string name="theme_default">默认</string>
+    <string name="theme_material_you">Material You</string>
+    <string name="theme_material_default">Material 默认</string>
+    <string name="theme_green">绿色</string>
+    <string name="theme_pink">粉色</string>
+    
+    <!-- Theme Modes -->
+    <string name="theme_mode_follow_system">跟随系统</string>
+    <string name="theme_mode_light">浅色</string>
+    <string name="theme_mode_dark">深色</string>
+    
+    <!-- Orientations -->
+    <string name="orientation_landscape">横向</string>
+    <string name="orientation_landscape_reverse">横向（反向）</string>
+    <string name="orientation_portrait">纵向</string>
+    <string name="orientation_auto">自动</string>
+    
+    <!-- Miscellaneous -->
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="cancelling">正在取消…</string>
+    <string name="clear">清除</string>
+    <string name="disabled">已禁用</string>
+    <string name="other">其他</string>
+    <string name="continue_anyway">仍要继续</string>
+    <string name="more_settings">更多设置</string>
+    <string name="advanced_settings">高级设置</string>
+</resources> 
