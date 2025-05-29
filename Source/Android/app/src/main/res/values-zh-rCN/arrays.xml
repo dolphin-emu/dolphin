@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- All lists for ListPreference keys/values are placed here -->
+<resources>
+    <!-- DSP Emulation Engine -->
+    <string-array name="dspEngineEntriesX86_64">
+        <item>高级模拟 (HLE)</item>
+        <item>低级模拟重编译器 (LLE)</item>
+        <item>低级模拟解释器 (LLE)</item>
+    </string-array>
+    <string-array name="dspEngineEntriesGeneric">
+        <item>高级模拟 (HLE)</item>
+        <item>低级模拟解释器 (LLE)</item>
+    </string-array>
+
+    <!-- UI CPU Core selection -->
+    <string-array name="emuCoresEntriesX86_64">
+        <item>JIT重编译器 (x86-64)</item>
+        <item>缓存解释器 (较慢)</item>
+        <item>解释器 (最慢)</item>
+    </string-array>
+    <string-array name="emuCoresEntriesARM64">
+        <item>JIT重编译器 (AArch64)</item>
+        <item>缓存解释器 (较慢)</item>
+        <item>解释器 (最慢)</item>
+    </string-array>
+    <string-array name="emuCoresEntriesGeneric">
+        <item>缓存解释器</item>
+        <item>解释器</item>
+    </string-array>
+
+    <!-- Sound Mode -->
+    <string-array name="soundModeEntries">
+        <item>单声道</item>
+        <item>立体声</item>
+        <item>环绕声</item>
+    </string-array>
+
+    <!-- Sensor Bar Position -->
+    <string-array name="sensorBarPositionEntries">
+        <item>顶部</item>
+        <item>底部</item>
+    </string-array>
+
+    <!-- Log Verbosity -->
+    <string-array name="logVerbosityEntriesMaxLevelInfo">
+        <item>通知</item>
+        <item>错误</item>
+        <item>警告</item>
+        <item>信息</item>
+    </string-array>
+    <string-array name="logVerbosityEntriesMaxLevelDebug">
+        <item>通知</item>
+        <item>错误</item>
+        <item>警告</item>
+        <item>信息</item>
+        <item>调试</item>
+    </string-array>
+
+    <!-- Video backend selection -->
+    <string-array name="videoBackendEntries">
+        <item>OpenGL</item>
+        <item>Vulkan</item>
+        <item>软件</item>
+        <item>空</item>
+    </string-array>
+
+    <!-- Slot A & B Device selection -->
+    <string-array name="slotDeviceEntries">
+        <item>无</item>
+        <item>虚拟</item>
+        <item>记忆卡</item>
+        <item>GCI文件夹</item>
+    </string-array>
+
+    <!-- Slot SP1 Device selection -->
+    <string-array name="serialPort1DeviceEntries">
+        <item>无</item>
+        <item>虚拟</item>
+        <item>宽带适配器 (XLink Kai)</item>
+        <item>宽带适配器 (HLE)</item>
+        <item>宽带适配器 (Tapserver)</item>
+        <item>调制解调器适配器 (Tapserver)</item>
+    </string-array>
+
+    <!-- Shader compilation mode -->
+    <string-array name="shaderCompilationModeEntries">
+        <item>同步 (慢)</item>
+        <item>异步 (推荐)</item>
+        <item>异步 (跳过绘制)</item>
+        <item>专用 (默认)</item>
+        <item>专用 (同步)</item>
+    </string-array>
+
+    <!-- Texture filtering -->
+    <string-array name="textureFilteringEntries">
+        <item>默认</item>
+        <item>最近点</item>
+        <item>线性</item>
+    </string-array>
+
+    <!-- Aspect Ratio -->
+    <string-array name="aspectRatioEntries">
+        <item>自动</item>
+        <item>强制 16:9</item>
+        <item>强制 4:3</item>
+        <item>拉伸到窗口</item>
+    </string-array>
+
+    <!-- Screen orientation -->
+    <string-array name="orientationEntries">
+        <item>横向</item>
+        <item>纵向</item>
+        <item>跟随系统设置</item>
+    </string-array>
+
+    <!-- Theme options -->
+    <string-array name="themeEntries">
+        <item>跟随系统</item>
+        <item>浅色</item>
+        <item>深色</item>
+    </string-array>
+</resources> 
