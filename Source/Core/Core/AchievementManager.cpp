@@ -598,11 +598,6 @@ rc_client_t* AchievementManager::GetClient()
   return m_client;
 }
 
-rc_api_fetch_game_data_response_t* AchievementManager::GetGameData()
-{
-  return &m_game_data;
-}
-
 const AchievementManager::Badge& AchievementManager::GetGameBadge() const
 {
   return m_game_badge.data.empty() ? m_default_game_badge : m_game_badge;
@@ -736,12 +731,8 @@ void AchievementManager::CloseGame()
     if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
       Discord::UpdateDiscordPresence();
     if (rc_client_get_game_info(m_client))
-    {
-      rc_api_destroy_fetch_game_data_response(&m_game_data);
       rc_client_unload_game(m_client);
-    }
     INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
-    m_game_data = {};
   }
 
   m_update_callback(UpdatedItems{.all = true});
