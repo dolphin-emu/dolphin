@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <ranges>
 #include <string>
 #include <vector>
@@ -275,6 +276,16 @@ bool CalibrationBuilder::IsCalibrationDataSensible() const
   constexpr double REASONABLE_DEVIATION = 0.14;
 
   return stats.StandardDeviation() < REASONABLE_DEVIATION;
+}
+
+bool CalibrationBuilder::IsComplete() const
+{
+  if (!IsCalibrationDataSensible())
+    return false;
+
+  const auto half_calibration =
+      0.5 * GetCalibrationRadiusAtAngle(std::atan2(m_prev_point.y, m_prev_point.x) + MathUtil::TAU);
+  return m_prev_point.LengthSquared() < (half_calibration * half_calibration);
 }
 
 ControlState CalibrationBuilder::GetCalibrationRadiusAtAngle(double angle) const
