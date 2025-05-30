@@ -50,8 +50,11 @@ protected:
                                int columns);
   void CreateControl(const ControllerEmu::Control* control, QFormLayout* layout, bool indicator);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
+
+  void AddSettingWidget(QFormLayout* layout, ControllerEmu::NumericSettingBase* setting);
   void AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
                          ControllerEmu::SettingVisibility visibility);
+
   void ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* group);
 
 private:

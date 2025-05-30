@@ -55,14 +55,14 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getEnabled(
     JNIEnv* env, jobject obj)
 {
-  return static_cast<jboolean>(GetPointer(env, obj)->enabled);
+  return static_cast<jboolean>(GetPointer(env, obj)->enabled.GetValue());
 }
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_setEnabled(
     JNIEnv* env, jobject obj, jboolean value)
 {
-  GetPointer(env, obj)->enabled = value;
+  GetPointer(env, obj)->enabled.SetValue(value);
 }
 
 JNIEXPORT jint JNICALL
