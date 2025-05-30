@@ -103,13 +103,24 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     break;
   }
 
+  // Mapping indicator.
+  if (indicator != nullptr)
+  {
+    auto* const indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
+    indicator_layout->addWidget(indicator);
+    indicator_layout->setAlignment(Qt::AlignCenter);
+    form_layout->addRow(indicator_layout);
+
+    connect(this, &MappingWidget::Update, indicator, qOverload<>(&MappingIndicator::update));
+  }
+
+  // "Enabled" checkbox.
   if (group->HasEnabledSetting())
   {
     AddSettingWidget(form_layout, group->enabled_setting.get());
 
-    auto enable_labels = [form_layout](bool enabled) {
-      // Skipping the "Enabled" checkbox row itself.
-      constexpr int start_index = 1;
+    auto enable_labels = [form_layout, start_index = form_layout->rowCount()](bool enabled) {
+      // Skipping the "Enabled" checkbox row itself and the mapping indicator, if it exists.
       for (int i = start_index; i < form_layout->count(); ++i)
       {
         auto* const item = form_layout->itemAt(i, QFormLayout::LabelRole);
@@ -131,15 +142,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     });
   }
 
-  if (indicator)
+  // "Calibrate" button.
+  if (indicator != nullptr)
   {
-    const auto indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
-    indicator_layout->addWidget(indicator);
-    indicator_layout->setAlignment(Qt::AlignCenter);
-    form_layout->addRow(indicator_layout);
-
-    connect(this, &MappingWidget::Update, indicator, qOverload<>(&MappingIndicator::update));
-
     const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
                                   group->type == ControllerEmu::GroupType::Stick ||
                                   group->type == ControllerEmu::GroupType::Tilt ||
