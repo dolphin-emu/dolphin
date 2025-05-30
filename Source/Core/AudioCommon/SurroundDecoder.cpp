@@ -32,7 +32,7 @@ size_t SurroundDecoder::QueryFramesNeededForSurroundOutput(const size_t output_f
   if (m_decoded_fifo.size() < output_frames * SURROUND_CHANNELS)
   {
     // Output stereo frames needed to have at least the desired number of surround frames
-    size_t frames_needed = output_frames - m_decoded_fifo.size() / SURROUND_CHANNELS;
+    size_t const frames_needed = output_frames - m_decoded_fifo.size() / SURROUND_CHANNELS;
     return frames_needed + m_frame_block_size - frames_needed % m_frame_block_size;
   }
 
