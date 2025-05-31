@@ -36,7 +36,7 @@ TEST(Flag, MultiThreaded)
   int count = 0;
   constexpr int ITERATIONS_COUNT = 100000;
 
-  auto setter = [&]() {
+  auto setter = [&] {
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       while (f.IsSet())
@@ -45,7 +45,7 @@ TEST(Flag, MultiThreaded)
     }
   };
 
-  auto clearer = [&]() {
+  auto clearer = [&] {
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       while (!f.IsSet())
@@ -72,7 +72,7 @@ TEST(Flag, SpinLock)
   constexpr int ITERATIONS_COUNT = 5000;
   constexpr int THREADS_COUNT = 50;
 
-  auto adder_func = [&]() {
+  auto adder_func = [&] {
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       // Acquire the spinlock.

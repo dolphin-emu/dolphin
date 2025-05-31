@@ -18,7 +18,7 @@ void CustomAssetLoader::Init()
   m_max_memory_available =
       (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
 
-  m_asset_monitor_thread = std::thread([this]() {
+  m_asset_monitor_thread = std::thread([this] {
     Common::SetCurrentThreadName("Asset monitor");
     while (true)
     {

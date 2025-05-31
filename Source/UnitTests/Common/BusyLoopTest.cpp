@@ -16,7 +16,7 @@ TEST(BusyLoopTest, MultiThreaded)
   for (int i = 0; i < 10; i++)
   {
     loop.Prepare();
-    std::thread loop_thread([&]() { loop.Run([&]() { e.Set(); }); });
+    std::thread loop_thread([&] { loop.Run([&] { e.Set(); }); });
 
     // Ping - Pong
     for (int j = 0; j < 10; j++)

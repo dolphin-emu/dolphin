@@ -335,7 +335,7 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
   case USB::IOCTLV_USBV0_INTRMSG:
   case USB::IOCTLV_USBV0_ISOMSG:
     return HandleTransfer(device, request.request,
-                          [&, this]() { return SubmitTransfer(*device, request); });
+                          [&, this] { return SubmitTransfer(*device, request); });
   case USB::IOCTLV_USBV0_UNKNOWN_32:
     request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB);
     return IPCReply(IPC_SUCCESS);

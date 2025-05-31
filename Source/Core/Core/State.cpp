@@ -765,7 +765,7 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
     if (s_state_writes_in_queue != 0)
     {
       if (!s_state_write_queue_is_empty.wait_for(lk, std::chrono::seconds(3),
-                                                 []() { return s_state_writes_in_queue == 0; }))
+                                                 [] { return s_state_writes_in_queue == 0; }))
       {
         Core::DisplayMessage(
             "A previous state saving operation is still in progress, cancelling load.", 2000);

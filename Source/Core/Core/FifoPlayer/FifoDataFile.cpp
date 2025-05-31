@@ -209,7 +209,7 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   if (!file)
     return nullptr;
 
-  auto panic_failed_to_read = []() {
+  auto panic_failed_to_read = [] {
     CriticalAlertFmtT("Failed to read DFF file.");
     return nullptr;
   };

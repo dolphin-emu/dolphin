@@ -2596,7 +2596,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 
   if (m_game_digest_thread.joinable())
     m_game_digest_thread.join();
-  m_game_digest_thread = std::thread([this, file]() {
+  m_game_digest_thread = std::thread([this, file] {
     std::string sum = SHA1Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << MessageID::GameDigestProgress;

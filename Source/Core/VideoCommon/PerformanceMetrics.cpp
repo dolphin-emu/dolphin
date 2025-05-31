@@ -141,7 +141,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   float window_y = window_padding;
   float window_x = display_size.x - window_padding;
 
-  const auto clamp_window_position = [&]() {
+  const auto clamp_window_position = [&] {
     const ImVec2 position = ImGui::GetWindowPos();
     const ImVec2 size = ImGui::GetWindowSize();
     const float window_min_x = window_padding;

@@ -56,7 +56,7 @@ void JitBlockTableModel::PrefetchSymbols()
   {
     for (const JitBlock& block : m_jit_blocks)
     {
-      m_symbol_list.emplace_back([this, &block]() {
+      m_symbol_list.emplace_back([this, &block] {
         return GetSymbolNameQVariant(m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress));
       });
     }
