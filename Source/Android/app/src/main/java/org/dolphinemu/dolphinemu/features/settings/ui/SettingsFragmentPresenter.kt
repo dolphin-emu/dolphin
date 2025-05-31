@@ -31,6 +31,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
+import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
@@ -111,6 +112,7 @@ class SettingsFragmentPresenter(
             MenuTag.CONFIG_PATHS -> addPathsSettings(sl)
             MenuTag.CONFIG_GAME_CUBE -> addGameCubeSettings(sl)
             MenuTag.CONFIG_WII -> addWiiSettings(sl)
+            MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl);
             MenuTag.CONFIG_ADVANCED -> addAdvancedSettings(sl)
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
             MenuTag.CONFIG_SERIALPORT1 -> addSerialPortSubSettings(sl, serialPort1Type)
@@ -200,6 +202,7 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.paths_submenu, MenuTag.CONFIG_PATHS))
         sl.add(SubmenuSetting(context, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE))
         sl.add(SubmenuSetting(context, R.string.wii_submenu, MenuTag.CONFIG_WII))
+        sl.add(SubmenuSetting(context, R.string.achievements_submenu, MenuTag.CONFIG_ACHIEVEMENTS))
         sl.add(SubmenuSetting(context, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED))
         sl.add(SubmenuSetting(context, R.string.log_submenu, MenuTag.CONFIG_LOG))
         sl.add(SubmenuSetting(context, R.string.debug_submenu, MenuTag.DEBUG))
@@ -210,6 +213,17 @@ class SettingsFragmentPresenter(
     }
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
+        var minSpeed = 0f
+        if (BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.boolean)
+        {
+            minSpeed = 100f
+            if (FloatSetting.MAIN_EMULATION_SPEED.float < 1f) {
+                FloatSetting.MAIN_EMULATION_SPEED.setFloat(
+                    NativeConfig.LAYER_ACTIVE,
+                    1f
+                )
+            }
+        }
         sl.add(
             SwitchSetting(
                 context,
@@ -248,7 +262,7 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0f,
+                minSpeed,
                 200f,
                 "%",
                 1f,
@@ -909,6 +923,91 @@ class SettingsFragmentPresenter(
                 context,
                 BooleanSetting.MAIN_WII_SPEAK_MUTED,
                 R.string.mute_wii_speak,
+                0
+            )
+        )
+    }
+
+    private fun addAchievementSettings(sl: ArrayList<SettingsItem>) {
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.ACHIEVEMENTS_ENABLED,
+                R.string.achievements_enabled,
+                0
+            )
+        )
+        if (NativeConfig.getString(
+                NativeConfig.LAYER_ACTIVE,
+                Settings.FILE_ACHIEVEMENTS,
+                Settings.SECTION_ACHIEVEMENTS,
+                "ApiToken",
+                ""
+            ) == ""
+        ) {
+            sl.add(
+                RunRunnable(
+                    context,
+                    R.string.achievements_login,
+                    0,
+                    0,
+                    0,
+                    true
+                ) {
+                  fragmentView.showDialogFragment(LoginFragment())
+                  loadSettingsList()
+                })
+        } else {
+            sl.add(
+                RunRunnable(
+                    context,
+                    R.string.achievements_logout,
+                    0,
+                    0,
+                    0,
+                    true
+                ) {
+                  logout()
+                  loadSettingsList()
+                })
+        }
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED,
+                R.string.achievements_hardcore_enabled,
+                0
+          )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.ACHIEVEMENTS_UNOFFICIAL_ENABLED,
+                R.string.achievements_unofficial_enabled,
+                0
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.ACHIEVEMENTS_ENCORE_ENABLED,
+                R.string.achievements_encore_enabled,
+                0
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.ACHIEVEMENTS_SPECTATOR_ENABLED,
+                R.string.achievements_spectator_enabled,
+                0
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.ACHIEVEMENTS_PROGRESS_ENABLED,
+                R.string.achievements_progress_enabled,
                 0
             )
         )
