@@ -13,5 +13,8 @@ object AchievementModel {
     external fun logout()
 
     @JvmStatic
+    external fun isHardcoreModeActive(): Boolean
+
+    @JvmStatic
     external fun shutdown()
 }

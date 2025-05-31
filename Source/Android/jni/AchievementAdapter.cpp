@@ -27,6 +27,13 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_logout(J
   AchievementManager::GetInstance().Logout();
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_isHardcoreModeActive(
+    JNIEnv* env, jclass)
+{
+  return AchievementManager::GetInstance().IsHardcoreModeActive();
+}
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_shutdown(JNIEnv* env,
                                                                                  jclass)
