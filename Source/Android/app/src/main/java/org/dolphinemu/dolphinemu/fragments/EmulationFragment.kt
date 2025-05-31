@@ -14,6 +14,8 @@ import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
@@ -204,6 +206,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private fun runWithValidSurface() {
         runWhenSurfaceIsValid = false
         if (NativeLibrary.IsUninitialized()) {
+            if (BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.boolean &&
+              FloatSetting.MAIN_EMULATION_SPEED.float < 1f) {
+                FloatSetting.MAIN_EMULATION_SPEED.setFloat(
+                  NativeConfig.LAYER_ACTIVE,
+                  1f
+                )
+            }
             NativeLibrary.SetIsBooting()
             val emulationThread = Thread({
                 if (loadPreviousTemporaryState) {

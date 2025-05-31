@@ -213,6 +213,17 @@ class SettingsFragmentPresenter(
     }
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
+        var minSpeed = 0f
+        if (BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.boolean)
+        {
+            minSpeed = 100f
+            if (FloatSetting.MAIN_EMULATION_SPEED.float < 1f) {
+                FloatSetting.MAIN_EMULATION_SPEED.setFloat(
+                    NativeConfig.LAYER_ACTIVE,
+                    1f
+                )
+            }
+        }
         sl.add(
             SwitchSetting(
                 context,
@@ -251,7 +262,7 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0f,
+                minSpeed,
                 200f,
                 "%",
                 1f,

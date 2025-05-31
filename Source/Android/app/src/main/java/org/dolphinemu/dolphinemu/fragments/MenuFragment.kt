@@ -114,11 +114,13 @@ class MenuFragment : Fragment(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         val savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.boolean
+        val hardcoreEnabled = BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.boolean
         val savestateVisibility = if (savestatesEnabled) View.VISIBLE else View.GONE
+        val loadstateVisibility = if (savestatesEnabled && !hardcoreEnabled) View.VISIBLE else View.GONE
         binding.menuQuicksave.visibility = savestateVisibility
-        binding.menuQuickload.visibility = savestateVisibility
+        binding.menuQuickload.visibility = loadstateVisibility
         binding.menuEmulationSaveRoot.visibility = savestateVisibility
-        binding.menuEmulationLoadRoot.visibility = savestateVisibility
+        binding.menuEmulationLoadRoot.visibility = loadstateVisibility
     }
 
     override fun onDestroyView() {
