@@ -251,7 +251,7 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0f,
+                if (AchievementModel.isHardcoreModeActive()) 100f else 0f,
                 200f,
                 "%",
                 1f,
