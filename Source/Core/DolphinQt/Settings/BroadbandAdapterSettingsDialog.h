@@ -20,7 +20,7 @@ public:
     ModemTapServer
   };
 
-  explicit BroadbandAdapterSettingsDialog(QWidget* target, Type bba_type);
+  explicit BroadbandAdapterSettingsDialog(QWidget* parent, Type bba_type);
 
 private:
   QLineEdit* m_address_input;

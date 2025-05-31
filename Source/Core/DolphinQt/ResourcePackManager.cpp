@@ -17,7 +17,7 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "UICommon/ResourcePack/Manager.h"
 
-ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
+ResourcePackManager::ResourcePackManager(QWidget* parent) : QDialog(parent)
 {
   CreateWidgets();
   ConnectWidgets();

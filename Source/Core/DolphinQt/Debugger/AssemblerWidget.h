@@ -72,7 +72,7 @@ private:
   int AllocateTabNum();
   void FreeTabNum(int num);
   void UpdateTabText(AsmEditor* editor);
-  void DisambiguateTabTitles(AsmEditor* editor);
+  void DisambiguateTabTitles(AsmEditor* new_tab);
   void UpdateIcons();
   void ZoomAllEditors(int amount);
 

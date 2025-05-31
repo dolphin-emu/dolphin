@@ -55,7 +55,7 @@ private:
   void CreateMainWindow();
   QVBoxLayout* CreateSlotLayout();
   QVBoxLayout* CreateFinderLayout();
-  void closeEvent(QCloseEvent* bar) override;
+  void closeEvent(QCloseEvent* event) override;
   bool eventFilter(QObject* object, QEvent* event) final override;
 
   // UI

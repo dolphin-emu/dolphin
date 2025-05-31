@@ -203,9 +203,9 @@ int AsmEditor::CharWidth() const
   return fontMetrics().horizontalAdvance(QLatin1Char(' '));
 }
 
-void AsmEditor::resizeEvent(QResizeEvent* e)
+void AsmEditor::resizeEvent(QResizeEvent* event)
 {
-  QPlainTextEdit::resizeEvent(e);
+  QPlainTextEdit::resizeEvent(event);
 
   const QRect cr = contentsRect();
   m_line_number_area->setGeometry(QRect(cr.left(), cr.top(), LineNumberAreaWidth(), cr.height()));
