@@ -89,7 +89,7 @@ static int GetAudioDMACallbackPeriod(u32 cpu_core_clock, u32 aid_sample_rate_div
 void SystemTimersManager::AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   system.GetDSP().UpdateAudioDMA();  // Push audio to speakers.
-  auto& system_timers = system.GetSystemTimers();
+  const auto& system_timers = system.GetSystemTimers();
   const int callback_period = GetAudioDMACallbackPeriod(
       system_timers.m_cpu_core_clock, system.GetAudioInterface().GetAIDSampleRateDivisor());
   system.GetCoreTiming().ScheduleEvent(callback_period - cycles_late,
@@ -102,7 +102,7 @@ void SystemTimersManager::IPC_HLE_UpdateCallback(Core::System& system, u64 userd
   if (system.IsWii())
   {
     system.GetIOS()->UpdateDevices();
-    auto& system_timers = system.GetSystemTimers();
+    const auto& system_timers = system.GetSystemTimers();
     system.GetCoreTiming().ScheduleEvent(system_timers.m_ipc_hle_period - cycles_late,
                                          system_timers.m_event_type_ipc_hle);
   }
@@ -115,7 +115,7 @@ void SystemTimersManager::GPUSleepCallback(Core::System& system, u64 userdata, s
 
   // We want to call GpuMaySleep at about 1000hz so
   // that the thread can sleep while not doing anything.
-  auto& system_timers = system.GetSystemTimers();
+  const auto& system_timers = system.GetSystemTimers();
   core_timing.ScheduleEvent(system_timers.GetTicksPerSecond() / 1000 - cycles_late,
                             system_timers.m_event_type_gpu_sleeper);
 }
@@ -140,7 +140,7 @@ void SystemTimersManager::PatchEngineCallback(Core::System& system, u64 userdata
 {
   // We have 2 periods, a 1000 cycle error period and the VI period.
   // We have to carefully combine these together so that we stay on the VI period without drifting.
-  u32 vi_interval = system.GetVideoInterface().GetTicksPerField();
+  const u32 vi_interval = system.GetVideoInterface().GetTicksPerField();
   s64 cycles_pruned = (userdata + cycles_late) % vi_interval;
   s64 next_schedule = 0;
 
@@ -176,9 +176,9 @@ u32 SystemTimersManager::GetTicksPerSecond() const
 void SystemTimersManager::DecrementerSet()
 {
   auto& core_timing = m_system.GetCoreTiming();
-  auto& ppc_state = m_system.GetPPCState();
+  const auto& ppc_state = m_system.GetPPCState();
 
-  u32 decValue = ppc_state.spr[SPR_DEC];
+  const u32 decValue = ppc_state.spr[SPR_DEC];
 
   core_timing.RemoveEvent(m_event_type_decrementer);
   if ((decValue & 0x80000000) == 0)
@@ -258,7 +258,7 @@ void SystemTimersManager::Init()
   }
 
   auto& core_timing = m_system.GetCoreTiming();
-  auto& vi = m_system.GetVideoInterface();
+  const auto& vi = m_system.GetVideoInterface();
 
   core_timing.SetFakeTBStartValue(static_cast<u64>(m_cpu_core_clock / TIMER_RATIO) *
                                   static_cast<u64>(ExpansionInterface::CEXIIPL::GetEmulatedTime(

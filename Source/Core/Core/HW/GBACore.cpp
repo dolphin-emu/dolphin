@@ -72,7 +72,7 @@ static VFile* OpenROM_Archive(const char* path)
       VDirFindFirst(archive, [](VFile* vf_) { return mCoreIsCompatible(vf_) != mPLATFORM_NONE; });
   if (vf_archive)
   {
-    size_t size = static_cast<size_t>(vf_archive->size(vf_archive));
+    const size_t size = static_cast<size_t>(vf_archive->size(vf_archive));
 
     std::vector<u8> buffer(size);
     vf_archive->seek(vf_archive, 0, SEEK_SET);
@@ -88,7 +88,7 @@ static VFile* OpenROM_Archive(const char* path)
 static VFile* OpenROM_Zip(const char* path)
 {
   VFile* vf{};
-  unzFile zip = unzOpen(path);
+  const unzFile zip = unzOpen(path);
   if (!zip)
     return nullptr;
   do
@@ -140,7 +140,7 @@ static VFile* OpenROM(const char* rom_path)
 
 static std::array<u8, 20> GetROMHash(VFile* rom)
 {
-  size_t size = rom->size(rom);
+  const size_t size = rom->size(rom);
   u8* buffer = static_cast<u8*>(rom->map(rom, size, MAP_READ));
 
   const auto digest = Common::SHA1::CalculateDigest(buffer, size);
@@ -396,7 +396,7 @@ void Core::SetVideoBuffer()
   m_core->currentVideoSize(m_core, &width, &height);
   m_video_buffer.resize(width * height);
   m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
-  if (auto host = m_host.lock())
+  if (const auto host = m_host.lock())
     host->GameChanged();
 }
 
@@ -416,12 +416,12 @@ void Core::AddCallbacks()
   mCoreCallbacks callbacks{};
   callbacks.context = this;
   callbacks.keysRead = [](void* context) {
-    auto core = static_cast<Core*>(context);
+    const auto core = static_cast<Core*>(context);
     core->m_core->setKeys(core->m_core, core->m_keys);
   };
   callbacks.videoFrameEnded = [](void* context) {
-    auto core = static_cast<Core*>(context);
-    if (auto host = core->m_host.lock())
+    const auto core = static_cast<Core*>(context);
+    if (const auto host = core->m_host.lock())
       host->FrameEnded(core->m_video_buffer);
   };
   m_core->addCoreCallbacks(m_core, &callbacks);
@@ -432,11 +432,11 @@ void Core::SetAVStream()
   m_stream = {};
   m_stream.core = this;
   m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned width, unsigned height) {
-    auto core = static_cast<AVStream*>(stream)->core;
+    const auto core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
   m_stream.postAudioBuffer = [](mAVStream* stream, blip_t* left, blip_t* right) {
-    auto core = static_cast<AVStream*>(stream)->core;
+    const auto core = static_cast<AVStream*>(stream)->core;
     std::vector<s16> buffer(SAMPLES * 2);
     blip_read_samples(left, &buffer[0], SAMPLES, 1);
     blip_read_samples(right, &buffer[1], SAMPLES, 1);
@@ -541,7 +541,7 @@ void Core::RunCommand(Command& command)
     m_response.clear();
     if (m_link_enabled && !m_force_disconnect)
     {
-      int recvd = GBASIOJOYSendCommand(
+      const int recvd = GBASIOJOYSendCommand(
           &m_sio_driver, static_cast<GBASIOJOYCommand>(command.buffer[0]), &command.buffer[1]);
       std::copy_n(command.buffer.begin() + 1, recvd, std::back_inserter(m_response));
     }
@@ -573,12 +573,12 @@ void Core::RunUntil(u64 gc_ticks)
                   static_cast<s32>((gc_ticks - m_last_gc_ticks) * core_frequency / gc_frequency));
   m_waiting_for_event = true;
 
-  s32 begin_time = mTimingCurrentTime(m_core->timing);
+  const s32 begin_time = mTimingCurrentTime(m_core->timing);
   while (m_waiting_for_event)
     m_core->runLoop(m_core);
-  s32 end_time = mTimingCurrentTime(m_core->timing);
+  const s32 end_time = mTimingCurrentTime(m_core->timing);
 
-  u64 d = (static_cast<u64>(end_time - begin_time) * gc_frequency) + m_gc_ticks_remainder;
+  const u64 d = (static_cast<u64>(end_time - begin_time) * gc_frequency) + m_gc_ticks_remainder;
   m_last_gc_ticks += d / core_frequency;
   m_gc_ticks_remainder = d % core_frequency;
 }
@@ -640,7 +640,7 @@ void Core::ExportSave(std::string_view save_path)
   File::IOFile file(std::string(save_path), "wb");
 
   void* sram = nullptr;
-  size_t size = m_core->savedataClone(m_core, &sram);
+  const size_t size = m_core->savedataClone(m_core, &sram);
   if (!sram)
     return;
 
@@ -661,9 +661,9 @@ void Core::DoState(PointerWrap& p)
 
   bool has_rom = !m_rom_path.empty();
   p.Do(has_rom);
-  auto old_hash = m_rom_hash;
+  const auto old_hash = m_rom_hash;
   p.Do(m_rom_hash);
-  auto old_title = m_game_title;
+  const auto old_title = m_game_title;
   p.Do(m_game_title);
 
   if (p.IsReadMode() && (has_rom != !m_rom_path.empty() ||
@@ -697,7 +697,7 @@ void Core::DoState(PointerWrap& p)
   if (p.IsReadMode() && m_core->stateSize(m_core) == core_state.size())
   {
     m_core->loadState(m_core, core_state.data());
-    if (auto host = m_host.lock())
+    if (const auto host = m_host.lock())
       host->FrameEnded(m_video_buffer);
   }
 }
