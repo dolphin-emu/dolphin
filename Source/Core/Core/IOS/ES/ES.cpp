@@ -479,9 +479,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   if (!Core::IsRunning(system))
     return BootstrapPPC();
 
-  INFO_LOG_FMT(ACHIEVEMENTS,
-               "WAD and NAND formats not currently supported by Achievement Manager.");
-  AchievementManager::GetInstance().CloseGame();
+  AchievementManager::GetInstance().LoadGame(nullptr);
 
   core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);
   core_timing.ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
