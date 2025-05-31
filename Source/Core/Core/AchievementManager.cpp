@@ -165,15 +165,24 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
   {
     return;
   }
-  if (volume == nullptr)
-  {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Called Load Game without a game.");
-    return;
-  }
   if (!m_client)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
                   "Attempted to load game achievements without achievement client initialized.");
+    return;
+  }
+  if (volume == nullptr)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Software format unsupported by AchievementManager.");
+    if (rc_client_get_game_info(m_client))
+    {
+      rc_client_begin_change_media_from_hash(m_client, "", ChangeMediaCallback, NULL);
+    }
+    else
+    {
+      rc_client_set_read_memory_function(m_client, MemoryVerifier);
+      rc_client_begin_load_game(m_client, "", LoadGameCallback, NULL);
+    }
     return;
   }
   rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
@@ -986,36 +995,30 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Color::RED);
     return;
   }
-  if (result == RC_NO_GAME_LOADED && instance.m_dll_found)
+
+  auto* game = rc_client_get_game_info(client);
+  if (result == RC_OK)
   {
-    // Allow developer tools for unidentified games
-    rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
-    instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
-    WARN_LOG_FMT(ACHIEVEMENTS, "Unrecognized title ready for development.");
-    OSD::AddMessage("Unrecognized title loaded for development.", OSD::Duration::VERY_LONG,
-                    OSD::Color::YELLOW);
+    if (!game)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve game information from client.");
+      OSD::AddMessage("Failed to load achievements for this title.", OSD::Duration::VERY_LONG,
+                      OSD::Color::RED);
+    }
+    else
+    {
+      INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
+      instance.m_display_welcome_message = true;
+    }
   }
-  if (result != RC_OK)
+  else
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
     OSD::AddMessage("Achievements are not supported for this title.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    return;
   }
-
-  auto* game = rc_client_get_game_info(client);
-  if (!game)
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve game information from client.");
-    OSD::AddMessage("Failed to load achievements for this title.", OSD::Duration::VERY_LONG,
-                    OSD::Color::RED);
-    instance.CloseGame();
-    return;
-  }
-  INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
 
   rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
-  instance.m_display_welcome_message = true;
   instance.FetchGameBadges();
   instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
   instance.m_update_callback({.all = true});
