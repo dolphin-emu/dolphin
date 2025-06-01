@@ -286,6 +286,13 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
         return std::nullopt;
       }
     }
+    else if (request.request == USB::IOCTLV_USBV0_BLKMSG && cmd->endpoint == ACL_DATA_OUT)
+    {
+      // Throttle for Bluetooth packet timing, especially for Wii remote speaker data.
+      auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+      core_timing.Throttle(core_timing.GetTicks());
+    }
+
     auto buffer = cmd->MakeBuffer(cmd->length);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
     transfer->buffer = buffer.get();
