@@ -24,7 +24,7 @@ static std::atomic<u32> s_callback_guards = 0;
 static std::atomic<u64> s_config_version = 0;
 
 static std::shared_mutex s_layers_rw_lock;
-static std::mutex s_callbacks_lock;
+static std::recursive_mutex s_callbacks_lock;
 
 using ReadLock = std::shared_lock<std::shared_mutex>;
 using WriteLock = std::unique_lock<std::shared_mutex>;
