@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
-# Siegfried, 2013-2024
+# Siegfried, 2013-2025
 # its take <bexco2010@gmail.com>, 2016
 # its take <bexco2010@gmail.com>, 2015
 # Siegfried, 2011
@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-22 23:25+0200\n"
+"POT-Creation-Date: 2025-06-03 09:05+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Siegfried, 2013-2024\n"
+"Last-Translator: Siegfried, 2013-2025\n"
 "Language-Team: Korean (http://app.transifex.com/dolphinemu/dolphin-emu/"
 "language/ko/)\n"
 "Language: ko\n"
@@ -253,7 +253,7 @@ msgstr "%1% (%2 MHz)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:335
 msgid "%1% (%2 VPS)"
-msgstr ""
+msgstr "%1% (%2 VPS)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:176
 msgid "%1% (Normal Speed)"
@@ -290,12 +290,16 @@ msgstr "%1: %2"
 msgid ""
 "%1: Failed to import save file. Please launch the game once, then try again."
 msgstr ""
+"%1: 저장 파일을 가져오기에 실패했습니다. 해당 게임을 한번 시작하세요, 그리고 "
+"다시 시도하세요."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1302
 msgid ""
 "%1: Failed to import save file. The given file appears to be corrupted or is "
 "not a valid Wii save."
 msgstr ""
+"%1: 저장 파일 가져오기에 실패했습니다. 주어진 파일은 오염되었거나 적합한 Wii "
+"저장이 아닙니다."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1317
 msgid ""
@@ -303,6 +307,9 @@ msgid ""
 "preventing access to files within it. Try repairing your NAND (Tools -> "
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
+"%1: 저장 파일 가져오기에 실패했습니다. NAND 가 오염되었을지 모릅니다, 혹은 어"
+"떤 것이 그 안에 파일들에 액세스를 막고 있습니다. NAND (도구 -> NAND 관리 -> "
+"NAND 체크...) 를 고쳐 보세요, 그런 후 저장을 다시 가져오세요."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1275
 msgid ""
@@ -311,6 +318,10 @@ msgid ""
 "\n"
 "Overwrite existing save data?"
 msgstr ""
+"%1: 이 타이틀에 대한 저장 데이터가 이미 NAND 에 존재합니다. 덮어쓰기 전에 현"
+"재 데이터 백업을 고려하세요.\n"
+"\n"
+"기존 저장 데이터를 덮어쓰시겠습니까?"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:283
 msgid "%1<br><br>%2"
@@ -330,7 +341,7 @@ msgstr "%1[%2]: %3/%4 MiB"
 
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:204
 msgid "%1h %2m"
-msgstr ""
+msgstr "%1h %2m"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:429
 #, c-format
@@ -804,7 +815,7 @@ msgstr "웹사이트(&W)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Wii Speak"
-msgstr ""
+msgstr "&Wii 스피크"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:425
 msgid "&Wiki"
@@ -938,7 +949,7 @@ msgstr "1x"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:132
 msgid "1x Anisotropic"
-msgstr ""
+msgstr "1x 비등방성"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:82
 msgid "2 GiB"
@@ -1157,7 +1168,7 @@ msgstr "> 보다-큰"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:332
 msgid "? Conditional"
-msgstr ""
+msgstr "? 조건"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1600
 #: Source/Core/DolphinQt/MainWindow.cpp:1667
@@ -1274,7 +1285,7 @@ msgstr "중단"
 
 #: Source/Core/Core/Movie.cpp:1292
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
-msgstr ""
+msgstr "재생을 중단합니다. DeserializeDesiredState 에 에러. 바이트:{0}{1}"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -1529,6 +1540,8 @@ msgid ""
 "Adjusts audio output volume.<br><br><dolphin_emphasis>If unsure, leave this "
 "at 100%.</dolphin_emphasis>"
 msgstr ""
+"오디오 출력 볼륨을 조정합니다.<br><br><dolphin_emphasis>잘 모르겠으면, 100% "
+"에 두세요.</dolphin_emphasis>"
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:107
@@ -1546,6 +1559,14 @@ msgid ""
 "Please do not report bugs that occur with a non-default frequency."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"VBI 빈도를 조절합니다. 상대적으로 같게 유지할, CPU 의 클락 비율을 조절합니다."
+"<br><br>게임을 다른 프레임 레이트에서 구동하게 만듭니다, 낮추면 에뮬레이션이 "
+"덜 요구하게 만듭니다, 그렇지 않고 증가시키면 부드러움을 향상시킵니다. 게임플"
+"레이 스피드에 영향을 줄 수 있습니다, 종종 프레임 레이트에 묶여 있거든요."
+"<br><br>경고: 기본 (100%) 에서 이것을 변경하면 게임을 고장내고 글리치를 유발"
+"할 수 있습니다. 비-기본 빈도로 발생하는 버그를 리포팅하지 말아주세요."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:186
 msgid ""
@@ -1568,6 +1589,10 @@ msgid ""
 "games can benefit from this.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"에뮬된 콘솔에서 램의 양을 조절합니다.<br><br><b>경고</b>: 이것을 활성화하면 "
+"많은 게임들이 완전 고장날 것입니다.<br>소수의 게임들만 이것으로 이득을 얻을 "
+"수 있습니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:114
 msgid ""
@@ -1580,6 +1605,14 @@ msgid ""
 "a non-default clock.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"에뮬된 CPU 의 클락 비율을 조절합니다.<br><br>풀 에뮬레이션 스피드에도 불구하"
+"고 프레임이 불안한 게임상에서, 더 높은 값은 성능을 향상시킬 수 있습니다, 파워"
+"풀한 장치가 필요함. 더 낮은 값은 에뮬된 콘솔의 성능을 줄입니다, 하지만 에뮬레"
+"이션 스피드를 향상시킵니다.<br><br>경고: 기본 (100%)에서 이것을 변경하면 게임"
+"을 고장내거나 글리치들을 유발할 것입니다. 그러니 본인이 위험을 감당하고 하세"
+"요. 비-기본 클락으로 발생하는 버그들을 리포팅하지 말아주세요."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:302
 msgid ""
@@ -1587,6 +1620,9 @@ msgid ""
 "presets increases audio latency.<br><br><dolphin_emphasis>If unsure, select "
 "High.</dolphin_emphasis>"
 msgstr ""
+"돌비 프로 로직 2 디코더의 품질 세팅을 조절합니다. 더 높은 프리셋은 오디오 지"
+"연을 증가시킵니다.<br><br><dolphin_emphasis>잘 모르겠으면, 높음을 선택하세요."
+"</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:102
 msgid "Advance Game Port"
@@ -1922,7 +1958,7 @@ msgstr "오디오"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:317
 msgid "Audio Backend"
-msgstr ""
+msgstr "오디오 백엔드"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:87
 msgid "Audio Backend:"
@@ -1930,15 +1966,15 @@ msgstr "오디오 백엔드:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:177
 msgid "Audio Buffer Size:"
-msgstr ""
+msgstr "코드 버퍼 크기:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:145
 msgid "Audio Playback Settings"
-msgstr ""
+msgstr "오디오 재생 설정"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:99
 msgid "Audio backend unsupported"
-msgstr ""
+msgstr "미지원 오디오 백엔드"
 
 #: Source/Core/DiscIO/Enums.cpp:33
 msgid "Australia"
@@ -1983,7 +2019,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:266
 msgid "Auto update memory values"
-msgstr ""
+msgstr "자동 업데이트 메모리 값들"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:121
 msgid "Auto-Adjust Window Size"
@@ -1999,11 +2035,11 @@ msgstr "RSO 모듈을 자동-감지할까요?"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:102
 msgid "Autodetect preferred microphone"
-msgstr ""
+msgstr "선호 마이크 자동감지"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:108
 msgid "Automatic"
-msgstr ""
+msgstr "자동"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:239
 msgid "Automatically Sync with Folder"
@@ -3190,7 +3226,7 @@ msgstr "돌핀 환경설정"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:65
 msgid "Configure Extension"
-msgstr ""
+msgstr "확장 설정"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:270
 msgid "Configure Input"
@@ -3380,6 +3416,9 @@ msgid ""
 "but may cause more crackling or stuttering.<br><br><dolphin_emphasis>If "
 "unsure, set this to 80 ms.</dolphin_emphasis>"
 msgstr ""
+"버퍼된 오디오 샘플들의 숫자를 조절합니다. 낮은 값일수록 지연을 줄이지만 지직"
+"거림과 버벅임을 유발할 수 있습니다.<br><br><dolphin_emphasis>잘 모르겠으면, "
+"이것을 80 ms 로 설정하세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:455
 msgid ""
@@ -3701,6 +3740,8 @@ msgid ""
 "Couldn't open port {0}. This might stop the game's LAN mode from working "
 "properly."
 msgstr ""
+"포트 {0} 를 열 수 없었습니다. 이것은 게임의 랜모드를 제대로 작동하지 못하게 "
+"할지도 모릅니다."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:832
 msgid "Couldn't read file."
@@ -3722,7 +3763,7 @@ msgstr "무한대 파일 생성"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:114
 msgid "Create Mappings for Other Devices"
-msgstr ""
+msgstr "다른 장치용 매핑 생성"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:62
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:74
@@ -3895,7 +3936,7 @@ msgstr "DSP 에뮬레이션 엔진"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:57
 msgid "DSP Emulation Engine:"
-msgstr ""
+msgstr "DSP 에뮬레이션 엔진:"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:111
 msgid "DSP HLE (fast)"
@@ -3903,7 +3944,7 @@ msgstr "DSP HLE (빠름)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:53
 msgid "DSP Options"
-msgstr ""
+msgstr "DSP 옵션"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:31
 msgid "DSU Client"
@@ -3988,7 +4029,7 @@ msgstr "10 진수"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:325
 msgid "Decoding Quality"
-msgstr ""
+msgstr "디코딩 품질"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:102
 msgid "Decoding Quality:"
@@ -4159,7 +4200,7 @@ msgstr "떨어진"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:292
 msgid "Detect Input"
-msgstr ""
+msgstr "입력 감지"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1556
 msgid "Detecting RSO Modules"
@@ -4323,6 +4364,12 @@ msgid ""
 "the Skip Presenting Duplicate Frames setting.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"스캔아웃을 기다리는 대신, XFB 복사가 생성되자마자 표시합니다. <br><br>만일 게"
+"임이 모든 XFB 복사가 표시되기를 기대하지 않는다면 일부 게임에서 그래픽 결함"
+"을 일으킬 수 있습니다. 하지만 이 설정을 켜면 지연을 줄입니다.<br><br>이것을 "
+"활성화하면 중복된 프레임들 표시 스킵 설정과 같은 효과를 강제합니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:28
 msgid "Distance"
@@ -4360,6 +4407,8 @@ msgid ""
 "Do you want to stop the current emulation? Unsaved achievement modifications "
 "detected."
 msgstr ""
+"현재 에뮬레이션을 멈추고 싶습니까? 저장되지 않은 달성 변경들이 감지되었습니"
+"다."
 
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:86
 msgid "Do you want to try to repair the NAND?"
@@ -4438,7 +4487,7 @@ msgstr "돌핀은 무료이고 오픈-소스 게임큐브 및 Wii 에뮬레이�
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1380
 msgid "Dolphin is currently unable to verify Triforce games."
-msgstr ""
+msgstr "돌핀은 현재 트라이포스 게임들을 검증할 수 없습니다."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1004
 msgid "Dolphin is too old for traversal server"
@@ -4460,6 +4509,8 @@ msgstr "돌핀은 라이슨스되지 않은 디스크들을 검증할 수 없습
 msgid ""
 "Dolphin was built with Cubeb disabled. The Microphone device cannot be used."
 msgstr ""
+"돌핀은 Cubeb 가 비활성된 상태로 빌드되었습니다. 마이크 장치가 사용될 수 없습"
+"니다."
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:65
 msgid "Dolphin's cheat system is currently disabled."
@@ -4808,7 +4859,7 @@ msgstr "스카이랜더 포탈 에뮬레이트"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:53
 msgid "Emulate Wii Speak"
-msgstr ""
+msgstr "Wii 스피크 에뮬"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:199
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -4940,7 +4991,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:120
 msgid "Enable Iterative Input Mapping"
-msgstr ""
+msgstr "반복 입력 매핑 활성화"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:957
 msgid "Enable JIT Block Profiling"
@@ -4953,7 +5004,7 @@ msgstr "MMU 활성화"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:178
 msgid "Enable Play Time Tracking"
-msgstr ""
+msgstr "플레이 시간 추적 활성화"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Enable Progress Notifications"
@@ -4994,7 +5045,7 @@ msgstr "사용 통계 보고 활성화"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:130
 msgid "Enable VBI Frequency Override"
-msgstr ""
+msgstr "VBI 빈도 오버라이드 활성화"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:159
 msgid "Enable WiiConnect24 via WiiLink"
@@ -5083,6 +5134,9 @@ msgid ""
 "only. <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"5.1 써라운드를 사용하는 돌비 프로 로직 2 에뮬레이션을 활성화합니다. 특정 백엔"
+"드 한정. <br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:121
 msgid ""
@@ -5235,6 +5289,9 @@ msgid ""
 "lossy Xvid codec will be used.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ut 비디오 코덱을 사용해 프레임 덤프들을 인코드합니다. 이 옵션이 체크되지 않으"
+"면, 손실  Xvid 코덱이 사용될 것입니다.<br><br><dolphin_emphasis>잘 모르겠으"
+"면, 체크 해제해 두세요.</dolphin_emphasis>"
 
 #. i18n: Character encoding
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:43
@@ -5545,7 +5602,7 @@ msgstr "닫는 괄호를 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:1010
 msgid "Expected colon."
-msgstr ""
+msgstr "콜론이 예상됨"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:766
 msgid "Expected end of expression."
@@ -6166,6 +6223,9 @@ msgid ""
 "discarded on next boot if you do not manually re-issue a resync in Config > "
 "Wii > SD Card Settings > {0}!"
 msgstr ""
+"SD 카드를 폴더와 동기화 실패했습니다. 환경 > Wii > SD 카드 설정 > {0}! 에서 "
+"지금! 재동기화를 수동으로 재발급하지 않는다면 이 세션에서 만들어진 모든 변경"
+"들은 다음 부팅에 무시될 것입니다 "
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:226
 msgid "Failed to uninstall pack: %1"
@@ -6326,7 +6386,7 @@ msgstr "파일 시스템"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:170
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:348
 msgid "Fill Audio Gaps"
-msgstr ""
+msgstr "오디오 간격들 채우기"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:103
 msgid "Filters"
@@ -6427,7 +6487,7 @@ msgstr "강제 Linear 와 16x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:139
 msgid "Force Linear and 1x Anisotropic"
-msgstr ""
+msgstr "강제 Linear 와 1x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:140
 msgid "Force Linear and 2x Anisotropic"
@@ -6447,7 +6507,7 @@ msgstr "강제 듣기 포트: "
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:137
 msgid "Force Nearest and 1x Anisotropic "
-msgstr ""
+msgstr "강제 Nearest 와 1x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:498
 msgid "Forced off because %1 doesn't support VS expansion."
@@ -6915,11 +6975,11 @@ msgstr "게임큐브 컨트롤러"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:38
 msgid "GameCube Controller Adapter (USB)"
-msgstr ""
+msgstr "게임큐브 컨트롤러 어댑터 (USB)"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:35
 msgid "GameCube Controller Adapter at Port %1"
-msgstr ""
+msgstr "포트 %1 에 게임큐브 컨트롤러 어댑터"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:442
 msgid "GameCube Controller at Port %1"
@@ -7037,7 +7097,7 @@ msgstr "독일"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:157
 msgid "GetDeviceList failed: {0}"
-msgstr "디바이스목록얻기 실패했음: {0}"
+msgstr "장치목록얻기 실패했음: {0}"
 
 #: Source/Core/UICommon/UICommon.cpp:529
 msgid "GiB"
@@ -7143,7 +7203,7 @@ msgstr "HDR 후-처리"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:59
 msgid "HLE (recommended)"
-msgstr ""
+msgstr "HLE (추천됨)"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:213
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:62
@@ -7227,19 +7287,19 @@ msgstr "높은"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:105
 msgid "High (Latency ~40 ms)"
-msgstr ""
+msgstr "높음 (지연 ~40 ms)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:105
 msgid "Highest (Latency ~80 ms)"
-msgstr ""
+msgstr "가장 높음 (지연 ~80 ms)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:282
 msgid "Highlight color"
-msgstr ""
+msgstr "강조 색"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:277
 msgid "Highlight recently changed values"
-msgstr ""
+msgstr "최근 변경된 값들 강조"
 
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:66
@@ -7617,7 +7677,7 @@ msgstr "Wii 저장 가져오기"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Import Wii Saves..."
-msgstr ""
+msgstr "Wii 저장 가져오기..."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1836
 msgid "Importing NAND backup"
@@ -7800,11 +7860,11 @@ msgstr "NOP 삽입 (&N)"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:291
 msgid "Insert Input"
-msgstr ""
+msgstr "입력 삽입"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:291
 msgid "Insert Output"
-msgstr ""
+msgstr "출력 삽입"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:217
 msgid "Insert SD Card"
@@ -8025,7 +8085,7 @@ msgstr "부적합한 찾기 스트링 (짝수 길이 스트링만 지원됩니�
 
 #: Source/Core/Core/Movie.cpp:1274
 msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
-msgstr ""
+msgstr "PlayWiimote에 부적합 연속된 길이:{0}. 바이트:{1}"
 
 #: Source/Core/DolphinQt/Main.cpp:220
 msgid "Invalid title ID."
@@ -8057,6 +8117,11 @@ msgid ""
 "Anti-Aliasing settings are disabled when the global graphics backend doesn't "
 "match the game setting."
 msgstr ""
+"이텔릭은 디폴트 게임 설정 표시, 굵음은 유저 설정 표시\n"
+"우-클릭 유저 설정 삭제.\n"
+"그래픽 탭들은 기본 게임 설정의 값을 표시하지 않습니다\n"
+"앤티-앨리어싱 설정들은 글로벌 그래픽 백엔드가 게임 설정과 같지 않으면 비활성"
+"됩니다."
 
 #: Source/Core/DiscIO/Enums.cpp:42
 msgid "Italy"
@@ -8248,11 +8313,11 @@ msgstr "L-아날로그"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:61
 msgid "LLE Interpreter (very slow)"
-msgstr ""
+msgstr "LLE 인터프리터 (매우 느림)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:60
 msgid "LLE Recompiler (slow)"
-msgstr ""
+msgstr "LLE 리컴파일러 (느림)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
 msgid "LR Save"
@@ -8282,16 +8347,16 @@ msgstr "마지막 리셋:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:341
 msgid "Latency"
-msgstr ""
+msgstr "지연"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:135
 msgid "Latency:  000 ms"
-msgstr ""
+msgstr "지연:  000 ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:133
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:214
 msgid "Latency: %1 ms"
-msgstr ""
+msgstr "지연: %1 ms"
 
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:81
 msgid "Launching these titles may also fix the issues."
@@ -8570,7 +8635,7 @@ msgstr "파일에서 상태 로드"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:402
 msgid "Load State from Selected Slot"
-msgstr "선택된 슬롯에서 상태를 로드합니다"
+msgstr "선택된 슬롯에서 상태 로드"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:403
 msgid "Load State from Slot"
@@ -8721,11 +8786,11 @@ msgstr "낮은"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:104
 msgid "Low (Latency ~20 ms)"
-msgstr ""
+msgstr "낮음 (지연 ~20 ms)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:104
 msgid "Lowest (Latency ~10 ms)"
-msgstr ""
+msgstr "가장 낮음 (지연 ~10 ms)"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:76
 msgid "MD5:"
@@ -8917,7 +8982,7 @@ msgstr "마이크"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
 msgid "Microphone Configuration"
-msgstr ""
+msgstr "마이크 환경설정"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
@@ -9061,7 +9126,7 @@ msgstr "곱하는 수"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
 msgid "Mute"
-msgstr ""
+msgstr "음소거"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:172
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
@@ -9074,6 +9139,9 @@ msgid ""
 "Tab). <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"에뮬레이션 스피드 제한을 오버라이드할 때 오디오를 음소거합니다 (기본 핫키: "
+"Tab). <br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
@@ -9634,7 +9702,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
 msgid "Only approved codes will be applied in hardcore mode."
-msgstr ""
+msgstr "승인된 코드들만 하드코어 모드에 적용될 것입니다."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1854
 msgid ""
@@ -9790,11 +9858,11 @@ msgstr "출력"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:332
 msgid "Output Device"
-msgstr ""
+msgstr "출력 장치"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:124
 msgid "Output Device:"
-msgstr ""
+msgstr "출력 장치:"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:590
 msgid "Output Resampling"
@@ -9857,7 +9925,7 @@ msgstr "PPC 대 호스트"
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "팩 SD 카드 나우"
 
 #: Source/Core/Core/HW/GBAPad.cpp:13 Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -10140,6 +10208,8 @@ msgid ""
 "Port {0} is already in use. This might stop the game's LAN mode from working "
 "properly."
 msgstr ""
+"포트 {0} 은 이미 사용중입니다. 이것은 게임의 랜모드를 제대로 작동하지 못하게 "
+"할지도 모릅니다."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:103
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:137
@@ -10176,7 +10246,7 @@ msgstr "파워 디스크 2"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:108
 msgid "Precision Frame Timing"
-msgstr ""
+msgstr "정밀 프레임 타이밍"
 
 #. i18n: VS is short for vertex shaders.
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:215
@@ -10193,7 +10263,7 @@ msgstr "PlayController에 무비 마무리가 미완성되었습니다. {0} + {1
 
 #: Source/Core/Core/Movie.cpp:1263
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "PlayWiimote 에 미완성 무비 마무리. {0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1283
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
@@ -10662,6 +10732,8 @@ msgid ""
 "Repeat existing audio during lag spikes to prevent stuttering."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"버벅임을 막기위한 지연 튐 동안 존재하는 오디오를 반복합니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:408
 msgid "Report: GCIFolder Writing to unallocated block {0:#x}"
@@ -10750,7 +10822,7 @@ msgstr "명령 복구"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:298
 msgid "RetroAchievements Development"
-msgstr ""
+msgstr "레트로달성 개발"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:744
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
@@ -11164,7 +11236,7 @@ msgstr "가장 오래된 슬롯에 상태 저장"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:418
 msgid "Save State to Selected Slot"
-msgstr "선택된 슬롯에 상태를 저장합니다"
+msgstr "선택된 슬롯에 상태 저장"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:420
 msgid "Save State to Slot"
@@ -11197,6 +11269,10 @@ msgid ""
 "\n"
 "Overwrite existing save data?"
 msgstr ""
+"이 타이틀에 대한 저장 데이터가 이미 NAND 에 존재합니다. 덮어쓰기 전에 현재 데"
+"이터 백업을 고려하세요.\n"
+"\n"
+"기존 저장 데이터를 덮어쓰시겠습니까?"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:219
 msgid "Save in Same Directory as the ROM"
@@ -11236,7 +11312,7 @@ msgstr "스캔을 성공했습니다."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:78
 msgid "Scanning for adapters..."
-msgstr ""
+msgstr "어댑터들 검사..."
 
 #: Source/Core/DolphinQt/ToolBar.cpp:126
 msgid "ScrShot"
@@ -11376,7 +11452,7 @@ msgstr "저장 파일 선택"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1250
 msgid "Select Save Folder"
-msgstr ""
+msgstr "저장 폴더 선택"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:484
 msgid "Select Skylander Collection"
@@ -11542,6 +11618,8 @@ msgid ""
 "Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
 "Default Device.</dolphin_emphasis>"
 msgstr ""
+"사용할 출력 장치를 선택합니다.<br><br><dolphin_emphasis>잘 모르겠으면, 기본 "
+"장치를 선택하세요</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:379
 msgid ""
@@ -11587,6 +11665,15 @@ msgid ""
 "Slowest, for debugging purposes only. Not recommended."
 "<br><br><dolphin_emphasis>If unsure, select HLE.</dolphin_emphasis>"
 msgstr ""
+"Digital Signal Processor (DSP) 가 어떻게 에뮬될지 선택합니다. 오디오가 어떻"
+"게 처리될지 와 무슨 시스템 특성들이 가능한지를 정합니다.<br><br><b>HLE</b> - "
+"DSP 의 High Level Emulation . 빠름, 하지만 항상 정확하지는 않음. 돌비 프로 로"
+"직 2 디코딩에는 부족합니다.<br><br><b>LLE 리컴파일러</b> - DSP 의 Low Level "
+"Emulation, 리컴파일러를 경유. 더 느림, 하지만 더 정확함. 특정 오디오 백엔드에"
+"서 돌피 프로 로직 2 디코딩을 활성화합니다.<br><br><b>LLE 인터프리터</b> - "
+"DSP 의 Low Level Emulation, 인터프리터를 경유. 가장 느림, 디버깅 용으로만. 추"
+"천되지 않음.<br><br><dolphin_emphasis>잘 모르겠으면, HLE 를 선택하세요.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:534
 msgid ""
@@ -11649,6 +11736,8 @@ msgid ""
 "Selects which audio API to use internally.<br><br><dolphin_emphasis>If "
 "unsure, select %1.</dolphin_emphasis>"
 msgstr ""
+"내부적으로 어느 오디오 API 를 사용할지 선택합니다.<br><br><dolphin_emphasis>"
+"잘 모르겠으면, %1 을 선택하세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:239
 msgid ""
@@ -11690,7 +11779,7 @@ msgstr ""
 "만일 새로운 업데이트가 가능하다면, 돌핀은 당신의 현재 버전 이래로 만들어진 변"
 "경들의 목록을 보여주고 업데이트 할 것이지 물어볼 것입니다.<br><br>개발 트랙"
 "은 돌핀의 최신 버전입니다 이것은 날마다 여러번 자주 업데이트 되죠. 가장 새로"
-"운 기능들과 고침들을 원한다면 이 트랙을 선택하세요.<br><br>출시 트랙은 몇달"
+"운 특성들과 고침들을 원한다면 이 트랙을 선택하세요.<br><br>출시 트랙은 몇달"
 "에 한번식 업데이트합니다. 일부 이유로 이 트랙 사용을 더 선호할지도 모릅니다:"
 "<br>- 추가 테스트가 되어온 버전 사용을 선호하는 것이죠.<br>- 넷플레이는 플레"
 "이어들이 같은 돌핀 버전을 가져야합니다, 그래서 최신 출시 버전이 가장 많은 플"
@@ -11805,6 +11894,9 @@ msgid ""
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
 "this at 20 ms.</dolphin_emphasis>"
 msgstr ""
+"오디오 지연을 밀리초로 설정합니다. 높은 값일 수록 오디오 지글거림을 줄일지도 "
+"모릅니다. 특정 백엔드 한정.<br><br><dolphin_emphasis>잘 모르겠으면, 이것을 "
+"20 ms 로 두세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:343
 msgid ""
@@ -12062,7 +12154,7 @@ msgstr "메모리에서 대상 보여주기(&y)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:747
 msgid "Show Triforce"
-msgstr ""
+msgstr "트라이포스 보기"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:774
 msgid "Show USA"
@@ -12354,6 +12446,12 @@ msgid ""
 "issues.</dolphin_emphasis> <br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"지연이 감지되었을 때 수직 블랭크 인터럽트를 스킵합니다, 에뮬레이션 속도가 "
+"100% 아닐 때 부드러운 오디오 재생을 하게 해줍니다. <br><br> 이것을 활성화하"
+"면 중복 프레임 표시 스킵 설정의 효과 역시 강제합니다."
+"<br><br><dolphin_emphasis>경고: 멈추거나 호환 문제의 원인이 될 수 있습니다. "
+"</dolphin_emphasis><br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세"
+"요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:204
 msgid ""
@@ -12364,6 +12462,12 @@ msgid ""
 "is enabled. In those cases, duplicate frames are never presented."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"25fps/30fps 게임들에서 반복 프레임들 (XFB 복사들) 표시를 스킵합니다. 이것은 "
+"로-엔드 장치상에서 성능을 향상 시킬지도 모릅니다, 반면 프레임 패이싱은 덜 안"
+"정적이게 됩니다.<br><br>최적 프레임 페이싱을 위해서는 이 옵션을 비활성하세요."
+"<br><br>이 설정은 XFB 표시 나 VBI 스킵이 활성화된 즉시 사용할 수 없습니다. 이"
+"럴 때는, 중복된 프레임들은 절대 표시 되지 않습니다.<br><br><dolphin_emphasis>"
+"잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:403
@@ -12441,7 +12545,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
 msgid "Some settings cannot be changed when emulation is running."
-msgstr ""
+msgstr "에뮬레이션 구동중에 일부 설정들은 변경될 수 없습니다."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:257
 msgid ""
@@ -12803,7 +12907,7 @@ msgstr "성공적으로 시스템 데이터 압축을 풀었습니다."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1329
 msgid "Successfully imported %1 save file(s) with %2 failure(s)"
-msgstr ""
+msgstr "성공적으로 %1 저장 파일(들)을 %2 실패(들)와 함께 가져왔습니다."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1223
 msgid "Successfully imported save file."
@@ -13014,7 +13118,7 @@ msgstr "테크"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:293
 msgid "Test Output"
-msgstr ""
+msgstr "출력 테스트"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:632
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:649
@@ -13135,6 +13239,10 @@ msgid ""
 "traditional buttons, triggers or axes. You might need to configure alternate "
 "input sources before using these controls."
 msgstr ""
+"가속도계와 자이로콥하에 컨트롤들은 모션 센서 하드웨어와 직접 접속하도록 디자"
+"인되어있습니다. 그것들은 전통적 버튼, 트리거, 축들을 맵핑하도록 의도되어있지 "
+"않습니다. 이들 컨트롤들을 사용하기 전에 대체 입력 소스를 설정할 필요가 있을 "
+"것 같습니다."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:460
 msgid "The data partition is missing."
@@ -13393,7 +13501,7 @@ msgid ""
 msgstr ""
 "무비는 메모리 카드가 {0:n} 에 삽입되어야 한다고 합니다, 하지만 현재 삽입되어 "
 "있지 않습니다(대신, {1} 가 삽입되어 있습니다).  올바른 무비 동기화를 위해, 선"
-"택된 디바이스를 메모리 카드나 GCI 폴더로 바꿔주세요."
+"택된 장치를 메모리 카드나 GCI 폴더로 바꿔주세요."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:180
 msgid "The nickname for this Skylander. Limited to 15 characters"
@@ -13599,10 +13707,13 @@ msgid ""
 "axes. You might need to configure alternate input sources before using these "
 "controls."
 msgstr ""
+"이 컨트롤들은 모션 센서 하드웨어와 직접 접속하도록 디자인되어있습니다. 그것들"
+"은 전통적 버튼, 트리거, 축들을 맵핑하도록 의도되어있지 않습니다. 이들 컨트롤"
+"들을 사용하기 전에 대체 입력 소스를 설정할 필요가 있을 것 같습니다."
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:263
 msgid "These settings override core Dolphin settings."
-msgstr ""
+msgstr "이 설정들은 핵심 돌핀 설정들을 오버라이드합니다."
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:169
 msgid ""
@@ -13797,6 +13908,9 @@ msgid ""
 "your current system time.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"이 설정은 현재 시스템 시간과 분리시켜 사용자 지정 실제 시간 시계(RTC)를 세팅"
+"하도록 해줍니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요."
+"</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:76
 msgid "This software should not be used to play games you do not legally own."
@@ -13926,7 +14040,7 @@ msgstr "시간 퍼센트"
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:721
 msgid "Time Played"
-msgstr ""
+msgstr "플레이된 시간"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
@@ -14035,7 +14149,7 @@ msgstr "USB 키보드 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Toggle Wii Speak Mute"
-msgstr ""
+msgstr "Wii 스피크 음소거 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle XFB Copies"
@@ -14118,6 +14232,9 @@ msgid ""
 "active.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
+"게임 플레이에 소비한 시간을 추적하고 그것을 목록 보기에서 보여줍니다 (시간/"
+"분 으로).<br><br>이 설정은 에뮬레이션이 활성된 상태에서 변경될 수 없습니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:177
@@ -14163,11 +14280,11 @@ msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:99
 msgid "Triforce Baseboard"
-msgstr ""
+msgstr "트라이포스 베이스보드"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:128
 msgid "Triforce ID:"
-msgstr ""
+msgstr "트라이포스 아이디:"
 
 #: Source/Core/Core/HW/GCPadEmu.h:60
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:224
@@ -14386,7 +14503,7 @@ msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:112
 msgid "Unknown Device"
-msgstr ""
+msgstr "알려지지 않은 장치"
 
 #: Source/Core/Core/NetPlayClient.cpp:1340
 msgid "Unknown SYNC_CODES message received with id: {0}"
@@ -14487,7 +14604,7 @@ msgstr "%1 에 언락되었습니다"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "언팩 SD 카드 나우"
 
 #: Source/Core/DiscIO/FileBlob.cpp:87
 msgid "Unpacking"
@@ -14607,7 +14724,7 @@ msgstr "눈마다 최대 해상도를 사용"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:189
 msgid "Use Lossless Codec (Ut Video)"
-msgstr ""
+msgstr "비손실 코덱 (Ut 비디오) 사용"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:171
 msgid "Use Mouse Controlled Pointing"
@@ -14722,6 +14839,9 @@ msgid ""
 "<br><br>This will marginally increase power usage."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"향상된 프레임 페이싱을 위해 높은 해상도 타이머와 \"바쁜 기다림\"를 사용합니"
+"다.<br><br>이것은 전력 소비를 미미하게 증가 시킬 것입니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:246
 msgid ""
@@ -14781,7 +14901,7 @@ msgstr "수직-동기화"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:124
 msgid "VBI Frequency Override"
-msgstr ""
+msgstr "VBI 빈도 오버라이드"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:113
 msgid "VBI Skip"
@@ -14907,7 +15027,7 @@ msgstr "볼륨 증가"
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:81
 #, c-format
 msgid "Volume modifier (value: %1dB)"
-msgstr ""
+msgstr "볼륨 조절기 (값: %1dB)"
 
 #: Source/Core/VideoBackends/Vulkan/VideoBackend.h:18
 msgid "Vulkan"
@@ -14966,7 +15086,7 @@ msgstr "WIA GC/Wii 이미지들 (*.wia)"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:117
 msgid "Wait for Alternate Input Mappings"
-msgstr ""
+msgstr "대체 입력 매핑 기다림"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:236
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:458
@@ -15234,7 +15354,7 @@ msgstr "Wii 리모트"
 #. i18n: Window for managing the Wii Speak microphone
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:28
 msgid "Wii Speak Manager"
-msgstr ""
+msgstr "Wii 스피크 매니저"
 
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:458
 msgid "Wii TAS Input %1 - Classic Controller"
@@ -15413,6 +15533,8 @@ msgid ""
 "All current content of the file will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"%1 에 있는 폴더의 내용을 %2 에 있는 파일로 담으려 합니다. 모든 현재 파일의 내"
+"용이 삭제됩니다. 정말 계속 하시겠습니까?"
 
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:39
 msgid ""
@@ -15453,6 +15575,8 @@ msgid ""
 "All current content of the folder will be deleted. Are you sure you want to "
 "continue?"
 msgstr ""
+"%2 에 있는 파일의 내용을 %1 에 있는 폴더로 풀려고 합니다. 모든 현재 폴더의 내"
+"용이 삭제됩니다. 정말 계속 하시겠습니까?"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCKeyboardEmu.cpp:30
 msgid ""
@@ -15582,12 +15706,12 @@ msgstr "돌핀에 알려지지 않은 Zero 코드: {0:08x}"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:532
 msgid "[ ... ]"
-msgstr ""
+msgstr "[ ... ]"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:536
 #: Source/Core/DolphinQt/Config/Mapping/MappingCommon.cpp:61
 msgid "[ Press Now ]"
-msgstr ""
+msgstr "[ 지금 누르세요 ]"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:100
 msgid "[%1, %2]"

@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-22 23:25+0200\n"
+"POT-Creation-Date: 2025-06-03 09:05+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2025\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/dolphinemu/dolphin-"
@@ -263,7 +263,7 @@ msgstr "%1% (%2 MHz)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:335
 msgid "%1% (%2 VPS)"
-msgstr ""
+msgstr "%1% (%2 VPS)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:176
 msgid "%1% (Normal Speed)"
@@ -299,13 +299,13 @@ msgstr "%1: %2"
 #: Source/Core/DolphinQt/MenuBar.cpp:1309
 msgid ""
 "%1: Failed to import save file. Please launch the game once, then try again."
-msgstr ""
+msgstr "%1: 导入存档文件失败。请运行一次游戏，然后重试。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1302
 msgid ""
 "%1: Failed to import save file. The given file appears to be corrupted or is "
 "not a valid Wii save."
-msgstr ""
+msgstr "%1: 导入存档文件失败。给定的文件似乎已损坏或不是有效的 Wii 存档。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1317
 msgid ""
@@ -313,6 +313,8 @@ msgid ""
 "preventing access to files within it. Try repairing your NAND (Tools -> "
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
+"%1: 导入存档文件失败。您的 NAND 可能已损坏，或某些因素阻止访问里面的文件。请"
+"尝试修复 NAND（工具 -> 管理 NAND -> 校验 NAND...），然后再次导入存档。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1275
 msgid ""
@@ -321,6 +323,9 @@ msgid ""
 "\n"
 "Overwrite existing save data?"
 msgstr ""
+"%1: 此游戏的存档数据已存在于 NAND 中。建议在覆盖之前备份当前数据。\n"
+"\n"
+"是否覆盖现有存档数据？ "
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:283
 msgid "%1<br><br>%2"
@@ -814,7 +819,7 @@ msgstr "网站(&W)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Wii Speak"
-msgstr ""
+msgstr "Wii 语音(&W)"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:425
 msgid "&Wiki"
@@ -1543,6 +1548,11 @@ msgid ""
 "Please do not report bugs that occur with a non-default frequency."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"调整 VBI 频率。同时调整模拟 CPU 的时钟频率，使其保持相对稳定。<br><br>可让游"
+"戏以不同的帧率运行，降低帧率时模拟要求更低，提高帧率时则提升流畅度。这可能会"
+"影响游戏速度，因为游戏速度通常与帧率相关。<br><br>警告：更改默认设置（100%）"
+"可能会导致游戏崩溃并出现故障。如要更改风险自负。请勿提交非默认频率导致的错"
+"误。<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:186
 msgid ""
@@ -1579,6 +1589,11 @@ msgid ""
 "a non-default clock.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"调整模拟 CPU 的时钟频率。<br><br>对于即使达到最大模拟速度仍帧率不稳定的游戏，"
+"较高的数值可以提升其性能，因此需要性能强大的设备。较低的数值会降低模拟主机的"
+"性能，但会提高模拟速度。<br><br>警告：更改默认值（100%）可能会导致游戏崩溃并"
+"出现故障。如要更改风险自负。请勿提交非默认时钟频率导致的错误。"
+"<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:302
 msgid ""
@@ -1937,7 +1952,7 @@ msgstr "音频回放设置"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:99
 msgid "Audio backend unsupported"
-msgstr ""
+msgstr "不支持的音频后端"
 
 #: Source/Core/DiscIO/Enums.cpp:33
 msgid "Australia"
@@ -1997,7 +2012,7 @@ msgstr "自动检测 RSO 模块？"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:102
 msgid "Autodetect preferred microphone"
-msgstr ""
+msgstr "自动检测首选麦克风"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:108
 msgid "Automatic"
@@ -4272,6 +4287,10 @@ msgid ""
 "the Skip Presenting Duplicate Frames setting.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"在 XFB 副本创建后立即将其显示，而不是等待扫描输出。<br><br>在一些不将所有 "
+"XFB 副本用于显示的游戏中会导致图像瑕疵。但是开启此项可以降低延迟。<br><br>启"
+"用此项还会强制执行与“跳过重复出现的帧”设置相同的效果。"
+"<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:28
 msgid "Distance"
@@ -4751,7 +4770,7 @@ msgstr "模拟 Skylander 传送门"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:53
 msgid "Emulate Wii Speak"
-msgstr ""
+msgstr "模拟 Wii 语音"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:199
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -4932,7 +4951,7 @@ msgstr "启用使用情况统计报告"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:130
 msgid "Enable VBI Frequency Override"
-msgstr ""
+msgstr "启用 VBI 频率覆盖"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:159
 msgid "Enable WiiConnect24 via WiiLink"
@@ -7510,7 +7529,7 @@ msgstr "导入 Wii 存档..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Import Wii Saves..."
-msgstr ""
+msgstr "导入 Wii 存档..."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1836
 msgid "Importing NAND backup"
@@ -8804,7 +8823,7 @@ msgstr "麦克风"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
 msgid "Microphone Configuration"
-msgstr ""
+msgstr "麦克风配置"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
@@ -8945,7 +8964,7 @@ msgstr "多重分插器"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
 msgid "Mute"
-msgstr ""
+msgstr "静音"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:172
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
@@ -11056,6 +11075,9 @@ msgid ""
 "\n"
 "Overwrite existing save data?"
 msgstr ""
+"此游戏的存档数据已存在于 NAND 中。建议在覆盖之前备份当前数据。\n"
+"\n"
+"是否覆盖现有存档数据？ "
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:219
 msgid "Save in Same Directory as the ROM"
@@ -11095,7 +11117,7 @@ msgstr "扫描成功。"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:78
 msgid "Scanning for adapters..."
-msgstr ""
+msgstr "正在扫描适配器..."
 
 #: Source/Core/DolphinQt/ToolBar.cpp:126
 msgid "ScrShot"
@@ -11233,7 +11255,7 @@ msgstr "选择存档文件"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1250
 msgid "Select Save Folder"
-msgstr ""
+msgstr "选择存档文件夹"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:484
 msgid "Select Skylander Collection"
@@ -12193,6 +12215,11 @@ msgid ""
 "issues.</dolphin_emphasis> <br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"检测到延迟时跳过垂直消隐中断，从而在模拟速度不是 100% 时平滑地播放音频。"
+"<br><br>启用此项还会强制执行“跳过重复出现的帧”设置的效果。"
+"<br><br><dolphin_emphasis>警告：可能导致卡死和兼容性问题。</"
+"dolphin_emphasis><br><br><dolphin_emphasis>如无法确定，请不要选中此项。</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:204
 msgid ""
@@ -12203,6 +12230,10 @@ msgid ""
 "is enabled. In those cases, duplicate frames are never presented."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"在 25/30帧率的游戏中跳过重复帧（XFB 副本）的显示。这可能会提升低端设备的性"
+"能，但会使帧速率不稳定。<br><br>禁用此选项可获得最佳的帧同步。<br><br>启用“立"
+"即呈现 XFB”或“跳过 VBI”时，此设置不可用。在这些情况下，重复帧永远不会显示。"
+"<br><br><dolphin_emphasis>如无法确定，请选中此项。</dolphin_emphasis>"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:403
@@ -12278,7 +12309,7 @@ msgstr "一些应为零的填充数据没有为零。这会使游戏在某些节
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
 msgid "Some settings cannot be changed when emulation is running."
-msgstr ""
+msgstr "模拟正在运行时某些设置无法更改。"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:257
 msgid ""
@@ -12637,7 +12668,7 @@ msgstr "提取系统数据成功。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1329
 msgid "Successfully imported %1 save file(s) with %2 failure(s)"
-msgstr ""
+msgstr "成功导入 %1 个存档文件并有 %2 个导入失败"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1223
 msgid "Successfully imported save file."
@@ -12961,6 +12992,8 @@ msgid ""
 "traditional buttons, triggers or axes. You might need to configure alternate "
 "input sources before using these controls."
 msgstr ""
+"加速度计与陀螺仪组内的各控制项用于直接对接体感硬件，而非映射至传统按键、扳机"
+"或轴。使用这些控制项前可能需要先进行其他输入源的配置。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:460
 msgid "The data partition is missing."
@@ -13404,6 +13437,8 @@ msgid ""
 "axes. You might need to configure alternate input sources before using these "
 "controls."
 msgstr ""
+"这些控制项用于直接对接体感硬件，而非映射至传统按键、扳机或轴。使用这些控制项"
+"前可能需要先进行其他输入源的配置。"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:263
 msgid "These settings override core Dolphin settings."
@@ -13824,7 +13859,7 @@ msgstr "切换 USB 键盘"
 
 #: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Toggle Wii Speak Mute"
-msgstr ""
+msgstr "切换 Wii 语音静音"
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle XFB Copies"
@@ -14557,7 +14592,7 @@ msgstr "垂直同步"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:124
 msgid "VBI Frequency Override"
-msgstr ""
+msgstr "VBI 频率覆盖"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:113
 msgid "VBI Skip"
@@ -14683,7 +14718,7 @@ msgstr "增大音量"
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:81
 #, c-format
 msgid "Volume modifier (value: %1dB)"
-msgstr ""
+msgstr "音量调节（数值: %1d 贝）"
 
 #: Source/Core/VideoBackends/Vulkan/VideoBackend.h:18
 msgid "Vulkan"
@@ -14995,7 +15030,7 @@ msgstr "Wii 遥控器"
 #. i18n: Window for managing the Wii Speak microphone
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:28
 msgid "Wii Speak Manager"
-msgstr ""
+msgstr "Wii 语音管理器"
 
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:458
 msgid "Wii TAS Input %1 - Classic Controller"

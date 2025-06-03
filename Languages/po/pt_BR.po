@@ -46,7 +46,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-22 23:25+0200\n"
+"POT-Creation-Date: 2025-06-03 09:05+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2025\n"
 "Language-Team: Portuguese (Brazil) (http://app.transifex.com/dolphinemu/"
@@ -290,7 +290,7 @@ msgstr "%1% (%2 MHz)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:335
 msgid "%1% (%2 VPS)"
-msgstr ""
+msgstr "%1% (%2 VPS)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:176
 msgid "%1% (Normal Speed)"
@@ -327,12 +327,16 @@ msgstr "%1: %2"
 msgid ""
 "%1: Failed to import save file. Please launch the game once, then try again."
 msgstr ""
+"%1: Falha ao importar o arquivo de dados salvos. Por favor, inicie o jogo "
+"correspondente pelo menos uma vez, depois tente novamente."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1302
 msgid ""
 "%1: Failed to import save file. The given file appears to be corrupted or is "
 "not a valid Wii save."
 msgstr ""
+"%1: Falha ao importar o arquivo de dados salvos. O arquivo fornecido pode "
+"estar corrompido ou não contém dados salvos válidos do Wii."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1317
 msgid ""
@@ -340,6 +344,10 @@ msgid ""
 "preventing access to files within it. Try repairing your NAND (Tools -> "
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
+"%1: Falha ao importar o arquivo de dados salvos. Sua NAND pode estar "
+"corrompida ou algo está impedindo o acesso aos arquivos dentro dela. Tente "
+"reparar a NAND (Ferramentas -> Gerenciar NAND -> Verificar NAND...) , então "
+"importe os dados salvos novamente."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1275
 msgid ""
@@ -348,6 +356,10 @@ msgid ""
 "\n"
 "Overwrite existing save data?"
 msgstr ""
+"%1: Dados salvos para esse software já existem na NAND. Considere fazer "
+"backup dos dados atuais antes de substituí-los.\n"
+"\n"
+"Substituir os dados existentes?"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:283
 msgid "%1<br><br>%2"
@@ -841,7 +853,7 @@ msgstr "&Website"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Wii Speak"
-msgstr ""
+msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:425
 msgid "&Wiki"
@@ -1596,6 +1608,17 @@ msgid ""
 "Please do not report bugs that occur with a non-default frequency."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ajusta a frequência do VBI. Também ajusta o clock da CPU emulada para um "
+"valor equivalente.<br><br>Faz com que os jogos executem com uma taxa de "
+"quadros diferente do padrão, reduzindo o impacto de desempenho ao ser "
+"diminuída, ou melhorando a suavidade dos quadros ao ser aumentada. Isso "
+"também pode afetar a velocidade do jogo, que costuma ser vinculada à taxa de "
+"quadros.<br><br><b>AVISO:</b> Alterar essa opção para qualquer valor "
+"diferente do padrão (100%) causará sérios problemas na maioria dos jogos. "
+"Faça isso por sua conta e risco. Por favor, não relate problemas que ocorrem "
+"ao utilizar frequências do VBI diferentes da padrão."
+"<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção desativada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:186
 msgid ""
@@ -1635,6 +1658,15 @@ msgid ""
 "a non-default clock.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ajusta a velocidade de clock da CPU emulada.<br><br>Velocidades mais altas "
+"podem melhorar o desempenho em jogos com taxa de quadros instável, mas eleva "
+"os requisitos de CPU. Velocidades mais baixas reduzem o desempenho do "
+"console emulado, mas melhoram a velocidade de emulação.<br><br><b>AVISO:</b> "
+"Alterar essa opção para qualquer valor diferente do padrão (100%) causará "
+"sérios problemas na maioria dos jogos. Faça isso por sua conta e risco. Por "
+"favor, não relate problemas que ocorrem ao utilizar velocidades de clock "
+"diferentes da padrão.<br><br><dolphin_emphasis>Na dúvida, mantenha essa "
+"opção desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:302
 msgid ""
@@ -2002,7 +2034,7 @@ msgstr "Configurações da Reprodução de Áudio"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:99
 msgid "Audio backend unsupported"
-msgstr ""
+msgstr "Backend de áudio não suportado"
 
 #: Source/Core/DiscIO/Enums.cpp:33
 msgid "Australia"
@@ -2063,7 +2095,7 @@ msgstr "Auto-detectar os módulos do RSO?"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:102
 msgid "Autodetect preferred microphone"
-msgstr ""
+msgstr "Detectar microfone preferido automaticamente"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:108
 msgid "Automatic"
@@ -4441,6 +4473,12 @@ msgid ""
 "the Skip Presenting Duplicate Frames setting.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Exibe cópias do XFB imediatamente após sua criação, ao invés de aguardar "
+"pelo scanout.<br><br>Pode causar defeitos gráficos em alguns jogos que não "
+"esperam que todas as cópias do XFB sejam mostradas. No entanto, ativar essa "
+"opção reduz a latência.<br><br>Se essa opção for ativada, \"Ignorar Exibição "
+"de Quadros Duplicados\" também será ativada.<br><br><dolphin_emphasis>Na "
+"dúvida, mantenha essa opção desativada.</dolphin_emphasis>"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:28
 msgid "Distance"
@@ -4940,7 +4978,7 @@ msgstr "Emular Portal Skylander"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:53
 msgid "Emulate Wii Speak"
-msgstr ""
+msgstr "Emular Wii Speak"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:199
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -5130,7 +5168,7 @@ msgstr "Ativar Envio de Estatísticas de Uso"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:130
 msgid "Enable VBI Frequency Override"
-msgstr ""
+msgstr "Ativar Ajuste de Frequência do VBI"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:159
 msgid "Enable WiiConnect24 via WiiLink"
@@ -7833,7 +7871,7 @@ msgstr "Importar Dados Salvos do Wii..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Import Wii Saves..."
-msgstr ""
+msgstr "Importar Dados Salvos do Wii..."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1836
 msgid "Importing NAND backup"
@@ -9154,7 +9192,7 @@ msgstr "Microfone"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
 msgid "Microphone Configuration"
-msgstr ""
+msgstr "Configuração do Microfone"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
@@ -9301,7 +9339,7 @@ msgstr "Multiplicador"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
 msgid "Mute"
-msgstr ""
+msgstr "Mudo"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:172
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
@@ -11475,6 +11513,10 @@ msgid ""
 "\n"
 "Overwrite existing save data?"
 msgstr ""
+"Dados salvos para esse software já existem na NAND. Considere fazer backup "
+"dos dados atuais antes de substituí-los.\n"
+"\n"
+"Substituir os dados existentes?"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:219
 msgid "Save in Same Directory as the ROM"
@@ -11516,7 +11558,7 @@ msgstr "Scan bem-sucedido."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:78
 msgid "Scanning for adapters..."
-msgstr ""
+msgstr "Procurando adaptadores..."
 
 #: Source/Core/DolphinQt/ToolBar.cpp:126
 msgid "ScrShot"
@@ -11660,7 +11702,7 @@ msgstr "Selecione Arquivo de Dados Salvos"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1250
 msgid "Select Save Folder"
-msgstr ""
+msgstr "Selecione Pasta de Dados Salvos"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:484
 msgid "Select Skylander Collection"
@@ -12680,6 +12722,13 @@ msgid ""
 "issues.</dolphin_emphasis> <br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ignora interrupções de sincronização vertical ao detectar lentidão, evitando "
+"picotamentos na reprodução de áudio quando a velocidade de emulação estiver "
+"abaixo de 100%. <br><br>Se essa opção for ativada, \"Ignorar Exibição de "
+"Quadros Duplicados\" também será ativada.<br><br><dolphin_emphasis>AVISO: "
+"Pode causar congelamentos e outros problemas de compatibilidade.</"
+"dolphin_emphasis><br><br><dolphin_emphasis>Na dúvida, mantenha essa opção "
+"desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:204
 msgid ""
@@ -12690,6 +12739,13 @@ msgid ""
 "is enabled. In those cases, duplicate frames are never presented."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"Ignora a exibição de quadros duplicados (cópias do XFB) em jogos de 25/30 "
+"FPS. Isso pode melhorar o desempenho em dispositivos fracos mas torna o "
+"ritmo de quadros menos consistente.<br><br>Desative essa opção para um ritmo "
+"de quadros ideal.<br><br>Essa opção é ativada automaticamente quando "
+"\"Exibir o XFB Imediatamente\" ou \"Ignorar VBI\" estão ativadas."
+"<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção ativada.</"
+"dolphin_emphasis>"
 
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:403
@@ -12768,6 +12824,8 @@ msgstr ""
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
 msgid "Some settings cannot be changed when emulation is running."
 msgstr ""
+"Algumas opções não podem ser alteradas enquanto a emulação estiver em "
+"execução."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:257
 msgid ""
@@ -13134,7 +13192,7 @@ msgstr "Dados extraídos do sistema com sucesso."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1329
 msgid "Successfully imported %1 save file(s) with %2 failure(s)"
-msgstr ""
+msgstr "Arquivos de %1 jogos salvos importados com %2 falha(s)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1223
 msgid "Successfully imported save file."
@@ -13472,6 +13530,11 @@ msgid ""
 "traditional buttons, triggers or axes. You might need to configure alternate "
 "input sources before using these controls."
 msgstr ""
+"Os controles nos grupos \"Acelerômetro\" e \"Giroscópio\" foram projetados "
+"para interagir diretamente com o hardware de sensores de movimento. Eles não "
+"são destinados ao mapeamento de botões, gatilhos ou eixos tradicionais. Pode "
+"ser necessário configurar fontes de entrada adicionais antes de usar esses "
+"controles."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:460
 msgid "The data partition is missing."
@@ -13950,6 +14013,10 @@ msgid ""
 "axes. You might need to configure alternate input sources before using these "
 "controls."
 msgstr ""
+"Esses controles foram projetados para interagir diretamente com o hardware "
+"de sensores de movimento. Eles não são destinados ao mapeamento de botões, "
+"gatilhos ou eixos tradicionais. Pode ser necessário configurar fontes de "
+"entrada adicionais antes de usar esses controles."
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:263
 msgid "These settings override core Dolphin settings."
@@ -14406,7 +14473,7 @@ msgstr "Conectar/Desconectar Teclado USB"
 
 #: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Toggle Wii Speak Mute"
-msgstr ""
+msgstr "Ativar/Desativar Mudo do Wii Speak"
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle XFB Copies"
@@ -15171,7 +15238,7 @@ msgstr "V-Sync"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:124
 msgid "VBI Frequency Override"
-msgstr ""
+msgstr "Frequência do VBI"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:113
 msgid "VBI Skip"
@@ -15297,7 +15364,7 @@ msgstr "Aumentar Volume"
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:81
 #, c-format
 msgid "Volume modifier (value: %1dB)"
-msgstr ""
+msgstr "Modificador de volume (valor: %1dB)"
 
 #: Source/Core/VideoBackends/Vulkan/VideoBackend.h:18
 msgid "Vulkan"
@@ -15641,7 +15708,7 @@ msgstr "Wii Remotes"
 #. i18n: Window for managing the Wii Speak microphone
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:28
 msgid "Wii Speak Manager"
-msgstr ""
+msgstr "Gerenciador do Wii Speak"
 
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:458
 msgid "Wii TAS Input %1 - Classic Controller"

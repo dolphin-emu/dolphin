@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-22 23:25+0200\n"
+"POT-Creation-Date: 2025-06-03 09:05+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Péter Patkós, 2023-2025\n"
 "Language-Team: Hungarian (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -249,7 +249,7 @@ msgstr "%1% (%2 MHz)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:335
 msgid "%1% (%2 VPS)"
-msgstr ""
+msgstr "%1% (%2 VPS)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:176
 msgid "%1% (Normal Speed)"
@@ -286,12 +286,16 @@ msgstr "%1: %2"
 msgid ""
 "%1: Failed to import save file. Please launch the game once, then try again."
 msgstr ""
+"%1: A mentési fájl importálása sikertelen. Indítsd el a játékot egyszer, "
+"majd próbáld újra."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1302
 msgid ""
 "%1: Failed to import save file. The given file appears to be corrupted or is "
 "not a valid Wii save."
 msgstr ""
+"%1: A mentési fájl importálása sikertelen. A megadott fájl sérült, vagy nem "
+"érvényes Wii mentés."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1317
 msgid ""
@@ -800,7 +804,7 @@ msgstr "&Weboldal"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Wii Speak"
-msgstr ""
+msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:425
 msgid "&Wiki"
@@ -1938,7 +1942,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:102
 msgid "Autodetect preferred microphone"
-msgstr ""
+msgstr "Preferált mikrofon automatikus felismerése"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:108
 msgid "Automatic"
@@ -4537,7 +4541,7 @@ msgstr "Skylander Portal emulálása"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:53
 msgid "Emulate Wii Speak"
-msgstr ""
+msgstr "Wii Speak emulálása"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:199
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -4706,7 +4710,7 @@ msgstr "Használati statisztika jelentése"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:130
 msgid "Enable VBI Frequency Override"
-msgstr ""
+msgstr "VBI frekvencia felülbírálás engedélyezése"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:159
 msgid "Enable WiiConnect24 via WiiLink"
@@ -7115,7 +7119,7 @@ msgstr "Wii mentés importálása..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Import Wii Saves..."
-msgstr ""
+msgstr "Wii mentések importálása..."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1836
 msgid "Importing NAND backup"
@@ -8371,7 +8375,7 @@ msgstr "Mikrofon"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
 msgid "Microphone Configuration"
-msgstr ""
+msgstr "Mikrofon konfiguráció"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
@@ -8503,7 +8507,7 @@ msgstr "Szorzó"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
 msgid "Mute"
-msgstr ""
+msgstr "Némítás"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:172
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
@@ -10600,7 +10604,7 @@ msgstr "Sikeres szkennelés."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:78
 msgid "Scanning for adapters..."
-msgstr ""
+msgstr "Adapterek keresése..."
 
 #: Source/Core/DolphinQt/ToolBar.cpp:126
 msgid "ScrShot"
@@ -10738,7 +10742,7 @@ msgstr "Mentési fájl kiválasztása"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1250
 msgid "Select Save Folder"
-msgstr ""
+msgstr "Mentési hely kiválasztása"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:484
 msgid "Select Skylander Collection"
@@ -11100,6 +11104,10 @@ msgid ""
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
 "this at 20 ms.</dolphin_emphasis>"
 msgstr ""
+"Beállítja a hangkésleltetést ezredmásodpercben. A magasabb értékek "
+"csökkenthetik a hang recsegését. Csak bizonyos backendekre vonatkozik."
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd 20 ms értéken.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:343
 msgid ""
@@ -11351,7 +11359,7 @@ msgstr "Cél megjelenítése a &Memóriában"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:747
 msgid "Show Triforce"
-msgstr ""
+msgstr "Triforce megjelenítése"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:774
 msgid "Show USA"
@@ -11702,7 +11710,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
 msgid "Some settings cannot be changed when emulation is running."
-msgstr ""
+msgstr "Egyes beállítások nem módosíthatók emuláció közben."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:257
 msgid ""
@@ -12049,7 +12057,7 @@ msgstr "Rendszeradatok sikeresen kibontva."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1329
 msgid "Successfully imported %1 save file(s) with %2 failure(s)"
-msgstr ""
+msgstr " %1 mentési fájl sikeresen importálva %2 hibával."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1223
 msgid "Successfully imported save file."
@@ -13170,7 +13178,7 @@ msgstr "USB billentyűzet kapcsoló"
 
 #: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Toggle Wii Speak Mute"
-msgstr ""
+msgstr "Wii Speak némítás kapcsoló"
 
 #: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle XFB Copies"
@@ -13871,7 +13879,7 @@ msgstr "V-Sync"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:124
 msgid "VBI Frequency Override"
-msgstr ""
+msgstr "VBI frekvencia felülbírálás"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:113
 msgid "VBI Skip"
@@ -13997,7 +14005,7 @@ msgstr "Hangerő fel"
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:81
 #, c-format
 msgid "Volume modifier (value: %1dB)"
-msgstr ""
+msgstr "Hangerő szabályozó (érték: %1dB)"
 
 #: Source/Core/VideoBackends/Vulkan/VideoBackend.h:18
 msgid "Vulkan"
@@ -14265,7 +14273,7 @@ msgstr ""
 #. i18n: Window for managing the Wii Speak microphone
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:28
 msgid "Wii Speak Manager"
-msgstr ""
+msgstr "Wii Speak kezelő"
 
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:458
 msgid "Wii TAS Input %1 - Classic Controller"
