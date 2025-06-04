@@ -217,7 +217,7 @@ bool MemoryManager::InitFastmemArena()
       continue;
 
     u8* base = m_physical_base + region.physical_address;
-    u8* view = (u8*)m_arena.MapInMemoryRegion(region.shm_position, region.size, base);
+    const u8* const view = (u8*)m_arena.MapInMemoryRegion(region.shm_position, region.size, base);
 
     if (base != view)
     {
@@ -235,7 +235,7 @@ bool MemoryManager::InitFastmemArena()
 
 void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
-  for (auto& entry : m_logical_mapped_entries)
+  for (const auto& entry : m_logical_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
@@ -247,9 +247,9 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
   {
     if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
     {
-      u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+      const u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
-      u32 logical_size = PowerPC::BAT_PAGE_SIZE;
+      const u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
       for (const auto& physical_region : m_physical_regions)
       {
@@ -258,17 +258,18 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 
         u32 mapping_address = physical_region.physical_address;
         u32 mapping_end = mapping_address + physical_region.size;
-        u32 intersection_start = std::max(mapping_address, translated_address);
-        u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
+        const u32 intersection_start = std::max(mapping_address, translated_address);
+        const u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
         if (intersection_start < intersection_end)
         {
           // Found an overlapping region; map it.
 
           if (m_is_fastmem_arena_initialized)
           {
-            u32 position = physical_region.shm_position + intersection_start - mapping_address;
+            const u32 position =
+                physical_region.shm_position + intersection_start - mapping_address;
             u8* base = m_logical_base + logical_address + intersection_start - translated_address;
-            u32 mapped_size = intersection_end - intersection_start;
+            const u32 mapped_size = intersection_end - intersection_start;
 
             void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
             if (!mapped_pointer)
@@ -371,7 +372,7 @@ void MemoryManager::ShutdownFastmemArena()
     m_arena.UnmapFromMemoryRegion(base, region.size);
   }
 
-  for (auto& entry : m_logical_mapped_entries)
+  for (const auto& entry : m_logical_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
@@ -425,7 +426,7 @@ void MemoryManager::CopyFromEmu(void* data, u32 address, size_t size) const
   if (size == 0)
     return;
 
-  void* pointer = GetPointerForRange(address, size);
+  const void* const pointer = GetPointerForRange(address, size);
   if (!pointer)
   {
     PanicAlertFmt("Invalid range in CopyFromEmu. {:x} bytes from {:#010x}", size, address);
@@ -483,7 +484,7 @@ std::string MemoryManager::GetString(u32 em_address, size_t size)
   {
     result.resize(size);
     CopyFromEmu(result.data(), em_address, size);
-    size_t length = strnlen(result.data(), size);
+    const size_t length = strnlen(result.data(), size);
     result.resize(length);
     return result;
   }
@@ -506,7 +507,7 @@ std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
     }
   }
 
-  auto& ppc_state = m_system.GetPPCState();
+  const auto& ppc_state = m_system.GetPPCState();
   PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
                 LR(ppc_state));
   return {};
@@ -547,19 +548,19 @@ void MemoryManager::Write_U8(u8 value, u32 address)
 
 void MemoryManager::Write_U16(u16 value, u32 address)
 {
-  u16 swapped_value = Common::swap16(value);
+  const u16 swapped_value = Common::swap16(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
 void MemoryManager::Write_U32(u32 value, u32 address)
 {
-  u32 swapped_value = Common::swap32(value);
+  const u32 swapped_value = Common::swap32(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
 void MemoryManager::Write_U64(u64 value, u32 address)
 {
-  u64 swapped_value = Common::swap64(value);
+  const u64 swapped_value = Common::swap64(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
