@@ -14,6 +14,9 @@
         android:name="android.hardware.gamepad"
         android:required="false"/>
     <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false"/>
+    <uses-feature
         android:name="android.software.leanback"
         android:required="false"/>
 
@@ -25,12 +28,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA"/>
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
-    <uses-permission
-        android:name="android.permission.VIBRATE"
-        android:required="false"/>
-    <uses-permission
-        android:name="android.permission.RECORD_AUDIO"
-        android:required="false"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
         android:name=".DolphinApplication"
