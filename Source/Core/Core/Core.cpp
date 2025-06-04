@@ -8,6 +8,7 @@
 #include <cstring>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <utility>
 #include <variant>
@@ -34,6 +35,7 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/TimeUtil.h"
 #include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
@@ -737,15 +739,17 @@ static std::string GenerateScreenshotFolderPath()
   return path;
 }
 
-static std::string GenerateScreenshotName()
+static std::optional<std::string> GenerateScreenshotName()
 {
   // append gameId, path only contains the folder here.
   const std::string path_prefix =
       GenerateScreenshotFolderPath() + SConfig::GetInstance().GetGameID();
 
   const std::time_t cur_time = std::time(nullptr);
-  const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, fmt::localtime(cur_time));
+  const auto local_time = Common::LocalTime(cur_time);
+  if (!local_time)
+    return std::nullopt;
+  const std::string base_name = fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *local_time);
 
   // First try a filename without any suffixes, if already exists then append increasing numbers
   std::string name = fmt::format("{}.png", base_name);
@@ -761,7 +765,9 @@ static std::string GenerateScreenshotName()
 void SaveScreenShot()
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
-  g_frame_dumper->SaveScreenshot(GenerateScreenshotName());
+  std::optional<std::string> name = GenerateScreenshotName();
+  if (name)
+    g_frame_dumper->SaveScreenshot(*name);
 }
 
 void SaveScreenShot(std::string_view name)
