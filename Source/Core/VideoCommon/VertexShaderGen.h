@@ -88,6 +88,15 @@ struct vertex_shader_uid_data
 
 using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 
+struct CustomVertexContents
+{
+  std::string_view shader = "";
+  std::string_view uniforms = "";
+};
+
 VertexShaderUid GetVertexShaderUid();
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                    const vertex_shader_uid_data* uid_data);
+                                    const vertex_shader_uid_data* uid_data,
+                                    CustomVertexContents custom_contents);
+void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
+                     const vertex_shader_uid_data* uid_data, ShaderCode& out);
