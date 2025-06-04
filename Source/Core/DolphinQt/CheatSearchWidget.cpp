@@ -249,7 +249,7 @@ void CheatSearchWidget::CreateWidgets()
   checkboxes_layout->addWidget(m_autoupdate_current_values);
   checkboxes_layout->setStretchFactor(m_autoupdate_current_values, 2);
 
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto* const layout = new QVBoxLayout{this};
   layout->addWidget(session_info_label);
   layout->addWidget(instructions_label);
   layout->addLayout(value_layout);
@@ -258,8 +258,6 @@ void CheatSearchWidget::CreateWidgets()
   layout->addWidget(m_info_label_1);
   layout->addWidget(m_info_label_2);
   layout->addWidget(m_address_table);
-
-  WrapInScrollArea(this, layout);
 }
 
 void CheatSearchWidget::ConnectWidgets()

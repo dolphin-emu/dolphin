@@ -6,12 +6,12 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QFileInfo>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QMenu>
 #include <QStandardItemModel>
 #include <QStyleFactory>
 #include <QTreeView>
-#include <QVBoxLayout>
 
 #include <future>
 
@@ -55,7 +55,10 @@ FilesystemWidget::~FilesystemWidget() = default;
 
 void FilesystemWidget::CreateWidgets()
 {
-  auto* layout = new QVBoxLayout;
+  // Note: At least with KDE Plasma,
+  //  QTreeView takes on an ugly square-corner style when alone in a QVBoxLayout.
+  // QGridLayout does not produce this problem.
+  auto* const layout = new QGridLayout{this};
 
   m_tree_model = new QStandardItemModel(0, 2);
   m_tree_model->setHorizontalHeaderLabels({tr("Name"), tr("Size")});
@@ -78,8 +81,6 @@ void FilesystemWidget::CreateWidgets()
 #endif
 
   layout->addWidget(m_tree_view);
-
-  setLayout(layout);
 }
 
 void FilesystemWidget::ConnectWidgets()

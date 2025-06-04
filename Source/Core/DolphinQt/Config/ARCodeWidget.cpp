@@ -24,9 +24,6 @@
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
-
-#include "UICommon/GameFile.h"
 
 ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
     : m_game_id(std::move(game_id)), m_game_revision(game_revision),
@@ -77,7 +74,7 @@ void ARCodeWidget::CreateWidgets()
   button_layout->addWidget(m_code_edit);
   button_layout->addWidget(m_code_remove);
 
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto* const layout = new QVBoxLayout{this};
 
   layout->addWidget(m_warning);
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -85,8 +82,6 @@ void ARCodeWidget::CreateWidgets()
 #endif  // USE_RETRO_ACHIEVEMENTS
   layout->addWidget(m_code_list);
   layout->addLayout(button_layout);
-
-  WrapInScrollArea(this, layout);
 }
 
 void ARCodeWidget::ConnectWidgets()

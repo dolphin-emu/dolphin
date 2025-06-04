@@ -37,6 +37,8 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   if (!game.GetLanguages().empty())
     layout->addWidget(CreateBannerDetails());
 
+  layout->addStretch(1);
+
   setLayout(layout);
 }
 
