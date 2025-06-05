@@ -28,6 +28,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -150,6 +151,20 @@ void InterfacePane::CreateUI()
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
+
+  // ImGui Font Size
+  auto* imgui_size_layout = new QHBoxLayout();
+
+  m_imgui_size = new ConfigSlider(12, 40, Config::MAIN_IMGUI_FONT_SIZE);
+  auto* imgui_size_number = new QLabel(QString::number(m_imgui_size->value()));
+  connect(m_imgui_size, &QSlider::valueChanged, this, [this, imgui_size_number](int value) {
+    imgui_size_number->setText(QString::number(value));
+  });
+
+  imgui_size_layout->addWidget(m_imgui_size);
+  imgui_size_layout->addWidget(imgui_size_number);
+  imgui_size_layout->setContentsMargins(0, 0, 0, 0);
+  combobox_layout->addRow(tr("Imgui Font Size:"), imgui_size_layout);
 
   // TODO: Support forcing light/dark on other OSes too.
 #ifdef _WIN32
