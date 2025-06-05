@@ -224,11 +224,11 @@ void SDSP::CheckExternalInterrupt()
   control_reg &= ~CR_EXTERNAL_INT;
 }
 
-void SDSP::CheckExceptions()
+bool SDSP::CheckExceptions()
 {
   // Early out to skip the loop in the common case.
   if (exceptions == 0)
-    return;
+    return false;
 
   for (int i = 7; i > 0; i--)
   {
@@ -247,7 +247,7 @@ void SDSP::CheckExceptions()
           r.sr &= ~SR_EXT_INT_ENABLE;
         else
           r.sr &= ~SR_INT_ENABLE;
-        break;
+        return true;
       }
       else
       {
@@ -257,6 +257,8 @@ void SDSP::CheckExceptions()
       }
     }
   }
+
+  return false;
 }
 
 u16 SDSP::ReadRegister(size_t reg) const
@@ -541,9 +543,9 @@ void DSPCore::CheckExternalInterrupt()
   m_dsp.CheckExternalInterrupt();
 }
 
-void DSPCore::CheckExceptions()
+bool DSPCore::CheckExceptions()
 {
-  m_dsp.CheckExceptions();
+  return m_dsp.CheckExceptions();
 }
 
 u16 DSPCore::ReadRegister(size_t reg) const
