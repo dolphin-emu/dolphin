@@ -135,9 +135,11 @@ void Analyzer::FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_ad
 
     // If an instruction potentially raises exceptions, mark the following
     // instruction as needing to check for exceptions
-    if (opcode->opcode == 0x00c0 || opcode->opcode == 0x1800 || opcode->opcode == 0x1880 ||
-        opcode->opcode == 0x1900 || opcode->opcode == 0x1980 || opcode->opcode == 0x2000 ||
-        opcode->extended)
+    if (opcode->opcode == 0x00c0 || opcode->opcode == 0x00e0 || opcode->opcode == 0x1600 ||
+        opcode->opcode == 0x1800 || opcode->opcode == 0x1880 || opcode->opcode == 0x1900 ||
+        opcode->opcode == 0x1980 || opcode->opcode == 0x1a00 || opcode->opcode == 0x1a80 ||
+        opcode->opcode == 0x1b00 || opcode->opcode == 0x1b80 || opcode->opcode == 0x2000 ||
+        opcode->opcode == 0x2800 || opcode->opcode == 0x2c00 || opcode->extended)
     {
       m_code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_EXC;
     }
