@@ -383,8 +383,8 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "HID4 updated {:x} {:x}", old_value, ppc_state.spr[index]);
-      interpreter.m_mmu.IBATUpdated();
-      interpreter.m_mmu.DBATUpdated();
+      // interpreter.m_mmu.IBATUpdated();
+      // interpreter.m_mmu.DBATUpdated();
     }
     break;
 
@@ -466,7 +466,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "DBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
-      interpreter.m_mmu.DBATUpdated();
+      // interpreter.m_mmu.DBATUpdated();
     }
     break;
 
@@ -489,7 +489,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
-      interpreter.m_mmu.IBATUpdated();
+      // interpreter.m_mmu.IBATUpdated();
     }
     break;
 

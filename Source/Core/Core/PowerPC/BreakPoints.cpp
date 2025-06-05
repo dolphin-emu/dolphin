@@ -353,7 +353,7 @@ void MemChecks::Update()
     m_mem_breakpoints_set = HasAny();
   }
 
-  m_system.GetMMU().DBATUpdated();
+  // m_system.GetMMU().DBATUpdated();
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
