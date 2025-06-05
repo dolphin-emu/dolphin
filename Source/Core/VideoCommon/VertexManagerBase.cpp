@@ -1331,7 +1331,8 @@ void VertexManagerBase::DrawEmulatedMesh(GraphicsModSystem::MaterialResource* ma
   }
 }
 
-void VertexManagerBase::DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_resource,
+void VertexManagerBase::DrawCustomMesh(GraphicsModSystem::DrawCallID draw_call,
+                                       GraphicsModSystem::MeshResource* mesh_resource,
                                        const GraphicsModSystem::DrawDataView& draw_data,
                                        const Common::Matrix44& custom_transform,
                                        bool ignore_mesh_transform,
@@ -1340,15 +1341,20 @@ void VertexManagerBase::DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_res
   auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
 
-  for (const auto& mesh_chunk : mesh_resource->mesh_chunks)
-  {
+  const auto process_mesh_chunk = [&](const GraphicsModSystem::MeshChunkResource& mesh_chunk,
+                                      std::span<const u16> index_data) {
     // TODO: draw with a generic material?
     if (!mesh_chunk.material) [[unlikely]]
-      continue;
+      return;
 
     if (!mesh_chunk.material->pipeline || !mesh_chunk.material->pipeline->m_config.vertex_shader ||
         !mesh_chunk.material->pipeline->m_config.pixel_shader) [[unlikely]]
-      continue;
+    {
+      return;
+    }
+
+    if (mesh_chunk.vertex_data.empty() || index_data.empty()) [[unlikely]]
+      return;
 
     vertex_shader_manager.SetVertexFormat(mesh_chunk.components_available,
                                           mesh_chunk.vertex_format->GetVertexDeclaration());
@@ -1363,14 +1369,33 @@ void VertexManagerBase::DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_res
            4 * sizeof(float4));
 
     u32 base_vertex, base_index;
-    UploadUtilityVertices(
-        mesh_chunk.vertex_data.data(), mesh_chunk.vertex_stride,
-        static_cast<u32>(mesh_chunk.vertex_data.size()), mesh_chunk.index_data.data(),
-        static_cast<u32>(mesh_chunk.index_data.size()), &base_vertex, &base_index);
+    UploadUtilityVertices(mesh_chunk.vertex_data.data(), mesh_chunk.vertex_stride,
+                          static_cast<u32>(mesh_chunk.vertex_data.size()), index_data.data(),
+                          static_cast<u32>(index_data.size()), &base_vertex, &base_index);
 
-    DrawViewsWithMaterial(base_vertex, base_index, static_cast<u32>(mesh_chunk.index_data.size()),
+    DrawViewsWithMaterial(base_vertex, base_index, static_cast<u32>(index_data.size()),
                           mesh_chunk.primitive_type, draw_data, mesh_chunk.material,
                           camera_manager);
+  };
+
+  if (mesh_resource->draw_call_to_gpu_skinning_mesh_chunk.empty())
+  {
+    for (const auto& mesh_chunk : mesh_resource->mesh_chunks)
+    {
+      process_mesh_chunk(mesh_chunk, mesh_chunk.index_data);
+    }
+  }
+  else
+  {
+    if (const auto iter = mesh_resource->draw_call_to_gpu_skinning_mesh_chunk.find(draw_call);
+        iter != mesh_resource->draw_call_to_gpu_skinning_mesh_chunk.end())
+    {
+      auto& gpu_skinning_chunks = iter->second;
+      for (const auto& skinning_chunk : gpu_skinning_chunks)
+      {
+        process_mesh_chunk(skinning_chunk, skinning_chunk.index_data);
+      }
+    }
   }
 }
 
