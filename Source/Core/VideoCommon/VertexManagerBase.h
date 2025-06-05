@@ -28,6 +28,8 @@ struct PortableVertexDeclaration;
 
 namespace GraphicsModSystem
 {
+enum class DrawCallID : unsigned long long;
+
 struct DrawDataView;
 struct MaterialResource;
 struct MeshResource;
@@ -199,7 +201,8 @@ public:
                         VideoCommon::CameraManager& camera_manager);
 
   // Draw a custom mesh sourced from a mod, with a custom shader and custom vertex information
-  void DrawCustomMesh(GraphicsModSystem::MeshResource* mesh_resource,
+  void DrawCustomMesh(GraphicsModSystem::DrawCallID draw_call,
+                      GraphicsModSystem::MeshResource* mesh_resource,
                       const GraphicsModSystem::DrawDataView& draw_data,
                       const Common::Matrix44& custom_transform, bool ignore_mesh_transform,
                       VideoCommon::CameraManager& camera_manager);
