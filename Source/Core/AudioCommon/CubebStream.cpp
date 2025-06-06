@@ -10,7 +10,6 @@
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
 
 #ifdef _WIN32

@@ -8,7 +8,6 @@
 // clang-format off
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
-#include <devpkey.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <wil/resource.h>
 // clang-format on
