@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       block_encoder.c
 /// \brief      Encodes .xz Blocks
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -77,8 +76,11 @@ block_encode(void *coder_ptr, const lzma_allocator *allocator,
 		// checked it at the beginning of this function.
 		coder->uncompressed_size += in_used;
 
-		lzma_check_update(&coder->check, coder->block->check,
-				in + in_start, in_used);
+		// Call lzma_check_update() only if input was consumed. This
+		// avoids null pointer + 0 (undefined behavior) when in == 0.
+		if (in_used > 0)
+			lzma_check_update(&coder->check, coder->block->check,
+					in + in_start, in_used);
 
 		if (ret != LZMA_STREAM_END || action == LZMA_SYNC_FLUSH)
 			return ret;
@@ -217,6 +219,7 @@ lzma_block_encoder(lzma_stream *strm, lzma_block *block)
 	lzma_next_strm_init(lzma_block_encoder_init, strm, block);
 
 	strm->internal->supported_actions[LZMA_RUN] = true;
+	strm->internal->supported_actions[LZMA_SYNC_FLUSH] = true;
 	strm->internal->supported_actions[LZMA_FINISH] = true;
 
 	return LZMA_OK;
