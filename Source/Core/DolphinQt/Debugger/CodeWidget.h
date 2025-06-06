@@ -11,12 +11,14 @@
 
 class BranchWatchDialog;
 class QCloseEvent;
+class QComboBox;
 class QLineEdit;
 class QShowEvent;
 class QSplitter;
 class QListWidget;
 class QPushButton;
 class QTableWidget;
+class QToolButton;
 
 namespace Common
 {
@@ -63,6 +65,7 @@ private:
   void UpdateFunctionCallers(const Common::Symbol* symbol);
 
   void OnPPCSymbolsChanged();
+  void OnSaveAddress();
   void OnSearchAddress();
   void OnSearchSymbols();
   void OnSelectSymbol();
@@ -77,7 +80,8 @@ private:
   PPCSymbolDB& m_ppc_symbol_db;
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
-  QLineEdit* m_search_address;
+  QComboBox* m_search_address;
+  QToolButton* m_save_address_btn;
   QPushButton* m_branch_watch;
 
   QLineEdit* m_search_callstack;
